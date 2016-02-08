@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package jtransc;
+package java.io;
 
-import jtransc.annotation.JTranscInvisible;
+public final class FileDescriptor {
+    private int fd;
 
-import java.util.Locale;
+    public FileDescriptor() {
+        fd = -1;
+    }
 
-@JTranscInvisible
-public class JTranscStrings {
-	native public static String format(Locale l, String format, Object... args);
+    private FileDescriptor(int fd) {
+        this.fd = fd;
+    }
 
-	static public char[] getChars(String s, int offset, int len) {
-		char[] out = new char[len];
-		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
-		return out;
-	}
+    public static final FileDescriptor in = new FileDescriptor(0);
 
+    public static final FileDescriptor out = new FileDescriptor(1);
 
-	/*
-	public static String format(Locale l, String format, Object... args) {
-		return format + "@TODO:String.format:";
-	}
-	*/
+    public static final FileDescriptor err = new FileDescriptor(2);
+
+    public boolean valid() {
+        return fd != -1;
+    }
+
+    public native void sync() throws SyncFailedException;
 }

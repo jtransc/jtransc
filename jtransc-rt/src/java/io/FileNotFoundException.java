@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package jtransc;
+package java.io;
 
-import jtransc.annotation.JTranscInvisible;
+public class FileNotFoundException extends IOException {
+    public FileNotFoundException() {
+        super();
+    }
 
-import java.util.Locale;
+    public FileNotFoundException(String s) {
+        super(s);
+    }
 
-@JTranscInvisible
-public class JTranscStrings {
-	native public static String format(Locale l, String format, Object... args);
-
-	static public char[] getChars(String s, int offset, int len) {
-		char[] out = new char[len];
-		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
-		return out;
-	}
-
-
-	/*
-	public static String format(Locale l, String format, Object... args) {
-		return format + "@TODO:String.format:";
-	}
-	*/
+    private FileNotFoundException(String path, String reason) {
+        super(path + ((reason == null) ? "" : " (" + reason + ")"));
+    }
 }

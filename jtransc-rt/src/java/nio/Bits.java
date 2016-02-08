@@ -259,7 +259,7 @@ class Bits {
     private static volatile long count;
     private static boolean memoryLimitSet = false;
 
-    static synchronized void unreserveMemory(long size, int cap) {
+    static void unreserveMemory(long size, int cap) {
         if (reservedMemory > 0) {
             reservedMemory -= size;
             totalCapacity -= cap;

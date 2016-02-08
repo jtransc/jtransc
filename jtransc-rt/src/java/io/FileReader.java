@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package jtransc;
+package java.io;
 
-import jtransc.annotation.JTranscInvisible;
+public class FileReader extends InputStreamReader {
+    public FileReader(String fileName) throws FileNotFoundException {
+        super(new FileInputStream(fileName));
+    }
 
-import java.util.Locale;
+    public FileReader(File file) throws FileNotFoundException {
+        super(new FileInputStream(file));
+    }
 
-@JTranscInvisible
-public class JTranscStrings {
-	native public static String format(Locale l, String format, Object... args);
-
-	static public char[] getChars(String s, int offset, int len) {
-		char[] out = new char[len];
-		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
-		return out;
-	}
-
-
-	/*
-	public static String format(Locale l, String format, Object... args) {
-		return format + "@TODO:String.format:";
-	}
-	*/
+    public FileReader(FileDescriptor fd) {
+        super(new FileInputStream(fd));
+    }
 }

@@ -170,4 +170,40 @@ public class JTranscBits {
 	public static boolean isLittleEndian() {
 		return true;
 	}
+
+	public static long lowMask(String chars) {
+		int n = chars.length();
+		long m = 0;
+		for (int i = 0; i < n; i++) {
+			char c = chars.charAt(i);
+			if (c < 64) m |= (1L << c);
+		}
+		return m;
+	}
+
+	public static long highMask(String chars) {
+		int n = chars.length();
+		long m = 0;
+		for (int i = 0; i < n; i++) {
+			char c = chars.charAt(i);
+			if ((c >= 64) && (c < 128)) m |= (1L << (c - 64));
+		}
+		return m;
+	}
+
+	public static long lowMask(char first, char last) {
+		long m = 0;
+		int f = Math.max(Math.min(first, 63), 0);
+		int l = Math.max(Math.min(last, 63), 0);
+		for (int i = f; i <= l; i++) m |= 1L << i;
+		return m;
+	}
+
+	public static long highMask(char first, char last) {
+		long m = 0;
+		int f = Math.max(Math.min(first, 127), 64) - 64;
+		int l = Math.max(Math.min(last, 127), 64) - 64;
+		for (int i = f; i <= l; i++) m |= 1L << i;
+		return m;
+	}
 }
