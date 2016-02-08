@@ -309,6 +309,7 @@ class HaxeNatives {
     static private var _tempBytes = haxe.io.Bytes.alloc(8);
     static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);
     static private var _tempI32 = haxe.io.Int32Array.fromBytes(_tempBytes);
+    static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
 
     static public function intBitsToFloat(value: Int) {
         #if cpp
@@ -325,6 +326,25 @@ class HaxeNatives {
         #else
         _tempF32[0] = value;
         return _tempI32[0];
+        #end
+    }
+
+    static public function longBitsToDouble(value: Long) {
+        #if cpp
+        return untyped __cpp__("*(double *)(&{0})", value);
+        #else
+        _tempI32[0] = value.high;
+        _tempI32[1] = value.low;
+        return _tempF64[0];
+        #end
+    }
+
+    static public function doubleToLongBits(value: Float) {
+        #if cpp
+        return untyped __cpp__("*(long *)(&{0})", value);
+        #else
+        _tempF64[0] = value;
+        return haxe.Int64.make(_tempI32[0], _tempI32[1]);
         #end
     }
 

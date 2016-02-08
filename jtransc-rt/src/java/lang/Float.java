@@ -95,9 +95,13 @@ public final class Float extends Number implements Comparable<Float> {
 		return Float.hashCode(value);
 	}
 
-	native public static int hashCode(float value);
+	public static int hashCode(float value) {
+		return floatToIntBits(value);
+	}
 
-	native public boolean equals(Object that);
+	public boolean equals(Object obj) {
+		return (obj instanceof Float) && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
+	}
 
 	native public static int floatToIntBits(float value);
 

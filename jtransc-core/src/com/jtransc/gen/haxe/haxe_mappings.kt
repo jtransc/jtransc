@@ -312,6 +312,9 @@ fun HaxeMappings(): ClassMappings {
 	mappings.map("java.lang.Double") {
 		body(STRING, "toString", ARGS(DOUBLE), "return HaxeNatives.str('' + p0);")
 		body(DOUBLE, "parseDouble", ARGS(STRING), "return Std.parseFloat(p0._str);")
+
+		body(DOUBLE, "longBitsToDouble", ARGS(LONG), "return HaxeNatives.longBitsToDouble(p0);")
+		body(LONG, "doubleToLongBits", ARGS(DOUBLE), "return HaxeNatives.doubleToLongBits(p0);")
 	}
 
 	mappings.map("java.lang.Long") {

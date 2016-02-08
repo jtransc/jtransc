@@ -102,9 +102,13 @@ public final class Double extends Number implements Comparable<Double> {
 	@Override
 	native public int hashCode();
 
-	native public static int hashCode(double value);
+	public static int hashCode(double value) {
+		return (int) doubleToLongBits(value);
+	}
 
-	native public boolean equals(Object obj);
+	public boolean equals(Object obj) {
+		return (obj instanceof Double) && (doubleToLongBits(((Float)obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
+	}
 
 	native public static long doubleToLongBits(double value);
 

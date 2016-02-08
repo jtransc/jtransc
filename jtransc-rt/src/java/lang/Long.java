@@ -101,7 +101,11 @@ public final class Long extends Number implements Comparable<Long> {
         return (int) (value ^ (value >>> 32));
     }
 
-    native public boolean equals(Object obj);
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Long)) return false;
+        return value == ((Long)obj).longValue();
+    }
+
 
     native public static Long getLong(String nm);
 
