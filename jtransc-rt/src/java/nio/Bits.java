@@ -22,11 +22,6 @@ class Bits {
     private Bits() {
     }
 
-    static void checkBounds(int off, int len, int size) { // package-private
-        if ((off | len | (off + len) | (size - (off + len))) < 0)
-            throw new IndexOutOfBoundsException();
-    }
-
     static char getCharL(ByteBuffer bb, int bi) {
         return JTranscBits.makeChar(bb._get(bi + 1), bb._get(bi));
     }
@@ -34,7 +29,6 @@ class Bits {
     static char getCharB(ByteBuffer bb, int bi) {
         return JTranscBits.makeChar(bb._get(bi), bb._get(bi + 1));
     }
-
 
     static char getChar(ByteBuffer bb, int bi, boolean bigEndian) {
         return bigEndian ? getCharB(bb, bi) : getCharL(bb, bi);

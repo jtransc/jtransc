@@ -67,7 +67,7 @@ public abstract class ByteBuffer extends Buffer implements Comparable<ByteBuffer
     public abstract ByteBuffer put(int index, byte b);
 
     public ByteBuffer get(byte[] dst, int offset, int length) {
-        checkBounds(offset, length, dst.length);
+        _Bits.checkBounds(offset, length, dst.length);
         if (length > remaining()) throw new BufferUnderflowException();
         int end = offset + length;
         for (int i = offset; i < end; i++) dst[i] = get();

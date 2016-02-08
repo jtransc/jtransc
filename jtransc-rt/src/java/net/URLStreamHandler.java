@@ -79,18 +79,11 @@ public abstract class URLStreamHandler {
                 userInfo = null;
             }
             if (host != null) {
-                // If the host is surrounded by [ and ] then its an IPv6
-                // literal address as specified in RFC2732
                 if (host.length() > 0 && (host.charAt(0) == '[')) {
                     if ((ind = host.indexOf(']')) > 2) {
 
                         String nhost = host;
                         host = nhost.substring(0, ind + 1);
-                        if (!IPAddressUtil.
-                                isIPv6LiteralAddress(host.substring(1, ind))) {
-                            throw new IllegalArgumentException(
-                                    "Invalid host: " + host);
-                        }
 
                         port = -1;
                         if (nhost.length() > ind + 1) {

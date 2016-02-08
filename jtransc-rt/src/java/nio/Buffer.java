@@ -156,4 +156,9 @@ public abstract class Buffer {
     final void discardMark() {                          // package-private
         mark = -1;
     }
+
+    static void checkBounds(int off, int len, int size) {
+        _Bits.checkBounds(off, len, size);
+    }
+
 }
