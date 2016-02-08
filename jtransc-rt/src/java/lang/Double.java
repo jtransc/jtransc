@@ -100,7 +100,9 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	@Override
-	native public int hashCode();
+	public int hashCode() {
+		return hashCode(doubleValue());
+	}
 
 	public static int hashCode(double value) {
 		return (int) doubleToLongBits(value);

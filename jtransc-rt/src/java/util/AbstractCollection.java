@@ -51,7 +51,13 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 
 	native public boolean remove(Object o);
 
-	native public boolean containsAll(Collection<?> c);
+	public boolean containsAll(Collection<?> collection) {
+		HashSet set = new HashSet(this);
+		for (Object item : collection) {
+			if (!set.contains(item)) return false;
+		}
+		return true;
+	}
 
 	public boolean addAll(Collection<? extends E> collection) {
 		boolean changed = false;
