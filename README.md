@@ -67,3 +67,6 @@ mvn package # it should generate program.swf
 * It generates your target source code, replacing some classes like String, ArrayList and so on, to make them fast in your target language.
 * It joins or compiles that code into your final runnable program
 
+## Sponsored by:
+
+![](extra/akamon.png)
