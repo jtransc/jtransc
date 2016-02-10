@@ -7,19 +7,12 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install gcc-multilib -y
-- sudo apt-get install libgc-dev:i386 zlib1g:i386 libpcre3:i386 -y
-- curl -s -S -O http://nekovm.org/_media/neko-2.0.0-linux.tar.gz
-- tar xzf neko-2.0.0-linux.tar.gz
 - curl -s -S -O http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-linux64.tar.gz
 - tar xzf haxe-3.2.1-linux64.tar.gz
 
 before_script:
-- export NEKOPATH=$PWD/neko-2.0.0-linux
-- export PATH=$PATH:$NEKOPATH
 - export HAXEPATH=$PWD/haxe-3.2.1-linux64
 - export HAXE_LIBRARY_PATH=$HAXEPATH/std
 - export PATH=$HAXEPATH:$PATH
-- export LD_LIBRARY_PATH=$NEKOPATH:$LD_LIBRARY_PATH
 - mkdir ~/haxelib
 - haxelib setup ~/haxelib
