@@ -2,14 +2,30 @@ JTRANSC
 -------
 
 # What is this?
-Jtransc is AOT (an ahead of time compiler) that compiles .class and .jar files into a target executable file bundling
-all the required dependencies in a single file and without requiring a jitter or an external runtime.
-At this point it generates: flash swf files, javascript
 
-# Name meaning?
-Jtransc - Java Trans Compiler
+Jtransc (Java Trans Compiler) is an AOT (an ahead of time compiler) that compiles .class and .jar files
+into a target executable file bundling all the required dependencies in a single file and without requiring
+a jitter or an external runtime.
+Initially it generated as3 and javascript, but now there is just a target: haxe.
+Haxe allows to target js, as3, c++, c#, java and python. And runs on desktop, browsers and mobile.
 
-# How to use?
+The aim of this project is to bring high productivity of Kotlin (JVM language)
+to the high portable haxe platform and other direct targets in the future.
+It already supports some APIs and out of the box plain Java reflection API.
+
+The initial focus is for jvm6, kotlin, haxe and games.
+But it will get better in the future supporting newer jvm versions,
+and other use cases like frontend and backend applications.
+
+There is a module called jtransc-rt-core, that could be included in any project (using or not using jtransc).
+That provides in jtransc package, specific annotations, rendering, fast memory access and asynchronous APIs,
+that will use jtransc features when compiling using jtransc.
+
+# How to use it?
+
+You can found examples here [jtransc/jtransc-examples](https://github.com/jtransc/jtransc-examples).
+*Please note* that it is possible that you will have to `mvn install` jtransc (this project) before
+packaging examples if has been not uploaded to sonatype already.
 
 ## Plain:
 ```
@@ -20,6 +36,8 @@ node program.js
 ```
 
 ## Maven:
+
+`pom.xml` file should include:
 ```
 <plugins>
     <plugin>
@@ -50,15 +68,15 @@ node program.js
 </pluginRepositories>
 
 ```
+
 ```
 mvn package # it should generate program.swf
 ```
 
 # How it works internally?
 
-* It locates all the required dependencies.
-* It includes the jtransc-rt that is a java-6-like rt with most of their methods marked as natives
-* Depending on your target it includes for example: jtransc-rt-as3, that allows you to use flash API in your java/kotlin/wathever code
+* It locates all the required dependencies
+* It includes jtransc-rt-core and jtransc-rt which is a java-6-like rt with some of their methods marked as natives
 * Other dependencies than the RT are includes without modifications
 * It uses ASM and/or Soot to generate a class-method-statement-expression AST
     * That AST is easily serializable
@@ -69,4 +87,4 @@ mvn package # it should generate program.swf
 
 ## Sponsored by:
 
-![](extra/akamon.png)
+![Akamon Entertainment](extra/akamon.png)
