@@ -357,6 +357,14 @@ data class AstBuildSettings(
 	enum class Orientation {
 		PORTRAIT, LANDSCAPE, AUTO;
 		val lowName:String = name.toLowerCase()
+		companion object {
+			fun fromString(str:String):Orientation = when(str) {
+				"portrait" -> PORTRAIT
+				"landscape" -> LANDSCAPE
+				"auto" -> AUTO
+				else -> AUTO
+			}
+		}
 	}
 }
 

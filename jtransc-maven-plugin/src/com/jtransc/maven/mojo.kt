@@ -29,8 +29,7 @@ import org.apache.maven.project.MavenProject
 import java.io.File
 import java.util.*
 
-@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
-public class JTranscMojo : AbstractMojo() {
+@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE) class JTranscMojo : AbstractMojo() {
 	@Component @JvmField var project: MavenProject? = null
 
 	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"
@@ -45,6 +44,15 @@ public class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "package", defaultValue = "com.example") @JvmField var package_: String = "com.example"
 	@Parameter(property = "initialWidth", defaultValue = "1280") @JvmField var initialWidth: Int = 1280
 	@Parameter(property = "initialHeight", defaultValue = "720") @JvmField var initialHeight: Int = 720
+	@Parameter(property = "orientation", defaultValue = "auto") @JvmField var orientation: String = "auto"
+	@Parameter(property = "borderless", defaultValue = "false") @JvmField var borderless: Boolean = false
+	@Parameter(property = "fullscreen", defaultValue = "false") @JvmField var fullscreen: Boolean = false
+	@Parameter(property = "resizable", defaultValue = "true") @JvmField var resizable: Boolean = true
+	@Parameter(property = "vsync", defaultValue = "true") @JvmField var vsync: Boolean = true
+	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
+
+	// @TODO: Use <resources> instead?
+	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
 
 	@Throws(MojoExecutionException::class, MojoFailureException::class)
 	override fun execute() {
@@ -60,20 +68,20 @@ public class JTranscMojo : AbstractMojo() {
 		val settings = AstBuildSettings(
 			title = title,
 			version = version,
-			assets = listOf(),
+			assets = assets.map { it.absolutePath },
 			company = company,
 			package_ = package_,
 			libraries = libraries.map { AstBuildSettings.Library.fromInfo(it) },
 			debug = !release,
 			initialWidth = initialWidth,
 			initialHeight = initialHeight,
-			borderless = false,
-			fullscreen = false,
-			icon = null,
+			borderless = borderless,
+			fullscreen = fullscreen,
+			icon = if (icon?.isNullOrEmpty() ?: true) null else icon,
 			name = name,
-			orientation = AstBuildSettings.Orientation.AUTO,
-			resizable = true,
-			vsync = true
+			orientation = AstBuildSettings.Orientation.fromString(orientation),
+			resizable = resizable,
+			vsync = vsync
 		)
 		//project.version
 

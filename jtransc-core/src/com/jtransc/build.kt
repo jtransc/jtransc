@@ -107,6 +107,7 @@ class AllBuild(
 			AstClassRef("java.lang.reflect.Method"),
 			AstClassRef("java.lang.reflect.Field"),
 			AstClassRef("java.lang.reflect.Constructor"),
+			AstClassRef("java.lang.annotation.Annotation"),
 			AstClassRef("jtransc.JTranscAnnotationBase"),
 			AstMethodRef(entryPoint.fqname, "main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) })
 		) + settings.extraRefs + target.extraMethods

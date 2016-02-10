@@ -7,7 +7,7 @@ Jtransc (Java Trans Compiler) is an AOT (an ahead of time compiler) that compile
 into a target executable file bundling all the required dependencies in a single file and without requiring
 a jitter or an external runtime.
 Initially it generated as3 and javascript, but now there is just a target: haxe.
-Haxe allows to target js, as3, c++, c#, java and python. And runs on desktop, browsers and mobile.
+Haxe allows to target js, as3, c++, c#, java, php and python. And runs on desktop, browsers and mobile.
 
 The aim of this project is to bring high productivity of Kotlin (JVM language)
 to the high portable haxe platform and other direct targets in the future.
