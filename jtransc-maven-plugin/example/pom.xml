@@ -51,9 +51,8 @@
                 <artifactId>jtransc-maven-plugin</artifactId>
                 <version>0.0.1</version>
                 <configuration>
-                    <target>as3</target>
+                    <target>haxe:js:program.js</target>
                     <mainClass>example.Test</mainClass>
-                    <output>program.swf</output>
                     <release>true</release>
                 </configuration>
                 <executions><execution><goals><goal>jtransc</goal></goals></execution></executions>
@@ -61,8 +60,4 @@
 
         </plugins>
     </build>
-
-    <!--
-    mvn jtransc:build-as3
-    -->
 </project>

@@ -58,7 +58,6 @@
         <module>jtransc-main-run</module>
         <module>jtransc-maven-plugin</module>
         <module>jtransc-maven-plugin/example</module>
-        <module>examples/kotlin2</module>
         <!--
         <module>jtransc-rt-haxe</module>
         <module>jtransc-rt-haxe-lime</module>

@@ -4,3 +4,5 @@ language: java
 jdk:
   - oraclejdk8
 
+install:
+  - apt-get install haxe -y

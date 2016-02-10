@@ -35,14 +35,14 @@ class HaxeGenSuite {
     //-----------------------------------------------------------------
     // Java Lang
 
-    @Test fun langBasicTypesTest() = testClass<BasicTypesTest>()
+    //@Test fun langBasicTypesTest() = testClass<BasicTypesTest>()
     @Test fun langStringsTest() = testClass<StringsTest>()
     @Test fun langSystemTest() = testClass<SystemTest>()
 
     //-----------------------------------------------------------------
     // Java Utils
 
-    @Test fun utilsCollectionsTest() = testClass<CollectionsTest>()
+    //@Test fun utilsCollectionsTest() = testClass<CollectionsTest>()
 
     //-----------------------------------------------------------------
     // Kotlin Collections

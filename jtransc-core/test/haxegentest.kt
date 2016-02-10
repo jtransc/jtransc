@@ -26,6 +26,7 @@ import java.io.File
 class HaxeGenTest {
 	private fun String.normalize() = this.trim().lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n")
 
+	/*
 	@Test fun test1() {
 		val mainAs3Class = samplehx.MainHaxe::class.java
 		val testClassesPath = File("target/test-classes").absolutePath
@@ -54,4 +55,5 @@ class HaxeGenTest {
 			result.normalize()
 		)
 	}
+	*/
 }

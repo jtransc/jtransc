@@ -37,9 +37,9 @@ class GraphTest {
 		val dfst = DepthFirstSearchTree(G)
 
 		val tree = LCATreeSingleParent(dfst)
-		G.dump()
-		dfst.dump()
-		tree.dump()
+		//G.dump()
+		//dfst.dump()
+		//tree.dump()
 		assertEquals("a", tree.lca("b1", "b2"))
 		//G.dump()
 		//dfst.dump()
@@ -59,7 +59,7 @@ class GraphTest {
 			"a" to "b2",
 			"b1" to "b2"
 		))
-		G.dump2()
+		//G.dump2()
 		assertEquals(listOf<String>(), G.retreating("b1"))
 		assertEquals(listOf("b2"), G.cross("a"))
 	}
