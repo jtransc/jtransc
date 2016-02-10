@@ -83,8 +83,8 @@ class AllBuild(
 
 	private fun _buildAndRun(settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
 		val classPaths2 = MavenLocalRepository.locateJars(listOf(
-			"com.jtransc:jtransc-rt:0.0.1",
-			"com.jtransc:jtransc-rt-core:0.0.1"
+			"com.jtransc:jtransc-rt:0.0.2",
+			"com.jtransc:jtransc-rt-core:0.0.2"
 		)) + target.extraLibraries.flatMap {
 			MavenLocalRepository.locateJars(it)
 		} + classPaths

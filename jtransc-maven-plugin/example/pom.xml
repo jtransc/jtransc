@@ -19,7 +19,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-maven-plugin-example</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.2</version>
     <!--
     <packaging>maven-plugin</packaging>
     <name>Sample Parameter-less Maven Plugin</name>
@@ -49,7 +49,7 @@
             <plugin>
                 <groupId>com.jtransc</groupId>
                 <artifactId>jtransc-maven-plugin</artifactId>
-                <version>0.0.1</version>
+                <version>0.0.2</version>
                 <configuration>
                     <target>haxe:js:program.js</target>
                     <mainClass>example.Test</mainClass>

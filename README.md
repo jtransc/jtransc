@@ -39,13 +39,16 @@ node program.js
 
 ## Maven:
 
+You can search for artifacts for it in maven central with [com.jtransc groupId](http://search.maven.org/#search%7Cga%7C1%7Cg%3Acom.jtransc).
+
 `pom.xml` file should include:
+
 ```
 <plugins>
     <plugin>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc-maven-plugin</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
         <configuration>
             <mainClass>example.Test</mainClass>
             <output>program.swf</output>

@@ -21,7 +21,7 @@
 
     <properties>
         <!-- base-->
-        <jtransc.version>0.0.1</jtransc.version>
+        <jtransc.version>0.0.2</jtransc.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -33,8 +33,14 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>5</version>
+    </parent>
 
     <name>jtransc</name>
     <description>JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>

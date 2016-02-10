@@ -37,10 +37,9 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>jtransc-rt-core</artifactId>
-    <version>${jtransc.version}</version>
 
 </project>
