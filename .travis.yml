@@ -4,4 +4,4 @@ jdk:
   - oraclejdk8
 
 install:
-  - apt-get install haxe -y
+  - sudo apt-get install haxe -y
