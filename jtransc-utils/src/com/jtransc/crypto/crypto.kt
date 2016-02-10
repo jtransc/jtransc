@@ -21,6 +21,9 @@ import java.security.MessageDigest
 
 val SHA1 by lazy { MessageDigest.getInstance("SHA1") }
 
+/**
+ * Single pass digest and converting to hex string. Similar to sha1() or md5() php functions.
+ */
 fun MessageDigest.digestHex(data:ByteArray):String {
 	return this.digest(data).toHexString()
 }

@@ -29,7 +29,8 @@ import org.apache.maven.project.MavenProject
 import java.io.File
 import java.util.*
 
-@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE) class JTranscMojo : AbstractMojo() {
+@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
+class JTranscMojo : AbstractMojo() {
 	@Component @JvmField var project: MavenProject? = null
 
 	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"

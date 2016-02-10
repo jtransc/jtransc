@@ -5,6 +5,7 @@
 /libs/
 /out/
 /example1/target
+/target/
 /jtransc-rt/target
 /jtransc-rt-js/target
 /jtransc-rt-as3/target

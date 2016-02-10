@@ -37,6 +37,7 @@
     <packaging>pom</packaging>
 
     <name>jtransc</name>
+    <description>JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>
     <url>http://github.com/jtransc/jtransc</url>
 
     <!--https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)-->
@@ -48,6 +49,21 @@
 		</license>
 	</licenses>
 
+    <developers>
+        <developer>
+            <name>Carlos Ballesteros Velasco</name>
+            <email>soywiz@gmail.com</email>
+            <organization>Akamon Entertainment</organization>
+            <organizationUrl>http://akamon.com/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:jtransc/jtransc.git</connection>
+        <developerConnection>scm:git:git@github.com:jtransc/jtransc.git</developerConnection>
+        <url>git@github.com:jtransc/jtransc.git</url>
+    </scm>
+
     <modules>
         <module>jtransc-rt-core</module>
         <module>jtransc-rt</module>
@@ -55,9 +71,14 @@
         <module>jtransc-core</module>
         <module>jtransc-tools</module>
         <module>jtransc-libgdx</module>
+        <!--
         <module>jtransc-main-run</module>
+        -->
         <module>jtransc-maven-plugin</module>
+        <!--
         <module>jtransc-maven-plugin/example</module>
+        -->
+
         <!--
         <module>jtransc-rt-haxe</module>
         <module>jtransc-rt-haxe-lime</module>
@@ -175,6 +196,48 @@
                         <phase>process-test-sources</phase>
                         <goals>
                             <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>empty-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${basedir}/javadoc</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>

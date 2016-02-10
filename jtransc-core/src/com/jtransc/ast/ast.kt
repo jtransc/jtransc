@@ -358,7 +358,7 @@ data class AstBuildSettings(
 		PORTRAIT, LANDSCAPE, AUTO;
 		val lowName:String = name.toLowerCase()
 		companion object {
-			fun fromString(str:String):Orientation = when(str) {
+			fun fromString(str:String):Orientation = when (str.toLowerCase()) {
 				"portrait" -> PORTRAIT
 				"landscape" -> LANDSCAPE
 				"auto" -> AUTO
