@@ -1,6 +1,8 @@
 JTRANSC
 -------
 
+[![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
+
 # What is this?
 
 Jtransc (Java Trans Compiler) is an AOT (an ahead of time compiler) that compiles .class and .jar files
