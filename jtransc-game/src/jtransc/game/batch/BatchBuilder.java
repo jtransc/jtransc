@@ -30,7 +30,7 @@ public class BatchBuilder {
 
 	private void flush() {
 		if (current.triangleCount <= 0) return;
-			current.write(batches, batchCount * 16);
+		current.write(batches, batchCount * 16);
 		batchCount++;
 		current.startIndex = indicesIndex;
 		current.triangleCount = 0;
@@ -47,17 +47,17 @@ public class BatchBuilder {
 		int ii = indicesIndex;
 
 		//println("${p0.x}, ${p0.y}, ${p1.x}, ${p1.y} :: $x, $y, $w, $h :: $matrix")
-		Mem.sf32(vi +  0, (float) p0.x);
-		Mem.sf32(vi +  1, (float) p0.y);
-		Mem.sf32(vi +  2, tx0);
-		Mem.sf32(vi +  3, ty0);
-		Mem.si32(vi +  4, color1);
-		Mem.si32(vi +  5, color2);
+		Mem.sf32(vi + 0, (float) p0.x);
+		Mem.sf32(vi + 1, (float) p0.y);
+		Mem.sf32(vi + 2, tx0);
+		Mem.sf32(vi + 3, ty0);
+		Mem.si32(vi + 4, color1);
+		Mem.si32(vi + 5, color2);
 
-		Mem.sf32(vi +  6, (float) p1.x);
-		Mem.sf32(vi +  7, (float) p1.y);
-		Mem.sf32(vi +  8, tx1);
-		Mem.sf32(vi +  9, ty0);
+		Mem.sf32(vi + 6, (float) p1.x);
+		Mem.sf32(vi + 7, (float) p1.y);
+		Mem.sf32(vi + 8, tx1);
+		Mem.sf32(vi + 9, ty0);
 		Mem.si32(vi + 10, color1);
 		Mem.si32(vi + 11, color2);
 

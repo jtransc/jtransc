@@ -17,5 +17,12 @@ public class Sprite extends DisplayObject {
 			children.get(n).render(ctx);
 		}
 	}
+
+	@Override
+	public void internalUpdate(int dtMs) {
+		for (int n = 0; n < children.size(); n++) {
+			children.get(n).update(dtMs);
+		}
+	}
 }
 

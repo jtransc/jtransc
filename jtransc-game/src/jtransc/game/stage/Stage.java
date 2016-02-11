@@ -15,5 +15,9 @@ public class Stage {
 	public void render(Context2D ctx) {
 		root.render(ctx);
 	}
+
+	public void update(int dtMs) {
+		root.update(dtMs);
+	}
 }
 

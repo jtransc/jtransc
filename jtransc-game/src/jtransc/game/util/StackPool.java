@@ -3,12 +3,16 @@ package jtransc.game.util;
 import java.util.ArrayList;
 
 public class StackPool<T> {
+	public interface Generator<T> {
+		T generate(int index);
+	}
+
 	final int capacity;
-	final StackPoolGenerator<T> generator;
+	final Generator<T> generator;
 	private ArrayList<T> values = new ArrayList<T>();
 	private int index = 0;
 
-	public StackPool(int capacity, StackPoolGenerator<T> generator) {
+	public StackPool(int capacity, Generator<T> generator) {
 		this.capacity = capacity;
 		this.generator = generator;
 		ensure(capacity);

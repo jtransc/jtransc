@@ -7,10 +7,10 @@ public class BaseTexture {
 	public final int width;
 	public final int height;
 
-	public BaseTexture(int id, int height, int width) {
+	public BaseTexture(int id, int width, int height) {
 		this.id = id;
-		this.height = height;
 		this.width = width;
+		this.height = height;
 	}
 
 	public void dispose() {

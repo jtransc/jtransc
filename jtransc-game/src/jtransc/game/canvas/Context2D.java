@@ -1,38 +1,51 @@
 package jtransc.game.canvas;
 
 import jtransc.game.batch.BatchBuilder;
-import jtransc.game.math.Matrix;
-import jtransc.game.math.Point;
+import jtransc.game.math.*;
 import jtransc.game.util.StackPool;
-import jtransc.game.util.StackPoolGenerator;
 
 public class Context2D {
 	final Canvas canvas;
 	private Matrix matrix = new Matrix();
-	private StackPool<Matrix> stack = new StackPool<Matrix>(128, new StackPoolGenerator<Matrix>() {
+	private StackPool<Matrix> stack = new StackPool<Matrix>(128, new StackPool.Generator<Matrix>() {
 		@Override
 		public Matrix generate(int index) {
 			return new Matrix();
 		}
 	});
 	private BatchBuilder batches;
-	private double _globalAlpha = 1.0;
+	private ColorTransform colorTransform = new ColorTransform();
+	private int color1 = -1;
+	private int color2 = 0x7f7f7f7f;
 
 	public Context2D(Canvas canvas) {
 		this.canvas = canvas;
 		this.batches = canvas.batches;
+		updateColors();
+	}
+
+	private void updateColors() {
+		color1 = colorTransform.getMultiplierInt(true);
+		color2 = colorTransform.getOffsetInt();
 	}
 
 	public double getGlobalAlpha() {
-		return _globalAlpha;
+		return colorTransform.getAlphaMultiplier();
 	}
 
 	public void setGlobalAlpha(double value) {
-		_globalAlpha = value;
+		colorTransform.setAlphaMultiplier(value);
+		updateColors();
+	}
+
+	public void setColorTransform(ColorTransform ct) {
+		colorTransform.copyFrom(ct);
+		updateColors();
 	}
 
 	public void reset() {
-		_globalAlpha = 1.0;
+		colorTransform.setTo(1, 1, 1, 1, 0, 0, 0, 0);
+		updateColors();
 		matrix.identity();
 		stack.clear();
 		batches.reset();
@@ -86,7 +99,7 @@ public class Context2D {
 		matrix.transform(x + 0, y + h, p2);
 		matrix.transform(x + w, y + h, p3);
 
-		batches.quad(0, p0, p1, p2, p3, 0f, 0f, 1f, 1f, -1, 0x7f7f7f7f);
+		batches.quad(0, p0, p1, p2, p3, 0f, 0f, 1f, 1f, color1, color2);
 	}
 
 	public void drawImage(Texture image) {
@@ -105,6 +118,7 @@ public class Context2D {
 		matrix.transform(x + 0, y + h, p2);
 		matrix.transform(x + w, y + h, p3);
 
-		batches.quad(i.base.id, p0, p1, p2, p3, i.tx0, i.ty0, i.tx1, i.ty1, -1, 0x7f7f7f7f);
+		batches.quad(i.base.id, p0, p1, p2, p3, i.tx0, i.ty0, i.tx1, i.ty1, color1, color2);
+		//System.out.println(Colors.unpackRGBAString(color1) + " :: " + Colors.unpackRGBAString(color2));
 	}
 }

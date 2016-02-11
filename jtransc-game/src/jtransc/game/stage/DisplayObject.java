@@ -1,6 +1,7 @@
 package jtransc.game.stage;
 
 import jtransc.game.canvas.Context2D;
+import jtransc.game.util.Signal;
 
 public class DisplayObject {
 	private double x = 0.0;
@@ -8,6 +9,33 @@ public class DisplayObject {
 	private double scaleX = 1.0;
 	private double scaleY = 1.0;
 	private double rotation = 0.0;
+	private double speed = 1.0;
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
+	}
+
+	private double alpha = 1.0;
+
+	public Signal<Integer> onUpdate = new Signal<Integer>();
+
+	final public void update(int dtMs) {
+		dtMs = (int) (dtMs * speed);
+		onUpdate.dispatch(dtMs);
+		internalUpdate(dtMs);
+	}
+
+	public double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(double speed) {
+		this.speed = speed;
+	}
 
 	public double getRotationDegrees() {
 		return Math.toDegrees(rotation);
@@ -57,16 +85,22 @@ public class DisplayObject {
 		this.rotation = rotation;
 	}
 
-	public void render(Context2D ctx) {
+	final public void render(Context2D ctx) {
+		double oldAlpha = ctx.getGlobalAlpha();
+		ctx.setGlobalAlpha(ctx.getGlobalAlpha() * this.alpha);
 		ctx.save();
 		ctx.translate(x, y);
 		ctx.scale(scaleX, scaleY);
 		ctx.rotate(rotation);
 		internalRender(ctx);
 		ctx.restore();
+		ctx.setGlobalAlpha(oldAlpha);
 	}
 
 	public void internalRender(Context2D ctx) {
+	}
+
+	public void internalUpdate(int dtMs) {
 	}
 }
 

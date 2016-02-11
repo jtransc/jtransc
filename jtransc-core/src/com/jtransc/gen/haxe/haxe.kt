@@ -248,7 +248,7 @@ object GenHaxe : GenTarget {
 					val clazz = program[at.name]
 					//at.name
 					line("// annotation type: $at")
-					line("class ${clazz.astType.getAnnotationProxyName(program)} extends jtransc.JTranscAnnotationBase_ implements ${getHaxeClassFqName(program, clazz.name)}") {
+					line("class ${clazz.astType.getAnnotationProxyName(program)} extends jtransc.internal_.JTranscAnnotationBase_ implements ${getHaxeClassFqName(program, clazz.name)}") {
 						line("private var _data:Array<Dynamic>;")
 						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
 						line("override public function getClass__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")

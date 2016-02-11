@@ -23,6 +23,8 @@ class HaxeLimeRenderGL extends HaxeLimeRenderImpl {
 	private var indicesBuffer:GLBuffer = null;
 	private var verticesBuffer:GLBuffer = null;
 
+	var ENABLE_COLORS = false;
+
     public function new(gl:GLRenderContext) {
         this.gl = gl;
 
@@ -33,54 +35,85 @@ class HaxeLimeRenderGL extends HaxeLimeRenderImpl {
     }
 
     private function init() {
-        var vertexSource = "
-            attribute vec2 aPosition;
-            attribute vec2 aTexCoord;
-            //attribute vec4 aColor0;
-            //attribute vec4 aColor1;
-            varying vec2 vTexCoord;
-            //varying vec4 vColor0;
-            //varying vec4 vColor1;
+        var PREFIX = "
+            #ifdef GL_ES
+                #define LOWP lowp
+                #define MED mediump
+                #define HIGH highp
+                precision mediump float;
+            #else
+                #define MED
+                #define LOWP
+                #define HIGH
+            #endif
 
-            uniform mat4 uMatrix;
-
-            void main(void) {
-                vTexCoord = aTexCoord;
-                //vColor0 = aColor0;
-                //vColor1 = aColor1;
-                gl_Position = uMatrix * vec4(aPosition, 0, 1);
-            }
         ";
 
-        var fragmentSource = "" +
-            #if !desktop
-            "precision mediump float;" +
-            #end
-            "
-            varying vec2 vTexCoord;
-            //varying vec4 vColor0;
-            //varying vec4 vColor1;
-            uniform sampler2D uImage0;
+        if (ENABLE_COLORS) {
+            PREFIX += "#define A_COLORS 1\n";
+        }
 
-            void main(void) {
-                gl_FragColor = texture2D(uImage0, vTexCoord);
-                gl_FragColor = gl_FragColor;
-                //gl_FragColor = vec4(1, 1, 0, 1);
-            }
+        var vertexSource = PREFIX + "
+        	uniform mat4 u_matrix;
+
+        	attribute vec2 a_position;
+        	attribute vec2 a_texcoord;
+        	#ifdef A_COLORS
+                attribute vec4 a_color;
+                attribute vec4 a_colorOffset;
+            #endif
+
+        	varying MED vec2 v_texcoord;
+        	#ifdef A_COLORS
+                varying MED vec4 v_color;
+                varying MED vec4 v_colorOffset;
+            #endif
+
+        	void main() {
+                gl_Position = u_matrix * vec4(a_position, 0, 1);
+                v_texcoord = a_texcoord;
+                #ifdef A_COLORS
+                    v_color = a_color;
+                    v_colorOffset = (a_colorOffset - vec4(0.5, 0.5, 0.5, 0.5)) * 2.0;
+                #endif
+        	}
+        ";
+
+        var fragmentSource = PREFIX + "
+				uniform sampler2D u_sampler;
+
+                #ifdef A_COLORS
+                    varying MED vec4 v_color;
+                    varying MED vec4 v_colorOffset;
+                #endif
+
+				varying MED vec2 v_texcoord;
+
+				void main() {
+                    gl_FragColor = texture2D(u_sampler, v_texcoord.st);
+                    if (gl_FragColor.a <= 0.0) discard;
+                    #ifdef A_COLORS
+                        gl_FragColor.rgb /= gl_FragColor.a;
+                        gl_FragColor *= v_color;
+                        gl_FragColor += v_colorOffset;
+                        gl_FragColor.rgb *= gl_FragColor.a;
+                    #endif
+                    if (gl_FragColor.a <= 0.0) discard;
+				}
         ";
 
         glProgram = GLUtils.createProgram (vertexSource, fragmentSource);
         gl.useProgram(glProgram);
 
         // Attributes
-        glVertexAttribute = gl.getAttribLocation(glProgram, "aPosition");
-        glTextureAttribute = gl.getAttribLocation(glProgram, "aTexCoord");
-        glColor0Attribute = gl.getAttribLocation(glProgram, "aColor0");
-        glColor1Attribute = gl.getAttribLocation(glProgram, "aColor1");
+        glVertexAttribute = gl.getAttribLocation(glProgram, "a_position");
+        glTextureAttribute = gl.getAttribLocation(glProgram, "a_texcoord");
+        glColor0Attribute = gl.getAttribLocation(glProgram, "a_color");
+        glColor1Attribute = gl.getAttribLocation(glProgram, "a_colorOffset");
 
         // Uniforms
-        glMatrixUniform = gl.getUniformLocation(glProgram, "uMatrix");
-        glImageUniform = gl.getUniformLocation(glProgram, "uImage0");
+        glMatrixUniform = gl.getUniformLocation(glProgram, "u_matrix");
+        glImageUniform = gl.getUniformLocation(glProgram, "u_sampler");
     }
 
     override public function isInitialized() {
@@ -124,21 +157,11 @@ class HaxeLimeRenderGL extends HaxeLimeRenderImpl {
         _indices:haxe.io.UInt16Array, indexCount:Int,
         _batches:haxe.io.Int32Array, batchCount:Int
     ) {
-        var indicesData = new lime.utils.UInt16Array(indexCount);
-        var verticesData = new lime.utils.Float32Array(vertexCount * 6);
-        //trace('----');
-        for (n in 0 ... indexCount) {
-            indicesData[n] = _indices[n];
-            //trace('index[$n]:' + indicesData[n]);
-        }
-        for (n in 0 ... vertexCount * 6) {
-            verticesData[n] = _vertices[n];
-            //trace('vertex[$n]:' + verticesData[n]);
-        }
 
-        //trace('render:' + width + 'x' + height);
-        //trace('render:' + vertexCount + ',' + indexCount + "," + batchCount);
+        var indicesData = lime.utils.UInt16Array.fromBytes(_indices.view.buffer, 0, indexCount);
+        var verticesData = lime.utils.Float32Array.fromBytes(_vertices.view.buffer, 0, vertexCount * 6);
 
+        gl.enable(gl.BLEND);
         gl.viewport(0, 0, width, height);
 
         gl.clearColor(0.2, 0.2, 0.2, 1.0);
@@ -158,15 +181,19 @@ class HaxeLimeRenderGL extends HaxeLimeRenderImpl {
 
         gl.enableVertexAttribArray(glVertexAttribute);
         gl.enableVertexAttribArray(glTextureAttribute);
-        //gl.enableVertexAttribArray(glColor0Attribute);
-        //gl.enableVertexAttribArray(glColor1Attribute);
+        if (ENABLE_COLORS) {
+            gl.enableVertexAttribArray(glColor0Attribute);
+            gl.enableVertexAttribArray(glColor1Attribute);
+        }
 
         var STRIDE = 6 * 4;
         gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-        gl.vertexAttribPointer(glVertexAttribute, 2, gl.FLOAT, false, STRIDE, 0 * 4);
+        gl.vertexAttribPointer(glVertexAttribute , 2, gl.FLOAT, false, STRIDE, 0 * 4);
         gl.vertexAttribPointer(glTextureAttribute, 2, gl.FLOAT, false, STRIDE, 2 * 4);
-        //gl.vertexAttribPointer(glColor0Attribute, 4, gl.UNSIGNED_BYTE, false, STRIDE, 4 * 4);
-        //gl.vertexAttribPointer(glColor1Attribute, 4, gl.UNSIGNED_BYTE, false, STRIDE, 5 * 4);
+        if (ENABLE_COLORS) {
+            gl.vertexAttribPointer(glColor0Attribute , 4, gl.UNSIGNED_BYTE, false, STRIDE, 4 * 4);
+            gl.vertexAttribPointer(glColor1Attribute , 4, gl.UNSIGNED_BYTE, false, STRIDE, 5 * 4);
+        }
 
         gl.enable(gl.BLEND);
         #if desktop gl.enable(gl.TEXTURE_2D); #end

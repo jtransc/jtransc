@@ -1,6 +1,6 @@
 package jtransc.game.canvas;
 
-import jtransc.game.math.Math2;
+import jtransc.game.math.MathUtils;
 
 public class Texture {
 	public final BaseTexture base;
@@ -35,10 +35,10 @@ public class Texture {
 	}
 
 	public Texture slice(int x, int y, int width, int height) {
-		int l2 = Math2.clamp(left + x, left, right);
-		int r2 = Math2.clamp(left + x + width, left, right);
-		int t2 = Math2.clamp(top + y, top, bottom);
-		int b2 = Math2.clamp(top + y + height, top, bottom);
+		int l2 = MathUtils.clamp(left + x, left, right);
+		int r2 = MathUtils.clamp(left + x + width, left, right);
+		int t2 = MathUtils.clamp(top + y, top, bottom);
+		int b2 = MathUtils.clamp(top + y + height, top, bottom);
 		return new Texture(base, l2, t2, r2, b2);
 	}
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
@@ -54,38 +55,17 @@ public class JTranscLibgdx {
 				config.title = "JTransc " + JTranscVersion.getVersion();
 				config.stencil = 8;
 
-				app = new LwjglApplication(new ApplicationListener() {
+				app = new LwjglApplication(new ApplicationAdapter() {
 					@Override
 					public void create() {
 						JTranscLibgdx.init();
-
 						init.run();
-					}
-
-					@Override
-					public void resize(int i, int i1) {
-
 					}
 
 					@Override
 					public void render() {
 						if (r_update != null) r_update.run();
 						if (r_render != null) r_render.run();
-					}
-
-					@Override
-					public void pause() {
-
-					}
-
-					@Override
-					public void resume() {
-
-					}
-
-					@Override
-					public void dispose() {
-
 					}
 				}, config);
 			}
@@ -211,6 +191,8 @@ class LibgdxRenderer implements JTranscRender.Impl {
 		gl.glClearStencil(0);
 		gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_STENCIL_BUFFER_BIT);
 
+		gl.glEnable(GL20.GL_BLEND);
+
 		//System.out.println("indexCount:" + indexCount + ", vertexCount: " + vertexCount);
 
 		if (indexCount == 0 || vertexCount == 0) {
@@ -234,7 +216,11 @@ class LibgdxRenderer implements JTranscRender.Impl {
 
 		mesh.setIndices(indices, 0, indexCount);
 		float[] vertexData = new float[vertexCount * 6];
-		for (int n = 0; n < vertexData.length; n++) vertexData[n] = vertices.getAlignedFloat32(n);
+		//System.out.println("--------");
+		for (int n = 0; n < vertexData.length; n++) {
+			vertexData[n] = vertices.getAlignedFloat32(n);
+			//System.out.println(vertexData[n]);
+		}
 		mesh.setVertices(vertexData, 0, vertexData.length);
 
 		//Rectangle lastClip = FULL_SCISSORS.clone();
