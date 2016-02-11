@@ -105,6 +105,7 @@ class LibgdxRenderer implements JTranscRender.Impl {
 
 	public LibgdxRenderer() {
 		for (int n = 0; n < 2048; n++) textureIds.add(n);
+		System.out.println("LibgdxRenderer()");
 	}
 
 	@Override
@@ -113,6 +114,7 @@ class LibgdxRenderer implements JTranscRender.Impl {
 		FileHandle fileHandle = Gdx.files.internal(path);
 		System.out.println("Loading texture... " + fileHandle.file().getAbsolutePath() + ", exists: " + fileHandle.exists());
 		textures[textureId] = new com.badlogic.gdx.graphics.Texture(fileHandle.file().getAbsolutePath());
+		System.out.println(" ---> " + textureId);
 		return textureId;
 	}
 
@@ -209,6 +211,8 @@ class LibgdxRenderer implements JTranscRender.Impl {
 		gl.glClearStencil(0);
 		gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_STENCIL_BUFFER_BIT);
 
+		//System.out.println("indexCount:" + indexCount + ", vertexCount: " + vertexCount);
+
 		if (indexCount == 0 || vertexCount == 0) {
 			return;
 		}
@@ -278,5 +282,6 @@ class LibgdxRenderer implements JTranscRender.Impl {
 		mesh.unbind(program);
 
 		mesh.dispose();
+
 	}
 }
