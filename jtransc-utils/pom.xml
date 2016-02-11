@@ -29,6 +29,5 @@
     </parent>
 
     <artifactId>jtransc-utils</artifactId>
-    <version>${jtransc.version}</version>
 
 </project>
