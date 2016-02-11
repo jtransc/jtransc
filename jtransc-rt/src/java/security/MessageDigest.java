@@ -17,6 +17,7 @@
 package java.security;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 // MD2, MD5, SHA-1, SHA-256, SHA-384, SHA-512
 public abstract class MessageDigest extends MessageDigestSpi {
@@ -31,11 +32,18 @@ public abstract class MessageDigest extends MessageDigestSpi {
 
 	native public final Provider getProvider();
 
-	native public void update(byte input);
+	private byte[] tempBuffer = new byte[1];
 
-	native public void update(byte[] input, int offset, int len);
+	public void update(byte input) {
+		tempBuffer[0] = input;
+		update(tempBuffer, 0, 1);
+	}
 
-	native public void update(byte[] input);
+	abstract public void update(byte[] input, int offset, int len);
+
+	public void update(byte[] input) {
+		update(input, 0, input.length);
+	}
 
 	native public final void update(ByteBuffer input);
 
@@ -47,7 +55,10 @@ public abstract class MessageDigest extends MessageDigestSpi {
 
 	native public String toString();
 
-	native public static boolean isEqual(byte[] digesta, byte[] digestb);
+	public static boolean isEqual(byte[] digesta, byte[] digestb) {
+		// @TODO: This should execute in constant time either it works or not to avoid timing attacks on secure contexts
+		return Arrays.equals(digesta, digestb);
+	}
 
 	native public void reset();
 

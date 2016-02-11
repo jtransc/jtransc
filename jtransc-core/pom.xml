@@ -25,7 +25,7 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.0.2</version>
+        <version>0.0.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>jtransc-core</artifactId>
@@ -51,6 +51,12 @@
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
             <version>${jtransc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt</artifactId>
+            <version>${jtransc.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -18,6 +18,7 @@ package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.gen.GenTargetDescriptor
+import jtransc.JTranscVersion
 import java.io.File
 import java.util.*
 
@@ -25,6 +26,12 @@ object JTranscMain {
 	@JvmStatic fun main(args: Array<String>) {
 		// @TODO: allow a plugin system
 		val targets = AllBuildTargets
+		val jtranscVersion = JTranscVersion.getVersion()
+
+		fun version() {
+			println("jtransc-$jtranscVersion")
+			System.exit(0)
+		}
 
 		fun help() {
 			val targetNames = targets.map { it.name }.joinToString(", ")
@@ -35,6 +42,8 @@ object JTranscMain {
 			println("Performs an aot compilation that transform a java/kotlin compiled program (class and jar files)")
 			println("into an executable file ($executableTypes) file at the moment.")
 			println("")
+			println("Version: jtranscVersion")
+			println("")
 			println("  -main   <fqname> - Specifies class with static void main method that will be the entry point of the app")
 			println("  -target <target> - Language target to do the AOT possible values ($targetNames)")
 			println("  -out    <file>   - Output file that will hold the generated aot result file")
@@ -43,6 +52,7 @@ object JTranscMain {
 			println("  -run             - Runs generated executable")
 			println("")
 			println("  -help            - Displays help")
+			println("  -versio          - Displays jtransc version")
 			println("  -v               - Verbose")
 			println("")
 			println("Examples:")
@@ -71,7 +81,7 @@ object JTranscMain {
 			var targetName: String? = null
 			var out: String? = null
 			var run = false
-			val settings = AstBuildSettings()
+			val settings = AstBuildSettings(jtranscVersion = jtranscVersion)
 
 			if (args.isEmpty()) {
 				help()
@@ -81,6 +91,7 @@ object JTranscMain {
 				val arg = args.remove()
 				if (arg.startsWith('-')) {
 					when (arg) {
+						"-version" -> version()
 						"-help" -> help()
 						"-main" -> entryPoint = args.remove()
 						"-target" -> targetName = args.remove()

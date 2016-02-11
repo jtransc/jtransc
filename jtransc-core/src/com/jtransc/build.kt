@@ -82,9 +82,12 @@ class AllBuild(
 	}
 
 	private fun _buildAndRun(settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
+		val jtranscVersion = settings.jtranscVersion
+
+		// Previously downloaded manually or with maven plugin!
 		val classPaths2 = MavenLocalRepository.locateJars(listOf(
-			"com.jtransc:jtransc-rt:0.0.2",
-			"com.jtransc:jtransc-rt-core:0.0.2"
+			"com.jtransc:jtransc-rt:$jtranscVersion",
+			"com.jtransc:jtransc-rt-core:$jtranscVersion"
 		)) + target.extraLibraries.flatMap {
 			MavenLocalRepository.locateJars(it)
 		} + classPaths
@@ -108,7 +111,7 @@ class AllBuild(
 			AstClassRef("java.lang.reflect.Field"),
 			AstClassRef("java.lang.reflect.Constructor"),
 			AstClassRef("java.lang.annotation.Annotation"),
-			AstClassRef("jtransc.JTranscAnnotationBase"),
+			AstClassRef("jtransc.internal.JTranscAnnotationBase"),
 			AstMethodRef(entryPoint.fqname, "main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) })
 		) + settings.extraRefs + target.extraMethods
 

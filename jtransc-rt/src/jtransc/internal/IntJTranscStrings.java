@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package jtransc;
+package jtransc.internal;
 
-import java.io.FileNotFoundException;
+import jtransc.annotation.JTranscInvisible;
 
-public class JTranscIOSync {
-	public static final int O_RDONLY = 1;
-	public static final int O_RDWR = 2;
-	public static final int O_SYNC = 4;
-	public static final int O_DSYNC = 8;
+import java.util.Locale;
 
-	static public JTranscIOSyncFile open(String name, int mode) throws FileNotFoundException {
-		JTranscIOSyncFile out = new JTranscIOSyncFile();
-		out.open(name, mode);
+@JTranscInvisible
+public class IntJTranscStrings {
+	native public static String format(Locale l, String format, Object... args);
+
+	static public char[] getChars(String s, int offset, int len) {
+		char[] out = new char[len];
+		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
 		return out;
 	}
+
+
+	/*
+	public static String format(Locale l, String format, Object... args) {
+		return format + "@TODO:String.format:";
+	}
+	*/
 }

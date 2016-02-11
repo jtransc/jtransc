@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package jtransc.rt;
+package jtransc.internal;
 
-public class Intrinsics {
-    native static public int sx16(int value);
-    native static public int sx8(int value);
-    //native static public int
+import java.io.OutputStream;
+import java.io.PrintStream;
+
+public class StdioStream extends PrintStream {
+    public StdioStream() {
+        super(new StdioOutputStream(), true);
+    }
+
+    /*
+    @Override
+    public void println(String x) {
+        super.println(x);
+    }
+    */
 }

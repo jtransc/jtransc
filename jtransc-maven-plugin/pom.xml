@@ -19,11 +19,12 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-maven-plugin</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <properties>
         <kotlin.version>1.0.0-rc-1036</kotlin.version>
+        <jtransc.version>0.0.3-SNAPSHOT</jtransc.version>
     </properties>
 
     <!--
@@ -74,13 +75,13 @@
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-core</artifactId>
-            <version>0.0.2</version>
+            <version>${jtransc.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.0</version>
+            <version>3.3.9</version>
         </dependency>
 
         <!-- dependencies to annotations -->
@@ -92,7 +93,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
-            <version>3.0</version>
+            <version>3.3.9</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -106,12 +107,14 @@
             <version>1.0</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-compat</artifactId>
             <version>3.0</version>
             <scope>compile</scope>
         </dependency>
+        -->
     </dependencies>
 
     <distributionManagement>

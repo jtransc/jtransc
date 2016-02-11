@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-package jtransc.rt;
+package jtransc.internal;
 
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class GenericMapEntry<K, V> implements Map.Entry<K, V> {
-    private Map<K, V> map;
-    private K key;
-
-    public GenericMapEntry(Map<K, V> map, K key) {
-        this.map = map;
-        this.key = key;
-    }
-
+public class StdioInputStream extends InputStream {
     @Override
-    public K getKey() {
-        return key;
-    }
-
-    @Override
-    public V getValue() {
-        return map.get(key);
-    }
-
-    @Override
-    public V setValue(V value) {
-        return map.put(key, value);
+    public int read() throws IOException {
+        throw new IOException("Not implemented!");
     }
 }

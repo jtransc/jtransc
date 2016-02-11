@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import jtransc.JTranscStrings;
+import jtransc.internal.IntJTranscStrings;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -225,11 +225,11 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	//static private StringBuilder formatterSB;
 
 	public static String format(String format, Object... args) {
-		return JTranscStrings.format(Locale.getDefault(), format, args);
+		return IntJTranscStrings.format(Locale.getDefault(), format, args);
 	}
 
 	public static String format(Locale l, String format, Object... args) {
-		return JTranscStrings.format(l, format, args);
+		return IntJTranscStrings.format(l, format, args);
 	}
 
 	public static String valueOf(Object obj) {

@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.rt.StdioInputStream;
-import jtransc.rt.StdioStream;
+import jtransc.internal.StdioInputStream;
+import jtransc.internal.StdioStream;
 
 import java.io.InputStream;
 import java.io.PrintStream;

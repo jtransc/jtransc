@@ -1,4 +1,4 @@
-package jtransc;
+package jtransc.internal;
 
 public class JTranscExceptions {
 	static public void invalidIndex() {

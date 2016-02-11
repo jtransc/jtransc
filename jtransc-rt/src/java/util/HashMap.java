@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.rt.GenericMapEntry;
+import jtransc.internal.GenericMapEntry;
 
 import java.io.Serializable;
 

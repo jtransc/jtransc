@@ -19,21 +19,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <properties>
-        <!-- base-->
-        <jtransc.version>0.0.2</jtransc.version>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-        <!-- dependencies-->
-        <kotlin.version>1.0.0-rc-1036</kotlin.version>
-        <junit.version>4.12</junit.version>
-    </properties>
-
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -45,6 +33,18 @@
     <name>jtransc</name>
     <description>JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>
     <url>http://github.com/jtransc/jtransc</url>
+
+    <properties>
+        <!-- base-->
+        <jtransc.version>0.0.3-SNAPSHOT</jtransc.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- dependencies-->
+        <kotlin.version>1.0.0-rc-1036</kotlin.version>
+        <junit.version>4.12</junit.version>
+    </properties>
 
     <!--https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)-->
 	<licenses>

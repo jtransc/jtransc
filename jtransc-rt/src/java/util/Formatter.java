@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.JTranscStrings;
+import jtransc.internal.IntJTranscStrings;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -155,7 +155,7 @@ public final class Formatter implements Closeable, Flushable {
 
 	public Formatter format(Locale l, String format, Object... args) {
 		try {
-			this.a.append(JTranscStrings.format(l, format, args));
+			this.a.append(IntJTranscStrings.format(l, format, args));
 		} catch (IOException e) {
 			lastException = e;
 		}

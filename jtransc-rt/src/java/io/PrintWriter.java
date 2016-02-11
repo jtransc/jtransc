@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.JTranscStrings;
+import jtransc.internal.IntJTranscStrings;
 
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -148,7 +148,7 @@ public class PrintWriter extends Writer {
 	}
 
 	public void write(String s, int off, int len) {
-		write(JTranscStrings.getChars(s, off, len));
+		write(IntJTranscStrings.getChars(s, off, len));
 	}
 
 	public void write(String s) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jtransc.rt;
+package jtransc.internal;
 
 import java.util.List;
 import java.util.ListIterator;

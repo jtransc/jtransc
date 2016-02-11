@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jtransc;
+package jtransc.internal;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

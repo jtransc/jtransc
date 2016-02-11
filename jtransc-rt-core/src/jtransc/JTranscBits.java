@@ -96,15 +96,14 @@ public class JTranscBits {
 		return makeShort(bytes[0], bytes[1]);
 	}
 
-	static public void i2bLittle4(int var0, byte[] var1, int var2) {
-		if (var2 >= 0 && var1.length - var2 >= 4) {
-			var1[var2] = (byte) var0;
-			var1[var2 + 1] = (byte) (var0 >> 8);
-			var1[var2 + 2] = (byte) (var0 >> 16);
-			var1[var2 + 3] = (byte) (var0 >> 24);
-		} else {
+	static public void i2bLittle4(int value, byte[] out, int offset) {
+		if (offset < 0 || out.length - offset < 4) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
+		out[offset + 0] = (byte) (value >>  0);
+		out[offset + 1] = (byte) (value >>  8);
+		out[offset + 2] = (byte) (value >> 16);
+		out[offset + 3] = (byte) (value >> 24);
 	}
 
 	static public void b2iLittle64(byte[] var0, int var1, int[] var2) {

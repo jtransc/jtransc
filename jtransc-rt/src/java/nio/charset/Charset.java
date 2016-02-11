@@ -17,7 +17,7 @@
 package java.nio.charset;
 
 import jtransc.FastStringMap;
-import jtransc.JTranscGenericCharset;
+import jtransc.internal.JTranscGenericCharset;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;

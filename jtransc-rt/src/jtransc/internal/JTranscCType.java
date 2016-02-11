@@ -1,4 +1,4 @@
-package jtransc;
+package jtransc.internal;
 
 public class JTranscCType {
 	static public int decodeHexDigit(char c) {

@@ -16,8 +16,8 @@
 
 package java.io;
 
-import jtransc.JTranscIOSync;
-import jtransc.JTranscIOSyncFile;
+import jtransc.internal.JTranscIOSync;
+import jtransc.internal.JTranscIOSyncFile;
 
 public class FileOutputStream extends OutputStream {
 	private final FileDescriptor fd;

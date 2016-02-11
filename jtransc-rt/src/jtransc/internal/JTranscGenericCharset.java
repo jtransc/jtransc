@@ -1,4 +1,4 @@
-package jtransc;
+package jtransc.internal;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;

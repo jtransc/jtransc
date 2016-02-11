@@ -96,7 +96,7 @@ fun HaxeMappings(): ClassMappings {
 
 	val mappings = ClassMappings()
 
-	mappings.map("jtransc.rt.StdioOutputStream") {
+	mappings.map("jtransc.internal.StdioOutputStream") {
 		body(VOID, "write", ARGS(INT), "HaxeNatives.outputChar(p0);")
 	}
 
@@ -495,7 +495,7 @@ fun HaxeMappings(): ClassMappings {
 		body(OBJECT, "get", ARGS(INT), "return _map.get(p0);")
 	}
 
-	mappings.map("jtransc.JTranscStrings") {
+	mappings.map( "jtransc.JTranscStrings") {
 		body(STRING, "format", ARGS(LOCALE, STRING, ARRAY(OBJECT)), """
 			return HaxeNatives.str(HaxeNatives.formatBoxed(p1._str, p2.toArray()));
 		""")

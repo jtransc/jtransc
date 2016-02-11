@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-package jtransc.rt;
+package jtransc.internal;
 
-import java.io.IOException;
-import java.io.InputStream;
+import jtransc.annotation.JTranscInvisible;
 
-public class StdioInputStream extends InputStream {
-    @Override
-    public int read() throws IOException {
-        throw new IOException("Not implemented!");
-    }
+import java.lang.reflect.Method;
+
+@JTranscInvisible
+public class JTranscAnnotationBase {
+	@Override
+	public String toString() {
+		String out = "";
+		out += "@";
+		out += this.getClass().getName();
+		out += "(";
+		String args = "";
+		for (Method method : this.getClass().getDeclaredMethods()) {
+			if (args.length() != 0) args += ", ";
+			try {
+				out += method.getName() + "=" + method.invoke(this);
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+		out += ")";
+		return out;
+	}
 }

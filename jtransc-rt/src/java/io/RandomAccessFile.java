@@ -17,8 +17,8 @@
 package java.io;
 
 import jtransc.JTranscData;
-import jtransc.JTranscIOSync;
-import jtransc.JTranscIOSyncFile;
+import jtransc.internal.JTranscIOSync;
+import jtransc.internal.JTranscIOSyncFile;
 
 public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	private FileDescriptor fd;

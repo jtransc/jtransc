@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-package jtransc;
+package jtransc.internal;
 
-import jtransc.annotation.JTranscInvisible;
+import java.util.Map;
 
-import java.util.Locale;
+public class GenericMapEntry<K, V> implements Map.Entry<K, V> {
+    private Map<K, V> map;
+    private K key;
 
-@JTranscInvisible
-public class JTranscStrings {
-	native public static String format(Locale l, String format, Object... args);
+    public GenericMapEntry(Map<K, V> map, K key) {
+        this.map = map;
+        this.key = key;
+    }
 
-	static public char[] getChars(String s, int offset, int len) {
-		char[] out = new char[len];
-		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
-		return out;
-	}
+    @Override
+    public K getKey() {
+        return key;
+    }
 
+    @Override
+    public V getValue() {
+        return map.get(key);
+    }
 
-	/*
-	public static String format(Locale l, String format, Object... args) {
-		return format + "@TODO:String.format:";
-	}
-	*/
+    @Override
+    public V setValue(V value) {
+        return map.put(key, value);
+    }
 }

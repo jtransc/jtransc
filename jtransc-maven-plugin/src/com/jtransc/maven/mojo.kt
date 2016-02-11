@@ -18,7 +18,9 @@ package com.jtransc.maven
 
 import com.jtransc.AllBuild
 import com.jtransc.ast.AstBuildSettings
+import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
+import org.apache.maven.plugin.BuildPluginManager
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugins.annotations.Component
@@ -26,12 +28,16 @@ import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
+import org.eclipse.aether.artifact.DefaultArtifact
+import org.eclipse.aether.graph.Dependency
 import java.io.File
 import java.util.*
 
 @Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
 class JTranscMojo : AbstractMojo() {
 	@Component @JvmField var project: MavenProject? = null
+	@Component @JvmField var session: MavenSession? = null
+	@Component @JvmField var pluginManager: BuildPluginManager? = null
 
 	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"
 	@Parameter(property = "mainClass") @JvmField var mainClass: String = ""
@@ -58,15 +64,31 @@ class JTranscMojo : AbstractMojo() {
 	@Throws(MojoExecutionException::class, MojoFailureException::class)
 	override fun execute() {
 		val log = log
+		val session = session!!
 		val project = project!!
 		val build = project.build
+		val dependencyManager = session.repositorySession.dependencyManager
 
 		val targetParts = target.split(':')
 		val targetActual = targetParts.getOrNull(0) ?: "js"
 		val subtargetActual = targetParts.getOrNull(1) ?: ""
 		val outputActual = targetParts.getOrNull(2) ?: output
 
+		log.info("KT: Session.localRepository: ${session.localRepository?.basedir}");
+
+		val jtranscVersion = project.pluginArtifacts.first { it.artifactId == "jtransc-maven-plugin" }.version
+
+		log.info("KT: JTRansc version : $jtranscVersion");
+
+		val rtArtifact = DefaultArtifact("com.jtransc:jtransc-rt:$jtranscVersion")
+		val rtCoreArtifact = DefaultArtifact("com.jtransc:jtransc-rt-core:$jtranscVersion")
+
+		log.info("KT: Resolving $rtArtifact and $rtCoreArtifact");
+		dependencyManager.manageDependency(Dependency(rtArtifact, "compile"))
+		dependencyManager.manageDependency(Dependency(rtCoreArtifact, "compile"))
+
 		val settings = AstBuildSettings(
+			jtranscVersion = jtranscVersion,
 			title = title,
 			version = version,
 			assets = assets.map { it.absolutePath },

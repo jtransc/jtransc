@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jtransc.security.provider;
+package jtransc.internal;
 
 import jtransc.annotation.JTranscInvisible;
 
@@ -24,16 +24,16 @@ import java.security.ProviderException;
 
 @JTranscInvisible
 abstract class DigestBase extends MessageDigestSpi implements Cloneable {
-    private byte[] oneByte;
     private final String algorithm;
     private final int digestLength;
     private final int blockSize;
     byte[] buffer;
     private int bufOfs;
-    long bytesProcessed;
+    long processedLength;
     static final byte[] padding = new byte[136];
 
     DigestBase(String algorithm, int digestLength, int blockSize) {
+        padding[0] = (byte)(1 << 7);
         this.algorithm = algorithm;
         this.digestLength = digestLength;
         this.blockSize = blockSize;
@@ -45,57 +45,52 @@ abstract class DigestBase extends MessageDigestSpi implements Cloneable {
     }
 
     protected final void engineUpdate(byte b) {
-        if (this.oneByte == null) {
-            this.oneByte = new byte[1];
-        }
-
-        this.oneByte[0] = b;
-        this.engineUpdate(this.oneByte, 0, 1);
+        this.engineUpdate(new byte[] { b }, 0, 1);
     }
 
     protected final void engineUpdate(byte[] data, int offset, int length) {
-        if (length != 0) {
-            if (offset >= 0 && length >= 0 && offset <= data.length - length) {
-                if (this.bytesProcessed < 0L) {
-                    this.engineReset();
-                }
+        if (length == 0) {
+            return;
+        }
 
-                this.bytesProcessed += (long) length;
-                if (this.bufOfs != 0) {
-                    int var4 = Math.min(length, this.blockSize - this.bufOfs);
-                    System.arraycopy(data, offset, this.buffer, this.bufOfs, var4);
-                    this.bufOfs += var4;
-                    offset += var4;
-                    length -= var4;
-                    if (this.bufOfs >= this.blockSize) {
-                        this.implCompress(this.buffer, 0);
-                        this.bufOfs = 0;
-                    }
-                }
+        if (offset < 0 || length < 0 || offset < data.length - length) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
 
-                while (length >= this.blockSize) {
-                    this.implCompress(data, offset);
-                    length -= this.blockSize;
-                    offset += this.blockSize;
-                }
+        if (this.processedLength < 0L) {
+            this.engineReset();
+        }
 
-                if (length > 0) {
-                    System.arraycopy(data, offset, this.buffer, 0, length);
-                    this.bufOfs = length;
-                }
-
-            } else {
-                throw new ArrayIndexOutOfBoundsException();
+        this.processedLength += (long) length;
+        if (this.bufOfs != 0) {
+            int l = Math.min(length, this.blockSize - this.bufOfs);
+            System.arraycopy(data, offset, this.buffer, this.bufOfs, l);
+            this.bufOfs += l;
+            offset += l;
+            length -= l;
+            if (this.bufOfs >= this.blockSize) {
+                this.implCompress(this.buffer, 0);
+                this.bufOfs = 0;
             }
+        }
+
+        while (length >= this.blockSize) {
+            this.implCompress(data, offset);
+            length -= this.blockSize;
+            offset += this.blockSize;
+        }
+
+        if (length > 0) {
+            System.arraycopy(data, offset, this.buffer, 0, length);
+            this.bufOfs = length;
         }
     }
 
     protected final void engineReset() {
-        if (this.bytesProcessed != 0L) {
-            this.implReset();
-            this.bufOfs = 0;
-            this.bytesProcessed = 0L;
-        }
+        if (this.processedLength == 0L) return;
+        this.implReset();
+        this.bufOfs = 0;
+        this.processedLength = 0L;
     }
 
     protected final byte[] engineDigest() {
@@ -112,17 +107,19 @@ abstract class DigestBase extends MessageDigestSpi implements Cloneable {
     protected final int engineDigest(byte[] data, int offset, int length) throws DigestException {
         if (length < this.digestLength) {
             throw new DigestException("Length must be at least " + this.digestLength + " for " + this.algorithm + "digests");
-        } else if (offset >= 0 && length >= 0 && offset <= data.length - length) {
-            if (this.bytesProcessed < 0L) {
-                this.engineReset();
-            }
+        }
 
-            this.implDigest(data, offset);
-            this.bytesProcessed = -1L;
-            return this.digestLength;
-        } else {
+        if (offset < 0 || length < 0 || offset > data.length - length) {
             throw new DigestException("Buffer too short to store digest");
         }
+
+        if (this.processedLength < 0L) {
+            this.engineReset();
+        }
+
+        this.implDigest(data, offset);
+        this.processedLength = -1L;
+        return this.digestLength;
     }
 
     abstract void implCompress(byte[] data, int offset);
@@ -132,12 +129,8 @@ abstract class DigestBase extends MessageDigestSpi implements Cloneable {
     abstract void implReset();
 
     public Object clone() throws CloneNotSupportedException {
-        DigestBase var1 = (DigestBase) super.clone();
-        var1.buffer = (byte[]) var1.buffer.clone();
-        return var1;
-    }
-
-    static {
-        padding[0] = -128;
+        DigestBase base = (DigestBase) super.clone();
+        base.buffer = base.buffer.clone();
+        return base;
     }
 }

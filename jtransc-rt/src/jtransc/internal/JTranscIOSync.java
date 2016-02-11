@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package jtransc;
+package jtransc.internal;
 
-import jtransc.annotation.JTranscInvisible;
+import java.io.FileNotFoundException;
 
-import java.lang.reflect.Method;
+public class JTranscIOSync {
+	public static final int O_RDONLY = 1;
+	public static final int O_RDWR = 2;
+	public static final int O_SYNC = 4;
+	public static final int O_DSYNC = 8;
 
-@JTranscInvisible
-public class JTranscAnnotationBase {
-	@Override
-	public String toString() {
-		String out = "";
-		out += "@";
-		out += this.getClass().getName();
-		out += "(";
-		String args = "";
-		for (Method method : this.getClass().getDeclaredMethods()) {
-			if (args.length() != 0) args += ", ";
-			try {
-				out += method.getName() + "=" + method.invoke(this);
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-		}
-		out += ")";
+	static public JTranscIOSyncFile open(String name, int mode) throws FileNotFoundException {
+		JTranscIOSyncFile out = new JTranscIOSyncFile();
+		out.open(name, mode);
 		return out;
 	}
 }

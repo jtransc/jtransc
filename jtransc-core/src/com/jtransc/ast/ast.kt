@@ -323,6 +323,7 @@ enum class AstUnop(val symbol: String, val str: String) {
 }
 
 data class AstBuildSettings(
+	var jtranscVersion: String,
 	var title: String = "App Title",
 	var name: String = "AppName",
 	var version: String = "0.0.0",

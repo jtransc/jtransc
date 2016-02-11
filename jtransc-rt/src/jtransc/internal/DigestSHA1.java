@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package jtransc.security.provider;
+package jtransc.internal;
 
 import jtransc.annotation.JTranscInvisible;
 
 @JTranscInvisible
-public final class SHA1 extends DigestBase {
+public final class DigestSHA1 extends DigestBase {
 	private int H0, H1, H2, H3, H4;
 
 	private final int[] w = new int[80];
 	private int currentPos;
 	private long currentLen;
 
-	public SHA1() {
+	public DigestSHA1() {
 		super("SHA1", 20, 64);
 		implReset();
 	}

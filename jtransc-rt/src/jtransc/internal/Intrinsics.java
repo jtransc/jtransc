@@ -14,28 +14,10 @@
  * limitations under the License.
  */
 
-package jtransc.rt;
+package jtransc.internal;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
-
-public class StdioStream extends PrintStream {
-    public StdioStream() {
-        super(new StdioOutputStream(), true);
-    }
-
-    /*
-    @Override
-    public void println(String x) {
-        super.println(x);
-    }
-    */
-}
-
-class StdioOutputStream extends OutputStream {
-    public StdioOutputStream() {
-    }
-
-    @Override
-    native public void write(int b);
+public class Intrinsics {
+    native static public int sx16(int value);
+    native static public int sx8(int value);
+    //native static public int
 }

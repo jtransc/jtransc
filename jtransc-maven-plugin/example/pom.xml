@@ -19,7 +19,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-maven-plugin-example</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <!--
     <packaging>maven-plugin</packaging>
     <name>Sample Parameter-less Maven Plugin</name>
@@ -27,6 +27,7 @@
 
     <properties>
         <kotlin.version>1.0.0-rc-1036</kotlin.version>
+        <jtransc.version>0.0.3-SNAPSHOT</jtransc.version>
     </properties>
 
     <dependencies>
@@ -41,6 +42,12 @@
             <artifactId>kotlin-reflect</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt-core</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -49,7 +56,7 @@
             <plugin>
                 <groupId>com.jtransc</groupId>
                 <artifactId>jtransc-maven-plugin</artifactId>
-                <version>0.0.2</version>
+                <version>${jtransc.version}</version>
                 <configuration>
                     <target>haxe:js:program.js</target>
                     <mainClass>example.Test</mainClass>

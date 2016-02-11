@@ -16,7 +16,7 @@
 
 package java.text;
 
-import jtransc.JTranscExceptions;
+import jtransc.internal.JTranscExceptions;
 
 import java.util.Objects;
 

@@ -28,6 +28,7 @@ import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.utils.CollectionsTest
+import jtransc.JTranscVersion
 import java.io.File
 
 class HaxeGenSuite {
@@ -71,7 +72,7 @@ class HaxeGenSuite {
 				//output = "program.haxe.cpp", subtarget = "cpp",
 				targetDirectory = System.getProperty("java.io.tmpdir")
 		)
-		val result = build.buildAndRunCapturingOutput(AstBuildSettings(debug = false)).output
+		val result = build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = false)).output
 
 		Assert.assertEquals(expected, result)
 	}

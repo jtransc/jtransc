@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jtransc;
+package jtransc.internal;
 
 public class JTranscTempBuffer {
 	//static private char[] charBuffer;

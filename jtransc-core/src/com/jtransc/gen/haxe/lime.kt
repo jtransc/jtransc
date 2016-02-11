@@ -33,9 +33,6 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 	override val longName = "haxe-lime"
 	override val sourceExtension = "hx"
 	override val outputExtension = "bin"
-	//override val extraLibraries = listOf("com.jtransc:jtransc-rt-haxe-lime:0.0.2")
-	//override val extraFields = listOf("lime.app.LimeKotlinAdaptorApplication.instance")
-	//override val extraMethods = listOf(AstMethodRef("lime.app.LimeKotlinAdaptorApplication".fqname, "test", AstType.METHOD_TYPE(listOf(), AstType.VOID)))
 
 	override fun getGenerator() = GenHaxeLime
 }
