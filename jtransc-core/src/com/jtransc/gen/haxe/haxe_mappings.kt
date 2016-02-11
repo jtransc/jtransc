@@ -406,7 +406,25 @@ fun HaxeMappings(): ClassMappings {
 		body(VOID, "arraycopy", ARGS(OBJECT, INT, OBJECT, INT, INT), "HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
 		body(STRING, "getProperty", ARGS(STRING), "return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
 		body(INT, "identityHashCode", ARGS(OBJECT), "return p0.__ID__ | 0;")
+	}
 
+	mappings.map("jtransc.JTranscSystem") {
+		nativeMember("static private var __start = -1.0;")
+		nativeMember("""
+			static private function __stamp() {
+				#if sys
+				return Sys.time() * 1000;
+				#else
+				return Date.now().getTime();
+				#end
+			}
+		""")
+		//removeField("start")
+		body(INT, "stamp", ARGS(), """
+			if (__start < 0) __start = __stamp();
+			//trace(__stamp() + ", " + __start);
+			return Std.int(__stamp() - __start);
+		""")
 	}
 
 	mappings.map("java.util.regex.Matcher") {

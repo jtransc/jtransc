@@ -2,6 +2,7 @@ package jtransc.game;
 
 import jtransc.JTranscEndian;
 import jtransc.JTranscEventLoop;
+import jtransc.JTranscSystem;
 import jtransc.JTranscVersion;
 import jtransc.game.canvas.Canvas;
 import jtransc.game.canvas.Texture;
@@ -13,7 +14,7 @@ public class JTranscGame {
 	public final Stage stage;
 	public final Sprite root;
 
-	private long lastTime = -1;
+	private int lastTime = -1;
 
 	public JTranscGame(Canvas canvas, Stage stage) {
 		this.canvas = canvas;
@@ -47,9 +48,9 @@ public class JTranscGame {
 				JTranscEventLoop.loop(new Runnable() {
 					@Override
 					public void run() {
-						long currentTime = System.currentTimeMillis();
+						int currentTime = JTranscSystem.stamp();
 						if (game.lastTime < 0) game.lastTime = currentTime;
-						int elapsed = (int) (currentTime - game.lastTime);
+						int elapsed = currentTime - game.lastTime;
 						stage.update(elapsed);
 						game.lastTime = currentTime;
 					}
