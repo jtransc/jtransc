@@ -25,7 +25,7 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.0.3-SNAPSHOT</version>
+        <version>0.0.3</version>
     </parent>
 
     <artifactId>jtransc-tools</artifactId>

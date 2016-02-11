@@ -38,23 +38,13 @@ import java.util.*
 
 @Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
 class JTranscMojo : AbstractMojo() {
-	//@Component @JvmField var locator: ServiceLocator? = null
 	@Component @JvmField var project: MavenProject? = null
 	@Component @JvmField var session: MavenSession? = null
-	//@Component @JvmField var pluginManager: BuildPluginManager? = null
-	//@Component @JvmField var artifactResolver: ArtifactResolver? = null
-	//@Component @JvmField var remoteRepos: List<RemoteRepository>? = null
-	//@Component @JvmField var repoSystem: RepositorySystem? = null
-	//@Component @JvmField var repoSession: RepositorySystemSession? = null
-
 	@Component @JvmField var repoSystem: RepositorySystem? = null
-
 	@Parameter(defaultValue = "\${repositorySystemSession}", readonly = true)
 	@JvmField var repoSession: RepositorySystemSession? = null;
-
 	@Parameter(defaultValue = "\${project.remotePluginRepositories}", readonly = true)
 	@JvmField var remoteRepos: List<RemoteRepository>? = null
-
 
 	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"
 	@Parameter(property = "mainClass") @JvmField var mainClass: String = ""
@@ -78,66 +68,13 @@ class JTranscMojo : AbstractMojo() {
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
 
-	/*
-	fun test() {
-		val locator = DefaultServiceLocator();
-		locator.addService(RepositoryConnectorFactory::class.java, FileRepositoryConnectorFactory::class.java);
-		locator.addService(RepositoryConnectorFactory::class.java, WagonRepositoryConnectorFactory::class.java);
-		locator.addService(VersionResolver::class.java, DefaultVersionResolver::class.java);
-		locator.addService(VersionRangeResolver::class.java, DefaultVersionRangeResolver::class.java);
-		locator.addService(ArtifactDescriptorReader::class.java, DefaultArtifactDescriptorReader::class.java);
-
-			class MyWagonProvider : WagonProvider {
-			override fun lookup(roleHint: String): Wagon? {
-				if ("http".equals(roleHint)) {
-					return LightweightHttpWagon();
-				}
-				return null;
-			}
-
-			override fun release(wagon: Wagon) {
-			}
-
-		}
-
-
-		locator.setServices(WagonProvider::class.java, MyWagonProvider::class.java);
-
-		val system = locator.getService(RepositorySystem::class.java);
-
-		val session = MavenRepositorySystemSession();
-
-		val localRepo = LocalRepository("target/local-repo");
-		session.setLocalRepositoryManager(system.newLocalRepositoryManager(localRepo));
-
-		var artifact = DefaultArtifact("com.hazelcast:hazelcast:LATEST");
-
-		val repo = RemoteRepository("central", "default", "http://repo1.maven.org/maven2/");
-
-		val artifactRequest = ArtifactRequest();
-		artifactRequest.setArtifact(artifact);
-		artifactRequest.addRepository(repo);
-
-		val artifactResult = system.resolveArtifact(session, artifactRequest);
-
-		artifact = artifactResult.getArtifact();
-
-		System.out.println(artifact + " resolved to  " + artifact.getFile());
-	}
-	*/
-
 	@Throws(MojoExecutionException::class, MojoFailureException::class)
 	override fun execute() {
-		//val locator = locator!!
 		val log = log
 		val session = session!!
 		val project = project!!
-		//val build = project.build
-		//val artifactResolver = artifactResolver!!
-		//val dependencyManager = session.repositorySession.dependencyManager
 		val remoteRepos = remoteRepos!!
 		val repoSystem = repoSystem!!
-		//val repoSession = repoSession!!
 
 		val targetParts = target.split(':')
 		val targetActual = targetParts.getOrNull(0) ?: "js"
@@ -163,15 +100,12 @@ class JTranscMojo : AbstractMojo() {
 			remote("central.mirror", "https://uk.maven.org/maven2")
 		)
 
-		//val allRemoteRepos = remoteRepos
-
 		val result = repoSystem.resolveArtifact(
 			repoSession,
 			ArtifactRequest(jtranscRuntimeArtifact, allRemoteRepos, JavaScopes.COMPILE)
 		)
 
 		log.info("KT: Resolved: $result : ${result.artifact.file.absolutePath}");
-		//dependencyManager.manageDependency(Dependency(jtranscRuntimeArtifact, "compile"))
 
 		val settings = AstBuildSettings(
 			jtranscVersion = jtranscVersion,
