@@ -20,7 +20,6 @@ import com.jtransc.AllBuild
 import com.jtransc.ast.AstBuildSettings
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
-import org.apache.maven.plugin.BuildPluginManager
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugins.annotations.Component
@@ -28,16 +27,34 @@ import org.apache.maven.plugins.annotations.LifecyclePhase
 import org.apache.maven.plugins.annotations.Mojo
 import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
+import org.eclipse.aether.RepositorySystem
+import org.eclipse.aether.RepositorySystemSession
 import org.eclipse.aether.artifact.DefaultArtifact
-import org.eclipse.aether.graph.Dependency
+import org.eclipse.aether.repository.RemoteRepository
+import org.eclipse.aether.resolution.ArtifactRequest
+import org.eclipse.aether.util.artifact.JavaScopes
 import java.io.File
 import java.util.*
 
 @Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
 class JTranscMojo : AbstractMojo() {
+	//@Component @JvmField var locator: ServiceLocator? = null
 	@Component @JvmField var project: MavenProject? = null
 	@Component @JvmField var session: MavenSession? = null
-	@Component @JvmField var pluginManager: BuildPluginManager? = null
+	//@Component @JvmField var pluginManager: BuildPluginManager? = null
+	//@Component @JvmField var artifactResolver: ArtifactResolver? = null
+	//@Component @JvmField var remoteRepos: List<RemoteRepository>? = null
+	//@Component @JvmField var repoSystem: RepositorySystem? = null
+	//@Component @JvmField var repoSession: RepositorySystemSession? = null
+
+	@Component @JvmField var repoSystem: RepositorySystem? = null
+
+	@Parameter(defaultValue = "\${repositorySystemSession}", readonly = true)
+	@JvmField var repoSession: RepositorySystemSession? = null;
+
+	@Parameter(defaultValue = "\${project.remotePluginRepositories}", readonly = true)
+	@JvmField var remoteRepos: List<RemoteRepository>? = null
+
 
 	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"
 	@Parameter(property = "mainClass") @JvmField var mainClass: String = ""
@@ -61,31 +78,100 @@ class JTranscMojo : AbstractMojo() {
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
 
+	/*
+	fun test() {
+		val locator = DefaultServiceLocator();
+		locator.addService(RepositoryConnectorFactory::class.java, FileRepositoryConnectorFactory::class.java);
+		locator.addService(RepositoryConnectorFactory::class.java, WagonRepositoryConnectorFactory::class.java);
+		locator.addService(VersionResolver::class.java, DefaultVersionResolver::class.java);
+		locator.addService(VersionRangeResolver::class.java, DefaultVersionRangeResolver::class.java);
+		locator.addService(ArtifactDescriptorReader::class.java, DefaultArtifactDescriptorReader::class.java);
+
+			class MyWagonProvider : WagonProvider {
+			override fun lookup(roleHint: String): Wagon? {
+				if ("http".equals(roleHint)) {
+					return LightweightHttpWagon();
+				}
+				return null;
+			}
+
+			override fun release(wagon: Wagon) {
+			}
+
+		}
+
+
+		locator.setServices(WagonProvider::class.java, MyWagonProvider::class.java);
+
+		val system = locator.getService(RepositorySystem::class.java);
+
+		val session = MavenRepositorySystemSession();
+
+		val localRepo = LocalRepository("target/local-repo");
+		session.setLocalRepositoryManager(system.newLocalRepositoryManager(localRepo));
+
+		var artifact = DefaultArtifact("com.hazelcast:hazelcast:LATEST");
+
+		val repo = RemoteRepository("central", "default", "http://repo1.maven.org/maven2/");
+
+		val artifactRequest = ArtifactRequest();
+		artifactRequest.setArtifact(artifact);
+		artifactRequest.addRepository(repo);
+
+		val artifactResult = system.resolveArtifact(session, artifactRequest);
+
+		artifact = artifactResult.getArtifact();
+
+		System.out.println(artifact + " resolved to  " + artifact.getFile());
+	}
+	*/
+
 	@Throws(MojoExecutionException::class, MojoFailureException::class)
 	override fun execute() {
+		//val locator = locator!!
 		val log = log
 		val session = session!!
 		val project = project!!
-		val build = project.build
-		val dependencyManager = session.repositorySession.dependencyManager
+		//val build = project.build
+		//val artifactResolver = artifactResolver!!
+		//val dependencyManager = session.repositorySession.dependencyManager
+		val remoteRepos = remoteRepos!!
+		val repoSystem = repoSystem!!
+		//val repoSession = repoSession!!
 
 		val targetParts = target.split(':')
 		val targetActual = targetParts.getOrNull(0) ?: "js"
 		val subtargetActual = targetParts.getOrNull(1) ?: ""
 		val outputActual = targetParts.getOrNull(2) ?: output
 
+		//locator.addService(WagonProvider::class.java, MyWagonProvider::class.java)
+
 		log.info("KT: Session.localRepository: ${session.localRepository?.basedir}");
 
 		val jtranscVersion = project.pluginArtifacts.first { it.artifactId == "jtransc-maven-plugin" }.version
 
-		log.info("KT: JTRansc version : $jtranscVersion");
+		log.info("KT: JTransc version : $jtranscVersion");
 
-		val rtArtifact = DefaultArtifact("com.jtransc:jtransc-rt:$jtranscVersion")
-		val rtCoreArtifact = DefaultArtifact("com.jtransc:jtransc-rt-core:$jtranscVersion")
+		val jtranscRuntimeArtifact = DefaultArtifact("com.jtransc:jtransc-rt:$jtranscVersion")
 
-		log.info("KT: Resolving $rtArtifact and $rtCoreArtifact");
-		dependencyManager.manageDependency(Dependency(rtArtifact, "compile"))
-		dependencyManager.manageDependency(Dependency(rtCoreArtifact, "compile"))
+		log.info("KT: Resolving $jtranscRuntimeArtifact");
+
+		fun remote(id: String, url: String) = RemoteRepository.Builder(id, "default", url).build()
+
+		val allRemoteRepos = remoteRepos + listOf(
+			remote("sonatype.oss.snapshots", "https://oss.sonatype.org/content/repositories/snapshots/"),
+			remote("central.mirror", "https://uk.maven.org/maven2")
+		)
+
+		//val allRemoteRepos = remoteRepos
+
+		val result = repoSystem.resolveArtifact(
+			repoSession,
+			ArtifactRequest(jtranscRuntimeArtifact, allRemoteRepos, JavaScopes.COMPILE)
+		)
+
+		log.info("KT: Resolved: $result : ${result.artifact.file.absolutePath}");
+		//dependencyManager.manageDependency(Dependency(jtranscRuntimeArtifact, "compile"))
 
 		val settings = AstBuildSettings(
 			jtranscVersion = jtranscVersion,
