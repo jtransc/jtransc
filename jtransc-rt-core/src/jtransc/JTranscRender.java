@@ -43,6 +43,8 @@ public class JTranscRender {
 		impl.disposeTexture(textureId);
 	}
 
+	static public final int BLEND_INVALID = -1;
+	//static public final int BLEND_MAX = 16;
 	static public final int BLEND_NORMAL = 1;
 	static public final int BLEND_ADD = 8;
 
