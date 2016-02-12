@@ -29,11 +29,19 @@ public class LibgdxInput {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                mouseInfo.x = screenX;
+                mouseInfo.y = screenY;
+                mouseInfo.buttons = 1;
+                JTranscInput.impl.onMouseDown(mouseInfo);
                 return false;
             }
 
             @Override
             public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                mouseInfo.x = screenX;
+                mouseInfo.y = screenY;
+                mouseInfo.buttons = 0;
+                JTranscInput.impl.onMouseUp(mouseInfo);
                 return false;
             }
 

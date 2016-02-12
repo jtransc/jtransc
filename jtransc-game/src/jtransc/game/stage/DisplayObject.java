@@ -22,6 +22,14 @@ public class DisplayObject extends EventDispatcher {
     private Matrix transformationMatrixInverted = new Matrix();
     private boolean dirtyTransformationMatrix = false;
     public Signal<Integer> onUpdate = new Signal<Integer>();
+    private MouseHandler mouseHandler;
+
+    public MouseHandler getMouseHandler() {
+        if (mouseHandler == null) {
+            mouseHandler = new MouseHandler(this);
+        }
+        return mouseHandler;
+    }
 
     public Sprite getParent() {
         return this.parent;

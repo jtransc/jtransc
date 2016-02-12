@@ -18,13 +18,17 @@ public class JTranscGame {
 
 	private int lastTime = -1;
     final public Point mouse = new Point();
+    public int mouseButtons = 0;
 
     private boolean[] pressingKeys = new boolean[Keys.MAX];
+
+    static public JTranscGame instance;
 
 	public JTranscGame(Canvas canvas, Stage stage) {
 		this.canvas = canvas;
 		this.stage = stage;
 		this.root = stage.root;
+        JTranscGame.instance = this;
 	}
 
 	public Texture image(String path, int width, int height) {
@@ -147,7 +151,9 @@ public class JTranscGame {
     private void setMouseInfo(JTranscInput.MouseInfo info) {
         mouseEvent.position.x = info.x;
         mouseEvent.position.y = info.y;
+        mouseEvent.buttons = info.buttons;
         mouse.setTo(info.x, info.y);
+        mouseButtons = info.buttons;
         stage.root.dispatchEvent(mouseEvent);
         //System.out.println("Event: " + mouse);
     }
