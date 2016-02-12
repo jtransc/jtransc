@@ -82,4 +82,12 @@ public class Rectangle {
 	public Rectangle copyFrom(Rectangle that) {
 		return setToBounds(that.left, that.top, that.right, that.bottom);
 	}
+
+    public boolean contains(Point p) {
+        return contains(p.x, p.y);
+    }
+
+    public boolean contains(double x, double y) {
+        return x >= this.left && y >= this.top && x < this.right && y < this.bottom;
+    }
 }

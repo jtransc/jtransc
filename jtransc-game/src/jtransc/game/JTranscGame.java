@@ -17,7 +17,7 @@ public class JTranscGame {
 	public final Sprite root;
 
 	private int lastTime = -1;
-    private Point mouse = new Point();
+    final public Point mouse = new Point();
 
     private boolean[] pressingKeys = new boolean[Keys.MAX];
 
@@ -30,14 +30,6 @@ public class JTranscGame {
 	public Texture image(String path, int width, int height) {
 		return canvas.image(path, width, height);
 	}
-
-    public int getMouseX() {
-        return (int) this.mouse.x;
-    }
-
-    public int getMouseY() {
-        return (int) this.mouse.y;
-    }
 
     public boolean isPressing(int keyCode) {
         return pressingKeys[keyCode];
@@ -52,7 +44,7 @@ public class JTranscGame {
 		JTranscEventLoop.init(new Runnable() {
 			@Override
 			public void run() {
-				System.out.println("Init");
+				System.out.println("JTranscGame.Init");
 				System.out.println("JTransc version:" + JTranscVersion.getVersion());
 				System.out.println("Endian isLittleEndian:" + JTranscEndian.isLittleEndian());
 				System.out.println("Endian isBigEndian:" + JTranscEndian.isBigEndian());
@@ -155,6 +147,7 @@ public class JTranscGame {
     private void setMouseInfo(JTranscInput.MouseInfo info) {
         mouseEvent.position.x = info.x;
         mouseEvent.position.y = info.y;
+        mouse.setTo(info.x, info.y);
         stage.root.dispatchEvent(mouseEvent);
         //System.out.println("Event: " + mouse);
     }

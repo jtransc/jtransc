@@ -2,6 +2,8 @@ package jtransc.game.stage;
 
 import jtransc.game.canvas.Context2D;
 import jtransc.game.event.Event;
+import jtransc.game.math.Matrix;
+import jtransc.game.math.Point;
 
 import java.util.ArrayList;
 
@@ -9,6 +11,9 @@ public class Sprite extends DisplayObject {
     ArrayList<DisplayObject> children = new ArrayList<DisplayObject>();
 
     public DisplayObject addChild(DisplayObject child) {
+        Sprite parent = child.getParent();
+        if (parent != null) parent.removeChild(child);
+        child.parent = this;
         children.add(child);
         return child;
     }
@@ -36,6 +41,14 @@ public class Sprite extends DisplayObject {
         for (int n = 0; n < children.size(); n++) {
             children.get(n).dispatchEvent(event);
         }
+    }
+
+    @Override
+    public boolean hitTestGlobal(Point point) {
+        for (DisplayObject child : children) {
+            if (child.hitTestGlobal(point)) return true;
+        }
+        return false;
     }
 }
 

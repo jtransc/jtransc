@@ -186,9 +186,37 @@ public class Matrix {
 	}
 
 	public Point transform(double px, double py, Point result) {
-		return result.setTo(
-			this.a * px + this.c * py + this.tx,
-			this.d * py + this.b * px + this.ty
-		);
+		return result.setTo(transformX(px, py), transformY(px, py));
 	}
+
+    public double transformX(double px, double py) {
+        return this.a * px + this.c * py + this.tx;
+    }
+
+    public double transformY(double px, double py) {
+        return this.d * py + this.b * px + this.ty;
+    }
+
+    public Point transform(Point point, Point result) {
+        return transform(point.x, point.y, result);
+    }
+
+    public Matrix setTransform(double x, double y, double scaleX, double scaleY, double rotation, double skewX, double skewY) {
+        if (skewX == 0.0 && skewY == 0.0) {
+            if (rotation == 0.0) {
+                this.setTo(scaleX, 0.0, 0.0, scaleY, x, y);
+            } else {
+                double cos = Math.cos(rotation);
+                double sin = Math.sin(rotation);
+                this.setTo(cos * scaleX, sin * scaleY, -sin * scaleX, cos * scaleY, x, y);
+            }
+        } else {
+            identity();
+            scale(scaleX, scaleY);
+            skew(skewX, skewY);
+            rotate(rotation);
+            translate(x, y);
+        }
+        return this;
+    }
 }
