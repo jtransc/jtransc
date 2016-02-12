@@ -1,15 +1,17 @@
 package jtransc.game.stage;
 
 import jtransc.game.canvas.Context2D;
+import jtransc.game.event.EventDispatcher;
 import jtransc.game.util.Signal;
 
-public class DisplayObject {
+public class DisplayObject extends EventDispatcher {
 	private double x = 0.0;
 	private double y = 0.0;
 	private double scaleX = 1.0;
 	private double scaleY = 1.0;
 	private double rotation = 0.0;
 	private double speed = 1.0;
+    public Signal<Integer> onUpdate = new Signal<Integer>();
 
 	public double getAlpha() {
 		return alpha;
@@ -20,8 +22,6 @@ public class DisplayObject {
 	}
 
 	private double alpha = 1.0;
-
-	public Signal<Integer> onUpdate = new Signal<Integer>();
 
 	final public void update(int dtMs) {
 		dtMs = (int) (dtMs * speed);
