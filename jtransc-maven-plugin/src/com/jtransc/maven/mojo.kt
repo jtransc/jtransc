@@ -46,7 +46,8 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(defaultValue = "\${project.remotePluginRepositories}", readonly = true)
 	@JvmField var remoteRepos: List<RemoteRepository>? = null
 
-	@Parameter(property = "target", defaultValue = "as3") @JvmField var target: String = "js"
+	@Parameter(property = "target", defaultValue = "") @JvmField var target: String = ""
+	@Parameter(property = "targets", defaultValue = "") @JvmField var targets: Array<String> = arrayOf()
 	@Parameter(property = "mainClass") @JvmField var mainClass: String = ""
 	@Parameter(property = "output", defaultValue = "program.js") @JvmField var output: String = "program.js"
 	@Parameter(property = "release", defaultValue = "false") @JvmField var release: Boolean = false
@@ -76,10 +77,16 @@ class JTranscMojo : AbstractMojo() {
 		val remoteRepos = remoteRepos!!
 		val repoSystem = repoSystem!!
 
-		val targetParts = target.split(':')
-		val targetActual = targetParts.getOrNull(0) ?: "js"
-		val subtargetActual = targetParts.getOrNull(1) ?: ""
-		val outputActual = targetParts.getOrNull(2) ?: output
+		log.info("KT: target: $target");
+		log.info("KT: targets: ${targets.toList()}");
+
+		val allTargets = targets.toList() + if (target != "") {
+			listOf(target)
+		} else {
+			listOf()
+		}
+
+		log.info("KT: allTargets: $allTargets");
 
 		//locator.addService(WagonProvider::class.java, MyWagonProvider::class.java)
 
@@ -128,7 +135,7 @@ class JTranscMojo : AbstractMojo() {
 		)
 		//project.version
 
-		log.info("KT: Transcompiling entry point '$mainClass' to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
+		log.info("KT: Transcompiling entry point '$mainClass':")
 		val dependencyJarPaths = ArrayList<String>()
 		for (artifact in project.dependencyArtifacts) {
 			val artifactPath = artifact.file.absolutePath
@@ -142,12 +149,19 @@ class JTranscMojo : AbstractMojo() {
 
 		val finalOutputDirectory = File(project.build.outputDirectory).parentFile
 
-		log.info("Building... ")
-		val beforeBuild = System.currentTimeMillis()
-		val allBuild = AllBuild(targetActual, dependencyJarPaths, mainClass, File(finalOutputDirectory!!, outputActual).absolutePath, subtargetActual, targetDirectory)
-		allBuild.buildWithoutRunning(settings)
+		log.info("Building targets... " + allTargets.joinToString(", "));
+		for (target in allTargets) {
+			val targetParts = target.split(':')
+			val targetActual = targetParts.getOrNull(0) ?: "js"
+			val subtargetActual = targetParts.getOrNull(1) ?: ""
+			val outputActual = targetParts.getOrNull(2) ?: output
 
-		val afterBuild = System.currentTimeMillis()
-		log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
+			val beforeBuild = System.currentTimeMillis()
+			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
+			val allBuild = AllBuild(targetActual, dependencyJarPaths, mainClass, File(finalOutputDirectory!!, outputActual).absolutePath, subtargetActual, targetDirectory)
+			allBuild.buildWithoutRunning(settings)
+			val afterBuild = System.currentTimeMillis()
+			log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
+		}
 	}
 }

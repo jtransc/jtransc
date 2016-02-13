@@ -17,7 +17,7 @@ public class JTranscGame {
 	public final Sprite root;
 
 	private int lastTime = -1;
-    final public Point mouse = new Point();
+    final public Point mouse = new Point(-1000, -1000);
     public int mouseButtons = 0;
 
     private boolean[] pressingKeys = new boolean[Keys.MAX];

@@ -380,10 +380,10 @@ object GenHaxe : GenTarget {
 		val tempdir = tinfo.targetDirectory
 		var info: ProgramInfo? = null
 
-		File("$tempdir/all-haxe/src").mkdirs()
-		val srcFolder = LocalVfs("$tempdir/all-haxe/src").ensuredir()
+		File("$tempdir/jtransc-haxe/src").mkdirs()
+		val srcFolder = LocalVfs("$tempdir/jtransc-haxe/src").ensuredir()
 
-		println("Temporal haxe files: $tempdir/all-haxe")
+		println("Temporal haxe files: $tempdir/jtransc-haxe")
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {

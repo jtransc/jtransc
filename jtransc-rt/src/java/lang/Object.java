@@ -38,7 +38,13 @@ public class Object {
 
 	@JTranscKeep
 	public String toString() {
-		return getClass().getName() + "@" + Integer.toHexString(hashCode());
+        Class<?> clazz = getClass();
+        String hashCode = Integer.toHexString(this.hashCode());
+        if (clazz != null) {
+            return clazz.getName() + "@" + hashCode;
+        } else {
+            return "null@" + hashCode;
+        }
 	}
 
 	public final void notify() {

@@ -158,12 +158,12 @@ object GenHaxeLime : GenTarget {
 		//val tempdir = System.getProperty("java.io.tmpdir")
 		val tempdir = tinfo.targetDirectory
 		var info: GenHaxe.ProgramInfo? = null
-		val projectDir = LocalVfs("$tempdir/all-haxe/")
+		val projectDir = LocalVfs("$tempdir/jtransc-haxe/")
 
-		File("$tempdir/all-haxe/src").mkdirs()
+		File("$tempdir/jtransc-haxe/src").mkdirs()
 		val srcFolder = projectDir["src"]
 
-		println("Temporal haxe files: $tempdir/all-haxe")
+		println("Temporal haxe files: $tempdir/jtransc-haxe")
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
