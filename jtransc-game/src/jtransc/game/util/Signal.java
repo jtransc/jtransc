@@ -3,16 +3,20 @@ package jtransc.game.util;
 import java.util.ArrayList;
 
 public class Signal<T> {
-	ArrayList<SignalHandler<T>> handlers = null;
+	public interface Handler<T> {
+		void handle(T value);
+	}
 
-	public void add(SignalHandler<T> value) {
+	ArrayList<Handler<T>> handlers = null;
+
+	public void add(Handler<T> value) {
         if (handlers == null) {
-            handlers = new ArrayList<SignalHandler<T>>();
+            handlers = new ArrayList<Handler<T>>();
         }
 		handlers.add(value);
 	}
 
-	public void remove(SignalHandler<T> value) {
+	public void remove(Handler<T> value) {
         if (handlers != null) {
             handlers.remove(value);
         }
@@ -20,7 +24,7 @@ public class Signal<T> {
 
 	public void dispatch(T value) {
         if (handlers != null) {
-            for (SignalHandler<T> handler : handlers) {
+            for (Handler<T> handler : handlers) {
                 handler.handle(value);
             }
         }

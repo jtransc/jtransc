@@ -2,7 +2,6 @@ package jtransc.game.stage;
 
 import jtransc.game.JTranscGame;
 import jtransc.game.util.Signal;
-import jtransc.game.util.SignalHandler;
 
 public class MouseHandler {
     final public Signal<DisplayObject> onHover = new Signal<DisplayObject>();
@@ -16,7 +15,7 @@ public class MouseHandler {
 
     public MouseHandler(final DisplayObject view) {
         final JTranscGame game = JTranscGame.instance;
-        view.onUpdate.add(new SignalHandler<Integer>() {
+        view.onUpdate.add(new Signal.Handler<Integer>() {
             @Override
             public void handle(Integer value) {
                 boolean hover = view.hitTestGlobal(game.mouse);
