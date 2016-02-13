@@ -74,6 +74,9 @@ object GenHaxeLime : GenTarget {
 			for (asset in settings.assets) {
 				line("""<assets path="$asset" rename="assets" />""")
 			}
+			if (!settings.icon.isNullOrEmpty()) {
+				line("""<icon path="${settings.icon}" />""")
+			}
 			line("""<haxelib name="lime" />""")
 			for (lib in settings.libraries) {
 				if (lib.version != null) {

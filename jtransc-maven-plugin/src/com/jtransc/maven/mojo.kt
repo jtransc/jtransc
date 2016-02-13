@@ -52,11 +52,11 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "output", defaultValue = "program.js") @JvmField var output: String = "program.js"
 	@Parameter(property = "release", defaultValue = "false") @JvmField var release: Boolean = false
 	@Parameter(property = "library", defaultValue = "") @JvmField var libraries: Array<String> = arrayOf()
-	@Parameter(property = "version", defaultValue = "0.0.0") @JvmField var version: String = "0.0.0" // @TODO: Or better use project.version?
+	@Parameter(property = "version", defaultValue = "") @JvmField var version: String = "" // @TODO: Or better use project.version?
 	@Parameter(property = "title", defaultValue = "MyApp") @JvmField var title: String = "MyApp"
 	@Parameter(property = "name", defaultValue = "MyApp") @JvmField var name: String = "MyApp"
 	@Parameter(property = "company", defaultValue = "Company") @JvmField var company: String = "Company"
-	@Parameter(property = "package", defaultValue = "com.example") @JvmField var package_: String = "com.example"
+	@Parameter(property = "packagePath", defaultValue = "") @JvmField var packagePath: String = ""
 	@Parameter(property = "initialWidth", defaultValue = "1280") @JvmField var initialWidth: Int = 1280
 	@Parameter(property = "initialHeight", defaultValue = "720") @JvmField var initialHeight: Int = 720
 	@Parameter(property = "orientation", defaultValue = "auto") @JvmField var orientation: String = "auto"
@@ -76,6 +76,9 @@ class JTranscMojo : AbstractMojo() {
 		val project = project!!
 		val remoteRepos = remoteRepos!!
 		val repoSystem = repoSystem!!
+
+		val package_ = if (this.packagePath.isNullOrEmpty()) project.artifact.groupId else this.packagePath
+		val version = if (this.version.isNullOrEmpty()) project.artifact.version else this.version
 
 		log.info("KT: target: $target");
 		log.info("KT: targets: ${targets.toList()}");
