@@ -9,14 +9,14 @@ public class Image extends DisplayObject {
     public double anchorX = 0;
     public double anchorY = 0;
 
+    public Image(Texture image) {
+        this(image, 0, 0);
+    }
+
     public Image(Texture image, double anchorX, double anchorY) {
         this.image = image;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
-    }
-
-    public Image(Texture image) {
-        this(image, 0, 0);
     }
 
     //(val image: Texture, var anchorX:Double = 0.0, var anchorY:Double = 0.0)

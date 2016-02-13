@@ -155,6 +155,6 @@ public class JTranscGame {
         mouse.setTo(info.x, info.y);
         mouseButtons = info.buttons;
         stage.root.dispatchEvent(mouseEvent);
-        //System.out.println("Event: " + mouse);
+        //System.out.println("Event: " + getMouse);
     }
 }

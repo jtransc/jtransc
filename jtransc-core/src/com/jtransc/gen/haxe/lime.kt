@@ -16,7 +16,9 @@
 
 package com.jtransc.gen.haxe
 
-import com.jtransc.ast.*
+import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstFeatures
+import com.jtransc.ast.AstProgram
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetDescriptor
@@ -39,6 +41,19 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 
 object GenHaxeLime : GenTarget {
 	override val runningAvailable: Boolean = true
+
+	fun createMain(entryPointPackage: String, entryPointSimpleName: String, inits: () -> Indenter, mainClass: String, mainMethod: String): Indenter {
+		return Indenter.gen {
+			line("package $entryPointPackage;")
+			line("class $entryPointSimpleName extends HaxeLimeJTranscApplication") {
+				line("public function new()") {
+					line("super();")
+					line(inits())
+					line("$mainClass.$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
+				}
+			}
+		}
+	}
 
 	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
 		line("""<?xml version="1.0" encoding="utf-8"?>""")
@@ -72,7 +87,7 @@ object GenHaxeLime : GenTarget {
 		line("""</project>""")
 	}.toString()
 
-	fun createAdobeAirDescriptor(name:String):String {
+	fun createAdobeAirDescriptor(name: String): String {
 		return Indenter.gen {
 			line("""<?xml version="1.0" encoding="utf-8" ?>""")
 			line("""<application xmlns="http://ns.adobe.com/air/application/18.0">""")
@@ -89,7 +104,7 @@ object GenHaxeLime : GenTarget {
 					line("""<autoOrients>true</autoOrients>""")
 					line("""<fullScreen>true</fullScreen>""")
 					line("""<renderMode>direct</renderMode>""")
-						line("""<depthAndStencil>true</depthAndStencil>""")
+					line("""<depthAndStencil>true</depthAndStencil>""")
 				}
 				line("""</initialWindow>""")
 			}

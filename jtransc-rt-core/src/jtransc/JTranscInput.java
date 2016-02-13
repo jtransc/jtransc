@@ -16,55 +16,80 @@
 
 package jtransc;
 
+import jtransc.annotation.JTranscKeep;
+
 import java.util.ArrayList;
 
 public class JTranscInput {
+    @JTranscKeep
     static public ListHandler impl = new ListHandler();
+    @JTranscKeep
+    static public MouseInfo mouseInfo = new MouseInfo();
+    @JTranscKeep
+    static public KeyInfo keyInfo = new KeyInfo();
+    @JTranscKeep
+    static public GamepadInfo gamepadInfo = new GamepadInfo ();
 
     public interface Impl {
         void addHandler(Handler handler);
     }
 
+    @JTranscKeep
     static public class KeyInfo {
         public int keyCode;
     }
 
+    @JTranscKeep
     static public class MouseInfo {
         public int x;
         public int y;
         public int buttons;
     }
 
+    @JTranscKeep
     static public class GamepadInfo {
 
     }
 
+    @JTranscKeep
     static public class TouchInfo {
     }
 
     public interface Handler {
+        @JTranscKeep
         void onKeyTyped(KeyInfo info);
 
+        @JTranscKeep
         void onKeyDown(KeyInfo info);
 
+        @JTranscKeep
         void onKeyUp(KeyInfo info);
 
+        @JTranscKeep
         void onGamepadPressed(GamepadInfo info);
 
+        @JTranscKeep
         void onGamepadRelepased(GamepadInfo info);
 
+        @JTranscKeep
         void onMouseDown(MouseInfo info);
 
+        @JTranscKeep
         void onMouseUp(MouseInfo info);
 
+        @JTranscKeep
         void onMouseMove(MouseInfo info);
 
+        @JTranscKeep
         void onMouseScroll(MouseInfo info);
 
+        @JTranscKeep
         void onTouchDown(TouchInfo info);
 
+        @JTranscKeep
         void onTouchDrag(TouchInfo info);
 
+        @JTranscKeep
         void onTouchUp(TouchInfo info);
     }
 

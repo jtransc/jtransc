@@ -1,25 +1,25 @@
 package jtransc.game.math;
 
-public class Point {
-    public double x;
-    public double y;
+public class IPoint {
+    public int x;
+    public int y;
 
-    public Point() {
+    public IPoint() {
         this(0, 0);
     }
 
-    public Point(double x, double y) {
+    public IPoint(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    public Point setTo(double x, double y) {
+    public IPoint setTo(int x, int y) {
         this.x = x;
         this.y = y;
         return this;
     }
 
-    public void copyFrom(Point that) {
+    public void copyFrom(IPoint that) {
         this.x = that.x;
         this.y = that.y;
     }
@@ -28,19 +28,18 @@ public class Point {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
-        Point that = (Point) o;
+        IPoint that = (IPoint) o;
         return this.x == that.x && this.y == that.y;
 
     }
 
     @Override
     public int hashCode() {
-        return (int) (31 * Double.doubleToLongBits(x) + Double.doubleToLongBits(y));
+        return 31 * x + y;
     }
 
     @Override
     public String toString() {
-        return "Point(" + x + ", " + y + ")";
+        return "IPoint(" + x + ", " + y + ")";
     }
 }

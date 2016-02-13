@@ -88,10 +88,10 @@ public final class Integer extends Number implements Comparable<Integer> {
 	public static Integer valueOf(int i) {
         if (values == null) {
             values = new Integer[LENGTH];
-            for (int n = MIN; n < MAX; n++) values[MIN + n] = new Integer(n);
+            for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
         }
         if (i >= MIN && i < MAX) {
-            return values[MIN + i];
+            return values[i - MIN];
         } else {
             return new Integer(i);
         }

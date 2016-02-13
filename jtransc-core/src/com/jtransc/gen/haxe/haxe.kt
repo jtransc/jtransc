@@ -181,51 +181,13 @@ object GenHaxe : GenTarget {
 		}
 
 		if (limeEntryPoint) {
-			vfs[entryPointFilePath] = Indenter.gen {
-				line("package $entryPointPackage;")
-				line("class $entryPointSimpleName extends lime.app.Application") {
-					line("public override function onPreloadComplete():Void") {
-						//switch (renderer.context) {
-						//	case FLASH(sprite): #if flash initializeFlash(sprite); #end
-						//	case OPENGL (gl):
-						//	default:
-						//	throw "Unsupported render context";
-						//}
-					}
-
-					line("private var initialized = false;")
-					line("private var initializedRenderer = false;")
-					line("public override function render(renderer:lime.graphics.Renderer)") {
-						line("super.render(renderer);")
-						line("if (!initializedRenderer)") {
-							line("initializedRenderer = true;")
-							line("HaxeLimeRender.setRenderer(renderer);")
-						}
-						line("HaxeLimeRender.setSize(window.width, window.height);")
-						line("if (HaxeLimeRender.isInitialized())") {
-							line("if (!initialized && HaxeNatives.initHandler != null)") {
-								line("initialized = true;")
-								line("HaxeNatives.initHandler();")
-							}
-							line("if (HaxeNatives.renderHandler != null) HaxeNatives.renderHandler();")
-						}
-					}
-
-					line("public override function update(deltaTime:Int)") {
-						line("super.update(deltaTime);")
-						line("if (HaxeLimeRender.isInitialized())") {
-							line("if (HaxeNatives.updateHandler != null) HaxeNatives.updateHandler();")
-						}
-					}
-
-					line("public function new()") {
-						line("super();")
-						line("HaxeNatives.enabledDefaultEventLoop = false;")
-						line(inits())
-						line("$mainClass.$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
-					}
-				}
-			}
+			vfs[entryPointFilePath] = GenHaxeLime.createMain(
+				entryPointPackage = entryPointPackage,
+				entryPointSimpleName = entryPointSimpleName,
+				inits = ::inits,
+				mainClass = mainClass,
+				mainMethod = mainMethod
+			)
 		} else {
 			vfs[entryPointFilePath] = Indenter.gen {
 				line("package $entryPointPackage;")

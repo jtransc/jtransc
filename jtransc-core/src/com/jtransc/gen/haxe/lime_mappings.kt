@@ -21,6 +21,7 @@ import com.jtransc.gen.ClassMappings
 
 val LimeCopyFiles = HaxeCopyFiles + listOf(
 	"AGALMiniAssembler.hx",
+	"HaxeLimeJTranscApplication.hx",
 	"HaxeLimeRender.hx",
 	"HaxeLimeRenderImpl.hx",
 	"HaxeLimeRenderFlash.hx",
@@ -50,7 +51,6 @@ fun LimeMappings():ClassMappings {
 			p1.handler_Ljava_lang_Throwable_Ljava_lang_Object__V(null, HaxeByteArray.fromBytes(bytes));
 		""")
 	}
-
 
 	return mappings
 }

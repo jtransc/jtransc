@@ -17,6 +17,7 @@ public class DisplayObject extends EventDispatcher {
     private double skewX = 0.0;
     private double skewY = 0.0;
     private double speed = 1.0;
+    private String name = "";
     Sprite parent = null;
     private Matrix transformationMatrix = new Matrix();
     private Matrix transformationMatrixInverted = new Matrix();
@@ -24,7 +25,7 @@ public class DisplayObject extends EventDispatcher {
     public Signal<Integer> onUpdate = new Signal<Integer>();
     private MouseHandler mouseHandler;
 
-    public MouseHandler getMouseHandler() {
+    public MouseHandler getMouse() {
         if (mouseHandler == null) {
             mouseHandler = new MouseHandler(this);
         }
@@ -140,6 +141,14 @@ public class DisplayObject extends EventDispatcher {
 
     public void setSkewY(double skewY) {
         this.skewY = _value(this.skewY, skewY);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     final public void render(Context2D ctx) {

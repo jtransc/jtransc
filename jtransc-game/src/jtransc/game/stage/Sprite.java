@@ -1,16 +1,18 @@
 package jtransc.game.stage;
 
 import jtransc.game.canvas.Context2D;
+import jtransc.game.canvas.Texture;
 import jtransc.game.event.Event;
 import jtransc.game.math.Matrix;
 import jtransc.game.math.Point;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Sprite extends DisplayObject {
     ArrayList<DisplayObject> children = new ArrayList<DisplayObject>();
 
-    public DisplayObject addChild(DisplayObject child) {
+    public <T extends  DisplayObject> T addChild(T child) {
         Sprite parent = child.getParent();
         if (parent != null) parent.removeChild(child);
         child.parent = this;
@@ -18,8 +20,34 @@ public class Sprite extends DisplayObject {
         return child;
     }
 
+    // Factory
+    public Image image(Texture texture) {
+        return addChild(new Image(texture));
+    }
+    public Sprite sprite() {
+        return addChild(new Sprite());
+    }
+
+    public DisplayObject get(String name) {
+        for (DisplayObject child : children) {
+            if (Objects.equals(child.getName(), name)) return child;
+        }
+        return null;
+    }
+
     public void removeChild(DisplayObject child) {
-        children.remove(child);
+        if (child.getParent() == this) {
+            children.remove(child);
+            child.parent = null;
+        }
+    }
+
+    public void removeChildren() {
+        for (DisplayObject child : children) {
+            child.parent = null;
+        }
+
+        children.clear();
     }
 
     public void internalRender(Context2D ctx) {
