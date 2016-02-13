@@ -48,11 +48,16 @@ You can search for artifacts for it in maven central with [com.jtransc groupId](
     <plugin>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc-maven-plugin</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.4</version>
         <configuration>
-            <mainClass>example.Test</mainClass>
-            <output>program.swf</output>
-            <release>true</release>
+			<mainClass>example.Test</mainClass>
+			<targets>
+				<param>lime:swf</param>
+				<param>lime:js</param>
+				<param>lime:neko</param>
+				<param>lime:android</param>
+			</targets>
+			<release>true</release>
         </configuration>
         <executions><execution><goals><goal>build-as3</goal></goals></execution></executions>
     </plugin>
