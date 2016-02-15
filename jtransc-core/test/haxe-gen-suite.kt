@@ -57,8 +57,8 @@ class HaxeGenSuite {
 		val testClassName = clazz.name
 		val testClassesPath = File("target/test-classes").absolutePath
         val kotlinPaths = listOf<String>() +
-                MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0-rc-1036") +
-                MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0-rc-1036")
+                MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0") +
+                MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
 
 		val expected = ClassUtils.callMain(clazz).replace(
                 "java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
