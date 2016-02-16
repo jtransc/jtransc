@@ -1,10 +1,12 @@
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.Gdx2DPixmap;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import jtransc.FastMemory;
+import jtransc.JTranscBits;
 import jtransc.JTranscRender;
 
 import java.util.Stack;
@@ -14,8 +16,10 @@ class LibgdxRenderer implements JTranscRender.Impl {
     com.badlogic.gdx.graphics.Texture[] textures = new com.badlogic.gdx.graphics.Texture[2048];
 
     public LibgdxRenderer() {
-        for (int n = 0; n < 2048; n++) textureIds.add(n);
+        for (int n = 2047; n >= 0; n--) textureIds.add(n);
         System.out.println("LibgdxRenderer()");
+        int blankTextureId = createTextureMemory(new int[] { 0xFFFFFFFF }, 1, 1, JTranscRender.TYPE_RGBA);
+        System.out.println("LibgdxRenderer() : " + blankTextureId);
     }
 
     @Override
@@ -25,6 +29,28 @@ class LibgdxRenderer implements JTranscRender.Impl {
         System.out.println("Loading texture... " + fileHandle.file().getAbsolutePath() + ", exists: " + fileHandle.exists());
         textures[textureId] = new com.badlogic.gdx.graphics.Texture(fileHandle.file().getAbsolutePath());
         System.out.println(" ---> " + textureId);
+        return textureId;
+    }
+
+    @Override
+    public int createTextureMemory(int[] data, int width, int height, int format) {
+        int textureId = textureIds.pop();
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                pixmap.drawPixel(x, y, data[offset]);
+                offset++;
+            }
+        }
+        textures[textureId] = new com.badlogic.gdx.graphics.Texture(pixmap);
+        return textureId;
+    }
+
+    @Override
+    public int createTextureEncoded(byte[] data, int width, int height) {
+        int textureId = textureIds.pop();
+        textures[textureId] = new com.badlogic.gdx.graphics.Texture(new Pixmap(data, 0, data.length));
         return textureId;
     }
 
@@ -117,11 +143,13 @@ class LibgdxRenderer implements JTranscRender.Impl {
 
         gl.glDisable(GL20.GL_STENCIL_TEST);
         gl.glDisable(GL20.GL_SCISSOR_TEST);
-        gl.glClearColor(0f, 0f, 0f, 1f);
+        gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
         gl.glClearStencil(0);
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_STENCIL_BUFFER_BIT);
 
         gl.glEnable(GL20.GL_BLEND);
+
+        //if (true) return;
 
         //System.out.println("indexCount:" + indexCount + ", vertexCount: " + vertexCount);
 
@@ -148,7 +176,7 @@ class LibgdxRenderer implements JTranscRender.Impl {
         float[] vertexData = new float[vertexCount * 6];
         //System.out.println("--------");
         for (int n = 0; n < vertexData.length; n++) {
-            vertexData[n] = vertices.getAlignedFloat32(n);
+            vertexData[n] = vertices.getAlignedFloat32(n * 4);
             //System.out.println(vertexData[n]);
         }
         mesh.setVertices(vertexData, 0, vertexData.length);

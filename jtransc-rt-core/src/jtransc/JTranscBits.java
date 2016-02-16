@@ -52,7 +52,16 @@ public class JTranscBits {
 		return (((b3 & 0xFF) << 24) | ((b2 & 0xFF) << 16) | ((b1 & 0xFF) << 8) | ((b0 & 0xFF) << 0));
 	}
 
-	public static byte long7(long x) {
+    static public int makeInt(byte[] bytes) {
+        return makeInt(bytes[0], bytes[1], bytes[2], bytes[3]);
+    }
+
+    static public int makeInt(byte[] bytes, int offset) {
+        return makeInt(bytes[offset + 0], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+    }
+
+
+    public static byte long7(long x) {
 		return (byte) (x >> 56);
 	}
 
@@ -82,10 +91,6 @@ public class JTranscBits {
 
 	public static byte long0(long x) {
 		return (byte) (x >> 0);
-	}
-
-	static public int makeInt(byte[] bytes) {
-		return makeInt(bytes[0], bytes[1], bytes[2], bytes[3]);
 	}
 
 	static public short makeShort(byte b1, byte b0) {
