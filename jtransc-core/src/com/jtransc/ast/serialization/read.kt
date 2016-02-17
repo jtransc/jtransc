@@ -15,3 +15,40 @@
  */
 
 package com.jtransc.ast.serialization
+
+import com.jtransc.ast.AstBinop
+import com.jtransc.ast.AstExpr
+import com.jtransc.ast.AstStm
+import com.jtransc.ast.FqName
+import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
+import com.jtransc.io.i8
+import java.io.InputStream
+
+class AstRead {
+	val current = FqName("java.lang.Object")
+
+	fun readBinop(s: InputStream, op:AstBinop): AstExpr {
+		val l = readExpr(s)
+		val r = readExpr(s)
+		return AstExpr.BINOP(l.type, l, AstBinop.ADD, r)
+	}
+
+	fun readStm(s: InputStream): AstStm {
+		return when (s.i8()) {
+			AstStmOp.EXPR -> AstStm.STM_EXPR(readExpr(s))
+			else -> noImpl
+		}
+	}
+
+	fun readExpr(s: InputStream): AstExpr {
+		return when (s.i8()) {
+			AstExprOp.THIS -> AstExpr.THIS(current)
+			AstExprOp.LIT_BOOL_FALSE -> AstExpr.LITERAL(false)
+			AstExprOp.LIT_BOOL_TRUE -> AstExpr.LITERAL(true)
+			AstExprOp.BIN_ADD -> readBinop(s, AstBinop.ADD)
+			AstExprOp.BIN_SUB -> readBinop(s, AstBinop.SUB)
+			else -> noImpl
+		}
+	}
+}

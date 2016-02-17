@@ -136,7 +136,7 @@ class AllBuild(
 				entryPoint,
 				classPaths2,
 				LocalVfs("$tempdir/out_ast"),
-				if (enableDeadCodeElimination) exploredDeps2 else null
+				if (enableDeadCodeElimination) exploredDeps2 else setOf()
 			)
 		}
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }

@@ -22,6 +22,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.NotImplementedException
 import com.jtransc.text.ToString
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.*
@@ -578,6 +579,7 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 
 	override fun read(path: String): ByteBuffer {
 		val entry = zip.getEntry(path)
+		if (entry == null) throw FileNotFoundException(path)
 		return zip.getInputStream(entry).readBytes().toBuffer()
 	}
 

@@ -24,3 +24,4 @@ class InvalidArgumentException(str: String = "Invalid Argument") : Exception(str
 class MustOverrideException(str: String = "Must Override") : Exception(str)
 
 val noImpl: Nothing get() = throw NotImplementedException()
+val invalidOp: Nothing get() = throw InvalidOperationException()
