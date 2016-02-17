@@ -21,10 +21,170 @@ import jtransc.annotation.JTranscInvisible;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
+
+// USING ByteBuffer
+/*
+@JTranscInvisible
+final public class FastMemory {
+    private int length;
+    private ByteBuffer data;
+
+    public FastMemory(int size) {
+        this.length = size;
+        this.data = ByteBuffer.allocateDirect((size + 7) & ~7);
+    }
+
+    @JTranscInline
+    final public int getLength() {
+        return this.length;
+    }
+
+    @JTranscInline
+    final public int getAllocatedLength() {
+        return this.data.limit();
+    }
+
+    // Unaligned
+    @JTranscInline
+    final public byte getInt8(int index) {
+        return data.get(index);
+    }
+
+    @JTranscInline
+    final public short getInt16(int index) {
+        return data.getShort(index);
+    }
+
+    @JTranscInline
+    final public int getInt32(int index) {
+        return data.getInt(index);
+    }
+
+    @JTranscInline
+    final public long getInt64(int index) {
+        return data.getLong(index);
+    }
+
+    @JTranscInline
+    final public float getFloat32(int index) {
+        return data.getFloat(index);
+    }
+
+    @JTranscInline
+    final public double getFloat64(int index) {
+        return data.getDouble(index);
+    }
+
+    @JTranscInline
+    final public void setInt8(int index, byte value) {
+        data.put(index, value);
+    }
+
+    @JTranscInline
+    final public void setInt16(int index, short value) {
+        data.putShort(index, value);
+    }
+
+    @JTranscInline
+    final public void setInt32(int index, int value) {
+        data.putInt(index, value);
+    }
+
+    @JTranscInline
+    final public void setInt64(int index, long value) {
+        data.putLong(index, value);
+    }
+
+    @JTranscInline
+    final public void setFloat32(int index, float value) {
+        data.putFloat(index, value);
+    }
+
+    @JTranscInline
+    final public void setFloat64(int index, double value) {
+        data.putDouble(index, value);
+    }
+
+    // Aligned
+
+    @JTranscInline
+    final public byte getAlignedInt8(int index) {
+        return data.get(index << 0);
+    }
+
+    @JTranscInline
+    final public short getAlignedInt16(int index2) {
+        return data.getShort(index2 << 1);
+    }
+
+    @JTranscInline
+    final public int getAlignedInt32(int index4) {
+        return data.getInt(index4 << 2);
+    }
+
+    @JTranscInline
+    final public long getAlignedInt64(int index8) {
+        return data.getLong(index8 << 3);
+    }
+
+    @JTranscInline
+    final public float getAlignedFloat32(int index4) {
+        return data.getFloat(index4 << 2);
+    }
+
+    @JTranscInline
+    final public double getAlignedFloat64(int index8) {
+        return data.getDouble(index8 << 3);
+    }
+
+    @JTranscInline
+    final public void setAlignedInt8(int index, byte value) {
+        data.put(index << 0, value);
+    }
+
+    @JTranscInline
+    final public void setAlignedInt16(int index2, short value) {
+        data.putShort(index2 << 1, value);
+    }
+
+    @JTranscInline
+    final public void setAlignedInt32(int index4, int value) {
+        data.putInt(index4 << 2, value);
+    }
+
+    @JTranscInline
+    final public void setAlignedInt64(int index8, long value) {
+        data.putLong(index8 << 3, value);
+    }
+
+    @JTranscInline
+    final public void setAlignedFloat32(int index4, float value) {
+        data.putFloat(index4 << 2, value);
+    }
+
+    @JTranscInline
+    final public void setAlignedFloat64(int index8, double value) {
+        data.putDouble(index8 << 3, value);
+    }
+
+    @JTranscInline
+    static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
+        for (int n = 0; n < length; n++) {
+            to[toOffset + n] = from.getInt8(fromOffset + n);
+        }
+    }
+}
+*/
+
+
+
+
+// USING UNSAFE!
 
 @JTranscInvisible
 final public class FastMemory {
-    static private Unsafe unsafe;
+    static private sun.misc.Unsafe unsafe;
 
     private int length;
     private byte[] data;
@@ -32,9 +192,9 @@ final public class FastMemory {
     public FastMemory(int size) {
         if (unsafe == null) {
             try {
-                Field f = Unsafe.class.getDeclaredField("theUnsafe");
+                java.lang.reflect.Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
                 f.setAccessible(true);
-                unsafe = (Unsafe) f.get(null);
+                unsafe = (sun.misc.Unsafe) f.get(null);
             } catch (Exception e) {
             }
         }

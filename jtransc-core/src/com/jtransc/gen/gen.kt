@@ -51,7 +51,11 @@ fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildS
 
 	print("Compiling...")
 	val (compileTime, compileResult) = measureTime { processor.compile() }
-	println("Ok ($compileTime)")
+	if (compileResult) {
+		println("Ok ($compileTime)")
+	} else {
+		println("ERROR ($compileTime)")
+	}
 
 	if (!compileResult) return ProcessResult2("", -1)
 	if (run) {

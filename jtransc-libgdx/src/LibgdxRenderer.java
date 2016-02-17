@@ -6,17 +6,18 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import jtransc.FastMemory;
+import jtransc.IntStack;
 import jtransc.JTranscBits;
 import jtransc.JTranscRender;
 
 import java.util.Stack;
 
 class LibgdxRenderer implements JTranscRender.Impl {
-    Stack<Integer> textureIds = new Stack<Integer>();
+    IntStack textureIds = new IntStack(2048);
     com.badlogic.gdx.graphics.Texture[] textures = new com.badlogic.gdx.graphics.Texture[2048];
 
     public LibgdxRenderer() {
-        for (int n = 2047; n >= 0; n--) textureIds.add(n);
+        for (int n = 2047; n >= 0; n--) textureIds.push(n);
         System.out.println("LibgdxRenderer()");
         int blankTextureId = createTextureMemory(new int[] { 0xFFFFFFFF }, 1, 1, JTranscRender.TYPE_RGBA);
         System.out.println("LibgdxRenderer() : " + blankTextureId);
@@ -27,7 +28,8 @@ class LibgdxRenderer implements JTranscRender.Impl {
         int textureId = textureIds.pop();
         FileHandle fileHandle = Gdx.files.internal(path);
         System.out.println("Loading texture... " + fileHandle.file().getAbsolutePath() + ", exists: " + fileHandle.exists());
-        textures[textureId] = new com.badlogic.gdx.graphics.Texture(fileHandle.file().getAbsolutePath());
+        //textures[textureId] = new com.badlogic.gdx.graphics.Texture(fileHandle.file().getAbsolutePath());
+        textures[textureId] = new com.badlogic.gdx.graphics.Texture(fileHandle);
         System.out.println(" ---> " + textureId);
         return textureId;
     }
@@ -175,10 +177,7 @@ class LibgdxRenderer implements JTranscRender.Impl {
         mesh.setIndices(indices, 0, indexCount);
         float[] vertexData = new float[vertexCount * 6];
         //System.out.println("--------");
-        for (int n = 0; n < vertexData.length; n++) {
-            vertexData[n] = vertices.getAlignedFloat32(n * 4);
-            //System.out.println(vertexData[n]);
-        }
+        for (int n = 0; n < vertexData.length; n++) vertexData[n] = vertices.getAlignedFloat32(n);
         mesh.setVertices(vertexData, 0, vertexData.length);
 
         //Rectangle lastClip = FULL_SCISSORS.clone();

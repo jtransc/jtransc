@@ -22,6 +22,7 @@ import com.jtransc.gen.ClassMappings
 val LimeCopyFiles = HaxeCopyFiles + listOf(
 	"AGALMiniAssembler.hx",
 	"HaxeLimeJTranscApplication.hx",
+	"HaxeLimeAudio.hx",
 	"HaxeLimeRender.hx",
 	"HaxeLimeRenderImpl.hx",
 	"HaxeLimeRenderFlash.hx",
@@ -39,6 +40,12 @@ fun LimeMappings():ClassMappings {
 			HaxeLimeRender.render(p0.floatData, p1, p2.data, p3, p4.data, p5);
 		""")
 		//static public void render(float[] vertices, int vertexCount, short[] indices, int indexCount, int[] batches, int batchCount)
+	}
+
+	mappings.map("jtransc.JTranscAudio") {
+		body(INT, "createSound", ARGS(STRING), "return HaxeLimeAudio.createSound(p0._str);")
+		body(VOID, "disposeSound", ARGS(INT), "HaxeLimeAudio.disposeSound(p0);")
+		body(VOID, "playSound", ARGS(INT), "HaxeLimeAudio.playSound(p0);")
 	}
 
 	mappings.map("jtransc.JTranscIO") {

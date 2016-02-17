@@ -17,28 +17,37 @@
 package jtransc;
 
 public class JTranscAudio {
-	static public Impl impl;
+	static public Impl impl = new Impl() {
+		@Override
+		public int createSound(String path) {
+			System.out.println("JTranscAudio.createSound:" + path);
+			return -1;
+		}
+
+		@Override
+		public void disposeSound(int soundId) {
+			System.out.println("JTranscAudio.disposeSound:" + soundId);
+		}
+
+		@Override
+		public void playSound(int soundId) {
+			System.out.println("JTranscAudio.playSound:" + soundId);
+		}
+	};
 
 	static public int createSound(String path) {
-		if (impl != null) return impl.createSound(path);
-		return -1;
+		return impl.createSound(path);
 	}
 
 	static public void disposeSound(int soundId) {
-		if (impl != null) {
-			impl.disposeSound(soundId);
-		} else {
-			System.out.println("JTranscAudio.disposeSound:" + soundId);
-		}
+		impl.disposeSound(soundId);
 	}
 
 	static public void playSound(int soundId) {
-		if (impl != null) {
-			impl.playSound(soundId);
-		}
+		impl.playSound(soundId);
 	}
 
-	interface Impl {
+	public interface Impl {
 		int createSound(String path);
 
 		void disposeSound(int soundId);

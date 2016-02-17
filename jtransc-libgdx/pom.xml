@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <gdx.version>1.8.0</gdx.version>
+        <gdx.version>1.9.2</gdx.version>
     </properties>
 
     <parent>
@@ -45,6 +45,18 @@
             <artifactId>gdx-backend-lwjgl</artifactId>
             <version>${gdx.version}</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-backend-lwjgl3</artifactId>
+            <version>${gdx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-backend-jglfw</artifactId>
+            <version>${gdx.version}</version>
+        </dependency>
+        -->
         <dependency>
             <groupId>com.badlogicgames.gdx</groupId>
             <artifactId>gdx-platform</artifactId>

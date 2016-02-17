@@ -132,7 +132,8 @@ object JTranscMain {
 				subtarget = "",
 				targetDirectory = config.targetDirectory
 			)
-			build.buildAndRun(settings = config.settings, captureRunOutput = false, run = config.run)
+			val result = build.buildAndRun(settings = config.settings, captureRunOutput = false, run = config.run)
+			System.exit(result.exitValue)
 		} catch (e: Throwable) {
 			e.printStackTrace(System.err)
 			System.exit(-1)

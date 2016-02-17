@@ -1,6 +1,7 @@
 package jtransc.game;
 
 import jtransc.*;
+import jtransc.game.audio.Sound;
 import jtransc.game.canvas.Canvas;
 import jtransc.game.canvas.Texture;
 import jtransc.game.event.Event;
@@ -29,6 +30,10 @@ public class JTranscGame {
 		this.stage = stage;
 		this.root = stage.root;
         JTranscGame.instance = this;
+	}
+
+	public Sound sound(String path) {
+		return new Sound(path);
 	}
 
 	public Texture image(String path, int width, int height) {

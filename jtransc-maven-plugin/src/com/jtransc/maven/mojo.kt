@@ -153,6 +153,7 @@ class JTranscMojo : AbstractMojo() {
 		val finalOutputDirectory = File(project.build.outputDirectory).parentFile
 
 		log.info("Building targets... " + allTargets.joinToString(", "));
+		var errorCount = 0
 		for (target in allTargets) {
 			val targetParts = target.split(':')
 			val targetActual = targetParts.getOrNull(0) ?: "js"
@@ -162,9 +163,17 @@ class JTranscMojo : AbstractMojo() {
 			val beforeBuild = System.currentTimeMillis()
 			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
 			val allBuild = AllBuild(targetActual, dependencyJarPaths, mainClass, File(finalOutputDirectory!!, outputActual).absolutePath, subtargetActual, targetDirectory)
-			allBuild.buildWithoutRunning(settings)
+			val result = allBuild.buildWithoutRunning(settings)
 			val afterBuild = System.currentTimeMillis()
-			log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
+			if (result.success) {
+				log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
+			} else {
+				log.error("ERROR building in " + (afterBuild - beforeBuild) + " ms")
+				errorCount++
+			}
+		}
+		if (errorCount > 0) {
+			throw RuntimeException("There were errors building using jtransc")
 		}
 	}
 }
