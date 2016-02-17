@@ -26,7 +26,6 @@
 /jtransc-utils/target
 /jtransc-tools/target
 /jtransc-lib-media/target
-/jtransc-input-soot/target
 /jtransc-input-rawasm/target
 /build-as3-signatures/outas3
 /example-as3/tempsrc

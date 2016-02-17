@@ -43,11 +43,6 @@
             <version>5.0.4</version>
         </dependency>
         <dependency>
-            <groupId>org.robovm</groupId>
-            <artifactId>robovm-soot</artifactId>
-            <version>2.5.0-1</version>
-        </dependency>
-        <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
             <version>${jtransc.version}</version>

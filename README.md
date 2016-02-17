@@ -88,7 +88,7 @@ mvn package # it should generate program.swf
 * It locates all the required dependencies
 * It includes jtransc-rt-core and jtransc-rt which is a java-6-like rt with some of their methods marked as natives
 * Other dependencies than the RT are includes without modifications
-* It uses ASM and/or Soot to generate a class-method-statement-expression AST
+* It uses ASM to generate a class-method-statement-expression AST
     * That AST is easily serializable
     * That AST allows feature stripping
     * Your target language don't support gotos? It will generate an AST without gotos. Just plain if/while/switch...

@@ -22,7 +22,7 @@ import com.jtransc.gen.build
 import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.gen.haxe.HaxeLimeGenDescriptor
 import com.jtransc.input.AnaProject
-import com.jtransc.input.soot.SootToAst
+import com.jtransc.input.AsmToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.time.measureProcess
@@ -131,7 +131,7 @@ class AllBuild(
 		//println(exploredDeps2.joinToString("\n"))
 
 		var program = measureProcess("Generating AST") {
-			SootToAst.createProgramAst(
+			AsmToAst.createProgramAst(
 				dependencies,
 				entryPoint,
 				classPaths2,
