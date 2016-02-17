@@ -6,7 +6,7 @@
     <plugin>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc-maven-plugin</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
         <configuration>
             <mainClass>example.Test</mainClass>
             <output>program.swf</output>

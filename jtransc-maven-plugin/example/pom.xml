@@ -19,7 +19,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-maven-plugin-example</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <!--
     <packaging>maven-plugin</packaging>
     <name>Sample Parameter-less Maven Plugin</name>
@@ -27,7 +27,7 @@
 
     <properties>
         <kotlin.version>1.0.0</kotlin.version>
-        <jtransc.version>0.0.4</jtransc.version>
+        <jtransc.version>0.0.5</jtransc.version>
     </properties>
 
     <dependencies>

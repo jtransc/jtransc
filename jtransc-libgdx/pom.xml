@@ -29,7 +29,7 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
     </parent>
 
     <artifactId>jtransc-libgdx</artifactId>
