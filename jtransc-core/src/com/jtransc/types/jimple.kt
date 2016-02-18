@@ -16,7 +16,7 @@ interface Jimple {
 	data class THIS(val target: Local) : Jimple
 	data class PARAM(val target: Local, val index: Int) : Jimple
 	data class CONST(val target: Local, val value: Any?) : Jimple
-	data class BINOP(val target: Local, val left: Local, val right: Local, val operation: AstBinop) : Jimple
+	data class BINOP(val target: Local, val left: Local, val right: Local, val operator: AstBinop) : Jimple
 	data class UNOP(val target: Local, val right: Local, val operation: AstUnop) : Jimple
 	data class ARRAYSET(val array: Local, val index: Local, val value: Local) : Jimple
 	data class ARRAYGET(val target: Local, val array: Local, val index: Local) : Jimple

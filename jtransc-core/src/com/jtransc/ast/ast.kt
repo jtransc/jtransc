@@ -18,6 +18,7 @@ package com.jtransc.ast
 
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.invalidOp
 import com.jtransc.text.*
 import com.jtransc.util.dependencySorter
 import java.io.Reader
@@ -124,6 +125,18 @@ interface AstType {
 		}
 		fun REF_INT2(internalName: String): AstType.REF {
 			return REF(internalName.replace('/', '.'))
+		}
+		fun fromConstant(value: Any?): AstType = when (value) {
+			null -> OBJECT
+			is Int -> INT
+			is Long -> LONG
+			is Float -> FLOAT
+			is Double -> DOUBLE
+			is Byte -> BYTE
+			is Short -> SHORT
+			is Char -> CHAR
+			is String -> STRING
+			else -> invalidOp // @TODO: custom type!
 		}
 	}
 }

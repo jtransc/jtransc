@@ -19,7 +19,9 @@ interface BAF {
 
 	object NOP : BAF
 
-	data class CONST(val value: Any?) : BAF
+	data class CONST(val value: Any?) : BAF {
+		val type by lazy { AstType.fromConstant(value) }
+	}
 	data class BINOP(val type: AstType, val operator: AstBinop) : BAF
 	data class UNOP(val type: AstType, val operator: AstUnop) : BAF
 	data class CONV(val src: AstType, val dst: AstType) : BAF

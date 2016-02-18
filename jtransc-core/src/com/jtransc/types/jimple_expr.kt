@@ -21,7 +21,7 @@ fun Jimple2Expr(input: Jimple.Body): AstBody {
 		when (i) {
 			is Jimple.CONST -> out.add(AstStm.SET(local(i.target), AstExpr.LITERAL(i.value)))
 			//is Jimple.PARAM -> out.add(AstStm.SET(local(i.target), AstExpr.PARAM(i.index)))
-			is Jimple.BINOP -> out.add(AstStm.SET(local(i.target), AstExpr.BINOP(i.target.type, localExpr(i.left), i.operation, localExpr(i.right))))
+			is Jimple.BINOP -> out.add(AstStm.SET(local(i.target), AstExpr.BINOP(i.target.type, localExpr(i.left), i.operator, localExpr(i.right))))
 			is Jimple.RETURN -> out.add(AstStm.RETURN(localExpr(i.value)))
 			is Jimple.RETURNVOID -> out.add(AstStm.RETURN(null))
 			else -> noImpl
