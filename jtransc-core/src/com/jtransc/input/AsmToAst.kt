@@ -1,10 +1,11 @@
 package com.jtransc.input
 
 import com.jtransc.ast.*
+import com.jtransc.ds.cast
 import com.jtransc.error.noImpl
-import com.jtransc.input.asm.getMethods
 import com.jtransc.io.readBytes
 import com.jtransc.types.Asm2Baf
+import com.jtransc.types.Baf2Jimple
 import com.jtransc.types.dump
 import com.jtransc.types.toExpr
 import com.jtransc.vfs.LocalVfs
@@ -67,6 +68,8 @@ fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
 object AstMethodBuilderTestExample {
 	@JvmStatic fun add(a: Int, b: Int) = a + b
 	@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
+	@JvmStatic fun max2(a: Int, b: Int) = (if (a > b) a * 2 else b * 3) * 4
+	@JvmStatic fun max3(a: Long, b: Long) = (if (a > b) a * 2 else b * 3) * 4
 	//@JvmStatic fun test() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
 }
 
@@ -80,9 +83,11 @@ fun <T> Class<T>.readClassNode(): ClassNode {
 object AstMethodBuilderTest {
 	@JvmStatic fun main(args: Array<String>) {
 		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
-		for (method in clazz.getMethods()) {
+		for (method in clazz.methods.cast<MethodNode>()) {
 			println("::${method.name}")
+			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
 			println(dump(Asm2Baf(clazz, method).toExpr()))
+			//println(jimple)
 		}
 		//println(Asm2Baf(clazz, method).toExpr())
 		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)

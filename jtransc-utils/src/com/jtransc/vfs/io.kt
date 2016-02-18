@@ -174,9 +174,8 @@ object RawIo {
 
         try {
             while (true) {
-                val line = os.readLine ()
-                if (line == null) break
-                out += "$line\n"
+                val line = os.readLine () ?: break
+	            out += "$line\n"
                 if (filter == null || filter(line)) {
                     //println("Stdout: $line")
                     println(line)

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <!-- http://stackoverflow.com/questions/3970753/how-to-run-an-ant-target-from-maven2 -->
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <jtransc.version>0.0.1</jtransc.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <groupId>com.jtransc</groupId>
+    <artifactId>jtransc-rt-as3</artifactId>
+    <version>${jtransc.version}</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt-annotations</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>sonatype-staging</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-snapshot</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>com.jtransc</groupId>
+                <artifactId>jtransc-rt-as3-generator-maven-plugin</artifactId>
+                <version>0.0.1</version>
+                <configuration>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-rt-as3</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
+

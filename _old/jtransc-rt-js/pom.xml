@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.jtransc</groupId>
+        <artifactId>jtransc</artifactId>
+        <relativePath>..</relativePath>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>jtransc-rt-js</artifactId>
+    <version>${jtransc.version}</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-utils</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt-annotations</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
+    </dependencies>
+</project>

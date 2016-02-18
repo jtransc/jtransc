@@ -9,12 +9,17 @@ fun Baf2Jimple(body: BAF.Body): Jimple.Body {
 	val out = ArrayList<Jimple>()
 	val stack = Stack<Jimple.Local>()
 
+	var localId = 0
+
 	fun alloc(type: AstType): Jimple.Local {
-		noImpl
+		return Jimple.Local(type, localId++)
 	}
 
 	for (i in body.items) {
 		when (i) {
+			is BAF.LABEL -> {
+				out.add(Jimple.LABEL(Jimple.ILabel("${i.label}")))
+			}
 			is BAF.CONST -> {
 				val target = alloc(i.type)
 				stack.push(target)
@@ -27,9 +32,8 @@ fun Baf2Jimple(body: BAF.Body): Jimple.Body {
 				stack.push(target)
 				out.add(Jimple.BINOP(target, l, r, i.operator))
 			}
-			else -> invalidOp
+			else -> invalidOp("$i")
 		}
 	}
 	return Jimple.Body(out)
 }
-

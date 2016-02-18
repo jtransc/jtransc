@@ -17,6 +17,7 @@
 package com.jtransc.maven
 
 import com.jtransc.AllBuild
+import com.jtransc.AllBuildTargets
 import com.jtransc.ast.AstBuildSettings
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -162,7 +163,15 @@ class JTranscMojo : AbstractMojo() {
 
 			val beforeBuild = System.currentTimeMillis()
 			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
-			val allBuild = AllBuild(targetActual, dependencyJarPaths, mainClass, File(finalOutputDirectory!!, outputActual).absolutePath, subtargetActual, targetDirectory)
+			val allBuild = AllBuild(
+				AllBuildTargets,
+				targetActual,
+				dependencyJarPaths,
+				mainClass,
+				File(finalOutputDirectory!!, outputActual).absolutePath,
+				subtargetActual,
+				targetDirectory
+			)
 			val result = allBuild.buildWithoutRunning(settings)
 			val afterBuild = System.currentTimeMillis()
 			if (result.success) {

@@ -6,13 +6,13 @@ import com.jtransc.ast.AstUnop
 
 interface Jimple {
 	data class Body(val items: List<Jimple>)
-	interface Local {
-		val type: AstType
-	}
-	interface Label
+	data class Local(val type: AstType, val index: Int)
+
+	data class ILabel(val id: String)
+
 	interface Method
 	interface Field
-	data class LABEL(val label: Label) : Jimple
+	data class LABEL(val label: ILabel) : Jimple
 	data class THIS(val target: Local) : Jimple
 	data class PARAM(val target: Local, val index: Int) : Jimple
 	data class CONST(val target: Local, val value: Any?) : Jimple
@@ -23,8 +23,8 @@ interface Jimple {
 	data class FIELDSET(val obj: Local, val field: Field, val value: Local) : Jimple
 	data class FIELDGET(val target: Local, val obj: Local, val field: Field) : Jimple
 	data class INVOKE(val target: Local, val obj: Local, val method: Method, val args: List<Local>) : Jimple
-	data class GOTO(val label: Label) : Jimple
-	data class IF_TRUE(val local: Local, val label: Label) : Jimple
+	data class GOTO(val label: ILabel) : Jimple
+	data class IF_TRUE(val local: Local, val label: ILabel) : Jimple
 	data class RETURN(val value: Local) : Jimple
 	class RETURNVOID() : Jimple
 	data class THROW(val value: Local) : Jimple

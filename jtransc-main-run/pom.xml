@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>com.jtransc</groupId>
-            <artifactId>jtransc-core</artifactId>
+            <artifactId>jtransc-main</artifactId>
             <version>0.0.5</version>
         </dependency>
     </dependencies>

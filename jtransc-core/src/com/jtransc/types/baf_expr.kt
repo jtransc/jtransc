@@ -2,8 +2,6 @@ package com.jtransc.types
 
 import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
-import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import org.objectweb.asm.Label
 import java.util.*
 
@@ -28,14 +26,20 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 		}
 		return locals[pair]!!
 	}
+
 	fun label(label: Label?): AstLabel {
 		return AstLabel("label_$label")
 	}
+
 	fun ensureEmptyStack() {
-		if (stack.isNotEmpty()) throw InvalidOperationException("Stack is not empty!")
+		if (stack.isNotEmpty()) {
+			println(stack)
+			throw InvalidOperationException("Stack is not empty!")
+		}
 	}
+
 	fun saveStack(): List<AstType> {
-		if (stack.size > 1) throw InvalidOperationException("@TODO: check when stack.size > 1 :: ${stack.size}")
+		//if (stack.size > 1) throw InvalidOperationException("@TODO: check when stack.size > 1 :: ${stack.size}")
 		var index = 1000 // @TODO: hack
 		val types = ArrayList<AstType>()
 		while (stack.isNotEmpty()) {
@@ -46,8 +50,9 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 		}
 		return types
 	}
+
 	fun restoreStack(types: List<AstType>) {
-		if (types.size > 1) throw InvalidOperationException("@TODO: check when stack.size > 1 :: ${stack.size}")
+		//if (types.size > 1) throw InvalidOperationException("@TODO: check when stack.size > 1 :: ${stack.size}")
 		var index = 1000 // @TODO: hack
 		for (type in types) {
 			stack.push(AstExpr.LOCAL(local(type, index)))
@@ -55,20 +60,26 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 		}
 	}
 
+	fun addStm(stm: AstStm) {
+		val savedStack = saveStack()
+		stms.add(stm)
+		restoreStack(savedStack)
+	}
+
 	for (i in body.items) {
 		println(i)
 	}
+
 	println("-----------------")
 
 	for (i in body.items) {
 		when (i) {
 			is BAF.LABEL -> {
-				saveStack()
-				stms.add(AstStm.STM_LABEL(label(i.label)))
+				addStm(AstStm.STM_LABEL(label(i.label)))
 			}
 			is BAF.FRAME -> {
-				saveStack()
 				println("FRAME:" + i.localTypes + "," + i.stackTypes)
+				stack.clear()
 				restoreStack(i.stackTypes)
 			}
 			is BAF.LINE -> {
@@ -81,20 +92,18 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 			}
 			is BAF.PUTLOCAL -> {
 				val expr = stack.pop()
-				val saved = saveStack()
-				stms.add(AstStm.SET(local(i.type, i.index), expr))
-				restoreStack(saved)
+				addStm(AstStm.SET(local(i.type, i.index), expr))
 			}
 			is BAF.PUTFIELD -> {
 				val expr = stack.pop()
 				val field = i.ref
 				if (field.isStatic != false) {
-					val obj = stack.pop()
-					ensureEmptyStack()
-					stms.add(AstStm.SET_FIELD_INSTANCE(obj, field, expr))
+					//ensureEmptyStack()
+					addStm(AstStm.SET_FIELD_STATIC(field.containingTypeRef, field, expr, false))
 				} else {
-					ensureEmptyStack()
-					stms.add(AstStm.SET_FIELD_STATIC(field.containingTypeRef, field, expr, false))
+					val obj = stack.pop()
+					//ensureEmptyStack()
+					addStm(AstStm.SET_FIELD_INSTANCE(obj, field, expr))
 				}
 			}
 			is BAF.BINOP -> {
@@ -122,20 +131,52 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 				saveStack()
 				stms.add(AstStm.IF_GOTO(cond, label(i.label)))
 				usedLabels.add(label(i.label))
+				stack.clear()
+			}
+			is BAF.GOTOIF0 -> {
+				val l = stack.pop()
+				val cond = AstExpr.BINOP(AstType.BOOL, l, i.operator, AstExpr.LITERAL(0))
+				saveStack()
+				stms.add(AstStm.IF_GOTO(cond, label(i.label)))
+				usedLabels.add(label(i.label))
+				stack.clear()
 			}
 			is BAF.GOTO -> {
 				saveStack()
 				stms.add(AstStm.GOTO(label(i.label)))
 				usedLabels.add(label(i.label))
+				stack.clear()
 			}
 			is BAF.CHECKCAST -> {
 				stack.push(AstExpr.CAST(i.type, stack.pop()))
 			}
+			is BAF.CONV -> {
+				val r = stack.pop()
+				assert(r.type == i.src)
+				stack.push(AstExpr.CAST(i.src, i.dst, r))
+			}
 			is BAF.ANEW -> {
-				stack.push(AstExpr.LITERAL("anew!"))
+				stack.push(AstExpr.NEW(i.type))
 			}
 			is BAF.INVOKE -> {
-				println("INVOKE: $i")
+				val methodType = i.methodType
+				val method = i.method
+				val targetClass = method.containingClass.ref()
+				val isCallStatic = i.type == BAF.InvokeType.STATIC
+				val obj = if (!isCallStatic) stack.pop() else null
+				val args = (0 until methodType.argCount).map { stack.pop() }
+
+				val expr = when (i.type) {
+					BAF.InvokeType.STATIC -> AstExpr.CALL_STATIC(targetClass, method, args)
+					BAF.InvokeType.VIRTUAL, BAF.InvokeType.INTERFACE -> AstExpr.CALL_INSTANCE(obj!!, method, args)
+					BAF.InvokeType.SPECIAL -> AstExpr.CALL_SUPER(obj!!, targetClass.name, method, args)
+				}
+
+				if (methodType.retVoid) {
+					addStm(AstStm.STM_EXPR(expr))
+				} else {
+					stack.push(expr)
+				}
 			}
 			is BAF.NOP -> {
 			}

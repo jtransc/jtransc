@@ -16,10 +16,7 @@
 
 package com.jtransc.ast.dce
 
-import com.jtransc.ast.AstClass
-import com.jtransc.ast.AstField
-import com.jtransc.ast.AstMethod
-import com.jtransc.ast.AstProgram
+import com.jtransc.ast.*
 
 // Dead Code Elimination
 fun SimpleDCE(program: AstProgram): AstProgram {

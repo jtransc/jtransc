@@ -19,17 +19,13 @@ package com.jtransc
 import com.jtransc.ast.*
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.build
-import com.jtransc.gen.haxe.HaxeGenDescriptor
-import com.jtransc.gen.haxe.HaxeLimeGenDescriptor
 import com.jtransc.input.AnaProject
 import com.jtransc.input.AsmToAst
+import com.jtransc.input.SootToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.LocalVfs
-
-//val AllBuildTargets = listOf(As3GenDescriptor, JsGenDescriptor, HaxeGenDescriptor, HaxeLimeGenDescriptor)
-val AllBuildTargets = listOf(HaxeGenDescriptor, HaxeLimeGenDescriptor)
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String) = this.firstOrNull { it.name == target } ?: throw Exception("Unknown target $target")
 fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String) = this.firstOrNull { it.outputExtension == ext } ?: throw Exception("Can't find target by extension $ext")
@@ -45,7 +41,7 @@ class AllBuild(
 	val subtarget: String,
 	val targetDirectory: String = System.getProperty("java.io.tmpdir")
 ) {
-	constructor(target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
+	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
 		AllBuildTargets.locateTargetByName(target),
 		classPaths,
 		entryPoint,
@@ -131,7 +127,7 @@ class AllBuild(
 		//println(exploredDeps2.joinToString("\n"))
 
 		var program = measureProcess("Generating AST") {
-			AsmToAst.createProgramAst(
+			SootToAst.createProgramAst(
 				dependencies,
 				entryPoint,
 				classPaths2,

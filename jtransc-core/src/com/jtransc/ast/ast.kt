@@ -105,11 +105,14 @@ interface AstType {
 	data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
 		val argCount: Int get() = argTypes.size
 		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args.map { it.type })
+		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.map { it.type })
+		constructor(ret: AstType, vararg args: AstType) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret)
 
 		val argNames by lazy { argTypes.indices.map { "p$it" } }
 		val args by lazy { argTypes.zip(argNames).withIndex().map { AstArgument(it.index, it.value.first, it.value.second) } }
 		val desc by lazy { this.mangle(true) }
 		val desc2 by lazy { this.mangle(false) }
+		val retVoid by lazy { ret == AstType.VOID }
 	}
 
 	companion object {
@@ -265,6 +268,8 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 
 	override fun toString() = "AstMethodRef(${containingClass.fqname},$name,${type.desc})"
 }
+
+fun FqName.ref() = AstType.REF(this)
 
 data class AstMethodDesc(val name: String, val args: List<AstType>)
 

@@ -34,7 +34,9 @@ interface BAF {
 	object THROW : BAF
 
 	data class MONITOR(val enter: Boolean) : BAF
-	data class INVOKE(val owner: String?, val name: String?, val desc: String?, val itf: Boolean, val type: InvokeType) : BAF
+	data class INVOKE(val method: AstMethodRef, val itf: Boolean, val type: InvokeType) : BAF {
+		val methodType by lazy { method.type }
+	}
 	data class SWITCH(val dflt: Label?, val pairs: List<Pair<Int, Label?>>) : BAF
 	data class tryCatchBlock(val start: Label?, val end: Label?, val handler: Label?, val type: String?) : BAF
 
@@ -45,7 +47,7 @@ interface BAF {
 	data class FRAME(val type: Int, val localTypes: List<AstType>, val stackTypes: List<AstType>) : BAF
 
 	data class NEWARRAY(val type: AstType, val dims: Int) : BAF
-	data class ANEW(val type: AstType) : BAF
+	data class ANEW(val type: AstType.REF) : BAF
 	data class CHECKCAST(val type: AstType) : BAF
 	data class AINSTANCEOF(val type: AstType) : BAF
 
