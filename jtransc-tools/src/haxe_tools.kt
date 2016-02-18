@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import com.jtransc.ast.FqName
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -21,13 +24,17 @@ import org.w3c.dom.NodeList
 import javax.xml.parsers.DocumentBuilderFactory
 
 object HaxeTools {
-	@JvmStatic public fun main(args: Array<String>) {
+	@JvmStatic fun main(args: Array<String>) {
 		val file = HaxeTools::class.java.getResourceAsStream("sample_lime_neko.xml")
+		val fileText = file.readBytes().toString(Charsets.UTF_8)
 		//val xml = DocumentBuilderFactory.newInstance()
 		val dbf = DocumentBuilderFactory.newInstance()
 		val db = dbf.newDocumentBuilder()
-		val doc = db.parse(file)
+		val doc = db.parse(fileText.byteInputStream())
+		//println(doc)
+		//println(doc.childNodes.item(0))
 		val types = HaxeDocXmlParser.parseDocument(doc)
+		//println(types)
 		for (type in types) {
 			println("$type {")
 			for (member in type.members) {
@@ -35,12 +42,20 @@ object HaxeTools {
 			}
 			println("}")
 		}
+
+		/*
+		val cw = ClassWriter(0);
+		val access = Opcodes.ACC_STATIC or Opcodes.ACC_PUBLIC or Opcodes.ACC_NATIVE
+		cw.visitMethod(access)
+		cw.toByteArray()
+		*/
+
 		//doc.dump()
 	}
 
 	object HaxeDocXmlParser {
 		fun parseDocument(doc: Document): List<HaxeType> {
-			return doc.firstChild.elementChildren.map {
+			return doc.elementChildren.first().elementChildren.map {
 				parseType(it)
 			}
 		}

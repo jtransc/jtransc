@@ -33,6 +33,12 @@ data class FqName(val fqname: String) : Serializable {
 
 	constructor(parts: List<String>) : this(parts.joinToString(".").trim('.'))
 
+	companion object {
+		fun fromInternal(internalName:String):FqName {
+			return FqName(internalName.replace('/', '.'))
+		}
+	}
+
 	init {
 		if (!fqname.isEmpty()) {
 			val f = fqname.first()

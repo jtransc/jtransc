@@ -1,4 +1,0 @@
-#!/bin/bash
-CWD_DIR=$(pwd)
-POM_DIR=$(cd "$(dirname "$0")"; pwd)
-mvn -U exec:java -f "$POM_DIR/pom.xml" -Dexec.mainClass="com.jtransc.MainKt" -Dexec.workingdir="$CWD_DIR" -q -Dexec.args="$@"
