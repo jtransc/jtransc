@@ -102,6 +102,7 @@ interface AstType {
 	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
 	//	constructor(ret: AstType, args: List<AstType>) : this(args.toArguments(), ret)
 	data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
+		val argCount: Int get() = argTypes.size
 		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args.map { it.type })
 
 		val argNames by lazy { argTypes.indices.map { "p$it" } }
@@ -114,6 +115,16 @@ interface AstType {
 		val STRING = REF(FqName("java.lang.String"))
 		val OBJECT = REF(FqName("java.lang.Object"))
 		val CLASS = REF(FqName("java.lang.Class"))
+		fun REF_INT(internalName: String): AstType {
+			if (internalName.startsWith("[")) {
+				return ARRAY(REF_INT(internalName.substring(1)))
+			} else {
+				return REF_INT2(internalName)
+			}
+		}
+		fun REF_INT2(internalName: String): AstType.REF {
+			return REF(internalName.replace('/', '.'))
+		}
 	}
 }
 
@@ -222,14 +233,14 @@ data class AstClassRef(val name: FqName) : AstRef {
 	val type: AstType get() = AstType.REF(name)
 }
 
-data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef {
+data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType, val isStatic: Boolean? = null) : AstMemberRef {
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
 	override val memberType: AstType = type
 	val containingTypeRef = AstType.REF(containingClass)
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
 }
 
-data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE) : AstMemberRef {
+data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE, val isStatic:Boolean? = null) : AstMemberRef {
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
 	override val memberType: AstType = type
 	val fid: String get() = "${containingClass.fqname}:$name:$desc"
@@ -664,7 +675,7 @@ data class AstLocal(val index: Int, val name: String, val type: AstType) {
 
 val AstLocal.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this)
 
-class AstBody(
+data class AstBody(
 	val stm: AstStm,
 	val locals: List<AstLocal>,
 	val traps: List<AstTrap>

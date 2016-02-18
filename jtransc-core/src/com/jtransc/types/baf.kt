@@ -1,15 +1,15 @@
 package com.jtransc.types
 
-import com.jtransc.ast.AstBinop
-import com.jtransc.ast.AstType
-import com.jtransc.ast.AstUnop
+import com.jtransc.ast.*
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Label
-import org.objectweb.asm.tree.LabelNode
 
+/**
+ * Abstracts from ASM. Simplifies instructions. Stack based.
+ */
 interface BAF {
-	data class Body(val items: List<BAF>)
+	data class Body(val methodRef: AstMethodRef, val items: List<BAF>)
 
 	data class INVOKEDYNAMIC(val name: String?, val desc: String?, val handle: Handle, val args: List<Any?>) : BAF
 
@@ -40,13 +40,13 @@ interface BAF {
 
 	data class GETLOCAL(val type: AstType, val index: Int) : BAF
 	data class PUTLOCAL(val type: AstType, val index: Int) : BAF
-	data class FRAME(val type: Int, val nLocal: Int, val local: Array<Any>?, val nStack: Int, val stack: Array<Any>?) : BAF
-	data class MULTIANEWARRAY(val desc: String?, val dims: Int) : BAF
-	data class NEWARRAY(val type: AstType.Primitive) : BAF
-	data class ANEWARRAY(val type: String?) : BAF
-	data class ANEW(val type: String?) : BAF
-	data class ACHECKCAST(val type: String?) : BAF
-	data class AINSTANCEOF(val type: String?) : BAF
+	data class FRAME(val type: Int, val localTypes: List<AstType>, val stackTypes: List<AstType>) : BAF
+
+	data class NEWARRAY(val type: AstType, val dims: Int) : BAF
+	data class ANEW(val type: AstType) : BAF
+	data class CHECKCAST(val type: AstType) : BAF
+	data class AINSTANCEOF(val type: AstType) : BAF
+
 	data class MAXS(val maxStack: Int, val maxLocal: Int) : BAF
 	data class LABEL(val label: Label?) : BAF
 	data class ARRAYGET(val type: AstType) : BAF
@@ -72,16 +72,16 @@ interface BAF {
 
 	data class IINC(val index: Int, val increment: Int) : BAF
 	data class LINE(val line: Int, val start: Label?) : BAF
-	data class GOTOIF0(val eq: AstBinop, val label: Label?) : BAF
-	data class GOTOIF_I(val eq: AstBinop, val label: Label?) : BAF
-	data class GOTOIF_A(val eq: AstBinop, val label: Label?) : BAF
 	data class GOTO(val label: Label?) : BAF
-	data class GOTOIFNULL(val eq: AstBinop, val label: Label?) : BAF
+	data class GOTOIF0(val operator: AstBinop, val label: Label?) : BAF
+	data class GOTOIF_I(val operator: AstBinop, val label: Label?) : BAF
+	data class GOTOIF_A(val operator: AstBinop, val label: Label?) : BAF
+	data class GOTOIFNULL(val operator: AstBinop, val label: Label?) : BAF
 
 	object END : BAF
 
-	data class GETFIELD(val static: Boolean, val owner: String?, val name: String?, val desc: String?) : BAF
-	data class PUTFIELD(val static: Boolean, val owner: String?, val name: String?, val desc: String?) : BAF
+	data class GETFIELD(val ref: AstFieldRef) : BAF
+	data class PUTFIELD(val ref: AstFieldRef) : BAF
 	data class LOCALVARIABLE(val name: String?, val desc: String?, val signature: String?, val start: Label?, val end: Label?, val index: Int) : BAF
 	data class ATTR(val attr: Attribute?) : BAF
 	data class PARAM(val name: String?, val access: Int) : BAF

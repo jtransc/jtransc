@@ -4,7 +4,8 @@ import com.jtransc.ast.*
 import com.jtransc.error.noImpl
 import com.jtransc.input.asm.getMethods
 import com.jtransc.io.readBytes
-import com.jtransc.types.toBaf
+import com.jtransc.types.Asm2Baf
+import com.jtransc.types.dump
 import com.jtransc.types.toExpr
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
@@ -65,6 +66,8 @@ fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
 
 object AstMethodBuilderTestExample {
 	@JvmStatic fun add(a: Int, b: Int) = a + b
+	@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
+	//@JvmStatic fun test() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
 }
 
 fun <T> Class<T>.readClassNode(): ClassNode {
@@ -76,8 +79,12 @@ fun <T> Class<T>.readClassNode(): ClassNode {
 
 object AstMethodBuilderTest {
 	@JvmStatic fun main(args: Array<String>) {
-		val node = AstMethodBuilderTestExample::class.java.readClassNode()
-		println(node.getMethods().first().toBaf())
+		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
+		for (method in clazz.getMethods()) {
+			println("::${method.name}")
+			println(dump(Asm2Baf(clazz, method).toExpr()))
+		}
+		//println(Asm2Baf(clazz, method).toExpr())
 		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
 	}
 }
