@@ -20,13 +20,13 @@ import com.jtransc.ast.AstType
 import com.jtransc.gen.ClassMappings
 
 val LimeCopyFiles = HaxeCopyFiles + listOf(
-	"AGALMiniAssembler.hx",
-	"HaxeLimeJTranscApplication.hx",
-	"HaxeLimeAudio.hx",
-	"HaxeLimeRender.hx",
-	"HaxeLimeRenderImpl.hx",
-	"HaxeLimeRenderFlash.hx",
-	"HaxeLimeRenderGL.hx"
+	//"AGALMiniAssembler.hx",
+	//"HaxeLimeJTranscApplication.hx",
+	//"HaxeLimeAudio.hx",
+	//"HaxeLimeRender.hx",
+	//"HaxeLimeRenderImpl.hx",
+	//"HaxeLimeRenderFlash.hx",
+	//"HaxeLimeRenderGL.hx"
 )
 
 fun LimeMappings():ClassMappings {

@@ -16,6 +16,7 @@
 
 import com.jtransc.ast.*
 import com.jtransc.io.createZipFile
+import com.jtransc.vfs.LocalVfs
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.w3c.dom.Document
@@ -27,10 +28,50 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 object HaxeTools {
 	@JvmStatic fun main(args: Array<String>) {
+		val vfs = LocalVfs(File("."))
 
+		val lib = "lime"
+		val libVersion = "2.9.0"
+		val includePackages = listOf("lime")
+		val includePackagesRec = listOf(
+			"lime.ui", "lime.app",
+			"lime.audio",
+			"lime.math",
+			"lime.project",
+			"lime.system",
+			"lime.text",
+			"lime.utils",
+			"lime.vm",
+			"lime.tools"
+		)
 
-		val file = HaxeTools::class.java.getResourceAsStream("sample_lime_neko.xml")
-		val fileText = file.readBytes().toString(Charsets.UTF_8)
+		val outJar = vfs["out.jar"]
+		outJar.write(generateJarFromHaxeLib(lib, libVersion, includePackages, includePackagesRec))
+		println(outJar.realpathOS)
+	}
+
+	private fun generateJarFromHaxeLib(lib: String, libVersion:String, includePackages:List<String>, includePackagesRec:List<String>):ByteArray {
+		val vfs = LocalVfs(createTempDir("jtransc_haxe_tools").parentFile)
+
+		val outXml = vfs["jtransc_haxe_tools_out.xml"]
+		println(outXml.realpathOS)
+		if (!vfs.exec("haxelib", "path", "$lib:$libVersion").success) {
+			vfs.passthru("haxelib", "install", lib, libVersion)
+		}
+		vfs.passthru("haxe", listOf(
+			"-cp", ".",
+			"-xml", outXml.realpathOS,
+			"--no-output",
+			"-cpp", "cpp",
+			"-lib", "$lib:$libVersion",
+			"--macro", "allowPackage('flash')",
+			"--macro", "allowPackage('js')"
+		) + includePackages.flatMap { listOf("--macro", "include('$it', false)") }
+			+ includePackagesRec.flatMap { listOf("--macro", "include('$it', true)") }
+		)
+
+		//val file = HaxeTools::class.java.getResourceAsStream("sample_lime_neko.xml")
+		val fileText = outXml.readString(Charsets.UTF_8)
 		//val xml = DocumentBuilderFactory.newInstance()
 		val dbf = DocumentBuilderFactory.newInstance()
 		val db = dbf.newDocumentBuilder()
@@ -47,7 +88,7 @@ object HaxeTools {
 		//	println("}")
 		//}
 
-		File(File(".").absolutePath + "/test.jar").writeBytes(generateJar(types))
+		return generateJar(types)
 
 		//lime.AssetLibrary.exists()
 		//lime.AssetLibrary.exists()
@@ -68,8 +109,8 @@ object HaxeTools {
 			classAccess,
 			type.fqname.internalFqname,
 			"",
-			"java.lang.Object",
-			arrayOf<String>()
+			type.extends.internalFqname,
+			type.implements.map { it.internalFqname }.toTypedArray()
 		)
 
 		for (member in type.members) {
@@ -130,16 +171,37 @@ object HaxeTools {
 			val params = node.attributes.getNamedItem("params").textContent.split(":")
 			val isExtern = node.attributes.getNamedItem("extern")?.textContent == "1"
 			val isInterface = node.attributes.getNamedItem("interface")?.textContent == "1"
-			val members = node.elementChildren.map { parseMember(it) }
+			val specialNames = setOf("extends", "implements")
+			val specials = node.elementChildren.filter { it.nodeName in specialNames }
+			val members = node.elementChildren
+				.filter { it.nodeName !in specialNames }
+				.map { parseMember(it) }
+			var extends = FqName("java.lang.Object")
+			val implements = arrayListOf<FqName>()
+
+			for (special in specials) {
+				val path = FqName(special.getAttribute("path"))
+				when (special.tagName) {
+					"implements" -> {
+						implements.add(path)
+					}
+					"extends" -> {
+						extends = path
+					}
+				}
+			}
+
 			//module="StdTypes" extern="1" interface="1"
 			//println(members)
 			return when (node.nodeName) {
-				"class", "typedef", "abstract","enum"  -> {
+				"class", "typedef", "abstract", "enum" -> {
 					HaxeClass(
 						typeName.fqname,
 						members,
 						isInterface = isInterface,
-						isExtern = isExtern
+						isExtern = isExtern,
+						implements = implements,
+						extends = extends
 					)
 				}
 				else -> throw NotImplementedError("type: ${node.nodeName}")
@@ -169,7 +231,11 @@ object HaxeTools {
 						"Float" -> AstType.DOUBLE
 						"Void" -> AstType.VOID
 						"Array" -> AstType.ARRAY(parseArgType(it.elementChildren.first()))
-						// @TODO: Type must be nullable so probably we should convert primitive types to class types
+						"haxe.io.Int16Array" -> AstType.ARRAY(AstType.SHORT)
+						"haxe.io.UInt16Array" -> AstType.ARRAY(AstType.CHAR)
+						"haxe.io.Int32Array" -> AstType.ARRAY(AstType.INT)
+						"haxe.io.Float32Array" -> AstType.ARRAY(AstType.FLOAT)
+					// @TODO: Type must be nullable so probably we should convert primitive types to class types
 						"Null" -> parseArgType(it.elementChildren.first())
 						else -> {
 							if (generics.isNotEmpty()) {
@@ -230,13 +296,17 @@ object HaxeTools {
 		val members: List<HaxeMember>
 		val isInterface: Boolean
 		val isExtern: Boolean
+		val implements: List<FqName>
+		val extends: FqName
 	}
 
 	data class HaxeClass(
 		override val fqname: FqName,
 		override val members: List<HaxeMember>,
-	    override val isInterface: Boolean = false,
-		override val isExtern: Boolean = false
+		override val isInterface: Boolean = false,
+		override val isExtern: Boolean = false,
+		override val implements: List<FqName> = listOf(),
+		override val extends: FqName = FqName("java.lang.Object")
 	) : HaxeType
 
 	interface HaxeMember {

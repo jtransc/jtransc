@@ -76,8 +76,6 @@
         <module>jtransc-utils</module>
         <module>jtransc-core</module>
         <module>jtransc-tools</module>
-        <module>jtransc-libgdx</module>
-        <module>jtransc-game</module>
         <module>jtransc-gen-haxe</module>
         <module>jtransc-main</module>
         <!--
