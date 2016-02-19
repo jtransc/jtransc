@@ -332,7 +332,8 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 			args
 		}
 	}
-	else -> throw RuntimeException()
+	is AstType.UNKNOWN -> throw RuntimeException("Can't mangle unknown")
+	else -> throw RuntimeException("Don't know how to mangle $this")
 }
 
 enum class AstBinop(val symbol: String, val str: String) {

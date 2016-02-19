@@ -25,4 +25,6 @@ class MustOverrideException(str: String = "Must Override") : Exception(str)
 
 val noImpl: Nothing get() = throw NotImplementedException()
 val invalidOp: Nothing get() = throw InvalidOperationException()
+
+fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
 fun invalidOp(msg:String): Nothing { throw InvalidOperationException(msg) }
