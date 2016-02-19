@@ -30,8 +30,8 @@ object HaxeTools {
 	@JvmStatic fun main(args: Array<String>) {
 		val vfs = LocalVfs(File("."))
 
-		val lib = "lime"
-		val libVersion = "2.9.0"
+		val target = "cpp"
+		val libraries = listOf("lime:2.9.0")
 		val includePackages = listOf("lime")
 		val includePackagesRec = listOf(
 			"lime.ui", "lime.app",
@@ -46,28 +46,49 @@ object HaxeTools {
 		)
 
 		val outJar = vfs["out.jar"]
-		outJar.write(generateJarFromHaxeLib(lib, libVersion, includePackages, includePackagesRec))
+		outJar.write(generateJarFromHaxeLib(libraries, includePackages, includePackagesRec, target))
 		println(outJar.realpathOS)
 	}
 
-	private fun generateJarFromHaxeLib(lib: String, libVersion:String, includePackages:List<String>, includePackagesRec:List<String>):ByteArray {
+	fun generateClassesFromHaxeLib(
+		libraries: List<String>,
+		includePackages: List<String>,
+		includePackagesRec: List<String>,
+		target: String
+	): Map<String, ByteArray> {
 		val vfs = LocalVfs(createTempDir("jtransc_haxe_tools").parentFile)
+
+		data class LibraryInfo(val name: String, val version: String) {
+			val nameWithVersion = "$name:$version"
+		}
+
+		val librariesInfo = libraries.map {
+			val parts = it.split(':')
+			LibraryInfo(parts[0], parts[1])
+		}
 
 		val outXml = vfs["jtransc_haxe_tools_out.xml"]
 		println(outXml.realpathOS)
-		if (!vfs.exec("haxelib", "path", "$lib:$libVersion").success) {
-			vfs.passthru("haxelib", "install", lib, libVersion)
+		for (info in librariesInfo) {
+			if (!vfs.exec("haxelib", "path", info.nameWithVersion).success) {
+				vfs.passthru("haxelib", "install", info.name, info.version)
+			}
 		}
-		vfs.passthru("haxe", listOf(
-			"-cp", ".",
-			"-xml", outXml.realpathOS,
-			"--no-output",
-			"-cpp", "cpp",
-			"-lib", "$lib:$libVersion",
-			"--macro", "allowPackage('flash')",
-			"--macro", "allowPackage('js')"
-		) + includePackages.flatMap { listOf("--macro", "include('$it', false)") }
-			+ includePackagesRec.flatMap { listOf("--macro", "include('$it', true)") }
+		vfs.passthru(
+			"haxe",
+			listOf(
+				"-cp", ".",
+				"-xml", outXml.realpathOS,
+				"--no-output",
+				"-$target", "dummy"
+			)
+				+ librariesInfo.flatMap { listOf("-lib", it.nameWithVersion) }
+				+ listOf(
+				"--macro", "allowPackage('flash')",
+				"--macro", "allowPackage('js')"
+			)
+				+ includePackages.flatMap { listOf("--macro", "include('$it', false)") }
+				+ includePackagesRec.flatMap { listOf("--macro", "include('$it', true)") }
 		)
 
 		//val file = HaxeTools::class.java.getResourceAsStream("sample_lime_neko.xml")
@@ -87,12 +108,19 @@ object HaxeTools {
 		//	for (member in type.members) println("   $member")
 		//	println("}")
 		//}
+		return types.associate { Pair(it.fqname.internalFqname + ".class", generateClass(it)) }
+	}
 
-		return generateJar(types)
+	fun generateJarFromHaxeLib(
+		libraries: List<String>,
+		includePackages: List<String>,
+		includePackagesRec: List<String>,
+		target: String
+	): ByteArray {
 
-		//lime.AssetLibrary.exists()
-		//lime.AssetLibrary.exists()
-		//lime.ui.Gamepad.addMappings()
+		return createZipFile(generateClassesFromHaxeLib(
+			libraries, includePackages, includePackagesRec, target
+		))
 
 		//doc.dump()
 	}
@@ -153,10 +181,6 @@ object HaxeTools {
 		}
 		cw.visitEnd()
 		return cw.toByteArray()
-	}
-
-	fun generateJar(types: List<HaxeType>): ByteArray {
-		return createZipFile(types.associate { Pair(it.fqname.internalFqname + ".class", generateClass(it)) })
 	}
 
 	object HaxeDocXmlParser {
