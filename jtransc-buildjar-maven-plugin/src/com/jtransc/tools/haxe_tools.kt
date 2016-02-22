@@ -189,7 +189,7 @@ object HaxeTools {
 					line("""static public void use() { }""")
 					line("""static public java.lang.String getName() { return "${lib.name}"; }""")
 					line("""static public java.lang.String getVersion() { return "${lib.version}"; }""")
-					line("""static public java.lang.String getNameWithVersion() { "${lib.name}:${lib.version}"; }""")
+					line("""static public java.lang.String getNameWithVersion() { return "${lib.name}:${lib.version}"; }""")
 				}
 			})
 		}).toMap()
@@ -318,9 +318,9 @@ object HaxeTools {
 							if (member.args.isEmpty()) {
 								line("static public ${validClassName.fqname} $validName;")
 							} else {
-								data class EnumEntry(val name:String, val tt:AstType) {
-									val validName = ids.generateValidId(name)
-									val validType = ids.serializeValid(tt)
+								data class EnumEntry(val name:String, val type:AstType) {
+									val validName = ids.generateValidId(this.name)
+									val validType = ids.serializeValid(this.type)
 								}
 
 								line("static public class $validName extends ${validClassName.fqname}") {
@@ -445,11 +445,7 @@ object HaxeTools {
 			var linkType: AstType? = null
 			var members = listOf<HaxeMember>()
 
-			fun parseTypeTypedef() {
-				linkType = parseHaxeType(node.elementChildren.first())
-			}
-
-			fun parseType2() {
+			fun parseType2(node: Element) {
 				val specials = node.elementChildren.filter { it.nodeName in SPECIAL_NAMES }
 				members = node.elementChildren.filter { it.nodeName !in SPECIAL_NAMES }.map { parseMember(it, typeType) }
 				var abstractThis: AstType = AstType.OBJECT
@@ -486,9 +482,21 @@ object HaxeTools {
 				}
 			}
 
+			fun parseTypeTypedef(node: Element) {
+				linkType = parseHaxeType(node.elementChildren.first())
+			}
+
+			fun parseTypeAbstract(node: Element) {
+				val impl = node.elementChildren.firstOrNull { it.tagName == "impl" }?.elementChildren?.first()
+				if (impl != null) {
+					parseType2(impl)
+				}
+			}
+
 			when (node.nodeName) {
-				"typedef" -> parseTypeTypedef()
-				else -> parseType2()
+				"typedef" -> parseTypeTypedef(node)
+				"abstract" -> parseTypeAbstract(node)
+				else -> parseType2(node)
 			}
 
 			return HaxeType(
@@ -505,8 +513,6 @@ object HaxeTools {
 			)
 		}
 
-
-
 		fun HaxeArgument(index: Int, nameWithExtra: String, type: AstType): AstArgument {
 			val name = nameWithExtra.trim('?')
 			val optional = nameWithExtra.startsWith('?')
@@ -519,59 +525,6 @@ object HaxeTools {
 				val nameWithExtra = it.value.first
 				val type = it.value.second
 				HaxeArgument(index, nameWithExtra, type)
-			}
-		}
-
-		fun parseHaxeType(it: Element?): AstType {
-			if (it == null) return AstType.OBJECT
-			return when (it.nodeName) {
-				null -> AstType.OBJECT
-				"d" -> AstType.OBJECT // Dynamic!
-				"a" -> {
-					AstType.OBJECT
-				}
-				"icast" -> parseHaxeType(it.elementChildren.first())
-				"unknown" -> {
-					//HaxeArgTypeBase("unknown")
-					//noImpl
-					AstType.INT
-				}
-			// Function
-				"f" -> {
-					val names = it.attribute("a").split(':')
-					val types = it.elementChildren.map { parseHaxeType(it) }
-					val args = types.dropLast(1)
-					val rettype = types.last()
-					AstType.METHOD_TYPE(HaxeArguments(names, args), rettype)
-				}
-				"x", "c", "t", "e" -> {
-					val path = it.attribute("path")
-					val generics = it.elementChildren.map { parseHaxeType(it) }
-					when (path) {
-						"Void" -> AstType.VOID
-						"Bool" -> AstType.BOOL
-						"Int" -> AstType.INT
-						"UInt" -> AstType.INT
-						"Float" -> AstType.DOUBLE
-						"Array" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
-						"String" -> AstType.STRING
-						"flash.Vector" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
-						"haxe.io.Int16Array" -> AstType.ARRAY(AstType.SHORT)
-						"haxe.io.UInt16Array" -> AstType.ARRAY(AstType.CHAR)
-						"haxe.io.Int32Array" -> AstType.ARRAY(AstType.INT)
-						"haxe.io.Float32Array" -> AstType.ARRAY(AstType.FLOAT)
-					// @TODO: Type must be nullable so probably we should convert primitive types to class types
-						"Null" -> parseHaxeType(it.elementChildren.first())
-						else -> {
-							val base = if (path.isNullOrBlank()) AstType.OBJECT else AstType.REF(path)
-							if (generics.isEmpty()) base else AstType.GENERIC(base, generics)
-						}
-					}
-
-				}
-				else -> {
-					noImpl("argtype: ${it.nodeName}")
-				}
 			}
 		}
 
@@ -707,6 +660,59 @@ object HaxeTools {
 	val Node.elementChildren: List<Element> get() = this.children.filterIsInstance<Element>()
 
 	fun NodeList.list() = (0 until this.length).map { this.item(it) }
+
+	fun parseHaxeType(it: Element?): AstType {
+		if (it == null) return AstType.OBJECT
+		return when (it.nodeName) {
+			null -> AstType.OBJECT
+			"d" -> AstType.OBJECT // Dynamic!
+			"a" -> {
+				AstType.OBJECT
+			}
+			"icast" -> parseHaxeType(it.elementChildren.first())
+			"unknown" -> {
+				//HaxeArgTypeBase("unknown")
+				//noImpl
+				AstType.INT
+			}
+		// Function
+			"f" -> {
+				val names = it.attribute("a").split(':')
+				val types = it.elementChildren.map { parseHaxeType(it) }
+				val args = types.dropLast(1)
+				val rettype = types.last()
+				AstType.METHOD_TYPE(HaxeDocXmlParser.HaxeArguments(names, args), rettype)
+			}
+			"x", "c", "t", "e" -> {
+				val path = it.attribute("path")
+				val generics = it.elementChildren.map { parseHaxeType(it) }
+				when (path) {
+					"Void" -> AstType.VOID
+					"Bool" -> AstType.BOOL
+					"Int" -> AstType.INT
+					"UInt" -> AstType.INT
+					"Float" -> AstType.DOUBLE
+					"Array" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
+					"String" -> AstType.STRING
+					"flash.Vector" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
+					"haxe.io.Int16Array" -> AstType.ARRAY(AstType.SHORT)
+					"haxe.io.UInt16Array" -> AstType.ARRAY(AstType.CHAR)
+					"haxe.io.Int32Array" -> AstType.ARRAY(AstType.INT)
+					"haxe.io.Float32Array" -> AstType.ARRAY(AstType.FLOAT)
+				// @TODO: Type must be nullable so probably we should convert primitive types to class types
+					"Null" -> parseHaxeType(it.elementChildren.first())
+					else -> {
+						val base = if (path.isNullOrBlank()) AstType.OBJECT else AstType.REF(path)
+						if (generics.isEmpty()) base else AstType.GENERIC(base, generics)
+					}
+				}
+
+			}
+			else -> {
+				noImpl("argtype: ${it.nodeName}")
+			}
+		}
+	}
 }
 
 //class AstAbstractType : AstType
