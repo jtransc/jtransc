@@ -75,7 +75,6 @@
         <module>jtransc-rt</module>
         <module>jtransc-utils</module>
         <module>jtransc-core</module>
-        <module>jtransc-tools</module>
         <module>jtransc-gen-haxe</module>
         <module>jtransc-main</module>
         <module>jtransc-buildjar-maven-plugin</module>

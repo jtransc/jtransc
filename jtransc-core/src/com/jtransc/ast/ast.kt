@@ -40,6 +40,8 @@ data class FqName(val fqname: String) : Serializable {
 	}
 
 	init {
+		//if (fqname.isNullOrBlank()) invalidOp("Fqname is empty!")
+
 		if (!fqname.isEmpty()) {
 			val f = fqname.first()
 			//if (!f.isLetterOrUnderscore()) {
