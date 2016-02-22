@@ -50,23 +50,27 @@ class JavaIds(val parent: JavaIds? = null) {
 		}
 	}
 
-	fun serializeValid(type: AstType?): String {
+	fun serializeValid(type: AstType?, usePrims:Boolean = true): String {
 		return when (type) {
 			null -> "null"
-			is AstType.VOID -> "void"
-			is AstType.BOOL -> "boolean"
-			is AstType.BYTE -> "byte"
-			is AstType.SHORT -> "short"
-			is AstType.CHAR -> "char"
-			is AstType.INT -> "int"
-			is AstType.LONG -> "long"
-			is AstType.FLOAT -> "float"
-			is AstType.DOUBLE -> "double"
-			is AstType.ARRAY -> serializeValid(type.element) + "[]"
+			is AstType.VOID -> if (usePrims) "void" else "java.lang.Void"
+			is AstType.BOOL -> if (usePrims) "boolean" else "java.lang.Boolean"
+			is AstType.BYTE -> if (usePrims) "byte" else "java.lang.Byte"
+			is AstType.SHORT -> if (usePrims) "short" else "java.lang.Short"
+			is AstType.CHAR -> if (usePrims) "char" else "java.lang.Character"
+			is AstType.INT -> if (usePrims) "int" else "java.lang.Integer"
+			is AstType.LONG -> if (usePrims) "long" else "java.lang.Long"
+			is AstType.FLOAT -> if (usePrims) "float" else "java.lang.Float"
+			is AstType.DOUBLE -> if (usePrims) "double" else "java.lang.Double"
+			is AstType.ARRAY -> serializeValid(type.element, usePrims) + "[]"
 			is AstType.GENERIC -> {
-				val base = serializeValid(type.type)
-				val generics = type.params.map { serializeValid(it) }.joinToString(", ")
+				val base = serializeValid(type.type, usePrims)
+				val generics = type.params.map { serializeValid(it, false) }.joinToString(", ")
 				if (generics.isEmpty()) "$base" else "$base<$generics>"
+			}
+			is AstType.METHOD_TYPE -> {
+				val count = type.args.size
+				"_root.Functions.F$count<" + type.argsPlusReturn.map { serializeValid(it, false) }.joinToString(", ") + ">"
 			}
 			is AstType.REF -> this.generateValidFqname(type.name).fqname
 		//else -> type.mangle()

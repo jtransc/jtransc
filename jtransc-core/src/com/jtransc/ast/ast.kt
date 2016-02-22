@@ -110,17 +110,20 @@ interface AstType {
 
 	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
 	//	constructor(ret: AstType, args: List<AstType>) : this(args.toArguments(), ret)
-	data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
+	//data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
+	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean) : AstType {
 		val argCount: Int get() = argTypes.size
-		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args.map { it.type })
-		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.map { it.type })
+		constructor(ret: AstType, argTypes: List<AstType>) : this(ret, argTypes.toArguments(), true)
+		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args, true)
+		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.toList(), true)
 		constructor(ret: AstType, vararg args: AstType) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret)
 
-		val argNames by lazy { argTypes.indices.map { "p$it" } }
-		val args by lazy { argTypes.zip(argNames).withIndex().map { AstArgument(it.index, it.value.first, it.value.second) } }
+		val argNames by lazy { args.map { it.name } }
+		val argTypes by lazy { args.map { it.type } }
 		val desc by lazy { this.mangle(true) }
 		val desc2 by lazy { this.mangle(false) }
 		val retVoid by lazy { ret == AstType.VOID }
+		val argsPlusReturn by lazy { argTypes + listOf(ret) }
 	}
 
 	companion object {

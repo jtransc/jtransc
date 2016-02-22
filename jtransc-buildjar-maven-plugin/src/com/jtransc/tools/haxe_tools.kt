@@ -18,6 +18,7 @@ package com.jtransc.tools
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
@@ -34,6 +35,7 @@ object HaxeTools {
 	@JvmStatic fun main(args: Array<String>) {
 		val vfs = LocalVfs(File("."))
 
+		/*
 		val libraryInfo = LibraryInfo(
 			libraries = listOf("lime:2.9.0"),
 			includePackages = listOf("lime"),
@@ -49,6 +51,14 @@ object HaxeTools {
 				"lime.tools"
 			),
 			target = "cpp"
+		)
+		*/
+		val libraryInfo = LibraryInfo(
+			libraries = listOf(),
+			includePackages = listOf(),
+			includePackagesRec = listOf(
+			),
+			target = "as3"
 		)
 
 		//val outJar = vfs["out.jar"]
@@ -150,7 +160,21 @@ object HaxeTools {
 	}
 
 	fun generateJavaSourcesFromHaxeLib(libraryInfo: LibraryInfo): Map<String, String> {
-		return getTypesFromHaxelib(libraryInfo).associate { generateJavaSource(it) }
+
+		return getTypesFromHaxelib(libraryInfo).associate { generateJavaSource(it) } + mapOf(
+			"_root/Functions.java" to Indenter.genString {
+				line("package _root;")
+				line("public class Functions") {
+					for (n in 0 until 16) {
+						val genericArgs = (0 until n).map { "T$it" }
+						val genericTypes = genericArgs + listOf("TR")
+						val genericTypesStr = genericTypes.joinToString(", ")
+						val genericArgsStr = genericArgs.withIndex().map { "${it.value} " + ('a' + it.index) }.joinToString(", ")
+						line("public interface F$n<$genericTypesStr> { TR handle($genericArgsStr); }")
+					}
+				}
+			}
+		)
 	}
 
 	fun generateJavaSource(type: HaxeType): Pair<String, String> {
@@ -200,6 +224,9 @@ object HaxeTools {
 
 			val classDecl = "public $classType ${validClassName.simpleName}$genericListString2 $extendsListString $implementsListString"
 
+			if (type.doc.isNotBlank()) {
+				line("/** ${type.doc} */")
+			}
 			line(classDecl) {
 				//line("public $classType ${validFqname.simpleName}") {
 				for (member in type.members) {
@@ -234,6 +261,10 @@ object HaxeTools {
 						""
 					}
 					val memberGenericString = if (memberGenericString2 == "<>") "" else memberGenericString2
+
+					if (!member.doc.isNullOrBlank()) {
+						line("/** ${member.doc} */")
+					}
 
 					when (member) {
 						is HaxeField -> {
@@ -351,6 +382,8 @@ object HaxeTools {
 	}
 
 	object HaxeDocXmlParser {
+		val SPECIAL_NAMES = setOf("extends", "implements", "meta", "this", "to", "from", "impl", "haxe_doc")
+
 		fun parseDocument(doc: Document): List<HaxeType> {
 			return doc.elementChildren.first().elementChildren.map {
 				parseType(it)
@@ -362,159 +395,212 @@ object HaxeTools {
 			val generics = node.attributes.getNamedItem("params").textContent.split(":")
 			val isExtern = node.attributes.getNamedItem("extern")?.textContent == "1"
 			val isInterface = node.attributes.getNamedItem("interface")?.textContent == "1"
-			val specialNames = setOf("extends", "implements", "meta")
-			val specials = node.elementChildren.filter { it.nodeName in specialNames }
-			val members = node.elementChildren
-				.filter { it.nodeName !in specialNames }
-				.map { parseMember(it) }
+			val isEnum = node.nodeName == "enum"
 			val implements = arrayListOf<FqName>()
 			val extends = arrayListOf<FqName>()
+			val doc = node.elementChildren.firstOrNull { it.tagName == "haxe_doc" }?.textContent ?: ""
+			var linkType: AstType? = null
+			var members = listOf<HaxeMember>()
 
-			for (special in specials) {
-				when (special.tagName) {
-					"implements" -> {
-						implements.add(FqName(special.getAttribute("path")))
+			fun parseTypeTypedef() {
+				linkType = parseHaxeType(node.elementChildren.first())
+			}
+
+			fun parseType2() {
+				val specials = node.elementChildren.filter { it.nodeName in SPECIAL_NAMES }
+				members = node.elementChildren.filter { it.nodeName !in SPECIAL_NAMES }.map { parseMember(it) }
+				var abstractThis: AstType = AstType.OBJECT
+				var abstractTo = arrayListOf<AstType>()
+				var abstractFrom = arrayListOf<AstType>()
+
+				for (special in specials) {
+					when (special.tagName) {
+						"implements" -> {
+							implements.add(FqName(special.getAttribute("path")))
+						}
+						"extends" -> {
+							extends.add(FqName(special.getAttribute("path")))
+						}
+						"meta" -> {
+
+						}
+						"this" -> abstractThis = parseHaxeType(special.elementChildren.first())
+						"to" -> abstractTo.add(parseHaxeType(special.elementChildren.first()))
+						"from" -> abstractFrom.add(parseHaxeType(special.elementChildren.first()))
+						"impl" -> {
+
+						}
 					}
-					"extends" -> {
-						extends.add(FqName(special.getAttribute("path")))
-					}
-					"meta" -> {
+				}
+
+				//module="StdTypes" extern="1" interface="1"
+				//println(members)
+				when (node.nodeName) {
+					"class", "typedef", "abstract", "enum" -> {
 
 					}
+					else -> throw NotImplementedError("type: ${node.nodeName}")
 				}
 			}
 
-			//module="StdTypes" extern="1" interface="1"
-			//println(members)
-			return when (node.nodeName) {
-				"class", "typedef", "abstract", "enum" -> {
-					HaxeType(
-						fqname = typeName.fqname,
-						generics = generics,
-						members = members,
-						isEnum = node.nodeName == "enum",
-						isInterface = isInterface,
-						isExtern = isExtern,
-						implements = implements,
-						extends = extends
-					)
-				}
-				else -> throw NotImplementedError("type: ${node.nodeName}")
+			when (node.nodeName) {
+				"typedef" -> parseTypeTypedef()
+				else -> parseType2()
+			}
+
+			return HaxeType(
+				fqname = typeName.fqname,
+				doc = doc,
+				generics = generics,
+				members = members,
+				isEnum = isEnum,
+				isInterface = isInterface,
+				isExtern = isExtern,
+				implements = implements,
+				extends = extends,
+				linkType = linkType
+			)
+		}
+
+
+
+		fun HaxeArgument(index: Int, nameWithExtra: String, type: AstType): AstArgument {
+			val name = nameWithExtra.trim('?')
+			val optional = nameWithExtra.startsWith('?')
+			return AstArgument(index, type, name, optional)
+		}
+
+		fun HaxeArguments(names: List<String>, types: List<AstType>): List<AstArgument> {
+			return names.zip(types).withIndex().map {
+				val index = it.index
+				val nameWithExtra = it.value.first
+				val type = it.value.second
+				HaxeArgument(index, nameWithExtra, type)
 			}
 		}
 
-		fun parseArgType(it: Element): AstType {
+		fun parseHaxeType(it: Element?): AstType {
+			if (it == null) return AstType.OBJECT
 			return when (it.nodeName) {
+				null -> AstType.OBJECT
 				"d" -> AstType.OBJECT // Dynamic!
 				"a" -> {
-					//HaxeArgTypeBase("a?")
-					//noImpl
-					AstType.INT
+					AstType.OBJECT
 				}
+				"icast" -> parseHaxeType(it.elementChildren.first())
 				"unknown" -> {
 					//HaxeArgTypeBase("unknown")
 					//noImpl
 					AstType.INT
 				}
-				"x", "c", "t", "f", "e" -> {
+			// Function
+				"f" -> {
+					val names = it.attribute("a").split(':')
+					val types = it.elementChildren.map { parseHaxeType(it) }
+					val args = types.dropLast(1)
+					val rettype = types.last()
+					AstType.METHOD_TYPE(HaxeArguments(names, args), rettype)
+				}
+				"x", "c", "t", "e" -> {
 					val path = it.attribute("path")
-					val generics = it.elementChildren.map { parseArgType(it) }
+					val generics = it.elementChildren.map { parseHaxeType(it) }
 					when (path) {
-						"String" -> AstType.STRING
+						"Void" -> AstType.VOID
 						"Bool" -> AstType.BOOL
 						"Int" -> AstType.INT
 						"UInt" -> AstType.INT
 						"Float" -> AstType.DOUBLE
-						"Void" -> AstType.VOID
-						"Array" -> AstType.ARRAY(parseArgType(it.elementChildren.first()))
+						"Array" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
+						"String" -> AstType.STRING
+						"flash.Vector" -> AstType.ARRAY(parseHaxeType(it.elementChildren.first()))
 						"haxe.io.Int16Array" -> AstType.ARRAY(AstType.SHORT)
 						"haxe.io.UInt16Array" -> AstType.ARRAY(AstType.CHAR)
 						"haxe.io.Int32Array" -> AstType.ARRAY(AstType.INT)
 						"haxe.io.Float32Array" -> AstType.ARRAY(AstType.FLOAT)
 					// @TODO: Type must be nullable so probably we should convert primitive types to class types
-						"Null" -> parseArgType(it.elementChildren.first())
+						"Null" -> parseHaxeType(it.elementChildren.first())
 						else -> {
-							if (generics.isNotEmpty()) {
-								//HaxeArgTypeGeneric(HaxeArgTypeBase(path), generics)
-								//AstType.INT
-							} else {
-								//HaxeArgTypeBase(path)
-								//AstType.INT
-							}
-
-							//noImpl
-							//AstType.INT
-							if (path.isNullOrBlank()) AstType.OBJECT else AstType.REF(path)
+							val base = if (path.isNullOrBlank()) AstType.OBJECT else AstType.REF(path)
+							if (generics.isEmpty()) base else AstType.GENERIC(base, generics)
 						}
 					}
 
 				}
-				else -> throw NotImplementedError("argtype: ${it.nodeName}")
+				else -> {
+					noImpl("argtype: ${it.nodeName}")
+				}
 			}
 		}
 
 		fun parseMember(member: Element): HaxeMember {
+			val name = member.nodeName
 			val public = member.attribute("public") == "1"
 			val static = member.attribute("static") == "1"
 			val set = member.attribute("set")
+			val get = member.attribute("get")
 			val generics = member.attribute("params").split(":")
-			return when (set) {
-				"method" -> {
-					val decl = member.elementChildren.first { it.nodeName == "f" }
-					val argNames = decl.attribute("a").split(":")
-					val argTypes = decl.elementChildren.map { parseArgType(it) }
-					val args = argNames.zip(argTypes.dropLast(1)).withIndex().map {
-						val nameWithExtras = it.value.first
-						val name = nameWithExtras.trim('?')
-						val optional = (nameWithExtras.startsWith('?'))
-						AstArgument(it.index, it.value.second, name, optional = optional)
-					}
-					val rettype = argTypes.last()
-					//println(args + ": RET : " + rettype)
-					HaxeMethod(
-						name = member.nodeName,
-						generics = generics,
-						isPublic = public,
-						isStatic = static,
-						args = args,
-						rettype = rettype
-					)
+			val type2 = parseHaxeType(member.elementChildren.firstOrNull { it.tagName !in SPECIAL_NAMES }) ?: AstType.OBJECT
+			var doc = ""
+
+			for (child in member.elementChildren) {
+				when (child.tagName) {
+					"haxe_doc" -> doc = child.textContent
 				}
-				"null" -> {
-					val type2 = parseArgType(member.elementChildren.first())
-					HaxeField(name = member.nodeName, generics = generics, type = type2, isPublic = public, isStatic = static)
-				}
-				"", "dynamic", "accessor" -> {
-					HaxeField(name = member.nodeName, generics = generics, type = AstType.OBJECT, isPublic = public, isStatic = static)
-				}
-				else -> throw NotImplementedError("set: $set")
+			}
+
+			val isMethod = (get == "inline" && type2 is AstType.METHOD_TYPE) || (set == "method")
+
+			return if (isMethod) {
+				//println(args + ": RET : " + rettype)
+				HaxeMethod(
+					name = name,
+					doc = doc,
+					generics = generics,
+					isPublic = public,
+					isStatic = static,
+					methodType = type2 as AstType.METHOD_TYPE
+				)
+
+			} else {
+				HaxeField(
+					name = member.nodeName,
+					doc = doc,
+					generics = generics,
+					type = type2,
+					isPublic = public,
+					isStatic = static
+				)
 			}
 		}
 	}
 
 	data class HaxeType(
 		val fqname: FqName,
+		val doc: String,
 		val generics: List<String>,
 		val members: List<HaxeMember>,
 		val isInterface: Boolean,
 		val isEnum: Boolean,
 		val isExtern: Boolean,
 		val implements: List<FqName>,
-		val extends: List<FqName>
+		val extends: List<FqName>,
+	    val linkType: AstType?
 	)
 
 	interface HaxeMember {
 		val name: String
+		val doc: String
 		val generics: List<String>
 		val type: AstType
 		val isStatic: Boolean
 		val isPublic: Boolean
 	}
 
-	data class HaxeField(override val name: String, override val generics: List<String>, override val isPublic: Boolean, override val isStatic: Boolean, override val type: AstType) : HaxeMember
-	data class HaxeMethod(override val name: String, override val generics: List<String>, override val isPublic: Boolean, val args: List<AstArgument>, val rettype: AstType, override val isStatic: Boolean) : HaxeMember {
-		val methodType by lazy { AstType.METHOD_TYPE(args, rettype) }
+	data class HaxeField(override val name: String, override val doc: String, override val generics: List<String>, override val isPublic: Boolean, override val isStatic: Boolean, override val type: AstType) : HaxeMember
+	data class HaxeMethod(override val name: String, override val doc: String, override val generics: List<String>, override val isPublic: Boolean, val methodType: AstType.METHOD_TYPE, override val isStatic: Boolean) : HaxeMember {
 		override val type by lazy { methodType }
+		val args = methodType.args
+		val rettype = methodType.ret
 	}
 
 	fun Node.dump() {
