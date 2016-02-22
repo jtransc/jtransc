@@ -17,11 +17,11 @@
 package java.lang;
 
 public class ClassFormatError extends Error {
-    public ClassFormatError() {
-        super();
-    }
+	public ClassFormatError() {
+		super();
+	}
 
-    public ClassFormatError(String message) {
-        super(message);
-    }
+	public ClassFormatError(String message) {
+		super(message);
+	}
 }

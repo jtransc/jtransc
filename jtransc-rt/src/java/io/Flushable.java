@@ -17,5 +17,5 @@
 package java.io;
 
 public interface Flushable {
-    void flush() throws IOException;
+	void flush() throws IOException;
 }

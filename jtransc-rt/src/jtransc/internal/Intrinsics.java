@@ -17,7 +17,8 @@
 package jtransc.internal;
 
 public class Intrinsics {
-    native static public int sx16(int value);
-    native static public int sx8(int value);
-    //native static public int
+	native static public int sx16(int value);
+
+	native static public int sx8(int value);
+	//native static public int
 }

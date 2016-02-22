@@ -17,12 +17,12 @@
 package java.lang.ref;
 
 public class ReferenceQueue<T> {
-    public ReferenceQueue() {
-    }
+	public ReferenceQueue() {
+	}
 
-    public native Reference<? extends T> poll();
+	public native Reference<? extends T> poll();
 
-    public native Reference<? extends T> remove(long timeout) throws IllegalArgumentException, InterruptedException;
+	public native Reference<? extends T> remove(long timeout) throws IllegalArgumentException, InterruptedException;
 
-    public native Reference<? extends T> remove() throws InterruptedException;
+	public native Reference<? extends T> remove() throws InterruptedException;
 }

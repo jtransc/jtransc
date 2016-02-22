@@ -17,11 +17,11 @@
 package java.lang;
 
 public class ClassCircularityError extends Error {
-    public ClassCircularityError() {
-        super();
-    }
+	public ClassCircularityError() {
+		super();
+	}
 
-    public ClassCircularityError(String message) {
-        super(message);
-    }
+	public ClassCircularityError(String message) {
+		super(message);
+	}
 }

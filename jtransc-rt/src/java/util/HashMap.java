@@ -22,85 +22,85 @@ import java.io.Serializable;
 
 // @TODO: Very slow HashMap
 public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Cloneable, Serializable {
-    private ArrayList<K> keys = new ArrayList<K>();
-    private ArrayList<V> values = new ArrayList<V>();
+	private ArrayList<K> keys = new ArrayList<K>();
+	private ArrayList<V> values = new ArrayList<V>();
 
-    public HashMap(int initialCapacity, float loadFactor) {
-    }
+	public HashMap(int initialCapacity, float loadFactor) {
+	}
 
-    public HashMap(int initialCapacity) {
+	public HashMap(int initialCapacity) {
 
-    }
+	}
 
-    public HashMap() {
+	public HashMap() {
 
-    }
+	}
 
-    public HashMap(Map<? extends K, ? extends V> m) {
-        putAll(m);
-    }
+	public HashMap(Map<? extends K, ? extends V> m) {
+		putAll(m);
+	}
 
-    public int size() {
-        return keys.size();
-    }
+	public int size() {
+		return keys.size();
+	}
 
-    public V get(Object key) {
-        int index = keys.indexOf(key);
-        return (index >= 0) ? values.get(index) : null;
-    }
+	public V get(Object key) {
+		int index = keys.indexOf(key);
+		return (index >= 0) ? values.get(index) : null;
+	}
 
-    public boolean containsKey(Object key) {
-        return keys.contains(key);
-    }
+	public boolean containsKey(Object key) {
+		return keys.contains(key);
+	}
 
-    public V put(K key, V value) {
-        int index = keys.indexOf(key);
-        V old = null;
-        if (index < 0) {
-            keys.add(key);
-            values.add(value);
-        } else {
-            old = values.get(index);
-            keys.set(index, key);
-            values.set(index, value);
-        }
-        return old;
-    }
+	public V put(K key, V value) {
+		int index = keys.indexOf(key);
+		V old = null;
+		if (index < 0) {
+			keys.add(key);
+			values.add(value);
+		} else {
+			old = values.get(index);
+			keys.set(index, key);
+			values.set(index, value);
+		}
+		return old;
+	}
 
-    public V remove(Object key) {
-        int index = keys.indexOf(key);
-        if (index >= 0) {
-            V old = values.get(index);
-            keys.remove(index);
-            values.remove(index);
-            return old;
-        }
-        return null;
-    }
+	public V remove(Object key) {
+		int index = keys.indexOf(key);
+		if (index >= 0) {
+			V old = values.get(index);
+			keys.remove(index);
+			values.remove(index);
+			return old;
+		}
+		return null;
+	}
 
-    public void clear() {
-        this.keys.clear();
-        this.values.clear();
-    }
+	public void clear() {
+		this.keys.clear();
+		this.values.clear();
+	}
 
-    public boolean containsValue(Object value) {
-        return values.indexOf(value) >= 0;
-    }
+	public boolean containsValue(Object value) {
+		return values.indexOf(value) >= 0;
+	}
 
-    public Set<K> keySet() {
-        return new HashSet<K>(keys);
-    }
+	public Set<K> keySet() {
+		return new HashSet<K>(keys);
+	}
 
-    public Collection<V> values() {
-        return this.values;
-    }
+	public Collection<V> values() {
+		return this.values;
+	}
 
-    public Set<Entry<K, V>> entrySet() {
-        HashSet<Entry<K, V>> out = new HashSet<Entry<K, V>>();
-        for (K key : keys) out.add(new GenericMapEntry<K, V>(this, key));
-        return out;
-    }
+	public Set<Entry<K, V>> entrySet() {
+		HashSet<Entry<K, V>> out = new HashSet<Entry<K, V>>();
+		for (K key : keys) out.add(new GenericMapEntry<K, V>(this, key));
+		return out;
+	}
 
-    @Override
-    native public Object clone();
+	@Override
+	native public Object clone();
 }

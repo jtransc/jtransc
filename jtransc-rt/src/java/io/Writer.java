@@ -20,57 +20,57 @@ import jtransc.internal.JTranscTempBuffer;
 
 public abstract class Writer implements Appendable, Closeable, Flushable {
 
-    protected Object lock;
+	protected Object lock;
 
-    protected Writer() {
-        this.lock = this;
-    }
+	protected Writer() {
+		this.lock = this;
+	}
 
-    protected Writer(Object lock) {
-        this.lock = lock;
-    }
+	protected Writer(Object lock) {
+		this.lock = lock;
+	}
 
-    public void write(int value) throws IOException{
-        char[] temp = JTranscTempBuffer.tempChar(1);
-        temp[0] = (char) value;
-        write(temp, 0, 1);
-    }
+	public void write(int value) throws IOException {
+		char[] temp = JTranscTempBuffer.tempChar(1);
+		temp[0] = (char) value;
+		write(temp, 0, 1);
+	}
 
-    public void write(char value[]) throws IOException {
-        write(value, 0, value.length);
-    }
+	public void write(char value[]) throws IOException {
+		write(value, 0, value.length);
+	}
 
-    abstract public void write(char value[], int offset, int length) throws IOException;
+	abstract public void write(char value[], int offset, int length) throws IOException;
 
-    public void write(String str) throws IOException {
-        write(str, 0, str.length());
-    }
+	public void write(String str) throws IOException {
+		write(str, 0, str.length());
+	}
 
-    //native public void write(String str, int off, int len) throws IOException;
+	//native public void write(String str, int off, int len) throws IOException;
 
-    public void write(String str, int off, int len) throws IOException {
-        char[] temp = JTranscTempBuffer.tempChar(1);
-        str.getChars(off, (off + len), temp, 0);
-        write(temp, 0, len);
-    }
+	public void write(String str, int off, int len) throws IOException {
+		char[] temp = JTranscTempBuffer.tempChar(1);
+		str.getChars(off, (off + len), temp, 0);
+		write(temp, 0, len);
+	}
 
-    public Writer append(CharSequence csq) throws IOException{
-        write((csq != null) ? csq.toString() : "null");
-        return this;
-    }
+	public Writer append(CharSequence csq) throws IOException {
+		write((csq != null) ? csq.toString() : "null");
+		return this;
+	}
 
-    public Writer append(CharSequence csq, int start, int end) throws IOException{
-        CharSequence cs = (csq != null ? csq : "null");
-        write(cs.subSequence(start, end).toString());
-        return this;
-    }
+	public Writer append(CharSequence csq, int start, int end) throws IOException {
+		CharSequence cs = (csq != null ? csq : "null");
+		write(cs.subSequence(start, end).toString());
+		return this;
+	}
 
-    public Writer append(char c) throws IOException{
-        write(c);
-        return this;
-    }
+	public Writer append(char c) throws IOException {
+		write(c);
+		return this;
+	}
 
-    abstract public void flush() throws IOException;
+	abstract public void flush() throws IOException;
 
-    abstract public void close() throws IOException;
+	abstract public void close() throws IOException;
 }

@@ -46,7 +46,7 @@ public final class DigestSHA1 extends DigestBase {
 		currentLen = 0;
 
 		/* In case of complete paranoia, we should also wipe out the
-	     * information contained in the w[] array */
+		 * information contained in the w[] array */
 	}
 
 	public void implCompress(byte b[]) {

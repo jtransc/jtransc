@@ -17,11 +17,11 @@
 package java.lang;
 
 public class IncompatibleClassChangeError extends Error {
-    public IncompatibleClassChangeError() {
-        super();
-    }
+	public IncompatibleClassChangeError() {
+		super();
+	}
 
-    public IncompatibleClassChangeError(String message) {
-        super(message);
-    }
+	public IncompatibleClassChangeError(String message) {
+		super(message);
+	}
 }

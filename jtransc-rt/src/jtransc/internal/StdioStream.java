@@ -16,13 +16,12 @@
 
 package jtransc.internal;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class StdioStream extends PrintStream {
-    public StdioStream() {
-        super(new StdioOutputStream(), true);
-    }
+	public StdioStream() {
+		super(new StdioOutputStream(), true);
+	}
 
     /*
     @Override

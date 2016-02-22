@@ -17,21 +17,21 @@
 package java.util;
 
 public interface SortedMap<K, V> extends Map<K, V> {
-    Comparator<? super K> comparator();
+	Comparator<? super K> comparator();
 
-    SortedMap<K, V> subMap(K fromKey, K toKey);
+	SortedMap<K, V> subMap(K fromKey, K toKey);
 
-    SortedMap<K, V> headMap(K toKey);
+	SortedMap<K, V> headMap(K toKey);
 
-    SortedMap<K, V> tailMap(K fromKey);
+	SortedMap<K, V> tailMap(K fromKey);
 
-    K firstKey();
+	K firstKey();
 
-    K lastKey();
+	K lastKey();
 
-    Set<K> keySet();
+	Set<K> keySet();
 
-    Collection<V> values();
+	Collection<V> values();
 
-    Set<Entry<K, V>> entrySet();
+	Set<Entry<K, V>> entrySet();
 }

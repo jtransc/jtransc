@@ -18,12 +18,12 @@ package java.util;
 
 public abstract class AbstractSet<E> extends AbstractCollection<E> implements Set<E> {
 
-    protected AbstractSet() {
-    }
+	protected AbstractSet() {
+	}
 
-    native public boolean equals(Object o);
+	native public boolean equals(Object o);
 
-    native public int hashCode();
+	native public int hashCode();
 
-    native public boolean removeAll(Collection<?> c);
+	native public boolean removeAll(Collection<?> c);
 }

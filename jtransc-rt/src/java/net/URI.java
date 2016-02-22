@@ -379,7 +379,7 @@ public final class URI implements Comparable<URI>, Serializable {
 			char ch = s.charAt(index);
 			h = 31 * h + ch;
 			if (ch == '%') {
-	            /*
+		        /*
                  * Process the next two encoded characters
                  */
 				for (int i = index + 1; i < index + 3; i++)

@@ -17,13 +17,13 @@
 package java.io;
 
 public class InterruptedIOException extends IOException {
-    public InterruptedIOException() {
-        super();
-    }
+	public InterruptedIOException() {
+		super();
+	}
 
-    public InterruptedIOException(String s) {
-        super(s);
-    }
+	public InterruptedIOException(String s) {
+		super(s);
+	}
 
-    public int bytesTransferred = 0;
+	public int bytesTransferred = 0;
 }

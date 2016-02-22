@@ -17,41 +17,41 @@
 package java.text;
 
 public class ParsePosition {
-    int index = 0;
-    int errorIndex = -1;
+	int index = 0;
+	int errorIndex = -1;
 
-    public int getIndex() {
-        return index;
-    }
+	public int getIndex() {
+		return index;
+	}
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
+	public void setIndex(int index) {
+		this.index = index;
+	}
 
-    public ParsePosition(int index) {
-        this.index = index;
-    }
+	public ParsePosition(int index) {
+		this.index = index;
+	}
 
-    public void setErrorIndex(int ei) {
-        errorIndex = ei;
-    }
+	public void setErrorIndex(int ei) {
+		errorIndex = ei;
+	}
 
-    public int getErrorIndex() {
-        return errorIndex;
-    }
+	public int getErrorIndex() {
+		return errorIndex;
+	}
 
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (!(obj instanceof ParsePosition)) return false;
-        ParsePosition that = (ParsePosition) obj;
-        return (index == that.index && errorIndex == that.errorIndex);
-    }
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (!(obj instanceof ParsePosition)) return false;
+		ParsePosition that = (ParsePosition) obj;
+		return (index == that.index && errorIndex == that.errorIndex);
+	}
 
-    public int hashCode() {
-        return (errorIndex << 16) | index;
-    }
+	public int hashCode() {
+		return (errorIndex << 16) | index;
+	}
 
-    public String toString() {
-        return getClass().getName() + "[index=" + index + ",errorIndex=" + errorIndex + ']';
-    }
+	public String toString() {
+		return getClass().getName() + "[index=" + index + ",errorIndex=" + errorIndex + ']';
+	}
 }

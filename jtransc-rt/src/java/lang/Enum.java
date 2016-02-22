@@ -19,55 +19,55 @@ package java.lang;
 import java.io.Serializable;
 
 public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable {
-    private final String name;
+	private final String name;
 
-    public final String name() {
-        return name;
-    }
+	public final String name() {
+		return name;
+	}
 
-    private final int ordinal;
+	private final int ordinal;
 
-    public final int ordinal() {
-        return ordinal;
-    }
+	public final int ordinal() {
+		return ordinal;
+	}
 
-    protected Enum(String name, int ordinal) {
-        this.name = name;
-        this.ordinal = ordinal;
-    }
+	protected Enum(String name, int ordinal) {
+		this.name = name;
+		this.ordinal = ordinal;
+	}
 
-    public String toString() {
-        return name;
-    }
+	public String toString() {
+		return name;
+	}
 
-    public final boolean equals(Object other) {
-        return this == other;
-    }
+	public final boolean equals(Object other) {
+		return this == other;
+	}
 
-    public final int hashCode() {
-        return super.hashCode();
-    }
+	public final int hashCode() {
+		return super.hashCode();
+	}
 
-    protected final Object clone() throws CloneNotSupportedException {
-        throw new CloneNotSupportedException();
-    }
+	protected final Object clone() throws CloneNotSupportedException {
+		throw new CloneNotSupportedException();
+	}
 
-    public final int compareTo(E o) {
-        Enum<?> other = (Enum<?>) o;
-        Enum<E> self = this;
-        if (self.getClass() != other.getClass() && self.getDeclaringClass() != other.getDeclaringClass()) {
-            throw new ClassCastException();
-        }
-        return self.ordinal - other.ordinal;
-    }
+	public final int compareTo(E o) {
+		Enum<?> other = (Enum<?>) o;
+		Enum<E> self = this;
+		if (self.getClass() != other.getClass() && self.getDeclaringClass() != other.getDeclaringClass()) {
+			throw new ClassCastException();
+		}
+		return self.ordinal - other.ordinal;
+	}
 
-    public final Class<E> getDeclaringClass() {
-        Class<?> clazz = getClass();
-        Class<?> zuper = clazz.getSuperclass();
-        return (zuper == Enum.class) ? (Class<E>) clazz : (Class<E>) zuper;
-    }
+	public final Class<E> getDeclaringClass() {
+		Class<?> clazz = getClass();
+		Class<?> zuper = clazz.getSuperclass();
+		return (zuper == Enum.class) ? (Class<E>) clazz : (Class<E>) zuper;
+	}
 
-    native public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name);
+	native public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name);
 
     /*
     public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
@@ -78,7 +78,7 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
     }
     */
 
-    protected final void finalize() {
-    }
+	protected final void finalize() {
+	}
 }
 

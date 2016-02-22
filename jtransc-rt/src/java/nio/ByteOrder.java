@@ -19,19 +19,20 @@ package java.nio;
 import jtransc.JTranscBits;
 
 public final class ByteOrder {
-    public static final ByteOrder BIG_ENDIAN = new ByteOrder("BIG_ENDIAN");
-    public static final ByteOrder LITTLE_ENDIAN = new ByteOrder("LITTLE_ENDIAN");
-    public static ByteOrder nativeOrder() {
-        return JTranscBits.isLittleEndian() ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-    }
+	public static final ByteOrder BIG_ENDIAN = new ByteOrder("BIG_ENDIAN");
+	public static final ByteOrder LITTLE_ENDIAN = new ByteOrder("LITTLE_ENDIAN");
 
-    private String name;
+	public static ByteOrder nativeOrder() {
+		return JTranscBits.isLittleEndian() ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
+	}
 
-    private ByteOrder(String name) {
-        this.name = name;
-    }
+	private String name;
 
-    public String toString() {
-        return name;
-    }
+	private ByteOrder(String name) {
+		this.name = name;
+	}
+
+	public String toString() {
+		return name;
+	}
 }

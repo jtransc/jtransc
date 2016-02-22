@@ -17,101 +17,101 @@
 package java.util.regex;
 
 public final class Matcher implements MatchResult {
-    private Pattern parent;
-    private String pattern;
-    private int flags;
-    private String text;
+	private Pattern parent;
+	private String pattern;
+	private int flags;
+	private String text;
 
-    Matcher(Pattern parent, CharSequence text) {
-        this.parent = parent;
-        this.pattern = parent.pattern();
-        this.flags = parent.flags();
-        this.text = text.toString();
-        _init();
-    }
+	Matcher(Pattern parent, CharSequence text) {
+		this.parent = parent;
+		this.pattern = parent.pattern();
+		this.flags = parent.flags();
+		this.text = text.toString();
+		_init();
+	}
 
-    private void _init() {
-    }
+	private void _init() {
+	}
 
-    public Pattern pattern() {
-        return this.parent;
-    }
+	public Pattern pattern() {
+		return this.parent;
+	}
 
-    public MatchResult toMatchResult() {
-        return this;
-    }
+	public MatchResult toMatchResult() {
+		return this;
+	}
 
-    native public Matcher usePattern(Pattern newPattern);
+	native public Matcher usePattern(Pattern newPattern);
 
-    native public Matcher reset();
+	native public Matcher reset();
 
-    public Matcher reset(CharSequence input) {
-        this.text = input.toString();
-        this.reset();
-        return this;
-    }
+	public Matcher reset(CharSequence input) {
+		this.text = input.toString();
+		this.reset();
+		return this;
+	}
 
-    native public int start();
+	native public int start();
 
-    public int start(int group) {
-        if (group == 0) return start();
-        throw new Error("No implemented Matcher.start(int group) with group != 0");
-    }
+	public int start(int group) {
+		if (group == 0) return start();
+		throw new Error("No implemented Matcher.start(int group) with group != 0");
+	}
 
-    native public int start(String name);
+	native public int start(String name);
 
-    native public int end();
+	native public int end();
 
-    public int end(int group) {
-        if (group == 0) return end();
-        throw new Error("No implemented Matcher.end(int group) with group != 0");
-    }
+	public int end(int group) {
+		if (group == 0) return end();
+		throw new Error("No implemented Matcher.end(int group) with group != 0");
+	}
 
-    native public int end(String name);
+	native public int end(String name);
 
-    native public String group();
+	native public String group();
 
-    native public String group(int group);
+	native public String group(int group);
 
-    native public String group(String name);
+	native public String group(String name);
 
-    native public int groupCount();
+	native public int groupCount();
 
-    native public boolean matches();
+	native public boolean matches();
 
-    native public boolean find();
+	native public boolean find();
 
-    native public boolean find(int start);
+	native public boolean find(int start);
 
-    native public boolean lookingAt();
+	native public boolean lookingAt();
 
-    native public static String quoteReplacement(String s);
+	native public static String quoteReplacement(String s);
 
-    native public Matcher appendReplacement(StringBuffer sb, String replacement);
+	native public Matcher appendReplacement(StringBuffer sb, String replacement);
 
-    native public StringBuffer appendTail(StringBuffer sb);
+	native public StringBuffer appendTail(StringBuffer sb);
 
-    native public String replaceAll(String replacement);
+	native public String replaceAll(String replacement);
 
-    native public String replaceFirst(String replacement);
+	native public String replaceFirst(String replacement);
 
-    native public Matcher region(int start, int end);
+	native public Matcher region(int start, int end);
 
-    native public int regionStart();
+	native public int regionStart();
 
-    native public int regionEnd();
+	native public int regionEnd();
 
-    native public boolean hasTransparentBounds();
+	native public boolean hasTransparentBounds();
 
-    native public Matcher useTransparentBounds(boolean b);
+	native public Matcher useTransparentBounds(boolean b);
 
-    native public boolean hasAnchoringBounds();
+	native public boolean hasAnchoringBounds();
 
-    native public Matcher useAnchoringBounds(boolean b);
+	native public Matcher useAnchoringBounds(boolean b);
 
-    native public String toString();
+	native public String toString();
 
-    native public boolean hitEnd();
+	native public boolean hitEnd();
 
-    native public boolean requireEnd();
+	native public boolean requireEnd();
 }

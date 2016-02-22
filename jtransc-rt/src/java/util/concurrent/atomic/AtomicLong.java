@@ -17,91 +17,91 @@
 package java.util.concurrent.atomic;
 
 public class AtomicLong extends Number implements java.io.Serializable {
-    private volatile long value;
+	private volatile long value;
 
-    public AtomicLong(long initialValue) {
-        value = initialValue;
-    }
+	public AtomicLong(long initialValue) {
+		value = initialValue;
+	}
 
-    public AtomicLong() {
-    }
+	public AtomicLong() {
+	}
 
-    public final long get() {
-        return value;
-    }
+	public final long get() {
+		return value;
+	}
 
-    public final void set(long newValue) {
-        value = newValue;
-    }
+	public final void set(long newValue) {
+		value = newValue;
+	}
 
-    public final void lazySet(long newValue) {
-        value = newValue;
-    }
+	public final void lazySet(long newValue) {
+		value = newValue;
+	}
 
-    public final long getAndSet(long newValue) {
-        long old = this.value;
-        this.value = newValue;
-        return old;
-    }
+	public final long getAndSet(long newValue) {
+		long old = this.value;
+		this.value = newValue;
+		return old;
+	}
 
-    private long _setAndSet(long newValue) {
-        return this.value = newValue;
-    }
+	private long _setAndSet(long newValue) {
+		return this.value = newValue;
+	}
 
-    public final boolean compareAndSet(long expect, long update) {
-        if (this.value == expect) {
-            this.value = update;
-            return true;
-        } else {
-            return false;
-        }
-    }
+	public final boolean compareAndSet(long expect, long update) {
+		if (this.value == expect) {
+			this.value = update;
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    public final boolean weakCompareAndSet(long expect, long update) {
-        return compareAndSet(expect, update);
-    }
+	public final boolean weakCompareAndSet(long expect, long update) {
+		return compareAndSet(expect, update);
+	}
 
-    public final long getAndIncrement() {
-        return getAndSet(this.value + 1);
-    }
+	public final long getAndIncrement() {
+		return getAndSet(this.value + 1);
+	}
 
-    public final long getAndDecrement() {
-        return getAndSet(this.value - 1);
-    }
+	public final long getAndDecrement() {
+		return getAndSet(this.value - 1);
+	}
 
-    public final long getAndAdd(long delta) {
-        return getAndSet(this.value + delta);
-    }
+	public final long getAndAdd(long delta) {
+		return getAndSet(this.value + delta);
+	}
 
-    public final long incrementAndGet() {
-        return _setAndSet(this.value + 1);
-    }
+	public final long incrementAndGet() {
+		return _setAndSet(this.value + 1);
+	}
 
-    public final long decrementAndGet() {
-        return _setAndSet(this.value - 1);
-    }
+	public final long decrementAndGet() {
+		return _setAndSet(this.value - 1);
+	}
 
-    public final long addAndGet(long delta) {
-        return _setAndSet(this.value + delta);
-    }
+	public final long addAndGet(long delta) {
+		return _setAndSet(this.value + delta);
+	}
 
-    public String toString() {
-        return Long.toString(get());
-    }
+	public String toString() {
+		return Long.toString(get());
+	}
 
-    public int intValue() {
-        return (int) get();
-    }
+	public int intValue() {
+		return (int) get();
+	}
 
-    public long longValue() {
-        return get();
-    }
+	public long longValue() {
+		return get();
+	}
 
-    public float floatValue() {
-        return (float) get();
-    }
+	public float floatValue() {
+		return (float) get();
+	}
 
-    public double doubleValue() {
-        return (double) get();
-    }
+	public double doubleValue() {
+		return (double) get();
+	}
 }

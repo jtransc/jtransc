@@ -17,19 +17,19 @@
 package java.lang;
 
 public class NullPointerException extends RuntimeException {
-    public NullPointerException() {
-        super();
-    }
+	public NullPointerException() {
+		super();
+	}
 
-    public NullPointerException(String s) {
-        super(s);
-    }
+	public NullPointerException(String s) {
+		super(s);
+	}
 
-    public NullPointerException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public NullPointerException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public NullPointerException(Throwable cause) {
-        super(cause);
-    }
+	public NullPointerException(Throwable cause) {
+		super(cause);
+	}
 }

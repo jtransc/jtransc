@@ -348,47 +348,6 @@ class HaxeNatives {
         #end
     }
 
-    static public var initHandler: Void -> Void;
-    static public var updateHandler: Void -> Void;
-    static public var renderHandler: Void -> Void;
-    static public var enabledDefaultEventLoop: Bool = true;
-
-    static public function loopInit(init: Void -> Void) {
-        HaxeNatives.initHandler = init;
-    }
-
-    static public function loopLoop(update: Void -> Void, render: Void -> Void) {
-        HaxeNatives.updateHandler = update;
-        HaxeNatives.renderHandler = render;
-        if (enabledDefaultEventLoop) defaultEventLoop();
-    }
-
-    static public function defaultEventLoop() {
-        initHandler();
-
-        #if js
-        function _step(ms) {
-            updateHandler();
-            renderHandler();
-            js.Browser.window.requestAnimationFrame(_step);
-        }
-        _step(0.0);
-        #elseif flash
-            flash.Lib.current.stage.addEventListener(flash.events.Event.ENTER_FRAME, function(e) {
-                updateHandler();
-                renderHandler();
-            });
-        #elseif sys
-        while (true) {
-            updateHandler();
-            renderHandler();
-            Sys.sleep(1000.0 / 60.0);
-        }
-        #else
-        throw 'Not supported JTranscEventLoop.loop';
-        #end
-    }
-
     static public function newException(msg:String) {
         var out = new java_.lang.Exception_();
         out._init__Ljava_lang_String__V(HaxeNatives.str(msg));

@@ -17,51 +17,51 @@
 package java.text;
 
 public class FieldPosition {
-    int field = 0;
-    int endIndex = 0;
-    int beginIndex = 0;
-    private Format.Field attribute;
+	int field = 0;
+	int endIndex = 0;
+	int beginIndex = 0;
+	private Format.Field attribute;
 
-    public FieldPosition(int field) {
-        this.field = field;
-    }
+	public FieldPosition(int field) {
+		this.field = field;
+	}
 
-    public FieldPosition(Format.Field attribute) {
-        this(attribute, -1);
-    }
+	public FieldPosition(Format.Field attribute) {
+		this(attribute, -1);
+	}
 
-    public FieldPosition(Format.Field attribute, int fieldID) {
-        this.attribute = attribute;
-        this.field = fieldID;
-    }
+	public FieldPosition(Format.Field attribute, int fieldID) {
+		this.attribute = attribute;
+		this.field = fieldID;
+	}
 
-    public Format.Field getFieldAttribute() {
-        return attribute;
-    }
+	public Format.Field getFieldAttribute() {
+		return attribute;
+	}
 
-    public int getField() {
-        return field;
-    }
+	public int getField() {
+		return field;
+	}
 
-    public int getBeginIndex() {
-        return beginIndex;
-    }
+	public int getBeginIndex() {
+		return beginIndex;
+	}
 
-    public int getEndIndex() {
-        return endIndex;
-    }
+	public int getEndIndex() {
+		return endIndex;
+	}
 
-    public void setBeginIndex(int bi) {
-        beginIndex = bi;
-    }
+	public void setBeginIndex(int bi) {
+		beginIndex = bi;
+	}
 
-    public void setEndIndex(int ei) {
-        endIndex = ei;
-    }
+	public void setEndIndex(int ei) {
+		endIndex = ei;
+	}
 
-    native public boolean equals(Object obj);
+	native public boolean equals(Object obj);
 
-    native public int hashCode();
+	native public int hashCode();
 
-    native public String toString();
+	native public String toString();
 }

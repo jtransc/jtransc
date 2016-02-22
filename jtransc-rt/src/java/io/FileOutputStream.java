@@ -56,17 +56,17 @@ public class FileOutputStream extends OutputStream {
 		}
 	}
 
-    public FileOutputStream(FileDescriptor fdObj) {
+	public FileOutputStream(FileDescriptor fdObj) {
 	    /*
-        if (fdObj == null) throw new NullPointerException();
+	    if (fdObj == null) throw new NullPointerException();
         this.fd = fdObj;
         this.append = false;
         this.path = null;
 	    */
-	    throw new RuntimeException("Not implemented");
+		throw new RuntimeException("Not implemented");
 
-        //fd.attach(this);
-    }
+		//fd.attach(this);
+	}
 
 	public void write(int b) throws IOException {
 		jfd.write(b);

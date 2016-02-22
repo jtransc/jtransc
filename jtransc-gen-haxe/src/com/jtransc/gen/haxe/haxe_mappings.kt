@@ -484,6 +484,20 @@ fun HaxeMappings(): ClassMappings {
 		body(BOOL, "find", ARGS(INT), "this._offset = p0; return _find();")
 	}
 
+	mappings.map("jtransc.internal.JTranscIOSyncFile") {
+		nativeMember("private var _info:Dynamic;")
+		body(VOID, "open", ARGS(STRING, INT), "_info = HaxeNatives.syncioOpen(p0._str, p1);")
+		body(INT, "read", ARGS(), "return HaxeNatives.syncioRead(_info);")
+		body(INT, "readBytes", ARGS(BYTEARRAY, INT, INT), "throw 'Not read';")
+		body(VOID, "write", ARGS(INT), "HaxeNatives.syncioWrite(_info, p0);")
+		body(VOID, "writeBytes", ARGS(BYTEARRAY, INT, INT), "HaxeNatives.syncioWriteBytes(_info, p0, p1, p2);")
+		body(LONG, "getFilePointer", ARGS(), "throw 'Not getFilePointer';")
+		body(VOID, "seek", ARGS(LONG), "throw 'Not seek';")
+		body(LONG, "length", ARGS(), "return HaxeNatives.syncioLength(_info);")
+		body(VOID, "setLength", ARGS(LONG), "throw 'Not setLength';")
+		body(VOID, "close", ARGS(), "HaxeNatives.syncioClose(_info);")
+	}
+
 	mappings.map("java.util.Date") {
 		nativeMember("var _date:Date;")
 		body("<init>", "*", "throw 'Not implemented this Date.constructor';")
@@ -517,37 +531,6 @@ fun HaxeMappings(): ClassMappings {
 		body(STRING, "format", ARGS(LOCALE, STRING, ARRAY(OBJECT)), """
 			return HaxeNatives.str(HaxeNatives.formatBoxed(p1._str, p2.toArray()));
 		""")
-	}
-
-	mappings.map("jtransc.JTranscEventLoop") {
-		body(VOID, "init", ARGS(RUNNABLE), """
-			return HaxeNatives.loopInit(p0.run__V);
-		""")
-
-		body(VOID, "loop", ARGS(RUNNABLE, RUNNABLE), """
-			return HaxeNatives.loopLoop(p0.run__V, p1.run__V);
-		""")
-	}
-
-	mappings.map("jtransc.JTranscIO") {
-		val CALLBACK = AstType.REF("jtransc.JTranscCallback")
-		body(VOID, "readAsync", ARGS(STRING, CALLBACK), """
-			HaxeNatives.readAsync(p0._str, p1.handler_Ljava_lang_Throwable_Ljava_lang_Object__V);
-		""")
-	}
-
-	mappings.map("jtransc.JTranscIOSyncFile") {
-		nativeMember("private var _info:Dynamic;")
-		body(VOID, "open", ARGS(STRING, INT), "_info = HaxeNatives.syncioOpen(p0._str, p1);")
-		body(INT, "read", ARGS(), "return HaxeNatives.syncioRead(_info);")
-		body(INT, "readBytes", ARGS(BYTEARRAY, INT, INT), "throw 'Not read';")
-		body(VOID, "write", ARGS(INT), "HaxeNatives.syncioWrite(_info, p0);")
-		body(VOID, "writeBytes", ARGS(BYTEARRAY, INT, INT), "HaxeNatives.syncioWriteBytes(_info, p0, p1, p2);")
-		body(LONG, "getFilePointer", ARGS(), "throw 'Not getFilePointer';")
-		body(VOID, "seek", ARGS(LONG), "throw 'Not seek';")
-		body(LONG, "length", ARGS(), "return HaxeNatives.syncioLength(_info);")
-		body(VOID, "setLength", ARGS(LONG), "throw 'Not setLength';")
-		body(VOID, "close", ARGS(), "HaxeNatives.syncioClose(_info);")
 	}
 
 	mappings.map("jtransc.FastMemory") {

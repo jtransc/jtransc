@@ -17,11 +17,11 @@
 package java.lang;
 
 public class IllegalAccessError extends Error {
-    public IllegalAccessError() {
-        super();
-    }
+	public IllegalAccessError() {
+		super();
+	}
 
-    public IllegalAccessError(String message) {
-        super(message);
-    }
+	public IllegalAccessError(String message) {
+		super(message);
+	}
 }

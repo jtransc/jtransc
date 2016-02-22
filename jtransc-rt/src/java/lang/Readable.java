@@ -19,5 +19,5 @@ package java.lang;
 import java.io.IOException;
 
 public interface Readable {
-    int read(java.nio.CharBuffer cb) throws IOException;
+	int read(java.nio.CharBuffer cb) throws IOException;
 }

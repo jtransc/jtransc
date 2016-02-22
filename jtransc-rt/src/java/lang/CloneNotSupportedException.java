@@ -18,10 +18,10 @@ package java.lang;
 
 public class CloneNotSupportedException extends Exception {
 
-    public CloneNotSupportedException() {
-    }
+	public CloneNotSupportedException() {
+	}
 
-    public CloneNotSupportedException(String msg) {
-        super(msg);
-    }
+	public CloneNotSupportedException(String msg) {
+		super(msg);
+	}
 }

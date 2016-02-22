@@ -17,11 +17,11 @@
 package java.lang;
 
 class UnknownError extends Throwable {
-    public UnknownError() {
-        super();
-    }
+	public UnknownError() {
+		super();
+	}
 
-    public UnknownError(String message) {
-        super(message);
-    }
+	public UnknownError(String message) {
+		super(message);
+	}
 }

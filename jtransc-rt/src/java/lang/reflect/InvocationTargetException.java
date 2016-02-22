@@ -17,27 +17,27 @@
 package java.lang.reflect;
 
 public class InvocationTargetException extends ReflectiveOperationException {
-    private Throwable target;
+	private Throwable target;
 
-    protected InvocationTargetException() {
-        super((Throwable) null);  // Disallow initCause
-    }
+	protected InvocationTargetException() {
+		super((Throwable) null);  // Disallow initCause
+	}
 
-    public InvocationTargetException(Throwable target) {
-        super((Throwable) null);  // Disallow initCause
-        this.target = target;
-    }
+	public InvocationTargetException(Throwable target) {
+		super((Throwable) null);  // Disallow initCause
+		this.target = target;
+	}
 
-    public InvocationTargetException(Throwable target, String s) {
-        super(s, null);  // Disallow initCause
-        this.target = target;
-    }
+	public InvocationTargetException(Throwable target, String s) {
+		super(s, null);  // Disallow initCause
+		this.target = target;
+	}
 
-    public Throwable getTargetException() {
-        return target;
-    }
+	public Throwable getTargetException() {
+		return target;
+	}
 
-    public Throwable getCause() {
-        return target;
-    }
+	public Throwable getCause() {
+		return target;
+	}
 }

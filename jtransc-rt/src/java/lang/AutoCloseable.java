@@ -17,5 +17,5 @@
 package java.lang;
 
 public interface AutoCloseable {
-    void close() throws Exception;
+	void close() throws Exception;
 }

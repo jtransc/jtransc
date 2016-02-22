@@ -22,66 +22,67 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
 public class OutputStreamWriter extends Writer {
-    private OutputStream os;
-    private final CharsetEncoder se;
+	private OutputStream os;
+	private final CharsetEncoder se;
 
-    public OutputStreamWriter(OutputStream out, String charsetName) throws UnsupportedEncodingException {
-        this(out, Charset.forName(charsetName).newEncoder());
-    }
+	public OutputStreamWriter(OutputStream out, String charsetName) throws UnsupportedEncodingException {
+		this(out, Charset.forName(charsetName).newEncoder());
+	}
 
-    public OutputStreamWriter(OutputStream out) {
-        this(out, Charset.forName("UTF-8").newEncoder());
-    }
+	public OutputStreamWriter(OutputStream out) {
+		this(out, Charset.forName("UTF-8").newEncoder());
+	}
 
-    public OutputStreamWriter(OutputStream out, Charset cs) {
-        this(out, cs.newEncoder());
-    }
+	public OutputStreamWriter(OutputStream out, Charset cs) {
+		this(out, cs.newEncoder());
+	}
 
-    public OutputStreamWriter(OutputStream out, CharsetEncoder enc) {
-        super(out);
-        if (enc == null) throw new NullPointerException("charset encoder");
-        this.os = out;
-        this.se = enc;
-    }
+	public OutputStreamWriter(OutputStream out, CharsetEncoder enc) {
+		super(out);
+		if (enc == null) throw new NullPointerException("charset encoder");
+		this.os = out;
+		this.se = enc;
+	}
 
-    public String getEncoding() {
-        return se.charset().name();
-    }
+	public String getEncoding() {
+		return se.charset().name();
+	}
 
-    void flushBuffer() throws IOException {
-        ByteBuffer data = se.encode(CharBuffer.wrap(sb));
-        this.os.write(data.array(), 0, data.limit());
-        this.os.flush();
-        sb.setLength(0);
-    }
-    private StringBuilder sb = new StringBuilder();
+	void flushBuffer() throws IOException {
+		ByteBuffer data = se.encode(CharBuffer.wrap(sb));
+		this.os.write(data.array(), 0, data.limit());
+		this.os.flush();
+		sb.setLength(0);
+	}
 
-    private void checkBuffer() throws IOException {
-        if (sb.length() >= 16) flushBuffer();
-    }
+	private StringBuilder sb = new StringBuilder();
 
-    public void write(int value) throws IOException {
-        sb.append(value);
-        checkBuffer();
-    }
+	private void checkBuffer() throws IOException {
+		if (sb.length() >= 16) flushBuffer();
+	}
 
-    public void write(char value[], int offset, int length) throws IOException {
-        sb.append(value, offset, length);
-        checkBuffer();
-    }
+	public void write(int value) throws IOException {
+		sb.append(value);
+		checkBuffer();
+	}
 
-    public void write(String str, int off, int len) throws IOException {
-        sb.append(str, off, len);
-        checkBuffer();
-    }
+	public void write(char value[], int offset, int length) throws IOException {
+		sb.append(value, offset, length);
+		checkBuffer();
+	}
 
-    public void flush() throws IOException {
-        flushBuffer();
-    }
+	public void write(String str, int off, int len) throws IOException {
+		sb.append(str, off, len);
+		checkBuffer();
+	}
 
-    public void close() throws IOException {
-        flushBuffer();
-        this.os.close();
-    }
+	public void flush() throws IOException {
+		flushBuffer();
+	}
+
+	public void close() throws IOException {
+		flushBuffer();
+		this.os.close();
+	}
 }
 

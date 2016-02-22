@@ -18,58 +18,58 @@ package java.util;
 
 // @TODO: Very slow implementation!
 public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
-    private ArrayList<E> items = new ArrayList<E>();
+	private ArrayList<E> items = new ArrayList<E>();
 
-    public HashSet() {
-    }
+	public HashSet() {
+	}
 
-    public HashSet(Collection<? extends E> c) {
-        //this();
-        addAll(c);
-    }
+	public HashSet(Collection<? extends E> c) {
+		//this();
+		addAll(c);
+	}
 
-    public HashSet(int initialCapacity, float loadFactor) {
-        //this();
-    }
+	public HashSet(int initialCapacity, float loadFactor) {
+		//this();
+	}
 
-    public HashSet(int initialCapacity) {
-        //this();
-    }
+	public HashSet(int initialCapacity) {
+		//this();
+	}
 
-    HashSet(int initialCapacity, float loadFactor, boolean dummy) {
-        //this();
-    }
+	HashSet(int initialCapacity, float loadFactor, boolean dummy) {
+		//this();
+	}
 
-    public Iterator<E> iterator() {
-        return items.iterator();
-    }
+	public Iterator<E> iterator() {
+		return items.iterator();
+	}
 
-    public int size() {
-        return items.size();
-    }
+	public int size() {
+		return items.size();
+	}
 
-    public boolean contains(Object o) {
-        return items.contains(o);
-    }
+	public boolean contains(Object o) {
+		return items.contains(o);
+	}
 
-    public boolean add(E e) {
-        if (!contains(e)) {
-            items.add(e);
-            return true;
-        } else {
-            return false;
-        }
-    }
+	public boolean add(E e) {
+		if (!contains(e)) {
+			items.add(e);
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    public boolean remove(Object o) {
-        return items.remove(o);
-    }
+	public boolean remove(Object o) {
+		return items.remove(o);
+	}
 
-    public void clear() {
-        this.items.clear();
-    }
+	public void clear() {
+		this.items.clear();
+	}
 
-    public Object clone() {
-        return new HashSet<E>(items);
-    }
+	public Object clone() {
+		return new HashSet<E>(items);
+	}
 }

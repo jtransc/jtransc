@@ -1,4 +1,4 @@
-package jtransc;
+package jtransc.ds;
 
 import java.util.Arrays;
 

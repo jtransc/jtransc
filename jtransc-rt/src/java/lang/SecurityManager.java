@@ -17,143 +17,143 @@
 package java.lang;
 
 public class SecurityManager {
-    @Deprecated
-    protected boolean inCheck;
+	@Deprecated
+	protected boolean inCheck;
 
-    @Deprecated
-    public boolean getInCheck() {
-        return true;
-    }
+	@Deprecated
+	public boolean getInCheck() {
+		return true;
+	}
 
-    public SecurityManager() {
-    }
+	public SecurityManager() {
+	}
 
-    protected native Class[] getClassContext();
+	protected native Class[] getClassContext();
 
-    @Deprecated
-    protected ClassLoader currentClassLoader() {
-        return null;
-    }
+	@Deprecated
+	protected ClassLoader currentClassLoader() {
+		return null;
+	}
 
-    @Deprecated
-    protected Class<?> currentLoadedClass() {
-        return null;
-    }
+	@Deprecated
+	protected Class<?> currentLoadedClass() {
+		return null;
+	}
 
-    @Deprecated
-    protected native int classDepth(String name);
+	@Deprecated
+	protected native int classDepth(String name);
 
-    @Deprecated
-    protected int classLoaderDepth() {
-        return 0;
-    }
+	@Deprecated
+	protected int classLoaderDepth() {
+		return 0;
+	}
 
-    @Deprecated
-    protected boolean inClass(String name) {
-        return true;
-    }
+	@Deprecated
+	protected boolean inClass(String name) {
+		return true;
+	}
 
-    @Deprecated
-    protected boolean inClassLoader() {
-        return true;
-    }
+	@Deprecated
+	protected boolean inClassLoader() {
+		return true;
+	}
 
-    public Object getSecurityContext() {
-        return null;
-    }
+	public Object getSecurityContext() {
+		return null;
+	}
 
-    //public void checkPermission(Permission perm) { }
-    //public void checkPermission(Permission perm, Object context) {}
-    public void checkCreateClassLoader() {
-    }
+	//public void checkPermission(Permission perm) { }
+	//public void checkPermission(Permission perm, Object context) {}
+	public void checkCreateClassLoader() {
+	}
 
-    public void checkAccess(Thread t) {
-    }
+	public void checkAccess(Thread t) {
+	}
 
-    public void checkAccess(ThreadGroup g) {
-    }
+	public void checkAccess(ThreadGroup g) {
+	}
 
-    public void checkExit(int status) {
+	public void checkExit(int status) {
 
-    }
+	}
 
-    public void checkExec(String cmd) {
-    }
+	public void checkExec(String cmd) {
+	}
 
-    public void checkLink(String lib) {
-    }
+	public void checkLink(String lib) {
+	}
 
-    //public void checkRead(FileDescriptor fd) {}
+	//public void checkRead(FileDescriptor fd) {}
 
-    public void checkRead(String file) {
-    }
+	public void checkRead(String file) {
+	}
 
-    public void checkRead(String file, Object context) {
-    }
+	public void checkRead(String file, Object context) {
+	}
 
-    //public void checkWrite(FileDescriptor fd) {}
+	//public void checkWrite(FileDescriptor fd) {}
 
-    public void checkWrite(String file) {
-    }
+	public void checkWrite(String file) {
+	}
 
-    public void checkDelete(String file) {
-    }
+	public void checkDelete(String file) {
+	}
 
-    public void checkConnect(String host, int port) {
-    }
+	public void checkConnect(String host, int port) {
+	}
 
-    public void checkConnect(String host, int port, Object context) {
-    }
+	public void checkConnect(String host, int port, Object context) {
+	}
 
-    public void checkListen(int port) {
-    }
+	public void checkListen(int port) {
+	}
 
-    public void checkAccept(String host, int port) {
-    }
+	public void checkAccept(String host, int port) {
+	}
 
-    //public void checkMulticast(InetAddress maddr) {}
-    //@Deprecated public void checkMulticast(InetAddress maddr, byte ttl) {}
+	//public void checkMulticast(InetAddress maddr) {}
+	//@Deprecated public void checkMulticast(InetAddress maddr, byte ttl) {}
 
-    public void checkPropertiesAccess() {
-    }
+	public void checkPropertiesAccess() {
+	}
 
-    public void checkPropertyAccess(String key) {
-    }
+	public void checkPropertyAccess(String key) {
+	}
 
-    @Deprecated
-    public boolean checkTopLevelWindow(Object window) {
-        return true;
-    }
+	@Deprecated
+	public boolean checkTopLevelWindow(Object window) {
+		return true;
+	}
 
-    public void checkPrintJobAccess() {
+	public void checkPrintJobAccess() {
 
-    }
+	}
 
-    @Deprecated
-    public void checkSystemClipboardAccess() {
-    }
+	@Deprecated
+	public void checkSystemClipboardAccess() {
+	}
 
-    @Deprecated
-    public void checkAwtEventQueueAccess() {
-    }
+	@Deprecated
+	public void checkAwtEventQueueAccess() {
+	}
 
-    public void checkPackageAccess(String pkg) {
-    }
+	public void checkPackageAccess(String pkg) {
+	}
 
-    public void checkPackageDefinition(String pkg) {
-    }
+	public void checkPackageDefinition(String pkg) {
+	}
 
-    public void checkSetFactory() {
+	public void checkSetFactory() {
 
-    }
+	}
 
-    @Deprecated
-    public void checkMemberAccess(Class<?> clazz, int which) {
-    }
+	@Deprecated
+	public void checkMemberAccess(Class<?> clazz, int which) {
+	}
 
-    public void checkSecurityAccess(String target) {
+	public void checkSecurityAccess(String target) {
 
-    }
+	}
 
-    //public ThreadGroup getThreadGroup() { return Thread.currentThread().getThreadGroup(); }
+	//public ThreadGroup getThreadGroup() { return Thread.currentThread().getThreadGroup(); }
 }

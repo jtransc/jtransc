@@ -17,39 +17,39 @@
 package java.lang;
 
 public class AssertionError extends Error {
-    public AssertionError() {
-    }
+	public AssertionError() {
+	}
 
-    public AssertionError(boolean detailMessage) {
-    }
+	public AssertionError(boolean detailMessage) {
+	}
 
-    public AssertionError(char detailMessage) {
-    }
+	public AssertionError(char detailMessage) {
+	}
 
-    public AssertionError(double detailMessage) {
-    }
+	public AssertionError(double detailMessage) {
+	}
 
-    public AssertionError(float detailMessage) {
-    }
+	public AssertionError(float detailMessage) {
+	}
 
-    public AssertionError(int detailMessage) {
-    }
+	public AssertionError(int detailMessage) {
+	}
 
-    public AssertionError(long detailMessage) {
-    }
+	public AssertionError(long detailMessage) {
+	}
 
-    public AssertionError(Object detailMessage) {
-    }
+	public AssertionError(Object detailMessage) {
+	}
 
-    public AssertionError(String message) {
-        super(message);
-    }
+	public AssertionError(String message) {
+		super(message);
+	}
 
-    public AssertionError(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public AssertionError(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public AssertionError(Throwable cause) {
-        super(cause);
-    }
+	public AssertionError(Throwable cause) {
+		super(cause);
+	}
 }

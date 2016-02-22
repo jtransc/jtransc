@@ -17,7 +17,6 @@
 package java.text;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 public abstract class Format implements Serializable, Cloneable {
 	protected Format() {

@@ -17,26 +17,26 @@
 package java.util.concurrent.atomic;
 
 public abstract class AtomicReferenceFieldUpdater<T, V> {
-    native public static <U, W> AtomicReferenceFieldUpdater<U, W> newUpdater(Class<U> tclass, Class<W> vclass, String fieldName);
+	native public static <U, W> AtomicReferenceFieldUpdater<U, W> newUpdater(Class<U> tclass, Class<W> vclass, String fieldName);
 
-    protected AtomicReferenceFieldUpdater() {
-    }
+	protected AtomicReferenceFieldUpdater() {
+	}
 
-    public abstract boolean compareAndSet(T obj, V expect, V update);
+	public abstract boolean compareAndSet(T obj, V expect, V update);
 
-    public abstract boolean weakCompareAndSet(T obj, V expect, V update);
+	public abstract boolean weakCompareAndSet(T obj, V expect, V update);
 
-    public abstract void set(T obj, V newValue);
+	public abstract void set(T obj, V newValue);
 
-    public abstract void lazySet(T obj, V newValue);
+	public abstract void lazySet(T obj, V newValue);
 
-    public abstract V get(T obj);
+	public abstract V get(T obj);
 
-    public V getAndSet(T obj, V newValue) {
-        V prev;
-        do {
-            prev = get(obj);
-        } while (!compareAndSet(obj, prev, newValue));
-        return prev;
-    }
+	public V getAndSet(T obj, V newValue) {
+		V prev;
+		do {
+			prev = get(obj);
+		} while (!compareAndSet(obj, prev, newValue));
+		return prev;
+	}
 }

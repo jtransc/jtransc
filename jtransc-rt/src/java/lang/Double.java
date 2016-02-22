@@ -109,7 +109,7 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	public boolean equals(Object obj) {
-		return (obj instanceof Double) && (doubleToLongBits(((Float)obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
+		return (obj instanceof Double) && (doubleToLongBits(((Float) obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
 	}
 
 	native public static long doubleToLongBits(double value);

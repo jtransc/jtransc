@@ -21,93 +21,93 @@ import java.io.InputStream;
 import java.util.*;
 
 public abstract class Provider extends Properties {
-    private String name;
-    private String info;
-    private double version;
+	private String name;
+	private String info;
+	private double version;
 
-    protected Provider(String name, double version, String info) {
-        this.name = name;
-        this.version = version;
-        this.info = info;
-    }
+	protected Provider(String name, double version, String info) {
+		this.name = name;
+		this.version = version;
+		this.info = info;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public double getVersion() {
-        return version;
-    }
+	public double getVersion() {
+		return version;
+	}
 
-    public String getInfo() {
-        return info;
-    }
+	public String getInfo() {
+		return info;
+	}
 
-    public String toString() {
-        return name + " version " + version;
-    }
+	public String toString() {
+		return name + " version " + version;
+	}
 
-    @Override
-    public native synchronized void clear();
+	@Override
+	public native synchronized void clear();
 
-    @Override
-    public native synchronized void load(InputStream inStream) throws IOException;
+	@Override
+	public native synchronized void load(InputStream inStream) throws IOException;
 
-    @Override
-    native public synchronized void putAll(Map<?, ?> t);
+	@Override
+	native public synchronized void putAll(Map<?, ?> t);
 
-    @Override
-    public native synchronized Set<Map.Entry<Object, Object>> entrySet();
+	@Override
+	public native synchronized Set<Map.Entry<Object, Object>> entrySet();
 
-    @Override
-    public native Set<Object> keySet();
+	@Override
+	public native Set<Object> keySet();
 
-    @Override
-    public native Collection<Object> values();
+	@Override
+	public native Collection<Object> values();
 
-    @Override
-    public native synchronized Object put(Object key, Object value);
+	@Override
+	public native synchronized Object put(Object key, Object value);
 
-    @Override
-    public native synchronized Object remove(Object key);
+	@Override
+	public native synchronized Object remove(Object key);
 
-    @Override
-    public native Object get(Object key);
+	@Override
+	public native Object get(Object key);
 
-    @Override
-    public native Enumeration<Object> keys();
+	@Override
+	public native Enumeration<Object> keys();
 
-    @Override
-    public native Enumeration<Object> elements();
+	@Override
+	public native Enumeration<Object> elements();
 
-    public native String getProperty(String key);
+	public native String getProperty(String key);
 
-    public synchronized native Service getService(String type, String algorithm);
+	public synchronized native Service getService(String type, String algorithm);
 
-    public native synchronized Set<Service> getServices();
+	public native synchronized Set<Service> getServices();
 
-    protected native synchronized void putService(Service s);
+	protected native synchronized void putService(Service s);
 
-    protected native synchronized void removeService(Service s);
+	protected native synchronized void removeService(Service s);
 
-    public static class Service {
-        public Service(Provider provider, String type, String algorithm, String className, List<String> aliases, Map<String, String> attributes) {
-        }
+	public static class Service {
+		public Service(Provider provider, String type, String algorithm, String className, List<String> aliases, Map<String, String> attributes) {
+		}
 
-        public native final String getType();
+		public native final String getType();
 
-        public native final String getAlgorithm();
+		public native final String getAlgorithm();
 
-        public native final Provider getProvider();
+		public native final Provider getProvider();
 
-        public native final String getClassName();
+		public native final String getClassName();
 
-        public native final String getAttribute(String name);
+		public native final String getAttribute(String name);
 
-        public native Object newInstance(Object constructorParameter) throws NoSuchAlgorithmException;
+		public native Object newInstance(Object constructorParameter) throws NoSuchAlgorithmException;
 
-        public native boolean supportsParameter(Object parameter);
+		public native boolean supportsParameter(Object parameter);
 
-        public native String toString();
-    }
+		public native String toString();
+	}
 }

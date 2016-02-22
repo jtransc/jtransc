@@ -19,9 +19,9 @@ package java.util;
 import jtransc.annotation.JTranscKeep;
 
 public interface Comparator<T> {
-    @JTranscKeep
-    int compare(T a, T b);
+	@JTranscKeep
+	int compare(T a, T b);
 
-    @Override
-    boolean equals(Object other);
+	@Override
+	boolean equals(Object other);
 }

@@ -17,26 +17,26 @@
 package java.lang;
 
 public class ClassNotFoundException extends ReflectiveOperationException {
-    private Throwable ex;
+	private Throwable ex;
 
-    public ClassNotFoundException() {
-        super((Throwable) null);  // Disallow initCause
-    }
+	public ClassNotFoundException() {
+		super((Throwable) null);  // Disallow initCause
+	}
 
-    public ClassNotFoundException(String s) {
-        super(s, null);  //  Disallow initCause
-    }
+	public ClassNotFoundException(String s) {
+		super(s, null);  //  Disallow initCause
+	}
 
-    public ClassNotFoundException(String s, Throwable ex) {
-        super(s, null);  //  Disallow initCause
-        this.ex = ex;
-    }
+	public ClassNotFoundException(String s, Throwable ex) {
+		super(s, null);  //  Disallow initCause
+		this.ex = ex;
+	}
 
-    public Throwable getException() {
-        return ex;
-    }
+	public Throwable getException() {
+		return ex;
+	}
 
-    public Throwable getCause() {
-        return ex;
-    }
+	public Throwable getCause() {
+		return ex;
+	}
 }

@@ -17,11 +17,11 @@
 package java.lang;
 
 class StackOverflowError extends Throwable {
-    public StackOverflowError() {
-        super();
-    }
+	public StackOverflowError() {
+		super();
+	}
 
-    public StackOverflowError(String message) {
-        super(message);
-    }
+	public StackOverflowError(String message) {
+		super(message);
+	}
 }

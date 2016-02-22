@@ -78,23 +78,23 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return valueOf(s, 10);
 	}
 
-    static private Integer[] values;
+	static private Integer[] values;
 
-    static private final int MIN = -128;
-    static private final int MAX = 128;
-    static private final int LENGTH = MAX - MIN;
+	static private final int MIN = -128;
+	static private final int MAX = 128;
+	static private final int LENGTH = MAX - MIN;
 
 	@JTranscKeep
 	public static Integer valueOf(int i) {
-        if (values == null) {
-            values = new Integer[LENGTH];
-            for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
-        }
-        if (i >= MIN && i < MAX) {
-            return values[i - MIN];
-        } else {
-            return new Integer(i);
-        }
+		if (values == null) {
+			values = new Integer[LENGTH];
+			for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
+		}
+		if (i >= MIN && i < MAX) {
+			return values[i - MIN];
+		} else {
+			return new Integer(i);
+		}
 	}
 
 	public byte byteValue() {

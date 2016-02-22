@@ -24,68 +24,68 @@ import java.io.PrintStream;
 import java.util.Properties;
 
 public class System {
-    public final static InputStream in = new StdioInputStream();
-    static public final PrintStream out = new StdioStream();
-    static public final PrintStream err = out;
+	public final static InputStream in = new StdioInputStream();
+	static public final PrintStream out = new StdioStream();
+	static public final PrintStream err = out;
 
-    native public static void setIn(InputStream in);
+	native public static void setIn(InputStream in);
 
-    native public static void setOut(PrintStream out);
+	native public static void setOut(PrintStream out);
 
-    native public static void setErr(PrintStream err);
+	native public static void setErr(PrintStream err);
 
-    //native public static Console console();
-    //native public static Channel inheritedChannel() throws IOException;
+	//native public static Console console();
+	//native public static Channel inheritedChannel() throws IOException;
 
-    //native public static void setSecurityManager(final SecurityManager s);
-    //native public static SecurityManager getSecurityManager();
+	//native public static void setSecurityManager(final SecurityManager s);
+	//native public static SecurityManager getSecurityManager();
 
-    public static native long currentTimeMillis();
+	public static native long currentTimeMillis();
 
-    public static long nanoTime() {
-        return currentTimeMillis() * 1000000L;
-    }
+	public static long nanoTime() {
+		return currentTimeMillis() * 1000000L;
+	}
 
-    public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
+	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
-    public static native int identityHashCode(Object x);
+	public static native int identityHashCode(Object x);
 
-    native public static Properties getProperties();
+	native public static Properties getProperties();
 
-    native public static String lineSeparator();
+	native public static String lineSeparator();
 
-    native public static void setProperties(Properties props);
+	native public static void setProperties(Properties props);
 
-    native public static String getProperty(String key);
+	native public static String getProperty(String key);
 
-    native public static String getProperty(String key, String def);
+	native public static String getProperty(String key, String def);
 
-    native public static String setProperty(String key, String value);
+	native public static String setProperty(String key, String value);
 
-    native public static String clearProperty(String key);
+	native public static String clearProperty(String key);
 
-    native public static String getenv(String name);
+	native public static String getenv(String name);
 
-    native public static java.util.Map<String, String> getenv();
+	native public static java.util.Map<String, String> getenv();
 
-    native public static void exit(int status);
+	native public static void exit(int status);
 
-    native public static void gc();
+	native public static void gc();
 
-    native public static void runFinalization();
+	native public static void runFinalization();
 
-    @Deprecated
-    native public static void runFinalizersOnExit(boolean value);
+	@Deprecated
+	native public static void runFinalizersOnExit(boolean value);
 
-    public static void load(String filename) {
+	public static void load(String filename) {
 
-    }
+	}
 
-    public static void loadLibrary(String libname) {
+	public static void loadLibrary(String libname) {
 
-    }
+	}
 
-    public static String mapLibraryName(String libname) {
-        return libname;
-    }
+	public static String mapLibraryName(String libname) {
+		return libname;
+	}
 }

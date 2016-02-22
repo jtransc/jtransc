@@ -19,46 +19,46 @@ package java.util;
 import java.io.*;
 
 public class Properties extends Hashtable<Object, Object> {
-    protected Properties defaults;
+	protected Properties defaults;
 
-    public Properties() {
-        this(null);
-    }
+	public Properties() {
+		this(null);
+	}
 
-    public Properties(Properties defaults) {
-        this.defaults = defaults;
-    }
+	public Properties(Properties defaults) {
+		this.defaults = defaults;
+	}
 
-    public synchronized Object setProperty(String key, String value) {
-        return put(key, value);
-    }
+	public synchronized Object setProperty(String key, String value) {
+		return put(key, value);
+	}
 
-    native public synchronized void load(Reader reader) throws IOException;
+	native public synchronized void load(Reader reader) throws IOException;
 
-    native public synchronized void load(InputStream inStream) throws IOException;
+	native public synchronized void load(InputStream inStream) throws IOException;
 
-    @Deprecated
-    native public void save(OutputStream out, String comments);
+	@Deprecated
+	native public void save(OutputStream out, String comments);
 
-    native public void store(Writer writer, String comments);
+	native public void store(Writer writer, String comments);
 
-    native public void store(OutputStream out, String comments) throws IOException;
+	native public void store(OutputStream out, String comments) throws IOException;
 
-    native public synchronized void loadFromXML(InputStream in) throws IOException, InvalidPropertiesFormatException;
+	native public synchronized void loadFromXML(InputStream in) throws IOException, InvalidPropertiesFormatException;
 
-    native public void storeToXML(OutputStream os, String comment) throws IOException;
+	native public void storeToXML(OutputStream os, String comment) throws IOException;
 
-    native public void storeToXML(OutputStream os, String comment, String encoding) throws IOException;
+	native public void storeToXML(OutputStream os, String comment, String encoding) throws IOException;
 
-    native public String getProperty(String key);
+	native public String getProperty(String key);
 
-    native public String getProperty(String key, String defaultValue);
+	native public String getProperty(String key, String defaultValue);
 
-    native public Enumeration<?> propertyNames();
+	native public Enumeration<?> propertyNames();
 
-    native public Set<String> stringPropertyNames();
+	native public Set<String> stringPropertyNames();
 
-    native public void list(PrintStream out);
+	native public void list(PrintStream out);
 
-    native public void list(PrintWriter out);
+	native public void list(PrintWriter out);
 }

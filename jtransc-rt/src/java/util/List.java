@@ -17,53 +17,53 @@
 package java.util;
 
 public interface List<E> extends Collection<E> {
-    int size();
+	int size();
 
-    boolean isEmpty();
+	boolean isEmpty();
 
-    boolean contains(Object o);
+	boolean contains(Object o);
 
-    Iterator<E> iterator();
+	Iterator<E> iterator();
 
-    Object[] toArray();
+	Object[] toArray();
 
-    <T> T[] toArray(T[] a);
+	<T> T[] toArray(T[] a);
 
-    boolean add(E e);
+	boolean add(E e);
 
-    boolean remove(Object o);
+	boolean remove(Object o);
 
-    boolean containsAll(Collection<?> c);
+	boolean containsAll(Collection<?> c);
 
-    boolean addAll(Collection<? extends E> c);
+	boolean addAll(Collection<? extends E> c);
 
-    boolean addAll(int index, Collection<? extends E> c);
+	boolean addAll(int index, Collection<? extends E> c);
 
-    boolean removeAll(Collection<?> c);
+	boolean removeAll(Collection<?> c);
 
-    boolean retainAll(Collection<?> c);
+	boolean retainAll(Collection<?> c);
 
-    void clear();
+	void clear();
 
-    boolean equals(Object o);
+	boolean equals(Object o);
 
-    int hashCode();
+	int hashCode();
 
-    E get(int index);
+	E get(int index);
 
-    E set(int index, E element);
+	E set(int index, E element);
 
-    void add(int index, E element);
+	void add(int index, E element);
 
-    E remove(int index);
+	E remove(int index);
 
-    int indexOf(Object o);
+	int indexOf(Object o);
 
-    int lastIndexOf(Object o);
+	int lastIndexOf(Object o);
 
-    ListIterator<E> listIterator();
+	ListIterator<E> listIterator();
 
-    ListIterator<E> listIterator(int index);
+	ListIterator<E> listIterator(int index);
 
-    List<E> subList(int fromIndex, int toIndex);
+	List<E> subList(int fromIndex, int toIndex);
 }

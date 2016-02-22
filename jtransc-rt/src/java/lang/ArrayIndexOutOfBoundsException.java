@@ -17,17 +17,17 @@
 package java.lang;
 
 public class ArrayIndexOutOfBoundsException extends IndexOutOfBoundsException {
-    // TODO: find other places that should use AIOOBE instead of IOOBE
+	// TODO: find other places that should use AIOOBE instead of IOOBE
 
-    public ArrayIndexOutOfBoundsException() {
-        super();
-    }
+	public ArrayIndexOutOfBoundsException() {
+		super();
+	}
 
-    public ArrayIndexOutOfBoundsException(int index) {
-        super("Array index " + index + " out of range");
-    }
+	public ArrayIndexOutOfBoundsException(int index) {
+		super("Array index " + index + " out of range");
+	}
 
-    public ArrayIndexOutOfBoundsException(String msg) {
-        super(msg);
-    }
+	public ArrayIndexOutOfBoundsException(String msg) {
+		super(msg);
+	}
 }

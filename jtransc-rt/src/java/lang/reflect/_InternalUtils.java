@@ -31,7 +31,7 @@ class _InternalUtils {
 	}
 
 	static MethodTypeImpl parseMethodType(String str, Type owner) {
-		return (MethodTypeImpl)parseType(new MStringReader(str), owner);
+		return (MethodTypeImpl) parseType(new MStringReader(str), owner);
 	}
 
 	static Type parseType(String str, Type owner) {

@@ -100,7 +100,7 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	public boolean equals(Object obj) {
-		return (obj instanceof Float) && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
+		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
 
 	native public static int floatToIntBits(float value);
