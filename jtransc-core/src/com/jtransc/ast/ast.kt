@@ -304,7 +304,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 	return this.mapIndexed { i, v -> AstArgument(i, v) }
 }
 
-data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index") {
+data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 }
 
 val AstType.elementType: AstType get() = when (this) {

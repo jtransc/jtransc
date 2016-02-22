@@ -249,22 +249,20 @@ object HaxeTools {
 							}
 						}
 						is HaxeMethod -> {
-							val returnTypeString = ids.serializeValid(member.type.ret)
-							val argsString = member.args.map {
-								ids.serializeValid(it.type) + " " + ids.generateValidId(it.name)
-							}.joinToString(", ")
+							val returnTypeString = if (isConstructor) "" else ids.serializeValid(member.type.ret)
 							if (isConstructor) {
-								if (argsString.isNotEmpty()) {
-									line("public $validName() { super(); }")
+								if (member.args.isNotEmpty()) line("public $validName() { super(); }")
+							}
+							val modifiersStr = if (isConstructor) "public" else if (isInterface) "" else modifiersStr
+							val endStr = if (isConstructor) "{ super(); }" else ";"
+
+							for (args in member.args.possibleSignatures()) {
+								if (isConstructor && args.isEmpty()) continue
+								val argsString = args.map { ids.serializeValid(it.type) + " " + ids.generateValidId(it.name) }.joinToString(", ")
+								if (!isConstructor) {
+									line("@jtransc.annotation.JTranscMethod(\"$name\")")
 								}
-								line("public $memberGenericString $validName($argsString) { super(); }")
-							} else {
-								line("@jtransc.annotation.JTranscMethod(\"$name\")")
-								if (isInterface) {
-									line("$memberGenericString $returnTypeString $validName($argsString);")
-								} else {
-									line("$modifiersStr $memberGenericString $returnTypeString $validName($argsString);")
-								}
+								line("$modifiersStr $memberGenericString $returnTypeString $validName($argsString)$endStr")
 							}
 						}
 						else -> invalidOp("Unknown member type")
@@ -273,6 +271,20 @@ object HaxeTools {
 				}
 			}
 		})
+	}
+
+	fun List<AstArgument>.possibleSignatures(): List<List<AstArgument>> {
+		var options = arrayListOf(this)
+		var currentOption = this
+		while (currentOption.isNotEmpty()) {
+			if (currentOption.lastOrNull()?.optional == true) {
+				currentOption = currentOption.dropLast(1)
+				options.add(currentOption)
+			} else {
+				break
+			}
+		}
+		return options
 	}
 
 	fun generateClass(type: HaxeType): ByteArray {
@@ -452,7 +464,10 @@ object HaxeTools {
 					val argNames = decl.attribute("a").split(":")
 					val argTypes = decl.elementChildren.map { parseArgType(it) }
 					val args = argNames.zip(argTypes.dropLast(1)).withIndex().map {
-						AstArgument(it.index, it.value.second, it.value.first.trim('?'))
+						val nameWithExtras = it.value.first
+						val name = nameWithExtras.trim('?')
+						val optional = (nameWithExtras.startsWith('?'))
+						AstArgument(it.index, it.value.second, name, optional = optional)
 					}
 					val rettype = argTypes.last()
 					//println(args + ": RET : " + rettype)

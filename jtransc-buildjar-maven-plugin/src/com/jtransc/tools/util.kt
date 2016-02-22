@@ -63,6 +63,11 @@ class JavaIds(val parent: JavaIds? = null) {
 			is AstType.FLOAT -> "float"
 			is AstType.DOUBLE -> "double"
 			is AstType.ARRAY -> serializeValid(type.element) + "[]"
+			is AstType.GENERIC -> {
+				val base = serializeValid(type.type)
+				val generics = type.params.map { serializeValid(it) }.joinToString(", ")
+				if (generics.isEmpty()) "$base" else "$base<$generics>"
+			}
 			is AstType.REF -> this.generateValidFqname(type.name).fqname
 		//else -> type.mangle()
 			else -> noImpl
