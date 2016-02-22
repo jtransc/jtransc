@@ -21,6 +21,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
+import com.jtransc.text.toUcFirst
 import com.jtransc.vfs.LocalVfs
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -35,7 +36,7 @@ object HaxeTools {
 	@JvmStatic fun main(args: Array<String>) {
 		val vfs = LocalVfs(File("."))
 
-		/*
+
 		val libraryInfo = LibraryInfo(
 			libraries = listOf("lime:2.9.0"),
 			includePackages = listOf("lime"),
@@ -52,14 +53,14 @@ object HaxeTools {
 			),
 			target = "cpp"
 		)
-		*/
-		val libraryInfo = LibraryInfo(
-			libraries = listOf(),
-			includePackages = listOf(),
-			includePackagesRec = listOf(
-			),
-			target = "as3"
-		)
+
+		//val libraryInfo = LibraryInfo(
+		//	libraries = listOf(),
+		//	includePackages = listOf(),
+		//	includePackagesRec = listOf(
+		//	),
+		//	target = "as3"
+		//)
 
 		//val outJar = vfs["out.jar"]
 		//outJar.write(generateJarFromHaxeLib(libraryInfo))
@@ -67,6 +68,17 @@ object HaxeTools {
 		val outJar = vfs["out_java"]
 		for ((name, content) in generateJavaSourcesFromHaxeLib(libraryInfo)) {
 			outJar[name] = content
+		}
+	}
+
+	data class LibraryVersion(val name: String, val version: String) {
+		val id = name.toUcFirst() // Remove symbols!
+		val nameWithVersion = "$name:$version"
+		companion object {
+			fun fromVersion(it:String): LibraryVersion {
+				val parts = it.split(':')
+				return LibraryVersion(parts[0], parts[1])
+			}
 		}
 	}
 
@@ -86,14 +98,7 @@ object HaxeTools {
 		val xmlFile = createTempFile("jtransc_haxe_tools", ".xml")
 		val vfs = LocalVfs(xmlFile.parentFile)
 
-		data class LibraryVersion(val name: String, val version: String) {
-			val nameWithVersion = "$name:$version"
-		}
-
-		val librariesInfo = libraries.map {
-			val parts = it.split(':')
-			LibraryVersion(parts[0], parts[1])
-		}
+		val librariesInfo = libraries.map { LibraryVersion.fromVersion(it) }
 
 		val outXml = vfs[xmlFile.name]
 		println(outXml.realpathOS)
@@ -160,7 +165,6 @@ object HaxeTools {
 	}
 
 	fun generateJavaSourcesFromHaxeLib(libraryInfo: LibraryInfo): Map<String, String> {
-
 		return getTypesFromHaxelib(libraryInfo).associate { generateJavaSource(it) } + mapOf(
 			"_root/Functions.java" to Indenter.genString {
 				line("package _root;")
@@ -174,7 +178,21 @@ object HaxeTools {
 					}
 				}
 			}
-		)
+		) + (libraryInfo.libraries.map {
+			val lib = LibraryVersion.fromVersion(it)
+			val name = lib.id
+			val className = "${name}Library"
+			Pair("$className.java", Indenter.genString {
+				//line("package _root;")
+				line("""@jtransc.annotation.JTranscLibrary("${lib.nameWithVersion}")""")
+				line("public class $className") {
+					line("""static public void use() { }""")
+					line("""static public java.lang.String getName() { return "${lib.name}"; }""")
+					line("""static public java.lang.String getVersion() { return "${lib.version}"; }""")
+					line("""static public java.lang.String getNameWithVersion() { "${lib.name}:${lib.version}"; }""")
+				}
+			})
+		}).toMap()
 	}
 
 	fun generateJavaSource(type: HaxeType): Pair<String, String> {
@@ -296,6 +314,30 @@ object HaxeTools {
 								line("$modifiersStr $memberGenericString $returnTypeString $validName($argsString)$endStr")
 							}
 						}
+						is HaxeEnumItem -> {
+							if (member.args.isEmpty()) {
+								line("static public ${validClassName.fqname} $validName;")
+							} else {
+								data class EnumEntry(val name:String, val tt:AstType) {
+									val validName = ids.generateValidId(name)
+									val validType = ids.serializeValid(tt)
+								}
+
+								line("static public class $validName extends ${validClassName.fqname}") {
+									val args = member.args.map { EnumEntry(it.name, it.type) }
+
+									for (arg in args) {
+										line("@jtransc.annotation.JTranscField(\"${arg.name}\")")
+										line("public final ${arg.validType} ${arg.validName};")
+									}
+
+									val argsStr = args.map { "${it.validType} ${it.validName}" }.joinToString(", ")
+									line("public $validName($argsStr)") {
+										for (arg in args) line("this.${arg.validName} = ${arg.validName};")
+									}
+								}
+							}
+						}
 						else -> invalidOp("Unknown member type")
 					}
 					line("")
@@ -391,6 +433,7 @@ object HaxeTools {
 		}
 
 		fun parseType(node: Element): HaxeType {
+			val typeType = node.nodeName
 			val typeName = node.attributes.getNamedItem("path").textContent
 			val generics = node.attributes.getNamedItem("params").textContent.split(":")
 			val isExtern = node.attributes.getNamedItem("extern")?.textContent == "1"
@@ -408,7 +451,7 @@ object HaxeTools {
 
 			fun parseType2() {
 				val specials = node.elementChildren.filter { it.nodeName in SPECIAL_NAMES }
-				members = node.elementChildren.filter { it.nodeName !in SPECIAL_NAMES }.map { parseMember(it) }
+				members = node.elementChildren.filter { it.nodeName !in SPECIAL_NAMES }.map { parseMember(it, typeType) }
 				var abstractThis: AstType = AstType.OBJECT
 				var abstractTo = arrayListOf<AstType>()
 				var abstractFrom = arrayListOf<AstType>()
@@ -532,7 +575,30 @@ object HaxeTools {
 			}
 		}
 
-		fun parseMember(member: Element): HaxeMember {
+		fun parseMember(member: Element, typeType:String): HaxeMember {
+			return when (typeType) {
+				"enum" -> parseEnumMember(member)
+				else -> parseNormalMember(member)
+			}
+		}
+
+		fun parseEnumMember(member: Element): HaxeEnumItem {
+			val name = member.tagName
+			val names = member.attribute("a").split(":")
+			val types = member.elementChildren.filter { it.tagName !in SPECIAL_NAMES }.map { parseHaxeType(it) }
+
+			return HaxeEnumItem(
+				name = name,
+				doc = "",
+				generics = listOf(),
+				isPublic = true,
+				isStatic = true,
+				type = AstType.OBJECT,
+				args = HaxeArguments(names, types)
+			)
+		}
+
+		fun parseNormalMember(member: Element): HaxeMember {
 			val name = member.nodeName
 			val public = member.attribute("public") == "1"
 			val static = member.attribute("static") == "1"
@@ -596,12 +662,37 @@ object HaxeTools {
 		val isPublic: Boolean
 	}
 
-	data class HaxeField(override val name: String, override val doc: String, override val generics: List<String>, override val isPublic: Boolean, override val isStatic: Boolean, override val type: AstType) : HaxeMember
-	data class HaxeMethod(override val name: String, override val doc: String, override val generics: List<String>, override val isPublic: Boolean, val methodType: AstType.METHOD_TYPE, override val isStatic: Boolean) : HaxeMember {
+	data class HaxeField(
+		override val name: String,
+		override val doc: String,
+		override val generics: List<String>,
+		override val isPublic: Boolean,
+		override val isStatic: Boolean,
+		override val type: AstType
+	) : HaxeMember
+
+	data class HaxeMethod(
+		override val name: String,
+		override val doc: String,
+		override val generics: List<String>,
+		override val isPublic: Boolean,
+		val methodType: AstType.METHOD_TYPE,
+		override val isStatic: Boolean
+	) : HaxeMember {
 		override val type by lazy { methodType }
 		val args = methodType.args
 		val rettype = methodType.ret
 	}
+
+	data class HaxeEnumItem(
+		override val name: String,
+		override val doc: String,
+		override val generics: List<String>,
+		override val isPublic: Boolean,
+		override val isStatic: Boolean,
+		override val type: AstType,
+	    val args: List<AstArgument>
+	) : HaxeMember
 
 	fun Node.dump() {
 		println(this)
