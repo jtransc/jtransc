@@ -17,6 +17,8 @@
 package com.jtransc.ast
 
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ds.flatMapInChunks
+import com.jtransc.ds.flatMapInChunks2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.text.*
@@ -646,6 +648,7 @@ class AstMethod(
 	val getterField: String? = null,
 	val setterField: String? = null,
 	val nativeMethod: String? = null,
+	val nativeMethodBody: Array<String>? = null,
 	val overridingMethod: AstMethodRef? = null,
 	val isImplementing: Boolean = false,
 	val isNative: Boolean = false,
@@ -656,6 +659,14 @@ class AstMethod(
 	val desc = methodType.desc
 	val ref: AstMethodRef get() = AstMethodRef(containingClass, name, methodType)
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(body) }
+
+	private val nativeMethodBody2 = nativeMethodBody?.toList() ?: listOf()
+	private val nativeBodies = nativeMethodBody2.flatMapInChunks2(2) {
+		listOf(Pair(it[0], it[1]))
+	}.toMap()
+
+	fun getNativeBody(lang:String):String? = nativeBodies[lang]
+
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
 

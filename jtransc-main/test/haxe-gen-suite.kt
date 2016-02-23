@@ -23,6 +23,7 @@ import javatest.KotlinCollections
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import jtransc.JTranscVersion
+import jtransc.annotation.MethodBodyTest
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -47,32 +48,42 @@ class HaxeGenSuite {
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
+	@Test fun methodBodyTest() {
+		Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
+	}
 
 	// Shortcut
 	inline fun <reified T : Any> testClass() = testClass(T::class.java)
 
-	fun <T : Any> testClass(clazz: Class<T>) {
-		val testClassName = clazz.name
-		val testClassesPath = File("target/test-classes").absolutePath
-		val kotlinPaths = listOf<String>() +
-			MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0") +
-			MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+	val kotlinPaths = listOf<String>() +
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0") +
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+	val testClassesPath = File("target/test-classes").absolutePath
 
+	fun <T : Any> testClass(clazz: Class<T>) {
 		val expected = ClassUtils.callMain(clazz).replace(
 			"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
 		)
 
+		val result = runClass(clazz)
+
+		Assert.assertEquals(expected, result)
+	}
+
+	inline fun <reified T : Any> runClass(): String {
+		return runClass(T::class.java)
+	}
+
+	fun <T : Any> runClass(clazz: Class<T>): String {
 		val build = AllBuild(
 			target = HaxeGenDescriptor,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
-			entryPoint = testClassName,
+			entryPoint = clazz.name,
 			output = "program.haxe.js", subtarget = "js",
 			//output = "program.haxe.cpp", subtarget = "cpp",
 			targetDirectory = System.getProperty("java.io.tmpdir")
 		)
-		val result = build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = false)).output
-
-		Assert.assertEquals(expected, result)
+		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = false)).output
 	}
 
 	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")

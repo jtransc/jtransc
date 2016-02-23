@@ -500,7 +500,8 @@ object GenHaxe : GenTarget {
 					indenter.line("$decl;")
 				}
 			} else {
-				val body = mappings.getBody(method.ref)
+				val body = mappings.getBody(method.ref) ?: method.getNativeBody("haxe")
+
 				if (method.body != null && body == null) {
 					indenter.line(decl) {
 						when (INIT_MODE) {
