@@ -96,39 +96,6 @@ fun HaxeMappings(): ClassMappings {
 
 	val mappings = ClassMappings()
 
-	mappings.map("jtransc.internal.StdioOutputStream") {
-		body(VOID, "write", ARGS(INT), "HaxeNatives.outputChar(p0);")
-	}
-
-	mappings.map("java.lang.reflect.Array") {
-		// @TODO: This doesn't work fine!
-		body(INT, "getLength", ARGS(OBJECT), "return cast(p0, HaxeBaseArray).length;")
-		body(OBJECT, "get", ARGS(OBJECT, INT), "return HaxeNatives.box(cast(p0, HaxeBaseArray).getDynamic(p1));")
-		body(VOID, "set", ARGS(OBJECT, INT, OBJECT), "cast(p0, HaxeBaseArray).set(p1, p2);")
-		body(BOOL, "getBoolean", ARGS(OBJECT, INT), "return cast(p0, HaxeByteArray).get(p1) != 0;")
-		body(VOID, "setBoolean", ARGS(OBJECT, INT, BOOL), "cast(p0, HaxeByteArray).set(p1, p2 ? 1 : 0);")
-	}
-
-	mappings.map("java.lang.StringBuilder") {
-		val STRING_BUILDER = AstType.REF("java.lang.StringBuilder")
-		nativeMember("public var _str:String = '';")
-		body("append", "*", "this._str += p0; return this;")
-		body(STRING_BUILDER, "append", ARGS(CHAR), "this._str += String.fromCharCode(p0); return this;")
-		body(STRING_BUILDER, "append", ARGS(BOOL), "this._str += p0 ? 'true' : 'false'; return this;")
-		body(INT, "length", ARGS(), "return this._str.length;")
-		body(VOID, "setLength", ARGS(INT), "this._str = this._str.substr(0, p0);")
-		body(CHAR, "charAt", ARGS(INT), "return this._str.charCodeAt(p0);")
-		body(STRING, "toString", ARGS(), "return HaxeNatives.str(this._str);")
-	}
-
-	mappings.map("java.lang.Character") {
-		body("toLowerCase", "*", "return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
-		body("toUpperCase", "*", "return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
-		body("toTitleCase", "*", "return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
-		body("isLowerCase", "*", "return String.fromCharCode(p0).toLowerCase() == String.fromCharCode(p0);")
-		body("isUpperCase", "*", "return String.fromCharCode(p0).toUpperCase() == String.fromCharCode(p0);")
-	}
-
 	mappings.map("java.lang.String") {
 		nativeMember("public var _str:String = '';")
 		nativeMember("public function __native_init__(str:String) { this._str = str; return this; }")
@@ -212,66 +179,7 @@ fun HaxeMappings(): ClassMappings {
 		""")
 	}
 
-	mappings.map("java.lang.Math") {
-		body(DOUBLE, "sin", ARGS(DOUBLE), "return Math.sin(p0);")
-		body(DOUBLE, "cos", ARGS(DOUBLE), "return Math.cos(p0);")
-		body(DOUBLE, "tan", ARGS(DOUBLE), "return Math.tan(p0);")
-		body(DOUBLE, "asin", ARGS(DOUBLE), "return Math.asin(p0);")
-		body(DOUBLE, "acos", ARGS(DOUBLE), "return Math.acos(p0);")
-		body(DOUBLE, "atan", ARGS(DOUBLE), "return Math.atan(p0);")
-		body(DOUBLE, "sinh", ARGS(DOUBLE), "return Math.sinh(p0);")
-		body(DOUBLE, "cosh", ARGS(DOUBLE), "return Math.cosh(p0);")
-		body(DOUBLE, "tanh", ARGS(DOUBLE), "return Math.tanh(p0);")
-		body(DOUBLE, "toRadians", ARGS(DOUBLE), "return p0 / 180.0 * Math.PI;")
-		body(DOUBLE, "toDegrees", ARGS(DOUBLE), "return p0 * 180.0 / Math.PI;")
-		body(DOUBLE, "exp", ARGS(DOUBLE), "return Math.exp(p0);")
-		body(DOUBLE, "log", ARGS(DOUBLE), "return Math.log(p0);")
-		body(DOUBLE, "log10", ARGS(DOUBLE), "return Math.log10(p0);")
-		body(DOUBLE, "sqrt", ARGS(DOUBLE), "return Math.sqrt(p0);")
-		body(DOUBLE, "cbrt", ARGS(DOUBLE), "return Math.cbrt(p0);")
-		body(DOUBLE, "IEEEremainder", ARGS(DOUBLE, DOUBLE), "return Math.IEEEremainder(p0, p1);")
-		body(DOUBLE, "ceil", ARGS(DOUBLE), "return Math.ceil(p0);")
-		body(DOUBLE, "floor", ARGS(DOUBLE), "return Math.floor(p0);")
-		body(DOUBLE, "rint", ARGS(DOUBLE), "return Math.rint(p0);")
-		body(DOUBLE, "atan2", ARGS(DOUBLE, DOUBLE), "return Math.atan2(p0, p1);")
-		body(DOUBLE, "hypot", ARGS(DOUBLE, DOUBLE), "return Math.sqrt(p0*p0 + p1*p1);")
-		body(DOUBLE, "pow", ARGS(DOUBLE, DOUBLE), "return Math.pow(p0, p1);")
-		body(INT, "round", ARGS(FLOAT), "return Math.round(p0);")
-		body(LONG, "round", ARGS(DOUBLE), "return Math.round(p0);")
-		body(DOUBLE, "random", ARGS(), "return Math.random();")
-		//body("addExact", "*", "return p0 + p1;") // @TODO: Not like this! Check Overflows!
-		//body("subtractExact", "*", "return p0 - p1;") // @TODO: Not like this! Check Overflows!
-		//body("multiplyExact", "*", "return p0 * p1;") // @TODO: Not like this! Check Overflows!
-		//body("incrementExact", "*", "return p0 + 1;") // @TODO: Not like this! Check Overflows!
-		//body("decrementExact", "*", "return p0 - 1;") // @TODO: Not like this! Check Overflows!
-		//body("negateExact", "*", "return -p0;") // @TODO: Not like this! Check Overflows!
-		body("max", "*", "return (p0 > p1) ? p0 : p1;")
-		body("min", "*", "return (p0 < p1) ? p0 : p1;")
-		body("abs", "*", "return (p0 >= 0) ? p0 : -p0;")
-		body("signum", "*", "return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
-		body("scalab", "*", "return Math.scalab(p0, p1);")
-
-		//fun toIntExact(value: Long): Int
-		//fun floorDiv(x: Int, y: Int): Int
-		//fun floorDiv(x: Long, y: Long): Long
-		//fun floorMod(x: Int, y: Int): Int
-		//fun floorMod(x: Long, y: Long): Long
-		//fun ulp(d: Double): Double
-		//fun ulp(f: Float): Float
-		//fun expm1(x: Double): Double
-		//fun log1p(x: Double): Double
-		//fun copySign(magnitude: Double, sign: Double): Double
-		//fun copySign(magnitude: Float, sign: Float): Float
-		//fun getExponent(f: Float): Int
-		//fun getExponent(d: Double): Int
-		//fun nextAfter(start: Double, direction: Double): Double
-		//fun nextAfter(start: Float, direction: Double): Float
-		//fun nextUp(d: Double): Double
-		//fun nextUp(f: Float): Float
-		//fun nextDown(d: Double): Double
-		//fun nextDown(f: Float): Float
-	}
-
+	/*
 	mappings.map("java.util.AbstractCollection") {
 		body(ARRAY(OBJECT), "toArray", ARGS(), """
 			var iterator:$ITERATOR_TYPE = this.$ITERATOR();
@@ -282,17 +190,8 @@ fun HaxeMappings(): ClassMappings {
 			}
 			return HaxeArray.fromArray(out);
 		""")
-
-		body(STRING, "toString", ARGS(), """
-			return HaxeNatives.str('[' + this.$TO_ARRAY().join(', ') + ']');
-		""")
 	}
-
-	mappings.map("java.lang.Double") {
-		body(BOOL, "isNaN", ARGS(DOUBLE), "return Math.isNaN(p0);")
-		body(BOOL, "isFinite", ARGS(DOUBLE), "return Math.isFinite(p0);")
-		body(STRING, "toString", ARGS(DOUBLE), "return HaxeNatives.str('' + p0);")
-	}
+	*/
 
 	mappings.map("java.lang.Float") {
 		body(BOOL, "isNaN", ARGS(FLOAT), "return Math.isNaN(p0);")
@@ -304,21 +203,12 @@ fun HaxeMappings(): ClassMappings {
 		body(INT, "floatToIntBits", ARGS(FLOAT), "return HaxeNatives.floatToIntBits(p0);")
 	}
 
-	mappings.map("java.lang.Integer") {
-		body(STRING, "toString", ARGS(INT, INT), "return HaxeNatives.str(HaxeNatives.intToString(p0, p1));")
-		body(INT, "parseInt", ARGS(STRING, INT), "return HaxeNatives.parseInt(p0._str, p1);")
-	}
-
 	mappings.map("java.lang.Double") {
 		body(STRING, "toString", ARGS(DOUBLE), "return HaxeNatives.str('' + p0);")
 		body(DOUBLE, "parseDouble", ARGS(STRING), "return Std.parseFloat(p0._str);")
 
 		body(DOUBLE, "longBitsToDouble", ARGS(LONG), "return HaxeNatives.longBitsToDouble(p0);")
 		body(LONG, "doubleToLongBits", ARGS(DOUBLE), "return HaxeNatives.doubleToLongBits(p0);")
-	}
-
-	mappings.map("java.lang.Long") {
-		body(STRING, "toString", ARGS(LONG), "return HaxeNatives.str('' + p0);")
 	}
 
 	mappings.map("java.lang.Class") {
@@ -364,17 +254,6 @@ fun HaxeMappings(): ClassMappings {
 		""")
 	}
 
-	mappings.map("java.lang.reflect.Method") {
-		nativeMember("public var _internalName = '';")
-		nativeMember("public var _annotations = [];")
-
-		body(OBJECT, "invoke", ARGS(OBJECT, ARRAY(OBJECT)), """
-			//trace('dynamic invoke : ' + this._internalName);
-			var obj:Dynamic = (p0 != null) ? p0 : this.clazz._hxClass;
-			return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.data.toArray());
-		""")
-	}
-
 	mappings.map("java.lang.reflect.Constructor") {
 		nativeMember("public var _internalName = '';")
 		nativeMember("public var _annotations = [];")
@@ -384,46 +263,6 @@ fun HaxeMappings(): ClassMappings {
 			var instance = Type.createEmptyInstance(Type.resolveClass(this.clazz._internalName));
 			Reflect.callMethod(instance, Reflect.field(instance, this._internalName), p0.data.toArray());
 			return instance;
-		""")
-	}
-
-	mappings.map("java.lang.Object") {
-		nativeMember("static public var __LAST_ID__ = 0;")
-		nativeMember("public var __ID__ = __LAST_ID__++;")
-		//body(STRING, "toString", ARGS(), "return HaxeNatives.str(HaxeNatives.objectToString(this));")
-		body(CLASS, "getClass", ARGS(), "return HaxeNatives.getClass(this);")
-	}
-
-	mappings.map("java.lang.System") {
-		body(LONG, "currentTimeMillis", ARGS(), """
-			#if sys
-			return HaxeNatives.floatToLong(Sys.time() * 1000);
-			#else
-			return HaxeNatives.floatToLong(Date.now().getTime());
-			#end
-		""")
-		body(VOID, "gc", ARGS(), "")
-		body(VOID, "arraycopy", ARGS(OBJECT, INT, OBJECT, INT, INT), "HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
-		body(STRING, "getProperty", ARGS(STRING), "return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
-		body(INT, "identityHashCode", ARGS(OBJECT), "return p0.__ID__ | 0;")
-	}
-
-	mappings.map("jtransc.JTranscSystem") {
-		nativeMember("static private var __start = -1.0;")
-		nativeMember("""
-			static private function __stamp() {
-				#if sys
-				return Sys.time() * 1000;
-				#else
-				return Date.now().getTime();
-				#end
-			}
-		""")
-		//removeField("start")
-		body(INT, "stamp", ARGS(), """
-			if (__start < 0) __start = __stamp();
-			//trace(__stamp() + ", " + __start);
-			return Std.int(__stamp() - __start);
 		""")
 	}
 
@@ -484,55 +323,6 @@ fun HaxeMappings(): ClassMappings {
 		body(BOOL, "find", ARGS(INT), "this._offset = p0; return _find();")
 	}
 
-	mappings.map("jtransc.internal.JTranscIOSyncFile") {
-		nativeMember("private var _info:Dynamic;")
-		body(VOID, "open", ARGS(STRING, INT), "_info = HaxeNatives.syncioOpen(p0._str, p1);")
-		body(INT, "read", ARGS(), "return HaxeNatives.syncioRead(_info);")
-		body(INT, "readBytes", ARGS(BYTEARRAY, INT, INT), "throw 'Not read';")
-		body(VOID, "write", ARGS(INT), "HaxeNatives.syncioWrite(_info, p0);")
-		body(VOID, "writeBytes", ARGS(BYTEARRAY, INT, INT), "HaxeNatives.syncioWriteBytes(_info, p0, p1, p2);")
-		body(LONG, "getFilePointer", ARGS(), "throw 'Not getFilePointer';")
-		body(VOID, "seek", ARGS(LONG), "throw 'Not seek';")
-		body(LONG, "length", ARGS(), "return HaxeNatives.syncioLength(_info);")
-		body(VOID, "setLength", ARGS(LONG), "throw 'Not setLength';")
-		body(VOID, "close", ARGS(), "HaxeNatives.syncioClose(_info);")
-	}
-
-	mappings.map("java.util.Date") {
-		nativeMember("var _date:Date;")
-		body("<init>", "*", "throw 'Not implemented this Date.constructor';")
-		body(VOID, "<init>", ARGS(), "_date = Date.now();")
-		body(VOID, "<init>", ARGS(LONG), "_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
-		body(LONG, "getTime", ARGS(), "return HaxeNatives.floatToLong(_date.getTime());")
-		body(INT, "getDay", ARGS(), "return _date.getDay();")
-		body(INT, "getHours", ARGS(), "return _date.getHours();")
-		body(LONG, "parse", ARGS(STRING), "return HaxeNatives.floatToLong(Date.fromString(p0._str).getTime());")
-	}
-
-	mappings.map("jtransc.FastStringMap") {
-		removeField("map")
-		nativeMember("var _map = new Map<String, Dynamic>();")
-		body("<init>", "*", "")
-		body(BOOL, "has", ARGS(STRING), "return _map.exists(p0._str);")
-		body(VOID, "set", ARGS(STRING, OBJECT), "_map.set(p0._str, p1);")
-		body(OBJECT, "get", ARGS(STRING), "return _map.get(p0._str);")
-	}
-
-	mappings.map("jtransc.FastIntMap") {
-		removeField("map")
-		nativeMember("var _map = new Map<Int, Dynamic>();")
-		body("<init>", "*", "")
-		body(BOOL, "has", ARGS(INT), "return _map.exists(p0);")
-		body(VOID, "set", ARGS(INT, OBJECT), "_map.set(p0, p1);")
-		body(OBJECT, "get", ARGS(INT), "return _map.get(p0);")
-	}
-
-	mappings.map( "jtransc.JTranscStrings") {
-		body(STRING, "format", ARGS(LOCALE, STRING, ARRAY(OBJECT)), """
-			return HaxeNatives.str(HaxeNatives.formatBoxed(p1._str, p2.toArray()));
-		""")
-	}
-
 	mappings.map("jtransc.FastMemory") {
 		removeField("data")
 		nativeMember("public var _length:Int;")
@@ -581,49 +371,6 @@ fun HaxeMappings(): ClassMappings {
 		body(VOID, "setAlignedInt64", ARGS(INT, LONG), "this._data.setInt64(p0 << 3, p1);") // @TODO: Optimize
 		body(VOID, "setAlignedFloat32", ARGS(INT, FLOAT), "this.floatData.set(p0, p1);")
 		body(VOID, "setAlignedFloat64", ARGS(INT, DOUBLE), "this.doubleData.set(p0, p1);")
-	}
-
-	// @TODO: Those should be removed after optimizations
-	mappings.map("jtransc.FastMemory4Int") {
-		body(INT, "getLength", ARGS(), "return this.mem._length;")
-		body(INT, "get", ARGS(INT), "return this.mem.intData.get(p0);")
-		body(VOID, "set", ARGS(INT, INT), "this.mem.intData.set(p0, p1);")
-	}
-
-	mappings.map("jtransc.FastMemory4Float") {
-		body(INT, "getLength", ARGS(), "return this.mem._length;")
-		body(FLOAT, "get", ARGS(INT), "return this.mem.floatData.get(p0);")
-		body(VOID, "set", ARGS(INT, FLOAT), "this.mem.floatData.set(p0, p1);")
-	}
-
-	mappings.map("jtransc.JTranscGC") {
-		body(VOID, "enable", ARGS(), "HaxeNatives.gcEnable();")
-		body(VOID, "disable", ARGS(), "HaxeNatives.gcDisable();")
-		body(VOID, "gc", ARGS(), "HaxeNatives.gc();")
-	}
-
-	mappings.map("jtransc.Mem") {
-		val FASTMEMORY = AstType.REF("jtransc.FastMemory")
-		removeField("data")
-		nativeMember("public var data:haxe.io.BytesData;")
-		body(VOID, "select", ARGS(FASTMEMORY), "HaxeNatives.memSelect(p0._data);")
-
-		body(BYTE, "li8", ARGS(INT), "return HaxeNatives.memLi8(p0);")
-		body(SHORT, "li16", ARGS(INT), "return HaxeNatives.memLi16(p0);")
-		body(INT, "li32", ARGS(INT), "return HaxeNatives.memLi32(p0);")
-		body(FLOAT, "lf32", ARGS(INT), "return HaxeNatives.memLf32(p0);")
-		body(DOUBLE, "lf64", ARGS(INT), "return HaxeNatives.memLf64(p0);")
-
-		body(VOID, "si8", ARGS(INT, BYTE), "HaxeNatives.memSi8(p0, p1);")
-		body(VOID, "si16", ARGS(INT, SHORT), "HaxeNatives.memSi16(p0, p1);")
-		body(VOID, "si32", ARGS(INT, INT), "HaxeNatives.memSi32(p0, p1);")
-		body(VOID, "sf32", ARGS(INT, FLOAT), "HaxeNatives.memSf32(p0, p1);")
-		body(VOID, "sf64", ARGS(INT, DOUBLE), "HaxeNatives.memSf64(p0, p1);")
-
-		body(INT, "sxi1", ARGS(INT), "return HaxeNatives.memSxi1(p0);")
-		body(INT, "sxi8", ARGS(INT), "return HaxeNatives.memSxi8(p0);")
-		body(INT, "sxi16", ARGS(INT), "return HaxeNatives.memSxi16(p0);")
-
 	}
 
 	return mappings

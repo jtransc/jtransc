@@ -17,6 +17,7 @@
 package java.util;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public abstract class AbstractCollection<E> implements Collection<E> {
 	protected AbstractCollection() {
@@ -73,5 +74,6 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 
 	native public void clear();
 
+    @HaxeMethodBody("return HaxeNatives.str('[' + this.toArray___Ljava_lang_Object_().join(', ') + ']');")
 	native public String toString();
 }

@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.internal.StdioInputStream;
 import jtransc.internal.StdioStream;
 
@@ -40,14 +41,27 @@ public class System {
 	//native public static void setSecurityManager(final SecurityManager s);
 	//native public static SecurityManager getSecurityManager();
 
+    @HaxeMethodBody(
+            "#if sys\n" +
+            "return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
+            "#else\n" +
+            "return HaxeNatives.floatToLong(Date.now().getTime());\n" +
+            "#end\n"
+    )
+    //@JTranscMethodBody({
+    //        "haxe-sys", "return HaxeNatives.floatToLong(Sys.time() * 1000);",
+    //        "haxe", "return HaxeNatives.floatToLong(Date.now().getTime());"
+    //})
 	public static native long currentTimeMillis();
 
 	public static long nanoTime() {
 		return currentTimeMillis() * 1000000L;
 	}
 
+    @HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
+    @HaxeMethodBody("return p0.__ID__ | 0;")
 	public static native int identityHashCode(Object x);
 
 	native public static Properties getProperties();
@@ -56,6 +70,7 @@ public class System {
 
 	native public static void setProperties(Properties props);
 
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
 	native public static String getProperty(String key);
 
 	native public static String getProperty(String key, String def);
@@ -70,7 +85,8 @@ public class System {
 
 	native public static void exit(int status);
 
-	native public static void gc();
+    @HaxeMethodBody("")
+    native public static void gc();
 
 	native public static void runFinalization();
 

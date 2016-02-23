@@ -16,13 +16,18 @@
 
 package jtransc;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 public class JTranscGC {
+    @HaxeMethodBody("HaxeNatives.gcDisable();")
     static public void disable() {
     }
 
+    @HaxeMethodBody("HaxeNatives.gcEnable();")
     static public void enable() {
     }
 
+    @HaxeMethodBody("HaxeNatives.gc();")
     static public void gc() {
         System.gc();
     }

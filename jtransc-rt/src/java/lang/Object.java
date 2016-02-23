@@ -17,15 +17,22 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.IOException;
 
+@HaxeAddMembers({
+        "static public var __LAST_ID__ = 0;",
+        "public var __ID__ = __LAST_ID__++;",
+})
 public class Object {
 	@JTranscKeep
 	public boolean equals(Object obj) {
 		return (this == obj);
 	}
 
+    @HaxeMethodBody("return HaxeNatives.getClass(this);")
 	native public final Class<?> getClass();
 
 	@JTranscKeep

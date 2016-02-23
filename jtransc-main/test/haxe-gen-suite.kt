@@ -23,6 +23,7 @@ import javatest.KotlinCollections
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import jtransc.JTranscVersion
+import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import org.junit.Assert
 import org.junit.Test
@@ -48,9 +49,8 @@ class HaxeGenSuite {
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
-	@Test fun methodBodyTest() {
-		Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
-	}
+	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
+	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 
 	// Shortcut
 	inline fun <reified T : Any> testClass() = testClass(T::class.java)

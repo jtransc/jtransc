@@ -110,6 +110,10 @@ fun <T, T2> List<T>.flatMapInChunks2(chunkSize:Int, handler: (items: List<T>) ->
 	return out
 }
 
+fun <T> List<T>.createPairs(): List<Pair<T, T>> {
+	return this.flatMapInChunks2(2) { listOf(Pair(it[0], it[1])) }
+}
+
 fun <K, V> Map<K, V>.toHashMap():HashMap<K, V> {
     val out = hashMapOf<K, V>()
     for (pair in this) {

@@ -17,6 +17,7 @@
 package jtransc;
 
 import jtransc.annotation.JTranscInline;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 final public class FastMemory4Int {
 	private FastMemory mem;
@@ -26,16 +27,19 @@ final public class FastMemory4Int {
 	}
 
 	@JTranscInline
+    @HaxeMethodBody("return this.mem._length;")
 	final public int getLength() {
 		return mem.getLength() / 4;
 	}
 
 	@JTranscInline
+    @HaxeMethodBody("return this.mem.intData.get(p0);")
 	final public int get(int index) {
 		return mem.getAlignedInt32(index);
 	}
 
 	@JTranscInline
+    @HaxeMethodBody("this.mem.intData.set(p0, p1);")
 	final public void set(int index, int value) {
 		mem.setAlignedInt32(index, value);
 	}

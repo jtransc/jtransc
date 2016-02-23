@@ -16,6 +16,8 @@
 
 package java.lang.reflect;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 public final class Array {
 	private Array() {
 	}
@@ -24,10 +26,13 @@ public final class Array {
 
 	native public static Object newInstance(Class<?> componentType, int... dimensions) throws IllegalArgumentException, NegativeArraySizeException;
 
+    @HaxeMethodBody("return cast(p0, HaxeBaseArray).length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
-	native public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+    @HaxeMethodBody("return HaxeNatives.box(cast(p0, HaxeBaseArray).getDynamic(p1));")
+    native public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
+    @HaxeMethodBody("return cast(p0, HaxeByteArray).get(p1) != 0;")
 	native public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	native public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
@@ -44,8 +49,10 @@ public final class Array {
 
 	native public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
+    @HaxeMethodBody("cast(p0, HaxeBaseArray).set(p1, p2);")
 	native public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
+    @HaxeMethodBody("cast(p0, HaxeByteArray).set(p1, p2 ? 1 : 0);")
 	native public static void setBoolean(Object array, int index, boolean z) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	native public static void setByte(Object array, int index, byte b) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;

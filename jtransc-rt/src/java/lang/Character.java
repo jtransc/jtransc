@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Character implements java.io.Serializable, Comparable<Character> {
 	public static final int MIN_RADIX = 2;
@@ -199,13 +200,21 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	native public static int offsetByCodePoints(char[] a, int start, int count, int index, int codePointOffset);
 
 	//native static int offsetByCodePointsImpl(char[] a, int start, int count, int index, int codePointOffset);
-	native public static boolean isLowerCase(char ch);
+	public static boolean isLowerCase(char ch) {
+        return toLowerCase(ch) == ch;
+    }
 
-	native public static boolean isLowerCase(int codePoint);
+	public static boolean isLowerCase(int codePoint) {
+        return toLowerCase(codePoint) == codePoint;
+    }
 
-	native public static boolean isUpperCase(char ch);
+	public static boolean isUpperCase(char ch) {
+        return toUpperCase(ch) == ch;
+    }
 
-	native public static boolean isUpperCase(int codePoint);
+	public static boolean isUpperCase(int codePoint) {
+        return toUpperCase(codePoint) == codePoint;
+    }
 
 	native public static boolean isTitleCase(char ch);
 
@@ -265,12 +274,16 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	native public static boolean isIdentifierIgnorable(int codePoint);
 
+    @HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);" )
 	native public static char toLowerCase(char ch);
 
+    @HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);" )
 	native public static int toLowerCase(int codePoint);
 
+    @HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static char toUpperCase(char ch);
 
+    @HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static int toUpperCase(int codePoint);
 
 	native public static char toTitleCase(char ch);

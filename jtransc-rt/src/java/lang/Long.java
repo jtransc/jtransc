@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Long extends Number implements Comparable<Long> {
 	public static final long MIN_VALUE = 0x8000000000000000L;
@@ -33,7 +34,8 @@ public final class Long extends Number implements Comparable<Long> {
 
 	native public static String toBinaryString(long i);
 
-	native public static String toString(long i);
+    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
+    native public static String toString(long i);
 
 	native public static String toUnsignedString(long i);
 

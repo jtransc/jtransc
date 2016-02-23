@@ -26,11 +26,11 @@ class ClassMappings {
 		mappings[className] = ClassMapping.map(this, className, callback)
 	}
 
-	fun getClassMapping(clazz: String): ClassMapping? = mappings[clazz]
+	//fun getClassMapping(clazz: String): ClassMapping? = mappings[clazz]
 	fun getClassMapping(clazz: FqName): ClassMapping? = mappings[clazz.fqname]
-	fun getClassMapping(clazz: AstClass): ClassMapping? = mappings[clazz.name.fqname]
+	//fun getClassMapping(clazz: AstClass): ClassMapping? = mappings[clazz.name.fqname]
 	fun getClassMapping(clazz: AstClassRef): ClassMapping? = mappings[clazz.name.fqname]
-	fun getClassMapping(clazz: AstType.REF): ClassMapping? = mappings[clazz.name.fqname]
+	//fun getClassMapping(clazz: AstType.REF): ClassMapping? = mappings[clazz.name.fqname]
 
 	fun getBody(method: AstMethodRef): String? {
 		val mapping = mappings[method.containingClass.fqname]
@@ -66,6 +66,12 @@ class ClassMappings {
 		return null
 	}
 }
+
+/*
+fun ClassMappings?.getClassMembers():List<String> {
+
+}
+*/
 
 class ClassMapping(val mappings: ClassMappings, val className: String) {
 	data class ClassReplacement(val base: String, val importNew: String, val typeTag: String)

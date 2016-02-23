@@ -204,7 +204,8 @@ class SootToAst {
 			getterField = method.getAnnotation(JTranscGetter::value),
 			setterField = method.getAnnotation(JTranscSetter::value),
 			nativeMethod = method.getAnnotation(JTranscMethod::value),
-			nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
+			annotationResolver = method.tags.createAnnotationResolver(),
+			//nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
 			isInline = method.hasAnnotation<JTranscInline>()
 		)
 	}
@@ -299,7 +300,8 @@ class SootToAst {
 			isFinal = it.isFinal,
 			hasConstantValue = hasConstantValue,
 			constantValue = finalConstantValue,
-			visibility = if (it.isPublic) AstVisibility.PUBLIC else if (it.isProtected) AstVisibility.PROTECTED else AstVisibility.PRIVATE
+			visibility = if (it.isPublic) AstVisibility.PUBLIC else if (it.isProtected) AstVisibility.PROTECTED else AstVisibility.PRIVATE,
+			annotationResolver = field.tags.createAnnotationResolver()
 		)
 	}
 
@@ -314,15 +316,25 @@ class SootToAst {
 			name = clazzName,
 			modifiers = clazz.modifiers,
 			annotations = readAnnotations(context, clazz.tags),
-			implCode = clazz.getAnnotation(JTranscNativeClassImpl::class.java.name, "value") as String?,
-			nativeName = clazz.getAnnotation(JTranscNativeClass::class.java.name, "value") as String?,
+			implCode = clazz.getAnnotation(JTranscNativeClassImpl::value),
+			nativeName = clazz.getAnnotation(JTranscNativeClass::value),
 			classType = if (clazz.isInterface) AstClassType.INTERFACE else if (clazz.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
 			visibility = AstVisibility.PUBLIC,
 			extending = if (clazz.hasSuperclass() && !clazz.isInterface) FqName(clazz.superclass.name) else null,
 			implementing = clazz.interfaces.map { FqName(it.name) },
 			fields = generatedFields,
-			methods = (missingMethods + generatedMethods).distinctBy { it.name + ":" + it.desc }
+			methods = (missingMethods + generatedMethods).distinctBy { it.name + ":" + it.desc },
+			annotationResolver = clazz.tags.createAnnotationResolver()
 		)
+	}
+}
+
+fun List<Tag>.createAnnotationResolver(): AnnotationResolver {
+	val tags = this
+	return object : AnnotationResolver {
+		override fun has(className: String) = tags.hasAnnotation(className)
+		override fun get(className: String, fieldName: String): Any? = tags.getAnnotation(className, fieldName)
+
 	}
 }
 
@@ -720,17 +732,17 @@ object SootUtils {
 	// SootUtils.getTag(method.tags, "Llibcore/MethodBody;", "value") as String?
 }
 
-fun <T, V> SootMethod.getAnnotation(annotationClass: Class<T>, field: KMutableProperty1<T, V>): V? {
-	return this.tags.getAnnotation(annotationClass.name, field.name) as V?
-}
-
 inline fun <reified T, V> SootMethod.getAnnotation(field: KProperty1<T, V>): V? {
 	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
 }
 
-fun SootMethod.getAnnotation(annotationClass: String, fieldName: String): Any? = this.tags.getAnnotation(annotationClass, fieldName)
-fun SootField.getAnnotation(annotationClass: String, fieldName: String): Any? = this.tags.getAnnotation(annotationClass, fieldName)
-fun SootClass.getAnnotation(annotationClass: String, fieldName: String): Any? = this.tags.getAnnotation(annotationClass, fieldName)
+inline fun <reified T, V> SootField.getAnnotation(field: KProperty1<T, V>): V? {
+	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
+}
+
+inline fun <reified T, V> SootClass.getAnnotation(field: KProperty1<T, V>): V? {
+	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
+}
 
 fun SootMethod.hasAnnotation(annotationClass: String): Boolean = this.tags.hasAnnotation(annotationClass)
 fun <T> SootMethod.hasAnnotation(annotationClass: Class<T>): Boolean = this.tags.hasAnnotation(annotationClass.name)

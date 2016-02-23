@@ -33,6 +33,9 @@ import com.jtransc.text.toUcFirst
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
+import jtransc.annotation.haxe.HaxeAddMembers
+import jtransc.annotation.haxe.HaxeMethodBody
+import jtransc.annotation.haxe.HaxeRemoveField
 import java.io.File
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
@@ -475,7 +478,7 @@ object GenHaxe : GenTarget {
 			addTypeReference(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = getHaxeFieldName(program, field)
-			if (mappings.isFieldAvailable(field.ref)) {
+			if (mappings.isFieldAvailable(field.ref) && !field.hasAnnotation<HaxeRemoveField>()) {
 				indenter.line("$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
 			}
 		}
@@ -500,7 +503,7 @@ object GenHaxe : GenTarget {
 					indenter.line("$decl;")
 				}
 			} else {
-				val body = mappings.getBody(method.ref) ?: method.getNativeBody("haxe")
+				val body = mappings.getBody(method.ref) ?: method.resolveAnnotation(HaxeMethodBody::value)
 
 				if (method.body != null && body == null) {
 					indenter.line(decl) {
@@ -565,15 +568,17 @@ object GenHaxe : GenTarget {
 						}
 					}
 				}
-				val nativeImports = mappings.getClassMapping(clazz.ref)?.nativeImports
-				val nativeMembers = mappings.getClassMapping(clazz.ref)?.nativeMembers
+				val nativeImports = mappings.getClassMapping(clazz.ref)?.nativeImports ?: listOf<String>()
+				val mappingNativeMembers = (mappings.getClassMapping(clazz.ref)?.nativeMembers ?: listOf<String>())
+				val haxeNativeMembers = clazz.resolveAnnotation(HaxeAddMembers::value)?.toList() ?: listOf()
+				val nativeMembers = mappingNativeMembers + haxeNativeMembers
 
-				if (nativeMembers != null) {
-					for (member in nativeMembers) line(member)
-				}
+				for (member in nativeMembers) line(member)
 
 				if (!isInterface) {
-					for (field in clazz.fields) writeField(this, field, isInterface)
+					for (field in clazz.fields) {
+						writeField(this, field, isInterface)
+					}
 				}
 
 				for (method in clazz.methods) {

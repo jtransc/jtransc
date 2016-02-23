@@ -17,16 +17,19 @@
 package com.jtransc.ast
 
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ds.createPairs
 import com.jtransc.ds.flatMapInChunks
 import com.jtransc.ds.flatMapInChunks2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.text.*
 import com.jtransc.util.dependencySorter
 import java.io.Reader
 import java.io.Serializable
 import java.io.StringReader
 import java.util.*
+import kotlin.reflect.KProperty1
 
 data class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))
@@ -491,8 +494,9 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	val fields: List<AstField> = listOf(),
-	val methods: List<AstMethod> = listOf()
-) {
+	val methods: List<AstMethod> = listOf(),
+	override val annotationResolver: AnnotationResolver? = null
+) : AstElementWithAnnotations {
 	//val dependencies: AstReferences = AstReferences()
 	val isInterface: Boolean = classType == AstClassType.INTERFACE
 	val fqname = name.fqname
@@ -610,8 +614,9 @@ open class AstMember(
 	val name: String,
 	val type: AstType,
 	val isStatic: Boolean = false,
-	val visibility: AstVisibility = AstVisibility.PUBLIC
-) {
+	val visibility: AstVisibility = AstVisibility.PUBLIC,
+	override val annotationResolver: AnnotationResolver? = null
+) : AstElementWithAnnotations {
 	fun getContainingClass2(program: AstProgram) = program[containingClass]
 }
 
@@ -627,10 +632,32 @@ class AstField(
 	val isFinal: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val hasConstantValue: Boolean = false,
-	val constantValue: Any? = null
-) : AstMember(containingClass, name, type, isStatic, visibility)
+	val constantValue: Any? = null,
+	annotationResolver: AnnotationResolver? = null
+) : AstMember(containingClass, name, type, isStatic, visibility, annotationResolver)
 
 val AstField.ref: AstFieldRef get() = AstFieldRef(this.containingClass, this.name, this.type)
+
+interface AnnotationResolver {
+	fun has(className:String):Boolean
+	fun get(className:String, fieldName:String):Any?
+}
+
+interface AstElementWithAnnotations {
+	val annotationResolver: AnnotationResolver?
+}
+
+inline fun <reified C, T> AstElementWithAnnotations.resolveAnnotation(field:KProperty1<C, T>): T? {
+	if (annotationResolver != null) {
+		return annotationResolver?.get(C::class.qualifiedName!!, field.name) as T?
+	} else {
+		return null
+	}
+}
+
+inline fun <reified C> AstElementWithAnnotations.hasAnnotation(): Boolean {
+	return annotationResolver?.has(C::class.qualifiedName!!) ?: false
+}
 
 class AstMethod(
 	containingClass: FqName,
@@ -648,24 +675,17 @@ class AstMethod(
 	val getterField: String? = null,
 	val setterField: String? = null,
 	val nativeMethod: String? = null,
-	val nativeMethodBody: Array<String>? = null,
 	val overridingMethod: AstMethodRef? = null,
 	val isImplementing: Boolean = false,
 	val isNative: Boolean = false,
 	val isInline: Boolean = false,
-	val isOverriding: Boolean = overridingMethod != null
-) : AstMember(containingClass, name, type, isStatic, visibility) {
+	val isOverriding: Boolean = overridingMethod != null,
+    annotationResolver: AnnotationResolver? = null
+) : AstMember(containingClass, name, type, isStatic, visibility, annotationResolver) {
 	val methodType: AstType.METHOD_TYPE = type
 	val desc = methodType.desc
 	val ref: AstMethodRef get() = AstMethodRef(containingClass, name, methodType)
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(body) }
-
-	private val nativeMethodBody2 = nativeMethodBody?.toList() ?: listOf()
-	private val nativeBodies = nativeMethodBody2.flatMapInChunks2(2) {
-		listOf(Pair(it[0], it[1]))
-	}.toMap()
-
-	fun getNativeBody(lang:String):String? = nativeBodies[lang]
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }

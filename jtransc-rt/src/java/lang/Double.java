@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Double extends Number implements Comparable<Double> {
 	public static final double POSITIVE_INFINITY = 1.0 / 0.0;
@@ -32,6 +33,7 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
+    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	native public static String toString(double d);
 
 	native public static String toHexString(double d);
@@ -45,8 +47,10 @@ public final class Double extends Number implements Comparable<Double> {
 
 	native public static double parseDouble(String value);
 
+    @HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(double v);
 
+    @HaxeMethodBody("return Math.isInfinite(p0);")
 	native public static boolean isInfinite(double v);
 
 	public static boolean isFinite(double d) {
