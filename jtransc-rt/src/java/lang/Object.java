@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeAddFiles;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -25,6 +26,19 @@ import java.io.IOException;
 @HaxeAddMembers({
         "static public var __LAST_ID__ = 0;",
         "public var __ID__ = __LAST_ID__++;",
+})
+@HaxeAddFiles({
+        "HaxeNatives.hx",
+        "HaxeFormat.hx",
+        "HaxeNativeWrapper.hx",
+        "HaxeBaseArray.hx",
+        "HaxeByteArray.hx",
+        "HaxeShortArray.hx",
+        "HaxeIntArray.hx",
+        "HaxeFloatArray.hx",
+        "HaxeDoubleArray.hx",
+        "HaxeLongArray.hx",
+        "HaxeArray.hx"
 })
 public class Object {
 	@JTranscKeep

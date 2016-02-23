@@ -16,25 +16,9 @@
 
 package com.jtransc.gen.haxe
 
-import com.jtransc.ast.AstType
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.ClassMappings
-import javax.print.DocFlavor
-
-val HaxeCopyFiles = listOf(
-	"HaxeNatives.hx",
-	"HaxeFormat.hx",
-	"HaxeNativeWrapper.hx",
-	"HaxeBaseArray.hx",
-	"HaxeByteArray.hx",
-	"HaxeShortArray.hx",
-	"HaxeIntArray.hx",
-	"HaxeFloatArray.hx",
-	"HaxeDoubleArray.hx",
-	"HaxeLongArray.hx",
-	"HaxeArray.hx"
-)
 
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
 val HaxeFeatures = setOf(SwitchesFeature)

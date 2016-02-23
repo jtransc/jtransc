@@ -19,16 +19,6 @@ package com.jtransc.gen.haxe
 import com.jtransc.ast.AstType
 import com.jtransc.gen.ClassMappings
 
-val LimeCopyFiles = HaxeCopyFiles + listOf(
-	//"AGALMiniAssembler.hx",
-	//"HaxeLimeJTranscApplication.hx",
-	//"HaxeLimeAudio.hx",
-	//"HaxeLimeRender.hx",
-	//"HaxeLimeRenderImpl.hx",
-	//"HaxeLimeRenderFlash.hx",
-	//"HaxeLimeRenderGL.hx"
-)
-
 fun LimeMappings():ClassMappings {
 	val mappings = HaxeMappings()
 	val FASTMEMORY = AstType.REF("jtransc.FastMemory")

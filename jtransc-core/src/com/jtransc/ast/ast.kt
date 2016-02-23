@@ -25,6 +25,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.*
 import com.jtransc.util.dependencySorter
+import com.jtransc.vfs.SyncVfsFile
 import java.io.Reader
 import java.io.Serializable
 import java.io.StringReader
@@ -417,7 +418,8 @@ data class AstBuildSettings(
 
 class AstProgram(
 	val entrypoint: FqName,
-	val classes: List<AstClass>
+	val classes: List<AstClass>,
+    val resourcesVfs: SyncVfsFile
 ) {
 	private val classesByFqname = classes.associateBy { it.name.fqname }
 

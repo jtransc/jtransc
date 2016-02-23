@@ -7,6 +7,8 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.time.measureTime
+import com.jtransc.vfs.LocalAndJars
+import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.*
 import soot.*
@@ -87,7 +89,8 @@ class SootToAst {
 
 		return AstProgram(
 			entrypoint = FqName(projectContext.mainClass),
-			classes = context.generatedClassesList
+			classes = context.generatedClassesList,
+			resourcesVfs = MergedLocalAndJars(projectContext.classPaths)
 		)
 	}
 

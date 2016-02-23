@@ -33,6 +33,7 @@ import com.jtransc.text.toUcFirst
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
+import jtransc.annotation.haxe.HaxeAddFiles
 import jtransc.annotation.haxe.HaxeAddMembers
 import jtransc.annotation.haxe.HaxeMethodBody
 import jtransc.annotation.haxe.HaxeRemoveField
@@ -59,7 +60,6 @@ object GenHaxe : GenTarget {
 	//val copyFiles = HaxeCopyFiles
 	//val mappings = HaxeMappings()
 
-	val copyFiles = LimeCopyFiles
 	val mappings = LimeMappings()
 
 	val INIT_MODE = InitMode.LAZY
@@ -145,10 +145,12 @@ object GenHaxe : GenTarget {
 			}
 		}
 
+		val copyFiles = program.classes.flatMap {
+			it.resolveAnnotation(HaxeAddFiles::value)?.toList() ?: listOf()
+		}
+
 		for (file in copyFiles) {
-			val resource = "/src/$file"
-			//println("Copying from resources '$resource' to output '$file'...")
-			vfs[file] = javaClass.getResourceAsString(resource) ?: throw InvalidOperationException("Can't find file '$file' for copying")
+			vfs[file] = program.resourcesVfs[file]
 		}
 
 		val mainClassFq = program.entrypoint
@@ -384,7 +386,7 @@ object GenHaxe : GenTarget {
 		var info: ProgramInfo? = null
 
 		File("$tempdir/jtransc-haxe/src").mkdirs()
-		val srcFolder = LocalVfs("$tempdir/jtransc-haxe/src").ensuredir()
+		val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
 
 		println("Temporal haxe files: $tempdir/jtransc-haxe")
 

@@ -62,6 +62,7 @@
 
     <build>
         <sourceDirectory>src</sourceDirectory>
+        <!--
         <resources>
             <resource>
                 <directory>resources</directory>
@@ -72,6 +73,7 @@
                 <directory>testresources</directory>
             </testResource>
         </testResources>
+        -->
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
