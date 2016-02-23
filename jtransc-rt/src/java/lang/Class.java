@@ -18,6 +18,8 @@ package java.lang;
 
 import jtransc.FastStringMap;
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -27,27 +29,48 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.lang.AnnotatedElement;
 
+@HaxeAddMembers({
+        "public var _hxClass:Class<Dynamic> = null;",
+        "public var _internalName = '';",
+        "public var _parent = null;",
+        "public var _interfaces = [];",
+        "public var _fields = [];",
+        "public var _modifiers = 0;",
+        "public var _methods = [];",
+        "public var _constructors = [];",
+        "public var _annotations = [];",
+})
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
 	private static final int ANNOTATION = 0x00002000;
 	private static final int ENUM = 0x00004000;
 	private static final int SYNTHETIC = 0x00001000;
 
+    // Returns the Class representing the superclass of the entity (class, interface, primitive type or void) represented by this Class. If this Class represents either the Object class, an interface, a primitive type, or void, then null is returned. If this object represents an array class then the Class object representing the Object class is returned.
+
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
+    @HaxeMethodBody("return HaxeArray.fromArray(_fields);")
 	native public Field[] getDeclaredFields() throws SecurityException;
 
+    @HaxeMethodBody("return HaxeArray.fromArray(_methods);")
 	native public Method[] getDeclaredMethods() throws SecurityException;
 
+    @HaxeMethodBody("return HaxeArray.fromArray(_constructors);")
 	native public Constructor<?>[] getDeclaredConstructors() throws SecurityException;
 
+    @HaxeMethodBody("return HaxeNatives.resolveClass(_parent);")
 	native public Class<? super T> getSuperclass();
 
+    @HaxeMethodBody("return HaxeArray.fromArray(Lambda.array(Lambda.map(_interfaces, function(i) { return HaxeNatives.resolveClass(i); })));")
 	native public Class<?>[] getInterfaces();
 
+    @HaxeMethodBody("return HaxeArray.fromArray(_annotations);")
 	native public Annotation[] getDeclaredAnnotations();
 
+    @HaxeMethodBody("return _modifiers;")
 	native public int getModifiers();
 
+    @HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
 	native public T newInstance() throws InstantiationException, IllegalAccessException;
 
 	native public Class<?>[] getDeclaredClasses() throws SecurityException;
@@ -58,6 +81,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public java.net.URL getResource(String name);
 
+    @HaxeMethodBody("return Std.is(p0, _hxClass);")
 	public native boolean isInstance(Object obj);
 
 	native public InputStream getResourceAsStream(String name);
@@ -110,6 +134,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@JTranscKeep
+    @HaxeMethodBody("return HaxeReflectionInfo.__initClass(this);")
 	native private boolean _check();
 
 	@JTranscKeep

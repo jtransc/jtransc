@@ -18,6 +18,9 @@ package jtransc;
 
 import jtransc.annotation.JTranscInline;
 import jtransc.annotation.JTranscInvisible;
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.annotation.haxe.HaxeRemoveField;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -183,12 +186,29 @@ final public class FastMemory {
 // USING UNSAFE!
 
 @JTranscInvisible
+@HaxeAddMembers({
+        "public var _length:Int;",
+        "public var _data:haxe.io.Bytes;",
+        "public var shortData:haxe.io.UInt16Array;",
+        "public var intData:haxe.io.Int32Array;",
+        "public var floatData:haxe.io.Float32Array;",
+        "public var doubleData:haxe.io.Float64Array;"
+})
 final public class FastMemory {
     static private sun.misc.Unsafe unsafe;
 
     private int length;
+    @HaxeRemoveField
     private byte[] data;
 
+    @HaxeMethodBody(
+            "this._length = p0;\n" +
+            "this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
+            "this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
+            "this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
+            "this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
+            "this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
+    )
     public FastMemory(int size) {
         if (unsafe == null) {
             try {
@@ -203,134 +223,162 @@ final public class FastMemory {
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._length;")
     final public int getLength() {
         return this.length;
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.length;")
     final public int getAllocatedLength() {
         return this.data.length;
     }
 
     // Unaligned
     @JTranscInline
+    @HaxeMethodBody("return this._data.get(p0);")
     final public byte getInt8(int index) {
         return unsafe.getByte(data, (long) index);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return (this._data.getUInt16(p0) << 16) >> 16;")
     final public short getInt16(int index) {
         return unsafe.getShort(data, (long) index);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.getInt32(p0);")
     final public int getInt32(int index) {
         return unsafe.getInt(data, (long) index);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.getInt64(p0);")
     final public long getInt64(int index) {
         return unsafe.getLong(data, (long) index);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.getFloat(p0);")
     final public float getFloat32(int index) {
         return unsafe.getFloat(data, (long) index);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.getDouble(p0);")
     final public double getFloat64(int index) {
         return unsafe.getDouble(data, (long) index);
     }
 
+
     @JTranscInline
+    @HaxeMethodBody("this._data.set(p0, p1);")
     final public void setInt8(int index, byte value) {
         unsafe.putByte(data, (long) index, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setUInt16(p0, p1);")
     final public void setInt16(int index, short value) {
         unsafe.putShort(data, (long) index, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setInt32(p0, p1);")
     final public void setInt32(int index, int value) {
         unsafe.putInt(data, (long) index, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setInt64(p0, p1);")
     final public void setInt64(int index, long value) {
         unsafe.putLong(data, (long) index, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setFloat(p0, p1);")
     final public void setFloat32(int index, float value) {
         unsafe.putFloat(data, (long) index, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setDouble(p0, p1);")
     final public void setFloat64(int index, double value) {
         unsafe.putDouble(data, (long) index, value);
     }
 
     // Aligned
 
+
     @JTranscInline
+    @HaxeMethodBody("return this._data.get(p0);")
     final public byte getAlignedInt8(int index) {
         return unsafe.getByte(data, (long) index << 0);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return (this.shortData.get(p0) << 16) >> 16;")
     final public short getAlignedInt16(int index2) {
         return unsafe.getShort(data, (long) index2 << 1);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this.intData.get(p0);")
     final public int getAlignedInt32(int index4) {
         return unsafe.getInt(data, (long) index4 << 2);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this._data.getInt64(p0 << 3);") // @TODO: Optimize
     final public long getAlignedInt64(int index8) {
         return unsafe.getLong(data, (long) index8 << 3);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this.floatData.get(p0);")
     final public float getAlignedFloat32(int index4) {
         return unsafe.getFloat(data, (long) index4 << 2);
     }
 
     @JTranscInline
+    @HaxeMethodBody("return this.doubleData.get(p0);")
     final public double getAlignedFloat64(int index8) {
         return unsafe.getDouble(data, (long) index8 << 3);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.set(p0, p1);")
     final public void setAlignedInt8(int index, byte value) {
         unsafe.putByte(data, (long) index << 0, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this.shortData.set(p0, p1);")
     final public void setAlignedInt16(int index2, short value) {
         unsafe.putShort(data, (long) index2 << 1, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this.intData.set(p0, p1);")
     final public void setAlignedInt32(int index4, int value) {
         unsafe.putInt(data, (long) index4 << 2, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this._data.setInt64(p0 << 3, p1);") // @TODO: Optimize
     final public void setAlignedInt64(int index8, long value) {
         unsafe.putLong(data, (long) index8 << 3, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this.floatData.set(p0, p1);")
     final public void setAlignedFloat32(int index4, float value) {
         unsafe.putFloat(data, (long) index4 << 2, value);
     }
 
     @JTranscInline
+    @HaxeMethodBody("this.doubleData.set(p0, p1);")
     final public void setAlignedFloat64(int index8, double value) {
         unsafe.putDouble(data, (long) index8 << 3, value);
     }

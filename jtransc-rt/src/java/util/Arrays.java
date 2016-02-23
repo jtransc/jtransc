@@ -17,6 +17,7 @@
 package java.util;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.reflect.Array;
 
@@ -57,6 +58,19 @@ public class Arrays {
 		sort(a, fromIndex, toIndex, (Comparator<? super Object>) ComparableComparator.INSTANCE);
 	}
 
+    @HaxeMethodBody(
+            "var array = cast(p0, HaxeArray);\n" +
+            "var start = p1;\n" +
+            "var end = p2;\n" +
+            "var comparator = p3;\n" +
+            "var slice = array.toArray().slice(start, end);\n" +
+            "haxe.ds.ArraySort.sort(slice, function(a, b) {\n" +
+            "\treturn comparator.compare_Ljava_lang_Object_Ljava_lang_Object__I(cast a, cast b);\n" +
+            "});\n" +
+            "for (n in 0 ... slice.length) {\n" +
+            "\tarray.set(start + n, slice[n]);\n" +
+            "}"
+    )
 	native public static <T> void sort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c);
 
 	native public static int deepHashCode(Object a[]);

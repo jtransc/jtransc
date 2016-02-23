@@ -16,8 +16,15 @@
 
 package java.lang.reflect;
 
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.lang.annotation.Annotation;
 
+@HaxeAddMembers({
+        "public var _internalName = '';",
+        "public var _annotations = [];"
+})
 public final class Field extends AccessibleObject implements Member {
 	private Class<?> clazz;
 	private String name;
@@ -94,6 +101,7 @@ public final class Field extends AccessibleObject implements Member {
 		return (((mod == 0) ? "" : (Modifier.toString(mod) + " ")) + _InternalUtils.getTypeName(getType()) + " " + _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName());
 	}
 
+    @HaxeMethodBody("return HaxeNatives.box(Reflect.field(p0, this._internalName));")
 	native public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
 	native public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException;
@@ -112,6 +120,7 @@ public final class Field extends AccessibleObject implements Member {
 
 	native public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
+    @HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
 	native public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
 	native public void setBoolean(Object obj, boolean z) throws IllegalArgumentException, IllegalAccessException;

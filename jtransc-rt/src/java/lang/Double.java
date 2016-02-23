@@ -45,6 +45,7 @@ public final class Double extends Number implements Comparable<Double> {
 		return new Double(d);
 	}
 
+    @HaxeMethodBody("return Std.parseFloat(p0._str);")
 	native public static double parseDouble(String value);
 
     @HaxeMethodBody("return Math.isNaN(p0);")
@@ -116,10 +117,12 @@ public final class Double extends Number implements Comparable<Double> {
 		return (obj instanceof Double) && (doubleToLongBits(((Float) obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
 	}
 
+    @HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
 	native public static long doubleToLongBits(double value);
 
 	public static native long doubleToRawLongBits(double value);
 
+    @HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
 	public static native double longBitsToDouble(long bits);
 
 	native public int compareTo(Double anotherDouble);
