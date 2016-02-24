@@ -18,19 +18,19 @@ package java.io;
 
 public class InputStreamReader extends Reader {
 
-    public InputStreamReader(InputStream in) {
-    }
+	public InputStreamReader(InputStream in) {
+	}
 
-    public InputStreamReader(InputStream in, String charsetName) throws UnsupportedEncodingException {
-    }
+	public InputStreamReader(InputStream in, String charsetName) throws UnsupportedEncodingException {
+	}
 
-    native public String getEncoding();
+	native public String getEncoding();
 
-    native public int read() throws IOException;
+	native public int read() throws IOException;
 
-    native public int read(char cbuf[], int offset, int length) throws IOException;
+	native public int read(char cbuf[], int offset, int length) throws IOException;
 
-    native public boolean ready() throws IOException;
+	native public boolean ready() throws IOException;
 
-    native public void close() throws IOException;
+	native public void close() throws IOException;
 }

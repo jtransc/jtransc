@@ -19,12 +19,12 @@ package java.util;
 import jtransc.annotation.JTranscKeep;
 
 public interface Iterator<E> {
-    @JTranscKeep
-    boolean hasNext();
+	@JTranscKeep
+	boolean hasNext();
 
-    @JTranscKeep
-    E next();
+	@JTranscKeep
+	E next();
 
-    @JTranscKeep
-    void remove();
+	@JTranscKeep
+	void remove();
 }

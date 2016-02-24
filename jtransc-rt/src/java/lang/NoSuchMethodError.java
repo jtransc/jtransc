@@ -18,11 +18,11 @@ package java.lang;
 
 public class NoSuchMethodError extends Error {
 
-    public NoSuchMethodError() {
-    }
+	public NoSuchMethodError() {
+	}
 
-    public NoSuchMethodError(String message) {
-        super(message);
-    }
+	public NoSuchMethodError(String message) {
+		super(message);
+	}
 
 }

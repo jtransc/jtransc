@@ -17,11 +17,11 @@
 package java.lang;
 
 public interface CharSequence {
-    int length();
+	int length();
 
-    char charAt(int index);
+	char charAt(int index);
 
-    CharSequence subSequence(int start, int end);
+	CharSequence subSequence(int start, int end);
 
-    String toString();
+	String toString();
 }

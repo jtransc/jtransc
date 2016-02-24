@@ -21,7 +21,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc</artifactId>
-    <version>0.0.5</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -36,7 +36,7 @@
 
     <properties>
         <!-- base-->
-        <jtransc.version>0.0.5</jtransc.version>
+        <jtransc.version>0.1.0</jtransc.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -75,26 +75,10 @@
         <module>jtransc-rt</module>
         <module>jtransc-utils</module>
         <module>jtransc-core</module>
-        <module>jtransc-tools</module>
-        <module>jtransc-libgdx</module>
-        <module>jtransc-game</module>
         <module>jtransc-gen-haxe</module>
         <module>jtransc-main</module>
-        <!--
-        <module>jtransc-main-run</module>
-        -->
+        <module>jtransc-buildjar-maven-plugin</module>
         <module>jtransc-maven-plugin</module>
-        <!--
-        <module>jtransc-maven-plugin/example</module>
-        -->
-
-        <!--
-        <module>jtransc-rt-haxe</module>
-        <module>jtransc-rt-haxe-lime</module>
-        <module>jtransc-rt-as3</module>
-        <module>jtransc-rt-js</module>
-        <module>examples</module>
-        -->
     </modules>
 
     <dependencies>
@@ -108,6 +92,12 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-runtime</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
 

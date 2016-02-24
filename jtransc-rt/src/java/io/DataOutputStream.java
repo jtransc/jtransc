@@ -54,13 +54,13 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
 	}
 
 	public final void writeShort(int value) throws IOException {
-		JTranscBits.writeShort(temp, (short)value);
+		JTranscBits.writeShort(temp, (short) value);
 		out.write(temp, 0, 2);
 		written += 2;
 	}
 
 	public final void writeChar(int value) throws IOException {
-		JTranscBits.writeShort(temp, (short)value);
+		JTranscBits.writeShort(temp, (short) value);
 		out.write(temp, 0, 2);
 		written += 2;
 	}

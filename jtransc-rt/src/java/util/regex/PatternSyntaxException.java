@@ -17,40 +17,40 @@
 package java.util.regex;
 
 public class PatternSyntaxException extends IllegalArgumentException {
-    private final String desc;
-    private final String pattern;
-    private final int index;
+	private final String desc;
+	private final String pattern;
+	private final int index;
 
-    public PatternSyntaxException(String desc, String regex, int index) {
-        this.desc = desc;
-        this.pattern = regex;
-        this.index = index;
-    }
+	public PatternSyntaxException(String desc, String regex, int index) {
+		this.desc = desc;
+		this.pattern = regex;
+		this.index = index;
+	}
 
-    public int getIndex() {
-        return index;
-    }
+	public int getIndex() {
+		return index;
+	}
 
-    public String getDescription() {
-        return desc;
-    }
+	public String getDescription() {
+		return desc;
+	}
 
-    public String getPattern() {
-        return pattern;
-    }
+	public String getPattern() {
+		return pattern;
+	}
 
-    public String getMessage() {
-        String nl = System.getProperty("line.separator");
-        String sb = "";
-        sb += desc;
-        if (index >= 0) sb += " near index " + index;
-        sb += nl + pattern;
-        if (index >= 0) {
-            sb += nl;
-            for (int i = 0; i < index; i++) sb += " ";
-            sb += "^";
-        }
-        return sb;
-    }
+	public String getMessage() {
+		String nl = System.getProperty("line.separator");
+		String sb = "";
+		sb += desc;
+		if (index >= 0) sb += " near index " + index;
+		sb += nl + pattern;
+		if (index >= 0) {
+			sb += nl;
+			for (int i = 0; i < index; i++) sb += " ";
+			sb += "^";
+		}
+		return sb;
+	}
 
 }

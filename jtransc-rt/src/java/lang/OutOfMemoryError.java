@@ -18,11 +18,11 @@ package java.lang;
 
 public class OutOfMemoryError extends Error {
 
-    public OutOfMemoryError() {
-    }
+	public OutOfMemoryError() {
+	}
 
-    public OutOfMemoryError(String message) {
-        super(message);
-    }
+	public OutOfMemoryError(String message) {
+		super(message);
+	}
 
 }

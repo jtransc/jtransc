@@ -17,14 +17,20 @@
 package com.jtransc.ast
 
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ds.createPairs
+import com.jtransc.ds.flatMapInChunks
+import com.jtransc.ds.flatMapInChunks2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.text.*
 import com.jtransc.util.dependencySorter
+import com.jtransc.vfs.SyncVfsFile
 import java.io.Reader
 import java.io.Serializable
 import java.io.StringReader
 import java.util.*
+import kotlin.reflect.KProperty1
 
 data class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))
@@ -40,6 +46,8 @@ data class FqName(val fqname: String) : Serializable {
 	}
 
 	init {
+		//if (fqname.isNullOrBlank()) invalidOp("Fqname is empty!")
+
 		if (!fqname.isEmpty()) {
 			val f = fqname.first()
 			//if (!f.isLetterOrUnderscore()) {
@@ -108,17 +116,20 @@ interface AstType {
 
 	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
 	//	constructor(ret: AstType, args: List<AstType>) : this(args.toArguments(), ret)
-	data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
+	//data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
+	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean) : AstType {
 		val argCount: Int get() = argTypes.size
-		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args.map { it.type })
-		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.map { it.type })
+		constructor(ret: AstType, argTypes: List<AstType>) : this(ret, argTypes.toArguments(), true)
+		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args, true)
+		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.toList(), true)
 		constructor(ret: AstType, vararg args: AstType) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret)
 
-		val argNames by lazy { argTypes.indices.map { "p$it" } }
-		val args by lazy { argTypes.zip(argNames).withIndex().map { AstArgument(it.index, it.value.first, it.value.second) } }
+		val argNames by lazy { args.map { it.name } }
+		val argTypes by lazy { args.map { it.type } }
 		val desc by lazy { this.mangle(true) }
 		val desc2 by lazy { this.mangle(false) }
 		val retVoid by lazy { ret == AstType.VOID }
+		val argsPlusReturn by lazy { argTypes + listOf(ret) }
 	}
 
 	companion object {
@@ -302,7 +313,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 	return this.mapIndexed { i, v -> AstArgument(i, v) }
 }
 
-data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index") {
+data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 }
 
 val AstType.elementType: AstType get() = when (this) {
@@ -407,7 +418,8 @@ data class AstBuildSettings(
 
 class AstProgram(
 	val entrypoint: FqName,
-	val classes: List<AstClass>
+	val classes: List<AstClass>,
+    val resourcesVfs: SyncVfsFile
 ) {
 	private val classesByFqname = classes.associateBy { it.name.fqname }
 
@@ -484,8 +496,9 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	val fields: List<AstField> = listOf(),
-	val methods: List<AstMethod> = listOf()
-) {
+	val methods: List<AstMethod> = listOf(),
+	override val annotationResolver: AnnotationResolver? = null
+) : AstElementWithAnnotations {
 	//val dependencies: AstReferences = AstReferences()
 	val isInterface: Boolean = classType == AstClassType.INTERFACE
 	val fqname = name.fqname
@@ -603,8 +616,9 @@ open class AstMember(
 	val name: String,
 	val type: AstType,
 	val isStatic: Boolean = false,
-	val visibility: AstVisibility = AstVisibility.PUBLIC
-) {
+	val visibility: AstVisibility = AstVisibility.PUBLIC,
+	override val annotationResolver: AnnotationResolver? = null
+) : AstElementWithAnnotations {
 	fun getContainingClass2(program: AstProgram) = program[containingClass]
 }
 
@@ -620,10 +634,32 @@ class AstField(
 	val isFinal: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val hasConstantValue: Boolean = false,
-	val constantValue: Any? = null
-) : AstMember(containingClass, name, type, isStatic, visibility)
+	val constantValue: Any? = null,
+	annotationResolver: AnnotationResolver? = null
+) : AstMember(containingClass, name, type, isStatic, visibility, annotationResolver)
 
 val AstField.ref: AstFieldRef get() = AstFieldRef(this.containingClass, this.name, this.type)
+
+interface AnnotationResolver {
+	fun has(className:String):Boolean
+	fun get(className:String, fieldName:String):Any?
+}
+
+interface AstElementWithAnnotations {
+	val annotationResolver: AnnotationResolver?
+}
+
+inline fun <reified C, T> AstElementWithAnnotations.resolveAnnotation(field:KProperty1<C, T>): T? {
+	if (annotationResolver != null) {
+		return annotationResolver?.get(C::class.qualifiedName!!, field.name) as T?
+	} else {
+		return null
+	}
+}
+
+inline fun <reified C> AstElementWithAnnotations.hasAnnotation(): Boolean {
+	return annotationResolver?.has(C::class.qualifiedName!!) ?: false
+}
 
 class AstMethod(
 	containingClass: FqName,
@@ -645,12 +681,14 @@ class AstMethod(
 	val isImplementing: Boolean = false,
 	val isNative: Boolean = false,
 	val isInline: Boolean = false,
-	val isOverriding: Boolean = overridingMethod != null
-) : AstMember(containingClass, name, type, isStatic, visibility) {
+	val isOverriding: Boolean = overridingMethod != null,
+    annotationResolver: AnnotationResolver? = null
+) : AstMember(containingClass, name, type, isStatic, visibility, annotationResolver) {
 	val methodType: AstType.METHOD_TYPE = type
 	val desc = methodType.desc
 	val ref: AstMethodRef get() = AstMethodRef(containingClass, name, methodType)
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(body) }
+
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
 

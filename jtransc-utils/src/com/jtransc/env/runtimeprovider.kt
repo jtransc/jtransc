@@ -16,10 +16,7 @@
 
 package com.jtransc.env
 
-import com.jtransc.vfs.LocalVfs
-import com.jtransc.vfs.MergeVfs
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.ZipVfs
+import com.jtransc.vfs.*
 import java.io.File
 import java.nio.file.Paths
 
@@ -43,14 +40,8 @@ class RuntimeProvider {
 
 	fun setClassPaths(paths: List<String>): Unit {
 		classpaths = paths
-		runtimeClassesVfs = MergeVfs(listOf(LocalVfs(java_runtime_classes_path)) + paths.map {
-			if (it.endsWith(".jar")) {
-				ZipVfs(it)
-			} else {
-				LocalVfs(it)
-			}
 
-		})
+		runtimeClassesVfs = MergeVfs(listOf(LocalVfs(java_runtime_classes_path)) + LocalAndJars(paths))
 	}
 
 	fun getClassVfsNode(className: String): SyncVfsFile {

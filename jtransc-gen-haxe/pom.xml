@@ -25,7 +25,7 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.0.5</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>jtransc-gen-haxe</artifactId>
@@ -62,6 +62,7 @@
 
     <build>
         <sourceDirectory>src</sourceDirectory>
+        <!--
         <resources>
             <resource>
                 <directory>resources</directory>
@@ -72,6 +73,7 @@
                 <directory>testresources</directory>
             </testResource>
         </testResources>
+        -->
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

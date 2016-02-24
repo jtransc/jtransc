@@ -17,64 +17,64 @@
 package java.io;
 
 public class ByteArrayInputStream extends InputStream {
-    protected byte buf[];
-    protected int pos;
-    protected int mark = 0;
-    protected int count;
+	protected byte buf[];
+	protected int pos;
+	protected int mark = 0;
+	protected int count;
 
-    public ByteArrayInputStream(byte data[]) {
-        this.buf = data;
-        this.pos = 0;
-        this.count = data.length;
-    }
+	public ByteArrayInputStream(byte data[]) {
+		this.buf = data;
+		this.pos = 0;
+		this.count = data.length;
+	}
 
-    public ByteArrayInputStream(byte data[], int offset, int length) {
-        this.buf = data;
-        this.pos = offset;
-        this.count = Math.min(offset + length, data.length);
-        this.mark = offset;
-    }
+	public ByteArrayInputStream(byte data[], int offset, int length) {
+		this.buf = data;
+		this.pos = offset;
+		this.count = Math.min(offset + length, data.length);
+		this.mark = offset;
+	}
 
-    public synchronized int read() {
-        return (pos < count) ? (buf[pos++] & 0xff) : -1;
-    }
+	public synchronized int read() {
+		return (pos < count) ? (buf[pos++] & 0xff) : -1;
+	}
 
-    public synchronized int read(byte data[], int offset, int length) {
-        if (data == null) throw new NullPointerException();
-        if (offset < 0 || length < 0 || length > data.length - offset) throw new IndexOutOfBoundsException();
+	public synchronized int read(byte data[], int offset, int length) {
+		if (data == null) throw new NullPointerException();
+		if (offset < 0 || length < 0 || length > data.length - offset) throw new IndexOutOfBoundsException();
 
-        if (pos >= count) return -1;
-        int avail = count - pos;
-        if (length > avail) length = avail;
-        if (length <= 0) return 0;
-        System.arraycopy(buf, pos, data, offset, length);
-        pos += length;
-        return length;
-    }
+		if (pos >= count) return -1;
+		int avail = count - pos;
+		if (length > avail) length = avail;
+		if (length <= 0) return 0;
+		System.arraycopy(buf, pos, data, offset, length);
+		pos += length;
+		return length;
+	}
 
-    public synchronized long skip(long n) {
-        long left = count - pos;
-        if (n < left) left = n < 0 ? 0 : n;
-        pos += left;
-        return left;
-    }
+	public synchronized long skip(long n) {
+		long left = count - pos;
+		if (n < left) left = n < 0 ? 0 : n;
+		pos += left;
+		return left;
+	}
 
-    public synchronized int available() {
-        return count - pos;
-    }
+	public synchronized int available() {
+		return count - pos;
+	}
 
-    public boolean markSupported() {
-        return true;
-    }
+	public boolean markSupported() {
+		return true;
+	}
 
-    public void mark(int readAheadLimit) {
-        mark = pos;
-    }
+	public void mark(int readAheadLimit) {
+		mark = pos;
+	}
 
-    public synchronized void reset() {
-        pos = mark;
-    }
+	public synchronized void reset() {
+		pos = mark;
+	}
 
-    public void close() throws IOException {
-    }
+	public void close() throws IOException {
+	}
 }

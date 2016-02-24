@@ -4,32 +4,29 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.error.noImpl
 import com.jtransc.io.readBytes
-import com.jtransc.types.Asm2Baf
-import com.jtransc.types.Baf2Jimple
-import com.jtransc.types.dump
-import com.jtransc.types.toExpr
-import com.jtransc.vfs.LocalVfs
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.ZipVfs
+import com.jtransc.types.*
+import com.jtransc.vfs.*
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
+import java.io.File
 import java.io.IOException
 
 object AsmToAst {
 	fun createProgramAst(dependencies: List<String>, entryPoint: String, classPaths2: List<String>, localVfs: SyncVfsFile, refs: Set<AstRef>): AstProgram {
 		return createProgramAst2(
 			AstType.REF(entryPoint),
-			VfsClassResolver(classPaths2.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(it) }),
+			LocalAndJars(classPaths2),
 			(refs + dependencies.map { AstClassRef(it) }).toSet()
 		)
 	}
 
-	fun createProgramAst2(entryPoint: AstType.REF, resolver: ClassResolver, references: Set<AstRef>): AstProgram {
+	fun createProgramAst2(entryPoint: AstType.REF, classPaths: List<SyncVfsFile>, references: Set<AstRef>): AstProgram {
+		val resolver: ClassResolver = VfsClassResolver(classPaths)
 		val programBuilder = AstProgramBuilder(resolver)
 		val clazz = programBuilder[entryPoint.name]
-		return AstProgram(entryPoint.name, programBuilder.classes)
+		return AstProgram(entryPoint.name, programBuilder.classes, MergeVfs(classPaths))
 	}
 }
 

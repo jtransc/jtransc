@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.JTranscData;
+import jtransc.JTranscBits;
 import jtransc.internal.JTranscIOSync;
 import jtransc.internal.JTranscIOSyncFile;
 
@@ -158,7 +158,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 
 	public final short readShort() throws IOException {
 		read(temp, 0, 2);
-		return (short) JTranscData.readInt16BE(temp);
+		return (short) JTranscBits.readInt16BE(temp);
 	}
 
 	public final int readUnsignedShort() throws IOException {
@@ -171,7 +171,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 
 	public final int readInt() throws IOException {
 		read(temp, 0, 4);
-		return (int) JTranscData.readInt32BE(temp);
+		return (int) JTranscBits.readInt32BE(temp);
 	}
 
 	public final long readLong() throws IOException {
@@ -225,7 +225,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public final void writeShort(int v) throws IOException {
-		write(JTranscData.getInt16BE(temp, (short) v), 0, 2);
+		write(JTranscBits.getInt16BE(temp, (short) v), 0, 2);
 	}
 
 	public final void writeChar(int v) throws IOException {
@@ -233,11 +233,11 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public final void writeInt(int v) throws IOException {
-		write(JTranscData.getInt32BE(temp, (short) v), 0, 4);
+		write(JTranscBits.getInt32BE(temp, (short) v), 0, 4);
 	}
 
 	public final void writeLong(long v) throws IOException {
-		write(JTranscData.getInt64BE(temp, (long) v), 0, 8);
+		write(JTranscBits.getInt64BE(temp, (long) v), 0, 8);
 	}
 
 	public final void writeFloat(float v) throws IOException {

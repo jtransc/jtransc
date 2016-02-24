@@ -24,47 +24,47 @@ import java.nio.charset.Charset;
 import java.util.Enumeration;
 
 public class ZipFile implements ZipConstants, Closeable {
-    public static final int OPEN_READ = 0x1;
-    public static final int OPEN_DELETE = 0x4;
+	public static final int OPEN_READ = 0x1;
+	public static final int OPEN_DELETE = 0x4;
 
-    public ZipFile(String name) throws IOException {
-        this(new File(name), OPEN_READ);
-    }
+	public ZipFile(String name) throws IOException {
+		this(new File(name), OPEN_READ);
+	}
 
-    public ZipFile(File file, int mode) throws IOException {
-        this(file, mode, Charset.forName("UTF-8"));
-    }
+	public ZipFile(File file, int mode) throws IOException {
+		this(file, mode, Charset.forName("UTF-8"));
+	}
 
-    public ZipFile(File file) throws ZipException, IOException {
-        this(file, OPEN_READ);
-    }
+	public ZipFile(File file) throws ZipException, IOException {
+		this(file, OPEN_READ);
+	}
 
-    public ZipFile(File file, int mode, Charset charset) throws IOException {
-    }
+	public ZipFile(File file, int mode, Charset charset) throws IOException {
+	}
 
-    public ZipFile(String name, Charset charset) throws IOException {
-        this(new File(name), OPEN_READ, charset);
-    }
+	public ZipFile(String name, Charset charset) throws IOException {
+		this(new File(name), OPEN_READ, charset);
+	}
 
-    public ZipFile(File file, Charset charset) throws IOException {
-        this(file, OPEN_READ, charset);
-    }
+	public ZipFile(File file, Charset charset) throws IOException {
+		this(file, OPEN_READ, charset);
+	}
 
-    native public String getComment();
+	native public String getComment();
 
-    native public ZipEntry getEntry(String name);
+	native public ZipEntry getEntry(String name);
 
-    native public InputStream getInputStream(ZipEntry entry) throws IOException;
+	native public InputStream getInputStream(ZipEntry entry) throws IOException;
 
-    native public String getName();
+	native public String getName();
 
-    native public Enumeration<? extends ZipEntry> entries();
+	native public Enumeration<? extends ZipEntry> entries();
 
-    native public int size();
+	native public int size();
 
-    native public void close() throws IOException;
+	native public void close() throws IOException;
 
-    protected void finalize() throws IOException {
-        close();
-    }
+	protected void finalize() throws IOException {
+		close();
+	}
 }

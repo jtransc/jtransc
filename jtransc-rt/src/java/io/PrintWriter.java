@@ -131,7 +131,7 @@ public class PrintWriter extends Writer {
 	}
 
 	public void write(int value) {
-		write(new char[] { (char)value }, 0, 1);
+		write(new char[]{(char) value}, 0, 1);
 	}
 
 	public void write(char value[], int offset, int length) {

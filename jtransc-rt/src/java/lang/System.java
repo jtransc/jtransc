@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.internal.StdioInputStream;
 import jtransc.internal.StdioStream;
 
@@ -24,68 +25,83 @@ import java.io.PrintStream;
 import java.util.Properties;
 
 public class System {
-    public final static InputStream in = new StdioInputStream();
-    static public final PrintStream out = new StdioStream();
-    static public final PrintStream err = out;
+	public final static InputStream in = new StdioInputStream();
+	static public final PrintStream out = new StdioStream();
+	static public final PrintStream err = out;
 
-    native public static void setIn(InputStream in);
+	native public static void setIn(InputStream in);
 
-    native public static void setOut(PrintStream out);
+	native public static void setOut(PrintStream out);
 
-    native public static void setErr(PrintStream err);
+	native public static void setErr(PrintStream err);
 
-    //native public static Console console();
-    //native public static Channel inheritedChannel() throws IOException;
+	//native public static Console console();
+	//native public static Channel inheritedChannel() throws IOException;
 
-    //native public static void setSecurityManager(final SecurityManager s);
-    //native public static SecurityManager getSecurityManager();
+	//native public static void setSecurityManager(final SecurityManager s);
+	//native public static SecurityManager getSecurityManager();
 
-    public static native long currentTimeMillis();
+    @HaxeMethodBody(
+            "#if sys\n" +
+            "return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
+            "#else\n" +
+            "return HaxeNatives.floatToLong(Date.now().getTime());\n" +
+            "#end\n"
+    )
+    //@JTranscMethodBody({
+    //        "haxe-sys", "return HaxeNatives.floatToLong(Sys.time() * 1000);",
+    //        "haxe", "return HaxeNatives.floatToLong(Date.now().getTime());"
+    //})
+	public static native long currentTimeMillis();
 
-    public static long nanoTime() {
-        return currentTimeMillis() * 1000000L;
-    }
+	public static long nanoTime() {
+		return currentTimeMillis() * 1000000L;
+	}
 
-    public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
+    @HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
+	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
-    public static native int identityHashCode(Object x);
+    @HaxeMethodBody("return p0.__ID__ | 0;")
+	public static native int identityHashCode(Object x);
 
-    native public static Properties getProperties();
+	native public static Properties getProperties();
 
-    native public static String lineSeparator();
+	native public static String lineSeparator();
 
-    native public static void setProperties(Properties props);
+	native public static void setProperties(Properties props);
 
-    native public static String getProperty(String key);
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
+	native public static String getProperty(String key);
 
-    native public static String getProperty(String key, String def);
+	native public static String getProperty(String key, String def);
 
-    native public static String setProperty(String key, String value);
+	native public static String setProperty(String key, String value);
 
-    native public static String clearProperty(String key);
+	native public static String clearProperty(String key);
 
-    native public static String getenv(String name);
+	native public static String getenv(String name);
 
-    native public static java.util.Map<String, String> getenv();
+	native public static java.util.Map<String, String> getenv();
 
-    native public static void exit(int status);
+	native public static void exit(int status);
 
+    @HaxeMethodBody("")
     native public static void gc();
 
-    native public static void runFinalization();
+	native public static void runFinalization();
 
-    @Deprecated
-    native public static void runFinalizersOnExit(boolean value);
+	@Deprecated
+	native public static void runFinalizersOnExit(boolean value);
 
-    public static void load(String filename) {
+	public static void load(String filename) {
 
-    }
+	}
 
-    public static void loadLibrary(String libname) {
+	public static void loadLibrary(String libname) {
 
-    }
+	}
 
-    public static String mapLibraryName(String libname) {
-        return libname;
-    }
+	public static String mapLibraryName(String libname) {
+		return libname;
+	}
 }

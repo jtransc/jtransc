@@ -18,11 +18,11 @@ package java.lang;
 
 public class InstantiationError extends RuntimeException {
 
-    public InstantiationError() {
-    }
+	public InstantiationError() {
+	}
 
-    public InstantiationError(String message) {
-        super(message);
-    }
+	public InstantiationError(String message) {
+		super(message);
+	}
 
 }

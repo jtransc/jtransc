@@ -20,119 +20,119 @@ import java.math.RoundingMode;
 import java.util.Currency;
 
 public class DecimalFormat extends NumberFormat {
-    public DecimalFormat() {
-    }
+	public DecimalFormat() {
+	}
 
-    public DecimalFormat(String pattern) {
-    }
+	public DecimalFormat(String pattern) {
+	}
 
-    public DecimalFormat(String pattern, DecimalFormatSymbols symbols) {
-    }
+	public DecimalFormat(String pattern, DecimalFormatSymbols symbols) {
+	}
 
-    @Override
-    native public final StringBuffer format(Object number, StringBuffer toAppendTo, FieldPosition pos);
+	@Override
+	native public final StringBuffer format(Object number, StringBuffer toAppendTo, FieldPosition pos);
 
-    @Override
-    native public StringBuffer format(double value, StringBuffer result, FieldPosition fieldPosition);
+	@Override
+	native public StringBuffer format(double value, StringBuffer result, FieldPosition fieldPosition);
 
-    @Override
-    native public StringBuffer format(long value, StringBuffer result, FieldPosition fieldPosition);
+	@Override
+	native public StringBuffer format(long value, StringBuffer result, FieldPosition fieldPosition);
 
-    @Override
-    native public AttributedCharacterIterator formatToCharacterIterator(Object obj);
+	@Override
+	native public AttributedCharacterIterator formatToCharacterIterator(Object obj);
 
-    @Override
-    native public Number parse(String text, ParsePosition pos);
+	@Override
+	native public Number parse(String text, ParsePosition pos);
 
-    native public DecimalFormatSymbols getDecimalFormatSymbols();
+	native public DecimalFormatSymbols getDecimalFormatSymbols();
 
-    native public void setDecimalFormatSymbols(DecimalFormatSymbols newSymbols);
+	native public void setDecimalFormatSymbols(DecimalFormatSymbols newSymbols);
 
-    native public String getPositivePrefix();
+	native public String getPositivePrefix();
 
-    native public void setPositivePrefix(String newValue);
+	native public void setPositivePrefix(String newValue);
 
-    native public String getNegativePrefix();
+	native public String getNegativePrefix();
 
-    native public void setNegativePrefix(String newValue);
+	native public void setNegativePrefix(String newValue);
 
-    native public String getPositiveSuffix();
+	native public String getPositiveSuffix();
 
-    native public void setPositiveSuffix(String newValue);
+	native public void setPositiveSuffix(String newValue);
 
-    native public String getNegativeSuffix();
+	native public String getNegativeSuffix();
 
-    native public void setNegativeSuffix(String newValue);
+	native public void setNegativeSuffix(String newValue);
 
-    native public int getMultiplier();
+	native public int getMultiplier();
 
-    native public void setMultiplier(int newValue);
+	native public void setMultiplier(int newValue);
 
-    @Override
-    native public void setGroupingUsed(boolean newValue);
+	@Override
+	native public void setGroupingUsed(boolean newValue);
 
-    native public int getGroupingSize();
+	native public int getGroupingSize();
 
-    native public void setGroupingSize(int newValue);
+	native public void setGroupingSize(int newValue);
 
-    native public boolean isDecimalSeparatorAlwaysShown();
+	native public boolean isDecimalSeparatorAlwaysShown();
 
-    native public void setDecimalSeparatorAlwaysShown(boolean newValue);
+	native public void setDecimalSeparatorAlwaysShown(boolean newValue);
 
-    native public boolean isParseBigDecimal();
+	native public boolean isParseBigDecimal();
 
-    native public void setParseBigDecimal(boolean newValue);
+	native public void setParseBigDecimal(boolean newValue);
 
-    @Override
-    native public Object clone();
+	@Override
+	native public Object clone();
 
-    @Override
-    native public boolean equals(Object obj);
+	@Override
+	native public boolean equals(Object obj);
 
-    @Override
-    native public int hashCode();
+	@Override
+	native public int hashCode();
 
-    native public String toPattern();
+	native public String toPattern();
 
-    native public String toLocalizedPattern();
+	native public String toLocalizedPattern();
 
-    native public void applyPattern(String pattern);
+	native public void applyPattern(String pattern);
 
-    native public void applyLocalizedPattern(String pattern);
+	native public void applyLocalizedPattern(String pattern);
 
-    @Override
-    native public void setMaximumIntegerDigits(int newValue);
+	@Override
+	native public void setMaximumIntegerDigits(int newValue);
 
-    @Override
-    native public void setMinimumIntegerDigits(int newValue);
+	@Override
+	native public void setMinimumIntegerDigits(int newValue);
 
-    @Override
-    native public void setMaximumFractionDigits(int newValue);
+	@Override
+	native public void setMaximumFractionDigits(int newValue);
 
-    @Override
-    native public void setMinimumFractionDigits(int newValue);
+	@Override
+	native public void setMinimumFractionDigits(int newValue);
 
-    @Override
-    native public int getMaximumIntegerDigits();
+	@Override
+	native public int getMaximumIntegerDigits();
 
-    @Override
-    native public int getMinimumIntegerDigits();
+	@Override
+	native public int getMinimumIntegerDigits();
 
-    @Override
-    native public int getMaximumFractionDigits();
+	@Override
+	native public int getMaximumFractionDigits();
 
-    @Override
-    native public int getMinimumFractionDigits();
+	@Override
+	native public int getMinimumFractionDigits();
 
-    @Override
-    native public Currency getCurrency();
+	@Override
+	native public Currency getCurrency();
 
-    @Override
-    native public void setCurrency(Currency currency);
+	@Override
+	native public void setCurrency(Currency currency);
 
-    @Override
-    native public RoundingMode getRoundingMode();
+	@Override
+	native public RoundingMode getRoundingMode();
 
-    @Override
-    native public void setRoundingMode(RoundingMode roundingMode);
+	@Override
+	native public void setRoundingMode(RoundingMode roundingMode);
 }

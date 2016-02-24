@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Float extends Number implements Comparable<Float> {
 	public static final float POSITIVE_INFINITY = 1.0f / 0.0f;
@@ -31,6 +32,7 @@ public final class Float extends Number implements Comparable<Float> {
 	public static final int BYTES = SIZE / Byte.SIZE;
 	public static final Class<Float> TYPE = (Class<Float>) Class.getPrimitiveClass("float");
 
+    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	native public static String toString(float value);
 
 	native public static String toHexString(float value);
@@ -44,10 +46,13 @@ public final class Float extends Number implements Comparable<Float> {
 
 	native public static float parseFloat(String value) throws NumberFormatException;
 
+    @HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(float value);
 
+    @HaxeMethodBody("return Math.isInfinite(p0);")
 	native public static boolean isInfinite(float value);
 
+    @HaxeMethodBody("return Math.isFinite(p0);")
 	native public static boolean isFinite(float value);
 
 	private final float value;
@@ -68,7 +73,9 @@ public final class Float extends Number implements Comparable<Float> {
 
 	native public boolean isInfinite();
 
-	native public String toString();
+	public String toString() {
+        return toString(value);
+    }
 
 	native public byte byteValue();
 
@@ -100,13 +107,15 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	public boolean equals(Object obj) {
-		return (obj instanceof Float) && (floatToIntBits(((Float)obj).value) == floatToIntBits(value));
+		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
 
-	native public static int floatToIntBits(float value);
+    @HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+    native public static int floatToIntBits(float value);
 
 	public static native int floatToRawIntBits(float value);
 
+    @HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")
 	public static native float intBitsToFloat(int bits);
 
 	native public int compareTo(Float that);

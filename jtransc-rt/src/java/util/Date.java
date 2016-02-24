@@ -16,28 +16,38 @@
 
 package java.util;
 
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
+@HaxeAddMembers({ "var _date:Date;" })
 public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
+    @HaxeMethodBody("_date = Date.now();")
 	public Date() {
 		this(System.currentTimeMillis());
 	}
 
+    @HaxeMethodBody("_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
 	public Date(long date) {
 	}
 
 	@Deprecated
+    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
 	public Date(int year, int month, int date) {
 	}
 
 	@Deprecated
+    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
 	public Date(int year, int month, int date, int hrs, int min) {
 
 	}
 
 	@Deprecated
+    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
 	public Date(int year, int month, int date, int hrs, int min, int sec) {
 	}
 
 	@Deprecated
+    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
 	public Date(String s) {
 	}
 
@@ -47,9 +57,10 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public static long UTC(int year, int month, int date, int hrs, int min, int sec);
 
 	@Deprecated
+    @HaxeMethodBody("return HaxeNatives.floatToLong(Date.fromString(p0._str).getTime());")
 	native public static long parse(String s);
 
-	@Deprecated
+    @Deprecated
 	native public int getYear();
 
 	@Deprecated
@@ -62,7 +73,8 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public void setMonth(int month);
 
 	@Deprecated
-	native public int getDate();
+    @HaxeMethodBody("return _date.getDay();")
+    native public int getDate();
 
 	@Deprecated
 	native public void setDate(int date);
@@ -71,6 +83,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public int getDay();
 
 	@Deprecated
+    @HaxeMethodBody("return _date.getHours();")
 	native public int getHours();
 
 	@Deprecated
@@ -88,6 +101,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	@Deprecated
 	native public void setSeconds(int seconds);
 
+    @HaxeMethodBody("return HaxeNatives.floatToLong(_date.getTime());")
 	native public long getTime();
 
 	native public void setTime(long time);

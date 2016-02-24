@@ -18,8 +18,10 @@ package java.lang;
 
 class _ClassInternalUtils {
 	static private ClassLoader classLoader;
+
 	static ClassLoader getSystemClassLoader() {
-		if (classLoader == null) classLoader = new ClassLoader() {};
+		if (classLoader == null) classLoader = new ClassLoader() {
+		};
 		return classLoader;
 	}
 }

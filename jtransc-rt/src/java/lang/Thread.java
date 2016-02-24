@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.util.Map;
 
 public class Thread implements Runnable {

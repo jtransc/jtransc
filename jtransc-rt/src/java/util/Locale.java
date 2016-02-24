@@ -152,7 +152,7 @@ public final class Locale implements Cloneable, Serializable {
 	public enum Category {
 		DISPLAY, FORMAT;
 		/*
-        DISPLAY("user.language.display", "user.script.display", "user.country.display", "user.variant.display"),
+	    DISPLAY("user.language.display", "user.script.display", "user.country.display", "user.variant.display"),
         FORMAT("user.language.format", "user.script.format", "user.country.format", "user.variant.format");
 
         Category(String languageKey, String scriptKey, String countryKey, String variantKey) {

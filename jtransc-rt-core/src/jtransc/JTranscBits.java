@@ -210,4 +210,44 @@ public class JTranscBits {
 		for (int i = f; i <= l; i++) m |= 1L << i;
 		return m;
 	}
+
+	static public byte[] getInt64BE(byte[] data, long v) {
+		data[0] = (byte)(v >> 56);
+		data[1] = (byte)(v >> 48);
+		data[2] = (byte)(v >> 40);
+		data[3] = (byte)(v >> 32);
+		data[4] = (byte)(v >> 24);
+		data[5] = (byte)(v >> 16);
+		data[6] = (byte)(v >> 8);
+		data[7] = (byte)(v >> 0);
+		return data;
+	}
+
+	static public byte[] getInt32BE(byte[] data, int v) {
+		data[0] = (byte)(v >> 24);
+		data[1] = (byte)(v >> 16);
+		data[2] = (byte)(v >> 8);
+		data[3] = (byte)(v >> 0);
+		return data;
+	}
+
+	static public byte[] getInt16BE(byte[] data, short v) {
+		data[0] = (byte)(v >> 8);
+		data[1] = (byte)(v >> 0);
+		return data;
+	}
+
+	static public byte[] getInt8BE(byte[] data, byte v) {
+		data[0] = v;
+		return data;
+	}
+
+	static public short readInt16BE(byte[] data) {
+		return (short)((data[0] << 8) | (data[1] & 0xFF));
+	}
+
+	static public int readInt32BE(byte[] data) {
+		return (int)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + (data[3] << 0));
+	}
+
 }

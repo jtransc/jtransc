@@ -17,11 +17,11 @@
 package java.lang;
 
 public class AbstractMethodError extends Error {
-    public AbstractMethodError() {
-    }
+	public AbstractMethodError() {
+	}
 
-    public AbstractMethodError(String message) {
-        super(message);
-    }
+	public AbstractMethodError(String message) {
+		super(message);
+	}
 
 }

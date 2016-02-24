@@ -19,23 +19,23 @@ package java.security;
 import java.nio.ByteBuffer;
 
 public abstract class MessageDigestSpi {
-    protected int engineGetDigestLength() {
-        return 0;
-    }
+	protected int engineGetDigestLength() {
+		return 0;
+	}
 
-    protected abstract void engineUpdate(byte input);
+	protected abstract void engineUpdate(byte input);
 
-    protected abstract void engineUpdate(byte[] input, int offset, int len);
+	protected abstract void engineUpdate(byte[] input, int offset, int len);
 
-    native public static int getTempArraySize(int len);
+	native public static int getTempArraySize(int len);
 
-    native protected void engineUpdate(ByteBuffer input);
+	native protected void engineUpdate(ByteBuffer input);
 
-    protected abstract byte[] engineDigest();
+	protected abstract byte[] engineDigest();
 
-    native protected int engineDigest(byte[] buf, int offset, int len) throws DigestException;
+	native protected int engineDigest(byte[] buf, int offset, int len) throws DigestException;
 
-    protected abstract void engineReset();
+	protected abstract void engineReset();
 
-    native public Object clone() throws CloneNotSupportedException;
+	native public Object clone() throws CloneNotSupportedException;
 }

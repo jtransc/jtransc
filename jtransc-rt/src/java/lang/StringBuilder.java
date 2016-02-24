@@ -16,8 +16,12 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
+@HaxeAddMembers({"public var _str:String = '';"})
 public class StringBuilder extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
-//public class StringBuilder implements java.io.Serializable, CharSequence {
+    //public class StringBuilder implements java.io.Serializable, CharSequence {
     public StringBuilder() {
         //super(16);
         this(16);
@@ -39,41 +43,52 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
     }
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(Object obj);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(String str);
 
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(StringBuffer sb);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(CharSequence s);
 
     @Override
     native public StringBuilder append(CharSequence s, int start, int end);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(char[] str);
 
     @Override
     native public StringBuilder append(char[] str, int offset, int len);
 
     @Override
+    @HaxeMethodBody("this._str += p0 ? 'true' : 'false'; return this;")
     native public StringBuilder append(boolean b);
 
     @Override
+    @HaxeMethodBody("this._str += String.fromCharCode(p0); return this;")
     native public StringBuilder append(char c);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(int i);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(long lng);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(float f);
 
     @Override
+    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(double d);
 
     @Override
@@ -141,14 +156,21 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
 
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
+    @HaxeMethodBody("return this._str.length;")
     native public int length();
 
+    @HaxeMethodBody("return this._str.charCodeAt(p0);")
     native public char charAt(int index);
 
     native public CharSequence subSequence(int start, int end);
 
     @Override
+    @HaxeMethodBody("return HaxeNatives.str(this._str);")
     native public String toString();
+
+    @Override
+    @HaxeMethodBody("this._str = this._str.substr(0, p0);")
+    native public void setLength(int newLength);
 
     //native public IntStream chars();
     //native public IntStream codePoints();

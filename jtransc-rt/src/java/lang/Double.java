@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Double extends Number implements Comparable<Double> {
 	public static final double POSITIVE_INFINITY = 1.0 / 0.0;
@@ -32,6 +33,7 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
+    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	native public static String toString(double d);
 
 	native public static String toHexString(double d);
@@ -43,10 +45,13 @@ public final class Double extends Number implements Comparable<Double> {
 		return new Double(d);
 	}
 
+    @HaxeMethodBody("return Std.parseFloat(p0._str);")
 	native public static double parseDouble(String value);
 
+    @HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(double v);
 
+    @HaxeMethodBody("return Math.isInfinite(p0);")
 	native public static boolean isInfinite(double v);
 
 	public static boolean isFinite(double d) {
@@ -109,13 +114,15 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	public boolean equals(Object obj) {
-		return (obj instanceof Double) && (doubleToLongBits(((Float)obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
+		return (obj instanceof Double) && (doubleToLongBits(((Float) obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
 	}
 
+    @HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
 	native public static long doubleToLongBits(double value);
 
 	public static native long doubleToRawLongBits(double value);
 
+    @HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
 	public static native double longBitsToDouble(long bits);
 
 	native public int compareTo(Double anotherDouble);

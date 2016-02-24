@@ -86,6 +86,7 @@ class Stack<T> : Iterable<T> {
 	fun isEmpty() = !hasMore
 }
 
+// @TODO: Make clearer!
 fun <T> List<T>.flatMapInChunks(chunkSize:Int, handler: (items: List<T>) -> List<T>): List<T> {
     var out = this
     var n = 0
@@ -98,6 +99,19 @@ fun <T> List<T>.flatMapInChunks(chunkSize:Int, handler: (items: List<T>) -> List
         n++
     }
     return out
+}
+
+fun <T, T2> List<T>.flatMapInChunks2(chunkSize:Int, handler: (items: List<T>) -> List<T2>): List<T2> {
+	var out = arrayListOf<T2>()
+	for (n in 0 until this.size / chunkSize) {
+		//println("IN: $out")
+		out.addAll(handler(this.slice(n * chunkSize until n * chunkSize + chunkSize)))
+	}
+	return out
+}
+
+fun <T> List<T>.createPairs(): List<Pair<T, T>> {
+	return this.flatMapInChunks2(2) { listOf(Pair(it[0], it[1])) }
 }
 
 fun <K, V> Map<K, V>.toHashMap():HashMap<K, V> {

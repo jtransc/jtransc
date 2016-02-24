@@ -37,6 +37,13 @@ class Indenter : ToString {
 			indenter.init()
 			return indenter
 		}
+
+		fun replaceString(templateString: String, replacements: Map<String, String>): String {
+			val pattern = Regex("\\$(\\w+)")
+			return pattern.replace(templateString) { result ->
+				replacements[result.groupValues[1]] ?: ""
+			}
+		}
 	}
 
 	var indents: String = ""

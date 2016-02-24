@@ -9,7 +9,7 @@ import com.jtransc.text.Indenter
 fun dump(body: AstBody): Indenter {
 	return Indenter.gen {
 		for (local in body.locals) {
-			line(dump(local.type) + " " + local.name + ";")
+			line(javaDump(local.type) + " " + local.name + ";")
 		}
 		line(dump(body.stm))
 	}
@@ -49,7 +49,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.BINOP -> dump(expr.left) + " " + expr.op.symbol + " " + dump(expr.right)
 		is AstExpr.LITERAL -> expr.value.toString()
 		is AstExpr.LOCAL -> expr.local.name
-		is AstExpr.CAST -> "((" + dump(expr.to) + ")" + dump(expr.expr) + ")"
+		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }
 			val argsString = args.joinToString(", ");
@@ -64,7 +64,7 @@ fun dump(expr: AstExpr?): String {
 	}
 }
 
-fun dump(type: AstType?): String {
+fun javaDump(type: AstType?): String {
 	return when (type) {
 		null -> "null"
 		is AstType.VOID -> "void"
@@ -75,7 +75,7 @@ fun dump(type: AstType?): String {
 		is AstType.LONG -> "long"
 		is AstType.FLOAT -> "float"
 		is AstType.DOUBLE -> "double"
-		is AstType.ARRAY -> dump(type.element) + "[]"
+		is AstType.ARRAY -> javaDump(type.element) + "[]"
 		is AstType.REF -> type.fqname
 		else -> type.mangle()
 	}

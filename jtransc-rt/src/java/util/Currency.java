@@ -19,26 +19,26 @@ package java.util;
 import java.io.Serializable;
 
 public final class Currency implements Serializable {
-    native public static Currency getInstance(String currencyCode);
+	native public static Currency getInstance(String currencyCode);
 
-    native public static Currency getInstance(Locale locale);
+	native public static Currency getInstance(Locale locale);
 
-    native public static Set<Currency> getAvailableCurrencies();
+	native public static Set<Currency> getAvailableCurrencies();
 
-    native public String getCurrencyCode();
+	native public String getCurrencyCode();
 
-    native public String getSymbol();
+	native public String getSymbol();
 
-    native public String getSymbol(Locale locale);
+	native public String getSymbol(Locale locale);
 
-    native public int getDefaultFractionDigits();
+	native public int getDefaultFractionDigits();
 
-    native public int getNumericCode();
+	native public int getNumericCode();
 
-    native public String getDisplayName();
+	native public String getDisplayName();
 
-    native public String getDisplayName(Locale locale);
+	native public String getDisplayName(Locale locale);
 
-    @Override
-    native public String toString();
+	@Override
+	native public String toString();
 }

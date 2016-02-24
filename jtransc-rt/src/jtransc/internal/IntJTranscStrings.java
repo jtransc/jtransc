@@ -17,11 +17,13 @@
 package jtransc.internal;
 
 import jtransc.annotation.JTranscInvisible;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.util.Locale;
 
 @JTranscInvisible
 public class IntJTranscStrings {
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.formatBoxed(p1._str, p2.toArray()));")
 	native public static String format(Locale l, String format, Object... args);
 
 	static public char[] getChars(String s, int offset, int len) {

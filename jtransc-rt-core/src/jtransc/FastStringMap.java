@@ -17,25 +17,34 @@
 package jtransc;
 
 import jtransc.annotation.JTranscInvisible;
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.annotation.haxe.HaxeRemoveField;
 
 import java.util.HashMap;
 
 @JTranscInvisible
+@HaxeAddMembers({"var _map = new Map<String, Dynamic>();"})
 public class FastStringMap<T> {
+    @HaxeRemoveField
 	private HashMap<String, T> map;
 
+    @HaxeMethodBody("")
 	public FastStringMap() {
 		this.map = new HashMap<String, T>();
 	}
 
-	public T get(String key) {
+    @HaxeMethodBody("return _map.get(p0._str);")
+    public T get(String key) {
 		return this.map.get(key);
 	}
 
+    @HaxeMethodBody("_map.set(p0._str, p1);")
 	public void set(String key, T value) {
 		this.map.put(key, value);
 	}
 
+    @HaxeMethodBody("return _map.exists(p0._str);")
 	public boolean has(String key) {
 		return this.map.containsKey(key);
 	}

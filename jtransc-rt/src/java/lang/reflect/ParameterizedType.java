@@ -17,9 +17,9 @@
 package java.lang.reflect;
 
 public interface ParameterizedType extends Type {
-    Type[] getActualTypeArguments();
+	Type[] getActualTypeArguments();
 
-    Type getRawType();
+	Type getRawType();
 
-    Type getOwnerType();
+	Type getOwnerType();
 }

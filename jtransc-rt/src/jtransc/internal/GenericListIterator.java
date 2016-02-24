@@ -20,53 +20,53 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class GenericListIterator<T> implements ListIterator<T> {
-    private List<T> list;
-    private int index = 0;
+	private List<T> list;
+	private int index = 0;
 
-    public GenericListIterator(List<T> list, int index) {
-        this.list = list;
-        this.index = index;
-    }
+	public GenericListIterator(List<T> list, int index) {
+		this.list = list;
+		this.index = index;
+	}
 
-    public boolean hasNext() {
-        return index < list.size();
-    }
+	public boolean hasNext() {
+		return index < list.size();
+	}
 
-    public T next() {
-        return list.get(index++);
-    }
+	public T next() {
+		return list.get(index++);
+	}
 
-    @Override
-    public boolean hasPrevious() {
-        return index > 0;
-    }
+	@Override
+	public boolean hasPrevious() {
+		return index > 0;
+	}
 
-    @Override
-    public T previous() {
-        return list.get(index - 1);
-    }
+	@Override
+	public T previous() {
+		return list.get(index - 1);
+	}
 
-    @Override
-    public int nextIndex() {
-        return index + 1;
-    }
+	@Override
+	public int nextIndex() {
+		return index + 1;
+	}
 
-    @Override
-    public int previousIndex() {
-        return index - 1;
-    }
+	@Override
+	public int previousIndex() {
+		return index - 1;
+	}
 
-    public void remove() {
-        this.list.remove(index);
-    }
+	public void remove() {
+		this.list.remove(index);
+	}
 
-    @Override
-    public void set(T t) {
-        this.list.set(index, t);
-    }
+	@Override
+	public void set(T t) {
+		this.list.set(index, t);
+	}
 
-    @Override
-    public void add(T t) {
-        this.list.add(index, t);
-    }
+	@Override
+	public void add(T t) {
+		this.list.add(index, t);
+	}
 }

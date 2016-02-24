@@ -19,9 +19,9 @@ package java.lang;
 import java.lang.annotation.Annotation;
 
 public interface AnnotatedElement {
-    <T extends Annotation> T getAnnotation(Class<T> annotationClass);
+	<T extends Annotation> T getAnnotation(Class<T> annotationClass);
 
-    Annotation[] getAnnotations();
+	Annotation[] getAnnotations();
 
-    Annotation[] getDeclaredAnnotations();
+	Annotation[] getDeclaredAnnotations();
 }

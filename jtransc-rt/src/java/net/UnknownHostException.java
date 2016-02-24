@@ -22,6 +22,7 @@ public class UnknownHostException extends IOException {
 	public UnknownHostException(String host) {
 		super(host);
 	}
+
 	public UnknownHostException() {
 	}
 }

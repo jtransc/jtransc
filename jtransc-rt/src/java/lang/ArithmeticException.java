@@ -17,10 +17,11 @@
 package java.lang;
 
 public class ArithmeticException extends RuntimeException {
-    public ArithmeticException(String explanation) {
-        super(explanation);
-    }
-    public ArithmeticException() {
-        super();
-    }
+	public ArithmeticException(String explanation) {
+		super(explanation);
+	}
+
+	public ArithmeticException() {
+		super();
+	}
 }

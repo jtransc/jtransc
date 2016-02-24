@@ -119,6 +119,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	operator fun set(path: String, content: ToString) = access(path).ensureParentDir().write(content.toString())
 	operator fun set(path: String, content: ByteBuffer) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: ByteArray) = access(path).ensureParentDir().write(content.toBuffer())
+	operator fun set(path: String, content: SyncVfsFile) = access(path).ensureParentDir().write(content.readBytes())
 	operator fun contains(path: String): Boolean = access(path).exists
 
 	fun jailAccess(path: String): SyncVfsFile = access(path).jail()
@@ -350,9 +351,15 @@ private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
 }
 
 fun RootLocalVfs(): SyncVfsFile = _LocalVfs().root()
-fun MergeVfs(nodes: List<SyncVfsFile>): SyncVfsFile = MergedSyncVfs(nodes).root()
+fun MergeVfs(nodes: List<SyncVfsFile>) = MergedSyncVfs(nodes).root()
+fun MergedLocalAndJars(paths: List<String>) = MergeVfs(LocalAndJars(paths))
+fun LocalAndJars(paths: List<String>): List<SyncVfsFile> {
+	return paths.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(File(it)) }
+}
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
+@Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = _LocalVfs().root().access(path).jail()
+fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
 fun CwdVfs(): SyncVfsFile = LocalVfs(RawIo.cwd())
 fun CwdVfs(path: String): SyncVfsFile = CwdVfs().jailAccess(path)
 fun ScriptVfs(): SyncVfsFile = LocalVfs(RawIo.script())

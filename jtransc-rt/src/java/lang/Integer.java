@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Integer extends Number implements Comparable<Integer> {
 	public static final int MIN_VALUE = 0x80000000;
@@ -34,6 +35,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.intToString(p0, p1));")
 	native public static String toString(int i, int radix);
 
 	native public static String toUnsignedString(int i, int radix);
@@ -58,6 +60,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
+    @HaxeMethodBody("return HaxeNatives.parseInt(p0._str, p1);")
 	native public static int parseInt(String s, int radix);
 
 	public static int parseInt(String s) {
@@ -78,23 +81,23 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return valueOf(s, 10);
 	}
 
-    static private Integer[] values;
+	static private Integer[] values;
 
-    static private final int MIN = -128;
-    static private final int MAX = 128;
-    static private final int LENGTH = MAX - MIN;
+	static private final int MIN = -128;
+	static private final int MAX = 128;
+	static private final int LENGTH = MAX - MIN;
 
 	@JTranscKeep
 	public static Integer valueOf(int i) {
-        if (values == null) {
-            values = new Integer[LENGTH];
-            for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
-        }
-        if (i >= MIN && i < MAX) {
-            return values[i - MIN];
-        } else {
-            return new Integer(i);
-        }
+		if (values == null) {
+			values = new Integer[LENGTH];
+			for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
+		}
+		if (i >= MIN && i < MAX) {
+			return values[i - MIN];
+		} else {
+			return new Integer(i);
+		}
 	}
 
 	public byte byteValue() {

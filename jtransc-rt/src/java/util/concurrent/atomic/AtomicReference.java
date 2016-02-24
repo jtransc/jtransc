@@ -17,24 +17,24 @@
 package java.util.concurrent.atomic;
 
 public class AtomicReference<V> implements java.io.Serializable {
-    public AtomicReference(V initialValue) {
+	public AtomicReference(V initialValue) {
 
-    }
+	}
 
-    public AtomicReference() {
-    }
+	public AtomicReference() {
+	}
 
-    native public final V get();
+	native public final V get();
 
-    native public final void set(V newValue);
+	native public final void set(V newValue);
 
-    native public final void lazySet(V newValue);
+	native public final void lazySet(V newValue);
 
-    native public final boolean compareAndSet(V expect, V update);
+	native public final boolean compareAndSet(V expect, V update);
 
-    native public final boolean weakCompareAndSet(V expect, V update);
+	native public final boolean weakCompareAndSet(V expect, V update);
 
-    native public final V getAndSet(V newValue);
+	native public final V getAndSet(V newValue);
 
-    native public String toString();
+	native public String toString();
 }

@@ -75,6 +75,7 @@ inline fun <T> chdirTemp(path: String, callback: () -> T): T {
 data class ProcessResult(val output: ByteBuffer, val error: ByteBuffer, val exitCode: Int) {
     val outputString: String get() = output.toString(UTF8).trim()
     val errorString: String get() = error.toString(UTF8).trim()
+	val success: Boolean get() = exitCode == 0
 }
 
 /*

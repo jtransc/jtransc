@@ -17,9 +17,9 @@
 package java.lang.reflect;
 
 public interface TypeVariable<D extends GenericDeclaration> extends Type, AnnotatedElement {
-    Type[] getBounds();
+	Type[] getBounds();
 
-    D getGenericDeclaration();
+	D getGenericDeclaration();
 
-    String getName();
+	String getName();
 }

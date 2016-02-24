@@ -18,6 +18,7 @@ package com.jtransc.gen
 
 import com.jtransc.ast.*
 
+@Deprecated("Target-specific annotations should deprecate this!")
 class ClassMappings {
 	private val mappings = hashMapOf<String, ClassMapping>()
 	val adaptorsSet = hashSetOf<String>()
@@ -26,11 +27,12 @@ class ClassMappings {
 		mappings[className] = ClassMapping.map(this, className, callback)
 	}
 
-	fun getClassMapping(clazz: String): ClassMapping? = mappings[clazz]
+	//fun getClassMapping(clazz: String): ClassMapping? = mappings[clazz]
 	fun getClassMapping(clazz: FqName): ClassMapping? = mappings[clazz.fqname]
-	fun getClassMapping(clazz: AstClass): ClassMapping? = mappings[clazz.name.fqname]
+
+	//fun getClassMapping(clazz: AstClass): ClassMapping? = mappings[clazz.name.fqname]
 	fun getClassMapping(clazz: AstClassRef): ClassMapping? = mappings[clazz.name.fqname]
-	fun getClassMapping(clazz: AstType.REF): ClassMapping? = mappings[clazz.name.fqname]
+	//fun getClassMapping(clazz: AstType.REF): ClassMapping? = mappings[clazz.name.fqname]
 
 	fun getBody(method: AstMethodRef): String? {
 		val mapping = mappings[method.containingClass.fqname]
@@ -67,6 +69,12 @@ class ClassMappings {
 	}
 }
 
+/*
+fun ClassMappings?.getClassMembers():List<String> {
+
+}
+*/
+
 class ClassMapping(val mappings: ClassMappings, val className: String) {
 	data class ClassReplacement(val base: String, val importNew: String, val typeTag: String)
 	data class ClassAdaptor(val from: String, val to: String, val adaptor: String)
@@ -94,7 +102,7 @@ class ClassMapping(val mappings: ClassMappings, val className: String) {
 	val FLOAT = AstType.FLOAT
 	val DOUBLE = AstType.DOUBLE
 
-	fun REF(name:String) = AstType.REF(name)
+	fun REF(name: String) = AstType.REF(name)
 	fun ARRAY(type: AstType) = AstType.ARRAY(type)
 	fun METHOD(ret: AstType, vararg args: AstType): String = AstType.METHOD_TYPE(args.toList().toArguments(), ret).desc
 	fun ARGS(vararg types: AstType) = listOf(*types)

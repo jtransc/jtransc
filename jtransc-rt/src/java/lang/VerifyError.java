@@ -17,11 +17,11 @@
 package java.lang;
 
 public class VerifyError extends Error {
-    public VerifyError() {
-        super();
-    }
+	public VerifyError() {
+		super();
+	}
 
-    public VerifyError(String message) {
-        super(message);
-    }
+	public VerifyError(String message) {
+		super(message);
+	}
 }

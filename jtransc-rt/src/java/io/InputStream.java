@@ -17,67 +17,67 @@
 package java.io;
 
 public abstract class InputStream implements Closeable {
-    private static final int MAX_SKIP_BUFFER_SIZE = 2048;
+	private static final int MAX_SKIP_BUFFER_SIZE = 2048;
 
-    public abstract int read() throws IOException;
+	public abstract int read() throws IOException;
 
-    public int read(byte b[]) throws IOException {
-        return read(b, 0, b.length);
-    }
+	public int read(byte b[]) throws IOException {
+		return read(b, 0, b.length);
+	}
 
-    public int read(byte data[], int offset, int length) throws IOException {
-        if (length == 0) return 0;
+	public int read(byte data[], int offset, int length) throws IOException {
+		if (length == 0) return 0;
 
-        int c = read();
-        if (c == -1) return -1;
-        data[offset] = (byte) c;
+		int c = read();
+		if (c == -1) return -1;
+		data[offset] = (byte) c;
 
-        int n = 1;
-        try {
-            while (n < length) {
-                c = read();
-                if (c == -1) break;
-                data[offset + n] = (byte) c;
-                n++;
-            }
-        } catch (IOException e) {
-        }
-        return n;
-    }
+		int n = 1;
+		try {
+			while (n < length) {
+				c = read();
+				if (c == -1) break;
+				data[offset + n] = (byte) c;
+				n++;
+			}
+		} catch (IOException e) {
+		}
+		return n;
+	}
 
-    public long skip(long n) throws IOException {
-        long remaining = n;
-        int nr;
+	public long skip(long n) throws IOException {
+		long remaining = n;
+		int nr;
 
-        if (n <= 0) return 0;
+		if (n <= 0) return 0;
 
-        int size = (int) Math.min(MAX_SKIP_BUFFER_SIZE, remaining);
-        byte[] skipBuffer = new byte[size];
-        while (remaining > 0) {
-            nr = read(skipBuffer, 0, (int) Math.min(size, remaining));
-            if (nr < 0) break;
-            remaining -= nr;
-        }
+		int size = (int) Math.min(MAX_SKIP_BUFFER_SIZE, remaining);
+		byte[] skipBuffer = new byte[size];
+		while (remaining > 0) {
+			nr = read(skipBuffer, 0, (int) Math.min(size, remaining));
+			if (nr < 0) break;
+			remaining -= nr;
+		}
 
-        return n - remaining;
-    }
+		return n - remaining;
+	}
 
-    public int available() throws IOException {
-        return 0;
-    }
+	public int available() throws IOException {
+		return 0;
+	}
 
-    public void close() throws IOException {
-    }
+	public void close() throws IOException {
+	}
 
-    public synchronized void mark(int readlimit) {
-    }
+	public synchronized void mark(int readlimit) {
+	}
 
-    public synchronized void reset() throws IOException {
-        throw new IOException("mark/reset not supported");
-    }
+	public synchronized void reset() throws IOException {
+		throw new IOException("mark/reset not supported");
+	}
 
-    public boolean markSupported() {
-        return false;
-    }
+	public boolean markSupported() {
+		return false;
+	}
 
 }
