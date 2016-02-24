@@ -184,7 +184,7 @@ object HaxeTools {
 			val className = "${name}Library"
 			Pair("$className.java", Indenter.genString {
 				//line("package _root;")
-				line("""@jtransc.annotation.JTranscLibrary("${lib.nameWithVersion}")""")
+				line("""@jtransc.annotation.haxe.HaxeAddLibraries({ "${lib.nameWithVersion}" })""")
 				line("public class $className") {
 					line("""static public void use() { }""")
 					line("""static public java.lang.String getName() { return "${lib.name}"; }""")

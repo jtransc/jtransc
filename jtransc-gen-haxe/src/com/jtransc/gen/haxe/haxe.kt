@@ -17,11 +17,9 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
+import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
-import com.jtransc.gen.GenTarget
-import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.GenTargetInfo
-import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.*
 import com.jtransc.gen.haxe.GenHaxe.getHaxeType
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
@@ -33,10 +31,7 @@ import com.jtransc.text.toUcFirst
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
-import jtransc.annotation.haxe.HaxeAddFiles
-import jtransc.annotation.haxe.HaxeAddMembers
-import jtransc.annotation.haxe.HaxeMethodBody
-import jtransc.annotation.haxe.HaxeRemoveField
+import jtransc.annotation.haxe.*
 import java.io.File
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
@@ -49,18 +44,62 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 	override fun getGenerator() = GenHaxe
 }
 
-
 enum class InitMode {
 	START,
 	START_OLD,
 	LAZY
 }
 
+//val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
+val HaxeFeatures = setOf(SwitchesFeature)
+
+val HaxeKeywords = setOf(
+	"java",
+	"package",
+	"import",
+	"class", "interface", "extends", "implements",
+	"internal", "private", "protected", "final",
+	"function", "var", "const",
+	"if", "else",
+	"switch", "case", "default",
+	"do", "while", "for", "each", "in",
+	"break", "continue",
+	"int", "uint", "void",
+	"goto"
+)
+
+enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null) {
+	JS(switch = "-js", singleFile = true, interpreter = "node"),
+	CPP(switch = "-cpp", singleFile = false, interpreter = null),
+	SWF(switch = "-swf", singleFile = true, interpreter = null),
+	NEKO(switch = "-neko", singleFile = true, interpreter = "neko"),
+	PHP(switch = "-php", singleFile = false, interpreter = "php"),
+	CS(switch = "-cs", singleFile = false, interpreter = null),
+	JAVA(switch = "-java", singleFile = false, interpreter = "java -jar"),
+	PYTHON(switch = "-python", singleFile = true, interpreter = "python")
+	;
+
+	companion object {
+		fun fromString(subtarget: String) = when (subtarget.toLowerCase()) {
+			"" -> HaxeSubtarget.JS
+			"js", "javascript" -> HaxeSubtarget.JS
+			"cpp", "c", "c++" -> HaxeSubtarget.CPP
+			"swf", "flash", "as3" -> HaxeSubtarget.SWF
+			"neko" -> HaxeSubtarget.NEKO
+			"php" -> HaxeSubtarget.PHP
+			"cs", "c#" -> HaxeSubtarget.CS
+			"java" -> HaxeSubtarget.JAVA
+			"python" -> HaxeSubtarget.PYTHON
+			else -> throw InvalidOperationException("Unknown subtarget '$subtarget'")
+		}
+	}
+}
+
 object GenHaxe : GenTarget {
 	//val copyFiles = HaxeCopyFiles
 	//val mappings = HaxeMappings()
 
-	val mappings = LimeMappings()
+	val mappings = ClassMappings()
 
 	val INIT_MODE = InitMode.LAZY
 
@@ -123,8 +162,6 @@ object GenHaxe : GenTarget {
 		return cachedFieldNames[field]!!
 	}
 
-	val HAXESDK by lazy { HaxeSdk.HAXESDK }
-
 	class MutableProgramInfo {
 		//val initializingCalls = arrayListOf<String>()
 	}
@@ -185,25 +222,30 @@ object GenHaxe : GenTarget {
 			}
 		}
 
-		if (limeEntryPoint) {
-			vfs[entryPointFilePath] = GenHaxeLime.createMain(
-				entryPointPackage = entryPointPackage,
-				entryPointSimpleName = entryPointSimpleName,
-				inits = ::inits,
-				mainClass = mainClass,
-				mainMethod = mainMethod
-			)
-		} else {
-			vfs[entryPointFilePath] = Indenter.gen {
-				line("package $entryPointPackage;")
-				line("class $entryPointSimpleName") {
-					line("static public function main()") {
-						line(inits())
-						line("$mainClass.$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
-					}
+		val customMain = program.classes
+			.map { it.resolveAnnotation(HaxeCustomMain::value) }
+			.filterNotNull()
+			.firstOrNull()
+
+		val plainMain = Indenter.genString {
+			line("package \$entryPointPackage;")
+			line("class \$entryPointSimpleName") {
+				line("static public function main()") {
+					line("\$inits")
+					line("\$mainClass.\$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
 				}
 			}
 		}
+
+		val realMain = customMain ?: plainMain
+
+		vfs[entryPointFilePath] = Indenter.replaceString(realMain, mapOf(
+			"entryPointPackage" to entryPointPackage,
+			"entryPointSimpleName" to entryPointSimpleName,
+			"mainClass" to mainClass,
+			"mainMethod" to mainMethod,
+			"inits" to inits().toString()
+		))
 
 		vfs["HaxeReflectionInfo.hx"] = Indenter.genString {
 			fun AstType.REF.getAnnotationProxyName(program:AstProgram):String {
@@ -384,6 +426,7 @@ object GenHaxe : GenTarget {
 		//val tempdir = System.getProperty("java.io.tmpdir")
 		val tempdir = tinfo.targetDirectory
 		var info: ProgramInfo? = null
+		val program = tinfo.program
 
 		File("$tempdir/jtransc-haxe/src").mkdirs()
 		val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
@@ -400,15 +443,23 @@ object GenHaxe : GenTarget {
 				outputFile2.delete()
 				println("haxe.build source path: " + srcFolder.realpathOS)
 
-				val buildArgs = listOf(
+				val buildArgs = arrayListOf(
 					"-cp", ".",
 					"-main", info!!.entryPointFile
 				)
 				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
 
+				for (lib in program.classes.map { it.resolveAnnotation(HaxeAddLibraries::value) }.filterNotNull().flatMap { it.toList() }) {
+					buildArgs += listOf("-lib", lib)
+				}
+
 				//println("Running: -optimize=true ${info.entryPointFile}")
-				return ProcessUtils.runAndRedirect(srcFolder.realfile, "haxe", releaseArgs + subtargetArgs + buildArgs).success
+				return ProcessUtils.runAndRedirect(
+					srcFolder.realfile,
+					"haxe",
+					releaseArgs + subtargetArgs + buildArgs
+				).success
 			}
 
 			override fun run(redirect: Boolean): ProcessResult2 {

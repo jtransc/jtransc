@@ -23,7 +23,7 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.annotation.haxe.HaxeRemoveField;
 
 // Flash-compatible intrinsics that will use fastest inlined memory access
-@HaxeAddMembers({ "haxe", "public var data:haxe.io.BytesData;" })
+@HaxeAddMembers({ "public var data:haxe.io.BytesData;" })
 final public class Mem {
     @HaxeRemoveField
 	static private FastMemory mem;

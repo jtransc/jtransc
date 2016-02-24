@@ -15,4 +15,22 @@ public class JTranscSystem {
         if (start < 0) start = System.currentTimeMillis();
         return (int) (System.currentTimeMillis() - start);
     }
+
+    @HaxeMethodBody("HaxeNatives.gcDisable();")
+    static public void gcDisable() {
+    }
+
+    @HaxeMethodBody("HaxeNatives.gcEnable();")
+    static public void gcEnable() {
+    }
+
+    @HaxeMethodBody("HaxeNatives.gc();")
+    static public void gc() {
+        System.gc();
+    }
+
+    @HaxeMethodBody("return true;")
+    static public boolean usingJTransc() {
+        return false;
+    }
 }

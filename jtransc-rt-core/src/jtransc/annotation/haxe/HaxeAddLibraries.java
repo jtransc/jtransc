@@ -1,4 +1,4 @@
-package jtransc.annotation;
+package jtransc.annotation.haxe;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface JTranscMappings {
-	String value();
+public @interface HaxeAddLibraries {
+	String[] value();
 }

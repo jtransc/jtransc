@@ -17,8 +17,10 @@
 package jtransc;
 
 import jtransc.annotation.JTranscInline;
+import jtransc.annotation.JTranscInvisible;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
+@JTranscInvisible
 final public class FastMemory4Int {
 	private FastMemory mem;
 

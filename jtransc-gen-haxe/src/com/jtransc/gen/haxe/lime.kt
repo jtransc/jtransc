@@ -42,19 +42,6 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 object GenHaxeLime : GenTarget {
 	override val runningAvailable: Boolean = true
 
-	fun createMain(entryPointPackage: String, entryPointSimpleName: String, inits: () -> Indenter, mainClass: String, mainMethod: String): Indenter {
-		return Indenter.gen {
-			line("package $entryPointPackage;")
-			line("class $entryPointSimpleName extends HaxeLimeJTranscApplication") {
-				line("public function new()") {
-					line("super();")
-					line(inits())
-					line("$mainClass.$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
-				}
-			}
-		}
-	}
-
 	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
 		line("""<?xml version="1.0" encoding="utf-8"?>""")
 		line("""<project>""")

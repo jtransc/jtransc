@@ -1,4 +1,4 @@
-package jtransc.annotation;
+package jtransc.annotation.haxe;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.FIELD})
-public @interface JTranscConditional {
-    String value();
+@Target(ElementType.TYPE)
+public @interface HaxeCustomMain {
+	String value();
 }
