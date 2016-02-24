@@ -1,6 +1,8 @@
 JTRANSC
 -------
 
+![JTransc](extra/logo.png)
+
 [![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
 
 # What is this?
