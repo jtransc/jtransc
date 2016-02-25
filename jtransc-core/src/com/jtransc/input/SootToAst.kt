@@ -198,53 +198,22 @@ class SootToAst {
 		}
 	}
 
-	fun generateMethod(containingClass: AstClass, method: SootMethod, context: SootContext): AstMethod {
-		val methodRef = method.astRef
-		val methodContext = context[method]
-		val body = if (method.isConcrete) AstMethodProcessor.processBody(method, context) else null
-		val annotations = method.tags.toAstAnnotations()
+	fun generateMethod(containingClass: AstClass, method: SootMethod, context: SootContext) = AstMethod(
+		containingClass = containingClass,
+		annotations = method.tags.toAstAnnotations(),
+		name = method.name,
+		type = method.astRef.type,
+		body = if (method.isConcrete) AstMethodProcessor.processBody(method, context) else null,
+		signature = method.astType.mangle(),
+		genericSignature = method.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
+		defaultTag = method.tags.filterIsInstance<AnnotationDefaultTag>().firstOrNull()?.toAstAnnotation(),
+		modifiers = method.modifiers,
+		isStatic = method.isStatic,
+		visibility = method.astVisibility,
+		isNative = method.isNative
+		//nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
+	)
 
-		return AstMethod(
-			containingClass = containingClass,
-			annotations = annotations,
-			name = methodRef.name,
-			type = methodRef.type,
-			body = body,
-			signature = method.astType.mangle(),
-			genericSignature = method.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
-			defaultTag = method.tags.filterIsInstance<AnnotationDefaultTag>().firstOrNull()?.toAstAnnotation(),
-			modifiers = method.modifiers,
-			isExtraAdded = false,
-			isStatic = method.isStatic,
-			visibility = method.astVisibility,
-			overridingMethod = methodContext.overridingMethod,
-			isImplementing = method.isMethodImplementing,
-			isNative = method.isNative
-			//nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
-		)
-	}
-
-	fun AnnotationElem.unboxAnnotationElement(): Pair<String, Any?> {
-		val it = this
-		return it.name to when (it) {
-			is AnnotationBooleanElem -> it.value
-			is AnnotationClassElem -> throw NotImplementedError("Unhandled annotation element type $it")
-			is AnnotationAnnotationElem -> throw NotImplementedError("Unhandled annotation element type $it")
-			is AnnotationEnumElem -> {
-				val type = AstType.demangle(it.typeName) as AstType.REF
-				AstFieldRef(type.name, it.constantName, type)
-			}
-			is AnnotationArrayElem -> it.values.map { it.unboxAnnotationElement() }
-			is AnnotationFloatElem -> it.value
-			is AnnotationDoubleElem -> it.value
-			is AnnotationIntElem -> it.value
-			is AnnotationLongElem -> it.value
-			is AnnotationStringElem -> it.value
-			else -> throw NotImplementedError("Unhandled annotation element type $it")
-		}
-	}
-
-	fun AnnotationDefaultTag.toAstAnnotation() = this.defaultVal.unboxAnnotationElement()
 
 	fun generateField(containingClass: AstClass, field: SootField, context: SootContext): AstField {
 		val it = field
@@ -744,22 +713,28 @@ fun AnnotationTag.getElements():List<AnnotationElem> {
 	return (0 until this.numElems).map { this.getElemAt(it) }
 }
 
-fun AnnotationElem.getValue(): Any? {
-	return when (this) {
-		is AnnotationStringElem -> this.value
-		is AnnotationBooleanElem -> this.value
-		is AnnotationIntElem -> this.value
-		is AnnotationFloatElem -> this.value
-		is AnnotationDoubleElem -> this.value
-		is AnnotationLongElem -> this.value
-		is AnnotationArrayElem -> this.values.map { it.getValue() }
-		is AnnotationClassElem -> null
-		is AnnotationEnumElem -> null
-		else -> {
-			noImpl("Not implemented type: $this")
-		}
+fun AnnotationElem?.getValue(): Any? = when (this) {
+	null -> null
+	is AnnotationStringElem -> this.value
+	is AnnotationBooleanElem -> this.value
+	is AnnotationIntElem -> this.value
+	is AnnotationFloatElem -> this.value
+	is AnnotationDoubleElem -> this.value
+	is AnnotationLongElem -> this.value
+	is AnnotationArrayElem -> this.values.map { it.getValue() }
+	is AnnotationClassElem -> null
+	is AnnotationEnumElem -> {
+		val type = AstType.demangle(this.typeName) as AstType.REF
+		AstFieldRef(type.name, this.constantName, type)
+	}
+	else -> {
+		noImpl("Not implemented type: $this")
 	}
 }
+
+fun AnnotationElem.unboxAnnotationElement() = Pair(this.name, this.getValue())
+
+fun AnnotationDefaultTag.toAstAnnotation() = this.defaultVal.unboxAnnotationElement()
 
 fun SootClass.getSuperClassOrNull(): SootClass? = if (this.hasSuperclass()) this.superclass else null
 
@@ -787,9 +762,7 @@ fun SootClass.hasMethod(name: String, parameterTypes: List<soot.Type>): Boolean 
 
 fun SootClass.hasMethod2(name: String, parameterTypes: List<soot.Type>): Boolean {
 	val methodsWithName = this.getMethodsWithName(name)
-	val result = methodsWithName.any {
-		it.parameterTypes == parameterTypes
-	}
+	val result = methodsWithName.any { it.parameterTypes == parameterTypes }
 	return result
 }
 
@@ -870,6 +843,7 @@ val SootMethod.overridingMethod: AstMethodRef? get() {
 	}
 }
 
+/*
 val SootMethod.isMethodImplementing: Boolean get() {
 	fun locateMethodInInterfaces(clazz: SootClass, method: SootMethod): Boolean {
 		val name = method.name
@@ -889,6 +863,7 @@ val SootMethod.isMethodImplementing: Boolean get() {
 	}
 	return locateMethodInInterfaces(this.declaringClass, this)
 }
+*/
 
 fun SootClass.getAllImplementedMethods(): List<AstMethodRef> {
 	return this.getAncestors(includeThis = true).flatMap { it.methods }.map { it.astRef }

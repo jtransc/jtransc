@@ -552,25 +552,23 @@ object GenHaxe : GenTarget {
 				throw e
 			}
 
-			if (decl != null) {
-				if (isInterface) {
-					if (!method.isImplementing) {
-						line("$decl;")
+			if (isInterface) {
+				if (!method.isImplementing) {
+					line("$decl;")
+				}
+			} else {
+				val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
+
+				if (method.body != null && body == null) {
+					line(decl) {
+						when (INIT_MODE) {
+							InitMode.START_OLD -> line("__hx_static__init__();")
+						}
+						line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
 					}
 				} else {
-					val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
-
-					if (method.body != null && body == null) {
-						line(decl) {
-							when (INIT_MODE) {
-								InitMode.START_OLD -> line("__hx_static__init__();")
-							}
-							line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
-						}
-					} else {
-						val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc} :: ${method.isExtraAdded}\";"
-						line("$decl { $body2 }")
-					}
+					val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
+					line("$decl { $body2 }")
 				}
 			}
 		}

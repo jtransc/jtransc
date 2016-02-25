@@ -173,6 +173,29 @@ class AstClass(
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val fieldsByName = hashMapOf<String, AstField>()
 
+	fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
+
+	fun getParentClass(): AstClass? = if (extending != null) program[extending] else null
+
+	fun getAllInterfaces(): List<AstClass> {
+		val out = arrayListOf<AstClass>()
+		val sets = hashSetOf<AstClass>()
+		val queue: Queue<AstClass> = LinkedList<AstClass>()
+		queue += this
+		while (queue.isNotEmpty()) {
+			val item = queue.remove()
+			if (item.isInterface && item != this) out += item
+			for (i in item.getDirectInterfaces()) {
+				if (i !in sets) {
+					sets += i
+					queue += i
+				}
+			}
+		}
+		//return (getParentClass()?.getAllInterfaces() ?: listOf()) + getAllInterfaces().flatMap { it.getAllInterfaces() }
+		return out
+	}
+
 	fun add(field: AstField) {
 		if (finished) invalidOp("Finished class")
 		fields.add(field)
@@ -342,7 +365,6 @@ class AstMethod(
 	name: String,
 	type: AstType.METHOD_TYPE,
 	annotations: List<AstAnnotation>,
-	val isExtraAdded: Boolean,
 	val signature: String,
 	val genericSignature: String?,
 	val defaultTag: Any?,
@@ -350,8 +372,6 @@ class AstMethod(
 	val body: AstBody? = null,
 	isStatic: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
-	val overridingMethod: AstMethodRef? = null,
-	val isImplementing: Boolean = false,
 	val isNative: Boolean = false
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, type, isStatic, visibility, annotations) {
@@ -373,6 +393,13 @@ class AstMethod(
 		return false
 	}
 
+	val isImplementing: Boolean get() {
+		for (i in containingClass.getAllInterfaces()) {
+			if (i.getMethod(this.name, this.desc) != null) return true
+		}
+		return false
+	}
+
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
 
@@ -388,8 +415,7 @@ fun AstMethodRef.toEmptyMethod(program: AstProgram, isStatic: Boolean = false, v
 		modifiers = 0,
 		body = null,
 		isStatic = isStatic,
-		visibility = AstVisibility.PUBLIC,
-		isExtraAdded = true
+		visibility = AstVisibility.PUBLIC
 	)
 }
 
