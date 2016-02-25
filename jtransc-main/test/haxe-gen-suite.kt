@@ -54,8 +54,8 @@ class HaxeGenSuite {
 
 	@Test fun stringsTest() = testClass<JTranscStringTest>()
 
-	//@Test fun bug12Test() = testClass<JTranscBug12Test>()
-	//@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
+	@Test fun bug12Test() = testClass<JTranscBug12Test>()
+	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())

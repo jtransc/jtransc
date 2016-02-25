@@ -51,11 +51,15 @@ public final class Double extends Number implements Comparable<Double> {
     @HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(double v);
 
-    @HaxeMethodBody("return Math.isInfinite(p0);")
-	native public static boolean isInfinite(double v);
+	@HaxeMethodBody("return Math.isFinite(p0);")
+	native private static boolean _isFinite(double v);
+
+	public static boolean isInfinite(double v) {
+		return _isFinite(v);
+	}
 
 	public static boolean isFinite(double d) {
-		return !isInfinite(d);
+		return !_isFinite(d);
 	}
 
 	private final double value;

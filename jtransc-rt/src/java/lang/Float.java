@@ -49,11 +49,16 @@ public final class Float extends Number implements Comparable<Float> {
     @HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(float value);
 
-    @HaxeMethodBody("return Math.isInfinite(p0);")
-	native public static boolean isInfinite(float value);
+	@HaxeMethodBody("return Math.isFinite(p0);")
+	native private static boolean _isFinite(float v);
 
-    @HaxeMethodBody("return Math.isFinite(p0);")
-	native public static boolean isFinite(float value);
+	public static boolean isInfinite(float v) {
+		return _isFinite(v);
+	}
+
+	public static boolean isFinite(float d) {
+		return !_isFinite(d);
+	}
 
 	private final float value;
 

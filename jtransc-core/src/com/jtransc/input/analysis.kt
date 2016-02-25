@@ -306,6 +306,8 @@ class AnaProject(val resolver: SyncVfsFile) {
 					val clazz = this[ref]
 					val keepMembers = clazz.members.filter { it.keep }.map { it.ref }
 					val fields = clazz.fields.values.map { it.ref }
+					//val allMethods = clazz.methods.values.map { it.ref }
+					val allMembers = clazz.members.map { it.ref }
 					val list2 = listOf(ref, clazz.parent?.ref) + clazz.interfaces.map { it.ref }
 					//if (keepMembers.isNotEmpty()) println("keepMembers: $keepMembers")
 
@@ -316,7 +318,7 @@ class AnaProject(val resolver: SyncVfsFile) {
 					//val members2 = if (isAbstract) clazz.methods.values.filter { !it.isStatic && it.isAbstract }.map { it.ref } else listOf()
 					val members2 = listOf<AstRef>()
 					if (exploreFullClasses) {
-						fields + clazz.methods.values.map { it.ref } + list2 + extraReferencedClasses
+						fields + list2 + keepMembers + members2 + extraReferencedClasses + allMembers
 					} else {
 						fields + list2 + keepMembers + members2 + extraReferencedClasses
 					}

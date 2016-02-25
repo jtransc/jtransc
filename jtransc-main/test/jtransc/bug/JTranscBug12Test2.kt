@@ -9,7 +9,7 @@ import jtransc.annotation.JTranscReferenceClass
 object JTranscBug12Test2 {
 	@JvmStatic fun main(args: Array<String>) {
 		println("[1]");
-		println(Demo::field)
+		val field = Demo::field
 		println("[2]");
 	}
 

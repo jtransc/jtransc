@@ -55,16 +55,16 @@ public final class Math {
     @HaxeMethodBody("return Math.log(p0);")
 	native public static double log(double a);
 
-    @HaxeMethodBody("return Math.log10(p0);")
+    //@HaxeMethodBody("return Math.log10(p0);")
 	native public static double log10(double a);
 
     @HaxeMethodBody("return Math.sqrt(p0);")
 	native public static double sqrt(double a);
 
-    @HaxeMethodBody("return Math.cbrt(p0);")
+    //@HaxeMethodBody("return Math.cbrt(p0);")
 	native public static double cbrt(double a);
 
-    @HaxeMethodBody("return Math.IEEEremainder(p0, p1);")
+    //@HaxeMethodBody("return Math.IEEEremainder(p0, p1);")
 	native public static double IEEEremainder(double f1, double f2);
 
     @HaxeMethodBody("return Math.ceil(p0);")
@@ -73,7 +73,7 @@ public final class Math {
     @HaxeMethodBody("return Math.floor(p0);")
 	native public static double floor(double a);
 
-    @HaxeMethodBody("return Math.rint(p0);")
+    //@HaxeMethodBody("return Math.rint(p0);")
 	native public static double rint(double a);
 
     @HaxeMethodBody("return Math.atan2(p0, p1);")
@@ -178,13 +178,13 @@ public final class Math {
     @HaxeMethodBody("return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
 	native public static float signum(float f);
 
-    @HaxeMethodBody("return Math.sinh(p0);")
+    //@HaxeMethodBody("return Math.sinh(p0);")
 	native public static double sinh(double x);
 
-    @HaxeMethodBody("return Math.cosh(p0);")
+    //@HaxeMethodBody("return Math.cosh(p0);")
 	native public static double cosh(double x);
 
-    @HaxeMethodBody("return Math.tanh(p0);")
+    //@HaxeMethodBody("return Math.tanh(p0);")
 	native public static double tanh(double x);
 
     @HaxeMethodBody("return Math.sqrt((p0 * p0) + (p1 * p1));")
@@ -214,10 +214,10 @@ public final class Math {
 
 	native public static float nextDown(float f);
 
-    @HaxeMethodBody("return Math.scalab(p0, p1);")
+    //@HaxeMethodBody("return Math.scalab(p0, p1);")
 	native public static double scalb(double d, int scaleFactor);
 
-    @HaxeMethodBody("return Math.scalab(p0, p1);")
+    //@HaxeMethodBody("return Math.scalab(p0, p1);")
 	native public static float scalb(float f, int scaleFactor);
 
     //body("addExact", "*", "return p0 + p1;") // @TODO: Not like this! Check Overflows!

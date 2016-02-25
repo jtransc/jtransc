@@ -542,7 +542,7 @@ object GenHaxe : GenTarget {
 			val visibility = if (isInterface) " " else method.visibility.haxe
 			addTypeReference(method.methodType)
 			val margs = method.methodType.args.map { it.name + ":" + it.type.getHaxeType(program, TypeKind.TYPETAG) }
-			var override = if (method.isOverriding) "override " else ""
+			var override = if (method.isOverriding(program)) "override " else ""
 			val inline = if (method.isInline) "inline " else ""
 			val decl = try {
 				"$static $visibility $inline $override function ${method.ref.getHaxeMethodName(program)}(${margs.joinToString(", ")}):${method.methodType.ret.getHaxeType(program, TypeKind.TYPETAG)}".trim()
@@ -856,16 +856,17 @@ object GenHaxe : GenTarget {
 					addTypeReference(stm.target)
 					val commaArgs = stm.args.map { it.gen(program, clazz, stm, mutableBody) }.joinToString(", ")
 					val className = stm.target.getHaxeType(program, TypeKind.NEW)
+					val localHaxeName = stm.local.haxeName
 
 					if (newClazz.nativeName != null) {
-						line("${stm.local.haxeName} = new $className($commaArgs);")
+						line("$localHaxeName = new $className($commaArgs);")
 					} else {
 						val methodInline = mappings.getFunctionInline(stm.method)
 						if (methodInline != null) {
-							line("${stm.local.haxeName} = ${methodInline.replacement.replace("@args", commaArgs)};")
+							line("$localHaxeName = ${methodInline.replacement.replace("@args", commaArgs)};")
 						} else {
-							line("${stm.local.haxeName} = new $className();")
-							line("${stm.local.haxeName}.${stm.method.getHaxeMethodName(program)}($commaArgs);")
+							line("$localHaxeName = new $className();")
+							line("$localHaxeName.${stm.method.getHaxeMethodName(program)}($commaArgs);")
 						}
 					}
 				}

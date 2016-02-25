@@ -523,6 +523,7 @@ class AstClass(
 	}
 
 	operator fun get(ref: AstMethodRef) = getMethodSure(ref.name, ref.desc)
+	operator fun get(ref: AstMethodWithoutClassRef) = getMethod(ref.name, ref.desc)
 	operator fun get(ref: AstFieldRef) = fieldsByName[ref.name]!!
 
 	val hasStaticInit: Boolean get() = staticInitMethod != null
@@ -702,6 +703,13 @@ class AstMethod(
 	val desc = methodType.desc
 	val ref: AstMethodRef get() = AstMethodRef(containingClass, name, methodType)
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(body) }
+
+	fun isOverriding(program:AstProgram):Boolean {
+		for (ancestor in program[containingClass].getAncestors(program)) {
+			if (ancestor[ref.withoutClass] != null) return true
+		}
+		return false
+	}
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
