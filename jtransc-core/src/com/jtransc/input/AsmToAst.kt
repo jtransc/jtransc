@@ -13,6 +13,7 @@ import org.objectweb.asm.tree.MethodNode
 import java.io.File
 import java.io.IOException
 
+/*
 object AsmToAst {
 	fun createProgramAst(dependencies: List<String>, entryPoint: String, classPaths2: List<String>, localVfs: SyncVfsFile, refs: Set<AstRef>): AstProgram {
 		return createProgramAst2(
@@ -93,15 +94,15 @@ object AstMethodBuilderTest {
 
 class AstMethodBuilder(val clazz: AstClassBuilder, val node: MethodNode) {
 	val method: AstMethod get() {
-		/*
-		return AstMethod(
-			name = node.name,
-			annotations = listOf(),
-			isExtraAdded = false,
-			modifiers = node.access,
-			body = node.toBaf().toExpr()
-		)
-		*/
+
+		//return AstMethod(
+		//	name = node.name,
+		//	annotations = listOf(),
+		//	isExtraAdded = false,
+		//	modifiers = node.access,
+		//	body = node.toBaf().toExpr()
+		//)
+
 		noImpl
 	}
 }
@@ -120,3 +121,4 @@ class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
 		throw ClassNotFoundException(clazz.fqname)
 	}
 }
+	*/

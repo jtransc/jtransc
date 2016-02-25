@@ -110,8 +110,8 @@ fun <T, T2> List<T>.flatMapInChunks2(chunkSize:Int, handler: (items: List<T>) ->
 	return out
 }
 
-fun <T> List<T>.createPairs(): List<Pair<T, T>> {
-	return this.flatMapInChunks2(2) { listOf(Pair(it[0], it[1])) }
+fun <T> List<T>?.createPairs(): List<Pair<T, T>> {
+	return this?.flatMapInChunks2(2) { listOf(Pair(it[0], it[1])) } ?: listOf()
 }
 
 fun <K, V> Map<K, V>.toHashMap():HashMap<K, V> {
@@ -135,6 +135,6 @@ fun List<Any?>.toTypedArray2(clazz:Class<*>): Any {
     return typedArray
 }
 
-fun List<Any?>.toTypedArray2(): Any {
-    return this.toTypedArray2(this[0]!!.javaClass)
+fun List<Any?>?.toTypedArray2(): Any? {
+    return this?.toTypedArray2(this?.get(0)?.javaClass ?: Object::class.java)
 }

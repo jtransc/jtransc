@@ -20,7 +20,6 @@ import com.jtransc.ast.*
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.build
 import com.jtransc.input.AnaProject
-import com.jtransc.input.AsmToAst
 import com.jtransc.input.SootToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.maven.MavenLocalRepository

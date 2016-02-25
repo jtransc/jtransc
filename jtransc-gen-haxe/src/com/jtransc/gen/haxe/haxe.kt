@@ -153,7 +153,7 @@ object GenHaxe : GenTarget {
 			var name = if (fieldName in HaxeKeywords) "${fieldName}_" else fieldName
 
 			val f = program[field]
-			val clazz = f.getContainingClass2(program)
+			val clazz = f.containingClass
 			val clazzAncestors = clazz.getAncestors(program).reversed()
 			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == fieldName }.map { getHaxeFieldName(program, it.ref) }.toSet()
 
@@ -184,7 +184,7 @@ object GenHaxe : GenTarget {
 		}
 
 		val copyFiles = program.classes.flatMap {
-			it.resolveAnnotation(HaxeAddFiles::value)?.toList() ?: listOf()
+			it.annotations[HaxeAddFiles::value]?.toList() ?: listOf()
 		}
 
 		for (file in copyFiles) {
@@ -224,7 +224,7 @@ object GenHaxe : GenTarget {
 		}
 
 		val customMain = program.classes
-			.map { it.resolveAnnotation(HaxeCustomMain::value) }
+			.map { it.annotations[HaxeCustomMain::value] }
 			.filterNotNull()
 			.firstOrNull()
 
@@ -451,7 +451,7 @@ object GenHaxe : GenTarget {
 				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
 
-				for (lib in program.classes.map { it.resolveAnnotation(HaxeAddLibraries::value) }.filterNotNull().flatMap { it.toList() }) {
+				for (lib in program.classes.map { it.annotations[HaxeAddLibraries::value] }.filterNotNull().flatMap { it.toList() }) {
 					buildArgs += listOf("-lib", lib)
 				}
 
@@ -532,7 +532,7 @@ object GenHaxe : GenTarget {
 			addTypeReference(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = getHaxeFieldName(program, field)
-			if (mappings.isFieldAvailable(field.ref) && !field.hasAnnotation<HaxeRemoveField>()) {
+			if (mappings.isFieldAvailable(field.ref) && !field.annotations.contains<HaxeRemoveField>()) {
 				line("$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
 			}
 		}
@@ -542,7 +542,7 @@ object GenHaxe : GenTarget {
 			val visibility = if (isInterface) " " else method.visibility.haxe
 			addTypeReference(method.methodType)
 			val margs = method.methodType.args.map { it.name + ":" + it.type.getHaxeType(program, TypeKind.TYPETAG) }
-			var override = if (method.isOverriding(program)) "override " else ""
+			var override = if (method.isOverriding) "override " else ""
 			val inline = if (method.isInline) "inline " else ""
 			val decl = try {
 				"$static $visibility $inline $override function ${method.ref.getHaxeMethodName(program)}(${margs.joinToString(", ")}):${method.methodType.ret.getHaxeType(program, TypeKind.TYPETAG)}".trim()
@@ -558,7 +558,7 @@ object GenHaxe : GenTarget {
 						line("$decl;")
 					}
 				} else {
-					val body = mappings.getBody(method.ref) ?: method.resolveAnnotation(HaxeMethodBody::value)
+					val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
 
 					if (method.body != null && body == null) {
 						line(decl) {
@@ -626,7 +626,7 @@ object GenHaxe : GenTarget {
 				}
 				val nativeImports = mappings.getClassMapping(clazz.ref)?.nativeImports ?: listOf<String>()
 				val mappingNativeMembers = (mappings.getClassMapping(clazz.ref)?.nativeMembers ?: listOf<String>())
-				val haxeNativeMembers = clazz.resolveAnnotation(HaxeAddMembers::value)?.toList() ?: listOf()
+				val haxeNativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
 				val nativeMembers = mappingNativeMembers + haxeNativeMembers
 
 				for (member in nativeMembers) line(member)
@@ -694,11 +694,7 @@ object GenHaxe : GenTarget {
 		is Long -> "haxe.Int64.make(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
 		is Float -> escapeConstant(value.toDouble())
 		is Double -> if (value.isInfinite()) {
-			if (value < 0) {
-				"Math.NEGATIVE_INFINITY"
-			} else {
-				"Math.POSITIVE_INFINITY"
-			}
+			if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY"
 		} else if (value.isNaN()) {
 			"Math.NaN"
 		} else {
@@ -768,7 +764,7 @@ object GenHaxe : GenTarget {
 				line("var __exception__:Dynamic = null;")
 			}
 			for (field in method.dependencies.getFields2(program).filter { it.isStatic }) {
-				val clazz = field.getContainingClass2(program)
+				val clazz = field.containingClass
 				if (clazz.isInterface) {
 
 				} else {
@@ -1101,7 +1097,7 @@ object GenHaxe : GenTarget {
 			"Std.is(${expr.gen(program, clazz, stm, mutableBody)}, ${checkType.getHaxeType(program, TypeKind.CAST)})"
 		}
 		is AstExpr.NEW_ARRAY -> {
-			addTypeReference(type.element)
+			addTypeReference(type.elementType)
 			when (counts.size) {
 				1 -> "new ${type.getHaxeType(program, TypeKind.NEW)}(${counts[0].gen(program, clazz, stm, mutableBody)})"
 				else -> throw NotImplementedError("Not implemented multidimensional arrays")

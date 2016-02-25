@@ -44,10 +44,13 @@ class SootToAst {
 	protected val file_separator = System.getProperty("file.separator")
 	protected val tree = TargetTree()
 
-
 	protected fun classNameToPath(name: String): String = name.replace(".", "/")
 
 	fun generateProgram(projectContext: BaseProjectContext): AstProgram {
+		val program = AstProgram(
+			entrypoint = FqName(projectContext.mainClass),
+			resourcesVfs = MergedLocalAndJars(projectContext.classPaths)
+		)
 
 		// Load classes into stage
 		projectContext.classNames.forEach {
@@ -58,7 +61,7 @@ class SootToAst {
 		projectContext.classNames.forEach { tree.getTargetClass(it) }
 
 		print("Processing classes...")
-		val context = SootContext(projectContext)
+		val context = SootContext(projectContext, program)
 
 		projectContext.classNames.forEach { context.addClassToGenerate(it) }
 
@@ -70,7 +73,8 @@ class SootToAst {
 
 				//print("Processing class: " + clazz.clazz.name + "...")
 
-				val generatedClass = generateClass(clazz.clazz, context)
+				val generatedClass = generateClass(program, clazz.clazz, context)
+				program.add(generatedClass)
 				context.addGeneratedClass(generatedClass)
 
 				// Add dependencies for annotations
@@ -102,14 +106,10 @@ class SootToAst {
 
 		println("Ok classes=${projectContext.classNames.size}, time=$elapsed")
 
-		return AstProgram(
-			entrypoint = FqName(projectContext.mainClass),
-			classes = context.generatedClassesList,
-			resourcesVfs = MergedLocalAndJars(projectContext.classPaths)
-		)
+		return program
 	}
 
-	class SootContext(val projectContext: BaseProjectContext) {
+	class SootContext(val projectContext: BaseProjectContext, val program: AstProgram) {
 		private val classesToGenerateSet = hashSetOf<String>()
 		private val classesToGenerateOnce: Queue<String> = LinkedList()
 		val generatedClassesList = arrayListOf<AstClass>()
@@ -137,7 +137,7 @@ class SootToAst {
 			val allMethodsToImplement by lazy { clazz.getAllMethodsToImplement() }
 			val missingMethods by lazy {
 				val list = allMethodsToImplement.map { it.withoutClass } - allImplementedMethods.map { it.withoutClass }
-				list.map { it.withClass(clazzName).toEmptyMethod(isOverriding = false) }
+				list.map { it.withClass(clazzName).toEmptyMethod(context.program) }
 			}
 			val ancestorsWithThis = clazz.getAncestors(includeThis = true)
 			val ancestorsWithoutThis = clazz.getAncestors(includeThis = false)
@@ -198,14 +198,15 @@ class SootToAst {
 		}
 	}
 
-	fun generateMethod(method: SootMethod, context: SootContext): AstMethod {
+	fun generateMethod(containingClass: AstClass, method: SootMethod, context: SootContext): AstMethod {
 		val methodRef = method.astRef
 		val methodContext = context[method]
 		val body = if (method.isConcrete) AstMethodProcessor.processBody(method, context) else null
+		val annotations = method.tags.toAstAnnotations()
 
 		return AstMethod(
-			containingClass = FqName(method.declaringClass.name),
-			annotations = readAnnotations(context, method.tags),
+			containingClass = containingClass,
+			annotations = annotations,
 			name = methodRef.name,
 			type = methodRef.type,
 			body = body,
@@ -218,13 +219,8 @@ class SootToAst {
 			visibility = method.astVisibility,
 			overridingMethod = methodContext.overridingMethod,
 			isImplementing = method.isMethodImplementing,
-			isNative = method.isNative,
-			getterField = method.getAnnotation(JTranscGetter::value),
-			setterField = method.getAnnotation(JTranscSetter::value),
-			nativeMethod = method.getAnnotation(JTranscMethod::value),
-			annotationResolver = method.tags.createAnnotationResolver(),
+			isNative = method.isNative
 			//nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
-			isInline = method.hasAnnotation<JTranscInline>()
 		)
 	}
 
@@ -250,66 +246,26 @@ class SootToAst {
 
 	fun AnnotationDefaultTag.toAstAnnotation() = this.defaultVal.unboxAnnotationElement()
 
-	fun readAnnotations(context: SootContext, tags: List<soot.tagkit.Tag>): List<AstAnnotation> {
-		val runtimeAnnotations: List<AnnotationTag> = tags.filterIsInstance<VisibilityAnnotationTag>().filter { it.visibility == 0 }.flatMap { it.annotations }
-		//val decAnnotations = MyTest::class.java.declaredAnnotations
-
-
-		return runtimeAnnotations.flatMap { annotation ->
-			// @TODO: Move this list outside!
-			val blacklist = setOf(
-				"Ljava/lang/annotation/Documented;",
-				"Ljava/lang/Deprecated;",
-				"Ljava/lang/annotation/Target;",
-				"Ljava/lang/annotation/Retention;",
-				"Lkotlin/jvm/internal/KotlinLocalClass;",
-				"Lkotlin/jvm/internal/KotlinSyntheticClass;",
-				"Lkotlin/jvm/internal/KotlinClass;",
-				"Lkotlin/jvm/internal/KotlinFunction;",
-				"Lkotlin/jvm/internal/KotlinFileFacade;",
-				"Lkotlin/jvm/internal/KotlinMultifileClassPart;",
-				"Lkotlin/jvm/internal/KotlinMultifileClass;",
-				"Lkotlin/annotation/MustBeDocumented;",
-				"Lkotlin/annotation/Target;",
-				"Lkotlin/annotation/Retention;",
-				"Lkotlin/jvm/JvmStatic;",
-				"Lkotlin/Deprecated;"
-			)
-			if (annotation.type !in blacklist) {
-				val elems = (0 until annotation.numElems).map { annotation.getElemAt(it) }
-				try {
-					listOf(AstAnnotation(AstType.demangle(annotation.type) as AstType.REF, elems.map { it.unboxAnnotationElement() }.toMap()))
-				} catch (e: Throwable) {
-					System.err.println("Exception.readAnnotations: ${e.message} : " + annotation.info + ", " + annotation)
-					listOf<AstAnnotation>()
-				}
-			} else {
-				listOf<AstAnnotation>()
-			}
-		}
-	}
-
-	fun generateField(field: SootField, context: SootContext): AstField {
+	fun generateField(containingClass: AstClass, field: SootField, context: SootContext): AstField {
 		val it = field
 		val constantValue = it.tags.filterIsInstance<ConstantValueTag>().firstOrNull()
 		val hasConstantValue = constantValue != null
-		val finalConstantValue: Any? = if (constantValue != null) {
-			when (constantValue) {
-				is IntegerConstantValueTag -> constantValue.intValue
-				is LongConstantValueTag -> constantValue.longValue
-				is DoubleConstantValueTag -> constantValue.doubleValue
-				is FloatConstantValueTag -> constantValue.floatValue
-				is StringConstantValueTag -> constantValue.stringValue
-				else -> throw InvalidOperationException("Not a valid constant")
-			}
-		} else {
-			null
+		val annotations = it.tags.toAstAnnotations()
+		val finalConstantValue: Any? = when (constantValue) {
+			null -> null
+			is IntegerConstantValueTag -> constantValue.intValue
+			is LongConstantValueTag -> constantValue.longValue
+			is DoubleConstantValueTag -> constantValue.doubleValue
+			is FloatConstantValueTag -> constantValue.floatValue
+			is StringConstantValueTag -> constantValue.stringValue
+			else -> throw InvalidOperationException("Not a valid constant")
 		}
 
+
 		return AstField(
-			containingClass = FqName(field.declaringClass.name),
+			containingClass = containingClass,
 			name = it.name,
-			annotations = readAnnotations(context, it.tags),
+			annotations = annotations,
 			type = it.type.astType,
 			descriptor = it.type.astType.mangle(),
 			genericSignature = it.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
@@ -318,41 +274,40 @@ class SootToAst {
 			isFinal = it.isFinal,
 			hasConstantValue = hasConstantValue,
 			constantValue = finalConstantValue,
-			visibility = if (it.isPublic) AstVisibility.PUBLIC else if (it.isProtected) AstVisibility.PROTECTED else AstVisibility.PRIVATE,
-			annotationResolver = field.tags.createAnnotationResolver()
+			visibility = if (it.isPublic) AstVisibility.PUBLIC else if (it.isProtected) AstVisibility.PROTECTED else AstVisibility.PRIVATE
 		)
 	}
 
-	fun generateClass(clazz: SootClass, context: SootContext): AstClass {
-		val clazzName = FqName(clazz.name)
-		val contextClass = context[clazz]
-		val missingMethods = if (contextClass.clazzAbstract) contextClass.missingMethods else listOf()
-		val generatedMethods = clazz.methods.filter { context.mustInclude(it) }.map { generateMethod(it, context) }
-		val generatedFields = clazz.fields.filter { context.mustInclude(it) }.map { generateField(it, context) }
-
-		return AstClass(
+	fun generateClass(program: AstProgram, sootClass: SootClass, context: SootContext): AstClass {
+		val clazzName = FqName(sootClass.name)
+		val annotations = sootClass.tags.toAstAnnotations()
+		val contextClass = context[sootClass]
+		val astClass = AstClass(
+			program = context.program,
 			name = clazzName,
-			modifiers = clazz.modifiers,
-			annotations = readAnnotations(context, clazz.tags),
-			implCode = clazz.getAnnotation(JTranscNativeClassImpl::value),
-			nativeName = clazz.getAnnotation(JTranscNativeClass::value),
-			classType = if (clazz.isInterface) AstClassType.INTERFACE else if (clazz.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
+			modifiers = sootClass.modifiers,
+			annotations = annotations,
+			classType = if (sootClass.isInterface) AstClassType.INTERFACE else if (sootClass.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
 			visibility = AstVisibility.PUBLIC,
-			extending = if (clazz.hasSuperclass() && !clazz.isInterface) FqName(clazz.superclass.name) else null,
-			implementing = clazz.interfaces.map { FqName(it.name) },
-			fields = generatedFields,
-			methods = (missingMethods + generatedMethods).distinctBy { it.name + ":" + it.desc },
-			annotationResolver = clazz.tags.createAnnotationResolver()
+			extending = if (sootClass.hasSuperclass() && !sootClass.isInterface) FqName(sootClass.superclass.name) else null,
+			implementing = sootClass.interfaces.map { FqName(it.name) }
 		)
-	}
-}
 
-fun List<Tag>.createAnnotationResolver(): AnnotationResolver {
-	val tags = this
-	return object : AnnotationResolver {
-		override fun has(className: String) = tags.hasAnnotation(className)
-		override fun get(className: String, fieldName: String): Any? = tags.getAnnotation(className, fieldName)
+		if (contextClass.clazzAbstract) {
+			for (method in contextClass.missingMethods) astClass.add(method)
+		}
 
+		for (method in sootClass.methods.filter { context.mustInclude(it) }.map { generateMethod(astClass, it, context) }) {
+			astClass.add(method)
+		}
+
+		for (method in sootClass.fields.filter { context.mustInclude(it) }.map { generateField(astClass, it, context) }) {
+			astClass.add(method)
+		}
+
+		astClass.finish()
+
+		return astClass
 	}
 }
 
@@ -753,25 +708,40 @@ object SootUtils {
 	// SootUtils.getTag(method.tags, "Llibcore/MethodBody;", "value") as String?
 }
 
-inline fun <reified T, V> SootMethod.getAnnotation(field: KProperty1<T, V>): V? {
-	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
+val ANNOTATIONS_BLACKLIST = listOf(
+	"java.lang.annotation.Documented",
+	"java.lang.Deprecated",
+	"java.lang.annotation.Target",
+	"java.lang.annotation.Retention",
+	"kotlin.jvm.internal.KotlinLocalClass",
+	"kotlin.jvm.internal.KotlinSyntheticClass",
+	"kotlin.jvm.internal.KotlinClass",
+	"kotlin.jvm.internal.KotlinFunction",
+	"kotlin.jvm.internal.KotlinFileFacade",
+	"kotlin.jvm.internal.KotlinMultifileClassPart",
+	"kotlin.jvm.internal.KotlinMultifileClass",
+	"kotlin.annotation.MustBeDocumented",
+	"kotlin.annotation.Target",
+	"kotlin.annotation.Retention",
+	"kotlin.jvm.JvmStatic",
+	"kotlin.Deprecated"
+).map { AstType.REF(it) }.toSet()
+
+fun Iterable<Tag>.toAstAnnotations(): List<AstAnnotation> {
+	return this.filterIsInstance<VisibilityAnnotationTag>().flatMap {
+		it.annotations.map {
+			AstAnnotation(
+				AstType.demangle(it.type) as AstType.REF,
+				it.getElements().map {
+					Pair(it.name, it.getValue())
+				}.toMap()
+			)
+		}
+	}.filter { it.type !in ANNOTATIONS_BLACKLIST }
 }
 
-inline fun <reified T, V> SootField.getAnnotation(field: KProperty1<T, V>): V? {
-	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
-}
-
-inline fun <reified T, V> SootClass.getAnnotation(field: KProperty1<T, V>): V? {
-	return this.tags.getAnnotation(T::class.qualifiedName!!, field.name) as V?
-}
-
-fun SootMethod.hasAnnotation(annotationClass: String): Boolean = this.tags.hasAnnotation(annotationClass)
-fun <T> SootMethod.hasAnnotation(annotationClass: Class<T>): Boolean = this.tags.hasAnnotation(annotationClass.name)
-inline fun <reified T> SootMethod.hasAnnotation(): Boolean = this.hasAnnotation(T::class.qualifiedName!!)
-
-fun Iterable<Tag>.hasAnnotation(annotationClass: String): Boolean {
-	val annotationClassType = "L" + annotationClass.replace('.', '/') + ";"
-	return this.filterIsInstance<VisibilityAnnotationTag>().flatMap { it.annotations }.any { it.type == annotationClassType }
+fun AnnotationTag.getElements():List<AnnotationElem> {
+	return (0 until this.numElems).map { this.getElemAt(it) }
 }
 
 fun AnnotationElem.getValue(): Any? {
@@ -782,23 +752,13 @@ fun AnnotationElem.getValue(): Any? {
 		is AnnotationFloatElem -> this.value
 		is AnnotationDoubleElem -> this.value
 		is AnnotationLongElem -> this.value
-		is AnnotationArrayElem -> this.values.map { it.getValue() }.toTypedArray2()
-		else -> noImpl("Not implemented type: $this")
-	}
-}
-
-fun Iterable<Tag>.getAnnotation(annotationClass: String, fieldName: String): Any? {
-	//println("getAnnotation:$annotationClass, $fieldName")
-	val annotationClassType = "L" + annotationClass.replace('.', '/') + ";"
-	for (at in this.filterIsInstance<VisibilityAnnotationTag>()) {
-		for (annotation in at.annotations.filter { it.type == annotationClassType }) {
-			for (el in (0 until annotation.numElems).map { annotation.getElemAt(it) }.filter { it.name == fieldName }) {
-				//fun parseAnnotationElement(el: AnnotationElem): Any? =
-				return el.getValue()
-			}
+		is AnnotationArrayElem -> this.values.map { it.getValue() }
+		is AnnotationClassElem -> null
+		is AnnotationEnumElem -> null
+		else -> {
+			noImpl("Not implemented type: $this")
 		}
 	}
-	return null
 }
 
 fun SootClass.getSuperClassOrNull(): SootClass? = if (this.hasSuperclass()) this.superclass else null
