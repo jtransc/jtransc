@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.METHOD, ElementType.CONSTRUCTOR })
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface HaxeMethodBody {
-    String value();
+	String value();
 }

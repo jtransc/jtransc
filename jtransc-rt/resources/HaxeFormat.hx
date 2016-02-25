@@ -274,9 +274,9 @@ class HaxeFormat
 								case "h".code:
 									params.flags.set(LengthH);
 								case "l".code:
-									params.flags.set(Lengthl);
+									params.flags.set(LengthL_low);
 								case "L".code:
-									params.flags.set(LengthL);
+									params.flags.set(LengthL_high);
 							}
 							c = codeAt(fmt, i++);
 						}
@@ -751,8 +751,8 @@ private enum FormatFlags
 	Sharp;
 	Zero;
 	LengthH;
-	LengthL;
-	Lengthl;
+	LengthL_high;
+	LengthL_low;
 	UpperCase;
 }
 

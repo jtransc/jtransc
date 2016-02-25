@@ -31,6 +31,10 @@ public abstract class DoubleBuffer extends Buffer implements Comparable<DoubleBu
 		this(mark, pos, lim, cap, null, 0);
 	}
 
+	native public static DoubleBuffer allocate(int capacity);
+	native public static DoubleBuffer wrap(double[] array, int offset, int length);
+
+	/*
 	public static DoubleBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException();
 		return new HeapDoubleBuffer(capacity, capacity);
@@ -43,6 +47,7 @@ public abstract class DoubleBuffer extends Buffer implements Comparable<DoubleBu
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	*/
 
 	public static DoubleBuffer wrap(double[] array) {
 		return wrap(array, 0, array.length);

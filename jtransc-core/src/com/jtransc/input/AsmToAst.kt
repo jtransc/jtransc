@@ -17,16 +17,16 @@ object AsmToAst {
 	fun createProgramAst(dependencies: List<String>, entryPoint: String, classPaths2: List<String>, localVfs: SyncVfsFile, refs: Set<AstRef>): AstProgram {
 		return createProgramAst2(
 			AstType.REF(entryPoint),
-			LocalAndJars(classPaths2),
+			MergedLocalAndJars(classPaths2),
 			(refs + dependencies.map { AstClassRef(it) }).toSet()
 		)
 	}
 
-	fun createProgramAst2(entryPoint: AstType.REF, classPaths: List<SyncVfsFile>, references: Set<AstRef>): AstProgram {
-		val resolver: ClassResolver = VfsClassResolver(classPaths)
+	fun createProgramAst2(entryPoint: AstType.REF, classPaths: SyncVfsFile, references: Set<AstRef>): AstProgram {
+		val resolver = VfsClassResolver(classPaths)
 		val programBuilder = AstProgramBuilder(resolver)
 		val clazz = programBuilder[entryPoint.name]
-		return AstProgram(entryPoint.name, programBuilder.classes, MergeVfs(classPaths))
+		return AstProgram(entryPoint.name, programBuilder.classes, classPaths)
 	}
 }
 
@@ -110,14 +110,12 @@ interface ClassResolver {
 	operator fun get(clazz: FqName): ByteArray
 }
 
-class VfsClassResolver(val classPaths: List<SyncVfsFile>) : ClassResolver {
+class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
 	override operator fun get(clazz: FqName): ByteArray {
 		val path = clazz.internalFqname + ".class"
-		for (classPath in classPaths) {
-			try {
-				return classPath[path].readBytes()
-			} catch (e: IOException) {
-			}
+		try {
+			return classPaths[path].readBytes()
+		} catch (e: IOException) {
 		}
 		throw ClassNotFoundException(clazz.fqname)
 	}

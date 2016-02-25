@@ -1,13 +1,13 @@
 package com.jtransc.input
 
 import com.jtransc.ast.*
+import com.jtransc.ds.toTypedArray2
 import com.jtransc.ds.zipped
 import com.jtransc.env.OS
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.time.measureTime
-import com.jtransc.vfs.LocalAndJars
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.*
@@ -18,8 +18,7 @@ import soot.tagkit.*
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
-import kotlin.reflect.*
-import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.KProperty1
 
 class SootToAst {
 	//registerAbstract("java.lang.Object", "Object", "ObjectTools")
@@ -29,6 +28,14 @@ class SootToAst {
 		fun createProgramAst(classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile, deps2: Set<AstRef>? = null): AstProgram {
 			SootUtils.init(classPaths)
 			return SootToAst().generateProgram(BaseProjectContext(classNames, mainClass, classPaths, outputPath, deps2?.toHashSet()))
+		}
+
+		fun checkIfClassExists(name: FqName): Boolean {
+			try {
+				return Scene.v().getSootClass(name.fqname) != null
+			} catch (t: Throwable) {
+				return false
+			}
 		}
 	}
 
@@ -82,9 +89,17 @@ class SootToAst {
 						}
 					}
 				}
+
+				//val referencedClass = generatedClass.resolveAnnotation(JTranscReferenceClass::value)
+				//if (referencedClass != null) {
+				//	context.projectContext.addDep(AstClassRef(FqName(referencedClass)))
+				//}
 				//println("Ok($elapsed):$nativeClassTag")
 			}
 		}
+
+		//for (dep in context.projectContext.deps2!!) println(dep)
+
 		println("Ok classes=${projectContext.classNames.size}, time=$elapsed")
 
 		return AstProgram(
@@ -521,6 +536,7 @@ open class AstMethodProcessor private constructor(
 		)
 		else -> throw RuntimeException()
 	}
+
 	private fun simplify(expr: AstExpr): AstExpr {
 		if ((expr is AstExpr.CAST) && (expr.expr is AstExpr.LITERAL) && (expr.from == AstType.INT) && (expr.to == AstType.BOOL)) {
 			return AstExpr.LITERAL(expr.expr.value != 0)
@@ -528,6 +544,7 @@ open class AstMethodProcessor private constructor(
 		// No simplified!
 		return expr
 	}
+
 	private fun convert(c: Value): AstExpr = when (c) {
 		is Local -> AstExpr.LOCAL(ensureLocal(c))
 		is NullConstant -> AstExpr.LITERAL(null)
@@ -606,6 +623,7 @@ open class AstMethodProcessor private constructor(
 		}
 		else -> throw RuntimeException()
 	}
+
 	final fun doCastIfNeeded(toType: Type, value: Value): AstExpr = if (value.type == toType) {
 		convert(value)
 	} else {
@@ -613,7 +631,7 @@ open class AstMethodProcessor private constructor(
 	}
 }
 
-fun BinopExpr.getAstOp(l:AstType, r:AstType): AstBinop {
+fun BinopExpr.getAstOp(l: AstType, r: AstType): AstBinop {
 	return when (this) {
 		is AddExpr -> AstBinop.ADD
 		is SubExpr -> AstBinop.SUB
@@ -764,18 +782,7 @@ fun AnnotationElem.getValue(): Any? {
 		is AnnotationFloatElem -> this.value
 		is AnnotationDoubleElem -> this.value
 		is AnnotationLongElem -> this.value
-		is AnnotationArrayElem -> {
-			val items = this.values.map { it.getValue() }
-			val clazz = items[0]!!.javaClass
-			val typedArray = java.lang.reflect.Array.newInstance(clazz, items.size)
-			for (n in 0 until items.size) {
-				java.lang.reflect.Array.set(typedArray, n, items[n])
-			}
-
-			typedArray
-			//java.lang.reflect.Array.newInstance()
-			//this.values.map { it.getValue() }.toTypedArray()
-		}
+		is AnnotationArrayElem -> this.values.map { it.getValue() }.toTypedArray2()
 		else -> noImpl("Not implemented type: $this")
 	}
 }

@@ -338,7 +338,7 @@ final public class FastMemory {
     @JTranscInline
     @HaxeMethodBody("return this.floatData.get(p0);")
     final public float getAlignedFloat32(int index4) {
-        return unsafe.getFloat(data, (long) index4 << 2);
+        return unsafe.getFloat(data, (long) (index4 << 2));
     }
 
     @JTranscInline

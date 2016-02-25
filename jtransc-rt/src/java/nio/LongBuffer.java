@@ -31,6 +31,9 @@ public abstract class LongBuffer extends Buffer implements Comparable<LongBuffer
 		this(mark, pos, lim, cap, null, 0);
 	}
 
+	native public static LongBuffer allocate(int capacity);
+	native public static LongBuffer wrap(long[] array, int offset, int length);
+	/*
 	public static LongBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException();
 		return new HeapLongBuffer(capacity, capacity);
@@ -43,6 +46,7 @@ public abstract class LongBuffer extends Buffer implements Comparable<LongBuffer
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	*/
 
 	public static LongBuffer wrap(long[] array) {
 		return wrap(array, 0, array.length);

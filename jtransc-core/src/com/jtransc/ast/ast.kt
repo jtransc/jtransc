@@ -23,6 +23,7 @@ import com.jtransc.ds.flatMapInChunks2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.input.SootToAst
 import com.jtransc.text.*
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.SyncVfsFile
@@ -428,7 +429,12 @@ class AstProgram(
 	operator fun get(name: FqName): AstClass {
 		val result = classesByFqname[name.fqname]
 		if (result == null) {
+			val classFile = name.internalFqname + ".class"
 			println("AstProgram. Can't find class '$name'")
+			println("AstProgram. ClassFile: $classFile")
+			println("AstProgram. File exists: " + resourcesVfs[classFile].exists)
+			println("AstProgram. Soot exists: " + SootToAst.checkIfClassExists(name))
+
 			throw RuntimeException("AstProgram. Can't find class '$name'")
 		} else {
 			return result
@@ -649,16 +655,24 @@ interface AstElementWithAnnotations {
 	val annotationResolver: AnnotationResolver?
 }
 
-inline fun <reified C, T> AstElementWithAnnotations.resolveAnnotation(field:KProperty1<C, T>): T? {
-	if (annotationResolver != null) {
-		return annotationResolver?.get(C::class.qualifiedName!!, field.name) as T?
+inline fun <reified C, T> AnnotationResolver?.resolveAnnotation(field:KProperty1<C, T>): T? {
+	if (this != null) {
+		return this?.get(C::class.qualifiedName!!, field.name) as T?
 	} else {
 		return null
 	}
 }
 
+inline fun <reified C> AnnotationResolver?.hasAnnotation(): Boolean {
+	return this?.has(C::class.qualifiedName!!) ?: false
+}
+
+inline fun <reified C, T> AstElementWithAnnotations.resolveAnnotation(field:KProperty1<C, T>): T? {
+	return annotationResolver.resolveAnnotation(field)
+}
+
 inline fun <reified C> AstElementWithAnnotations.hasAnnotation(): Boolean {
-	return annotationResolver?.has(C::class.qualifiedName!!) ?: false
+	return annotationResolver.hasAnnotation<C>()
 }
 
 class AstMethod(

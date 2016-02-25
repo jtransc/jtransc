@@ -81,12 +81,12 @@ class AllBuild(
 		val jtranscVersion = settings.jtranscVersion
 
 		// Previously downloaded manually or with maven plugin!
-		val classPaths2 = MavenLocalRepository.locateJars(listOf(
+		val classPaths2 = (MavenLocalRepository.locateJars(listOf(
 			"com.jtransc:jtransc-rt:$jtranscVersion",
 			"com.jtransc:jtransc-rt-core:$jtranscVersion"
 		)) + target.extraLibraries.flatMap {
 			MavenLocalRepository.locateJars(it)
-		} + classPaths
+		} + classPaths).distinct()
 
 		println("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
 		for (cp in classPaths2) println("ClassPath: $cp")

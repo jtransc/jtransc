@@ -540,9 +540,12 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 
 	override val absolutePath: String = "#merged#"
 
+	//private val nodesSorted = nodes.reversed()
+	private val nodesSorted = nodes
+
 	private fun <T> op(path: String, act: String, action: (node: SyncVfsFile) -> T): T {
 		var lastError: Throwable? = null
-		for (node in nodes) {
+		for (node in nodesSorted) {
 			try {
 				return action(node)
 			} catch(t: Throwable) {
@@ -565,7 +568,7 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 	override fun remove(path: String) = op(path, "remove") { it[path].remove() }
 	override fun stat(path: String): SyncVfsStat {
 		var lastStat: SyncVfsStat? = null
-		for (node in nodes) {
+		for (node in nodesSorted) {
 			val stat = node[path].stat()
 			lastStat = stat
 			if (stat.exists) break

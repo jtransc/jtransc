@@ -31,6 +31,10 @@ public abstract class IntBuffer extends Buffer implements Comparable<IntBuffer> 
 		this(mark, pos, lim, cap, null, 0);
 	}
 
+	native public static IntBuffer allocate(int capacity);
+	native public static IntBuffer wrap(int[] array, int offset, int length);
+
+	/*
 	public static IntBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException();
 		return new HeapIntBuffer(capacity, capacity);
@@ -43,6 +47,7 @@ public abstract class IntBuffer extends Buffer implements Comparable<IntBuffer> 
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	*/
 
 	public static IntBuffer wrap(int[] array) {
 		return wrap(array, 0, array.length);

@@ -31,6 +31,10 @@ public abstract class FloatBuffer extends Buffer implements Comparable<FloatBuff
 		this(mark, pos, lim, cap, null, 0);
 	}
 
+	native public static FloatBuffer allocate(int capacity);
+	native public static FloatBuffer wrap(float[] array, int offset, int length);
+
+	/*
 	public static FloatBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException();
 		return new HeapFloatBuffer(capacity, capacity);
@@ -43,6 +47,7 @@ public abstract class FloatBuffer extends Buffer implements Comparable<FloatBuff
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	*/
 
 	public static FloatBuffer wrap(float[] array) {
 		return wrap(array, 0, array.length);

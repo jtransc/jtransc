@@ -158,7 +158,11 @@ public final class String implements java.io.Serializable, Comparable<String>, C
     }
 
     @HaxeMethodBody("return HaxeNatives.strCompare(this._str, p0._str);")
-    native public int compareTo(String anotherString);
+    native private int _compareTo(String anotherString);
+
+    public int compareTo(String anotherString) {
+        return _compareTo(anotherString);
+    }
 
     //public static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
     public static final Comparator<String> CASE_INSENSITIVE_ORDER = null;

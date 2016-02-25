@@ -85,7 +85,7 @@ You can search for artifacts for it in maven central with [com.jtransc groupId](
 mvn package # it should generate program.swf
 ```
 
-# How it works internally?
+# How does it work internally?
 
 * It locates all the required dependencies
 * It includes jtransc-rt-core and jtransc-rt which is a java-6-like rt with some of their methods marked as natives

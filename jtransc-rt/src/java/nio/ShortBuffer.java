@@ -31,6 +31,10 @@ public abstract class ShortBuffer extends Buffer implements Comparable<ShortBuff
 		this(mark, pos, lim, cap, null, 0);
 	}
 
+	native public static ShortBuffer allocate(int capacity);
+	native public static ShortBuffer wrap(short[] array, int offset, int length);
+
+	/*
 	public static ShortBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException();
 		return new HeapShortBuffer(capacity, capacity);
@@ -43,6 +47,7 @@ public abstract class ShortBuffer extends Buffer implements Comparable<ShortBuff
 			throw new IndexOutOfBoundsException();
 		}
 	}
+	*/
 
 	public static ShortBuffer wrap(short[] array) {
 		return wrap(array, 0, array.length);

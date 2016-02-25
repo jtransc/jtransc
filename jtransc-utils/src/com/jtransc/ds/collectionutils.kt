@@ -125,3 +125,16 @@ fun <K, V> Map<K, V>.toHashMap():HashMap<K, V> {
 fun <T> Iterable<T?>.stripNulls():List<T> {
 	return this.filter { it != null }.map { it!! }
 }
+
+fun List<Any?>.toTypedArray2(clazz:Class<*>): Any {
+    val items = this
+    val typedArray = java.lang.reflect.Array.newInstance(clazz, items.size)
+    for (n in 0 until items.size) {
+        java.lang.reflect.Array.set(typedArray, n, items[n])
+    }
+    return typedArray
+}
+
+fun List<Any?>.toTypedArray2(): Any {
+    return this.toTypedArray2(this[0]!!.javaClass)
+}

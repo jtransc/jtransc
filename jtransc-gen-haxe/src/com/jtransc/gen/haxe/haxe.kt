@@ -33,6 +33,7 @@ import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.haxe.*
 import java.io.File
+import kotlin.jvm.internal.MutablePropertyReference
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
 	override val name = "haxe"
@@ -524,7 +525,7 @@ object GenHaxe : GenTarget {
 
 		var output = arrayListOf<Pair<FqName, Indenter>>()
 
-		fun writeField(indenter: Indenter, field: AstField, isInterface: Boolean) {
+		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter.gen {
 			val static = if (field.isStatic) "static " else ""
 			val visibility = if (isInterface) " " else field.visibility.haxe
 			val fieldType = field.type
@@ -532,11 +533,11 @@ object GenHaxe : GenTarget {
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = getHaxeFieldName(program, field)
 			if (mappings.isFieldAvailable(field.ref) && !field.hasAnnotation<HaxeRemoveField>()) {
-				indenter.line("$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
+				line("$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
 			}
 		}
 
-		fun writeMethod(indenter: Indenter, method: AstMethod, isInterface: Boolean) {
+		fun writeMethod(method: AstMethod, isInterface: Boolean) = Indenter.gen {
 			val static = if (method.isStatic) "static " else ""
 			val visibility = if (isInterface) " " else method.visibility.haxe
 			addTypeReference(method.methodType)
@@ -547,27 +548,29 @@ object GenHaxe : GenTarget {
 				"$static $visibility $inline $override function ${method.ref.getHaxeMethodName(program)}(${margs.joinToString(", ")}):${method.methodType.ret.getHaxeType(program, TypeKind.TYPETAG)}".trim()
 			} catch (e: RuntimeException) {
 				println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
-				return
-				//""
+				//null
+				throw e
 			}
 
-			if (isInterface) {
-				if (!method.isImplementing) {
-					indenter.line("$decl;")
-				}
-			} else {
-				val body = mappings.getBody(method.ref) ?: method.resolveAnnotation(HaxeMethodBody::value)
-
-				if (method.body != null && body == null) {
-					indenter.line(decl) {
-						when (INIT_MODE) {
-							InitMode.START_OLD -> indenter.line("__hx_static__init__();")
-						}
-						indenter.line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
+			if (decl != null) {
+				if (isInterface) {
+					if (!method.isImplementing) {
+						line("$decl;")
 					}
 				} else {
-					val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc} :: ${method.isExtraAdded}\";"
-					indenter.line("$decl { $body2 }")
+					val body = mappings.getBody(method.ref) ?: method.resolveAnnotation(HaxeMethodBody::value)
+
+					if (method.body != null && body == null) {
+						line(decl) {
+							when (INIT_MODE) {
+								InitMode.START_OLD -> line("__hx_static__init__();")
+							}
+							line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
+						}
+					} else {
+						val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc} :: ${method.isExtraAdded}\";"
+						line("$decl { $body2 }")
+					}
 				}
 			}
 		}
@@ -630,13 +633,13 @@ object GenHaxe : GenTarget {
 
 				if (!isInterface) {
 					for (field in clazz.fields) {
-						writeField(this, field, isInterface)
+						line(writeField(field, isInterface))
 					}
 				}
 
 				for (method in clazz.methods) {
 					if (isInterface && method.isStatic) continue
-					writeMethod(this, method, isInterface)
+					line(writeMethod(method, isInterface))
 				}
 
 				if (!isInterface) {
@@ -668,9 +671,9 @@ object GenHaxe : GenTarget {
 			if (isInterface) {
 				line("class ${simpleClassName}_IFields") {
 					line("public function new() {}")
-					for (field in clazz.fields) writeField(this, field, isInterface = false)
+					for (field in clazz.fields) line(writeField(field, isInterface = false))
 
-					for (method in clazz.methods.filter { it.isStatic }) writeMethod(this, method, isInterface = false)
+					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 
 					line(addClassInit(clazz))
 				}

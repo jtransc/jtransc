@@ -18,7 +18,9 @@ package com.jtransc.input
 
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
+import com.jtransc.ds.createPairs
 import com.jtransc.ds.toHashMap
+import com.jtransc.ds.toTypedArray2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.util.recursiveExploration
 import com.jtransc.vfs.LocalVfs
@@ -26,6 +28,7 @@ import com.jtransc.vfs.MergeVfs
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
 import jtransc.annotation.JTranscKeep
+import jtransc.annotation.JTranscReferenceClass
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.*
@@ -93,8 +96,8 @@ fun FieldNode.getRefs(): Set<AstRef> {
 	return out
 }
 
-val KEEP_NAME = JTranscKeep::class.java.name.fqname
-val KEEP_NAME_INTERNAL = "L" + KEEP_NAME.internalFqname + ";"
+//val KEEP_NAME = JTranscKeep::class.java.name.fqname
+//val KEEP_NAME_INTERNAL = "L" + KEEP_NAME.internalFqname + ";"
 
 class AnaMethod(override val clazz: AnaType, val node: MethodNode) : AnaMember {
 	override val project: AnaProject get() = clazz.project
@@ -105,8 +108,8 @@ class AnaMethod(override val clazz: AnaType, val node: MethodNode) : AnaMember {
 	val isAbstract: Boolean = (node.access and Opcodes.ACC_ABSTRACT) != 0
 	val isPartOfInterface: Boolean = clazz.isInterface
 	override val ref by lazy { AstMethodRef(clazz.name, name, methodType) }
-	val annotations = node.invisibleAnnotations?.cast<AnnotationNode>() ?: listOf()
-	override val keep = annotations.any { it.desc == KEEP_NAME_INTERNAL } || node.name == "<clinit>" || (node.name == "values" && clazz.isEnum)
+	val annotations by lazy { AsmAnnotationResolver(node.invisibleAnnotations?.filterIsInstance<AnnotationNode>() ?: listOf()) }
+	override val keep by lazy { annotations.hasAnnotation<JTranscKeep>() || node.name == "<clinit>" || (node.name == "values" && clazz.isEnum) }
 
 	override val references by lazy {
 		(listOf(clazz.ref) + node.getRefs()).toSet()
@@ -121,13 +124,39 @@ class AnaField(override val clazz: AnaType, val node: FieldNode) : AnaMember {
 	override val type: AstType = AstType.demangle(node.desc)
 	override val isStatic: Boolean = (node.access and Opcodes.ACC_STATIC) != 0
 	override val ref by lazy { AstFieldRef(clazz.name, name, type) }
-	val annotations = node.invisibleAnnotations?.cast<AnnotationNode>() ?: listOf()
-	override val keep = annotations.any { it.desc == KEEP_NAME_INTERNAL }
+	//val annotations = node.invisibleAnnotations?.cast<AnnotationNode>() ?: listOf()
+	val annotations by lazy { AsmAnnotationResolver(node.invisibleAnnotations?.filterIsInstance<AnnotationNode>() ?: listOf()) }
+	override val keep by lazy { annotations.hasAnnotation<JTranscKeep>() }
 
 	override val references: Set<AstRef> by lazy {
 		(listOf(clazz.ref) + node.getRefs()).toSet()
 	}
 	override val referencedBy = hashSetOf<AstRef>()
+}
+
+class AsmAnnotationResolver(private val annotations: List<AnnotationNode>) : AnnotationResolver {
+	private fun getAnnotationByClassName(className: String):AnnotationNode? {
+		val desc = AstType.REF(className).mangle()
+		return annotations.firstOrNull { it.desc == desc }
+	}
+
+	override fun has(className: String): Boolean {
+		return getAnnotationByClassName(className) != null
+	}
+
+	override fun get(className: String, fieldName: String): Any? {
+		val info = getAnnotationByClassName(className);
+		if (info != null) {
+			val map = info.values.createPairs().map { Pair(it.first as String, it.second) }.toMap()
+			val value = map[fieldName]
+			return when (value) {
+				is List<*> -> value.toTypedArray2()
+				else -> value
+			}
+		} else {
+			return null
+		}
+	}
 }
 
 class AnaType(val project: AnaProject, val node: ClassNode) {
@@ -148,6 +177,8 @@ class AnaType(val project: AnaProject, val node: ClassNode) {
 	// Flattened ascendence
 	val ascendancy = hashSetOf<AnaType>()
 	val descendants = hashSetOf<AnaType>()
+
+	val annotations by lazy { AsmAnnotationResolver(node.invisibleAnnotations?.filterIsInstance<AnnotationNode>() ?: listOf()) }
 
 	companion object {
 		fun createRelationship(ancestor: AnaType, descendant: AnaType) {
@@ -200,7 +231,7 @@ class AnaType(val project: AnaProject, val node: ClassNode) {
 			if (res == null) {
 				throw InvalidOperationException("Can't resolve field $ref in ${this.fqname}")
 			}
-			fields[ref] = res ?: throw InvalidOperationException("Can't resolve field $ref in ${this.fqname}")
+			fields[ref] = res
 		}
 		return fields[ref]!!
 	}
@@ -228,6 +259,7 @@ class AnaProject(val resolver: SyncVfsFile) {
 			val clazz = AnaType(this, ClassNode(Opcodes.ASM5).apply {
 				ClassReader(resolver[path].readBytes()).accept(this, ClassReader.EXPAND_FRAMES)
 			})
+
 			classes[name] = clazz
 		}
 		return classes[name]!!
@@ -277,10 +309,16 @@ class AnaProject(val resolver: SyncVfsFile) {
 					val list2 = listOf(ref, clazz.parent?.ref) + clazz.interfaces.map { it.ref }
 					//if (keepMembers.isNotEmpty()) println("keepMembers: $keepMembers")
 
+					val referencedClasses = clazz.annotations.resolveAnnotation(JTranscReferenceClass::value)
+					val extraReferencedClasses = referencedClasses?.map { AstClassRef(FqName(it)) } ?: listOf()
+
+					//val isAbstract = clazz.isAbstract && !clazz.isInterface
+					//val members2 = if (isAbstract) clazz.methods.values.filter { !it.isStatic && it.isAbstract }.map { it.ref } else listOf()
+					val members2 = listOf<AstRef>()
 					if (exploreFullClasses) {
-						fields + clazz.methods.values.map { it.ref } + list2
+						fields + clazz.methods.values.map { it.ref } + list2 + extraReferencedClasses
 					} else {
-						fields + list2 + keepMembers
+						fields + list2 + keepMembers + members2 + extraReferencedClasses
 					}
 				}
 				else -> throw InvalidOperationException()

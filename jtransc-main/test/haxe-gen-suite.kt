@@ -25,6 +25,9 @@ import javatest.lang.SystemTest
 import jtransc.JTranscVersion
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
+import jtransc.bug.JTranscBug12Test
+import jtransc.bug.JTranscBug12Test2
+import jtransc.rt.test.JTranscStringTest
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -49,6 +52,11 @@ class HaxeGenSuite {
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
+	@Test fun stringsTest() = testClass<JTranscStringTest>()
+
+	//@Test fun bug12Test() = testClass<JTranscBug12Test>()
+	//@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
+
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 
@@ -57,7 +65,8 @@ class HaxeGenSuite {
 
 	val kotlinPaths = listOf<String>() +
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0") +
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0")
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.0") +
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.0")
 	val testClassesPath = File("target/test-classes").absolutePath
 
 	fun <T : Any> testClass(clazz: Class<T>) {
