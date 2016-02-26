@@ -540,7 +540,7 @@ object GenHaxe : GenTarget {
 			val fieldName = getHaxeFieldName(program, field)
 			if (mappings.isFieldAvailable(field.ref) && !field.annotations.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
-				line("$keep$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
+				line("$keep$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = ${escapeConstant(defaultValue, fieldType)};")
 			}
 		}
 
@@ -688,6 +688,16 @@ object GenHaxe : GenTarget {
 		return ClassResult(output)
 	}
 
+	fun escapeConstant(value: Any?, type:AstType): String {
+		//AstExpr.CAST(type, AstExpr.LITERAL(value))
+		val result = escapeConstant(value)
+		return if (type == AstType.BOOL) {
+			if (result != "false" && result != "0") "true" else "false"
+		} else {
+			result
+		}
+	}
+
 	fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
@@ -721,6 +731,7 @@ object GenHaxe : GenTarget {
 			is AstType.NULL -> "Dynamic"
 			is AstType.VOID -> "Void"
 			is AstType.BOOL -> "Bool"
+			is AstType.GENERIC -> type.type.getHaxeType(program, typeKind).fqname
 			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
 			is AstType.FLOAT, is AstType.DOUBLE -> "Float"
 			is AstType.LONG -> "haxe.Int64"
@@ -819,14 +830,16 @@ object GenHaxe : GenTarget {
 			when (stm) {
 				is AstStm.NOP -> Unit
 				is AstStm.IF -> {
-					line("if (${stm.cond.gen(program, clazz, stm, mutableBody)})") { line(stm.strue.gen(program, clazz, mutableBody)) }
+					line("if (${stm.cond.gen(program, clazz, stm, mutableBody)})") {
+						line(stm.strue.gen(program, clazz, mutableBody))
+					}
 					if (stm.sfalse != null) {
 						line("else") { line(stm.sfalse!!.gen(program, clazz, mutableBody)) }
 					}
 				}
 				is AstStm.RETURN -> {
 					if (stm.retval != null) {
-						line("return cast ${stm.retval!!.gen(program, clazz, stm, mutableBody)};")
+						line("return ${stm.retval!!.gen(program, clazz, stm, mutableBody)};")
 					} else {
 						line("return;")
 					}
@@ -840,15 +853,7 @@ object GenHaxe : GenTarget {
 						line("${stm.local.haxeName} = new ${adaptor.adaptor}(${stm.expr.gen(program, clazz, stm, mutableBody)});")
 					} else {
 						val expr = stm.expr.gen(program, clazz, stm, mutableBody)
-						//line("${stm.local.haxeName} = cast $expr;")
-						//if (clazz.fqname == "java.lang.Float" && mutableBody.method.name == "intValue") {
-						//	println("processing Float.intValue")
-						//}
-						if (stm.local.type == AstType.INT) {
-							line("${stm.local.haxeName} = cast(cast ($expr) | cast(0));") // @TODO: Shouldn't do this! Investigate!
-						} else {
-							line("${stm.local.haxeName} = cast ($expr);")
-						}
+						line("${stm.local.haxeName} = $expr;")
 					}
 				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
@@ -875,9 +880,9 @@ object GenHaxe : GenTarget {
 				is AstStm.SET_FIELD_STATIC -> {
 					addTypeReference(stm.clazz)
 					mutableBody.initClassRef(stm.field.classRef)
-					line("${getStaticFieldText(program, stm.field)} = cast ${stm.expr.gen(program, clazz, stm, mutableBody)};")
+					line("${getStaticFieldText(program, stm.field)} = ${stm.expr.gen(program, clazz, stm, mutableBody)};")
 				}
-				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.gen(program, clazz, stm, mutableBody)}.${getHaxeFieldName(program, stm.field)} = cast ${stm.expr.gen(program, clazz, stm, mutableBody)};")
+				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.gen(program, clazz, stm, mutableBody)}.${getHaxeFieldName(program, stm.field)} = ${stm.expr.gen(program, clazz, stm, mutableBody)};")
 				is AstStm.STM_EXPR -> line("${stm.expr.gen(program, clazz, stm, mutableBody)};")
 				is AstStm.STMS -> for (s in stm.stms) line(s.gen(program, clazz, mutableBody))
 				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
@@ -984,7 +989,7 @@ object GenHaxe : GenTarget {
 			}
 
 			val replacement = mappings.getFunctionInline(this.method)
-			val commaArgs = args.map { "cast " + it.gen(program, clazz, stm, mutableBody) }.joinToString(", ")
+			val commaArgs = args.map { it.gen(program, clazz, stm, mutableBody) }.joinToString(", ")
 
 			// Calling a method on an array!!
 			if (this is AstExpr.CALL_INSTANCE && this.obj.type is AstType.ARRAY) {
@@ -1032,7 +1037,6 @@ object GenHaxe : GenTarget {
 				"$e"
 			} else {
 				when (from) {
-					// @TODO: Should we treat bool as ints?
 					is AstType.BOOL -> {
 						when (to) {
 							is AstType.LONG -> "HaxeNatives.intToLong($e ? 1 : 0)"
@@ -1109,7 +1113,7 @@ object GenHaxe : GenTarget {
 			}
 		}
 		is AstExpr.CLASS_CONSTANT -> "HaxeNatives.resolveClass(${classType.mangle().quote()})"
-		is AstExpr.CAUGHT_EXCEPTION -> "cast __exception__"
+		is AstExpr.CAUGHT_EXCEPTION -> "__exception__"
 		else -> throw NotImplementedError("Unhandled expression $this")
 	}
 

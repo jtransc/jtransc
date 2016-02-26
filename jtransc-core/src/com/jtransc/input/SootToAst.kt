@@ -19,8 +19,6 @@ import java.util.*
 class SootToAst : AstClassGenerator {
 	fun getSootClass(fqname: FqName) = Scene.v().loadClassAndSupport(fqname.fqname)
 
-	override fun isInterface(name: FqName) = getSootClass(name).isInterface
-
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
 		return generateClass(program, getSootClass(fqname))
 	}
@@ -56,14 +54,14 @@ class SootToAst : AstClassGenerator {
 		annotations = method.tags.toAstAnnotations(),
 		name = method.name,
 		type = method.astRef.type,
-		body = if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null,
 		signature = method.astType.mangle(),
 		genericSignature = method.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
 		defaultTag = method.tags.filterIsInstance<AnnotationDefaultTag>().firstOrNull()?.toAstAnnotation(),
 		modifiers = method.modifiers,
 		isStatic = method.isStatic,
 		visibility = method.astVisibility,
-		isNative = method.isNative
+		isNative = method.isNative,
+		body = if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null
 	)
 
 	fun generateField(containingClass: AstClass, field: SootField) = AstField(
@@ -97,8 +95,13 @@ open class AstMethodProcessor private constructor(
 	private val program = containingClass.program
 
 	companion object {
-		fun processBody(method: SootMethod, containingClass: AstClass): AstBody {
-			return AstMethodProcessor(method, containingClass).handle()
+		fun processBody(method: SootMethod, containingClass: AstClass): AstBody? {
+			return try {
+				AstMethodProcessor(method, containingClass).handle()
+			} catch (e: Throwable) {
+				println("Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
+				null
+			}
 		}
 	}
 
@@ -169,19 +172,36 @@ open class AstMethodProcessor private constructor(
 		return AstStm.STMS(stms.toList())
 	}
 
+	private fun cast(e:AstExpr, to:AstType):AstExpr {
+		val from = e.type
+		/*
+		if (from != to) {
+			return AstExpr.CAST(to, from, e)
+		} else {
+			return e
+		}
+		*/
+		if (from != to && to == AstType.BOOL) {
+			return AstExpr.CAST(from, to, e)
+		}
+		return e
+	}
+
 	private fun convert(s: soot.Unit): AstStm = when (s) {
 		is DefinitionStmt -> {
 			val (l, r) = Pair(convert(s.leftOp), convert(s.rightOp))
+			val r_casted = cast(r, l.type)
 			when (l) {
-				is AstExpr.LOCAL -> AstStm.SET(l.local, r)
-				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY((l.array as AstExpr.LOCAL).local, l.index, r)
-				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.clazzName, l.field, r, l.isInterface)
-				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r)
+				is AstExpr.LOCAL -> AstStm.SET(l.local, r_casted)
+				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY((l.array as AstExpr.LOCAL).local, l.index, r_casted)
+				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.clazzName, l.field, r_casted, l.isInterface)
+				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r_casted)
 				else -> invalidOp("Can't handle leftOp: $l")
 			}
 		}
-		is ReturnStmt -> AstStm.RETURN(convert(s.op))
+		is ReturnStmt -> AstStm.RETURN(cast(convert(s.op), method.returnType.astType))
 		is ReturnVoidStmt -> AstStm.RETURN(null)
+		//is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
 		is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
 		is GotoStmt -> AstStm.GOTO(ensureLabel(s.target))
 		is ThrowStmt -> AstStm.THROW(convert(s.op))
@@ -262,19 +282,11 @@ open class AstMethodProcessor private constructor(
 					val isSpecial = i is SpecialInvokeExpr
 					val obj = convert(i.base)
 					val method = c.method.astRef
-					val objType = obj.type
-					var castToObject = false
 
 					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
 						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
 					} else {
-						if (objType is AstType.ARRAY) {
-							castToObject = true
-						} else if (objType is AstType.REF && program.generator.isInterface(objType.name)) {
-							castToObject = true
-						}
-						val obj2 = if (castToObject) AstExpr.CAST(method.classRef.type, obj) else obj
-						AstExpr.CALL_INSTANCE(obj2, method, args, isSpecial)
+						AstExpr.CALL_INSTANCE(AstExpr.CAST(method.classRef.type, obj), method, args, isSpecial)
 					}
 				}
 				else -> throw RuntimeException()
@@ -428,6 +440,7 @@ fun AnnotationTag.getElements(): List<AnnotationElem> {
 	return (0 until this.numElems).map { this.getElemAt(it) }
 }
 
+//@Deprecated
 fun AnnotationElem?.getValue(): Any? = when (this) {
 	null -> null
 	is AnnotationStringElem -> this.value
@@ -442,8 +455,9 @@ fun AnnotationElem?.getValue(): Any? = when (this) {
 		val type = AstType.demangle(this.typeName) as AstType.REF
 		AstFieldRef(type.name, this.constantName, type)
 	}
+	is AnnotationAnnotationElem -> null
 	else -> {
-		noImpl("Not implemented type: $this")
+		noImpl("AnnotationElem.getValue(): Not implemented type: ${this.javaClass} : $this")
 	}
 }
 

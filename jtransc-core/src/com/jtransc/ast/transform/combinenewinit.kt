@@ -36,8 +36,16 @@ object CombineNewInitTransform : AstTransform() {
 			// CALL <init> constructor method
 			if (stm is AstStm.STM_EXPR && stm.expr is AstExpr.CALL_INSTANCE) {
 				val callExpr = stm.expr as AstExpr.CALL_INSTANCE
-				if (callExpr.obj is AstExpr.LOCAL) {
-					val callLocal = (callExpr.obj as AstExpr.LOCAL).local
+
+				val callLocal = if (callExpr.obj is AstExpr.LOCAL) {
+					callExpr.obj.local
+				} else if (callExpr.obj is AstExpr.CAST && callExpr.obj.expr is AstExpr.LOCAL) {
+					callExpr.obj.expr.local
+				} else {
+					null
+				}
+
+				if (callLocal != null) {
 					if (callExpr.isSpecial && callExpr.method.name == "<init>") {
 						if (callLocal in newToLocal) {
 							val (instantiateIndex, instantiateType) = newToLocal[callLocal]!!

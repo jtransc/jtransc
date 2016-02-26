@@ -37,7 +37,7 @@ interface GenTarget {
 }
 
 fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false, subtarget: String = "", targetDirectory: String = "target"): ProcessResult2 {
-	print("Preparing...")
+	print("Preparing processor...")
 	val (preparingTime, processor) = measureTime {
 		this.getProcessor(GenTargetInfo(
 			program, outputFile, settings, subtarget, targetDirectory
@@ -45,7 +45,7 @@ fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildS
 	}
 	println("Ok ($preparingTime)")
 
-	print("Building source...")
+	println("Building source...")
 	val (buildTime, sourceResult) = measureTime { processor.buildSource() }
 	println("Ok ($buildTime)")
 
@@ -82,8 +82,7 @@ abstract class GenTargetDescriptor {
 	abstract val longName: String
 	abstract val sourceExtension: String
 	abstract val outputExtension: String
-	open val extraLibraries: List<String> = listOf<String>()
-	open val extraClasses: List<String> = listOf<String>()
-	open val extraFields: List<AstFieldRef> = listOf()
+	open val extraLibraries = listOf<String>()
+	open val extraClasses = listOf<String>()
 	abstract fun getGenerator(): GenTarget
 }

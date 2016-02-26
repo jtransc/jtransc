@@ -77,7 +77,6 @@ data class AstBuildSettings(
 
 interface AstClassGenerator {
 	fun generateClass(program: AstProgram, fqname: FqName): AstClass
-	fun isInterface(name: FqName): Boolean
 }
 
 class AstProgram(

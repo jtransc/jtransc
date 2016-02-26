@@ -95,19 +95,19 @@ final public class Mem {
 	}
 
     @JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memSxi1(p0);")
+    @HaxeMethodBody("return HaxeNatives.sxi1(p0);")
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memSxi8(p0);")
+    @HaxeMethodBody("return HaxeNatives.sxi8(p0);")
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memSxi16(p0);")
+    @HaxeMethodBody("return HaxeNatives.sxi16(p0);")
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;
 	}

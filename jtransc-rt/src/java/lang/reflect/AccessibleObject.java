@@ -33,6 +33,8 @@ public class AccessibleObject implements AnnotatedElement {
 	protected AccessibleObject() {
 	}
 
+	native public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
+
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		for (Annotation annotation : getDeclaredAnnotations()) {
 			if (annotation.getClass() == annotationClass) return (T) annotation;
