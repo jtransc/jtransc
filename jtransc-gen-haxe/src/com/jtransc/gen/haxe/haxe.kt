@@ -262,6 +262,8 @@ object GenHaxe : GenTarget {
 					line("class ${clazz.astType.getAnnotationProxyName(program)} extends jtransc.internal_.JTranscAnnotationBase_ implements ${getHaxeClassFqName(program, clazz.name)}") {
 						line("private var _data:Array<Dynamic>;")
 						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
+
+						line("public function annotationType__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						line("override public function getClass__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						for ((index, m) in clazz.methods.withIndex()) {
 							line("public function ${m.getHaxeMethodName(program)}():${m.methodType.ret.getTypeTag(program)} { return this._data[$index]; }")
@@ -448,7 +450,8 @@ object GenHaxe : GenTarget {
 
 				val buildArgs = arrayListOf(
 					"-cp", ".",
-					"-main", info!!.entryPointFile
+					"-main", info!!.entryPointFile,
+					"-dce", "full"
 				)
 				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
@@ -469,7 +472,8 @@ object GenHaxe : GenTarget {
 				if (!outputFile2.exists()) {
 					return ProcessResult2("file $outputFile2 doesn't exist", -1)
 				}
-				println("run: ${outputFile2.absolutePath}")
+				val fileSize = outputFile2.length()
+				println("run: ${outputFile2.absolutePath} ($fileSize bytes)")
 				val parentDir = outputFile2.parentFile
 
 				val runner = actualSubtarget.interpreter ?: "echo"
@@ -738,7 +742,7 @@ object GenHaxe : GenTarget {
 				}
 			}
 			is AstType.ARRAY -> when (type.element) {
-				is AstType.BOOL -> "HaxeByteArray"
+				is AstType.BOOL -> "HaxeBoolArray"
 				is AstType.BYTE -> "HaxeByteArray"
 				is AstType.CHAR -> "HaxeShortArray"
 				is AstType.SHORT -> "HaxeShortArray"

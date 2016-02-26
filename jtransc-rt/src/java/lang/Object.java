@@ -32,6 +32,7 @@ import java.io.IOException;
         "HaxeFormat.hx",
         "HaxeNativeWrapper.hx",
         "HaxeBaseArray.hx",
+		"HaxeBoolArray.hx",
         "HaxeByteArray.hx",
         "HaxeShortArray.hx",
         "HaxeIntArray.hx",

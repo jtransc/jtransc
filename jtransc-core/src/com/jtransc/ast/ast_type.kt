@@ -37,6 +37,12 @@ interface AstType {
 	data class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))
 
+		init {
+			if (fqname.contains(';') || fqname.contains(']')) {
+				invalidOp("AstType.REF containing ; or ] :: $fqname")
+			}
+		}
+
 		val fqname: String get() = name.fqname
 
 		val classRef: AstClassRef by lazy { AstClassRef(name) }
@@ -79,7 +85,7 @@ interface AstType {
 		}
 		fun REF_INT(internalName: String): AstType {
 			if (internalName.startsWith("[")) {
-				return ARRAY(REF_INT(internalName.substring(1)))
+				return demangle(internalName)
 			} else {
 				return REF_INT2(internalName)
 			}

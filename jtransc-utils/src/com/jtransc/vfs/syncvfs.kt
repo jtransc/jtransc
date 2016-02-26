@@ -587,6 +587,8 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 	override fun setMtime(path: String, time: Date) = op(path, "setMtime") { it[path].setMtime(time) }
 }
 
+
+
 private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 	constructor(path: String) : this(ZipFile(path))
 

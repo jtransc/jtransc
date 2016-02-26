@@ -16,13 +16,26 @@
 
 package java.lang;
 
-import sun.misc.DoubleConsts;
-
 import java.util.Random;
 
 public final class StrictMath {
 	private StrictMath() {
 	}
+
+	static final double POSITIVE_INFINITY = 1.0D / 0.0;
+	static final double NEGATIVE_INFINITY = -1.0D / 0.0;
+	static final double NaN = 0.0D / 0.0;
+	static final double MAX_VALUE = 1.7976931348623157E308D;
+	static final double MIN_VALUE = 4.9E-324D;
+	static final double MIN_NORMAL = 2.2250738585072014E-308D;
+	static final int SIGNIFICAND_WIDTH = 53;
+	static final int MAX_EXPONENT = 1023;
+	static final int MIN_EXPONENT = -1022;
+	static final int MIN_SUB_EXPONENT = -1074;
+	static final int EXP_BIAS = 1023;
+	static final long SIGN_BIT_MASK = -9223372036854775808L;
+	static final long EXP_BIT_MASK = 9218868437227405312L;
+	static final long SIGNIF_BIT_MASK = 4503599627370495L;
 
 	public static final double E = 2.7182818284590452354;
 	public static final double PI = 3.14159265358979323846;
@@ -105,7 +118,7 @@ public final class StrictMath {
 		assert exponent >= 0 && exponent <= 51;
 
 		long doppel = Double.doubleToRawLongBits(a);
-		long mask = DoubleConsts.SIGNIF_BIT_MASK >> exponent;
+		long mask = SIGNIF_BIT_MASK >> exponent;
 
 		if ((mask & doppel) == 0L)
 			return a; // integral value

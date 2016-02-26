@@ -36,7 +36,9 @@ data class AstTrap(val start: AstLabel, val end: AstLabel, val handler: AstLabel
 
 data class AstLabel(val name: String)
 
-interface AstStm {
+interface AstElement
+
+interface AstStm : AstElement {
 	data class STMS(val stms: List<AstStm>) : AstStm {
 		constructor(vararg stms: AstStm) : this(stms.toList())
 	}
@@ -76,7 +78,7 @@ interface AstStm {
 	data class MONITOR_EXIT(val expr: AstExpr) : AstStm
 }
 
-interface AstExpr {
+interface AstExpr : AstElement {
 	open val type: AstType
 
 	interface ImmutableRef : AstExpr

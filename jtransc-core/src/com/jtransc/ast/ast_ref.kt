@@ -1,5 +1,7 @@
 package com.jtransc.ast
 
+import com.jtransc.error.invalidOp
+
 interface AstRef
 interface AstMemberRef : AstRef {
 	val classRef: AstClassRef
@@ -10,6 +12,12 @@ interface AstMemberRef : AstRef {
 
 data class AstClassRef(val name: FqName) : AstRef {
 	constructor(name: String) : this(FqName(name))
+
+	init {
+		if (name.fqname.contains(';') || name.fqname.contains(']')) {
+			invalidOp("Class reference containing ; or ] :: $name")
+		}
+	}
 
 	val fqname: String get() = name.fqname
 

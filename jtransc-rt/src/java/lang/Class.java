@@ -38,7 +38,7 @@ import java.lang.AnnotatedElement;
         "public var _modifiers = 0;",
         "public var _methods = [];",
         "public var _constructors = [];",
-        "public var _annotations = [];",
+        "public var _annotations = [];"
 })
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
 	private static final int ANNOTATION = 0x00002000;
@@ -233,7 +233,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public String getSimpleName() {
-		String out = this.name.substring(this.name.lastIndexOf('.') + 1);
+		String out = "";
+		char separator = (this.name.indexOf('$') > 0) ? '$' : '.';
+		out += this.name.substring(this.name.lastIndexOf(separator) + 1);
 		if (isArray()) out += "[]";
 		return out;
 	}
@@ -244,7 +246,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		//return this.name.replace('.', '/');
 	//}
 	public String getCanonicalName() {
-		return this.name;
+		return this.name.replace('$', '.');
 	}
 
 	public boolean isAnonymousClass() {
@@ -396,6 +398,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		throw new NoSuchMethodException();
 	}
 
+	@JTranscKeep
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getDeclaredAnnotation(annotationClass) != null;
 	}

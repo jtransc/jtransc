@@ -25,10 +25,7 @@ import javatest.lang.SystemTest
 import jtransc.JTranscVersion
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
-import jtransc.bug.JTranscBug12Test
-import jtransc.bug.JTranscBug12Test2
-import jtransc.bug.JTranscBug14Test
-import jtransc.bug.JTranscRegression1Test
+import jtransc.bug.*
 import jtransc.rt.test.JTranscStringTest
 import org.junit.Assert
 import org.junit.Test
@@ -60,7 +57,10 @@ class HaxeGenSuite {
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
 	@Test fun bug14Test() = testClass<JTranscBug14Test>()
 
+	@Test fun bugClassRefTest() = testClass<JTranscBugClassRefTest>()
+
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()
+	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())

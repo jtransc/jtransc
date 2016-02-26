@@ -16,86 +16,39 @@ import soot.tagkit.*
 import java.io.File
 import java.util.*
 
-class SootToAst {
-	companion object {
-		fun createProgramAst(classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile, deps2: Set<AstRef>? = null): AstProgram {
-			SootUtils.init(classPaths)
-			return SootToAst().generateProgram(BaseProjectContext(classNames, mainClass, classPaths, outputPath, deps2?.toHashSet()))
-		}
+class SootToAst : AstClassGenerator {
+	fun getSootClass(fqname: FqName) = Scene.v().loadClassAndSupport(fqname.fqname)
 
-		fun checkIfClassExists(name: FqName): Boolean {
-			try {
-				return Scene.v().getSootClass(name.fqname) != null
-			} catch (t: Throwable) {
-				return false
-			}
-		}
+	override fun isInterface(name: FqName) = getSootClass(name).isInterface
+
+	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
+		return generateClass(program, getSootClass(fqname))
 	}
 
-	fun generateProgram(projectContext: BaseProjectContext): AstProgram {
-		class SootAnalyzer : ProgramAnalyzer {
-		}
-
-		val program = AstProgram(
-			entrypoint = FqName(projectContext.mainClass),
-			resourcesVfs = MergedLocalAndJars(projectContext.classPaths),
-			analyzer = SootAnalyzer()
+	fun generateClass(program: AstProgram, sootClass: SootClass): AstClass {
+		val astClass = AstClass(
+			program = program,
+			name = sootClass.name.fqname,
+			modifiers = sootClass.modifiers,
+			annotations = sootClass.tags.toAstAnnotations(),
+			classType = if (sootClass.isInterface) AstClassType.INTERFACE else if (sootClass.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
+			visibility = AstVisibility.PUBLIC,
+			extending = if (sootClass.hasSuperclass() && !sootClass.isInterface) FqName(sootClass.superclass.name) else null,
+			implementing = sootClass.interfaces.map { FqName(it.name) }
 		)
-		val tree = projectContext.tree
-		program[BaseProjectContext.KEY] = projectContext
+		program.add(astClass)
 
-		// Preprocesses classes
-		projectContext.classNames.forEach { tree.getSootClass(it.fqname) }
-
-		print("Processing classes...")
-
-		projectContext.classNames.forEach { tree.addClassToGenerate(it) }
-
-		val (elapsed) = measureTime {
-			while (tree.hasClassToGenerate()) {
-				val className = tree.getClassToGenerate()
-				val clazz = tree.getSootClass(className)
-				//val nativeClassTag = clazz.clazz.getTag("libcore.NativeClass", "")
-
-				//print("Processing class: " + clazz.clazz.name + "...")
-
-				val generatedClass = generateClass(program, clazz)
-
-				// Add dependencies for annotations
-				// @TODO: Do this better!
-				// @TODO: This should be recursive. But anyway it shouldn't be there!
-				// @TODO: Analyzer should detect annotations and reference these ones
-				generatedClass.classAndFieldAndMethodAnnotations.forEach {
-					val classFq = it.type.name
-					val clazz = tree.getSootClass(classFq)
-					tree.addClassToGenerate(classFq.fqname)
-					projectContext.addDep(AstClassRef(classFq))
-					for (m in clazz.methods) {
-						projectContext.addDep(m.astRef)
-						projectContext.addDep(m.returnType.astType.getRefClasses())
-						for (clazz in m.returnType.astType.getRefClasses()) {
-							tree.addClassToGenerate(clazz.fqname)
-						}
-					}
-				}
-			}
-
-			// Add synthetic methods to abstracts to simulate in haxe
-			// @TODO: Maybe we could generate those methods in haxe generator
-			for (clazz in program.classes.filter { it.isAbstract }) {
-				for (method in clazz.getAllMethodsToImplement()) {
-					if (!clazz.hasMethod(method)) {
-						clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
-					}
-				}
-			}
+		for (method in sootClass.methods.map { generateMethod(astClass, it) }) {
+			astClass.add(method)
 		}
 
-		//for (dep in projectContext.deps2!!) println(dep)
+		for (field in sootClass.fields.map { generateField(astClass, it) }) {
+			astClass.add(field)
+		}
 
-		println("Ok classes=${projectContext.classNames.size}, time=$elapsed")
+		//astClass.finish()
 
-		return program
+		return astClass
 	}
 
 	fun generateMethod(containingClass: AstClass, method: SootMethod) = AstMethod(
@@ -113,21 +66,6 @@ class SootToAst {
 		isNative = method.isNative
 	)
 
-	fun generateDummyMethod(containingClass: AstClass, name:String, methodType: AstType.METHOD_TYPE, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
-		containingClass = containingClass,
-		annotations = listOf(),
-		name = name,
-		type = methodType,
-		body = null,
-		signature = methodType.mangle(),
-		genericSignature = methodType.mangle(),
-		defaultTag = null,
-		modifiers = -1,
-		isStatic = isStatic,
-		visibility = visibility,
-		isNative = true
-	)
-
 	fun generateField(containingClass: AstClass, field: SootField) = AstField(
 		containingClass = containingClass,
 		name = field.name,
@@ -141,84 +79,22 @@ class SootToAst {
 		constantValue = field.tags.getConstant(),
 		visibility = field.astVisibility
 	)
-
-	fun generateClass(program: AstProgram, sootClass: SootClass): AstClass {
-		val context = program[BaseProjectContext.KEY]
-
-		val astClass = AstClass(
-			program = program,
-			name = sootClass.name.fqname,
-			modifiers = sootClass.modifiers,
-			annotations = sootClass.tags.toAstAnnotations(),
-			classType = if (sootClass.isInterface) AstClassType.INTERFACE else if (sootClass.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
-			visibility = AstVisibility.PUBLIC,
-			extending = if (sootClass.hasSuperclass() && !sootClass.isInterface) FqName(sootClass.superclass.name) else null,
-			implementing = sootClass.interfaces.map { FqName(it.name) }
-		)
-		program.add(astClass)
-
-		for (method in sootClass.methods.filter { context.mustInclude(it.astRef) }.map { generateMethod(astClass, it) }) {
-			astClass.add(method)
-		}
-
-		//for (field in sootClass.fields.filter { context.mustInclude(it.astRef) }.map { generateField(astClass, it) }) {
-		for (field in sootClass.fields.map { generateField(astClass, it) }) {
-			astClass.add(field)
-		}
-
-		//astClass.finish()
-
-		return astClass
-	}
 }
 
 
-open class BaseProjectContext(val classNames: List<String>, val mainClass: String, val classPaths: List<String>, val output: SyncVfsFile, val deps2: HashSet<AstRef>?) {
-	companion object {
-		val KEY = UserKey<BaseProjectContext>()
-	}
-
-	class Tree {
-		val generatedClasses = hashSetOf<FqName>()
-		val classesToGenerate: Queue<FqName> = LinkedList<FqName>()
-
-		fun addClassToGenerate(it: String) {
-			if (it.fqname in generatedClasses) return
-			classesToGenerate += it.fqname
-			generatedClasses += it.fqname
-		}
-
-		fun getSootClass(fqname: FqName) = Scene.v().loadClassAndSupport(fqname.fqname)
-
-		fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
-
-		fun getClassToGenerate() = classesToGenerate.remove()
-	}
-
-	val tree = Tree()
-	val classes = arrayListOf<AstClass>()
-	//val preInitLines = arrayListOf<String>()
-	//val bootImports = arrayListOf<String>()
-
-	fun mustInclude(ref: AstRef) = if (deps2 != null) (ref in deps2) else true
-	fun isInterface(name: FqName) = tree.getSootClass(name).isInterface
-
-	fun addDep(dep: AstRef) {
-		this.deps2?.add(dep)
-	}
-
-	fun addDep(dep: Iterable<AstRef>) {
-		this.deps2?.addAll(dep)
-	}
-
-}
+open class BaseProjectContext(
+	val classNames: List<String>,
+	val mainClass: String,
+	val classPaths: List<String>,
+	val output: SyncVfsFile,
+    val generator: AstClassGenerator
+)
 
 open class AstMethodProcessor private constructor(
 	private val method: SootMethod,
 	private val containingClass: AstClass
 ) {
 	private val program = containingClass.program
-	private val context = program[BaseProjectContext.KEY]
 
 	companion object {
 		fun processBody(method: SootMethod, containingClass: AstClass): AstBody {
@@ -394,7 +270,7 @@ open class AstMethodProcessor private constructor(
 					} else {
 						if (objType is AstType.ARRAY) {
 							castToObject = true
-						} else if (objType is AstType.REF && context.isInterface(objType.name)) {
+						} else if (objType is AstType.REF && program.generator.isInterface(objType.name)) {
 							castToObject = true
 						}
 						val obj2 = if (castToObject) AstExpr.CAST(method.classRef.type, obj) else obj

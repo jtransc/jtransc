@@ -44,8 +44,7 @@ data class AstBuildSettings(
 	var borderless: Boolean = false,
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
-	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
-	var extraRefs: List<AstRef> = listOf()
+	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO
 ) {
 	val release: Boolean get() = !debug
 
@@ -76,15 +75,34 @@ data class AstBuildSettings(
 	}
 }
 
-interface ProgramAnalyzer {
-
+interface AstClassGenerator {
+	fun generateClass(program: AstProgram, fqname: FqName): AstClass
+	fun isInterface(name: FqName): Boolean
 }
 
-class AstProgram(val entrypoint: FqName, val resourcesVfs: SyncVfsFile, val analyzer: ProgramAnalyzer) : IUserData by UserData() {
+class AstProgram(
+	val entrypoint: FqName,
+	val resourcesVfs: SyncVfsFile,
+	val generator: AstClassGenerator
+) : IUserData by UserData() {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
 	val classes: List<AstClass> get() = _classes
+
+	private val classesToGenerate = LinkedList<AstClassRef>()
+	private val referencedClasses = hashSetOf<AstClassRef>()
+
+	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
+
+	fun readClassToGenerate():AstClassRef = classesToGenerate.remove()
+
+	fun addReference(clazz: AstClassRef) {
+		if (clazz !in referencedClasses) {
+			classesToGenerate += clazz
+			referencedClasses += clazz
+		}
+	}
 
 	operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
@@ -95,7 +113,7 @@ class AstProgram(val entrypoint: FqName, val resourcesVfs: SyncVfsFile, val anal
 			println("AstProgram. Can't find class '$name'")
 			println("AstProgram. ClassFile: $classFile")
 			println("AstProgram. File exists: " + resourcesVfs[classFile].exists)
-			println("AstProgram. Soot exists: " + SootToAst.checkIfClassExists(name))
+			//println("AstProgram. Soot exists: " + SootToAst.checkIfClassExists(name))
 
 			throw RuntimeException("AstProgram. Can't find class '$name'")
 		} else {
