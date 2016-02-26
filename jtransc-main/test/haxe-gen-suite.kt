@@ -27,6 +27,7 @@ import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.JTranscBug12Test
 import jtransc.bug.JTranscBug12Test2
+import jtransc.bug.JTranscBug14Test
 import jtransc.bug.JTranscRegression1Test
 import jtransc.rt.test.JTranscStringTest
 import org.junit.Assert
@@ -57,6 +58,7 @@ class HaxeGenSuite {
 
 	@Test fun bug12Test() = testClass<JTranscBug12Test>()
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
+	@Test fun bug14Test() = testClass<JTranscBug14Test>()
 
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()
 

@@ -240,8 +240,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public String getTypeName();
 
+	//public String getCanonicalName() {
+		//return this.name.replace('.', '/');
+	//}
 	public String getCanonicalName() {
-		return this.name.replace('.', '/');
+		return this.name;
 	}
 
 	public boolean isAnonymousClass() {

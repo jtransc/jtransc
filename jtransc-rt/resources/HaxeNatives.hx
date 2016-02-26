@@ -100,12 +100,27 @@ class HaxeNatives {
     }
 
     static public function resolveClass(name:String):java_.lang.Class_ {
-        if (name == null) return null;
-        return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(name));
+        if (name == null) {
+            trace('resolveClass:name:null');
+            return null;
+        }
+        var result = java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(name));
+        if (result == null) {
+            trace('resolveClass:result:null');
+        }
+        return result;
     }
 
     static public function getClass(object:java_.lang.Object_):java_.lang.Class_ {
-        return resolveClass(HaxeReflectionInfo.internalClassNameToName(Type.getClassName(Type.getClass(object))));
+        var haxeClass = Type.getClass(object);
+        if (haxeClass == null) trace('haxeClass == null');
+        var haxeClassName = Type.getClassName(haxeClass);
+        if (haxeClassName == null) trace('haxeClassName == null');
+        var javaClassName = HaxeReflectionInfo.internalClassNameToName(haxeClassName);
+        if (javaClassName == null) trace('javaClassName == null :: $haxeClassName');
+        var javaClass = resolveClass(javaClassName);
+        if (javaClass == null) trace('javaClass == null :: $javaClassName');
+        return javaClass;
     }
 
     static public function objectToString(object:java_.lang.Object_):String {

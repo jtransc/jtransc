@@ -326,18 +326,19 @@ object GenHaxe : GenTarget {
 				line("static public function internalClassNameToName(internalClassName:String):String") {
 					line("var cn = internalClassName;")
 					line("switch (cn.length)") {
-						for (clazzGroup in program.classes.groupBy { it.fqname.length }.toList().sortedBy { it.first }) {
+						for (clazzGroup in program.classes.groupBy { getHaxeGeneratedFqName(it.name).fqname.length }.toList().sortedBy { it.first }) {
 							val length = clazzGroup.first
 							val classesWithLength = clazzGroup.second
 							line("case $length:")
 							indent {
 								for (clazz in classesWithLength.sortedBy { it.fqname }) {
-									line("if (cn == \"${getHaxeGeneratedFqName(clazz.name)}\") return \"${clazz.fqname}\";")
+									line("if (cn == \"${getHaxeGeneratedFqName(clazz.name).fqname}\") return \"${clazz.fqname}\";")
 								}
 							}
 						}
 					}
-					line("return null;")
+					//line("return null;")
+					line("throw 'Unknown class \$internalClassName';")
 				}
 
 				for (clazz in classes) {
