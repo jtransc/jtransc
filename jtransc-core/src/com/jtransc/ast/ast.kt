@@ -19,10 +19,11 @@ package com.jtransc.ast
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.input.SootToAst
 import com.jtransc.util.dependencySorter
+import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
+import com.jtransc.vfs.UserData
 import jtransc.annotation.*
 import java.util.*
 
@@ -75,10 +76,7 @@ data class AstBuildSettings(
 	}
 }
 
-class AstProgram(
-	val entrypoint: FqName,
-	val resourcesVfs: SyncVfsFile
-) {
+class AstProgram(val entrypoint: FqName, val resourcesVfs: SyncVfsFile) : IUserData by UserData() {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -125,6 +123,7 @@ class AstProgram(
 	operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 
 	// @TODO: Cache all this stuff!
+	/*
 	fun getAncestors(clazz: AstClass): List<AstClass> {
 		var out = arrayListOf<AstClass>()
 		var current = clazz
@@ -136,10 +135,9 @@ class AstProgram(
 		}
 		return out
 	}
+	*/
 
-	fun getInterfaces(clazz: AstClass): List<AstClass> {
-		return clazz.implementing.map { this[it] }
-	}
+	fun getInterfaces(clazz: AstClass) = clazz.implementing.map { this[it] }
 
 	fun getAllInterfaces(clazz: AstClass): Set<AstClass> {
 		val thisInterfaces = getInterfaces(clazz).flatMap { listOf(it) + getAllInterfaces(it) }.toSet()
@@ -219,7 +217,8 @@ class AstClass(
 	val implCode by lazy { annotations.get(JTranscNativeClassImpl::value) }
 	val nativeName by lazy { annotations.get(JTranscNativeClass::value) }
 
-	val isInterface: Boolean = classType == AstClassType.INTERFACE
+	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
+	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
 	val fqname = name.fqname
 	val isNative by lazy { (nativeName != null) }
 
@@ -235,7 +234,7 @@ class AstClass(
 
 	operator fun get(ref: AstMethodRef) = getMethodSure(ref.name, ref.desc)
 	operator fun get(ref: AstMethodWithoutClassRef) = getMethod(ref.name, ref.desc)
-	operator fun get(ref: AstFieldRef) = fieldsByName[ref.name]!!
+	operator fun get(ref: AstFieldRef) = fieldsByName[ref.name] ?: invalidOp("Can't find field $ref")
 
 	val hasStaticInit: Boolean get() = staticInitMethod != null
 	val staticInitMethod: AstMethod? get() = methodsByName["<clinit>"]?.firstOrNull()
@@ -318,8 +317,6 @@ val AstClass.astType: AstType.REF get() = AstType.REF(this.name)
 
 fun AstType.getRefClasses(): List<AstClassRef> = this.getRefTypesFqName().map { AstClassRef(it) }
 
-data class AstDependencies(val dependencies: HashSet<AstRef>)
-
 data class AstReferences(
 	val classes: Set<AstClassRef> = setOf(),
 	val methods: Set<AstMethodRef> = setOf(),
@@ -354,10 +351,10 @@ class AstField(
 	isStatic: Boolean = false,
 	val isFinal: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
-	val hasConstantValue: Boolean = false,
 	val constantValue: Any? = null
 ) : AstMember(containingClass, name, type, isStatic, visibility, annotations) {
 	val ref: AstFieldRef get() = AstFieldRef(this.containingClass.name, this.name, this.type)
+	val hasConstantValue = constantValue != null
 }
 
 class AstMethod(

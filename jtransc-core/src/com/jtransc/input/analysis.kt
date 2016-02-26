@@ -239,7 +239,7 @@ class AnaProject(val resolver: SyncVfsFile) {
 
 	fun getOrCreate(ref: AstClassRef): AnaType {
 		val name = ref.fqname
-		val path = name.replace('.', '/') + ".class"
+		val path = ref.name.pathToClass
 		if (name !in classes) {
 			val clazz = AnaType(this, ClassNode(Opcodes.ASM5).apply {
 				ClassReader(resolver[path].readBytes()).accept(this, ClassReader.EXPAND_FRAMES)

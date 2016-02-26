@@ -142,6 +142,7 @@ data class FqName(val fqname: String) : Serializable {
 	val packagePath by lazy { fqname.substringBeforeLast('.', "") }
 	val simpleName by lazy { fqname.substringAfterLast('.') }
 	val internalFqname by lazy { fqname.replace('.', '/') }
+	val pathToClass by lazy { "$internalFqname.class" }
 
 	fun withPackagePath(packagePath: String) = FqName(packagePath, simpleName)
 	fun withPackageParts(packageParts: List<String>) = FqName(packageParts, simpleName)
@@ -240,7 +241,9 @@ fun AstType.Companion.readOne(reader: Reader): AstType {
 			val ret = AstType.readOne(reader)
 			AstType.METHOD_TYPE(ret, args)
 		}
-		else -> throw NotImplementedError("Not implemented type '$typech'")
+		else -> {
+			throw NotImplementedError("Not implemented type '$typech'")
+		}
 	}
 }
 

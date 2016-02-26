@@ -1,29 +1,22 @@
 package com.jtransc.input
 
 import com.jtransc.ast.*
-import com.jtransc.ds.toTypedArray2
 import com.jtransc.ds.zipped
 import com.jtransc.env.OS
-import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
-import jtransc.annotation.*
+import com.jtransc.vfs.UserKey
 import soot.*
 import soot.jimple.*
 import soot.options.Options
 import soot.tagkit.*
 import java.io.File
-import java.nio.charset.Charset
 import java.util.*
-import kotlin.reflect.KProperty1
 
 class SootToAst {
-	//registerAbstract("java.lang.Object", "Object", "ObjectTools")
-	//registerAbstract("java.lang.String", "String", "StringTools")
-
 	companion object {
 		fun createProgramAst(classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile, deps2: Set<AstRef>? = null): AstProgram {
 			SootUtils.init(classPaths)
@@ -39,171 +32,64 @@ class SootToAst {
 		}
 	}
 
-	protected val cl = this.javaClass.classLoader
-	protected val utf8 = Charset.forName("UTF-8")
-	protected val file_separator = System.getProperty("file.separator")
-	protected val tree = TargetTree()
-
-	protected fun classNameToPath(name: String): String = name.replace(".", "/")
-
 	fun generateProgram(projectContext: BaseProjectContext): AstProgram {
 		val program = AstProgram(
 			entrypoint = FqName(projectContext.mainClass),
 			resourcesVfs = MergedLocalAndJars(projectContext.classPaths)
 		)
-
-		// Load classes into stage
-		projectContext.classNames.forEach {
-			Scene.v().loadClassAndSupport(it)
-		}
+		val tree = projectContext.tree
+		program[BaseProjectContext.KEY] = projectContext
 
 		// Preprocesses classes
-		projectContext.classNames.forEach { tree.getTargetClass(it) }
+		projectContext.classNames.forEach { tree.getSootClass(it.fqname) }
 
 		print("Processing classes...")
-		val context = SootContext(projectContext, program)
 
-		projectContext.classNames.forEach { context.addClassToGenerate(it) }
+		projectContext.classNames.forEach { tree.addClassToGenerate(it) }
 
 		val (elapsed) = measureTime {
-			while (context.hasClassToGenerate()) {
-				val className = context.getClassToGenerate()
-				val clazz = tree.getTargetClass(className)
+			while (tree.hasClassToGenerate()) {
+				val className = tree.getClassToGenerate()
+				val clazz = tree.getSootClass(className)
 				//val nativeClassTag = clazz.clazz.getTag("libcore.NativeClass", "")
 
 				//print("Processing class: " + clazz.clazz.name + "...")
 
-				val generatedClass = generateClass(program, clazz.clazz, context)
-				program.add(generatedClass)
-				context.addGeneratedClass(generatedClass)
+				val generatedClass = generateClass(program, clazz)
 
 				// Add dependencies for annotations
 				// @TODO: Do this better!
 				// @TODO: This should be recursive. But anyway it shouldn't be there!
 				// @TODO: Analyzer should detect annotations and reference these ones
 				generatedClass.classAndFieldAndMethodAnnotations.forEach {
-					context.addClassToGenerate(it.type.name.fqname)
-					val clazz2 = context.getClass(it.type.name)
-					context.projectContext.addDep(clazz2.clazz.astRef)
-					for (m in clazz2.clazz.methods) {
-						context.projectContext.addDep(m.astRef)
-						context.projectContext.addDep(m.returnType.astType.getRefClasses())
+					val classFq = it.type.name
+					val clazz = tree.getSootClass(classFq)
+					tree.addClassToGenerate(classFq.fqname)
+					projectContext.addDep(AstClassRef(classFq))
+					for (m in clazz.methods) {
+						projectContext.addDep(m.astRef)
+						projectContext.addDep(m.returnType.astType.getRefClasses())
 						for (clazz in m.returnType.astType.getRefClasses()) {
-							context.addClassToGenerate(clazz.fqname)
+							tree.addClassToGenerate(clazz.fqname)
 						}
 					}
 				}
-
-				//val referencedClass = generatedClass.resolveAnnotation(JTranscReferenceClass::value)
-				//if (referencedClass != null) {
-				//	context.projectContext.addDep(AstClassRef(FqName(referencedClass)))
-				//}
-				//println("Ok($elapsed):$nativeClassTag")
 			}
 		}
 
-		//for (dep in context.projectContext.deps2!!) println(dep)
+		//for (dep in projectContext.deps2!!) println(dep)
 
 		println("Ok classes=${projectContext.classNames.size}, time=$elapsed")
 
 		return program
 	}
 
-	class SootContext(val projectContext: BaseProjectContext, val program: AstProgram) {
-		private val classesToGenerateSet = hashSetOf<String>()
-		private val classesToGenerateOnce: Queue<String> = LinkedList()
-		val generatedClassesList = arrayListOf<AstClass>()
-
-		fun hasClassToGenerate() = classesToGenerateOnce.isNotEmpty()
-
-		fun getClassToGenerate() = classesToGenerateOnce.remove()
-
-		fun addClassToGenerate(className: String) {
-			if (classesToGenerateSet.contains(className)) return
-			classesToGenerateSet.add(className)
-			classesToGenerateOnce.add(className)
-		}
-
-		fun addGeneratedClass(clazz: AstClass) {
-			generatedClassesList.add(clazz)
-		}
-
-		class SootClassContext(val context: SootContext, val clazz: SootClass) {
-			val clazzName = FqName(clazz.name)
-			val parent = if (clazz.hasSuperclass()) clazz.superclass else null
-			val parentContext = if (parent != null) context[parent] else null
-			val clazzAbstract = clazz.isClassAbstract
-			val allImplementedMethods by lazy { clazz.getAllImplementedMethods() }
-			val allMethodsToImplement by lazy { clazz.getAllMethodsToImplement() }
-			val missingMethods by lazy {
-				val list = allMethodsToImplement.map { it.withoutClass } - allImplementedMethods.map { it.withoutClass }
-				list.map { it.withClass(clazzName).toEmptyMethod(context.program) }
-			}
-			val ancestorsWithThis = clazz.getAncestors(includeThis = true)
-			val ancestorsWithoutThis = clazz.getAncestors(includeThis = false)
-			val abstractAncestorsWithThis by lazy { ancestorsWithThis.filter { it.isClassAbstract } }
-			val abstractAncestorsWithoutThis by lazy { ancestorsWithoutThis.filter { it.isClassAbstract } }
-			val allMissingMethods by lazy { abstractAncestorsWithoutThis.flatMap { context[it].missingMethods } }
-		}
-
-		class SootMethodContext(val context: SootContext, val method: SootMethod) {
-			val clazz = method.declaringClass
-			val clazzContext = context[clazz]
-			val methodName = method.name
-			val overridingMethod by lazy {
-				var override = if (clazz.isInterface) {
-					null
-				} else {
-					method.overridingMethod
-				}
-				if (override == null) {
-					val allMissingMethods = clazzContext.allMissingMethods
-					if (allMissingMethods.isNotEmpty()) {
-						override = allMissingMethods.firstOrNull { it.ref.withoutClass == method.astRef.withoutClass }?.ref
-					}
-				}
-				override
-			}
-		}
-
-		val classes = hashMapOf<String, SootClassContext>()
-		val methods = hashMapOf<SootMethod, SootMethodContext>()
-
-		operator fun get(clazz: SootClass): SootClassContext {
-			val clazzName = clazz.name
-			if (clazzName !in classes) classes[clazzName] = SootClassContext(this, clazz)
-			return classes[clazzName]!!
-		}
-
-		operator fun get(method: SootMethod): SootMethodContext {
-			if (method !in methods) methods[method] = SootMethodContext(this, method)
-			return methods[method]!!
-		}
-
-		fun mustInclude(method: SootMethod): Boolean {
-			//if (method.declaringClass.isInterface) return true
-			//if (method.isMethodOverriding && method.name != "<init>") return true
-			//if (method.name == "toString") return true
-			return projectContext.mustInclude(method.astRef)
-			//return true
-		}
-
-		fun mustInclude(method: SootField): Boolean {
-			return true
-		}
-
-		fun getClass(name: FqName): SootClassContext {
-			//return this[Scene.v().getSootClass(name.fqname)]
-			return this[Scene.v().loadClassAndSupport(name.fqname)]
-		}
-	}
-
-	fun generateMethod(containingClass: AstClass, method: SootMethod, context: SootContext) = AstMethod(
+	fun generateMethod(containingClass: AstClass, method: SootMethod) = AstMethod(
 		containingClass = containingClass,
 		annotations = method.tags.toAstAnnotations(),
 		name = method.name,
 		type = method.astRef.type,
-		body = if (method.isConcrete) AstMethodProcessor.processBody(method, context) else null,
+		body = if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null,
 		signature = method.astType.mangle(),
 		genericSignature = method.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
 		defaultTag = method.tags.filterIsInstance<AnnotationDefaultTag>().firstOrNull()?.toAstAnnotation(),
@@ -211,67 +97,44 @@ class SootToAst {
 		isStatic = method.isStatic,
 		visibility = method.astVisibility,
 		isNative = method.isNative
-		//nativeMethodBody = method.getAnnotation(JTranscMethodBody::value),
 	)
 
+	fun generateField(containingClass: AstClass, field: SootField) = AstField(
+		containingClass = containingClass,
+		name = field.name,
+		annotations = field.tags.toAstAnnotations(),
+		type = field.type.astType,
+		descriptor = field.type.astType.mangle(),
+		genericSignature = field.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
+		modifiers = field.modifiers,
+		isStatic = field.isStatic,
+		isFinal = field.isFinal,
+		constantValue = field.tags.getConstant(),
+		visibility = field.astVisibility
+	)
 
-	fun generateField(containingClass: AstClass, field: SootField, context: SootContext): AstField {
-		val it = field
-		val constantValue = it.tags.filterIsInstance<ConstantValueTag>().firstOrNull()
-		val hasConstantValue = constantValue != null
-		val annotations = it.tags.toAstAnnotations()
-		val finalConstantValue: Any? = when (constantValue) {
-			null -> null
-			is IntegerConstantValueTag -> constantValue.intValue
-			is LongConstantValueTag -> constantValue.longValue
-			is DoubleConstantValueTag -> constantValue.doubleValue
-			is FloatConstantValueTag -> constantValue.floatValue
-			is StringConstantValueTag -> constantValue.stringValue
-			else -> throw InvalidOperationException("Not a valid constant")
-		}
+	fun generateClass(program: AstProgram, sootClass: SootClass): AstClass {
+		val context = program[BaseProjectContext.KEY]
 
-
-		return AstField(
-			containingClass = containingClass,
-			name = it.name,
-			annotations = annotations,
-			type = it.type.astType,
-			descriptor = it.type.astType.mangle(),
-			genericSignature = it.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
-			modifiers = it.modifiers,
-			isStatic = it.isStatic,
-			isFinal = it.isFinal,
-			hasConstantValue = hasConstantValue,
-			constantValue = finalConstantValue,
-			visibility = if (it.isPublic) AstVisibility.PUBLIC else if (it.isProtected) AstVisibility.PROTECTED else AstVisibility.PRIVATE
-		)
-	}
-
-	fun generateClass(program: AstProgram, sootClass: SootClass, context: SootContext): AstClass {
-		val clazzName = FqName(sootClass.name)
-		val annotations = sootClass.tags.toAstAnnotations()
-		val contextClass = context[sootClass]
 		val astClass = AstClass(
-			program = context.program,
-			name = clazzName,
+			program = program,
+			name = sootClass.name.fqname,
 			modifiers = sootClass.modifiers,
-			annotations = annotations,
+			annotations = sootClass.tags.toAstAnnotations(),
 			classType = if (sootClass.isInterface) AstClassType.INTERFACE else if (sootClass.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
 			visibility = AstVisibility.PUBLIC,
 			extending = if (sootClass.hasSuperclass() && !sootClass.isInterface) FqName(sootClass.superclass.name) else null,
 			implementing = sootClass.interfaces.map { FqName(it.name) }
 		)
+		program.add(astClass)
 
-		if (contextClass.clazzAbstract) {
-			for (method in contextClass.missingMethods) astClass.add(method)
-		}
-
-		for (method in sootClass.methods.filter { context.mustInclude(it) }.map { generateMethod(astClass, it, context) }) {
+		for (method in sootClass.methods.filter { context.mustInclude(it.astRef) }.map { generateMethod(astClass, it) }) {
 			astClass.add(method)
 		}
 
-		for (method in sootClass.fields.filter { context.mustInclude(it) }.map { generateField(astClass, it, context) }) {
-			astClass.add(method)
+		//for (field in sootClass.fields.filter { context.mustInclude(it.astRef) }.map { generateField(astClass, it) }) {
+		for (field in sootClass.fields.map { generateField(astClass, it) }) {
+			astClass.add(field)
 		}
 
 		astClass.finish()
@@ -280,50 +143,37 @@ class SootToAst {
 	}
 }
 
-class TargetTree {
-	private val targetClasses = hashMapOf<SootClass, TargetClass>()
-
-	fun getTargetClass(name: String): TargetClass {
-		//return getTargetClass(Scene.v().getSootClass(name))
-		return getTargetClass(Scene.v().loadClassAndSupport(name))
-	}
-
-	fun getTargetClass(clazz: SootClass): TargetClass {
-		//if (!targetClasses.contains(clazz)) targetClasses.put(clazz, new TargetClass(this, clazz))
-		//targetClasses.get(clazz).orNull
-		return TargetClass(this, clazz)
-	}
-
-}
-
-class TargetMethod(val tree: TargetTree, val clazz: TargetClass, val method: SootMethod) {
-	val signature by lazy {
-		method.name + "_" + method.parameterTypes.map { (it as Type).toString() }.joinToString(",") + method.returnType.toString()
-	}
-}
-
-class TargetField(val tree: TargetTree, val clazz: TargetClass, val field: SootField) {
-
-}
-
-class TargetClass(val tree: TargetTree, val clazz: SootClass) {
-	val methods = hashMapOf<String, TargetMethod>()
-	val fields = hashMapOf<String, TargetField>()
-
-	init {
-		for (sootMethod in clazz.methods) {
-			val targetMethod = TargetMethod(tree, this, sootMethod)
-			methods[targetMethod.signature] = targetMethod
-		}
-	}
-}
 
 open class BaseProjectContext(val classNames: List<String>, val mainClass: String, val classPaths: List<String>, val output: SyncVfsFile, val deps2: HashSet<AstRef>?) {
-	val classes = arrayListOf<AstClass>()
-	val preInitLines = arrayListOf<String>()
-	val bootImports = arrayListOf<String>()
+	companion object {
+		val KEY = UserKey<BaseProjectContext>()
+	}
 
-	fun mustInclude(ref: AstRef): Boolean = if (deps2 == null) true else ref in deps2
+	class Tree {
+		val generatedClasses = hashSetOf<FqName>()
+		val classesToGenerate: Queue<FqName> = LinkedList<FqName>()
+
+		fun addClassToGenerate(it: String) {
+			if (it.fqname in generatedClasses) return
+			classesToGenerate += it.fqname
+			generatedClasses += it.fqname
+		}
+
+		fun getSootClass(fqname: FqName) = Scene.v().loadClassAndSupport(fqname.fqname)
+
+		fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
+
+		fun getClassToGenerate() = classesToGenerate.remove()
+	}
+
+	val tree = Tree()
+	val classes = arrayListOf<AstClass>()
+	//val preInitLines = arrayListOf<String>()
+	//val bootImports = arrayListOf<String>()
+
+	fun mustInclude(ref: AstRef) = if (deps2 != null) (ref in deps2) else true
+	fun isInterface(name: FqName) = tree.getSootClass(name).isInterface
+
 	fun addDep(dep: AstRef) {
 		this.deps2?.add(dep)
 	}
@@ -331,24 +181,19 @@ open class BaseProjectContext(val classNames: List<String>, val mainClass: Strin
 	fun addDep(dep: Iterable<AstRef>) {
 		this.deps2?.addAll(dep)
 	}
-	//def getClassesWithStaticConstructor
-}
 
-/*
-@Retention(AnnotationRetention.RUNTIME)
-annotation class DemoAnnotation(val a:String)
-@DemoAnnotation("test")
-class MyTest {
 }
-*/
 
 open class AstMethodProcessor private constructor(
 	private val method: SootMethod,
-	private val context: SootToAst.SootContext
+	private val containingClass: AstClass
 ) {
+	private val program = containingClass.program
+	private val context = program[BaseProjectContext.KEY]
+
 	companion object {
-		fun processBody(method: SootMethod, context: SootToAst.SootContext): AstBody {
-			return AstMethodProcessor(method, context).handle()
+		fun processBody(method: SootMethod, containingClass: AstClass): AstBody {
+			return AstMethodProcessor(method, containingClass).handle()
 		}
 	}
 
@@ -405,7 +250,6 @@ open class AstMethodProcessor private constructor(
 					ensureLabel(unit.defaultTarget)
 				}
 				else -> {
-
 				}
 			}
 		}
@@ -422,15 +266,12 @@ open class AstMethodProcessor private constructor(
 
 	private fun convert(s: soot.Unit): AstStm = when (s) {
 		is DefinitionStmt -> {
-			val l = convert(s.leftOp)
-			val r = convert(s.rightOp)
+			val (l, r) = Pair(convert(s.leftOp), convert(s.rightOp))
 			when (l) {
 				is AstExpr.LOCAL -> AstStm.SET(l.local, r)
 				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY((l.array as AstExpr.LOCAL).local, l.index, r)
 				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.clazzName, l.field, r, l.isInterface)
-				is AstExpr.INSTANCE_FIELD_ACCESS -> {
-					AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r)
-				}
+				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r)
 				else -> invalidOp("Can't handle leftOp: $l")
 			}
 		}
@@ -444,29 +285,23 @@ open class AstMethodProcessor private constructor(
 		is ExitMonitorStmt -> AstStm.MONITOR_EXIT(convert(s.op))
 		is NopStmt -> AstStm.STMS(listOf())
 		is LookupSwitchStmt -> AstStm.SWITCH_GOTO(
-			convert(s.key),
-			ensureLabel(s.defaultTarget),
-			(0 until s.targetCount).map {
-				val (key, label) = Pair(s.getLookupValue(it), s.getTarget(it))
-				Pair(key, ensureLabel(label))
-			}//.uniqueMap()
+			convert(s.key), ensureLabel(s.defaultTarget),
+			(0 until s.targetCount).map { Pair(s.getLookupValue(it), ensureLabel(s.getTarget(it))) }
 		)
 		is TableSwitchStmt -> AstStm.SWITCH_GOTO(
-			convert(s.key),
-			ensureLabel(s.defaultTarget),
-			(s.lowIndex..s.highIndex).map {
-				Pair(it, ensureLabel(s.getTarget(it - s.lowIndex)))
-			}//.uniqueMap()
+			convert(s.key), ensureLabel(s.defaultTarget),
+			(s.lowIndex..s.highIndex).map { Pair(it, ensureLabel(s.getTarget(it - s.lowIndex))) }
 		)
 		else -> throw RuntimeException()
 	}
 
 	private fun simplify(expr: AstExpr): AstExpr {
-		if ((expr is AstExpr.CAST) && (expr.expr is AstExpr.LITERAL) && (expr.from == AstType.INT) && (expr.to == AstType.BOOL)) {
-			return AstExpr.LITERAL(expr.expr.value != 0)
+		return if ((expr is AstExpr.CAST) && (expr.expr is AstExpr.LITERAL) && (expr.from == AstType.INT) && (expr.to == AstType.BOOL)) {
+			AstExpr.LITERAL(expr.expr.value != 0)
+		} else {
+			// No simplified!
+			expr
 		}
-		// No simplified!
-		return expr
 	}
 
 	private fun convert(c: Value): AstExpr = when (c) {
@@ -477,14 +312,7 @@ open class AstMethodProcessor private constructor(
 		is FloatConstant -> AstExpr.LITERAL(c.value)
 		is DoubleConstant -> AstExpr.LITERAL(c.value)
 		is StringConstant -> AstExpr.LITERAL(c.value)
-		is ClassConstant -> {
-			val className = c.value.replace('/', '.')
-			if (className.startsWith("[")) {
-				AstExpr.CLASS_CONSTANT(AstType.demangle(className))
-			} else {
-				AstExpr.CLASS_CONSTANT(AstType.REF(className))
-			}
-		}
+		is ClassConstant -> AstExpr.CLASS_CONSTANT(AstType.REF_INT(c.value))
 		is ThisRef -> AstExpr.THIS(FqName(method.declaringClass.name))
 		is ParameterRef -> AstExpr.PARAM(AstArgument(c.index, c.type.astType))
 		is CaughtExceptionRef -> AstExpr.CAUGHT_EXCEPTION(c.type.astType)
@@ -506,11 +334,12 @@ open class AstMethodProcessor private constructor(
 			val lType = l.type
 			val rType = r.type
 			val op = c.getAstOp(lType, rType)
-			if (c.op1.type is BooleanType && (op.symbol == "==") && (c.op2.type is IntType)) {
-				AstExpr.BINOP(destType, l, op, simplify(AstExpr.CAST(AstType.BOOL, r)))
+			val r2 = if (c.op1.type is BooleanType && (op.symbol == "==") && (c.op2.type is IntType)) {
+				simplify(AstExpr.CAST(AstType.BOOL, r))
 			} else {
-				AstExpr.BINOP(destType, l, op, r)
+				r
 			}
+			AstExpr.BINOP(destType, l, op, r2)
 		}
 		is InvokeExpr -> {
 			val argsList = c.args.toList()
@@ -530,12 +359,13 @@ open class AstMethodProcessor private constructor(
 					val method = c.method.astRef
 					val objType = obj.type
 					var castToObject = false
+
 					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
 						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
 					} else {
 						if (objType is AstType.ARRAY) {
 							castToObject = true
-						} else if (objType is AstType.REF && context.getClass(objType.name).clazz.isInterface) {
+						} else if (objType is AstType.REF && context.isInterface(objType.name)) {
 							castToObject = true
 						}
 						val obj2 = if (castToObject) AstExpr.CAST(method.classRef.type, obj) else obj
@@ -582,17 +412,15 @@ fun BinopExpr.getAstOp(l: AstType, r: AstType): AstBinop {
 }
 
 val SootClass.astRef: AstClassRef get() = AstClassRef(this.name)
+
 val SootMethod.astRef: AstMethodRef get() = AstMethodRef(
-	FqName(this.declaringClass.name),
-	this.name,
+	this.declaringClass.name.fqname, this.name,
 	AstType.METHOD_TYPE(
-		this.parameterTypes.withIndex().map {
-			val (index, type) = it
-			AstArgument(index, (type as Type).astType)
-		},
+		this.parameterTypes.withIndex().map { AstArgument(it.index, (it.value as Type).astType) },
 		this.returnType.astType
 	)
 )
+val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType, this.isStatic)
 
 val SootMethod.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })
 
@@ -614,15 +442,11 @@ val Type.astType: AstType get() = when (this) {
 	else -> throw NotImplementedError("toAstType: $this")
 }
 
-val SootField.ast: AstFieldRef get() = AstFieldRef(
-	FqName(this.declaringClass.name),
-	this.name,
-	this.type.astType
-)
+val SootField.ast: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType)
 
 val FieldRef.ast: AstFieldRef get() = this.field.ast
 
-val SootMethod.astVisibility: AstVisibility get() = if (this.isPublic) {
+val ClassMember.astVisibility: AstVisibility get() = if (this.isPublic) {
 	AstVisibility.PUBLIC
 } else if (this.isProtected) {
 	AstVisibility.PROTECTED
@@ -653,24 +477,18 @@ object SootUtils {
 
 		Options_v.set_soot_classpath(classPaths.joinToString(File.pathSeparator))
 
-		Options_v.setPhaseOption("jb.dae", "enabled:false")
-		Options_v.setPhaseOption("jb.uce", "enabled:false")
-		Options_v.setPhaseOption("jap.npc", "enabled:true")
-		Options_v.setPhaseOption("jap.abc", "enabled:true")
-		Options_v.setPhaseOption("jop", "enabled:true")
-		Options_v.setPhaseOption("jop.cse", "enabled:false")
-		Options_v.setPhaseOption("jop.bcm", "enabled:false")
-		Options_v.setPhaseOption("jop.lcm", "enabled:false")
-		Options_v.setPhaseOption("jop.cp", "enabled:false")
-		Options_v.setPhaseOption("jop.cpf", "enabled:false")
-		Options_v.setPhaseOption("jop.cbf", "enabled:false")
-		Options_v.setPhaseOption("jop.dae", "enabled:false")
-		Options_v.setPhaseOption("jop.nce", "enabled:false")
-		Options_v.setPhaseOption("jop.uce1", "enabled:false")
-		Options_v.setPhaseOption("jop.ubf1", "enabled:false")
-		Options_v.setPhaseOption("jop.uce2", "enabled:false")
-		Options_v.setPhaseOption("jop.ubf2", "enabled:false")
-		Options_v.setPhaseOption("jop.ule", "enabled:false")
+		for (name in listOf("jap.npc", "jap.abc", "jop")) {
+			Options_v.setPhaseOption(name, "enabled:true")
+		}
+
+		for (name in listOf(
+			"jb.dae", "jb.uce", "jop.cse", "jop.bcm", "jop.lcm", "jop.cp",
+			"jop.cpf", "jop.cbf", "jop.dae", "jop.nce", "jop.uce1", "jop.ubf1",
+			"jop.uce2", "jop.ubf2", "jop.ule"
+		)) {
+			Options_v.setPhaseOption(name, "enabled:false")
+		}
+
 		Scene.v().loadNecessaryClasses()
 	}
 
@@ -678,22 +496,14 @@ object SootUtils {
 }
 
 val ANNOTATIONS_BLACKLIST = listOf(
-	"java.lang.annotation.Documented",
-	"java.lang.Deprecated",
-	"java.lang.annotation.Target",
-	"java.lang.annotation.Retention",
-	"kotlin.jvm.internal.KotlinLocalClass",
-	"kotlin.jvm.internal.KotlinSyntheticClass",
-	"kotlin.jvm.internal.KotlinClass",
-	"kotlin.jvm.internal.KotlinFunction",
-	"kotlin.jvm.internal.KotlinFileFacade",
-	"kotlin.jvm.internal.KotlinMultifileClassPart",
-	"kotlin.jvm.internal.KotlinMultifileClass",
-	"kotlin.annotation.MustBeDocumented",
-	"kotlin.annotation.Target",
-	"kotlin.annotation.Retention",
-	"kotlin.jvm.JvmStatic",
-	"kotlin.Deprecated"
+	"java.lang.annotation.Documented", "java.lang.Deprecated",
+	"java.lang.annotation.Target", "java.lang.annotation.Retention",
+	"kotlin.jvm.internal.KotlinLocalClass", "kotlin.jvm.internal.KotlinSyntheticClass",
+	"kotlin.jvm.internal.KotlinClass", "kotlin.jvm.internal.KotlinFunction",
+	"kotlin.jvm.internal.KotlinFileFacade", "kotlin.jvm.internal.KotlinMultifileClassPart",
+	"kotlin.jvm.internal.KotlinMultifileClass", "kotlin.annotation.MustBeDocumented",
+	"kotlin.annotation.Target", "kotlin.annotation.Retention",
+	"kotlin.jvm.JvmStatic", "kotlin.Deprecated"
 ).map { AstType.REF(it) }.toSet()
 
 fun Iterable<Tag>.toAstAnnotations(): List<AstAnnotation> {
@@ -709,7 +519,7 @@ fun Iterable<Tag>.toAstAnnotations(): List<AstAnnotation> {
 	}.filter { it.type !in ANNOTATIONS_BLACKLIST }
 }
 
-fun AnnotationTag.getElements():List<AnnotationElem> {
+fun AnnotationTag.getElements(): List<AnnotationElem> {
 	return (0 until this.numElems).map { this.getElemAt(it) }
 }
 
@@ -736,141 +546,15 @@ fun AnnotationElem.unboxAnnotationElement() = Pair(this.name, this.getValue())
 
 fun AnnotationDefaultTag.toAstAnnotation() = this.defaultVal.unboxAnnotationElement()
 
-fun SootClass.getSuperClassOrNull(): SootClass? = if (this.hasSuperclass()) this.superclass else null
-
-fun SootClass.getAncestors(includeThis: Boolean = false): List<SootClass> {
-	val buffer = arrayListOf<SootClass>()
-	var tclazz = if (includeThis) this else this.getSuperClassOrNull()
-	while (tclazz != null) {
-		buffer.add(tclazz)
-		tclazz = tclazz.getSuperClassOrNull()
-	}
-	return buffer.toList()
-}
-
-fun SootClass.hasMethod(method: SootMethod): Boolean = this.hasMethod(method.name, method.parameterTypes as List<Type>)
-fun SootClass.hasMethod(name: String, parameterTypes: List<soot.Type>): Boolean {
-	/*
-	return try {
-		this.getMethod(name, parameterTypes) != null
-	} catch (e: Throwable) {
-		false
-	}
-	*/
-	return hasMethod2(name, parameterTypes)
-}
-
-fun SootClass.hasMethod2(name: String, parameterTypes: List<soot.Type>): Boolean {
-	val methodsWithName = this.getMethodsWithName(name)
-	val result = methodsWithName.any { it.parameterTypes == parameterTypes }
-	return result
-}
-
-fun SootClass.getMethodsWithName(name: String): List<SootMethod> {
-	return this.methods.filter { it.name == name }
-}
-
-fun SootClass.getAllDirectInterfaces(): List<SootClass> {
-	return if (interfaceCount == 0) {
-		listOf()
-	} else {
-		val clazzInterfaces = interfaces.toList()
-		clazzInterfaces.flatMap { clazzInterfaces + it.getAllDirectInterfaces() }
+fun Iterable<Tag>?.getConstant(): Any? {
+	val constantValue = this?.filterIsInstance<ConstantValueTag>()?.firstOrNull()
+	return when (constantValue) {
+		null -> null
+		is IntegerConstantValueTag -> constantValue.intValue
+		is LongConstantValueTag -> constantValue.longValue
+		is DoubleConstantValueTag -> constantValue.doubleValue
+		is FloatConstantValueTag -> constantValue.floatValue
+		is StringConstantValueTag -> constantValue.stringValue
+		else -> invalidOp("Not a valid constant")
 	}
 }
-
-fun SootClass.getAllDirectAndIndirectInterfaces(): List<SootClass> {
-	return if (interfaceCount == 0) {
-		listOf()
-	} else {
-		val clazzInterfaces = interfaces.toList()
-		if (hasSuperclass()) {
-			superclass.getAllDirectAndIndirectInterfaces() + clazzInterfaces.flatMap { clazzInterfaces + it.getAllDirectAndIndirectInterfaces() }
-		} else {
-			clazzInterfaces.flatMap { clazzInterfaces + it.getAllDirectAndIndirectInterfaces() }
-		}
-	}
-}
-
-val SootMethod.hasBody: Boolean get() = !this.isAbstract && !this.isNative
-val SootMethod.isMethodOverriding: Boolean get() = this.overridingMethod != null
-
-fun SootClass.getMethod2(name: String, parameterTypes: List<soot.Type>): SootMethod {
-	return this.methods.firstOrNull {
-		(it.name == name) && (it.parameterTypes == parameterTypes)
-	} ?: throw RuntimeException("Class ${this.name} doesn\'t have method $name($parameterTypes)")
-}
-
-val SootMethod.overridingMethod: AstMethodRef? get() {
-	val method = this
-	val clazz = method.declaringClass
-	val name = method.name
-	val returnType = method.returnType
-	val parameterTypes = method.parameterTypes as List<soot.Type>
-	val ancestors = clazz.getAncestors()
-	val interfaces = clazz.getAllDirectAndIndirectInterfaces()
-	val overrideClass = ancestors.firstOrNull { it.hasMethod(name, parameterTypes) }
-	val implementClass = interfaces.firstOrNull { it.hasMethod(name, parameterTypes) }
-
-	//val baseClass = overrideClass ?: implementClass
-	val baseClass = overrideClass
-
-	return if (baseClass != null) {
-		val overrideMethod = try {
-			baseClass.getMethod(name, parameterTypes)
-		} catch (e: Throwable) {
-			try {
-				baseClass.getMethod(name, parameterTypes, returnType)
-			} catch (e: Throwable) {
-				baseClass.getMethod2(name, parameterTypes)
-			}
-		}
-
-		if (method.returnType.astType != overrideMethod.returnType.astType) {
-			null
-		} else {
-			AstMethodRef(
-				FqName(baseClass.name),
-				overrideMethod.name,
-				AstType.METHOD_TYPE(
-					overrideMethod.returnType.astType,
-					overrideMethod.parameterTypes.map { (it as Type).astType }
-				)
-			)
-		}
-	} else {
-		null
-	}
-}
-
-/*
-val SootMethod.isMethodImplementing: Boolean get() {
-	fun locateMethodInInterfaces(clazz: SootClass, method: SootMethod): Boolean {
-		val name = method.name
-		val parameterTypes = method.parameterTypes
-
-		if (clazz.interfaces.any { locateMethodInInterfaces(it, method) }) return true
-
-		for (interfaze in clazz.interfaces) {
-			try {
-				interfaze.getMethod(name, parameterTypes)
-				return true
-			} catch (e: Throwable) {
-
-			}
-		}
-		return false
-	}
-	return locateMethodInInterfaces(this.declaringClass, this)
-}
-*/
-
-fun SootClass.getAllImplementedMethods(): List<AstMethodRef> {
-	return this.getAncestors(includeThis = true).flatMap { it.methods }.map { it.astRef }
-}
-
-fun SootClass.getAllMethodsToImplement(): List<AstMethodRef> {
-	return this.getAllDirectAndIndirectInterfaces().flatMap { it.methods }.map { it.astRef }
-}
-
-val SootClass.isClassAbstract: Boolean get() = this.isAbstract && !this.isInterface

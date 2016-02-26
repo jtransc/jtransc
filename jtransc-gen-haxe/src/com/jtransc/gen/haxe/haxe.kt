@@ -116,7 +116,7 @@ object GenHaxe : GenTarget {
 	}
 
 	private fun getHaxeFilePath(name: FqName): String {
-		return getHaxeGeneratedFqName(name).fqname.replace('.', '/') + ".hx"
+		return getHaxeGeneratedFqName(name).internalFqname + ".hx"
 	}
 
 	private fun getHaxeGeneratedFqPackage(name: FqName): String {

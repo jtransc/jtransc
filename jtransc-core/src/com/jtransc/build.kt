@@ -42,11 +42,7 @@ class AllBuild(
 ) {
 	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
 		AllBuildTargets.locateTargetByName(target),
-		classPaths,
-		entryPoint,
-		output,
-		subtarget,
-		targetDirectory
+		classPaths, entryPoint, output, subtarget, targetDirectory
 	)
 
 	val tempdir = System.getProperty("java.io.tmpdir")
@@ -60,18 +56,9 @@ class AllBuild(
 	}
 	*/
 
-	fun buildAndRunCapturingOutput(settings: AstBuildSettings): ProcessResult2 {
-		return buildAndRun(captureRunOutput = true, settings = settings, run = true)
-	}
-
-	fun buildAndRunRedirecting(settings: AstBuildSettings): ProcessResult2 {
-		return buildAndRun(captureRunOutput = false, settings = settings, run = true)
-	}
-
-	fun buildWithoutRunning(settings: AstBuildSettings): ProcessResult2 {
-		return buildAndRun(captureRunOutput = false, settings = settings, run = false)
-	}
-
+	fun buildAndRunCapturingOutput(settings: AstBuildSettings) = buildAndRun(captureRunOutput = true, settings = settings, run = true)
+	fun buildAndRunRedirecting(settings: AstBuildSettings) = buildAndRun(captureRunOutput = false, settings = settings, run = true)
+	fun buildWithoutRunning(settings: AstBuildSettings) = buildAndRun(captureRunOutput = false, settings = settings, run = false)
 	fun buildAndRun(captureRunOutput: Boolean, settings: AstBuildSettings, run: Boolean = true): ProcessResult2 {
 		return _buildAndRun(settings = settings, captureRunOutput = captureRunOutput, run = run)
 	}
@@ -112,10 +99,7 @@ class AllBuild(
 
 
 		var exploredDeps2 = measureProcess("Calculating dependencies") {
-			anaProject.explore(
-				initialDeps,
-				exploreFullClasses = !enableDeadCodeElimination
-			)
+			anaProject.explore(initialDeps, exploreFullClasses = !enableDeadCodeElimination)
 		}
 
 		//for (dep in exploredDeps2) println("depp:$dep")
@@ -127,11 +111,8 @@ class AllBuild(
 
 		var program = measureProcess("Generating AST") {
 			SootToAst.createProgramAst(
-				dependencies,
-				entryPoint,
-				classPaths2,
-				LocalVfs("$tempdir/out_ast"),
-				exploredDeps2
+				dependencies, entryPoint, classPaths2,
+				LocalVfs("$tempdir/out_ast"), exploredDeps2
 				//if (enableDeadCodeElimination) exploredDeps2 else setOf()
 			)
 		}

@@ -432,13 +432,20 @@ interface FileNodeIO {
 	fun mtime(): Date
 }
 
-data class UserKey<T>(val name: String) {}
+data class UserKey<T>(val name: String)
 
-class UserData {
+inline fun <reified T : Any> UserKey(): UserKey<T> = UserKey<T>(T::class.java.name)
+
+interface IUserData {
+	operator fun <T : Any> get(key: UserKey<T>): T
+	operator fun <T : Any> set(key: UserKey<T>, value: T)
+}
+
+class UserData : IUserData {
 	private val dict = hashMapOf<Any, Any>()
 
-	fun <T : Any> get(key: UserKey<T>): T = dict[key] as T
-	fun <T : Any> set(key: UserKey<T>, value: T) {
+	override operator fun <T : Any> get(key: UserKey<T>): T = dict[key] as T
+	override operator fun <T : Any> set(key: UserKey<T>, value: T) {
 		dict.put(key, value)
 	}
 }
