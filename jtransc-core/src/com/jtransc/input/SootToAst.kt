@@ -33,9 +33,13 @@ class SootToAst {
 	}
 
 	fun generateProgram(projectContext: BaseProjectContext): AstProgram {
+		class SootAnalyzer : ProgramAnalyzer {
+		}
+
 		val program = AstProgram(
 			entrypoint = FqName(projectContext.mainClass),
-			resourcesVfs = MergedLocalAndJars(projectContext.classPaths)
+			resourcesVfs = MergedLocalAndJars(projectContext.classPaths),
+			analyzer = SootAnalyzer()
 		)
 		val tree = projectContext.tree
 		program[BaseProjectContext.KEY] = projectContext
@@ -75,6 +79,16 @@ class SootToAst {
 					}
 				}
 			}
+
+			// Add synthetic methods to abstracts to simulate in haxe
+			// @TODO: Maybe we could generate those methods in haxe generator
+			for (clazz in program.classes.filter { it.isAbstract }) {
+				for (method in clazz.getAllMethodsToImplement()) {
+					if (!clazz.hasMethod(method)) {
+						clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
+					}
+				}
+			}
 		}
 
 		//for (dep in projectContext.deps2!!) println(dep)
@@ -97,6 +111,21 @@ class SootToAst {
 		isStatic = method.isStatic,
 		visibility = method.astVisibility,
 		isNative = method.isNative
+	)
+
+	fun generateDummyMethod(containingClass: AstClass, name:String, methodType: AstType.METHOD_TYPE, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
+		containingClass = containingClass,
+		annotations = listOf(),
+		name = name,
+		type = methodType,
+		body = null,
+		signature = methodType.mangle(),
+		genericSignature = methodType.mangle(),
+		defaultTag = null,
+		modifiers = -1,
+		isStatic = isStatic,
+		visibility = visibility,
+		isNative = true
 	)
 
 	fun generateField(containingClass: AstClass, field: SootField) = AstField(
@@ -137,7 +166,7 @@ class SootToAst {
 			astClass.add(field)
 		}
 
-		astClass.finish()
+		//astClass.finish()
 
 		return astClass
 	}

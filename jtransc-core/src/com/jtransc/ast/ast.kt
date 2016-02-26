@@ -76,7 +76,11 @@ data class AstBuildSettings(
 	}
 }
 
-class AstProgram(val entrypoint: FqName, val resourcesVfs: SyncVfsFile) : IUserData by UserData() {
+interface ProgramAnalyzer {
+
+}
+
+class AstProgram(val entrypoint: FqName, val resourcesVfs: SyncVfsFile, val analyzer: ProgramAnalyzer) : IUserData by UserData() {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -194,6 +198,10 @@ class AstClass(
 		return out
 	}
 
+	fun getAllMethodsToImplement(): List<AstMethodWithoutClassRef> {
+		return this.getAllInterfaces().flatMap { it.methods }.filter { !it.isStatic }.map { it.ref.withoutClass }
+	}
+
 	fun add(field: AstField) {
 		if (finished) invalidOp("Finished class")
 		fields.add(field)
@@ -276,6 +284,10 @@ class AstClass(
 
 	fun getAncestors(program: AstProgram): List<AstClass> {
 		return getThisAndAncestors(program).drop(1)
+	}
+
+	fun hasMethod(method: AstMethodWithoutClassRef): Boolean {
+		return return methods.any { it.ref.withoutClass == method }
 	}
 }
 

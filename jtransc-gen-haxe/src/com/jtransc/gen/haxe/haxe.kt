@@ -31,6 +31,7 @@ import com.jtransc.text.toUcFirst
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
+import jtransc.annotation.JTranscKeep
 import jtransc.annotation.haxe.*
 import java.io.File
 import kotlin.jvm.internal.MutablePropertyReference
@@ -533,7 +534,8 @@ object GenHaxe : GenTarget {
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = getHaxeFieldName(program, field)
 			if (mappings.isFieldAvailable(field.ref) && !field.annotations.contains<HaxeRemoveField>()) {
-				line("$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
+				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
+				line("$keep$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = cast ${escapeConstant(defaultValue)};")
 			}
 		}
 
