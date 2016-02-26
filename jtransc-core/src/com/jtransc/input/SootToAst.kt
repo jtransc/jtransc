@@ -173,18 +173,7 @@ open class AstMethodProcessor private constructor(
 	}
 
 	private fun cast(e:AstExpr, to:AstType):AstExpr {
-		val from = e.type
-		/*
-		if (from != to) {
-			return AstExpr.CAST(to, from, e)
-		} else {
-			return e
-		}
-		*/
-		if (from != to && to == AstType.BOOL) {
-			return AstExpr.CAST(from, to, e)
-		}
-		return e
+		return if (e.type != to) AstExpr.CAST(to, e) else e
 	}
 
 	private fun convert(s: soot.Unit): AstStm = when (s) {
@@ -220,15 +209,6 @@ open class AstMethodProcessor private constructor(
 		else -> throw RuntimeException()
 	}
 
-	private fun simplify(expr: AstExpr): AstExpr {
-		return if ((expr is AstExpr.CAST) && (expr.expr is AstExpr.LITERAL) && (expr.from == AstType.INT) && (expr.to == AstType.BOOL)) {
-			AstExpr.LITERAL(expr.expr.value != 0)
-		} else {
-			// No simplified!
-			expr
-		}
-	}
-
 	private fun convert(c: Value): AstExpr = when (c) {
 		is Local -> AstExpr.LOCAL(ensureLocal(c))
 		is NullConstant -> AstExpr.LITERAL(null)
@@ -259,12 +239,7 @@ open class AstMethodProcessor private constructor(
 			val lType = l.type
 			val rType = r.type
 			val op = c.getAstOp(lType, rType)
-			val r2 = if (c.op1.type is BooleanType && (op.symbol == "==") && (c.op2.type is IntType)) {
-				simplify(AstExpr.CAST(AstType.BOOL, r))
-			} else {
-				r
-			}
-			AstExpr.BINOP(destType, l, op, r2)
+			AstExpr.BINOP(destType, l, op, r)
 		}
 		is InvokeExpr -> {
 			val argsList = c.args.toList()

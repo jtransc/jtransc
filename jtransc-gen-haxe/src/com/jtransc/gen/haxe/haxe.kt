@@ -1039,9 +1039,8 @@ object GenHaxe : GenTarget {
 				when (from) {
 					is AstType.BOOL -> {
 						when (to) {
-							is AstType.LONG -> "HaxeNatives.intToLong($e ? 1 : 0)"
-							is AstType.INT -> "($e ? 1 : 0)"
-							is AstType.BOOL -> "($e)"
+							is AstType.LONG -> "HaxeNatives.intToLong(($e) ? 1 : 0)"
+							is AstType.INT -> "(($e) ? 1 : 0)"
 							is AstType.CHAR -> "(($e) ? 1 : 0)"
 							is AstType.SHORT -> "(($e) ? 1 : 0)"
 							is AstType.BYTE -> "(($e) ? 1 : 0)"
@@ -1075,7 +1074,6 @@ object GenHaxe : GenTarget {
 					}
 					is AstType.LONG -> {
 						when (to) {
-							is AstType.LONG -> "$e"
 							is AstType.INT -> "($e).low"
 							is AstType.BOOL -> "(($e).low != 0)"
 							is AstType.CHAR -> "(($e).low & 0xFFFF)"
@@ -1085,7 +1083,7 @@ object GenHaxe : GenTarget {
 							else -> throw NotImplementedError("Unhandled conversion $from -> $to")
 						}
 					}
-					is AstType.REF, is AstType.ARRAY -> {
+					is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 						when (to) {
 							AstType.REF("all.core.AllFunction") -> "(HaxeNatives.getFunction($e))"
 							else -> "HaxeNatives.cast2($e, ${to.getHaxeType(program, TypeKind.CAST)})"
