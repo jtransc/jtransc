@@ -52,7 +52,8 @@ object JTranscMain {
 			println("  -run             - Runs generated executable")
 			println("")
 			println("  -help            - Displays help")
-			println("  -versio          - Displays jtransc version")
+			println("  -version         - Displays jtransc version")
+			println("  -status          - Generates a report of the jtransc runtime")
 			println("  -v               - Verbose")
 			println("")
 			println("Examples:")
@@ -60,6 +61,11 @@ object JTranscMain {
 			println("  jtransc dependency.jar target/classes -main com.test.Main -out program.js")
 			println("  jtransc dependency.jar target/classes -main com.test.Main -target as3 -out program.swf")
 			println("")
+			System.exit(0)
+		}
+
+		fun status() {
+			JTranscRtReport.main(Array(0) { "" })
 			System.exit(0)
 		}
 
@@ -93,6 +99,7 @@ object JTranscMain {
 					when (arg) {
 						"-version" -> version()
 						"-help" -> help()
+						"-status" -> status()
 						"-main" -> entryPoint = args.remove()
 						"-target" -> targetName = args.remove()
 						"-release" -> settings.debug = false

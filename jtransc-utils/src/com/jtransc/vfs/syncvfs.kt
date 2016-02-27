@@ -20,9 +20,12 @@ import com.jtransc.env.OS
 import com.jtransc.error.InvalidArgumentException
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.NotImplementedException
+import com.jtransc.error.noImpl
+import com.jtransc.lang.getResourceAsString
 import com.jtransc.text.ToString
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.*
@@ -33,6 +36,10 @@ data class SyncVfsStat(val file: SyncVfsFile, val size: Long, val mtime: Date, v
 	val name: String get() = file.name
 	val path: String get() = file.path
 	val isFile: Boolean get() = !isDirectory
+
+	companion object {
+		fun notExists(file: SyncVfsFile) = SyncVfsStat(file = file, size = 0L, mtime = Date(), isDirectory = false, exists = false)
+	}
 }
 
 class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
@@ -209,7 +216,20 @@ open class SyncVfs {
 	}
 
 	open fun stat(path: String): SyncVfsStat {
-		throw NotImplementedException()
+		val file = SyncVfsFile(this, path)
+		return try {
+			val data = read(path)
+			SyncVfsStat(
+				file = file,
+				size = data.length().toLong(),
+				mtime = Date(),
+				isDirectory = false,
+				exists = true
+			)
+		} catch (e: IOException) {
+			SyncVfsStat.notExists(file)
+		}
+		//throw NotImplementedException()
 	}
 
 	open fun setMtime(path: String, time: Date) {
@@ -357,6 +377,8 @@ fun LocalAndJars(paths: List<String>): List<SyncVfsFile> {
 	return paths.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(File(it)) }
 }
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
+fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
+fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = _LocalVfs().root().access(path).jail()
 fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
@@ -370,6 +392,22 @@ fun MemoryVfs(vararg files: Pair<String, String>): SyncVfsFile {
 		vfs.access(file.first).ensureParentDir().writeString(file.second)
 	}
 	return vfs
+}
+
+fun GetClassJar(clazz: Class<*>): File {
+	val classLoader = VfsPath::class.java.classLoader
+	val classFilePath = clazz.name.replace('.', '/') + ".class"
+	//println(classFilePath)
+	//println(classLoader)
+	val classUrl = classLoader.getResource(classFilePath)
+	//path.
+	//println(path)
+
+	val regex = Regex("^file:(.*?)!(.*?)$")
+	val result = regex.find(classUrl.path)!!
+	val jarPath = result.groups[1]!!.value
+
+	return File(jarPath)
 }
 
 fun MemoryVfsBin(vararg files: Pair<String, ByteArray>): SyncVfsFile {
@@ -587,7 +625,12 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 	override fun setMtime(path: String, time: Date) = op(path, "setMtime") { it[path].setMtime(time) }
 }
 
-
+private class ResourcesSyncVfs(val clazz: Class<*>) : SyncVfs() {
+	val classLoader = clazz.classLoader
+	override fun read(path: String): ByteBuffer {
+		return classLoader.getResourceAsStream(path).readBytes().toBuffer()
+	}
+}
 
 private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 	constructor(path: String) : this(ZipFile(path))
@@ -597,32 +640,68 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 	override val absolutePath: String = "#zip#"
 
 	override fun read(path: String): ByteBuffer {
-		val entry = zip.getEntry(path)
-		if (entry == null) throw FileNotFoundException(path)
+		val entry = zip.getEntry(path) ?: throw FileNotFoundException(path)
 		return zip.getInputStream(entry).readBytes().toBuffer()
 	}
 
+	class Node(val zip: ZipSyncVfs, val name:String, val parent: Node? = null) {
+		val path:String = (if (parent != null) "${parent.path}/$name" else name).trim('/')
+		var entry:ZipEntry? = null
+		val root:Node = parent?.root ?: this
+
+		val stat:SyncVfsStat by lazy {
+			SyncVfsStat(
+				file = SyncVfsFile(zip, path),
+				size = entry?.size ?: 0,
+				mtime = Date(entry?.time ?: 0),
+				isDirectory = entry?.isDirectory ?: true,
+				exists = true
+			)
+		}
+
+		init {
+			parent?.children?.put(name, this)
+		}
+
+		val children = hashMapOf<String, Node>()
+
+		fun access(path: String, create: Boolean = false): Node {
+			var current = if (path.startsWith("/")) root else this
+			for (part in path.trim('/').split('/')) {
+				when (part) {
+					"", "." -> Unit
+					".." -> current = current.parent ?: current
+					else -> {
+						var childNode = current.children[part]
+						if (childNode == null && create) {
+							childNode = Node(zip, part, current)
+						}
+						current = childNode!!
+					}
+				}
+			}
+			return current
+		}
+	}
+
+	private val rootNode = Node(this, "")
+
+	init {
+		for (e in zip.entries()) {
+			val node = rootNode.access(e.name.trim('/'), create = true)
+			node.entry = e
+		}
+	}
+
 	override fun listdir(path: String): Iterable<SyncVfsStat> {
-		throw NotImplementedException()
+		return rootNode.access(path).children.values.map { it.stat }
 	}
 
-	override fun stat(path: String) = try {
-		entryToStat(zip.getEntry(path))
-	} catch (e: Throwable) {
-		SyncVfsStat(
-			file = SyncVfsFile(this, path),
-			size = 0,
-			mtime = Date(0L),
-			isDirectory = false,
-			exists = false
-		)
+	override fun stat(path: String): SyncVfsStat {
+		return try {
+			rootNode.access(path).stat
+		} catch (e: Throwable) {
+			SyncVfsStat.notExists(SyncVfsFile(this, path))
+		}
 	}
-
-	private fun entryToStat(entry: ZipEntry) = SyncVfsStat(
-		file = SyncVfsFile(this, entry.name),
-		size = entry.size,
-		mtime = Date(entry.time),
-		isDirectory = entry.isDirectory,
-		exists = true
-	)
 }
