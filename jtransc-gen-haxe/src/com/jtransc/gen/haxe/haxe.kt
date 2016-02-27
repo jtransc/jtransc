@@ -144,7 +144,9 @@ object GenHaxe : GenTarget {
 	}
 
 
-	private fun getHaxeFieldName(program: AstProgram, field: AstField): String = getHaxeFieldName(program, field.ref)
+	private fun getHaxeFieldName(program: AstProgram, field: AstField): String {
+		return getHaxeFieldName(program, field.ref)
+	}
 
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
@@ -156,7 +158,12 @@ object GenHaxe : GenTarget {
 			val f = program[field]
 			val clazz = f.containingClass
 			val clazzAncestors = clazz.getAncestors(program).reversed()
-			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == fieldName }.map { getHaxeFieldName(program, it.ref) }.toSet()
+			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(program, it.ref) }.toSet()
+
+			//if (field.name == "this\$0") {
+			//	println(" ::: ${field} :: ${field.name} :: $names :: $clazzAncestors")
+			//	println(clazzAncestors.flatMap { it.fields })
+			//}
 
 			while (name in names) name += "_"
 			cachedFieldNames[field] = name
@@ -538,6 +545,7 @@ object GenHaxe : GenTarget {
 			addTypeReference(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = getHaxeFieldName(program, field)
+			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
 			if (mappings.isFieldAvailable(field.ref) && !field.annotations.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
 				line("$keep$static$visibility var $fieldName:${fieldType.getTypeTag(program)} = ${escapeConstant(defaultValue, fieldType)};")

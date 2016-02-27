@@ -186,7 +186,7 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	val annotations: List<AstAnnotation> = listOf()
-) {
+) : IUserData by UserData() {
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
@@ -365,7 +365,7 @@ open class AstMember(
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
 	val annotations: List<AstAnnotation> = listOf()
-) {
+) : IUserData by UserData() {
 	val program = containingClass.program
 }
 
