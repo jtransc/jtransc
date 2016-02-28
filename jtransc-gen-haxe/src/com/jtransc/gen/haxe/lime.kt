@@ -20,10 +20,7 @@ import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstFeatures
 import com.jtransc.ast.AstProgram
 import com.jtransc.error.InvalidOperationException
-import com.jtransc.gen.GenTarget
-import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.GenTargetInfo
-import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.*
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
@@ -157,7 +154,13 @@ object GenHaxeLime : GenTarget {
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = GenHaxe._write(tinfo.program, AstFeatures(), srcFolder, HaxeFeatures, limeEntryPoint = true)
+				info = HaxeGen(
+					program = tinfo.program,
+					mappings = ClassMappings(),
+					features = AstFeatures(),
+					srcFolder = srcFolder,
+					featureSet = HaxeFeatures
+				)._write()
 				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo.program, info!!, tinfo.settings)
 			}
 
