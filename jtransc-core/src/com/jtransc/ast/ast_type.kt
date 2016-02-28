@@ -6,6 +6,7 @@ import com.jtransc.text.*
 import java.io.Reader
 import java.io.Serializable
 import java.io.StringReader
+import java.util.*
 
 interface AstType {
 	open class Primitive(underlyingClassStr: String) : AstType {
@@ -50,7 +51,6 @@ interface AstType {
 
 	data class ARRAY(val element: AstType) : AstType
 
-
 	data class GENERIC(val type: AstType.REF, val params: List<AstType>) : AstType
 
 	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
@@ -69,7 +69,17 @@ interface AstType {
 		val desc2 by lazy { this.mangle(false) }
 		val retVoid by lazy { ret == AstType.VOID }
 		val argsPlusReturn by lazy { argTypes + listOf(ret) }
+		val argsPlusReturnVoidIsEmpty by lazy {
+			if (argTypes.isEmpty()) {
+				listOf(AstType.VOID, ret)
+			} else {
+				argTypes + listOf(ret)
+			}
+		}
 		val withoutRetval: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(AstType.UNKNOWN, argTypes)
+
+		override fun hashCode() = desc.hashCode();
+		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD_TYPE?)?.desc)
 	}
 
 	companion object {
@@ -115,7 +125,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 }
 
-data class AstMethodDesc(val name: String, val args: List<AstType>)
+data class AstMethodDesc(val name: String, val type: AstType.METHOD_TYPE)
 
 data class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))

@@ -177,8 +177,6 @@ class AstProgram(
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
-data class AstMethodNameDescRef(val name:String, val desc:String)
-
 class AstClass(
 	val program: AstProgram,
 	val name: FqName,
@@ -192,7 +190,7 @@ class AstClass(
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
-	val methodsByNameDesc = hashMapOf<AstMethodNameDescRef, AstMethod?>()
+	val methodsByNameDesc = hashMapOf<AstMethodDesc, AstMethod?>()
 	val fieldsByName = hashMapOf<String, AstField>()
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
@@ -234,7 +232,7 @@ class AstClass(
 		methods.add(method)
 		if (method.name !in methodsByName) methodsByName[method.name] = arrayListOf()
 		methodsByName[method.name]?.add(method)
-		methodsByNameDesc[AstMethodNameDescRef(method.name, method.desc)] = method
+		methodsByNameDesc[AstMethodDesc(method.name, method.methodType)] = method
 	}
 
 	private var finished = false
@@ -259,7 +257,7 @@ class AstClass(
 	fun getMethods(name: String): List<AstMethod> = methodsByName[name]!!
 	fun getMethod(name: String, desc: String): AstMethod? = methodsByName[name]?.firstOrNull { it.desc == desc }
 
-	fun getMethodInAncestors(nameDesc: AstMethodNameDescRef): AstMethod? {
+	fun getMethodInAncestors(nameDesc: AstMethodDesc): AstMethod? {
 		var result = methodsByNameDesc[nameDesc]
 		if (result == null) {
 			result = parentClass?.getMethodInAncestors(nameDesc)

@@ -21,6 +21,7 @@ import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.*
+import com.jtransc.gen.haxe.GenHaxe.gen
 import com.jtransc.gen.haxe.GenHaxe.getHaxeType
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
@@ -176,9 +177,7 @@ object GenHaxe : GenTarget {
 		//val initializingCalls = arrayListOf<String>()
 	}
 
-	enum class As3Runtime { ADL, FLASH }
-
-	internal fun _write(program: AstProgram, features: AstFeatures, vfs: SyncVfsFile, runtime: As3Runtime, featureSet: Set<AstFeature>, limeEntryPoint: Boolean): ProgramInfo {
+	internal fun _write(program: AstProgram, features: AstFeatures, vfs: SyncVfsFile, featureSet: Set<AstFeature>, limeEntryPoint: Boolean): ProgramInfo {
 		val mutableInfo = MutableProgramInfo()
 		for (clazz in program.classes.filter { !it.isNative }) {
 			if (clazz.implCode != null) {
@@ -448,7 +447,7 @@ object GenHaxe : GenTarget {
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = _write(tinfo.program, AstFeatures(), srcFolder, As3Runtime.ADL, HaxeFeatures, limeEntryPoint = false)
+				info = _write(tinfo.program, AstFeatures(), srcFolder, HaxeFeatures, limeEntryPoint = false)
 			}
 
 			override fun compile(): Boolean {
@@ -553,38 +552,44 @@ object GenHaxe : GenTarget {
 			}
 		}
 
-		fun writeMethod(method: AstMethod, isInterface: Boolean) = Indenter.gen {
-			val static = if (method.isStatic) "static " else ""
-			val visibility = if (isInterface) " " else method.visibility.haxe
-			addTypeReference(method.methodType)
-			val margs = method.methodType.args.map { it.name + ":" + it.type.getHaxeType(program, TypeKind.TYPETAG) }
-			var override = if (method.isOverriding) "override " else ""
-			val inline = if (method.isInline) "inline " else ""
-			val decl = try {
-				"$static $visibility $inline $override function ${method.ref.getHaxeMethodName(program)}(${margs.joinToString(", ")}):${method.methodType.ret.getHaxeType(program, TypeKind.TYPETAG)}".trim()
-			} catch (e: RuntimeException) {
-				println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
-				//null
-				throw e
+		fun writeMethod(method: AstMethod, isInterface: Boolean): Indenter {
+			// default methods
+			if (isInterface && method.body != null) {
+				return Indenter.gen { }
 			}
-
-			if (isInterface) {
-				if (!method.isImplementing) {
-					line("$decl;")
+			return Indenter.gen {
+				val static = if (method.isStatic) "static " else ""
+				val visibility = if (isInterface) " " else method.visibility.haxe
+				addTypeReference(method.methodType)
+				val margs = method.methodType.args.map { it.name + ":" + it.type.getHaxeType(program, TypeKind.TYPETAG) }
+				var override = if (method.isOverriding) "override " else ""
+				val inline = if (method.isInline) "inline " else ""
+				val decl = try {
+					"$static $visibility $inline $override function ${method.ref.getHaxeMethodName(program)}(${margs.joinToString(", ")}):${method.methodType.ret.getHaxeType(program, TypeKind.TYPETAG)}".trim()
+				} catch (e: RuntimeException) {
+					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
+					//null
+					throw e
 				}
-			} else {
-				val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
 
-				if (method.body != null && body == null) {
-					line(decl) {
-						when (INIT_MODE) {
-							InitMode.START_OLD -> line("__hx_static__init__();")
-						}
-						line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
+				if (isInterface) {
+					if (!method.isImplementing) {
+						line("$decl;")
 					}
 				} else {
-					val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
-					line("$decl { $body2 }")
+					val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
+
+					if (method.body != null && body == null) {
+						line(decl) {
+							when (INIT_MODE) {
+								InitMode.START_OLD -> line("__hx_static__init__();")
+							}
+							line(features.apply(method.body!!, featureSet).gen(program, method, clazz))
+						}
+					} else {
+						val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
+						line("$decl { $body2 }")
+					}
 				}
 			}
 		}
@@ -690,6 +695,22 @@ object GenHaxe : GenTarget {
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 
 					line(addClassInit(clazz))
+				}
+				val methodsWithoutBody = clazz.methods.filter { it.body == null }
+				if (methodsWithoutBody.size == 1 && clazz.implementing.size == 0) { // @TODO: Probably it should allow interfaces extending!
+					val mainMethod = methodsWithoutBody.first()
+					val mainMethodName = mainMethod.ref.getHaxeMethodName(program)
+					val methodType = mainMethod.methodType
+					val margs = methodType.args.map { it.name + ":" + it.type.getHaxeType(program, TypeKind.TYPETAG) }.joinToString(", ")
+					val rettype = methodType.ret.getHaxeType(program, TypeKind.TYPETAG)
+					val returnOrEmpty = if (methodType.retVoid) "" else "return "
+					val margNames = methodType.args.map { it.name }.joinToString(", ")
+					val typeStr = methodType.getHaxeFunctionalType(program)
+					line("class ${simpleClassName}_Lambda extends java_.lang.Object_ implements ${simpleClassName}") {
+						line("private var ___func__:$typeStr;")
+						line("public function new(func: $typeStr) { super(); this.___func__ = func; }")
+						line("public function $mainMethodName($margs):$rettype { $returnOrEmpty ___func__($margNames); }")
+					}
 				}
 			}
 		})
@@ -818,6 +839,12 @@ object GenHaxe : GenTarget {
 		val simpleName = getHaxeGeneratedSimpleClassName(name)
 		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
 		return getHaxeClassFqName(program, clazz.name) + "$suffix"
+	}
+
+	private fun getHaxeClassFqNameLambda(program: AstProgram, name: FqName): String {
+		val clazz = program[name]
+		val simpleName = getHaxeGeneratedSimpleClassName(name)
+		return getHaxeClassFqName(program, clazz.name) + ".${simpleName}_Lambda"
 	}
 
 	private fun getHaxeClassStaticInit(program: AstProgram, classRef: AstClassRef): String {
@@ -1116,6 +1143,23 @@ object GenHaxe : GenTarget {
 		}
 		is AstExpr.CLASS_CONSTANT -> "HaxeNatives.resolveClass(${classType.mangle().quote()})"
 		is AstExpr.CAUGHT_EXCEPTION -> "__exception__"
+		is AstExpr.METHOD_CLASS -> {
+			val methodInInterfaceRef = this.methodInInterfaceRef
+			val methodToConvertRef = this.methodToConvertRef
+			val interfaceName = methodInInterfaceRef.classRef.name
+			val interfaceLambdaFqname = getHaxeClassFqNameLambda(program, interfaceName)
+			"new $interfaceLambdaFqname(" + Indenter.genString {
+				//methodInInterfaceRef.type.args
+				line("function(r)") {
+					// @TODO: Static + non-static
+					val methodToCallClassName = getHaxeClassFqName(program, methodToConvertRef.classRef.name)
+					val methodToCallName = methodToConvertRef.getHaxeMethodName(program)
+					//line("return $methodToCallClassName.$methodToCallName(r);")
+					line("return null;")
+				}
+			} + ")"
+
+		}
 		else -> throw NotImplementedError("Unhandled expression $this")
 	}
 
@@ -1133,4 +1177,9 @@ object GenHaxe : GenTarget {
 			}.joinToString("")
 		}
 	}
+
+	fun AstType.METHOD_TYPE.getHaxeFunctionalType(program: AstProgram): String {
+		return this.argsPlusReturnVoidIsEmpty.map { it.getHaxeType(program, TypeKind.TYPETAG) }.joinToString(" -> ")
+	}
+
 }

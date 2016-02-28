@@ -17,6 +17,7 @@
 package com.jtransc.ast.dependency
 
 import com.jtransc.ast.*
+import com.jtransc.error.noImpl
 
 object AstDependencyAnalyzer {
 	@JvmStatic fun analyze(program: AstProgram, body: AstBody?): AstReferences {
@@ -24,9 +25,8 @@ object AstDependencyAnalyzer {
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
-		fun ana(type: AstType) {
-			types.addAll(type.getRefTypesFqName())
-		}
+		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
+		fun ana(types: List<AstType>) = types.map { ana(it) }
 
 		fun ana(expr: AstExpr?) {
 			if (expr == null) return
@@ -88,7 +88,11 @@ object AstDependencyAnalyzer {
 				is AstExpr.PARAM -> {
 					ana(expr.type)
 				}
-				else -> throw NotImplementedError("Not implemented $expr")
+				is AstExpr.METHOD_CLASS -> {
+					ana(expr.type)
+					ana(expr.methodToConvertRef.allClassRefs.map { it.type })
+				}
+				else -> noImpl("Not implemented $expr")
 			}
 		}
 

@@ -176,11 +176,10 @@ interface AstExpr : AstElement {
 	}
 
 	data class METHOD_CLASS(
-		val interfaceToGenerate: AstType.REF,
-		val generatedMethodRef: AstMethodRef,
+		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef
 	) : AstExpr {
-		override val type = interfaceToGenerate
+		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
 	infix fun ge(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.GE, that)

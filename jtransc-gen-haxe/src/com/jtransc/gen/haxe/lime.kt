@@ -157,7 +157,7 @@ object GenHaxeLime : GenTarget {
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = GenHaxe._write(tinfo.program, AstFeatures(), srcFolder, GenHaxe.As3Runtime.ADL, HaxeFeatures, limeEntryPoint = true)
+				info = GenHaxe._write(tinfo.program, AstFeatures(), srcFolder, HaxeFeatures, limeEntryPoint = true)
 				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo.program, info!!, tinfo.settings)
 			}
 

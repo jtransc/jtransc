@@ -21,7 +21,7 @@ data class AstClassRef(val name: FqName) : AstRef {
 
 	val fqname: String get() = name.fqname
 
-	val type: AstType get() = AstType.REF(name)
+	val type: AstType.REF get() = AstType.REF(name)
 }
 
 data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType, val isStatic: Boolean? = null) : AstMemberRef {
@@ -38,7 +38,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	val fidWildcard: String get() = "${containingClass.fqname}:$name:*"
 	val desc by lazy { type.desc }
 	val descWithoutRetval by lazy { type.desc2 }
-	val nameDesc by lazy { AstMethodNameDescRef(name, desc) }
+	val nameDesc by lazy { AstMethodDesc(name, type) }
 
 	val allClassRefs: List<AstClassRef> by lazy { type.getRefClasses() + classRef }
 
@@ -57,7 +57,7 @@ data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD_T
 	override fun toString() = "AstMethodWithoutClassRef($name,${type.desc})"
 }
 
-val AstMethodRef.methodDesc: AstMethodDesc get() = AstMethodDesc(this.name, this.type.argTypes)
+val AstMethodRef.methodDesc: AstMethodDesc get() = AstMethodDesc(this.name, this.type)
 
 val AstMethodRef.withoutRetval: AstMethodRef get() {
 	return if (this.type.ret == AstType.UNKNOWN) this else AstMethodRef(containingClass, name, type.withoutRetval)

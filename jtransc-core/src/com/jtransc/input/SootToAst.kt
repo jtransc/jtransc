@@ -278,7 +278,10 @@ open class AstMethodProcessor private constructor(
 						val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
 						val methodToConvertRef = methodHandle.methodRef.astRef
 
-						AstExpr.METHOD_CLASS(interfaceToGenerate, generatedMethodRef, methodToConvertRef)
+						AstExpr.METHOD_CLASS(
+							AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, generatedMethodRef.type),
+							methodToConvertRef
+						)
 					} else {
 						noImpl("Not supported DynamicInvoke yet! $c2")
 					}
