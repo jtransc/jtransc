@@ -38,3 +38,13 @@ fun ByteArray.toHexString():String {
 	}
 	return out.toString()
 }
+
+
+fun String.splitLast(char: Char): Pair<String, String> {
+	val index = this.lastIndexOf(char)
+	if (index < 0) {
+		return Pair("", this)
+	} else {
+		return Pair(this.substring(0, index), this.substring(index + 1))
+	}
+}

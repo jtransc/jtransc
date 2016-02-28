@@ -21,87 +21,87 @@ import java.util.*
 inline fun <reified T> Iterable<Any?>.cast() = this.filterIsInstance<T>()
 
 fun <A, B> List<Pair<A, B>>.uniqueMap(): HashMap<A, B>? {
-    val h = hashMapOf<A, B>()
-    val okay = this.all { x ->
-        val y = h.put(x.first, x.second)
-        (y == null) || (y == x.second)
-    }
-    return if (okay) h else null
+	val h = hashMapOf<A, B>()
+	val okay = this.all { x ->
+		val y = h.put(x.first, x.second)
+		(y == null) || (y == x.second)
+	}
+	return if (okay) h else null
 }
 
-val <T> List<T>.head:T get() = this.first()
-val <T> List<T>.tail:List<T> get() = this.drop(1)
+val <T> List<T>.head: T get() = this.first()
+val <T> List<T>.tail: List<T> get() = this.drop(1)
 
-fun <K, V> Map<K, V>.flip():Map<V, K> = this.map { it.value to it.key }.toMap()
+fun <K, V> Map<K, V>.flip(): Map<V, K> = this.map { it.value to it.key }.toMap()
 
-val <T1, T2> Pair<List<T1>, List<T2>>.zipped:List<Pair<T1, T2>> get() {
-    return this.first.zip(this.second)
+val <T1, T2> Pair<List<T1>, List<T2>>.zipped: List<Pair<T1, T2>> get() {
+	return this.first.zip(this.second)
 }
 
 class Queue<T>() : Iterable<T> {
-    constructor(items:Iterable<T>) : this() {
-        queueAll(items)
-    }
+	constructor(items: Iterable<T>) : this() {
+		queueAll(items)
+	}
 
-    private val data = LinkedList<T>()
+	private val data = LinkedList<T>()
 
-    val hasMore:Boolean get() = data.isNotEmpty()
-    val length:Int get() = data.size
+	val hasMore: Boolean get() = data.isNotEmpty()
+	val length: Int get() = data.size
 
-    fun queue(value: T): T {
-        data.addFirst(value)
-        return value
-    }
+	fun queue(value: T): T {
+		data.addFirst(value)
+		return value
+	}
 
-    fun queueAll(items: Iterable<T>): Queue<T> {
-        for (item in items) queue(item)
-        return this
-    }
+	fun queueAll(items: Iterable<T>): Queue<T> {
+		for (item in items) queue(item)
+		return this
+	}
 
-    fun dequeue(): T {
-        return data.removeLast()
-    }
+	fun dequeue(): T {
+		return data.removeLast()
+	}
 
-    override fun iterator(): Iterator<T> = data.iterator()
+	override fun iterator(): Iterator<T> = data.iterator()
 }
 
 class Stack<T> : Iterable<T> {
-    private val data = LinkedList<T>()
+	private val data = LinkedList<T>()
 
-    val hasMore:Boolean get() = data.isNotEmpty()
+	val hasMore: Boolean get() = data.isNotEmpty()
 
-    val length:Int get() = data.size
+	val length: Int get() = data.size
 
-    fun push(value: T): T {
-        data.addLast(value)
-        return value
-    }
+	fun push(value: T): T {
+		data.addLast(value)
+		return value
+	}
 
-    fun pop(): T {
-        return data.removeLast()
-    }
+	fun pop(): T {
+		return data.removeLast()
+	}
 
-    override fun iterator(): Iterator<T> = data.iterator()
+	override fun iterator(): Iterator<T> = data.iterator()
 
 	fun isEmpty() = !hasMore
 }
 
 // @TODO: Make clearer!
-fun <T> List<T>.flatMapInChunks(chunkSize:Int, handler: (items: List<T>) -> List<T>): List<T> {
-    var out = this
-    var n = 0
-    while (n + chunkSize <= out.size) {
-	    //println("IN: $out")
-        val extracted = out.slice(n until n + chunkSize)
-        val toInsert = handler(extracted)
-        out = out.slice(0 until n) + toInsert + out.slice(n + chunkSize until out.size)
-	    //println("OUT: $out")
-        n++
-    }
-    return out
+fun <T> List<T>.flatMapInChunks(chunkSize: Int, handler: (items: List<T>) -> List<T>): List<T> {
+	var out = this
+	var n = 0
+	while (n + chunkSize <= out.size) {
+		//println("IN: $out")
+		val extracted = out.slice(n until n + chunkSize)
+		val toInsert = handler(extracted)
+		out = out.slice(0 until n) + toInsert + out.slice(n + chunkSize until out.size)
+		//println("OUT: $out")
+		n++
+	}
+	return out
 }
 
-fun <T, T2> List<T>.flatMapInChunks2(chunkSize:Int, handler: (items: List<T>) -> List<T2>): List<T2> {
+fun <T, T2> List<T>.flatMapInChunks2(chunkSize: Int, handler: (items: List<T>) -> List<T2>): List<T2> {
 	var out = arrayListOf<T2>()
 	for (n in 0 until this.size / chunkSize) {
 		//println("IN: $out")
@@ -114,27 +114,46 @@ fun <T> List<T>?.createPairs(): List<Pair<T, T>> {
 	return this?.flatMapInChunks2(2) { listOf(Pair(it[0], it[1])) } ?: listOf()
 }
 
-fun <K, V> Map<K, V>.toHashMap():HashMap<K, V> {
-    val out = hashMapOf<K, V>()
-    for (pair in this) {
-        out.put(pair.key, pair.value)
-    }
-    return out
+fun <K, V> Map<K, V>.toHashMap(): HashMap<K, V> {
+	val out = hashMapOf<K, V>()
+	for (pair in this) {
+		out.put(pair.key, pair.value)
+	}
+	return out
 }
 
-fun <T> Iterable<T?>.stripNulls():List<T> {
+fun <T> Iterable<T?>.stripNulls(): List<T> {
 	return this.filter { it != null }.map { it!! }
 }
 
-fun List<Any?>.toTypedArray2(clazz:Class<*>): Any {
-    val items = this
-    val typedArray = java.lang.reflect.Array.newInstance(clazz, items.size)
-    for (n in 0 until items.size) {
-        java.lang.reflect.Array.set(typedArray, n, items[n])
-    }
-    return typedArray
+fun List<Any?>.toTypedArray2(clazz: Class<*>): Any {
+	val items = this
+	val typedArray = java.lang.reflect.Array.newInstance(clazz, items.size)
+	for (n in 0 until items.size) {
+		java.lang.reflect.Array.set(typedArray, n, items[n])
+	}
+	return typedArray
 }
 
 fun List<Any?>?.toTypedArray2(): Any? {
-    return this?.toTypedArray2(this?.get(0)?.javaClass ?: Object::class.java)
+	return this?.toTypedArray2(this?.get(0)?.javaClass ?: Object::class.java)
 }
+
+data class DiffResult<T>(val both: List<T>, val justFirst: List<T>, val justSecond: List<T>)
+
+fun <T> Iterable<T>.diff(that: Iterable<T>): DiffResult<T> {
+	val first = this
+	val second = that
+	val firstSet = first.toSet()
+	val secondSet = second.toSet()
+
+	return DiffResult(
+		both = first.filter { it in secondSet },
+		justFirst = first.filter { it !in secondSet },
+		justSecond = second.filter { it !in firstSet }
+	)
+}
+
+infix fun Int.hasFlag(that:Int) = (this and that) != 0
+infix fun Int.hasAnyFlags(that:Int) = (this and that) != 0
+infix fun Int.hasAllFlags(that:Int) = (this and that) == that

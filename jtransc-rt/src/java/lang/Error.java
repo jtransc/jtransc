@@ -32,4 +32,9 @@ public class Error extends Throwable {
 	public Error(Throwable cause) {
 		super(cause);
 	}
+
+	protected Error(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
 }

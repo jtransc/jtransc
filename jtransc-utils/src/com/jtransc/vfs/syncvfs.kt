@@ -23,6 +23,7 @@ import com.jtransc.error.NotImplementedException
 import com.jtransc.error.noImpl
 import com.jtransc.lang.getResourceAsString
 import com.jtransc.text.ToString
+import com.jtransc.text.splitLast
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -665,6 +666,10 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 
 		val children = hashMapOf<String, Node>()
 
+		fun createChild(name: String): Node {
+			return Node(zip, name, this)
+		}
+
 		fun access(path: String, create: Boolean = false): Node {
 			var current = if (path.startsWith("/")) root else this
 			for (part in path.trim('/').split('/')) {
@@ -687,9 +692,18 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 	private val rootNode = Node(this, "")
 
 	init {
+		val cache = hashMapOf<String, Node>()
 		for (e in zip.entries()) {
-			val node = rootNode.access(e.name.trim('/'), create = true)
-			node.entry = e
+			val normalizedName = e.name.trim('/')
+			val (path, name) = normalizedName.splitLast('/')
+			//println("$path :: $name")
+			if (path !in cache) {
+				cache[path] = rootNode.access(path, create = true)
+			}
+			//println(cache[path]?.path)
+			cache[path]!!.createChild(name).apply {
+				this.entry = e
+			}
 		}
 	}
 
