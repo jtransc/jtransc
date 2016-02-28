@@ -3,6 +3,7 @@ package com.jtransc.gen.haxe
 import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.gen.ClassMappings
 import com.jtransc.text.Indenter
 import com.jtransc.text.escape
@@ -13,14 +14,14 @@ import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.JTranscKeep
 import jtransc.annotation.haxe.*
 
-class HaxeGen(
+class GenHaxeGen(
 	val program: AstProgram,
 	val mappings: ClassMappings,
 	val features: AstFeatures,
 	val srcFolder: SyncVfsFile,
 	val featureSet: Set<AstFeature>
 ) {
-	val names = Names(program, mappings)
+	val names = HaxeNames(program, mappings)
 	val refs = References()
 	lateinit var clazz: AstClass
 	lateinit var method: AstMethod
@@ -287,9 +288,9 @@ class HaxeGen(
 
 	fun gen2(stm: AstStm): Indenter {
 		this.stm = stm
-		val program = program!!
-		val clazz = clazz!!
-		val mutableBody = mutableBody!!
+		val program = program
+		val clazz = clazz
+		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
 				is AstStm.NOP -> Unit
@@ -313,7 +314,7 @@ class HaxeGen(
 					val exprType = stm.expr.type
 					val adaptor = if (localType != exprType) mappings.getClassAdaptor(exprType, localType) else null
 					if (adaptor != null) {
-						refs.addTypeReference(AstType.REF(adaptor.adaptor))
+						refs.add(AstType.REF(adaptor.adaptor))
 						line("${stm.local.haxeName} = new ${adaptor.adaptor}(${stm.expr.gen()});")
 					} else {
 						val expr = stm.expr.gen()
@@ -323,7 +324,7 @@ class HaxeGen(
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]
 					//val mapping = mappings.getClassMapping(newClazz)
-					refs.addTypeReference(stm.target)
+					refs.add(stm.target)
 					val commaArgs = stm.args.map { it.gen() }.joinToString(", ")
 					val className = stm.target.haxeTypeNew
 					val localHaxeName = stm.local.haxeName
@@ -342,7 +343,7 @@ class HaxeGen(
 				}
 				is AstStm.SET_ARRAY -> line("${stm.local.haxeName}.set(${stm.index.gen()}, ${stm.expr.gen()});")
 				is AstStm.SET_FIELD_STATIC -> {
-					refs.addTypeReference(stm.clazz)
+					refs.add(stm.clazz)
 					mutableBody.initClassRef(stm.field.classRef)
 					line("${stm.field.haxeStaticText} = ${stm.expr.gen()};")
 				}
@@ -405,12 +406,12 @@ class HaxeGen(
 	}
 
 	fun gen2(body: AstBody): Indenter {
-		val method = method!!
+		val method = method
 		this.mutableBody = MutableBody(method)
 
 		return Indenter.gen {
 			for (local in body.locals) {
-				refs.addTypeReference(local.type)
+				refs.add(local.type)
 				line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefault};")
 			}
 			if (body.traps.isNotEmpty()) {
@@ -427,7 +428,7 @@ class HaxeGen(
 			val bodyContent = body.stm.gen()
 
 			if (GenHaxe.INIT_MODE == InitMode.LAZY) {
-				for (clazzRef in mutableBody!!.classes) {
+				for (clazzRef in mutableBody.classes) {
 					line(names.getHaxeClassStaticInit(clazzRef))
 				}
 			}
@@ -436,8 +437,6 @@ class HaxeGen(
 	}
 
 	fun gen2(e: AstExpr): String {
-		val clazz = clazz!!
-		val mutableBody = mutableBody!!
 		return when (e) {
 			is AstExpr.THIS -> "this"
 			is AstExpr.LITERAL -> names.escapeConstant(e.value)
@@ -478,7 +477,7 @@ class HaxeGen(
 				val refMethod = program.get(method) ?: invalidOp("Can't find method: ${method} while generating ${clazz.name}")
 
 				if (e is AstExpr.CALL_STATIC) {
-					refs.addTypeReference(e.clazz)
+					refs.add(e.clazz)
 					mutableBody.initClassRef(e.clazz.classRef)
 				}
 
@@ -517,7 +516,7 @@ class HaxeGen(
 				"${e.expr.gen()}.${e.field.haxeName}"
 			}
 			is AstExpr.STATIC_FIELD_ACCESS -> {
-				refs.addTypeReference(e.clazzName)
+				refs.add(e.clazzName)
 				mutableBody.initClassRef(e.field.classRef)
 
 				"${e.field.haxeStaticText}"
@@ -525,84 +524,21 @@ class HaxeGen(
 			is AstExpr.ARRAY_LENGTH -> "${e.array.gen()}.length"
 			is AstExpr.ARRAY_ACCESS -> "${e.array.gen()}.get(${e.index.gen()})"
 			is AstExpr.CAST -> {
-				val e2 = e
-				val from = e2.from
-				val to = e2.to
-				val e = e2.expr.gen()
-				refs.addTypeReference(e2.from)
-				refs.addTypeReference(e2.to)
-				if (e2.from == e2.to) {
-					"$e"
-				} else {
-					when (e2.from) {
-						is AstType.BOOL -> {
-							when (e2.to) {
-								is AstType.LONG -> "HaxeNatives.intToLong(($e) ? 1 : 0)"
-								is AstType.INT -> "(($e) ? 1 : 0)"
-								is AstType.CHAR -> "(($e) ? 1 : 0)"
-								is AstType.SHORT -> "(($e) ? 1 : 0)"
-								is AstType.BYTE -> "(($e) ? 1 : 0)"
-								is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
-								else -> throw NotImplementedError("Unhandled conversion $from -> $to")
-							}
-						}
-						is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-							when (to) {
-								is AstType.LONG -> "HaxeNatives.intToLong($e)"
-								is AstType.INT -> "($e)"
-								is AstType.BOOL -> "(($e) != 0)"
-								is AstType.CHAR -> "(($e) & 0xFFFF)"
-								is AstType.SHORT -> "((($e) << 16) >> 16)"
-								is AstType.BYTE -> "((($e) << 24) >> 24)"
-								is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-								else -> throw NotImplementedError("Unhandled conversion $from -> $to")
-							}
-						}
-						is AstType.DOUBLE, is AstType.FLOAT -> {
-							when (to) {
-								is AstType.LONG -> "HaxeNatives.floatToLong($e)"
-								is AstType.INT -> "Std.int($e)"
-								is AstType.BOOL -> "(($e) != 0)"
-								is AstType.CHAR -> "(($e) & 0xFFFF)"
-								is AstType.SHORT -> "((($e) << 16) >> 16)"
-								is AstType.BYTE -> "((($e) << 24) >> 24)"
-								is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-								else -> throw NotImplementedError("Unhandled conversion $from -> $to")
-							}
-						}
-						is AstType.LONG -> {
-							when (to) {
-								is AstType.INT -> "($e).low"
-								is AstType.BOOL -> "(($e).low != 0)"
-								is AstType.CHAR -> "(($e).low & 0xFFFF)"
-								is AstType.SHORT -> "((($e).low << 16) >> 16)"
-								is AstType.BYTE -> "((($e).low << 24) >> 24)"
-								is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
-								else -> throw NotImplementedError("Unhandled conversion $from -> $to")
-							}
-						}
-						is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
-							when (to) {
-								AstType.REF("all.core.AllFunction") -> "(HaxeNatives.getFunction($e))"
-								else -> "HaxeNatives.cast2($e, ${to.haxeTypeCast})"
-							}
-						}
-						is AstType.NULL -> "$e"
-						else -> throw NotImplementedError("Unhandled conversion $from -> $to")
-					}
-				}
+				refs.add(e.from)
+				refs.add(e.to)
+				genCast(e.expr.gen(), e.from, e.to)
 			}
 			is AstExpr.NEW -> {
-				refs.addTypeReference(e.target)
+				refs.add(e.target)
 				val className = e.target.haxeTypeNew
 				"new $className()"
 			}
 			is AstExpr.INSTANCE_OF -> {
-				refs.addTypeReference(e.checkType)
+				refs.add(e.checkType)
 				"Std.is(${e.expr.gen()}, ${e.checkType.haxeTypeCast})"
 			}
 			is AstExpr.NEW_ARRAY -> {
-				refs.addTypeReference(e.type.elementType)
+				refs.add(e.type.elementType)
 				when (e.counts.size) {
 					1 -> "new ${e.type.haxeTypeNew}(${e.counts[0].gen()})"
 					else -> throw NotImplementedError("Not implemented multidimensional arrays")
@@ -618,17 +554,121 @@ class HaxeGen(
 				val interfaceLambdaFqname = interfaceName.haxeLambdaName
 				"new $interfaceLambdaFqname(" + Indenter.genString {
 					//methodInInterfaceRef.type.args
-					line("function(r)") {
+
+					val argNameTypes = methodInInterfaceRef.type.args.map { it.haxeNameAndType }.joinToString(", ")
+
+					line("function($argNameTypes)") {
 						// @TODO: Static + non-static
-						val methodToCallClassName = methodToConvertRef.classRef.name.haxeClassFqName
-						val methodToCallName = methodToConvertRef.haxeName
-						//line("return $methodToCallClassName.$methodToCallName(r);")
-						line("return null;")
+						//val methodToCallClassName = methodToConvertRef.classRef.name.haxeClassFqName
+						//val methodToCallName = methodToConvertRef.haxeName
+
+						val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
+
+						line("return " + gen2(AstExpr.CALL_STATIC(
+							methodToConvertRef.containingClassType,
+							methodToConvertRef,
+							args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
+							)) + ";"
+						)
 					}
 				} + ")"
 
 			}
 			else -> throw NotImplementedError("Unhandled expression $this")
+		}
+	}
+
+	fun genCast(e:String, from:AstType, to:AstType):String {
+		if (from == to) return e
+
+		if (from !is AstType.Primitive && to is AstType.Primitive) {
+			return when (from) {
+				// @TODO: Check!
+				AstType.BOOL.CLASSTYPE -> genCast("($e).booleanValue__B()", AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE -> genCast("($e).byteValue__B()", AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE -> genCast("($e).shortValue__S()", AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE -> genCast("($e).charValue__S()", AstType.CHAR, to)
+				AstType.INT.CLASSTYPE -> genCast("($e).intValue__I()", AstType.INT, to)
+				AstType.LONG.CLASSTYPE -> genCast("($e).longValue__L()", AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE -> genCast("($e).floatValue__F()", AstType.FLOAT, to)
+				AstType.DOUBLE.CLASSTYPE -> genCast("($e).doubleValue__F()", AstType.DOUBLE, to)
+				//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+				//else -> noImpl("Unhandled conversion $e : $from -> $to")
+				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+			}
+		}
+
+		if (from is AstType.Primitive && to !is AstType.Primitive) {
+			// @TODO: Check!
+			return when (from) {
+				AstType.BOOL -> genCast("java_.lang.Boolean_.valueOf($e)", AstType.BOOL.CLASSTYPE, to)
+				AstType.BYTE -> genCast("java_.lang.Byte.valueOf($e)", AstType.BYTE.CLASSTYPE, to)
+				AstType.SHORT -> genCast("java_.lang.Short.valueOf($e)", AstType.SHORT.CLASSTYPE, to)
+				AstType.CHAR -> genCast("java_.lang.Character.valueOf($e)", AstType.CHAR.CLASSTYPE, to)
+				AstType.INT -> genCast("java_.lang.Integer.valueOf($e)", AstType.INT.CLASSTYPE, to)
+				AstType.LONG -> genCast("java_.lang.Long.valueOf($e)", AstType.LONG.CLASSTYPE, to)
+				AstType.FLOAT -> genCast("java_.lang.Float.valueOf($e)", AstType.FLOAT.CLASSTYPE, to)
+				AstType.DOUBLE -> genCast("java_.lang.Double.valueOf($e)", AstType.DOUBLE.CLASSTYPE, to)
+				else -> noImpl("Unhandled conversion $e : $from -> $to")
+			}
+		}
+
+		return when (from) {
+			is AstType.BOOL -> {
+				when (to) {
+					is AstType.LONG -> "HaxeNatives.intToLong(($e) ? 1 : 0)"
+					is AstType.INT -> "(($e) ? 1 : 0)"
+					is AstType.CHAR -> "(($e) ? 1 : 0)"
+					is AstType.SHORT -> "(($e) ? 1 : 0)"
+					is AstType.BYTE -> "(($e) ? 1 : 0)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
+					//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
+					else -> noImpl("Unhandled conversion $e : $from -> $to")
+				}
+			}
+			is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
+				when (to) {
+					is AstType.LONG -> "HaxeNatives.intToLong($e)"
+					is AstType.INT -> "($e)"
+					is AstType.BOOL -> "(($e) != 0)"
+					is AstType.CHAR -> "(($e) & 0xFFFF)"
+					is AstType.SHORT -> "((($e) << 16) >> 16)"
+					is AstType.BYTE -> "((($e) << 24) >> 24)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
+					else -> noImpl("Unhandled conversion $from -> $to")
+				}
+			}
+			is AstType.DOUBLE, is AstType.FLOAT -> {
+				when (to) {
+					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
+					is AstType.INT -> "Std.int($e)"
+					is AstType.BOOL -> "(($e) != 0)"
+					is AstType.CHAR -> "(($e) & 0xFFFF)"
+					is AstType.SHORT -> "((($e) << 16) >> 16)"
+					is AstType.BYTE -> "((($e) << 24) >> 24)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
+					else -> noImpl("Unhandled conversion $from -> $to")
+				}
+			}
+			is AstType.LONG -> {
+				when (to) {
+					is AstType.INT -> "($e).low"
+					is AstType.BOOL -> "(($e).low != 0)"
+					is AstType.CHAR -> "(($e).low & 0xFFFF)"
+					is AstType.SHORT -> "((($e).low << 16) >> 16)"
+					is AstType.BYTE -> "((($e).low << 24) >> 24)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
+					else -> noImpl("Unhandled conversion $from -> $to")
+				}
+			}
+			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
+				when (to) {
+					AstType.REF("all.core.AllFunction") -> "(HaxeNatives.getFunction($e))"
+					else -> "HaxeNatives.cast2($e, ${to.haxeTypeCast})"
+				}
+			}
+			is AstType.NULL -> "$e"
+			else -> noImpl("Unhandled conversion $from -> $to")
 		}
 	}
 
@@ -652,10 +692,10 @@ class HaxeGen(
 		refs._usedDependencies.clear()
 
 		if (!clazz.extending?.fqname.isNullOrEmpty()) {
-			refs.addTypeReference(AstType.REF(clazz.extending!!))
+			refs.add(AstType.REF(clazz.extending!!))
 		}
 		for (impl in clazz.implementing) {
-			refs.addTypeReference(AstType.REF(impl))
+			refs.add(AstType.REF(impl))
 		}
 		//val interfaceClassName = clazz.name.append("_Fields");
 
@@ -665,7 +705,7 @@ class HaxeGen(
 			val static = if (field.isStatic) "static " else ""
 			val visibility = if (isInterface) " " else field.visibility.haxe
 			val fieldType = field.type
-			refs.addTypeReference(fieldType)
+			refs.add(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = field.haxeName
 			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
@@ -684,12 +724,12 @@ class HaxeGen(
 			return Indenter.gen {
 				val static = if (method.isStatic) "static " else ""
 				val visibility = if (isInterface) " " else method.visibility.haxe
-				refs.addTypeReference(method.methodType)
+				refs.add(method.methodType)
 				val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
 				var override = if (method.isOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
 				val decl = try {
-					"$static $visibility $inline $override function ${method.ref.haxeMethodName}(${margs.joinToString(", ")}):${method.methodType.ret.haxeTypeTag}".trim()
+					"$static $visibility $inline $override function ${method.ref.haxeName}(${margs.joinToString(", ")}):${method.methodType.ret.haxeTypeTag}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					//null
@@ -740,7 +780,7 @@ class HaxeGen(
 				}
 
 				if (clazz.hasStaticInit) {
-					val methodName = clazz.staticInitMethod!!.haxeMethodName
+					val methodName = clazz.staticInitMethod!!.haxeName
 					line("$methodName();")
 				}
 			}
@@ -850,15 +890,22 @@ class HaxeGen(
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
 
+	val AstVisibility.haxe: String get() = "public"
+
 	val AstType.haxeTypeTag: FqName get() = names.getHaxeType(this, TypeKind.TYPETAG)
 	val AstType.haxeTypeNew: FqName get() = names.getHaxeType(this, TypeKind.NEW)
 	val AstType.haxeTypeCast: FqName get() = names.getHaxeType(this, TypeKind.CAST)
+	val AstType.haxeDefault: Any? get() = names.getHaxeDefault(this)
+	val AstType.METHOD_TYPE.functionalType: String get() = names.getHaxeFunctionalType(this)
+
 	val AstLocal.haxeName: String get() = this.name.replace('$', '_')
 
 	val AstField.haxeName: String get() = names.getHaxeFieldName(this)
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)
-	@Deprecated("Use .haxeName instead")
-	val AstFieldRef.haxeFieldName: String get() = names.getHaxeFieldName(this)
+	val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
+
+	val AstMethod.haxeName: String get() = names.getHaxeMethodName(this)
+	val AstMethodRef.haxeName: String get() = names.getHaxeMethodName(this)
 
 	val FqName.haxeLambdaName: String get() = names.getHaxeClassFqNameLambda(this)
 	val FqName.haxeClassFqName: String get() = names.getHaxeClassFqName(this)
@@ -868,21 +915,7 @@ class HaxeGen(
 	val FqName.haxeGeneratedFqName: FqName get() = names.getHaxeGeneratedFqName(this)
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getHaxeGeneratedSimpleClassName(this)
 
-	val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
-
-	private val AstType.haxeDefault: Any? get() = names.getHaxeDefault(this)
-
-	val AstMethod.haxeName: String get() = names.getHaxeMethodName(this)
-	val AstMethodRef.haxeName: String get() = names.getHaxeMethodName(this)
-
-	@Deprecated("Use .haxeName instead")
-	val AstMethod.haxeMethodName: String get() = names.getHaxeMethodName(this)
-	@Deprecated("Use .haxeName instead")
-	val AstMethodRef.haxeMethodName: String get() = names.getHaxeMethodName(this)
-
-	val AstType.METHOD_TYPE.functionalType: String get() = names.getHaxeFunctionalType(this)
-
-	val AstVisibility.haxe: String get() = "public"
+	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
 	class MutableBody(
 		val method: AstMethod
@@ -900,201 +933,15 @@ class HaxeGen(
 				null -> {
 				}
 				is AstType.METHOD_TYPE -> {
-					for (arg in type.argTypes) addTypeReference(arg)
-					addTypeReference(type.ret)
+					for (arg in type.argTypes) add(arg)
+					add(type.ret)
 				}
 				is AstType.REF -> _usedDependencies.add(type)
-				is AstType.ARRAY -> addTypeReference(type.elementType)
+				is AstType.ARRAY -> add(type.elementType)
 				else -> {
 
 				}
 			}
 		}
-
-		@Deprecated("Use add instead")
-		fun addTypeReference(type: AstType?) {
-			add(type)
-		}
-
 	}
-
-	class Names(val program: AstProgram, val mappings: ClassMappings) {
-		private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
-
-		fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
-		fun getHaxeMethodName(method: AstMethodRef): String {
-			val realmethod = program[method]!!
-			if (realmethod.nativeMethod != null) {
-				return realmethod.nativeMethod!!
-			} else {
-				return "${method.name}${method.desc}".map {
-					if (it.isLetterOrDigit()) "$it" else if (it == '.' || it == '/') "_" else "_"
-				}.joinToString("")
-			}
-		}
-
-		fun getHaxeFunctionalType(type: AstType.METHOD_TYPE): String {
-			return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, TypeKind.TYPETAG) }.joinToString(" -> ")
-		}
-
-		fun getHaxeDefault(type: AstType): Any? {
-			return when (type) {
-				is AstType.BOOL -> false
-				is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> 0
-				is AstType.LONG -> 0L
-				is AstType.FLOAT, is AstType.DOUBLE -> 0.0
-				is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
-				else -> throw RuntimeException("Not supported haxe type $this")
-			}
-		}
-
-		fun getHaxeFilePath(name: FqName): String {
-			return getHaxeGeneratedFqName(name).internalFqname + ".hx"
-		}
-
-		fun getHaxeGeneratedFqPackage(name: FqName): String {
-			return name.packageParts.map {
-				if (it in HaxeKeywords) "${it}_" else it
-			}.joinToString(".")
-		}
-
-		fun getHaxeGeneratedFqName(name: FqName): FqName {
-			return FqName(getHaxeGeneratedFqPackage(name), getHaxeGeneratedSimpleClassName(name))
-		}
-
-		fun getHaxeGeneratedSimpleClassName(name: FqName): String {
-			return "${name.simpleName.replace('$', '_')}_"
-		}
-
-		fun getHaxeClassFqName(name: FqName): String {
-			val clazz = program[name]
-			if (clazz.isNative) {
-				return "${clazz.nativeName}"
-			} else {
-				return getHaxeGeneratedFqName(name).fqname
-			}
-		}
-
-
-		fun getHaxeFieldName(field: AstFieldRef): String {
-			if (field !in cachedFieldNames) {
-				val fieldName = field.name.replace('$', '_')
-				var name = if (fieldName in HaxeKeywords) "${fieldName}_" else fieldName
-
-				val f = program[field]
-				val clazz = f.containingClass
-				val clazzAncestors = clazz.ancestors.reversed()
-				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toSet()
-
-				//if (field.name == "this\$0") {
-				//	println(" ::: ${field} :: ${field.name} :: $names :: $clazzAncestors")
-				//	println(clazzAncestors.flatMap { it.fields })
-				//}
-
-				while (name in names) name += "_"
-				cachedFieldNames[field] = name
-			}
-			return cachedFieldNames[field]!!
-		}
-
-		fun getHaxeFieldName(field: AstField): String {
-			return getHaxeFieldName(field.ref)
-		}
-
-		fun getStaticFieldText(field: AstFieldRef): String {
-			val prefix = getHaxeClassFqNameInt(field.classRef.name)
-			return "$prefix.${getHaxeFieldName(field)}"
-		}
-
-		fun getHaxeClassFqNameInt(name: FqName): String {
-			val clazz = program[name]
-			val simpleName = getHaxeGeneratedSimpleClassName(name)
-			val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
-			return getHaxeClassFqName(clazz.name) + "$suffix"
-		}
-
-		fun getHaxeClassFqNameLambda(name: FqName): String {
-			val clazz = program[name]
-			val simpleName = getHaxeGeneratedSimpleClassName(name)
-			return getHaxeClassFqName(clazz.name) + ".${simpleName}_Lambda"
-		}
-
-		fun getHaxeClassStaticInit(classRef: AstClassRef): String {
-			return "${getHaxeClassFqNameInt(classRef.name)}.__hx_static__init__();"
-		}
-
-
-		fun getHaxeType(type: AstType, typeKind: TypeKind): FqName {
-			return FqName(when (type) {
-				is AstType.NULL -> "Dynamic"
-				is AstType.VOID -> "Void"
-				is AstType.BOOL -> "Bool"
-				is AstType.GENERIC -> getHaxeType(type.type, typeKind).fqname
-				is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
-				is AstType.FLOAT, is AstType.DOUBLE -> "Float"
-				is AstType.LONG -> "haxe.Int64"
-				is AstType.REF -> {
-					val typeName = type.name
-					if (mappings.hasClassReplacement(typeName)) {
-						val replacement = mappings.getClassReplacement(typeName)!!
-						when (typeKind) {
-							TypeKind.TYPETAG -> replacement.typeTag
-							TypeKind.NEW -> replacement.importNew
-							TypeKind.CAST -> replacement.importNew
-						}
-					} else {
-						if (mappings.isAdaptorSet(typeName.fqname)) {
-							typeName.fqname
-						} else {
-							program[typeName].nativeName ?: getHaxeClassFqName(typeName)
-						}
-					}
-				}
-				is AstType.ARRAY -> when (type.element) {
-					is AstType.BOOL -> "HaxeBoolArray"
-					is AstType.BYTE -> "HaxeByteArray"
-					is AstType.CHAR -> "HaxeShortArray"
-					is AstType.SHORT -> "HaxeShortArray"
-					is AstType.INT -> "HaxeIntArray"
-					is AstType.LONG -> "HaxeLongArray"
-					is AstType.FLOAT -> "HaxeFloatArray"
-					is AstType.DOUBLE -> "HaxeDoubleArray"
-					else -> "HaxeArray"
-				}
-				else -> throw RuntimeException("Not supported haxe type $this")
-			})
-		}
-
-		fun escapeConstant(value: Any?, type: AstType): String {
-			//AstExpr.CAST(type, AstExpr.LITERAL(value))
-			val result = escapeConstant(value)
-			return if (type == AstType.BOOL) {
-				if (result != "false" && result != "0") "true" else "false"
-			} else {
-				result
-			}
-		}
-
-		fun escapeConstant(value: Any?): String = when (value) {
-			null -> "null"
-			is Boolean -> if (value) "true" else "false"
-			is String -> "HaxeNatives.str(\"" + value.escape() + "\")"
-			is Short -> "$value"
-			is Char -> "$value"
-			is Int -> "$value"
-			is Byte -> "$value"
-			is Long -> "haxe.Int64.make(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
-			is Float -> escapeConstant(value.toDouble())
-			is Double -> if (value.isInfinite()) {
-				if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY"
-			} else if (value.isNaN()) {
-				"Math.NaN"
-			} else {
-				"$value"
-			}
-			else -> throw NotImplementedError("Literal of type $value")
-		}
-
-	}
-
 }

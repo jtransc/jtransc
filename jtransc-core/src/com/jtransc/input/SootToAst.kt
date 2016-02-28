@@ -169,7 +169,7 @@ open class AstMethodProcessor private constructor(
 	}
 
 	private fun cast(e: AstExpr, to: AstType): AstExpr {
-		return if (e.type != to) AstExpr.CAST(to, e) else e
+		return if (e.type != to) AstExpr.CAST(e, to) else e
 	}
 
 	private fun convert(s: soot.Unit): AstStm = when (s) {
@@ -220,7 +220,7 @@ open class AstMethodProcessor private constructor(
 		is ArrayRef -> AstExpr.ARRAY_ACCESS(convert(c.base), convert(c.index))
 		is InstanceFieldRef -> AstExpr.INSTANCE_FIELD_ACCESS(convert(c.base), c.field.ast, c.field.type.astType)
 		is StaticFieldRef -> AstExpr.STATIC_FIELD_ACCESS(AstType.REF(c.field.declaringClass.name), c.field.ast, c.field.type.astType, c.field.declaringClass.isInterface)
-		is CastExpr -> AstExpr.CAST(c.castType.astType, convert(c.op))
+		is CastExpr -> AstExpr.CAST(convert(c.op), c.castType.astType)
 		is InstanceOfExpr -> AstExpr.INSTANCE_OF(convert(c.op), c.checkType.astType)
 		is NewExpr -> AstExpr.NEW(c.type.astType as AstType.REF)
 		is NewArrayExpr -> AstExpr.NEW_ARRAY(c.baseType.astType, listOf(convert(c.size)))
@@ -258,7 +258,7 @@ open class AstMethodProcessor private constructor(
 					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
 						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
 					} else {
-						AstExpr.CALL_INSTANCE(AstExpr.CAST(method.classRef.type, obj), method, args, isSpecial)
+						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
 					}
 				}
 				is DynamicInvokeExpr -> { // astMethodRef.classRef == "soot.dummy.InvokeDynamic"
@@ -279,7 +279,7 @@ open class AstMethodProcessor private constructor(
 						val methodToConvertRef = methodHandle.methodRef.astRef
 
 						AstExpr.METHOD_CLASS(
-							AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, generatedMethodRef.type),
+							AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
 							methodToConvertRef
 						)
 					} else {
@@ -295,7 +295,7 @@ open class AstMethodProcessor private constructor(
 	final fun doCastIfNeeded(toType: Type, value: Value): AstExpr = if (value.type == toType) {
 		convert(value)
 	} else {
-		AstExpr.CAST(value.type.astType, toType.astType, convert(value))
+		AstExpr.CAST(convert(value), toType.astType)
 	}
 }
 

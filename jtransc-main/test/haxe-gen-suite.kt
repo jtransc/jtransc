@@ -64,7 +64,7 @@ class HaxeGenSuite {
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
 
-	//@Test fun java8Test() = testClass<Java8Test>()
+	@Test fun java8Test() = testClass<Java8Test>()
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())

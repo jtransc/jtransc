@@ -33,6 +33,7 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 
 data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE, val isStatic:Boolean? = null) : AstMemberRef {
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
+	val containingClassType: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type
 	val fid: String get() = "${containingClass.fqname}:$name:$desc"
 	val fidWildcard: String get() = "${containingClass.fqname}:$name:*"

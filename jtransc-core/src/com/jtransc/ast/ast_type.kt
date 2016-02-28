@@ -11,6 +11,7 @@ import java.util.*
 interface AstType {
 	open class Primitive(underlyingClassStr: String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
+		val CLASSTYPE = REF(underlyingClassStr)
 	}
 
 	object UNKNOWN : AstType
@@ -35,6 +36,20 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double")
 
+	/*
+	object TYPECLASS {
+		val VOID = REF("java.lang.Void")
+		val BOOL = REF("java.lang.Boolean")
+		val BYTE = REF("java.lang.Byte")
+		val CHAR = REF("java.lang.Character")
+		val SHORT = REF("java.lang.Short")
+		val INT = REF("java.lang.Integer")
+		val LONG = REF("java.lang.Long")
+		val FLOAT = REF("java.lang.Float")
+		val DOUBLE = REF("java.lang.Double")
+	}
+	*/
+
 	data class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))
 
@@ -58,9 +73,13 @@ interface AstType {
 	//data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
 	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean) : AstType {
 		val argCount: Int get() = argTypes.size
+
 		constructor(ret: AstType, argTypes: List<AstType>) : this(ret, argTypes.toArguments(), true)
+
 		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args, true)
+
 		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.toList(), true)
+
 		constructor(ret: AstType, vararg args: AstType) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret)
 
 		val argNames by lazy { args.map { it.name } }
@@ -86,13 +105,14 @@ interface AstType {
 		val STRING = REF(FqName("java.lang.String"))
 		val OBJECT = REF(FqName("java.lang.Object"))
 		val CLASS = REF(FqName("java.lang.Class"))
-		fun ARRAY(element: AstType, dimensions: Int) : AstType {
+		fun ARRAY(element: AstType, dimensions: Int): AstType {
 			return if (dimensions == 1) {
 				ARRAY(element)
 			} else {
 				ARRAY(ARRAY(element, dimensions - 1))
 			}
 		}
+
 		fun REF_INT(internalName: String): AstType {
 			if (internalName.startsWith("[")) {
 				return demangle(internalName)
@@ -100,9 +120,11 @@ interface AstType {
 				return REF_INT2(internalName)
 			}
 		}
+
 		fun REF_INT2(internalName: String): AstType.REF {
 			return REF(internalName.replace('/', '.'))
 		}
+
 		fun fromConstant(value: Any?): AstType = when (value) {
 			null -> OBJECT
 			is Int -> INT

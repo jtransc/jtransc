@@ -148,12 +148,12 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 				stack.clear()
 			}
 			is BAF.CHECKCAST -> {
-				stack.push(AstExpr.CAST(i.type, stack.pop()))
+				stack.push(AstExpr.CAST(stack.pop(), i.type))
 			}
 			is BAF.CONV -> {
 				val r = stack.pop()
 				assert(r.type == i.src)
-				stack.push(AstExpr.CAST(i.src, i.dst, r))
+				stack.push(AstExpr.CAST(r, i.dst))
 			}
 			is BAF.ANEW -> {
 				stack.push(AstExpr.NEW(i.type))

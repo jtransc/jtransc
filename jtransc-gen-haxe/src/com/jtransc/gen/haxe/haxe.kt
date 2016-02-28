@@ -120,7 +120,7 @@ object GenHaxe : GenTarget {
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = HaxeGen(
+				info = GenHaxeGen(
 					program = program,
 					mappings = mappings,
 					features = AstFeatures(),

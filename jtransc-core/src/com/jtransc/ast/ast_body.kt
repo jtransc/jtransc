@@ -139,6 +139,7 @@ interface AstExpr : AstElement {
 	}
 
 	data class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
 	}
 
@@ -157,8 +158,8 @@ interface AstExpr : AstElement {
 		override val type = AstType.BOOL
 	}
 
-	data class CAST(val from: AstType, val to: AstType, val expr: AstExpr) : AstExpr {
-		constructor(to: AstType, expr: AstExpr) : this(expr.type, to, expr)
+	data class CAST(val expr: AstExpr, val to: AstType) : AstExpr {
+		val from: AstType get() = expr.type
 
 		override val type = to
 	}

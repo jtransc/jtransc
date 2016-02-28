@@ -154,7 +154,7 @@ object GenHaxeLime : GenTarget {
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = HaxeGen(
+				info = GenHaxeGen(
 					program = tinfo.program,
 					mappings = ClassMappings(),
 					features = AstFeatures(),
