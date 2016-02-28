@@ -38,6 +38,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	val fidWildcard: String get() = "${containingClass.fqname}:$name:*"
 	val desc by lazy { type.desc }
 	val descWithoutRetval by lazy { type.desc2 }
+	val nameDesc by lazy { AstMethodNameDescRef(name, desc) }
 
 	val allClassRefs: List<AstClassRef> by lazy { type.getRefClasses() + classRef }
 

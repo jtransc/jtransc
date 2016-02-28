@@ -290,14 +290,16 @@ public final class URL implements java.io.Serializable {
 		}
 	}
 
-	native public URLConnection openConnection() throws java.io.IOException;
-	native public URLConnection openConnection(Proxy proxy);
+	//native public URLConnection openConnection() throws java.io.IOException;
+	//native public URLConnection openConnection(Proxy proxy);
+	//native public static void setURLStreamHandlerFactory(URLStreamHandlerFactory fac);
 	public final Object getContent() throws java.io.IOException {
-		return openConnection().getContent();
+		//return openConnection().getContent();
+		return null;
 	}
 	public final Object getContent(Class[] classes) throws java.io.IOException {
-		return openConnection().getContent(classes);
+		//return openConnection().getContent(classes);
+		return null;
 	}
-	native public static void setURLStreamHandlerFactory(URLStreamHandlerFactory fac);
 }
 

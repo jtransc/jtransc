@@ -19,6 +19,7 @@ package com.jtransc.gen.haxe
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.*
 import com.jtransc.gen.haxe.GenHaxe.getHaxeType
 import com.jtransc.io.ProcessResult2
@@ -157,7 +158,7 @@ object GenHaxe : GenTarget {
 
 			val f = program[field]
 			val clazz = f.containingClass
-			val clazzAncestors = clazz.getAncestors(program).reversed()
+			val clazzAncestors = clazz.ancestors.reversed()
 			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(program, it.ref) }.toSet()
 
 			//if (field.name == "this\$0") {
@@ -787,7 +788,7 @@ object GenHaxe : GenTarget {
 			if (body.traps.isNotEmpty()) {
 				line("var __exception__:Dynamic = null;")
 			}
-			for (field in method.dependencies.getFields2(program).filter { it.isStatic }) {
+			for (field in method.dependencies.fields2.filter { it.isStatic }) {
 				val clazz = field.containingClass
 				if (clazz.isInterface) {
 
@@ -948,11 +949,6 @@ object GenHaxe : GenTarget {
 		}
 	}
 
-	fun AstProgram.locateMethod(ref: AstMethodRef): AstMethod? {
-		val methodClass = this[ref.containingClass]
-		return methodClass.getMethod(ref.name, ref.desc)
-	}
-
 	fun AstExpr.gen(program: AstProgram, clazz: AstClass, stm: AstStm, mutableBody: MutableBody): String = when (this) {
 		is AstExpr.THIS -> "this"
 		is AstExpr.LITERAL -> escapeConstant(this.value)
@@ -989,7 +985,7 @@ object GenHaxe : GenTarget {
 
 		}
 		is AstExpr.CALL_BASE -> {
-			val refMethod = program.locateMethod(this.method) ?: throw InvalidOperationException("Can't find method: ${method} while generating ${clazz.name}")
+			val refMethod = program.get(this.method) ?: invalidOp("Can't find method: ${method} while generating ${clazz.name}")
 
 			if (this is AstExpr.CALL_STATIC) {
 				addTypeReference(this.clazz)
@@ -1128,7 +1124,7 @@ object GenHaxe : GenTarget {
 
 	fun AstMethodRef.getHaxeMethodName(program: AstProgram): String {
 		val method = this
-		val realmethod = program[method]
+		val realmethod = program[method]!!
 		if (realmethod.nativeMethod != null) {
 			return realmethod.nativeMethod!!
 		} else {

@@ -147,7 +147,7 @@ class AllBuild(
 			// @TODO: Maybe we could generate those methods in haxe generator since the requirement for this
 			// @TODO: is target dependant
 			for (clazz in program.classes.filter { it.isAbstract }) {
-				for (method in clazz.getAllMethodsToImplement()) {
+				for (method in clazz.allMethodsToImplement) {
 					if (!clazz.hasMethod(method)) {
 						clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
 					}

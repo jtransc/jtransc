@@ -60,4 +60,8 @@ public final class Objects {
 		if (obj == null) throw new NullPointerException(message);
 		return obj;
 	}
+
+	public static boolean isNull(Object obj) {
+		return obj == null;
+	}
 }

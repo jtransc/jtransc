@@ -5,16 +5,12 @@ import com.jtransc.ds.zipped
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.time.measureTime
-import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.UserKey
 import soot.*
 import soot.jimple.*
 import soot.options.Options
 import soot.tagkit.*
 import java.io.File
-import java.util.*
 
 class SootToAst : AstClassGenerator {
 	fun getSootClass(fqname: FqName) = Scene.v().loadClassAndSupport(fqname.fqname)
@@ -85,7 +81,7 @@ open class BaseProjectContext(
 	val mainClass: String,
 	val classPaths: List<String>,
 	val output: SyncVfsFile,
-    val generator: AstClassGenerator
+	val generator: AstClassGenerator
 )
 
 open class AstMethodProcessor private constructor(
@@ -96,12 +92,12 @@ open class AstMethodProcessor private constructor(
 
 	companion object {
 		fun processBody(method: SootMethod, containingClass: AstClass): AstBody? {
-			return try {
-				AstMethodProcessor(method, containingClass).handle()
-			} catch (e: Throwable) {
-				println("Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
-				null
-			}
+			//try {
+			return AstMethodProcessor(method, containingClass).handle()
+			//} catch (e: Throwable) {
+			//	println("Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
+			//	return null
+			//}
 		}
 	}
 
@@ -172,7 +168,7 @@ open class AstMethodProcessor private constructor(
 		return AstStm.STMS(stms.toList())
 	}
 
-	private fun cast(e:AstExpr, to:AstType):AstExpr {
+	private fun cast(e: AstExpr, to: AstType): AstExpr {
 		return if (e.type != to) AstExpr.CAST(to, e) else e
 	}
 
@@ -190,7 +186,7 @@ open class AstMethodProcessor private constructor(
 		}
 		is ReturnStmt -> AstStm.RETURN(cast(convert(s.op), method.returnType.astType))
 		is ReturnVoidStmt -> AstStm.RETURN(null)
-		//is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
+	//is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
 		is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
 		is GotoStmt -> AstStm.GOTO(ensureLabel(s.target))
 		is ThrowStmt -> AstStm.THROW(convert(s.op))
@@ -243,20 +239,21 @@ open class AstMethodProcessor private constructor(
 		}
 		is InvokeExpr -> {
 			val argsList = c.args.toList()
-			val castTypes = c.method.parameterTypes.map { it as Type }
+			val castTypes = c.methodRef.parameterTypes().map { it as Type }
 			val args = Pair(argsList, castTypes).zipped.map {
 				val (value, expectedType) = it
 				doCastIfNeeded(expectedType, value)
 			}.toList()
+			val astMethodRef = c.methodRef.astRef
 			val i = c
 			when (i) {
 				is StaticInvokeExpr -> {
-					AstExpr.CALL_STATIC(AstType.REF(c.method.declaringClass.name), c.method.astRef, args)
+					AstExpr.CALL_STATIC(AstType.REF(c.method.declaringClass.name), astMethodRef, args)
 				}
 				is InstanceInvokeExpr -> {
 					val isSpecial = i is SpecialInvokeExpr
 					val obj = convert(i.base)
-					val method = c.method.astRef
+					val method = astMethodRef
 
 					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
 						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
@@ -264,7 +261,29 @@ open class AstMethodProcessor private constructor(
 						AstExpr.CALL_INSTANCE(AstExpr.CAST(method.classRef.type, obj), method, args, isSpecial)
 					}
 				}
-				else -> throw RuntimeException()
+				is DynamicInvokeExpr -> { // astMethodRef.classRef == "soot.dummy.InvokeDynamic"
+					val c2 = c as DynamicInvokeExpr
+					val methodRef = c2.methodRef.astRef
+					val bootstrapMethodRef = c2.bootstrapMethodRef.astRef
+					val bootstrapArgs = c2.bootstrapArgs
+					if (
+						bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
+							bootstrapMethodRef.name == "metafactory"
+					) {
+						val interfaceMethodType = (bootstrapArgs[0] as SootMethodType).astType
+						val methodHandle = (bootstrapArgs[1] as SootMethodHandle)
+						val methodType = (bootstrapArgs[2] as SootMethodType).astType
+
+						val generatedMethodRef = c2.methodRef.astRef
+						val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+						val methodToConvertRef = methodHandle.methodRef.astRef
+
+						AstExpr.METHOD_CLASS(interfaceToGenerate, generatedMethodRef, methodToConvertRef)
+					} else {
+						noImpl("Not supported DynamicInvoke yet! $c2")
+					}
+				}
+				else -> throw RuntimeException("Invalid invoke")
 			}
 		}
 		else -> throw RuntimeException()
@@ -312,6 +331,20 @@ val SootMethod.astRef: AstMethodRef get() = AstMethodRef(
 		this.returnType.astType
 	)
 )
+
+val SootMethodRef.astRef: AstMethodRef get() = AstMethodRef(
+	this.declaringClass().name.fqname, this.name(),
+	AstType.METHOD_TYPE(
+		this.parameterTypes().withIndex().map { AstArgument(it.index, (it.value as Type).astType) },
+		this.returnType().astType
+	)
+)
+
+val SootMethodType.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(
+	this.returnType.astType,
+	this.parameterTypes.map { it.astType }
+)
+
 val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType, this.isStatic)
 
 val SootMethod.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })

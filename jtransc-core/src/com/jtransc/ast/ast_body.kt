@@ -175,6 +175,14 @@ interface AstExpr : AstElement {
 		override val type = AstType.ARRAY(element, counts.size)
 	}
 
+	data class METHOD_CLASS(
+		val interfaceToGenerate: AstType.REF,
+		val generatedMethodRef: AstMethodRef,
+		val methodToConvertRef: AstMethodRef
+	) : AstExpr {
+		override val type = interfaceToGenerate
+	}
+
 	infix fun ge(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.GE, that)
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)

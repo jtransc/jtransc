@@ -140,7 +140,7 @@ class AstProgram(
 
 	operator fun get(ref: AstType.REF): AstClass = this[ref.name]
 	operator fun get(ref: AstClassRef): AstClass = this[ref.name]
-	operator fun get(ref: AstMethodRef): AstMethod = this[ref.containingClass][ref]
+	operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestors(ref.nameDesc)
 	operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 
 	// @TODO: Cache all this stuff!
@@ -177,6 +177,8 @@ class AstProgram(
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
+data class AstMethodNameDescRef(val name:String, val desc:String)
+
 class AstClass(
 	val program: AstProgram,
 	val name: FqName,
@@ -190,13 +192,16 @@ class AstClass(
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
+	val methodsByNameDesc = hashMapOf<AstMethodNameDescRef, AstMethod?>()
 	val fieldsByName = hashMapOf<String, AstField>()
 
-	fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
+	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
+	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
 
-	fun getParentClass(): AstClass? = if (extending != null) program[extending] else null
+	val parentClass: AstClass? by lazy { if (extending != null) program[extending] else null }
+	//fun getParentClass(): AstClass? = if (extending != null) program[extending] else null
 
-	fun getAllInterfaces(): List<AstClass> {
+	val allInterfaces: List<AstClass> by lazy {
 		val out = arrayListOf<AstClass>()
 		val sets = hashSetOf<AstClass>()
 		val queue: Queue<AstClass> = LinkedList<AstClass>()
@@ -204,19 +209,18 @@ class AstClass(
 		while (queue.isNotEmpty()) {
 			val item = queue.remove()
 			if (item.isInterface && item != this) out += item
-			for (i in item.getDirectInterfaces()) {
+			for (i in item.directInterfaces) {
 				if (i !in sets) {
 					sets += i
 					queue += i
 				}
 			}
 		}
-		//return (getParentClass()?.getAllInterfaces() ?: listOf()) + getAllInterfaces().flatMap { it.getAllInterfaces() }
-		return out
+		out
 	}
 
-	fun getAllMethodsToImplement(): List<AstMethodWithoutClassRef> {
-		return this.getAllInterfaces().flatMap { it.methods }.filter { !it.isStatic }.map { it.ref.withoutClass }
+	val allMethodsToImplement: List<AstMethodWithoutClassRef> by lazy {
+		this.allInterfaces.flatMap { it.methods }.filter { !it.isStatic }.map { it.ref.withoutClass }
 	}
 
 	fun add(field: AstField) {
@@ -230,6 +234,7 @@ class AstClass(
 		methods.add(method)
 		if (method.name !in methodsByName) methodsByName[method.name] = arrayListOf()
 		methodsByName[method.name]?.add(method)
+		methodsByNameDesc[AstMethodNameDescRef(method.name, method.desc)] = method
 	}
 
 	private var finished = false
@@ -253,6 +258,23 @@ class AstClass(
 
 	fun getMethods(name: String): List<AstMethod> = methodsByName[name]!!
 	fun getMethod(name: String, desc: String): AstMethod? = methodsByName[name]?.firstOrNull { it.desc == desc }
+
+	fun getMethodInAncestors(nameDesc: AstMethodNameDescRef): AstMethod? {
+		var result = methodsByNameDesc[nameDesc]
+		if (result == null) {
+			result = parentClass?.getMethodInAncestors(nameDesc)
+		}
+		if (result == null) {
+			for (it in directInterfaces) {
+				result = it.getMethodInAncestors(nameDesc)
+				if (result != null) break
+			}
+		}
+		methodsByNameDesc[nameDesc] = result
+		return result
+		//return methodsByNameDesc[nameDesc] ?: parentClass?.getMethodInAncestors(nameDesc)
+	}
+
 	fun getMethodSure(name: String, desc: String): AstMethod {
 		return getMethod(name, desc) ?: throw InvalidOperationException("Can't find method ${this.name}:$name:$desc")
 	}
@@ -262,7 +284,7 @@ class AstClass(
 	operator fun get(ref: AstFieldRef) = fieldsByName[ref.name] ?: invalidOp("Can't find field $ref")
 
 	val hasStaticInit: Boolean get() = staticInitMethod != null
-	val staticInitMethod: AstMethod? get() = methodsByName["<clinit>"]?.firstOrNull()
+	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
 
 	val allDependencies: Set<AstRef> by lazy {
 		var out = hashSetOf<AstRef>()
@@ -291,20 +313,18 @@ class AstClass(
 
 	override fun toString() = "AstClass($name)"
 
-	fun getThisAndAncestors(program: AstProgram): List<AstClass> {
+	val thisAndAncestors: List<AstClass> by lazy {
 		if (extending == null) {
-			return listOf(this)
+			listOf(this)
 		} else {
-			return listOf(this) + program[extending].getThisAndAncestors(program)
+			listOf(this) + program[extending].thisAndAncestors
 		}
 	}
 
-	fun getAncestors(program: AstProgram): List<AstClass> {
-		return getThisAndAncestors(program).drop(1)
-	}
+	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 
 	fun hasMethod(method: AstMethodWithoutClassRef): Boolean {
-		return return methods.any { it.ref.withoutClass == method }
+		return methods.any { it.ref.withoutClass == method }
 	}
 }
 
@@ -347,6 +367,7 @@ val AstClass.astType: AstType.REF get() = AstType.REF(this.name)
 fun AstType.getRefClasses(): List<AstClassRef> = this.getRefTypesFqName().map { AstClassRef(it) }
 
 data class AstReferences(
+	val program: AstProgram?,
 	val classes: Set<AstClassRef> = setOf(),
 	val methods: Set<AstMethodRef> = setOf(),
 	val fields: Set<AstFieldRef> = setOf()
@@ -355,7 +376,7 @@ data class AstReferences(
 		classes + methods.flatMap { it.allClassRefs } + fields.flatMap { listOf(it.classRef) }
 	}
 
-	fun getFields2(program: AstProgram) = fields.map { program[it] }
+	val fields2 by lazy { fields.map { program!![it] } }
 }
 
 open class AstMember(
@@ -382,7 +403,7 @@ class AstField(
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val constantValue: Any? = null
 ) : AstMember(containingClass, name, type, isStatic, visibility, annotations) {
-	val ref: AstFieldRef get() = AstFieldRef(this.containingClass.name, this.name, this.type)
+	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val hasConstantValue = constantValue != null
 }
 
@@ -404,26 +425,20 @@ class AstMethod(
 
 	val methodType: AstType.METHOD_TYPE = type
 	val desc = methodType.desc
-	val ref: AstMethodRef get() = AstMethodRef(containingClass.name, name, methodType)
-	val dependencies by lazy { AstDependencyAnalyzer.analyze(body) }
+	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
+	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }
 
 	val getterField: String? by lazy { annotations.get(JTranscGetter::value) }
 	val setterField: String? by lazy { annotations.get(JTranscSetter::value) }
 	val nativeMethod: String? by lazy { annotations.get(JTranscMethod::value) }
 	val isInline: Boolean by lazy { annotations.contains<JTranscInline>() }
 
-	val isOverriding: Boolean get() {
-		for (ancestor in containingClass.getAncestors(program)) {
-			if (ancestor[ref.withoutClass] != null) return true
-		}
-		return false
+	val isOverriding: Boolean by lazy {
+		containingClass.ancestors.any { it[ref.withoutClass] != null }
 	}
 
-	val isImplementing: Boolean get() {
-		for (i in containingClass.getAllInterfaces()) {
-			if (i.getMethod(this.name, this.desc) != null) return true
-		}
-		return false
+	val isImplementing: Boolean by lazy {
+		containingClass.allInterfaces.any { it.getMethod(this.name, this.desc) != null }
 	}
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"

@@ -19,7 +19,7 @@ package com.jtransc.ast.dependency
 import com.jtransc.ast.*
 
 object AstDependencyAnalyzer {
-	@JvmStatic fun analyze(body: AstBody?): AstReferences {
+	@JvmStatic fun analyze(program: AstProgram, body: AstBody?): AstReferences {
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
@@ -161,6 +161,7 @@ object AstDependencyAnalyzer {
 		}
 
 		return AstReferences(
+			program = program,
 			classes = types.map { AstClassRef(it) }.toSet(),
 			fields = fields.toSet(),
 			methods = methods.toSet()
