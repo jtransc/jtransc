@@ -435,7 +435,7 @@ class HaxeGen(
 		}
 	}
 
-	fun gen2(e:AstExpr): String {
+	fun gen2(e: AstExpr): String {
 		val clazz = clazz!!
 		val mutableBody = mutableBody!!
 		return when (e) {
@@ -632,7 +632,7 @@ class HaxeGen(
 		}
 	}
 
-	fun gen2(clazz:AstClass): ClassResult {
+	fun gen2(clazz: AstClass): ClassResult {
 		this.clazz = clazz
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
@@ -918,7 +918,7 @@ class HaxeGen(
 
 	}
 
-	class Names(val program: AstProgram, mappings: ClassMappings) {
+	class Names(val program: AstProgram, val mappings: ClassMappings) {
 		private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 		fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
