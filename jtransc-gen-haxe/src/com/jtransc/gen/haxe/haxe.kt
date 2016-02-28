@@ -24,6 +24,8 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
+import com.jtransc.time.measureProcess
+import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.haxe.HaxeAddLibraries
@@ -164,7 +166,9 @@ object GenHaxe : GenTarget {
 
 				val runner = actualSubtarget.interpreter ?: "echo"
 
-				return ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
+				return measureProcess("Running") {
+					ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
+				}
 			}
 		}
 	}

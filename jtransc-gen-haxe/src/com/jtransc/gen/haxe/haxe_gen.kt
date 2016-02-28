@@ -564,11 +564,11 @@ class GenHaxeGen(
 
 						val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
 
-						line("return " + gen2(AstExpr.CALL_STATIC(
+						line("return " + gen2(AstExpr.CAST(AstExpr.CALL_STATIC(
 							methodToConvertRef.containingClassType,
 							methodToConvertRef,
 							args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
-							)) + ";"
+							), methodInInterfaceRef.type.ret)) + ";"
 						)
 					}
 				} + ")"
@@ -584,34 +584,34 @@ class GenHaxeGen(
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
 				// @TODO: Check!
-				AstType.BOOL.CLASSTYPE -> genCast("($e).booleanValue__B()", AstType.BOOL, to)
+				AstType.BOOL.CLASSTYPE -> genCast("($e).booleanValue__Z()", AstType.BOOL, to)
 				AstType.BYTE.CLASSTYPE -> genCast("($e).byteValue__B()", AstType.BYTE, to)
 				AstType.SHORT.CLASSTYPE -> genCast("($e).shortValue__S()", AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE -> genCast("($e).charValue__S()", AstType.CHAR, to)
+				AstType.CHAR.CLASSTYPE -> genCast("($e).charValue__C()", AstType.CHAR, to)
 				AstType.INT.CLASSTYPE -> genCast("($e).intValue__I()", AstType.INT, to)
-				AstType.LONG.CLASSTYPE -> genCast("($e).longValue__L()", AstType.LONG, to)
+				AstType.LONG.CLASSTYPE -> genCast("($e).longValue__J()", AstType.LONG, to)
 				AstType.FLOAT.CLASSTYPE -> genCast("($e).floatValue__F()", AstType.FLOAT, to)
-				AstType.DOUBLE.CLASSTYPE -> genCast("($e).doubleValue__F()", AstType.DOUBLE, to)
+				AstType.DOUBLE.CLASSTYPE -> genCast("($e).doubleValue__D()", AstType.DOUBLE, to)
 				//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 				//else -> noImpl("Unhandled conversion $e : $from -> $to")
 				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			}
 		}
 
-		if (from is AstType.Primitive && to !is AstType.Primitive) {
-			// @TODO: Check!
-			return when (from) {
-				AstType.BOOL -> genCast("java_.lang.Boolean_.valueOf($e)", AstType.BOOL.CLASSTYPE, to)
-				AstType.BYTE -> genCast("java_.lang.Byte.valueOf($e)", AstType.BYTE.CLASSTYPE, to)
-				AstType.SHORT -> genCast("java_.lang.Short.valueOf($e)", AstType.SHORT.CLASSTYPE, to)
-				AstType.CHAR -> genCast("java_.lang.Character.valueOf($e)", AstType.CHAR.CLASSTYPE, to)
-				AstType.INT -> genCast("java_.lang.Integer.valueOf($e)", AstType.INT.CLASSTYPE, to)
-				AstType.LONG -> genCast("java_.lang.Long.valueOf($e)", AstType.LONG.CLASSTYPE, to)
-				AstType.FLOAT -> genCast("java_.lang.Float.valueOf($e)", AstType.FLOAT.CLASSTYPE, to)
-				AstType.DOUBLE -> genCast("java_.lang.Double.valueOf($e)", AstType.DOUBLE.CLASSTYPE, to)
-				else -> noImpl("Unhandled conversion $e : $from -> $to")
-			}
-		}
+		//if (from is AstType.Primitive && to !is AstType.Primitive) {
+		//	// @TODO: Check!
+		//	return when (from) {
+		//		AstType.BOOL -> genCast("java_.lang.Boolean_.valueOf($e)", AstType.BOOL.CLASSTYPE, to)
+		//		AstType.BYTE -> genCast("java_.lang.Byte.valueOf($e)", AstType.BYTE.CLASSTYPE, to)
+		//		AstType.SHORT -> genCast("java_.lang.Short.valueOf($e)", AstType.SHORT.CLASSTYPE, to)
+		//		AstType.CHAR -> genCast("java_.lang.Character.valueOf($e)", AstType.CHAR.CLASSTYPE, to)
+		//		AstType.INT -> genCast("java_.lang.Integer.valueOf($e)", AstType.INT.CLASSTYPE, to)
+		//		AstType.LONG -> genCast("java_.lang.Long.valueOf($e)", AstType.LONG.CLASSTYPE, to)
+		//		AstType.FLOAT -> genCast("java_.lang.Float.valueOf($e)", AstType.FLOAT.CLASSTYPE, to)
+		//		AstType.DOUBLE -> genCast("java_.lang.Double.valueOf($e)", AstType.DOUBLE.CLASSTYPE, to)
+		//		else -> noImpl("Unhandled conversion $e : $from -> $to")
+		//	}
+		//}
 
 		return when (from) {
 			is AstType.BOOL -> {

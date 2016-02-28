@@ -18,14 +18,14 @@ package com.jtransc.time
 
 data class TimeResult<T>(val time: Long, val result: T)
 
-fun <T> measureProcess(name:String, callback: () -> T): T {
+inline fun <T> measureProcess(name:String, callback: () -> T): T {
 	print("$name...")
 	val (time, result) = measureTime { callback() }
 	println("Ok ($time)")
 	return result
 }
 
-fun <T> measureTime(callback: () -> T): TimeResult<T> {
+inline fun <T> measureTime(callback: () -> T): TimeResult<T> {
 	val start = System.nanoTime()
 	val result = callback()
 	val end = System.nanoTime()
