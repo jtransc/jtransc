@@ -7,6 +7,7 @@ class HaxeDoubleArray extends HaxeBaseArray {
         super();
         this.data = new Float64Array(length);
         this.length = length;
+        this.desc = "[D";
     }
 
     static public function fromArray(items:Array<Dynamic>) {

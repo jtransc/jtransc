@@ -3,14 +3,27 @@ import haxe.ds.Vector;
 class HaxeArray extends HaxeBaseArray {
     public var data:Vector<Dynamic> = null;
 
-    public function new(length:Int) {
+    public function new(length:Int, desc:String) {
         super();
         this.data = new Vector<Dynamic>(length);
         this.length = length;
+        this.desc = desc;
     }
 
-    static public function fromArray(items:Array<Dynamic>) {
-        var out = new HaxeArray(items.length);
+    static public function fromArray(items:Array<Dynamic>, desc:String = null) {
+        if (desc == null) {
+            desc = if (items.length == 0) {
+                "[Ljava/lang/Object;";
+            } else {
+                var l = HaxeNatives.getClassDescriptor(cast items[0]);
+                if (l.substr(0, 1) == "[") {
+                    "[" + l;
+                } else {
+                    "[L" + l + ";";
+                }
+            };
+        }
+        var out = new HaxeArray(items.length, desc);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }

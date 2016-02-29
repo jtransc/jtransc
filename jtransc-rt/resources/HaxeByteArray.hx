@@ -8,6 +8,7 @@ class HaxeByteArray extends HaxeBaseArray {
         super();
         this.data = new UInt8Array(length);
         this.length = length;
+        this.desc = "[B";
     }
 
     static public function fromArray(items:Array<Dynamic>) {

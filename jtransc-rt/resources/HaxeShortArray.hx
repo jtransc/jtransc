@@ -7,6 +7,7 @@ class HaxeShortArray extends HaxeBaseArray {
         super();
         this.data = new UInt16Array(length);
         this.length = length;
+        this.desc = "[S";
     }
 
     static public function fromArray(items:Array<Dynamic>) {

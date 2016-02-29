@@ -9,7 +9,7 @@ import java.io.StringReader
 import java.util.*
 
 interface AstType {
-	open class Primitive(underlyingClassStr: String) : AstType {
+	open class Primitive(underlyingClassStr: String, val ch: Char) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 	}
@@ -18,23 +18,23 @@ interface AstType {
 
 	object NULL : AstType
 
-	object VOID : Primitive("java.lang.Void")
+	object VOID : Primitive("java.lang.Void", 'V')
 
-	object BOOL : Primitive("java.lang.Boolean")
+	object BOOL : Primitive("java.lang.Boolean", 'Z')
 
-	object BYTE : Primitive("java.lang.Byte")
+	object BYTE : Primitive("java.lang.Byte", 'B')
 
-	object CHAR : Primitive("java.lang.Character")
+	object CHAR : Primitive("java.lang.Character", 'C')
 
-	object SHORT : Primitive("java.lang.Short")
+	object SHORT : Primitive("java.lang.Short", 'S')
 
-	object INT : Primitive("java.lang.Integer")
+	object INT : Primitive("java.lang.Integer", 'I')
 
-	object LONG : Primitive("java.lang.Long")
+	object LONG : Primitive("java.lang.Long", 'J')
 
-	object FLOAT : Primitive("java.lang.Float")
+	object FLOAT : Primitive("java.lang.Float", 'F')
 
-	object DOUBLE : Primitive("java.lang.Double")
+	object DOUBLE : Primitive("java.lang.Double", 'D')
 
 	/*
 	object TYPECLASS {

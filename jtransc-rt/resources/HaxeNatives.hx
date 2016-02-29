@@ -7,7 +7,6 @@ import Lambda;
 
 using Lambda;
 
-typedef CharArray = HaxeShortArray;
 typedef Long = Int64;
 
 class HaxeNatives {
@@ -69,7 +68,7 @@ class HaxeNatives {
         return out;
     }
 
-    static public function charArrayToString(chars:CharArray, start:Int = 0, count:Int = 999999999):String {
+    static public function charArrayToString(chars:HaxeCharArray, start:Int = 0, count:Int = 999999999):String {
         var out = "";
         var end = start + count;
         end = Std.int(Math.min(end, chars.length - start));
@@ -111,16 +110,19 @@ class HaxeNatives {
         return result;
     }
 
-    static public function getClass(object:java_.lang.Object_):java_.lang.Class_ {
+    static public function getClassDescriptor(object:java_.lang.Object_):String {
+        if (Std.is(object, HaxeBaseArray)) return cast(object, HaxeBaseArray).desc;
         var haxeClass = Type.getClass(object);
         if (haxeClass == null) trace('haxeClass == null');
         var haxeClassName = Type.getClassName(haxeClass);
         if (haxeClassName == null) trace('haxeClassName == null');
         var javaClassName = HaxeReflectionInfo.internalClassNameToName(haxeClassName);
         if (javaClassName == null) trace('javaClassName == null :: $haxeClassName');
-        var javaClass = resolveClass(javaClassName);
-        if (javaClass == null) trace('javaClass == null :: $javaClassName');
-        return javaClass;
+        return javaClassName;
+    }
+
+    static public function getClass(object:java_.lang.Object_):java_.lang.Class_ {
+        return resolveClass(getClassDescriptor(object));
     }
 
     static public function objectToString(object:java_.lang.Object_):String {

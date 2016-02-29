@@ -1,27 +1,26 @@
-import haxe.ds.Vector;
-import haxe.Int64;
+import haxe.io.UInt16Array;
 
-class HaxeLongArray extends HaxeBaseArray {
-    public var data:Vector<Int64> = null;
+class HaxeCharArray extends HaxeBaseArray {
+    public var data:UInt16Array = null;
 
     public function new(length:Int) {
         super();
-        this.data = new Vector<Int64>(length);
+        this.data = new UInt16Array(length);
         this.length = length;
-        this.desc = "[J";
+        this.desc = "[C";
     }
 
     static public function fromArray(items:Array<Dynamic>) {
-        var out = new HaxeLongArray(items.length);
+        var out = new HaxeCharArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
-    inline public function get(index:Int):Int64 {
+    inline public function get(index:Int):Int {
         return this.data[index];
     }
 
-    inline public function set(index:Int, value:Int64):Void {
+    inline public function set(index:Int, value:Int):Void {
         this.data[index] = value;
     }
 
@@ -43,10 +42,12 @@ class HaxeLongArray extends HaxeBaseArray {
     }
 
     public override function clone__Ljava_lang_Object_():java_.lang.Object_ {
-        return fromArray(this.data.toArray());
+        var out = new HaxeCharArray(length);
+        copy(this, out, 0, 0, length);
+        return out;
     }
 
-    static public function copy(from:HaxeLongArray, to:HaxeLongArray, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:HaxeCharArray, to:HaxeCharArray, fromPos:Int, toPos:Int, length:Int) {
         for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
     }
 }

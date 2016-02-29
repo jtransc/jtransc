@@ -35,6 +35,7 @@ import java.io.IOException;
 		"HaxeBoolArray.hx",
         "HaxeByteArray.hx",
         "HaxeShortArray.hx",
+		"HaxeCharArray.hx",
         "HaxeIntArray.hx",
         "HaxeFloatArray.hx",
         "HaxeDoubleArray.hx",

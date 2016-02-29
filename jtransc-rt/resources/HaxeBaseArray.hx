@@ -1,5 +1,6 @@
 class HaxeBaseArray extends java_.lang.Object_ {
     public var length:Int = 0;
+	public var desc:String;
 
 	override public function toString__Ljava_lang_String_():java_.lang.String_ {
 	    return HaxeNatives.str("HaxeBaseArray");

@@ -7,6 +7,7 @@ class HaxeIntArray extends HaxeBaseArray {
         super();
         this.data = new Int32Array(length);
         this.length = length;
+        this.desc = "[I";
     }
 
     static public function fromArray(items:Array<Dynamic>) {

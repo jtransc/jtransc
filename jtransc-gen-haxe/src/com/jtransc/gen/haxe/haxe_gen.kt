@@ -540,7 +540,14 @@ class GenHaxeGen(
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)
 				when (e.counts.size) {
-					1 -> "new ${e.type.haxeTypeNew}(${e.counts[0].gen()})"
+					1 -> {
+						if (e.type.elementType !is AstType.Primitive) {
+							val desc = e.type.mangle().replace('/', '.') // Internal to normal name!?
+							"new HaxeArray(${e.counts[0].gen()}, \"$desc\")"
+						} else {
+							"new ${e.type.haxeTypeNew}(${e.counts[0].gen()})"
+						}
+					}
 					else -> throw NotImplementedError("Not implemented multidimensional arrays")
 				}
 			}

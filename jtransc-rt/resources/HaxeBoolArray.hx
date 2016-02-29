@@ -8,6 +8,7 @@ class HaxeBoolArray extends HaxeBaseArray {
         super();
         this.data = new UInt8Array(length);
         this.length = length;
+        this.desc = "[Z";
     }
 
     static public function fromArray(items:Array<Dynamic>) {

@@ -139,7 +139,7 @@ class HaxeNames(val program: AstProgram, val mappings: ClassMappings) {
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> "HaxeBoolArray"
 				is AstType.BYTE -> "HaxeByteArray"
-				is AstType.CHAR -> "HaxeShortArray"
+				is AstType.CHAR -> "HaxeCharArray"
 				is AstType.SHORT -> "HaxeShortArray"
 				is AstType.INT -> "HaxeIntArray"
 				is AstType.LONG -> "HaxeLongArray"
