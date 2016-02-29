@@ -60,6 +60,8 @@ class HaxeGenSuite {
 	@Test fun bugArrayGetClass() = testClass<JTranscBugArrayGetClass>()
 	@Test fun bugArrayDynamicInstantiate() = testClass<JTranscBugArrayDynamicInstantiate>()
 
+	@Test fun bugAbstractInheritance1() = testClass<JTranscBugAbstractInheritance1>()
+
 	@Test fun bugClassRefTest() = testClass<JTranscBugClassRefTest>()
 
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()

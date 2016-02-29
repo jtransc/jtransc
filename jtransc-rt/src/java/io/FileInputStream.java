@@ -16,8 +16,11 @@
 
 package java.io;
 
+import jtransc.io.JTranscSyncIO;
+
 public class FileInputStream extends InputStream {
 	private final FileDescriptor fd;
+	private final JTranscSyncIO.ImplStream stream;
 	private final String path;
 
 	private volatile boolean closed = false;
@@ -30,52 +33,53 @@ public class FileInputStream extends InputStream {
 		String name = (file != null ? file.getPath() : null);
 		if (name == null) throw new NullPointerException();
 		if (file.isInvalid()) throw new FileNotFoundException("Invalid file path");
-		fd = new FileDescriptor();
-		path = name;
-		open(name);
+		this.fd = new FileDescriptor();
+		this.path = name;
+		this.stream = JTranscSyncIO.impl.open(name);
 	}
 
 	public FileInputStream(FileDescriptor fdObj) {
 		if (fdObj == null) throw new NullPointerException();
 		fd = fdObj;
 		path = null;
+		this.stream = null;
 	}
 
-	private native void open(String name) throws FileNotFoundException;
+	private byte[] buffer = { 0 };
 
 	public int read() throws IOException {
-		return read0();
+		int read = this.stream.read(buffer, 0, 1);
+		if (read != 1) return -1;
+		return buffer[0];
 	}
 
-	private native int read0() throws IOException;
-
-	private native int readBytes(byte b[], int off, int len) throws IOException;
-
 	public int read(byte b[]) throws IOException {
-		return readBytes(b, 0, b.length);
+		return this.stream.read(b, 0, b.length);
 	}
 
 	public int read(byte data[], int offset, int length) throws IOException {
-		return readBytes(data, offset, length);
+		return this.stream.read(data, offset, length);
 	}
 
-	public native long skip(long n) throws IOException;
+	public long skip(long n) throws IOException {
+		this.stream.setPosition(this.stream.getPosition() + n);
+		return this.stream.getPosition();
+	}
 
-	public native int available() throws IOException;
+	public int available() throws IOException {
+		return (int) (this.stream.getLength() - this.stream.getPosition());
+	}
 
 	public void close() throws IOException {
-		if (closed) {
-			return;
-		}
+		if (closed) return;
 		closed = true;
+		this.stream.close();
 	}
 
 	public final FileDescriptor getFD() throws IOException {
 		if (fd != null) return fd;
 		throw new IOException();
 	}
-
-	private native void close0() throws IOException;
 
 	protected void finalize() throws IOException {
 		if ((fd != null) && (fd != FileDescriptor.in)) {

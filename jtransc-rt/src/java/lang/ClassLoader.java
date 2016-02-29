@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -77,7 +79,13 @@ public abstract class ClassLoader {
 
 	native public static Enumeration<URL> getSystemResources(String name) throws IOException;
 
-	native public InputStream getResourceAsStream(String name);
+	public InputStream getResourceAsStream(String name) {
+		try {
+			return new FileInputStream(name);
+		} catch (FileNotFoundException e) {
+			return null;
+		}
+	}
 
 	native public static InputStream getSystemResourceAsStream(String name);
 

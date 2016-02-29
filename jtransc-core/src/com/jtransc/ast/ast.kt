@@ -25,6 +25,7 @@ import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
 import jtransc.annotation.*
+import java.io.File
 import java.util.*
 
 data class AstBuildSettings(
@@ -35,7 +36,7 @@ data class AstBuildSettings(
 	var company: String = "My Company",
 	var package_: String = "",
 	var libraries: List<AstBuildSettings.Library> = listOf(),
-	var assets: List<String> = listOf(),
+	var assets: List<File> = listOf(),
 	var debug: Boolean = true,
 	var initialWidth: Int = 1280,
 	var initialHeight: Int = 720,

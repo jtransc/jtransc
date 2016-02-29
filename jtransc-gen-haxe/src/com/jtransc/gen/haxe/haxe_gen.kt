@@ -288,7 +288,6 @@ class GenHaxeGen(
 		return GenHaxe.ProgramInfo(entryPointClass, entryPointFilePath, vfs)
 	}
 
-
 	fun gen2(stm: AstStm): Indenter {
 		this.stm = stm
 		val program = program

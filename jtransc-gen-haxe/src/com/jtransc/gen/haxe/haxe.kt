@@ -23,7 +23,6 @@ import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ast.get
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
-import com.jtransc.gen.haxe.GenHaxe.haxeLibs
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.time.measureProcess
@@ -32,6 +31,7 @@ import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserKey
 import com.jtransc.vfs.getCached
 import jtransc.JTranscVersion
+import jtransc.annotation.haxe.HaxeAddAssets
 import jtransc.annotation.haxe.HaxeAddLibraries
 import java.io.File
 
@@ -98,102 +98,127 @@ enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interp
 
 private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
-interface GenHaxeBase {
+val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LIBS_KEY) {
+	this.classes
+		.map { it.annotations[HaxeAddLibraries::value] }
+		.filterNotNull()
+		.flatMap { it.toList() }
+		.map { HaxeLib.LibraryRef.fromVersion(it) }
+}
 
-	val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LIBS_KEY) {
-		this.classes
-			.map { it.annotations[HaxeAddLibraries::value] }
-			.filterNotNull()
-			.flatMap { it.toList() }
-			.map { HaxeLib.LibraryRef.fromVersion(it) }
+val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() = this.haxeLibs.map { "-lib" to it.nameWithVersion }
+
+fun AstProgram.haxeInstallRequiredLibs() {
+	val libs = this.haxeLibs
+	println(":: REFERENCED LIBS: $libs")
+	for (lib in libs) {
+		println(":: TRYING TO INSTALL LIBRARY $lib")
+		HaxeLib.installIfNotExists(lib)
+	}
+}
+
+fun GenTargetInfo.haxeCopyResourcesToAssetsFolder() {
+	val program = this.program
+	val settings = this.settings
+	val files = program.classes.map { it.annotations[HaxeAddAssets::value] }.filterNotNull().flatMap { it.toList() }
+	val assetsFolder = settings.assets.firstOrNull()
+	val resourcesVfs = program.resourcesVfs
+	println("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
+	if (assetsFolder != null) {
+		val outputVfs = LocalVfs(assetsFolder)
+		for (file in files) {
+			println("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
+			outputVfs[file] = resourcesVfs[file]
+		}
 	}
 
-	val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() = this.haxeLibs.map { "-lib" to it.nameWithVersion }
+}
 
-	fun AstProgram.haxeInstallRequiredLibs() {
-		val libs = this.haxeLibs
-		println(":: REFERENCED LIBS: $libs")
-		for (lib in libs) {
-			println(":: TRYING TO INSTALL LIBRARY $lib")
-			HaxeLib.installIfNotExists(lib)
+class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
+	val mappings = ClassMappings()
+
+
+	val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
+
+	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
+	//val tempdir = System.getProperty("java.io.tmpdir")
+	val tempdir = tinfo.targetDirectory
+	var info: GenHaxe.ProgramInfo? = null
+	val program = tinfo.program
+
+	init {
+		File("$tempdir/jtransc-haxe/src").mkdirs()
+	}
+
+	val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
+
+	init {
+		println("Temporal haxe files: $tempdir/jtransc-haxe")
+	}
+
+	override fun buildSource() {
+		info = GenHaxeGen(
+			program = program,
+			mappings = mappings,
+			features = AstFeatures(),
+			srcFolder = srcFolder,
+			featureSet = HaxeFeatures
+		)._write()
+	}
+
+	override fun compile(): Boolean {
+		if (info == null) throw InvalidOperationException("Must call .buildSource first")
+		outputFile2.delete()
+		println("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
+
+		val buildArgs = arrayListOf(
+			"-cp", ".",
+			"-main", info!!.entryPointFile,
+			"-dce", "no"
+		)
+		val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
+		val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
+
+		program.haxeInstallRequiredLibs()
+		buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
+
+		tinfo.haxeCopyResourcesToAssetsFolder()
+
+		println("Compiling...")
+
+		//println("Running: -optimize=true ${info.entryPointFile}")
+		return ProcessUtils.runAndRedirect(
+			srcFolder.realfile,
+			"haxe",
+			releaseArgs + subtargetArgs + buildArgs
+		).success
+	}
+
+	override fun run(redirect: Boolean): ProcessResult2 {
+		if (!outputFile2.exists()) {
+			return ProcessResult2("file $outputFile2 doesn't exist", -1)
+		}
+		val fileSize = outputFile2.length()
+		println("run: ${outputFile2.absolutePath} ($fileSize bytes)")
+		val parentDir = outputFile2.parentFile
+
+		val runner = actualSubtarget.interpreter ?: "echo"
+
+		return measureProcess("Running") {
+			ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
 		}
 	}
 }
 
-object GenHaxe : GenTarget, GenHaxeBase {
+object GenHaxe : GenTarget {
 	//val copyFiles = HaxeCopyFiles
 	//val mappings = HaxeMappings()
-	val mappings = ClassMappings()
-
 	val INIT_MODE = InitMode.LAZY
 
 	override val runningAvailable: Boolean = true
 
 	override fun getProcessor(tinfo: GenTargetInfo): GenTargetProcessor {
-		val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
-
-		val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-		//val tempdir = System.getProperty("java.io.tmpdir")
-		val tempdir = tinfo.targetDirectory
-		var info: ProgramInfo? = null
-		val program = tinfo.program
-
-		File("$tempdir/jtransc-haxe/src").mkdirs()
-		val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
-
-		println("Temporal haxe files: $tempdir/jtransc-haxe")
-
-		return object : GenTargetProcessor {
-			override fun buildSource() {
-				info = GenHaxeGen(
-					program = program,
-					mappings = mappings,
-					features = AstFeatures(),
-					srcFolder = srcFolder,
-					featureSet = HaxeFeatures
-				)._write()
-			}
-
-			override fun compile(): Boolean {
-				if (info == null) throw InvalidOperationException("Must call .buildSource first")
-				outputFile2.delete()
-				println("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
-
-				val buildArgs = arrayListOf(
-					"-cp", ".",
-					"-main", info!!.entryPointFile,
-					"-dce", "no"
-				)
-				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
-				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
-				val libs = program.classes.map { it.annotations[HaxeAddLibraries::value] }.filterNotNull().flatMap { it.toList() }
-
-				program.haxeInstallRequiredLibs()
-				buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
-
-				//println("Running: -optimize=true ${info.entryPointFile}")
-				return ProcessUtils.runAndRedirect(
-					srcFolder.realfile,
-					"haxe",
-					releaseArgs + subtargetArgs + buildArgs
-				).success
-			}
-
-			override fun run(redirect: Boolean): ProcessResult2 {
-				if (!outputFile2.exists()) {
-					return ProcessResult2("file $outputFile2 doesn't exist", -1)
-				}
-				val fileSize = outputFile2.length()
-				println("run: ${outputFile2.absolutePath} ($fileSize bytes)")
-				val parentDir = outputFile2.parentFile
-
-				val runner = actualSubtarget.interpreter ?: "echo"
-
-				return measureProcess("Running") {
-					ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
-				}
-			}
-		}
+		return HaxeGenTargetProcessor(tinfo)
 	}
 
 	data class ProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val vfs: SyncVfsFile) {

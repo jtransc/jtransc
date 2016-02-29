@@ -122,7 +122,7 @@ class JTranscMojo : AbstractMojo() {
 			jtranscVersion = jtranscVersion,
 			title = title,
 			version = version,
-			assets = assets.map { it.absolutePath },
+			assets = assets.map { it.absoluteFile },
 			company = company,
 			package_ = package_,
 			libraries = libraries.map { AstBuildSettings.Library.fromInfo(it) },

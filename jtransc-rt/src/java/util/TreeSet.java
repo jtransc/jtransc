@@ -17,6 +17,8 @@
 package java.util;
 
 public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
+	ArrayList<E> items = new ArrayList<E>();
+
 	TreeSet(NavigableMap<E, Object> m) {
 	}
 
@@ -38,19 +40,30 @@ public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Clone
 
 	native public NavigableSet<E> descendingSet();
 
-	native public int size();
+	public int size() {
+		return items.size();
+	}
 
-	native public boolean isEmpty();
+	public boolean contains(Object o) {
+		return items.contains(o);
+	}
 
-	native public boolean contains(Object o);
+	public boolean add(E e) {
+		if (!contains(e)) {
+			items.add(e);
+			return true;
+		} else{
+			return false;
+		}
+	}
 
-	native public boolean add(E e);
+	public boolean remove(Object o) {
+		return items.remove(o);
+	}
 
-	native public boolean remove(Object o);
-
-	native public void clear();
-
-	native public boolean addAll(Collection<? extends E> c);
+	public void clear() {
+		items.clear();
+	}
 
 	native public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive);
 
@@ -66,9 +79,13 @@ public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Clone
 
 	native public Comparator<? super E> comparator();
 
-	native public E first();
+	public E first() {
+		return isEmpty() ? null : items.get(0);
+	}
 
-	native public E last();
+	public E last() {
+		return isEmpty() ? null : items.get(size() - 1);
+	}
 
 	native public E lower(E e);
 

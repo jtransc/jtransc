@@ -21,8 +21,6 @@ import com.jtransc.ast.AstFeatures
 import com.jtransc.ast.AstProgram
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
-import com.jtransc.gen.haxe.GenHaxe.haxeExtraFlags
-import com.jtransc.gen.haxe.GenHaxe.haxeInstallRequiredLibs
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
@@ -39,7 +37,7 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 	override fun getGenerator() = GenHaxeLime
 }
 
-object GenHaxeLime : GenTarget, GenHaxeBase {
+object GenHaxeLime : GenTarget {
 	override val runningAvailable: Boolean = true
 
 	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
@@ -63,7 +61,7 @@ object GenHaxeLime : GenTarget, GenHaxeBase {
 
 			line("""<source path="src" />""")
 			for (asset in settings.assets) {
-				line("""<assets path="$asset" rename="assets" />""")
+				line("""<assets path="${asset.absolutePath}" rename="assets" />""")
 			}
 			if (!settings.icon.isNullOrEmpty()) {
 				line("""<icon path="${settings.icon}" />""")
@@ -179,6 +177,9 @@ object GenHaxeLime : GenTarget, GenHaxeBase {
 
 				program.haxeInstallRequiredLibs()
 
+				tinfo.haxeCopyResourcesToAssetsFolder()
+
+				println("Compiling...")
 				//println("Running: -optimize=true ${info.entryPointFile}")
 				return ProcessUtils.runAndRedirect(projectDir.realfile, "haxelib", listOf("run", "lime") + listOf("build", actualSubtarget.type)).success
 			}

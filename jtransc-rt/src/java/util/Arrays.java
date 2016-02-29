@@ -58,7 +58,6 @@ public class Arrays {
 		sort(a, fromIndex, toIndex, (Comparator<? super Object>) ComparableComparator.INSTANCE);
 	}
 
-	/*
     @HaxeMethodBody(
             "var array = cast(p0, HaxeArray);\n" +
             "var start = p1;\n" +
@@ -72,7 +71,6 @@ public class Arrays {
             "\tarray.set(start + n, slice[n]);\n" +
             "}"
     )
-    */
 	native public static <T> void sort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c);
 
 	native public static int deepHashCode(Object a[]);
