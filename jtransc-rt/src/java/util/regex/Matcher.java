@@ -72,7 +72,7 @@ public final class Matcher implements MatchResult {
             "var opts = '';\n" +
             "if ((this.flags & 0x02) != 0) opts += 'i';\n" +
             "if ((this.flags & 0x08) != 0) opts += 'm';\n" +
-            "if ((this.flags & 0x20) != 0) opts += 's';\n" +
+            //"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
             "this._ereg = new EReg(this.pattern._str, opts);\n" +
             "this._matches = this._ereg.match(this.text._str);"
     )
