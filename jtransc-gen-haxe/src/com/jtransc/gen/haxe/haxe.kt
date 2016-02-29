@@ -139,7 +139,7 @@ object GenHaxe : GenTarget {
 				val buildArgs = arrayListOf(
 					"-cp", ".",
 					"-main", info!!.entryPointFile,
-					"-dce", "full"
+					"-dce", "no"
 				)
 				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)

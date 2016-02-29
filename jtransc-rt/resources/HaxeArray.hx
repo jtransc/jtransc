@@ -10,19 +10,7 @@ class HaxeArray extends HaxeBaseArray {
         this.desc = desc;
     }
 
-    static public function fromArray(items:Array<Dynamic>, desc:String = null) {
-        if (desc == null) {
-            desc = if (items.length == 0) {
-                "[Ljava/lang/Object;";
-            } else {
-                var l = HaxeNatives.getClassDescriptor(cast items[0]);
-                if (l.substr(0, 1) == "[") {
-                    "[" + l;
-                } else {
-                    "[L" + l + ";";
-                }
-            };
-        }
+    static public function fromArray(items:Array<Dynamic>, desc:String) {
         var out = new HaxeArray(items.length, desc);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
@@ -53,7 +41,7 @@ class HaxeArray extends HaxeBaseArray {
     }
 
     public override function clone__Ljava_lang_Object_():java_.lang.Object_ {
-        return fromArray(this.data.toArray());
+        return fromArray(this.data.toArray(), this.desc);
     }
 
     static public function copy(from:HaxeArray, to:HaxeArray, fromPos:Int, toPos:Int, length:Int) {

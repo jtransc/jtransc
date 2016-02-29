@@ -133,6 +133,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 		return (int) ht ^ (int) (ht >> 32);
 	}
 
+	@HaxeMethodBody("return HaxeNatives.str(_date.toString());")
 	native public String toString();
 
 	private static StringBuilder convertToAbbr(StringBuilder sb, String name) {

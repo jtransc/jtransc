@@ -1,6 +1,7 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.ClassMappings
 import com.jtransc.text.escape
 
@@ -9,7 +10,7 @@ class HaxeNames(val program: AstProgram, val mappings: ClassMappings) {
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
-		val realmethod = program[method]!!
+		val realmethod = program[method] ?: invalidOp("Can't find method $method")
 		if (realmethod.nativeMethod != null) {
 			return realmethod.nativeMethod!!
 		} else {

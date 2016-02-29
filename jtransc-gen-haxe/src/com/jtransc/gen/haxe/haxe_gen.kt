@@ -211,7 +211,8 @@ class GenHaxeGen(
 				for (clazz in classes) {
 					val index = classToId[clazz]
 					line("static private function c$index(c:java_.lang.Class_):Bool") {
-						line("info(c, \"${clazz.name.haxeGeneratedFqPackage}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.annotations) + ");")
+						//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+						line("info(c, ${clazz.name.haxeGeneratedFqName}, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
 						for ((slot, field) in clazz.fields.withIndex()) {
 							val internalName = field.haxeName
 							line("field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
@@ -231,9 +232,11 @@ class GenHaxeGen(
 				line("static public function getJavaClass(str:String)") {
 					line("return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(str));")
 				}
-				line("static private function info(c:java_.lang.Class_, internalName:String, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>)") {
-					line("c._hxClass = Type.resolveClass(internalName);");
-					line("c._internalName = internalName;")
+				line("static private function info(c:java_.lang.Class_, haxeClass:Class<Dynamic>, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>)") {
+					//line("c._hxClass = Type.resolveClass(internalName);");
+					//line("c._internalName = internalName;")
+					line("c._hxClass = haxeClass;");
+					line("c._internalName = Type.getClassName(haxeClass);")
 					line("c._parent = parent;")
 					line("c._interfaces = interfaces;")
 					line("c._modifiers = modifiers;")
@@ -385,19 +388,7 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.THROW -> line("throw ${stm.value.gen()};")
-				is AstStm.RETHROW -> {
-					line("""
-						//#if js
-						//if (untyped __js__('typeof haxe_CallStack !== "undefined"')) {
-						//	untyped __js__('throw haxe_CallStack.lastException');
-						//} else {
-						//	throw __i__exception__;
-						//}
-						//#else
-						throw __i__exception__;
-						//#end
-					""")
-				}
+				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(__i__exception__);""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
 				else -> throw RuntimeException("Unhandled statement $stm")

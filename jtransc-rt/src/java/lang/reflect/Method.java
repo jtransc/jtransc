@@ -51,6 +51,11 @@ public final class Method extends AccessibleObject implements Member, GenericDec
     private byte[] annotationDefault;
     //private volatile MethodAccessor methodAccessor;
 
+    @HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
+    native public Annotation[] getDeclaredAnnotations();
+
+    native public Annotation[][] getParameterAnnotations();
+
     private Method() {
 
     }
@@ -163,11 +168,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 
     native public Object getDefaultValue();
 
-    native public <T extends Annotation> T getAnnotation(Class<T> annotationClass);
-
-    public Annotation[] getDeclaredAnnotations() {
-        return super.getDeclaredAnnotations();
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        return super.getAnnotation(annotationClass);
     }
-
-    native public Annotation[][] getParameterAnnotations();
 }

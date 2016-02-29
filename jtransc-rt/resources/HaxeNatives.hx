@@ -56,7 +56,7 @@ class HaxeNatives {
     }
 
     static public function strArray(strs:Array<String>):HaxeArray {
-        return HaxeArray.fromArray(strs.map(function(s) { return str(s); }).array());
+        return HaxeArray.fromArray(strs.map(function(s) { return str(s); }).array(), "[Ljava.lang.String;");
     }
 
     static public function byteArrayToString(chars:HaxeByteArray, start:Int = 0, count:Int = -1, charset:String = "UTF-8"):String {
@@ -129,8 +129,20 @@ class HaxeNatives {
         return getClass(object).getName__Ljava_lang_String_()._str + "@" + object.__ID__;
     }
 
-    static public function newInstance(internalClassName:String) {
-        return Type.createInstance(Type.resolveClass(internalClassName), []);
+    static public function newInstance(javaInternalClassName:String) {
+        if (javaInternalClassName == null) trace('HaxeNatives.newInstance::javaInternalClassName == null');
+        var clazz = Type.resolveClass(javaInternalClassName);
+        if (clazz == null) trace('HaxeNatives.newInstance::clazz == null ; javaInternalClassName = $javaInternalClassName');
+        // HaxeReflectionInfo
+        return Type.createInstance(clazz, []);
+    }
+
+    static public function newEmptyInstance(javaInternalClassName:String) {
+        if (javaInternalClassName == null) trace('HaxeNatives.newEmptyInstance::javaInternalClassName == null');
+        var clazz = Type.resolveClass(javaInternalClassName);
+        if (clazz == null) trace('HaxeNatives.newEmptyInstance::clazz == null ; javaInternalClassName = $javaInternalClassName');
+        // HaxeReflectionInfo
+        return Type.createEmptyInstance(clazz);
     }
 
     static var BASE = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -472,5 +484,20 @@ class HaxeNatives {
     }
     static public inline function sxi16(value:Int) {
         return #if flash flash.Memory.signExtend16(value); #else ((value << 16) >> 16); #end
+    }
+
+    static public inline function rethrow(__i__exception__:Dynamic) {
+        #if js
+        untyped __js__('if (__i__exception__ && __i__exception__.stack) console.error(__i__exception__.stack);');
+        #end
+        //#if js
+        //if (untyped __js__('typeof haxe_CallStack !== "undefined"')) {
+        //	untyped __js__('throw haxe_CallStack.lastException');
+        //} else {
+        //	throw __i__exception__;
+        //}
+        //#else
+        throw __i__exception__;
+        //#end
     }
 }

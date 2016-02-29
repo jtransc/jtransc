@@ -192,6 +192,7 @@ class AstClass(
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val methodsByNameDesc = hashMapOf<AstMethodDesc, AstMethod?>()
 	val fieldsByName = hashMapOf<String, AstField>()
+	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
 	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }

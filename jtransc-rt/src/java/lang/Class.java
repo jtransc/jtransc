@@ -49,22 +49,22 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
-    @HaxeMethodBody("return HaxeArray.fromArray(_fields);")
+    @HaxeMethodBody("return HaxeArray.fromArray(_fields, '[Ljava.lang.reflect.Field;');")
 	native public Field[] getDeclaredFields() throws SecurityException;
 
-    @HaxeMethodBody("return HaxeArray.fromArray(_methods);")
+    @HaxeMethodBody("return HaxeArray.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
 	native public Method[] getDeclaredMethods() throws SecurityException;
 
-    @HaxeMethodBody("return HaxeArray.fromArray(_constructors);")
+    @HaxeMethodBody("return HaxeArray.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
 	native public Constructor<?>[] getDeclaredConstructors() throws SecurityException;
 
     @HaxeMethodBody("return HaxeNatives.resolveClass(_parent);")
 	native public Class<? super T> getSuperclass();
 
-    @HaxeMethodBody("return HaxeArray.fromArray(Lambda.array(Lambda.map(_interfaces, function(i) { return HaxeNatives.resolveClass(i); })));")
+    @HaxeMethodBody("return HaxeArray.fromArray(Lambda.array(Lambda.map(_interfaces, function(i) { return HaxeNatives.resolveClass(i); })), '[Ljava.lang.Class;');")
 	native public Class<?>[] getInterfaces();
 
-    @HaxeMethodBody("return HaxeArray.fromArray(_annotations);")
+    @HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 
     @HaxeMethodBody("return _modifiers;")

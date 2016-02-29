@@ -5,7 +5,8 @@ import kotlin.reflect.KProperty1
 
 data class AstAnnotation(
 	val type: AstType.REF,
-	val elements: Map<String, Any?>
+	val elements: Map<String, Any?>,
+    val runtimeVisible: Boolean
 )
 
 operator fun List<AstAnnotation>?.get(name: FqName): AstAnnotation? {

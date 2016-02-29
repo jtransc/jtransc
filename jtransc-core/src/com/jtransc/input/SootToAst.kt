@@ -92,12 +92,12 @@ open class AstMethodProcessor private constructor(
 
 	companion object {
 		fun processBody(method: SootMethod, containingClass: AstClass): AstBody? {
-			//try {
-			return AstMethodProcessor(method, containingClass).handle()
-			//} catch (e: Throwable) {
-			//	println("Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
-			//	return null
-			//}
+			try {
+				return AstMethodProcessor(method, containingClass).handle()
+			} catch (e: Throwable) {
+				println("WARNING: Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
+				return null
+			}
 		}
 	}
 
@@ -261,14 +261,15 @@ open class AstMethodProcessor private constructor(
 						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
 					}
 				}
-				is DynamicInvokeExpr -> { // astMethodRef.classRef == "soot.dummy.InvokeDynamic"
+				is DynamicInvokeExpr -> {
+					// astMethodRef.classRef == "soot.dummy.InvokeDynamic"
 					val c2 = c as DynamicInvokeExpr
 					val methodRef = c2.methodRef.astRef
 					val bootstrapMethodRef = c2.bootstrapMethodRef.astRef
 					val bootstrapArgs = c2.bootstrapArgs
 					if (
-						bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
-							bootstrapMethodRef.name == "metafactory"
+					bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
+						bootstrapMethodRef.name == "metafactory"
 					) {
 						val interfaceMethodType = (bootstrapArgs[0] as SootMethodType).astType
 						val methodHandle = (bootstrapArgs[1] as SootMethodHandle)
@@ -431,20 +432,24 @@ val ANNOTATIONS_BLACKLIST = listOf(
 	"kotlin.jvm.internal.KotlinFileFacade", "kotlin.jvm.internal.KotlinMultifileClassPart",
 	"kotlin.jvm.internal.KotlinMultifileClass", "kotlin.annotation.MustBeDocumented",
 	"kotlin.annotation.Target", "kotlin.annotation.Retention",
-	"kotlin.jvm.JvmStatic", "kotlin.Deprecated"
+	"kotlin.jvm.JvmStatic", "kotlin.Deprecated", "kotlin.Metadata", "org.jetbrains.annotations.NotNull",
+	"kotlin.internal.InlineExposed"
 ).map { AstType.REF(it) }.toSet()
 
 fun Iterable<Tag>.toAstAnnotations(): List<AstAnnotation> {
-	return this.filterIsInstance<VisibilityAnnotationTag>().flatMap {
-		it.annotations.map {
-			AstAnnotation(
-				AstType.demangle(it.type) as AstType.REF,
-				it.getElements().map {
-					Pair(it.name, it.getValue())
-				}.toMap()
-			)
-		}
-	}.filter { it.type !in ANNOTATIONS_BLACKLIST }
+	return this.filterIsInstance<VisibilityAnnotationTag>()
+		.flatMap {
+			val runtimeVisible = it.visibility == AnnotationConstants.RUNTIME_VISIBLE
+			it.annotations.map {
+				AstAnnotation(
+					AstType.demangle(it.type) as AstType.REF,
+					it.getElements().map {
+						Pair(it.name, it.getValue())
+					}.toMap(),
+					runtimeVisible
+				)
+			}
+		}.filter { it.type !in ANNOTATIONS_BLACKLIST }
 }
 
 fun AnnotationTag.getElements(): List<AnnotationElem> {

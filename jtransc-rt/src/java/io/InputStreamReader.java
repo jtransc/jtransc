@@ -16,12 +16,17 @@
 
 package java.io;
 
+import java.nio.charset.Charset;
+
 public class InputStreamReader extends Reader {
 
 	public InputStreamReader(InputStream in) {
 	}
 
 	public InputStreamReader(InputStream in, String charsetName) throws UnsupportedEncodingException {
+	}
+
+	public InputStreamReader(InputStream in, Charset charset) throws UnsupportedEncodingException {
 	}
 
 	native public String getEncoding();
