@@ -141,7 +141,7 @@ class AstProgram(
 
 	operator fun get(ref: AstType.REF): AstClass = this[ref.name]
 	operator fun get(ref: AstClassRef): AstClass = this[ref.name]
-	operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestors(ref.nameDesc)
+	operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 
 	// @TODO: Cache all this stuff!
@@ -191,7 +191,8 @@ class AstClass(
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
-	val methodsByNameDesc = hashMapOf<AstMethodDesc, AstMethod?>()
+	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
+	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val fieldsByName = hashMapOf<String, AstField>()
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 
@@ -233,8 +234,10 @@ class AstClass(
 		if (finished) invalidOp("Finished class")
 		methods.add(method)
 		if (method.name !in methodsByName) methodsByName[method.name] = arrayListOf()
+		val methodDesc = AstMethodWithoutClassRef(method.name, method.methodType)
 		methodsByName[method.name]?.add(method)
-		methodsByNameDesc[AstMethodDesc(method.name, method.methodType)] = method
+		methodsByNameDescInterfaces[methodDesc] = method
+		methodsByNameDesc[methodDesc] = method
 	}
 
 	private var finished = false
@@ -259,18 +262,27 @@ class AstClass(
 	fun getMethods(name: String): List<AstMethod> = methodsByName[name]!!
 	fun getMethod(name: String, desc: String): AstMethod? = methodsByName[name]?.firstOrNull { it.desc == desc }
 
-	fun getMethodInAncestors(nameDesc: AstMethodDesc): AstMethod? {
+	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? {
 		var result = methodsByNameDesc[nameDesc]
 		if (result == null) {
-			result = parentClass?.getMethodInAncestors(nameDesc)
+			result = parentClass?.getMethodInAncestorsAndInterfaces(nameDesc)
+		}
+		methodsByNameDesc[nameDesc] = result
+		return result
+	}
+
+	fun getMethodInAncestorsAndInterfaces(nameDesc: AstMethodWithoutClassRef): AstMethod? {
+		var result = methodsByNameDescInterfaces[nameDesc]
+		if (result == null) {
+			result = parentClass?.getMethodInAncestorsAndInterfaces(nameDesc)
 		}
 		if (result == null) {
 			for (it in directInterfaces) {
-				result = it.getMethodInAncestors(nameDesc)
+				result = it.getMethodInAncestorsAndInterfaces(nameDesc)
 				if (result != null) break
 			}
 		}
-		methodsByNameDesc[nameDesc] = result
+		methodsByNameDescInterfaces[nameDesc] = result
 		return result
 		//return methodsByNameDesc[nameDesc] ?: parentClass?.getMethodInAncestors(nameDesc)
 	}
@@ -322,10 +334,6 @@ class AstClass(
 	}
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
-
-	fun hasMethod(method: AstMethodWithoutClassRef): Boolean {
-		return methods.any { it.ref.withoutClass == method }
-	}
 }
 
 fun List<AstClass>.sortedByDependencies(): List<AstClass> {

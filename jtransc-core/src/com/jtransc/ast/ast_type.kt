@@ -147,7 +147,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 }
 
-data class AstMethodDesc(val name: String, val type: AstType.METHOD_TYPE)
+
 
 data class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))

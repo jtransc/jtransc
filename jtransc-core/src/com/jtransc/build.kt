@@ -148,7 +148,7 @@ class AllBuild(
 			// @TODO: is target dependant
 			for (clazz in program.classes.filter { it.isAbstract }) {
 				for (method in clazz.allMethodsToImplement) {
-					if (!clazz.hasMethod(method)) {
+					if (clazz.getMethodInAncestors(method) == null) {
 						clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
 					}
 				}
