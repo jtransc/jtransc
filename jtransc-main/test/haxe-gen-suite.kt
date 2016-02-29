@@ -87,8 +87,10 @@ class HaxeGenSuite {
 
 		val result = runClass(clazz)
 
-		Assert.assertEquals(expected, result)
+		Assert.assertEquals(normalize(expected), normalize(result))
 	}
+
+	fun normalize(str:String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
 	inline fun <reified T : Any> runClass(): String {
 		return runClass(T::class.java)

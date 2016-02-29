@@ -13,7 +13,12 @@ class HaxeNatives {
     static var outputBuffer = '';
     static public function outputChar(char:Int):Void {
         if (char == 10) {
+        	#if js
+			var _outputBuffer = outputBuffer;
+        	untyped __js__("console.log(_outputBuffer);");
+        	#else
             trace(outputBuffer);
+            #end
             outputBuffer = '';
         } else {
             outputBuffer += String.fromCharCode(char);

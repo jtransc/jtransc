@@ -19,6 +19,7 @@ package com.jtransc.tools
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.gen.haxe.HaxeLib
 import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
 import com.jtransc.text.toUcFirst
@@ -71,17 +72,6 @@ object HaxeTools {
 		}
 	}
 
-	data class LibraryVersion(val name: String, val version: String) {
-		val id = name.toUcFirst() // Remove symbols!
-		val nameWithVersion = "$name:$version"
-		companion object {
-			fun fromVersion(it:String): LibraryVersion {
-				val parts = it.split(':')
-				return LibraryVersion(parts[0], parts[1])
-			}
-		}
-	}
-
 	data class LibraryInfo(
 		val libraries: List<String>,
 		val includePackages: List<String>,
@@ -98,14 +88,12 @@ object HaxeTools {
 		val xmlFile = createTempFile("jtransc_haxe_tools", ".xml")
 		val vfs = LocalVfs(xmlFile.parentFile)
 
-		val librariesInfo = libraries.map { LibraryVersion.fromVersion(it) }
+		val librariesInfo = libraries.map { HaxeLib.LibraryRef.fromVersion(it) }
 
 		val outXml = vfs[xmlFile.name]
 		println(outXml.realpathOS)
 		for (info in librariesInfo) {
-			if (!vfs.exec("haxelib", "path", info.nameWithVersion).success) {
-				vfs.passthru("haxelib", "install", info.name, info.version)
-			}
+			HaxeLib.installIfNotExists(info)
 		}
 
 		val haxeargs = listOf(
@@ -179,7 +167,7 @@ object HaxeTools {
 				}
 			}
 		) + (libraryInfo.libraries.map {
-			val lib = LibraryVersion.fromVersion(it)
+			val lib = HaxeLib.LibraryRef.fromVersion(it)
 			val name = lib.id
 			val className = "${name}Library"
 			Pair("$className.java", Indenter.genString {

@@ -476,14 +476,21 @@ data class UserKey<T>(val name: String)
 inline fun <reified T : Any> UserKey(): UserKey<T> = UserKey<T>(T::class.java.name)
 
 interface IUserData {
-	operator fun <T : Any> get(key: UserKey<T>): T
+	operator fun <T : Any> contains(key: UserKey<T>): Boolean
+	operator fun <T : Any?> get(key: UserKey<T>): T?
 	operator fun <T : Any> set(key: UserKey<T>, value: T)
+}
+
+fun <T : Any> IUserData.getCached(key: UserKey<T>, builder: () -> T):T {
+	if (key !in this) this[key] = builder()
+	return this[key]!!
 }
 
 class UserData : IUserData {
 	private val dict = hashMapOf<Any, Any>()
 
-	override operator fun <T : Any> get(key: UserKey<T>): T = dict[key] as T
+	override operator fun <T : Any> contains(key: UserKey<T>): Boolean = key in dict
+	override operator fun <T : Any?> get(key: UserKey<T>): T? = dict[key] as T?
 	override operator fun <T : Any> set(key: UserKey<T>, value: T) {
 		dict.put(key, value)
 	}

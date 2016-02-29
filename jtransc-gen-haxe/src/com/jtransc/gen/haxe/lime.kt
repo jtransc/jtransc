@@ -21,10 +21,13 @@ import com.jtransc.ast.AstFeatures
 import com.jtransc.ast.AstProgram
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
+import com.jtransc.gen.haxe.GenHaxe.haxeExtraFlags
+import com.jtransc.gen.haxe.GenHaxe.haxeInstallRequiredLibs
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
+import jtransc.JTranscVersion
 import java.io.File
 
 object HaxeLimeGenDescriptor : GenTargetDescriptor() {
@@ -36,7 +39,7 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 	override fun getGenerator() = GenHaxeLime
 }
 
-object GenHaxeLime : GenTarget {
+object GenHaxeLime : GenTarget, GenHaxeBase {
 	override val runningAvailable: Boolean = true
 
 	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
@@ -53,6 +56,10 @@ object GenHaxeLime : GenTarget {
 			line("""<window fullscreen="true" if="mobile" />""")
 			line("""<window fps="60" unless="js" />""")
 			line("""<window fps="0" if="js" />""")
+
+			for (flag in program.haxeExtraFlags) {
+				line("""<haxeflag name="${flag.first}" value="${flag.second}" />""")
+			}
 
 			line("""<source path="src" />""")
 			for (asset in settings.assets) {
@@ -146,6 +153,7 @@ object GenHaxeLime : GenTarget {
 		val tempdir = tinfo.targetDirectory
 		var info: GenHaxe.ProgramInfo? = null
 		val projectDir = LocalVfs("$tempdir/jtransc-haxe/")
+		val program = tinfo.program
 
 		File("$tempdir/jtransc-haxe/src").mkdirs()
 		val srcFolder = projectDir["src"]
@@ -167,10 +175,12 @@ object GenHaxeLime : GenTarget {
 			override fun compile(): Boolean {
 				if (info == null) throw InvalidOperationException("Must call .buildSource first")
 				outputFile2.delete()
-				println("haxe.build source path: " + srcFolder.realpathOS)
+				println("lime.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
+
+				program.haxeInstallRequiredLibs()
 
 				//println("Running: -optimize=true ${info.entryPointFile}")
-				return ProcessUtils.runAndRedirect(projectDir.realfile, "lime", listOf("build", actualSubtarget.type)).success
+				return ProcessUtils.runAndRedirect(projectDir.realfile, "haxelib", listOf("run", "lime") + listOf("build", actualSubtarget.type)).success
 			}
 
 			override fun run(redirect: Boolean): ProcessResult2 {

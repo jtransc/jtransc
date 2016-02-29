@@ -17,17 +17,21 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.ast.AstFeatures
+import com.jtransc.ast.AstProgram
 import com.jtransc.ast.FqName
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ast.get
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
+import com.jtransc.gen.haxe.GenHaxe.haxeLibs
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.time.measureProcess
-import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
+import com.jtransc.vfs.UserKey
+import com.jtransc.vfs.getCached
+import jtransc.JTranscVersion
 import jtransc.annotation.haxe.HaxeAddLibraries
 import java.io.File
 
@@ -92,7 +96,31 @@ enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interp
 	}
 }
 
-object GenHaxe : GenTarget {
+private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
+
+interface GenHaxeBase {
+
+	val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LIBS_KEY) {
+		this.classes
+			.map { it.annotations[HaxeAddLibraries::value] }
+			.filterNotNull()
+			.flatMap { it.toList() }
+			.map { HaxeLib.LibraryRef.fromVersion(it) }
+	}
+
+	val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() = this.haxeLibs.map { "-lib" to it.nameWithVersion }
+
+	fun AstProgram.haxeInstallRequiredLibs() {
+		val libs = this.haxeLibs
+		println(":: REFERENCED LIBS: $libs")
+		for (lib in libs) {
+			println(":: TRYING TO INSTALL LIBRARY $lib")
+			HaxeLib.installIfNotExists(lib)
+		}
+	}
+}
+
+object GenHaxe : GenTarget, GenHaxeBase {
 	//val copyFiles = HaxeCopyFiles
 	//val mappings = HaxeMappings()
 	val mappings = ClassMappings()
@@ -100,11 +128,6 @@ object GenHaxe : GenTarget {
 	val INIT_MODE = InitMode.LAZY
 
 	override val runningAvailable: Boolean = true
-
-
-	class MutableProgramInfo {
-		//val initializingCalls = arrayListOf<String>()
-	}
 
 	override fun getProcessor(tinfo: GenTargetInfo): GenTargetProcessor {
 		val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
@@ -134,7 +157,7 @@ object GenHaxe : GenTarget {
 			override fun compile(): Boolean {
 				if (info == null) throw InvalidOperationException("Must call .buildSource first")
 				outputFile2.delete()
-				println("haxe.build source path: " + srcFolder.realpathOS)
+				println("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
 				val buildArgs = arrayListOf(
 					"-cp", ".",
@@ -143,10 +166,10 @@ object GenHaxe : GenTarget {
 				)
 				val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 				val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
+				val libs = program.classes.map { it.annotations[HaxeAddLibraries::value] }.filterNotNull().flatMap { it.toList() }
 
-				for (lib in program.classes.map { it.annotations[HaxeAddLibraries::value] }.filterNotNull().flatMap { it.toList() }) {
-					buildArgs += listOf("-lib", lib)
-				}
+				program.haxeInstallRequiredLibs()
+				buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
 
 				//println("Running: -optimize=true ${info.entryPointFile}")
 				return ProcessUtils.runAndRedirect(
