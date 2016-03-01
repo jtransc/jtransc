@@ -40,6 +40,9 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 object GenHaxeLime : GenTarget {
 	override val runningAvailable: Boolean = true
 
+	val tempAssetsDir = File(System.getProperty("java.io.tmpdir") + "/jtransc-temp-output")
+	val tempAssetsVfs = LocalVfs(tempAssetsDir)
+
 	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
 		line("""<?xml version="1.0" encoding="utf-8"?>""")
 		line("""<project>""")
@@ -60,8 +63,10 @@ object GenHaxeLime : GenTarget {
 			}
 
 			line("""<source path="src" />""")
+			line("""<assets path="${tempAssetsDir.absolutePath}" rename="assets" />""")
+
 			for (asset in settings.assets) {
-				line("""<assets path="${asset.absolutePath}" rename="assets" />""")
+				LocalVfs(asset).copyTreeTo(tempAssetsVfs)
 			}
 			if (!settings.icon.isNullOrEmpty()) {
 				line("""<icon path="${settings.icon}" />""")
@@ -158,6 +163,7 @@ object GenHaxeLime : GenTarget {
 
 		println("Temporal haxe files: $tempdir/jtransc-haxe")
 
+
 		return object : GenTargetProcessor {
 			override fun buildSource() {
 				info = GenHaxeGen(
@@ -177,7 +183,7 @@ object GenHaxeLime : GenTarget {
 
 				program.haxeInstallRequiredLibs()
 
-				tinfo.haxeCopyResourcesToAssetsFolder()
+				tinfo.haxeCopyEmbeddedResourcesToFolder(tempAssetsDir)
 
 				println("Compiling...")
 				//println("Running: -optimize=true ${info.entryPointFile}")

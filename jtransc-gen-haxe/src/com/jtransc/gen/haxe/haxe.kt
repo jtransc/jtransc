@@ -117,11 +117,10 @@ fun AstProgram.haxeInstallRequiredLibs() {
 	}
 }
 
-fun GenTargetInfo.haxeCopyResourcesToAssetsFolder() {
+fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
 	val program = this.program
-	val settings = this.settings
 	val files = program.classes.map { it.annotations[HaxeAddAssets::value] }.filterNotNull().flatMap { it.toList() }
-	val assetsFolder = settings.assets.firstOrNull()
+	//val assetsFolder = settings.assets.firstOrNull()
 	val resourcesVfs = program.resourcesVfs
 	println("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
 	if (assetsFolder != null) {
@@ -182,7 +181,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 		program.haxeInstallRequiredLibs()
 		buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
 
-		tinfo.haxeCopyResourcesToAssetsFolder()
+		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
 		println("Compiling...")
 
