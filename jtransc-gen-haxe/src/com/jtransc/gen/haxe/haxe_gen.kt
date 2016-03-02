@@ -435,29 +435,24 @@ class GenHaxeGen(
 			is AstExpr.UNOP -> "${e.op.symbol}(" + e.right.gen() + ")"
 			is AstExpr.BINOP -> {
 				val resultType = e.type
-				val leftType = e.left.type
-				val rightType = e.right.type
 				var l = e.left.gen()
 				var r = e.right.gen()
 				val opSymbol = e.op.symbol
 
-				val boolMap = mapOf(
-					"^" to "!=",
-					"&" to "&&",
-					"|" to "||",
-					"==" to "==",
-					"!=" to "!="
-				)
-
-				// @TODO: do this better!
-				if (((resultType == AstType.BOOL) || (leftType == AstType.BOOL) || (rightType == AstType.BOOL)) && e.op.symbol in boolMap) {
-					"cast($l) ${boolMap[opSymbol]} cast($r)"
-				} else if (resultType == AstType.INT && e.op.symbol == "/") {
+				if (resultType == AstType.INT && e.op.symbol == "/") {
 					"Std.int($l / $r)"
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg" -> "HaxeNatives.$opSymbol($l, $r)"
-						else -> "$l $opSymbol $r"
+						else -> {
+							val binexpr = "$l $opSymbol $r"
+							when (resultType) {
+								AstType.INT -> "(($binexpr) | 0)"
+								AstType.SHORT -> "((($binexpr) << 16) >> 16)"
+								AstType.BYTE -> "((($binexpr) << 24) >> 24)"
+								else -> binexpr
+							}
+						}
 					}
 				}
 

@@ -114,7 +114,7 @@ object GotosFeature : AstFeature() {
 							val handlerState = getStateFromLabel(trap.handler)
 
 							AstStm.IF(
-								(gotostate.expr ge startState.lit) and (gotostate.expr le endState.lit) and (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
+								(gotostate.expr ge startState.lit) band (gotostate.expr le endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								simulateGotoLabel(handlerState)
 							)
 						}

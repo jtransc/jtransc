@@ -10,6 +10,7 @@ enum class AstBinop(val symbol: String, val str: String) {
 	ADD("+", "add"), SUB("-", "sub"), MUL("*", "mul"), DIV("/", "div"), REM("%", "rem"),
 	AND("&", "and"), OR("|", "or"), XOR("^", "xor"),
 	SHL("<<", "shl"), SHR(">>", "shr"), USHR(">>>", "ushr"),
+	BAND("&&", "band"), BOR("||", "bor"),
 	EQ("==", "eq"), NE("!=", "ne"), GE(">=", "ge"), LE("<=", "le"), LT("<", "lt"), GT(">", "gt"),
 	LCMP("lcmp", "lcmp"), CMP("cmp", "cmp"), CMPL("cmpl", "cml"), CMPG("cmpg", "cmpg");
 
@@ -185,6 +186,7 @@ interface AstExpr : AstElement {
 
 	infix fun ge(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.GE, that)
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
+	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
 }

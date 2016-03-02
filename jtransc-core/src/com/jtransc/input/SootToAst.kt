@@ -186,8 +186,8 @@ open class AstMethodProcessor private constructor(
 		}
 		is ReturnStmt -> AstStm.RETURN(cast(convert(s.op), method.returnType.astType))
 		is ReturnVoidStmt -> AstStm.RETURN(null)
-	//is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
-		is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
+		is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
+		//is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
 		is GotoStmt -> AstStm.GOTO(ensureLabel(s.target))
 		is ThrowStmt -> AstStm.THROW(convert(s.op))
 		is InvokeStmt -> AstStm.STM_EXPR(convert(s.invokeExpr))
@@ -228,14 +228,33 @@ open class AstMethodProcessor private constructor(
 		is LengthExpr -> AstExpr.ARRAY_LENGTH(convert(c.op))
 		is NegExpr -> AstExpr.UNOP(AstUnop.NEG, convert(c.op))
 		is BinopExpr -> {
-			// @TODO: Make this generic!
-			val destType = c.type.astType
+			// @TODO: Make this generic! and simpler without breaking code!
 			val l = convert(c.op1)
 			val r = convert(c.op2)
 			val lType = l.type
 			val rType = r.type
+			// @TODO: FIX THIS!
+			val destType = if (lType == AstType.BOOL && rType == AstType.BOOL) {
+				AstType.BOOL
+			} else if (c is ConditionExpr) {
+				AstType.BOOL
+			} else {
+				c.type.astType
+			}
 			val op = c.getAstOp(lType, rType)
-			AstExpr.BINOP(destType, l, op, r)
+			// @TODO: FIX THIS!
+			when (op) {
+				AstBinop.SHL, AstBinop.SHR, AstBinop.USHR ->
+					AstExpr.BINOP(l.type, l, op, r)
+				else -> {
+					val commonType = getCommonType(lType, rType)
+					if (commonType != null) {
+						AstExpr.BINOP(destType, cast(l, commonType), op, cast(r, commonType))
+					} else {
+						AstExpr.BINOP(destType, l, op, r)
+					}
+				}
+			}
 		}
 		is InvokeExpr -> {
 			val argsList = c.args.toList()
@@ -301,6 +320,14 @@ open class AstMethodProcessor private constructor(
 }
 
 fun BinopExpr.getAstOp(l: AstType, r: AstType): AstBinop {
+	if (l == AstType.BOOL && r == AstType.BOOL) {
+		when (this) {
+			is XorExpr -> return AstBinop.NE
+			is AndExpr -> return AstBinop.BAND
+			is OrExpr -> return AstBinop.BOR
+		}
+	}
+
 	return when (this) {
 		is AddExpr -> AstBinop.ADD
 		is SubExpr -> AstBinop.SUB
@@ -354,6 +381,24 @@ val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.f
 val SootMethod.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })
 
 val SootClass.astType: AstType.REF get() = this.type.astType as AstType.REF
+
+val PRIM_SCORES = mapOf(
+	AstType.BOOL to 0,
+	AstType.BYTE to 1,
+	AstType.SHORT to 2,
+	AstType.CHAR to 3,
+	AstType.INT to 4,
+	AstType.LONG to 5,
+	AstType.FLOAT to 6,
+	AstType.DOUBLE to 7
+)
+
+fun getCommonType(t1:AstType, t2:AstType):AstType? {
+	if (t1 !is AstType.Primitive || t2 !is AstType.Primitive) return null
+	val score1 = PRIM_SCORES[t1] ?: 8
+	val score2 = PRIM_SCORES[t2] ?: 8
+	return if (score1 > score2) t1 else t2
+}
 
 val Type.astType: AstType get() = when (this) {
 	is VoidType -> AstType.VOID

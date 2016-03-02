@@ -184,11 +184,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
     private int hash = 0;
 
+    @Override
     public int hashCode() {
         int h = hash;
         int length = this.length();
         if (h == 0 && length > 0) {
-            for (int i = 0; i < length; i++) h = 31 * h + this.charAt(i);
+            for (int i = 0; i < length; i++) {
+                h = 31 * h + this.charAt(i);
+            }
             hash = h;
         }
         return h;

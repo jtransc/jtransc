@@ -152,6 +152,12 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
     native public int lastIndexOf(String str, int fromIndex);
 
     @Override
+    @HaxeMethodBody(
+        "var reversed = '';\n" +
+        "for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1);\n" +
+        "this._str = reversed;\n" +
+        "return this;\n"
+    )
     native public StringBuilder reverse();
 
     /////////////////////////////////////////////////////////////////////////
