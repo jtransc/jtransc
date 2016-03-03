@@ -25,9 +25,23 @@ public class Thread implements Runnable {
 	public final static int NORM_PRIORITY = 5;
 	public final static int MAX_PRIORITY = 10;
 
-	public static native Thread currentThread();
+	static private Thread _currentThread;
 
-	native public static void yield();
+	public static Thread currentThread() {
+		if (_currentThread == null) {
+			_currentThread = new Thread();
+		}
+		return _currentThread;
+	}
+
+	public StackTraceElement[] getStackTrace() {
+		// @TODO
+		return new StackTraceElement[0];
+	}
+
+	public static void yield() {
+
+	}
 
 	native public static void sleep(long millis) throws InterruptedException;
 
@@ -135,8 +149,6 @@ public class Thread implements Runnable {
 	native public void setContextClassLoader(ClassLoader cl);
 
 	public static native boolean holdsLock(Object obj);
-
-	native public StackTraceElement[] getStackTrace();
 
 	native public static Map<Thread, StackTraceElement[]> getAllStackTraces();
 

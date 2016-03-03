@@ -25,7 +25,22 @@ class HaxeNatives {
         }
     }
 
-    static private var M2P32_DBL = Math.pow(2, 32);
+	static var errorBuffer = '';
+	static public function outputErrorChar(char:Int):Void {
+		if (char == 10) {
+			#if js
+			var _errorBuffer = errorBuffer;
+			untyped __js__("console.error(_errorBuffer);");
+			#else
+			trace(errorBuffer);
+			#end
+			errorBuffer = '';
+		} else {
+			errorBuffer += String.fromCharCode(char);
+		}
+	}
+
+	static private var M2P32_DBL = Math.pow(2, 32);
     inline static public function intToLong(v:Int):Long { return haxe.Int64.make(0, v); }
     inline static public function floatToLong(v:Float):Long { return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL)); }
     static public function longToInt(v:Long):Int { return v.low; }
@@ -103,14 +118,22 @@ class HaxeNatives {
         return out;
     }
 
+	static public inline function debugger() {
+		#if js
+		untyped __js__("debugger;");
+		#end
+	}
+
     static public function resolveClass(name:String):java_.lang.Class_ {
         if (name == null) {
             trace('resolveClass:name:null');
+			debugger();
             return null;
         }
         var result = java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(name));
         if (result == null) {
             trace('resolveClass:result:null');
+			debugger();
         }
         return result;
     }

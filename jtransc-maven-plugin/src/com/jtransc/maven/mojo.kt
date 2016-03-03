@@ -23,10 +23,7 @@ import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
-import org.apache.maven.plugins.annotations.Component
-import org.apache.maven.plugins.annotations.LifecyclePhase
-import org.apache.maven.plugins.annotations.Mojo
-import org.apache.maven.plugins.annotations.Parameter
+import org.apache.maven.plugins.annotations.*
 import org.apache.maven.project.MavenProject
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
@@ -37,7 +34,7 @@ import org.eclipse.aether.util.artifact.JavaScopes
 import java.io.File
 import java.util.*
 
-@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 class JTranscMojo : AbstractMojo() {
 	@Component @JvmField var project: MavenProject? = null
 	@Component @JvmField var session: MavenSession? = null
@@ -141,7 +138,7 @@ class JTranscMojo : AbstractMojo() {
 
 		log.info("KT: Transcompiling entry point '$mainClass':")
 		val dependencyJarPaths = ArrayList<String>()
-		for (artifact in project.dependencyArtifacts) {
+		for (artifact in project.artifacts) {
 			val artifactPath = artifact.file.absolutePath
 			dependencyJarPaths.add(artifactPath)
 			log.info("    " + artifactPath)

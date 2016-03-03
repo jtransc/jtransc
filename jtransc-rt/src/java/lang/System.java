@@ -17,17 +17,30 @@
 package java.lang;
 
 import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.internal.StdioInputStream;
-import jtransc.internal.StdioStream;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Properties;
 
 public class System {
-	public final static InputStream in = new StdioInputStream();
-	static public final PrintStream out = new StdioStream();
-	static public final PrintStream err = out;
+	static public final InputStream in = new InputStream() {
+		@Override
+		public int read() throws IOException {
+			throw new Error("Not implemented!");
+		}
+	};
+	static public final PrintStream out = new PrintStream(new OutputStream() {
+		@Override
+		@HaxeMethodBody("HaxeNatives.outputChar(p0);")
+		native public void write(int b) throws IOException;
+	});
+	static public final PrintStream err = new PrintStream(new OutputStream() {
+		@Override
+		@HaxeMethodBody("HaxeNatives.outputErrorChar(p0);")
+		native public void write(int b) throws IOException;
+	});
 
 	native public static void setIn(InputStream in);
 

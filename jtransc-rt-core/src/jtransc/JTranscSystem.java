@@ -1,5 +1,6 @@
 package jtransc;
 
+import jtransc.annotation.JTranscInline;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -33,4 +34,11 @@ public class JTranscSystem {
     static public boolean usingJTransc() {
         return false;
     }
+
+	@JTranscInline
+	@HaxeMethodBody("HaxeNatives.debugger();")
+	static public void debugger() {
+		System.out.println("debugger");
+		throw new Error("Debugger");
+	}
 }

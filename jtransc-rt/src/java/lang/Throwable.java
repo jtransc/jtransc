@@ -30,6 +30,7 @@ public class Throwable implements Serializable {
 	private boolean writableStackTrace = false;
 
 	public Throwable() {
+		fillInStackTrace();
 		this.message = "Throwable";
 		this.cause = null;
 	}
@@ -77,18 +78,50 @@ public class Throwable implements Serializable {
 		return getClass().getName() + ":" + message;
 	}
 
-	native public void printStackTrace();
+	public void printStackTrace() {
+		printStackTrace(System.err);
+	}
 
-	native public void printStackTrace(PrintStream s);
+	public void printStackTrace(PrintStream s) {
+		// Print our stack trace
+		s.println(this);
+		StackTraceElement[] trace = this.stackTrace;
+		for (StackTraceElement traceElement : trace)
+			s.println("\tat " + traceElement);
+
+		/*
+		// Print suppressed exceptions, if any
+		for (Throwable se : getSuppressed())
+			se.printEnclosedStackTrace(s, trace, SUPPRESSED_CAPTION, "\t", dejaVu);
+
+		// Print cause, if any
+		Throwable ourCause = getCause();
+		if (ourCause != null)
+			ourCause.printEnclosedStackTrace(s, trace, CAUSE_CAPTION, "", dejaVu);
+		*/
+	}
 
 	native public void printStackTrace(PrintWriter s);
 
-	native public synchronized Throwable fillInStackTrace();
+	public synchronized Throwable fillInStackTrace() {
+		fillInStackTrace(0);
+		return this;
+	}
+
+	private StackTraceElement[] stackTrace;
+
+	private void fillInStackTrace(int dummy) {
+		setStackTrace(Thread.currentThread().getStackTrace());
+	}
 
 	//private native Throwable fillInStackTrace(int dummy);
-	native public StackTraceElement[] getStackTrace();
+	public StackTraceElement[] getStackTrace() {
+		return this.stackTrace.clone();
+	}
 
-	native public void setStackTrace(StackTraceElement[] stackTrace);
+	public void setStackTrace(StackTraceElement[] stackTrace) {
+		this.stackTrace = stackTrace;
+	}
 
 	//native int getStackTraceDepth();
 	//native StackTraceElement getStackTraceElement(int index);
