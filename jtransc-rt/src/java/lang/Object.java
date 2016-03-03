@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import jtransc.JTranscWrapped;
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeAddFiles;
 import jtransc.annotation.haxe.HaxeAddMembers;

@@ -42,7 +42,11 @@ public abstract class ClassLoader {
 		return _ClassInternalUtils.getSystemClassLoader();
 	}
 
-	native public Class<?> loadClass(String name) throws ClassNotFoundException;
+	public Class<?> loadClass(String name) throws ClassNotFoundException {
+		//System.err.println("ClassLoader.loadClass('" + name + "');");
+		System.out.println("ClassLoader.loadClass('" + name + "');");
+		return Class.forName(name);
+	}
 
 	native protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException;
 

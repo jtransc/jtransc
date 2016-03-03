@@ -163,9 +163,40 @@ class GenHaxeGen(
 				return "new ${a.type.getAnnotationProxyName(program)}([$itStr])"
 			}
 
+			fun annotationInit(a: AstAnnotation): List<AstType.REF> {
+				fun escapeValue(it: Any?): List<AstType.REF> {
+					return when (it) {
+						null -> listOf()
+						is AstAnnotation -> annotationInit(it)
+						is Pair<*, *> -> escapeValue(it.second)
+						is AstFieldRef -> listOf(it.containingTypeRef)
+						is List<*> -> it.flatMap { escapeValue(it) }
+						else -> listOf()
+					}
+				}
+				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
+				val annotation = program[a.type.classRef]
+				return annotation.methods.flatMap {
+					if (it.name in a.elements) {
+						escapeValue(a.elements[it.name]!!)
+					} else {
+						escapeValue(it.defaultTag)
+					}
+				}
+			}
+
 			fun annotations(annotations: List<AstAnnotation>): String {
 				return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
 			}
+
+			fun annotationsInit(annotations: List<AstAnnotation>):Indenter {
+				return Indenter.gen {
+					for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
+						line("${i.name.haxeGeneratedFqName}.__hx_static__init__();")
+					}
+				}
+			}
+
 			line("class HaxeReflectionInfo") {
 				val classes = program.classes.sortedBy { it.fqname }
 				val classToId = classes.withIndex().map { Pair(it.value, it.index) }.toMap()
@@ -212,6 +243,7 @@ class GenHaxeGen(
 					val index = classToId[clazz]
 					line("static private function c$index(c:java_.lang.Class_):Bool") {
 						//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+						line(annotationsInit(clazz.runtimeAnnotations))
 						line("info(c, ${clazz.name.haxeGeneratedFqName}, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
 						for ((slot, field) in clazz.fields.withIndex()) {
 							val internalName = field.haxeName
@@ -244,6 +276,7 @@ class GenHaxeGen(
 					line("c._methods = [];")
 					line("c._constructors = [];")
 					line("c._annotations = annotations;")
+					line("var initMethod = Reflect.field(haxeClass, '__hx_static__init__'); if (initMethod != null) Reflect.callMethod(haxeClass, initMethod, []);")
 				}
 				line("static private function field(c:java_.lang.Class_, internalName:String, slot:Int, name:String, type:String, modifiers:Int, genericDescriptor:String, annotations:Array<Dynamic>)") {
 					line("var out = new java_.lang.reflect.Field_();")

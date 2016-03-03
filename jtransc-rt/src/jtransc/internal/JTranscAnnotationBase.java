@@ -28,14 +28,15 @@ public class JTranscAnnotationBase {
 		out += "@";
 		out += this.getClass().getName();
 		out += "(";
-		String args = "";
+		int n = 0;
 		for (Method method : this.getClass().getDeclaredMethods()) {
-			if (args.length() != 0) args += ", ";
+			if (n != 0) out += ", ";
 			try {
 				out += method.getName() + "=" + method.invoke(this);
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}
+			n++;
 		}
 		out += ")";
 		return out;

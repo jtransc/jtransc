@@ -94,6 +94,7 @@ class AllBuild(
 			"java.lang.reflect.Constructor",
 			"java.lang.annotation.Annotation",
 			"jtransc.internal.JTranscAnnotationBase",
+			"jtransc.JTranscWrapped",
 			entryPoint.fqname.fqname
 		)
 

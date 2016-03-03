@@ -16,6 +16,10 @@
 
 package java.security;
 
+import jtransc.JTranscBits;
+import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.crypto.JTranscCrypto;
+
 public class SecureRandom extends java.util.Random {
 	public SecureRandom() {
 		super(0);
@@ -25,6 +29,20 @@ public class SecureRandom extends java.util.Random {
 		super(0);
 	}
 
+	@Override
+	public void nextBytes(byte[] bytes) {
+		JTranscCrypto.fillSecureRandomBytes(bytes);
+	}
+
+	private byte[] temp = new byte[4];
+
+	@Override
+	protected int next(int bits) {
+		JTranscCrypto.fillSecureRandomBytes(temp);
+		return JTranscBits.makeInt(temp) & JTranscBits.mask(bits);
+	}
+
+	/*
 	public native static SecureRandom getInstance(String algorithm) throws NoSuchAlgorithmException;
 
 	public native static SecureRandom getInstance(String algorithm, String provider) throws NoSuchAlgorithmException, NoSuchProviderException;
@@ -44,4 +62,5 @@ public class SecureRandom extends java.util.Random {
 	public native static byte[] getSeed(int numBytes);
 
 	public native byte[] generateSeed(int numBytes);
+	*/
 }

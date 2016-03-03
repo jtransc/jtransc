@@ -314,7 +314,7 @@ class HaxeNatives {
         if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
         if (Std.is(value, String)) return str(cast(value, String));
         if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
-        throw 'Was not able to box "$value"';
+		return jtransc.JTranscWrapped_.wrap(value);
     }
 
     static public function unbox(value:Dynamic):Dynamic {
@@ -326,6 +326,7 @@ class HaxeNatives {
         if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
         if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
         if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
+		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
         throw 'Was not able to unbox "$value"';
     }
 
@@ -575,5 +576,34 @@ class HaxeNatives {
 			out.push(convertStackItem(stack));
 		}
 		return HaxeArray.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
+	}
+
+	static public function fillSecureRandomBytes(bytes:HaxeByteArray) {
+		var length = bytes.length;
+
+		#if js
+		try {
+			var _bytes = bytes.data;
+			untyped __js__("crypto.getRandomValues(_bytes);");
+			return;
+		} catch (e:Dynamic) {
+
+		}
+		#end
+
+		for (n in 0 ... length) {
+			bytes.set(n, Std.int(Math.random() * 255));
+		}
+	}
+
+	static public inline function throwRuntimeException(msg:String) {
+		var e = new java_.lang.RuntimeException_();
+		e._init__Ljava_lang_String__V(HaxeNatives.str(msg));
+		throw e;
+	}
+
+	static public function getField(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {
+		//Reflect.callMethod(clazz, Reflect.field(clazz, "__hx_static__init__"), []);
+		return HaxeNatives.box(Reflect.field((obj != null) ? obj : clazz, name));
 	}
 }

@@ -175,6 +175,10 @@ public class JTranscBits {
 		return true;
 	}
 
+	public static int mask(int bits) {
+		return ((1 << bits) - 1);
+	}
+
 	public static long lowMask(String chars) {
 		int n = chars.length();
 		long m = 0;

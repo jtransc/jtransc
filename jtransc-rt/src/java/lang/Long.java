@@ -18,6 +18,7 @@ package java.lang;
 
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.internal.JTranscCType;
 
 public final class Long extends Number implements Comparable<Long> {
 	public static final long MIN_VALUE = 0x8000000000000000L;
@@ -28,11 +29,30 @@ public final class Long extends Number implements Comparable<Long> {
 
 	native public static String toUnsignedString(long i, int radix);
 
-	native public static String toHexString(long i);
+	private static String toBaseString(long i, int base) {
+		String out = "";
+		if (i < 0) {
+			out += "-";
+			i = -i;
+		}
+		while (i > 0) {
+			out += JTranscCType.encodeDigit((int) (i % base));
+			i /= base;
+		}
+		return out;
+	}
 
-	native public static String toOctalString(long i);
+	public static String toHexString(long i) {
+		return toBaseString(i, 16);
+	}
 
-	native public static String toBinaryString(long i);
+	public static String toOctalString(long i) {
+		return toBaseString(i, 8);
+	}
+
+	public static String toBinaryString(long i) {
+		return toBaseString(i, 2);
+	}
 
     @HaxeMethodBody("return HaxeNatives.str('' + p0);")
     native public static String toString(long i);

@@ -102,7 +102,7 @@ public final class Field extends AccessibleObject implements Member {
 		return (((mod == 0) ? "" : (Modifier.toString(mod) + " ")) + _InternalUtils.getTypeName(getType()) + " " + _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName());
 	}
 
-    @HaxeMethodBody("return HaxeNatives.box(Reflect.field(p0, this._internalName));")
+    @HaxeMethodBody("return HaxeNatives.getField(this.clazz._hxClass, p0, this._internalName);")
 	native public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
 	native public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException;

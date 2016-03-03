@@ -27,6 +27,7 @@ import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
+import jtransc.rt.test.JTranscReflection
 import jtransc.rt.test.JTranscStackTraceTest
 import jtransc.rt.test.JTranscStringTest
 import org.junit.Assert
@@ -54,9 +55,8 @@ class HaxeGenSuite {
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
 	@Test fun stringsTest() = testClass<JTranscStringTest>()
-
 	@Test fun stackTraceTest() = testClass<JTranscStackTraceTest>()
-
+	@Test fun reflectionTest() = testClass<JTranscReflection>()
 
 	@Test fun bug12Test() = testClass<JTranscBug12Test>()
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()

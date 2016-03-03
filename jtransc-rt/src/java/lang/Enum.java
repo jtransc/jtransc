@@ -17,6 +17,9 @@
 package java.lang;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Objects;
 
 public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable {
 	private final String name;
@@ -67,7 +70,22 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
 		return (zuper == Enum.class) ? (Class<E>) clazz : (Class<E>) zuper;
 	}
 
-	native public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name);
+	public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
+		for (Field field : enumType.getDeclaredFields()) {
+			if (Objects.equals(field.getName(), name)) {
+				//if (Modifier.isStatic(field.getModifiers())) {
+					//if (Objects.equals(field.getType(), enumType)) {
+						try {
+							return (T) field.get(null);
+						} catch (IllegalAccessException e) {
+							e.printStackTrace();
+						}
+				//	}
+				//}
+			}
+		}
+		return null;
+	}
 
     /*
     public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
