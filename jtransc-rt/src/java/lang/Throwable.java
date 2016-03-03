@@ -32,23 +32,31 @@ public class Throwable implements Serializable {
 	private boolean writableStackTrace = false;
 
 	public Throwable() {
-		this("Throwable", null, false, false);
+		fillInStackTrace();
+		t_init("Throwable", null, false, false);
 	}
 
 	public Throwable(String message) {
-		this(message, null, false, false);
+		fillInStackTrace();
+		t_init(message, null, false, false);
 	}
 
 	public Throwable(String message, Throwable cause) {
-		this(message, null, false, false);
+		fillInStackTrace();
+		t_init(message, null, false, false);
 	}
 
 	public Throwable(Throwable cause) {
-		this("Throwable", null, false, false);
+		fillInStackTrace();
+		t_init("Throwable", null, false, false);
 	}
 
 	protected Throwable(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		fillInStackTrace();
+		t_init(message, cause, enableSuppression, writableStackTrace);
+	}
+
+	private void t_init(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		this.message = message;
 		this.cause = cause;
 		this.enableSuppression = enableSuppression;
