@@ -33,22 +33,26 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
-    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
+	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	native public static String toString(double d);
 
 	native public static String toHexString(double d);
 
-	native public static Double valueOf(String s);
+	// @TODO: Cache -1.0, 0.0 and 1.0
+	public static Double valueOf(String s) {
+		double v = parseDouble(s);
+		return new Double(v);
+	}
 
 	@JTranscKeep
 	public static Double valueOf(double d) {
 		return new Double(d);
 	}
 
-    @HaxeMethodBody("return Std.parseFloat(p0._str);")
+	@HaxeMethodBody("return Std.parseFloat(p0._str);")
 	native public static double parseDouble(String value);
 
-    @HaxeMethodBody("return Math.isNaN(p0);")
+	@HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(double v);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
@@ -121,17 +125,26 @@ public final class Double extends Number implements Comparable<Double> {
 		return (obj instanceof Double) && (doubleToLongBits(((Float) obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
 	}
 
-    @HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
 	native public static long doubleToLongBits(double value);
 
-	public static native long doubleToRawLongBits(double value);
+	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	native public static long doubleToRawLongBits(double value);
 
-    @HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
+	@HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
 	public static native double longBitsToDouble(long bits);
 
-	native public int compareTo(Double anotherDouble);
+	public int compareTo(Double that) {
+		return Double.compare(this.value, that.value);
+	}
 
-	native public static int compare(double d1, double d2);
+	public static int compare(double d1, double d2) {
+		if (d1 < d2) return -1;
+		if (d1 > d2) return 1;
+		long b1 = Double.doubleToLongBits(d1);
+		long b2 = Double.doubleToLongBits(d2);
+		return (b1 == b2 ? 0 : (b1 < b2 ? -1 : 1));
+	}
 
 	public static double sum(double a, double b) {
 		return a + b;

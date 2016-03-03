@@ -20,9 +20,11 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
 	protected AbstractSet() {
 	}
 
-	native public boolean equals(Object o);
+	public boolean equals(Object o) {
+		return o instanceof Set && super.equals(o);
+	}
 
-	native public int hashCode();
+	//public int hashCode();
 
-	native public boolean removeAll(Collection<?> c);
+	//native public boolean removeAll(Collection<?> c);
 }

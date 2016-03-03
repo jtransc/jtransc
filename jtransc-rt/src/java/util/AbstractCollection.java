@@ -32,7 +32,27 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 		return size() == 0;
 	}
 
-	native public boolean contains(Object o);
+	public int hashCode() {
+		int h = 0;
+		Iterator<E> i = iterator();
+		while (i.hasNext()) {
+			E obj = i.next();
+			if (obj != null)
+				h += obj.hashCode();
+		}
+		return h;
+	}
+
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		Collection<?> c = (Collection<?>) o;
+		return (c.size() == size()) && containsAll(c);
+	}
+
+	public boolean contains(Object o) {
+		for (Object i : this) if (Objects.equals(i, o)) return true;
+		return false;
+	}
 
 	@JTranscKeep
 	public Object[] toArray() {
@@ -50,7 +70,16 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 		throw new UnsupportedOperationException();
 	}
 
-	native public boolean remove(Object o);
+	public boolean remove(Object o) {
+		Iterator<E> it = iterator();
+		while (it.hasNext()) {
+			if (Objects.equals(o, it.next())) {
+				it.remove();
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public boolean containsAll(Collection<?> collection) {
 		HashSet set = new HashSet(this);
@@ -68,12 +97,31 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 		return changed;
 	}
 
-	native public boolean removeAll(Collection<?> c);
+	public boolean removeAll(Collection<?> c) {
+		int modifiedCount = 0;
+		for (Object i : new ArrayList(c)) {
+			if (this.remove(i)) modifiedCount++;
+		}
+		return modifiedCount > 0;
+	}
 
-	native public boolean retainAll(Collection<?> c);
+	public boolean retainAll(Collection<?> c) {
+		Objects.requireNonNull(c);
+		HashSet cSet = new HashSet(c);
+		int modifiedCount = 0;
+		for (Object i : new ArrayList(this)) {
+			if (!cSet.contains(i)) {
+				this.remove(i);
+				modifiedCount++;
+			}
+		}
+		return modifiedCount > 0;
+	}
 
-	native public void clear();
+	public void clear() {
+		removeAll(this);
+	}
 
-    @HaxeMethodBody("return HaxeNatives.str('[' + this.toArray___Ljava_lang_Object_().join(', ') + ']');")
+	@HaxeMethodBody("return HaxeNatives.str('[' + this.toArray___Ljava_lang_Object_().join(', ') + ']');")
 	native public String toString();
 }
