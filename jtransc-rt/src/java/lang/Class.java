@@ -58,7 +58,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
     @HaxeMethodBody("return HaxeArray.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
 	native public Constructor<?>[] getDeclaredConstructors() throws SecurityException;
 
-    @HaxeMethodBody("return HaxeNatives.resolveClass(_parent);")
+    @HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
 	native public Class<? super T> getSuperclass();
 
     @HaxeMethodBody("return HaxeArray.fromArray(Lambda.array(Lambda.map(_interfaces, function(i) { return HaxeNatives.resolveClass(i); })), '[Ljava.lang.Class;');")

@@ -35,9 +35,20 @@ public class Thread implements Runnable {
 	}
 
 	public StackTraceElement[] getStackTrace() {
-		// @TODO
-		return new StackTraceElement[0];
+		StackTraceElement[] stackTrace = _getStackTrace();
+		if (stackTrace.length == 0) {
+			return new StackTraceElement[] {
+				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
+				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
+				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1)
+			};
+		} else {
+			return stackTrace;
+		}
 	}
+
+	@HaxeMethodBody("return HaxeNatives.getStackTrace(2);")
+	native private StackTraceElement[] _getStackTrace();
 
 	public static void yield() {
 

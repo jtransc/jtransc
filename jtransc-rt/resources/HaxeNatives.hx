@@ -4,6 +4,7 @@ import haxe.ds.Vector;
 import haxe.Int64;
 import haxe.io.Bytes;
 import Lambda;
+import haxe.CallStack;
 
 using Lambda;
 
@@ -528,4 +529,51 @@ class HaxeNatives {
         throw __i__exception__;
         //#end
     }
+
+	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):java_.lang.StackTraceElement_ {
+		var item = new java_.lang.StackTraceElement_();
+		item._init__Ljava_lang_String_Ljava_lang_String_Ljava_lang_String_I_V(
+			HaxeNatives.str(className),
+			HaxeNatives.str(methodName),
+			HaxeNatives.str(fileName),
+			line
+		);
+		return item;
+	}
+
+	static public function convertStackItem(i):java_.lang.StackTraceElement_ {
+		var className = "DummyClass";
+		var methodName = "dummyMethod";
+		var fileName = "DummyClass.java";
+		var line = 0;
+
+		function handle(i) {
+			switch (i) {
+				case CFunction:
+				case Module(m):
+				case FilePos(s, _file, _line):
+					if (s != null) handle(s);
+					fileName = _file;
+					line = _line;
+				case Method(_classname, _method):
+					className = _classname;
+					methodName = _method;
+				case LocalFunction(v):
+					methodName = '_$v';
+				default:
+			}
+		}
+
+		handle(i);
+
+		return createStackItem(className, methodName, fileName, line);
+	}
+
+	static public function getStackTrace(skip:Int):HaxeArray {
+		var out = [];
+		for (stack in CallStack.callStack()) {
+			out.push(convertStackItem(stack));
+		}
+		return HaxeArray.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
+	}
 }

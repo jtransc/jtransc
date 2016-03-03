@@ -235,7 +235,9 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
     native public boolean matches(String regex);
 
-    native public boolean contains(CharSequence s);
+    public boolean contains(CharSequence s) {
+		return indexOf(s.toString()) >= 0;
+	}
 
     native public String replaceFirst(String regex, String replacement);
 

@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -111,8 +113,11 @@ public class Throwable implements Serializable {
 	private StackTraceElement[] stackTrace;
 
 	private void fillInStackTrace(int dummy) {
-		setStackTrace(Thread.currentThread().getStackTrace());
+		setStackTrace(getStackTraceInternal());
 	}
+
+	@HaxeMethodBody("return HaxeNatives.getStackTrace(1);")
+	native private StackTraceElement[] getStackTraceInternal();
 
 	//private native Throwable fillInStackTrace(int dummy);
 	public StackTraceElement[] getStackTrace() {
