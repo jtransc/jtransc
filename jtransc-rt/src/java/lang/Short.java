@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Short extends Number implements Comparable<Short> {
 	public static final int SIZE = 16;
@@ -111,6 +112,7 @@ public final class Short extends Number implements Comparable<Short> {
 		return x - y;
 	}
 
+	@HaxeMethodBody("return HaxeNatives.swap16(p0);")
 	public static short reverseBytes(short value) {
 		return (short) (((value & 0xFF00) >> 8) | (value << 8));
 	}

@@ -42,8 +42,12 @@ class HaxeNatives {
 	}
 
 	static private var M2P32_DBL = Math.pow(2, 32);
-    inline static public function intToLong(v:Int):Long { return haxe.Int64.make(0, v); }
-    inline static public function floatToLong(v:Float):Long { return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL)); }
+    inline static public function intToLong(v:Int):Long {
+		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
+	}
+    inline static public function floatToLong(v:Float):Long {
+		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+	}
     static public function longToInt(v:Long):Int { return v.low; }
     static public function longToFloat(v:Long):Float {
         var lowf:Float = cast v.low;
@@ -605,5 +609,13 @@ class HaxeNatives {
 	static public function getField(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {
 		//Reflect.callMethod(clazz, Reflect.field(clazz, "__hx_static__init__"), []);
 		return HaxeNatives.box(Reflect.field((obj != null) ? obj : clazz, name));
+	}
+
+	static public function swap32(p0:Int):Int {
+		return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24));
+	}
+
+	static public function swap16(p0:Int):Int {
+		return (((p0 & 0xFF00) >> 8) | (p0 << 8));
 	}
 }

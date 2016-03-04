@@ -8,12 +8,15 @@ public class JTranscArithmeticTest {
 	static public void main(String[] args) {
 		int[] values = {-1, 0, 1, 3123456, -12121212};
 		for (int value : values) {
+			System.out.println((long)value);
 			System.out.println(shl15((byte)value));
 			System.out.println(shl15((short)value));
+			System.out.println(shl15((char)value));
 			System.out.println(shl15((int)value));
 			System.out.println(shl15((long)value));
 			System.out.println(mul33333((byte)value));
 			System.out.println(mul33333((short)value));
+			System.out.println(mul33333((char)value));
 			System.out.println(mul33333((int)value));
 			System.out.println(mul33333((long)value));
 		}
@@ -24,11 +27,13 @@ public class JTranscArithmeticTest {
 
 	static public int shl15(byte value) { return value << 15; }
 	static public int shl15(short value) { return value << 15; }
+	static public int shl15(char value) { return value << 15; }
 	static public int shl15(int value) { return value << 15; }
 	static public long shl15(long value) { return value << 15; }
 
 	static public int mul33333(byte value) { return value * 33333; }
 	static public int mul33333(short value) { return value * 33333; }
+	static public int mul33333(char value) { return value * 33333; }
 	static public int mul33333(int value) { return value * 33333; }
 	static public long mul33333(long value) { return value * 33333; }
 }
