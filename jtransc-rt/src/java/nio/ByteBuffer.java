@@ -16,6 +16,8 @@
 
 package java.nio;
 
+import jtransc.JTranscBits;
+
 public abstract class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	final byte[] hb;
 	final int offset;
@@ -159,8 +161,8 @@ public abstract class ByteBuffer extends Buffer implements Comparable<ByteBuffer
 	}
 
 	boolean bigEndian = true;
-	//boolean nativeByteOrder = (Bits.byteOrder() == ByteOrder.BIG_ENDIAN);
-	boolean nativeByteOrder = false;
+	boolean nativeByteOrder = (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
+	//boolean nativeByteOrder = false;
 
 	public final ByteOrder order() {
 		return bigEndian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;

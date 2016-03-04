@@ -353,6 +353,7 @@ class GenHaxeGen(
 						line("${stm.local.haxeName} = new ${adaptor.adaptor}(${stm.expr.gen()});")
 					} else {
 						val expr = stm.expr.gen()
+						//line("${stm.local.haxeName} = $expr; // ${stm.expr}")
 						line("${stm.local.haxeName} = $expr;")
 					}
 				}
@@ -667,10 +668,10 @@ class GenHaxeGen(
 				when (to) {
 					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
 					is AstType.INT -> "Std.int($e)"
-					is AstType.BOOL -> "(($e) != 0)"
-					is AstType.CHAR -> "(($e) & 0xFFFF)"
-					is AstType.SHORT -> "((($e) << 16) >> 16)"
-					is AstType.BYTE -> "((($e) << 24) >> 24)"
+					is AstType.BOOL -> "(Std.int($e) != 0)"
+					is AstType.CHAR -> "(Std.int($e) & 0xFFFF)"
+					is AstType.SHORT -> "((Std.int($e) << 16) >> 16)"
+					is AstType.BYTE -> "((Std.int($e) << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> noImpl("Unhandled conversion $from -> $to")
 				}

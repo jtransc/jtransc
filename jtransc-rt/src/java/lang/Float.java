@@ -118,6 +118,7 @@ public final class Float extends Number implements Comparable<Float> {
     @HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
     native public static int floatToIntBits(float value);
 
+	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
 	public static native int floatToRawIntBits(float value);
 
     @HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")

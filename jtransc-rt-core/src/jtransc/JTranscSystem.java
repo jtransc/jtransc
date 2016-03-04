@@ -41,4 +41,18 @@ public class JTranscSystem {
 		System.out.println("debugger");
 		throw new Error("Debugger");
 	}
+
+	/**
+	 * Assertion for debug builds
+	 *
+	 * @param trueCond
+     */
+	@JTranscInline
+	@HaxeMethodBody("if (!p0) HaxeNatives.debugger();")
+	static public void assert2(boolean trueCond) {
+		if (!trueCond) {
+			System.out.println("debugger");
+			throw new Error("Debugger");
+		}
+	}
 }

@@ -245,7 +245,7 @@ open class AstMethodProcessor private constructor(
 			// @TODO: FIX THIS!
 			when (op) {
 				AstBinop.SHL, AstBinop.SHR, AstBinop.USHR ->
-					AstExpr.BINOP(l.type, l, op, r)
+					AstExpr.BINOP(if (l.type == AstType.LONG) AstType.LONG else AstType.INT, l, op, r)
 				else -> {
 					val commonType = getCommonType(lType, rType)
 					if (commonType != null) {

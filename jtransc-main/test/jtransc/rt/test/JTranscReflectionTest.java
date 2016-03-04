@@ -4,9 +4,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.nio.ByteBuffer;
 import java.util.List;
 
-public class JTranscReflection {
+public class JTranscReflectionTest {
 	static public void main(String[] args) {
 		Singleton test1 = Test1.class.getAnnotation(Singleton.class);
 		Singleton test2 = Test2.class.getAnnotation(Singleton.class);
