@@ -627,7 +627,7 @@ class HaxeNatives {
 
 	static public function reverseString(p0:String):String {
 		var reversed = '';
-		for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1);
+		for (n in 0 ... p0.length) reversed += p0.charAt(p0.length - n - 1);
 		return reversed;
 	}
 }
