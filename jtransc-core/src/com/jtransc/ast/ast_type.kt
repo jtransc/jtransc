@@ -291,13 +291,14 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 						val id = if (reader.peekch() == '.') {
 							reader.readch()
 							val id = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
-							when (reader.readch()) {
-								'>' -> id
+							val ch = reader.readch()
+							when (ch) {
+								'<' -> id
 								';' -> {
 									suffixes += AstType.GENERIC_SUFFIX(id, null)
 									break@mainGenerics
 								}
-								else -> invalidOp
+								else -> invalidOp("Expected > or ; but found $ch on reader $reader")
 							}
 						} else {
 							null

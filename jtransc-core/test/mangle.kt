@@ -46,4 +46,7 @@ class MangleTest {
 		//testMangle("<A::Ljava/lang/annotation/Annotation;>(Ljava/lang/Class<TA;>;)TA;")
 	}
 
+	@Test fun test5() {
+		testMangle("()Ljtransc/rt/test/ATest1<TA;TB;>.ATest2<TB;>;")
+	}
 }

@@ -84,11 +84,11 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
     native public StringBuilder append(long lng);
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
+    @HaxeMethodBody("this._str += HaxeNatives.numberToString(p0); return this;")
     native public StringBuilder append(float f);
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
+    @HaxeMethodBody("this._str += HaxeNatives.numberToString(p0); return this;")
     native public StringBuilder append(double d);
 
     @Override
@@ -152,12 +152,7 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
     native public int lastIndexOf(String str, int fromIndex);
 
     @Override
-    @HaxeMethodBody(
-        "var reversed = '';\n" +
-        "for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1);\n" +
-        "this._str = reversed;\n" +
-        "return this;\n"
-    )
+    @HaxeMethodBody("this._str = HaxeNatives.reverseString(this._str); return this;")
     native public StringBuilder reverse();
 
     /////////////////////////////////////////////////////////////////////////

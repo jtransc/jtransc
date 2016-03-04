@@ -319,10 +319,10 @@ public final class String implements java.io.Serializable, Comparable<String>, C
     @HaxeMethodBody("return HaxeNatives.str('' + p0);")
     native public static String valueOf(long l);
 
-    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
     native public static String valueOf(float f);
 
-    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
     native public static String valueOf(double d);
 
     public String intern() {

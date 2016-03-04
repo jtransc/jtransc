@@ -32,7 +32,7 @@ public final class Float extends Number implements Comparable<Float> {
 	public static final int BYTES = SIZE / Byte.SIZE;
 	public static final Class<Float> TYPE = (Class<Float>) Class.getPrimitiveClass("float");
 
-    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
+    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
 	native public static String toString(float value);
 
 	native public static String toHexString(float value);

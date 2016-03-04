@@ -618,4 +618,16 @@ class HaxeNatives {
 	static public function swap16(p0:Int):Int {
 		return (((p0 & 0xFF00) >> 8) | (p0 << 8));
 	}
+
+	static public function numberToString(number:Float):String {
+		var str = '$number';
+		if (str.indexOf('.') < 0) str += ".0";
+		return str;
+	}
+
+	static public function reverseString(p0:String):String {
+		var reversed = '';
+		for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1);
+		return reversed;
+	}
 }

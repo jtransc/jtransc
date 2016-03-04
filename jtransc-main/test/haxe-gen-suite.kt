@@ -41,7 +41,11 @@ class HaxeGenSuite {
 	//@Test fun langBasicTypesTest() = testClass<BasicTypesTest>()
 	@Test fun langStringsTest() = testClass<StringsTest>()
 
-	@Test fun langSystemTest() = testClass<SystemTest>()
+	@Test fun langSystemTest() = testClass<SystemTest>() { it.replace(
+		"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
+	).replace(
+		"path.separator:;", "path.separator::"
+	) }
 
 	//-----------------------------------------------------------------
 	// Java Utils
@@ -79,7 +83,8 @@ class HaxeGenSuite {
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 
 	// Shortcut
-	inline fun <reified T : Any> testClass() = testClass(T::class.java)
+	inline fun <reified T : Any> testClass() = testClass(T::class.java, { it })
+	inline fun <reified T : Any> testClass(noinline transformer: (String) -> String) = testClass(T::class.java, transformer)
 
 	val kotlinPaths = listOf<String>() +
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.0") +
@@ -87,11 +92,8 @@ class HaxeGenSuite {
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.0")
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(clazz: Class<T>) {
-		val expected = ClassUtils.callMain(clazz).replace(
-			"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
-		)
-
+	fun <T : Any> testClass(clazz: Class<T>, transformer: (String) -> String) {
+		val expected = transformer(ClassUtils.callMain(clazz))
 		val result = runClass(clazz)
 
 		Assert.assertEquals(normalize(expected), normalize(result))
