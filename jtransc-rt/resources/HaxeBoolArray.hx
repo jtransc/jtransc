@@ -31,10 +31,12 @@ class HaxeBoolArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Bool {
+		checkBounds(index);
         return this.data[index] != 0;
     }
 
     inline public function set(index:Int, value:Bool):Void {
+		checkBounds(index);
         this.data[index] = value ? 1 : 0;
     }
 

@@ -17,11 +17,13 @@ class HaxeCharArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Int {
+		checkBounds(index);
         return this.data[index];
     }
 
     inline public function set(index:Int, value:Int):Void {
-        this.data[index] = value;
+		checkBounds(index);
+		this.data[index] = value;
     }
 
 	override public function getDynamic(index:Int):Dynamic {

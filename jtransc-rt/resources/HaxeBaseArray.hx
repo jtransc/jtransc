@@ -6,11 +6,21 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	    return HaxeNatives.str("HaxeBaseArray");
 	}
 
+	private function checkBounds(index:Int) {
+		if (index < 0 || index >= length) {
+			var e = new java_.lang.ArrayIndexOutOfBoundsException_();
+			e._init__I_V(index);
+			throw e;
+		}
+	}
+
 	public function getDynamic(index:Int):Dynamic {
+		checkBounds(index);
 	    return null;
 	}
 
 	public function setDynamic(index:Int, value:Dynamic) {
+		checkBounds(index);
 	}
 
     public function sort(from:Int, to:Int) {

@@ -2,6 +2,7 @@ package com.jtransc.ast
 
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.text.*
 import java.io.Reader
 import java.io.Serializable
@@ -36,6 +37,8 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D')
 
+
+
 	/*
 	object TYPECLASS {
 		val VOID = REF("java.lang.Void")
@@ -66,21 +69,37 @@ interface AstType {
 
 	data class ARRAY(val element: AstType) : AstType
 
-	data class GENERIC(val type: AstType.REF, val params: List<AstType>) : AstType
+	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy:Boolean) : AstType {
+		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
+		val params0: List<AstType> get() = suffixes[0].params!!
+
+	}
+
+	data class GENERIC_SUFFIX(val id:String?, val params: List<AstType>?)
+
+	data class TYPE_PARAMETER(val id:String) : AstType
+
+	object GENERIC_STAR : AstType
+	object GENERIC_ITEM : AstType
+
+	data class GENERIC_DESCRIPTOR(val element:AstType, val types: List<Pair<String, AstType>>) : AstType
+
+	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType
+	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType
 
 	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
 	//	constructor(ret: AstType, args: List<AstType>) : this(args.toArguments(), ret)
 	//data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
-	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean) : AstType {
+	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType {
 		val argCount: Int get() = argTypes.size
 
-		constructor(ret: AstType, argTypes: List<AstType>) : this(ret, argTypes.toArguments(), true)
+		constructor(ret: AstType, argTypes: List<AstType>, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, argTypes.toArguments(), true, paramTypes)
 
-		constructor(args: List<AstArgument>, ret: AstType) : this(ret, args, true)
+		constructor(args: List<AstArgument>, ret: AstType, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, args, true, paramTypes)
 
-		constructor(ret: AstType, vararg args: AstArgument) : this(ret, args.toList(), true)
+		constructor(ret: AstType, vararg args: AstArgument, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, args.toList(), true, paramTypes)
 
-		constructor(ret: AstType, vararg args: AstType) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret)
+		constructor(ret: AstType, vararg args: AstType, paramTypes: List<Pair<String, AstType>> = listOf()) : this(args.withIndex().map { AstArgument(it.index, it.value) }, ret, paramTypes)
 
 		val argNames by lazy { args.map { it.name } }
 		val argTypes by lazy { args.map { it.type } }
@@ -95,7 +114,7 @@ interface AstType {
 				argTypes + listOf(ret)
 			}
 		}
-		val withoutRetval: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(AstType.UNKNOWN, argTypes)
+		val withoutRetval: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(AstType.UNKNOWN, argTypes, paramTypes)
 
 		override fun hashCode() = desc.hashCode();
 		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD_TYPE?)?.desc)
@@ -212,7 +231,7 @@ object AstTypeBuilder {
 	val DOUBLE = AstType.DOUBLE
 	fun REF(name: FqName) = AstType.REF(name)
 	fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
-	fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
+	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
 	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD_TYPE(args, ret)
 	fun METHOD(ret: AstType, vararg args: AstType) = AstType.METHOD_TYPE(ret, args.toList())
 }
@@ -227,14 +246,18 @@ val AstTypeDemangleCache = hashMapOf<String, AstType>()
 
 fun AstType.Companion.demangle(desc: String): AstType {
 	if (desc !in AstTypeDemangleCache) {
-		AstTypeDemangleCache[desc] = this.readOne(StringReader(desc))
+		AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
 	}
 	return AstTypeDemangleCache[desc]!!
 }
 
 val REF_DELIMITER = setOf(';', '<')
+val REF_DELIMITER2 = setOf(';', '<', '.')
+val T_DELIMITER = setOf(';')
+val TYPE_DELIMITER = setOf(':', '>')
 
-fun AstType.Companion.readOne(reader: Reader): AstType {
+// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
+fun AstType.Companion.readOne(reader: StrReader): AstType {
 	if (reader.eof) return AstType.UNKNOWN
 	val typech = reader.readch()
 	return when (typech) {
@@ -248,6 +271,13 @@ fun AstType.Companion.readOne(reader: Reader): AstType {
 		'I' -> AstType.INT
 		'J' -> AstType.LONG
 		'[' -> AstType.ARRAY(AstType.readOne(reader))
+		'*' -> AstType.GENERIC_STAR
+		'-' -> AstType.GENERIC_LOWER_BOUND(AstType.readOne(reader))
+		'+' -> AstType.GENERIC_UPPER_BOUND(AstType.readOne(reader))
+		'T' -> {
+			val id = reader.readUntil(T_DELIMITER, including = false, readDelimiter = true)
+			AstType.TYPE_PARAMETER(id)
+		}
 		'L' -> {
 			val base = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
 			val delim = reader.readch()
@@ -255,19 +285,67 @@ fun AstType.Companion.readOne(reader: Reader): AstType {
 			when (delim) {
 				';' -> ref
 				'<' -> {
-					val generic = arrayListOf<AstType>()
-					while (reader.hasMore) {
-						val ch = reader.peekch()
-						if (ch == '>') {
-							reader.expect(">;")
-							break
+					var index = 0
+					val suffixes = arrayListOf<AstType.GENERIC_SUFFIX>();
+					mainGenerics@while (reader.hasMore) {
+						val id = if (reader.peekch() == '.') {
+							reader.readch()
+							val id = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
+							when (reader.readch()) {
+								'>' -> id
+								';' -> {
+									suffixes += AstType.GENERIC_SUFFIX(id, null)
+									break@mainGenerics
+								}
+								else -> invalidOp
+							}
 						} else {
-							generic.add(readOne(reader))
+							null
+						}
+						val generic = arrayListOf<AstType>()
+						mainGeneric@while (reader.hasMore) {
+							val ch = reader.peekch()
+							if (ch == '>') {
+								reader.expect(">")
+								when (reader.peekch()) {
+									'.' -> break@mainGeneric
+									';' -> break@mainGeneric
+								}
+
+								break
+							} else {
+								generic.add(readOne(reader))
+							}
+						}
+						index++
+						suffixes += AstType.GENERIC_SUFFIX(id, generic)
+						if (reader.peekch() == ';') {
+							reader.expect(";")
+							break
 						}
 					}
-					AstType.GENERIC(ref, generic)
+					AstType.GENERIC(ref, suffixes, true)
 				}
 				else -> throw InvalidOperationException()
+			}
+		}
+		// PARAMETRIZED TYPE
+		'<' -> {
+			val types = arrayListOf<Pair<String, AstType>>()
+			while (reader.peekch() != '>') {
+				val id = reader.readUntil(TYPE_DELIMITER, including = false, readDelimiter = false)
+				reader.expect(":")
+				if (reader.peekch() == ':') {
+					reader.readch()
+				}
+				types += Pair(id, this.readOne(reader))
+			}
+			reader.expect(">")
+			val item = this.readOne(reader)
+			if (item is AstType.METHOD_TYPE) {
+				AstType.METHOD_TYPE(item.ret, item.argTypes, types)
+			} else {
+				AstType.GENERIC_DESCRIPTOR(item, types)
 			}
 		}
 		'(' -> {
@@ -280,14 +358,14 @@ fun AstType.Companion.readOne(reader: Reader): AstType {
 			AstType.METHOD_TYPE(ret, args)
 		}
 		else -> {
-			throw NotImplementedError("Not implemented type '$typech'")
+			throw NotImplementedError("Not implemented type '$typech' @ $reader")
 		}
 	}
 }
 
 val AstType.elementType: AstType get() = when (this) {
 	is AstType.ARRAY -> this.element
-	is AstType.GENERIC -> this.params[0]
+	is AstType.GENERIC -> this.suffixes[0].params!![0]
 	else -> AstType.UNKNOWN
 }
 
@@ -301,15 +379,29 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 	is AstType.FLOAT -> "F"
 	is AstType.INT -> "I"
 	is AstType.LONG -> "J"
-	is AstType.GENERIC -> "L" + type.name.internalFqname + "<" + this.params.map { it.mangle(retval) }.joinToString("") + ">;"
+	is AstType.GENERIC -> "L" + type.name.internalFqname + this.suffixes.map {
+		(it.id ?: "") + (if (it.params != null) "<" + it.params.map { it.mangle(retval) }.joinToString("") + ">" else "")
+	}.joinToString(".") + ";"
 	is AstType.REF -> "L" + name.internalFqname + ";"
 	is AstType.ARRAY -> "[" + element.mangle(retval)
+	is AstType.GENERIC_STAR -> "*"
+	is AstType.GENERIC_LOWER_BOUND -> "-" + this.element.mangle(retval)
+	is AstType.GENERIC_UPPER_BOUND -> "+" + this.element.mangle(retval)
+	is AstType.TYPE_PARAMETER -> "T" + this.id + ";"
+	is AstType.GENERIC_DESCRIPTOR -> {
+		"<" + this.types.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">" + this.element.mangle(retval)
+	}
 	is AstType.METHOD_TYPE -> {
+		var param = if (this.paramTypes.size > 0) {
+			"<" + this.paramTypes.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">"
+		} else {
+			""
+		}
 		val args = "(" + argTypes.map { it.mangle(retval) }.joinToString("") + ")"
 		if (retval) {
-			args + ret.mangle(retval)
+			param + args + ret.mangle(retval)
 		} else {
-			args
+			param + args
 		}
 	}
 	is AstType.UNKNOWN -> throw RuntimeException("Can't mangle unknown")
@@ -321,7 +413,17 @@ fun AstType.getRefTypes(): List<AstType> = this.getRefTypesFqName().map { AstTyp
 fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.REF -> listOf(this.name)
 	is AstType.ARRAY -> this.element.getRefTypesFqName()
-	is AstType.METHOD_TYPE -> this.argTypes.flatMap { it.getRefTypesFqName() } + this.ret.getRefTypesFqName()
-	is AstType.GENERIC -> this.type.getRefTypesFqName()
-	else -> listOf()
+	is AstType.METHOD_TYPE -> {
+		//if (this.paramTypes.isNotEmpty()) println(":::::::: " + this.paramTypes)
+		this.argTypes.flatMap { it.getRefTypesFqName() } + this.ret.getRefTypesFqName() + this.paramTypes.flatMap { it.second.getRefTypesFqName() }
+	}
+	is AstType.GENERIC -> {
+		this.type.getRefTypesFqName() + this.suffixes.flatMap { it.params ?: listOf() }.flatMap { it.getRefTypesFqName() }
+	}
+	is AstType.Primitive, is AstType.UNKNOWN, is AstType.NULL -> listOf()
+	is AstType.TYPE_PARAMETER -> listOf()
+	is AstType.GENERIC_STAR -> listOf()
+	is AstType.GENERIC_LOWER_BOUND -> this.element.getRefTypesFqName()
+	is AstType.GENERIC_UPPER_BOUND -> this.element.getRefTypesFqName()
+	else -> noImpl("AstType.getRefTypesFqName: $this")
 }

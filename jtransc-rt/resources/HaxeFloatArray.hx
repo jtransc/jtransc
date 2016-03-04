@@ -17,10 +17,12 @@ class HaxeFloatArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Float {
+		checkBounds(index);
         return this.data[index];
     }
 
     inline public function set(index:Int, value:Float):Void {
+		checkBounds(index);
         this.data[index] = value;
     }
 

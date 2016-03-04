@@ -17,7 +17,45 @@
 package com.jtransc.text
 
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.invalidOp
 import java.io.Reader
+
+class StrReader(val str:String) {
+	var offset:Int = 0
+	val length: Int get() = str.length
+	val eof: Boolean get() = offset >= length
+	val hasMore: Boolean get() = !eof
+	fun readch():Char = this.str[offset++]
+	fun read():Int = if (!eof) readch().toInt() else -1
+	fun peek(count:Int):String {
+		return this.str.substring(offset, offset + count)
+	}
+	fun peekch():Char = this.str[offset]
+	fun read(count:Int):String {
+		val out = this.peek(count)
+		this.offset += count
+		return out
+	}
+	fun skipSpaces():StrReader {
+		while (this.peek(1).isNullOrBlank()) this.read()
+		return this
+	}
+	fun expect(expected:String):String {
+		val result = this.read(expected.length)
+		if (result != expected) throw InvalidOperationException("Expecting '$expected' but found '$result' in '$str'")
+		return result
+	}
+	override fun toString() = "StrReader('$str')"
+
+	fun <T> readList(min: Int, readElement: (s:StrReader) -> T?): List<T> {
+		var out = arrayListOf<T>()
+		while (this.hasMore) {
+			out.add(readElement(this) ?: break)
+		}
+		if (out.size < min) invalidOp("Expected a list of at least $min elements and had ${out.size}")
+		return out
+	}
+}
 
 fun Reader.readUntil(expectedCh:Set<Char>, including:Boolean = false, readDelimiter:Boolean = true):String {
 	var out = ""
@@ -83,3 +121,25 @@ fun <T : Reader> T.skipSpaces():T {
 	}
 	return this
 }
+
+
+
+
+
+
+fun StrReader.readUntil(expectedCh:Set<Char>, including:Boolean = false, readDelimiter:Boolean = true):String {
+	var out = ""
+	while (this.hasMore) {
+		val ch = this.peekch()
+		if (ch in expectedCh) {
+			if (including) out += ch
+			if (readDelimiter) this.readch()
+			break
+		}
+		out += ch
+		this.readch()
+	}
+	return out
+}
+
+fun StrReader.readUntil(vararg expectedCh:Char, including:Boolean = false, readDelimiter:Boolean = true):String = this.readUntil(expectedCh.toSet(), including)

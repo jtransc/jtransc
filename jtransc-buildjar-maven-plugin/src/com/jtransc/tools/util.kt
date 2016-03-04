@@ -65,8 +65,9 @@ class JavaIds(val parent: JavaIds? = null) {
 			is AstType.ARRAY -> serializeValid(type.element, usePrims) + "[]"
 			is AstType.GENERIC -> {
 				val base = serializeValid(type.type, usePrims)
-				val generics = type.params.map { serializeValid(it, false) }.joinToString(", ")
-				if (generics.isEmpty()) "$base" else "$base<$generics>"
+				base + type.suffixes.map {
+					(it.id ?: "") + if (it.params != null) "<" + it.params!!.map { serializeValid(it, false) }.joinToString(", ") + ">" else ""
+				}
 			}
 			is AstType.METHOD_TYPE -> {
 				val count = type.args.size

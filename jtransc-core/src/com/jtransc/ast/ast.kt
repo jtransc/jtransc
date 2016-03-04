@@ -391,6 +391,7 @@ open class AstMember(
 	val containingClass: AstClass,
 	val name: String,
 	val type: AstType,
+	val genericType: AstType,
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
 	val annotations: List<AstAnnotation> = listOf()
@@ -410,7 +411,7 @@ class AstField(
 	val isFinal: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val constantValue: Any? = null
-) : AstMember(containingClass, name, type, isStatic, visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, isStatic, visibility, annotations) {
 	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val hasConstantValue = constantValue != null
 }
@@ -429,9 +430,10 @@ class AstMethod(
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val isNative: Boolean = false
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, type, isStatic, visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, isStatic, visibility, annotations) {
 
 	val methodType: AstType.METHOD_TYPE = type
+	val genericMethodType: AstType.METHOD_TYPE = genericType as AstType.METHOD_TYPE
 	val desc = methodType.desc
 	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }

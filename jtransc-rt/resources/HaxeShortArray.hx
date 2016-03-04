@@ -17,10 +17,12 @@ class HaxeShortArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Int {
+		checkBounds(index);
         return ((this.data[index] << 16) >> 16);
     }
 
     inline public function set(index:Int, value:Int):Void {
+		checkBounds(index);
         this.data[index] = value;
     }
 

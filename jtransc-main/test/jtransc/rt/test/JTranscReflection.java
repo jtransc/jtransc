@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 
 public class JTranscReflection {
 	static public void main(String[] args) {
@@ -20,13 +21,42 @@ public class JTranscReflection {
 		//System.out.println(test1);
 		//System.out.println(test2);
 
-		Class<EnumDemo> enumDemoClass = EnumDemo.class;
-
 		System.out.println(InjectStore.valueOf(EnumDemo.class, "BB").msg);
+
+		try {
+			System.out.println(MyDemo.class.getField("items").getGenericType());
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println(new ATest1<Integer, String>().new2().new3().getClass().getCanonicalName());
 	}
 
 	@Singleton static public class Test1 {}
 	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.DECLARE, b = "BB") static public class Test2 {}
+}
+
+class MyDemo {
+	public List<MyDemoItem> items;
+}
+
+class MyDemoItem {
+
+}
+
+class ATest1<A, B> {
+	class ATest2<C> {
+		class ATest3<D, E extends String> {
+
+		}
+
+		public ATest3<A, String> new3() {
+			return new ATest3<>();
+		}
+	}
+	public ATest2<B> new2() {
+		return new ATest2<>();
+	}
 }
 
 @Retention(RetentionPolicy.RUNTIME)

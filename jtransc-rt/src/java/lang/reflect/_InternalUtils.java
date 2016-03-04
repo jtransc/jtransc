@@ -26,6 +26,7 @@ class _InternalUtils {
 		try {
 			return Class.forName(className);
 		} catch (ClassNotFoundException e) {
+			System.err.println("Can't find class '" + className + "'");
 			return null;
 		}
 	}
@@ -86,7 +87,7 @@ class _InternalUtils {
 				if (generic) {
 					int genericStart = sr.offset;
 					int diamondCount = 1;
-					while (true) {
+					while (sr.hasMore()) {
 						char cn = sr.read();
 						if (cn == '<') diamondCount++;
 						if (cn == '>') {
@@ -99,6 +100,9 @@ class _InternalUtils {
 					String genericParamsStr = sr.str.substring(genericStart, genericEnd);
 					//System.out.println("genericParamsStr: " + genericParamsStr);
 					Type[] paramTypes = parseTypes(genericParamsStr, owner);
+					for (Type pt : paramTypes) {
+						if (pt == null) throw new RuntimeException("Can't find one or more classes in '" + genericParamsStr + "'");
+					}
 					return new ParameterizedTypeImpl(paramTypes, base, owner);
 				}
 				return base;

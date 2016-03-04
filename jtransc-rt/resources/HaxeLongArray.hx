@@ -18,10 +18,12 @@ class HaxeLongArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Int64 {
+		checkBounds(index);
         return this.data[index];
     }
 
     inline public function set(index:Int, value:Int64):Void {
+		checkBounds(index);
         this.data[index] = value;
     }
 

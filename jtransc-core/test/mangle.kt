@@ -35,4 +35,15 @@ class MangleTest {
 		println(Test::class.java.declaredMethods.map { it.name })
 		println(Test::class.java.declaredConstructors.map { it.name })
 	}
+
+	@Test fun test3() {
+		testMangle("<U:Ljava/lang/Object;>(Ljava/lang/Class<TU;>;)Ljava/lang/Class<+TU;>;")
+		//testMangle("<A::Ljava/lang/annotation/Annotation;>(Ljava/lang/Class<TA;>;)TA;")
+	}
+
+	@Test fun test4() {
+		testMangle("Ljava/util/LinkedList<TE;>.ListItr;")
+		//testMangle("<A::Ljava/lang/annotation/Annotation;>(Ljava/lang/Class<TA;>;)TA;")
+	}
+
 }

@@ -20,14 +20,16 @@ class HaxeArray extends HaxeBaseArray {
         return data.toArray();
     }
 
-    public function get(index:Int):Dynamic { return this.data[index]; }
-    public function set(index:Int, value:Dynamic):Void { this.data[index] = value; }
+    public function get(index:Int):Dynamic { checkBounds(index);return this.data[index]; }
+    public function set(index:Int, value:Dynamic):Void { checkBounds(index); this.data[index] = value; }
 
 	override public function getDynamic(index:Int):Dynamic {
+		checkBounds(index);
 	    return get(index);
 	}
 
 	override public function setDynamic(index:Int, value:Dynamic) {
+		checkBounds(index);
 	    set(index, value);
 	}
 
