@@ -19,6 +19,8 @@ package java.lang;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.util.Objects;
+
 @HaxeAddMembers({"public var _str:String = '';"})
 public class StringBuilder extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
     //public class StringBuilder implements java.io.Serializable, CharSequence {
@@ -44,111 +46,160 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
 
     @Override
     @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(Object obj);
-
-    @Override
-    @HaxeMethodBody("this._str += p0; return this;")
     native public StringBuilder append(String str);
 
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(StringBuffer sb);
+	@Override
+	@HaxeMethodBody("this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
+	native public StringBuilder delete(int start, int end);
+
+	@Override
+	@HaxeMethodBody("this._str = this._str.substr(0, p0) + p2._str + this._str.substr(p1); return this;")
+	native public StringBuilder replace(int start, int end, String str);
+
+	@Override
+	public StringBuilder append(Object obj) {
+		return this.append(Objects.toString(obj));
+	}
+
+	@Override
+    public StringBuilder append(StringBuffer sb) {
+		return this.append(sb.toString());
+	}
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(CharSequence s);
+    public StringBuilder append(CharSequence s) {
+	    return this.append(s.toString());
+    }
 
     @Override
-    native public StringBuilder append(CharSequence s, int start, int end);
+    public StringBuilder append(CharSequence s, int start, int end) {
+	    return append(s.toString().substring(start, end));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(char[] str);
+    public StringBuilder append(char[] str) {
+	    return this.append(new String(str));
+    }
 
     @Override
-    native public StringBuilder append(char[] str, int offset, int len);
+    public StringBuilder append(char[] str, int offset, int len) {
+	    return this.append(new String(str, offset, len));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += p0 ? 'true' : 'false'; return this;")
-    native public StringBuilder append(boolean b);
+    public StringBuilder append(boolean v) {
+	    return this.append(Boolean.toString(v));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += String.fromCharCode(p0); return this;")
-    native public StringBuilder append(char c);
+    public StringBuilder append(char v) {
+	    return this.append(Character.toString(v));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(int i);
+    public StringBuilder append(int v) {
+	    return this.append(Integer.toString(v));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(long lng);
+    public StringBuilder append(long v) {
+	    return this.append(Long.toString(v));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += HaxeNatives.numberToString(p0); return this;")
-    native public StringBuilder append(float f);
+    public StringBuilder append(float v) {
+	    return this.append(Float.toString(v));
+    }
 
     @Override
-    @HaxeMethodBody("this._str += HaxeNatives.numberToString(p0); return this;")
-    native public StringBuilder append(double d);
+    public StringBuilder append(double d) {
+	    return this.append(Double.toString(d));
+    }
 
     @Override
-    native public StringBuilder appendCodePoint(int codePoint);
+    public StringBuilder appendCodePoint(int codePoint) {
+	    return append(new String(new int[] { codePoint }, 0, 1));
+    }
 
     @Override
-    native public StringBuilder delete(int start, int end);
+    public StringBuilder deleteCharAt(int index) {
+	    return delete(index, index + 1);
+    }
+
+	@Override
+	public StringBuilder insert(int offset, String str) {
+		return this.replace(offset, offset, str);
+	}
+
+	@Override
+    public StringBuilder insert(int offset, char[] str, int pos, int len) {
+		return this.insert(offset, new String(str, pos, len));
+	}
 
     @Override
-    native public StringBuilder deleteCharAt(int index);
+    public StringBuilder insert(int offset, Object obj) {
+	    return this.insert(offset, Objects.toString(obj));
+    }
 
     @Override
-    native public StringBuilder replace(int start, int end, String str);
+    public StringBuilder insert(int offset, char[] str) {
+	    return this.insert(offset, new String(str));
+    }
 
     @Override
-    native public StringBuilder insert(int index, char[] str, int offset, int len);
+    public StringBuilder insert(int offset, CharSequence s) {
+	    return this.insert(offset, s.toString());
+    }
 
     @Override
-    native public StringBuilder insert(int offset, Object obj);
+    public StringBuilder insert(int offset, CharSequence s, int start, int end) {
+	    return this.insert(offset, s.toString().substring(start, end));
+    }
 
     @Override
-    native public StringBuilder insert(int offset, String str);
+    public StringBuilder insert(int offset, boolean b) {
+	    return this.insert(offset, Boolean.toString(b));
+    }
 
     @Override
-    native public StringBuilder insert(int offset, char[] str);
+    public StringBuilder insert(int offset, char c) {
+	    return this.insert(offset, Character.toString(c));
+    }
 
     @Override
-    native public StringBuilder insert(int dstOffset, CharSequence s);
+    public StringBuilder insert(int offset, int i) {
+	    return this.insert(offset, Integer.toString(i));
+    }
 
     @Override
-    native public StringBuilder insert(int dstOffset, CharSequence s, int start, int end);
+    public StringBuilder insert(int offset, long l) {
+	    return this.insert(offset, Long.toString(l));
+    }
 
     @Override
-    native public StringBuilder insert(int offset, boolean b);
+    public StringBuilder insert(int offset, float f) {
+	    return this.insert(offset, Float.toString(f));
+    }
 
     @Override
-    native public StringBuilder insert(int offset, char c);
+    public StringBuilder insert(int offset, double d) {
+	    return this.insert(offset, Double.toString(d));
+    }
 
     @Override
-    native public StringBuilder insert(int offset, int i);
-
-    @Override
-    native public StringBuilder insert(int offset, long l);
-
-    @Override
-    native public StringBuilder insert(int offset, float f);
-
-    @Override
-    native public StringBuilder insert(int offset, double d);
-
-    @Override
+    @HaxeMethodBody("return this._str.indexOf(p0._str);")
     native public int indexOf(String str);
 
     @Override
+    @HaxeMethodBody("return this._str.indexOf(p0._str, p1);")
     native public int indexOf(String str, int fromIndex);
 
     @Override
+    @HaxeMethodBody("return this._str.lastIndexOf(p0._str);")
     native public int lastIndexOf(String str);
 
     @Override
+    @HaxeMethodBody("return this._str.lastIndexOf(p0._str, p1);")
     native public int lastIndexOf(String str, int fromIndex);
 
     @Override
@@ -163,16 +214,16 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
     @HaxeMethodBody("return this._str.charCodeAt(p0);")
     native public char charAt(int index);
 
-    native public CharSequence subSequence(int start, int end);
+    public CharSequence subSequence(int start, int end) {
+	    return toString().substring(start, end);
+    }
 
     @Override
     @HaxeMethodBody("return HaxeNatives.str(this._str);")
     native public String toString();
 
     @Override
-    @HaxeMethodBody("this._str = this._str.substr(0, p0);")
-    native public void setLength(int newLength);
-
-    //native public IntStream chars();
-    //native public IntStream codePoints();
+    public void setLength(int newLength) {
+	    this.delete(newLength, length());
+    }
 }

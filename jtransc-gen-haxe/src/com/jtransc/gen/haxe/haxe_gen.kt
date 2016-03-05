@@ -778,7 +778,7 @@ class GenHaxeGen(
 							line(features.apply(method.body!!, featureSet).gen())
 						}
 					} else {
-						val body2 = body ?: "throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
+						val body2 = body ?: "HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
 						line("$decl { $body2 }")
 					}
 				}

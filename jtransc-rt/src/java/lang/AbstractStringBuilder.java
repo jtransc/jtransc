@@ -87,12 +87,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	native public AbstractStringBuilder replace(int start, int end, String str);
 
-	native public String substring(int start);
-
 	//@Override
 	native public CharSequence subSequence(int start, int end);
-
-	native public String substring(int start, int end);
 
 	native public AbstractStringBuilder insert(int index, char[] str, int offset, int len);
 
@@ -130,4 +126,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	@Override
 	public abstract String toString();
+
+	public String substring(int start) {
+		return this.toString().substring(start);
+	}
+
+	public String substring(int start, int end) {
+		return this.toString().substring(start, end);
+	}
 }
