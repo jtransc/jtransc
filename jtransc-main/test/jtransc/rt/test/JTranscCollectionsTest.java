@@ -20,6 +20,9 @@ public class JTranscCollectionsTest {
 		list.add(2);
 		System.out.println(list.size());
 		System.out.println(Arrays.toString(list.toArray()));
+		System.out.println(Arrays.toString(list.toArray(new Integer[0])));
+		System.out.println(Arrays.toString(list.toArray(new Integer[6])));
+		System.out.println(Arrays.toString(list.toArray(new Integer[10])));
 		System.out.println(list.indexOf(2));
 		System.out.println(list.indexOf(null));
 		System.out.println(list.lastIndexOf(2));
@@ -45,6 +48,10 @@ public class JTranscCollectionsTest {
 		set.add(s2);
 		set.add(a1);
 		System.out.println(set.size());
+		System.out.println(set.contains(s1));
+		System.out.println(set.contains(s2));
+		System.out.println(set.contains(a1));
+		System.out.println(set.contains("b"));
 		System.out.println(toSortedList(set));
 		set.remove(s2);
 		System.out.println(set.size());
