@@ -16,6 +16,10 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
+@HaxeAddMembers({"public var _str:String = '';"})
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	AbstractStringBuilder() {
 	}
@@ -25,107 +29,189 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	//@Override
+	@HaxeMethodBody("return this._str.length;")
 	native public int length();
 
-	native public int capacity();
-
-	native public void ensureCapacity(int minimumCapacity);
-
+	@HaxeMethodBody("")
 	native public void trimToSize();
 
-	native public void setLength(int newLength);
-
 	//@Override
+	@HaxeMethodBody("return this._str.charCodeAt(p0);")
 	native public char charAt(int index);
 
-	native public int codePointAt(int index);
-
-	native public int codePointBefore(int index);
-
-	native public int codePointCount(int beginIndex, int endIndex);
-
-	native public int offsetByCodePoints(int index, int codePointOffset);
-
-	native public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin);
-
-	native public void setCharAt(int index, char ch);
-
-	native public AbstractStringBuilder append(Object obj);
-
-	native public AbstractStringBuilder append(String str);
-
-	native public AbstractStringBuilder append(StringBuffer sb);
-
-	//@Override
-	native public AbstractStringBuilder append(CharSequence s);
-
-	//@Override
-	native public AbstractStringBuilder append(CharSequence s, int start, int end);
-
-	native public AbstractStringBuilder append(char[] str);
-
-	native public AbstractStringBuilder append(char str[], int offset, int len);
-
-	native public AbstractStringBuilder append(boolean b);
-
-	//@Override
-	native public AbstractStringBuilder append(char c);
-
-	native public AbstractStringBuilder append(int i);
-
-	native public AbstractStringBuilder append(long l);
-
-	native public AbstractStringBuilder append(float f);
-
-	native public AbstractStringBuilder append(double d);
-
-	native public AbstractStringBuilder delete(int start, int end);
-
-	native public AbstractStringBuilder appendCodePoint(int codePoint);
-
-	native public AbstractStringBuilder deleteCharAt(int index);
-
-	native public AbstractStringBuilder replace(int start, int end, String str);
-
-	//@Override
-	native public CharSequence subSequence(int start, int end);
-
-	native public AbstractStringBuilder insert(int index, char[] str, int offset, int len);
-
-	native public AbstractStringBuilder insert(int offset, Object obj);
-
-	native public AbstractStringBuilder insert(int offset, String str);
-
-	native public AbstractStringBuilder insert(int offset, char[] str);
-
-	native public AbstractStringBuilder insert(int dstOffset, CharSequence s);
-
-	native public AbstractStringBuilder insert(int dstOffset, CharSequence s, int start, int end);
-
-	native public AbstractStringBuilder insert(int offset, boolean b);
-
-	native public AbstractStringBuilder insert(int offset, char c);
-
-	native public AbstractStringBuilder insert(int offset, int i);
-
-	native public AbstractStringBuilder insert(int offset, long l);
-
-	native public AbstractStringBuilder insert(int offset, float f);
-
-	native public AbstractStringBuilder insert(int offset, double d);
-
+	@HaxeMethodBody("return this._str.indexOf(p0._str);")
 	native public int indexOf(String str);
 
+	@HaxeMethodBody("return this._str.indexOf(p0._str, p1);")
 	native public int indexOf(String str, int fromIndex);
 
+	@HaxeMethodBody("return this._str.lastIndexOf(p0._str);")
 	native public int lastIndexOf(String str);
 
+	@HaxeMethodBody("return this._str.lastIndexOf(p0._str, p1);")
 	native public int lastIndexOf(String str, int fromIndex);
 
+	@HaxeMethodBody("this._str = HaxeNatives.reverseString(this._str); return this;")
 	native public AbstractStringBuilder reverse();
 
-	@Override
-	public abstract String toString();
+	@HaxeMethodBody("this._str += p0; return this;")
+	native public AbstractStringBuilder append(String str);
+
+	@HaxeMethodBody("this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
+	native public AbstractStringBuilder delete(int start, int end);
+
+	@HaxeMethodBody("this._str = this._str.substr(0, p0) + p2._str + this._str.substr(p1); return this;")
+	native public AbstractStringBuilder replace(int start, int end, String str);
+
+	public int capacity() {
+		return length();
+	}
+
+	public void ensureCapacity(int minimumCapacity) {
+
+	}
+
+	public void setLength(int newLength) {
+		this.delete(newLength, length());
+	}
+
+	public int codePointAt(int index) {
+		return this.charAt(index);
+	}
+
+	public AbstractStringBuilder append(Object obj) {
+		return this.append(String.valueOf(obj));
+	}
+
+	public AbstractStringBuilder append(StringBuffer sb) {
+		return this.append(String.valueOf(sb));
+	}
+
+	//@Override
+	public AbstractStringBuilder append(CharSequence s) {
+		return this.append(String.valueOf(s));
+	}
+
+	//@Override
+	public AbstractStringBuilder append(CharSequence s, int start, int end) {
+		return this.append(s.toString().substring(start, end));
+	}
+
+	public AbstractStringBuilder append(char[] str) {
+		return this.append(new String(str));
+	}
+
+	public AbstractStringBuilder append(char str[], int offset, int len) {
+		return this.append(new String(str, offset, len));
+	}
+
+	public AbstractStringBuilder append(boolean v) {
+		return this.append(Boolean.toString(v));
+	}
+
+	//@Override
+	public AbstractStringBuilder append(char v) {
+		return this.append(Character.toString(v));
+	}
+
+	public AbstractStringBuilder append(int v) {
+		return this.append(Integer.toString(v));
+	}
+
+	public AbstractStringBuilder append(long v) {
+		return this.append(Long.toString(v));
+	}
+
+	public AbstractStringBuilder append(float v) {
+		return this.append(Float.toString(v));
+	}
+
+	public AbstractStringBuilder append(double v) {
+		return this.append(Double.toString(v));
+	}
+
+	public AbstractStringBuilder appendCodePoint(int codePoint) {
+		return this.append(new String(new int[]{codePoint}, 0, 1));
+	}
+
+	public AbstractStringBuilder deleteCharAt(int index) {
+		return this.delete(index, index + 1);
+	}
+
+	//@Override
+	public CharSequence subSequence(int start, int end) {
+		return this.substring(start, end);
+	}
+
+	public AbstractStringBuilder insert(int offset, String str) {
+		return this.replace(offset, offset, str);
+	}
+
+	public AbstractStringBuilder insert(int offset, char[] str, int pos, int len) {
+		return this.insert(offset, String.valueOf(str, pos, len));
+	}
+
+	public AbstractStringBuilder insert(int offset, Object obj) {
+		return this.insert(offset, String.valueOf(obj));
+	}
+
+	public AbstractStringBuilder insert(int offset, char[] str) {
+		return this.insert(offset, String.valueOf(str));
+	}
+
+	public AbstractStringBuilder insert(int offset, CharSequence s) {
+		return this.insert(offset, s.toString());
+	}
+
+	public AbstractStringBuilder insert(int offset, CharSequence s, int start, int end) {
+		return this.insert(offset, s.toString().substring(start, end));
+	}
+
+	public AbstractStringBuilder insert(int offset, boolean v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public AbstractStringBuilder insert(int offset, char v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public AbstractStringBuilder insert(int offset, int v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public AbstractStringBuilder insert(int offset, long v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public AbstractStringBuilder insert(int offset, float v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public AbstractStringBuilder insert(int offset, double v) {
+		return this.insert(offset, String.valueOf(v));
+	}
+
+	public int codePointBefore(int index) {
+		return 0;
+	}
+
+	public int codePointCount(int beginIndex, int endIndex) {
+		return endIndex - beginIndex;
+	}
+
+	public int offsetByCodePoints(int index, int codePointOffset) {
+		return index;
+	}
+
+	public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
+		String s = this.toString();
+		int len = srcEnd - srcBegin;
+		for (int n = 0; n < len; n++) dst[n] = s.charAt(srcBegin + n);
+	}
+
+	public void setCharAt(int index, char ch) {
+		replace(index, index + 1, String.valueOf(ch));
+	}
 
 	public String substring(int start) {
 		return this.toString().substring(start);
@@ -134,4 +220,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	public String substring(int start, int end) {
 		return this.toString().substring(start, end);
 	}
+
+	@Override
+	public abstract String toString();
 }

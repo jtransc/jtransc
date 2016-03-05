@@ -16,214 +16,209 @@
 
 package java.lang;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
-import java.util.Objects;
-
-@HaxeAddMembers({"public var _str:String = '';"})
 public class StringBuilder extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
-    //public class StringBuilder implements java.io.Serializable, CharSequence {
-    public StringBuilder() {
-        //super(16);
-        this(16);
-    }
+	public StringBuilder() {
+		super(16);
+	}
 
-    public StringBuilder(int capacity) {
-        //super(capacity);
-    }
+	public StringBuilder(int capacity) {
+		super(capacity);
+	}
 
-    public StringBuilder(String str) {
-        //super(str.length() + 16);
-        this(str.length() + 16);
-        append(str);
-    }
+	public StringBuilder(String str) {
+		super(str.length() + 16);
+		append(str);
+	}
 
-    public StringBuilder(CharSequence seq) {
-        this(seq.length() + 16);
-        append(seq);
-    }
-
-    @Override
-    @HaxeMethodBody("this._str += p0; return this;")
-    native public StringBuilder append(String str);
+	public StringBuilder(CharSequence seq) {
+		super(seq.length() + 16);
+		append(seq);
+	}
 
 	@Override
-	@HaxeMethodBody("this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
-	native public StringBuilder delete(int start, int end);
+	public StringBuilder append(String str) {
+		super.append(str);
+		return this;
+	}
 
 	@Override
-	@HaxeMethodBody("this._str = this._str.substr(0, p0) + p2._str + this._str.substr(p1); return this;")
-	native public StringBuilder replace(int start, int end, String str);
+	public StringBuilder delete(int start, int end) {
+		super.delete(start, end);
+		return this;
+	}
+
+	@Override
+	public StringBuilder replace(int start, int end, String str) {
+		super.replace(start, end, str);
+		return this;
+	}
 
 	@Override
 	public StringBuilder append(Object obj) {
-		return this.append(Objects.toString(obj));
+		super.append(obj);
+		return this;
 	}
 
 	@Override
-    public StringBuilder append(StringBuffer sb) {
-		return this.append(sb.toString());
+	public StringBuilder append(StringBuffer sb) {
+		super.append(sb);
+		return this;
 	}
 
-    @Override
-    public StringBuilder append(CharSequence s) {
-	    return this.append(s.toString());
-    }
+	@Override
+	public StringBuilder append(CharSequence s) {
+		super.append(s);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(CharSequence s, int start, int end) {
-	    return append(s.toString().substring(start, end));
-    }
+	@Override
+	public StringBuilder append(CharSequence s, int start, int end) {
+		super.append(s, start, end);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(char[] str) {
-	    return this.append(new String(str));
-    }
+	@Override
+	public StringBuilder append(char[] str) {
+		super.append(str);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(char[] str, int offset, int len) {
-	    return this.append(new String(str, offset, len));
-    }
+	@Override
+	public StringBuilder append(char[] str, int offset, int len) {
+		super.append(str, offset, len);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(boolean v) {
-	    return this.append(Boolean.toString(v));
-    }
+	@Override
+	public StringBuilder append(boolean v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(char v) {
-	    return this.append(Character.toString(v));
-    }
+	@Override
+	public StringBuilder append(char v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(int v) {
-	    return this.append(Integer.toString(v));
-    }
+	@Override
+	public StringBuilder append(int v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(long v) {
-	    return this.append(Long.toString(v));
-    }
+	@Override
+	public StringBuilder append(long v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(float v) {
-	    return this.append(Float.toString(v));
-    }
+	@Override
+	public StringBuilder append(float v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder append(double d) {
-	    return this.append(Double.toString(d));
-    }
+	@Override
+	public StringBuilder append(double v) {
+		super.append(v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder appendCodePoint(int codePoint) {
-	    return append(new String(new int[] { codePoint }, 0, 1));
-    }
+	@Override
+	public StringBuilder appendCodePoint(int codePoint) {
+		super.appendCodePoint(codePoint);
+		return this;
+	}
 
-    @Override
-    public StringBuilder deleteCharAt(int index) {
-	    return delete(index, index + 1);
-    }
+	@Override
+	public StringBuilder deleteCharAt(int index) {
+		super.deleteCharAt(index);
+		return this;
+	}
 
 	@Override
 	public StringBuilder insert(int offset, String str) {
-		return this.replace(offset, offset, str);
+		super.insert(offset, str);
+		return this;
 	}
 
 	@Override
-    public StringBuilder insert(int offset, char[] str, int pos, int len) {
-		return this.insert(offset, new String(str, pos, len));
+	public StringBuilder insert(int offset, char[] str, int pos, int len) {
+		super.insert(offset, str, pos, len);
+		return this;
 	}
 
-    @Override
-    public StringBuilder insert(int offset, Object obj) {
-	    return this.insert(offset, Objects.toString(obj));
-    }
+	@Override
+	public StringBuilder insert(int offset, Object obj) {
+		super.insert(offset, obj);
+		return this;
 
-    @Override
-    public StringBuilder insert(int offset, char[] str) {
-	    return this.insert(offset, new String(str));
-    }
+	}
 
-    @Override
-    public StringBuilder insert(int offset, CharSequence s) {
-	    return this.insert(offset, s.toString());
-    }
+	@Override
+	public StringBuilder insert(int offset, char[] str) {
+		super.insert(offset, str);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, CharSequence s, int start, int end) {
-	    return this.insert(offset, s.toString().substring(start, end));
-    }
+	@Override
+	public StringBuilder insert(int offset, CharSequence s) {
+		super.insert(offset, s);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, boolean b) {
-	    return this.insert(offset, Boolean.toString(b));
-    }
+	@Override
+	public StringBuilder insert(int offset, CharSequence s, int start, int end) {
+		super.insert(offset, s, start, end);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, char c) {
-	    return this.insert(offset, Character.toString(c));
-    }
+	@Override
+	public StringBuilder insert(int offset, boolean v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, int i) {
-	    return this.insert(offset, Integer.toString(i));
-    }
+	@Override
+	public StringBuilder insert(int offset, char v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, long l) {
-	    return this.insert(offset, Long.toString(l));
-    }
+	@Override
+	public StringBuilder insert(int offset, int v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, float f) {
-	    return this.insert(offset, Float.toString(f));
-    }
+	@Override
+	public StringBuilder insert(int offset, long v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    public StringBuilder insert(int offset, double d) {
-	    return this.insert(offset, Double.toString(d));
-    }
+	@Override
+	public StringBuilder insert(int offset, float v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    @HaxeMethodBody("return this._str.indexOf(p0._str);")
-    native public int indexOf(String str);
+	@Override
+	public StringBuilder insert(int offset, double v) {
+		super.insert(offset, v);
+		return this;
+	}
 
-    @Override
-    @HaxeMethodBody("return this._str.indexOf(p0._str, p1);")
-    native public int indexOf(String str, int fromIndex);
+	@Override
+	public StringBuilder reverse() {
+		super.reverse();
+		return this;
+	}
 
-    @Override
-    @HaxeMethodBody("return this._str.lastIndexOf(p0._str);")
-    native public int lastIndexOf(String str);
-
-    @Override
-    @HaxeMethodBody("return this._str.lastIndexOf(p0._str, p1);")
-    native public int lastIndexOf(String str, int fromIndex);
-
-    @Override
-    @HaxeMethodBody("this._str = HaxeNatives.reverseString(this._str); return this;")
-    native public StringBuilder reverse();
-
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-    @HaxeMethodBody("return this._str.length;")
-    native public int length();
-
-    @HaxeMethodBody("return this._str.charCodeAt(p0);")
-    native public char charAt(int index);
-
-    public CharSequence subSequence(int start, int end) {
-	    return toString().substring(start, end);
-    }
-
-    @Override
-    @HaxeMethodBody("return HaxeNatives.str(this._str);")
-    native public String toString();
-
-    @Override
-    public void setLength(int newLength) {
-	    this.delete(newLength, length());
-    }
+	@Override
+	@HaxeMethodBody("return HaxeNatives.str(this._str);")
+	native public String toString();
 }
