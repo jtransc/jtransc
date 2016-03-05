@@ -63,7 +63,7 @@ object GenHaxeLime : GenTarget {
 			}
 
 			line("""<source path="src" />""")
-			line("""<assets path="${tempAssetsDir.absolutePath}" rename="assets" />""")
+			line("""<assets path="${tempAssetsDir.absolutePath}" rename="assets" embed="false" exclude="*.ttf|*.fla|*.zip|*.swf" />""")
 
 			for (asset in settings.assets) {
 				LocalVfs(asset).copyTreeTo(tempAssetsVfs)
