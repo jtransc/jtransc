@@ -88,7 +88,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
 	}
 
 	public Set<K> keySet() {
-		return new WrappedSet(keys);
+		return new HashSet(keys);
 	}
 
 	public Collection<V> values() {
@@ -103,11 +103,5 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Clone
 
 	@Override
 	native public Object clone();
-
-	static private class WrappedSet<K> extends ArrayList<K> implements Set<K> {
-		public WrappedSet(Collection<K> items) {
-			super(items);
-		}
-	}
 }
 

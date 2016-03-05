@@ -25,6 +25,14 @@ public class JTranscCollectionsTest {
 		System.out.println(list.lastIndexOf(2));
 		System.out.println(list.indexOf(99999));
 		System.out.println(list.indexOf(-7));
+
+		ListIterator<Integer> iterator = list.listIterator();
+		while (iterator.hasNext()) {
+			Integer value = iterator.next();
+			if (value != null && value == 2) iterator.remove();
+		}
+
+		System.out.println(Arrays.toString(list.toArray()));
 	}
 
 	static public void testHashSet() {
@@ -45,7 +53,6 @@ public class JTranscCollectionsTest {
 
 	static public <T extends Comparable<T>> List<T> toSortedList(Collection<T> c) {
 		ArrayList<T> l = new ArrayList<T>(c);
-		l.sort(null);
 		Collections.sort(l);
 		return l;
 	}

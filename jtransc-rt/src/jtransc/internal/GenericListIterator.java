@@ -57,7 +57,7 @@ public class GenericListIterator<T> implements ListIterator<T> {
 	}
 
 	public void remove() {
-		this.list.remove(index);
+		this.list.remove(--index);
 	}
 
 	@Override

@@ -16,67 +16,60 @@
 
 package java.util;
 
+// @TODO: Very slow implementation!
 public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
-	private transient HashMap<E, Object> map;
-	static private Object HAS = new Object();
+	private ArrayList<E> items = new ArrayList<E>();
 
 	public HashSet() {
-		map = new HashMap<>();
 	}
 
 	public HashSet(Collection<? extends E> c) {
-		map = new HashMap<>(Math.max((int) (c.size() / .75f) + 1, 16));
+		//this();
 		addAll(c);
 	}
 
 	public HashSet(int initialCapacity, float loadFactor) {
-		map = new HashMap<>(initialCapacity, loadFactor);
+		//this();
 	}
 
 	public HashSet(int initialCapacity) {
-		map = new HashMap<>(initialCapacity);
+		//this();
 	}
 
 	HashSet(int initialCapacity, float loadFactor, boolean dummy) {
-		map = new LinkedHashMap<>(initialCapacity, loadFactor);
+		//this();
 	}
 
 	public Iterator<E> iterator() {
-		return map.keySet().iterator();
+		return items.iterator();
 	}
 
 	public int size() {
-		return map.size();
-	}
-
-	public boolean isEmpty() {
-		return map.isEmpty();
+		return items.size();
 	}
 
 	public boolean contains(Object o) {
-		return map.containsKey(o);
+		return items.contains(o);
 	}
 
 	public boolean add(E e) {
-		return map.put(e, HAS) == null;
+		if (!contains(e)) {
+			items.add(e);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public boolean remove(Object o) {
-		return map.remove(o) == HAS;
+		return items.remove(o);
 	}
 
 	public void clear() {
-		map.clear();
+		this.items.clear();
 	}
 
-	@SuppressWarnings("unchecked")
 	public Object clone() {
-		try {
-			HashSet<E> newSet = (HashSet<E>) super.clone();
-			newSet.map = (HashMap<E, Object>) map.clone();
-			return newSet;
-		} catch (CloneNotSupportedException e) {
-			throw new InternalError(e);
-		}
+		return new HashSet<E>(items);
 	}
 }
