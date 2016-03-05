@@ -16,11 +16,14 @@
 
 package java.util;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 public final class Objects {
 	private Objects() {
 		throw new AssertionError("No java.util.Objects instances for you!");
 	}
 
+	@HaxeMethodBody("return (p0 == p1) || (p0 != null && p0.equals_java_lang_Object_Z(p1));")
 	public static boolean equals(Object a, Object b) {
 		return (a == b) || (a != null && a.equals(b));
 	}
@@ -31,6 +34,7 @@ public final class Objects {
 		return Arrays.deepEquals0(a, b);
 	}
 
+	@HaxeMethodBody("return (p0 != null) ? o.hashCode__I() : 0;")
 	public static int hashCode(Object o) {
 		return o != null ? o.hashCode() : 0;
 	}

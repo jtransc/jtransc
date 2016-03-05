@@ -99,20 +99,12 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	}
 
 	public int indexOf(Object o) {
-		if (o == null) {
-			for (int i = 0; i < size; i++) if (elementData[i] == null) return i;
-		} else {
-			for (int i = 0; i < size; i++) if (o.equals(elementData[i])) return i;
-		}
+		for (int i = 0; i < size; i++) if (Objects.equals(o, elementData[i])) return i;
 		return -1;
 	}
 
 	public int lastIndexOf(Object o) {
-		if (o == null) {
-			for (int i = size - 1; i >= 0; i--) if (elementData[i] == null) return i;
-		} else {
-			for (int i = size - 1; i >= 0; i--) if (o.equals(elementData[i])) return i;
-		}
+		for (int i = size - 1; i >= 0; i--) if (Objects.equals(o, elementData[i])) return i;
 		return -1;
 	}
 
@@ -185,19 +177,10 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	}
 
 	public boolean remove(Object o) {
-		if (o == null) {
-			for (int index = 0; index < size; index++) {
-				if (elementData[index] == null) {
-					fastRemove(index);
-					return true;
-				}
-			}
-		} else {
-			for (int index = 0; index < size; index++) {
-				if (o.equals(elementData[index])) {
-					fastRemove(index);
-					return true;
-				}
+		for (int index = 0; index < size; index++) {
+			if (Objects.equals(o, elementData[index])) {
+				fastRemove(index);
+				return true;
 			}
 		}
 		return false;
