@@ -57,7 +57,7 @@ class HaxeGenSuite {
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
 	@Test fun stringsTest() = testClass<JTranscStringTest>()
-	@Test fun arrayListTest() = testClass<JTranscArrayListTest>()
+	@Test fun arrayListTest() = testClass<JTranscCollectionsTest>()
 	@Test fun stringBuilderTest() = testClass<StringBuilderTest>()
 	@Test fun stackTraceTest() = testClass<JTranscStackTraceTest>()
 	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()

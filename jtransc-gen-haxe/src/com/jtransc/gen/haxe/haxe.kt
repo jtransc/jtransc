@@ -69,6 +69,8 @@ val HaxeKeywords = setOf(
 	"goto"
 )
 
+val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + setOf("toString", "hashCode")
+
 enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null) {
 	JS(switch = "-js", singleFile = true, interpreter = "node"),
 	CPP(switch = "-cpp", singleFile = false, interpreter = null),

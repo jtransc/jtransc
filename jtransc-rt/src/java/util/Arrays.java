@@ -18,13 +18,16 @@ package java.util;
 
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.internal.JTranscSorter;
 
 import java.lang.reflect.Array;
 
 public class Arrays {
 	native public static int binarySearch(long[] a, int fromIndex, int toIndex, long key);
 
-	native public static int binarySearch(int[] a, int fromIndex, int toIndex, int key);
+	public static int binarySearch(int[] a, int fromIndex, int toIndex, int key) {
+		return JTranscSorter.binarySearch(new JTranscSorter.IntArrayWrapped(a, key), 0, a.length);
+	}
 
 	native public static int binarySearch(short[] a, int fromIndex, int toIndex, short key);
 

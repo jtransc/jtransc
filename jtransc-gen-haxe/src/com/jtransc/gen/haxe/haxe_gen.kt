@@ -870,6 +870,7 @@ class GenHaxeGen(
 				*/
 				if (isRootObject) {
 					line("public function toString():String { return HaxeNatives.toNativeString(this.toString__Ljava_lang_String_()); }")
+					line("public function hashCode():Int { return this.hashCode__I(); }")
 				}
 
 				if (!isInterface) {

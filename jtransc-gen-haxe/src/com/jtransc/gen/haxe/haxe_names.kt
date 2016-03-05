@@ -64,9 +64,10 @@ class HaxeNames(val program: AstProgram, val mappings: ClassMappings) {
 
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
+		// @TODO: Fields should check method names collisions (specially relevant when not mangled)
 		if (field !in cachedFieldNames) {
 			val fieldName = field.name.replace('$', '_')
-			var name = if (fieldName in HaxeKeywords) "${fieldName}_" else fieldName
+			var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
 			val f = program[field]
 			val clazz = f.containingClass

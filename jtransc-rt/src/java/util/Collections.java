@@ -16,15 +16,28 @@
 
 package java.util;
 
+import jtransc.internal.JTranscSorter;
+
 public class Collections {
 	private Collections() {
 	}
 
-	native public static <T extends Comparable<? super T>> void sort(List<T> list);
+	public static <T extends Comparable<? super T>> void sort(List<T> list) {
+		sort(list, JTranscSorter.getComparator(list));
+	}
 
-	native public static <T> void sort(List<T> list, Comparator<? super T> c);
+	public static <T> void sort(List<T> list, Comparator<? super T> c) {
+		Object[] array = new Object[list.size()];
+		list.toArray(array);
+		Arrays.sort((T[]) array, 0, array.length, c);
+		list.clear();
+		for (Object o : array) list.add((T)o);
+	}
 
-	native public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T key);
+	public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T key) {
+		JTranscSorter.ListWrapper listWrapper = new JTranscSorter.ListWrapper(list, JTranscSorter.getComparator(list), key);
+		return JTranscSorter.binarySearch(listWrapper, 0, list.size());
+	}
 
 	native public static <T> int binarySearch(List<? extends T> list, T key, Comparator<? super T> c);
 
@@ -241,3 +254,4 @@ public class Collections {
 
 	native public static <T> Queue<T> asLifoQueue(Deque<T> deque);
 }
+
