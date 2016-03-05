@@ -75,10 +75,6 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 		this.delete(newLength, length());
 	}
 
-	public int codePointAt(int index) {
-		return this.charAt(index);
-	}
-
 	public AbstractStringBuilder append(Object obj) {
 		return this.append(String.valueOf(obj));
 	}
@@ -191,16 +187,20 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 		return this.insert(offset, String.valueOf(v));
 	}
 
+	public int codePointAt(int index) {
+		return toString().codePointAt(index);
+	}
+
 	public int codePointBefore(int index) {
-		return 0;
+		return toString().codePointBefore(index);
 	}
 
 	public int codePointCount(int beginIndex, int endIndex) {
-		return endIndex - beginIndex;
+		return toString().codePointCount(beginIndex, endIndex);
 	}
 
 	public int offsetByCodePoints(int index, int codePointOffset) {
-		return index;
+		return toString().offsetByCodePoints(index, codePointOffset);
 	}
 
 	public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
