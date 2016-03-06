@@ -40,10 +40,12 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 object GenHaxeLime : GenTarget {
 	override val runningAvailable: Boolean = true
 
-	val tempAssetsDir = File(System.getProperty("java.io.tmpdir") + "/jtransc-temp-output")
-	val tempAssetsVfs = LocalVfs(tempAssetsDir)
+	val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
 
-	fun createLimeProjectFromSettings(program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
+	fun createLimeProjectFromSettings(tinfo: GenTargetInfo, program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
+		val tempAssetsDir = tinfo.mergedAssetsFolder
+		val tempAssetsVfs = LocalVfs(tempAssetsDir)
+
 		line("""<?xml version="1.0" encoding="utf-8"?>""")
 		line("""<project>""")
 		indent {
@@ -173,7 +175,7 @@ object GenHaxeLime : GenTarget {
 					srcFolder = srcFolder,
 					featureSet = HaxeFeatures
 				)._write()
-				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo.program, info!!, tinfo.settings)
+				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo, tinfo.program, info!!, tinfo.settings)
 			}
 
 			override fun compile(): Boolean {
@@ -183,7 +185,7 @@ object GenHaxeLime : GenTarget {
 
 				program.haxeInstallRequiredLibs()
 
-				tinfo.haxeCopyEmbeddedResourcesToFolder(tempAssetsDir)
+				tinfo.haxeCopyEmbeddedResourcesToFolder(tinfo.mergedAssetsFolder)
 
 				println("Compiling...")
 				//println("Running: -optimize=true ${info.entryPointFile}")

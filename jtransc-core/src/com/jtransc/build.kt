@@ -137,11 +137,16 @@ class AllBuild(
 
 				//print("Processing class: " + clazz.clazz.name + "...")
 
-				val generatedClass = generator.generateClass(program, className.name)
+				print("  CLASS: $className...");
+				val time = measureTime {
+					val generatedClass = generator.generateClass(program, className.name)
 
-				for (ref in References.get(generatedClass)) {
-					program.addReference(ref)
+					for (ref in References.get(generatedClass)) {
+						program.addReference(ref)
+					}
 				}
+
+				println("Ok(${time.time})");
 			}
 
 			// Add synthetic methods to abstracts to simulate in haxe
