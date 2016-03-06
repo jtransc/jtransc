@@ -126,6 +126,8 @@ class HaxeNatives {
 	static public inline function debugger() {
 		#if js
 		untyped __js__("debugger;");
+		#elseif flash
+		flash.system.ApplicationDomain.currentDomain.getDefinition("flash.debugger::enterDebugger")();
 		#end
 	}
 
