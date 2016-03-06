@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import jtransc.annotation.JTranscInline;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Math {
@@ -25,21 +26,27 @@ public final class Math {
 	public static final double E = 2.7182818284590452354;
 	public static final double PI = 3.14159265358979323846;
 
+	@JTranscInline
     @HaxeMethodBody("return Math.sin(p0);")
 	native public static double sin(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.cos(p0);")
 	native public static double cos(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.tan(p0);")
 	native public static double tan(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.asin(p0);")
 	native public static double asin(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.acos(p0);")
 	native public static double acos(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.atan(p0);")
 	native public static double atan(double a);
 
@@ -49,15 +56,18 @@ public final class Math {
     @HaxeMethodBody("return p0 * 180.0 / Math.PI;")
 	native public static double toDegrees(double angrad);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.exp(p0);")
 	native public static double exp(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.log(p0);")
 	native public static double log(double a);
 
     //@HaxeMethodBody("return Math.log10(p0);")
 	native public static double log10(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.sqrt(p0);")
 	native public static double sqrt(double a);
 
@@ -67,27 +77,34 @@ public final class Math {
     //@HaxeMethodBody("return Math.IEEEremainder(p0, p1);")
 	native public static double IEEEremainder(double f1, double f2);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.ceil(p0);")
 	native public static double ceil(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.floor(p0);")
 	native public static double floor(double a);
 
     //@HaxeMethodBody("return Math.rint(p0);")
 	native public static double rint(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.atan2(p0, p1);")
 	native public static double atan2(double y, double x);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.pow(p0, p1);")
 	native public static double pow(double a, double b);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.round(p0);")
 	native public static int round(float a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.round(p0);")
 	native public static long round(double a);
 
+	@JTranscInline
     @HaxeMethodBody("return Math.random();")
 	native public static double random();
 

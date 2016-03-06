@@ -16,6 +16,9 @@
 
 package java.lang;
 
+import jtransc.annotation.JTranscInline;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.util.Random;
 
 public final class StrictMath {
@@ -40,13 +43,13 @@ public final class StrictMath {
 	public static final double E = 2.7182818284590452354;
 	public static final double PI = 3.14159265358979323846;
 
-	public static double sin(double a) {
-		return Math.sin(a);
-	}
+	@JTranscInline
+	@HaxeMethodBody("return Math.sin(p0);")
+	native public static double sin(double a);
 
-	public static double cos(double a) {
-		return Math.cos(a);
-	}
+	@JTranscInline
+	@HaxeMethodBody("return Math.cos(p0);")
+	native public static double cos(double a);
 
 	public static double tan(double a) {
 		return Math.tan(a);

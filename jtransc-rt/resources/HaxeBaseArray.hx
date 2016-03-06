@@ -6,6 +6,7 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	    return HaxeNatives.str("HaxeBaseArray");
 	}
 
+	#if debug
 	private function checkBounds(index:Int) {
 		if (index < 0 || index >= length) {
 			var e = new java_.lang.ArrayIndexOutOfBoundsException_();
@@ -13,6 +14,10 @@ class HaxeBaseArray extends java_.lang.Object_ {
 			throw e;
 		}
 	}
+	#else
+	inline private function checkBounds(index:Int) {
+	}
+	#end
 
 	public function getDynamic(index:Int):Dynamic {
 		checkBounds(index);

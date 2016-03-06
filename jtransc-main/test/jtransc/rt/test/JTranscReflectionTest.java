@@ -31,10 +31,53 @@ public class JTranscReflectionTest {
 		}
 
 		System.out.println(new ATest1<Integer, String>().new2().new3().getClass().getCanonicalName());
+
+		fieldTest();
+	}
+
+	static private void fieldTest() {
+		Class<FieldTestClass> clazz = FieldTestClass.class;
+		FieldTestClass instance = new FieldTestClass();
+		try {
+			clazz.getField("_byte").set(instance, (byte)7);
+			clazz.getField("_Byte").set(instance, (byte)7);
+			clazz.getField("_int").set(instance, 7);
+			clazz.getField("_Integer").set(instance, 7);
+
+			System.out.println(instance._byte);
+			System.out.println(instance._Byte);
+			System.out.println(instance._int);
+			System.out.println(instance._Integer);
+
+			System.out.println(instance._int * 2);
+			System.out.println(instance._Integer * 2);
+
+			clazz.getField("_byte").setByte(instance, (byte) 3);
+			clazz.getField("_int").setInt(instance, 3);
+			//clazz.getField("_Integer").setInt(instance, 3);
+
+			System.out.println(instance._int);
+			System.out.println(instance._Integer);
+
+			System.out.println(clazz.getField("_int").getInt(instance));
+			//System.out.println(clazz.getField("_Integer").getInt(instance));
+
+			System.out.println(clazz.getField("_int").get(instance));
+			System.out.println(clazz.getField("_Integer").get(instance));
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Singleton static public class Test1 {}
 	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.DECLARE, b = "BB") static public class Test2 {}
+}
+
+class FieldTestClass {
+	public byte _byte;
+	public Byte _Byte;
+	public int _int;
+	public Integer _Integer;
 }
 
 class MyDemo {

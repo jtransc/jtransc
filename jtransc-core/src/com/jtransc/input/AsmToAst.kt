@@ -2,6 +2,7 @@ package com.jtransc.input
 
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
+import com.jtransc.ds.createPairs
 import com.jtransc.error.noImpl
 import com.jtransc.io.readBytes
 import com.jtransc.types.*
@@ -122,3 +123,8 @@ class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
 	}
 }
 	*/
+
+fun AnnotationNode.toAst():AstAnnotation {
+	val ref = AstType.demangle(this.desc) as AstType.REF
+	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
+}

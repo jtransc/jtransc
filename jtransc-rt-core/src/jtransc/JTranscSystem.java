@@ -17,6 +17,11 @@ public class JTranscSystem {
         return (int) (System.currentTimeMillis() - start);
     }
 
+	static public int elapsedTime(int first, int second) {
+		// @TODO: Check overflow!
+		return second - first;
+	}
+
     @HaxeMethodBody("HaxeNatives.gcDisable();")
     static public void gcDisable() {
     }

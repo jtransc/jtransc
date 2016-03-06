@@ -1,16 +1,20 @@
 package com.jtransc
 
+import com.jtransc.ast.contains
 import com.jtransc.ds.diff
 import com.jtransc.ds.hasAnyFlags
 import com.jtransc.ds.hasFlag
+import com.jtransc.input.toAst
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.vfs.GetClassJar
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
 import jtransc.JTranscVersion
+import jtransc.annotation.haxe.HaxeMethodBody
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 
@@ -26,20 +30,8 @@ class JTranscRtReport {
 	val jtranscRt = MergedLocalAndJars(MavenLocalRepository.locateJars("com.jtransc:jtransc-rt:$jtranscVersion"))
 
 	fun report() {
-		reportPackage("java", listOf(
-			"java.rmi", "java.sql", "java.beans", "java.awt", "java.applet"
-		))
-		//reportPackage("java.lang")
-		//reportPackage("java.io")
-		//reportPackage("java.util")
-		/*
-		for (e in javaRt.listdirRecursive().filter { it.name.endsWith(".class") }) {
-			println(e.path)
-		}
-		*/
-		//for (e in jtranscRt.listdirRecursive().filter { it.name.endsWith(".class") }) {
-		//	println(e.path)
-		//}
+		reportPackage("java", listOf("java.rmi", "java.sql", "java.beans", "java.awt", "java.applet"))
+		reportNotImplementedNatives("java")
 	}
 
 	fun reportPackage(packageName: String, ignoreSet: List<String>) {
@@ -56,15 +48,37 @@ class JTranscRtReport {
 		}
 	}
 
+	fun reportNotImplementedNatives(packageName: String) {
+		val packagePath = packageName.replace('.', '/')
+		fileList@for (e in jtranscRt[packagePath].listdirRecursive().filter { it.name.endsWith(".class") }) {
+			val clazz = readClass(e.file.readBytes())
+			val nativeMethodsWithoutBody = clazz.methods.filterIsInstance<MethodNode>()
+				.filter { it.access hasFlag Opcodes.ACC_NATIVE }
+
+			if (nativeMethodsWithoutBody.size > 0) {
+				println("${clazz.name} (native without body):")
+				for (method in nativeMethodsWithoutBody.filter {
+					if (it.invisibleAnnotations != null) {
+						!it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst() }.contains<HaxeMethodBody>()
+					} else {
+						true
+					}
+				}) {
+					println(" - ${method.name} : ${method.desc}")
+				}
+			}
+		}
+	}
+
+	private fun readClass(data: ByteArray): ClassNode {
+		return ClassNode(Opcodes.ASM5).apply {
+			ClassReader(data).accept(this, ClassReader.SKIP_CODE + ClassReader.SKIP_DEBUG + ClassReader.SKIP_FRAMES)
+		}
+	}
+
 	fun compareFiles(f1: SyncVfsFile, f2: SyncVfsFile) {
 		//interface MemberRef {}
 		data class MethodRef(val name: String, val desc: String)
-
-		fun readClass(data: ByteArray): ClassNode {
-			return ClassNode(Opcodes.ASM5).apply {
-				ClassReader(data).accept(this, ClassReader.SKIP_CODE + ClassReader.SKIP_DEBUG + ClassReader.SKIP_FRAMES)
-			}
-		}
 
 		fun ClassNode.getPublicOrProtectedMethodDescs() = this.methods
 			.filterIsInstance<MethodNode>()

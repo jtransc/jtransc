@@ -611,6 +611,22 @@ class HaxeNatives {
 		return HaxeNatives.box(Reflect.field((obj != null) ? obj : clazz, name));
 	}
 
+	static public function getFieldInt(clazz:Class<Dynamic>, obj:Dynamic, name:String):Int {
+		return Reflect.field((obj != null) ? obj : clazz, name);
+	}
+
+	static public function getFieldBool(clazz:Class<Dynamic>, obj:Dynamic, name:String):Bool {
+		return Reflect.field((obj != null) ? obj : clazz, name);
+	}
+
+	static public function getFieldLong(clazz:Class<Dynamic>, obj:Dynamic, name:String):Long {
+		return Reflect.field((obj != null) ? obj : clazz, name);
+	}
+
+	static public function getFieldDouble(clazz:Class<Dynamic>, obj:Dynamic, name:String):Float {
+		return Reflect.field((obj != null) ? obj : clazz, name);
+	}
+
 	static public function swap32(p0:Int):Int {
 		return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24));
 	}
