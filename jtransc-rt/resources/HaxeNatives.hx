@@ -404,12 +404,14 @@ class HaxeNatives {
         #end
     }
 
-    static public function doubleToLongBits(value: Float) {
+    static public function doubleToLongBits(value: Float):Int64 {
         #if cpp
         return untyped __cpp__("*(long *)(&{0})", value);
         #else
         _tempF64[0] = value;
-		return haxe.Int64.make(_tempI32[1], _tempI32[0]);
+		var i1 = _tempI32[1];
+		var i2 = _tempI32[0];
+		return haxe.Int64.make(i1, i2);
         #end
     }
 
