@@ -20,6 +20,10 @@ import jtransc.annotation.JTranscInvisible;
 
 @JTranscInvisible
 public class JTranscBits {
+	static public int unsignedMod(int value, int mod) {
+		return ((value % mod) + mod) % mod;
+	}
+
 	static public short swap(short x) {
 		return Short.reverseBytes(x);
 	}

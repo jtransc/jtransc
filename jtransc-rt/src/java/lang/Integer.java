@@ -18,6 +18,7 @@ package java.lang;
 
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.internal.JTranscCType;
 
 public final class Integer extends Number implements Comparable<Integer> {
 	public static final int MIN_VALUE = 0x80000000;
@@ -35,10 +36,30 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
-    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.intToString(p0, p1));")
-	native public static String toString(int i, int radix);
+	public static String toString(int i, int radix) {
+		if (i == 0) return "0";
+		boolean negative = (i < 0);
+		if (i < 0) i = -i;
+		StringBuilder out = new StringBuilder();
+		while (i != 0) {
+			out.append(JTranscCType.encodeDigit(Integer.remainderUnsigned(i, radix)));
+			i = Integer.divideUnsigned(i, radix);
+		}
+		if (negative) out.append('-');
+		out.reverse();
+		return out.toString();
+	}
 
-	native public static String toUnsignedString(int i, int radix);
+	public static String toUnsignedString(int i, int radix) {
+		if (i == 0) return "0";
+		StringBuilder out = new StringBuilder();
+		while (i != 0) {
+			out.append(JTranscCType.encodeDigit(Integer.remainderUnsigned(i, radix)));
+			i = Integer.divideUnsigned(i, radix);
+		}
+		out.reverse();
+		return out.toString();
+	}
 
 	public static String toHexString(int i) {
 		return toString(i, 16);
@@ -60,14 +81,17 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
-    @HaxeMethodBody("return HaxeNatives.parseInt(p0._str, p1);")
+	@HaxeMethodBody("return HaxeNatives.parseInt(p0._str, p1);")
 	native public static int parseInt(String s, int radix);
 
 	public static int parseInt(String s) {
 		return parseInt(s, 10);
 	}
 
-	native public static int parseUnsignedInt(String s, int radix);
+	// @TODO: CHECK!
+	public static int parseUnsignedInt(String s, int radix) {
+		return parseInt(s, radix);
+	}
 
 	public static int parseUnsignedInt(String s) {
 		return parseUnsignedInt(s, 10);
@@ -156,14 +180,11 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	public static Integer getInteger(String nm, Integer val) {
 		String out = System.getProperty(nm);
-		if (out == null) {
+		if (out == null) return val;
+		try {
+			return decode(nm);
+		} catch (NumberFormatException e) {
 			return val;
-		} else {
-			try {
-				return decode(nm);
-			} catch (NumberFormatException e) {
-				return val;
-			}
 		}
 	}
 

@@ -93,6 +93,22 @@ public class BasicTypesTest {
 
         int unshift = 256 << 2;
         System.out.println("Int 256 << 2: " + unshift);
+
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-1));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-2));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-123456));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(1));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-999999));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(999999));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(0));
+
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-1, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-2, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-123456, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(1, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-999999, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(999999, 16));
+	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(0, 16));
     }
 
     private static void longTests() {
@@ -119,6 +135,40 @@ public class BasicTypesTest {
 
         long unshift = 256L << 2L;
         System.out.println("Long 256 << 2: " + unshift);
+
+	    System.out.println("Long 0x12345678L: " + 0x12345678L);
+	    System.out.println("Long 0xFFFFFFFFL: " + 0xFFFFFFFFL);
+	    System.out.println("Long -3L & 0xFFFFFFFFL: " + (-3L & 0xFFFFFFFFL));
+
+	    System.out.println("Long.Int 0x12345678L: " + (int)0x12345678L);
+	    System.out.println("Long.Int 0xFFFFFFFFL: " + (int)0xFFFFFFFFL);
+	    System.out.println("Long.Int -3L & 0xFFFFFFFFL: " + (int)(-3L & 0xFFFFFFFFL));
+
+	    System.out.println("Long .toString: " + Long.toString(-1L));
+	    System.out.println("Long .toString: " + Long.toString(1L));
+	    System.out.println("Long .toString: " + Long.toString(-999999L));
+	    System.out.println("Long .toString: " + Long.toString(999999L));
+	    System.out.println("Long .toString: " + Long.toString(0L));
+
+	    System.out.println("Long .toString: " + Long.toString(-1L, 16));
+	    System.out.println("Long .toString: " + Long.toString(1L, 16));
+	    System.out.println("Long .toString: " + Long.toString(-999999L, 16));
+	    System.out.println("Long .toString: " + Long.toString(999999L, 16));
+	    System.out.println("Long .toString: " + Long.toString(0L, 16));
+
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-1L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-2L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-123456L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(1L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-999999L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(999999L));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(0L));
+
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-1L, 16));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(1L, 16));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(-999999L, 16));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(999999L, 16));
+	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(0L, 16));
     }
 
 }

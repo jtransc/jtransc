@@ -25,51 +25,68 @@ public final class Long extends Number implements Comparable<Long> {
 	public static final long MAX_VALUE = 0x7fffffffffffffffL;
 	public static final Class<Long> TYPE = (Class<Long>) Class.getPrimitiveClass("long");
 
-	native public static String toString(long i, int radix);
-
-	native public static String toUnsignedString(long i, int radix);
-
-	private static String toBaseString(long i, int base) {
-		String out = "";
-		if (i < 0) {
-			out += "-";
-			i = -i;
+	public static String toString(long i, int radix) {
+		if (i == 0) return "0";
+		StringBuilder out = new StringBuilder();
+		boolean negative = (i < 0);
+		if (negative) i = -i;
+		while (i != 0) {
+			out.append(JTranscCType.encodeDigit((int) (((i % radix) + radix) % radix)));
+			i /= radix;
 		}
-		while (i > 0) {
-			out += JTranscCType.encodeDigit((int) (i % base));
-			i /= base;
+		if (negative) out.append("-");
+		out.reverse();
+		return out.toString();
+	}
+
+	public static String toUnsignedString(long i, int radix) {
+		if (i == 0) return "0";
+		StringBuilder out = new StringBuilder();
+		while (i != 0) {
+			out.append(JTranscCType.encodeDigit((int) Long.remainderUnsigned(i, radix)));
+			i = Long.divideUnsigned(i, radix);
 		}
-		return out;
+		out.reverse();
+		return out.toString();
 	}
 
 	public static String toHexString(long i) {
-		return toBaseString(i, 16);
+		return toString(i, 16);
 	}
 
 	public static String toOctalString(long i) {
-		return toBaseString(i, 8);
+		return toString(i, 8);
 	}
 
 	public static String toBinaryString(long i) {
-		return toBaseString(i, 2);
+		return toString(i, 2);
 	}
 
-    @HaxeMethodBody("return HaxeNatives.str('' + p0);")
-    native public static String toString(long i);
+	//@HaxeMethodBody("return HaxeNatives.str('' + p0);")
+	public static String toString(long i) { return toString(i, 10); }
 
-	native public static String toUnsignedString(long i);
+	public static String toUnsignedString(long i) {
+		return toUnsignedString(i, 10);
+	}
 
 	native public static long parseLong(String s, int radix) throws NumberFormatException;
-
-	native public static long parseLong(String s) throws NumberFormatException;
-
 	native public static long parseUnsignedLong(String s, int radix) throws NumberFormatException;
 
-	native public static long parseUnsignedLong(String s) throws NumberFormatException;
+	public static Long valueOf(String s, int radix) throws NumberFormatException {
+		return Long.valueOf(parseLong(s, radix));
+	}
 
-	native public static Long valueOf(String s, int radix) throws NumberFormatException;
+	public static long parseLong(String s) throws NumberFormatException {
+		return parseLong(s, 10);
+	}
 
-	native public static Long valueOf(String s) throws NumberFormatException;
+	public static long parseUnsignedLong(String s) throws NumberFormatException {
+		return parseUnsignedLong(s, 10);
+	}
+
+	public static Long valueOf(String s) throws NumberFormatException {
+		return valueOf(s, 10);
+	}
 
 	@JTranscKeep
 	public static Long valueOf(long l) {
@@ -130,12 +147,27 @@ public final class Long extends Number implements Comparable<Long> {
 		return value == ((Long) obj).longValue();
 	}
 
+	public static Long getLong(String nm) {
+		return getLong(nm, null);
+	}
 
-	native public static Long getLong(String nm);
+	public static Long getLong(String nm, long val) {
+		return getLong(nm, Long.valueOf(val));
+	}
 
-	native public static Long getLong(String nm, long val);
+	public static Long getLong(String nm, Long val) {
+		String out = System.getProperty(nm);
+		if (out == null) return val;
+		try {
+			return decode(nm);
+		} catch (NumberFormatException e) {
+			return val;
+		}
+	}
 
-	native public int compareTo(Long anotherLong);
+	public int compareTo(Long anotherLong) {
+		return compare(this.value, anotherLong.value);
+	}
 
 	public static int compare(long x, long y) {
 		return (x < y) ? -1 : ((x == y) ? 0 : 1);
@@ -145,21 +177,67 @@ public final class Long extends Number implements Comparable<Long> {
 		return compare(x + MIN_VALUE, y + MIN_VALUE);
 	}
 
-	native public static long divideUnsigned(long dividend, long divisor);
+	// @TODO: https://github.com/pierrec/js-cuint/blob/master/lib/uint64.js
+	public static long divideUnsigned(long dividend, long divisor) {
+		if (divisor < 0L) return (compareUnsigned(dividend, divisor)) < 0 ? 0L :1L;
+		if (dividend > 0) return dividend/divisor;
+		//return toUnsignedBigInteger(dividend).divide(toUnsignedBigInteger(divisor)).longValue();
+		throw new RuntimeException("Not implemented");
+	}
 
-	native public static long remainderUnsigned(long dividend, long divisor);
+	public static long remainderUnsigned(long dividend, long divisor) {
+		if (dividend > 0 && divisor > 0) return dividend % divisor;
+		if (compareUnsigned(dividend, divisor) < 0) return dividend;
+		//return toUnsignedBigInteger(dividend).remainder(toUnsignedBigInteger(divisor)).longValue();
+		throw new RuntimeException("Not implemented");
+	}
 
 	public static final int SIZE = 64;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
-	native public static long highestOneBit(long value);
+	public static long highestOneBit(long v) {
+		v |= (v >>  1);
+		v |= (v >>  2);
+		v |= (v >>  4);
+		v |= (v >>  8);
+		v |= (v >> 16);
+		v |= (v >> 32);
+		return v - (v >>> 1);
+	}
 
-	native public static long lowestOneBit(long value);
+	public static long lowestOneBit(long v) {
+		return v & -v;
+	}
 
-	native public static int numberOfLeadingZeros(long value);
+	public static int numberOfLeadingZeros(long v) {
+		if (v == 0) return 64;
+		int n = 1;
+		int x = (int) (v >>> 32);
+		if (x == 0) {
+			n += 32;
+			x = (int) v;
+		}
+		if (x >>> 16 == 0) {
+			n += 16;
+			x <<= 16;
+		}
+		if (x >>> 24 == 0) {
+			n += 8;
+			x <<= 8;
+		}
+		if (x >>> 28 == 0) {
+			n += 4;
+			x <<= 4;
+		}
+		if (x >>> 30 == 0) {
+			n += 2;
+			x <<= 2;
+		}
+		n -= x >>> 31;
+		return n;
+	}
 
 	public static int numberOfTrailingZeros(long value) {
-		// HD, Figure 5-14
 		int x, y;
 		if (value == 0) return 64;
 		int n = 63;
@@ -191,21 +269,51 @@ public final class Long extends Number implements Comparable<Long> {
 		return n - ((x << 1) >>> 31);
 	}
 
-	native public static int bitCount(long value);
+	public static int bitCount(long v) {
+		v = v - ((v >>> 1) & 0x5555555555555555L);
+		v = (v & 0x3333333333333333L) + ((v >>> 2) & 0x3333333333333333L);
+		v = (v + (v >>> 4)) & 0x0f0f0f0f0f0f0f0fL;
+		v = v + (v >>> 8);
+		v = v + (v >>> 16);
+		v = v + (v >>> 32);
+		return (int) v & 0x7f;
+	}
 
-	native public static long rotateLeft(long value, int distance);
+	public static long rotateLeft(long value, int distance) {
+		return (value << distance) | (value >>> -distance);
+	}
 
-	native public static long rotateRight(long value, int distance);
+	public static long rotateRight(long value, int distance) {
+		return (value >>> distance) | (value << -distance);
+	}
 
-	native public static long reverse(long value);
+	public static long reverse(long v) {
+		v = (v & 0x5555555555555555L) << 1 | (v >>> 1) & 0x5555555555555555L;
+		v = (v & 0x3333333333333333L) << 2 | (v >>> 2) & 0x3333333333333333L;
+		v = (v & 0x0f0f0f0f0f0f0f0fL) << 4 | (v >>> 4) & 0x0f0f0f0f0f0f0f0fL;
+		v = (v & 0x00ff00ff00ff00ffL) << 8 | (v >>> 8) & 0x00ff00ff00ff00ffL;
+		v = (v << 48) | ((v & 0xffff0000L) << 16) | ((v >>> 16) & 0xffff0000L) | (v >>> 48);
+		return v;
+	}
 
-	native public static int signum(long value);
+	public static int signum(long v) {
+		return (int) ((v >> 63) | (-v >>> 63));
+	}
 
-	native public static long reverseBytes(long value);
+	public static long reverseBytes(long v) {
+		v = (v & 0x00ff00ff00ff00ffL) << 8 | (v >>> 8) & 0x00ff00ff00ff00ffL;
+		return (v << 48) | ((v & 0xffff0000L) << 16) | ((v >>> 16) & 0xffff0000L) | (v >>> 48);
+	}
 
-	native public static long sum(long l, long r);
+	public static long sum(long l, long r) {
+		return l + r;
+	}
 
-	native public static long max(long l, long r);
+	public static long max(long l, long r) {
+		return Math.max(l, r);
+	}
 
-	native public static long min(long l, long r);
+	public static long min(long l, long r) {
+		return Math.min(l, r);
+	}
 }

@@ -20,6 +20,7 @@ import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
 import javatest.KotlinCollections
+import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import jtransc.JTranscVersion
@@ -63,6 +64,8 @@ class HaxeGenSuite {
 	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()
 	@Test fun nioTest() = testClass<JTranscNioTest>()
 	@Test fun arithmeticTest() = testClass<JTranscArithmeticTest>()
+
+	@Test fun basicTypesTest() = testClass<BasicTypesTest>()
 
 	@Test fun bug12Test() = testClass<JTranscBug12Test>()
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
