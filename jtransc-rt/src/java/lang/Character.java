@@ -183,7 +183,9 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return 1;
 	}
 
-	native public static char[] toChars(int codePoint);
+	public static char[] toChars(int codePoint) {
+		return new char[]{(char) codePoint};
+	}
 
 	//static void toSurrogates(int codePoint, char[] dst, int index);
 	public static int codePointCount(CharSequence seq, int beginIndex, int endIndex) {
@@ -201,20 +203,20 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	//native static int offsetByCodePointsImpl(char[] a, int start, int count, int index, int codePointOffset);
 	public static boolean isLowerCase(char ch) {
-        return toLowerCase(ch) == ch;
-    }
+		return toLowerCase(ch) == ch;
+	}
 
 	public static boolean isLowerCase(int codePoint) {
-        return toLowerCase(codePoint) == codePoint;
-    }
+		return toLowerCase(codePoint) == codePoint;
+	}
 
 	public static boolean isUpperCase(char ch) {
-        return toUpperCase(ch) == ch;
-    }
+		return toUpperCase(ch) == ch;
+	}
 
 	public static boolean isUpperCase(int codePoint) {
-        return toUpperCase(codePoint) == codePoint;
-    }
+		return toUpperCase(codePoint) == codePoint;
+	}
 
 	native public static boolean isTitleCase(char ch);
 
@@ -274,58 +276,108 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	native public static boolean isIdentifierIgnorable(int codePoint);
 
-    @HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);" )
+	@HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
 	native public static char toLowerCase(char ch);
 
-    @HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);" )
+	@HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
 	native public static int toLowerCase(int codePoint);
 
-    @HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
+	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static char toUpperCase(char ch);
 
-    @HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
+	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static int toUpperCase(int codePoint);
 
 	native public static char toTitleCase(char ch);
 
 	native public static int toTitleCase(int codePoint);
 
-	native public static int digit(char ch, int radix);
+	public static int digit(char ch, int radix) {
+		if (ch >= '0' && ch <= '9') return ch - '0';
+		if (ch >= 'a' && ch <= 'z') return (ch - 'a') + 10;
+		if (ch >= 'A' && ch <= 'Z') return (ch - 'A') + 10;
+		return -1;
+	}
 
-	native public static int digit(int codePoint, int radix);
+	public static int digit(int codePoint, int radix) {
+		return digit((char) codePoint, radix);
+	}
 
-	native public static int getNumericValue(char ch);
+	public static int getNumericValue(char ch) {
+		return digit(ch, 10);
+	}
 
-	native public static int getNumericValue(int codePoint);
+	public static int getNumericValue(int codePoint) {
+		return digit(codePoint, 10);
+	}
 
 	@Deprecated
 	public static boolean isSpace(char value) {
 		return (value <= 0x0020) && (((((1L << 0x0009) | (1L << 0x000A) | (1L << 0x000C) | (1L << 0x000D) | (1L << 0x0020)) >> value) & 1L) != 0);
 	}
 
-	native public static boolean isSpaceChar(char ch);
+	public static boolean isSpaceChar(char ch) {
+		return isSpaceChar((int) ch);
+	}
 
-	native public static boolean isSpaceChar(int codePoint);
+	public static boolean isSpaceChar(int codePoint) {
+		switch (codePoint) {
+			case 0x0020:
+			case 0x00A0:
+			case 0x1680:
+			case 0x180E:
+			case 0x2000:
+			case 0x2001:
+			case 0x2002:
+			case 0x2003:
+			case 0x2004:
+			case 0x2005:
+			case 0x2006:
+			case 0x2007:
+			case 0x2008:
+			case 0x2009:
+			case 0x200A:
+			case 0x200B:
+			case 0x202F:
+			case 0x205F:
+			case 0x3000:
+			case 0xFEFF:
+				return true;
+		}
+		return false;
+	}
 
 	native public static boolean isWhitespace(char ch);
 
 	native public static boolean isWhitespace(int codePoint);
 
-	native public static boolean isISOControl(char ch);
+	public static boolean isISOControl(char ch) {
+		return isISOControl((int) ch);
+	}
 
-	native public static boolean isISOControl(int codePoint);
+	public static boolean isISOControl(int codePoint) {
+		return codePoint <= 0x9F && (codePoint >= 0x7F || (codePoint >>> 5 == 0));
+	}
 
 	native public static int getType(char ch);
 
 	native public static int getType(int codePoint);
 
-	native public static char forDigit(int digit, int radix);
+	public static char forDigit(int digit, int radix) {
+		if (digit >= 0 && digit <= 9) return (char) ('0' + (digit - 0));
+		if (digit >= 10 && digit <= 35) return (char) ('a' + (digit - 10));
+		return '\0';
+	}
 
-	native public static byte getDirectionality(char ch);
+	public static byte getDirectionality(char ch) {
+		return getDirectionality((int) ch);
+	}
+
+	public static boolean isMirrored(char ch) {
+		return isMirrored((int) ch);
+	}
 
 	native public static byte getDirectionality(int codePoint);
-
-	native public static boolean isMirrored(char ch);
 
 	native public static boolean isMirrored(int codePoint);
 
@@ -337,14 +389,20 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return l - r;
 	}
 
-	native static char[] toUpperCaseCharArray(int codePoint);
+	static char[] toUpperCaseCharArray(int codePoint) {
+		return new char[]{(char) toUpperCase(codePoint)};
+	}
 
 	public static final int SIZE = 16;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
+	@HaxeMethodBody("return HaxeNatives.swap16(p0) & 0xFFFF;")
 	public static char reverseBytes(char ch) {
 		return (char) (((ch & 0xFF00) >> 8) | (ch << 8));
 	}
 
-	native public static String getName(int codePoint);
+	public static String getName(int codePoint) {
+		// @TODO: Not implemented!
+		return Integer.toHexString(codePoint);
+	}
 }

@@ -38,6 +38,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	public static String toString(int i, int radix) {
 		if (i == 0) return "0";
+		if (i == MIN_VALUE) return "-2147483648";
 		boolean negative = (i < 0);
 		if (i < 0) i = -i;
 		StringBuilder out = new StringBuilder();
@@ -62,15 +63,15 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	public static String toHexString(int i) {
-		return toString(i, 16);
+		return toUnsignedString(i, 16);
 	}
 
 	public static String toOctalString(int i) {
-		return toString(i, 8);
+		return toUnsignedString(i, 8);
 	}
 
 	public static String toBinaryString(int i) {
-		return toString(i, 2);
+		return toUnsignedString(i, 2);
 	}
 
 	public static String toString(int i) {
@@ -81,8 +82,18 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.parseInt(p0._str, p1);")
-	native public static int parseInt(String s, int radix);
+	public static int parseInt(String s, int radix) {
+		int result = 0;
+		int len = s.length();
+		boolean negative = (s.charAt(0) == '-');
+		int sign = negative ? -1 : 1;
+		int n = negative ? 1 : 0;
+		for (; n < len; n++) {
+			result *= radix;
+			result += JTranscCType.decodeDigit(s.charAt(n));
+		}
+		return result * sign;
+	}
 
 	public static int parseInt(String s) {
 		return parseInt(s, 10);
@@ -208,7 +219,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	public static int compareUnsigned(int l, int r) {
-		return compare(l + MIN_VALUE, r + MIN_VALUE);
+		return compare(l ^ MIN_VALUE, r ^ MIN_VALUE);
 	}
 
 	public static long toUnsignedLong(int value) {
@@ -216,11 +227,21 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	public static int divideUnsigned(int dividend, int divisor) {
-		return (int) (toUnsignedLong(dividend) / toUnsignedLong(divisor));
+		//return (int) (toUnsignedLong(dividend) / toUnsignedLong(divisor));
+		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? 0 : 1;
+		if (dividend >= 0) return dividend / divisor;
+		int quotient = ((dividend >>> 1) / divisor) << 1;
+		int rem = dividend - quotient * divisor;
+		return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
 	}
 
 	public static int remainderUnsigned(int dividend, int divisor) {
-		return (int) (toUnsignedLong(dividend) % toUnsignedLong(divisor));
+		//return (int) (toUnsignedLong(dividend) % toUnsignedLong(divisor));
+		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? dividend : (dividend - divisor);
+		if (dividend >= 0) return dividend % divisor;
+		int quotient = ((dividend >>> 1) / divisor) << 1;
+		int rem = dividend - quotient * divisor;
+		return rem - (compareUnsigned(rem, divisor) >= 0 ? divisor : 0);
 	}
 
 	public static final int SIZE = 32;

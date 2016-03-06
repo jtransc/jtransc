@@ -32,21 +32,27 @@ public final class Float extends Number implements Comparable<Float> {
 	public static final int BYTES = SIZE / Byte.SIZE;
 	public static final Class<Float> TYPE = (Class<Float>) Class.getPrimitiveClass("float");
 
-    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
+	@HaxeMethodBody("return Std.parseFloat(p0._str);")
+	native public static float parseFloat(String value) throws NumberFormatException;
+
+	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
 	native public static String toString(float value);
 
-	native public static String toHexString(float value);
+	// @TODO: CHECK!
+	public static String toHexString(float value) {
+		return Double.toHexString(value);
+	}
 
-	native public static Float valueOf(String value) throws NumberFormatException;
+	public static Float valueOf(String value) throws NumberFormatException {
+		return valueOf(parseFloat(value));
+	}
 
 	@JTranscKeep
 	public static Float valueOf(float value) {
 		return new Float(value);
 	}
 
-	native public static float parseFloat(String value) throws NumberFormatException;
-
-    @HaxeMethodBody("return Math.isNaN(p0);")
+	@HaxeMethodBody("return Math.isNaN(p0);")
 	native public static boolean isNaN(float value);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
@@ -74,17 +80,25 @@ public final class Float extends Number implements Comparable<Float> {
 		value = parseFloat(s);
 	}
 
-	native public boolean isNaN();
+	public boolean isNaN() {
+		return isNaN(value);
+	}
 
-	native public boolean isInfinite();
+	public boolean isInfinite() {
+		return isInfinite(value);
+	}
 
 	public String toString() {
-        return toString(value);
-    }
+		return toString(value);
+	}
 
-	native public byte byteValue();
+	public byte byteValue() {
+		return (byte) value;
+	}
 
-	native public short shortValue();
+	public short shortValue() {
+		return (short) value;
+	}
 
 	public int intValue() {
 		return (int) value;
@@ -115,22 +129,36 @@ public final class Float extends Number implements Comparable<Float> {
 		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
 
-    @HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
-    native public static int floatToIntBits(float value);
+	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+	native public static int floatToIntBits(float value);
 
 	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
-	public static native int floatToRawIntBits(float value);
+	native public static int floatToRawIntBits(float value);
 
-    @HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")
-	public static native float intBitsToFloat(int bits);
+	@HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")
+	native public static float intBitsToFloat(int bits);
 
-	native public int compareTo(Float that);
+	public int compareTo(Float that) {
+		return compare(this.value, that.value);
+	}
 
-	native public static int compare(float l, float r);
+	public static int compare(float f1, float f2) {
+		if (f1 < f2) return -1;
+		if (f1 > f2) return 1;
+		int b1 = Float.floatToIntBits(f1);
+		int b2 = Float.floatToIntBits(f2);
+		return (b1 == b2 ? 0 : (b1 < b2 ? -1 : 1));
+	}
 
-	native public static float sum(float l, float r);
+	public static float sum(float l, float r) {
+		return l + r;
+	}
 
-	native public static float max(float l, float r);
+	public static float max(float l, float r) {
+		return Math.max(l, r);
+	}
 
-	native public static float min(float l, float r);
+	public static float min(float l, float r) {
+		return Math.min(l, r);
+	}
 }

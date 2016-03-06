@@ -396,8 +396,8 @@ class HaxeNatives {
         #if cpp
         return untyped __cpp__("*(double *)(&{0})", value);
         #else
-        _tempI32[0] = value.high;
-        _tempI32[1] = value.low;
+		_tempI32[0] = value.low;
+        _tempI32[1] = value.high;
         return _tempF64[0];
         #end
     }
@@ -407,7 +407,7 @@ class HaxeNatives {
         return untyped __cpp__("*(long *)(&{0})", value);
         #else
         _tempF64[0] = value;
-        return haxe.Int64.make(_tempI32[0], _tempI32[1]);
+		return haxe.Int64.make(_tempI32[1], _tempI32[0]);
         #end
     }
 

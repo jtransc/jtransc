@@ -17,7 +17,6 @@
 package java.lang;
 
 import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.internal.JTranscCType;
 
 public final class Long extends Number implements Comparable<Long> {
@@ -27,6 +26,7 @@ public final class Long extends Number implements Comparable<Long> {
 
 	public static String toString(long i, int radix) {
 		if (i == 0) return "0";
+		if (i == MIN_VALUE) return "-9223372036854775808";
 		StringBuilder out = new StringBuilder();
 		boolean negative = (i < 0);
 		if (negative) i = -i;
@@ -63,14 +63,31 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	//@HaxeMethodBody("return HaxeNatives.str('' + p0);")
-	public static String toString(long i) { return toString(i, 10); }
+	public static String toString(long i) {
+		return toString(i, 10);
+	}
 
 	public static String toUnsignedString(long i) {
 		return toUnsignedString(i, 10);
 	}
 
-	native public static long parseLong(String s, int radix) throws NumberFormatException;
-	native public static long parseUnsignedLong(String s, int radix) throws NumberFormatException;
+	public static long parseLong(String s, int radix) throws NumberFormatException {
+		long result = 0;
+		int len = s.length();
+		boolean negative = (s.charAt(0) == '-');
+		int sign = negative ? -1 : 1;
+		int n = negative ? 1 : 0;
+		for (; n < len; n++) {
+			result *= radix;
+			result += JTranscCType.decodeDigit(s.charAt(n));
+		}
+		return result * sign;
+	}
+
+	// @TODO: CHECK!
+	public static long parseUnsignedLong(String s, int radix) throws NumberFormatException {
+		return parseLong(s, radix);
+	}
 
 	public static Long valueOf(String s, int radix) throws NumberFormatException {
 		return Long.valueOf(parseLong(s, radix));
@@ -93,7 +110,16 @@ public final class Long extends Number implements Comparable<Long> {
 		return new Long(l);
 	}
 
-	native public static Long decode(String nm) throws NumberFormatException;
+	public static Long decode(String nm) throws NumberFormatException {
+		if (nm.length() == 0) throw new NumberFormatException("Zero length string");
+		if (nm.startsWith("-")) return -decode(nm.substring(1));
+		if (nm.startsWith("+")) return decode(nm.substring(1));
+		if (nm.startsWith("0x")) return parseLong(nm.substring(2), 16);
+		if (nm.startsWith("0X")) return parseLong(nm.substring(2), 16);
+		if (nm.startsWith("#")) return parseLong(nm.substring(1), 16);
+		if (nm.startsWith("0")) return parseLong(nm.substring(1), 8);
+		return parseLong(nm, 10);
+	}
 
 	private final long value;
 
@@ -174,32 +200,35 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	public static int compareUnsigned(long x, long y) {
-		return compare(x + MIN_VALUE, y + MIN_VALUE);
+		return compare(x ^ MIN_VALUE, y ^ MIN_VALUE);
 	}
 
-	// @TODO: https://github.com/pierrec/js-cuint/blob/master/lib/uint64.js
+	// https://github.com/google/guava/blob/master/guava/src/com/google/common/primitives/UnsignedLongs.java
+	// https://github.com/google/guava/blob/master/guava/src/com/google/common/primitives/UnsignedLong.java
 	public static long divideUnsigned(long dividend, long divisor) {
-		if (divisor < 0L) return (compareUnsigned(dividend, divisor)) < 0 ? 0L :1L;
-		if (dividend > 0) return dividend/divisor;
-		//return toUnsignedBigInteger(dividend).divide(toUnsignedBigInteger(divisor)).longValue();
-		throw new RuntimeException("Not implemented");
+		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? 0 : 1;
+		if (dividend >= 0) return dividend / divisor;
+		long quotient = ((dividend >>> 1) / divisor) << 1;
+		long rem = dividend - quotient * divisor;
+		return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
 	}
 
 	public static long remainderUnsigned(long dividend, long divisor) {
-		if (dividend > 0 && divisor > 0) return dividend % divisor;
-		if (compareUnsigned(dividend, divisor) < 0) return dividend;
-		//return toUnsignedBigInteger(dividend).remainder(toUnsignedBigInteger(divisor)).longValue();
-		throw new RuntimeException("Not implemented");
+		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? dividend : (dividend - divisor);
+		if (dividend >= 0) return dividend % divisor;
+		long quotient = ((dividend >>> 1) / divisor) << 1;
+		long rem = dividend - quotient * divisor;
+		return rem - (compareUnsigned(rem, divisor) >= 0 ? divisor : 0);
 	}
 
 	public static final int SIZE = 64;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
 	public static long highestOneBit(long v) {
-		v |= (v >>  1);
-		v |= (v >>  2);
-		v |= (v >>  4);
-		v |= (v >>  8);
+		v |= (v >> 1);
+		v |= (v >> 2);
+		v |= (v >> 4);
+		v |= (v >> 8);
 		v |= (v >> 16);
 		v |= (v >> 32);
 		return v - (v >>> 1);

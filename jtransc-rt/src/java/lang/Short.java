@@ -31,18 +31,27 @@ public final class Short extends Number implements Comparable<Short> {
 		return Integer.toString((int) s, 10);
 	}
 
-	public static short parseShort(String s, int radix) throws NumberFormatException {
-		int i = Integer.parseInt(s, radix);
-		if (i < MIN_VALUE || i > MAX_VALUE)
-			throw new NumberFormatException("Value out of range. Value:\"" + s + "\" Radix:" + radix);
-		return (short) i;
+	private static int checkDecode(String value, int decoded) throws NumberFormatException {
+		if (decoded < MIN_VALUE || decoded > MAX_VALUE)
+			throw new NumberFormatException("Value " + decoded + " out of range from input " + value);
+		return decoded;
 	}
 
-	native public static short parseShort(String s) throws NumberFormatException;
+	public static short parseShort(String s, int radix) throws NumberFormatException {
+		return (short) checkDecode(s, Integer.parseInt(s, radix));
+	}
 
-	native public static Short valueOf(String s, int radix) throws NumberFormatException;
+	public static short parseShort(String s) throws NumberFormatException {
+		return parseShort(s, 10);
+	}
 
-	native public static Short valueOf(String s) throws NumberFormatException;
+	public static Short valueOf(String s, int radix) throws NumberFormatException {
+		return valueOf(parseShort(s, radix));
+	}
+
+	public static Short valueOf(String s) throws NumberFormatException {
+		return valueOf(parseShort(s, 10));
+	}
 
 	@JTranscKeep
 	public static Short valueOf(short s) {
@@ -50,7 +59,9 @@ public final class Short extends Number implements Comparable<Short> {
 		return new Short(s);
 	}
 
-	native public static Short decode(String nm) throws NumberFormatException;
+	public static Short decode(String nm) throws NumberFormatException {
+		return valueOf((byte) checkDecode(nm, Integer.decode(nm)));
+	}
 
 	private final short value;
 

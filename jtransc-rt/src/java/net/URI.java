@@ -1083,7 +1083,7 @@ public final class URI implements Comparable<URI>, Serializable {
 	native private static String encode(String s);
 
 	private static int decode(char c) {
-		return JTranscCType.decodeHexDigit(c);
+		return JTranscCType.decodeDigit(c);
 	}
 
 	private static byte decode(char c1, char c2) {

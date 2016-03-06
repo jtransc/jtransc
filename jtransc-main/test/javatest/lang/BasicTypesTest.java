@@ -11,6 +11,9 @@ public class BasicTypesTest {
         shortTests();
         integerTests();
         longTests();
+
+	    parseTests();
+	    compareNans();
     }
 
     private static void byteTests() {
@@ -102,6 +105,22 @@ public class BasicTypesTest {
 	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(999999));
 	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(0));
 
+	    System.out.println("Int .toHexString: " + Integer.toHexString(-1));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(-2));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(-123456));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(1));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(-999999));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(999999));
+	    System.out.println("Int .toHexString: " + Integer.toHexString(0));
+
+	    System.out.println("Int .toOctalString: " + Integer.toOctalString(-1));
+	    System.out.println("Int .toOctalString: " + Integer.toOctalString(+1));
+	    System.out.println("Int .toOctalString: " + Integer.toOctalString(999999));
+
+	    System.out.println("Int .toBinaryString: " + Integer.toBinaryString(-1));
+	    System.out.println("Int .toBinaryString: " + Integer.toBinaryString(+1));
+	    System.out.println("Int .toBinaryString: " + Integer.toBinaryString(999999));
+
 	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-1, 16));
 	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-2, 16));
 	    System.out.println("Int .toUnsignedString: " + Integer.toUnsignedString(-123456, 16));
@@ -171,4 +190,52 @@ public class BasicTypesTest {
 	    System.out.println("Long .toUnsignedString: " + Long.toUnsignedString(0L, 16));
     }
 
+	private static void parseTests() {
+		System.out.println(Integer.parseInt("0"));
+		System.out.println(Integer.parseInt("-1"));
+		System.out.println(Integer.parseInt("123456789"));
+		System.out.println(Integer.parseInt("-123456789"));
+		System.out.println(Integer.parseInt("0", 16));
+		System.out.println(Integer.parseInt("-1", 16));
+		System.out.println(Integer.parseInt("12345678", 16));
+		System.out.println(Integer.parseInt("-12345678", 16));
+
+		System.out.println(Long.parseLong("0"));
+		System.out.println(Long.parseLong("-1"));
+		System.out.println(Long.parseLong("123456789"));
+		System.out.println(Long.parseLong("-123456789"));
+		System.out.println(Long.parseLong("0", 16));
+		System.out.println(Long.parseLong("-1", 16));
+		System.out.println(Long.parseLong("12345678", 16));
+		System.out.println(Long.parseLong("-12345678", 16));
+
+		System.out.println(Float.parseFloat("0.0"));
+		System.out.println(Float.parseFloat("1.0"));
+
+		System.out.println(Double.parseDouble("0.0"));
+		System.out.println(Double.parseDouble("1.0"));
+	}
+
+	private static void compareNans() {
+		float[] floats = new float[] { 0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN };
+		double[] doubles = new double[] { 0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN };
+		for (float l : floats) {
+			for (float r : floats) System.out.print(", " + Float.compare(l, r));
+			System.out.println();
+		}
+		for (double l : doubles) {
+			for (double r : doubles) System.out.print(", " + Double.compare(l, r));
+			System.out.println();
+		}
+		System.out.println(Float.floatToIntBits(1f));
+		System.out.println(Float.floatToRawIntBits(1f));
+		System.out.println(Double.doubleToLongBits(1.0));
+		System.out.println(Double.doubleToRawLongBits(1.0));
+
+		System.out.println(Float.intBitsToFloat(1065353216));
+		System.out.println(Double.longBitsToDouble(4607182418800017408L));
+
+		//System.out.println(Float.toHexString(12345.125f));
+		//System.out.println(Double.toHexString(12345.125f));
+	}
 }
