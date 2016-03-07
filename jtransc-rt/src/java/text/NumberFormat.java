@@ -39,11 +39,11 @@ public abstract class NumberFormat extends Format {
 	}
 
 	public final String format(double value) {
-		return format(value, new StringBuffer(), DontCareFieldPosition.INSTANCE).toString();
+		return format(value, new StringBuffer(), new FieldPosition(0)).toString();
 	}
 
 	public final String format(long value) {
-		return format(value, new StringBuffer(), DontCareFieldPosition.INSTANCE).toString();
+		return format(value, new StringBuffer(), new FieldPosition(0)).toString();
 	}
 
 	public abstract StringBuffer format(double value, StringBuffer toAppendTo, FieldPosition pos);

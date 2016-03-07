@@ -259,5 +259,9 @@ public class JTranscBits {
 		return (int)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + (data[3] << 0));
 	}
 
-
+	public static int clamp(int v, int min, int max) {
+		if (v < min) return min;
+		if (v > max) return max;
+		return v;
+	}
 }

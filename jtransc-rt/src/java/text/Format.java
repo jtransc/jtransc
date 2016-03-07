@@ -28,9 +28,7 @@ public abstract class Format implements Serializable, Cloneable {
 
 	public abstract StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos);
 
-	public AttributedCharacterIterator formatToCharacterIterator(Object obj) {
-		return createAttributedCharacterIterator(format(obj));
-	}
+	native public AttributedCharacterIterator formatToCharacterIterator(Object obj);
 
 	public abstract Object parseObject(String source, ParsePosition pos);
 
@@ -49,37 +47,6 @@ public abstract class Format implements Serializable, Cloneable {
 		}
 	}
 
-	AttributedCharacterIterator createAttributedCharacterIterator(String s) {
-		AttributedString as = new AttributedString(s);
-
-		return as.getIterator();
-	}
-
-	AttributedCharacterIterator createAttributedCharacterIterator(
-		AttributedCharacterIterator[] iterators) {
-		AttributedString as = new AttributedString(iterators);
-
-		return as.getIterator();
-	}
-
-	AttributedCharacterIterator createAttributedCharacterIterator(
-		String string, AttributedCharacterIterator.Attribute key,
-		Object value) {
-		AttributedString as = new AttributedString(string);
-
-		as.addAttribute(key, value);
-		return as.getIterator();
-	}
-
-	AttributedCharacterIterator createAttributedCharacterIterator(
-		AttributedCharacterIterator iterator,
-		AttributedCharacterIterator.Attribute key, Object value) {
-		AttributedString as = new AttributedString(iterator);
-
-		as.addAttribute(key, value);
-		return as.getIterator();
-	}
-
 	public static class Field extends AttributedCharacterIterator.Attribute {
 		protected Field(String name) {
 			super(name);
@@ -87,8 +54,8 @@ public abstract class Format implements Serializable, Cloneable {
 	}
 
 	interface FieldDelegate {
-		public void formatted(Format.Field attr, Object value, int start, int end, StringBuffer buffer);
+		void formatted(Format.Field attr, Object value, int start, int end, StringBuffer buffer);
 
-		public void formatted(int fieldID, Format.Field attr, Object value, int start, int end, StringBuffer buffer);
+		void formatted(int fieldID, Format.Field attr, Object value, int start, int end, StringBuffer buffer);
 	}
 }

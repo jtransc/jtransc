@@ -31,23 +31,23 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	}
 
 	@Deprecated
-    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
+    @HaxeMethodBody("_date = new Date(p0, p1, p2, 0, 0, 0);")
 	public Date(int year, int month, int date) {
 	}
 
 	@Deprecated
-    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
+	@HaxeMethodBody("_date = new Date(p0, p1, p2, p3, p4, 0);")
 	public Date(int year, int month, int date, int hrs, int min) {
 
 	}
 
 	@Deprecated
-    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
+	@HaxeMethodBody("_date = new Date(p0, p1, p2, p3, p4, p5);")
 	public Date(int year, int month, int date, int hrs, int min, int sec) {
 	}
 
 	@Deprecated
-    @HaxeMethodBody("throw 'Not implemented this Date.constructor';")
+	@HaxeMethodBody("_date = Date.fromString(p0._str);")
 	public Date(String s) {
 	}
 
@@ -61,25 +61,28 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public static long parse(String s);
 
     @Deprecated
+	@HaxeMethodBody("return _date.getFullYear() - 1900;")
 	native public int getYear();
 
 	@Deprecated
 	native public void setYear(int year);
 
 	@Deprecated
+	@HaxeMethodBody("return _date.getMonth() + 1;")
 	native public int getMonth();
 
 	@Deprecated
 	native public void setMonth(int month);
 
 	@Deprecated
-    @HaxeMethodBody("return _date.getDay();")
+    @HaxeMethodBody("return _date.getDate();")
     native public int getDate();
 
 	@Deprecated
 	native public void setDate(int date);
 
 	@Deprecated
+	@HaxeMethodBody("return _date.getDay();")
 	native public int getDay();
 
 	@Deprecated
@@ -90,12 +93,14 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public void setHours(int hours);
 
 	@Deprecated
+	@HaxeMethodBody("return _date.getMinutes();")
 	native public int getMinutes();
 
 	@Deprecated
 	native public void setMinutes(int minutes);
 
 	@Deprecated
+	@HaxeMethodBody("return _date.getSeconds();")
 	native public int getSeconds();
 
 	@Deprecated
