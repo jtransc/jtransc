@@ -2,10 +2,7 @@ package java.text;
 
 import jtransc.util.JTranscStringReader;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class SimpleDateFormat extends DateFormat {
 	private final List<String> patternChunks;
@@ -88,23 +85,48 @@ public class SimpleDateFormat extends DateFormat {
 
 	@Override
 	public Date parse(String source, ParsePosition pos) {
-		int year = 1900;
-		int month = 1;
-		int day = 1;
-		int hour = 0;
-		int min = 0;
-		int sec = 0;
+		int[] fields = new int[Calendar.FIELD_COUNT];
+
 		JTranscStringReader r = new JTranscStringReader(source);
 		for (String p : patternChunks) {
-			switch (p) {
-				case "YYYY":
-					year = Integer.parseInt(r.read(4));
+			int field = -1;
+			switch (p.charAt(0)) {
+				case 'Y':
+					field = Calendar.YEAR;
+					break;
+				case 'y':
+					field = Calendar.YEAR;
+					break;
+				case 'M':
+					field = Calendar.MONTH;
+					break;
+				case 'd':
+					field = Calendar.DAY_OF_MONTH;
+					break;
+				case 'H':
+					field = Calendar.HOUR;
+					break;
+				case 'm':
+					field = Calendar.MINUTE;
+					break;
+				case 's':
+					field = Calendar.SECOND;
+					break;
+				case 'z':
+					field = Calendar.ZONE_OFFSET;
 					break;
 				default:
-					String readed = r.read(p.length());
 					break;
 			}
+			String readed = r.read(p.length());
+			if (field >= 0) {
+				try {
+					fields[field] = Integer.valueOf(readed);
+				} catch (NumberFormatException nfe) {
+				}
+			}
 		}
-		return new Date(year, month, day, hour, min, sec);
+		pos.setIndex(r.offset);
+		return new Date(fields[Calendar.YEAR] - 1900, fields[Calendar.MONTH] - 1, fields[Calendar.DAY_OF_MONTH], fields[Calendar.HOUR], fields[Calendar.MINUTE], fields[Calendar.SECOND]);
 	}
 }

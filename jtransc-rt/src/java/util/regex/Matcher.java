@@ -16,6 +16,7 @@
 
 package java.util.regex;
 
+import jtransc.JTranscSystem;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -102,6 +103,7 @@ public final class Matcher implements MatchResult {
 
 	public int start(int group) {
 		if (group == 0) return start();
+		JTranscSystem.debugger();
 		throw new Error("No implemented Matcher.start(int group) with group != 0");
 	}
 
@@ -112,6 +114,7 @@ public final class Matcher implements MatchResult {
 
 	public int end(int group) {
 		if (group == 0) return end();
+		JTranscSystem.debugger();
 		throw new Error("No implemented Matcher.end(int group) with group != 0");
 	}
 

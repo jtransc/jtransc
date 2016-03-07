@@ -6,8 +6,8 @@ import java.util.Objects;
 
 @JTranscInvisible
 public class JTranscStringReader {
-	private String str;
-	private int offset;
+	public final String str;
+	public int offset;
 
 	public JTranscStringReader(String str) {
 		this.str = str;
@@ -40,10 +40,6 @@ public class JTranscStringReader {
 
 	public char readch() {
 		return this.str.charAt(offset++);
-	}
-
-	public int getOffset() {
-		return offset;
 	}
 
 	public int length() {
