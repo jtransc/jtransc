@@ -526,7 +526,7 @@ class HaxeNatives {
 
     static public inline function rethrow(__i__exception__:Dynamic) {
         #if js
-			#if (haxe_ver > 3.2)
+			#if (haxe_ver >= 3.3)
 			js.Lib.rethrow();
 			#else
 			untyped __js__('if (__i__exception__ && __i__exception__.stack) console.error(__i__exception__.stack);');
