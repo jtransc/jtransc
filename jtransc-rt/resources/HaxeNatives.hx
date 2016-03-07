@@ -526,7 +526,14 @@ class HaxeNatives {
 
     static public inline function rethrow(__i__exception__:Dynamic) {
         #if js
-        untyped __js__('if (__i__exception__ && __i__exception__.stack) console.error(__i__exception__.stack);');
+			#if (haxe_ver > 3.2)
+			js.Lib.rethrow();
+			#else
+			untyped __js__('if (__i__exception__ && __i__exception__.stack) console.error(__i__exception__.stack);');
+			throw __i__exception__;
+			#end
+		#else
+			throw __i__exception__;
         #end
         //#if js
         //if (untyped __js__('typeof haxe_CallStack !== "undefined"')) {
@@ -535,7 +542,7 @@ class HaxeNatives {
         //	throw __i__exception__;
         //}
         //#else
-        throw __i__exception__;
+
         //#end
     }
 
@@ -650,4 +657,6 @@ class HaxeNatives {
 		for (n in 0 ... p0.length) reversed += p0.charAt(p0.length - n - 1);
 		return reversed;
 	}
+
+
 }
