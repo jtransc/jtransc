@@ -1,19 +1,22 @@
 package javatest.lang;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by mike on 4/11/15.
  */
 public class BasicTypesTest {
 
     public static void main(String[] args) throws Throwable {
+		compareInts();
+		parseTests();
+		compareNans();
         byteTests();
         charTests();
         shortTests();
         integerTests();
         longTests();
-
-	    parseTests();
-	    compareNans();
+		regexpTest();
     }
 
     private static void byteTests() {
@@ -191,10 +194,38 @@ public class BasicTypesTest {
     }
 
 	private static void parseTests() {
+		System.out.println("+10: " + Integer.parseInt("+10"));
+		System.out.println("+20: " + Integer.parseInt("+20", 16));
+		try {
+			System.out.println("+20: " + Integer.parseInt("+20 ", 16));
+		}catch (NumberFormatException nfe) {
+			System.out.println(nfe.getMessage());
+		}
+		try {
+			System.out.println("++20: " + Integer.parseInt("++20", 16));
+		}catch (NumberFormatException nfe) {
+			System.out.println(nfe.getMessage());
+		}
+		try {
+			System.out.println("--20: " + Integer.parseInt("--20", 16));
+		}catch (NumberFormatException nfe) {
+			System.out.println(nfe.getMessage());
+		}
+
 		System.out.println(Integer.parseInt("0"));
 		System.out.println(Integer.parseInt("-1"));
 		System.out.println(Integer.parseInt("123456789"));
 		System.out.println(Integer.parseInt("-123456789"));
+
+		System.out.println(Integer.parseInt("2147483647"));
+		//System.out.println(Integer.parseInt("2147483648"));
+		//System.out.println(Integer.parseInt("2147483649"));
+		System.out.println(Integer.parseInt("-2147483648"));
+		//System.out.println(Integer.parseInt("-2147483649"));
+		//System.out.println(Integer.parseInt("-11111111111"));
+		//System.out.println(Integer.parseInt("+11111111111"));
+		//System.out.println(Integer.parseInt("11111111111"));
+
 		System.out.println(Integer.parseInt("0", 16));
 		System.out.println(Integer.parseInt("-1", 16));
 		System.out.println(Integer.parseInt("12345678", 16));
@@ -214,6 +245,33 @@ public class BasicTypesTest {
 
 		System.out.println(Double.parseDouble("0.0"));
 		System.out.println(Double.parseDouble("1.0"));
+	}
+
+	private static void compareInts() {
+		int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
+		for (int a : ints) {
+			for (int b : ints) {
+				System.out.print(Integer.compare(a, b));
+				System.out.print(",");
+				System.out.print(Integer.compareUnsigned(a, b));
+				System.out.print(",");
+				if (b != 0) {
+					System.out.print(Integer.divideUnsigned(a, b));
+				} else {
+					System.out.print("-");
+				}
+				System.out.print(",");
+				if (b != 0) {
+					System.out.print(Integer.remainderUnsigned(a, b));
+				} else {
+					System.out.print("-");
+				}
+				System.out.print(",");
+			}
+			System.out.println();
+		}
+
+
 	}
 
 	private static void compareNans() {
@@ -237,5 +295,15 @@ public class BasicTypesTest {
 
 		//System.out.println(Float.toHexString(12345.125f));
 		//System.out.println(Double.toHexString(12345.125f));
+	}
+
+	private static void regexpTest() {
+		Pattern NUMERIC = Pattern.compile("[-]?[0-9]+");
+		System.out.println(NUMERIC.matcher("1").matches());
+		System.out.println(NUMERIC.matcher("1.0").matches());
+		System.out.println(NUMERIC.matcher("1.1").matches());
+		System.out.println(NUMERIC.matcher("-1.1").matches());
+		System.out.println(NUMERIC.matcher("1.1").find());
+		//System.out.println(NUMERIC.matcher("1.1").group());
 	}
 }

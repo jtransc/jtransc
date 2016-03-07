@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import jtransc.JTranscSystem;
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.internal.JTranscCType;
@@ -82,18 +83,31 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
-	public static int parseInt(String s, int radix) {
+	public static int parseInt(String input, int radix) {
+		String s = input;
 		int result = 0;
-		int len = s.length();
-		boolean negative = (s.charAt(0) == '-');
-		int sign = negative ? -1 : 1;
-		int n = negative ? 1 : 0;
-		for (; n < len; n++) {
-			result *= radix;
-			result += JTranscCType.decodeDigit(s.charAt(n));
+		int sign = +1;
+		if (s.startsWith("-")) {
+			sign = -1;
+			s = s.substring(1);
+		} else if (s.startsWith("+")) {
+			sign = +1;
+			s = s.substring(1);
 		}
-		return result * sign;
+		int len = s.length();
+		for (int n = 0; n < len; n++) {
+			char c = s.charAt(n);
+			if (!JTranscCType.isDigit(c)) {
+				JTranscSystem.debugger();
+				throw new NumberFormatException("For input string: \"" + input + "\"");
+			}
+			result *= radix;
+			result += JTranscCType.decodeDigit(c);
+			//System.out.println(c + ": " + JTranscCType.decodeDigit(c));
+		}
+		return sign * result;
 	}
+
 
 	public static int parseInt(String s) {
 		return parseInt(s, 10);
