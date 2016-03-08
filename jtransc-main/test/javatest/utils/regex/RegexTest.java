@@ -3,7 +3,7 @@ package javatest.utils.regex;
 import java.util.regex.Pattern;
 
 public class RegexTest {
-	static public void main() {
+	static public void main(String[] args) {
 		matchesTest();
 	}
 

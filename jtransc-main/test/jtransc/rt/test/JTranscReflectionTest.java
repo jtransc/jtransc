@@ -9,6 +9,27 @@ import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) {
+		assignableTest();
+		annotationTest();
+		fieldTest();
+	}
+
+	static public void assignableTest() {
+		Class[] classes = {A.class, B.class, I.class};
+		A.aCount = 0;
+		B.bCount = 0;
+		for (Class a : classes) {
+			for (Class b : classes) {
+				System.out.print(a.isAssignableFrom(b));
+				System.out.print(",");
+			}
+			System.out.println();
+		}
+		System.out.println(A.aCount);
+		System.out.println(B.bCount);
+	}
+
+	static public void annotationTest() {
 		Singleton test1 = Test1.class.getAnnotation(Singleton.class);
 		Singleton test2 = Test2.class.getAnnotation(Singleton.class);
 		System.out.println(test1.declare());
@@ -31,9 +52,8 @@ public class JTranscReflectionTest {
 		}
 
 		System.out.println(new ATest1<Integer, String>().new2().new3().getClass().getCanonicalName());
-
-		fieldTest();
 	}
+
 
 	static private void fieldTest() {
 		Class<FieldTestClass> clazz = FieldTestClass.class;
@@ -46,6 +66,9 @@ public class JTranscReflectionTest {
 			clazz.getField("_Byte").set(instance, (byte)7);
 			clazz.getField("_int").set(instance, 7);
 			clazz.getField("_Integer").set(instance, 7);
+
+			//clazz.getField("_byte").set(instance, (int)7);
+			//clazz.getField("_Byte").set(instance, (int)7);
 
 			System.out.println(clazz.getField("_byte").get(instance).getClass());
 			System.out.println(clazz.getField("_int").get(instance).getClass());
@@ -83,6 +106,26 @@ public class JTranscReflectionTest {
 
 	@Singleton static public class Test1 {}
 	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.DECLARE, b = "BB") static public class Test2 {}
+}
+
+class A extends B {
+	static public int aCount = 0;
+
+	public A() {
+		aCount++;
+	}
+}
+
+class B implements I {
+	static public int bCount = 0;
+
+	public B() {
+		bCount++;
+	}
+}
+
+interface I {
+
 }
 
 class FieldTestClass {

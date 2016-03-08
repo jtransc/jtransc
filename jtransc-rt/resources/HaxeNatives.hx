@@ -11,34 +11,22 @@ using Lambda;
 typedef Long = Int64;
 
 class HaxeNatives {
-    static var outputBuffer = '';
-    static public function outputChar(char:Int):Void {
-        if (char == 10) {
-        	#if js
-			var _outputBuffer = outputBuffer;
-        	untyped __js__("console.log(_outputBuffer);");
-        	#else
-            trace(outputBuffer);
-            #end
-            outputBuffer = '';
-        } else {
-            outputBuffer += String.fromCharCode(char);
-        }
-    }
+	static public function outputLog(msg:String):Void {
+		#if js
+		var _msg = msg;
+		untyped __js__("console.log(_msg);");
+		#else
+		trace(msg);
+		#end
+	}
 
-	static var errorBuffer = '';
-	static public function outputErrorChar(char:Int):Void {
-		if (char == 10) {
-			#if js
-			var _errorBuffer = errorBuffer;
-			untyped __js__("console.error(_errorBuffer);");
-			#else
-			trace(errorBuffer);
-			#end
-			errorBuffer = '';
-		} else {
-			errorBuffer += String.fromCharCode(char);
-		}
+	static public function outputError(msg:String):Void {
+		#if js
+		var _msg = msg;
+		untyped __js__("console.error(_msg);");
+		#else
+		trace(msg);
+		#end
 	}
 
 	static private var M2P32_DBL = Math.pow(2, 32);
@@ -322,6 +310,7 @@ class HaxeNatives {
     }
 
     static public function unbox(value:Dynamic):Dynamic {
+		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
         if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
         if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
         if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;

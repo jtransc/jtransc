@@ -17,6 +17,7 @@
 package java.lang;
 
 import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,16 +32,8 @@ public class System {
 			throw new Error("Not implemented!");
 		}
 	};
-	static public final PrintStream out = new PrintStream(new OutputStream() {
-		@Override
-		@HaxeMethodBody("HaxeNatives.outputChar(p0);")
-		native public void write(int b) throws IOException;
-	});
-	static public final PrintStream err = new PrintStream(new OutputStream() {
-		@Override
-		@HaxeMethodBody("HaxeNatives.outputErrorChar(p0);")
-		native public void write(int b) throws IOException;
-	});
+	static public final PrintStream out = new JTranscConsolePrintStream(false);
+	static public final PrintStream err = new JTranscConsolePrintStream(true);
 
 	native public static void setIn(InputStream in);
 

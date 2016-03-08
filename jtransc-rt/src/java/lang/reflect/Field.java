@@ -150,17 +150,36 @@ public final class Field extends AccessibleObject implements Member {
 	native public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
 	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
-	native private void _set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+	native private void _setObject(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, HaxeNatives.unbox(p1));")
-	native private void _setUnboxed(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+	//@HaxeMethodBody("Reflect.setField(p0, this._internalName, HaxeNatives.unbox(p1));")
+	//native private void _setUnboxed(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
 	public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
 		//System.out.println(clazz + "," + clazz.isPrimitive());
-		if (getType().isPrimitive()) {
-			_setUnboxed(obj, value);
+		Class<?> type = getType();
+		if (type == null) {
+		} else if (type.isPrimitive()) {
+			if (type == Void.TYPE) {
+			} else if (type == Boolean.TYPE) {
+				this.setBoolean(obj, (Boolean)value);
+			} else if (type == Byte.TYPE) {
+				this.setByte(obj, (Byte)value);
+			} else if (type == Short.TYPE) {
+				this.setShort(obj, (Short)value);
+			} else if (type == Character.TYPE) {
+				this.setChar(obj, (Character) value);
+			} else if (type == Integer.TYPE) {
+				this.setInt(obj, (Integer) value);
+			} else if (type == Long.TYPE) {
+				this.setLong(obj, (Long) value);
+			} else if (type == Float.TYPE) {
+				this.setFloat(obj, (Float) value);
+			} else if (type == Double.TYPE) {
+				this.setDouble(obj, (Double) value);
+			}
 		} else {
-			_set(obj, value);
+			this._setObject(obj, value);
 		}
 	}
 

@@ -24,9 +24,7 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.lang.AnnotatedElement;
 
 @HaxeAddMembers({
@@ -200,12 +198,25 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return forName(name);
 	}
 
-	public boolean isAssignableFrom(Class<?> cls) {
-		try {
-			return isInstance(cls.newInstance());
-		} catch (Exception e) {
-			return false;
+	private HashSet<Class<?>> allRelatedClasses = null;
+
+	private HashSet<Class<?>> getAllRelatedClasses() {
+		if (allRelatedClasses == null) {
+			allRelatedClasses = new HashSet<>();
+			allRelatedClasses.add(this);
+			for (Class<?> i : this.getInterfaces()) {
+				allRelatedClasses.addAll(i.getAllRelatedClasses());
+			}
+			Class<? super T> superclass = this.getSuperclass();
+			if (superclass != null) {
+				allRelatedClasses.addAll(superclass.getAllRelatedClasses());
+			}
 		}
+		return allRelatedClasses;
+	}
+
+	public boolean isAssignableFrom(Class<?> cls) {
+		return cls.getAllRelatedClasses().contains(this);
 	}
 
 	public boolean isInterface() {

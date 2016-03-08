@@ -70,7 +70,7 @@ class HaxeGenSuite {
 
 	@Test fun basicTypesTest() = testClass<BasicTypesTest>()
 
-	@Test fun regexTests() = testClass<RegexTest>()
+	@Test fun regexTests() = testClass<javatest.utils.regex.RegexTest>()
 
 	@Test fun dateTests() = testClass<DateTest>()
 

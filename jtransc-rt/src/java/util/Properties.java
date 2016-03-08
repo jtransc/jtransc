@@ -50,11 +50,23 @@ public class Properties extends Hashtable<Object, Object> {
 
 	native public void storeToXML(OutputStream os, String comment, String encoding) throws IOException;
 
-	native public String getProperty(String key);
+	public String getProperty(String key) {
+		Object oval = super.get(key);
+		String sval = (oval instanceof String) ? (String)oval : null;
+		return ((sval == null) && (defaults != null)) ? defaults.getProperty(key) : sval;
+	}
 
-	native public String getProperty(String key, String defaultValue);
+	public String getProperty(String key, String defaultValue) {
+		String val = getProperty(key);
+		return (val == null) ? defaultValue : val;
+	}
 
-	native public Enumeration<?> propertyNames();
+	public Enumeration<?> propertyNames() {
+		HashSet<Object> names = new HashSet<>();
+		if (defaults != null) names.addAll(defaults.keySet());
+		names.addAll(this.keySet());
+		return Collections.enumeration(names);
+	}
 
 	native public Set<String> stringPropertyNames();
 

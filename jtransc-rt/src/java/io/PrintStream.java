@@ -174,7 +174,7 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
 	}
 
 	public void print(boolean b) {
-		write(b ? "true" : "false");
+		write(String.valueOf(b));
 	}
 
 	public void print(char c) {
@@ -213,39 +213,32 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
 		newLine();
 	}
 
-	public void println(boolean x) {
-		print(x);
-		newLine();
+	public void println(boolean v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(char x) {
-		print(x);
-		newLine();
+	public void println(char v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(int x) {
-		print(x);
-		newLine();
+	public void println(int v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(long x) {
-		print(x);
-		newLine();
+	public void println(long v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(float x) {
-		print(x);
-		newLine();
+	public void println(float v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(double x) {
-		print(x);
-		newLine();
+	public void println(double v) {
+		println(String.valueOf(v));
 	}
 
-	public void println(char x[]) {
-		print(x);
-		newLine();
+	public void println(char v[]) {
+		println(String.valueOf(v));
 	}
 
 	public void println(String x) {
