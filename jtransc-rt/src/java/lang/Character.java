@@ -405,4 +405,29 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		// @TODO: Not implemented!
 		return Integer.toHexString(codePoint);
 	}
+
+	public static class Subset {
+	}
+
+	public static final class UnicodeBlock extends Subset {
+		public static final UnicodeBlock forName(String name) {
+			return new UnicodeBlock();
+		}
+
+		public static final UnicodeBlock of(int codePoint) {
+			return new UnicodeBlock();
+		}
+	}
+
+	public static enum UnicodeScript {
+		COMMON;
+
+		public static final UnicodeScript forName(String name) {
+			return COMMON;
+		}
+
+		public static final UnicodeScript of(int codePoint) {
+			return COMMON;
+		}
+	}
 }
