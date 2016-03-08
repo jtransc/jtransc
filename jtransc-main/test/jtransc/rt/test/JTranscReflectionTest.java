@@ -39,10 +39,18 @@ public class JTranscReflectionTest {
 		Class<FieldTestClass> clazz = FieldTestClass.class;
 		FieldTestClass instance = new FieldTestClass();
 		try {
+			System.out.println(clazz.getField("_byte").getClass());
+			System.out.println(clazz.getField("_byte").getDeclaringClass());
+			System.out.println(clazz.getField("_byte").getType());
 			clazz.getField("_byte").set(instance, (byte)7);
 			clazz.getField("_Byte").set(instance, (byte)7);
 			clazz.getField("_int").set(instance, 7);
 			clazz.getField("_Integer").set(instance, 7);
+
+			System.out.println(clazz.getField("_byte").get(instance).getClass());
+			System.out.println(clazz.getField("_int").get(instance).getClass());
+
+			clazz.getField("_double").set(instance, 0.2);
 
 			System.out.println(instance._byte);
 			System.out.println(instance._Byte);
@@ -50,7 +58,10 @@ public class JTranscReflectionTest {
 			System.out.println(instance._Integer);
 
 			System.out.println(instance._int * 2);
+			System.out.println(instance._int + 1);
 			System.out.println(instance._Integer * 2);
+			System.out.println(instance._Integer + 1);
+			System.out.println(instance._double + 2);
 
 			clazz.getField("_byte").setByte(instance, (byte) 3);
 			clazz.getField("_int").setInt(instance, 3);
@@ -58,8 +69,9 @@ public class JTranscReflectionTest {
 
 			System.out.println(instance._int);
 			System.out.println(instance._Integer);
+			System.out.println(instance._int + 1);
 
-			System.out.println(clazz.getField("_int").getInt(instance));
+			System.out.println(clazz.getField("_int").getInt(instance) + 1);
 			//System.out.println(clazz.getField("_Integer").getInt(instance));
 
 			System.out.println(clazz.getField("_int").get(instance));
@@ -78,6 +90,8 @@ class FieldTestClass {
 	public Byte _Byte;
 	public int _int;
 	public Integer _Integer;
+	public double _double;
+	public Double _Double;
 }
 
 class MyDemo {

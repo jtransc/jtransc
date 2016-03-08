@@ -22,8 +22,8 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
-        "public var _internalName = '';",
-        "public var _annotations = [];"
+	"public var _internalName = '';",
+	"public var _annotations = [];"
 })
 public final class Field extends AccessibleObject implements Member {
 	private Class<?> clazz;
@@ -102,8 +102,28 @@ public final class Field extends AccessibleObject implements Member {
 		return (((mod == 0) ? "" : (Modifier.toString(mod) + " ")) + _InternalUtils.getTypeName(getType()) + " " + _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName());
 	}
 
-    @HaxeMethodBody("return HaxeNatives.getField(this.clazz._hxClass, p0, this._internalName);")
-	native public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException;
+	@HaxeMethodBody("return HaxeNatives.getFieldObject(this.clazz._hxClass, p0, this._internalName);")
+	native public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException;
+
+	public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
+		Class<?> type = getType();
+		if (type == null) {
+			return null;
+		} else if (type.isPrimitive()) {
+			if (type == Void.TYPE) return null;
+			if (type == Boolean.TYPE) return this.getBoolean(obj);
+			if (type == Byte.TYPE) return this.getByte(obj);
+			if (type == Short.TYPE) return this.getShort(obj);
+			if (type == Character.TYPE) return this.getChar(obj);
+			if (type == Integer.TYPE) return this.getInt(obj);
+			if (type == Long.TYPE) return this.getLong(obj);
+			if (type == Float.TYPE) return this.getFloat(obj);
+			if (type == Double.TYPE) return this.getDouble(obj);
+			return null;
+		} else {
+			return _getObject(obj);
+		}
+	}
 
 	@HaxeMethodBody("return HaxeNatives.getFieldBool(this.clazz._hxClass, p0, this._internalName);")
 	native public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException;
@@ -129,8 +149,20 @@ public final class Field extends AccessibleObject implements Member {
 	@HaxeMethodBody("return HaxeNatives.getFieldDouble(this.clazz._hxClass, p0, this._internalName);")
 	native public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-    @HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
-	native public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	native private void _set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+
+	@HaxeMethodBody("Reflect.setField(p0, this._internalName, HaxeNatives.unbox(p1));")
+	native private void _setUnboxed(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+
+	public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
+		//System.out.println(clazz + "," + clazz.isPrimitive());
+		if (getType().isPrimitive()) {
+			_setUnboxed(obj, value);
+		} else {
+			_set(obj, value);
+		}
+	}
 
 	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
 	native public void setBoolean(Object obj, boolean z) throws IllegalArgumentException, IllegalAccessException;

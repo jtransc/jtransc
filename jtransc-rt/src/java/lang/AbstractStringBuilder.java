@@ -102,28 +102,28 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	public AbstractStringBuilder append(boolean v) {
-		return this.append(Boolean.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	//@Override
 	public AbstractStringBuilder append(char v) {
-		return this.append(Character.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	public AbstractStringBuilder append(int v) {
-		return this.append(Integer.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	public AbstractStringBuilder append(long v) {
-		return this.append(Long.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	public AbstractStringBuilder append(float v) {
-		return this.append(Float.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	public AbstractStringBuilder append(double v) {
-		return this.append(Double.toString(v));
+		return this.append(String.valueOf(v));
 	}
 
 	public AbstractStringBuilder appendCodePoint(int codePoint) {

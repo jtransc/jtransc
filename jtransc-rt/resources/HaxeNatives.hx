@@ -620,6 +620,10 @@ class HaxeNatives {
 		return HaxeNatives.box(Reflect.field((obj != null) ? obj : clazz, name));
 	}
 
+	static public function getFieldObject(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {
+		return Reflect.field((obj != null) ? obj : clazz, name);
+	}
+
 	static public function getFieldInt(clazz:Class<Dynamic>, obj:Dynamic, name:String):Int {
 		return Reflect.field((obj != null) ? obj : clazz, name);
 	}
