@@ -136,9 +136,6 @@ fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
 }
 
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
-	val mappings = ClassMappings()
-
-
 	val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
 
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
@@ -160,7 +157,6 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 	override fun buildSource() {
 		info = GenHaxeGen(
 			program = program,
-			mappings = mappings,
 			features = AstFeatures(),
 			srcFolder = srcFolder,
 			featureSet = HaxeFeatures

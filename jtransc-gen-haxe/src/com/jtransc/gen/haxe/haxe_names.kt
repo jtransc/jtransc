@@ -2,10 +2,9 @@ package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
-import com.jtransc.gen.ClassMappings
 import com.jtransc.text.escape
 
-class HaxeNames(val program: AstProgram, val mappings: ClassMappings) {
+class HaxeNames(val program: AstProgram) {
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
@@ -121,23 +120,7 @@ class HaxeNames(val program: AstProgram, val mappings: ClassMappings) {
 			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
 			is AstType.FLOAT, is AstType.DOUBLE -> "Float"
 			is AstType.LONG -> "haxe.Int64"
-			is AstType.REF -> {
-				val typeName = type.name
-				if (mappings.hasClassReplacement(typeName)) {
-					val replacement = mappings.getClassReplacement(typeName)!!
-					when (typeKind) {
-						GenHaxeGen.TypeKind.TYPETAG -> replacement.typeTag
-						GenHaxeGen.TypeKind.NEW -> replacement.importNew
-						GenHaxeGen.TypeKind.CAST -> replacement.importNew
-					}
-				} else {
-					if (mappings.isAdaptorSet(typeName.fqname)) {
-						typeName.fqname
-					} else {
-						program[typeName].nativeName ?: getHaxeClassFqName(typeName)
-					}
-				}
-			}
+			is AstType.REF -> program[type.name].nativeName ?: getHaxeClassFqName(type.name)
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> "HaxeBoolArray"
 				is AstType.BYTE -> "HaxeByteArray"

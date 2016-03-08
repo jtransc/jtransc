@@ -6,6 +6,7 @@ public class JTranscCollectionsTest {
 	static public void main(String[] args) {
 		testArrayList();
 		testHashSet();
+		testArrays();
 	}
 
 	static public void testArrayList() {
@@ -62,5 +63,13 @@ public class JTranscCollectionsTest {
 		ArrayList<T> l = new ArrayList<T>(c);
 		Collections.sort(l);
 		return l;
+	}
+
+	static private void testArrays() {
+		//System.out.println(new int[] {1,2,3,4,5}.hashCode());
+		System.out.println(Arrays.hashCode(new int[] {1,2,3,4,5}));
+		//System.out.println(new int[] {1,2,3,4,5}.hashCode());
+		System.out.println(Arrays.hashCode(new long[] {1,2,3,4,5}));
+		System.out.println(new int[0].getClass().getName());
 	}
 }

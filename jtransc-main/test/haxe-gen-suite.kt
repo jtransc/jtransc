@@ -23,6 +23,8 @@ import javatest.KotlinCollections
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
+import javatest.utils.DateTest
+import javatest.utils.regex.RegexTest
 import jtransc.JTranscVersion
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
@@ -42,11 +44,13 @@ class HaxeGenSuite {
 	//@Test fun langBasicTypesTest() = testClass<BasicTypesTest>()
 	@Test fun langStringsTest() = testClass<StringsTest>()
 
-	@Test fun langSystemTest() = testClass<SystemTest>() { it.replace(
-		"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
-	).replace(
-		"path.separator:;", "path.separator::"
-	) }
+	@Test fun langSystemTest() = testClass<SystemTest>() {
+		it.replace(
+			"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
+		).replace(
+			"path.separator:;", "path.separator::"
+		)
+	}
 
 	//-----------------------------------------------------------------
 	// Java Utils
@@ -57,7 +61,6 @@ class HaxeGenSuite {
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
-	@Test fun stringsTest() = testClass<JTranscStringTest>()
 	@Test fun arrayListTest() = testClass<JTranscCollectionsTest>()
 	@Test fun stringBuilderTest() = testClass<StringBuilderTest>()
 	@Test fun stackTraceTest() = testClass<JTranscStackTraceTest>()
@@ -66,6 +69,10 @@ class HaxeGenSuite {
 	@Test fun arithmeticTest() = testClass<JTranscArithmeticTest>()
 
 	@Test fun basicTypesTest() = testClass<BasicTypesTest>()
+
+	@Test fun regexTests() = testClass<RegexTest>()
+
+	@Test fun dateTests() = testClass<DateTest>()
 
 	@Test fun bug12Test() = testClass<JTranscBug12Test>()
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
@@ -89,6 +96,7 @@ class HaxeGenSuite {
 
 	// Shortcut
 	inline fun <reified T : Any> testClass() = testClass(T::class.java, { it })
+
 	inline fun <reified T : Any> testClass(noinline transformer: (String) -> String) = testClass(T::class.java, transformer)
 
 	val kotlinPaths = listOf<String>() +
@@ -104,7 +112,7 @@ class HaxeGenSuite {
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
-	fun normalize(str:String) = str.replace("\r\n", "\n").replace('\r', '\n')
+	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
 	inline fun <reified T : Any> runClass(): String {
 		return runClass(T::class.java)
@@ -133,3 +141,4 @@ class HaxeGenSuite {
 		Assert.assertEquals(10, engine.eval("(function() { return 10; })()"));
 	}
 }
+

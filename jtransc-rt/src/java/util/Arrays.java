@@ -500,7 +500,7 @@ public class Arrays {
 	public static int hashCode(int a[]) {
 		if (a == null) return 0;
 		int result = 1;
-		for (int e : a) result = 31 * result + (int) (e ^ (e >>> 32));
+		for (int e : a) result = 31 * result + e;
 		return result;
 	}
 

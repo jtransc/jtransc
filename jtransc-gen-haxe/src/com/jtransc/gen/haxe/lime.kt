@@ -170,7 +170,6 @@ object GenHaxeLime : GenTarget {
 			override fun buildSource() {
 				info = GenHaxeGen(
 					program = tinfo.program,
-					mappings = ClassMappings(),
 					features = AstFeatures(),
 					srcFolder = srcFolder,
 					featureSet = HaxeFeatures

@@ -249,8 +249,6 @@ class HaxeNatives {
         #end
     }
 
-    static public function arrayClone(array:Dynamic):Dynamic { return array.clone(); }
-    static public function arrayGetClass(array:Dynamic):Dynamic { throw "Not implemented arrayGetClass"; return null; }
     static public function getProperty(prop:String):String {
         switch ((prop)) {
             case "os.arch": return getArch();

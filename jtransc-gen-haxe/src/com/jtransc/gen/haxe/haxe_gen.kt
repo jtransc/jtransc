@@ -4,11 +4,8 @@ import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.gen.ClassMappings
 import com.jtransc.text.Indenter
-import com.jtransc.text.escape
 import com.jtransc.text.quote
-import com.jtransc.text.toUcFirst
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.JTranscKeep
@@ -16,12 +13,11 @@ import jtransc.annotation.haxe.*
 
 class GenHaxeGen(
 	val program: AstProgram,
-	val mappings: ClassMappings,
 	val features: AstFeatures,
 	val srcFolder: SyncVfsFile,
 	val featureSet: Set<AstFeature>
 ) {
-	val names = HaxeNames(program, mappings)
+	val names = HaxeNames(program)
 	val refs = References()
 	lateinit var clazz: AstClass
 	lateinit var method: AstMethod
@@ -189,7 +185,7 @@ class GenHaxeGen(
 				return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
 			}
 
-			fun annotationsInit(annotations: List<AstAnnotation>):Indenter {
+			fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 				return Indenter.gen {
 					for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
 						line("${i.name.haxeGeneratedFqName}.__hx_static__init__();")
@@ -347,15 +343,8 @@ class GenHaxeGen(
 				is AstStm.SET -> {
 					val localType = stm.local.type
 					val exprType = stm.expr.type
-					val adaptor = if (localType != exprType) mappings.getClassAdaptor(exprType, localType) else null
-					if (adaptor != null) {
-						refs.add(AstType.REF(adaptor.adaptor))
-						line("${stm.local.haxeName} = new ${adaptor.adaptor}(${stm.expr.gen()});")
-					} else {
-						val expr = stm.expr.gen()
-						//line("${stm.local.haxeName} = $expr; // ${stm.expr}")
-						line("${stm.local.haxeName} = $expr;")
-					}
+					val expr = stm.expr.gen()
+					line("${stm.local.haxeName} = $expr;")
 				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]
@@ -368,13 +357,8 @@ class GenHaxeGen(
 					if (newClazz.nativeName != null) {
 						line("$localHaxeName = new $className($commaArgs);")
 					} else {
-						val methodInline = mappings.getFunctionInline(stm.method)
-						if (methodInline != null) {
-							line("$localHaxeName = ${methodInline.replacement.replace("@args", commaArgs)};")
-						} else {
-							line("$localHaxeName = new $className();")
-							line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
-						}
+						line("$localHaxeName = new $className();")
+						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
 				}
 				is AstStm.SET_ARRAY -> line("${stm.local.haxeName}.set(${stm.index.gen()}, ${stm.expr.gen()});")
@@ -501,36 +485,29 @@ class GenHaxeGen(
 					mutableBody.initClassRef(e.clazz.classRef)
 				}
 
-				val replacement = mappings.getFunctionInline(e.method)
 				val commaArgs = e.args.map { it.gen() }.joinToString(", ")
 
-				// Calling a method on an array!!
-				if (e is AstExpr.CALL_INSTANCE && e.obj.type is AstType.ARRAY) {
-					val args = "${e.obj.gen()}, $commaArgs".trim(',', ' ')
-					"HaxeNatives.array${e.method.name.toUcFirst()}($args)"
-				} else {
-					val base = when (e) {
-						is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
-						is AstExpr.CALL_SUPER -> "super"
-						is AstExpr.CALL_INSTANCE -> "${e.obj.gen()}"
-						else -> throw InvalidOperationException("Unexpected")
-					}
-
-					if (replacement != null) {
-						replacement.replacement.replace("@obj", base).replace("@args", commaArgs)
-					} else if (refMethod.getterField != null) {
-						if (refMethod.getterField!!.contains('$')) {
-							refMethod.getterField!!.replace("\$", base);
-						} else {
-							"$base.${refMethod.getterField}"
-						}
-
-					} else if (refMethod.setterField != null) {
-						"$base.${refMethod.setterField} = $commaArgs"
-					} else {
-						"$base.${method.haxeName}($commaArgs)"
-					}
+				val base = when (e) {
+					is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
+					is AstExpr.CALL_SUPER -> "super"
+					is AstExpr.CALL_INSTANCE -> "${e.obj.gen()}"
+					else -> throw InvalidOperationException("Unexpected")
 				}
+
+				val out = if (refMethod.getterField != null) {
+					if (refMethod.getterField!!.contains('$')) {
+						refMethod.getterField!!.replace("\$", base);
+					} else {
+						"$base.${refMethod.getterField}"
+					}
+
+				} else if (refMethod.setterField != null) {
+					"$base.${refMethod.setterField} = $commaArgs"
+				} else {
+					"$base.${method.haxeName}($commaArgs)"
+				}
+
+				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
 				"${e.expr.gen()}.${e.field.haxeName}"
@@ -595,7 +572,7 @@ class GenHaxeGen(
 							methodToConvertRef.containingClassType,
 							methodToConvertRef,
 							args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
-							), methodInInterfaceRef.type.ret)) + ";"
+						), methodInInterfaceRef.type.ret)) + ";"
 						)
 					}
 				} + ")"
@@ -605,12 +582,12 @@ class GenHaxeGen(
 		}
 	}
 
-	fun genCast(e:String, from:AstType, to:AstType):String {
+	fun genCast(e: String, from: AstType, to: AstType): String {
 		if (from == to) return e
 
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
-				// @TODO: Check!
+			// @TODO: Check!
 				AstType.BOOL.CLASSTYPE -> genCast("($e).booleanValue__Z()", AstType.BOOL, to)
 				AstType.BYTE.CLASSTYPE -> genCast("($e).byteValue__B()", AstType.BYTE, to)
 				AstType.SHORT.CLASSTYPE -> genCast("($e).shortValue__S()", AstType.SHORT, to)
@@ -619,8 +596,8 @@ class GenHaxeGen(
 				AstType.LONG.CLASSTYPE -> genCast("($e).longValue__J()", AstType.LONG, to)
 				AstType.FLOAT.CLASSTYPE -> genCast("($e).floatValue__F()", AstType.FLOAT, to)
 				AstType.DOUBLE.CLASSTYPE -> genCast("($e).doubleValue__D()", AstType.DOUBLE, to)
-				//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
-				//else -> noImpl("Unhandled conversion $e : $from -> $to")
+			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+			//else -> noImpl("Unhandled conversion $e : $from -> $to")
 				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			}
 		}
@@ -649,7 +626,7 @@ class GenHaxeGen(
 					is AstType.SHORT -> "(($e) ? 1 : 0)"
 					is AstType.BYTE -> "(($e) ? 1 : 0)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
-					//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
+				//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
 					else -> noImpl("Unhandled conversion $e : $from -> $to")
 				}
 			}
@@ -736,7 +713,7 @@ class GenHaxeGen(
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = field.haxeName
 			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
-			if (mappings.isFieldAvailable(field.ref) && !field.annotations.contains<HaxeRemoveField>()) {
+			if (!field.annotations.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
 				line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)};")
 			}
@@ -768,9 +745,10 @@ class GenHaxeGen(
 						line("$decl;")
 					}
 				} else {
-					val body = mappings.getBody(method.ref) ?: method.annotations[HaxeMethodBody::value]
-
-					if (method.body != null && body == null) {
+					val body = method.annotations[HaxeMethodBody::value]
+					if (body != null) {
+						line("$decl { $body }")
+					} else if (method.body != null) {
 						line(decl) {
 							when (GenHaxe.INIT_MODE) {
 								InitMode.START_OLD -> line("__hx_static__init__();")
@@ -778,8 +756,7 @@ class GenHaxeGen(
 							line(features.apply(method.body!!, featureSet).gen())
 						}
 					} else {
-						val body2 = body ?: "HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\";"
-						line("$decl { $body2 }")
+						line("$decl { HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\"; }")
 					}
 				}
 			}
@@ -829,15 +806,10 @@ class GenHaxeGen(
 				if (!isInterface) {
 					line("public function new()") {
 						line(if (isRootObject) "" else "super();")
-						if (GenHaxe.INIT_MODE == InitMode.LAZY) {
-							line("__hx_static__init__();")
-						}
+						if (GenHaxe.INIT_MODE == InitMode.LAZY) line("__hx_static__init__();")
 					}
 				}
-				val nativeImports = mappings.getClassMapping(clazz.ref)?.nativeImports ?: listOf<String>()
-				val mappingNativeMembers = (mappings.getClassMapping(clazz.ref)?.nativeMembers ?: listOf<String>())
-				val haxeNativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
-				val nativeMembers = mappingNativeMembers + haxeNativeMembers
+				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
 
 				for (member in nativeMembers) line(member)
 
