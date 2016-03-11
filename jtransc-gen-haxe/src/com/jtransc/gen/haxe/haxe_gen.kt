@@ -399,13 +399,13 @@ class GenHaxeGen(
 					line("try") {
 						line(stm.trystm.gen())
 					}
-					line("catch (__i__exception__: Dynamic)") {
-						line("__exception__ = __i__exception__;")
+					line("catch (J__i__exception__: Dynamic)") {
+						line("J__exception__ = J__i__exception__;")
 						line(stm.catch.gen())
 					}
 				}
 				is AstStm.THROW -> line("throw ${stm.value.gen()};")
-				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(__i__exception__);""")
+				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
 				else -> throw RuntimeException("Unhandled statement $stm")
@@ -423,7 +423,7 @@ class GenHaxeGen(
 				line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefault};")
 			}
 			if (body.traps.isNotEmpty()) {
-				line("var __exception__:Dynamic = null;")
+				line("var J__exception__:Dynamic = null;")
 			}
 			for (field in method.dependencies.fields2.filter { it.isStatic }) {
 				val clazz = field.containingClass
@@ -549,7 +549,7 @@ class GenHaxeGen(
 				}
 			}
 			is AstExpr.CLASS_CONSTANT -> "HaxeNatives.resolveClass(${e.classType.mangle().quote()})"
-			is AstExpr.CAUGHT_EXCEPTION -> "__exception__"
+			is AstExpr.CAUGHT_EXCEPTION -> "J__exception__"
 			is AstExpr.METHOD_CLASS -> {
 				val methodInInterfaceRef = e.methodInInterfaceRef
 				val methodToConvertRef = e.methodToConvertRef

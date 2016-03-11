@@ -108,7 +108,31 @@ val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LI
 		.map { HaxeLib.LibraryRef.fromVersion(it) }
 }
 
-val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() = this.haxeLibs.map { "-lib" to it.nameWithVersion }
+val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() {
+	return this.haxeLibs.map { "-lib" to it.nameWithVersion } + listOf(
+		//"-dce" to "no"
+		//"-D" to "analyzer-no-module",
+		//"--no-inline" to "1",
+		//"--no-opt" to "1"
+	)
+}
+
+val AstProgram.haxeExtraDefines: List<String> get() {
+
+	//-D no-analyzer
+	//--times : measure compilation times
+	//--no-inline : disable inlining
+	//--no-opt : disable code optimizations
+	//const_propagation: Implements sparse conditional constant propagation to promote values that are known at compile-time to usage places. Also detects dead branches.
+	//copy_propagation: Detects local variables that alias other local variables and replaces them accordingly.
+	//local_dce: Detects and removes unused local variables.
+	//fusion: Moves variable expressions to its usage in case of single-occurrence. Disabled on Flash and Java.
+	//purity_inference: Infers if fields are "pure", i.e. do not have any side-effects. This can improve the effect of the fusion module.
+	//unreachable_code: Reports unreachable code.
+	return listOf(
+		"analyzer"
+	)
+}
 
 fun AstProgram.haxeInstallRequiredLibs() {
 	val libs = this.haxeLibs
@@ -170,14 +194,14 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 
 		val buildArgs = arrayListOf(
 			"-cp", ".",
-			"-main", info!!.entryPointFile,
-			"-dce", "no"
+			"-main", info!!.entryPointFile
 		)
 		val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 		val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
 
 		program.haxeInstallRequiredLibs()
 		buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
+		buildArgs += program.haxeExtraDefines.flatMap { listOf("-D", it) }
 
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 

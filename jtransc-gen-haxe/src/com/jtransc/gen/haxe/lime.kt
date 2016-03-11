@@ -64,6 +64,10 @@ object GenHaxeLime : GenTarget {
 				line("""<haxeflag name="${flag.first}" value="${flag.second}" />""")
 			}
 
+			for (define in program.haxeExtraDefines) {
+				line("""<haxedef name="$define" />""")
+			}
+
 			line("""<source path="src" />""")
 			line("""<assets path="${tempAssetsDir.absolutePath}" rename="assets" embed="false" exclude="*.ttf|*.fla|*.zip|*.swf" />""")
 
@@ -186,9 +190,12 @@ object GenHaxeLime : GenTarget {
 
 				tinfo.haxeCopyEmbeddedResourcesToFolder(tinfo.mergedAssetsFolder)
 
+				val switches = if (tinfo.settings.release) listOf() else listOf("-debug")
+
 				println("Compiling...")
-				//println("Running: -optimize=true ${info.entryPointFile}")
-				return ProcessUtils.runAndRedirect(projectDir.realfile, "haxelib", listOf("run", "lime") + listOf("build", actualSubtarget.type)).success
+				val args = listOf("run", "lime") + switches + listOf("build", actualSubtarget.type)
+				println("haxelib " + args.joinToString(" "))
+				return ProcessUtils.runAndRedirect(projectDir.realfile, "haxelib", args).success
 			}
 
 			override fun run(redirect: Boolean): ProcessResult2 {
