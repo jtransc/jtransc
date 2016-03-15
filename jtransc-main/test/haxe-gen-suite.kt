@@ -36,7 +36,7 @@ import org.junit.Test
 import java.io.File
 import javax.script.ScriptEngineManager
 
-class HaxeGenSuite {
+class HaxeGenSuiteTest {
 
 	//-----------------------------------------------------------------
 	// Java Lang
