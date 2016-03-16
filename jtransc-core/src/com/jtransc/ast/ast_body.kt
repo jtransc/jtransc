@@ -135,7 +135,7 @@ interface AstExpr : AstElement {
 		override val type = method.type.ret
 	}
 
-	data class CALL_SUPER(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+	data class CALL_SPECIAL(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
 		override val type = method.type.ret
 	}
 

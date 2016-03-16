@@ -169,7 +169,7 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 				val expr = when (i.type) {
 					BAF.InvokeType.STATIC -> AstExpr.CALL_STATIC(targetClass, method, args)
 					BAF.InvokeType.VIRTUAL, BAF.InvokeType.INTERFACE -> AstExpr.CALL_INSTANCE(obj!!, method, args)
-					BAF.InvokeType.SPECIAL -> AstExpr.CALL_SUPER(obj!!, targetClass.name, method, args)
+					BAF.InvokeType.SPECIAL -> AstExpr.CALL_SPECIAL(obj!!, targetClass.name, method, args)
 				}
 
 				if (methodType.retVoid) {

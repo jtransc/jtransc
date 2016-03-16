@@ -25,6 +25,7 @@ import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 // USING ByteBuffer
 @JTranscInvisible
@@ -44,16 +45,16 @@ final public class FastMemory {
     private ByteBuffer data;
 
 	@HaxeMethodBody(
-		"this._length = p0;\n" +
-			"this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
-			"this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
-			"this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
-			"this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
-			"this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
+		"that._length = p0;\n" +
+			"that._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
+			"that.shortData = haxe.io.UInt16Array.fromBytes(that._data);\n" +
+			"that.intData = haxe.io.Int32Array.fromBytes(that._data);\n" +
+			"that.floatData = haxe.io.Float32Array.fromBytes(that._data);\n" +
+			"that.doubleData = haxe.io.Float64Array.fromBytes(that._data);\n"
 	)
     public FastMemory(int size) {
         this.length = size;
-        this.data = ByteBuffer.allocateDirect((size + 7) & ~7);
+        this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
     }
 
     @JTranscInline

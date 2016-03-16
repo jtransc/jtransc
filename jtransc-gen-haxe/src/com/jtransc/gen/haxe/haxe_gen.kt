@@ -336,6 +336,8 @@ class GenHaxeGen(
 				is AstStm.RETURN -> {
 					if (stm.retval != null) {
 						line("return ${stm.retval!!.gen()};")
+					} else if (method.isThisStatic) {
+						line("return that;")
 					} else {
 						line("return;")
 					}
@@ -446,7 +448,7 @@ class GenHaxeGen(
 
 	fun gen2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.THIS -> "this"
+			is AstExpr.THIS -> if (this.method.isThisStatic) "that" else "this"
 			is AstExpr.LITERAL -> names.escapeConstant(e.value)
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
@@ -485,11 +487,23 @@ class GenHaxeGen(
 					mutableBody.initClassRef(e.clazz.classRef)
 				}
 
-				val commaArgs = e.args.map { it.gen() }.joinToString(", ")
+				val callStaticThis = (e is AstExpr.CALL_SPECIAL) && e.method.name == "<init>"
+
+				val args2 = e.args
+				val args = (if (callStaticThis && (e is AstExpr.CALL_SPECIAL)) listOf(e.obj) else listOf()) + args2
+				val commaArgs = args.map { it.gen() }.joinToString(", ")
 
 				val base = when (e) {
 					is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
-					is AstExpr.CALL_SUPER -> "super"
+					is AstExpr.CALL_SPECIAL ->
+						if (callStaticThis) {
+							"${e.method.containingClassType.haxeTypeNew}"
+						} else if (e.obj.type == e.method.containingClassType) {
+							// A plain call_instance? for private methods?
+							"${e.obj.gen()}"
+						} else {
+							"super"
+						}
 					is AstExpr.CALL_INSTANCE -> "${e.obj.gen()}"
 					else -> throw InvalidOperationException("Unexpected")
 				}
@@ -507,7 +521,7 @@ class GenHaxeGen(
 					"$base.${method.haxeName}($commaArgs)"
 				}
 
-				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
+				"$out /* isSpecial = ${e.isSpecial} (${e.method.containingClassType}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
 				"${e.expr.gen()}.${e.field.haxeName}"
@@ -726,14 +740,16 @@ class GenHaxeGen(
 				return Indenter.gen { }
 			}
 			return Indenter.gen {
-				val static = if (method.isStatic) "static " else ""
+				val static = if (method.isStaticOrThisStatic) "static " else ""
 				val visibility = if (isInterface) " " else method.visibility.haxe
 				refs.add(method.methodType)
-				val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
+				val margs2 = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
+				val margs = (if (method.isThisStatic) listOf("that:" + method.containingClass.astType.haxeTypeTag) else listOf()) + margs2
 				var override = if (method.isOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
+				val returnType = if (method.isThisStatic) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"$static $visibility $inline $override function ${method.ref.haxeName}(${margs.joinToString(", ")}):${method.methodType.ret.haxeTypeTag}".trim()
+					"$static $visibility $inline $override function ${method.ref.haxeName}(${margs.joinToString(", ")}):${returnType.haxeTypeTag}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					//null
@@ -747,7 +763,8 @@ class GenHaxeGen(
 				} else {
 					val body = method.annotations[HaxeMethodBody::value]
 					if (body != null) {
-						line("$decl { $body }")
+						val body2 = if (method.isThisStatic) "$body return that;" else body
+						line("$decl { $body2 }")
 					} else if (method.body != null) {
 						line(decl) {
 							when (GenHaxe.INIT_MODE) {

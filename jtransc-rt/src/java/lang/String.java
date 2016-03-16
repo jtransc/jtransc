@@ -33,25 +33,25 @@ import java.util.regex.Pattern;
 	"static public function make(str:String) { return new java_.lang.String_().__native_init__(str); }",
 })
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
-	@HaxeMethodBody("this._str = '';")
+	@HaxeMethodBody("that._str = '';")
 	public String() {
 
 	}
 
-	@HaxeMethodBody("this._str = p0._str;")
+	@HaxeMethodBody("that._str = p0._str;")
 	public String(String original) {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.charArrayToString(p0);")
+	@HaxeMethodBody("that._str = HaxeNatives.charArrayToString(p0);")
 	public String(char value[]) {
 
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.charArrayToString(p0, p1, p2);")
+	@HaxeMethodBody("that._str = HaxeNatives.charArrayToString(p0, p1, p2);")
 	public String(char value[], int offset, int count) {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.intArrayToString(p0, p1, p2);")
+	@HaxeMethodBody("that._str = HaxeNatives.intArrayToString(p0, p1, p2);")
 	public String(int[] codePoints, int offset, int count) {
 	}
 
@@ -66,36 +66,37 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, p1, p2, p3._str);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0, p1, p2, p3._str);")
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, p1, p2, p3.canonicalName._str);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0, p1, p2, p3.canonicalName._str);")
 	public String(byte[] bytes, int offset, int length, Charset charset) {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, 0, -1, p1._str);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0, 0, -1, p1._str);")
 	public String(byte[] bytes, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, 0, -1, p1.canonicalName._str);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0, 0, -1, p1.canonicalName._str);")
 	public String(byte[] bytes, Charset charset) {
 
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, p1, p2);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0, p1, p2);")
 	public String(byte[] bytes, int offset, int length) {
 	}
 
-	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0);")
+	@HaxeMethodBody("that._str = HaxeNatives.byteArrayToString(p0);")
 	public String(byte[] bytes) {
 		this(bytes, 0, bytes.length);
 	}
 
 	public String(StringBuffer buffer) {
+		this(buffer.toString());
 	}
 
-	@HaxeMethodBody("this._str = p0._str;")
+	@HaxeMethodBody("that._str = p0._str;")
 	public String(StringBuilder builder) {
 
 	}
