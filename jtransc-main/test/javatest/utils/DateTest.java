@@ -10,7 +10,8 @@ public class DateTest {
 	}
 
 	private static void dateTest() {
-		String formatString = "MM/dd/yyyy HH:mm:ss z";
+		//String formatString = "MM/dd/yyyy HH:mm:ss z";
+		String formatString = "MM/dd/yyyy HH:mm:ss"; // time zone not reliable for tests
 		SimpleDateFormat format = new SimpleDateFormat(formatString);
 		String formattedString = format.format(new Date(0, 1, 2, 3, 4, 5));
 		System.out.println(formattedString);
