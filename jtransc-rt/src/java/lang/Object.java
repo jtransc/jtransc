@@ -23,6 +23,7 @@ import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 @HaxeAddMembers({
         "static public var __LAST_ID__ = 0;",
@@ -58,7 +59,20 @@ public class Object {
 	}
 
 	@JTranscKeep
-	native protected Object clone() throws CloneNotSupportedException;
+	protected Object clone() throws CloneNotSupportedException {
+		// @TODO: This is slow! We could override this at code gen knowing all the fields and with generated code to generate them.
+		try {
+			Class<?> clazz = this.getClass();
+			Object newObject = clazz.newInstance();
+			for (Field field : clazz.getDeclaredFields()) {
+				//field.getDeclaringClass().isPrimitive()
+				field.set(newObject, field.get(this));
+			}
+			return newObject;
+		} catch (Throwable e) {
+			throw new CloneNotSupportedException(e.toString());
+		}
+	}
 
 	@JTranscKeep
 	public String toString() {

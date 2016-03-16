@@ -29,6 +29,7 @@ public class JTranscCollectionsTest {
 		System.out.println(list.lastIndexOf(2));
 		System.out.println(list.indexOf(99999));
 		System.out.println(list.indexOf(-7));
+		System.out.println(Arrays.toString(((ArrayList<Integer>)list.clone()).toArray()));
 
 		ListIterator<Integer> iterator = list.listIterator();
 		while (iterator.hasNext()) {
