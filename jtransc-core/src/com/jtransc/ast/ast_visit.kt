@@ -72,7 +72,7 @@ open class AstVisitor {
 
 		when (expr) {
 			is AstExpr.CALL_INSTANCE -> visit(expr)
-			is AstExpr.CALL_SPECIAL -> visit(expr)
+			is AstExpr.CALL_SUPER -> visit(expr)
 			is AstExpr.CALL_STATIC -> visit(expr)
 		}
 	}
@@ -256,7 +256,7 @@ open class AstVisitor {
 		visit(expr.obj)
 	}
 
-	open fun visit(expr: AstExpr.CALL_SPECIAL) {
+	open fun visit(expr: AstExpr.CALL_SUPER) {
 		visit(expr.obj)
 
 	}

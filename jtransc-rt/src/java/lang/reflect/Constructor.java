@@ -105,9 +105,9 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 	native public String toGenericString();
 
 	@HaxeMethodBody(
-		"var clazz = this.clazz._hxClass;\n" +
+		"//trace('dynamic newInstance : ' + this._internalName);\n" +
 		"var instance = HaxeNatives.newInstance(this.clazz._internalName);\n" +
-		"Reflect.callMethod(clazz, Reflect.field(clazz, this._internalName), cast([instance], Array<Dynamic>).concat(p0.data.toArray()));\n" +
+		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), p0.data.toArray());\n" +
 		"return instance;"
 	)
 	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;

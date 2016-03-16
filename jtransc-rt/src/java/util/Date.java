@@ -21,33 +21,33 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({ "var _date:Date;" })
 public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
-    @HaxeMethodBody("that._date = Date.now();")
+    @HaxeMethodBody("_date = Date.now();")
 	public Date() {
 		this(System.currentTimeMillis());
 	}
 
-    @HaxeMethodBody("that._date = Date.fromTime(HaxeNatives.longToFloat(p0));")
+    @HaxeMethodBody("_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
 	public Date(long date) {
 	}
 
 	@Deprecated
-    @HaxeMethodBody("that._date = new Date(p0, p1, p2, 0, 0, 0);")
+    @HaxeMethodBody("_date = new Date(p0, p1, p2, 0, 0, 0);")
 	public Date(int year, int month, int date) {
 	}
 
 	@Deprecated
-	@HaxeMethodBody("that._date = new Date(p0, p1, p2, p3, p4, 0);")
+	@HaxeMethodBody("_date = new Date(p0, p1, p2, p3, p4, 0);")
 	public Date(int year, int month, int date, int hrs, int min) {
 
 	}
 
 	@Deprecated
-	@HaxeMethodBody("that._date = new Date(p0, p1, p2, p3, p4, p5);")
+	@HaxeMethodBody("_date = new Date(p0, p1, p2, p3, p4, p5);")
 	public Date(int year, int month, int date, int hrs, int min, int sec) {
 	}
 
 	@Deprecated
-	@HaxeMethodBody("that._date = Date.fromString(p0._str);")
+	@HaxeMethodBody("_date = Date.fromString(p0._str);")
 	public Date(String s) {
 	}
 

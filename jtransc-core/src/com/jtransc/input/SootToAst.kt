@@ -278,8 +278,8 @@ open class AstMethodProcessor private constructor(
 					val obj = convert(i.base)
 					val method = astMethodRef
 
-					if (isSpecial) {
-						AstExpr.CALL_SPECIAL(obj, method.containingClass, method, args, isSpecial)
+					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
+						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
 					} else {
 						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
 					}

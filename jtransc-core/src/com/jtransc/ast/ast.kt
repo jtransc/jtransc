@@ -403,9 +403,6 @@ open class AstMember(
 	val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData() {
 	val program = containingClass.program
-	val isInit = name == "<init>"
-	val isThisStatic = isInit
-	val isStaticOrThisStatic = isStatic || isThisStatic
 }
 
 class AstField(

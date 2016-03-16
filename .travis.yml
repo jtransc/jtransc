@@ -9,13 +9,7 @@ before_install:
 install:
 - curl -s -S -O http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-linux64.tar.gz
 - tar xzf haxe-3.2.1-linux64.tar.gz
-- mvn clean --settings settings.xml
 
 before_script:
 - export HAXEPATH=$PWD/haxe-3.2.1
 - export PATH=$HAXEPATH:$PATH
-- pushd jtransc-rt-core && mvn install ; popd
-- pushd jtransc-rt && mvn install ; popd
-
-script:
-- mvn install --settings settings.xml
