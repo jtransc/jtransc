@@ -403,9 +403,7 @@ class HaxeNatives {
     }
 
     static public function newException(msg:String) {
-        var out = new java_.lang.Exception_();
-        out._init__Ljava_lang_String__V(HaxeNatives.str(msg));
-        return out;
+        return new java_.lang.Exception_().java_lang_Exception_init__Ljava_lang_String__V(HaxeNatives.str(msg));
     }
 
     static public function gcEnable() {
@@ -534,14 +532,12 @@ class HaxeNatives {
     }
 
 	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):java_.lang.StackTraceElement_ {
-		var item = new java_.lang.StackTraceElement_();
-		item._init__Ljava_lang_String_Ljava_lang_String_Ljava_lang_String_I_V(
+		return new java_.lang.StackTraceElement_().java_lang_StackTraceElement_init__Ljava_lang_String_Ljava_lang_String_Ljava_lang_String_I_V(
 			HaxeNatives.str(className),
 			HaxeNatives.str(methodName),
 			HaxeNatives.str(fileName),
 			line
 		);
-		return item;
 	}
 
 	static public function convertStackItem(i):java_.lang.StackTraceElement_ {
@@ -599,9 +595,7 @@ class HaxeNatives {
 	}
 
 	static public inline function throwRuntimeException(msg:String) {
-		var e = new java_.lang.RuntimeException_();
-		e._init__Ljava_lang_String__V(HaxeNatives.str(msg));
-		throw e;
+		throw new java_.lang.RuntimeException_().java_lang_RuntimeException_init__Ljava_lang_String__V(HaxeNatives.str(msg));
 	}
 
 	static public function getField(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {

@@ -449,6 +449,8 @@ class AstMethod(
 	val nativeMethod: String? by lazy { annotations.get(JTranscMethod::value) }
 	val isInline: Boolean by lazy { annotations.contains<JTranscInline>() }
 
+	val isInstanceInit: Boolean get() = name == "<init>"
+
 	val isOverriding: Boolean by lazy {
 		containingClass.ancestors.any { it[ref.withoutClass] != null }
 	}

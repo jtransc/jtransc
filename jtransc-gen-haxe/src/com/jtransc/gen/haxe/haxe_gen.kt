@@ -336,6 +336,8 @@ class GenHaxeGen(
 				is AstStm.RETURN -> {
 					if (stm.retval != null) {
 						line("return ${stm.retval!!.gen()};")
+					} else if (method.isInstanceInit) {
+						line("return this;")
 					} else {
 						line("return;")
 					}
@@ -730,10 +732,11 @@ class GenHaxeGen(
 				val visibility = if (isInterface) " " else method.visibility.haxe
 				refs.add(method.methodType)
 				val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
-				var override = if (method.isOverriding) "override " else ""
+				var override = if (method.haxeIsOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
+				val rettype = if (method.isInstanceInit) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"$static $visibility $inline $override function ${method.ref.haxeName}(${margs.joinToString(", ")}):${method.methodType.ret.haxeTypeTag}".trim()
+					"$static $visibility $inline $override function ${method.ref.haxeName}(${margs.joinToString(", ")}):${rettype.haxeTypeTag}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					//null
@@ -747,7 +750,8 @@ class GenHaxeGen(
 				} else {
 					val body = method.annotations[HaxeMethodBody::value]
 					if (body != null) {
-						line("$decl { $body }")
+						val body2 = if (method.isInstanceInit) "$body return this;" else body
+						line("$decl { $body2 }")
 					} else if (method.body != null) {
 						line(decl) {
 							when (GenHaxe.INIT_MODE) {
@@ -907,6 +911,8 @@ class GenHaxeGen(
 
 	val AstMethod.haxeName: String get() = names.getHaxeMethodName(this)
 	val AstMethodRef.haxeName: String get() = names.getHaxeMethodName(this)
+
+	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 
 	val FqName.haxeLambdaName: String get() = names.getHaxeClassFqNameLambda(this)
 	val FqName.haxeClassFqName: String get() = names.getHaxeClassFqName(this)

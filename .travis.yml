@@ -18,4 +18,8 @@ before_script:
 - mvn install -f jtransc-rt-core/pom.xml
 
 script:
+- export HAXEPATH=$PWD/haxe-3.2.1
+- export PATH=$HAXEPATH:$PATH
+- ls -la $PWD
+- ls -la $PWD/haxe-3.2.1
 - mvn install --settings settings.xml
