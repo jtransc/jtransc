@@ -64,6 +64,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun fastMemoryTest() = testClass<FastMemoryTest>()
 
+	@Test fun jtranscBugWithStaticInits() = testClass<JTranscBugWithStaticInits>()
+
 	@Test fun arrayListTest() = testClass<JTranscCollectionsTest>()
 	@Test fun cloneTest() = testClass<JTranscCloneTest>()
 	@Test fun stringBuilderTest() = testClass<StringBuilderTest>()
