@@ -12,14 +12,13 @@ install:
 - mvn clean --settings settings.xml
 
 before_script:
-- export HAXEPATH=$PWD/haxe-3.2.1
-- export PATH=$HAXEPATH:$PATH
-- mvn install -f jtransc-rt/pom.xml
-- mvn install -f jtransc-rt-core/pom.xml
-
-script:
+- export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
 - export HAXEPATH=$PWD/haxe-3.2.1
 - export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
 - ls -la $PWD/haxe-3.2.1
+- mvn install -f jtransc-rt/pom.xml
+- mvn install -f jtransc-rt-core/pom.xml
+
+script:
 - mvn install --settings settings.xml
