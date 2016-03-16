@@ -2,6 +2,7 @@ package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.text.escape
 
 class HaxeNames(val program: AstResolver) {
@@ -29,7 +30,7 @@ class HaxeNames(val program: AstResolver) {
 		is AstType.LONG -> 0L
 		is AstType.FLOAT, is AstType.DOUBLE -> 0.0
 		is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
-		else -> throw RuntimeException("Not supported haxe type $this")
+		else -> noImpl("Not supported haxe type $type")
 	}
 
 	fun getHaxeFilePath(name: FqName): String {
@@ -135,7 +136,6 @@ class HaxeNames(val program: AstResolver) {
 	}
 
 	fun escapeConstant(value: Any?, type: AstType): String {
-		//AstExpr.CAST(type, AstExpr.LITERAL(value))
 		val result = escapeConstant(value)
 		return if (type == AstType.BOOL) {
 			if (result != "false" && result != "0") "true" else "false"

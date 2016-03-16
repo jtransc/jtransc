@@ -130,7 +130,8 @@ val AstProgram.haxeExtraDefines: List<String> get() {
 	//purity_inference: Infers if fields are "pure", i.e. do not have any side-effects. This can improve the effect of the fusion module.
 	//unreachable_code: Reports unreachable code.
 	return listOf(
-		"analyzer"
+		//"analyzer"
+		"no-analyzer"
 	)
 }
 

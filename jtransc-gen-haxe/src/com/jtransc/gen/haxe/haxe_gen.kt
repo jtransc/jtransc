@@ -420,7 +420,7 @@ class GenHaxeGen(
 		return Indenter.gen {
 			for (local in body.locals) {
 				refs.add(local.type)
-				line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefault};")
+				line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefaultString};")
 			}
 			if (body.traps.isNotEmpty()) {
 				line("var J__exception__:Dynamic = null;")
@@ -896,6 +896,7 @@ class GenHaxeGen(
 	val AstType.haxeTypeNew: FqName get() = names.getHaxeType(this, TypeKind.NEW)
 	val AstType.haxeTypeCast: FqName get() = names.getHaxeType(this, TypeKind.CAST)
 	val AstType.haxeDefault: Any? get() = names.getHaxeDefault(this)
+	val AstType.haxeDefaultString: String get() = names.escapeConstant(names.getHaxeDefault(this), this)
 	val AstType.METHOD_TYPE.functionalType: String get() = names.getHaxeFunctionalType(this)
 
 	val AstLocal.haxeName: String get() = this.name.replace('$', '_')

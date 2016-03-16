@@ -106,7 +106,7 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 
 	@HaxeMethodBody(
 		"//trace('dynamic newInstance : ' + this._internalName);\n" +
-		"var instance = HaxeNatives.newEmptyInstance(this.clazz._internalName);\n" +
+		"var instance = HaxeNatives.newInstance(this.clazz._internalName);\n" +
 		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), p0.data.toArray());\n" +
 		"return instance;"
 	)
