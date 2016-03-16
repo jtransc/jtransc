@@ -25,6 +25,7 @@ import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 // USING ByteBuffer
 @JTranscInvisible
@@ -53,7 +54,7 @@ final public class FastMemory {
 	)
     public FastMemory(int size) {
         this.length = size;
-        this.data = ByteBuffer.allocateDirect((size + 7) & ~7);
+        this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
     }
 
     @JTranscInline
