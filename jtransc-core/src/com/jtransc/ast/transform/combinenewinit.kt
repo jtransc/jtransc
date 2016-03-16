@@ -65,7 +65,7 @@ object CombineNewInitTransform : AstTransform() {
         // TODO Commented, but important for kotlin classes that must be initializated!!
 		//assert(newToLocal.isEmpty())
 		if (newToLocal.isNotEmpty()) {
-			println("WARNING (combining new+<init>): $newToLocal couldn't combine. This would make native instantiations to fail, otherwise this will work just fine.")
+			//println("WARNING (combining new+<init>): $newToLocal couldn't combine. This would make native instantiations to fail, otherwise this will work just fine.")
 			//println(stms.joinToString("\n"))
 		}
 	}

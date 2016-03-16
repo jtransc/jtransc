@@ -30,6 +30,7 @@ import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
+import jtransc.jtransc.FastMemoryTest
 import jtransc.rt.test.*
 import org.junit.Assert
 import org.junit.Test
@@ -60,6 +61,8 @@ class HaxeGenSuiteTest {
 	//-----------------------------------------------------------------
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
+
+	@Test fun fastMemoryTest() = testClass<FastMemoryTest>()
 
 	@Test fun arrayListTest() = testClass<JTranscCollectionsTest>()
 	@Test fun cloneTest() = testClass<JTranscCloneTest>()

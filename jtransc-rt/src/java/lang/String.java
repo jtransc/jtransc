@@ -80,7 +80,6 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, 0, -1, p1.canonicalName._str);")
 	public String(byte[] bytes, Charset charset) {
-
 	}
 
 	@HaxeMethodBody("this._str = HaxeNatives.byteArrayToString(p0, p1, p2);")
@@ -92,12 +91,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(bytes, 0, bytes.length);
 	}
 
+	@HaxeMethodBody("this._str = p0._str;")
 	public String(StringBuffer buffer) {
+		this(buffer.toString());
 	}
 
 	@HaxeMethodBody("this._str = p0._str;")
 	public String(StringBuilder builder) {
-
+		this(builder.toString());
 	}
 
 	@HaxeMethodBody("return _str.length;")
