@@ -19,7 +19,6 @@ package com.jtransc.ast
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.input.SootToAst
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
@@ -80,11 +79,20 @@ interface AstClassGenerator {
 	fun generateClass(program: AstProgram, fqname: FqName): AstClass
 }
 
+interface AstResolver {
+	operator fun get(ref: AstMethodRef): AstMethod?
+	operator fun get(ref: AstFieldRef): AstField?
+	operator fun get(name: FqName): AstClass?
+}
+
+operator fun AstResolver.get(ref: AstType.REF): AstClass = this[ref.name]!!
+operator fun AstResolver.get(ref: AstClassRef): AstClass = this[ref.name]!!
+
 class AstProgram(
 	val entrypoint: FqName,
 	val resourcesVfs: SyncVfsFile,
 	val generator: AstClassGenerator
-) : IUserData by UserData() {
+) : IUserData by UserData(), AstResolver {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -95,7 +103,7 @@ class AstProgram(
 
 	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
 
-	fun readClassToGenerate():AstClassRef = classesToGenerate.remove()
+	fun readClassToGenerate(): AstClassRef = classesToGenerate.remove()
 
 	fun addReference(clazz: AstClassRef) {
 		if (clazz !in referencedClasses) {
@@ -106,7 +114,7 @@ class AstProgram(
 
 	operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
-	operator fun get(name: FqName): AstClass {
+	override operator fun get(name: FqName): AstClass {
 		val result = _classesByFqname[name.fqname]
 		if (result == null) {
 			val classFile = name.internalFqname + ".class"
@@ -139,10 +147,8 @@ class AstProgram(
 		}
 	}
 
-	operator fun get(ref: AstType.REF): AstClass = this[ref.name]
-	operator fun get(ref: AstClassRef): AstClass = this[ref.name]
-	operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
-	operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
+	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
+	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 
 	// @TODO: Cache all this stuff!
 	/*

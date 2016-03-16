@@ -4,7 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.text.escape
 
-class HaxeNames(val program: AstProgram) {
+class HaxeNames(val program: AstResolver) {
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
@@ -23,15 +23,13 @@ class HaxeNames(val program: AstProgram) {
 		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, GenHaxeGen.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
-	fun getHaxeDefault(type: AstType): Any? {
-		return when (type) {
-			is AstType.BOOL -> false
-			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> 0
-			is AstType.LONG -> 0L
-			is AstType.FLOAT, is AstType.DOUBLE -> 0.0
-			is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
-			else -> throw RuntimeException("Not supported haxe type $this")
-		}
+	fun getHaxeDefault(type: AstType): Any? = when (type) {
+		is AstType.BOOL -> false
+		is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> 0
+		is AstType.LONG -> 0L
+		is AstType.FLOAT, is AstType.DOUBLE -> 0.0
+		is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
+		else -> throw RuntimeException("Not supported haxe type $this")
 	}
 
 	fun getHaxeFilePath(name: FqName): String {
@@ -41,7 +39,7 @@ class HaxeNames(val program: AstProgram) {
 	fun getHaxeGeneratedFqPackage(name: FqName): String {
 		return name.packageParts.map {
 			if (it in HaxeKeywords) "${it}_" else it
-		}.joinToString(".")
+		}.map { it.decapitalize() }.joinToString(".")
 	}
 
 	fun getHaxeGeneratedFqName(name: FqName): FqName {
@@ -49,12 +47,12 @@ class HaxeNames(val program: AstProgram) {
 	}
 
 	fun getHaxeGeneratedSimpleClassName(name: FqName): String {
-		return "${name.simpleName.replace('$', '_')}_"
+		return "${name.simpleName.replace('$', '_')}_".capitalize()
 	}
 
 	fun getHaxeClassFqName(name: FqName): String {
 		val clazz = program[name]
-		if (clazz.isNative) {
+		if (clazz != null && clazz.isNative) {
 			return "${clazz.nativeName}"
 		} else {
 			return getHaxeGeneratedFqName(name).fqname
@@ -69,8 +67,8 @@ class HaxeNames(val program: AstProgram) {
 			var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
 			val f = program[field]
-			val clazz = f.containingClass
-			val clazzAncestors = clazz.ancestors.reversed()
+			val clazz = f?.containingClass
+			val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
 			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toSet()
 
 			//if (field.name == "this\$0") {
@@ -96,14 +94,14 @@ class HaxeNames(val program: AstProgram) {
 	fun getHaxeClassFqNameInt(name: FqName): String {
 		val clazz = program[name]
 		val simpleName = getHaxeGeneratedSimpleClassName(name)
-		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
-		return getHaxeClassFqName(clazz.name) + "$suffix"
+		val suffix = if (clazz?.isInterface ?: false) ".${simpleName}_IFields" else ""
+		return getHaxeClassFqName(clazz?.name ?: name) + "$suffix"
 	}
 
 	fun getHaxeClassFqNameLambda(name: FqName): String {
 		val clazz = program[name]
 		val simpleName = getHaxeGeneratedSimpleClassName(name)
-		return getHaxeClassFqName(clazz.name) + ".${simpleName}_Lambda"
+		return getHaxeClassFqName(clazz?.name ?: name) + ".${simpleName}_Lambda"
 	}
 
 	fun getHaxeClassStaticInit(classRef: AstClassRef): String {
@@ -120,7 +118,7 @@ class HaxeNames(val program: AstProgram) {
 			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
 			is AstType.FLOAT, is AstType.DOUBLE -> "Float"
 			is AstType.LONG -> "haxe.Int64"
-			is AstType.REF -> program[type.name].nativeName ?: getHaxeClassFqName(type.name)
+			is AstType.REF -> program[type.name]?.nativeName ?: getHaxeClassFqName(type.name)
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> "HaxeBoolArray"
 				is AstType.BYTE -> "HaxeByteArray"
