@@ -15,7 +15,10 @@ class HaxeNames(val program: AstResolver) {
 			return realmethod.nativeMethod!!
 		} else {
 			val name2 = "${method.name}${method.desc}"
-			val name = if (method.name == "<init>") "${method.containingClass}$name2" else name2
+			val name = when (method.name) {
+				"<init>", "<clinit>" -> "${method.containingClass}$name2"
+				else -> name2
+			}
 			return name.map {
 				if (it.isLetterOrDigit()) "$it" else if (it == '.' || it == '/') "_" else "_"
 			}.joinToString("")

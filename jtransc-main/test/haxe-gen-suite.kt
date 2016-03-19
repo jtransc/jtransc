@@ -93,6 +93,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun bugLongNotInitialized() = testClass<JTranscBugLongNotInitialized>()
 
+	@Test fun bugClInitConflictInAsm() = testClass<JTranscBugClInitConflictInAsm>()
+
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
