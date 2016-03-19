@@ -17,4 +17,12 @@ class HaxeNamesTest {
 		Assert.assertEquals("java_.uppercasePackage.LowercaseClass_", names.getHaxeClassFqName(FqName("java.UppercasePackage.lowercaseClass")))
 		Assert.assertEquals("java_/uppercasePackage/LowercaseClass_.hx", names.getHaxeFilePath(FqName("java.UppercasePackage.lowercaseClass")))
 	}
+
+	@Test
+	fun testFieldName() {
+		Assert.assertEquals(
+			"catch_",
+			names.getHaxeFieldName(AstFieldRef(FqName("com.test"), "catch", AstType.INT))
+		)
+	}
 }

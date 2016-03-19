@@ -64,6 +64,7 @@ val HaxeKeywords = setOf(
 	"if", "else",
 	"switch", "case", "default",
 	"do", "while", "for", "each", "in",
+	"try", "catch", "finally",
 	"break", "continue",
 	"int", "uint", "void",
 	"goto"
