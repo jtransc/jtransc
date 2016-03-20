@@ -95,6 +95,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun bugClInitConflictInAsm() = testClass<JTranscBugClInitConflictInAsm>()
 
+	@Test fun bugInnerMethodsWithSameName() = testClass<JTranscBugInnerMethodsWithSameName>()
+
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()

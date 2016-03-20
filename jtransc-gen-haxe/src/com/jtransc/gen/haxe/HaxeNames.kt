@@ -6,8 +6,6 @@ import com.jtransc.error.noImpl
 import com.jtransc.text.escape
 
 class HaxeNames(val program: AstResolver) {
-	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
-
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
@@ -65,25 +63,24 @@ class HaxeNames(val program: AstResolver) {
 		}
 	}
 
+	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
-		// @TODO: Fields should check method names collisions (specially relevant when not mangled)
 		if (field !in cachedFieldNames) {
 			val fieldName = field.name.replace('$', '_')
 			var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
-			val f = program[field]
-			val clazz = f?.containingClass
+			val clazz = program[field]?.containingClass
 			val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
-			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toSet()
+			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
+			val fieldsColliding = clazz?.fields?.filter { it.name == field.name } ?: listOf()
 
-			//if (field.name == "this\$0") {
-			//	println(" ::: ${field} :: ${field.name} :: $names :: $clazzAncestors")
-			//	println(clazzAncestors.flatMap { it.fields })
-			//}
-
-			while (name in names) name += "_"
-			cachedFieldNames[field] = name
+			// JTranscBugInnerMethodsWithSameName.kt
+			for (f2 in fieldsColliding) {
+				while (name in names) name += "_"
+				cachedFieldNames[f2.ref] = name
+				names += name
+			}
 		}
 		return cachedFieldNames[field]!!
 	}
