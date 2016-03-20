@@ -73,12 +73,12 @@ class HaxeNames(val program: AstResolver) {
 			val clazz = program[field]?.containingClass
 			val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
 			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
-			val fieldsColliding = clazz?.fields?.filter { it.name == field.name } ?: listOf()
+			val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
 
 			// JTranscBugInnerMethodsWithSameName.kt
 			for (f2 in fieldsColliding) {
 				while (name in names) name += "_"
-				cachedFieldNames[f2.ref] = name
+				cachedFieldNames[f2] = name
 				names += name
 			}
 		}

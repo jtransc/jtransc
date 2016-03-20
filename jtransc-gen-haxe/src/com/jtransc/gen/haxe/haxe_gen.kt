@@ -464,6 +464,8 @@ class GenHaxeGen(
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg" -> "HaxeNatives.$opSymbol($l, $r)"
+						// Checking interfaces with Object
+						"==", "!=" -> "cast $l $opSymbol cast $r"
 						else -> {
 							val binexpr = "$l $opSymbol $r"
 							when (resultType) {

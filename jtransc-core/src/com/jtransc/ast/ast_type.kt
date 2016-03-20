@@ -37,22 +37,6 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D')
 
-
-
-	/*
-	object TYPECLASS {
-		val VOID = REF("java.lang.Void")
-		val BOOL = REF("java.lang.Boolean")
-		val BYTE = REF("java.lang.Byte")
-		val CHAR = REF("java.lang.Character")
-		val SHORT = REF("java.lang.Short")
-		val INT = REF("java.lang.Integer")
-		val LONG = REF("java.lang.Long")
-		val FLOAT = REF("java.lang.Float")
-		val DOUBLE = REF("java.lang.Double")
-	}
-	*/
-
 	data class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))
 

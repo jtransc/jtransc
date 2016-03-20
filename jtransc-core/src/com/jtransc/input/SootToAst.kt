@@ -398,7 +398,9 @@ val PRIM_SCORES = mapOf(
 )
 
 fun getCommonType(t1:AstType, t2:AstType):AstType? {
-	if (t1 !is AstType.Primitive || t2 !is AstType.Primitive) return null
+	if (t1 !is AstType.Primitive || t2 !is AstType.Primitive) {
+		return null
+	}
 	val score1 = PRIM_SCORES[t1] ?: 8
 	val score2 = PRIM_SCORES[t2] ?: 8
 	return if (score1 > score2) t1 else t2
