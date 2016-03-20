@@ -269,8 +269,9 @@ class HaxeNatives {
             case "java.vm.specification.vendor": return "jtransc-haxe";
             case "java.vm.specification.version": return "0.1";
             case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP"], "/tmp");
+            case "user.home": return getenvs(["HOME"], "/tmp");
             case "user.dir": return getenvs(["HOME"], "/tmp");
-            default: trace('Requested prop unknown ' + prop);
+            default: trace('Requested unknown property "$prop"');
         }
         return null;
     }
@@ -530,6 +531,12 @@ class HaxeNatives {
 			untyped __js__('if (J__i__exception__ && J__i__exception__.stack) console.error(J__i__exception__.stack);');
 			throw J__i__exception__;
 			#end
+		#elseif neko
+			neko.Lib.rethrow();
+		#elseif cpp
+			cpp.Lib.rethrow();
+		#elseif php
+			php.Lib.rethrow();
 		#else
 			throw J__i__exception__;
         #end

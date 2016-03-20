@@ -154,7 +154,10 @@ class SyncStream {
 	}
 
 	public function syncioSetLength(length:Int64):Int64 {
+		this.length = HaxeNatives.longToFloat(length);
+		#if js
 		fd.setLength(HaxeNatives.longToFloat(length));
+		#end
 		return length;
 	}
 }
