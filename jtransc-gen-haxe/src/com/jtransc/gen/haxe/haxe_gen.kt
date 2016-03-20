@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.lang.nullMap
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
@@ -869,6 +870,7 @@ class GenHaxeGen(
 				val methodsWithoutBody = clazz.methods.filter { it.body == null }
 				if (methodsWithoutBody.size == 1 && clazz.implementing.size == 0) {
 					// @TODO: Probably it should allow interfaces extending!
+					val javaLangObjectClass = program[FqName("java.lang.Object")]
 					val mainMethod = methodsWithoutBody.first()
 					val mainMethodName = mainMethod.ref.haxeName
 					val methodType = mainMethod.methodType
@@ -880,7 +882,8 @@ class GenHaxeGen(
 					line("class ${simpleClassName}_Lambda extends java_.lang.Object_ implements ${simpleClassName}") {
 						line("private var ___func__:$typeStr;")
 						line("public function new(func: $typeStr) { super(); this.___func__ = func; }")
-						line("public function $mainMethodName($margs):$rettype { $returnOrEmpty ___func__($margNames); }")
+						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]
+						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { $returnOrEmpty ___func__($margNames); }")
 					}
 				}
 			}

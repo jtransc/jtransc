@@ -99,6 +99,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun bugCompareInterfaceAndObject() = testClass<JTranscBugCompareInterfaceAndObject>()
 
+	@Test fun bugInterfaceWithToString() = testClass<JTranscBugInterfaceWithToString>()
+
 	@Test fun regressionTest1() = testClass<JTranscRegression1Test>()
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
