@@ -18,6 +18,7 @@ package com.jtransc
 
 import com.jtransc.ast.*
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.build
 import com.jtransc.input.BaseProjectContext
 import com.jtransc.input.SootToAst
@@ -30,8 +31,18 @@ import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 
-fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String) = this.firstOrNull { it.name == target } ?: throw Exception("Unknown target $target")
-fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String) = this.firstOrNull { it.outputExtension == ext } ?: throw Exception("Can't find target by extension $ext")
+fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
+	val parts = target.split(":")
+	val target = this.firstOrNull { it.name == parts[0] } ?: throw Exception("Unknown target $target")
+	return if (parts.size >= 2) {
+		target.subtargets.firstOrNull { it.sub == parts[1] } ?: throw Exception("Unknown subtarget $parts")
+	} else {
+		target.defaultSubtarget ?: target.subtargets.firstOrNull() ?: GenTargetSubDescriptor(target, "", "bin")
+	}
+}
+fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String): GenTargetSubDescriptor {
+	return this.map { it.subtargets }.map { it.firstOrNull { it.ext == ext } }.filterNotNull().firstOrNull() ?: throw Exception("Can't find target by extension $ext")
+}
 
 class AllBuild(
 	val target: GenTargetDescriptor,
@@ -42,7 +53,7 @@ class AllBuild(
 	val targetDirectory: String = System.getProperty("java.io.tmpdir")
 ) {
 	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
-		AllBuildTargets.locateTargetByName(target),
+		AllBuildTargets.locateTargetByName(target).descriptor,
 		classPaths, entryPoint, output, subtarget, targetDirectory
 	)
 

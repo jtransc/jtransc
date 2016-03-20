@@ -257,6 +257,8 @@ class HaxeNatives {
             case "java.vm.specification.name": return "Jtransc/Haxe JVM emulator";
             case "java.vm.specification.vendor": return "jtransc-haxe";
             case "java.vm.specification.version": return "0.1";
+            case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP"], "/tmp");
+            case "user.home": return getenvs(["HOME"], "/tmp");
             default: trace('Requested prop unknown ' + prop);
         }
         return "";
@@ -643,5 +645,33 @@ class HaxeNatives {
 		return reversed;
 	}
 
+	static public function exit(code:Int):Void {
+		#if sys
+			Sys.exit(code);
+		#else
+			#if js
+				untyped __js__("if (typeof process != 'undefined') process.exit();");
+			#end
+			throw 'EXIT!';
+		#end
+	}
 
+	static public function getenv(name:String):String {
+		#if sys
+			return Sys.getEnv(name);
+		#else
+			#if js
+				untyped __js__("if (typeof process != 'undefined') return process.env[name] || '';");
+			#end
+			return "";
+		#end
+	}
+
+	static public function getenvs(names:Array<String>, defaultValue:String = ""):String {
+		for (name in names) {
+			var out = getenv(name);
+			if (out != "") return out;
+		}
+		return defaultValue;
+	}
 }

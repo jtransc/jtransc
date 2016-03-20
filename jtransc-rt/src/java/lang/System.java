@@ -85,10 +85,12 @@ public class System {
 
 	native public static String clearProperty(String key);
 
+	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getenv(p0._str));")
 	native public static String getenv(String name);
 
 	native public static java.util.Map<String, String> getenv();
 
+	@HaxeMethodBody("HaxeNatives.exit(p0);")
 	native public static void exit(int status);
 
     @HaxeMethodBody("")

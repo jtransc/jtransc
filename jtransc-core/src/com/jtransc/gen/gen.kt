@@ -17,8 +17,6 @@
 package com.jtransc.gen
 
 import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstFieldRef
-import com.jtransc.ast.AstMethodRef
 import com.jtransc.ast.AstProgram
 import com.jtransc.io.ProcessResult2
 import com.jtransc.time.measureTime
@@ -77,11 +75,18 @@ fun GenTargetProcessor.process(redirect: Boolean = true): ProcessResult2 {
 	return this.run(redirect)
 }
 
+data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: String, val ext: String = sub) {
+	val fullName: String get() = "${descriptor.name}:$sub"
+	override fun toString(): String = "$fullName(.$ext)"
+}
+
 abstract class GenTargetDescriptor {
 	abstract val name: String
 	abstract val longName: String
 	abstract val sourceExtension: String
 	abstract val outputExtension: String
+	open val subtargets: List<GenTargetSubDescriptor> = listOf()
+	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()
 	abstract fun getGenerator(): GenTarget

@@ -17,7 +17,7 @@
 package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
-import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.GenTargetSubDescriptor
 import jtransc.JTranscVersion
 import java.io.File
 import java.util.*
@@ -33,10 +33,20 @@ object JTranscMain {
 			System.exit(0)
 		}
 
+		fun showDebugEnv() {
+			println("property:java.io.tmpdir: " + System.getProperty("java.io.tmpdir"))
+			println("property:user.home: " + System.getProperty("user.home"))
+			println("property:soot.class.path: " + System.getProperty("soot.class.path"))
+			println("env:TMPDIR: " + System.getenv("TMPDIR"))
+			System.exit(0)
+		}
+
 		fun help() {
 			val targetNames = targets.map { it.name }.joinToString(", ")
 			val executableTypes = targets.map { it.outputExtension }.joinToString(", ")
 
+			println("JTransc $jtranscVersion - (C) 2016")
+			println("")
 			println("jtransc <list of class paths or jar files>")
 			println("")
 			println("Performs an aot compilation that transform a java/kotlin compiled program (class and jar files)")
@@ -54,6 +64,7 @@ object JTranscMain {
 			println("  -help            - Displays help")
 			println("  -version         - Displays jtransc version")
 			println("  -status          - Generates a report of the jtransc runtime")
+			println("  -debugenv        - Shows some environment debug variables for debug purposes")
 			println("  -v               - Verbose")
 			println("")
 			println("Examples:")
@@ -70,7 +81,7 @@ object JTranscMain {
 		}
 
 		data class ProgramConfig(
-			val target: GenTargetDescriptor,
+			val target: GenTargetSubDescriptor,
 			val classPaths: List<String>,
 			val entryPoint: String,
 			val output: String,
@@ -101,6 +112,7 @@ object JTranscMain {
 						"-help" -> help()
 						"-status" -> status()
 						"-main" -> entryPoint = args.remove()
+						"-debugenv" -> showDebugEnv()
 						"-target" -> targetName = args.remove()
 						"-release" -> settings.debug = false
 						"-out" -> out = args.remove()
@@ -113,7 +125,7 @@ object JTranscMain {
 			}
 
 			if (targetName == null && out != null) {
-				targetName = targets.locateTargetByOutExt(File(out).extension).name
+				targetName = targets.locateTargetByOutExt(File(out).extension).fullName
 			}
 
 			val target = targets.locateTargetByName(targetName ?: "js")
@@ -123,7 +135,7 @@ object JTranscMain {
 				entryPoint = entryPoint ?: throw Exception("Main class not provided"),
 				target = target,
 				settings = settings,
-				output = out ?: "program.${target.outputExtension}",
+				output = out ?: "program.${target.ext}",
 				targetDirectory = System.getProperty("java.io.tmpdir"),
 				run = run
 			)
@@ -132,11 +144,11 @@ object JTranscMain {
 		try {
 			val config = parseArgs(args.toList())
 			val build = AllBuild(
-				target = config.target,
+				target = config.target.descriptor,
 				classPaths = config.classPaths,
 				entryPoint = config.entryPoint,
 				output = config.output,
-				subtarget = "",
+				subtarget = config.target.sub,
 				targetDirectory = config.targetDirectory
 			)
 			val result = build.buildAndRun(settings = config.settings, captureRunOutput = false, run = config.run)
@@ -150,4 +162,5 @@ object JTranscMain {
 
 fun main(args: Array<String>) {
 	JTranscMain.main(args)
+	//println(System.getProperty("java.io.tmpdir"))
 }

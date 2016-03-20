@@ -34,6 +34,12 @@ object HaxeLimeGenDescriptor : GenTargetDescriptor() {
 	override val sourceExtension = "hx"
 	override val outputExtension = "bin"
 
+	override val subtargets = GenHaxeLime.LimeSubtarget.values().map {
+		GenTargetSubDescriptor(HaxeLimeGenDescriptor, it.name.toLowerCase(), it.name)
+	}
+
+	override val defaultSubtarget = GenTargetSubDescriptor(HaxeLimeGenDescriptor, "html5", "js")
+
 	override fun getGenerator() = GenHaxeLime
 }
 
@@ -149,7 +155,7 @@ object GenHaxeLime : GenTarget {
 				"webos" -> WEBOS
 				"windows" -> WINDOWS
 				"neko" -> NEKO
-				else -> throw InvalidOperationException("Unknown target '$name'")
+				else -> throw InvalidOperationException("Unknown lime subtarget '$name'")
 			}
 		}
 	}

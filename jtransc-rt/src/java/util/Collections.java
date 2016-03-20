@@ -31,7 +31,7 @@ public class Collections {
 		list.toArray(array);
 		Arrays.sort((T[]) array, 0, array.length, c);
 		list.clear();
-		for (Object o : array) list.add((T)o);
+		for (Object o : array) list.add((T) o);
 	}
 
 	public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T key) {
@@ -194,21 +194,40 @@ public class Collections {
 	public static final List EMPTY_LIST = new ArrayList();
 	public static final Map EMPTY_MAP = new HashMap();
 
-	native public static final <T> Set<T> emptySet();
+	public static final <T> Set<T> emptySet() {
+		return new HashSet<>();
+	}
 
-	native public static <E> SortedSet<E> emptySortedSet();
+	public static <E> SortedSet<E> emptySortedSet() {
+		return new TreeSet<>();
+	}
 
-	native public static <E> NavigableSet<E> emptyNavigableSet();
+	public static <E> NavigableSet<E> emptyNavigableSet() {
+		return new TreeSet<>();
+	}
 
-	native public static final <T> List<T> emptyList();
+	public static final <T> List<T> emptyList() {
+		return new ArrayList<T>();
+	}
 
-	native public static final <K, V> Map<K, V> emptyMap();
+	public static final <K, V> Map<K, V> emptyMap() {
+		return new HashMap<K, V>();
+	}
 
-	native public static final <K, V> SortedMap<K, V> emptySortedMap();
+	public static final <K, V> SortedMap<K, V> emptySortedMap() {
+		return new TreeMap<K, V>();
+	}
 
-	native public static final <K, V> NavigableMap<K, V> emptyNavigableMap();
+	public static final <K, V> NavigableMap<K, V> emptyNavigableMap() {
+		return new TreeMap<K, V>();
+	}
 
-	native public static <T> Set<T> singleton(T o);
+	public static <T> Set<T> singleton(T o) {
+		// @TODO: Should be readonly!
+		HashSet<T> set = new HashSet<T>();
+		set.add(o);
+		return set;
+	}
 
 	native static <E> Iterator<E> singletonIterator(final E e);
 
@@ -236,13 +255,27 @@ public class Collections {
 
 	native public static <T> Enumeration<T> enumeration(final Collection<T> c);
 
-	native public static <T> ArrayList<T> list(Enumeration<T> e);
+	public static <T> ArrayList<T> list(Enumeration<T> e) {
+		ArrayList<T> ts = new ArrayList<>();
+		while (e.hasMoreElements()) {
+			ts.add(e.nextElement());
+		}
+		return ts;
+	}
 
-	native static boolean eq(Object o1, Object o2);
+	public static int frequency(Collection<?> c, Object o) {
+		int count = 0;
+		for (Object o1 : c) {
+			if (Objects.equals(o1, o)) count++;
+		}
+		return count;
+	}
 
-	native public static int frequency(Collection<?> c, Object o);
-
-	native public static boolean disjoint(Collection<?> c1, Collection<?> c2);
+	public static boolean disjoint(Collection<?> c1, Collection<?> c2) {
+		HashSet<?> c2set = new HashSet<>(c2);
+		for (Object o : c1) if (c2set.contains(o)) return false;
+		return true;
+	}
 
 	public static <T> boolean addAll(Collection<? super T> c, T... elements) {
 		boolean out = false;

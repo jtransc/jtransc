@@ -40,6 +40,9 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 	override val longName = "Haxe"
 	override val sourceExtension = "hx"
 	override val outputExtension = "bin"
+	override val subtargets = HaxeSubtarget.values().map {
+		GenTargetSubDescriptor(HaxeGenDescriptor, it.name.toLowerCase(), it.extension)
+	}
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override fun getGenerator() = GenHaxe
@@ -72,15 +75,15 @@ val HaxeKeywords = setOf(
 
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + setOf("toString", "hashCode")
 
-enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null) {
-	JS(switch = "-js", singleFile = true, interpreter = "node"),
-	CPP(switch = "-cpp", singleFile = false, interpreter = null),
-	SWF(switch = "-swf", singleFile = true, interpreter = null),
-	NEKO(switch = "-neko", singleFile = true, interpreter = "neko"),
-	PHP(switch = "-php", singleFile = false, interpreter = "php"),
-	CS(switch = "-cs", singleFile = false, interpreter = null),
-	JAVA(switch = "-java", singleFile = false, interpreter = "java -jar"),
-	PYTHON(switch = "-python", singleFile = true, interpreter = "python")
+enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin") {
+	JS(switch = "-js", singleFile = true, interpreter = "node", extension = "js"),
+	CPP(switch = "-cpp", singleFile = false, interpreter = null, extension = "exe"),
+	SWF(switch = "-swf", singleFile = true, interpreter = null, extension = "swf"),
+	NEKO(switch = "-neko", singleFile = true, interpreter = "neko", extension = "n"),
+	PHP(switch = "-php", singleFile = false, interpreter = "php", extension = "php"),
+	CS(switch = "-cs", singleFile = false, interpreter = null, extension = "exe"),
+	JAVA(switch = "-java", singleFile = false, interpreter = "java -jar", extension = "jar"),
+	PYTHON(switch = "-python", singleFile = true, interpreter = "python", extension = "py")
 	;
 
 	companion object {

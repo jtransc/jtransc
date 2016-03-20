@@ -16,6 +16,8 @@
 
 package java.util.zip;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,10 @@ import java.util.Enumeration;
 public class ZipFile implements ZipConstants, Closeable {
 	public static final int OPEN_READ = 0x1;
 	public static final int OPEN_DELETE = 0x4;
+
+	private File file;
+	private int mode;
+	private Charset charset;
 
 	public ZipFile(String name) throws IOException {
 		this(new File(name), OPEN_READ);
@@ -39,9 +45,6 @@ public class ZipFile implements ZipConstants, Closeable {
 		this(file, OPEN_READ);
 	}
 
-	public ZipFile(File file, int mode, Charset charset) throws IOException {
-	}
-
 	public ZipFile(String name, Charset charset) throws IOException {
 		this(new File(name), OPEN_READ, charset);
 	}
@@ -49,6 +52,16 @@ public class ZipFile implements ZipConstants, Closeable {
 	public ZipFile(File file, Charset charset) throws IOException {
 		this(file, OPEN_READ, charset);
 	}
+
+	public ZipFile(File file, int mode, Charset charset) throws IOException {
+		this.file = file;
+		this.mode = mode;
+		this.charset = charset;
+		//openZip(file.getAbsolutePath());
+	}
+
+	//@HaxeMethodBody("haxe.zip.Reader.readZip();")
+	//native private void openZip(String path);
 
 	native public String getComment();
 
