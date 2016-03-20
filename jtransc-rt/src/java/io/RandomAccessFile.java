@@ -17,8 +17,7 @@
 package java.io;
 
 import jtransc.JTranscBits;
-import jtransc.internal.JTranscIOSync;
-import jtransc.internal.JTranscIOSyncFile;
+import jtransc.io.JTranscSyncIO;
 
 public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	private FileDescriptor fd;
@@ -26,10 +25,9 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	private boolean rw;
 	private final String path;
 
-	private Object closeLock = new Object();
 	private volatile boolean closed = false;
 
-	private final JTranscIOSyncFile jfd;
+	private final JTranscSyncIO.ImplStream jfd;
 
 	private byte[] temp = new byte[8];
 
@@ -41,13 +39,13 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 		String name = (file != null ? file.getPath() : null);
 		int imode = -1;
 		if (mode.equals("r")) {
-			imode = JTranscIOSync.O_RDONLY;
+			imode = JTranscSyncIO.O_RDONLY;
 		} else if (mode.startsWith("rw")) {
-			imode = JTranscIOSync.O_RDWR;
+			imode = JTranscSyncIO.O_RDWR;
 			rw = true;
 			if (mode.length() > 2) {
-				if (mode.equals("rws")) imode |= JTranscIOSync.O_SYNC;
-				if (mode.equals("rwd")) imode |= JTranscIOSync.O_DSYNC;
+				if (mode.equals("rws")) imode |= JTranscSyncIO.O_SYNC;
+				if (mode.equals("rwd")) imode |= JTranscSyncIO.O_DSYNC;
 			}
 		}
 		if (imode < 0) {
@@ -62,7 +60,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 		fd = new FileDescriptor();
 		//fd.attach(this);
 		path = name;
-		jfd = JTranscIOSync.open(name, imode);
+		jfd = JTranscSyncIO.open(name, imode);
 	}
 
 	public final FileDescriptor getFD() throws IOException {
@@ -75,11 +73,11 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public int read(byte b[], int off, int len) throws IOException {
-		return jfd.readBytes(b, off, len);
+		return jfd.read(b, off, len);
 	}
 
 	public int read(byte b[]) throws IOException {
-		return jfd.readBytes(b, 0, b.length);
+		return jfd.read(b, 0, b.length);
 	}
 
 	public final void readFully(byte b[]) throws IOException {
@@ -111,24 +109,24 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public void write(byte b[]) throws IOException {
-		jfd.writeBytes(b, 0, b.length);
+		jfd.write(b, 0, b.length);
 	}
 
 	public void write(byte b[], int off, int len) throws IOException {
-		jfd.writeBytes(b, off, len);
+		jfd.write(b, off, len);
 	}
 
 	public long getFilePointer() throws IOException {
-		return jfd.getFilePointer();
+		return jfd.getPosition();
 	}
 
 	public void seek(long pos) throws IOException {
 		if (pos < 0) throw new IOException("Negative seek offset");
-		jfd.seek(pos);
+		jfd.setPosition(pos);
 	}
 
 	public long length() throws IOException {
-		return jfd.length();
+		return jfd.getLength();
 	}
 
 	public void setLength(long newLength) throws IOException {

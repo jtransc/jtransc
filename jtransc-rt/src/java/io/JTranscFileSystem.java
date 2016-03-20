@@ -16,6 +16,10 @@
 
 package java.io;
 
+import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.io.JTranscSyncIO;
+
+// @TODO: Move this to something JTransc can replace in jtransc-rt-core!
 class JTranscFileSystem extends FileSystem {
 
 	private final char slash;
@@ -103,7 +107,9 @@ class JTranscFileSystem extends FileSystem {
 		return resolve(System.getProperty("user.dir"), f.getPath());
 	}
 
-	native public String canonicalize(String path) throws IOException;
+	public String canonicalize(String path) throws IOException {
+		return path;
+	}
 
 	static String parentOrNull(String path) {
 		if (path == null) return null;
@@ -129,7 +135,9 @@ class JTranscFileSystem extends FileSystem {
 		return null;
 	}
 
-	public native int getBooleanAttributes0(File f);
+	public int getBooleanAttributes0(File f) {
+		return JTranscSyncIO.impl.getBooleanAttributes(f.getAbsolutePath());
+	}
 
 	public int getBooleanAttributes(File f) {
 		int rv = getBooleanAttributes0(f);
@@ -138,33 +146,62 @@ class JTranscFileSystem extends FileSystem {
 		return rv | (hidden ? BA_HIDDEN : 0);
 	}
 
-	public native boolean checkAccess(File f, int access);
+	public boolean checkAccess(File f, int access) {
+		return JTranscSyncIO.impl.checkAccess(f.getAbsolutePath(), access);
+	}
 
-	public native long getLastModifiedTime(File f);
+	public long getLastModifiedTime(File f) {
+		return JTranscSyncIO.impl.getLastModifiedTime(f.getAbsolutePath());
+	}
 
-	public native long getLength(File f);
+	public long getLength(File f) {
+		return JTranscSyncIO.impl.getLength(f.getAbsolutePath());
+	}
 
-	public native boolean setPermission(File f, int access, boolean enable, boolean owneronly);
+	public boolean setPermission(File f, int access, boolean enable, boolean owneronly) {
+		return JTranscSyncIO.impl.setPermission(f.getAbsolutePath(), access, enable, owneronly);
+	}
 
-	public native boolean createFileExclusively(String path) throws IOException;
+	public boolean createFileExclusively(String path) throws IOException {
+		return JTranscSyncIO.impl.createFileExclusively(path);
+	}
 
-	native public boolean delete(File f);
+	public boolean delete(File f) {
+		return JTranscSyncIO.impl.delete(f.getAbsolutePath());
+	}
 
-	public native String[] list(File f);
+	public String[] list(File f) {
+		return JTranscSyncIO.impl.list(f.getAbsolutePath());
+	}
 
-	public native boolean createDirectory(File f);
+	public boolean createDirectory(File f) {
+		return JTranscSyncIO.impl.createDirectory(f.getAbsolutePath());
+	}
 
-	native public boolean rename(File f1, File f2);
+	public boolean rename(File f1, File f2) {
+		return JTranscSyncIO.impl.rename(f1.getAbsolutePath(), f2.getAbsolutePath());
+	}
 
-	public native boolean setLastModifiedTime(File f, long time);
+	public boolean setLastModifiedTime(File f, long time) {
+		return JTranscSyncIO.impl.setLastModifiedTime(f.getAbsolutePath(), time);
+	}
 
-	public native boolean setReadOnly(File f);
+	public boolean setReadOnly(File f) {
+		return JTranscSyncIO.impl.setReadOnly(f.getAbsolutePath());
+	}
 
 	public File[] listRoots() {
 		return new File[]{new File("/")};
 	}
 
-	public native long getSpace(File f, int t);
+	public long getSpace(File f, int t) {
+		switch (t) {
+			case FileSystem.SPACE_TOTAL: return JTranscSyncIO.impl.getTotalSpace(f.getAbsolutePath());
+			case FileSystem.SPACE_FREE: return JTranscSyncIO.impl.getFreeSpace(f.getAbsolutePath());
+			case FileSystem.SPACE_USABLE: return JTranscSyncIO.impl.getUsableSpace(f.getAbsolutePath());
+		}
+		return 0L;
+	}
 
 	public int compare(File f1, File f2) {
 		return f1.getPath().compareTo(f2.getPath());

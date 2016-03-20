@@ -49,7 +49,7 @@ class HaxeNatives {
     static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
 
     static public function toNativeString(str:java_.lang.String_):String {
-        return str._str;
+        return (str != null) ? str._str : null;
     }
 
     static public function str(str:String):java_.lang.String_ {
@@ -237,7 +237,18 @@ class HaxeNatives {
         #end
     }
 
+    static private var props = new Map<String, String>();
+
+    static public function setProperty(prop:String, value:String):String {
+		var old = getProperty(prop);
+    	props[prop] = value;
+    	return old;
+    }
+
     static public function getProperty(prop:String):String {
+	    var res = props[prop];
+	    if (res != null) return res;
+
         switch ((prop)) {
             case "os.arch": return getArch();
             case "os.name": return getOS();
@@ -258,10 +269,10 @@ class HaxeNatives {
             case "java.vm.specification.vendor": return "jtransc-haxe";
             case "java.vm.specification.version": return "0.1";
             case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP"], "/tmp");
-            case "user.home": return getenvs(["HOME"], "/tmp");
+            case "user.dir": return getenvs(["HOME"], "/tmp");
             default: trace('Requested prop unknown ' + prop);
         }
-        return "";
+        return null;
     }
 
     static public function getOS():String {

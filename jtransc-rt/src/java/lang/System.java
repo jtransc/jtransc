@@ -79,11 +79,17 @@ public class System {
     @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
 	native public static String getProperty(String key);
 
-	native public static String getProperty(String key, String def);
+	public static String getProperty(String key, String def) {
+		String property = getProperty(key);
+		return (property != null) ? property : def;
+	}
 
+	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.setProperty(HaxeNatives.toNativeString(p0), HaxeNatives.toNativeString(p1)));")
 	native public static String setProperty(String key, String value);
 
-	native public static String clearProperty(String key);
+	public static String clearProperty(String key) {
+		return setProperty(key, null);
+	}
 
 	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getenv(p0._str));")
 	native public static String getenv(String name);

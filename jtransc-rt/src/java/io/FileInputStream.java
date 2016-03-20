@@ -35,7 +35,7 @@ public class FileInputStream extends InputStream {
 		if (file.isInvalid()) throw new FileNotFoundException("Invalid file path");
 		this.fd = new FileDescriptor();
 		this.path = name;
-		this.stream = JTranscSyncIO.impl.open(name);
+		this.stream = JTranscSyncIO.impl.open(name, JTranscSyncIO.O_RDONLY);
 	}
 
 	public FileInputStream(FileDescriptor fdObj) {

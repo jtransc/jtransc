@@ -16,14 +16,13 @@
 
 package java.io;
 
-import jtransc.internal.JTranscIOSync;
-import jtransc.internal.JTranscIOSyncFile;
+import jtransc.io.JTranscSyncIO;
 
 public class FileOutputStream extends OutputStream {
 	private final FileDescriptor fd;
 	private final boolean append;
 	private final String path;
-	private final JTranscIOSyncFile jfd;
+	private final JTranscSyncIO.ImplStream jfd;
 	private volatile boolean closed = false;
 
 	public FileOutputStream(String name) throws FileNotFoundException {
@@ -46,13 +45,9 @@ public class FileOutputStream extends OutputStream {
 		this.append = append;
 		this.path = name;
 
-		jfd = JTranscIOSync.open(name, JTranscIOSync.O_RDWR);
-		try {
-			if (append) {
-				jfd.seek(jfd.length());
-			}
-		} catch (IOException e) {
-
+		jfd = JTranscSyncIO.impl.open(name, JTranscSyncIO.O_RDWR);
+		if (append) {
+			jfd.setPosition(jfd.getLength());
 		}
 	}
 
@@ -73,11 +68,11 @@ public class FileOutputStream extends OutputStream {
 	}
 
 	public void write(byte b[]) throws IOException {
-		jfd.writeBytes(b, 0, b.length);
+		jfd.write(b, 0, b.length);
 	}
 
 	public void write(byte b[], int off, int len) throws IOException {
-		jfd.writeBytes(b, off, len);
+		jfd.write(b, off, len);
 	}
 
 	public void close() throws IOException {
