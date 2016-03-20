@@ -1,5 +1,6 @@
 import haxe.io.UInt8Array;
 import haxe.io.Bytes;
+import haxe.io.BytesData;
 
 class HaxeByteArray extends HaxeBaseArray {
     public var data:UInt8Array = null;
@@ -9,6 +10,24 @@ class HaxeByteArray extends HaxeBaseArray {
         this.data = new UInt8Array(length);
         this.length = length;
         this.desc = "[B";
+    }
+
+    public function getBytes():Bytes {
+    	#if js
+    	return Bytes.ofData(data.getData().buffer);
+    	#else
+		return data.getData().bytes;
+		#end
+    }
+
+    public function getBytesData():BytesData {
+	    // typedef UInt8ArrayData = js.html.Uint8Array;
+    	// typedef BytesData = js.html.ArrayBuffer;
+    	#if js
+    	return data.getData().buffer;
+    	#else
+		return data.getData().bytes.getData();
+		#end
     }
 
     static public function fromArray(items:Array<Dynamic>) {

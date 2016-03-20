@@ -3,9 +3,11 @@ package jtransc.rt.test;
 public class StringBuilderTest {
 	static public void main(String[] args) {
 		StringBuilder sb = new StringBuilder("hello");
+		String nullString = getNullString();
 		sb.append(1.0);
 		sb.append(true);
 		sb.append(false);
+		sb.append(nullString);
 		sb.insert(1, true);
 		sb.delete(1, 3);
 		sb.append(true);
@@ -13,6 +15,7 @@ public class StringBuilderTest {
 		System.out.println(sb.lastIndexOf("true"));
 		System.out.println(sb.charAt(7));
 		System.out.println(sb);
+		System.out.println(nullString);
 		sb.replace(5, 5, "test");
 		sb.replace(5, 8, "test");
 		sb.append("abcdefghijklmn");
@@ -41,5 +44,9 @@ public class StringBuilderTest {
 		System.out.println(sb);
 		System.out.println(sb.substring(3));
 		System.out.println(sb.substring(3, 10));
+	}
+
+	static private String getNullString() {
+		return null;
 	}
 }

@@ -107,6 +107,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun java8Test() = testClass<Java8Test>()
 
+	@Test fun zipTest() = testClass<JTranscZipTest>()
+
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 

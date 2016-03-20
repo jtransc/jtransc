@@ -630,7 +630,11 @@ class HaxeNatives {
 	}
 
 	static public function swap16(p0:Int):Int {
-		return (((p0 & 0xFF00) >> 8) | (p0 << 8));
+		return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16;
+	}
+
+	static public function swap16u(p0:Int):Int {
+		return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8));
 	}
 
 	static public function numberToString(number:Float):String {
@@ -675,3 +679,4 @@ class HaxeNatives {
 		return defaultValue;
 	}
 }
+

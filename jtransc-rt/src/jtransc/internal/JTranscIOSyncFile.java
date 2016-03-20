@@ -23,36 +23,45 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @HaxeAddMembers({
-        "private var _info:Dynamic;"
+        "private var _stream = new HaxeIO.SyncStream();"
 })
 public class JTranscIOSyncFile {
-    @HaxeMethodBody("_info = HaxeNatives.syncioOpen(p0._str, p1);")
+	private byte[] temp = new byte[1];
+
+    @HaxeMethodBody("_stream.syncioOpen(p0._str, p1);")
     native void open(String name, int mode) throws FileNotFoundException;
 
-    @HaxeMethodBody("HaxeNatives.syncioClose(_info);")
+    @HaxeMethodBody("_stream.syncioClose();")
 	public native void close() throws IOException;
 
-    @HaxeMethodBody("return HaxeNatives.syncioRead(_info);")
-	public native int read() throws IOException;
+	public int read() throws IOException {
+		if (readBytes(temp, 0, 1) == 1) {
+			return temp[0];
+		} else {
+			return -1;
+		}
+	}
 
-    @HaxeMethodBody("throw 'Not read';")
+    @HaxeMethodBody("return _stream.syncioReadBytes(p0, p1, p2);")
 	public native int readBytes(byte b[], int off, int len) throws IOException;
 
-    @HaxeMethodBody("HaxeNatives.syncioWrite(_info, p0);")
-	public native void write(int b) throws IOException;
+	public void write(int b) throws IOException {
+		temp[0] = (byte) b;
+		writeBytes(temp, 0, 1);
+	}
 
-    @HaxeMethodBody("HaxeNatives.syncioWriteBytes(_info, p0, p1, p2);")
+    @HaxeMethodBody("_stream.syncioWriteBytes(p0, p1, p2);")
 	public native void writeBytes(byte b[], int off, int len) throws IOException;
 
-    @HaxeMethodBody("throw 'Not getFilePointer';")
+    @HaxeMethodBody("return _stream.syncioPosition();")
 	public native long getFilePointer() throws IOException;
 
-    @HaxeMethodBody("throw 'Not seek';")
+	@HaxeMethodBody("_stream.syncioSetPosition(p0);")
 	public native void seek(long pos) throws IOException;
 
-    @HaxeMethodBody("return HaxeNatives.syncioLength(_info);")
+    @HaxeMethodBody("return _stream.syncioLength();")
 	public native long length() throws IOException;
 
-    @HaxeMethodBody("throw 'Not setLength';")
+    @HaxeMethodBody("_stream.syncioSetLength(p0);")
 	public native void setLength(long newLength) throws IOException;
 }

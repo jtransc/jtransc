@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 })
 @HaxeAddFiles({
         "HaxeNatives.hx",
+		"HaxeIO.hx",
         "HaxeFormat.hx",
         "HaxeNativeWrapper.hx",
         "HaxeBaseArray.hx",
