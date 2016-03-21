@@ -1,13 +1,13 @@
-package java.util.concurrent;
+package java.util.concurrent.locks;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 public class ReentrantLock implements Lock, java.io.Serializable {
 	public ReentrantLock() {
-
 	}
 
 	public ReentrantLock(boolean fair) {
