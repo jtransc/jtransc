@@ -5,7 +5,6 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.annotation.Native;
 
 public class JTranscSyncIO {
 	public static final int O_RDONLY = 1;
@@ -14,10 +13,10 @@ public class JTranscSyncIO {
 	public static final int O_DSYNC = 8;
 
 	public static final int ACCESS_EXECUTE = 0x01;
-	public static final int ACCESS_WRITE   = 0x02;
-	public static final int ACCESS_READ    = 0x04;
+	public static final int ACCESS_WRITE = 0x02;
+	public static final int ACCESS_READ = 0x04;
 
-	static public Impl impl = new Impl() {
+	static public Impl impl = new Impl(null) {
 		@Override
 		public ImplStream open(String path, int mode) throws FileNotFoundException {
 			JTranscIOSyncFile file = new JTranscIOSyncFile();
@@ -30,94 +29,22 @@ public class JTranscSyncIO {
 		native public long getLength(String file);
 
 		@Override
-		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
-		native public int getBooleanAttributes(String file);
-
-		@Override
-		public long getTotalSpace(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.getTotalSpace");
-		}
-
-		@Override
-		public long getFreeSpace(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.getFreeSpace");
-		}
-
-		@Override
-		public long getUsableSpace(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.getUsableSpace");
-		}
-
-		@Override
-		public boolean setReadOnly(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.setReadOnly");
-		}
-
-		@Override
-		public boolean setLastModifiedTime(String file, long time) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.setLastModifiedTime");
-		}
-
-		@Override
-		public boolean rename(String fileOld, String fileNew) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.rename");
-		}
-
-		@Override
-		public boolean createDirectory(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.createDirectory");
-		}
-
-		@Override
-		public String[] list(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.list");
-		}
-
-		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.delete(p0._str);")
 		public native boolean delete(String file);
 
 		@Override
-		public boolean createFileExclusively(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.createFileExclusively");
-		}
-
-		@Override
-		public boolean setPermission(String file, int access, boolean enable, boolean owneronly) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.setPermission");
-		}
-
-		@Override
-		public long getLastModifiedTime(String file) {
-			throw new RuntimeException("Not implemented JTranscSyncIO.getLastModifiedTime");
-		}
+		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
+		native public int getBooleanAttributes(String file);
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.checkAccess(p0._str, p1);")
 		public native boolean checkAccess(String file, int access);
 	};
 
-	static abstract private class ImplStreamBase implements ImplStream {
-		private byte[] temp = new byte[1];
-
-		public int read() {
-			if (read(temp, 0, 1) == 1) {
-				return temp[0];
-			} else {
-				return -1;
-			}
-		}
-
-		public void write(int b) {
-			temp[0] = (byte) b;
-			write(temp, 0, 1);
-		}
-	}
-
 	@HaxeAddMembers({
 		"private var _stream = new HaxeIO.SyncStream();"
 	})
-	static private class JTranscIOSyncFile extends ImplStreamBase {
+	static private class JTranscIOSyncFile extends ImplStream {
 
 		@HaxeMethodBody("_stream.syncioOpen(p0._str, p1);")
 		native void open(String name, int mode) throws FileNotFoundException;
@@ -145,7 +72,7 @@ public class JTranscSyncIO {
 	}
 
 
-	static public class ByteStream extends ImplStreamBase {
+	static public class ByteStream extends ImplStream {
 		private int position;
 		private byte[] data;
 
@@ -197,60 +124,129 @@ public class JTranscSyncIO {
 		}
 	}
 
-	public interface Impl {
-		ImplStream open(String path, int mode) throws FileNotFoundException;
+	static public abstract class Impl {
+		protected Impl parent;
 
-		long getLength(String path);
+		public Impl(Impl parent) {
+			this.parent = parent;
+		}
 
-		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
-		int getBooleanAttributes(String path);
+		public abstract ImplStream open(String path, int mode) throws FileNotFoundException;
 
-		long getTotalSpace(String file);
+		public long getLength(String path) {
+			try {
+				ImplStream stream = open(path, O_RDONLY);
+				try {
+					return stream.getLength();
+				} finally {
+					stream.close();
+				}
+			} catch (Throwable e) {
+				return 0L;
+			}
+		}
 
-		long getFreeSpace(String file);
+		public long getTotalSpace(String file) {
+			if (parent != null) return parent.getTotalSpace(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.getTotalSpace");
+		}
 
-		long getUsableSpace(String file);
+		public long getFreeSpace(String file) {
+			if (parent != null) return parent.getFreeSpace(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.getFreeSpace");
+		}
 
-		boolean setReadOnly(String file);
+		public long getUsableSpace(String file) {
+			if (parent != null) return parent.getUsableSpace(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.getUsableSpace");
+		}
 
-		boolean setLastModifiedTime(String file, long time);
+		public boolean setReadOnly(String file) {
+			if (parent != null) return parent.setReadOnly(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.setReadOnly");
+		}
 
-		boolean rename(String fileOld, String fileNew);
+		public boolean setLastModifiedTime(String file, long time) {
+			if (parent != null) return parent.setLastModifiedTime(file, time);
+			throw new RuntimeException("Not implemented JTranscSyncIO.setLastModifiedTime");
+		}
 
-		boolean createDirectory(String file);
+		public boolean rename(String fileOld, String fileNew) {
+			if (parent != null) return parent.rename(fileOld, fileNew);
+			throw new RuntimeException("Not implemented JTranscSyncIO.rename");
+		}
 
-		String[] list(String file);
+		public boolean createDirectory(String file) {
+			if (parent != null) return parent.createDirectory(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.createDirectory");
+		}
 
-		boolean delete(String file);
+		public String[] list(String file) {
+			if (parent != null) return parent.list(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.list");
+		}
 
-		boolean createFileExclusively(String file);
+		public boolean delete(String file) {
+			if (parent != null) return parent.delete(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.delete");
+		}
 
-		boolean setPermission(String file, int access, boolean enable, boolean owneronly);
+		public boolean createFileExclusively(String file) {
+			if (parent != null) return parent.createFileExclusively(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.createFileExclusively");
+		}
 
-		long getLastModifiedTime(String file);
+		public boolean setPermission(String file, int access, boolean enable, boolean owneronly) {
+			if (parent != null) return parent.setPermission(file, access, enable, owneronly);
+			throw new RuntimeException("Not implemented JTranscSyncIO.setPermission");
+		}
 
-		boolean checkAccess(String file, int access);
+		public long getLastModifiedTime(String file) {
+			if (parent != null) return parent.getLastModifiedTime(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.getLastModifiedTime");
+		}
+
+		public boolean checkAccess(String file, int access) {
+			if (parent != null) return parent.checkAccess(file, access);
+			throw new RuntimeException("Not implemented JTranscSyncIO.checkAccess");
+		}
+
+		public int getBooleanAttributes(String file) {
+			if (parent != null) return parent.getBooleanAttributes(file);
+			throw new RuntimeException("Not implemented JTranscSyncIO.getBooleanAttributes");
+		}
 
 	}
 
-	public interface ImplStream {
-		void setPosition(long offset);
+	static public abstract class ImplStream {
+		private byte[] temp = new byte[1];
 
-		long getPosition();
+		abstract public void setPosition(long offset);
 
-		void setLength(long length);
+		abstract public long getPosition();
 
-		long getLength();
+		abstract public void setLength(long length);
 
-		int read();
+		abstract public long getLength();
 
-		void write(int data);
+		public int read() {
+			if (read(temp, 0, 1) == 1) {
+				return temp[0];
+			} else {
+				return -1;
+			}
+		}
 
-		int read(byte[] data, int offset, int size);
+		public void write(int b) {
+			temp[0] = (byte) b;
+			write(temp, 0, 1);
+		}
 
-		int write(byte[] data, int offset, int size);
+		abstract public int read(byte[] data, int offset, int size);
 
-		void close() throws IOException;
+		abstract public int write(byte[] data, int offset, int size);
+
+		abstract public void close() throws IOException;
 	}
 
 	// @TODO: Remove this!
