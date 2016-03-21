@@ -23,13 +23,13 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-main-run</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
 
     <dependencies>
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-main</artifactId>
-            <version>0.1.3</version>
+            <version>0.1.4</version>
         </dependency>
     </dependencies>
 

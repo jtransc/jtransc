@@ -4,7 +4,7 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscVersion {
 	static public String getVersion() {
-		return "0.1.3";
+		return "0.1.4";
 	}
 
 	@HaxeMethodBody("return HaxeNatives.str('haxe');")
