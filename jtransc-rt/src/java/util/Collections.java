@@ -253,7 +253,20 @@ public class Collections {
 
 	native public static <T> Comparator<T> reverseOrder(Comparator<T> cmp);
 
-	native public static <T> Enumeration<T> enumeration(final Collection<T> c);
+	public static <T> Enumeration<T> enumeration(final Collection<T> c) {
+		final Iterator<T> iterator = c.iterator();
+		return new Enumeration<T>() {
+			@Override
+			public boolean hasMoreElements() {
+				return iterator.hasNext();
+			}
+
+			@Override
+			public T nextElement() {
+				return iterator.next();
+			}
+		};
+	}
 
 	public static <T> ArrayList<T> list(Enumeration<T> e) {
 		ArrayList<T> ts = new ArrayList<>();

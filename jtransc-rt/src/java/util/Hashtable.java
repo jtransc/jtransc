@@ -17,7 +17,10 @@
 package java.util;
 
 public class Hashtable<K, V> extends Dictionary<K, V> implements Map<K, V>, Cloneable, java.io.Serializable {
+	private HashMap<K, V> data;
+
 	public Hashtable(int initialCapacity, float loadFactor) {
+		this.data = new HashMap<>(initialCapacity, loadFactor);
 	}
 
 	public Hashtable(int initialCapacity) {
@@ -33,43 +36,83 @@ public class Hashtable<K, V> extends Dictionary<K, V> implements Map<K, V>, Clon
 		putAll(t);
 	}
 
-	native public synchronized int size();
+	public synchronized int size() {
+		return data.size();
+	}
 
-	native public synchronized boolean isEmpty();
+	public synchronized boolean isEmpty() {
+		return data.isEmpty();
+	}
 
-	native public synchronized Enumeration<K> keys();
+	public synchronized Enumeration<K> keys() {
+		return Collections.enumeration(data.keySet());
+	}
 
-	native public synchronized Enumeration<V> elements();
+	public synchronized Enumeration<V> elements() {
+		return Collections.enumeration(data.values());
+	}
 
-	native public synchronized boolean contains(Object value);
+	public synchronized boolean contains(Object value) {
+		return data.containsValue(value);
+	}
 
-	native public boolean containsValue(Object value);
+	public boolean containsValue(Object value) {
+		return data.containsValue(value);
+	}
 
-	native public synchronized boolean containsKey(Object key);
+	public synchronized boolean containsKey(Object key) {
+		return data.containsKey(key);
+	}
 
-	native public synchronized V get(Object key);
+	public synchronized V get(Object key) {
+		return data.get(key);
+	}
 
-	native protected void rehash();
+	protected void rehash() {
+	}
 
-	native public synchronized V put(K key, V value);
+	public synchronized V put(K key, V value) {
+		return data.put(key, value);
+	}
 
-	native public synchronized V remove(Object key);
+	public synchronized V remove(Object key) {
+		return data.remove(key);
+	}
 
-	native public synchronized void putAll(Map<? extends K, ? extends V> t);
+	public synchronized void putAll(Map<? extends K, ? extends V> t) {
+		data.putAll(t);
+	}
 
-	native public synchronized void clear();
+	public synchronized void clear() {
+		data.clear();
+	}
 
-	native public synchronized Object clone();
+	public synchronized Object clone() {
+		return new Hashtable<>(data);
+	}
 
-	native public synchronized String toString();
+	public synchronized String toString() {
+		return data.toString();
+	}
 
-	native public Set<K> keySet();
+	public Set<K> keySet() {
+		return data.keySet();
+	}
 
-	native public Set<Entry<K, V>> entrySet();
+	public Set<Entry<K, V>> entrySet() {
+		return data.entrySet();
+	}
 
-	native public Collection<V> values();
+	public Collection<V> values() {
+		return data.values();
+	}
 
-	native public synchronized boolean equals(Object o);
+	public synchronized boolean equals(Object o) {
+		if (!(o instanceof Hashtable)) return false;
+		return Objects.equals(this.data, ((Hashtable) o).data);
+	}
 
-	native public synchronized int hashCode();
+	public synchronized int hashCode() {
+		return data.hashCode();
+	}
 }
