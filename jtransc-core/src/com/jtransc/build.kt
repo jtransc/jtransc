@@ -30,6 +30,7 @@ import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
+import java.io.File
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
 	val parts = target.split(":")
@@ -113,7 +114,7 @@ class AllBuild(
 			createProgramAst(
 				SootToAst(),
 				initialClasses, entryPoint, classPaths2,
-				LocalVfs("$tempdir/out_ast")
+				LocalVfs(File("$tempdir/out_ast"))
 			)
 		}
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }

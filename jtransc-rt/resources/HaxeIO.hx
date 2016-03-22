@@ -95,6 +95,7 @@ class SyncFS {
 			#if js
 			return fs.readdirSync(path);
 			#else
+			return [];
 			#end
 		} catch (e:Dynamic) {
 			return [];

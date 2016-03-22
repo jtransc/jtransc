@@ -15,6 +15,8 @@ class HaxeNatives {
 		#if js
 		var _msg = msg;
 		untyped __js__("console.log(_msg);");
+		#elseif sys
+		Sys.stdout().writeString(msg + "\n");
 		#else
 		trace(msg);
 		#end
@@ -24,6 +26,8 @@ class HaxeNatives {
 		#if js
 		var _msg = msg;
 		untyped __js__("console.error(_msg);");
+		#elseif sys
+		Sys.stderr().writeString(msg + "\n");
 		#else
 		trace(msg);
 		#end
@@ -269,7 +273,7 @@ class HaxeNatives {
             case "java.vm.specification.name": return "Jtransc/Haxe JVM emulator";
             case "java.vm.specification.vendor": return "jtransc-haxe";
             case "java.vm.specification.version": return "0.1";
-            case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP"], "/tmp");
+            case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP", "TMP"], "/tmp");
             case "user.home": return getenvs(["HOME"], "/tmp");
             case "user.dir": return getenvs(["HOME"], "/tmp");
             default: trace('Requested unknown property "$prop"');
@@ -533,11 +537,11 @@ class HaxeNatives {
 			throw J__i__exception__;
 			#end
 		#elseif neko
-			neko.Lib.rethrow();
+			neko.Lib.rethrow(J__i__exception__);
 		#elseif cpp
-			cpp.Lib.rethrow();
+			cpp.Lib.rethrow(J__i__exception__);
 		#elseif php
-			php.Lib.rethrow();
+			php.Lib.rethrow(J__i__exception__);
 		#else
 			throw J__i__exception__;
         #end
@@ -693,7 +697,7 @@ class HaxeNatives {
 	static public function getenvs(names:Array<String>, defaultValue:String = ""):String {
 		for (name in names) {
 			var out = getenv(name);
-			if (out != "") return out;
+			if (out != null) return out;
 		}
 		return defaultValue;
 	}

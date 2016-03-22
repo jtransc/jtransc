@@ -98,7 +98,6 @@ public final class Integer extends Number implements Comparable<Integer> {
 		for (int n = 0; n < len; n++) {
 			char c = s.charAt(n);
 			if (!JTranscCType.isDigit(c)) {
-				JTranscSystem.debugger();
 				throw new NumberFormatException("For input string: \"" + input + "\"");
 			}
 			result *= radix;
