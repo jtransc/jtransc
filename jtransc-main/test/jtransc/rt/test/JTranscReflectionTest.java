@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -12,6 +13,18 @@ public class JTranscReflectionTest {
 		assignableTest();
 		annotationTest();
 		fieldTest();
+		arrayTest();
+	}
+
+	static public void arrayTest() {
+		int[] items = (int[]) Array.newInstance(Integer.TYPE, 10);
+		for (int n = 0; n < 10; n++) items[n] = n * 10;
+		System.out.println(items.length);
+		for (int n = 0; n < 10; n++) System.out.println(Array.getInt(items, n));
+		for (int n = 0; n < 10; n++) Array.setInt(items, n, n * 20);
+		for (int n = 0; n < 10; n++) System.out.println(items[n]);
+		for (int n = 0; n < 10; n++) Array.set(items, n, n * 40);
+		for (int n = 0; n < 10; n++) System.out.println(items[n] + 10);
 	}
 
 	static public void assignableTest() {
