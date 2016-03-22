@@ -16,6 +16,8 @@
 
 package java.util.zip;
 
+import jtransc.annotation.JTranscInline;
+import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.internal.Inflater;
 
 import java.io.*;
@@ -248,24 +250,34 @@ public class ZipFile implements Closeable {
 	}
 
 	//@HaxeMethodBody("trace(p0.getBytes().length); trace(p0.getBytes()); var bytes = haxe.zip.Uncompress.run(p0.getBytes(), -15); trace(bytes.length); trace(bytes); return HaxeByteArray.fromBytes(bytes);")
-	/*
 	@HaxeMethodBody(
-		"var u = new haxe.zip.Uncompress(-15);" +
-			"var src = p0.getBytes();" +
-			"var dst = haxe.io.Bytes.alloc(p1);" +
-			"u.execute(src, 0, dst, 0);" +
-			"u.close();" +
-			"return HaxeByteArray.fromBytes(dst);"
+		"#if sys\n" +
+		"var u = new haxe.zip.Uncompress(-15);\n" +
+			"var src = p0.getBytes();\n" +
+			"var dst = haxe.io.Bytes.alloc(p1);\n" +
+			"u.execute(src, 0, dst, 0);\n" +
+			"u.close();\n" +
+			"return HaxeByteArray.fromBytes(dst);\n" +
+		"#else\n" +
+		"return null;\n" +
+		"#end\n"
 	)
-	native static private byte[] deflate(byte[] data, int outputSize);
-	*/
+	native static private byte[] nativeDeflate(byte[] data, int outputSize);
+
+	@HaxeMethodBody("#if sys return true; #else return false; #end")
+	@JTranscInline
+	native static private boolean hasNativeDeflate();
 
 	static private byte[] deflate(byte[] data, int outputSize) throws IOException, DataFormatException {
-		ByteArrayInputStream bis = new ByteArrayInputStream(data);
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(outputSize);
-		Inflater inflater = new Inflater(bis, bos);
-		//inflater.
-		return bos.toByteArray();
+		if (hasNativeDeflate()) {
+			return nativeDeflate(data, outputSize);
+		} else {
+			ByteArrayInputStream bis = new ByteArrayInputStream(data);
+			ByteArrayOutputStream bos = new ByteArrayOutputStream(outputSize);
+			Inflater inflater = new Inflater(bis, bos);
+			//inflater.
+			return bos.toByteArray();
+		}
 	}
 
 	static private final int METHOD_STORED = 0;

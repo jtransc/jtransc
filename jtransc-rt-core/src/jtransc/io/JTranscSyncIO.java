@@ -20,8 +20,12 @@ public class JTranscSyncIO {
 		@Override
 		public ImplStream open(String path, int mode) throws FileNotFoundException {
 			JTranscIOSyncFile file = new JTranscIOSyncFile();
-			file.open(path, mode);
-			return file;
+			try {
+				file.open(path, mode);
+				return file;
+			} catch (Throwable e) {
+				throw new FileNotFoundException(path);
+			}
 		}
 
 		@Override

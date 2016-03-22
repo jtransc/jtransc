@@ -15,6 +15,7 @@ public class JTranscZipTest {
 		testFs();
 		testZip();
 	}
+
 	static private void testFs() {
 		System.out.println("FS:");
 		System.out.println(new File("__nonExistantFile__").exists());
@@ -48,14 +49,18 @@ public class JTranscZipTest {
 		String tmpfile = tmpdir + "/jtransc.test.zip";
 		JTranscFiles.write(new File(tmpfile), hexData);
 
-		File tmpfile2 = new File(tmpfile);
-		System.out.println("isFile:" + tmpfile2.isFile());
-		System.out.println("canRead:" + tmpfile2.canRead());
-		System.out.println("canWrite:" + tmpfile2.canWrite());
-		File tmpfile3 = new File(tmpfile.replace('\\', '/'));
-		System.out.println("isFile:" + tmpfile3.isFile());
-		System.out.println("canRead:" + tmpfile3.canRead());
-		System.out.println("canWrite:" + tmpfile3.canWrite());
+		for (File file : new File[]{
+			new File(tmpfile),
+			new File(tmpfile.replace('\\', '/')),
+			new File(tmpdir)
+		}) {
+			System.out.println("file:" + file.getAbsolutePath());
+			System.out.println("isFile:" + file.isFile());
+			System.out.println("isDirectory:" + file.isDirectory());
+			System.out.println("canRead:" + file.canRead());
+			System.out.println("canWrite:" + file.canWrite());
+			//System.out.println("length:" + file.length());
+		}
 
 		RandomAccessFile r = new RandomAccessFile(tmpfile, "r");
 		System.out.println(r.readShort());
