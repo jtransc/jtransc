@@ -39,6 +39,18 @@ public class JTranscSyncIO {
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.checkAccess(p0._str, p1);")
 		public native boolean checkAccess(String file, int access);
+
+		@Override
+		@HaxeMethodBody("return HaxeIO.SyncFS.createDirectory(p0._str);")
+		public native boolean createDirectory(String file);
+
+		@Override
+		@HaxeMethodBody("return HaxeIO.SyncFS.rename(p0._str, p1._str);")
+		public native boolean rename(String fileOld, String fileNew);
+
+		@Override
+		@HaxeMethodBody("return HaxeNatives.strArray(HaxeIO.SyncFS.list(p0._str));")
+		public native String[] list(String file);
 	};
 
 	@HaxeAddMembers({

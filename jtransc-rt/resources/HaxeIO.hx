@@ -66,6 +66,41 @@ class SyncFS {
 		}
 	}
 
+	static public function createDirectory(path:String):Bool {
+		try {
+			#if js
+			fs.mkdirSync(path);
+			#else
+			#end
+			return true;
+		} catch (e:Dynamic) {
+			return false;
+		}
+	}
+
+	static public function rename(oldPath:String, newPath:String):Bool {
+		try {
+			#if js
+			fs.renameSync(oldPath, newPath);
+			#else
+			#end
+			return true;
+		} catch (e:Dynamic) {
+			return false;
+		}
+	}
+
+	static public function list(path:String):Array<String> {
+		try {
+			#if js
+			return fs.readdirSync(path);
+			#else
+			#end
+		} catch (e:Dynamic) {
+			return [];
+		}
+	}
+
 	static private inline var BA_EXISTS    = 0x01;
 	static private inline var BA_REGULAR   = 0x02;
 	static private inline var BA_DIRECTORY = 0x04;
