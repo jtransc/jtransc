@@ -43,8 +43,8 @@ public class MainHaxe {
         tryCatchTest();
         testRandom();
         testCloneArray();
-        testMd5();
-        testSha1();
+        //testMd5();
+        //testSha1();
         testCharset();
         testDynamicInstanceof();
         testGenericStuff();
@@ -312,6 +312,13 @@ public class MainHaxe {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+		//try {
+		//    String digest = bytesToHexString(MessageDigest.getInstance("MD5").digest(message));
+		//    System.out.println("MD5:" + digest);
+		//} catch (NoSuchAlgorithmException e) {
+		//    e.printStackTrace();
+		//}
     }
 
     private void testSha1() {
@@ -335,12 +342,7 @@ public class MainHaxe {
         //System.out.println("charset array length:" + data.array().length);
         byte[] message = Arrays.copyOf(data.array(), data.limit());
         System.out.println("charset message length:" + message.length);
-        try {
-            String digest = bytesToHexString(MessageDigest.getInstance("MD5").digest(message));
-            System.out.println("MD5:" + digest);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+
     }
 }
 

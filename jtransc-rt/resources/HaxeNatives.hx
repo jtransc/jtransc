@@ -11,28 +11,6 @@ using Lambda;
 typedef Long = Int64;
 
 class HaxeNatives {
-	static public function outputLog(msg:String):Void {
-		#if js
-		var _msg = msg;
-		untyped __js__("console.log(_msg);");
-		#elseif sys
-		Sys.stdout().writeString(msg + "\n");
-		#else
-		trace(msg);
-		#end
-	}
-
-	static public function outputError(msg:String):Void {
-		#if js
-		var _msg = msg;
-		untyped __js__("console.error(_msg);");
-		#elseif sys
-		Sys.stderr().writeString(msg + "\n");
-		#else
-		trace(msg);
-		#end
-	}
-
 	static private var M2P32_DBL = Math.pow(2, 32);
     inline static public function intToLong(v:Int):Long {
 		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
@@ -153,10 +131,6 @@ class HaxeNatives {
         return resolveClass(getClassDescriptor(object));
     }
 
-    static public function objectToString(object:java_.lang.Object_):String {
-        return getClass(object).getName__Ljava_lang_String_()._str + "@" + object.__ID__;
-    }
-
     static public function newInstance(javaInternalClassName:String) {
         if (javaInternalClassName == null) trace('HaxeNatives.newInstance::javaInternalClassName == null');
         var clazz = Type.resolveClass(javaInternalClassName);
@@ -171,131 +145,6 @@ class HaxeNatives {
         if (clazz == null) trace('HaxeNatives.newEmptyInstance::clazz == null ; javaInternalClassName = $javaInternalClassName');
         // HaxeReflectionInfo
         return Type.createEmptyInstance(clazz);
-    }
-
-    static var BASE = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-    public static function intToString(value:Int, radix:Int = 10):String {
-        #if (js || flash)
-        return untyped (value | 0).toString(radix);
-        #else
-        if (radix == 10) return Std.string(value);
-        if (value == 0) return '0';
-
-        var sign = "";
-        if (value < 0) {
-            sign = '-';
-            value = -value;
-        }
-
-        var result = '';
-        while (value > 0) {
-            result = BASE.charAt(value % radix) + result;
-            value = Std.int(value / radix);
-        }
-
-        return sign + result;
-        #end
-    }
-
-    static public function parseInt(value:String, radix:Int = 10) {
-        #if js
-        var v = untyped __js__("parseInt")(value, radix);
-        return (untyped __js__("isNaN")(v)) ? null : v;
-        #elseif flash9
-        var v = untyped __global__["parseInt"](value, radix);
-        return (untyped __global__["isNaN"](v)) ? null : v;
-        #else
-        value = StringTools.trim(value).toLowerCase();
-        if (value.length == 0) return 0;
-
-        var s = 0;
-        var neg = false;
-        if (value.indexOf("-") == 0) {
-            neg = true;
-            s = 1;
-        } else if (value.indexOf("+") == 0) {
-            s = 1;
-        }
-
-        if (s == 1 && value.length == 1) return 0;
-
-        var j = value.indexOf("0x");
-        if ((j == 0 || (j == 1 && s == 1)) && (radix == 0 || radix == 16)) {
-            s += 2;
-            if (radix == 0) radix = 16;
-        } else if (radix == 0) {
-            radix = 10;
-        }
-
-        var result = 0;
-        for (i in s...value.length) {
-            var x = BASE.indexOf(value.charAt(i));
-            if (x == -1 || x >= radix) {
-                if (i == s) return 0;
-                else return neg ? -result : result;
-            }
-            result = (result * radix) + x;
-        }
-
-        return neg ? -result : result;
-        #end
-    }
-
-    static private var props = new Map<String, String>();
-
-    static public function setProperty(prop:String, value:String):String {
-		var old = getProperty(prop);
-    	props[prop] = value;
-    	return old;
-    }
-
-    static public function getProperty(prop:String):String {
-	    var res = props[prop];
-	    if (res != null) return res;
-
-        switch ((prop)) {
-            case "os.arch": return getArch();
-            case "os.name": return getOS();
-            case "os.version": return "0.1";
-            case "java.runtime.name": return "jtransc-haxe";
-            case "file.separator": return "/";
-            case "line.separator": return "\n";
-            case "path.separator": return ":";
-            case "file.encoding": return "UTF-8";
-            case "java.home": return "/jtransc-haxe";
-            case "java.specification.name": return "jtransc-haxe";
-            case "java.specification.vendor": return "jtransc";
-            case "java.specification.version": return "0.9";
-            case "java.vendor": return "jtransc";
-            case "java.vendor.url": return "http://github.com/jtransc/jtransc";
-            case "java.vn.name": return "haxe";
-            case "java.vm.specification.name": return "Jtransc/Haxe JVM emulator";
-            case "java.vm.specification.vendor": return "jtransc-haxe";
-            case "java.vm.specification.version": return "0.1";
-            case "java.io.tmpdir": return getenvs(["TMPDIR", "TEMP", "TMP"], "/tmp");
-            case "user.home": return getenvs(["HOME"], "/tmp");
-            case "user.dir": return getenvs(["HOME"], "/tmp");
-            default: trace('Requested unknown property "$prop"');
-        }
-        return null;
-    }
-
-    static public function getOS():String {
-        #if sys
-            return Sys.systemName();
-        #elseif js
-            return "js"; // Use node process or navigator
-        #elseif flash
-            return "flash";
-        #else
-            return "haxe";
-        #end
-    }
-
-    static public function getArch():String {
-        // x86, i386, ppc, sparc, arm
-        return "x86";
     }
 
     static public function arraycopy(src:java_.lang.Object_, srcPos:Int, dest:java_.lang.Object_, destPos:Int, length:Int) {
@@ -319,49 +168,11 @@ class HaxeNatives {
         }
     }
 
-    static public function box(value:Dynamic):java_.lang.Object_ {
-        if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
-        if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
-        if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
-        if (Std.is(value, String)) return str(cast(value, String));
-        if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
-		return jtransc.JTranscWrapped_.wrap(value);
-    }
-
-    static public function unbox(value:Dynamic):Dynamic {
-		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
-        if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
-        if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
-        if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;
-        if (Std.is(value, java_.lang.Integer_)) return cast(value, java_.lang.Integer_).value;
-        if (Std.is(value, java_.lang.Float_)) return cast(value, java_.lang.Float_).value;
-        if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
-        if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
-        if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
-		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
-        throw 'Was not able to unbox "$value"';
-    }
-
     static public function args():Array<String> {
-        #if sys
-        return Sys.args();
-        #elseif js
-        if (untyped __js__("typeof process !== 'undefined' && process.argv")) {
-            return untyped __js__("process.argv.slice(2)");
-        } else {
-            return [];
-        }
-        #else
-        return [];
+        #if sys return Sys.args();
+        #elseif js if (untyped __js__("typeof process !== 'undefined' && process.argv")) return untyped __js__("process.argv.slice(2)"); else return [];
+        #else return [];
         #end
-    }
-
-    static public function strCompare(a:String, b:String):Int {
-        return if ( a < b ) -1 else if ( a > b ) 1 else 0;
-    }
-
-    static public function strCompareIgnoreCase(a:String, b:String):Int {
-        return strCompare(a.toLowerCase(), b.toLowerCase());
     }
 
     static public inline function cast2<T, S> (value:T, c:Class<S>):S {
@@ -372,160 +183,60 @@ class HaxeNatives {
         return HaxeFormat.format(fmt, args.map(function(v) { return unbox(v); }).array());
     }
 
-    /*
-    static private var _tempView = new haxe.io.ArrayBufferView(8);
-    static private var _tempF32 = haxe.io.Float32Array.fromData(_tempView);
-    static private var _tempI32 = haxe.io.Int32Array.fromData(_tempView);
-    */
+	static public function box(value:Dynamic):java_.lang.Object_ {
+		if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
+		if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
+		if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
+		if (Std.is(value, String)) return str(cast(value, String));
+		if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
+		return jtransc.JTranscWrapped_.wrap(value);
+	}
+
+	static public function unbox(value:Dynamic):Dynamic {
+		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
+		if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
+		if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
+		if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;
+		if (Std.is(value, java_.lang.Integer_)) return cast(value, java_.lang.Integer_).value;
+		if (Std.is(value, java_.lang.Float_)) return cast(value, java_.lang.Float_).value;
+		if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
+		if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
+		if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
+		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
+		throw 'Was not able to unbox "$value"';
+	}
+
     static private var _tempBytes = haxe.io.Bytes.alloc(8);
     static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);
     static private var _tempI32 = haxe.io.Int32Array.fromBytes(_tempBytes);
     static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
 
     static public function intBitsToFloat(value: Int) {
-        #if cpp
-        return untyped __cpp__("*(float *)(&{0})", value);
-        #else
-        _tempI32[0] = value;
-        return _tempF32[0];
+        #if cpp return untyped __cpp__("*(float *)(&{0})", value);
+        #else _tempI32[0] = value; return _tempF32[0];
         #end
     }
 
     static public function floatToIntBits(value: Float) {
-        #if cpp
-        return untyped __cpp__("*(int *)(&{0})", value);
-        #else
-        _tempF32[0] = value;
-        return _tempI32[0];
+        #if cpp return untyped __cpp__("*(int *)(&{0})", value);
+        #else _tempF32[0] = value; return _tempI32[0];
         #end
     }
 
     static public function longBitsToDouble(value: Long) {
-        #if cpp
-        return untyped __cpp__("*(double *)(&{0})", value);
-        #else
-		_tempI32[0] = value.low;
-        _tempI32[1] = value.high;
-        return _tempF64[0];
+        #if cpp return untyped __cpp__("*(double *)(&{0})", value);
+        #else _tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
         #end
     }
 
     static public function doubleToLongBits(value: Float):Int64 {
-        #if cpp
-        return untyped __cpp__("*(long *)(&{0})", value);
-        #else
-        _tempF64[0] = value;
-		var i1 = _tempI32[1];
-		var i2 = _tempI32[0];
-		return haxe.Int64.make(i1, i2);
+        #if cpp return untyped __cpp__("*(long *)(&{0})", value);
+        #else _tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
         #end
     }
 
     static public function newException(msg:String) {
         return new java_.lang.Exception_().java_lang_Exception_init__Ljava_lang_String__V(HaxeNatives.str(msg));
-    }
-
-    static public function gcEnable() {
-        #if cpp
-            cpp.vm.Gc.enable(true);
-        #end
-    }
-
-    static public function gcDisable() {
-        #if cpp
-            cpp.vm.Gc.enable(false);
-        #end
-    }
-
-    static public function gc() {
-        #if cpp
-            cpp.vm.Gc.compact();
-        #end
-    }
-
-    static public function syncioOpen(path:String, flags:Int) {
-        trace('syncioOpen:$path:$flags');
-        return -1;
-    }
-
-    static public function syncioRead(fd:Int) {
-        return -1;
-    }
-
-    static public function syncioWrite(fd:Int, byte:Int) {
-    }
-
-    static public function syncioWriteBytes(fd:Int, data:HaxeByteArray, offset:Int, length:Int) {
-        trace('syncioWriteBytes:$length');
-    }
-
-    static public function syncioClose(fd:Int) {
-        trace('syncioClose');
-    }
-
-    static public function syncioLength(fd:Int):Int64 {
-        return intToLong(0);
-    }
-
-    #if !flash
-    static private var byteMem:haxe.io.Bytes;
-    static private var shortMem:haxe.io.UInt16Array;
-    static private var intMem:haxe.io.Int32Array;
-    static private var floatMem:haxe.io.Float32Array;
-    static private var doubleMem:haxe.io.Float64Array;
-    #end
-
-    static public function memSelect(mem:haxe.io.Bytes) {
-        #if flash
-        flash.Memory.select(mem.getData());
-        #else
-        HaxeNatives.byteMem   = mem;
-        HaxeNatives.shortMem  = haxe.io.UInt16Array.fromBytes(mem);
-        HaxeNatives.intMem    = haxe.io.Int32Array.fromBytes(mem);
-        HaxeNatives.floatMem  = haxe.io.Float32Array.fromBytes(mem);
-        HaxeNatives.doubleMem = haxe.io.Float64Array.fromBytes(mem);
-        #end
-    }
-    static public inline function memLi8(address:Int) {
-        return #if flash flash.Memory.getByte(address << 0); #else byteMem.get(address); #end
-    }
-    static public inline function memLi16(address2:Int) {
-        return #if flash flash.Memory.getUI16(address2 << 1); #else shortMem.get(address2); #end
-    }
-    static public inline function memLi32(address4:Int) {
-        return #if flash flash.Memory.getI32(address4 << 2); #else intMem.get(address4); #end
-    }
-    static public inline function memLf32(address4:Int) {
-        return #if flash flash.Memory.getFloat(address4 << 2); #else floatMem.get(address4); #end
-    }
-    static public inline function memLf64(address8:Int) {
-        return #if flash flash.Memory.getDouble(address8 << 3); #else floatMem.get(address8); #end
-    }
-
-    static public inline function memSi8(address:Int, value:Int) {
-        #if flash flash.Memory.setByte(address << 0, value); #else byteMem.set(address, value); #end
-    }
-    static public inline function memSi16(address2:Int, value:Int) {
-        #if flash flash.Memory.setI16(address2 << 1, value); #else shortMem.set(address2, value); #end
-    }
-    static public inline function memSi32(address4:Int, value:Int) {
-        #if flash flash.Memory.setI32(address4 << 2, value); #else intMem.set(address4, value); #end
-    }
-    static public inline function memSf32(address4:Int, value:Float) {
-        #if flash flash.Memory.setFloat(address4 << 2, value); #else floatMem.set(address4, value); #end
-    }
-    static public inline function memSf64(address8:Int, value:Float) {
-        #if flash flash.Memory.setDouble(address8 << 3, value); #else floatMem.set(address8, value); #end
-    }
-
-    static public inline function sxi1(value:Int) {
-        return #if flash flash.Memory.signExtend1(value); #else ((value << 31) >> 31); #end
-    }
-    static public inline function sxi8(value:Int) {
-        return #if flash flash.Memory.signExtend8(value); #else ((value << 24) >> 24); #end
-    }
-    static public inline function sxi16(value:Int) {
-        return #if flash flash.Memory.signExtend16(value); #else ((value << 16) >> 16); #end
     }
 
     static public inline function rethrow(J__i__exception__:Dynamic) {
@@ -536,24 +247,11 @@ class HaxeNatives {
 			untyped __js__('if (J__i__exception__ && J__i__exception__.stack) console.error(J__i__exception__.stack);');
 			throw J__i__exception__;
 			#end
-		#elseif neko
-			neko.Lib.rethrow(J__i__exception__);
-		#elseif cpp
-			cpp.Lib.rethrow(J__i__exception__);
-		#elseif php
-			php.Lib.rethrow(J__i__exception__);
-		#else
-			throw J__i__exception__;
+		#elseif neko neko.Lib.rethrow(J__i__exception__);
+		#elseif cpp cpp.Lib.rethrow(J__i__exception__);
+		#elseif php php.Lib.rethrow(J__i__exception__);
+		#else throw J__i__exception__;
         #end
-        //#if js
-        //if (untyped __js__('typeof haxe_CallStack !== "undefined"')) {
-        //	untyped __js__('throw haxe_CallStack.lastException');
-        //} else {
-        //	throw J__i__exception__;
-        //}
-        //#else
-
-        //#end
     }
 
 	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):java_.lang.StackTraceElement_ {
@@ -601,105 +299,12 @@ class HaxeNatives {
 		return HaxeArray.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
 	}
 
-	static public function fillSecureRandomBytes(bytes:HaxeByteArray) {
-		var length = bytes.length;
-
-		#if js
-		try {
-			var _bytes = bytes.data;
-			untyped __js__("crypto.getRandomValues(_bytes);");
-			return;
-		} catch (e:Dynamic) {
-
-		}
-		#end
-
-		for (n in 0 ... length) {
-			bytes.set(n, Std.int(Math.random() * 255));
-		}
-	}
-
 	static public inline function throwRuntimeException(msg:String) {
 		throw new java_.lang.RuntimeException_().java_lang_RuntimeException_init__Ljava_lang_String__V(HaxeNatives.str(msg));
 	}
 
-	static public function getField(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {
-		//Reflect.callMethod(clazz, Reflect.field(clazz, "__hx_static__init__"), []);
-		return HaxeNatives.box(Reflect.field((obj != null) ? obj : clazz, name));
-	}
-
-	static public function getFieldObject(clazz:Class<Dynamic>, obj:Dynamic, name:String):java_.lang.Object_ {
-		return Reflect.field((obj != null) ? obj : clazz, name);
-	}
-
-	static public function getFieldInt(clazz:Class<Dynamic>, obj:Dynamic, name:String):Int {
-		return Reflect.field((obj != null) ? obj : clazz, name);
-	}
-
-	static public function getFieldBool(clazz:Class<Dynamic>, obj:Dynamic, name:String):Bool {
-		return Reflect.field((obj != null) ? obj : clazz, name);
-	}
-
-	static public function getFieldLong(clazz:Class<Dynamic>, obj:Dynamic, name:String):Long {
-		return Reflect.field((obj != null) ? obj : clazz, name);
-	}
-
-	static public function getFieldDouble(clazz:Class<Dynamic>, obj:Dynamic, name:String):Float {
-		return Reflect.field((obj != null) ? obj : clazz, name);
-	}
-
-	static public function swap32(p0:Int):Int {
-		return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24));
-	}
-
-	static public function swap16(p0:Int):Int {
-		return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16;
-	}
-
-	static public function swap16u(p0:Int):Int {
-		return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8));
-	}
-
-	static public function numberToString(number:Float):String {
-		var str = '$number';
-		if (str.indexOf('.') < 0) str += ".0";
-		return str;
-	}
-
-	static public function reverseString(p0:String):String {
-		var reversed = '';
-		for (n in 0 ... p0.length) reversed += p0.charAt(p0.length - n - 1);
-		return reversed;
-	}
-
-	static public function exit(code:Int):Void {
-		#if sys
-			Sys.exit(code);
-		#else
-			#if js
-				untyped __js__("if (typeof process != 'undefined') process.exit();");
-			#end
-			throw 'EXIT!';
-		#end
-	}
-
-	static public function getenv(name:String):String {
-		#if sys
-			return Sys.getEnv(name);
-		#else
-			#if js
-				untyped __js__("if (typeof process != 'undefined') return process.env[name] || '';");
-			#end
-			return "";
-		#end
-	}
-
-	static public function getenvs(names:Array<String>, defaultValue:String = ""):String {
-		for (name in names) {
-			var out = getenv(name);
-			if (out != null) return out;
-		}
-		return defaultValue;
-	}
+	static public function swap32(p0:Int):Int { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
+	static public function swap16(p0:Int):Int { return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16; }
+	static public function swap16u(p0:Int):Int { return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)); }
 }
 

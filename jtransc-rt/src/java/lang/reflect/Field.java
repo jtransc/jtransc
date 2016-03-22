@@ -26,6 +26,32 @@ import java.lang.annotation.Annotation;
 	"public var _annotations = [];"
 })
 public final class Field extends AccessibleObject implements Member {
+	/*
+	    static public function box(value:Dynamic):java_.lang.Object_ {
+        if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
+        if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
+        if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
+        if (Std.is(value, String)) return str(cast(value, String));
+        if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
+		return jtransc.JTranscWrapped_.wrap(value);
+    }
+
+    static public function unbox(value:Dynamic):Dynamic {
+		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
+        if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
+        if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
+        if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;
+        if (Std.is(value, java_.lang.Integer_)) return cast(value, java_.lang.Integer_).value;
+        if (Std.is(value, java_.lang.Float_)) return cast(value, java_.lang.Float_).value;
+        if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
+        if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
+        if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
+		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
+        throw 'Was not able to unbox "$value"';
+    }
+
+	 */
+
 	private Class<?> clazz;
 	private String name;
 	//private Class<?> type = null;
@@ -102,9 +128,6 @@ public final class Field extends AccessibleObject implements Member {
 		return (((mod == 0) ? "" : (Modifier.toString(mod) + " ")) + _InternalUtils.getTypeName(getType()) + " " + _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName());
 	}
 
-	@HaxeMethodBody("return HaxeNatives.getFieldObject(this.clazz._hxClass, p0, this._internalName);")
-	native public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException;
-
 	public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		Class<?> type = getType();
 		if (type == null) {
@@ -125,28 +148,31 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	@HaxeMethodBody("return HaxeNatives.getFieldBool(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	native public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException;
+
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldInt(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public byte getByte(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldInt(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public char getChar(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldInt(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public short getShort(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldInt(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public int getInt(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldLong(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public long getLong(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldDouble(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public float getFloat(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("return HaxeNatives.getFieldDouble(this.clazz._hxClass, p0, this._internalName);")
+	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
 	native public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
 	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")

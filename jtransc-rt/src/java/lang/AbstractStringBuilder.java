@@ -51,7 +51,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	@HaxeMethodBody("return this._str.lastIndexOf(p0._str, p1);")
 	native public int lastIndexOf(String str, int fromIndex);
 
-	@HaxeMethodBody("this._str = HaxeNatives.reverseString(this._str); return this;")
+	@HaxeMethodBody("var reversed = ''; for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1); this._str = reversed; return this;")
 	native public AbstractStringBuilder reverse();
 
 	@HaxeMethodBody("this._str += p0; return this;")

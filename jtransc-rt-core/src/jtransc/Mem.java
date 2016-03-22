@@ -23,91 +23,111 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.annotation.haxe.HaxeRemoveField;
 
 // Flash-compatible intrinsics that will use fastest inlined memory access
-@HaxeAddMembers({ "public var data:haxe.io.BytesData;" })
+@HaxeAddMembers({
+	"public var data:haxe.io.BytesData;\n" +
+	"#if !flash\n" +
+	"static private var byteMem:haxe.io.Bytes;\n" +
+	"static private var shortMem:haxe.io.UInt16Array;\n" +
+	"static private var intMem:haxe.io.Int32Array;\n" +
+	"static private var floatMem:haxe.io.Float32Array;\n" +
+	"static private var doubleMem:haxe.io.Float64Array;\n" +
+	"#end"
+})
 final public class Mem {
     @HaxeRemoveField
 	static private FastMemory mem;
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSelect(p0._data);")
+    @HaxeMethodBody(
+		"var mem = p0._data;\n" +
+		"#if flash\n" +
+		"flash.Memory.select(mem.getData());\n" +
+		"#else\n" +
+		"byteMem   = mem;\n" +
+		"shortMem  = haxe.io.UInt16Array.fromBytes(mem);\n" +
+		"intMem    = haxe.io.Int32Array.fromBytes(mem);\n" +
+		"floatMem  = haxe.io.Float32Array.fromBytes(mem);\n" +
+		"doubleMem = haxe.io.Float64Array.fromBytes(mem);\n" +
+		"#end"
+	)
 	static public void select(FastMemory mem) {
 		Mem.mem = mem;
 	}
 
     @JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memLi8(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.getByte(p0 << 0); #else byteMem.get(p0); #end")
 	static public byte li8(int address) {
 		return (byte) mem.getAlignedInt8(address);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memLi16(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.getUI16(p0 << 1); #else shortMem.get(p0); #end")
 	static public short li16(int address2) {
 		return (short) mem.getAlignedInt16(address2);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memLi32(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.getI32(p0 << 2); #else intMem.get(p0); #end")
 	static public int li32(int address4) {
 		return mem.getAlignedInt32(address4);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memLf32(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.getFloat(p0 << 2); #else floatMem.get(p0); #end")
 	static public float lf32(int address4) {
 		return mem.getAlignedFloat32(address4);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.memLf64(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.getDouble(p0 << 3); #else floatMem.get(p0); #end\n")
 	static public double lf64(int address8) {
 		return mem.getAlignedFloat64(address8);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSi8(p0, p1);")
+    @HaxeMethodBody("#if flash flash.Memory.setByte(p0 << 0, value); #else byteMem.set(p0, p1); #end")
 	static public void si8(int address, byte value) {
 		mem.setAlignedInt8(address, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSi16(p0, p1);")
+    @HaxeMethodBody("#if flash flash.Memory.setI16(p0 << 1, value); #else shortMem.set(p0, p1); #end")
 	static public void si16(int address2, short value) {
 		mem.setAlignedInt16(address2, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSi32(p0, p1);")
+    @HaxeMethodBody("#if flash flash.Memory.setI32(p0 << 2, value); #else intMem.set(p0, p1); #end")
 	static public void si32(int address4, int value) {
 		mem.setAlignedInt32(address4, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSf32(p0, p1);")
+    @HaxeMethodBody("#if flash flash.Memory.setFloat(p0 << 2, value); #else floatMem.set(p0, p1); #end")
 	static public void sf32(int address4, float value) {
 		mem.setAlignedFloat32(address4, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("HaxeNatives.memSf64(p0, p1);")
+    @HaxeMethodBody("#if flash flash.Memory.setDouble(p0 << 3, value); #else floatMem.set(p0, p1); #end")
 	static public void sf64(int address8, double value) {
 		mem.setAlignedFloat64(address8, value);
 	}
 
     @JTranscInline
-    @HaxeMethodBody("return HaxeNatives.sxi1(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.signExtend1(p0); #else ((p0 << 31) >> 31); #end")
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.sxi8(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.signExtend8(p0); #else ((p0 << 24) >> 24); #end")
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return HaxeNatives.sxi16(p0);")
+    @HaxeMethodBody("return #if flash flash.Memory.signExtend16(p0); #else ((p0 << 16) >> 16); #end")
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;
 	}

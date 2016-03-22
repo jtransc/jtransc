@@ -16,13 +16,15 @@
 
 package java.lang;
 
+import jtransc.FastStringMap;
+import jtransc.JTranscSystem;
 import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Map;
 import java.util.Properties;
 
 public class System {
@@ -41,66 +43,121 @@ public class System {
 
 	native public static void setErr(PrintStream err);
 
-	//native public static Console console();
-	//native public static Channel inheritedChannel() throws IOException;
-
-	//native public static void setSecurityManager(final SecurityManager s);
-	//native public static SecurityManager getSecurityManager();
-
-    @HaxeMethodBody(
-            "#if sys\n" +
-            "return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
-            "#else\n" +
-            "return HaxeNatives.floatToLong(Date.now().getTime());\n" +
-            "#end\n"
-    )
-    //@JTranscMethodBody({
-    //        "haxe-sys", "return HaxeNatives.floatToLong(Sys.time() * 1000);",
-    //        "haxe", "return HaxeNatives.floatToLong(Date.now().getTime());"
-    //})
+	@HaxeMethodBody(
+		"#if sys return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
+			"#else return HaxeNatives.floatToLong(Date.now().getTime());\n" +
+			"#end\n"
+	)
 	public static native long currentTimeMillis();
 
 	public static long nanoTime() {
 		return currentTimeMillis() * 1000000L;
 	}
 
-    @HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
+	@HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
-    @HaxeMethodBody("return p0.__ID__ | 0;")
+	@HaxeMethodBody("return p0.__ID__ | 0;")
 	public static native int identityHashCode(Object x);
 
-	native public static Properties getProperties();
+	public static Properties getProperties() {
+		return getProps();
+	}
 
-	native public static String lineSeparator();
+	public static String lineSeparator() {
+		return JTranscSystem.isWindows() ? "\r\n" : "\n";
+	}
 
-	native public static void setProperties(Properties props);
+	public static void setProperties(Properties props) {
+		Properties myprops = getProps();
+		for (Map.Entry<Object, Object> entry : props.entrySet()) {
+			myprops.put(entry.getKey(), entry.getValue());
+		}
+	}
 
-    @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getProperty(p0._str));")
-	native public static String getProperty(String key);
+	public static String getProperty(String prop) {
+		return (String) getProps().getProperty(prop);
+	}
 
 	public static String getProperty(String key, String def) {
-		String property = getProperty(key);
-		return (property != null) ? property : def;
+		return getProps().getProperty(key, def);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.setProperty(HaxeNatives.toNativeString(p0), HaxeNatives.toNativeString(p1)));")
-	native public static String setProperty(String key, String value);
+	static private Properties _props;
+
+	static private void _setProperty(String key, String value) {
+		_props.put(key, value);
+	}
+	
+	static private Properties getProps() {
+		if (_props == null) {
+			_props = new Properties();
+
+			_setProperty("os.arch", JTranscSystem.getArch());
+			_setProperty("os.name", JTranscSystem.getOS());
+			_setProperty("os.version", "0.1");
+			_setProperty("java.runtime.name", "jtransc-haxe");
+			_setProperty("java.vm.version", "1.7.0");
+			_setProperty("java.runtime.version", "1.7.0");
+			_setProperty("file.separator", JTranscSystem.isWindows() ? "\\" : "/");
+			_setProperty("line.separator", lineSeparator());
+			_setProperty("path.separator", JTranscSystem.isWindows() ? ";" : ":");
+			_setProperty("file.encoding", "UTF-8");
+			_setProperty("java.home", "/jtransc-haxe");
+			_setProperty("java.specification.name", "jtransc-haxe");
+			_setProperty("java.specification.vendor", "jtransc");
+			_setProperty("java.specification.version", "1.7");
+			_setProperty("java.vendor", "jtransc");
+			_setProperty("java.vendor.url", "http://github.com/jtransc/jtransc");
+			_setProperty("java.vn.name", "haxe");
+			_setProperty("java.vm.specification.name", "Jtransc/Haxe JVM emulator");
+			_setProperty("java.vm.specification.vendor", "jtransc-haxe");
+			_setProperty("java.vm.specification.version", "0.1");
+			_setProperty("java.io.tmpdir", getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp"));
+			_setProperty("user.home", getenvs(new String[]{"HOME"}, "/tmp"));
+			_setProperty("user.dir", getenvs(new String[]{"HOME"}, "/tmp"));
+		}
+		return _props;
+	}
+
+	public static String setProperty(String key, String value) {
+		return (String) getProps().setProperty(key, value);
+	}
 
 	public static String clearProperty(String key) {
-		return setProperty(key, null);
+		String old = getProperty(key);
+		getProps().remove(key);
+		return old;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.getenv(p0._str));")
+	@HaxeMethodBody(
+		"#if sys HaxeNatives.str(Sys.getEnv(p0));\n" +
+		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[p0] : null\"));\n" +
+		"#else return HaxeNatives.str(null);\n" +
+		"#end\n"
+	)
 	native public static String getenv(String name);
+
+	private static String getenvs(String[] names, String defaultValue) {
+		for (String name : names) {
+			String out = getenv(name);
+			if (out != null) return out;
+		}
+		return defaultValue;
+	}
 
 	native public static java.util.Map<String, String> getenv();
 
-	@HaxeMethodBody("HaxeNatives.exit(p0);")
+	@HaxeMethodBody(
+		"#if sys Sys.exit(p0);\n" +
+			"#elseif js untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");\n" +
+			"#else throw 'EXIT!';\n" +
+			"#end\n"
+	)
 	native public static void exit(int status);
 
-    @HaxeMethodBody("")
-    native public static void gc();
+	@HaxeMethodBody("")
+	native public static void gc();
 
 	native public static void runFinalization();
 
@@ -108,11 +165,9 @@ public class System {
 	native public static void runFinalizersOnExit(boolean value);
 
 	public static void load(String filename) {
-
 	}
 
 	public static void loadLibrary(String libname) {
-
 	}
 
 	public static String mapLibraryName(String libname) {

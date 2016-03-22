@@ -33,7 +33,7 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
+	@HaxeMethodBody("var str = '$p0'; if (str.indexOf('.') < 0) str += \".0\"; return return HaxeNatives.str(str);")
 	native public static String toString(double d);
 
 	native public static String toHexString(double d);

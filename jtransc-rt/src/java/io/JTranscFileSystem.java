@@ -51,7 +51,7 @@ class JTranscFileSystem extends FileSystem {
 		for (int i = off; i < n; i++) {
 			char c = pathname.charAt(i);
 			if ((prevChar == '/') && (c == '/')) continue;
-			sb.append(c);
+			sb.append((c == '/') ? slash : c);
 			prevChar = c;
 		}
 		return sb.toString();
@@ -82,7 +82,7 @@ class JTranscFileSystem extends FileSystem {
 			return parent + child;
 		}
 		if (parent.equals("/")) return parent + child;
-		return parent + '/' + child;
+		return parent + slash + child;
 	}
 
 	public String getDefaultParent() {
@@ -99,16 +99,22 @@ class JTranscFileSystem extends FileSystem {
 	}
 
 	public boolean isAbsolute(File f) {
+		String path = f.getPath();
+		if (path.length() >= 2 && path.charAt(1) == ':') return true;
 		return (f.getPrefixLength() != 0);
 	}
 
 	public String resolve(File f) {
-		if (isAbsolute(f)) return f.getPath();
-		return resolve(System.getProperty("user.dir"), f.getPath());
+		if (isAbsolute(f)) return normalize2(f.getPath());
+		return normalize2(resolve(System.getProperty("user.dir"), f.getPath()));
+	}
+
+	private String normalize2(String i) {
+		return i.replace('/', slash);
 	}
 
 	public String canonicalize(String path) throws IOException {
-		return path;
+		return normalize2(path);
 	}
 
 	static String parentOrNull(String path) {

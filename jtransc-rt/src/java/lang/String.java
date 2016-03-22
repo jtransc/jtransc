@@ -170,7 +170,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return this.toLowerCase().equals(anotherString.toLowerCase());
 	}
 
-	@HaxeMethodBody("return HaxeNatives.strCompare(this._str, p0._str);")
+	@HaxeMethodBody("var a = this._str; var b = p0._str; return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
 	native private int _compareTo(String anotherString);
 
 	public int compareTo(String anotherString) {
@@ -180,7 +180,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	//public static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
 	public static final Comparator<String> CASE_INSENSITIVE_ORDER = null;
 
-	@HaxeMethodBody("return HaxeNatives.strCompareIgnoreCase(this._str, p0._str);")
+	@HaxeMethodBody("var a = this._str.toLowerCase(); var b = p0._str.toLowerCase(); return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
 	native public int compareToIgnoreCase(String str);
 
 	@HaxeMethodBody("return this._str.substr(p0, p3) == p1._str.substr(p2, p3);")
@@ -302,7 +302,6 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return IntJTranscStrings.format(l, format, args);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	public static String valueOf(Object obj) {
 		return (obj != null) ? obj.toString() : "null";
 	}
@@ -327,22 +326,26 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return Boolean.toString(b);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(String.fromCharCode(p0));")
-	native public static String valueOf(char c);
+	public static String valueOf(char c) {
+		return Character.toString(c);
+	}
 
-	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
-	native public static String valueOf(int i);
+	public static String valueOf(int i) {
+		return Integer.toString(i);
+	}
 
 	//@HaxeMethodBody("return HaxeNatives.str('' + p0);")
 	public static String valueOf(long l) {
 		return Long.toString(l);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
-	native public static String valueOf(float f);
+	public static String valueOf(float f) {
+		return Float.toString(f);
+	}
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
-	native public static String valueOf(double d);
+	public static String valueOf(double d) {
+		return Double.toString(d);
+	}
 
 	public String intern() {
 		return this;

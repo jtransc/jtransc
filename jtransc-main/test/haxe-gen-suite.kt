@@ -49,8 +49,6 @@ class HaxeGenSuiteTest {
 	@Test fun langSystemTest() = testClass<SystemTest>() {
 		it.replace(
 			"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
-		).replace(
-			"path.separator:;", "path.separator::"
 		)
 	}
 
@@ -110,8 +108,9 @@ class HaxeGenSuiteTest {
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
-	@Test fun miscTest() = testClass<MainHaxe>()
-
+	@Test fun miscTest() = testClass<MainHaxe>() {
+		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+	}
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())

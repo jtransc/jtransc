@@ -35,8 +35,9 @@ public final class Float extends Number implements Comparable<Float> {
 	@HaxeMethodBody("return Std.parseFloat(p0._str);")
 	native public static float parseFloat(String value) throws NumberFormatException;
 
-	@HaxeMethodBody("return HaxeNatives.str(HaxeNatives.numberToString(p0));")
-	native public static String toString(float value);
+	public static String toString(float value) {
+		return Double.toString((double) value);
+	}
 
 	// @TODO: CHECK!
 	public static String toHexString(float value) {
