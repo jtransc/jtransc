@@ -47,6 +47,16 @@ public class JTranscZipTest {
 		String tmpdir = System.getProperty("java.io.tmpdir");
 		String tmpfile = tmpdir + "/jtransc.test.zip";
 		JTranscFiles.write(new File(tmpfile), hexData);
+
+		File tmpfile2 = new File(tmpfile);
+		System.out.println("isFile:" + tmpfile2.isFile());
+		System.out.println("canRead:" + tmpfile2.canRead());
+		System.out.println("canWrite:" + tmpfile2.canWrite());
+		File tmpfile3 = new File(tmpfile.replace('\\', '/'));
+		System.out.println("isFile:" + tmpfile3.isFile());
+		System.out.println("canRead:" + tmpfile3.canRead());
+		System.out.println("canWrite:" + tmpfile3.canWrite());
+
 		RandomAccessFile r = new RandomAccessFile(tmpfile, "r");
 		System.out.println(r.readShort());
 		System.out.println(r.readInt());

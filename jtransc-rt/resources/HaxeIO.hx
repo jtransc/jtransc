@@ -17,47 +17,63 @@ class SyncFS {
 
 	static public function getLength(path:String):Int64 {
 		#if js
-		var stat = fs.lstatSync(path);
-		return HaxeNatives.floatToLong(stat.size);
+			var stat = fs.lstatSync(path);
+			return HaxeNatives.floatToLong(stat.size);
+		#elseif sys
+			return sys.FileSystem.stat(path).size;
 		#else
-		return 0;
+			return 0;
 		#end
 	}
 
 	static public function getBooleanAttributes(path:String):Int {
 		var out = 0;
-		#if js
 		try {
-			var stat = fs.lstatSync(path);
-			out |= BA_EXISTS;
-			if (stat.isFile()) out |= BA_REGULAR;
-			if (stat.isDirectory()) out |= BA_DIRECTORY;
+			#if js
+				var stat = fs.lstatSync(path);
+				out |= BA_EXISTS;
+				if (stat.isFile()) out |= BA_REGULAR;
+				if (stat.isDirectory()) out |= BA_DIRECTORY;
+			#elseif sys
+				var stat = sys.FileSystem.stat(path);
+				out |= BA_EXISTS;
+				if (sys.FileSystem.isDirectory(path)) {
+					out |= BA_DIRECTORY;
+				} else {
+					out |= BA_REGULAR;
+				}
+			#end
 		} catch (e:Dynamic) {
 		}
-		#end
 		return out;
 	}
 
 	static public function checkAccess(path:String, flags:Int):Bool {
-		#if js
 		try {
-			var mode = 0;
-			if ((flags & ACCESS_EXECUTE) != 0) mode |= fs.X_OK;
-			if ((flags & ACCESS_WRITE) != 0) mode |= fs.W_OK;
-			if ((flags & ACCESS_READ) != 0) mode |= fs.R_OK;
-			fs.accessSync(path, mode);
-			return true;
+			#if js
+				var mode = 0;
+				if ((flags & ACCESS_EXECUTE) != 0) mode |= fs.X_OK;
+				if ((flags & ACCESS_WRITE) != 0) mode |= fs.W_OK;
+				if ((flags & ACCESS_READ) != 0) mode |= fs.R_OK;
+				fs.accessSync(path, mode);
+				return true;
+			#elseif sys
+				// @TODO: Implement this right!
+				var stat = sys.FileSystem.stat(path);
+				return true;
+			#else
+			#end
 		} catch (e:Dynamic) {
-			return false;
 		}
-		#end
 		return false;
 	}
 
 	static public function delete(path:String):Bool {
 		try {
 			#if js
-			fs.unlinkSync(path);
+				fs.unlinkSync(path);
+			#elseif sys
+				sys.FileSystem.deleteFile(path);
 			#else
 			#end
 			return true;
@@ -69,7 +85,9 @@ class SyncFS {
 	static public function createDirectory(path:String):Bool {
 		try {
 			#if js
-			fs.mkdirSync(path);
+				fs.mkdirSync(path);
+			#elseif sys
+				sys.FileSystem.createDirectory(path);
 			#else
 			#end
 			return true;
@@ -81,7 +99,9 @@ class SyncFS {
 	static public function rename(oldPath:String, newPath:String):Bool {
 		try {
 			#if js
-			fs.renameSync(oldPath, newPath);
+				fs.renameSync(oldPath, newPath);
+			#elseif sys
+				sys.FileSystem.rename(oldPath, newPath);
 			#else
 			#end
 			return true;
@@ -93,9 +113,11 @@ class SyncFS {
 	static public function list(path:String):Array<String> {
 		try {
 			#if js
-			return fs.readdirSync(path);
+				return fs.readdirSync(path);
+			#elseif sys
+				return sys.FileSystem.readDirectory(path);
 			#else
-			return [];
+				return [];
 			#end
 		} catch (e:Dynamic) {
 			return [];
@@ -122,6 +144,11 @@ class SyncStream {
 	public var fs:Dynamic = SyncFS.fs;
 	#end
 
+	#if sys
+	private var input:sys.io.FileInput;
+	private var output:sys.io.FileOutput;
+	#end
+
 	public function new() {
 
 	}
@@ -134,25 +161,48 @@ class SyncStream {
 	public function syncioOpen(path:String, flags:Int):Void {
 		//trace('syncioOpen:$path:$flags');
 		this.position = 0;
-		#if js
-		var flagsStr = '';
-		if ((flags & O_RDONLY) != 0) flagsStr += 'r';
-		if ((flags & O_RDWR) != 0) flagsStr += 'w';
-		this.fd = fs.openSync(path, flagsStr); // @TODO: convert flags!!!
-		var stat = fs.fstatSync(this.fd);
-		this.length = stat.size;
-		#end
+		try {
+			#if js
+				var flagsStr = '';
+				if ((flags & O_RDONLY) != 0) flagsStr += 'r';
+				if ((flags & O_RDWR) != 0) flagsStr += 'w';
+				this.fd = fs.openSync(path, flagsStr); // @TODO: convert flags!!!
+				var stat = fs.fstatSync(this.fd);
+				this.length = stat.size;
+			#elseif sys
+				if ((flags & O_RDONLY) != 0) {
+					this.input = sys.io.File.read(path);
+					this.input.seek(0, sys.io.FileSeek.SeekEnd);
+					this.length = this.input.tell();
+					this.input.seek(0, sys.io.FileSeek.SeekBegin);
+				} else {
+					this.output = sys.io.File.append(path);
+					this.output.seek(0, sys.io.FileSeek.SeekEnd);
+					this.length = this.output.tell();
+					this.output.seek(0, sys.io.FileSeek.SeekBegin);
+				}
+			#else
+				throw 'Not implemented syncioOpen';
+			#end
+		} catch (e:Dynamic) {
+			HaxeNatives.throwRuntimeException('$e');
+		}
 	}
 
 	public function syncioReadBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
-		var readed = fs.readSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
-		this.position += readed;
-		return Std.int(readed);
+			var readed = fs.readSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
+			this.position += readed;
+			return Std.int(readed);
+		#elseif sys
+        	this.input.seek(Std.int(this.position), sys.io.FileSeek.SeekBegin);
+			var readed = this.input.readBytes(data.getBytes(), offset, length);
+			this.position += readed;
+			return readed;
 		#else
-		throw 'Not implemented';
+			throw 'Not implemented syncioReadBytes';
 		#end
 	}
 
@@ -160,19 +210,28 @@ class SyncStream {
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js
-		var written = fs.writeSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
-		this.position += written;
-		return Std.int(written);
+			var written = fs.writeSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
+			this.position += written;
+			return Std.int(written);
+		#elseif sys
+        	this.output.seek(Std.int(this.position), sys.io.FileSeek.SeekBegin);
+			var written = this.output.writeBytes(data.getBytes(), offset, length);
+			this.position += written;
+			return written;
 		#else
-		throw 'Not implemented';
+			throw 'Not implemented syncioWriteBytes';
 		#end
 	}
 
 	public function syncioClose():Void {
 		//trace('syncioClose');
 		#if js
-		fs.closeSync(fd);
+			fs.closeSync(fd);
+		#elseif sys
+			if (input != null) { input.close(); input = null; }
+			if (output != null) { output.close(); output = null; }
 		#else
+			throw 'Not implemented syncioClose';
 		#end
 	}
 
@@ -192,7 +251,11 @@ class SyncStream {
 	public function syncioSetLength(length:Int64):Int64 {
 		this.length = HaxeNatives.longToFloat(length);
 		#if js
-		fd.setLength(HaxeNatives.longToFloat(length));
+			fd.setLength(HaxeNatives.longToFloat(length));
+		#elseif sys
+			throw 'Not implemented syncioSetLength';
+		#else
+			throw 'Not implemented syncioSetLength';
 		#end
 		return length;
 	}
