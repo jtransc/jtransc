@@ -1,25 +1,6 @@
-/*
- * Copyright 2016 Carlos Ballesteros Velasco
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package java.util;
 
 public abstract class AbstractMap<K, V> implements Map<K, V> {
-	transient volatile Set<K> keySet;
-	transient volatile Collection<V> values;
-
 	protected AbstractMap() {
 	}
 
@@ -28,28 +9,160 @@ public abstract class AbstractMap<K, V> implements Map<K, V> {
 	}
 
 	public boolean isEmpty() {
-		return this.size() == 0;
+		return size() == 0;
 	}
 
-	native public boolean containsValue(Object value);
+	public boolean containsValue(Object value) {
+		Iterator<Entry<K, V>> i = entrySet().iterator();
+		if (value == null) {
+			while (i.hasNext()) {
+				Entry<K, V> e = i.next();
+				if (e.getValue() == null)
+					return true;
+			}
+		} else {
+			while (i.hasNext()) {
+				Entry<K, V> e = i.next();
+				if (value.equals(e.getValue()))
+					return true;
+			}
+		}
+		return false;
+	}
 
-	native public boolean containsKey(Object key);
+	public boolean containsKey(Object key) {
+		Iterator<Map.Entry<K, V>> i = entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<K, V> e = i.next();
+			if (Objects.equals(key, e.getKey())) return true;
+		}
+		return false;
+	}
 
-	native public V get(Object key);
+	public V get(Object key) {
+		Iterator<Entry<K, V>> i = entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<K, V> e = i.next();
+			if (Objects.equals(key, e.getKey())) return e.getValue();
+		}
+		return null;
+	}
 
-	native public V put(K key, V value);
 
-	native public V remove(Object key);
+	public V put(K key, V value) {
+		throw new UnsupportedOperationException();
+	}
+
+	public V remove(Object key) {
+		Iterator<Entry<K, V>> i = entrySet().iterator();
+		Entry<K, V> correctEntry = null;
+		while (correctEntry == null && i.hasNext()) {
+			Entry<K, V> e = i.next();
+			if (Objects.equals(key, e.getKey())) correctEntry = e;
+		}
+
+		V oldValue = null;
+		if (correctEntry != null) {
+			oldValue = correctEntry.getValue();
+			i.remove();
+		}
+		return oldValue;
+	}
 
 	public void putAll(Map<? extends K, ? extends V> m) {
-		for (K key : m.keySet()) this.put(key, m.get(key));
+		for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+			put(e.getKey(), e.getValue());
 	}
 
-	native public void clear();
+	public void clear() {
+		entrySet().clear();
+	}
 
-	native public Set<K> keySet();
 
-	native public Collection<V> values();
+	transient volatile Set<K> keySet = null;
+	transient volatile Collection<V> values = null;
+
+	public Set<K> keySet() {
+		if (keySet == null) {
+			keySet = new AbstractSet<K>() {
+				public Iterator<K> iterator() {
+					return new Iterator<K>() {
+						private Iterator<Entry<K, V>> i = entrySet().iterator();
+
+						public boolean hasNext() {
+							return i.hasNext();
+						}
+
+						public K next() {
+							return i.next().getKey();
+						}
+
+						public void remove() {
+							i.remove();
+						}
+					};
+				}
+
+				public int size() {
+					return AbstractMap.this.size();
+				}
+
+				public boolean isEmpty() {
+					return AbstractMap.this.isEmpty();
+				}
+
+				public void clear() {
+					AbstractMap.this.clear();
+				}
+
+				public boolean contains(Object k) {
+					return AbstractMap.this.containsKey(k);
+				}
+			};
+		}
+		return keySet;
+	}
+
+	public Collection<V> values() {
+		if (values == null) {
+			values = new AbstractCollection<V>() {
+				public Iterator<V> iterator() {
+					return new Iterator<V>() {
+						private Iterator<Entry<K, V>> i = entrySet().iterator();
+
+						public boolean hasNext() {
+							return i.hasNext();
+						}
+
+						public V next() {
+							return i.next().getValue();
+						}
+
+						public void remove() {
+							i.remove();
+						}
+					};
+				}
+
+				public int size() {
+					return AbstractMap.this.size();
+				}
+
+				public boolean isEmpty() {
+					return AbstractMap.this.isEmpty();
+				}
+
+				public void clear() {
+					AbstractMap.this.clear();
+				}
+
+				public boolean contains(Object v) {
+					return AbstractMap.this.containsValue(v);
+				}
+			};
+		}
+		return values;
+	}
 
 	public abstract Set<Entry<K, V>> entrySet();
 
@@ -57,7 +170,7 @@ public abstract class AbstractMap<K, V> implements Map<K, V> {
 		if (o == this) return true;
 
 		if (!(o instanceof Map)) return false;
-		Map<?, ?> m = (Map<?, ?>) o;
+		Map<K, V> m = (Map<K, V>) o;
 		if (m.size() != size()) return false;
 
 		try {
@@ -67,9 +180,11 @@ public abstract class AbstractMap<K, V> implements Map<K, V> {
 				K key = e.getKey();
 				V value = e.getValue();
 				if (value == null) {
-					if (!(m.get(key) == null && m.containsKey(key))) return false;
+					if (!(m.get(key) == null && m.containsKey(key)))
+						return false;
 				} else {
-					if (!value.equals(m.get(key))) return false;
+					if (!value.equals(m.get(key)))
+						return false;
 				}
 			}
 		} catch (ClassCastException unused) {
@@ -90,31 +205,38 @@ public abstract class AbstractMap<K, V> implements Map<K, V> {
 
 	public String toString() {
 		Iterator<Entry<K, V>> i = entrySet().iterator();
-		if (!i.hasNext()) return "{}";
+		if (!i.hasNext())
+			return "{}";
 
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
-		while (true) {
+		for (; ; ) {
 			Entry<K, V> e = i.next();
 			K key = e.getKey();
 			V value = e.getValue();
 			sb.append(key == this ? "(this Map)" : key);
 			sb.append('=');
 			sb.append(value == this ? "(this Map)" : value);
-			if (!i.hasNext()) break;
+			if (!i.hasNext())
+				return sb.append('}').toString();
 			sb.append(',').append(' ');
 		}
-		return sb.append('}').toString();
 	}
 
 	protected Object clone() throws CloneNotSupportedException {
-		AbstractMap<?, ?> result = (AbstractMap<?, ?>) super.clone();
-		//result.keySet = null;
-		//result.values = null;
+		AbstractMap<K, V> result = (AbstractMap<K, V>) super.clone();
+		result.keySet = null;
+		result.values = null;
 		return result;
 	}
 
-	public static class SimpleEntry<K, V> implements Entry<K, V>, java.io.Serializable {
+	private static boolean eq(Object o1, Object o2) {
+		return o1 == null ? o2 == null : o1.equals(o2);
+	}
+
+	public static class SimpleEntry<K, V>
+		implements Entry<K, V>, java.io.Serializable {
+
 		private final K key;
 		private V value;
 
@@ -143,13 +265,57 @@ public abstract class AbstractMap<K, V> implements Map<K, V> {
 		}
 
 		public boolean equals(Object o) {
-			if (!(o instanceof Entry)) return false;
-			Entry<?, ?> e = (Entry<?, ?>) o;
-			return Objects.equals(key, e.getKey()) && Objects.equals(value, e.getValue());
+			if (!(o instanceof Map.Entry)) return false;
+			Map.Entry e = (Map.Entry) o;
+			return eq(key, e.getKey()) && eq(value, e.getValue());
 		}
 
 		public int hashCode() {
 			return (key == null ? 0 : key.hashCode()) ^ (value == null ? 0 : value.hashCode());
+		}
+
+		public String toString() {
+			return key + "=" + value;
+		}
+	}
+
+	public static class SimpleImmutableEntry<K, V>
+		implements Entry<K, V>, java.io.Serializable {
+
+		private final K key;
+		private final V value;
+
+		public SimpleImmutableEntry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		public SimpleImmutableEntry(Entry<? extends K, ? extends V> entry) {
+			this.key = entry.getKey();
+			this.value = entry.getValue();
+		}
+
+		public K getKey() {
+			return key;
+		}
+
+		public V getValue() {
+			return value;
+		}
+
+		public V setValue(V value) {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean equals(Object o) {
+			if (!(o instanceof Map.Entry)) return false;
+			Map.Entry e = (Map.Entry) o;
+			return eq(key, e.getKey()) && eq(value, e.getValue());
+		}
+
+		public int hashCode() {
+			return (key == null ? 0 : key.hashCode()) ^
+				(value == null ? 0 : value.hashCode());
 		}
 
 		public String toString() {

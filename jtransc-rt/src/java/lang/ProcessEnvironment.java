@@ -59,11 +59,10 @@ final class ProcessEnvironment extends HashMap<String, String> {
 		return super.remove(nonNullString(key));
 	}
 
-	private static class CheckedEntry
-		implements Entry<String, String> {
-		private final Entry<String, String> e;
+	private static class CheckedEntry implements Map.Entry<String, String> {
+		private final Map.Entry<String, String> e;
 
-		public CheckedEntry(Entry<String, String> e) {
+		public CheckedEntry(Map.Entry<String, String> e) {
 			this.e = e;
 		}
 
@@ -93,10 +92,10 @@ final class ProcessEnvironment extends HashMap<String, String> {
 	}
 
 	private static class CheckedEntrySet
-		extends AbstractSet<Entry<String, String>> {
-		private final Set<Entry<String, String>> s;
+		extends AbstractSet<Map.Entry<String, String>> {
+		private final Set<Map.Entry<String, String>> s;
 
-		public CheckedEntrySet(Set<Entry<String, String>> s) {
+		public CheckedEntrySet(Set<Map.Entry<String, String>> s) {
 			this.s = s;
 		}
 
@@ -112,15 +111,15 @@ final class ProcessEnvironment extends HashMap<String, String> {
 			s.clear();
 		}
 
-		public Iterator<Entry<String, String>> iterator() {
-			return new Iterator<Entry<String, String>>() {
-				Iterator<Entry<String, String>> i = s.iterator();
+		public Iterator<Map.Entry<String, String>> iterator() {
+			return new Iterator<Map.Entry<String, String>>() {
+				Iterator<Map.Entry<String, String>> i = s.iterator();
 
 				public boolean hasNext() {
 					return i.hasNext();
 				}
 
-				public Entry<String, String> next() {
+				public Map.Entry<String, String> next() {
 					return new CheckedEntry(i.next());
 				}
 
@@ -130,9 +129,9 @@ final class ProcessEnvironment extends HashMap<String, String> {
 			};
 		}
 
-		private static Entry<String, String> checkedEntry(Object o) {
+		private static Map.Entry<String, String> checkedEntry(Object o) {
 			@SuppressWarnings("unchecked")
-			Entry<String, String> e = (Entry<String, String>) o;
+			Map.Entry<String, String> e = (Map.Entry<String, String>) o;
 			nonNullString(e.getKey());
 			nonNullString(e.getValue());
 			return e;
@@ -219,10 +218,10 @@ final class ProcessEnvironment extends HashMap<String, String> {
 		return new CheckedValues(super.values());
 	}
 
-	public Set<Entry<String, String>> entrySet() {
+	@Override
+	public Set<Map.Entry<String, String>> entrySet() {
 		return new CheckedEntrySet(super.entrySet());
 	}
-
 
 	private static final class NameComparator
 		implements Comparator<String> {
@@ -250,9 +249,9 @@ final class ProcessEnvironment extends HashMap<String, String> {
 	}
 
 	private static final class EntryComparator
-		implements Comparator<Entry<String, String>> {
-		public int compare(Entry<String, String> e1,
-		                   Entry<String, String> e2) {
+		implements Comparator<Map.Entry<String, String>> {
+		public int compare(Map.Entry<String, String> e1,
+		                   Map.Entry<String, String> e2) {
 			return nameComparator.compare(e1.getKey(), e2.getKey());
 		}
 	}
@@ -332,7 +331,7 @@ final class ProcessEnvironment extends HashMap<String, String> {
 	// Only for use by ProcessImpl.start()
 	String toEnvironmentBlock() {
 		// Sort Unicode-case-insensitively by name
-		List<Entry<String, String>> list = new ArrayList<Entry<String, String>>(entrySet());
+		List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>(entrySet());
 		Collections.sort(list, entryComparator);
 
 		StringBuilder sb = new StringBuilder(size() * 30);
@@ -343,7 +342,7 @@ final class ProcessEnvironment extends HashMap<String, String> {
 		// by the caller.
 		final String SYSTEMROOT = "SystemRoot";
 
-		for (Entry<String, String> e : list) {
+		for (Map.Entry<String, String> e : list) {
 			String key = e.getKey();
 			String value = e.getValue();
 			if (cmp < 0 && (cmp = nameComparator.compare(key, SYSTEMROOT)) > 0) {

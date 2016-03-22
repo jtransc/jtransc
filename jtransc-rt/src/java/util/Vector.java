@@ -351,18 +351,6 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
 		while (elementCount != newElementCount) elementData[--elementCount] = null;
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-		final java.io.ObjectOutputStream.PutField fields = s.putFields();
-		final Object[] data;
-		synchronized (this) {
-			fields.put("capacityIncrement", capacityIncrement);
-			fields.put("elementCount", elementCount);
-			data = elementData.clone();
-		}
-		fields.put("elementData", data);
-		s.writeFields();
-	}
-
 	public synchronized ListIterator<E> listIterator(int index) {
 		if (index < 0 || index > elementCount) throw new IndexOutOfBoundsException("Index: " + index);
 		return new ListItr(index);

@@ -1,19 +1,3 @@
-/*
- * Copyright 2016 Carlos Ballesteros Velasco
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package java.util;
 
 public abstract class AbstractSet<E> extends AbstractCollection<E> implements Set<E> {
@@ -21,10 +5,44 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
 	}
 
 	public boolean equals(Object o) {
-		return o instanceof Set && super.equals(o);
+		if (o == this) return true;
+		if (!(o instanceof Set)) return false;
+		Collection c = (Collection) o;
+		if (c.size() != size()) return false;
+		try {
+			return containsAll(c);
+		} catch (ClassCastException unused) {
+			return false;
+		} catch (NullPointerException unused) {
+			return false;
+		}
 	}
 
-	//public int hashCode();
+	public int hashCode() {
+		int h = 0;
+		Iterator<E> i = iterator();
+		while (i.hasNext()) {
+			E obj = i.next();
+			if (obj != null)
+				h += obj.hashCode();
+		}
+		return h;
+	}
 
-	//native public boolean removeAll(Collection<?> c);
+	public boolean removeAll(Collection<?> c) {
+		boolean modified = false;
+
+		if (size() > c.size()) {
+			for (Iterator<?> i = c.iterator(); i.hasNext(); ) modified |= remove(i.next());
+		} else {
+			for (Iterator<?> i = iterator(); i.hasNext(); ) {
+				if (c.contains(i.next())) {
+					i.remove();
+					modified = true;
+				}
+			}
+		}
+		return modified;
+	}
+
 }

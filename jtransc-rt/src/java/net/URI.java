@@ -282,26 +282,6 @@ public final class URI implements Comparable<URI>, Serializable {
 	}
 
 
-	// -- Serialization support --
-
-	private void writeObject(ObjectOutputStream os) throws IOException {
-		defineString();
-		os.defaultWriteObject();        // Writes the string field only
-	}
-
-	private void readObject(ObjectInputStream is) throws ClassNotFoundException, IOException {
-		port = -1;                      // Argh
-		is.defaultReadObject();
-		try {
-			new Parser(string).parse(false);
-		} catch (URISyntaxException x) {
-			IOException y = new InvalidObjectException("Invalid URI");
-			y.initCause(x);
-			throw y;
-		}
-	}
-
-
 	// -- End of public methods --
 
 	// US-ASCII only
