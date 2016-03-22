@@ -18,7 +18,7 @@ package java.util.zip;
 
 import java.util.Objects;
 
-public class ZipEntry implements ZipConstants, Cloneable {
+public class ZipEntry implements Cloneable {
 
 	String name;        // entry name
 	long time = -1;     // last modification time

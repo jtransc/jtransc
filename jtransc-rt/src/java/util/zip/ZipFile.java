@@ -22,7 +22,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
-public class ZipFile implements ZipConstants, Closeable {
+public class ZipFile implements Closeable {
 	public static final int OPEN_READ = 0x1;
 	public static final int OPEN_DELETE = 0x4;
 
@@ -108,12 +108,26 @@ public class ZipFile implements ZipConstants, Closeable {
 		long offset;
 	}
 
+	private boolean readUntil32bit(int expectedValue) throws IOException {
+		expectedValue = Integer.reverseBytes(expectedValue); // Reverse since we are building big endians!
+		int value = 0;
+		while (hasMore()) {
+			value <<= 8;
+			value |= dis.readUnsignedByte() & 0xFF;
+			if (value == expectedValue) return true;
+		}
+		return false;
+	}
+
 	//@HaxeMethodBody("haxe.zip.Reader.readZip();")
 	@SuppressWarnings("unused")
 	private void openZip(File file) throws IOException {
+		int chunkCount = 0;
+		String defaultEncoding = "utf-8";
 		while (hasMore()) {
 			int MAGIC = readUnsignedShort();
-			if (MAGIC != 0x4b50) throw new RuntimeException("Not a ZIP file. Magic found: " + MAGIC);
+			if (MAGIC != 0x4b50) throw new RuntimeException(String.format("Not a ZIP file (%s). Magic found: %04X at offset %d, chunks:%d", file.getAbsolutePath(), MAGIC, dis.getFilePointer(), chunkCount));
+			chunkCount++;
 
 			switch (readUnsignedShort()) {
 				case 0x0201: // Central directory file header
@@ -167,6 +181,18 @@ public class ZipFile implements ZipConstants, Closeable {
 					int extraLength = readUnsignedShort();
 					String fileName = readString(fileNameLength);
 					byte[] extraBytes = readBytes(extraLength);
+
+					if (compressedSize == 0 && (flags & FLAG_DescriptorUsedMask) != 0) {
+						// 8.5.3
+						if (!readUntil32bit(0x08074b50)) {
+							// new byte[] { 0x50, 0x4b, 0x07, 0x08 }
+							throw new IOException("Can't find descriptor");
+						}
+						crc32 = readInt();
+						compressedSize = readInt();
+						uncompressedSize = readInt();
+					}
+
 					long dataPos = dis.getFilePointer();
 					dis.skipBytes(compressedSize);
 
@@ -278,4 +304,21 @@ public class ZipFile implements ZipConstants, Closeable {
 	protected void finalize() throws IOException {
 		close();
 	}
+
+	static private final int FLAG_Encrypted             = 0x0001; //Bit 0: If set, indicates that the file is encrypted.
+	static private final int FLAG_CompressionFlagBit1   = 0x0002;
+	static private final int FLAG_CompressionFlagBit2   = 0x0004;
+	static private final int FLAG_DescriptorUsedMask    = 0x0008;
+	static private final int FLAG_Reserved1             = 0x0010;
+	static private final int FLAG_Reserved2             = 0x0020;
+	static private final int FLAG_StrongEncrypted       = 0x0040; //Bit 6: Strong encryption
+	static private final int FLAG_CurrentlyUnused1      = 0x0080;
+	static private final int FLAG_CurrentlyUnused2      = 0x0100;
+	static private final int FLAG_CurrentlyUnused3      = 0x0200;
+	static private final int FLAG_CurrentlyUnused4      = 0x0400;
+	static private final int FLAG_Utf8                  = 0x0800; // Bit 11: filename and comment encoded using UTF-8
+	static private final int FLAG_ReservedPKWARE1       = 0x1000;
+	static private final int FLAG_CDEncrypted           = 0x2000; // Bit 13: Used when encrypting the Central Directory to indicate selected data values in the Local Header are masked to hide their actual values.
+	static private final int FLAG_ReservedPKWARE2       = 0x4000;
+	static private final int FLAG_ReservedPKWARE3       = 0x8000;
 }
