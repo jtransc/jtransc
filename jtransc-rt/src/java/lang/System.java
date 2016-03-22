@@ -131,8 +131,9 @@ public class System {
 	}
 
 	@HaxeMethodBody(
-		"#if sys HaxeNatives.str(Sys.getEnv(p0));\n" +
-		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[p0] : null\"));\n" +
+		"var key = p0._str;\n" +
+		"#if sys return HaxeNatives.str(Sys.getEnv(key));\n" +
+		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));\n" +
 		"#else return HaxeNatives.str(null);\n" +
 		"#end\n"
 	)
@@ -146,6 +147,12 @@ public class System {
 		return defaultValue;
 	}
 
+	@HaxeMethodBody(
+		"#if sys return HaxeNatives.hashMap(Sys.environment());\n" +
+		"#elseif js return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));\n" +
+		"#else return HaxeNatives.hashMap({});\n" +
+		"#end\n"
+	)
 	native public static java.util.Map<String, String> getenv();
 
 	@HaxeMethodBody(

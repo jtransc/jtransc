@@ -34,6 +34,15 @@ class HaxeNatives {
         return (str != null) ? str._str : null;
     }
 
+    static public function hashMap(obj:Dynamic):java_.util.HashMap_ {
+	    var out = new java_.util.HashMap_().java_util_HashMap_init___V();
+	    for (key in Reflect.fields(obj)) {
+	    	var value = Reflect.field(obj, key);
+	    	out.put_Ljava_lang_Object_Ljava_lang_Object__Ljava_lang_Object_(box(key), box(value));
+	    }
+	    return out;
+    }
+
     static public function str(str:String):java_.lang.String_ {
         return (str != null) ? java_.lang.String_.make(str) : null;
     }
