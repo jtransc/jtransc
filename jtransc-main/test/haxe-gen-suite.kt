@@ -23,6 +23,7 @@ import javatest.KotlinCollections
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
+import javatest.misc.MainHaxe
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
 import jtransc.JTranscVersion
@@ -108,6 +109,9 @@ class HaxeGenSuiteTest {
 	@Test fun java8Test() = testClass<Java8Test>()
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
+
+	@Test fun miscTest() = testClass<MainHaxe>()
+
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())

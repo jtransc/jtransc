@@ -76,7 +76,7 @@ class HaxeNatives {
         if (count < 0) count = chars.length;
         var out = "";
         var end = start + count;
-        end = Std.int(Math.min(end, chars.length - start));
+        end = Std.int(Math.min(end, chars.length));
         for (n in start ... end) out += String.fromCharCode(chars.get(n));
         return out;
     }
@@ -84,7 +84,7 @@ class HaxeNatives {
     static public function charArrayToString(chars:HaxeCharArray, start:Int = 0, count:Int = 999999999):String {
         var out = "";
         var end = start + count;
-        end = Std.int(Math.min(end, chars.length - start));
+        end = Std.int(Math.min(end, chars.length));
         for (n in start ... end) out += String.fromCharCode(chars.get(n));
         return out;
     }
@@ -92,7 +92,7 @@ class HaxeNatives {
     static public function intArrayToString(chars:HaxeIntArray, start:Int = 0, count:Int = 999999999):String {
         var out = "";
         var end = start + count;
-        end = Std.int(Math.min(end, chars.length - start));
+        end = Std.int(Math.min(end, chars.length));
         for (n in start ... end) out += String.fromCharCode(chars.get(n));
         return out;
     }
@@ -113,6 +113,7 @@ class HaxeNatives {
 
 	static public inline function debugger() {
 		#if js
+		untyped __js__("console.trace('debugger;');");
 		untyped __js__("debugger;");
 		#elseif flash
 		flash.system.ApplicationDomain.currentDomain.getDefinition("flash.debugger::enterDebugger")();

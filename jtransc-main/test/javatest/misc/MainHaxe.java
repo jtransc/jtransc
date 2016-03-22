@@ -231,12 +231,16 @@ public class MainHaxe {
         System.out.println("STRING[]:" + new String());
         System.out.println("STRING[other]:" + new String("other"));
         System.out.println("STRING[test]:" + new String(new StringBuilder("test")));
-        System.out.println("STRING[abcd]:" + new String(new char[]{'a', 'b', 'c', 'd',}));
-        System.out.println("STRING[bc]:" + new String(new char[]{'a', 'b', 'c', 'd',}, 1, 2));
+        System.out.println("STRING[abcd]:" + new String(new char[]{'a', 'b', 'c', 'd'}));
+        System.out.println("STRING[bc]:" + new String(new char[]{'a', 'b', 'c', 'd'}, 1, 2));
         System.out.println("STRING[ABC]:" + new String(new int[]{65, 66, 67}, 0, 3));
         System.out.println("STRING[abc]:" + new String(new byte[]{'a', 'b', 'c'}));
         System.out.println("STRING[demo]:" + "demo".toString());
         System.out.println("STRING[0]:" + "demo".hashCode());
+
+	    System.out.println("STRING[bc]:" + new String(new char[]{'a', 'b', 'c', 'd'}, 1, 2));
+
+	    System.out.println("STRING[bug]:" + new String(new char[] { '(',')','[','L','j','a','v','a','.','l','a','n','g','.','r','e','f','l','e','c','t','.','F','i','e','l','d',';' }, 4, 23));
     }
 
     private int FIELD = 10;
