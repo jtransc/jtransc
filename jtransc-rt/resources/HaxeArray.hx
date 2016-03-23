@@ -16,7 +16,7 @@ class HaxeArray extends HaxeBaseArray {
         return out;
     }
 
-    public function toArray():Array<Dynamic> {
+    override public function toArray():Array<Dynamic> {
         return data.toArray();
     }
 

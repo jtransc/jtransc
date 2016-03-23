@@ -180,4 +180,8 @@ public class System {
 	public static String mapLibraryName(String libname) {
 		return libname;
 	}
+
+	public static SecurityManager getSecurityManager() {
+		return null;
+	}
 }

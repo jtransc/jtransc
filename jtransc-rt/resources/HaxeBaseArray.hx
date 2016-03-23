@@ -6,6 +6,10 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	    return HaxeNatives.str("HaxeBaseArray");
 	}
 
+    public function toArray():Array<Dynamic> {
+        return [for (n in 0 ... length) getDynamic(n)];
+    }
+
 	#if debug
 	private function checkBounds(index:Int):Int {
 		if (index < 0 || index >= length) {

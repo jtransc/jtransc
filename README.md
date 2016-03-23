@@ -49,7 +49,7 @@ You can search for artifacts for it in maven central with [com.jtransc groupId](
     <plugin>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc-maven-plugin</artifactId>
-        <version>0.0.5</version>
+        <version>0.1.4</version>
         <configuration>
 			<mainClass>example.Test</mainClass>
 			<targets>
@@ -60,23 +60,9 @@ You can search for artifacts for it in maven central with [com.jtransc groupId](
 			</targets>
 			<release>true</release>
         </configuration>
-        <executions><execution><goals><goal>build-as3</goal></goals></execution></executions>
+        <executions><execution><goals><goal>jtransc</goal></goals></execution></executions>
     </plugin>
 </plugins>
-
-<pluginRepositories>
-    <pluginRepository>
-        <id>sonatype.oss.snapshots</id>
-        <name>Sonatype OSS Snapshot Repository</name>
-        <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
 
 ```
 

@@ -34,6 +34,14 @@ class HaxeNatives {
         return (str != null) ? str._str : null;
     }
 
+    static public function toNativeStrArray(strs:HaxeArray):Array<String> {
+        return [for (s in strs.toArray()) toNativeString(cast s)];
+    }
+
+    static public function toNativeUnboxedArray(strs:HaxeArray):Array<Dynamic> {
+        return [for (s in strs.toArray()) unbox(cast s)];
+    }
+
     static public function hashMap(obj:Dynamic):java_.util.HashMap_ {
 	    var out = new java_.util.HashMap_().java_util_HashMap_init___V();
 	    for (key in Reflect.fields(obj)) {
