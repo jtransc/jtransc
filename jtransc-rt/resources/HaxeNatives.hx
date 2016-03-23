@@ -9,6 +9,7 @@ import haxe.CallStack;
 using Lambda;
 
 typedef Long = Int64;
+typedef JavaObject = java_.lang.Object_;
 
 class HaxeNatives {
 	static private var M2P32_DBL = Math.pow(2, 32);
@@ -51,6 +52,7 @@ class HaxeNatives {
 	    return out;
     }
 
+	// BOX alias
     static public function str(str:String):java_.lang.String_ {
         return (str != null) ? java_.lang.String_.make(str) : null;
     }
@@ -133,7 +135,7 @@ class HaxeNatives {
         return result;
     }
 
-    static public function getClassDescriptor(object:java_.lang.Object_):String {
+    static public function getClassDescriptor(object:JavaObject):String {
         if (Std.is(object, HaxeBaseArray)) return cast(object, HaxeBaseArray).desc;
         var haxeClass = Type.getClass(object);
         if (haxeClass == null) trace('haxeClass == null');
@@ -200,7 +202,7 @@ class HaxeNatives {
         return HaxeFormat.format(fmt, args.map(function(v) { return unbox(v); }).array());
     }
 
-	static public function box(value:Dynamic):java_.lang.Object_ {
+	static public function box(value:Dynamic):JavaObject {
 		if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
 		if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
 		if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
@@ -209,19 +211,43 @@ class HaxeNatives {
 		return jtransc.JTranscWrapped_.wrap(value);
 	}
 
-	static public function unbox(value:Dynamic):Dynamic {
-		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
-		if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
-		if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
-		if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;
-		if (Std.is(value, java_.lang.Integer_)) return cast(value, java_.lang.Integer_).value;
-		if (Std.is(value, java_.lang.Float_)) return cast(value, java_.lang.Float_).value;
-		if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
-		if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
-		if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
-		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
+	static public function unbox(value:JavaObject):Dynamic {
+		if (Std.is(value, java_.lang.Boolean_)) return unboxBool(value);
+		if (Std.is(value, java_.lang.Byte_)) return unboxByte(value);
+		if (Std.is(value, java_.lang.Short_)) return unboxShort(value);
+		if (Std.is(value, java_.lang.Character_)) return unboxChar(value);
+		if (Std.is(value, java_.lang.Integer_)) return unboxInt(value);
+		if (Std.is(value, java_.lang.Long_)) return unboxLong(value);
+		if (Std.is(value, java_.lang.Float_)) return unboxFloat(value);
+		if (Std.is(value, java_.lang.Double_)) return unboxDouble(value);
+		if (Std.is(value, java_.lang.String_)) return unboxString(value);
+		if (Std.is(value, jtransc.JTranscWrapped_)) return unboxWrapped(value);
 		throw 'Was not able to unbox "$value"';
 	}
+
+	static public function boxVoid(value:Dynamic):java_.lang.Void_ { return null; }
+	static public function boxBool(value:Bool):java_.lang.Boolean_ { return java_.lang.Boolean_.valueOf_Z_Ljava_lang_Boolean_(value); }
+	static public function boxByte(value:Int):java_.lang.Byte_ { return java_.lang.Byte_.valueOf_B_Ljava_lang_Byte_(value); }
+	static public function boxShort(value:Int):java_.lang.Short_ { return java_.lang.Short_.valueOf_S_Ljava_lang_Short_(value); }
+	static public function boxChar(value:Int):java_.lang.Character_ { return java_.lang.Character_.valueOf_C_Ljava_lang_Character_(value); }
+	static public function boxInt(value:Int):java_.lang.Integer_ { return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(value); }
+	static public function boxLong(value:Long):java_.lang.Long_ { return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(value); }
+	static public function boxFloat(value:Float):java_.lang.Float_ { return java_.lang.Float_.valueOf_F_Ljava_lang_Float_(value); }
+	static public function boxDouble(value:Float):java_.lang.Double_ { return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(value); }
+	static public function boxString(value:String):java_.lang.String_ { return (value != null) ? java_.lang.String_.make(value) : null; }
+	static public function boxWrapped(value:Dynamic):jtransc.JTranscWrapped_ { return jtransc.JTranscWrapped_.wrap(value); }
+
+	static public function unboxVoid(value:JavaObject):Void { return cast null; }
+	static public function unboxBool(value:JavaObject):Bool { return cast(value, java_.lang.Boolean_).value; }
+	static public function unboxByte(value:JavaObject):Int { return cast(value, java_.lang.Byte_).value; }
+	static public function unboxShort(value:JavaObject):Int { return cast(value, java_.lang.Short_).value; }
+	static public function unboxChar(value:JavaObject):Int { return cast(value, java_.lang.Character_).value; }
+	static public function unboxInt(value:JavaObject):Int { return cast(value, java_.lang.Integer_).value; }
+	static public function unboxLong(value:JavaObject):Long { return cast(value, java_.lang.Long_).value; }
+	static public function unboxFloat(value:JavaObject):Float { return cast(value, java_.lang.Float_).value; }
+	static public function unboxDouble(value:JavaObject):Float { return cast(value, java_.lang.Double_).value; }
+	static public function unboxString(value:JavaObject):String { return cast(value, java_.lang.String_)._str; }
+	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, jtransc.JTranscWrapped_)._wrapped; }
 
     static private var _tempBytes = haxe.io.Bytes.alloc(8);
     static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);

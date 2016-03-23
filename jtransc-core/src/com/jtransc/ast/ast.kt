@@ -112,6 +112,13 @@ class AstProgram(
 		}
 	}
 
+	private var lastMethodId = 0
+	private val methodIds = hashMapOf<AstMethodRef, Int>()
+	fun getMethodId(ref: AstMethodRef):Int {
+		if (ref !in methodIds) methodIds[ref] = lastMethodId++
+		return methodIds[ref]!!
+	}
+
 	operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
 	override operator fun get(name: FqName): AstClass {
@@ -227,7 +234,8 @@ class AstClass(
 	}
 
 	val allMethodsToImplement: List<AstMethodWithoutClassRef> by lazy {
-		this.allInterfaces.flatMap { it.methods }.filter { !it.isStatic }.map { it.ref.withoutClass }
+		val allInterfacesIncludingThis = (if (isInterface) listOf(this) else listOf<AstClass>()) + this.allInterfaces
+		allInterfacesIncludingThis.distinct().flatMap { it.methods }.filter { !it.isStatic }.distinct().map { it.ref.withoutClass }.distinct()
 	}
 
 	fun add(field: AstField) {

@@ -10,7 +10,7 @@ import java.io.StringReader
 import java.util.*
 
 interface AstType {
-	open class Primitive(underlyingClassStr: String, val ch: Char) : AstType {
+	open class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 	}
@@ -19,23 +19,23 @@ interface AstType {
 
 	object NULL : AstType
 
-	object VOID : Primitive("java.lang.Void", 'V')
+	object VOID : Primitive("java.lang.Void", 'V', "void")
 
-	object BOOL : Primitive("java.lang.Boolean", 'Z')
+	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool")
 
-	object BYTE : Primitive("java.lang.Byte", 'B')
+	object BYTE : Primitive("java.lang.Byte", 'B', "byte")
 
-	object CHAR : Primitive("java.lang.Character", 'C')
+	object CHAR : Primitive("java.lang.Character", 'C', "char")
 
-	object SHORT : Primitive("java.lang.Short", 'S')
+	object SHORT : Primitive("java.lang.Short", 'S', "short")
 
-	object INT : Primitive("java.lang.Integer", 'I')
+	object INT : Primitive("java.lang.Integer", 'I', "int")
 
-	object LONG : Primitive("java.lang.Long", 'J')
+	object LONG : Primitive("java.lang.Long", 'J', "long")
 
-	object FLOAT : Primitive("java.lang.Float", 'F')
+	object FLOAT : Primitive("java.lang.Float", 'F', "float")
 
-	object DOUBLE : Primitive("java.lang.Double", 'D')
+	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
 
 	data class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))

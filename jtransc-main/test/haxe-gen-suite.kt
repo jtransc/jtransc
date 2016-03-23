@@ -108,6 +108,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
+	@Test fun proxyTest() = testClass<ProxyTest>()
+
 	@Test fun miscTest() = testClass<MainHaxe>() {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
