@@ -182,8 +182,8 @@ class SyncStream {
 		}
 	}
 
-	private function createBuffer(size:Int):Dynamic {
-		return untyped __js__("new Buffer(size)");
+	private function createBuffer(arg:Dynamic):Dynamic {
+		return untyped __js__("new Buffer(arg)");
 	}
 
 	public function syncioReadBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
