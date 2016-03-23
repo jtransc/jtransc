@@ -3,13 +3,6 @@ import haxe.Int64;
 class HaxeIO {
 }
 
-#if js
-@:jsRequire("buffer", "Buffer")
-extern class Buffer {
-	public function new(a:Dynamic):Void;
-}
-#end
-
 class SyncFS {
 	#if js
 	static public var fs:Dynamic = untyped __js__("(typeof require != 'undefined') ? require('fs') : null;");
@@ -189,11 +182,15 @@ class SyncStream {
 		}
 	}
 
+	private function createBuffer(size:Int):Dynamic {
+		return untyped __js__("new Buffer(size)");
+	}
+
 	public function syncioReadBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
-			var readed = fs.readSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
+			var readed = fs.readSync(fd, createBuffer(data.getBytesData()), offset, length, this.position);
 			this.position += readed;
 			return Std.int(readed);
 		#elseif sys
@@ -210,7 +207,7 @@ class SyncStream {
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js
-			var written = fs.writeSync(fd, new Buffer(data.getBytesData()), offset, length, this.position);
+			var written = fs.writeSync(fd, createBuffer(data.getBytesData()), offset, length, this.position);
 			this.position += written;
 			return Std.int(written);
 		#elseif sys
