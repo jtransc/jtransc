@@ -54,9 +54,24 @@ public class Thread implements Runnable {
 
 	}
 
+	/*
+	@HaxeMethodBody("" +
+		"#if sys Sys.sleep(p0 / 1000.0);\n" +
+		"#else \n" +
+		"#end \n"
+	)
 	native public static void sleep(long millis) throws InterruptedException;
+	*/
+	public static void sleep(long millis) throws InterruptedException {
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis() - start < millis) {
+			// Do something that yields the thread!
+		}
+	}
 
-	native public static void sleep(long millis, int nanos) throws InterruptedException;
+	public static void sleep(long millis, int nanos) throws InterruptedException {
+		sleep(millis);
+	}
 
 	public Thread() {
 	}

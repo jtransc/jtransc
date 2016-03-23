@@ -26,6 +26,7 @@ public class JTranscFFI {
 			if (type == Integer.TYPE) return "int";
 			if (type == Long.TYPE) return "long";
 			if (type == Void.TYPE) return "void";
+			if (type == String.class) return "string";
 			throw new RuntimeException("Don't know how to serialize " + type);
 			/*
 			ftmap->Set(Nan::New<String>("void").ToLocalChecked(), WrapPointer((char *)&ffi_type_void));
