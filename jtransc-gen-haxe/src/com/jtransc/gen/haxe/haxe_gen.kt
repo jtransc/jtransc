@@ -469,7 +469,7 @@ class GenHaxeGen(
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg" -> "HaxeNatives.$opSymbol($l, $r)"
-						// Checking interfaces with Object
+					// Checking interfaces with Object
 						"==", "!=" -> "cast $l $opSymbol cast $r"
 						else -> {
 							val binexpr = "$l $opSymbol $r"
@@ -872,10 +872,13 @@ class GenHaxeGen(
 				line("class ${simpleClassName}_IFields") {
 					line("public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
-
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
-
 					line(addClassInit(clazz))
+				}
+
+				if (clazz.implementing.contains(FqName("com.sun.jna.Library"))) {
+					line("class ${simpleClassName}_FFI") {
+					}
 				}
 
 				line("class ${simpleClassName}_Proxy extends java_.lang.Object_ implements ${simpleClassName}") {
@@ -897,7 +900,7 @@ class GenHaxeGen(
 					for (methodRef in clazz.allMethodsToImplement) {
 						val mainMethod = clazz.getMethodInAncestorsAndInterfaces(methodRef)
 						if (mainMethod == null) {
-							println(methodRef)
+							println("NULL methodRef: $methodRef")
 							continue
 						}
 						val mainMethodName = mainMethod.ref.haxeName
@@ -905,12 +908,9 @@ class GenHaxeGen(
 						val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 						val rettype = methodType.ret.haxeTypeTag
 						val returnOrEmpty = if (methodType.retVoid) "" else "return "
-						val margBoxedNames = methodType.args.map {
-							it.type.box(it.name)
-						}.joinToString(", ")
+						val margBoxedNames = methodType.args.map { it.type.box(it.name) }.joinToString(", ")
 						val typeStr = methodType.functionalType
 						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]
-						//method.name
 						val methodId = program.getMethodId(mainMethod.ref)
 
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { return " + methodType.ret.unbox("this._invoke($methodId, [$margBoxedNames]") + ");  }")
@@ -957,15 +957,15 @@ class GenHaxeGen(
 	val AstType.haxeDefaultString: String get() = names.escapeConstant(names.getHaxeDefault(this), this)
 	val AstType.METHOD_TYPE.functionalType: String get() = names.getHaxeFunctionalType(this)
 
-	fun AstType.box(arg:String): String {
-		return when(this) {
+	fun AstType.box(arg: String): String {
+		return when (this) {
 			is AstType.Primitive -> "HaxeNatives.box${this.shortName.capitalize()}($arg)"
 			else -> "cast($arg)";
 		}
 	}
 
-	fun AstType.unbox(arg:String): String {
-		return when(this) {
+	fun AstType.unbox(arg: String): String {
+		return when (this) {
 			is AstType.Primitive -> "HaxeNatives.unbox${this.shortName.capitalize()}($arg)"
 			else -> "cast($arg)";
 		}
@@ -992,9 +992,7 @@ class GenHaxeGen(
 
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
-	class MutableBody(
-		val method: AstMethod
-	) {
+	class MutableBody(val method: AstMethod) {
 		val classes = linkedSetOf<AstClassRef>()
 		fun initClassRef(classRef: AstClassRef) {
 			classes.add(classRef)
@@ -1005,17 +1003,14 @@ class GenHaxeGen(
 		var _usedDependencies = hashSetOf<AstType.REF>()
 		fun add(type: AstType?) {
 			when (type) {
-				null -> {
-				}
+				null -> Unit
 				is AstType.METHOD_TYPE -> {
 					for (arg in type.argTypes) add(arg)
 					add(type.ret)
 				}
 				is AstType.REF -> _usedDependencies.add(type)
 				is AstType.ARRAY -> add(type.elementType)
-				else -> {
-
-				}
+				else -> Unit
 			}
 		}
 	}

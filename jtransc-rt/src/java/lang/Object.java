@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 })
 @HaxeAddFiles({
         "HaxeNatives.hx",
+		"HaxeDynamicLoad.hx",
 		"HaxeIO.hx",
         "HaxeFormat.hx",
         "HaxeNativeWrapper.hx",
@@ -87,26 +88,20 @@ public class Object {
 	}
 
 	public final void notify() {
-
 	}
 
 	public final void notifyAll() {
-
 	}
 
 	public final void wait(long timeout) {
-
 	}
 
 	public final void wait(long timeout, int nanos) {
-
 	}
 
 	public final void wait() {
-
 	}
 
 	protected void finalize() throws IOException {
-
 	}
 }

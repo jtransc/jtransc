@@ -131,57 +131,17 @@ public class JTranscFFI {
 		public native Object invoke(String name, Object... args);
 	}
 
-	@HaxeMeta("" +
-		"@:headerNamespaceCode('namespace { extern \"C\" {\n" +
-		"#ifdef HX_WINDOWS\n" +
-		"  void* __stdcall LoadLibraryA(char *name);\n" +
-		"  void* __stdcall GetProcAddress(void *lib, char *name);\n" +
-		"  int __stdcall FreeLibrary(void *lib);\n" +
-		"#else\n" +
-		"  void* dlopen(const char *file, int mode);\n" +
-		"  void *dlsym(void *handle, char *name);\n" +
-		"  int dlclose(void *handle);\n" +
-		"#endif\n" +
-		"} }')"
-	)
 	static public class Loader {
 		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("" +
-			"untyped __cpp__(\"\n" +
-			"#if HX_WINDOWS\n" +
-			"  return (size_t)(void *)LoadLibraryA({0});\n" +
-			"#else\n" +
-			"  return (size_t)(void *)dlopen({0}, 0);\n" +
-			"#endif\n" +
-			"\", cpp.NativeString.c_str(p0._str));\n" +
-			"return 0;"
-		)
+		@HaxeMethodBody("return HaxeDynamicLoad.dlopen(p0._str);")
 		static native public long dlopen(String name);
 
 		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("" +
-			"untyped __cpp__(\"\n" +
-			"#if HX_WINDOWS\n" +
-			"return (size_t)(void *)GetProcAddress((void *)(size_t)({0}), {1});\n" +
-			"#else\n" +
-			"return (size_t)(void *)dlsym((void *)(size_t)({0}), {1});\n" +
-			"#endif\n" +
-			"\", p0, cpp.NativeString.c_str(p1._str));\n" +
-			"return 0;"
-		)
+		@HaxeMethodBody("return HaxeDynamicLoad.dlsym(p0, p1._str);")
 		static native public long dlsym(long handle, String name);
 
 		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("" +
-			"untyped __cpp__(\"\n" +
-			"#if HX_WINDOWS\n" +
-			"  return (size_t)(void *)FreeLibrary((void *)(size_t){0});\n" +
-			"#else\n" +
-			"  return (size_t)(void *)dlclose((void *)(size_t){0});\n" +
-			"#endif\n" +
-			"\", p0);\n" +
-			"return 0;"
-		)
+		@HaxeMethodBody("return HaxeDynamicLoad.dlclose(p0);")
 		static native public int dlclose(long handle);
 	}
 }
