@@ -2,6 +2,7 @@ package jtransc.ffi;
 
 import jtransc.JTranscSystem;
 import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMeta;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.reflect.InvocationHandler;
@@ -13,10 +14,16 @@ public class JTranscFFI {
 	static public <T> T loadLibrary(String name, Class<T> clazz) {
 		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 		if (JTranscSystem.usingJTransc()) {
-			return NodeFFI_Library.loadLibrary(name, clazz);
-		} else {
-			throw new RuntimeException("Not running on jtransc! TODO: Use JNA instead");
+			String kind = JTranscSystem.getRuntimeKind();
+			switch (kind) {
+				case "js":
+					return NodeFFI_Library.loadLibrary(name, clazz);
+				default:
+					throw new RuntimeException("Unsupported target for ffi " + kind);
+			}
+
 		}
+		throw new RuntimeException("Not running on jtransc! TODO: Use JNA instead");
 	}
 
 	@HaxeAddMembers("public var lib:Dynamic;")
@@ -79,7 +86,7 @@ public class JTranscFFI {
 					//System.out.println("Args: " + args);
 					Object result = library.invoke(method.getName(), args);
 					if (method.getReturnType() == Boolean.TYPE) {
-						return ((Integer)result) != 0;
+						return ((Integer) result) != 0;
 					} else {
 						return result;
 					}
@@ -100,21 +107,81 @@ public class JTranscFFI {
 		}
 
 		@HaxeMethodBody("" +
+			"#if js\n" +
 			"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
 			"var obj:Dynamic = {};\n" +
 			"for (item in p1.toArray()) {\n" +
 			"  Reflect.setField(obj, item.name, [HaxeNatives.toNativeString(item.retval), HaxeNatives.toNativeStrArray(item.args)]);\n" +
 			"}\n" +
-			"this.lib = ffi.Library(p0._str, obj);"
+			"this.lib = ffi.Library(p0._str, obj);\n" +
+			"#end\n"
 		)
 		public NodeFFI_Library(String name, Function[] functions) {
 		}
 
 		@HaxeMethodBody("" +
+			"#if js\n" +
 			"var name = HaxeNatives.toNativeString(p0);\n" +
 			"var args = HaxeNatives.toNativeUnboxedArray(p1);\n" +
-			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
+			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));" +
+			"#else\n" +
+			"return null;\n" +
+			"#end\n"
 		)
 		public native Object invoke(String name, Object... args);
+	}
+
+	@HaxeMeta("" +
+		"@:headerNamespaceCode('namespace { extern \"C\" {\n" +
+		"#ifdef HX_WINDOWS\n" +
+		"  void* __stdcall LoadLibraryA(char *name);\n" +
+		"  void* __stdcall GetProcAddress(void *lib, char *name);\n" +
+		"  int __stdcall FreeLibrary(void *lib);\n" +
+		"#else\n" +
+		"  void* dlopen(const char *file, int mode);\n" +
+		"  void *dlsym(void *handle, char *name);\n" +
+		"  int dlclose(void *handle);\n" +
+		"#endif\n" +
+		"} }')"
+	)
+	static public class Loader {
+		@HaxeMeta("@:noStack")
+		@HaxeMethodBody("" +
+			"untyped __cpp__(\"\n" +
+			"#if HX_WINDOWS\n" +
+			"  return (size_t)(void *)LoadLibraryA({0});\n" +
+			"#else\n" +
+			"  return (size_t)(void *)dlopen({0}, 0);\n" +
+			"#endif\n" +
+			"\", cpp.NativeString.c_str(p0._str));\n" +
+			"return 0;"
+		)
+		static native public long dlopen(String name);
+
+		@HaxeMeta("@:noStack")
+		@HaxeMethodBody("" +
+			"untyped __cpp__(\"\n" +
+			"#if HX_WINDOWS\n" +
+			"return (size_t)(void *)GetProcAddress((void *)(size_t)({0}), {1});\n" +
+			"#else\n" +
+			"return (size_t)(void *)dlsym((void *)(size_t)({0}), {1});\n" +
+			"#endif\n" +
+			"\", p0, cpp.NativeString.c_str(p1._str));\n" +
+			"return 0;"
+		)
+		static native public long dlsym(long handle, String name);
+
+		@HaxeMeta("@:noStack")
+		@HaxeMethodBody("" +
+			"untyped __cpp__(\"\n" +
+			"#if HX_WINDOWS\n" +
+			"  return (size_t)(void *)FreeLibrary((void *)(size_t){0});\n" +
+			"#else\n" +
+			"  return (size_t)(void *)dlclose((void *)(size_t){0});\n" +
+			"#endif\n" +
+			"\", p0);\n" +
+			"return 0;"
+		)
+		static native public int dlclose(long handle);
 	}
 }

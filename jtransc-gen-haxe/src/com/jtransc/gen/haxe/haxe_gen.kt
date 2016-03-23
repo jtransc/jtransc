@@ -756,6 +756,8 @@ class GenHaxeGen(
 					}
 				} else {
 					val body = method.annotations[HaxeMethodBody::value]
+					val meta = method.annotations[HaxeMeta::value]
+					if (meta != null) line(meta)
 					if (body != null) {
 						val body2 = if (method.isInstanceInit) "$body return this;" else body
 						line("$decl { $body2 }")
@@ -813,6 +815,8 @@ class GenHaxeGen(
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("implements")
 			}
 
+			val meta = clazz.annotations[HaxeMeta::value]
+			if (meta != null) line(meta)
 			line(declaration) {
 				if (!isInterface) {
 					line("public function new()") {

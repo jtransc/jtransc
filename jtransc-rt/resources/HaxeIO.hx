@@ -135,6 +135,7 @@ class SyncStream {
 	#if js
 	private var fd:Dynamic;
 	public var fs:Dynamic = SyncFS.fs;
+	private function createBuffer(arg:Dynamic):Dynamic return untyped __js__("new Buffer(arg)");
 	#end
 
 	#if sys
@@ -180,10 +181,6 @@ class SyncStream {
 		} catch (e:Dynamic) {
 			HaxeNatives.throwRuntimeException('$e');
 		}
-	}
-
-	private function createBuffer(arg:Dynamic):Dynamic {
-		return untyped __js__("new Buffer(arg)");
 	}
 
 	public function syncioReadBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
