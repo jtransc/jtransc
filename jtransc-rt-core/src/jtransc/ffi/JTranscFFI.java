@@ -76,7 +76,12 @@ public class JTranscFFI {
 					//System.out.println("PROXY: " + proxy);
 					//System.out.println("Method: " + method);
 					//System.out.println("Args: " + args);
-					return library.invoke(method.getName(), args);
+					Object result = library.invoke(method.getName(), args);
+					if (method.getReturnType() == Boolean.TYPE) {
+						return ((Integer)result) != 0;
+					} else {
+						return result;
+					}
 				}
 			});
 		}
