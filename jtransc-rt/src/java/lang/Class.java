@@ -34,25 +34,25 @@ import java.lang.AnnotatedElement;
 	"public var _hxClass:Class<Dynamic> = null;",
 	"public var _hxProxyClass:Class<Dynamic> = null;",
 	"public var _internalName = '';",
-	"public var _parent = null;",
-	"public var _interfaces = [];",
+	"public var _parent:String = null;",
+	"public var _interfaces:Array<String> = [];",
 	"public var _fields = [];",
 	"public var _modifiers = 0;",
-	"public var _methods = [];",
+	"public var _methods:Array<java_.lang.reflect.Method_> = [];",
 	"public var _constructors = [];",
 	"public var _annotations = [];",
 	"public var _methodsById = null;",
 	"" +
-		"public function populateMethodsById() { " +
-		"  if (_methodsById != null) return;" +
-		"  _methodsById = new Map<Int, java_.lang.reflect.Method_>(); " +
-		"  function populate(clazz) {" +
-		"    for (m in _methods) _methodsById.set(m.id, m);" +
-		"    if (_parent != null) populate(HaxeNatives.resolveClass(_parent));" +
-		"    for (i in _interfaces) populate(HaxeNatives.resolveClass(i));" +
-		"  }" +
-		"  populate(this);" +
-		"}",
+		"public function populateMethodsById() {\n" +
+		"  if (_methodsById != null) return;\n" +
+		"  _methodsById = new Map<Int, java_.lang.reflect.Method_>();\n" +
+		"  function populate(clazz:java_.lang.Class_) {\n" +
+		"    for (m in clazz._methods) _methodsById.set(m.id, m);\n" +
+		"    if (clazz._parent != null) populate(HaxeNatives.resolveClass(clazz._parent));\n" +
+		"    for (i in clazz._interfaces) populate(HaxeNatives.resolveClass(i));\n" +
+		"  }\n" +
+		"  populate(this);\n" +
+		"}\n",
 	"public function locateMethodById(id:Int) { populateMethodsById(); return _methodsById.get(id); }",
 })
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {

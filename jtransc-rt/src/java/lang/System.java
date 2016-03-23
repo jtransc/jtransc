@@ -116,6 +116,7 @@ public class System {
 			_setProperty("java.io.tmpdir", getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp"));
 			_setProperty("user.home", getenvs(new String[]{"HOME"}, "/tmp"));
 			_setProperty("user.dir", getenvs(new String[]{"HOME"}, "/tmp"));
+			_setProperty("user.name", getenvs(new String[]{"USERNAME","USER"}, "username"));
 		}
 		return _props;
 	}
