@@ -90,6 +90,7 @@ class AllBuild(
 		println("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
 		for (cp in classPaths2) println("ClassPath: $cp")
 
+		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
 		var initialClasses = listOf(
 			"java.lang.Object",
 			"java.lang.Void",
@@ -105,6 +106,7 @@ class AllBuild(
 			"java.lang.reflect.Field",
 			"java.lang.reflect.Constructor",
 			"java.lang.annotation.Annotation",
+			"java.lang.reflect.InvocationHandler",
 			"jtransc.internal.JTranscAnnotationBase",
 			"jtransc.JTranscWrapped",
 			entryPoint.fqname.fqname
