@@ -114,7 +114,17 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public Type[] getGenericInterfaces();
 
-	public native Class<?> getComponentType();
+	public Class<?> getComponentType() {
+		if (isArray()) {
+			try {
+				return forName(getName().substring(1));
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			return null;
+		}
+	}
 
 	public native Object[] getSigners();
 

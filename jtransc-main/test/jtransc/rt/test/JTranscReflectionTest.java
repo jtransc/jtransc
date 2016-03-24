@@ -20,11 +20,14 @@ public class JTranscReflectionTest {
 		int[] items = (int[]) Array.newInstance(Integer.TYPE, 10);
 		for (int n = 0; n < 10; n++) items[n] = n * 10;
 		System.out.println(items.length);
+		System.out.println(items.getClass().getComponentType());
 		for (int n = 0; n < 10; n++) System.out.println(Array.getInt(items, n));
 		for (int n = 0; n < 10; n++) Array.setInt(items, n, n * 20);
 		for (int n = 0; n < 10; n++) System.out.println(items[n]);
 		for (int n = 0; n < 10; n++) Array.set(items, n, n * 40);
 		for (int n = 0; n < 10; n++) System.out.println(items[n] + 10);
+
+		System.out.println((new String[0]).getClass().getComponentType());
 	}
 
 	static public void assignableTest() {
