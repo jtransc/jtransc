@@ -11,6 +11,7 @@ import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
 import jtransc.annotation.JTranscKeep
 import jtransc.annotation.haxe.*
+import jtransc.ffi.StdCall
 
 class GenHaxeGen(
 	val program: AstProgram,
@@ -887,7 +888,7 @@ class GenHaxeGen(
 							line("private var __ffi_${method.name}:haxe.Int64 = 0;")
 						}
 						line("@:noStack public function _ffi__load(library:String)") {
-							line("trace('Loading... \$library');")
+							//line("trace('Loading... \$library');")
 							line("__ffi_lib = HaxeDynamicLoad.dlopen(library);")
 							line("if (__ffi_lib == 0) trace('Cannot open library: \$library');")
 							for (method in methods) {
@@ -928,9 +929,10 @@ class GenHaxeGen(
 								else -> return str
 							}
 						}
-						fun AstType.METHOD_TYPE.toCast():String {
+						fun AstType.METHOD_TYPE.toCast(stdCall:Boolean):String {
 							val argTypes = this.args.map { it.type.nativeType() }
-							return "(${this.ret.nativeType()} (*)(${argTypes.joinToString(", ")}))(void *)(size_t)"
+							val typeInfix = if (stdCall) "__stdcall " else " "
+							return "(${this.ret.nativeType()} (${typeInfix}*)(${argTypes.joinToString(", ")}))(void *)(size_t)"
 						}
 
 						for (method in methods) {
@@ -939,12 +941,14 @@ class GenHaxeGen(
 							val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 							val rettype = methodType.ret.haxeTypeTag
 
+							val stdCall = method.annotations.contains2<StdCall>()
+
 							line("@:noStack public function $methodName($margs):$rettype") {
 								val argIds = methodType.args.withIndex().map { "${it.value.type.castToNative()}{${(it.index + 1)}}" }.joinToString(", ")
 								val cppArgs = (listOf("__ffi_${method.name}") + methodType.args.map { it.type.castToNativeHx(it.name) }).joinToString(", ")
 								val mustReturn = methodType.ret != AstType.VOID
 								val retstr = if (mustReturn) "return " else ""
-								line("untyped __cpp__('$retstr ${methodType.ret.castToHaxe()}((${methodType.toCast()}{0})($argIds));', $cppArgs);")
+								line("untyped __cpp__('$retstr ${methodType.ret.castToHaxe()}((${methodType.toCast(stdCall)}{0})($argIds));', $cppArgs);")
 								if (mustReturn) line("return cast 0;")
 							}
 						}

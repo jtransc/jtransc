@@ -27,6 +27,14 @@ operator fun List<AstAnnotation>?.contains(name: FqName): Boolean {
 	return this.get(name) != null
 }
 
+operator inline fun List<AstAnnotation>?.contains(clazz: Class<Any?>): Boolean {
+	return FqName(clazz.name) in this
+}
+
+inline fun <reified T : Any> List<AstAnnotation>?.contains2(): Boolean {
+	return FqName(T::class.java.name) in this
+}
+
 operator inline fun <reified C : Annotation, T> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
 	if (this != null) {
 		return this?.get(C::class.java.name.fqname, field.name) as T?

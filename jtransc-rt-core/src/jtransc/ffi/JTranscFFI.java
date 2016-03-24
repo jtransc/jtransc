@@ -29,11 +29,11 @@ public class JTranscFFI {
 	}
 
 	@HaxeMethodBody("" +
-		"trace('loadCppLibrary[0]');\n" +
+		//"trace('loadCppLibrary[0]');\n" +
 		"var instance = HaxeNatives.newInstance(Type.getClassName(p1._hxFfiClass));\n" +
-		"trace('loadCppLibrary[1]');\n" +
+		//"trace('loadCppLibrary[1]');\n" +
 		"Reflect.callMethod(instance, Reflect.field(instance, '_ffi__load'), [p0._str]);" +
-		"trace('loadCppLibrary[2]');\n" +
+		//"trace('loadCppLibrary[2]');\n" +
 		"return instance;\n"
 	)
 	static native private <T> T loadCppLibrary(String lib, Class<T> clazz);
