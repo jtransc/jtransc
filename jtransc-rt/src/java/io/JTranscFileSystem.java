@@ -106,7 +106,7 @@ class JTranscFileSystem extends FileSystem {
 
 	public String resolve(File f) {
 		if (isAbsolute(f)) return normalize2(f.getPath());
-		return normalize2(resolve(System.getProperty("user.dir"), f.getPath()));
+		return normalize2(resolve(JTranscSyncIO.impl.getCwd(), f.getPath()));
 	}
 
 	private String normalize2(String i) {

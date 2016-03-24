@@ -19,6 +19,7 @@ public class JTranscZipTest {
 	static private void testFs() {
 		System.out.println("FS:");
 		System.out.println(new File("__nonExistantFile__").exists());
+		System.out.println(new File("__nonExistantFile__").getAbsolutePath());
 	}
 
 	static private void testZip() throws IOException {

@@ -198,7 +198,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 		println("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
 		val buildArgs = arrayListOf(
-			"-cp", ".",
+			"-cp", srcFolder.realpathOS,
 			"-main", info!!.entryPointFile
 		)
 		val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
@@ -210,14 +210,12 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
-		println("Compiling...")
+		println("Compiling... ")
 
-		//println("Running: -optimize=true ${info.entryPointFile}")
-		return ProcessUtils.runAndRedirect(
-			srcFolder.realfile,
-			"haxe",
-			releaseArgs + subtargetArgs + buildArgs
-		).success
+		val args = releaseArgs + subtargetArgs + buildArgs
+
+		println("Running: haxe ${args.joinToString(" ")}")
+		return ProcessUtils.runAndRedirect(srcFolder.realfile, "haxe", args).success
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

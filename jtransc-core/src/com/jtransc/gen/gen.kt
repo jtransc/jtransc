@@ -52,7 +52,7 @@ fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildS
 	if (compileResult) {
 		println("Ok ($compileTime)")
 	} else {
-		println("ERROR ($compileTime)")
+		println("ERROR ($compileTime) ($compileResult)")
 	}
 
 	if (!compileResult) return ProcessResult2("", -1)

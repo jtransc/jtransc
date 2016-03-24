@@ -55,6 +55,24 @@ public class JTranscSyncIO {
 		@Override
 		@HaxeMethodBody("return HaxeNatives.strArray(HaxeIO.SyncFS.list(p0._str));")
 		public native String[] list(String file);
+
+		@Override
+		@HaxeMethodBody("" +
+			"#if sys return HaxeNatives.str(Sys.getCwd());\n" +
+			"#elseif js return HaxeNatives.str(untyped __js__('process.cwd()'));\n" +
+			"#else return HaxeNatives.str('');\n" +
+			"#end"
+		)
+		public native String getCwd();
+
+		@Override
+		@HaxeMethodBody("" +
+			"#if sys Sys.setCwd(p0._str);\n" +
+			"#elseif js untyped __js__('process.chdir({0})', p0._str); \n" +
+			"#else \n" +
+			"#end"
+		)
+		public native void setCwd(String path);
 	};
 
 	@HaxeAddMembers({
@@ -163,75 +181,84 @@ public class JTranscSyncIO {
 		}
 
 		public long getTotalSpace(String file) {
-			if (parent != null) return parent.getTotalSpace(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.getTotalSpace");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getTotalSpace");
+			return parent.getTotalSpace(file);
 		}
 
 		public long getFreeSpace(String file) {
-			if (parent != null) return parent.getFreeSpace(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.getFreeSpace");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getFreeSpace");
+			return parent.getFreeSpace(file);
 		}
 
 		public long getUsableSpace(String file) {
-			if (parent != null) return parent.getUsableSpace(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.getUsableSpace");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getUsableSpace");
+			return parent.getUsableSpace(file);
 		}
 
 		public boolean setReadOnly(String file) {
-			if (parent != null) return parent.setReadOnly(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.setReadOnly");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setReadOnly");
+			return parent.setReadOnly(file);
 		}
 
 		public boolean setLastModifiedTime(String file, long time) {
-			if (parent != null) return parent.setLastModifiedTime(file, time);
-			throw new RuntimeException("Not implemented JTranscSyncIO.setLastModifiedTime");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setLastModifiedTime");
+			return parent.setLastModifiedTime(file, time);
 		}
 
 		public boolean rename(String fileOld, String fileNew) {
-			if (parent != null) return parent.rename(fileOld, fileNew);
-			throw new RuntimeException("Not implemented JTranscSyncIO.rename");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.rename");
+			return parent.rename(fileOld, fileNew);
 		}
 
 		public boolean createDirectory(String file) {
-			if (parent != null) return parent.createDirectory(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.createDirectory");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.createDirectory");
+			return parent.createDirectory(file);
 		}
 
 		public String[] list(String file) {
-			if (parent != null) return parent.list(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.list");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.list");
+			return parent.list(file);
 		}
 
 		public boolean delete(String file) {
-			if (parent != null) return parent.delete(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.delete");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.delete");
+			return parent.delete(file);
 		}
 
 		public boolean createFileExclusively(String file) {
-			if (parent != null) return parent.createFileExclusively(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.createFileExclusively");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.createFileExclusively");
+			return parent.createFileExclusively(file);
 		}
 
 		public boolean setPermission(String file, int access, boolean enable, boolean owneronly) {
-			if (parent != null) return parent.setPermission(file, access, enable, owneronly);
-			throw new RuntimeException("Not implemented JTranscSyncIO.setPermission");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setPermission");
+			return parent.setPermission(file, access, enable, owneronly);
 		}
 
 		public long getLastModifiedTime(String file) {
-			if (parent != null) return parent.getLastModifiedTime(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.getLastModifiedTime");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getLastModifiedTime");
+			return parent.getLastModifiedTime(file);
 		}
 
 		public boolean checkAccess(String file, int access) {
-			if (parent != null) return parent.checkAccess(file, access);
-			throw new RuntimeException("Not implemented JTranscSyncIO.checkAccess");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.checkAccess");
+			return parent.checkAccess(file, access);
 		}
 
 		public int getBooleanAttributes(String file) {
-			if (parent != null) return parent.getBooleanAttributes(file);
-			throw new RuntimeException("Not implemented JTranscSyncIO.getBooleanAttributes");
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getBooleanAttributes");
+			return parent.getBooleanAttributes(file);
 		}
 
+		public String getCwd() {
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.getCwd");
+			return parent.getCwd();
+		}
+
+		public void setCwd(String path) {
+			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setCwd");
+			parent.setCwd(path);
+		}
 	}
 
 	static public abstract class ImplStream {
@@ -246,11 +273,7 @@ public class JTranscSyncIO {
 		abstract public long getLength();
 
 		public int read() {
-			if (read(temp, 0, 1) == 1) {
-				return temp[0];
-			} else {
-				return -1;
-			}
+			return (read(temp, 0, 1) == 1) ? temp[0] : -1;
 		}
 
 		public void write(int b) {

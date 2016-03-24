@@ -39,9 +39,9 @@
 					<mainClass>com.jtransc.JTranscMain</mainClass>
 					<release>true</release>
 					<targets>
-						<param>haxe:cpp:jtransc-inception.bin</param>
-<!--
 						<param>haxe:js:jtransc-inception.js</param>
+<!--
+						<param>haxe:cpp:jtransc-inception.bin</param>
 -->
 					</targets>
 				</configuration>

@@ -97,7 +97,7 @@ object HaxeTools {
 		}
 
 		val haxeargs = listOf(
-			"-cp", ".",
+			"-cp", xmlFile.parentFile.absolutePath,
 			"-xml", outXml.realpathOS,
 			"--no-output",
 			"-$target", "dummy"
