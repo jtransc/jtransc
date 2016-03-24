@@ -882,22 +882,25 @@ class GenHaxeGen(
 				if (clazz.hasFFI) {
 					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName} implements HaxeFfiLibrary") {
 						val methods = clazz.allMethodsToImplement.map {clazz.getMethodInAncestorsAndInterfaces(it)!! }
-						line("#if cpp")
 						line("private var __ffi_lib:haxe.Int64 = 0;")
 						for (method in methods) {
 							line("private var __ffi_${method.name}:haxe.Int64 = 0;")
 						}
 						line("@:noStack public function _ffi__load(library:String)") {
 							//line("trace('Loading... \$library');")
+							line("#if cpp")
 							line("__ffi_lib = HaxeDynamicLoad.dlopen(library);")
 							line("if (__ffi_lib == 0) trace('Cannot open library: \$library');")
 							for (method in methods) {
 								line("__ffi_${method.name} = HaxeDynamicLoad.dlsym(__ffi_lib, '${method.name}');")
 								line("if (__ffi_${method.name} == 0) trace('Cannot load method ${method.name}');")
 							}
+							line("#end")
 						}
 						line("@:noStack public function _ffi__close()") {
+							line("#if cpp")
 							line("HaxeDynamicLoad.dlclose(__ffi_lib);")
+							line("#end")
 						}
 
 						fun AstType.castToHaxe():String {
@@ -948,12 +951,10 @@ class GenHaxeGen(
 								val cppArgs = (listOf("__ffi_${method.name}") + methodType.args.map { it.type.castToNativeHx(it.name) }).joinToString(", ")
 								val mustReturn = methodType.ret != AstType.VOID
 								val retstr = if (mustReturn) "return " else ""
-								line("untyped __cpp__('$retstr ${methodType.ret.castToHaxe()}((${methodType.toCast(stdCall)}{0})($argIds));', $cppArgs);")
+								line("#if cpp untyped __cpp__('$retstr ${methodType.ret.castToHaxe()}((${methodType.toCast(stdCall)}{0})($argIds));', $cppArgs); #end")
 								if (mustReturn) line("return cast 0;")
 							}
 						}
-
-						line("#end")
 					}
 				}
 
