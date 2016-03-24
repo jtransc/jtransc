@@ -351,5 +351,16 @@ class HaxeNatives {
 	static public function swap32(p0:Int):Int { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
 	static public function swap16(p0:Int):Int { return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16; }
 	static public function swap16u(p0:Int):Int { return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)); }
+
+	#if debug
+		static public function checkNotNull<T>(item:T):T {
+			if (item == null) throw new java_.lang.NullPointerException_().java_lang_NullPointerException_init___V();
+			return item;
+		}
+	#else
+		static inline public function checkNotNull<T>(item:T):T {
+			return item;
+		}
+	#end
 }
 

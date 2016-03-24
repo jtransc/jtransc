@@ -37,3 +37,4 @@ jtransc-main/program.haxe.js
 jtransc-core/program.haxe.js
 out.jar
 out_java
+*.map

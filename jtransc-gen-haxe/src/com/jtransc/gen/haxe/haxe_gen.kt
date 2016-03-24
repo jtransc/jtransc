@@ -371,7 +371,7 @@ class GenHaxeGen(
 						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
 				}
-				is AstStm.SET_ARRAY -> line("${stm.local.haxeName}.set(${stm.index.gen()}, ${stm.expr.gen()});")
+				is AstStm.SET_ARRAY -> line("HaxeNatives.checkNotNull(${stm.local.haxeName}).set(${stm.index.gen()}, ${stm.expr.gen()});")
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
 					mutableBody.initClassRef(stm.field.classRef)
@@ -502,7 +502,7 @@ class GenHaxeGen(
 				val base = when (e) {
 					is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
 					is AstExpr.CALL_SUPER -> "super"
-					is AstExpr.CALL_INSTANCE -> "${e.obj.gen()}"
+					is AstExpr.CALL_INSTANCE -> "HaxeNatives.checkNotNull(${e.obj.gen()})"
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
@@ -522,7 +522,7 @@ class GenHaxeGen(
 				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
-				"${e.expr.gen()}.${e.field.haxeName}"
+				"HaxeNatives.checkNotNull(${e.expr.gen()}).${e.field.haxeName}"
 			}
 			is AstExpr.STATIC_FIELD_ACCESS -> {
 				refs.add(e.clazzName)
@@ -530,8 +530,8 @@ class GenHaxeGen(
 
 				"${e.field.haxeStaticText}"
 			}
-			is AstExpr.ARRAY_LENGTH -> "${e.array.gen()}.length"
-			is AstExpr.ARRAY_ACCESS -> "${e.array.gen()}.get(${e.index.gen()})"
+			is AstExpr.ARRAY_LENGTH -> "HaxeNatives.checkNotNull(${e.array.gen()}).length"
+			is AstExpr.ARRAY_ACCESS -> "HaxeNatives.checkNotNull(${e.array.gen()}).get(${e.index.gen()})"
 			is AstExpr.CAST -> {
 				refs.add(e.from)
 				refs.add(e.to)

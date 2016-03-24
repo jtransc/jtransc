@@ -77,6 +77,38 @@ public class JTranscSystem {
 		return "java";
 	}
 
+	public static boolean isCpp() {
+		return getRuntimeKind().equals("cpp");
+	}
+
+	public static boolean isCsharp() {
+		return getRuntimeKind().equals("cs");
+	}
+
+	public static boolean isJava() {
+		return getRuntimeKind().equals("java");
+	}
+
+	public static boolean isJs() {
+		return getRuntimeKind().equals("js");
+	}
+
+	public static boolean isSwf() {
+		return getRuntimeKind().equals("swf");
+	}
+
+	public static boolean isNeko() {
+		return getRuntimeKind().equals("neko");
+	}
+
+	public static boolean isPhp() {
+		return getRuntimeKind().equals("php");
+	}
+
+	public static boolean isPython() {
+		return getRuntimeKind().equals("python");
+	}
+
 	@HaxeMethodBody(
 		"#if sys return HaxeNatives.str(Sys.systemName());\n" +
 		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));\n" +
@@ -112,5 +144,13 @@ public class JTranscSystem {
 
 	public static boolean isWindows() {
 		return getOS().toLowerCase().startsWith("win");
+	}
+
+	public static boolean isLinux() {
+		return getOS().toLowerCase().startsWith("linux");
+	}
+
+	public static boolean isMac() {
+		return getOS().toLowerCase().startsWith("mac");
 	}
 }

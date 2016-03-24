@@ -16,8 +16,6 @@
 
 package java.lang;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.io.JTranscProcess;
 
 import java.io.File;

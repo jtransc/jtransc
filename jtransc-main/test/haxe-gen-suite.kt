@@ -27,6 +27,7 @@ import javatest.misc.MainHaxe
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
 import jtransc.JTranscVersion
+import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
@@ -73,6 +74,8 @@ class HaxeGenSuiteTest {
 	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()
 	@Test fun nioTest() = testClass<JTranscNioTest>()
 	@Test fun arithmeticTest() = testClass<JTranscArithmeticTest>()
+
+	@Test fun processTest() = testClass<ProcessTest>()
 
 	@Test fun basicTypesTest() = testClass<BasicTypesTest>()
 
@@ -153,7 +156,7 @@ class HaxeGenSuiteTest {
 			//output = "program.haxe.cpp", subtarget = "cpp",
 			targetDirectory = System.getProperty("java.io.tmpdir")
 		)
-		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = false)).output
+		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = true)).output
 	}
 
 	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")

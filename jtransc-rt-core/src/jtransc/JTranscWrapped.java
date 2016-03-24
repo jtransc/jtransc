@@ -4,6 +4,8 @@ import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.util.Objects;
+
 @HaxeAddMembers({
 	"public var _wrapped:Dynamic;",
 	"static public function wrap(value:Dynamic) { var out = new JTranscWrapped_(); out._wrapped = value; return out; }",
@@ -18,7 +20,8 @@ public class JTranscWrapped {
 		this.item = item;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.box(Reflect.field(this._wrapped, p0._str));")
+	//@HaxeMethodBody("return HaxeNatives.box(Reflect.field(this._wrapped, p0._str));")
+	@HaxeMethodBody("return HaxeNatives.box(Reflect.getProperty(this._wrapped, p0._str));")
 	public Object access(String field) {
 		try {
 			return item.getClass().getField(field).get(this.item);
@@ -32,4 +35,9 @@ public class JTranscWrapped {
 
 	@HaxeMethodBody("return HaxeNatives.box(Reflect.callMethod(_wrapped, Reflect.field(_wrapped, HaxeNatives.toNativeString(p0)), HaxeNatives.toNativeUnboxedArray(p1)));")
 	public native Object invoke(String name, Object... args);
+
+	@HaxeMethodBody("return HaxeNatives.str('' + this._wrapped);")
+	public String toString() {
+		return Objects.toString(item);
+	}
 }
