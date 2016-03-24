@@ -33,6 +33,7 @@ import java.lang.AnnotatedElement;
 @HaxeAddMembers({
 	"public var _hxClass:Class<Dynamic> = null;",
 	"public var _hxProxyClass:Class<Dynamic> = null;",
+	"public var _hxFfiClass:Class<Dynamic> = null;",
 	"public var _internalName = '';",
 	"public var _parent:String = null;",
 	"public var _interfaces:Array<String> = [];",

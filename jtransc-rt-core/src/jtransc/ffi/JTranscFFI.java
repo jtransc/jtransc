@@ -18,6 +18,8 @@ public class JTranscFFI {
 			switch (kind) {
 				case "js":
 					return NodeFFI_Library.loadLibrary(name, clazz);
+				case "cpp":
+					return loadCppLibrary(name, clazz);
 				default:
 					throw new RuntimeException("Unsupported target for ffi " + kind);
 			}
@@ -25,6 +27,16 @@ public class JTranscFFI {
 		}
 		throw new RuntimeException("Not running on jtransc! TODO: Use JNA instead");
 	}
+
+	@HaxeMethodBody("" +
+		"trace('loadCppLibrary[0]');\n" +
+		"var instance = HaxeNatives.newInstance(Type.getClassName(p1._hxFfiClass));\n" +
+		"trace('loadCppLibrary[1]');\n" +
+		"Reflect.callMethod(instance, Reflect.field(instance, '_ffi__load'), [p0._str]);" +
+		"trace('loadCppLibrary[2]');\n" +
+		"return instance;\n"
+	)
+	static native private <T> T loadCppLibrary(String lib, Class<T> clazz);
 
 	@HaxeAddMembers("public var lib:Dynamic;")
 	static public class NodeFFI_Library {

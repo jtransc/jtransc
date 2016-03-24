@@ -242,7 +242,8 @@ class GenHaxeGen(
 						//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
 						line(annotationsInit(clazz.runtimeAnnotations))
 						val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
-						line("info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+						val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
+						line("info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
 						for ((slot, field) in clazz.fields.withIndex()) {
 							val internalName = field.haxeName
 							line("field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
@@ -263,11 +264,12 @@ class GenHaxeGen(
 				line("static public function getJavaClass(str:String)") {
 					line("return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(str));")
 				}
-				line("static private function info(c:java_.lang.Class_, haxeClass:Class<Dynamic>, proxyClass:Class<Dynamic>, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>)") {
+				line("static private function info(c:java_.lang.Class_, haxeClass:Class<Dynamic>, proxyClass:Class<Dynamic>, ffiClass:Class<Dynamic>, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>)") {
 					//line("c._hxClass = Type.resolveClass(internalName);");
 					//line("c._internalName = internalName;")
 					line("c._hxClass = haxeClass;");
 					line("c._hxProxyClass = proxyClass;");
+					line("c._hxFfiClass = ffiClass;");
 					line("c._internalName = Type.getClassName(haxeClass);")
 					line("c._parent = parent;")
 					line("c._interfaces = interfaces;")
@@ -876,8 +878,78 @@ class GenHaxeGen(
 					line(addClassInit(clazz))
 				}
 
-				if (clazz.implementing.contains(FqName("com.sun.jna.Library"))) {
-					line("class ${simpleClassName}_FFI") {
+				if (clazz.hasFFI) {
+					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName}") {
+						val methods = clazz.allMethodsToImplement.map {clazz.getMethodInAncestorsAndInterfaces(it)!! }
+						line("#if cpp")
+						line("private var __ffi_lib:haxe.Int64 = 0;")
+						for (method in methods) {
+							line("private var __ffi_${method.name}:haxe.Int64 = 0;")
+						}
+						line("@:noStack public function _ffi__load(library:String)") {
+							line("trace('Loading... \$library');")
+							line("__ffi_lib = HaxeDynamicLoad.dlopen(library);")
+							line("if (__ffi_lib == 0) trace('Cannot open library: \$library');")
+							for (method in methods) {
+								line("__ffi_${method.name} = HaxeDynamicLoad.dlsym(__ffi_lib, '${method.name}');")
+								line("if (__ffi_${method.name} == 0) trace('Cannot load method ${method.name}');")
+							}
+						}
+						line("@:noStack public function _ffi__close()") {
+							line("HaxeDynamicLoad.dlclose(__ffi_lib);")
+						}
+
+						fun AstType.castToHaxe():String {
+							return when (this) {
+								AstType.VOID -> ""
+								AstType.BOOL -> "(bool)"
+								AstType.INT -> "(int)"
+								AstType.LONG -> "(int)" // @TODO!
+								//AstType.STRING -> "char*"
+								else -> "(void*)"
+							}
+						}
+						fun AstType.nativeType():String {
+							return when (this) {
+								AstType.VOID -> "void"
+								AstType.BOOL -> "bool"
+								AstType.INT -> "int"
+								AstType.LONG -> "int" // @TODO!
+								AstType.STRING -> "char*"
+								else -> "void*"
+							}
+						}
+						fun AstType.castToNative():String {
+							return "(${this.nativeType()})"
+						}
+						fun AstType.castToNativeHx(str:String):String {
+							return when (this) {
+								AstType.STRING -> "cpp.NativeString.c_str(($str)._str)"
+								else -> return str
+							}
+						}
+						fun AstType.METHOD_TYPE.toCast():String {
+							val argTypes = this.args.map { it.type.nativeType() }
+							return "(${this.ret.nativeType()} (*)(${argTypes.joinToString(", ")}))(void *)(size_t)"
+						}
+
+						for (method in methods) {
+							val methodName = method.ref.haxeName
+							val methodType = method.methodType
+							val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
+							val rettype = methodType.ret.haxeTypeTag
+
+							line("@:noStack public function $methodName($margs):$rettype") {
+								val argIds = methodType.args.withIndex().map { "${it.value.type.castToNative()}{${(it.index + 1)}}" }.joinToString(", ")
+								val cppArgs = (listOf("__ffi_${method.name}") + methodType.args.map { it.type.castToNativeHx(it.name) }).joinToString(", ")
+								val mustReturn = methodType.ret != AstType.VOID
+								val retstr = if (mustReturn) "return " else ""
+								line("untyped __cpp__('$retstr ${methodType.ret.castToHaxe()}((${methodType.toCast()}{0})($argIds));', $cppArgs);")
+								if (mustReturn) line("return cast 0;")
+							}
+						}
+
+						line("#end")
 					}
 				}
 

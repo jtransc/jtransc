@@ -208,6 +208,7 @@ class AstClass(
 	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val fieldsByName = hashMapOf<String, AstField>()
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
+	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
 	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
