@@ -880,7 +880,7 @@ class GenHaxeGen(
 				}
 
 				if (clazz.hasFFI) {
-					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName}") {
+					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName} implements HaxeFfiLibrary") {
 						val methods = clazz.allMethodsToImplement.map {clazz.getMethodInAncestorsAndInterfaces(it)!! }
 						line("#if cpp")
 						line("private var __ffi_lib:haxe.Int64 = 0;")

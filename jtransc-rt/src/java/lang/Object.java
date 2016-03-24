@@ -16,7 +16,6 @@
 
 package java.lang;
 
-import jtransc.JTranscWrapped;
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeAddFiles;
 import jtransc.annotation.haxe.HaxeAddMembers;
@@ -26,25 +25,26 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 @HaxeAddMembers({
-        "static public var __LAST_ID__ = 0;",
-        "public var __ID__ = __LAST_ID__++;",
+	"static public var __LAST_ID__ = 0;",
+	"public var __ID__ = __LAST_ID__++;",
 })
 @HaxeAddFiles({
-        "HaxeNatives.hx",
-		"HaxeDynamicLoad.hx",
-		"HaxeIO.hx",
-        "HaxeFormat.hx",
-        "HaxeNativeWrapper.hx",
-        "HaxeBaseArray.hx",
-		"HaxeBoolArray.hx",
-        "HaxeByteArray.hx",
-        "HaxeShortArray.hx",
-		"HaxeCharArray.hx",
-        "HaxeIntArray.hx",
-        "HaxeFloatArray.hx",
-        "HaxeDoubleArray.hx",
-        "HaxeLongArray.hx",
-        "HaxeArray.hx"
+	"HaxeNatives.hx",
+	"HaxeDynamicLoad.hx",
+	"HaxeFfiLibrary.hx",
+	"HaxeIO.hx",
+	"HaxeFormat.hx",
+	"HaxeNativeWrapper.hx",
+	"HaxeBaseArray.hx",
+	"HaxeBoolArray.hx",
+	"HaxeByteArray.hx",
+	"HaxeShortArray.hx",
+	"HaxeCharArray.hx",
+	"HaxeIntArray.hx",
+	"HaxeFloatArray.hx",
+	"HaxeDoubleArray.hx",
+	"HaxeLongArray.hx",
+	"HaxeArray.hx"
 })
 public class Object {
 	@JTranscKeep
@@ -52,7 +52,7 @@ public class Object {
 		return (this == obj);
 	}
 
-    @HaxeMethodBody("return HaxeNatives.getClass(this);")
+	@HaxeMethodBody("return HaxeNatives.getClass(this);")
 	native public final Class<?> getClass();
 
 	@JTranscKeep
