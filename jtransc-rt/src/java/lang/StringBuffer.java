@@ -312,6 +312,6 @@ public final class StringBuffer extends AbstractStringBuilder implements java.io
 	}
 
 	@Override
-	@HaxeMethodBody("return HaxeNatives.str(this._str);")
+	@HaxeMethodBody("return HaxeNatives.str(this.getStr());")
 	native public String toString();
 }

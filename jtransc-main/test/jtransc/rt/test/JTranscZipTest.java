@@ -50,6 +50,7 @@ public class JTranscZipTest {
 		JTranscFiles.write(new File(tmpfile), hexData);
 
 		for (File file : new File[]{
+			new File(tmpdir + "/__non_existant_file__"),
 			new File(tmpfile),
 			new File(tmpfile.replace('\\', '/')),
 			new File(tmpdir)

@@ -219,6 +219,6 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
 	}
 
 	@Override
-	@HaxeMethodBody("return HaxeNatives.str(this._str);")
+	@HaxeMethodBody("return HaxeNatives.str(this.getStr());")
 	native public String toString();
 }

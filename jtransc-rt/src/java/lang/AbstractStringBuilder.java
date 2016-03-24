@@ -19,48 +19,53 @@ package java.lang;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
 
-@HaxeAddMembers({"public var _str:String = '';"})
+@HaxeAddMembers({
+	"public var buffer:StringBuf = new StringBuf();",
+	"public var str2:String = null;",
+	"public function add(str:String) { this.str2 = null; buffer.add(str); return this; }",
+	"public function getStr() { if (this.str2 == null) this.str2 = buffer.toString(); return this.str2; }",
+	"public function setStr(str:String) { this.str2 = str; buffer = new StringBuf(); buffer.add(str); return this; }",
+})
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	AbstractStringBuilder() {
 	}
 
 	AbstractStringBuilder(int capacity) {
-
 	}
 
 	//@Override
-	@HaxeMethodBody("return this._str.length;")
+	@HaxeMethodBody("return this.buffer.length;")
 	native public int length();
 
-	@HaxeMethodBody("")
+	@HaxeMethodBody("setStr(getStr());")
 	native public void trimToSize();
 
 	//@Override
-	@HaxeMethodBody("return this._str.charCodeAt(p0);")
+	@HaxeMethodBody("return this.getStr().charCodeAt(p0);")
 	native public char charAt(int index);
 
-	@HaxeMethodBody("return this._str.indexOf(p0._str);")
+	@HaxeMethodBody("return this.getStr().indexOf(p0._str);")
 	native public int indexOf(String str);
 
-	@HaxeMethodBody("return this._str.indexOf(p0._str, p1);")
+	@HaxeMethodBody("return this.getStr().indexOf(p0._str, p1);")
 	native public int indexOf(String str, int fromIndex);
 
-	@HaxeMethodBody("return this._str.lastIndexOf(p0._str);")
+	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str);")
 	native public int lastIndexOf(String str);
 
-	@HaxeMethodBody("return this._str.lastIndexOf(p0._str, p1);")
+	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str, p1);")
 	native public int lastIndexOf(String str, int fromIndex);
 
-	@HaxeMethodBody("var reversed = ''; for (n in 0 ... this._str.length) reversed += this._str.charAt(this._str.length - n - 1); this._str = reversed; return this;")
+	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
 	native public AbstractStringBuilder reverse();
 
-	@HaxeMethodBody("this._str += p0; return this;")
+	@HaxeMethodBody("return this.add(HaxeNatives.toNativeString(p0));")
 	native public AbstractStringBuilder append(String str);
 
-	@HaxeMethodBody("this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
+	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + this.getStr().substr(p1));")
 	native public AbstractStringBuilder delete(int start, int end);
 
-	@HaxeMethodBody("this._str = this._str.substr(0, p0) + p2._str + this._str.substr(p1); return this;")
+	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + p2._str + this.getStr().substr(p1));")
 	native public AbstractStringBuilder replace(int start, int end, String str);
 
 	public int capacity() {

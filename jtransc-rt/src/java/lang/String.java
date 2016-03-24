@@ -96,12 +96,12 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(bytes, 0, bytes.length);
 	}
 
-	@HaxeMethodBody("this.setStr(p0._str);")
+	@HaxeMethodBody("this.setStr(p0.getStr());")
 	public String(StringBuffer buffer) {
 		this(buffer.toString());
 	}
 
-	@HaxeMethodBody("this.setStr(p0._str);")
+	@HaxeMethodBody("this.setStr(p0.getStr());")
 	public String(StringBuilder builder) {
 		this(builder.toString());
 	}

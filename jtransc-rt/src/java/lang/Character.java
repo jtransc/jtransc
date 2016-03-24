@@ -226,6 +226,73 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return (ch >= '0') && (ch <= '9');
 	}
 
+	/*
+		boolean prevHas = false;
+        int start = 0;
+        int end = 0;
+        for (int n = 0; n < 10000000; n++) {
+            if (Character.isDigit(n)) {
+                end = n;
+                if (!prevHas) start = n;
+                prevHas = true;
+            } else {
+                if (prevHas) {
+                    prevHas = false;
+                    if (start == end) {
+                        System.out.println(start + " // " + new String(new int[] { start }, 0, 1));
+                    } else {
+                        System.out.println(start + ":" + end + " // " + new String(new int[] { start }, 0, 1) + "-" + new String(new int[] { end }, 0, 1));
+
+                    }
+                }
+            }
+        }
+
+        48:57 // 0-9
+		1632:1641 // ٠-٩
+		1776:1785 // ۰-۹
+		1984:1993 // ߀-߉
+		2406:2415 // ०-९
+		2534:2543 // ০-৯
+		2662:2671 // ੦-੯
+		2790:2799 // ૦-૯
+		2918:2927 // ୦-୯
+		3046:3055 // ௦-௯
+		3174:3183 // ౦-౯
+		3302:3311 // ೦-೯
+		3430:3439 // ൦-൯
+		3664:3673 // ๐-๙
+		3792:3801 // ໐-໙
+		3872:3881 // ༠-༩
+		4160:4169 // ၀-၉
+		4240:4249 // ႐-႙
+		6112:6121 // ០-៩
+		6160:6169 // ᠐-᠙
+		6470:6479 // ᥆-᥏
+		6608:6617 // ᧐-᧙
+		6784:6793 // ᪀-᪉
+		6800:6809 // ᪐-᪙
+		6992:7001 // ᭐-᭙
+		7088:7097 // ᮰-᮹
+		7232:7241 // ᱀-᱉
+		7248:7257 // ᱐-᱙
+		42528:42537 // ꘠-꘩
+		43216:43225 // ꣐-꣙
+		43264:43273 // ꤀-꤉
+		43472:43481 // ꧐-꧙
+		43600:43609 // ꩐-꩙
+		44016:44025 // ꯰-꯹
+		65296:65305 // ０-９
+		66720:66729 // 𐒠-𐒩
+		69734:69743 // 𑁦-𑁯
+		69872:69881 // 𑃰-𑃹
+		69942:69951 // 𑄶-𑄿
+		70096:70105 // 𑇐-𑇙
+		71360:71369 // 𑛀-𑛉
+		120782:120831 // 𝟎-𝟿
+
+	 */
+
 	public static boolean isDigit(int codePoint) {
 		return isDigit((char) codePoint);
 	}
@@ -234,9 +301,13 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	native public static boolean isDefined(int codePoint);
 
-	native public static boolean isLetter(char ch);
+	public static boolean isLetter(char ch) {
+		return ((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'));
+	}
 
-	native public static boolean isLetter(int codePoint);
+	public static boolean isLetter(int codePoint) {
+		return isLetter((char)codePoint);
+	}
 
 	public static boolean isLetterOrDigit(char ch) {
 		return isLetter(ch) || isDigit(ch);
@@ -288,9 +359,14 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static int toUpperCase(int codePoint);
 
-	native public static char toTitleCase(char ch);
+	public static char toTitleCase(char ch) {
+		// @TODO: Approximation
+		return toUpperCase(ch);
+	}
 
-	native public static int toTitleCase(int codePoint);
+	public static int toTitleCase(int codePoint) {
+		return toTitleCase((char)codePoint);
+	}
 
 	public static int digit(char ch, int radix) {
 		if (ch >= '0' && ch <= '9') return ch - '0';
@@ -347,9 +423,42 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return false;
 	}
 
-	native public static boolean isWhitespace(char ch);
+	public static boolean isWhitespace(char ch) {
+		return isWhitespace((int)ch);
+	}
 
-	native public static boolean isWhitespace(int codePoint);
+	public static boolean isWhitespace(int codePoint) {
+		switch (codePoint) {
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 28:
+			case 29:
+			case 30:
+			case 31:
+			case 32:
+			case 5760:
+			case 6158:
+			case 8192:
+			case 8193:
+			case 8194:
+			case 8195:
+			case 8196:
+			case 8197:
+			case 8198:
+			case 8200:
+			case 8201:
+			case 8202:
+			case 8232:
+			case 8233:
+			case 8287:
+			case 12288:
+				return true;
+		}
+		return false;
+	}
 
 	public static boolean isISOControl(char ch) {
 		return isISOControl((int) ch);
