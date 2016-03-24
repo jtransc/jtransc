@@ -22,12 +22,14 @@ public class JTranscProcess extends Process {
 	@HaxeMethodBody("" +
 		"var cmd = HaxeNatives.toNativeString(p0);\n" +
 		"var args = HaxeNatives.toNativeStrArray(p1);\n" +
+		"var cwd = HaxeNatives.toNativeString(p2);\n" +
+		"var env = HaxeNatives.mapToObject(p3);\n" +
 		"#if sys return HaxeNatives.wrap(new sys.io.Process(cmd, args));\n" +
-		"#elseif js return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args));\n" +
+		"#elseif js return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));\n" +
 		"#else return null; \n" +
 		"#end\n"
 	)
-	private native JTranscWrapped create(String cmd, String[] args);
+	private native JTranscWrapped create(String cmd, String[] args, String cwd, Map<String, String> env);
 
 	private InputStream stdout;
 	private InputStream stderr;
@@ -40,7 +42,7 @@ public class JTranscProcess extends Process {
 	private int pid;
 
 	public Process start(String[] cmdarray, Map<String, String> environment, String dir, ProcessBuilder.Redirect[] redirects, boolean redirectErrorStream) {
-		this.processWrapped = create(cmdarray[0], Arrays.copyOfRange(cmdarray, 1, cmdarray.length));
+		this.processWrapped = create(cmdarray[0], Arrays.copyOfRange(cmdarray, 1, cmdarray.length), dir, environment);
 		if (JTranscSystem.isJs()) {
 			stdoutString = Objects.toString(this.processWrapped.access("stdout"));
 			stderrString = Objects.toString(this.processWrapped.access("stderr"));

@@ -33,7 +33,12 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
-	@HaxeMethodBody("var str = '$p0'; if (str.indexOf('.') < 0) str += \".0\"; return return HaxeNatives.str(str);")
+	@HaxeMethodBody("" +
+		"var str = '' + p0;\n" +
+		"if (str == 'Infinity' || str == '-Infinity') return HaxeNatives.str(str);\n" +
+		"if (str.indexOf('.') < 0) str += \".0\";\n" +
+		"return return HaxeNatives.str(str);\n"
+	)
 	native public static String toString(double d);
 
 	native public static String toHexString(double d);
@@ -59,11 +64,11 @@ public final class Double extends Number implements Comparable<Double> {
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {
-		return _isFinite(v);
+		return !_isFinite(v);
 	}
 
 	public static boolean isFinite(double d) {
-		return !_isFinite(d);
+		return _isFinite(d);
 	}
 
 	private final double value;

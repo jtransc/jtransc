@@ -54,6 +54,12 @@ class HaxeNatives {
 	    return out;
     }
 
+    static public function mapToObject(obj:java_.util.Map_):Dynamic {
+    	var obj = {};
+    	trace('HaxeNatives.mapToObject not implemented!');
+    	return obj;
+    }
+
 	// BOX alias
     static public function str(str:String):java_.lang.String_ {
         return (str != null) ? java_.lang.String_.make(str) : null;
