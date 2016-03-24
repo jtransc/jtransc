@@ -16,6 +16,10 @@
 
 package java.lang;
 
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.io.JTranscProcess;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -324,7 +328,7 @@ public final class ProcessBuilder {
 		}
 
 		try {
-			return ProcessImpl.start(cmdarray, environment, dir, redirects, redirectErrorStream);
+			return new JTranscProcess().start(cmdarray, environment, dir, redirects, redirectErrorStream);
 		} catch (Exception e) {
 			String exceptionInfo = ": " + e.getMessage();
 			Throwable cause = e;
@@ -333,8 +337,3 @@ public final class ProcessBuilder {
 	}
 }
 
-class ProcessImpl {
-	public static Process start(String[] cmdarray, Map<String, String> environment, String dir, ProcessBuilder.Redirect[] redirects, boolean redirectErrorStream) {
-		return null;
-	}
-}

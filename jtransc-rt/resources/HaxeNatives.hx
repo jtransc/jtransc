@@ -31,6 +31,8 @@ class HaxeNatives {
     static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
     static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
 
+    static public function wrap(value:Dynamic):jtransc.JTranscWrapped_ { return jtransc.JTranscWrapped_.wrap(value); }
+
     static public function toNativeString(str:java_.lang.String_):String {
         return (str != null) ? str._str : null;
     }

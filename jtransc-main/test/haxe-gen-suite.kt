@@ -27,6 +27,7 @@ import javatest.misc.MainHaxe
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
 import jtransc.JTranscVersion
+import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
@@ -109,6 +110,8 @@ class HaxeGenSuiteTest {
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
 	@Test fun proxyTest() = testClass<ProxyTest>()
+
+	@Test fun wrappedTest() = testClass<WrappedTest>()
 
 	@Test fun miscTest() = testClass<MainHaxe>() {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
