@@ -1,5 +1,8 @@
 language: java
 
+node_js:
+  - "4"
+
 jdk:
   - oraclejdk8
 
@@ -10,6 +13,8 @@ install:
 - curl -s -S -O http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-linux64.tar.gz
 - tar xzf haxe-3.2.1-linux64.tar.gz
 - mvn clean --settings settings.xml
+- curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+- sudo apt-get install -y nodejs
 
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
