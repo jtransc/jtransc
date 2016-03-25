@@ -54,8 +54,6 @@ object JTranscMain {
 			println("Performs an aot compilation that transform a java/kotlin compiled program (class and jar files)")
 			println("into an executable file ($executableTypes) file at the moment.")
 			println("")
-			println("Version: jtranscVersion")
-			println("")
 			println("  -main   <fqname> - Specifies class with static void main method that will be the entry point of the app")
 			println("  -target <target> - Language target to do the AOT possible values ($targetNames)")
 			println("  -out    <file>   - Output file that will hold the generated aot result file")

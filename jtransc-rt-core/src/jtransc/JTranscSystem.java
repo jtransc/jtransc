@@ -70,7 +70,7 @@ public class JTranscSystem {
 		"#if cpp out = 'cpp'; #end\n" +
 		"#if neko out = 'neko'; #end\n" +
 		"#if php out = 'php'; #end\n" +
-		"#if php python = 'python'; #end\n" +
+		"#if python out = 'python'; #end\n" +
 		"return HaxeNatives.str(out);\n"
 	)
 	static public String getRuntimeKind() {

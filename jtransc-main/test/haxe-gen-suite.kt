@@ -42,6 +42,9 @@ import java.io.File
 import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
+	//val DEBUG = true
+	val DEBUG = false
+
 	init {
 		log = { }
 	}
@@ -160,7 +163,7 @@ class HaxeGenSuiteTest {
 			//output = "program.haxe.cpp", subtarget = "cpp",
 			targetDirectory = System.getProperty("java.io.tmpdir")
 		)
-		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = true)).output
+		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = DEBUG)).output
 	}
 
 	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")

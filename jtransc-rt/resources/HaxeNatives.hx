@@ -30,6 +30,8 @@ class HaxeNatives {
     static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
     static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
     static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
+	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
+	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
 
     static public function wrap(value:Dynamic):jtransc.JTranscWrapped_ { return jtransc.JTranscWrapped_.wrap(value); }
 

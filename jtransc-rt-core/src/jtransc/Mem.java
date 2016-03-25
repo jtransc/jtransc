@@ -85,31 +85,31 @@ final public class Mem {
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("#if flash flash.Memory.setByte(p0 << 0, value); #else byteMem.set(p0, p1); #end")
+    @HaxeMethodBody("#if flash flash.Memory.setByte(p0 << 0, p1); #else byteMem.set(p0, p1); #end")
 	static public void si8(int address, byte value) {
 		mem.setAlignedInt8(address, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("#if flash flash.Memory.setI16(p0 << 1, value); #else shortMem.set(p0, p1); #end")
+    @HaxeMethodBody("#if flash flash.Memory.setI16(p0 << 1, p1); #else shortMem.set(p0, p1); #end")
 	static public void si16(int address2, short value) {
 		mem.setAlignedInt16(address2, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("#if flash flash.Memory.setI32(p0 << 2, value); #else intMem.set(p0, p1); #end")
+    @HaxeMethodBody("#if flash flash.Memory.setI32(p0 << 2, p1); #else intMem.set(p0, p1); #end")
 	static public void si32(int address4, int value) {
 		mem.setAlignedInt32(address4, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("#if flash flash.Memory.setFloat(p0 << 2, value); #else floatMem.set(p0, p1); #end")
+    @HaxeMethodBody("#if flash flash.Memory.setFloat(p0 << 2, p1); #else floatMem.set(p0, p1); #end")
 	static public void sf32(int address4, float value) {
 		mem.setAlignedFloat32(address4, value);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("#if flash flash.Memory.setDouble(p0 << 3, value); #else floatMem.set(p0, p1); #end")
+    @HaxeMethodBody("#if flash flash.Memory.setDouble(p0 << 3, p1); #else floatMem.set(p0, p1); #end")
 	static public void sf64(int address8, double value) {
 		mem.setAlignedFloat64(address8, value);
 	}
