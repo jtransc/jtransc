@@ -15,6 +15,8 @@ install:
 - mvn clean --settings settings.xml
 - curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
 - sudo apt-get install -y nodejs
+- nvm install 4 || true
+- nvm use 4 || true
 
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
@@ -22,14 +24,16 @@ before_script:
 - export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
 - ls -la $PWD/haxe-3.2.1
+- java -version || true
 - haxe -version || true
 - node --version || true
 - nodejs --version || true
-- java -version || true
+- nvm --version || true
 - which haxe || true
 - which node || true
 - which nodejs || true
 - which java || true
+- which nvm || true
 - mvn install -f jtransc-rt-core/pom.xml
 - mvn install -f jtransc-rt/pom.xml
 
