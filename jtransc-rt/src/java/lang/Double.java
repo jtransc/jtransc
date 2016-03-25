@@ -33,13 +33,23 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
-	@HaxeMethodBody("" +
-		"var str = '' + p0;\n" +
-		"if (str == 'Infinity' || str == '-Infinity') return HaxeNatives.str(str);\n" +
-		"if (str.indexOf('.') < 0) str += \".0\";\n" +
-		"return return HaxeNatives.str(str);\n"
-	)
-	native public static String toString(double d);
+	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
+	native private static String _toString(double d);
+
+	public static String toString(double d) {
+		String out = _toString(d);
+		boolean hasSymbols = false;
+		for (int n = 0; n < out.length(); n++) {
+			char c = out.charAt(n);
+			if (!Character.isDigit(c) && c != '-') {
+				hasSymbols = true;
+				break;
+			}
+		}
+		if (out.indexOf("e+") >= 0) out = out.replace("e+", "E");
+		if (out.indexOf("e-") >= 0) out = out.replace("e-", "E-");
+		return hasSymbols ? out : (out + ".0");
+	}
 
 	native public static String toHexString(double d);
 

@@ -4,7 +4,7 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 
 public class WrappedTest {
 	static public void main(String[] args) {
-		System.out.println(getWrapped().access("a"));
+		System.out.println(getWrapped().get("a"));
 	}
 
 	@HaxeMethodBody("return HaxeNatives.wrap({a : 10 });")

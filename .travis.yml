@@ -17,6 +17,9 @@ before_script:
 - export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
 - ls -la $PWD/haxe-3.2.1
+- haxe -version
+- node --version
+- java -version
 - mvn install -f jtransc-rt-core/pom.xml
 - mvn install -f jtransc-rt/pom.xml
 

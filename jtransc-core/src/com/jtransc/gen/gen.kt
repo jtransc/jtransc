@@ -19,6 +19,7 @@ package com.jtransc.gen
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstProgram
 import com.jtransc.io.ProcessResult2
+import com.jtransc.log.log
 import com.jtransc.time.measureTime
 
 data class GenTargetInfo(
@@ -35,24 +36,24 @@ interface GenTarget {
 }
 
 fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false, subtarget: String = "", targetDirectory: String = "target"): ProcessResult2 {
-	print("Preparing processor...")
+	log("Preparing processor...")
 	val (preparingTime, processor) = measureTime {
 		this.getProcessor(GenTargetInfo(
 			program, outputFile, settings, subtarget, targetDirectory
 		))
 	}
-	println("Ok ($preparingTime)")
+	log("Ok ($preparingTime)")
 
-	println("Building source...")
+	log("Building source...")
 	val (buildTime, sourceResult) = measureTime { processor.buildSource() }
-	println("Ok ($buildTime)")
+	log("Ok ($buildTime)")
 
-	print("Compiling...")
+	log("Compiling...")
 	val (compileTime, compileResult) = measureTime { processor.compile() }
 	if (compileResult) {
-		println("Ok ($compileTime)")
+		log("Ok ($compileTime)")
 	} else {
-		println("ERROR ($compileTime) ($compileResult)")
+		log("ERROR ($compileTime) ($compileResult)")
 	}
 
 	if (!compileResult) return ProcessResult2("", -1)

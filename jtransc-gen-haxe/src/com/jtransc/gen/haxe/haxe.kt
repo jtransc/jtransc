@@ -25,6 +25,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
+import com.jtransc.log.log
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
@@ -141,9 +142,9 @@ val AstProgram.haxeExtraDefines: List<String> get() {
 
 fun AstProgram.haxeInstallRequiredLibs() {
 	val libs = this.haxeLibs
-	println(":: REFERENCED LIBS: $libs")
+	log(":: REFERENCED LIBS: $libs")
 	for (lib in libs) {
-		println(":: TRYING TO INSTALL LIBRARY $lib")
+		log(":: TRYING TO INSTALL LIBRARY $lib")
 		HaxeLib.installIfNotExists(lib)
 	}
 }
@@ -153,11 +154,11 @@ fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
 	val files = program.classes.map { it.annotations[HaxeAddAssets::value] }.filterNotNull().flatMap { it.toList() }
 	//val assetsFolder = settings.assets.firstOrNull()
 	val resourcesVfs = program.resourcesVfs
-	println("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
+	log("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
 	if (assetsFolder != null) {
 		val outputVfs = LocalVfs(assetsFolder)
 		for (file in files) {
-			println("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
+			log("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
 			outputVfs[file] = resourcesVfs[file]
 		}
 	}
@@ -180,7 +181,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 	val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
 
 	init {
-		println("Temporal haxe files: $tempdir/jtransc-haxe")
+		log("Temporal haxe files: $tempdir/jtransc-haxe")
 	}
 
 	override fun buildSource() {
@@ -195,7 +196,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 	override fun compile(): Boolean {
 		if (info == null) throw InvalidOperationException("Must call .buildSource first")
 		outputFile2.delete()
-		println("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
+		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
 		val buildArgs = arrayListOf(
 			"-cp", srcFolder.realpathOS,
@@ -210,11 +211,11 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
-		println("Compiling... ")
+		log("Compiling... ")
 
 		val args = releaseArgs + subtargetArgs + buildArgs
 
-		println("Running: haxe ${args.joinToString(" ")}")
+		log("Running: haxe ${args.joinToString(" ")}")
 		return ProcessUtils.runAndRedirect(srcFolder.realfile, "haxe", args).success
 	}
 
@@ -223,7 +224,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 			return ProcessResult2("file $outputFile2 doesn't exist", -1)
 		}
 		val fileSize = outputFile2.length()
-		println("run: ${outputFile2.absolutePath} ($fileSize bytes)")
+		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
 		val parentDir = outputFile2.parentFile
 
 		val runner = actualSubtarget.interpreter ?: "echo"

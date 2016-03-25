@@ -5,6 +5,7 @@ import com.jtransc.ds.zipped
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.log.log
 import com.jtransc.vfs.SyncVfsFile
 import soot.*
 import soot.jimple.*
@@ -453,7 +454,7 @@ object SootUtils {
 
 		val file_separator = OS.fileSeparator
 
-		println("file_separator: $file_separator ... PathSeparator: ${File.pathSeparator}")
+		log("file_separator: $file_separator ... PathSeparator: ${File.pathSeparator}")
 
 		Options_v.set_soot_classpath(classPaths.joinToString(File.pathSeparator))
 

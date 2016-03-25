@@ -44,17 +44,17 @@ public class JTranscProcess extends Process {
 	public Process start(String[] cmdarray, Map<String, String> environment, String dir, ProcessBuilder.Redirect[] redirects, boolean redirectErrorStream) {
 		this.processWrapped = create(cmdarray[0], Arrays.copyOfRange(cmdarray, 1, cmdarray.length), dir, environment);
 		if (JTranscSystem.isJs()) {
-			stdoutString = Objects.toString(this.processWrapped.access("stdout"));
-			stderrString = Objects.toString(this.processWrapped.access("stderr"));
+			stdoutString = Objects.toString(this.processWrapped.get("stdout"));
+			stderrString = Objects.toString(this.processWrapped.get("stderr"));
 			this.stdout = new ByteArrayInputStream(stdoutString.getBytes(Charset.forName("utf-8")));
 			this.stderr = new ByteArrayInputStream(stderrString.getBytes(Charset.forName("utf-8")));
 			this.stderr = null;
-			this.exitCode = (Integer)this.processWrapped.access("status");
-			this.pid = (int) this.processWrapped.access("pid");
+			this.exitCode = (Integer)this.processWrapped.get("status");
+			this.pid = (int) this.processWrapped.get("pid");
 		} else {
-			this.stdin = new JTranscHaxeOutputStream((JTranscWrapped) this.processWrapped.access("stdin"));
-			this.stdout = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.access("stdout"));
-			this.stderr = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.access("stderr"));
+			this.stdin = new JTranscHaxeOutputStream((JTranscWrapped) this.processWrapped.get("stdin"));
+			this.stdout = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.get("stdout"));
+			this.stderr = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.get("stderr"));
 		}
 		return this;
 	}

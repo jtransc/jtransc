@@ -24,6 +24,7 @@ import com.jtransc.input.BaseProjectContext
 import com.jtransc.input.SootToAst
 import com.jtransc.input.SootUtils
 import com.jtransc.io.ProcessResult2
+import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
@@ -87,8 +88,8 @@ class AllBuild(
 			MavenLocalRepository.locateJars(it)
 		} + classPaths).distinct()
 
-		println("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
-		for (cp in classPaths2) println("ClassPath: $cp")
+		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
+		for (cp in classPaths2) log("ClassPath: $cp")
 
 		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
 		var initialClasses = listOf(
@@ -141,7 +142,7 @@ class AllBuild(
 			program.addReference(AstClassRef(it))
 		}
 
-		print("Processing classes...")
+		log("Processing classes...")
 
 		val (elapsed) = measureTime {
 			while (program.hasClassToGenerate()) {
@@ -177,7 +178,7 @@ class AllBuild(
 
 		//for (dep in projectContext.deps2!!) println(dep)
 
-		println("Ok classes=${projectContext.classNames.size}, time=$elapsed")
+		log("Ok classes=${projectContext.classNames.size}, time=$elapsed")
 
 		return program
 	}

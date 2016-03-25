@@ -54,10 +54,24 @@ class HaxeNatives {
 	    return out;
     }
 
-    static public function mapToObject(obj:java_.util.Map_):Dynamic {
+    static public function mapToObject(map:java_.util.Map_):Dynamic {
+	    if (map == null) return null;
     	var obj = {};
-    	trace('HaxeNatives.mapToObject not implemented!');
+    	for (item in iteratorToArray(map.entrySet__Ljava_util_Set_().iterator__Ljava_util_Iterator_())) {
+			var key:JavaObject = item.getKey__Ljava_lang_Object_();
+			var value:JavaObject = item.getValue__Ljava_lang_Object_();
+			Reflect.setField(obj, unbox(key), unbox(value));
+    	}
     	return obj;
+    }
+
+    static public function iteratorToArray(it:java_.util.Iterator_):Array<Dynamic> {
+	    if (it == null) return null;
+	    var out = [];
+		while (it.hasNext__Z()) {
+			out.push(it.next__Ljava_lang_Object_());
+		}
+		return out;
     }
 
 	// BOX alias

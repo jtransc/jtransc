@@ -17,6 +17,7 @@
 import com.jtransc.AllBuild
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.gen.haxe.HaxeGenDescriptor
+import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
 import javatest.KotlinCollections
@@ -41,6 +42,9 @@ import java.io.File
 import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
+	init {
+		log = { }
+	}
 
 	//-----------------------------------------------------------------
 	// Java Lang

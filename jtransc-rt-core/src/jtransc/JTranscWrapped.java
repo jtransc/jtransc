@@ -22,11 +22,19 @@ public class JTranscWrapped {
 
 	//@HaxeMethodBody("return HaxeNatives.box(Reflect.field(this._wrapped, p0._str));")
 	@HaxeMethodBody("return HaxeNatives.box(Reflect.getProperty(this._wrapped, p0._str));")
-	public Object access(String field) {
+	public Object get(String field) {
 		try {
 			return item.getClass().getField(field).get(this.item);
 		} catch (Throwable e) {
 			return null;
+		}
+	}
+
+	@HaxeMethodBody("Reflect.setProperty(this._wrapped, p0._str, HaxeNatives.unbox(p1));")
+	public void set(String field, Object value) {
+		try {
+			item.getClass().getField(field).set(this.item, value);
+		} catch (Throwable e) {
 		}
 	}
 

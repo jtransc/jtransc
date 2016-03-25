@@ -28,6 +28,16 @@ public class JTranscArithmeticTest {
 		System.out.println(1.0 / 0.0);
 		System.out.println(-1.0 / 0.0);
 		System.out.println(1.0);
+		System.out.println(0.0d / 0.0);
+		System.out.println(0x1.fffffffffffffP+1023);
+		System.out.println(0x1.0p-1022);
+		//System.out.println(0x0.0000000000001P-1022);
+		//System.out.println(5E-324);
+		//System.out.println(5E-320);
+		System.out.println(1023);
+		System.out.println(-1022);
+		System.out.println((double)-77);
+		System.out.println((float)-77);
 	}
 
 	static public int shl15(byte value) {
