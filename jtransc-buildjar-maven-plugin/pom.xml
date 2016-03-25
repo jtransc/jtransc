@@ -19,12 +19,12 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc-buildjar-maven-plugin</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>maven-plugin</packaging>
 
     <properties>
         <kotlin.version>1.0.1</kotlin.version>
-        <jtransc.version>0.1.4</jtransc.version>
+        <jtransc.version>0.1.5</jtransc.version>
     </properties>
 
     <!--
@@ -130,11 +130,6 @@
             <artifactId>maven-compat</artifactId>
             <version>3.0</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jtransc</groupId>
-            <artifactId>jtransc-rt</artifactId>
-            <version>0.1.4</version>
         </dependency>
     </dependencies>
 

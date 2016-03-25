@@ -46,7 +46,7 @@ class HaxeGenSuiteTest {
 	val DEBUG = false
 
 	init {
-		log = { }
+		log.logger = { }
 	}
 
 	//-----------------------------------------------------------------

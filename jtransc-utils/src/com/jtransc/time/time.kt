@@ -16,14 +16,12 @@
 
 package com.jtransc.time
 
-import com.jtransc.log.log
-
 data class TimeResult<T>(val time: Long, val result: T)
 
-inline fun <T> measureProcess(name:String, callback: () -> T): T {
-	log("$name...")
+inline fun <T> measureProcess(name: String, callback: () -> T): T {
+	com.jtransc.log.log("$name...")
 	val (time, result) = measureTime { callback() }
-	log("Ok ($time)")
+	com.jtransc.log.log("Ok ($time)")
 	return result
 }
 

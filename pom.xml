@@ -21,7 +21,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -36,7 +36,7 @@
 
     <properties>
         <!-- base-->
-        <jtransc.version>0.1.4</jtransc.version>
+        <jtransc.version>0.1.5</jtransc.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

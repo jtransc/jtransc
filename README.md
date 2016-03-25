@@ -49,7 +49,7 @@ You can search for artifacts for it in maven central with [com.jtransc groupId](
     <plugin>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc-maven-plugin</artifactId>
-        <version>0.1.4</version>
+        <version>0.1.5</version>
         <configuration>
 			<mainClass>example.Test</mainClass>
 			<targets>
