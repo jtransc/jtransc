@@ -61,6 +61,8 @@ class HaxeGenSuiteTest {
 		)
 	}
 
+	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>()
+
 	//-----------------------------------------------------------------
 	// Java Utils
 

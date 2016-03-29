@@ -108,13 +108,8 @@ interface AstType {
 		val STRING = REF(FqName("java.lang.String"))
 		val OBJECT = REF(FqName("java.lang.Object"))
 		val CLASS = REF(FqName("java.lang.Class"))
-		fun ARRAY(element: AstType, dimensions: Int): AstType {
-			return if (dimensions == 1) {
-				ARRAY(element)
-			} else {
-				ARRAY(ARRAY(element, dimensions - 1))
-			}
-		}
+
+		fun ARRAY(element: AstType, count:Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
 
 		fun REF_INT(internalName: String): AstType {
 			if (internalName.startsWith("[")) {
@@ -214,7 +209,7 @@ object AstTypeBuilder {
 	val FLOAT = AstType.FLOAT
 	val DOUBLE = AstType.DOUBLE
 	fun REF(name: FqName) = AstType.REF(name)
-	fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
+	//fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
 	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
 	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD_TYPE(args, ret)
 	fun METHOD(ret: AstType, vararg args: AstType) = AstType.METHOD_TYPE(ret, args.toList())

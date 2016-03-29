@@ -47,4 +47,27 @@ class HaxeArray extends HaxeBaseArray {
     static public function copy(from:HaxeArray, to:HaxeArray, fromPos:Int, toPos:Int, length:Int) {
         for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
     }
+
+    static public function create(size:Int, desc:String):HaxeBaseArray {
+		switch (desc) {
+			case "[Z": return new HaxeBoolArray(size);
+			case "[B": return new HaxeByteArray(size);
+			case "[C": return new HaxeCharArray(size);
+			case "[S": return new HaxeShortArray(size);
+			case "[I": return new HaxeIntArray(size);
+			case "[J": return new HaxeLongArray(size);
+			case "[F": return new HaxeFloatArray(size);
+			case "[D": return new HaxeDoubleArray(size);
+			default: return new HaxeArray(size, desc);
+		}
+    }
+
+    static public function createMulti(sizes:Array<Int>, desc:String):HaxeBaseArray {
+        if (sizes.length == 0) return null;
+	    var size = sizes[0];
+		if (sizes.length == 1) return create(size, desc);
+	    var sizes2 = sizes.slice(1);
+	    var desc2 = desc.substr(1);
+		return HaxeArray.fromArray([for (n in 0 ... size) createMulti(sizes2, desc2)], desc);
+    }
 }

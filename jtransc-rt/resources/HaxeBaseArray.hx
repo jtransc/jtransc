@@ -37,4 +37,8 @@ class HaxeBaseArray extends java_.lang.Object_ {
         //data.sort();
         //throw "HaxeArray.sort not implementeed";
     }
+
+    public function clone():HaxeBaseArray {
+        return cast(clone__Ljava_lang_Object_(), HaxeBaseArray);
+    }
 }

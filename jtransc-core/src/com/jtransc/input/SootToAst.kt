@@ -229,7 +229,9 @@ open class AstMethodProcessor private constructor(
 		is InstanceOfExpr -> AstExpr.INSTANCE_OF(convert(c.op), c.checkType.astType)
 		is NewExpr -> AstExpr.NEW(c.type.astType as AstType.REF)
 		is NewArrayExpr -> AstExpr.NEW_ARRAY(c.baseType.astType, listOf(convert(c.size)))
-		is NewMultiArrayExpr -> AstExpr.NEW_ARRAY(c.baseType.astType, (0 until c.sizeCount).map { convert(c.getSize(it)) })
+		is NewMultiArrayExpr -> {
+			AstExpr.NEW_ARRAY(c.baseType.astType, (0 until c.sizeCount).map { convert(c.getSize(it)) })
+		}
 		is LengthExpr -> AstExpr.ARRAY_LENGTH(convert(c.op))
 		is NegExpr -> AstExpr.UNOP(AstUnop.NEG, convert(c.op))
 		is BinopExpr -> {
@@ -417,8 +419,8 @@ val Type.astType: AstType get() = when (this) {
 	is FloatType -> AstType.FLOAT
 	is DoubleType -> AstType.DOUBLE
 	is LongType -> AstType.LONG
-	is ArrayType -> AstType.ARRAY(baseType.astType, numDimensions)
-	is RefType -> AstType.REF(FqName(className))
+	is ArrayType -> AstType.ARRAY(this.baseType.astType, this.numDimensions)
+	is RefType -> AstType.REF(FqName(this.className))
 	is NullType -> AstType.NULL
 	else -> throw NotImplementedError("toAstType: $this")
 }
