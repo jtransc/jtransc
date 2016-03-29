@@ -43,12 +43,12 @@ public class Throwable implements Serializable {
 
 	public Throwable(String message, Throwable cause) {
 		fillInStackTrace();
-		t_init(message, null, false, false);
+		t_init(message, cause, false, false);
 	}
 
 	public Throwable(Throwable cause) {
 		fillInStackTrace();
-		t_init("Throwable", null, false, false);
+		t_init("Throwable", cause, false, false);
 	}
 
 	protected Throwable(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {

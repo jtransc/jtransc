@@ -59,7 +59,7 @@ public class JTranscSyncIO {
 		@Override
 		@HaxeMethodBody("" +
 			"#if sys return HaxeNatives.str(Sys.getCwd());\n" +
-			"#elseif js return HaxeNatives.str(untyped __js__('process.cwd()'));\n" +
+			"#elseif js return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"\"'));\n" +
 			"#else return HaxeNatives.str('');\n" +
 			"#end"
 		)

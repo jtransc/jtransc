@@ -384,5 +384,13 @@ class HaxeNatives {
 			return item;
 		}
 	#end
+
+	static public function isNode():Bool {
+		#if js
+		return untyped __js__("typeof process != 'undefined'");
+		#else
+		return false;
+		#end
+	}
 }
 
