@@ -816,6 +816,10 @@ class GenHaxeGen(
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("implements")
 			}
 
+			// Additional imports!
+			val imports = clazz.annotations[HaxeImports::value]
+			if (imports != null) for (i in imports) line(i)
+
 			val meta = clazz.annotations[HaxeMeta::value]
 			if (meta != null) line(meta)
 			line(declaration) {

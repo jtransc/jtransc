@@ -155,5 +155,5 @@ public class SecurityManager {
 
 	}
 
-	//public ThreadGroup getThreadGroup() { return Thread.currentThread().getThreadGroup(); }
+	public ThreadGroup getThreadGroup() { return Thread.currentThread().getThreadGroup(); }
 }

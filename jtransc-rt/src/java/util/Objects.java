@@ -68,4 +68,8 @@ public final class Objects {
 	public static boolean isNull(Object obj) {
 		return obj == null;
 	}
+
+	public static boolean nonNull(Object var0) {
+		return var0 != null;
+	}
 }
