@@ -14,9 +14,7 @@ public class CRC32 implements Checksum {
 
 	public void update(byte[] b, int off, int len) {
 		Objects.requireNonNull(b);
-		if (off < 0 || len < 0 || off > b.length - len) {
-			throw new ArrayIndexOutOfBoundsException();
-		}
+		if (off < 0 || len < 0 || off > b.length - len) throw new ArrayIndexOutOfBoundsException();
 		crc = updateBytes(crc, b, off, len);
 	}
 
