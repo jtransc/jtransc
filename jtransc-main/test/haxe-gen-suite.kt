@@ -83,6 +83,7 @@ class HaxeGenSuiteTest {
 	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()
 	@Test fun nioTest() = testClass<JTranscNioTest>()
 	@Test fun arithmeticTest() = testClass<JTranscArithmeticTest>()
+	@Test fun mathTest() = testClass<MathTest>()
 
 	@Test fun processTest() = testClass<ProcessTest>()
 
