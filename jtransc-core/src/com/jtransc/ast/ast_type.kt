@@ -186,6 +186,10 @@ data class FqName(val fqname: String) : Serializable {
 
 	override fun toString() = "$fqname"
 
+	override fun hashCode(): Int = fqname.hashCode()
+
+	override fun equals(that:Any?): Boolean = this.fqname == (that as? FqName)?.fqname
+
 	fun append(s: String): FqName = FqName(this.fqname + s)
 }
 

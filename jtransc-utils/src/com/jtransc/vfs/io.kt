@@ -38,43 +38,44 @@ fun Charset.toString(data: ByteArray) = data.toString(this)
 fun ByteBuffer.length(): Int = this.limit()
 
 fun ByteBuffer.getBytes(): ByteArray {
-    val out = ByteArray(this.length())
-    for (n in 0..out.size - 1) out[n] = this.get(n)
-    return out
+	val out = ByteArray(this.length())
+	for (n in 0 until out.size) out[n] = this.get(n)
+	//this.get(out)
+	return out
 }
 
 fun ByteArray.toBuffer(): ByteBuffer = ByteBuffer.wrap(this)
 
 object ByteBufferUtils {
-    fun copy(from: ByteBuffer, fromOffset: Int, to: ByteBuffer, toOffset: Int, size: Int) {
-        for (n in 0..size - 1) to.put(toOffset + n, from[fromOffset + n])
-    }
+	fun copy(from: ByteBuffer, fromOffset: Int, to: ByteBuffer, toOffset: Int, size: Int) {
+		for (n in 0..size - 1) to.put(toOffset + n, from[fromOffset + n])
+	}
 
-    fun combine(buffers: Iterable<ByteBuffer>): ByteBuffer {
-        val totalLength = buffers.sumBy { it.length() }
-        val out = ByteBuffer.allocateDirect(totalLength)
-        var pos = 0
-        for (buffer in buffers) {
-            copy(buffer, 0, out, pos, buffer.length())
-            pos += buffer.length()
-        }
-        return out
-    }
+	fun combine(buffers: Iterable<ByteBuffer>): ByteBuffer {
+		val totalLength = buffers.sumBy { it.length() }
+		val out = ByteBuffer.allocateDirect(totalLength)
+		var pos = 0
+		for (buffer in buffers) {
+			copy(buffer, 0, out, pos, buffer.length())
+			pos += buffer.length()
+		}
+		return out
+	}
 }
 
 inline fun <T> chdirTemp(path: String, callback: () -> T): T {
-    val old = RawIo.cwd()
-    RawIo.chdir(path)
-    try {
-        return callback();
-    } finally {
-        RawIo.chdir(old)
-    }
+	val old = RawIo.cwd()
+	RawIo.chdir(path)
+	try {
+		return callback();
+	} finally {
+		RawIo.chdir(old)
+	}
 }
 
-data class ProcessResult(val output: ByteBuffer, val error: ByteBuffer, val exitCode: Int) {
-    val outputString: String get() = output.toString(UTF8).trim()
-    val errorString: String get() = error.toString(UTF8).trim()
+data class ProcessResult(val output: ByteArray, val error: ByteArray, val exitCode: Int) {
+	val outputString: String get() = output.toString(UTF8).trim()
+	val errorString: String get() = error.toString(UTF8).trim()
 	val success: Boolean get() = exitCode == 0
 }
 
@@ -93,138 +94,138 @@ class StopExecException() : Exception()
 
 
 object RawIo {
-    private var userDir = System.getProperty("user.dir")
-    //private var userDir = File(".").getCanonicalPath()
+	private var userDir = System.getProperty("user.dir")
+	//private var userDir = File(".").getCanonicalPath()
 
-    fun fileRead(path: String): ByteBuffer {
-        //println("RawIo.fileRead($path)")
-        return ByteBuffer.wrap(File(path).readBytes())
-    }
+	fun fileRead(path: String): ByteArray {
+		//println("RawIo.fileRead($path)")
+		return File(path).readBytes()
+	}
 
-    fun fileWrite(path: String, data: ByteBuffer): Unit {
-        //println("RawIo.fileWrite($path, ${data.length()} bytes)")
-        File(path).writeBytes(data.getBytes())
-    }
+	fun fileWrite(path: String, data: ByteArray): Unit {
+		//println("RawIo.fileWrite($path, ${data.length()} bytes)")
+		File(path).writeBytes(data)
+	}
 
-    fun listdir(path: String): Array<File> {
-        val file = File(path)
-        if (!file.exists()) {
-            throw FileNotFoundException("Can't find $path")
-        }
-        return file.listFiles()
-    }
+	fun listdir(path: String): Array<File> {
+		val file = File(path)
+		if (!file.exists()) {
+			throw FileNotFoundException("Can't find $path")
+		}
+		return file.listFiles()
+	}
 
-    fun fileExists(path: String): Boolean {
-        return File(path).exists()
-    }
+	fun fileExists(path: String): Boolean {
+		return File(path).exists()
+	}
 
-    fun rmdir(path: String): Unit {
-        File(path).delete()
-    }
+	fun rmdir(path: String): Unit {
+		File(path).delete()
+	}
 
-    fun fileRemove(path: String): Unit {
-        File(path).delete()
-    }
+	fun fileRemove(path: String): Unit {
+		File(path).delete()
+	}
 
-    fun fileStat(path: String): File = File(path)
+	fun fileStat(path: String): File = File(path)
 
-    fun setMtime(path: String, time: Date) {
-        File(path).setLastModified(time.time)
-    }
+	fun setMtime(path: String, time: Date) {
+		File(path).setLastModified(time.time)
+	}
 
-    fun cwd(): String = userDir
-    fun script(): String = userDir
-    fun chdir(path: String) {
-        userDir = File(path).canonicalPath
-    }
+	fun cwd(): String = userDir
+	fun script(): String = userDir
+	fun chdir(path: String) {
+		userDir = File(path).canonicalPath
+	}
 
-    fun execOrPassthruSync(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {
-        return if (options.passthru) {
-            passthruSync(path, cmd, args, options.filter)
-        } else {
-            execSync(path, cmd, args)
-        }
-    }
+	fun execOrPassthruSync(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {
+		return if (options.passthru) {
+			passthruSync(path, cmd, args, options.filter)
+		} else {
+			execSync(path, cmd, args)
+		}
+	}
 
-    fun execSync(path: String, cmd: String, args: List<String>): ProcessResult {
-        val ps = ProcessBuilder(listOf(cmd) + args)
-        ps.directory(File(path))
-        ps.redirectErrorStream(false)
+	fun execSync(path: String, cmd: String, args: List<String>): ProcessResult {
+		val ps = ProcessBuilder(listOf(cmd) + args)
+		ps.directory(File(path))
+		ps.redirectErrorStream(false)
 
-        val process = ps.start()
+		val process = ps.start()
 
-        val bw = process.outputStream.writer()
-        bw.write("yes\n")
-        bw.flush()
+		val bw = process.outputStream.writer()
+		bw.write("yes\n")
+		bw.flush()
 
-        val output = process.inputStream.readBytes().toBuffer()
-        val error = process.errorStream.readBytes().toBuffer()
+		val output = process.inputStream.readBytes()
+		val error = process.errorStream.readBytes()
 
-        return ProcessResult(output, error, process.exitValue())
-    }
+		return ProcessResult(output, error, process.exitValue())
+	}
 
-    fun passthruSync(path: String, cmd: String, args: List<String>, filter: ((line: String) -> Boolean)? = null): ProcessResult {
-        val ps = ProcessBuilder(listOf(cmd) + args)
-        ps.directory(File(path))
-        ps.redirectErrorStream(true)
+	fun passthruSync(path: String, cmd: String, args: List<String>, filter: ((line: String) -> Boolean)? = null): ProcessResult {
+		val ps = ProcessBuilder(listOf(cmd) + args)
+		ps.directory(File(path))
+		ps.redirectErrorStream(true)
 
-        val process = ps.start()
+		val process = ps.start()
 
-        val os = BufferedReader(InputStreamReader(process.inputStream))
-        var out = ""
+		val os = BufferedReader(InputStreamReader(process.inputStream))
+		var out = ""
 
-        try {
-            while (true) {
-                val line = os.readLine () ?: break
-	            out += "$line\n"
-                if (filter == null || filter(line)) {
-                    //println("Stdout: $line")
-                    println(line)
-                }
-            }
-        } catch (e: StopExecException) {
-            //Runtime.getRuntime().exec("kill -SIGINT ${(process as UNIXProcess)}");
+		try {
+			while (true) {
+				val line = os.readLine () ?: break
+				out += "$line\n"
+				if (filter == null || filter(line)) {
+					//println("Stdout: $line")
+					println(line)
+				}
+			}
+		} catch (e: StopExecException) {
+			//Runtime.getRuntime().exec("kill -SIGINT ${(process as UNIXProcess)}");
 
-            process.destroy()
-        }
-        return ProcessResult(out.toBuffer(), "".toBuffer(), process.exitValue())
-    }
+			process.destroy()
+		}
+		return ProcessResult(out.toByteArray(), "".toByteArray(), process.exitValue())
+	}
 
-    fun mkdir(path: String) {
-        File(path).mkdir()
-    }
+	fun mkdir(path: String) {
+		File(path).mkdir()
+	}
 }
 
 
 class BufferReader(val buffer: ByteBuffer) {
-    //val rb = buffer.order(ByteOrder.LITTLE_ENDIAN)
-    val rb = buffer.order(ByteOrder.BIG_ENDIAN)
+	//val rb = buffer.order(ByteOrder.LITTLE_ENDIAN)
+	val rb = buffer.order(ByteOrder.BIG_ENDIAN)
 
-    var offset = 0
-    val length: Int get() = buffer.length()
+	var offset = 0
+	val length: Int get() = buffer.length()
 
-    private fun move(count: Int): Int {
-        val out = offset
-        offset += count
-        return out
-    }
+	private fun move(count: Int): Int {
+		val out = offset
+		offset += count
+		return out
+	}
 
-    fun dump() {
-        for (n in 0..31) {
-            println(Integer.toHexString(buffer.get(n).toInt() and 0xFF))
-        }
-    }
+	fun dump() {
+		for (n in 0..31) {
+			println(Integer.toHexString(buffer.get(n).toInt() and 0xFF))
+		}
+	}
 
-    fun f32(): Double = rb.getFloat(move(4)).toDouble()
-    fun i32(): Int = rb.getInt(move(4))
-    fun i16(): Int = rb.getShort(move(2)).toInt()
-    fun i8(): Int = rb.get(move(1)).toInt()
+	fun f32(): Double = rb.getFloat(move(4)).toDouble()
+	fun i32(): Int = rb.getInt(move(4))
+	fun i16(): Int = rb.getShort(move(2)).toInt()
+	fun i8(): Int = rb.get(move(1)).toInt()
 }
 
 fun BufferReader.buffer(len: Int): ByteBuffer {
-    val out = ByteBuffer.allocateDirect(len)
-    for (n in 0..len - 1) out.put(n, this.i8().toByte())
-    return out
+	val out = ByteBuffer.allocateDirect(len)
+	for (n in 0..len - 1) out.put(n, this.i8().toByte())
+	return out
 }
 
 fun BufferReader.strRaw(len: Int): String = buffer(len).toString(UTF8)

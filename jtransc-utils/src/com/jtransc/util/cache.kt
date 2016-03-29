@@ -31,7 +31,7 @@ object PersistentBinaryCache {
 
 	operator fun contains(key: String) = file(key).exists
 	operator fun set(key: String, value: ByteArray) = file(key).write(value)
-	operator fun get(key: String): ByteArray? = file(key).readOrNull()?.array()
+	operator fun get(key: String): ByteArray? = file(key).readOrNull()
 }
 
 class PersistentCache<V> {

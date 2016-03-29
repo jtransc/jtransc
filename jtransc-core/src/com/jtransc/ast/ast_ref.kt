@@ -46,7 +46,6 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	override fun toString() = "AstMethodRef(${containingClass.fqname},$name,${type.desc})"
 }
 
-
 data class AstFieldWithoutClassRef(val name: String, val type: AstType)
 
 data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD_TYPE) {

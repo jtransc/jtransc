@@ -48,13 +48,13 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	val mtime: Date get() = stat().mtime
 	fun setMtime(time: Date) = vfs.setMtime(path, time)
 	fun stat(): SyncVfsStat = vfs.stat(path)
-	fun read(): ByteBuffer = vfs.read(path)
-	fun readBytes(): ByteArray = read().getBytes()
-	fun readOrNull(): ByteBuffer? = if (exists) read() else null
+	fun read(): ByteArray = vfs.read(path)
+	fun readBytes(): ByteArray = read()
+	fun readOrNull(): ByteArray? = if (exists) read() else null
 	inline fun <reified T : Any> readSpecial(): T = readSpecial(T::class.java)
 	fun <T> readSpecial(clazz: Class<T>): T = vfs.readSpecial(clazz, path)
-	fun write(data: ByteBuffer): Unit = vfs.write(path, data)
-	fun write(data: ByteArray): Unit = this.write(data.toBuffer())
+	fun write(data: ByteBuffer): Unit = this.write(data.getBytes())
+	fun write(data: ByteArray): Unit = vfs.write(path, data)
 	fun readString(encoding: Charset = Charsets.UTF_8): String = encoding.toString(vfs.read(path))
 	val exists: Boolean get() = vfs.exists(path)
 	val isDirectory: Boolean get() = stat().isDirectory
@@ -126,7 +126,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	operator fun set(path: String, content: String) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: ToString) = access(path).ensureParentDir().write(content.toString())
 	operator fun set(path: String, content: ByteBuffer) = access(path).ensureParentDir().write(content)
-	operator fun set(path: String, content: ByteArray) = access(path).ensureParentDir().write(content.toBuffer())
+	operator fun set(path: String, content: ByteArray) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: SyncVfsFile) = access(path).ensureParentDir().write(content.readBytes())
 	operator fun contains(path: String): Boolean = access(path).exists
 
@@ -176,7 +176,7 @@ open class SyncVfs {
 	final fun root() = SyncVfsFile(this, "")
 
 	open val absolutePath: String = ""
-	open fun read(path: String): ByteBuffer {
+	open fun read(path: String): ByteArray {
 		throw NotImplementedException()
 	}
 
@@ -184,7 +184,7 @@ open class SyncVfs {
 		throw NotImplementedException()
 	}
 
-	open fun write(path: String, data: ByteBuffer): Unit {
+	open fun write(path: String, data: ByteArray): Unit {
 		throw NotImplementedException()
 	}
 
@@ -222,7 +222,7 @@ open class SyncVfs {
 			val data = read(path)
 			SyncVfsStat(
 				file = file,
-				size = data.length().toLong(),
+				size = data.size.toLong(),
 				mtime = Date(),
 				isDirectory = false,
 				exists = true
@@ -247,24 +247,24 @@ private class _MemoryVfs : SyncVfs() {
 	private val _root = tree.root
 
 	override val absolutePath: String get() = ""
-	override fun read(path: String): ByteBuffer {
+	override fun read(path: String): ByteArray {
 		return _root.access(path).io?.read()!!
 	}
 
-	override fun write(path: String, data: ByteBuffer): Unit {
+	override fun write(path: String, data: ByteArray): Unit {
 		val item = _root.access(path, true)
 		var writtenData = data
 		var writtenTime = Date()
 		item.type = FileNodeType.FILE
 		item.io = object : FileNodeIO {
 			override fun mtime(): Date = writtenTime
-			override fun read(): ByteBuffer = writtenData
-			override fun write(data: ByteBuffer) {
+			override fun read(): ByteArray = writtenData
+			override fun write(data: ByteArray) {
 				writtenTime = Date()
 				writtenData = data
 			}
 
-			override fun size(): Long = writtenData.length().toLong()
+			override fun size(): Long = writtenData.size.toLong()
 
 		}
 	}
@@ -307,8 +307,8 @@ private class _MemoryVfs : SyncVfs() {
 
 private class _LocalVfs : SyncVfs() {
 	override val absolutePath: String get() = ""
-	override fun read(path: String): ByteBuffer = RawIo.fileRead(path)
-	override fun write(path: String, data: ByteBuffer): Unit = RawIo.fileWrite(path, data)
+	override fun read(path: String): ByteArray = RawIo.fileRead(path)
+	override fun write(path: String, data: ByteArray): Unit = RawIo.fileWrite(path, data)
 	override fun listdir(path: String): Iterable<SyncVfsStat> = RawIo.listdir(path).map { it.toSyncStat(this, "$path/${it.name}") }
 	override fun mkdir(path: String): Unit = RawIo.mkdir(path)
 	override fun rmdir(path: String): Unit = RawIo.rmdir(path)
@@ -326,9 +326,9 @@ abstract class ProxySyncVfs : SyncVfs() {
 	open protected fun transformStat(stat: SyncVfsStat): SyncVfsStat = stat
 
 	override val absolutePath: String get() = transform("").realpath
-	override fun read(path: String): ByteBuffer = transform(path).read()
+	override fun read(path: String): ByteArray = transform(path).read()
 	override fun <T> readSpecial(clazz: Class<T>, path: String): T = transform(path).readSpecial(clazz)
-	override fun write(path: String, data: ByteBuffer): Unit = transform(path).write(data)
+	override fun write(path: String, data: ByteArray): Unit = transform(path).write(data)
 	// @TODO: Probably transform SyncVfsStat!
 	override fun listdir(path: String): Iterable<SyncVfsStat> = transform(path).listdir().map { transformStat(it) }
 
@@ -365,7 +365,7 @@ private class AccessSyncVfs(val parent: SyncVfs, val path: String) : ProxySyncVf
 private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
 	override protected fun transform(path: String): SyncVfsFile = SyncVfsFile(parent, path)
 
-	override fun write(path: String, data: ByteBuffer): Unit {
+	override fun write(path: String, data: ByteArray): Unit {
 		println("Writting $parent($path) with ${data.toString(UTF8)}")
 		super.write(path, data)
 	}
@@ -414,7 +414,7 @@ fun GetClassJar(clazz: Class<*>): File {
 fun MemoryVfsBin(vararg files: Pair<String, ByteArray>): SyncVfsFile {
 	val vfs = _MemoryVfs().root()
 	for (file in files) {
-		vfs.access(file.first).ensureParentDir().write(file.second.toBuffer())
+		vfs.access(file.first).ensureParentDir().write(file.second)
 	}
 	return vfs
 }
@@ -465,8 +465,8 @@ open class FileNodeTree {
 enum class FileNodeType { ROOT, DIRECTORY, FILE }
 
 interface FileNodeIO {
-	fun read(): ByteBuffer
-	fun write(data: ByteBuffer): Unit
+	fun read(): ByteArray
+	fun write(data: ByteArray): Unit
 	fun size(): Long
 	fun mtime(): Date
 }
@@ -608,8 +608,8 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 		throw RuntimeException("Can't $act file '$path'")
 	}
 
-	override fun read(path: String): ByteBuffer = op(path, "read") { it[path].read() }
-	override fun write(path: String, data: ByteBuffer) = op(path, "write") { it[path].write(data) }
+	override fun read(path: String): ByteArray = op(path, "read") { it[path].read() }
+	override fun write(path: String, data: ByteArray) = op(path, "write") { it[path].write(data) }
 	override fun <T> readSpecial(clazz: Class<T>, path: String): T = op(path, "readSpecial") { it[path].readSpecial(clazz) }
 	override fun listdir(path: String): Iterable<SyncVfsStat> = op(path, "listdir") { it[path].listdir() }
 	override fun mkdir(path: String) = op(path, "mkdir") { it[path].mkdir() }
@@ -635,8 +635,8 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 
 private class ResourcesSyncVfs(val clazz: Class<*>) : SyncVfs() {
 	val classLoader = clazz.classLoader
-	override fun read(path: String): ByteBuffer {
-		return classLoader.getResourceAsStream(path).readBytes().toBuffer()
+	override fun read(path: String): ByteArray {
+		return classLoader.getResourceAsStream(path).readBytes()
 	}
 }
 
@@ -647,9 +647,9 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 
 	override val absolutePath: String = "#zip#"
 
-	override fun read(path: String): ByteBuffer {
+	override fun read(path: String): ByteArray {
 		val entry = zip.getEntry(path) ?: throw FileNotFoundException(path)
-		return zip.getInputStream(entry).readBytes().toBuffer()
+		return zip.getInputStream(entry).readBytes()
 	}
 
 	class Node(val zip: ZipSyncVfs, val name:String, val parent: Node? = null) {
