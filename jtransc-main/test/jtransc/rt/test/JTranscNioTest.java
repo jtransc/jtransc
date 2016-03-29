@@ -3,9 +3,17 @@ package jtransc.rt.test;
 import jtransc.JTranscBits;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 public class JTranscNioTest {
 	static public void main(String[] args) {
+		test1();
+		test2();
+	}
+
+	static private void test1() {
 		ByteBuffer allocate = ByteBuffer.allocate(16);
 		allocate.put(0, (byte) 4);
 		allocate.put(1, (byte) 63);
@@ -30,5 +38,14 @@ public class JTranscNioTest {
 		System.out.println(allocate.get(2));
 		System.out.println(allocate.get(3));
 		System.out.println(allocate.get(4));
+	}
+
+	static private void test2() {
+		ByteBuffer buffer = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+		buffer.putInt(0, 0x3F800000);
+		FloatBuffer floatBuffer = buffer.asFloatBuffer();
+		IntBuffer intBuffer = buffer.asIntBuffer();
+		System.out.println(floatBuffer.get(0));
+		System.out.println(intBuffer.get(0));
 	}
 }

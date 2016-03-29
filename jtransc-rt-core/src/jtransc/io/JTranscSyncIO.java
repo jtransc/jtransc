@@ -24,6 +24,7 @@ public class JTranscSyncIO {
 				file.open(path, mode);
 				return file;
 			} catch (Throwable e) {
+				e.printStackTrace();
 				throw new FileNotFoundException(path);
 			}
 		}
@@ -59,7 +60,7 @@ public class JTranscSyncIO {
 		@Override
 		@HaxeMethodBody("" +
 			"#if sys return HaxeNatives.str(Sys.getCwd());\n" +
-			"#elseif js return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"\"'));\n" +
+			"#elseif js return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));\n" +
 			"#else return HaxeNatives.str('');\n" +
 			"#end"
 		)

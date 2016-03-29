@@ -163,7 +163,11 @@ class HeapByteBuffer extends ByteBuffer {
 		return this;
 	}
 
-	public native ShortBuffer asShortBuffer();
+	public ShortBuffer asShortBuffer() {
+		int size = this.remaining() >> 1;
+		int off = offset + position();
+		return new ByteBufferAsShortBuffer(bigEndian, this, -1, 0, size, size, off);
+	}
 
 	public int getInt() {
 		return Bits.getInt(this, ix(nextGetIndex(4)), bigEndian);
@@ -183,7 +187,11 @@ class HeapByteBuffer extends ByteBuffer {
 		return this;
 	}
 
-	native public IntBuffer asIntBuffer();
+	public IntBuffer asIntBuffer() {
+		int size = this.remaining() >> 2;
+		int off = offset + position();
+		return new ByteBufferAsIntBuffer(bigEndian, this, -1, 0, size, size, off);
+	}
 
 	public long getLong() {
 		return Bits.getLong(this, ix(nextGetIndex(8)), bigEndian);
@@ -223,7 +231,11 @@ class HeapByteBuffer extends ByteBuffer {
 		return this;
 	}
 
-	native public FloatBuffer asFloatBuffer();
+	public FloatBuffer asFloatBuffer() {
+		int size = this.remaining() >> 2;
+		int off = offset + position();
+		return new ByteBufferAsFloatBuffer(bigEndian, this, -1, 0, size, size, off);
+	}
 
 	public double getDouble() {
 		return Bits.getDouble(this, ix(nextGetIndex(8)), bigEndian);

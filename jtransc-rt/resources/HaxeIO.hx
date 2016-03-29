@@ -5,7 +5,7 @@ class HaxeIO {
 
 class SyncFS {
 	#if js
-	static public var fs:Dynamic = untyped __js__("(typeof require != 'undefined') ? require('fs') : null;");
+	static public var fs:Dynamic = HaxeNatives.isNode() ? untyped __js__("require('fs')") : null;
 	#end
 
 	static public function getLength(path:String):Int64 {
@@ -135,7 +135,7 @@ class SyncStream {
 	#if js
 	private var fd:Dynamic;
 	public var fs:Dynamic = SyncFS.fs;
-	private function createBuffer(arg:Dynamic):Dynamic return untyped __js__("new Buffer(arg)");
+	private function createBuffer(arg:Dynamic):Dynamic return HaxeNatives.isNode() ? untyped __js__("new Buffer(arg)") : null;
 	#end
 
 	#if sys
