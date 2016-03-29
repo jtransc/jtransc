@@ -20,48 +20,47 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStreamReader
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
 import java.util.*
 
-fun String.toBuffer(encoding: Charset = UTF8): ByteBuffer = encoding.toBuffer(this)
-fun ByteBuffer.toString(encoding: Charset): String = encoding.toString(this)
+//fun String.toBuffer(encoding: Charset = UTF8): ByteBuffer = encoding.toBuffer(this)
+//fun ByteBuffer.toString(encoding: Charset): String = encoding.toString(this)
 
-fun Charset.toBuffer(_data: String): ByteBuffer = this.encode(_data)
-fun Charset.toString(data: ByteBuffer): String = this.toString(data.getBytes())
+//fun Charset.toBuffer(_data: String): ByteBuffer = this.encode(_data)
+//fun Charset.toString(data: ByteBuffer): String = this.toString(data.getBytes())
 
 fun Charset.toBytes(data: String) = data.toByteArray(this)
 fun Charset.toString(data: ByteArray) = data.toString(this)
 //fun Charset.toString(data: ByteBuffer):String = data.getBytes().toString(this)
 
-fun ByteBuffer.length(): Int = this.limit()
+//fun ByteBuffer.length(): Int = this.limit()
+//
+//fun ByteBuffer.getBytes(): ByteArray {
+//	val out = ByteArray(this.length())
+//	for (n in 0 until out.size) out[n] = this.get(n)
+//	//this.get(out)
+//	return out
+//}
+//
+//fun ByteArray.toBuffer(): ByteBuffer = ByteBuffer.wrap(this)
 
-fun ByteBuffer.getBytes(): ByteArray {
-	val out = ByteArray(this.length())
-	for (n in 0 until out.size) out[n] = this.get(n)
-	//this.get(out)
-	return out
-}
-
-fun ByteArray.toBuffer(): ByteBuffer = ByteBuffer.wrap(this)
-
-object ByteBufferUtils {
-	fun copy(from: ByteBuffer, fromOffset: Int, to: ByteBuffer, toOffset: Int, size: Int) {
-		for (n in 0..size - 1) to.put(toOffset + n, from[fromOffset + n])
-	}
-
-	fun combine(buffers: Iterable<ByteBuffer>): ByteBuffer {
-		val totalLength = buffers.sumBy { it.length() }
-		val out = ByteBuffer.allocateDirect(totalLength)
-		var pos = 0
-		for (buffer in buffers) {
-			copy(buffer, 0, out, pos, buffer.length())
-			pos += buffer.length()
-		}
-		return out
-	}
-}
+//object ByteBufferUtils {
+//	fun copy(from: ByteBuffer, fromOffset: Int, to: ByteBuffer, toOffset: Int, size: Int) {
+//		for (n in 0..size - 1) to.put(toOffset + n, from[fromOffset + n])
+//	}
+//
+//	fun combine(buffers: Iterable<ByteBuffer>): ByteBuffer {
+//		val totalLength = buffers.sumBy { it.length() }
+//		val out = ByteBuffer.allocateDirect(totalLength)
+//		var pos = 0
+//		for (buffer in buffers) {
+//			copy(buffer, 0, out, pos, buffer.length())
+//			pos += buffer.length()
+//		}
+//		return out
+//	}
+//}
 
 inline fun <T> chdirTemp(path: String, callback: () -> T): T {
 	val old = RawIo.cwd()
@@ -197,47 +196,47 @@ object RawIo {
 }
 
 
-class BufferReader(val buffer: ByteBuffer) {
-	//val rb = buffer.order(ByteOrder.LITTLE_ENDIAN)
-	val rb = buffer.order(ByteOrder.BIG_ENDIAN)
+//class BufferReader(val buffer: ByteBuffer) {
+//	//val rb = buffer.order(ByteOrder.LITTLE_ENDIAN)
+//	val rb = buffer.order(ByteOrder.BIG_ENDIAN)
+//
+//	var offset = 0
+//	val length: Int get() = buffer.length()
+//
+//	private fun move(count: Int): Int {
+//		val out = offset
+//		offset += count
+//		return out
+//	}
+//
+//	fun dump() {
+//		for (n in 0..31) {
+//			println(Integer.toHexString(buffer.get(n).toInt() and 0xFF))
+//		}
+//	}
+//
+//	fun f32(): Double = rb.getFloat(move(4)).toDouble()
+//	fun i32(): Int = rb.getInt(move(4))
+//	fun i16(): Int = rb.getShort(move(2)).toInt()
+//	fun i8(): Int = rb.get(move(1)).toInt()
+//}
 
-	var offset = 0
-	val length: Int get() = buffer.length()
+//fun BufferReader.buffer(len: Int): ByteBuffer {
+//	val out = ByteBuffer.allocateDirect(len)
+//	for (n in 0..len - 1) out.put(n, this.i8().toByte())
+//	return out
+//}
 
-	private fun move(count: Int): Int {
-		val out = offset
-		offset += count
-		return out
-	}
+//fun BufferReader.strRaw(len: Int): String = buffer(len).toString(UTF8)
+//fun BufferReader.u32(): Int = i32() // 31 bit
+//fun BufferReader.u16(): Int = i16() and 0xFFFF
+//fun BufferReader.u8(): Int = i8() and 0xFF
+//
+//fun BufferReader.fs8() = u8().toDouble() / 255.0
+//fun BufferReader.rgba8(): Int = i32()
+//fun BufferReader.quality(): Int = u8()
+//fun BufferReader.str(): String = strRaw(u16())
+//fun BufferReader.bool(): Boolean = u8() != 0
+//fun BufferReader.boolInt(): Int = if (u8() != 0) 1 else 0
 
-	fun dump() {
-		for (n in 0..31) {
-			println(Integer.toHexString(buffer.get(n).toInt() and 0xFF))
-		}
-	}
-
-	fun f32(): Double = rb.getFloat(move(4)).toDouble()
-	fun i32(): Int = rb.getInt(move(4))
-	fun i16(): Int = rb.getShort(move(2)).toInt()
-	fun i8(): Int = rb.get(move(1)).toInt()
-}
-
-fun BufferReader.buffer(len: Int): ByteBuffer {
-	val out = ByteBuffer.allocateDirect(len)
-	for (n in 0..len - 1) out.put(n, this.i8().toByte())
-	return out
-}
-
-fun BufferReader.strRaw(len: Int): String = buffer(len).toString(UTF8)
-fun BufferReader.u32(): Int = i32() // 31 bit
-fun BufferReader.u16(): Int = i16() and 0xFFFF
-fun BufferReader.u8(): Int = i8() and 0xFF
-
-fun BufferReader.fs8() = u8().toDouble() / 255.0
-fun BufferReader.rgba8(): Int = i32()
-fun BufferReader.quality(): Int = u8()
-fun BufferReader.str(): String = strRaw(u16())
-fun BufferReader.bool(): Boolean = u8() != 0
-fun BufferReader.boolInt(): Int = if (u8() != 0) 1 else 0
-
-fun ByteBuffer.reader(): BufferReader = BufferReader(this)
+//fun ByteBuffer.reader(): BufferReader = BufferReader(this)

@@ -167,7 +167,7 @@ data class FqName(val fqname: String) : Serializable {
 			val f = fqname.first()
 			//if (!f.isLetterOrUnderscore()) {
 			if ((f == '(') || (f == '[') || ('/' in fqname)) {
-				throw InvalidOperationException("Invalid classname '$fqname'")
+				invalidOp("Invalid classname '$fqname'")
 			}
 		}
 	}

@@ -20,14 +20,11 @@ import com.jtransc.env.OS
 import com.jtransc.error.InvalidArgumentException
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.NotImplementedException
-import com.jtransc.error.noImpl
-import com.jtransc.lang.getResourceAsString
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.*
 import java.util.zip.ZipEntry
@@ -53,7 +50,6 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	fun readOrNull(): ByteArray? = if (exists) read() else null
 	inline fun <reified T : Any> readSpecial(): T = readSpecial(T::class.java)
 	fun <T> readSpecial(clazz: Class<T>): T = vfs.readSpecial(clazz, path)
-	fun write(data: ByteBuffer): Unit = this.write(data.getBytes())
 	fun write(data: ByteArray): Unit = vfs.write(path, data)
 	fun readString(encoding: Charset = Charsets.UTF_8): String = encoding.toString(vfs.read(path))
 	val exists: Boolean get() = vfs.exists(path)
@@ -125,7 +121,6 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	operator fun get(path: String): SyncVfsFile = access(path)
 	operator fun set(path: String, content: String) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: ToString) = access(path).ensureParentDir().write(content.toString())
-	operator fun set(path: String, content: ByteBuffer) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: ByteArray) = access(path).ensureParentDir().write(content)
 	operator fun set(path: String, content: SyncVfsFile) = access(path).ensureParentDir().write(content.readBytes())
 	operator fun contains(path: String): Boolean = access(path).exists
@@ -137,7 +132,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
 	fun write(data: String, encoding: Charset = UTF8): SyncVfsFile = writeString(data, encoding)
 
 	fun writeString(data: String, encoding: Charset = UTF8): SyncVfsFile {
-		write(data.toBuffer(encoding))
+		write(data.toByteArray(encoding))
 		return this
 	}
 
@@ -377,11 +372,13 @@ fun MergedLocalAndJars(paths: List<String>) = MergeVfs(LocalAndJars(paths))
 fun LocalAndJars(paths: List<String>): List<SyncVfsFile> {
 	return paths.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(File(it)) }
 }
+
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
 fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
 fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = _LocalVfs().root().access(path).jail()
+
 fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
 fun CwdVfs(): SyncVfsFile = LocalVfs(RawIo.cwd())
 fun CwdVfs(path: String): SyncVfsFile = CwdVfs().jailAccess(path)
@@ -481,7 +478,7 @@ interface IUserData {
 	operator fun <T : Any> set(key: UserKey<T>, value: T)
 }
 
-fun <T : Any> IUserData.getCached(key: UserKey<T>, builder: () -> T):T {
+fun <T : Any> IUserData.getCached(key: UserKey<T>, builder: () -> T): T {
 	if (key !in this) this[key] = builder()
 	return this[key]!!
 }
@@ -652,12 +649,12 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 		return zip.getInputStream(entry).readBytes()
 	}
 
-	class Node(val zip: ZipSyncVfs, val name:String, val parent: Node? = null) {
-		val path:String = (if (parent != null) "${parent.path}/$name" else name).trim('/')
-		var entry:ZipEntry? = null
-		val root:Node = parent?.root ?: this
+	class Node(val zip: ZipSyncVfs, val name: String, val parent: Node? = null) {
+		val path: String = (if (parent != null) "${parent.path}/$name" else name).trim('/')
+		var entry: ZipEntry? = null
+		val root: Node = parent?.root ?: this
 
-		val stat:SyncVfsStat by lazy {
+		val stat: SyncVfsStat by lazy {
 			SyncVfsStat(
 				file = SyncVfsFile(zip, path),
 				size = entry?.size ?: 0,
