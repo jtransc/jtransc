@@ -60,6 +60,7 @@ val HaxeFeatures = setOf(SwitchesFeature)
 
 val HaxeKeywords = setOf(
 	"java",
+	"unix",
 	"package",
 	"import",
 	"class", "interface", "extends", "implements",

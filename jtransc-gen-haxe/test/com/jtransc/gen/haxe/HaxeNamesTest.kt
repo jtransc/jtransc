@@ -18,11 +18,14 @@ class HaxeNamesTest {
 		Assert.assertEquals("java_/uppercasePackage/LowercaseClass_.hx", names.getHaxeFilePath(FqName("java.UppercasePackage.lowercaseClass")))
 	}
 
+	inline private fun testFieldName(name:String, expected:String) = Assert.assertEquals(
+		expected,
+		names.getHaxeFieldName(AstFieldRef(FqName("com.test"), name, AstType.INT))
+	)
+
 	@Test
 	fun testFieldName() {
-		Assert.assertEquals(
-			"catch_",
-			names.getHaxeFieldName(AstFieldRef(FqName("com.test"), "catch", AstType.INT))
-		)
+		testFieldName("catch", "catch_");
+		testFieldName("unix", "unix_"); // @TODO: Bug. HXCPP is not prefixing fields, so any #define will fail.
 	}
 }
