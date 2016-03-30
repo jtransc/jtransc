@@ -7,6 +7,14 @@ public class JTranscCollectionsTest {
 		testArrayList();
 		testHashSet();
 		testArrays();
+		testShuffle();
+	}
+
+	static private void testShuffle() {
+		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6);
+		System.out.println(list);
+		Collections.shuffle(list, new Random(0L));
+		System.out.println(list);
 	}
 
 	static public void testArrayList() {

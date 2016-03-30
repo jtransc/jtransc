@@ -18,6 +18,8 @@ package java.util;
 
 import jtransc.internal.JTranscSorter;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Collections {
 	private Collections() {
 	}
@@ -48,9 +50,18 @@ public class Collections {
 		}
 	}
 
-	native public static void shuffle(List<?> list);
+	public static <T> void shuffle(List<T> list) {
+		shuffle(list, ThreadLocalRandom.current());
+	}
 
-	native public static void shuffle(List<?> list, Random rnd);
+	public static <T> void shuffle(List<T> list, Random rnd) {
+		for (int i = list.size() - 1; i > 0; i--) {
+			int index = rnd.nextInt(i + 1);
+			T a = list.get(index);
+			list.set(index, list.get(i));
+			list.set(i, a);
+		}
+	}
 
 	public static void swap(List<?> list, int i, int j) {
 		final List l = list;
