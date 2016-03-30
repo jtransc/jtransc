@@ -58,7 +58,7 @@ class SootToAst : AstClassGenerator {
 		isStatic = method.isStatic,
 		visibility = method.astVisibility,
 		isNative = method.isNative,
-		body = if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null
+		generateBody = { if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null }
 	)
 
 	fun generateField(containingClass: AstClass, field: SootField) = AstField(

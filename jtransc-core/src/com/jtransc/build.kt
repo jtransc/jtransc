@@ -188,7 +188,7 @@ class AllBuild(
 		annotations = listOf(),
 		name = name,
 		type = methodType,
-		body = null,
+		generateBody = { null },
 		signature = methodType.mangle(),
 		genericSignature = methodType.mangle(),
 		defaultTag = null,

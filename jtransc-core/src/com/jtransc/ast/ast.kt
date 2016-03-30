@@ -440,12 +440,13 @@ class AstMethod(
 	val genericSignature: String?,
 	val defaultTag: Any?,
 	val modifiers: Int,
-	val body: AstBody? = null,
+	val generateBody: () -> AstBody?,
 	isStatic: Boolean = false,
 	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val isNative: Boolean = false
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, isStatic, visibility, annotations) {
+	val body: AstBody? by lazy { generateBody() }
 
 	val methodType: AstType.METHOD_TYPE = type
 	val genericMethodType: AstType.METHOD_TYPE = genericType as AstType.METHOD_TYPE
@@ -471,19 +472,18 @@ class AstMethod(
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
 
-fun AstMethodRef.toEmptyMethod(program: AstProgram, isStatic: Boolean = false, visibility: AstVisibility = AstVisibility.PUBLIC): AstMethod {
-	return AstMethod(
-		program[this.containingClass],
-		this.name,
-		this.type,
-		annotations = listOf(),
-		defaultTag = null,
-		signature = "()V",
-		genericSignature = null,
-		modifiers = 0,
-		body = null,
-		isStatic = isStatic,
-		visibility = AstVisibility.PUBLIC
-	)
-}
+fun AstMethodRef.toEmptyMethod(program: AstProgram, isStatic: Boolean = false, visibility: AstVisibility = AstVisibility.PUBLIC) = AstMethod(
+	program[this.containingClass],
+	this.name,
+	this.type,
+	annotations = listOf(),
+	defaultTag = null,
+	signature = "()V",
+	genericSignature = null,
+	modifiers = 0,
+	generateBody = { null },
+	isStatic = isStatic,
+	visibility = AstVisibility.PUBLIC
+)
+
 

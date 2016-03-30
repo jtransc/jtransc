@@ -140,11 +140,11 @@ class GenHaxeGen(
 						is AstAnnotation -> annotation(it)
 						is Pair<*, *> -> escapeValue(it.second)
 						is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
-						is String -> "HaxeNatives.str(${it.quote()})"
-						is Int -> "HaxeNatives.int($it)"
-						is Long -> "HaxeNatives.long($it)"
-						is Float -> "HaxeNatives.float($it)"
-						is Double -> "HaxeNatives.double($it)"
+						is String -> "HaxeNatives.boxString(${it.quote()})"
+						is Int -> "HaxeNatives.boxInt($it)"
+						is Long -> "HaxeNatives.boxLong($it)"
+						is Float -> "HaxeNatives.boxFloat($it)"
+						is Double -> "HaxeNatives.boxDouble($it)"
 						is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
 						else -> throw InvalidOperationException("Can't handle value ${it.javaClass.name} : $it")
 					}
@@ -244,79 +244,23 @@ class GenHaxeGen(
 						line(annotationsInit(clazz.runtimeAnnotations))
 						val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
 						val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
-						line("info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+						line("HaxeReflect.info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
 						for ((slot, field) in clazz.fields.withIndex()) {
 							val internalName = field.haxeName
-							line("field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
+							line("HaxeReflect.field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
 						}
 						for ((slot, method) in clazz.methods.withIndex()) {
 							val internalName = method.haxeName
 							if (method.name == "<init>") {
-								line("constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
+								line("HaxeReflect.constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
 							} else if (method.name == "<clinit>") {
 							} else {
 								val methodId = program.getMethodId(method.ref)
-								line("method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
+								line("HaxeReflect.method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
 							}
 						}
 						line("return true;")
 					}
-				}
-				line("static public function getJavaClass(str:String)") {
-					line("return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(str));")
-				}
-				line("static private function info(c:java_.lang.Class_, haxeClass:Class<Dynamic>, proxyClass:Class<Dynamic>, ffiClass:Class<Dynamic>, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>)") {
-					//line("c._hxClass = Type.resolveClass(internalName);");
-					//line("c._internalName = internalName;")
-					line("c._hxClass = haxeClass;");
-					line("c._hxProxyClass = proxyClass;");
-					line("c._hxFfiClass = ffiClass;");
-					line("c._internalName = Type.getClassName(haxeClass);")
-					line("c._parent = parent;")
-					line("c._interfaces = interfaces;")
-					line("c._modifiers = modifiers;")
-					line("c._fields = [];")
-					line("c._methods = [];")
-					line("c._constructors = [];")
-					line("c._annotations = annotations;")
-					line("var initMethod = Reflect.field(haxeClass, '__hx_static__init__'); if (initMethod != null) Reflect.callMethod(haxeClass, initMethod, []);")
-				}
-				line("static private function field(c:java_.lang.Class_, internalName:String, slot:Int, name:String, type:String, modifiers:Int, genericDescriptor:String, annotations:Array<Dynamic>)") {
-					line("var out = new java_.lang.reflect.Field_();")
-					line("out.clazz = c;")
-					line("out.name = HaxeNatives.str(name);")
-					line("out._internalName = name;")
-					//line("out.type = getJavaClass(type);")
-					line("out.modifiers = modifiers;")
-					line("out.signature = HaxeNatives.str(type);")
-					line("out.genericSignature = HaxeNatives.str(genericDescriptor);")
-					line("out.slot = slot;")
-					line("out._annotations = annotations;")
-					line("c._fields.push(out);")
-				}
-				line("static private function method(c:java_.lang.Class_, id:Int, internalName:String, slot:Int, name:String, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>)") {
-					line("var out = new java_.lang.reflect.Method_();")
-					line("out._internalName = internalName;")
-					line("out.clazz = c;")
-					line("out.id = id;")
-					line("out.name = HaxeNatives.str(name);")
-					line("out.signature = HaxeNatives.str(signature);")
-					line("out.genericSignature = HaxeNatives.str(genericDescriptor);")
-					line("out.slot = slot;")
-					line("out.modifiers = modifiers;")
-					line("out._annotations = annotations;")
-					line("c._methods.push(out);")
-				}
-				line("static private function constructor(c:java_.lang.Class_, internalName:String, slot:Int, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>)") {
-					line("var out = new java_.lang.reflect.Constructor_();")
-					line("out._internalName = internalName;")
-					line("out.clazz = c;")
-					line("out.slot = slot;")
-					line("out.modifiers = modifiers;")
-					line("out.signature = HaxeNatives.str(signature);")
-					line("out.genericSignature = HaxeNatives.str(genericDescriptor);")
-					line("out._annotations = annotations;")
-					line("c._constructors.push(out);")
 				}
 			}
 			line(annotationProxyTypes)
@@ -885,7 +829,7 @@ class GenHaxeGen(
 
 				if (clazz.hasFFI) {
 					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName} implements HaxeFfiLibrary") {
-						val methods = clazz.allMethodsToImplement.map {clazz.getMethodInAncestorsAndInterfaces(it)!! }
+						val methods = clazz.allMethodsToImplement.map { clazz.getMethodInAncestorsAndInterfaces(it)!! }
 						line("private var __ffi_lib:haxe.Int64 = 0;")
 						for (method in methods) {
 							line("private var __ffi_${method.name}:haxe.Int64 = 0;")
@@ -907,17 +851,18 @@ class GenHaxeGen(
 							line("#end")
 						}
 
-						fun AstType.castToHaxe():String {
+						fun AstType.castToHaxe(): String {
 							return when (this) {
 								AstType.VOID -> ""
 								AstType.BOOL -> "(bool)"
 								AstType.INT -> "(int)"
 								AstType.LONG -> "(int)" // @TODO!
-								//AstType.STRING -> "char*"
+							//AstType.STRING -> "char*"
 								else -> "(void*)"
 							}
 						}
-						fun AstType.nativeType():String {
+
+						fun AstType.nativeType(): String {
 							return when (this) {
 								AstType.VOID -> "void"
 								AstType.BOOL -> "bool"
@@ -927,16 +872,19 @@ class GenHaxeGen(
 								else -> "void*"
 							}
 						}
-						fun AstType.castToNative():String {
+
+						fun AstType.castToNative(): String {
 							return "(${this.nativeType()})"
 						}
-						fun AstType.castToNativeHx(str:String):String {
+
+						fun AstType.castToNativeHx(str: String): String {
 							return when (this) {
 								AstType.STRING -> "cpp.NativeString.c_str(($str)._str)"
 								else -> return str
 							}
 						}
-						fun AstType.METHOD_TYPE.toCast(stdCall:Boolean):String {
+
+						fun AstType.METHOD_TYPE.toCast(stdCall: Boolean): String {
 							val argTypes = this.args.map { it.type.nativeType() }
 							val typeInfix = if (stdCall) "__stdcall " else " "
 							return "(${this.ret.nativeType()} (${typeInfix}*)(${argTypes.joinToString(", ")}))(void *)(size_t)"
