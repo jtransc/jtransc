@@ -2,10 +2,7 @@ package jtransc.rt.test;
 
 import jtransc.JTranscBits;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 
 public class JTranscNioTest {
 	static public void main(String[] args) {
@@ -45,7 +42,10 @@ public class JTranscNioTest {
 		buffer.putInt(0, 0x3F800000);
 		FloatBuffer floatBuffer = buffer.asFloatBuffer();
 		IntBuffer intBuffer = buffer.asIntBuffer();
+		ShortBuffer shortBuffer = buffer.asShortBuffer();
 		System.out.println(floatBuffer.get(0));
 		System.out.println(intBuffer.get(0));
+		System.out.println(shortBuffer.get(0));
+		System.out.println(shortBuffer.get(1));
 	}
 }

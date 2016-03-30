@@ -75,11 +75,11 @@ class ByteBufferAsIntBuffer extends IntBuffer {
 	}
 
 	public int get() {
-		return Bits.getIntB(bb, ix(nextGetIndex()));
+		return Bits.getInt(bb, ix(nextGetIndex()), bigEndian);
 	}
 
 	public int get(int i) {
-		return Bits.getIntB(bb, ix(checkIndex(i)));
+		return Bits.getInt(bb, ix(checkIndex(i)), bigEndian);
 	}
 
 	public IntBuffer put(int x) {

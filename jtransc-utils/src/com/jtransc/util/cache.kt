@@ -23,7 +23,7 @@ import java.io.File
 
 object PersistentBinaryCache {
 	val tempFolder by lazy { System.getProperty("java.io.tmpdir") }
-	private val tempVfs by lazy { LocalVfs(tempFolder) }
+	private val tempVfs by lazy { LocalVfs(File(tempFolder)) }
 	private fun file(key:String):SyncVfsFile {
 		val basename = File(key).name
 		return tempVfs["$basename.cache"]
