@@ -40,6 +40,7 @@ public class SimpleDateFormat extends DateFormat {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
 		for (String p : patternChunks) {
 			String value = null;
@@ -84,6 +85,7 @@ public class SimpleDateFormat extends DateFormat {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public Date parse(String source, ParsePosition pos) {
 		int[] fields = new int[Calendar.FIELD_COUNT];
 

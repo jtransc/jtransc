@@ -1,7 +1,5 @@
 package java.util.concurrent;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.Iterator;
@@ -15,7 +13,6 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
 		return queue.iterator();
 	}
 
-	@NotNull
 	@Override
 	public Iterator<E> descendingIterator() {
 		return queue.descendingIterator();

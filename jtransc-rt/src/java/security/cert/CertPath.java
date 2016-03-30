@@ -18,10 +18,6 @@ public abstract class CertPath implements Serializable {
 
 	public abstract Iterator<String> getEncodings();
 
-	public String toString() {
-		return "CertPath";
-	}
-
 	public abstract byte[] getEncoded() throws CertificateEncodingException;
 
 	public abstract byte[] getEncoded(String encoding) throws CertificateEncodingException;

@@ -25,14 +25,4 @@ public abstract class Permission implements Guard, java.io.Serializable {
 	public PermissionCollection newPermissionCollection() {
 		return null;
 	}
-
-	public String toString() {
-		String actions = getActions();
-		if ((actions == null) || (actions.length() == 0)) { // OPTIONAL
-			return "(\"" + getClass().getName() + "\" \"" + name + "\")";
-		} else {
-			return "(\"" + getClass().getName() + "\" \"" + name +
-				"\" \"" + actions + "\")";
-		}
-	}
 }

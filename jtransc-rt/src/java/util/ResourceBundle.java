@@ -40,8 +40,6 @@
 
 package java.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 
 public abstract class ResourceBundle {
@@ -77,7 +75,6 @@ public abstract class ResourceBundle {
 				return key;
 			}
 
-			@NotNull
 			@Override
 			public Enumeration<String> getKeys() {
 				return null;

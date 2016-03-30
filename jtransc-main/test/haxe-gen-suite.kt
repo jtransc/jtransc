@@ -33,6 +33,7 @@ import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
+import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.rt.test.*
@@ -119,6 +120,7 @@ class HaxeGenSuiteTest {
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
 
 	@Test fun java8Test() = testClass<Java8Test>()
+	//@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>()
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 

@@ -7,16 +7,14 @@ import java.util.Date;
 public final class Timestamp implements Serializable {
 	private Date timestamp;
 	private CertPath signerCertPath;
-	private transient int myhash = -1;
 
 	public Timestamp(Date timestamp, CertPath signerCertPath) {
-		if (timestamp == null || signerCertPath == null) throw new NullPointerException();
-		this.timestamp = new Date(timestamp.getTime()); // clone
+		this.timestamp = new Date(timestamp.getTime());
 		this.signerCertPath = signerCertPath;
 	}
 
 	public Date getTimestamp() {
-		return new Date(timestamp.getTime()); // clone
+		return new Date(timestamp.getTime());
 	}
 
 	public CertPath getSignerCertPath() {
@@ -24,8 +22,7 @@ public final class Timestamp implements Serializable {
 	}
 
 	public int hashCode() {
-		if (myhash == -1) myhash = timestamp.hashCode() + signerCertPath.hashCode();
-		return myhash;
+		return timestamp.hashCode() + signerCertPath.hashCode();
 	}
 
 	public boolean equals(Object obj) {
@@ -33,9 +30,5 @@ public final class Timestamp implements Serializable {
 		Timestamp that = (Timestamp) obj;
 		if (this == that) return true;
 		return (timestamp.equals(that.getTimestamp()) && signerCertPath.equals(that.getSignerCertPath()));
-	}
-
-	public String toString() {
-		return "Timestamp";
 	}
 }
