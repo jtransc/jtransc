@@ -19,6 +19,7 @@
 /jtransc-libgdx/target
 /jtransc-ast/target
 /jtransc-gen/target
+/jtransc-debugger/target
 /jtransc-gen-as3/target
 /jtransc-gen-haxe/target
 /jtransc-main/target
