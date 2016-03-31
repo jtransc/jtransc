@@ -126,8 +126,7 @@ public abstract class IntBuffer extends Buffer implements Comparable<IntBuffer> 
 	}
 
 	public int hashCode() {
-		int h = 1;
-		int p = position();
+		int h = 1, p = position();
 		for (int i = limit() - 1; i >= p; i--) h = 31 * h + get(i);
 		return h;
 	}
@@ -135,13 +134,7 @@ public abstract class IntBuffer extends Buffer implements Comparable<IntBuffer> 
 	public boolean equals(Object ob) {
 		if (this == ob) return true;
 		if (!(ob instanceof IntBuffer)) return false;
-		IntBuffer that = (IntBuffer) ob;
-		if (this.remaining() != that.remaining()) return false;
-		int p = this.position();
-		for (int i = this.limit() - 1, j = that.limit() - 1; i >= p; i--, j--) {
-			if (this.get(i) != that.get(j)) return false;
-		}
-		return true;
+		return compareTo((IntBuffer) ob) == 0;
 	}
 
 	public int compareTo(IntBuffer that) {

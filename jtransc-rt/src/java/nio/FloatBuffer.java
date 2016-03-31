@@ -59,7 +59,9 @@ public abstract class FloatBuffer extends Buffer implements Comparable<FloatBuff
 
 	public abstract FloatBuffer asReadOnlyBuffer();
 
-	public abstract float get();
+	public float get() {
+		return get(nextGetIndex());
+	}
 
 	public abstract FloatBuffer put(float f);
 

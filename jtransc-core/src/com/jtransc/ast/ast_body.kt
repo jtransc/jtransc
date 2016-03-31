@@ -173,8 +173,8 @@ interface AstExpr : AstElement {
 		override val type = target
 	}
 
-	data class NEW_ARRAY(val element: AstType, val counts: List<AstExpr>) : AstExpr {
-		override val type = AstType.ARRAY(element, counts.size)
+	data class NEW_ARRAY(val arrayType: AstType.ARRAY, val counts: List<AstExpr>) : AstExpr {
+		override val type = arrayType
 	}
 
 	data class METHOD_CLASS(

@@ -500,7 +500,7 @@ class GenHaxeGen(
 						}
 					}
 					else -> {
-						"HaxeArray.createMulti([${e.counts.map { it.gen() }.joinToString(", ")}], \"$desc\")"
+						"HaxeArray.createMultiSure([${e.counts.map { it.gen() }.joinToString(", ")}], \"$desc\")"
 					}
 				}
 			}

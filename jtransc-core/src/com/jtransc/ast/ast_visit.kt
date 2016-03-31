@@ -304,7 +304,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(expr: AstExpr.NEW_ARRAY) {
-		visit(expr.element)
+		visit(expr.arrayType)
 		visitExprs(expr.counts)
 	}
 }

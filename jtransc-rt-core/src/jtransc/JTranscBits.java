@@ -16,6 +16,7 @@
 
 package jtransc;
 
+import jtransc.annotation.JTranscInline;
 import jtransc.annotation.JTranscInvisible;
 
 @JTranscInvisible
@@ -94,6 +95,27 @@ public class JTranscBits {
 	}
 
 	public static byte long0(long x) {
+		return (byte) (x >> 0);
+	}
+
+
+	@JTranscInline
+	public static byte int3(int x) {
+		return (byte) (x >> 24);
+	}
+
+	@JTranscInline
+	public static byte int2(int x) {
+		return (byte) (x >> 16);
+	}
+
+	@JTranscInline
+	public static byte int1(int x) {
+		return (byte) (x >> 8);
+	}
+
+	@JTranscInline
+	public static byte int0(int x) {
 		return (byte) (x >> 0);
 	}
 

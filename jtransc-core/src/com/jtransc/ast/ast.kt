@@ -34,6 +34,7 @@ data class AstBuildSettings(
 	var version: String = "0.0.0",
 	var company: String = "My Company",
 	var package_: String = "",
+	var embedResources: Boolean = false,
 	var libraries: List<AstBuildSettings.Library> = listOf(),
 	var assets: List<File> = listOf(),
 	var debug: Boolean = true,

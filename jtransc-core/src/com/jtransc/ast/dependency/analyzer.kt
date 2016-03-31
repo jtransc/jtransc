@@ -41,7 +41,7 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.NEW_ARRAY -> {
 					for (c in expr.counts) ana(c)
-					ana(expr.element)
+					ana(expr.arrayType)
 				}
 				is AstExpr.ARRAY_ACCESS -> {
 					ana(expr.type)

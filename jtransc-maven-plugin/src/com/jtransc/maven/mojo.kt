@@ -63,6 +63,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "resizable", defaultValue = "true") @JvmField var resizable: Boolean = true
 	@Parameter(property = "vsync", defaultValue = "true") @JvmField var vsync: Boolean = true
 	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
+	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -122,6 +123,7 @@ class JTranscMojo : AbstractMojo() {
 			assets = assets.map { it.absoluteFile },
 			company = company,
 			package_ = package_,
+			embedResources = embedResources,
 			libraries = libraries.map { AstBuildSettings.Library.fromInfo(it) },
 			debug = !release,
 			initialWidth = initialWidth,

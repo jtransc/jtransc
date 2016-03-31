@@ -70,4 +70,9 @@ class HaxeArray extends HaxeBaseArray {
 	    var desc2 = desc.substr(1);
 		return HaxeArray.fromArray([for (n in 0 ... size) createMulti(sizes2, desc2)], desc);
     }
+
+    static public function createMultiSure(sizes:Array<Int>, desc:String):HaxeArray {
+    	if (sizes.length < 2) throw 'Invalid multidimensional array';
+    	return cast(createMulti(sizes, desc), HaxeArray);
+    }
 }

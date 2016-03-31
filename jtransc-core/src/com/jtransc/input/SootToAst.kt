@@ -228,9 +228,11 @@ open class AstMethodProcessor private constructor(
 		is CastExpr -> AstExpr.CAST(convert(c.op), c.castType.astType)
 		is InstanceOfExpr -> AstExpr.INSTANCE_OF(convert(c.op), c.checkType.astType)
 		is NewExpr -> AstExpr.NEW(c.type.astType as AstType.REF)
-		is NewArrayExpr -> AstExpr.NEW_ARRAY(c.baseType.astType, listOf(convert(c.size)))
+		is NewArrayExpr -> {
+			AstExpr.NEW_ARRAY(AstType.ARRAY(c.baseType.astType, 1), listOf(convert(c.size)))
+		}
 		is NewMultiArrayExpr -> {
-			AstExpr.NEW_ARRAY(c.baseType.astType, (0 until c.sizeCount).map { convert(c.getSize(it)) })
+			AstExpr.NEW_ARRAY(c.baseType.astType as AstType.ARRAY, (0 until c.sizeCount).map { convert(c.getSize(it)) })
 		}
 		is LengthExpr -> AstExpr.ARRAY_LENGTH(convert(c.op))
 		is NegExpr -> AstExpr.UNOP(AstUnop.NEG, convert(c.op))
