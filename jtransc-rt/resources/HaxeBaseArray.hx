@@ -3,7 +3,8 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	public var desc:String;
 
 	override public function toString__Ljava_lang_String_():java_.lang.String_ {
-	    return HaxeNatives.str("HaxeBaseArray");
+		var className = Type.getClassName(Type.getClass(this));
+	    return HaxeNatives.str('$className($length, $desc)');
 	}
 
     public function toArray():Array<Dynamic> {
