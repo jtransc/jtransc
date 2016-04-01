@@ -21,10 +21,16 @@ class OutOfBoundsException(index: Int = -1, str: String = "Out Of Bounds") : Exc
 class KeyNotFoundException(str: String = "Key Not Found") : Exception(str)
 class NotImplementedException(str: String = "Not Implemented") : Exception(str)
 class InvalidArgumentException(str: String = "Invalid Argument") : Exception(str)
+class MustValidateCodeException(str: String = "Must Validate Code") : Exception(str)
 class MustOverrideException(str: String = "Must Override") : Exception(str)
+class DeprecatedException(str: String = "Deprecated") : Exception(str)
 
+val deprecated: Nothing get() = throw MustValidateCodeException()
+val mustValidate: Nothing get() = throw NotImplementedException()
 val noImpl: Nothing get() = throw NotImplementedException()
 val invalidOp: Nothing get() = throw InvalidOperationException()
 
+fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
+fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
 fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
 fun invalidOp(msg:String): Nothing { throw InvalidOperationException(msg) }

@@ -101,8 +101,6 @@ object AstDependencyAnalyzer {
 			when (stm) {
 				is AstStm.STMS -> for (s in stm.stms) ana(s)
 				is AstStm.STM_EXPR -> ana(stm.expr)
-				is AstStm.GOTO -> {
-				}
 				is AstStm.CONTINUE -> {
 				}
 				is AstStm.BREAK -> {

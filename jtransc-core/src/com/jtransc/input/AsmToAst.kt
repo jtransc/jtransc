@@ -14,6 +14,11 @@ import org.objectweb.asm.tree.MethodNode
 import java.io.File
 import java.io.IOException
 
+fun AnnotationNode.toAst():AstAnnotation {
+	val ref = AstType.demangle(this.desc) as AstType.REF
+	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
+}
+
 /*
 object AsmToAst {
 	fun createProgramAst(dependencies: List<String>, entryPoint: String, classPaths2: List<String>, localVfs: SyncVfsFile, refs: Set<AstRef>): AstProgram {
@@ -52,11 +57,9 @@ class AstClassBuilder(val program: AstProgramBuilder, val bytes: ByteArray) {
 
 	val clazz = AstClass(
 		name = FqName(classNode.name),
-		implCode = null,
 		modifiers = classNode.access,
 		annotations = classNode.visibleAnnotations.filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) },
 		//methods = classNode.methods.filterIsInstance<MethodNode>().map { AstMethodBuilder(it).method }
-		methods = noImpl
 	)
 }
 
@@ -122,9 +125,6 @@ class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
 		throw ClassNotFoundException(clazz.fqname)
 	}
 }
-	*/
 
-fun AnnotationNode.toAst():AstAnnotation {
-	val ref = AstType.demangle(this.desc) as AstType.REF
-	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
-}
+*/
+

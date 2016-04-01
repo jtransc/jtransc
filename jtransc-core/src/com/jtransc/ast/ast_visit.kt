@@ -36,7 +36,6 @@ open class AstVisitor {
 			is AstStm.STM_LABEL -> visit(stm)
 			is AstStm.IF_GOTO -> visit(stm)
 			is AstStm.SWITCH_GOTO -> visit(stm)
-			is AstStm.GOTO -> visit(stm)
 			is AstStm.MONITOR_ENTER -> visit(stm)
 			is AstStm.MONITOR_EXIT -> visit(stm)
 		}
@@ -121,7 +120,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(stm: AstStm.SET_ARRAY) {
-		visit(stm.local)
+		visit(stm.array)
 		visit(stm.index)
 		visit(stm.expr)
 	}
@@ -178,8 +177,8 @@ open class AstVisitor {
 	}
 
 	open fun visit(stm: AstStm.IF_GOTO) {
-		visit(stm.cond)
 		visit(stm.label)
+		visit(stm.cond)
 	}
 
 	open fun visit(stm: AstStm.SWITCH_GOTO) {
@@ -188,10 +187,6 @@ open class AstVisitor {
 		for ((value, case) in stm.cases) {
 			visit(case)
 		}
-	}
-
-	open fun visit(stm: AstStm.GOTO) {
-		visit(stm.label)
 	}
 
 	open fun visit(stm: AstStm.MONITOR_ENTER) {

@@ -1,5 +1,8 @@
 package com.jtransc.ast
 
+import com.jtransc.ds.cast
+import com.jtransc.error.noImpl
+
 data class AstBody(
 	val stm: AstStm,
 	val locals: List<AstLocal>,
@@ -44,14 +47,17 @@ interface AstStm : AstElement {
 		constructor(vararg stms: AstStm) : this(stms.toList())
 	}
 
-	data class NOP(val dummy: Any? = null) : AstStm
+	object NOP : AstStm
+
+	data class LINE(val line: Int) : AstStm
 	data class STM_EXPR(val expr: AstExpr) : AstStm
 	data class SET(val local: AstLocal, val expr: AstExpr) : AstStm
-	data class SET_ARRAY(val local: AstLocal, val index: AstExpr, val expr: AstExpr) : AstStm
+	data class SET_ARRAY(val array: AstExpr, val index: AstExpr, val expr: AstExpr) : AstStm
 	data class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm {
 		val clazz = AstType.REF(field.classRef.fqname)
 	}
-	data class SET_FIELD_INSTANCE(val left: AstExpr, val field: AstFieldRef, val expr: AstExpr) : AstStm
+
+	data class SET_FIELD_INSTANCE(val field: AstFieldRef, val left: AstExpr, val expr: AstExpr) : AstStm
 	data class SET_NEW_WITH_CONSTRUCTOR(val local: AstLocal, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm
 
 	data class IF(val cond: AstExpr, val strue: AstStm, val sfalse: AstStm? = null) : AstStm
@@ -73,9 +79,9 @@ interface AstStm : AstElement {
 	// GotoFeature
 
 	data class STM_LABEL(val label: AstLabel) : AstStm
-	data class IF_GOTO(val cond: AstExpr, val label: AstLabel) : AstStm
 	data class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm
-	data class GOTO(val label: AstLabel) : AstStm
+
+	data class IF_GOTO(val label: AstLabel, val cond: AstExpr?) : AstStm
 
 	data class MONITOR_ENTER(val expr: AstExpr) : AstStm
 	data class MONITOR_EXIT(val expr: AstExpr) : AstStm
@@ -91,11 +97,31 @@ interface AstExpr : AstElement {
 		override val type: AstType = AstType.REF(ref)
 	}
 
-	data class CLASS_CONSTANT(val classType: AstType) : AstExpr {
+	interface LiteralExpr : AstExpr {
+		val value: Any?
+	}
+
+	data class CLASS_CONSTANT(val classType: AstType) : AstExpr, LiteralExpr {
+		override val value = classType
 		override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
 	}
 
-	data class LITERAL(val value: Any?) : AstExpr {
+	data class METHODTYPE_CONSTANT(val methodType: AstType.METHOD_TYPE) : AstExpr, LiteralExpr {
+		override val value = methodType
+		override val type: AstType = methodType
+	}
+
+	data class METHODREF_CONSTANT(val methodRef: AstMethodRef) : AstExpr, LiteralExpr {
+		override val value = methodRef
+		override val type: AstType = AstType.UNKNOWN
+	}
+
+	data class METHODHANDLE_CONSTANT(val methodHandle: AstMethodHandle) : AstExpr, LiteralExpr {
+		override val value = methodHandle
+		override val type: AstType = AstType.UNKNOWN
+	}
+
+	data class LITERAL(override val value: Any?) : AstExpr, LiteralExpr {
 		override val type: AstType = when (value) {
 			null -> AstType.NULL
 			is Boolean -> AstType.BOOL
@@ -154,9 +180,10 @@ interface AstExpr : AstElement {
 		override val type = array.type.elementType
 	}
 
-	data class INSTANCE_FIELD_ACCESS(val expr: AstExpr, val field: AstFieldRef) : LValueExpr {
+	data class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, val expr: AstExpr) : LValueExpr {
 		override val type: AstType = field.type
 	}
+
 	data class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr {
 		val clazzName = AstType.REF(field.name)
 		override val type: AstType = field.type
@@ -196,7 +223,33 @@ interface AstExpr : AstElement {
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
+
+	companion object {
+		fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
+			if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
+				bootstrapMethodRef.name == "metafactory"
+			) {
+				val literals = bootstrapArgs.cast<LiteralExpr>()
+				val interfaceMethodType = literals[0].value as AstType.METHOD_TYPE
+				val methodHandle = literals[1].value as AstMethodHandle
+				val methodType = literals[2].type
+
+				val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+				val methodToConvertRef = methodHandle.methodRef
+
+				return AstExpr.METHOD_CLASS(
+					AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
+					methodToConvertRef
+				)
+			} else {
+				noImpl("Not supported DynamicInvoke yet!")
+			}
+		}
+	}
 }
+
+operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
+operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
 
 open class AstTransformer {
 	open fun visit(type: AstType) {
@@ -222,6 +275,26 @@ open class AstTransformer {
 	//else -> expr
 		else -> throw NotImplementedError("Unhandled expression $expr")
 	}
+}
+
+class AstMethodHandle(val type: AstType.METHOD_TYPE, val methodRef: AstMethodRef, val kind: Kind) {
+	enum class Kind(val id: Int) {
+		REF_getField(1),
+		REF_getStatic(2),
+		REF_putField(3),
+		REF_putStatic(4),
+		REF_invokeVirtual(5),
+		REF_invokeStatic(6),
+		REF_invokeSpecial(7),
+		REF_newInvokeSpecial(8),
+		REF_invokeInterface(9);
+
+		companion object {
+			private val table = values().map { it.id to it }.toMap()
+			fun fromId(id: Int) = table[id]!!
+		}
+	}
+
 }
 
 val AstLocal.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this)

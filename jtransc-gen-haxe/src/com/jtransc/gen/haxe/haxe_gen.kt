@@ -315,7 +315,7 @@ class GenHaxeGen(
 						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
 				}
-				is AstStm.SET_ARRAY -> line("HaxeNatives.checkNotNull(${stm.local.haxeName}).set(${stm.index.gen()}, ${stm.expr.gen()});")
+				is AstStm.SET_ARRAY -> line("HaxeNatives.checkNotNull(${stm.array.gen()}).set(${stm.index.gen()}, ${stm.expr.gen()});")
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
 					mutableBody.initClassRef(stm.field.classRef)

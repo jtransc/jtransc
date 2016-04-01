@@ -1,6 +1,7 @@
 package com.jtransc.input
 
 import com.jtransc.ast.*
+import com.jtransc.ds.cast
 import com.jtransc.ds.zipped
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
@@ -92,12 +93,24 @@ open class AstMethodProcessor private constructor(
 	private val program = containingClass.program
 
 	companion object {
+		//const val DEBUG = true
+		const val DEBUG = false
+
+		private fun processBodyNoCatch(method: SootMethod, containingClass: AstClass): AstBody? {
+			return AstMethodProcessor(method, containingClass).handle()
+		}
+
 		fun processBody(method: SootMethod, containingClass: AstClass): AstBody? {
-			try {
-				return AstMethodProcessor(method, containingClass).handle()
-			} catch (e: Throwable) {
-				println("WARNING: Couldn't generate method ${containingClass.name}::${method.name}, because: " + e.message)
-				return null
+			if (DEBUG) {
+				return processBodyNoCatch(method, containingClass)
+			} else {
+				try {
+					return processBodyNoCatch(method, containingClass)
+				} catch (e: Throwable) {
+					e.printStackTrace()
+					println("WARNING: Couldn't generate method ${containingClass.name}::${method.name}, because: " + e)
+					return null
+				}
 			}
 		}
 	}
@@ -183,17 +196,17 @@ open class AstMethodProcessor private constructor(
 
 					AstStm.SET(l.local, r_casted)
 				}
-				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY((l.array as AstExpr.LOCAL).local, l.index, r_casted)
+				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY(l.array, l.index, r_casted)
 				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.field, r_casted)
-				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r_casted)
+				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.field, l.expr, r_casted)
 				else -> invalidOp("Can't handle leftOp: $l")
 			}
 		}
 		is ReturnStmt -> AstStm.RETURN(cast(convert(s.op), method.returnType.astType))
 		is ReturnVoidStmt -> AstStm.RETURN(null)
-		is IfStmt -> AstStm.IF_GOTO(cast(convert(s.condition), AstType.BOOL), ensureLabel(s.target))
+		is IfStmt -> AstStm.IF_GOTO(ensureLabel(s.target), cast(convert(s.condition), AstType.BOOL))
 		//is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
-		is GotoStmt -> AstStm.GOTO(ensureLabel(s.target))
+		is GotoStmt -> AstStm.IF_GOTO(ensureLabel(s.target), null)
 		is ThrowStmt -> AstStm.THROW(convert(s.op))
 		is InvokeStmt -> AstStm.STM_EXPR(convert(s.invokeExpr))
 		is EnterMonitorStmt -> AstStm.MONITOR_ENTER(convert(s.op))
@@ -219,11 +232,14 @@ open class AstMethodProcessor private constructor(
 		is DoubleConstant -> AstExpr.LITERAL(c.value)
 		is StringConstant -> AstExpr.LITERAL(c.value)
 		is ClassConstant -> AstExpr.CLASS_CONSTANT(AstType.REF_INT(c.value))
+		is SootMethodType -> AstExpr.METHODTYPE_CONSTANT(c.astType)
+		is SootMethodRef -> AstExpr.METHODREF_CONSTANT(c.ast)
+		is SootMethodHandle -> AstExpr.METHODHANDLE_CONSTANT(c.ast)
 		is ThisRef -> AstExpr.THIS(FqName(method.declaringClass.name))
 		is ParameterRef -> AstExpr.PARAM(AstArgument(c.index, c.type.astType))
 		is CaughtExceptionRef -> AstExpr.CAUGHT_EXCEPTION(c.type.astType)
 		is ArrayRef -> AstExpr.ARRAY_ACCESS(convert(c.base), convert(c.index))
-		is InstanceFieldRef -> AstExpr.INSTANCE_FIELD_ACCESS(convert(c.base), c.field.ast)
+		is InstanceFieldRef -> AstExpr.INSTANCE_FIELD_ACCESS(c.field.ast, convert(c.base))
 		is StaticFieldRef -> AstExpr.STATIC_FIELD_ACCESS(c.field.ast)
 		is CastExpr -> AstExpr.CAST(convert(c.op), c.castType.astType)
 		is InstanceOfExpr -> AstExpr.INSTANCE_OF(convert(c.op), c.checkType.astType)
@@ -294,31 +310,18 @@ open class AstMethodProcessor private constructor(
 					val c2 = c as DynamicInvokeExpr
 					val methodRef = c2.methodRef.astRef
 					val bootstrapMethodRef = c2.bootstrapMethodRef.astRef
-					val bootstrapArgs = c2.bootstrapArgs
-					if (
-					bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
-						bootstrapMethodRef.name == "metafactory"
-					) {
-						val interfaceMethodType = (bootstrapArgs[0] as SootMethodType).astType
-						val methodHandle = (bootstrapArgs[1] as SootMethodHandle)
-						val methodType = (bootstrapArgs[2] as SootMethodType).astType
+					val bootstrapArgs = c2.bootstrapArgs.map { convert(it) }
 
-						val generatedMethodRef = c2.methodRef.astRef
-						val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
-						val methodToConvertRef = methodHandle.methodRef.astRef
-
-						AstExpr.METHOD_CLASS(
-							AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
-							methodToConvertRef
-						)
-					} else {
-						noImpl("Not supported DynamicInvoke yet! $c2")
-					}
+					AstExpr.INVOKE_DYNAMIC(methodRef.withoutClass, bootstrapMethodRef, bootstrapArgs)
 				}
-				else -> throw RuntimeException("Invalid invoke")
+				else -> {
+					invalidOp("Unsupported invoke type")
+				}
 			}
 		}
-		else -> throw RuntimeException()
+		else -> {
+			noImpl("$c")
+		}
 	}
 
 	final fun doCastIfNeeded(toType: Type, value: Value): AstExpr = if (value.type == toType) {
@@ -327,6 +330,18 @@ open class AstMethodProcessor private constructor(
 		AstExpr.CAST(convert(value), toType.astType)
 	}
 }
+
+val SootMethodRef.ast: AstMethodRef get() = AstMethodRef(
+	this.declaringClass().name.fqname,
+	this.name(),
+	AstType.METHOD_TYPE(this.returnType().astType, this.parameterTypes().cast<Type>().map { it.astType }),
+	this.isStatic
+)
+val SootMethodHandle.ast: AstMethodHandle get() = AstMethodHandle(
+	this.methodType.astType,
+	this.methodRef.ast,
+	AstMethodHandle.Kind.fromId(this.referenceKind)
+)
 
 fun BinopExpr.getAstOp(l: AstType, r: AstType): AstBinop {
 	if (l == AstType.BOOL && r == AstType.BOOL) {

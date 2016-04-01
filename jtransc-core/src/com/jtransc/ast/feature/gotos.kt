@@ -78,10 +78,14 @@ object GotosFeature : AstFeature() {
 							stateIndex = nextIndex
 							stateStms = arrayListOf<AstStm>()
 						} else if (s is AstStm.IF_GOTO) {
-							stateStms.add(AstStm.IF(
-								s.cond,
-								simulateGotoLabel(s.label)
-							))
+							if (s.cond != null) {
+								stateStms.add(AstStm.IF(
+									s.cond,
+									simulateGotoLabel(s.label)
+								))
+							} else {
+								stateStms.add(simulateGotoLabel(s.label))
+							}
 						} else if (s is AstStm.SWITCH_GOTO) {
 							//throw NotImplementedError("Must implement switch goto ")
 							stateStms.add(AstStm.SWITCH(
@@ -91,8 +95,6 @@ object GotosFeature : AstFeature() {
 									Pair(it.first, simulateGotoLabel(it.second))
 								}
 							))
-						} else if (s is AstStm.GOTO) {
-							stateStms.add(simulateGotoLabel(s.label))
 						} else {
 							stateStms.add(s)
 						}
@@ -101,7 +103,7 @@ object GotosFeature : AstFeature() {
 					flush()
 
 					val plainWhile = AstStm.WHILE(AstExpr.LITERAL(true),
-						AstStm.SWITCH(AstExpr.LOCAL(gotostate), AstStm.NOP(), cases)
+						AstStm.SWITCH(AstExpr.LOCAL(gotostate), AstStm.NOP, cases)
 					)
 
 					if (traps.isEmpty()) {

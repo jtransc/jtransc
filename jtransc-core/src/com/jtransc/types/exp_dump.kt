@@ -33,8 +33,13 @@ fun dump(stm: AstStm): Indenter {
 			is AstStm.SET -> line(stm.local.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_FIELD_INSTANCE -> line(dump(stm.left) + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.STM_EXPR -> line(dump(stm.expr) + ";")
-			is AstStm.GOTO -> line("goto " + stm.label.name + ";")
-			is AstStm.IF_GOTO -> line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")
+			is AstStm.IF_GOTO -> {
+				if (stm.cond != null) {
+					line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")
+				} else {
+					line("goto " + stm.label.name + ";")
+				}
+			}
 			is AstStm.RETURN -> line("return " + dump(stm.retval) + ";")
 			//is AstStm.CALL_INSTANCE -> line("call")
 			is AstStm.SET_FIELD_STATIC -> line(stm.clazz.fqname + "." + stm.field.name + " = " + dump(stm.expr) + ";")
