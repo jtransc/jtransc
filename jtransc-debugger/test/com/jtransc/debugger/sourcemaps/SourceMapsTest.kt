@@ -34,7 +34,18 @@ class SourceMapsTest {
 			),
 			Sourcemaps.decodeRaw(";;;;EAEE,EAAE,EAAC,CAAE;ECQY,UACC")
 		)
-		//4) [2,0,2,2], [2,0,0,2], [2,0,0,1], [1,0,0,2]
-		//5) [2,1,8,12], [10,0,1,1]
+	}
+
+	inline private fun testDecodeEncodeRaw(item:String) = Assert.assertEquals(item, Sourcemaps.encodeRaw(Sourcemaps.decodeRaw(item)))
+
+	@Test fun testDecodeEncodeRaw() {
+		testDecodeEncodeRaw(";;;;EAEE,EAAE,EAAC,CAAE;ECQY,UACC")
+	}
+
+	@Test fun testDecode() {
+		Assert.assertEquals(
+			"MappingFile(rows=[MappingRow(mappings=[]), MappingRow(mappings=[]), MappingRow(mappings=[]), MappingRow(mappings=[]), MappingRow(mappings=[MappingItem(sourceIndex=0, sourceLine=2, sourceColumn=2, targetColumn=2), MappingItem(sourceIndex=0, sourceLine=2, sourceColumn=4, targetColumn=4), MappingItem(sourceIndex=0, sourceLine=2, sourceColumn=5, targetColumn=6), MappingItem(sourceIndex=0, sourceLine=2, sourceColumn=7, targetColumn=7)]), MappingRow(mappings=[MappingItem(sourceIndex=1, sourceLine=10, sourceColumn=19, targetColumn=2), MappingItem(sourceIndex=1, sourceLine=11, sourceColumn=20, targetColumn=12)])])",
+			Sourcemaps.decode(";;;;EAEE,EAAE,EAAC,CAAE;ECQY,UACC").toString()
+		)
 	}
 }
