@@ -193,9 +193,6 @@ class AllBuild(
 		signature = methodType.mangle(),
 		genericSignature = methodType.mangle(),
 		defaultTag = null,
-		modifiers = -1,
-		isStatic = isStatic,
-		visibility = visibility,
-		isNative = true
+		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility)
 	)
 }

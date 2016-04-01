@@ -18,6 +18,8 @@ interface AstType {
 
 	object UNKNOWN : AstType
 
+	object NULL : AstType
+
 	object VOID : Primitive("java.lang.Void", 'V', "void")
 
 	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool")
@@ -36,7 +38,7 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
 
-	open class REF(val name: FqName) : AstType {
+	data class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -49,14 +51,14 @@ interface AstType {
 
 		val classRef: AstClassRef by lazy { AstClassRef(name) }
 
-		override fun equals(other: Any?): Boolean = this.name == (other as REF?)?.name
+		//override fun equals(other: Any?): Boolean = this.name == (other as REF?)?.name
 		override fun hashCode(): Int = name.hashCode()
 		override fun toString() = name.fqname
 	}
 
-	object OBJECT : REF("java.lang.Object")
+	//object OBJECT : REF("java.lang.Object")
 
-	object NULL : REF("java.lang.Object")
+	//object NULL : REF("java.lang.Object")
 
 	data class ARRAY(val element: AstType) : AstType {
 		override fun toString() = "$element[]"
@@ -117,8 +119,6 @@ interface AstType {
 		val STRING = REF(FqName("java.lang.String"))
 		val OBJECT = REF(FqName("java.lang.Object"))
 		val CLASS = REF(FqName("java.lang.Class"))
-		//val NULL = OBJECT
-		//object NULL : AstType
 
 		fun ARRAY(element: AstType, count:Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
 
@@ -417,7 +417,7 @@ fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.GENERIC -> {
 		this.type.getRefTypesFqName() + this.suffixes.flatMap { it.params ?: listOf() }.flatMap { it.getRefTypesFqName() }
 	}
-	is AstType.Primitive, is AstType.UNKNOWN, AstType.NULL -> listOf()
+	is AstType.Primitive, is AstType.UNKNOWN, is AstType.NULL -> listOf()
 	is AstType.TYPE_PARAMETER -> listOf()
 	is AstType.GENERIC_STAR -> listOf()
 	is AstType.GENERIC_LOWER_BOUND -> this.element.getRefTypesFqName()

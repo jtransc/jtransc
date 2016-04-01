@@ -17,6 +17,8 @@
 package com.jtransc.ast
 
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ds.clearFlags
+import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.util.dependencySorter
@@ -198,13 +200,13 @@ enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 class AstClass(
 	val program: AstProgram,
 	val name: FqName,
-	val modifiers: Int,
-	val classType: AstClassType = AstClassType.CLASS,
-	val visibility: AstVisibility = AstVisibility.PUBLIC,
+	val modifiers: AstModifiers,
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData() {
+	val classType: AstClassType = modifiers.classType
+	val visibility: AstVisibility = modifiers.visibility
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
@@ -422,15 +424,13 @@ class AstField(
 	containingClass: AstClass,
 	name: String,
 	type: AstType,
-	val modifiers: Int,
+	val modifiers: AstModifiers,
 	val descriptor: String,
 	annotations: List<AstAnnotation>,
 	val genericSignature: String?,
-	isStatic: Boolean = false,
-	val isFinal: Boolean = false,
-	visibility: AstVisibility = AstVisibility.PUBLIC,
 	val constantValue: Any? = null
-) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, isStatic, visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+	val isFinal: Boolean = modifiers.isFinal
 	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val hasConstantValue = constantValue != null
 }
@@ -443,13 +443,12 @@ class AstMethod(
 	val signature: String,
 	val genericSignature: String?,
 	val defaultTag: Any?,
-	val modifiers: Int,
-	val generateBody: () -> AstBody?,
-	isStatic: Boolean = false,
-	visibility: AstVisibility = AstVisibility.PUBLIC,
-	val isNative: Boolean = false
+	val modifiers: AstModifiers,
+	val generateBody: () -> AstBody?
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, isStatic, visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+	val isNative: Boolean = modifiers.isNative
+
 	val body: AstBody? by lazy { generateBody() }
 
 	val methodType: AstType.METHOD_TYPE = type
@@ -476,18 +475,80 @@ class AstMethod(
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
 
-fun AstMethodRef.toEmptyMethod(program: AstProgram, isStatic: Boolean = false, visibility: AstVisibility = AstVisibility.PUBLIC) = AstMethod(
-	program[this.containingClass],
-	this.name,
-	this.type,
-	annotations = listOf(),
-	defaultTag = null,
-	signature = "()V",
-	genericSignature = null,
-	modifiers = 0,
-	generateBody = { null },
-	isStatic = isStatic,
-	visibility = AstVisibility.PUBLIC
-)
+data class AstModifiers(val acc: Int) {
+	companion object {
+		fun withFlags(vararg flags: Int): AstModifiers {
+			var out = 0
+			for (f in flags) out = out or f
+			return AstModifiers(out)
+		}
 
+		const val ACC_PUBLIC = 0x0001; // class, field, method
+		const val ACC_PRIVATE = 0x0002; // class, field, method
+		const val ACC_PROTECTED = 0x0004; // class, field, method
+		const val ACC_STATIC = 0x0008; // field, method
+		const val ACC_FINAL = 0x0010; // class, field, method, parameter
+		const val ACC_SUPER = 0x0020; // class
+		const val ACC_SYNCHRONIZED = 0x0020; // method
+		const val ACC_VOLATILE = 0x0040; // field
+		const val ACC_BRIDGE = 0x0040; // method
+		const val ACC_VARARGS = 0x0080; // method
+		const val ACC_TRANSIENT = 0x0080; // field
+		const val ACC_NATIVE = 0x0100; // method
+		const val ACC_INTERFACE = 0x0200; // class
+		const val ACC_ABSTRACT = 0x0400; // class, method
+		const val ACC_STRICT = 0x0800; // method
+		const val ACC_SYNTHETIC = 0x1000; // class, field, method, parameter
+		const val ACC_ANNOTATION = 0x2000; // class
+		const val ACC_ENUM = 0x4000; // class(?) field inner
+		const val ACC_MANDATED = 0x8000; // parameter
+	}
 
+	val isPublic: Boolean get() = acc hasFlag ACC_PUBLIC
+	val isPrivate: Boolean get() = acc hasFlag ACC_PRIVATE
+	val isProtected: Boolean get() = acc hasFlag ACC_PROTECTED
+	val isStatic: Boolean get() = acc hasFlag ACC_STATIC
+	val isFinal: Boolean get() = acc hasFlag ACC_FINAL
+	val isSuper: Boolean get() = acc hasFlag ACC_SUPER
+	val isSynchronized: Boolean get() = acc hasFlag ACC_SYNCHRONIZED
+	val isVolatile: Boolean get() = acc hasFlag ACC_VOLATILE
+	val isBridge: Boolean get() = acc hasFlag ACC_BRIDGE
+	val isVarargs: Boolean get() = acc hasFlag ACC_VARARGS
+	val isTransient: Boolean get() = acc hasFlag ACC_TRANSIENT
+	val isNative: Boolean get() = acc hasFlag ACC_NATIVE
+	val isInterface: Boolean get() = acc hasFlag ACC_INTERFACE
+	val isAbstract: Boolean get() = acc hasFlag ACC_ABSTRACT
+	val isStrict: Boolean get() = acc hasFlag ACC_STRICT
+	val isSynthetic: Boolean get() = acc hasFlag ACC_SYNTHETIC
+	val isAnnotation: Boolean get() = acc hasFlag ACC_ANNOTATION
+	val isEnum: Boolean get() = acc hasFlag ACC_ENUM
+	val isMandated: Boolean get() = acc hasFlag ACC_MANDATED
+	val isConcrete: Boolean get() = !isNative && !isAbstract
+
+	val visibility: AstVisibility get() = if (isPublic) {
+		AstVisibility.PUBLIC
+	} else if (isProtected) {
+		AstVisibility.PROTECTED
+	} else {
+		AstVisibility.PRIVATE
+	}
+
+	val classType: AstClassType get() = if (isInterface) {
+		AstClassType.INTERFACE
+	} else if (isAbstract) {
+		AstClassType.ABSTRACT
+	} else {
+		AstClassType.CLASS
+	}
+
+	fun withVisibility(visibility: AstVisibility) = AstModifiers(
+		(acc clearFlags (ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE)) or when (visibility) {
+			AstVisibility.PUBLIC -> ACC_PUBLIC
+			AstVisibility.PROTECTED -> ACC_PROTECTED
+			AstVisibility.PRIVATE -> ACC_PRIVATE
+			else -> invalidOp
+		}
+	)
+
+	override fun toString(): String = "$acc"
+}

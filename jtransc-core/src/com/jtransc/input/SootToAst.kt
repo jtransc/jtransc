@@ -25,10 +25,8 @@ class SootToAst : AstClassGenerator {
 		val astClass = AstClass(
 			program = program,
 			name = sootClass.name.fqname,
-			modifiers = sootClass.modifiers,
+			modifiers = AstModifiers(sootClass.modifiers),
 			annotations = sootClass.tags.toAstAnnotations(),
-			classType = if (sootClass.isInterface) AstClassType.INTERFACE else if (sootClass.isAbstract) AstClassType.ABSTRACT else AstClassType.CLASS,
-			visibility = AstVisibility.PUBLIC,
 			extending = if (sootClass.hasSuperclass() && !sootClass.isInterface) FqName(sootClass.superclass.name) else null,
 			implementing = sootClass.interfaces.map { FqName(it.name) }
 		)
@@ -55,10 +53,7 @@ class SootToAst : AstClassGenerator {
 		signature = method.astType.mangle(),
 		genericSignature = method.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
 		defaultTag = method.tags.filterIsInstance<AnnotationDefaultTag>().firstOrNull()?.toAstAnnotation(),
-		modifiers = method.modifiers,
-		isStatic = method.isStatic,
-		visibility = method.astVisibility,
-		isNative = method.isNative,
+		modifiers = AstModifiers(method.modifiers),
 		generateBody = { if (method.isConcrete) AstMethodProcessor.processBody(method, containingClass) else null }
 	)
 
@@ -69,14 +64,10 @@ class SootToAst : AstClassGenerator {
 		type = field.type.astType,
 		descriptor = field.type.astType.mangle(),
 		genericSignature = field.tags.filterIsInstance<SignatureTag>().firstOrNull()?.signature,
-		modifiers = field.modifiers,
-		isStatic = field.isStatic,
-		isFinal = field.isFinal,
-		constantValue = field.tags.getConstant(),
-		visibility = field.astVisibility
+		modifiers = AstModifiers(field.modifiers),
+		constantValue = field.tags.getConstant()
 	)
 }
-
 
 open class BaseProjectContext(
 	val classNames: List<String>,

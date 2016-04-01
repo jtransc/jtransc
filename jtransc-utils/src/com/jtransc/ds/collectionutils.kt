@@ -154,6 +154,7 @@ fun <T> Iterable<T>.diff(that: Iterable<T>): DiffResult<T> {
 	)
 }
 
+infix fun Int.clearFlags(that:Int) = (this and that.inv())
 infix fun Int.hasFlag(that:Int) = (this and that) != 0
 infix fun Int.hasAnyFlags(that:Int) = (this and that) != 0
 infix fun Int.hasAllFlags(that:Int) = (this and that) == that

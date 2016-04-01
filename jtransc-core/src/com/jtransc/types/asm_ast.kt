@@ -429,8 +429,6 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 
 		fun optimize(stms:MutableList<AstStm?>, item:AstStm?, index:Int, total:Int):AstStm? {
 			if (item == null) return null
-			// Remove last return
-			if ((index == total - 1) && item is AstStm.RETURN && item.retval == null) return null
 			// Remove not referenced labels
 			if (item is AstStm.STM_LABEL && item.label !in referencedLabels) return null
 			if (item is AstStm.NOP) return null
@@ -438,10 +436,16 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		}
 
 		fun List<AstStm?>.optimize():List<AstStm> {
-			val stms = this.toMutableList()
+			var stms = this.toMutableList()
 			for (n in 0 until stms.size) {
 				stms[n] = optimize(stms, stms[n], n, stms.size)
 			}
+
+			// Remove tail empty returns
+			while (stms.isNotEmpty() && (stms.last() is AstStm.RETURN && (stms.last() as AstStm.RETURN).retval == null) || (stms.last() == null)) {
+				stms.removeAt(stms.size - 1)
+			}
+
 			return stms.filterNotNull()
 		}
 
