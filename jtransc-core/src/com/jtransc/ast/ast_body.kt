@@ -313,6 +313,5 @@ class AstMethodHandle(val type: AstType.METHOD_TYPE, val methodRef: AstMethodRef
 
 }
 
-val AstLocal.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this)
 val Iterable<AstStm>.stms: AstStm get() = AstStm.STMS(this.toList())
 val Any?.lit: AstExpr get() = AstExpr.LITERAL(this)

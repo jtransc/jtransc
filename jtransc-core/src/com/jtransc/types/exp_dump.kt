@@ -53,7 +53,7 @@ fun dump(expr: AstExpr?): String {
 		null -> ""
 		is AstExpr.BINOP -> dump(expr.left) + " " + expr.op.symbol + " " + dump(expr.right)
 		is AstExpr.LITERAL -> expr.value.toString()
-		is AstExpr.LOCAL -> expr.local.name
+		is AstExpr.LocalExpr -> expr.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }

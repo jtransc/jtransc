@@ -70,7 +70,7 @@ object AstMethodBuilderTest {
 		for (method in clazz.methods.cast<MethodNode>()) {
 			println("::${method.name}")
 			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
-			println(dump(Asm2Ast(method)))
+			println(dump(Asm2Ast(AstType.REF_INT2(clazz.name), method)))
 			//println(jimple)
 		}
 		//println(Asm2Baf(clazz, method).toExpr())
