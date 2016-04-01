@@ -1001,6 +1001,7 @@ class GenHaxeGen(
 	}
 
 	val AstLocal.haxeName: String get() = this.name.replace('$', '_')
+	val AstExpr.LocalExpr.haxeName: String get() = this.name.replace('$', '_')
 
 	val AstField.haxeName: String get() = names.getHaxeFieldName(this)
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)

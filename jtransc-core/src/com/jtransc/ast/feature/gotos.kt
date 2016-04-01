@@ -27,7 +27,7 @@ object GotosFeature : AstFeature() {
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
 
 		//val gotostate = AstLocal(-1, "_gotostate", AstType.INT)
-		val gotostate = AstLocal(-1, "G", AstType.INT)
+		val gotostate = AstExpr.LOCAL(AstLocal(-1, "G", AstType.INT))
 		var hasLabels = false
 
 		var stateIndex = 0
@@ -103,7 +103,7 @@ object GotosFeature : AstFeature() {
 					flush()
 
 					val plainWhile = AstStm.WHILE(AstExpr.LITERAL(true),
-						AstStm.SWITCH(AstExpr.LOCAL(gotostate), AstStm.NOP, cases)
+						AstStm.SWITCH(gotostate, AstStm.NOP, cases)
 					)
 
 					if (traps.isEmpty()) {
@@ -116,7 +116,7 @@ object GotosFeature : AstFeature() {
 							val handlerState = getStateFromLabel(trap.handler)
 
 							AstStm.IF(
-								(gotostate.expr ge startState.lit) band (gotostate.expr le endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
+								(gotostate ge startState.lit) band (gotostate le endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								simulateGotoLabel(handlerState)
 							)
 						}
@@ -136,7 +136,7 @@ object GotosFeature : AstFeature() {
 		stm = strip(stm)
 
 		if (hasLabels) {
-			locals.add(gotostate)
+			locals.add(gotostate.local)
 		}
 
 		return AstBody(stm, locals, traps)

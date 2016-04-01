@@ -43,8 +43,11 @@ import java.io.File
 import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
-	//val DEBUG = true
-	val DEBUG = false
+	companion object {
+		//const val USE_SOOT = false
+		const val USE_SOOT = true
+		const val DEBUG = false
+	}
 
 	init {
 		log.logger = { }
@@ -168,7 +171,11 @@ class HaxeGenSuiteTest {
 			//output = "program.haxe.cpp", subtarget = "cpp",
 			targetDirectory = System.getProperty("java.io.tmpdir")
 		)
-		return build.buildAndRunCapturingOutput(AstBuildSettings(jtranscVersion = JTranscVersion.getVersion(), debug = DEBUG)).output
+		return build.buildAndRunCapturingOutput(AstBuildSettings(
+			jtranscVersion = JTranscVersion.getVersion(),
+			debug = DEBUG,
+			useSoot = USE_SOOT
+		)).output
 	}
 
 	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")

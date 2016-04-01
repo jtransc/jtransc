@@ -2,6 +2,7 @@ package com.jtransc.types
 
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
+import com.jtransc.ds.hasFlag
 import com.jtransc.error.*
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
@@ -14,12 +15,14 @@ fun Asm2Ast(method: MethodNode): AstBody = _Asm2Ast(method).call()
 
 private class _Asm2Ast(method: MethodNode) {
 	//val list = method.instructions
+	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm>()
 	val stack = Stack<AstExpr>()
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
-	val i = method.instructions.first
+	val firstInstruction = method.instructions.first
 	val locals = hashSetOf<AstLocal>()
 	val labels = hashMapOf<LabelNode, AstLabel>()
+	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 
 	fun getType(value: Any?): AstType {
 		return when (value) {
@@ -32,14 +35,14 @@ private class _Asm2Ast(method: MethodNode) {
 		}
 	}
 
-	fun local(type: AstType, index: Int): AstLocal {
+	fun local(type: AstType, index: Int): AstExpr.LocalExpr {
 		val local = AstLocal(index, "local$index", type)
 		locals.add(local)
-		return local
+		return AstExpr.LOCAL(local)
 	}
 
 	var tempLocalId = 1000
-	fun tempLocal(type: AstType): AstLocal {
+	fun tempLocal(type: AstType): AstExpr.LocalExpr {
 		return local(type, tempLocalId++)
 	}
 
@@ -77,6 +80,11 @@ private class _Asm2Ast(method: MethodNode) {
 	}
 
 	val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
+	fun pushBinop(type: AstType, op: AstBinop) {
+		val r = stackPop()
+		val l = stackPop()
+		stackPush(AstExpr.BINOP(type, l, op, r))
+	}
 
 	fun handleInsn(i: InsnNode): Unit {
 		val op = i.opcode
@@ -103,8 +111,8 @@ private class _Asm2Ast(method: MethodNode) {
 				val local = tempLocal(value.type)
 
 				stmAdd(AstStm.SET(local, value))
-				stackPush(AstExpr.LOCAL(local))
-				stackPush(AstExpr.LOCAL(local))
+				stackPush(local)
+				stackPush(local)
 			}
 		// @TODO: Must reproduce these opcodes!
 			Opcodes.DUP_X1 -> noImpl
@@ -122,17 +130,17 @@ private class _Asm2Ast(method: MethodNode) {
 			Opcodes.INEG, Opcodes.LNEG, Opcodes.FNEG, Opcodes.DNEG -> stackPush(AstExpr.UNOP(AstUnop.NEG, stackPop()))
 
 		// @TODO: try to homogeinize this!
-			in Opcodes.IADD..Opcodes.DADD -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IADD], stackPop(), AstBinop.ADD, stackPop()))
-			in Opcodes.ISUB..Opcodes.DSUB -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.ISUB], stackPop(), AstBinop.SUB, stackPop()))
-			in Opcodes.IMUL..Opcodes.DMUL -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IMUL], stackPop(), AstBinop.MUL, stackPop()))
-			in Opcodes.IDIV..Opcodes.DDIV -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IDIV], stackPop(), AstBinop.DIV, stackPop()))
-			in Opcodes.IREM..Opcodes.DREM -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IREM], stackPop(), AstBinop.REM, stackPop()))
-			in Opcodes.ISHL..Opcodes.LSHL -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.ISHL], stackPop(), AstBinop.SHL, stackPop()))
-			in Opcodes.ISHR..Opcodes.LSHR -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.ISHR], stackPop(), AstBinop.SHR, stackPop()))
-			in Opcodes.IUSHR..Opcodes.LUSHR -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IUSHR], stackPop(), AstBinop.USHR, stackPop()))
-			in Opcodes.IAND..Opcodes.LAND -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IAND], stackPop(), AstBinop.AND, stackPop()))
-			in Opcodes.IOR..Opcodes.LOR -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IOR], stackPop(), AstBinop.OR, stackPop()))
-			in Opcodes.IXOR..Opcodes.LXOR -> stackPush(AstExpr.BINOP(PTYPES[op - Opcodes.IXOR], stackPop(), AstBinop.XOR, stackPop()))
+			in Opcodes.IADD..Opcodes.DADD -> pushBinop(PTYPES[op - Opcodes.IADD], AstBinop.ADD)
+			in Opcodes.ISUB..Opcodes.DSUB -> pushBinop(PTYPES[op - Opcodes.ISUB], AstBinop.SUB)
+			in Opcodes.IMUL..Opcodes.DMUL -> pushBinop(PTYPES[op - Opcodes.IMUL], AstBinop.MUL)
+			in Opcodes.IDIV..Opcodes.DDIV -> pushBinop(PTYPES[op - Opcodes.IDIV], AstBinop.DIV)
+			in Opcodes.IREM..Opcodes.DREM -> pushBinop(PTYPES[op - Opcodes.IREM], AstBinop.REM)
+			in Opcodes.ISHL..Opcodes.LSHL -> pushBinop(PTYPES[op - Opcodes.ISHL], AstBinop.SHL)
+			in Opcodes.ISHR..Opcodes.LSHR -> pushBinop(PTYPES[op - Opcodes.ISHR], AstBinop.SHR)
+			in Opcodes.IUSHR..Opcodes.LUSHR -> pushBinop(PTYPES[op - Opcodes.IUSHR], AstBinop.USHR)
+			in Opcodes.IAND..Opcodes.LAND -> pushBinop(PTYPES[op - Opcodes.IAND], AstBinop.AND)
+			in Opcodes.IOR..Opcodes.LOR -> pushBinop(PTYPES[op - Opcodes.IOR], AstBinop.OR)
+			in Opcodes.IXOR..Opcodes.LXOR -> pushBinop(PTYPES[op - Opcodes.IXOR], AstBinop.XOR)
 
 			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(AstExpr.CAST(stackPop(), AstType.LONG))
 			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(AstExpr.CAST(stackPop(), AstType.FLOAT))
@@ -142,12 +150,14 @@ private class _Asm2Ast(method: MethodNode) {
 			Opcodes.I2C -> stackPush(AstExpr.CAST(stackPop(), AstType.CHAR))
 			Opcodes.I2S -> stackPush(AstExpr.CAST(stackPop(), AstType.SHORT))
 
-			Opcodes.LCMP -> stackPush(AstExpr.BINOP(AstType.LONG, stackPop(), AstBinop.CMP, stackPop()))
-			Opcodes.FCMPL -> stackPush(AstExpr.BINOP(AstType.FLOAT, stackPop(), AstBinop.CMPL, stackPop()))
-			Opcodes.FCMPG -> stackPush(AstExpr.BINOP(AstType.FLOAT, stackPop(), AstBinop.CMPG, stackPop()))
-			Opcodes.DCMPL -> stackPush(AstExpr.BINOP(AstType.DOUBLE, stackPop(), AstBinop.CMPL, stackPop()))
-			Opcodes.DCMPG -> stackPush(AstExpr.BINOP(AstType.DOUBLE, stackPop(), AstBinop.CMPG, stackPop()))
-			in Opcodes.IRETURN..Opcodes.ARETURN -> stmAdd(AstStm.RETURN(stackPop()))
+			Opcodes.LCMP -> pushBinop(AstType.LONG, AstBinop.CMP)
+			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
+			Opcodes.FCMPG -> pushBinop(AstType.FLOAT, AstBinop.CMPG)
+			Opcodes.DCMPL -> pushBinop(AstType.DOUBLE, AstBinop.CMPL)
+			Opcodes.DCMPG -> pushBinop(AstType.DOUBLE, AstBinop.CMPG)
+			in Opcodes.IRETURN..Opcodes.ARETURN -> {
+				stmAdd(AstStm.RETURN(stackPop()))
+			}
 			Opcodes.RETURN -> stmAdd(AstStm.RETURN(null))
 			Opcodes.ARRAYLENGTH -> stackPush(AstExpr.ARRAY_LENGTH(stackPop()))
 			Opcodes.ATHROW -> stmAdd(AstStm.THROW(stackPop()))
@@ -186,7 +196,7 @@ private class _Asm2Ast(method: MethodNode) {
 		val op = i.opcode
 		when (i.opcode) {
 			in Opcodes.ILOAD..Opcodes.ALOAD -> {
-				stackPush(AstExpr.LOCAL(local(PTYPES[op - Opcodes.ILOAD], i.`var`)))
+				stackPush(local(PTYPES[op - Opcodes.ILOAD], i.`var`))
 			}
 			in Opcodes.ISTORE..Opcodes.ASTORE -> {
 				stmAdd(AstStm.SET(local(PTYPES[op - Opcodes.ILOAD], i.`var`), stackPop()))
@@ -251,17 +261,12 @@ private class _Asm2Ast(method: MethodNode) {
 	}
 
 	fun handleMethod(i: MethodInsnNode) {
-		val clazz = AstType.REF(i.owner)
-		val methodRef = com.jtransc.ast.AstMethodRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangleMethod(i.desc))
+		val clazz = AstType.REF_INT2(i.owner)
+		val methodRef = com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val obj = if (i.opcode != Opcodes.INVOKESTATIC) {
-			stackPop()
-		} else {
-			null
-		}
-
-		val args = methodRef.type.args.map { stackPop() }
+		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
+		val args = methodRef.type.args.map { stackPop() }.reversed()
 
 		when (i.opcode) {
 			Opcodes.INVOKESTATIC -> {
@@ -311,19 +316,36 @@ private class _Asm2Ast(method: MethodNode) {
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = local(AstType.INT, i.`var`)
-		stmAdd(AstStm.SET(local, AstExpr.LOCAL(local) + AstExpr.LITERAL(1)))
+		stmAdd(AstStm.SET(local, local + AstExpr.LITERAL(1)))
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
 		stmAdd(AstStm.LINE(i.line))
 	}
 
+	fun preserveStackLocal(index:Int, type:AstType):AstExpr.LocalExpr {
+		return local(type, index + 2000)
+	}
+
 	fun handleFrame(i: FrameNode) {
+		while (stack.isNotEmpty()) {
+			val value = stackPop()
+			stmAdd(AstStm.SET(preserveStackLocal(stack.size, value.type), value))
+		}
+		stack.clear()
+		for ((index, typeValue) in i.stack.withIndex()) {
+			val type = LiteralToAstType(typeValue)
+			stackPush(preserveStackLocal(index, type))
+		}
+		//if (i.stack.size
 		//BAF.FRAME(i.type, i.local.map { getType(it) }, i.stack.map { getType(it) })
+		//println(i)
+		//println(i)
+		//AstExpr.PARAM
 	}
 
 	fun call():AstBody {
-		var i = this.i
+		var i = this.firstInstruction
 		while (i != null) {
 			when (i) {
 				is FieldInsnNode -> handleField(i)
@@ -358,5 +380,13 @@ private class _Asm2Ast(method: MethodNode) {
 				)
 			}
 		)
+	}
+}
+
+fun LiteralToAstType(lit:Any?):AstType {
+	return when (lit) {
+		null -> AstType.NULL
+		is Int -> AstType.INT
+		else -> noImpl
 	}
 }

@@ -51,14 +51,14 @@ interface AstStm : AstElement {
 
 	data class LINE(val line: Int) : AstStm
 	data class STM_EXPR(val expr: AstExpr) : AstStm
-	data class SET(val local: AstLocal, val expr: AstExpr) : AstStm
+	data class SET(val local: AstExpr.LocalExpr, val expr: AstExpr) : AstStm
 	data class SET_ARRAY(val array: AstExpr, val index: AstExpr, val expr: AstExpr) : AstStm
 	data class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm {
 		val clazz = AstType.REF(field.classRef.fqname)
 	}
 
 	data class SET_FIELD_INSTANCE(val field: AstFieldRef, val left: AstExpr, val expr: AstExpr) : AstStm
-	data class SET_NEW_WITH_CONSTRUCTOR(val local: AstLocal, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm
+	data class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm
 
 	data class IF(val cond: AstExpr, val strue: AstStm, val sfalse: AstStm? = null) : AstStm
 	data class WHILE(val cond: AstExpr, val iter: AstStm) : AstStm
@@ -91,10 +91,26 @@ interface AstExpr : AstElement {
 	open val type: AstType
 
 	interface ImmutableRef : AstExpr
-	interface LValueExpr : AstExpr
+	interface LValueExpr : AstExpr {
+	}
 
-	data class THIS(val ref: FqName) : LValueExpr {
+	interface LocalExpr : LValueExpr {
+		val name: String
+	}
+
+	data class THIS(val ref: FqName) : LocalExpr {
+		override val name: String get() = "this"
 		override val type: AstType = AstType.REF(ref)
+	}
+
+	data class LOCAL(val local: AstLocal) : LocalExpr {
+		override val name: String get() = local.name
+		override val type = local.type
+	}
+
+	data class PARAM(val argument: AstArgument) : LocalExpr {
+		override val name: String get() = argument.name
+		override val type = argument.type
 	}
 
 	interface LiteralExpr : AstExpr {
@@ -135,14 +151,6 @@ interface AstExpr : AstElement {
 			is String -> AstType.STRING
 			else -> throw NotImplementedError("Literal type: $value")
 		}
-	}
-
-	data class LOCAL(val local: AstLocal) : LValueExpr {
-		override val type = local.type
-	}
-
-	data class PARAM(val argument: AstArgument) : LValueExpr {
-		override val type = argument.type
 	}
 
 	data class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr
@@ -247,7 +255,7 @@ object AstExprUtils {
 		}
 	}
 
-	fun INVOKE_SPECIAL(obj:AstExpr, method:AstMethodRef, args:List<AstExpr>): AstExpr.CALL_BASE {
+	fun INVOKE_SPECIAL(obj: AstExpr, method: AstMethodRef, args: List<AstExpr>): AstExpr.CALL_BASE {
 		if (((obj.type as AstType.REF).name != method.containingClass)) {
 			return AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial = true)
 		} else {

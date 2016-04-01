@@ -21,7 +21,7 @@ import java.util.*
 
 object CombineNewInitTransform : AstTransform() {
 	private fun transform(stms: ArrayList<AstStm>) {
-		var newToLocal = hashMapOf<AstLocal, Pair<Int, AstType.REF>>()
+		var newToLocal = hashMapOf<AstExpr.LValueExpr, Pair<Int, AstType.REF>>()
 
 		for (n in 0 until stms.size) {
 			val stm = stms[n]
@@ -38,9 +38,9 @@ object CombineNewInitTransform : AstTransform() {
 				val callExpr = stm.expr as AstExpr.CALL_INSTANCE
 
 				val callLocal = if (callExpr.obj is AstExpr.LOCAL) {
-					callExpr.obj.local
+					callExpr.obj
 				} else if (callExpr.obj is AstExpr.CAST && callExpr.obj.expr is AstExpr.LOCAL) {
-					callExpr.obj.expr.local
+					callExpr.obj.expr
 				} else {
 					null
 				}

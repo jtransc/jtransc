@@ -191,11 +191,7 @@ open class AstMethodProcessor private constructor(
 			val (l, r) = Pair(convert(s.leftOp), convert(s.rightOp))
 			val r_casted = cast(r, l.type)
 			when (l) {
-				is AstExpr.LOCAL -> {
-					//if (method.name == "shl15") println("$s :: $l , $r")
-
-					AstStm.SET(l.local, r_casted)
-				}
+				is AstExpr.LocalExpr -> AstStm.SET(l, r_casted)
 				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY(l.array, l.index, r_casted)
 				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.field, r_casted)
 				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.field, l.expr, r_casted)

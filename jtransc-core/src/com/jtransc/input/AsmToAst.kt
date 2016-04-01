@@ -28,7 +28,7 @@ class AsmToAst : AstClassGenerator {
 
 		val clazz = AstClass(
 			program = program,
-			name = FqName(classNode.name),
+			name = FqName.fromInternal(classNode.name),
 			modifiers = classNode.access,
 			annotations = classNode.visibleAnnotations.filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }
 			//methods = classNode.methods.filterIsInstance<MethodNode>().map { AstMethodBuilder(it).method }
@@ -50,6 +50,10 @@ object AstMethodBuilderTestExample {
 	@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
 	@JvmStatic fun max2(a: Int, b: Int) = (if (a > b) a * 2 else b * 3) * 4
 	@JvmStatic fun max3(a: Long, b: Long) = (if (a > b) a * 2 else b * 3) * 4
+	@JvmStatic fun callStatic() = add(1, 2) + add(3, 4)
+	@JvmStatic fun callStatic2() {
+		add(1, 2) + add(3, 4)
+	}
 	//@JvmStatic fun test() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
 }
 
