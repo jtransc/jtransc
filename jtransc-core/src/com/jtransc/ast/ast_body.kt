@@ -48,7 +48,9 @@ interface AstStm : AstElement {
 	data class STM_EXPR(val expr: AstExpr) : AstStm
 	data class SET(val local: AstLocal, val expr: AstExpr) : AstStm
 	data class SET_ARRAY(val local: AstLocal, val index: AstExpr, val expr: AstExpr) : AstStm
-	data class SET_FIELD_STATIC(val clazz: AstType.REF, val field: AstFieldRef, val expr: AstExpr, val isInterface: Boolean) : AstStm
+	data class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm {
+		val clazz = AstType.REF(field.classRef.fqname)
+	}
 	data class SET_FIELD_INSTANCE(val left: AstExpr, val field: AstFieldRef, val expr: AstExpr) : AstStm
 	data class SET_NEW_WITH_CONSTRUCTOR(val local: AstLocal, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm
 
@@ -152,8 +154,13 @@ interface AstExpr : AstElement {
 		override val type = array.type.elementType
 	}
 
-	data class INSTANCE_FIELD_ACCESS(val expr: AstExpr, val field: AstFieldRef, override val type: AstType) : LValueExpr
-	data class STATIC_FIELD_ACCESS(val clazzName: AstType.REF, val field: AstFieldRef, override val type: AstType, val isInterface: Boolean) : LValueExpr
+	data class INSTANCE_FIELD_ACCESS(val expr: AstExpr, val field: AstFieldRef) : LValueExpr {
+		override val type: AstType = field.type
+	}
+	data class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr {
+		val clazzName = AstType.REF(field.name)
+		override val type: AstType = field.type
+	}
 
 	data class INSTANCE_OF(val expr: AstExpr, val checkType: AstType) : AstExpr {
 		override val type = AstType.BOOL

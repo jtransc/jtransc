@@ -184,7 +184,7 @@ open class AstMethodProcessor private constructor(
 					AstStm.SET(l.local, r_casted)
 				}
 				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY((l.array as AstExpr.LOCAL).local, l.index, r_casted)
-				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.clazzName, l.field, r_casted, l.isInterface)
+				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.field, r_casted)
 				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.expr, l.field, r_casted)
 				else -> invalidOp("Can't handle leftOp: $l")
 			}
@@ -223,8 +223,8 @@ open class AstMethodProcessor private constructor(
 		is ParameterRef -> AstExpr.PARAM(AstArgument(c.index, c.type.astType))
 		is CaughtExceptionRef -> AstExpr.CAUGHT_EXCEPTION(c.type.astType)
 		is ArrayRef -> AstExpr.ARRAY_ACCESS(convert(c.base), convert(c.index))
-		is InstanceFieldRef -> AstExpr.INSTANCE_FIELD_ACCESS(convert(c.base), c.field.ast, c.field.type.astType)
-		is StaticFieldRef -> AstExpr.STATIC_FIELD_ACCESS(AstType.REF(c.field.declaringClass.name), c.field.ast, c.field.type.astType, c.field.declaringClass.isInterface)
+		is InstanceFieldRef -> AstExpr.INSTANCE_FIELD_ACCESS(convert(c.base), c.field.ast)
+		is StaticFieldRef -> AstExpr.STATIC_FIELD_ACCESS(c.field.ast)
 		is CastExpr -> AstExpr.CAST(convert(c.op), c.castType.astType)
 		is InstanceOfExpr -> AstExpr.INSTANCE_OF(convert(c.op), c.checkType.astType)
 		is NewExpr -> AstExpr.NEW(c.type.astType as AstType.REF)

@@ -4,51 +4,40 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.*
 import java.util.*
 
 /*
-fun AstMethodRef(clazz: ClassNode, method: MethodNode): AstMethodRef {
-	val isStatic = (method.access and Opcodes.ACC_STATIC) != 0
-	return AstMethodRef(clazz.name.replace('/', '.').fqname, method.name, AstType.demangleMethod(method.desc), isStatic)
-}
-
-//fun MethodNode.toBaf(): BAF.Body = Asm2Baf(this)
-
-fun Asm2Baf(clazz: ClassNode, method: MethodNode): BAF.Body {
-	return Asm2Baf(AstMethodRef(clazz, method), method.instructions)
-}
-
-fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
-	val out = ArrayList<BAF>()
+fun Asm2Ast(methodRef: AstMethodRef, list: InsnList): AstStm {
+	val stms = ArrayList<AstStm>()
+	val stack = Stack<AstExpr>()
 	var i = list.first
 
-	fun getType(value:Any?):AstType {
+	fun getType(value:Any?): AstType {
 		return when (value) {
 			is Int -> AstType.INT
 			is String -> AstType.STRING // Or custom type?
-			//else -> AstType.UNKNOWN
+		//else -> AstType.UNKNOWN
 			else -> {
 				throw InvalidOperationException("$value")
 			}
 		}
 	}
 
-	fun handleField(i:FieldInsnNode) {
+	fun handleField(i: FieldInsnNode) {
 		val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
-		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangle(i.desc), isStatic)
-		out.add(when (i.opcode) {
-			Opcodes.GETSTATIC -> BAF.GETFIELD(ref)
+		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc), isStatic)
+		when (i.opcode) {
+			Opcodes.GETSTATIC -> stack.push(AstExpr.STATIC_FIELD_ACCESS(ref))
 			Opcodes.PUTSTATIC -> BAF.PUTFIELD(ref)
 			Opcodes.GETFIELD -> BAF.GETFIELD(ref)
 			Opcodes.PUTFIELD -> BAF.PUTFIELD(ref)
 			else -> invalidOp
-		})
+		}
 	}
 
-	fun handleInsn(i:InsnNode) {
+	fun handleInsn(i: InsnNode) {
 		out.add(when (i.opcode) {
 			Opcodes.NOP -> BAF.NOP
 			Opcodes.ACONST_NULL -> BAF.CONST(null)
@@ -161,7 +150,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleType(i:TypeInsnNode) {
+	fun handleType(i: TypeInsnNode) {
 		out.add(when (i.opcode) {
 			Opcodes.NEW -> BAF.ANEW(AstType.REF_INT2(i.desc))
 			Opcodes.ANEWARRAY -> BAF.NEWARRAY(AstType.REF_INT(i.desc), 1)
@@ -171,7 +160,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleVar(i:VarInsnNode) {
+	fun handleVar(i: VarInsnNode) {
 		out.add(when (i.opcode) {
 			Opcodes.ILOAD -> BAF.GETLOCAL(AstType.INT, i.`var`)
 			Opcodes.LLOAD -> BAF.GETLOCAL(AstType.LONG, i.`var`)
@@ -188,7 +177,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleJump(i:JumpInsnNode) {
+	fun handleJump(i: JumpInsnNode) {
 		out.add(when (i.opcode) {
 			Opcodes.IFEQ -> BAF.GOTOIF0(AstBinop.EQ, i.label.label)
 			Opcodes.IFNE -> BAF.GOTOIF0(AstBinop.NE, i.label.label)
@@ -212,7 +201,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleLdc(i:LdcInsnNode) {
+	fun handleLdc(i: LdcInsnNode) {
 		out.add(when (i.cst) {
 			null -> invalidOp
 			is Int -> BAF.CONST(i.cst)
@@ -227,7 +216,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleInt(i:IntInsnNode) {
+	fun handleInt(i: IntInsnNode) {
 		out.add(when (i.opcode) {
 			Opcodes.BIPUSH -> BAF.CONST(i.operand.toByte())
 			Opcodes.SIPUSH -> BAF.CONST(i.operand.toShort())
@@ -249,7 +238,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		})
 	}
 
-	fun handleMethod(i:MethodInsnNode) {
+	fun handleMethod(i: MethodInsnNode) {
 		val methodRef = com.jtransc.ast.AstMethodRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangleMethod(i.desc))
 		out.add(BAF.INVOKE(methodRef, i.itf, when (i.opcode) {
 			Opcodes.INVOKEVIRTUAL -> BAF.InvokeType.VIRTUAL
@@ -260,31 +249,31 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 		}))
 	}
 
-	fun handleLookupSwitch(i:LookupSwitchInsnNode) {
+	fun handleLookupSwitch(i: LookupSwitchInsnNode) {
 		out.add(BAF.SWITCH(i.dflt.label, i.keys.cast<Int>().zip(i.labels.cast<LabelNode>().map { it.label })))
 	}
 
-	fun handleTableSwitch(i:TableSwitchInsnNode) {
+	fun handleTableSwitch(i: TableSwitchInsnNode) {
 		out.add(BAF.SWITCH(i.dflt.label, (i.min..i.max).zip(i.labels.cast<LabelNode>().map { it.label })))
 	}
 
-	fun handleInvokeDynamic(i:InvokeDynamicInsnNode) {
+	fun handleInvokeDynamic(i: InvokeDynamicInsnNode) {
 		out.add(BAF.INVOKEDYNAMIC(i.name, i.desc, i.bsm, i.bsmArgs.toList()))
 	}
 
-	fun handleLabel(i:LabelNode) {
+	fun handleLabel(i: LabelNode) {
 		out.add(BAF.LABEL(i.label))
 	}
 
-	fun handleIinc(i:IincInsnNode) {
+	fun handleIinc(i: IincInsnNode) {
 		out.add(BAF.IINC(i.`var`, i.incr))
 	}
 
-	fun handleLineNumber(i:LineNumberNode) {
+	fun handleLineNumber(i: LineNumberNode) {
 		out.add(BAF.LINE(i.line, i.start.label))
 	}
 
-	fun handleFrame(i:FrameNode) {
+	fun handleFrame(i: FrameNode) {
 		out.add(BAF.FRAME(i.type, i.local.map { getType(it) }, i.stack.map { getType(it) }))
 	}
 

@@ -7,6 +7,7 @@ import com.jtransc.ast.AstStm
 import com.jtransc.error.noImpl
 import java.util.*
 
+/*
 fun Jimple2Expr(input: Jimple.Body): AstBody {
 	val out = ArrayList<AstStm>()
 
@@ -29,3 +30,4 @@ fun Jimple2Expr(input: Jimple.Body): AstBody {
 	}
 	return AstBody(AstStm.STMS(out), listOf(), listOf())
 }
+	*/

@@ -5,6 +5,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import java.util.*
 
+/*
 fun Baf2Jimple(body: BAF.Body): Jimple.Body {
 	val out = ArrayList<Jimple>()
 	val stack = Stack<Jimple.Local>()
@@ -37,3 +38,4 @@ fun Baf2Jimple(body: BAF.Body): Jimple.Body {
 	}
 	return Jimple.Body(out)
 }
+*/

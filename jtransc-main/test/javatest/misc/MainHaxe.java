@@ -51,7 +51,11 @@ public class MainHaxe {
         testAnnotations();
         testArrays();
 
-        System.out.println("COMPLETED");
+	    System.out.println(StaticCall1.a);
+	    StaticCall1.a = 20;
+	    System.out.println(StaticCall1.a);
+
+	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
 
@@ -346,6 +350,13 @@ public class MainHaxe {
     }
 }
 
+class StaticCall1 extends StaticCall2 {
+
+}
+
+class StaticCall2 {
+	static public int a = 10;
+}
 
 interface InterfaceFields {
     int a = 10;

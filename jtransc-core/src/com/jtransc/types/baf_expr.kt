@@ -5,6 +5,7 @@ import com.jtransc.error.InvalidOperationException
 import org.objectweb.asm.Label
 import java.util.*
 
+/*
 fun BAF.Body.toExpr() = Baf2Expr(this)
 
 fun Baf2Expr(body: BAF.Body): AstBody {
@@ -206,3 +207,4 @@ fun Baf2Expr(body: BAF.Body): AstBody {
 
 	return AstBody(AstStm.STMS(stms3), locals.values.toList(), listOf())
 }
+	*/
