@@ -6,6 +6,7 @@ import com.jtransc.ds.hasFlag
 import com.jtransc.error.*
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import java.util.*
 
@@ -169,6 +170,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 				stackPush(local)
 			}
 		// @TODO: Must reproduce these opcodes!
+			// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> noImpl
 			Opcodes.DUP_X2 -> noImpl
 			Opcodes.DUP2 -> noImpl
@@ -289,7 +291,14 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	}
 
 	fun handleLdc(i: LdcInsnNode) {
-		stackPush(AstExpr.LITERAL(i.cst))
+		// {@link Integer}, a {@link Float}, a {@link Long}, a {@link Double}, a
+		// {@link String} or a {@link org.objectweb.asm.Type}.
+		val cst = i.cst
+		if (cst is Type) {
+			stackPush(AstExpr.CLASS_CONSTANT(AstType.REF_INT2(cst.className)))
+		} else {
+			stackPush(AstExpr.LITERAL(cst))
+		}
 	}
 
 	fun handleInt(i: IntInsnNode) {

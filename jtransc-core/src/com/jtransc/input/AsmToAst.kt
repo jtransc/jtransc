@@ -110,8 +110,25 @@ class AsmToAst : AstClassGenerator {
 	}
 }
 
+fun AstAnnotationValue(value:Any?):Any? {
+	return value
+}
+
 fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
-	noImpl
+	val type = AstType.demangle(node.desc) as AstType.REF
+	val fields = hashMapOf<String, Any?>()
+	if (node.values != null) {
+		val values = node.values
+		var n = 0
+		while (n < values.size) {
+			val name = values[n++] as String
+			val value = values[n++]
+			fields[name] = AstAnnotationValue(value)
+		}
+		//println(node.values)
+		//println(node.values)
+	}
+	return AstAnnotation(type, fields, true)
 }
 
 class AstMethodBuilderTestExample {
