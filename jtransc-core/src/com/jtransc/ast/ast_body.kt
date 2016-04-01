@@ -234,6 +234,15 @@ interface AstExpr : AstElement {
 }
 
 object AstExprUtils {
+	fun cast(expr: AstExpr, to: AstType): AstExpr {
+		// LITERAL + IMMEDIATE = IMMEDIATE casted
+		if (expr.type != to) {
+			return AstExpr.CAST(expr, to)
+		} else {
+			return expr
+		}
+	}
+
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
 		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
 			bootstrapMethodRef.name == "metafactory"
@@ -259,7 +268,7 @@ object AstExprUtils {
 		if (((obj.type as AstType.REF).name != method.containingClass)) {
 			return AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial = true)
 		} else {
-			return AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial = true)
+			return AstExpr.CALL_INSTANCE(cast(obj, method.classRef.type), method, args, isSpecial = true)
 		}
 	}
 }

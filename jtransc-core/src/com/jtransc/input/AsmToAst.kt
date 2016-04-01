@@ -45,16 +45,41 @@ fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
 	noImpl
 }
 
-object AstMethodBuilderTestExample {
-	@JvmStatic fun add(a: Int, b: Int) = a + b
-	@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
-	@JvmStatic fun max2(a: Int, b: Int) = (if (a > b) a * 2 else b * 3) * 4
-	@JvmStatic fun max3(a: Long, b: Long) = (if (a > b) a * 2 else b * 3) * 4
-	@JvmStatic fun callStatic() = add(1, 2) + add(3, 4)
-	@JvmStatic fun callStatic2() {
-		add(1, 2) + add(3, 4)
+class AstMethodBuilderTestExample {
+	companion object {
+		@JvmStatic fun add(a: Int, b: Int) = a + b
+		@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
+		@JvmStatic fun max2(a: Int, b: Int) = (if (a > b) a * 2 else b * 3) * 4
+		@JvmStatic fun max3(a: Long, b: Long) = (if (a > b) a * 2 else b * 3) * 4
+		@JvmStatic fun callStatic() = add(1, 2) + add(3, 4)
+		@JvmStatic fun callStatic2() {
+			add(1, 2) + add(3, 4)
+		}
+		@JvmStatic fun sumAll(items: Array<Int>):Int {
+			var sum = 0
+			for (i in items) sum += i
+			return sum
+		}
+		@JvmStatic fun sumAllPrim(items: IntArray):Int {
+			var sum = 0
+			for (i in items) sum += i
+			return sum
+		}
+		@JvmStatic fun multiArray() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
+		@JvmStatic fun instantiate():Int {
+			return MyClass().test() * 2;
+		}
 	}
-	//@JvmStatic fun test() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
+
+	var a :Int = 10
+
+	fun demo(b:Int) = (a + b).toLong()
+
+	class MyClass() {
+		fun test():Int {
+			return 10;
+		}
+	}
 }
 
 fun <T> Class<T>.readClassNode(): ClassNode {
@@ -68,7 +93,8 @@ object AstMethodBuilderTest {
 	@JvmStatic fun main(args: Array<String>) {
 		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
 		for (method in clazz.methods.cast<MethodNode>()) {
-			println("::${method.name}")
+			val methodType = AstType.demangleMethod(method.desc)
+			println("::${method.name} :: $methodType")
 			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
 			println(dump(Asm2Ast(AstType.REF_INT2(clazz.name), method)))
 			//println(jimple)

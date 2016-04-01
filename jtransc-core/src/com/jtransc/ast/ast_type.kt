@@ -13,11 +13,10 @@ interface AstType {
 	open class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
+		override fun toString() = shortName
 	}
 
 	object UNKNOWN : AstType
-
-	object NULL : AstType
 
 	object VOID : Primitive("java.lang.Void", 'V', "void")
 
@@ -37,7 +36,7 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
 
-	data class REF(val name: FqName) : AstType {
+	open class REF(val name: FqName) : AstType {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -49,14 +48,23 @@ interface AstType {
 		val fqname: String get() = name.fqname
 
 		val classRef: AstClassRef by lazy { AstClassRef(name) }
+
+		override fun equals(other: Any?): Boolean = this.name == (other as REF?)?.name
+		override fun hashCode(): Int = name.hashCode()
+		override fun toString() = name.fqname
 	}
 
-	data class ARRAY(val element: AstType) : AstType
+	object OBJECT : REF("java.lang.Object")
+
+	object NULL : REF("java.lang.Object")
+
+	data class ARRAY(val element: AstType) : AstType {
+		override fun toString() = "$element[]"
+	}
 
 	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy:Boolean) : AstType {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 		val params0: List<AstType> get() = suffixes[0].params!!
-
 	}
 
 	data class GENERIC_SUFFIX(val id:String?, val params: List<AstType>?)
@@ -102,12 +110,15 @@ interface AstType {
 
 		override fun hashCode() = desc.hashCode();
 		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD_TYPE?)?.desc)
+		override fun toString() = ret.toString() + " (" + args.joinToString(", ") + ")"
 	}
 
 	companion object {
 		val STRING = REF(FqName("java.lang.String"))
 		val OBJECT = REF(FqName("java.lang.Object"))
 		val CLASS = REF(FqName("java.lang.Class"))
+		//val NULL = OBJECT
+		//object NULL : AstType
 
 		fun ARRAY(element: AstType, count:Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
 
@@ -143,6 +154,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 }
 
 data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
+	override fun toString() = "$type $name"
 }
 
 
@@ -197,6 +209,7 @@ val String.fqname: FqName get() = FqName(this)
 fun FqName.ref() = AstType.REF(this)
 
 fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
+fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)
 
 object AstTypeBuilder {
 	val UNKNOWN = AstType.UNKNOWN
@@ -404,7 +417,7 @@ fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.GENERIC -> {
 		this.type.getRefTypesFqName() + this.suffixes.flatMap { it.params ?: listOf() }.flatMap { it.getRefTypesFqName() }
 	}
-	is AstType.Primitive, is AstType.UNKNOWN, is AstType.NULL -> listOf()
+	is AstType.Primitive, is AstType.UNKNOWN, AstType.NULL -> listOf()
 	is AstType.TYPE_PARAMETER -> listOf()
 	is AstType.GENERIC_STAR -> listOf()
 	is AstType.GENERIC_LOWER_BOUND -> this.element.getRefTypesFqName()

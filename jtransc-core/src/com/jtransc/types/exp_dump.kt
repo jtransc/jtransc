@@ -2,6 +2,7 @@ package com.jtransc.types
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
 
 //fun AstBody.dump() = dump(this)
@@ -43,7 +44,10 @@ fun dump(stm: AstStm): Indenter {
 			is AstStm.RETURN -> line("return " + dump(stm.retval) + ";")
 			//is AstStm.CALL_INSTANCE -> line("call")
 			is AstStm.SET_FIELD_STATIC -> line(stm.clazz.fqname + "." + stm.field.name + " = " + dump(stm.expr) + ";")
-			else -> line("$stm")
+			is AstStm.SET_ARRAY -> line(dump(stm.array) + "[" + dump(stm.index) + "] = " + dump(stm.expr) + ";")
+			is AstStm.LINE -> line("LINE(${stm.line})")
+			is AstStm.NOP -> line("NOP")
+			else -> noImpl("$stm")
 		}
 	}
 }
@@ -52,9 +56,21 @@ fun dump(expr: AstExpr?): String {
 	return when (expr) {
 		null -> ""
 		is AstExpr.BINOP -> dump(expr.left) + " " + expr.op.symbol + " " + dump(expr.right)
-		is AstExpr.LITERAL -> expr.value.toString()
+		is AstExpr.LITERAL -> {
+			val value = expr.value
+			when (value) {
+				is String -> "\"$value\""
+				else -> "$value"
+			}
+		}
 		is AstExpr.LocalExpr -> expr.name
+		is AstExpr.ARRAY_LENGTH -> "(${dump(expr.array)}).length"
+		is AstExpr.ARRAY_ACCESS -> dump(expr.array) + "[" + dump(expr.index) + "]"
+		is AstExpr.INSTANCE_FIELD_ACCESS -> dump(expr.expr) + "." + expr.field.name
+		is AstExpr.STATIC_FIELD_ACCESS -> expr.clazzName.fqname + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
+		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
+		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }
 			val argsString = args.joinToString(", ");
@@ -65,7 +81,7 @@ fun dump(expr: AstExpr?): String {
 				else -> invalidOp
 			}
 		}
-		else -> "$expr"
+		else -> noImpl("$expr")
 	}
 }
 
