@@ -63,8 +63,8 @@ class AsmToAst : AstClassGenerator {
 			name = FqName.fromInternal(classNode.name),
 			modifiers = AstModifiers(classNode.access),
 			annotations = classNode.getAnnotations(),
-			extending = if (classNode.hasSuperclass() && !classNode.isInterface()) FqName(classNode.superName) else null,
-			implementing = classNode.getInterfaces().map { FqName(it) }
+			extending = if (classNode.hasSuperclass() && !classNode.isInterface()) FqName.fromInternal(classNode.superName) else null,
+			implementing = classNode.getInterfaces().map { FqName.fromInternal(it) }
 		)
 		program.add(astClass)
 

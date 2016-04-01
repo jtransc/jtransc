@@ -67,7 +67,8 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 			null -> AstType.NULL
 			is Long -> AstType.LONG
 			is Int -> AstType.INT
-			else -> noImpl
+			is String -> AstType.REF_INT(lit)
+			else -> noImpl("$lit")
 		}
 	}
 
@@ -92,8 +93,9 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	}
 
 	fun stmAdd(s: AstStm) {
-		assert(stack.size == 0)
+		val stack = preserveStack()
 		stms.add(s)
+		restoreStack(stack)
 	}
 
 	fun stackPush(e: AstExpr) {
@@ -237,7 +239,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		val type = AstType.REF_INT(i.desc)
 		when (i.opcode) {
 			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF))
-			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(type as AstType.ARRAY, listOf(stackPop())))
+			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type))
 			else -> invalidOp("$i")
@@ -313,7 +315,8 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	}
 
 	fun handleMethod(i: MethodInsnNode) {
-		val clazz = AstType.REF_INT2(i.owner)
+		val type = AstType.REF_INT(i.owner)
+		val clazz = if (type is AstType.REF) type else AstType.OBJECT
 		val methodRef = com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
@@ -387,10 +390,20 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		}
 	}
 
-	fun preserveStack() {
+	fun preserveStack():List<AstExpr.LocalExpr> {
+		val items = arrayListOf<AstExpr.LocalExpr>()
 		while (stack.isNotEmpty()) {
 			val value = stackPop()
-			stmAdd(AstStm.SET(preserveStackLocal(stack.size, value.type), value))
+			val local = preserveStackLocal(stack.size, value.type)
+			stmAdd(AstStm.SET(local, value))
+			items.add(local)
+		}
+		return items
+	}
+
+	fun restoreStack(stackToRestore:List<AstExpr.LocalExpr>) {
+		for (i in stackToRestore) {
+			this.stack.push(i)
 		}
 	}
 
@@ -459,7 +472,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 					start = label(it.start),
 					end = label(it.end),
 					handler = label(it.handler),
-					exception = if (it.type != null) AstType.REF(it.type) else AstType.OBJECT
+					exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
 				)
 			}
 		)
