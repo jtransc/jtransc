@@ -223,27 +223,35 @@ interface AstExpr : AstElement {
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
+}
 
-	companion object {
-		fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
-			if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
-				bootstrapMethodRef.name == "metafactory"
-			) {
-				val literals = bootstrapArgs.cast<LiteralExpr>()
-				val interfaceMethodType = literals[0].value as AstType.METHOD_TYPE
-				val methodHandle = literals[1].value as AstMethodHandle
-				val methodType = literals[2].type
+object AstExprUtils {
+	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
+		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
+			bootstrapMethodRef.name == "metafactory"
+		) {
+			val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
+			val interfaceMethodType = literals[0].value as AstType.METHOD_TYPE
+			val methodHandle = literals[1].value as AstMethodHandle
+			val methodType = literals[2].type
 
-				val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
-				val methodToConvertRef = methodHandle.methodRef
+			val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+			val methodToConvertRef = methodHandle.methodRef
 
-				return AstExpr.METHOD_CLASS(
-					AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
-					methodToConvertRef
-				)
-			} else {
-				noImpl("Not supported DynamicInvoke yet!")
-			}
+			return AstExpr.METHOD_CLASS(
+				AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
+				methodToConvertRef
+			)
+		} else {
+			noImpl("Not supported DynamicInvoke yet!")
+		}
+	}
+
+	fun INVOKE_SPECIAL(obj:AstExpr, method:AstMethodRef, args:List<AstExpr>): AstExpr.CALL_BASE {
+		if (((obj.type as AstType.REF).name != method.containingClass)) {
+			return AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial = true)
+		} else {
+			return AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial = true)
 		}
 	}
 }

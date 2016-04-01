@@ -20,6 +20,7 @@ import com.jtransc.ast.*
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.build
+import com.jtransc.input.AsmToAst
 import com.jtransc.input.BaseProjectContext
 import com.jtransc.input.SootToAst
 import com.jtransc.input.SootUtils
@@ -115,7 +116,7 @@ class AllBuild(
 
 		var program = measureProcess("Generating AST") {
 			createProgramAst(
-				SootToAst(),
+				if (settings.useSoot) SootToAst() else AsmToAst(),
 				initialClasses, entryPoint, classPaths2,
 				LocalVfs(File("$tempdir/out_ast"))
 			)

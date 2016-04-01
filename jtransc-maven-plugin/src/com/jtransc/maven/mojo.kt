@@ -64,6 +64,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "vsync", defaultValue = "true") @JvmField var vsync: Boolean = true
 	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
 	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
+	@Parameter(property = "useSoot", defaultValue = "true") @JvmField var useSoot: Boolean = true
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -134,7 +135,8 @@ class JTranscMojo : AbstractMojo() {
 			name = name,
 			orientation = AstBuildSettings.Orientation.fromString(orientation),
 			resizable = resizable,
-			vsync = vsync
+			vsync = vsync,
+			useSoot = useSoot
 		)
 		//project.version
 

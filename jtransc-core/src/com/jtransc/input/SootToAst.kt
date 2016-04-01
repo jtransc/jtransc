@@ -299,8 +299,8 @@ open class AstMethodProcessor private constructor(
 					val obj = convert(i.base)
 					val method = astMethodRef
 
-					if (isSpecial && ((obj.type as AstType.REF).name != method.containingClass)) {
-						AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial)
+					if (isSpecial) {
+						AstExprUtils.INVOKE_SPECIAL(obj, method, args)
 					} else {
 						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
 					}
@@ -312,7 +312,7 @@ open class AstMethodProcessor private constructor(
 					val bootstrapMethodRef = c2.bootstrapMethodRef.astRef
 					val bootstrapArgs = c2.bootstrapArgs.map { convert(it) }
 
-					AstExpr.INVOKE_DYNAMIC(methodRef.withoutClass, bootstrapMethodRef, bootstrapArgs)
+					AstExprUtils.INVOKE_DYNAMIC(methodRef.withoutClass, bootstrapMethodRef, bootstrapArgs)
 				}
 				else -> {
 					invalidOp("Unsupported invoke type")

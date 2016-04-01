@@ -45,7 +45,8 @@ data class AstBuildSettings(
 	var borderless: Boolean = false,
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
-	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO
+	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
+	val useSoot: Boolean = true
 ) {
 	val release: Boolean get() = !debug
 
@@ -104,6 +105,8 @@ class AstProgram(
 
 	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
 
+	fun getClassBytes(clazz: FqName): ByteArray = resourcesVfs[clazz.internalFqname + ".class"].readBytes()
+
 	fun readClassToGenerate(): AstClassRef = classesToGenerate.remove()
 
 	fun addReference(clazz: AstClassRef) {
@@ -115,7 +118,7 @@ class AstProgram(
 
 	private var lastMethodId = 0
 	private val methodIds = hashMapOf<AstMethodRef, Int>()
-	fun getMethodId(ref: AstMethodRef):Int {
+	fun getMethodId(ref: AstMethodRef): Int {
 		if (ref !in methodIds) methodIds[ref] = lastMethodId++
 		return methodIds[ref]!!
 	}

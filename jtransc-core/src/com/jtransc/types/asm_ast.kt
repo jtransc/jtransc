@@ -45,7 +45,7 @@ private class _Asm2Ast(method: MethodNode) {
 
 
 	fun label(label: LabelNode): AstLabel {
-		if (label !in labels) labels[label] = AstLabel("label_${label.label.offset}")
+		if (label !in labels) labels[label] = AstLabel("label_${label.label}")
 		return labels[label]!!
 	}
 
@@ -251,14 +251,34 @@ private class _Asm2Ast(method: MethodNode) {
 	}
 
 	fun handleMethod(i: MethodInsnNode) {
+		val clazz = AstType.REF(i.owner)
 		val methodRef = com.jtransc.ast.AstMethodRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangleMethod(i.desc))
-		BAF.INVOKE(methodRef, i.itf, when (i.opcode) {
-			Opcodes.INVOKEVIRTUAL -> BAF.InvokeType.VIRTUAL
-			Opcodes.INVOKESPECIAL -> BAF.InvokeType.SPECIAL
-			Opcodes.INVOKESTATIC -> BAF.InvokeType.STATIC
-			Opcodes.INVOKEINTERFACE -> BAF.InvokeType.INTERFACE
+		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
+
+		val obj = if (i.opcode != Opcodes.INVOKESTATIC) {
+			stackPop()
+		} else {
+			null
+		}
+
+		val args = methodRef.type.args.map { stackPop() }
+
+		when (i.opcode) {
+			Opcodes.INVOKESTATIC -> {
+				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
+			}
+			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE -> {
+				stackPush(AstExpr.CALL_INSTANCE(obj!!, methodRef, args, isSpecial))
+			}
+			Opcodes.INVOKESPECIAL -> {
+				stackPush(AstExprUtils.INVOKE_SPECIAL(obj!!, methodRef, args))
+			}
 			else -> invalidOp
-		})
+		}
+
+		if (methodRef.type.retVoid) {
+			stmAdd(AstStm.STM_EXPR(stackPop()))
+		}
 	}
 
 	fun handleLookupSwitch(i: LookupSwitchInsnNode) {
@@ -278,7 +298,7 @@ private class _Asm2Ast(method: MethodNode) {
 	}
 
 	fun handleInvokeDynamic(i: InvokeDynamicInsnNode) {
-		stackPush(AstExpr.INVOKE_DYNAMIC(
+		stackPush(AstExprUtils.INVOKE_DYNAMIC(
 			AstMethodWithoutClassRef(i.name, AstType.demangleMethod(i.desc)),
 			i.bsm.ast,
 			i.bsmArgs.map { AstExpr.LITERAL(it) }

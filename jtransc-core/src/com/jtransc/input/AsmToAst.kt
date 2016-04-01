@@ -19,48 +19,26 @@ fun AnnotationNode.toAst():AstAnnotation {
 	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
 }
 
-/*
-object AsmToAst {
-	fun createProgramAst(dependencies: List<String>, entryPoint: String, classPaths2: List<String>, localVfs: SyncVfsFile, refs: Set<AstRef>): AstProgram {
-		return createProgramAst2(
-			AstType.REF(entryPoint),
-			MergedLocalAndJars(classPaths2),
-			(refs + dependencies.map { AstClassRef(it) }).toSet()
-		)
-	}
-
-	fun createProgramAst2(entryPoint: AstType.REF, classPaths: SyncVfsFile, references: Set<AstRef>): AstProgram {
-		val resolver = VfsClassResolver(classPaths)
-		val programBuilder = AstProgramBuilder(resolver)
-		val clazz = programBuilder[entryPoint.name]
-		return AstProgram(entryPoint.name, programBuilder.classes, classPaths)
-	}
-}
-
-class AstProgramBuilder(private val resolver: ClassResolver) {
-	private val classesMap = hashMapOf<FqName, AstClassBuilder>()
-
-	operator fun get(clazz: FqName): AstClassBuilder {
-		if (clazz !in classesMap) {
-			classesMap[clazz] = AstClassBuilder(this, resolver.get(clazz))
+class AsmToAst : AstClassGenerator {
+	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
+		program.readClassToGenerate()
+		val classNode = ClassNode().apply {
+			ClassReader(program.getClassBytes(fqname)).accept(this, ClassReader.EXPAND_FRAMES)
 		}
-		return classesMap[clazz]!!
+
+		val clazz = AstClass(
+			program = program,
+			name = FqName(classNode.name),
+			modifiers = classNode.access,
+			annotations = classNode.visibleAnnotations.filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }
+			//methods = classNode.methods.filterIsInstance<MethodNode>().map { AstMethodBuilder(it).method }
+		)
+
+		//for (method in classNode.methods) clazz.add(AstMethod())
+		//for (field in classNode.fields) clazz.add(AstMethod())
+
+		return clazz
 	}
-
-	val classes: List<AstClass> get() = classesMap.values.map { it.clazz }
-}
-
-class AstClassBuilder(val program: AstProgramBuilder, val bytes: ByteArray) {
-	val classNode = ClassNode().apply {
-		ClassReader(bytes).accept(this, ClassReader.EXPAND_FRAMES)
-	}
-
-	val clazz = AstClass(
-		name = FqName(classNode.name),
-		modifiers = classNode.access,
-		annotations = classNode.visibleAnnotations.filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) },
-		//methods = classNode.methods.filterIsInstance<MethodNode>().map { AstMethodBuilder(it).method }
-	)
 }
 
 fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
@@ -88,26 +66,11 @@ object AstMethodBuilderTest {
 		for (method in clazz.methods.cast<MethodNode>()) {
 			println("::${method.name}")
 			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
-			println(dump(Asm2Baf(clazz, method).toExpr()))
+			println(dump(Asm2Ast(method)))
 			//println(jimple)
 		}
 		//println(Asm2Baf(clazz, method).toExpr())
 		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
-	}
-}
-
-class AstMethodBuilder(val clazz: AstClassBuilder, val node: MethodNode) {
-	val method: AstMethod get() {
-
-		//return AstMethod(
-		//	name = node.name,
-		//	annotations = listOf(),
-		//	isExtraAdded = false,
-		//	modifiers = node.access,
-		//	body = node.toBaf().toExpr()
-		//)
-
-		noImpl
 	}
 }
 
@@ -125,6 +88,3 @@ class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
 		throw ClassNotFoundException(clazz.fqname)
 	}
 }
-
-*/
-
