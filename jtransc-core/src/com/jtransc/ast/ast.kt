@@ -92,11 +92,26 @@ interface AstResolver {
 operator fun AstResolver.get(ref: AstType.REF): AstClass = this[ref.name]!!
 operator fun AstResolver.get(ref: AstClassRef): AstClass = this[ref.name]!!
 
+interface LocateRightClass {
+	fun locateRightClass(field: AstFieldRef): AstClassRef
+	fun locateRightClass(method: AstMethodRef): AstClassRef
+}
+
+fun LocateRightClass.locateRightField(field: AstFieldRef): AstFieldRef {
+	val clazz = locateRightClass(field)
+	return if (clazz == field.classRef) field else AstFieldRef(clazz.name, field.name, field.type)
+}
+
+fun LocateRightClass.locateRightMethod(method: AstMethodRef): AstMethodRef {
+	val clazz = locateRightClass(method)
+	return if (clazz == method.classRef) method else AstMethodRef(clazz.name, method.name, method.type)
+}
+
 class AstProgram(
 	val entrypoint: FqName,
 	val resourcesVfs: SyncVfsFile,
 	val generator: AstClassGenerator
-) : IUserData by UserData(), AstResolver {
+) : IUserData by UserData(), AstResolver, LocateRightClass {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -161,7 +176,8 @@ class AstProgram(
 	}
 
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
-	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
+	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
+	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
 
 	// @TODO: Cache all this stuff!
 	/*
@@ -192,6 +208,14 @@ class AstProgram(
 	fun isImplementing(clazz: AstClass, implementingClazz: String): Boolean {
 		return (implementingClazz.fqname in this) && (this[implementingClazz.fqname] in getAllInterfaces(clazz))
 	}
+
+	override fun locateRightClass(field: AstFieldRef): AstClassRef {
+		return field.classRef
+	}
+
+	override fun locateRightClass(method: AstMethodRef): AstClassRef {
+		return method.classRef
+	}
 }
 
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
@@ -212,7 +236,8 @@ class AstClass(
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
-	val fieldsByName = hashMapOf<String, AstField>()
+	//val fieldsByName = hashMapOf<String, AstField>()
+	val fieldsByName = hashMapOf<AstFieldWithoutClassRef, AstField>()
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
@@ -248,7 +273,7 @@ class AstClass(
 	fun add(field: AstField) {
 		if (finished) invalidOp("Finished class")
 		fields.add(field)
-		fieldsByName[field.name] = field
+		fieldsByName[field.refWithoutClass] = field
 	}
 
 	fun add(method: AstMethod) {
@@ -312,9 +337,16 @@ class AstClass(
 		return getMethod(name, desc) ?: throw InvalidOperationException("Can't find method ${this.name}:$name:$desc")
 	}
 
-	operator fun get(ref: AstMethodRef) = getMethodSure(ref.name, ref.desc)
-	operator fun get(ref: AstMethodWithoutClassRef) = getMethod(ref.name, ref.desc)
-	operator fun get(ref: AstFieldRef) = fieldsByName[ref.name] ?: invalidOp("Can't find field $ref")
+	// Methods
+	operator fun get(ref: AstMethodRef): AstMethod = getMethodSure(ref.name, ref.desc)
+	operator fun get(ref: AstMethodWithoutClassRef): AstMethod? = getMethod(ref.name, ref.desc)
+
+	// Fields
+	operator fun get(ref: AstFieldRef): AstField = fieldsByName[ref.withoutClass] ?:
+		invalidOp("Can't find field $ref")
+
+	operator fun get(ref: AstFieldWithoutClassRef): AstField = fieldsByName[ref] ?: parentClass?.get(ref) ?:
+		invalidOp("Can't find field $ref on ancestors")
 
 	val hasStaticInit: Boolean get() = staticInitMethod != null
 	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
@@ -344,7 +376,8 @@ class AstClass(
 		allDependencies.filterIsInstance<AstClassRef>().toSet()
 	}
 
-	override fun toString() = "AstClass($name)"
+	//override fun toString() = "AstClass($name)"
+	override fun toString() = "$name"
 
 	val thisAndAncestors: List<AstClass> by lazy {
 		if (extending == null) {
@@ -432,6 +465,7 @@ class AstField(
 ) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
 	val isFinal: Boolean = modifiers.isFinal
 	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
+	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
 	val hasConstantValue = constantValue != null
 }
 

@@ -1,6 +1,7 @@
 package com.jtransc.ast
 
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.*
@@ -10,9 +11,11 @@ import java.io.StringReader
 import java.util.*
 
 interface AstType {
-	open class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
+	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
+		override fun hashCode() = ch.toInt()
+		override fun equals(that: Any?) = Objects.equals(this.ch, (that as Primitive?)?.ch)
 		override fun toString() = shortName
 	}
 
@@ -51,8 +54,8 @@ interface AstType {
 
 		val classRef: AstClassRef by lazy { AstClassRef(name) }
 
-		//override fun equals(other: Any?): Boolean = this.name == (other as REF?)?.name
 		override fun hashCode(): Int = name.hashCode()
+		override fun equals(other: Any?): Boolean = Objects.equals(this.name, (other as REF?)?.name)
 		override fun toString() = name.fqname
 	}
 
@@ -116,9 +119,9 @@ interface AstType {
 	}
 
 	companion object {
-		val STRING = REF(FqName("java.lang.String"))
-		val OBJECT = REF(FqName("java.lang.Object"))
-		val CLASS = REF(FqName("java.lang.Class"))
+		val STRING = REF("java.lang.String")
+		val OBJECT = REF("java.lang.Object")
+		val CLASS = REF("java.lang.Class")
 
 		fun ARRAY(element: AstType, count:Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
 
@@ -156,8 +159,6 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 	override fun toString() = "$type $name"
 }
-
-
 
 data class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))
@@ -363,7 +364,7 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 val AstType.elementType: AstType get() = when (this) {
 	is AstType.ARRAY -> this.element
 	is AstType.GENERIC -> this.suffixes[0].params!![0]
-	else -> AstType.UNKNOWN
+	else -> invalidArgument("Type is not an array")
 }
 
 fun AstType.mangle(retval: Boolean = true): String = when (this) {

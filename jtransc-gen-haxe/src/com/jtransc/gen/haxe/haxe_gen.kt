@@ -31,6 +31,12 @@ class GenHaxeGen(
 	fun AstBody.gen(): Indenter = gen2(this)
 	fun AstClass.gen(): ClassResult = gen2(this)
 
+	fun fix(field: AstFieldRef): AstFieldRef {
+		return program.get(field).ref // bugInnerMethodsWithSameName fail
+		return field
+	}
+	fun fix(method: AstMethodRef): AstMethodRef = method
+
 	internal fun _write(): GenHaxe.ProgramInfo {
 		val vfs = srcFolder
 		for (clazz in program.classes.filter { !it.isNative }) {
@@ -318,10 +324,10 @@ class GenHaxeGen(
 				is AstStm.SET_ARRAY -> line("HaxeNatives.checkNotNull(${stm.array.gen()}).set(${stm.index.gen()}, ${stm.expr.gen()});")
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
-					mutableBody.initClassRef(stm.field.classRef)
-					line("${stm.field.haxeStaticText} = ${stm.expr.gen()};")
+					mutableBody.initClassRef(fix(stm.field).classRef)
+					line("${fix(stm.field).haxeStaticText} = ${stm.expr.gen()};")
 				}
-				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.gen()}.${stm.field.haxeName} = ${stm.expr.gen()};")
+				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.gen()}.${fix(stm.field).haxeName} = ${stm.expr.gen()};")
 				is AstStm.STM_EXPR -> line("${stm.expr.gen()};")
 				is AstStm.STMS -> for (s in stm.stms) line(s.gen())
 				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
@@ -465,13 +471,13 @@ class GenHaxeGen(
 				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
-				"HaxeNatives.checkNotNull(${e.expr.gen()}).${e.field.haxeName}"
+				"HaxeNatives.checkNotNull(${e.expr.gen()}).${fix(e.field).haxeName}"
 			}
 			is AstExpr.STATIC_FIELD_ACCESS -> {
 				refs.add(e.clazzName)
-				mutableBody.initClassRef(e.field.classRef)
+				mutableBody.initClassRef(fix(e.field).classRef)
 
-				"${e.field.haxeStaticText}"
+				"${fix(e.field).haxeStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> "HaxeNatives.checkNotNull(${e.array.gen()}).length"
 			is AstExpr.ARRAY_ACCESS -> "HaxeNatives.checkNotNull(${e.array.gen()}).get(${e.index.gen()})"

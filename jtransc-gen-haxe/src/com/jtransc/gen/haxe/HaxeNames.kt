@@ -137,7 +137,7 @@ class HaxeNames(val program: AstResolver) {
 				is AstType.DOUBLE -> "HaxeDoubleArray"
 				else -> "HaxeArray"
 			}
-			else -> throw RuntimeException("Not supported haxe type $this")
+			else -> throw RuntimeException("Not supported haxe type $type, $typeKind")
 		})
 	}
 

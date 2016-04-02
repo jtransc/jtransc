@@ -28,6 +28,7 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
 	override val memberType: AstType = type
 	val containingTypeRef = AstType.REF(containingClass)
+	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
 }
 
@@ -42,6 +43,8 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	val nameDesc by lazy { AstMethodWithoutClassRef(name, type) }
 
 	val allClassRefs: List<AstClassRef> by lazy { type.getRefClasses() + classRef }
+
+	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 
 	override fun toString() = "AstMethodRef(${containingClass.fqname},$name,${type.desc})"
 }

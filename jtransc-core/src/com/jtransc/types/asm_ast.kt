@@ -12,10 +12,15 @@ import java.util.*
 
 val Handle.ast: AstMethodRef get() = AstMethodRef(this.owner.fqname, this.name, AstType.demangleMethod(this.desc))
 
-fun Asm2Ast(clazz:AstType.REF, method: MethodNode): AstBody = _Asm2Ast(clazz, method).call()
+class DummyLocateRightClass : LocateRightClass {
+	override fun locateRightClass(field: AstFieldRef) = field.classRef
+	override fun locateRightClass(method: AstMethodRef) = method.classRef
+}
+
+fun Asm2Ast(clazz:AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
-private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode) {
+private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -51,6 +56,12 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode) {
 			if (arg.type.isLongOrDouble()) idx++
 		}
 	}
+
+	//fun fix(field: AstFieldRef): AstFieldRef = locateRightClass.locateRightField(field)
+	//fun fix(method: AstMethodRef): AstMethodRef = locateRightClass.locateRightMethod(method)
+
+	fun fix(field: AstFieldRef): AstFieldRef = field
+	fun fix(method: AstMethodRef): AstMethodRef = method
 
 	fun getType(value: Any?): AstType {
 		return when (value) {
@@ -121,7 +132,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode) {
 
 	fun handleField(i: FieldInsnNode) {
 		val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
-		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc))
+		val ref = fix(AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> stackPush(AstExpr.STATIC_FIELD_ACCESS(ref))
 			Opcodes.GETFIELD -> stackPush(AstExpr.INSTANCE_FIELD_ACCESS(ref, stackPop()))
@@ -417,7 +428,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode) {
 	fun handleMethod(i: MethodInsnNode) {
 		val type = AstType.REF_INT(i.owner)
 		val clazz = if (type is AstType.REF) type else AstType.OBJECT
-		val methodRef = com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc))
+		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
 		val args = methodRef.type.args.map { stackPop() }.reversed()

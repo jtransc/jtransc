@@ -90,7 +90,7 @@ class AsmToAst : AstClassGenerator {
 			genericSignature = method.signature,
 			defaultTag = method.annotationDefault,
 			modifiers = mods,
-			generateBody = { if (mods.isConcrete) Asm2Ast(containingClass.ref.type, method) else null }
+			generateBody = { if (mods.isConcrete) Asm2Ast(containingClass.ref.type, method, containingClass.program) else null }
 		)
 	}
 
