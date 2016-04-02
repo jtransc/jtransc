@@ -4,25 +4,16 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.noImpl
-import com.jtransc.io.readBytes
-import com.jtransc.types.*
-import com.jtransc.vfs.*
+import com.jtransc.types.Asm2Ast
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.FieldNode
 import org.objectweb.asm.tree.MethodNode
-import soot.ClassMember
-import soot.SootField
-import soot.SootMethod
-import soot.tagkit.AnnotationDefaultTag
-import soot.tagkit.SignatureTag
-import java.io.File
-import java.io.IOException
+import java.util.*
 
-fun AnnotationNode.toAst():AstAnnotation {
+fun AnnotationNode.toAst(): AstAnnotation {
 	val ref = AstType.demangle(this.desc) as AstType.REF
 	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
 }
@@ -34,10 +25,15 @@ fun ClassNode.getInterfaces() = this.interfaces.cast<String>()
 fun ClassNode.getMethods() = this.methods.cast<MethodNode>()
 fun ClassNode.getFields() = this.fields.cast<FieldNode>()
 
+fun <T> Concat(vararg list: List<T>?): List<T> {
+	var out = listOf<T>()
+	for (l in list) if (l != null) out += l
+	return out
+}
 
-fun ClassNode.getAnnotations() = this.visibleAnnotations?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) } ?: listOf()
-fun MethodNode.getAnnotations() = this.visibleAnnotations?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) } ?: listOf()
-fun FieldNode.getAnnotations() = this.visibleAnnotations?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) } ?: listOf()
+fun ClassNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }
+fun MethodNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }
+fun FieldNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }
 
 fun MethodNode.isStatic() = this.access hasFlag Opcodes.ACC_STATIC
 fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
@@ -49,7 +45,7 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 }
 
 
-fun MethodNode.astRef(clazz:AstClass) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
+fun MethodNode.astRef(clazz: AstClass) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
 
 class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
@@ -109,7 +105,16 @@ class AsmToAst : AstClassGenerator {
 	}
 }
 
-fun AstAnnotationValue(value:Any?):Any? {
+fun AstAnnotationValue(value: Any?): Any? {
+	if (value == null) return null
+	val clazz = value.javaClass
+	if (clazz.isArray && clazz.componentType == java.lang.String::class.java) {
+		val array = value as Array<String>
+		return AstFieldWithoutTypeRef((AstType.demangle(array[0]) as AstType.REF).name, array[1])
+	}
+	if (value is ArrayList<*>) {
+		return value.map { AstAnnotationValue(it) }
+	}
 	return value
 }
 

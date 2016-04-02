@@ -30,35 +30,39 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	val stack = Stack<AstExpr>()
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 	val firstInstruction = method.instructions.first
-	val locals = hashMapOf<Pair<Int, AstType>, AstExpr.LocalExpr>()
+	val locals = hashMapOf<Pair<Int, AstType>, AstExpr.LocalExpr>()  // @TODO: remove this
 	val labels = hashMapOf<LabelNode, AstLabel>()
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val referencedLabels = hashSetOf<AstLabel>()
 	var tempLocalId = 1000
+	val localsAtIndex = hashMapOf<Int, AstExpr.LocalExpr>()
 
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
 		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
 
-	fun localPair(index: Int, type: AstType): Pair<Int, AstType> {
-		return Pair(index, type)
-		/*
+	fun fixType(type: AstType): AstType {
 		if (type is AstType.Primitive) {
-			return Pair(index, type)
+			return type
 		} else {
-			return Pair(index, AstType.OBJECT)
+			return AstType.OBJECT
 		}
-		*/
+	}
+
+	fun localPair(index: Int, type: AstType): Pair<Int, AstType> {
+		return Pair(index, fixType(type))
 	}
 
 	init {
 		var idx = 0
 		if (!isStatic) {
-			locals[localPair(idx++, clazz)] = AstExpr.THIS(clazz.name)
+			setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
+			locals[localPair(idx++, clazz)] = AstExpr.THIS(clazz.name) // @TODO: remove this
 		}
 		for (arg in methodType.args) {
-			locals[localPair(idx++, arg.type)] = AstExpr.PARAM(arg)
+			setLocalAtIndex(idx, AstExpr.PARAM(arg))
+			locals[localPair(idx++, arg.type)] = AstExpr.PARAM(arg) // @TODO: remove this
 			if (arg.type.isLongOrDouble()) idx++
 		}
 	}
@@ -93,8 +97,16 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun local(type: AstType, index: Int, prefix: String = "local"): AstExpr.LocalExpr {
 		val info = localPair(index, type)
 		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
-		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}", type))
+		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}", fixType(type)))
 		return locals[info]!!
+	}
+
+	fun localAtIndex(index: Int): AstExpr.LocalExpr {
+		return localsAtIndex[index]!!
+	}
+
+	fun setLocalAtIndex(index: Int, expr: AstExpr.LocalExpr) {
+		localsAtIndex[index] = expr
 	}
 
 	fun tempLocal(type: AstType): AstExpr.LocalExpr {
@@ -167,6 +179,19 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		stackPush(optimize(AstExpr.BINOP(type, l, op, r)))
 	}
 
+	fun arrayLoad(type: AstType): Unit {
+		val index = stackPop()
+		val array = stackPop()
+		stackPush(AstExpr.ARRAY_ACCESS(cast(array, AstType.ARRAY(type)), index))
+	}
+
+	fun arrayStore(type: AstType): Unit {
+		val expr = stackPop()
+		val index = stackPop()
+		val array = stackPop()
+		stmAdd(AstStm.SET_ARRAY(cast(array, AstType.ARRAY(type)), index, expr))
+	}
+
 	fun handleInsn(i: InsnNode): Unit {
 		val op = i.opcode
 		when (i.opcode) {
@@ -176,18 +201,28 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
 			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
 			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
-			Opcodes.IALOAD, Opcodes.LALOAD, Opcodes.FALOAD, Opcodes.DALOAD, Opcodes.AALOAD, Opcodes.BALOAD, Opcodes.CALOAD, Opcodes.SALOAD -> {
-				val index = stackPop()
-				val array = stackPop()
-				stackPush(AstExpr.ARRAY_ACCESS(array, index))
+			Opcodes.IALOAD -> arrayLoad(AstType.INT)
+			Opcodes.LALOAD -> arrayLoad(AstType.LONG)
+			Opcodes.FALOAD -> arrayLoad(AstType.FLOAT)
+			Opcodes.DALOAD -> arrayLoad(AstType.DOUBLE)
+			Opcodes.AALOAD -> arrayLoad(AstType.OBJECT)
+			Opcodes.BALOAD -> arrayLoad(AstType.BYTE)
+			Opcodes.CALOAD -> arrayLoad(AstType.CHAR)
+			Opcodes.SALOAD -> arrayLoad(AstType.SHORT)
+			Opcodes.IASTORE -> arrayStore(AstType.INT)
+			Opcodes.LASTORE -> arrayStore(AstType.LONG)
+			Opcodes.FASTORE -> arrayStore(AstType.FLOAT)
+			Opcodes.DASTORE -> arrayStore(AstType.DOUBLE)
+			Opcodes.AASTORE -> arrayStore(AstType.OBJECT)
+			Opcodes.BASTORE -> arrayStore(AstType.BYTE)
+			Opcodes.CASTORE -> arrayStore(AstType.CHAR)
+			Opcodes.SASTORE -> arrayStore(AstType.SHORT)
+			Opcodes.POP -> { // We store it, so we don't lose all the calculated stuff!
+				stmAdd(AstStm.STM_EXPR(stackPop()))
 			}
-			Opcodes.IASTORE, Opcodes.LASTORE, Opcodes.FASTORE, Opcodes.DASTORE, Opcodes.AASTORE, Opcodes.BASTORE, Opcodes.CASTORE, Opcodes.SASTORE -> {
-				stmAdd(AstStm.SET_ARRAY(stackPop(), stackPop(), stackPop()))
-			}
-			Opcodes.POP -> stackPop()
 			Opcodes.POP2 -> {
-				stackPop()
-				stackPop()
+				stmAdd(AstStm.STM_EXPR(stackPop()))
+				stmAdd(AstStm.STM_EXPR(stackPop()))
 			}
 			Opcodes.DUP -> {
 				val value = stackPop()
@@ -363,10 +398,13 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val index = i.`var`
 		when (i.opcode) {
 			in Opcodes.ILOAD..Opcodes.ALOAD -> {
-				stackPush(local(PTYPES[op - Opcodes.ILOAD], index))
+				stackPush(localAtIndex(index))
 			}
 			in Opcodes.ISTORE..Opcodes.ASTORE -> {
-				stmAdd(AstStm.SET(local(PTYPES[op - Opcodes.ISTORE], index), stackPop()))
+				val expr = stackPop()
+				val newLocal = tempLocal(expr.type)
+				setLocalAtIndex(index, newLocal)
+				stmAdd(AstStm.SET(newLocal, expr))
 			}
 			Opcodes.RET -> deprecated
 			else -> invalidOp

@@ -148,6 +148,9 @@ class GenHaxeGen(
 						is AstAnnotation -> annotation(it)
 						is Pair<*, *> -> escapeValue(it.second)
 						is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
+						is AstFieldWithoutTypeRef -> {
+							program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
+						}
 						is String -> "HaxeNatives.boxString(${it.quote()})"
 						is Int -> "HaxeNatives.boxInt($it)"
 						is Long -> "HaxeNatives.boxLong($it)"
@@ -303,8 +306,6 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.SET -> {
-					val localType = stm.local.type
-					val exprType = stm.expr.type
 					val expr = stm.expr.gen()
 					line("${stm.local.haxeName} = $expr;")
 				}
@@ -718,11 +719,14 @@ class GenHaxeGen(
 						val body2 = if (method.isInstanceInit) "$body return this;" else body
 						line("$decl { $body2 }")
 					} else if (method.body != null) {
+						val body = method.body!!
 						line(decl) {
 							when (GenHaxe.INIT_MODE) {
 								InitMode.START_OLD -> line("__hx_static__init__();")
 							}
-							line(features.apply(method.body!!, featureSet).gen())
+							line(features.apply(body, featureSet).gen())
+							//body.stms.l
+							if (method.isInstanceInit) line("return this;")
 						}
 					} else {
 						line("$decl { HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\"; }")
@@ -925,7 +929,6 @@ class GenHaxeGen(
 					line("private var __methods:Map<Int, java_.lang.reflect.Method_>;")
 					line("public function new(handler:java_.lang.reflect.InvocationHandler_)") {
 						line("super();")
-						line("this.__clazz = HaxeNatives.resolveClass(\"${clazz.name.fqname}\");")
 						line("this.__clazz = HaxeNatives.resolveClass(\"${clazz.name.fqname}\");")
 						line("this.__invocationHandler = handler;")
 					}

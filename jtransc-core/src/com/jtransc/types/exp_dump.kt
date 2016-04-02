@@ -47,6 +47,7 @@ fun dump(stm: AstStm): Indenter {
 			is AstStm.SET_ARRAY -> line(dump(stm.array) + "[" + dump(stm.index) + "] = " + dump(stm.expr) + ";")
 			is AstStm.LINE -> line("LINE(${stm.line})")
 			is AstStm.NOP -> line("NOP")
+			is AstStm.THROW -> line("throw ${dump(stm.value)};")
 			else -> noImpl("$stm")
 		}
 	}

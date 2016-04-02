@@ -50,6 +50,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 }
 
 data class AstFieldWithoutClassRef(val name: String, val type: AstType)
+data class AstFieldWithoutTypeRef(val containingClass: FqName, val name: String)
 
 data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD_TYPE) {
 	val fid2: String get() = "$name:${type.mangle()}"

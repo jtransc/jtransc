@@ -178,6 +178,7 @@ class AstProgram(
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
+	operator fun get(ref: AstFieldWithoutTypeRef): AstField = this[ref.containingClass].get(ref)
 
 	// @TODO: Cache all this stuff!
 	/*
@@ -237,7 +238,8 @@ class AstClass(
 	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	//val fieldsByName = hashMapOf<String, AstField>()
-	val fieldsByName = hashMapOf<AstFieldWithoutClassRef, AstField>()
+	val fieldsByInfo = hashMapOf<AstFieldWithoutClassRef, AstField>()
+	val fieldsByName = hashMapOf<String, AstField>()
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
@@ -273,7 +275,8 @@ class AstClass(
 	fun add(field: AstField) {
 		if (finished) invalidOp("Finished class")
 		fields.add(field)
-		fieldsByName[field.refWithoutClass] = field
+		fieldsByInfo[field.refWithoutClass] = field
+		fieldsByName[field.name] = field
 	}
 
 	fun add(method: AstMethod) {
@@ -342,11 +345,15 @@ class AstClass(
 	operator fun get(ref: AstMethodWithoutClassRef): AstMethod? = getMethod(ref.name, ref.desc)
 
 	// Fields
-	operator fun get(ref: AstFieldRef): AstField = fieldsByName[ref.withoutClass] ?:
+	operator fun get(ref: AstFieldRef): AstField = fieldsByInfo[ref.withoutClass] ?:
 		invalidOp("Can't find field $ref")
 
-	operator fun get(ref: AstFieldWithoutClassRef): AstField = fieldsByName[ref] ?: parentClass?.get(ref) ?:
+	operator fun get(ref: AstFieldWithoutClassRef): AstField = fieldsByInfo[ref] ?: parentClass?.get(ref) ?:
 		invalidOp("Can't find field $ref on ancestors")
+
+	operator fun get(ref: AstFieldWithoutTypeRef): AstField = fieldsByName[ref.name] ?: parentClass?.get(ref) ?:
+		invalidOp("Can't find field $ref on ancestors")
+
 
 	val hasStaticInit: Boolean get() = staticInitMethod != null
 	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
