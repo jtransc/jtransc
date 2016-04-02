@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.error.noImplWarn
 import com.jtransc.lang.nullMap
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
@@ -482,7 +483,7 @@ class GenHaxeGen(
 
 				"${fix(e.field).haxeStaticText}"
 			}
-			is AstExpr.ARRAY_LENGTH -> "HaxeNatives.checkNotNull(${e.array.gen()}).length"
+			is AstExpr.ARRAY_LENGTH -> "HaxeNatives.checkNotNull(cast(${e.array.gen()}, HaxeBaseArray)).length"
 			is AstExpr.ARRAY_ACCESS -> "HaxeNatives.checkNotNull(${e.array.gen()}).get(${e.index.gen()})"
 			is AstExpr.CAST -> {
 				refs.add(e.from)
@@ -593,7 +594,10 @@ class GenHaxeGen(
 					is AstType.BYTE -> "(($e) ? 1 : 0)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
 				//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
-					else -> noImpl("Unhandled conversion $e : $from -> $to")
+					else -> {
+						noImplWarn("Unhandled conversion $from -> $to")
+						"($e)"
+					}
 				}
 			}
 			is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
@@ -605,7 +609,10 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((($e) << 16) >> 16)"
 					is AstType.BYTE -> "((($e) << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-					else -> noImpl("Unhandled conversion $from -> $to")
+					else -> {
+						noImplWarn("Unhandled conversion $from -> $to")
+						"($e)"
+					}
 				}
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
@@ -617,7 +624,10 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((Std.int($e) << 16) >> 16)"
 					is AstType.BYTE -> "((Std.int($e) << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-					else -> noImpl("Unhandled conversion $from -> $to")
+					else -> {
+						noImplWarn("Unhandled conversion $from -> $to")
+						"($e)"
+					}
 				}
 			}
 			is AstType.LONG -> {
@@ -628,7 +638,10 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((($e).low << 16) >> 16)"
 					is AstType.BYTE -> "((($e).low << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
-					else -> noImpl("Unhandled conversion $from -> $to")
+					else -> {
+						noImplWarn("Unhandled conversion $from -> $to")
+						"($e)"
+					}
 				}
 			}
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
@@ -638,7 +651,10 @@ class GenHaxeGen(
 				}
 			}
 			is AstType.NULL -> "$e"
-			else -> noImpl("Unhandled conversion $from -> $to")
+			else -> {
+				noImplWarn("Unhandled conversion $from -> $to")
+				"($e)"
+			}
 		}
 	}
 

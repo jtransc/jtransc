@@ -273,10 +273,13 @@ object AstExprUtils {
 		if (obj.type !is AstType.REF) {
 			invalidOp("Obj must be an object $obj, but was ${obj.type}")
 		}
-		if (((obj.type as AstType.REF).name != method.containingClass)) {
-			return AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial = true)
+
+		//if (obj is AstExpr.THIS && ((obj.type as AstType.REF).name != method.containingClass)) {
+		if ((obj.type as AstType.REF).name != method.containingClass) {
+		//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
+			return AstExpr.CALL_SUPER(cast(obj, method.containingClassType), method.containingClass, method, args, isSpecial = true)
 		} else {
-			return AstExpr.CALL_INSTANCE(cast(obj, method.classRef.type), method, args, isSpecial = true)
+			return AstExpr.CALL_INSTANCE(cast(obj, method.containingClassType), method, args, isSpecial = true)
 		}
 	}
 }

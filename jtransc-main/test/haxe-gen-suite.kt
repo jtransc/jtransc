@@ -44,8 +44,8 @@ import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
 	companion object {
-		const val USE_SOOT = false
-		//const val USE_SOOT = true
+		//const val USE_SOOT = false
+		const val USE_SOOT = true
 
 		//const val DEBUG = !USE_SOOT
 		const val DEBUG = false

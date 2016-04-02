@@ -50,6 +50,14 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		}
 	}
 
+	fun nameType(type: AstType): String {
+		if (type is AstType.Primitive) {
+			return type.chstring
+		} else {
+			return "A"
+		}
+	}
+
 	fun localPair(index: Int, type: AstType): Pair<Int, AstType> {
 		return Pair(index, fixType(type))
 	}
@@ -97,7 +105,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun local(type: AstType, index: Int, prefix: String = "local"): AstExpr.LocalExpr {
 		val info = localPair(index, type)
 		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
-		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}", fixType(type)))
+		val type2 = fixType(type)
+		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}_${nameType(type2)}", type2))
 		return locals[info]!!
 	}
 
@@ -148,18 +157,30 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		return stack.peek()
 	}
 
+	fun stmSet(local: AstExpr.LocalExpr, value: AstExpr) {
+		if (local != value) {
+			stmAdd(AstStm.SET(local, value))
+		}
+	}
+
 	fun handleField(i: FieldInsnNode) {
-		val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
+		//val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
 		val ref = fix(AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc)))
 		when (i.opcode) {
-			Opcodes.GETSTATIC -> stackPush(AstExpr.STATIC_FIELD_ACCESS(ref))
-			Opcodes.GETFIELD -> stackPush(AstExpr.INSTANCE_FIELD_ACCESS(ref, stackPop()))
-			Opcodes.PUTSTATIC -> stmAdd(AstStm.SET_FIELD_STATIC(ref, stackPop()))
-
+			Opcodes.GETSTATIC -> {
+				stackPush(AstExprUtils.cast(AstExpr.STATIC_FIELD_ACCESS(ref), ref.type))
+			}
+			Opcodes.GETFIELD -> {
+				val obj = AstExprUtils.cast(stackPop(), ref.containingTypeRef)
+				stackPush(AstExprUtils.cast(AstExpr.INSTANCE_FIELD_ACCESS(ref, obj), ref.type))
+			}
+			Opcodes.PUTSTATIC -> {
+				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.cast(stackPop(), ref.type)))
+			}
 			Opcodes.PUTFIELD -> {
 				val param = stackPop()
-				val obj = stackPop()
-				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, param))
+				val obj = AstExprUtils.cast(stackPop(), ref.containingTypeRef)
+				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, AstExprUtils.cast(param, ref.type)))
 			}
 			else -> invalidOp
 		}
@@ -228,7 +249,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				val value = stackPop()
 				val local = tempLocal(value.type)
 
-				stmAdd(AstStm.SET(local, value))
+				stmSet(local, value)
 				stackPush(local)
 				stackPush(local)
 			}
@@ -241,8 +262,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				val local1 = tempLocal(v1.type)
 				val local2 = tempLocal(v2.type)
 				// @TODO: Check order
-				stmAdd(AstStm.SET(local2, v2))
-				stmAdd(AstStm.SET(local1, v1))
+				stmSet(local2, v2)
+				stmSet(local1, v1)
 				stackPush(local1)
 				stackPush(local2)
 				stackPush(local1)
@@ -254,8 +275,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				val local1 = tempLocal(v1.type)
 				val local2 = tempLocal(v2.type)
 				if (v2.type.isLongOrDouble()) {
-					stmAdd(AstStm.SET(local2, v2))
-					stmAdd(AstStm.SET(local1, v1))
+					stmSet(local2, v2)
+					stmSet(local1, v1)
 					stackPush(local1)
 					stackPush(local2)
 					stackPush(local1)
@@ -263,9 +284,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 					val v3 = stackPop()
 					val local3 = tempLocal(v3.type)
 					// @TODO: Check order
-					stmAdd(AstStm.SET(local1, v1))
-					stmAdd(AstStm.SET(local2, v2))
-					stmAdd(AstStm.SET(local3, v3))
+					stmSet(local1, v1)
+					stmSet(local2, v2)
+					stmSet(local3, v3)
 					stackPush(local3)
 					stackPush(local2)
 					stackPush(local1)
@@ -277,14 +298,14 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				val v1 = stackPop()
 				val local1 = tempLocal(v1.type)
 				if (v1.type.isLongOrDouble()) {
-					stmAdd(AstStm.SET(local1, v1))
+					stmSet(local1, v1)
 					stackPush(local1)
 					stackPush(local1)
 				} else {
 					val local2 = tempLocal(v1.type)
 					val v2 = stackPop()
-					stmAdd(AstStm.SET(local1, v1))
-					stmAdd(AstStm.SET(local2, v2))
+					stmSet(local1, v1)
+					stmSet(local2, v2)
 					stackPush(local1)
 					stackPush(local2)
 				}
@@ -298,9 +319,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 					val local1 = tempLocal(v1.type)
 					val local2 = tempLocal(v2.type)
 					val local3 = tempLocal(v3.type)
-					stmAdd(AstStm.SET(local1, v1))
-					stmAdd(AstStm.SET(local2, v2))
-					stmAdd(AstStm.SET(local3, v3))
+					stmSet(local1, v1)
+					stmSet(local2, v2)
+					stmSet(local3, v3)
 					stackPush(local1)
 					stackPush(local2)
 					stackPush(local3)
@@ -311,8 +332,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 					val v2 = stackPop() // single
 					val local1 = tempLocal(v1.type)
 					val local2 = tempLocal(v2.type)
-					stmAdd(AstStm.SET(local1, v1))
-					stmAdd(AstStm.SET(local2, v2))
+					stmSet(local1, v1)
+					stmSet(local2, v2)
 					stackPush(local1)
 					stackPush(local2)
 					stackPush(local1)
@@ -359,7 +380,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			in Opcodes.IRETURN..Opcodes.ARETURN -> {
 				val ret = stackPop()
 				dumpExprs()
-				stmAdd(AstStm.RETURN(ret))
+				stmAdd(AstStm.RETURN(cast(ret, this.methodType.ret)))
 			}
 			Opcodes.RETURN -> {
 				dumpExprs()
@@ -404,7 +425,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				val expr = stackPop()
 				val newLocal = tempLocal(expr.type)
 				setLocalAtIndex(index, newLocal)
-				stmAdd(AstStm.SET(newLocal, expr))
+				stmSet(newLocal, expr)
 			}
 			Opcodes.RET -> deprecated
 			else -> invalidOp
@@ -477,7 +498,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val args = methodRef.type.args.map { stackPop() }.reversed()
+		val args = methodRef.type.args.map { cast(stackPop(), it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
 		when (i.opcode) {
@@ -485,7 +506,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
 			}
 			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE -> {
-				stackPush(AstExpr.CALL_INSTANCE(obj!!, methodRef, args, isSpecial))
+				stackPush(AstExpr.CALL_INSTANCE(cast(obj!!, methodRef.containingClassType), methodRef, args, isSpecial))
 			}
 			Opcodes.INVOKESPECIAL -> {
 				stackPush(AstExprUtils.INVOKE_SPECIAL(obj!!, methodRef, args))
@@ -530,7 +551,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = local(AstType.INT, i.`var`)
-		stmAdd(AstStm.SET(local, local + AstExpr.LITERAL(1)))
+		stmSet(local, local + AstExpr.LITERAL(1))
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
@@ -555,7 +576,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			while (stack.isNotEmpty()) {
 				val value = stackPop()
 				val local = preserveStackLocal(stack.size, value.type)
-				stmAdd(AstStm.SET(local, value))
+				stmSet(local, value)
 				items.add(local)
 			}
 			return items

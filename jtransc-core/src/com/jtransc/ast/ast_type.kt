@@ -4,19 +4,23 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.text.*
-import java.io.Reader
+import com.jtransc.text.StrReader
+import com.jtransc.text.readUntil
 import java.io.Serializable
-import java.io.StringReader
 import java.util.*
 
 interface AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
+	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
 		override fun hashCode() = ch.toInt()
-		override fun equals(that: Any?) = Objects.equals(this.ch, (that as Primitive?)?.ch)
+		override fun equals(that: Any?): Boolean {
+			if (that == null) return false;
+			if (that !is Primitive) return false
+			return Objects.equals(this.ch, (that as Primitive?)?.ch)
+		}
+
 		override fun toString() = shortName
 	}
 
@@ -60,6 +64,7 @@ interface AstType {
 			if (other == null || other !is REF) return false
 			return Objects.equals(this.name, other.name)
 		}
+
 		override fun toString() = name.fqname
 	}
 
@@ -71,19 +76,21 @@ interface AstType {
 		override fun toString() = "$element[]"
 	}
 
-	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy:Boolean) : AstType {
+	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : AstType {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
+
 		val params0: List<AstType> get() = suffixes[0].params!!
 	}
 
-	data class GENERIC_SUFFIX(val id:String?, val params: List<AstType>?)
+	data class GENERIC_SUFFIX(val id: String?, val params: List<AstType>?)
 
-	data class TYPE_PARAMETER(val id:String) : AstType
+	data class TYPE_PARAMETER(val id: String) : AstType
 
 	object GENERIC_STAR : AstType
+
 	object GENERIC_ITEM : AstType
 
-	data class GENERIC_DESCRIPTOR(val element:AstType, val types: List<Pair<String, AstType>>) : AstType
+	data class GENERIC_DESCRIPTOR(val element: AstType, val types: List<Pair<String, AstType>>) : AstType
 
 	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType
 	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType
@@ -127,7 +134,7 @@ interface AstType {
 		val OBJECT = REF("java.lang.Object")
 		val CLASS = REF("java.lang.Class")
 
-		fun ARRAY(element: AstType, count:Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
+		fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
 
 		fun REF_INT(internalName: String): AstType {
 			if (internalName.startsWith("[")) {
@@ -205,7 +212,7 @@ data class FqName(val fqname: String) : Serializable {
 
 	override fun hashCode(): Int = fqname.hashCode()
 
-	override fun equals(that:Any?): Boolean = this.fqname == (that as? FqName)?.fqname
+	override fun equals(that: Any?): Boolean = this.fqname == (that as? FqName)?.fqname
 
 	fun append(s: String): FqName = FqName(this.fqname + s)
 }
@@ -234,6 +241,7 @@ object AstTypeBuilder {
 	//fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
 	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
 	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD_TYPE(args, ret)
+
 	fun METHOD(ret: AstType, vararg args: AstType) = AstType.METHOD_TYPE(ret, args.toList())
 }
 
@@ -331,7 +339,7 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 				else -> throw InvalidOperationException()
 			}
 		}
-		// PARAMETRIZED TYPE
+	// PARAMETRIZED TYPE
 		'<' -> {
 			val types = arrayListOf<Pair<String, AstType>>()
 			while (reader.peekch() != '>') {
