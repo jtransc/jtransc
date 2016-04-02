@@ -584,6 +584,11 @@ class GenHaxeGen(
 		//	}
 		//}
 
+		fun unhandled(): String {
+			noImplWarn("Unhandled conversion ($from -> $to) at ${this.clazz}::${this.method.name}")
+			return "($e)"
+		}
+
 		return when (from) {
 			is AstType.BOOL -> {
 				when (to) {
@@ -594,10 +599,7 @@ class GenHaxeGen(
 					is AstType.BYTE -> "(($e) ? 1 : 0)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
 				//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
-					else -> {
-						noImplWarn("Unhandled conversion $from -> $to")
-						"($e)"
-					}
+					else -> unhandled()
 				}
 			}
 			is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
@@ -609,10 +611,7 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((($e) << 16) >> 16)"
 					is AstType.BYTE -> "((($e) << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-					else -> {
-						noImplWarn("Unhandled conversion $from -> $to")
-						"($e)"
-					}
+					else -> unhandled()
 				}
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
@@ -624,10 +623,7 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((Std.int($e) << 16) >> 16)"
 					is AstType.BYTE -> "((Std.int($e) << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
-					else -> {
-						noImplWarn("Unhandled conversion $from -> $to")
-						"($e)"
-					}
+					else -> unhandled()
 				}
 			}
 			is AstType.LONG -> {
@@ -638,10 +634,7 @@ class GenHaxeGen(
 					is AstType.SHORT -> "((($e).low << 16) >> 16)"
 					is AstType.BYTE -> "((($e).low << 24) >> 24)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
-					else -> {
-						noImplWarn("Unhandled conversion $from -> $to")
-						"($e)"
-					}
+					else -> unhandled()
 				}
 			}
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
@@ -651,10 +644,7 @@ class GenHaxeGen(
 				}
 			}
 			is AstType.NULL -> "$e"
-			else -> {
-				noImplWarn("Unhandled conversion $from -> $to")
-				"($e)"
-			}
+			else -> unhandled()
 		}
 	}
 

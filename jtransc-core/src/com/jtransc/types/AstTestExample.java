@@ -3,28 +3,28 @@ package com.jtransc.types;
 import java.io.IOException;
 
 public class AstTestExample {
-	static Demo1 a = new Demo1(1);
-	static Demo b = new Demo(2);
-	static Demo c = new Demo(3);
 
-	private void ensureOpen() throws IOException {
-		throw new IOException("Stream closed");
+	//return ((byte)com.jtransc.types.AstTestExample.checkDecode(((int)p0), ((java.lang.String)java.lang.Integer.parseInt(((int)p0), ((java.lang.String)p1)))));
+
+	/*
+	public static byte parseByte(String value, int radix) throws NumberFormatException {
+		return (byte) checkDecode(value, Integer.parseInt(value, radix));
 	}
 
-	static public Object demo() {
-		String[] array = new String[] { "test" };
-		Object[] array1 = (Object[]) array;
-		return array1[0];
+	private static int checkDecode(String value, int decoded) throws NumberFormatException {
+		return 0;
+	}
+	*/
+
+	private void test() {
+		_setProperty("java.io.tmpdir", getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp"));
 	}
 
-	static class Demo1 {
-		public Demo1(int a) {
-
-		}
+	private void _setProperty(String prop, String name) {
 	}
-	static class Demo {
-		public Demo(int a) {
 
-		}
+	private String getenvs(String[] prop, String def) {
+		return null;
 	}
+
 }

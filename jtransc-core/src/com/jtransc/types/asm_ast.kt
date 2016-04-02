@@ -3,10 +3,7 @@ package com.jtransc.types
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.InvalidOperationException
-import com.jtransc.error.deprecated
-import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
+import com.jtransc.error.*
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -257,6 +254,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		// @TODO: Must reproduce these opcodes!
 		// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> {
+				untestedWarn("DUP_X1")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -270,6 +268,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP_X2 -> {
+				untestedWarn("DUP_X2")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -295,6 +294,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
+				untestedWarn("DUP2")
 				val v1 = stackPop()
 				val local1 = tempLocal(v1.type)
 				if (v1.type.isLongOrDouble()) {
@@ -312,6 +312,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP2_X1 -> {
+				untestedWarn("DUP2_X1")
 				if (!stackPeek().type.isLongOrDouble()) {
 					val v1 = stackPop() // single
 					val v2 = stackPop() // single
@@ -340,6 +341,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				}
 			}
 			Opcodes.DUP2_X2 -> {
+				untestedWarn("DUP2_X2")
 				stmAdd(AstStm.NOT_IMPLEMENTED)
 			}
 			Opcodes.SWAP -> {
@@ -498,7 +500,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val args = methodRef.type.args.map { cast(stackPop(), it.type) }.reversed()
+		val args = methodRef.type.args.reversed().map { cast(stackPop(), it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
 		when (i.opcode) {

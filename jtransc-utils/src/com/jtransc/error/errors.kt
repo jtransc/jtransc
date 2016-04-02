@@ -34,7 +34,10 @@ val invalidOp: Nothing get() = throw InvalidOperationException()
 fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
 fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
 fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
-fun noImplWarn(msg:String): Unit { println(msg) }
 fun invalidOp(msg:String): Nothing { throw InvalidOperationException(msg) }
 fun invalidArgument(msg:String): Nothing { throw InvalidArgumentException(msg) }
 fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }
+
+// Warns
+fun untestedWarn(msg:String): Unit { println("Untested: $msg") }
+fun noImplWarn(msg:String): Unit { println("Not implemented: $msg") }

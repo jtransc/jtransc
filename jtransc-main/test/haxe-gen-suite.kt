@@ -49,10 +49,11 @@ class HaxeGenSuiteTest {
 
 		//const val DEBUG = !USE_SOOT
 		const val DEBUG = false
+		//const val DEBUG = true
 	}
 
 	init {
-		log.logger = { }
+		if (!DEBUG) log.logger = { }
 	}
 
 	//-----------------------------------------------------------------
