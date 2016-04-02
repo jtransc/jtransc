@@ -8,6 +8,29 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 import java.io.File
+import java.lang.Throwable
+
+object AstMethodBuilderTest {
+	fun <T> Class<T>.readClassNode(): ClassNode {
+		val bytes = this.readBytes()
+		return ClassNode().apply {
+			ClassReader(bytes).accept(this, ClassReader.EXPAND_FRAMES)
+		}
+	}
+
+	@JvmStatic fun main(args: Array<String>) {
+		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
+		for (method in clazz.methods.cast<MethodNode>()) {
+			val methodType = AstType.demangleMethod(method.desc)
+			println("::${method.name} :: $methodType")
+			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
+			println(dump(Asm2Ast(AstType.REF_INT2(clazz.name), method)))
+			//println(jimple)
+		}
+		//println(Asm2Baf(clazz, method).toExpr())
+		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
+	}
+}
 
 class AstMethodBuilderTestExample(f: File?) {
 	/*
@@ -43,7 +66,24 @@ class AstMethodBuilderTestExample(f: File?) {
 	fun sample(str:String?) = if (str != null) File(str) else null
 	*/
 
-	constructor(str: String?) : this(if (str != null) File(str) else null)
+	//constructor(str: String?) : this(if (str != null) File(str) else null)
+
+	@Throws(CloneNotSupportedException::class)
+	protected fun clone2(): Int {
+		/*
+		val clazz = this.javaClass
+		val newObject = clazz.newInstance()
+		for (field in clazz.declaredFields) {
+			//field.getDeclaringClass().isPrimitive()
+			field.set(newObject, field.get(this))
+		}
+		*/
+		val list = IntArray(10)
+		println(list[0])
+		//return IntArray(10)[0]
+		return 0
+	}
+
 
 	/*
 	class MyClass() {
@@ -52,26 +92,4 @@ class AstMethodBuilderTestExample(f: File?) {
 		}
 	}
 	*/
-}
-
-object AstMethodBuilderTest {
-	fun <T> Class<T>.readClassNode(): ClassNode {
-		val bytes = this.readBytes()
-		return ClassNode().apply {
-			ClassReader(bytes).accept(this, ClassReader.EXPAND_FRAMES)
-		}
-	}
-
-	@JvmStatic fun main(args: Array<String>) {
-		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
-		for (method in clazz.methods.cast<MethodNode>()) {
-			val methodType = AstType.demangleMethod(method.desc)
-			println("::${method.name} :: $methodType")
-			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
-			println(dump(Asm2Ast(AstType.REF_INT2(clazz.name), method)))
-			//println(jimple)
-		}
-		//println(Asm2Baf(clazz, method).toExpr())
-		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
-	}
 }

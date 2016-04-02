@@ -3,7 +3,10 @@ package com.jtransc.types
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.*
+import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.deprecated
+import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -17,10 +20,10 @@ class DummyLocateRightClass : LocateRightClass {
 	override fun locateRightClass(method: AstMethodRef) = method.classRef
 }
 
-fun Asm2Ast(clazz:AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
+fun Asm2Ast(clazz: AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
-private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
+private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -38,12 +41,15 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
 
-	fun localPair(index:Int, type:AstType): Pair<Int, AstType> {
+	fun localPair(index: Int, type: AstType): Pair<Int, AstType> {
+		return Pair(index, type)
+		/*
 		if (type is AstType.Primitive) {
 			return Pair(index, type)
 		} else {
 			return Pair(index, AstType.OBJECT)
 		}
+		*/
 	}
 
 	init {
@@ -74,7 +80,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		}
 	}
 
-	fun LiteralToAstType(lit:Any?):AstType {
+	fun LiteralToAstType(lit: Any?): AstType {
 		return when (lit) {
 			null -> AstType.NULL
 			is Long -> AstType.LONG
@@ -84,7 +90,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		}
 	}
 
-	fun local(type: AstType, index: Int, prefix:String = "local"): AstExpr.LocalExpr {
+	fun local(type: AstType, index: Int, prefix: String = "local"): AstExpr.LocalExpr {
 		val info = localPair(index, type)
 		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
 		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}", type))
@@ -149,11 +155,11 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 
 	//  peephole optimizations
 
-	fun optimize(e:AstExpr.BINOP):AstExpr {
+	fun optimize(e: AstExpr.BINOP): AstExpr {
 		return e
 	}
 
-	fun cast(expr:AstExpr, to:AstType) = AstExprUtils.cast(expr, to)
+	fun cast(expr: AstExpr, to: AstType) = AstExprUtils.cast(expr, to)
 
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
@@ -171,7 +177,9 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
 			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
 			Opcodes.IALOAD, Opcodes.LALOAD, Opcodes.FALOAD, Opcodes.DALOAD, Opcodes.AALOAD, Opcodes.BALOAD, Opcodes.CALOAD, Opcodes.SALOAD -> {
-				stackPush(AstExpr.ARRAY_ACCESS(stackPop(), stackPop()))
+				val index = stackPop()
+				val array = stackPop()
+				stackPush(AstExpr.ARRAY_ACCESS(array, index))
 			}
 			Opcodes.IASTORE, Opcodes.LASTORE, Opcodes.FASTORE, Opcodes.DASTORE, Opcodes.AASTORE, Opcodes.BASTORE, Opcodes.CASTORE, Opcodes.SASTORE -> {
 				stmAdd(AstStm.SET_ARRAY(stackPop(), stackPop(), stackPop()))
@@ -191,7 +199,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 			}
 		// @TODO: probably wrong!
 		// @TODO: Must reproduce these opcodes!
-			// It seems to be reproducible in java.lang.Object constructor!
+		// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> {
 				val v1 = stackPop()
 				val v2 = stackPop()
@@ -229,7 +237,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 					stackPush(local3)
 				}
 			}
-			// @TODO: probably wrong!
+		// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
 				val v1 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -246,7 +254,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 					stackPush(local2)
 				}
 			}
-			// @TODO: probably wrong!
+		// @TODO: probably wrong!
 			Opcodes.DUP2_X1 -> {
 				if (!stackPeek().type.isLongOrDouble()) {
 					val v1 = stackPop() // single
@@ -491,7 +499,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		stmAdd(AstStm.LINE(i.line))
 	}
 
-	fun preserveStackLocal(index:Int, type:AstType):AstExpr.LocalExpr {
+	fun preserveStackLocal(index: Int, type: AstType): AstExpr.LocalExpr {
 		return local(type, index + 2000)
 	}
 
@@ -501,7 +509,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		}
 	}
 
-	fun preserveStack():List<AstExpr.LocalExpr> {
+	fun preserveStack(): List<AstExpr.LocalExpr> {
 		if (stack.isEmpty()) {
 			return Collections.EMPTY_LIST as List<AstExpr.LocalExpr>
 		} else {
@@ -516,11 +524,12 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		}
 	}
 
-	fun restoreStack(stackToRestore:List<AstExpr.LocalExpr>) {
+	fun restoreStack(stackToRestore: List<AstExpr.LocalExpr>) {
 		if (stackToRestore.size >= 2) {
 			//println("stackToRestore.size:" + stackToRestore.size)
 		}
-		for (i in stackToRestore.reversed()) { // @TODO: avoid reversed by inserting in the right order!
+		for (i in stackToRestore.reversed()) {
+			// @TODO: avoid reversed by inserting in the right order!
 			this.stack.push(i)
 		}
 	}
@@ -529,13 +538,14 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 		stack.clear()
 		// @TODO: Check preserved stack order!
 		for ((index, typeValue) in i.stack.reversed().withIndex()) {
+			//for ((index, typeValue) in i.stack.withIndex()) {
 			val type = LiteralToAstType(typeValue)
 			stackPush(preserveStackLocal(index, type))
 			//println("STACK: $index, $type")
 		}
 	}
 
-	fun call():AstBody {
+	fun call(): AstBody {
 		var i = this.firstInstruction
 		//println("---------")
 		while (i != null) {
@@ -562,7 +572,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 			i = i.next
 		}
 
-		fun optimize(stms:MutableList<AstStm?>, item:AstStm?, index:Int, total:Int):AstStm? {
+		fun optimize(stms: MutableList<AstStm?>, item: AstStm?, index: Int, total: Int): AstStm? {
 			if (item == null) return null
 			// Remove not referenced labels
 			if (item is AstStm.STM_LABEL && item.label !in referencedLabels) return null
@@ -570,7 +580,7 @@ private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode, val _locat
 			return item
 		}
 
-		fun List<AstStm?>.optimize():List<AstStm> {
+		fun List<AstStm?>.optimize(): List<AstStm> {
 			var stms = this.toMutableList()
 			for (n in 0 until stms.size) {
 				stms[n] = optimize(stms, stms[n], n, stms.size)

@@ -31,6 +31,8 @@ class GenHaxeGen(
 	fun AstBody.gen(): Indenter = gen2(this)
 	fun AstClass.gen(): ClassResult = gen2(this)
 
+	// @TODO: Remove this from here, so new targets don't have to do this too!
+	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
 	fun fix(field: AstFieldRef): AstFieldRef {
 		return program.get(field).ref // bugInnerMethodsWithSameName fail
 		return field

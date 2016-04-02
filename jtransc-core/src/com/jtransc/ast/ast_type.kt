@@ -14,6 +14,7 @@ interface AstType {
 	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName:String) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
+		val chstring = "$ch"
 		override fun hashCode() = ch.toInt()
 		override fun equals(that: Any?) = Objects.equals(this.ch, (that as Primitive?)?.ch)
 		override fun toString() = shortName
@@ -55,7 +56,10 @@ interface AstType {
 		val classRef: AstClassRef by lazy { AstClassRef(name) }
 
 		override fun hashCode(): Int = name.hashCode()
-		override fun equals(other: Any?): Boolean = Objects.equals(this.name, (other as REF?)?.name)
+		override fun equals(other: Any?): Boolean {
+			if (other == null || other !is REF) return false
+			return Objects.equals(this.name, other.name)
+		}
 		override fun toString() = name.fqname
 	}
 
@@ -364,19 +368,11 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 val AstType.elementType: AstType get() = when (this) {
 	is AstType.ARRAY -> this.element
 	is AstType.GENERIC -> this.suffixes[0].params!![0]
-	else -> invalidArgument("Type is not an array")
+	else -> invalidArgument("Type is not an array: $this")
 }
 
 fun AstType.mangle(retval: Boolean = true): String = when (this) {
-	is AstType.VOID -> "V"
-	is AstType.BOOL -> "Z"
-	is AstType.BYTE -> "B"
-	is AstType.CHAR -> "C"
-	is AstType.SHORT -> "S"
-	is AstType.DOUBLE -> "D"
-	is AstType.FLOAT -> "F"
-	is AstType.INT -> "I"
-	is AstType.LONG -> "J"
+	is AstType.Primitive -> this.chstring
 	is AstType.GENERIC -> "L" + type.name.internalFqname + this.suffixes.map {
 		(it.id ?: "") + (if (it.params != null) "<" + it.params.map { it.mangle(retval) }.joinToString("") + ">" else "")
 	}.joinToString(".") + ";"
