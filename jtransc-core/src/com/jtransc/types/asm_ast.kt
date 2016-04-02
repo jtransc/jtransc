@@ -15,7 +15,7 @@ val Handle.ast: AstMethodRef get() = AstMethodRef(this.owner.fqname, this.name, 
 fun Asm2Ast(clazz:AstType.REF, method: MethodNode): AstBody = _Asm2Ast(clazz, method).call()
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
-private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
+private class _Asm2Ast(val clazz:AstType.REF, val method: MethodNode) {
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -73,14 +73,15 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		}
 	}
 
-	fun local(type: AstType, index: Int): AstExpr.LocalExpr {
+	fun local(type: AstType, index: Int, prefix:String = "local"): AstExpr.LocalExpr {
 		val info = localPair(index, type)
-		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
+		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
+		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}", type))
 		return locals[info]!!
 	}
 
 	fun tempLocal(type: AstType): AstExpr.LocalExpr {
-		return local(type, tempLocalId++)
+		return local(type, tempLocalId++, "temp")
 	}
 
 	fun label(label: LabelNode): AstLabel {
@@ -94,6 +95,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	}
 
 	fun stmAdd(s: AstStm) {
+		// Adding statements must dump stack (and restore later) so we preserve calling order!
 		val stack = preserveStack()
 		stms.add(s)
 		restoreStack(stack)
@@ -110,9 +112,16 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		return stack.pop()
 	}
 
+	fun stackPeek(): AstExpr {
+		if (stack.isEmpty()) {
+			println("stack is empty!")
+		}
+		return stack.peek()
+	}
+
 	fun handleField(i: FieldInsnNode) {
 		val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
-		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc), isStatic)
+		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> stackPush(AstExpr.STATIC_FIELD_ACCESS(ref))
 			Opcodes.GETFIELD -> stackPush(AstExpr.INSTANCE_FIELD_ACCESS(ref, stackPop()))
@@ -169,13 +178,95 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 				stackPush(local)
 				stackPush(local)
 			}
+		// @TODO: probably wrong!
 		// @TODO: Must reproduce these opcodes!
 			// It seems to be reproducible in java.lang.Object constructor!
-			Opcodes.DUP_X1 -> noImpl
-			Opcodes.DUP_X2 -> noImpl
-			Opcodes.DUP2 -> noImpl
-			Opcodes.DUP2_X1 -> noImpl
-			Opcodes.DUP2_X2 -> noImpl
+			Opcodes.DUP_X1 -> {
+				val v1 = stackPop()
+				val v2 = stackPop()
+				val local1 = tempLocal(v1.type)
+				val local2 = tempLocal(v2.type)
+				// @TODO: Check order
+				stmAdd(AstStm.SET(local2, v2))
+				stmAdd(AstStm.SET(local1, v1))
+				stackPush(local1)
+				stackPush(local2)
+				stackPush(local1)
+			}
+		// @TODO: probably wrong!
+			Opcodes.DUP_X2 -> {
+				val v1 = stackPop()
+				val v2 = stackPop()
+				val local1 = tempLocal(v1.type)
+				val local2 = tempLocal(v2.type)
+				if (v2.type.isLongOrDouble()) {
+					stmAdd(AstStm.SET(local2, v2))
+					stmAdd(AstStm.SET(local1, v1))
+					stackPush(local1)
+					stackPush(local2)
+					stackPush(local1)
+				} else {
+					val v3 = stackPop()
+					val local3 = tempLocal(v3.type)
+					// @TODO: Check order
+					stmAdd(AstStm.SET(local1, v1))
+					stmAdd(AstStm.SET(local2, v2))
+					stmAdd(AstStm.SET(local3, v3))
+					stackPush(local3)
+					stackPush(local2)
+					stackPush(local1)
+					stackPush(local3)
+				}
+			}
+			// @TODO: probably wrong!
+			Opcodes.DUP2 -> {
+				val v1 = stackPop()
+				val local1 = tempLocal(v1.type)
+				if (v1.type.isLongOrDouble()) {
+					stmAdd(AstStm.SET(local1, v1))
+					stackPush(local1)
+					stackPush(local1)
+				} else {
+					val local2 = tempLocal(v1.type)
+					val v2 = stackPop()
+					stmAdd(AstStm.SET(local1, v1))
+					stmAdd(AstStm.SET(local2, v2))
+					stackPush(local1)
+					stackPush(local2)
+				}
+			}
+			// @TODO: probably wrong!
+			Opcodes.DUP2_X1 -> {
+				if (!stackPeek().type.isLongOrDouble()) {
+					val v1 = stackPop() // single
+					val v2 = stackPop() // single
+					val v3 = stackPop() // single
+					val local1 = tempLocal(v1.type)
+					val local2 = tempLocal(v2.type)
+					val local3 = tempLocal(v3.type)
+					stmAdd(AstStm.SET(local1, v1))
+					stmAdd(AstStm.SET(local2, v2))
+					stmAdd(AstStm.SET(local3, v3))
+					stackPush(local1)
+					stackPush(local2)
+					stackPush(local3)
+					stackPush(local1)
+					stackPush(local2)
+				} else {
+					val v1 = stackPop() // double
+					val v2 = stackPop() // single
+					val local1 = tempLocal(v1.type)
+					val local2 = tempLocal(v2.type)
+					stmAdd(AstStm.SET(local1, v1))
+					stmAdd(AstStm.SET(local2, v2))
+					stackPush(local1)
+					stackPush(local2)
+					stackPush(local1)
+				}
+			}
+			Opcodes.DUP2_X2 -> {
+				stmAdd(AstStm.NOT_IMPLEMENTED)
+			}
 			Opcodes.SWAP -> {
 				val v1 = stackPop()
 				val v2 = stackPop()
@@ -200,7 +291,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 
 			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(cast(stackPop(), AstType.LONG))
 			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(cast(stackPop(), AstType.FLOAT))
-			Opcodes.I2D, Opcodes.L2D, Opcodes.L2D -> stackPush(cast(stackPop(), AstType.DOUBLE))
+			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(cast(stackPop(), AstType.DOUBLE))
 			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(cast(stackPop(), AstType.INT))
 			Opcodes.I2B -> stackPush(cast(stackPop(), AstType.BYTE))
 			Opcodes.I2C -> stackPush(cast(stackPop(), AstType.CHAR))
@@ -224,7 +315,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 			Opcodes.ATHROW -> stmAdd(AstStm.THROW(stackPop()))
 			Opcodes.MONITORENTER -> stmAdd(AstStm.MONITOR_ENTER(stackPop()))
 			Opcodes.MONITOREXIT -> stmAdd(AstStm.MONITOR_EXIT(stackPop()))
-			else -> invalidOp
+			else -> invalidOp("$op")
 		}
 	}
 
@@ -295,7 +386,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 		// {@link String} or a {@link org.objectweb.asm.Type}.
 		val cst = i.cst
 		if (cst is Type) {
-			stackPush(AstExpr.CLASS_CONSTANT(AstType.REF_INT2(cst.className)))
+			stackPush(AstExpr.CLASS_CONSTANT(AstType.REF_INT(cst.internalName)))
 		} else {
 			stackPush(AstExpr.LITERAL(cst))
 		}
@@ -400,18 +491,25 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	}
 
 	fun preserveStack():List<AstExpr.LocalExpr> {
-		val items = arrayListOf<AstExpr.LocalExpr>()
-		while (stack.isNotEmpty()) {
-			val value = stackPop()
-			val local = preserveStackLocal(stack.size, value.type)
-			stmAdd(AstStm.SET(local, value))
-			items.add(local)
+		if (stack.isEmpty()) {
+			return Collections.EMPTY_LIST as List<AstExpr.LocalExpr>
+		} else {
+			val items = arrayListOf<AstExpr.LocalExpr>()
+			while (stack.isNotEmpty()) {
+				val value = stackPop()
+				val local = preserveStackLocal(stack.size, value.type)
+				stmAdd(AstStm.SET(local, value))
+				items.add(local)
+			}
+			return items
 		}
-		return items
 	}
 
 	fun restoreStack(stackToRestore:List<AstExpr.LocalExpr>) {
-		for (i in stackToRestore) {
+		if (stackToRestore.size >= 2) {
+			//println("stackToRestore.size:" + stackToRestore.size)
+		}
+		for (i in stackToRestore.reversed()) { // @TODO: avoid reversed by inserting in the right order!
 			this.stack.push(i)
 		}
 	}
@@ -419,15 +517,18 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 	fun handleFrame(i: FrameNode) {
 		stack.clear()
 		// @TODO: Check preserved stack order!
-		for ((index, typeValue) in i.stack.withIndex()) {
+		for ((index, typeValue) in i.stack.reversed().withIndex()) {
 			val type = LiteralToAstType(typeValue)
 			stackPush(preserveStackLocal(index, type))
+			//println("STACK: $index, $type")
 		}
 	}
 
 	fun call():AstBody {
 		var i = this.firstInstruction
+		//println("---------")
 		while (i != null) {
+			//println("${i.opcode} : $i")
 			when (i) {
 				is FieldInsnNode -> handleField(i)
 				is InsnNode -> handleInsn(i)
@@ -444,6 +545,7 @@ private class _Asm2Ast(clazz:AstType.REF, method: MethodNode) {
 				is IincInsnNode -> handleIinc(i)
 				is LineNumberNode -> handleLineNumber(i)
 				is FrameNode -> handleFrame(i)
+				is MultiANewArrayInsnNode -> handleMultiArray(i)
 				else -> invalidOp("$i")
 			}
 			i = i.next

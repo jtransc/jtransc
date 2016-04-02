@@ -152,6 +152,8 @@ object AstDependencyAnalyzer {
 						ana(arg)
 					}
 				}
+				is AstStm.LINE -> {
+				}
 				else -> throw NotImplementedError("Not implemented STM $stm")
 			}
 		}

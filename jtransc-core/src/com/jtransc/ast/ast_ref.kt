@@ -1,6 +1,6 @@
 package com.jtransc.ast
 
-import com.jtransc.error.invalidOp
+import com.jtransc.error.invalidArgument
 
 interface AstRef
 interface AstMemberRef : AstRef {
@@ -15,7 +15,7 @@ data class AstClassRef(val name: FqName) : AstRef {
 
 	init {
 		if (name.fqname.contains(';') || name.fqname.contains(']')) {
-			invalidOp("Class reference containing ; or ] :: $name")
+			invalidArgument("Class reference containing ; or ] :: $name")
 		}
 	}
 
@@ -24,14 +24,14 @@ data class AstClassRef(val name: FqName) : AstRef {
 	val type: AstType.REF get() = AstType.REF(name)
 }
 
-data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType, val isStatic: Boolean? = null) : AstMemberRef {
+data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef {
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
 	override val memberType: AstType = type
 	val containingTypeRef = AstType.REF(containingClass)
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
 }
 
-data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE, val isStatic:Boolean? = null) : AstMemberRef {
+data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE) : AstMemberRef {
 	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
 	val containingClassType: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type

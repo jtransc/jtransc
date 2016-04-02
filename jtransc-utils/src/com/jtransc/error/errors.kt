@@ -24,6 +24,7 @@ class InvalidArgumentException(str: String = "Invalid Argument") : Exception(str
 class MustValidateCodeException(str: String = "Must Validate Code") : Exception(str)
 class MustOverrideException(str: String = "Must Override") : Exception(str)
 class DeprecatedException(str: String = "Deprecated") : Exception(str)
+class UnexpectedException(str: String = "Unexpected") : Exception(str)
 
 val deprecated: Nothing get() = throw MustValidateCodeException()
 val mustValidate: Nothing get() = throw NotImplementedException()
@@ -34,3 +35,5 @@ fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
 fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
 fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
 fun invalidOp(msg:String): Nothing { throw InvalidOperationException(msg) }
+fun invalidArgument(msg:String): Nothing { throw InvalidArgumentException(msg) }
+fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }

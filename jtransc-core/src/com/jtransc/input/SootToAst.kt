@@ -321,8 +321,7 @@ open class AstMethodProcessor private constructor(
 val SootMethodRef.ast: AstMethodRef get() = AstMethodRef(
 	this.declaringClass().name.fqname,
 	this.name(),
-	AstType.METHOD_TYPE(this.returnType().astType, this.parameterTypes().cast<Type>().map { it.astType }),
-	this.isStatic
+	AstType.METHOD_TYPE(this.returnType().astType, this.parameterTypes().cast<Type>().map { it.astType })
 )
 val SootMethodHandle.ast: AstMethodHandle get() = AstMethodHandle(
 	this.methodType.astType,
@@ -387,7 +386,7 @@ val SootMethodType.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(
 	this.parameterTypes.map { it.astType }
 )
 
-val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType, this.isStatic)
+val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType)
 
 val SootMethod.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })
 

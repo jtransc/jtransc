@@ -362,6 +362,7 @@ class GenHaxeGen(
 				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
+				is AstStm.LINE -> line("// ${stm.line}")
 				else -> throw RuntimeException("Unhandled statement $stm")
 			}
 		}

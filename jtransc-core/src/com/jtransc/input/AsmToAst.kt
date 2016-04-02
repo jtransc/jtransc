@@ -49,11 +49,10 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 }
 
 
-fun MethodNode.astRef(clazz:AstClass) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc), this.isStatic())
+fun MethodNode.astRef(clazz:AstClass) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
 
 class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
-		program.readClassToGenerate()
 		val classNode = ClassNode().apply {
 			ClassReader(program.getClassBytes(fqname)).accept(this, ClassReader.EXPAND_FRAMES)
 		}
@@ -131,76 +130,3 @@ fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
 	return AstAnnotation(type, fields, true)
 }
 
-class AstMethodBuilderTestExample {
-	companion object {
-		@JvmStatic fun add(a: Int, b: Int) = a + b
-		@JvmStatic fun max(a: Int, b: Int) = if (a > b) a else b
-		@JvmStatic fun max2(a: Int, b: Int) = (if (a > b) a * 2 else b * 3) * 4
-		@JvmStatic fun max3(a: Long, b: Long) = (if (a > b) a * 2 else b * 3) * 4
-		@JvmStatic fun callStatic() = add(1, 2) + add(3, 4)
-		@JvmStatic fun callStatic2() {
-			add(1, 2) + add(3, 4)
-		}
-		@JvmStatic fun sumAll(items: Array<Int>):Int {
-			var sum = 0
-			for (i in items) sum += i
-			return sum
-		}
-		@JvmStatic fun sumAllPrim(items: IntArray):Int {
-			var sum = 0
-			for (i in items) sum += i
-			return sum
-		}
-		@JvmStatic fun multiArray() = Array<Array<IntArray>>(0) { Array<IntArray>(0) { IntArray(0) } }
-		@JvmStatic fun instantiate():Int {
-			return MyClass().test() * 2;
-		}
-	}
-
-	var a :Int = 10
-
-	fun demo(b:Int) = (a + b).toLong()
-
-	class MyClass() {
-		fun test():Int {
-			return 10;
-		}
-	}
-}
-
-fun <T> Class<T>.readClassNode(): ClassNode {
-	val bytes = this.readBytes()
-	return ClassNode().apply {
-		ClassReader(bytes).accept(this, ClassReader.EXPAND_FRAMES)
-	}
-}
-
-object AstMethodBuilderTest {
-	@JvmStatic fun main(args: Array<String>) {
-		val clazz = AstMethodBuilderTestExample::class.java.readClassNode()
-		for (method in clazz.methods.cast<MethodNode>()) {
-			val methodType = AstType.demangleMethod(method.desc)
-			println("::${method.name} :: $methodType")
-			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
-			println(dump(Asm2Ast(AstType.REF_INT2(clazz.name), method)))
-			//println(jimple)
-		}
-		//println(Asm2Baf(clazz, method).toExpr())
-		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
-	}
-}
-
-interface ClassResolver {
-	operator fun get(clazz: FqName): ByteArray
-}
-
-class VfsClassResolver(val classPaths: SyncVfsFile) : ClassResolver {
-	override operator fun get(clazz: FqName): ByteArray {
-		val path = clazz.internalFqname + ".class"
-		try {
-			return classPaths[path].readBytes()
-		} catch (e: IOException) {
-		}
-		throw ClassNotFoundException(clazz.fqname)
-	}
-}

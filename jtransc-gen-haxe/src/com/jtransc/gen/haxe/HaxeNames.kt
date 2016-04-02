@@ -3,6 +3,7 @@ package com.jtransc.gen.haxe
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.error.unexpected
 import com.jtransc.text.escape
 
 class HaxeNames(val program: AstResolver) {
@@ -81,8 +82,11 @@ class HaxeNames(val program: AstResolver) {
 				cachedFieldNames[f2] = name
 				names += name
 			}
+			return cachedFieldNames[field] ?:
+				unexpected("Unexpected. Not cached: $field")
 		}
-		return cachedFieldNames[field]!!
+		return cachedFieldNames[field] ?:
+			unexpected("Unexpected. Not cached: $field")
 	}
 
 	fun getHaxeFieldName(field: AstField): String {

@@ -1,6 +1,7 @@
 package com.jtransc.ast
 
 import com.jtransc.ds.cast
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 data class AstBody(
@@ -85,6 +86,10 @@ interface AstStm : AstElement {
 
 	data class MONITOR_ENTER(val expr: AstExpr) : AstStm
 	data class MONITOR_EXIT(val expr: AstExpr) : AstStm
+
+	object DEBUG : AstStm
+
+	object NOT_IMPLEMENTED : AstStm
 }
 
 interface AstExpr : AstElement {
@@ -265,6 +270,9 @@ object AstExprUtils {
 	}
 
 	fun INVOKE_SPECIAL(obj: AstExpr, method: AstMethodRef, args: List<AstExpr>): AstExpr.CALL_BASE {
+		if (obj.type !is AstType.REF) {
+			invalidOp("Obj must be an object $obj, but was ${obj.type}")
+		}
 		if (((obj.type as AstType.REF).name != method.containingClass)) {
 			return AstExpr.CALL_SUPER(obj, method.containingClass, method, args, isSpecial = true)
 		} else {

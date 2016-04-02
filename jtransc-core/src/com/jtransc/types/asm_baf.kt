@@ -12,7 +12,7 @@ import java.util.*
 /*
 fun AstMethodRef(clazz: ClassNode, method: MethodNode): AstMethodRef {
 	val isStatic = (method.access and Opcodes.ACC_STATIC) != 0
-	return AstMethodRef(clazz.name.replace('/', '.').fqname, method.name, AstType.demangleMethod(method.desc), isStatic)
+	return AstMethodRef(clazz.name.replace('/', '.').fqname, method.name, AstType.demangleMethod(method.desc))
 }
 
 //fun MethodNode.toBaf(): BAF.Body = Asm2Baf(this)
@@ -38,7 +38,7 @@ fun Asm2Baf(methodRef: AstMethodRef, list: InsnList): BAF.Body {
 
 	fun handleField(i:FieldInsnNode) {
 		val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
-		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangle(i.desc), isStatic)
+		val ref = AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, AstType.demangle(i.desc))
 		out.add(when (i.opcode) {
 			Opcodes.GETSTATIC -> BAF.GETFIELD(ref)
 			Opcodes.PUTSTATIC -> BAF.PUTFIELD(ref)
