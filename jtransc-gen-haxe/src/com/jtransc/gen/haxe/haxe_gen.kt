@@ -29,6 +29,13 @@ class GenHaxeGen(
 
 	fun AstStm.gen(): Indenter = gen2(this)
 	fun AstExpr.gen(): String = gen2(this)
+	fun AstExpr.genNotNull(): String {
+		if (this is AstExpr.THIS) {
+			return gen2(this)
+		} else {
+			return "HaxeNatives.checkNotNull(${gen2(this)})"
+		}
+	}
 	fun AstBody.gen(): Indenter = gen2(this)
 	fun AstClass.gen(): ClassResult = gen2(this)
 
@@ -325,7 +332,9 @@ class GenHaxeGen(
 						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
 				}
-				is AstStm.SET_ARRAY -> line("HaxeNatives.checkNotNull(${stm.array.gen()}).set(${stm.index.gen()}, ${stm.expr.gen()});")
+				is AstStm.SET_ARRAY -> {
+					line("${stm.array.genNotNull()}.set(${stm.index.gen()}, ${stm.expr.gen()});")
+				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
 					mutableBody.initClassRef(fix(stm.field).classRef)
@@ -455,7 +464,7 @@ class GenHaxeGen(
 				val base = when (e) {
 					is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
 					is AstExpr.CALL_SUPER -> "super"
-					is AstExpr.CALL_INSTANCE -> "HaxeNatives.checkNotNull(${e.obj.gen()})"
+					is AstExpr.CALL_INSTANCE -> "${e.obj.genNotNull()}"
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
@@ -475,7 +484,7 @@ class GenHaxeGen(
 				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
-				"HaxeNatives.checkNotNull(${e.expr.gen()}).${fix(e.field).haxeName}"
+				"${e.expr.genNotNull()}.${fix(e.field).haxeName}"
 			}
 			is AstExpr.STATIC_FIELD_ACCESS -> {
 				refs.add(e.clazzName)
@@ -483,8 +492,8 @@ class GenHaxeGen(
 
 				"${fix(e.field).haxeStaticText}"
 			}
-			is AstExpr.ARRAY_LENGTH -> "HaxeNatives.checkNotNull(cast(${e.array.gen()}, HaxeBaseArray)).length"
-			is AstExpr.ARRAY_ACCESS -> "HaxeNatives.checkNotNull(${e.array.gen()}).get(${e.index.gen()})"
+			is AstExpr.ARRAY_LENGTH -> "cast(${e.array.genNotNull()}, HaxeBaseArray).length"
+			is AstExpr.ARRAY_ACCESS -> "${e.array.genNotNull()}.get(${e.index.gen()})"
 			is AstExpr.CAST -> {
 				refs.add(e.from)
 				refs.add(e.to)

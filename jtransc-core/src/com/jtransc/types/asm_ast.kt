@@ -21,6 +21,14 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, locateRightClass: LocateRigh
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
 private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
+	companion object {
+		//const val DEBUG = true
+		const val DEBUG = false
+
+		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
+		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
+	}
+
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -33,11 +41,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	val referencedLabels = hashSetOf<AstLabel>()
 	var tempLocalId = 1000
 	val localsAtIndex = hashMapOf<Int, AstExpr.LocalExpr>()
-
-	companion object {
-		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
-		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
-	}
+	var lastLine = -1
 
 	fun fixType(type: AstType): AstType {
 		if (type is AstType.Primitive) {
@@ -86,16 +90,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			else -> {
 				throw InvalidOperationException("$value")
 			}
-		}
-	}
-
-	fun LiteralToAstType(lit: Any?): AstType {
-		return when (lit) {
-			null -> AstType.NULL
-			is Long -> AstType.LONG
-			is Int -> AstType.INT
-			is String -> AstType.REF_INT(lit)
-			else -> noImpl("$lit")
 		}
 	}
 
@@ -194,20 +188,24 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
 		val l = stackPop()
-		stackPush(optimize(AstExpr.BINOP(type, l, op, r)))
+		stackPush(optimize(AstExprUtils.BINOP(type, l, op, r)))
 	}
 
 	fun arrayLoad(type: AstType): Unit {
 		val index = stackPop()
 		val array = stackPop()
-		stackPush(AstExpr.ARRAY_ACCESS(cast(array, AstType.ARRAY(type)), index))
+		stackPush(AstExpr.ARRAY_ACCESS(cast(array, AstType.ARRAY(type)), cast(index, AstType.INT)))
 	}
 
-	fun arrayStore(type: AstType): Unit {
+	fun arrayStore(elementType: AstType): Unit {
 		val expr = stackPop()
 		val index = stackPop()
 		val array = stackPop()
-		stmAdd(AstStm.SET_ARRAY(cast(array, AstType.ARRAY(type)), index, expr))
+		stmAdd(AstStm.SET_ARRAY(cast(array, AstType.ARRAY(elementType)), cast(index, AstType.INT), cast(expr, elementType)))
+	}
+
+	fun untestedWarn2(msg: String) {
+		untestedWarn("$msg : ${clazz.name}::${method.name} @ $lastLine")
 	}
 
 	fun handleInsn(i: InsnNode): Unit {
@@ -235,7 +233,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			Opcodes.BASTORE -> arrayStore(AstType.BYTE)
 			Opcodes.CASTORE -> arrayStore(AstType.CHAR)
 			Opcodes.SASTORE -> arrayStore(AstType.SHORT)
-			Opcodes.POP -> { // We store it, so we don't lose all the calculated stuff!
+			Opcodes.POP -> {
+				// We store it, so we don't lose all the calculated stuff!
 				stmAdd(AstStm.STM_EXPR(stackPop()))
 			}
 			Opcodes.POP2 -> {
@@ -254,7 +253,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		// @TODO: Must reproduce these opcodes!
 		// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> {
-				untestedWarn("DUP_X1")
+				untestedWarn2("DUP_X1: $lastLine")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -268,7 +267,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP_X2 -> {
-				untestedWarn("DUP_X2")
+				untestedWarn2("DUP_X2")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -294,7 +293,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
-				untestedWarn("DUP2")
+				untestedWarn2("DUP2")
 				val v1 = stackPop()
 				val local1 = tempLocal(v1.type)
 				if (v1.type.isLongOrDouble()) {
@@ -312,7 +311,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP2_X1 -> {
-				untestedWarn("DUP2_X1")
+				untestedWarn2("DUP2_X1")
 				if (!stackPeek().type.isLongOrDouble()) {
 					val v1 = stackPop() // single
 					val v2 = stackPop() // single
@@ -341,7 +340,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				}
 			}
 			Opcodes.DUP2_X2 -> {
-				untestedWarn("DUP2_X2")
+				untestedWarn2("DUP2_X2")
 				stmAdd(AstStm.NOT_IMPLEMENTED)
 			}
 			Opcodes.SWAP -> {
@@ -374,7 +373,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			Opcodes.I2C -> stackPush(cast(stackPop(), AstType.CHAR))
 			Opcodes.I2S -> stackPush(cast(stackPop(), AstType.SHORT))
 
-			Opcodes.LCMP -> pushBinop(AstType.LONG, AstBinop.CMP)
+			Opcodes.LCMP -> pushBinop(AstType.LONG, AstBinop.LCMP)
 			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
 			Opcodes.FCMPG -> pushBinop(AstType.FLOAT, AstBinop.CMPG)
 			Opcodes.DCMPL -> pushBinop(AstType.DOUBLE, AstBinop.CMPL)
@@ -557,6 +556,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
+		lastLine = i.line
 		stmAdd(AstStm.LINE(i.line))
 	}
 
@@ -597,20 +597,37 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 	fun handleFrame(i: FrameNode) {
 		stack.clear()
-		// @TODO: Check preserved stack order!
-		for ((index, typeValue) in i.stack.reversed().withIndex()) {
-			//for ((index, typeValue) in i.stack.withIndex()) {
-			val type = LiteralToAstType(typeValue)
+		// validated order
+		for ((index, typeValue) in i.stack.withIndex()) {
+			//val type = LiteralToAstType(typeValue)
+
+			val type = when (typeValue) {
+				Opcodes.TOP -> invalidOp
+				Opcodes.INTEGER -> AstType.INT
+				Opcodes.FLOAT -> AstType.FLOAT
+				Opcodes.DOUBLE -> AstType.DOUBLE
+				Opcodes.LONG -> AstType.LONG
+				Opcodes.NULL -> AstType.OBJECT
+				Opcodes.UNINITIALIZED_THIS -> AstType.OBJECT
+				is String -> AstType.OBJECT
+				//else -> LiteralToAstType(typeValue)
+				else -> invalidOp
+			}
+
 			stackPush(preserveStackLocal(index, type))
-			//println("STACK: $index, $type")
+			if (DEBUG) println("$index: push($typeValue : ${typeValue?.javaClass})")
 		}
 	}
 
 	fun call(): AstBody {
 		var i = this.firstInstruction
-		//println("---------")
+		if (DEBUG) {
+			println("--------------------------------------------------------------------")
+			println("::::::::::::: ${clazz.name}.${method.name}:${method.desc}")
+			println("--------------------------------------------------------------------")
+		}
 		while (i != null) {
-			//println("${i.opcode} : $i")
+			if (DEBUG) println(AsmOpcode.disasm(i))
 			when (i) {
 				is FieldInsnNode -> handleField(i)
 				is InsnNode -> handleInsn(i)
@@ -671,4 +688,3 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		)
 	}
 }
-
