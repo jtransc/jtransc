@@ -30,7 +30,7 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
 	//private OutputStreamWriter charOut;
 	private Charset charset;
 
-	static private String lineSeparator = JTranscSystem.fileSeparator();
+	static private String lineSeparator = JTranscSystem.lineSeparator();
 
 	private static <T> T requireNonNull(T obj, String message) {
 		if (obj == null) throw new NullPointerException(message);
