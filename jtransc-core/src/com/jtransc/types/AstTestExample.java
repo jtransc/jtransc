@@ -59,8 +59,6 @@ public class AstTestExample extends AstTestExample2 {
 	private AstTestExample(String path, String reason) {
 		super(path + ((reason == null) ? "" : " (" + reason + ")"));
 	}
-
-
 }
 
 class AstTestExample2 {

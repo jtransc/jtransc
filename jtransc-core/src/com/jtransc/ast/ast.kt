@@ -16,6 +16,7 @@
 
 package com.jtransc.ast
 
+import com.jtransc.BuildBackend
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
@@ -48,7 +49,7 @@ data class AstBuildSettings(
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
-	val useSoot: Boolean = true
+	val backend: BuildBackend = BuildBackend.SOOT
 ) {
 	val release: Boolean get() = !debug
 

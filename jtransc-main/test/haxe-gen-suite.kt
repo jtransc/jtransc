@@ -15,6 +15,7 @@
  */
 
 import com.jtransc.AllBuild
+import com.jtransc.BuildBackend
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.log.log
@@ -44,8 +45,8 @@ import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
 	companion object {
-		//const val USE_SOOT = false
-		const val USE_SOOT = true
+		val BACKEND = BuildBackend.SOOT
+		//val BACKEND = BuildBackend.ASM
 
 		//const val DEBUG = !USE_SOOT
 		const val DEBUG = false
@@ -177,7 +178,7 @@ class HaxeGenSuiteTest {
 		return build.buildAndRunCapturingOutput(AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),
 			debug = DEBUG,
-			useSoot = USE_SOOT
+			backend = BACKEND
 		)).output
 	}
 

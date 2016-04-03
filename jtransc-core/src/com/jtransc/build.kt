@@ -17,6 +17,7 @@
 package com.jtransc
 
 import com.jtransc.ast.*
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.build
@@ -45,6 +46,11 @@ fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetS
 }
 fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String): GenTargetSubDescriptor {
 	return this.map { it.subtargets }.map { it.firstOrNull { it.ext == ext } }.filterNotNull().firstOrNull() ?: throw Exception("Can't find target by extension $ext")
+}
+
+enum class BuildBackend {
+	SOOT,
+	ASM,
 }
 
 class AllBuild(
@@ -116,7 +122,11 @@ class AllBuild(
 
 		var program = measureProcess("Generating AST") {
 			createProgramAst(
-				if (settings.useSoot) SootToAst() else AsmToAst(),
+				when (settings.backend) {
+					BuildBackend.SOOT -> SootToAst()
+					BuildBackend.ASM -> AsmToAst()
+					else -> invalidOp("Unsupported backend")
+				},
 				initialClasses, entryPoint, classPaths2,
 				LocalVfs(File("$tempdir/out_ast"))
 			)

@@ -18,6 +18,7 @@ package com.jtransc.maven
 
 import com.jtransc.AllBuild
 import com.jtransc.AllBuildTargets
+import com.jtransc.BuildBackend
 import com.jtransc.ast.AstBuildSettings
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -64,7 +65,8 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "vsync", defaultValue = "true") @JvmField var vsync: Boolean = true
 	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
 	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
-	@Parameter(property = "useSoot", defaultValue = "true") @JvmField var useSoot: Boolean = true
+	@Parameter(property = "backend", defaultValue = "SOOT") @JvmField var backend: BuildBackend = BuildBackend.SOOT
+	//@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -136,7 +138,7 @@ class JTranscMojo : AbstractMojo() {
 			orientation = AstBuildSettings.Orientation.fromString(orientation),
 			resizable = resizable,
 			vsync = vsync,
-			useSoot = useSoot
+			backend = backend
 		)
 		//project.version
 
