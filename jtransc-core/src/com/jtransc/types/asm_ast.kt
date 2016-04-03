@@ -65,19 +65,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		return Pair(index, fixType(type))
 	}
 
-	init {
-		var idx = 0
-		if (!isStatic) {
-			setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
-			locals[localPair(idx++, clazz)] = AstExpr.THIS(clazz.name) // @TODO: remove this
-		}
-		for (arg in methodType.args) {
-			setLocalAtIndex(idx, AstExpr.PARAM(arg))
-			locals[localPair(idx++, arg.type)] = AstExpr.PARAM(arg) // @TODO: remove this
-			if (arg.type.isLongOrDouble()) idx++
-		}
-	}
-
 	//fun fix(field: AstFieldRef): AstFieldRef = locateRightClass.locateRightField(field)
 	//fun fix(method: AstMethodRef): AstMethodRef = locateRightClass.locateRightMethod(method)
 
@@ -101,14 +88,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val type2 = fixType(type)
 		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${index}_${nameType(type2)}", type2))
 		return locals[info]!!
-	}
-
-	fun localAtIndex(index: Int): AstExpr.LocalExpr {
-		return localsAtIndex[index]!!
-	}
-
-	fun setLocalAtIndex(index: Int, expr: AstExpr.LocalExpr) {
-		localsAtIndex[index] = expr
 	}
 
 	fun tempLocal(type: AstType): AstExpr.LocalExpr {
@@ -419,16 +398,20 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun handleVar(i: VarInsnNode) {
 		val op = i.opcode
 		val index = i.`var`
-		when (i.opcode) {
-			in Opcodes.ILOAD..Opcodes.ALOAD -> {
-				stackPush(localAtIndex(index))
-			}
-			in Opcodes.ISTORE..Opcodes.ASTORE -> {
-				val expr = stackPop()
-				val newLocal = tempLocal(expr.type)
-				setLocalAtIndex(index, newLocal)
-				stmSet(newLocal, expr)
-			}
+
+		fun load(type:AstType) {
+			stackPush(local(type, index))
+		}
+
+		fun store(type:AstType) {
+			val expr = stackPop()
+			val newLocal = local(type, index)
+			stmSet(newLocal, expr)
+		}
+
+		when (op) {
+			in Opcodes.ILOAD .. Opcodes.ALOAD -> load(PTYPES[op - Opcodes.ILOAD])
+			in Opcodes.ISTORE..Opcodes.ASTORE -> store(PTYPES[op - Opcodes.ISTORE])
 			Opcodes.RET -> deprecated
 			else -> invalidOp
 		}
@@ -451,7 +434,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), JUMPOPS[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), label(i.label))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
-				addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), JUMPOPS[op - Opcodes.IF_ICMPEQ], stackPop()), label(i.label))
+				val r = stackPop()
+				val l = stackPop()
+				addJump(AstExpr.BINOP(AstType.BOOL, l, JUMPOPS[op - Opcodes.IF_ICMPEQ], r), label(i.label))
 			}
 			Opcodes.GOTO -> {
 				addJump(null, label(i.label))
@@ -637,6 +622,20 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			println("::::::::::::: ${clazz.name}.${method.name}:${method.desc}")
 			println("--------------------------------------------------------------------")
 		}
+
+		if (true) {
+			var idx = 0
+			if (!isStatic) {
+				//setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
+				stmSet(local(AstType.OBJECT, idx++), AstExpr.THIS(clazz.name))
+			}
+			for (arg in methodType.args) {
+				//setLocalAtIndex(idx, AstExpr.PARAM(arg))
+				stmSet(local(fixType(arg.type), idx++), AstExpr.PARAM(arg))
+				if (arg.type.isLongOrDouble()) idx++
+			}
+		}
+
 		while (i != null) {
 			if (DEBUG) println(AsmOpcode.disasm(i))
 			when (i) {
