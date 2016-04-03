@@ -16,6 +16,8 @@
 
 package java.io;
 
+import jtransc.JTranscSystem;
+
 public class BufferedWriter extends Writer {
 	private Writer out;
 
@@ -37,7 +39,7 @@ public class BufferedWriter extends Writer {
 		cb = new char[sz];
 		nChars = sz;
 		nextChar = 0;
-		lineSeparator = System.getProperty("line.separator");
+		lineSeparator = JTranscSystem.lineSeparator();
 	}
 
 	private void ensureOpen() throws IOException {

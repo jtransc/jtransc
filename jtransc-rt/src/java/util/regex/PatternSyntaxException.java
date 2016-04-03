@@ -16,6 +16,8 @@
 
 package java.util.regex;
 
+import jtransc.JTranscSystem;
+
 public class PatternSyntaxException extends IllegalArgumentException {
 	private final String desc;
 	private final String pattern;
@@ -40,7 +42,7 @@ public class PatternSyntaxException extends IllegalArgumentException {
 	}
 
 	public String getMessage() {
-		String nl = System.getProperty("line.separator");
+		String nl = JTranscSystem.lineSeparator();
 		String sb = "";
 		sb += desc;
 		if (index >= 0) sb += " near index " + index;

@@ -1,5 +1,7 @@
 package jtransc.rt.test;
 
+import jtransc.io.JTranscConsole;
+
 public class MultidimensionalArrayTest {
     static public void main(String[] args) {
         test2();
@@ -15,9 +17,9 @@ public class MultidimensionalArrayTest {
                 ints[y][x] = x * y * y;
             }
         }
-        System.out.println(ints.length);
-        System.out.println(ints[0].length);
-        System.out.println(ints[2][3]);
+	    JTranscConsole.log(ints.length);
+	    JTranscConsole.log(ints[0].length);
+	    JTranscConsole.log(ints[2][3]);
     }
 
     static private void test3() {
@@ -29,20 +31,21 @@ public class MultidimensionalArrayTest {
                 }
             }
         }
-        System.out.println(ints.length);
-        System.out.println(ints[0].length);
-        System.out.println(ints[0][0].length);
-        System.out.println(ints[2][3][4]);
+        JTranscConsole.log(ints.length);
+        JTranscConsole.log(ints[0].length);
+        JTranscConsole.log(ints[0][0].length);
+        JTranscConsole.log(ints[2][3][4]);
     }
 
 	static private void test4() {
 		int width = 3;
 		int[] ints = new int[width];
 		ints[1] = 1;
+		String out = "";
 		for (int x = 0; x < width; x++) {
-			System.out.print(ints[x]);
+			out += ints[x];
 		}
-		System.out.println();
+		JTranscConsole.log(out);
 	}
 
 	static private void test5() {
@@ -50,10 +53,11 @@ public class MultidimensionalArrayTest {
 		int[][] ints = new int[width][height];
 		ints[1][2] = 1;
 		for (int y = 0; y < height; y++) {
+			String out = "";
 			for (int x = 0; x < width; x++) {
-				System.out.print(ints[x][y]);
+				out += ints[x][y];
 			}
-			System.out.println();
+			JTranscConsole.log(out);
 		}
 	}
 }

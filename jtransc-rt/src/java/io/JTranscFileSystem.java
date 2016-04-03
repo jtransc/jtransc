@@ -16,6 +16,7 @@
 
 package java.io;
 
+import jtransc.JTranscSystem;
 import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.io.JTranscSyncIO;
 
@@ -27,8 +28,8 @@ class JTranscFileSystem extends FileSystem {
 	private final String javaHome;
 
 	public JTranscFileSystem() {
-		slash = System.getProperty("file.separator").charAt(0);
-		colon = System.getProperty("path.separator").charAt(0);
+		slash = JTranscSystem.fileSeparator().charAt(0);
+		colon = JTranscSystem.pathSeparator().charAt(0);
 		javaHome = System.getProperty("java.home");
 	}
 

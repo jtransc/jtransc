@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.*
+import com.jtransc.input.astRef
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -29,6 +30,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
 
+	val methodRef = method.astRef(clazz.classRef)
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -150,7 +152,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 	fun stmSet(local: AstExpr.LocalExpr, value: AstExpr) {
 		if (local != value) {
-			stmAdd(AstStm.SET(local, value))
+			stmAdd(AstStm.SET(local, fastcast(value, local.type)))
 		}
 	}
 
@@ -159,19 +161,19 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val ref = fix(AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> {
-				stackPush(AstExprUtils.cast(AstExpr.STATIC_FIELD_ACCESS(ref), ref.type))
+				stackPush(AstExprUtils.fastcast(AstExpr.STATIC_FIELD_ACCESS(ref), ref.type))
 			}
 			Opcodes.GETFIELD -> {
-				val obj = AstExprUtils.cast(stackPop(), ref.containingTypeRef)
-				stackPush(AstExprUtils.cast(AstExpr.INSTANCE_FIELD_ACCESS(ref, obj), ref.type))
+				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
+				stackPush(AstExprUtils.fastcast(AstExpr.INSTANCE_FIELD_ACCESS(ref, obj), ref.type))
 			}
 			Opcodes.PUTSTATIC -> {
-				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.cast(stackPop(), ref.type)))
+				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.fastcast(stackPop(), ref.type)))
 			}
 			Opcodes.PUTFIELD -> {
 				val param = stackPop()
-				val obj = AstExprUtils.cast(stackPop(), ref.containingTypeRef)
-				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, AstExprUtils.cast(param, ref.type)))
+				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
+				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, AstExprUtils.fastcast(param, ref.type)))
 			}
 			else -> invalidOp
 		}
@@ -184,6 +186,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	}
 
 	fun cast(expr: AstExpr, to: AstType) = AstExprUtils.cast(expr, to)
+	fun fastcast(expr: AstExpr, to: AstType) = AstExprUtils.fastcast(expr, to)
 
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
@@ -194,14 +197,14 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun arrayLoad(type: AstType): Unit {
 		val index = stackPop()
 		val array = stackPop()
-		stackPush(AstExpr.ARRAY_ACCESS(cast(array, AstType.ARRAY(type)), cast(index, AstType.INT)))
+		stackPush(AstExpr.ARRAY_ACCESS(fastcast(array, AstType.ARRAY(type)), fastcast(index, AstType.INT)))
 	}
 
 	fun arrayStore(elementType: AstType): Unit {
 		val expr = stackPop()
 		val index = stackPop()
 		val array = stackPop()
-		stmAdd(AstStm.SET_ARRAY(cast(array, AstType.ARRAY(elementType)), cast(index, AstType.INT), cast(expr, elementType)))
+		stmAdd(AstStm.SET_ARRAY(fastcast(array, AstType.ARRAY(elementType)), fastcast(index, AstType.INT), fastcast(expr, elementType)))
 	}
 
 	fun untestedWarn2(msg: String) {
@@ -253,12 +256,10 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		// @TODO: Must reproduce these opcodes!
 		// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> {
-				untestedWarn2("DUP_X1: $lastLine")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
 				val local2 = tempLocal(v2.type)
-				// @TODO: Check order
 				stmSet(local2, v2)
 				stmSet(local1, v1)
 				stackPush(local1)
@@ -293,7 +294,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 		// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
-				untestedWarn2("DUP2")
 				val v1 = stackPop()
 				val local1 = tempLocal(v1.type)
 				if (v1.type.isLongOrDouble()) {
@@ -301,6 +301,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 					stackPush(local1)
 					stackPush(local1)
 				} else {
+					untestedWarn2("DUP2 single")
 					val local2 = tempLocal(v1.type)
 					val v2 = stackPop()
 					stmSet(local1, v1)
@@ -365,13 +366,13 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			in Opcodes.IOR..Opcodes.LOR -> pushBinop(PTYPES[op - Opcodes.IOR], AstBinop.OR)
 			in Opcodes.IXOR..Opcodes.LXOR -> pushBinop(PTYPES[op - Opcodes.IXOR], AstBinop.XOR)
 
-			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(cast(stackPop(), AstType.LONG))
-			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(cast(stackPop(), AstType.FLOAT))
-			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(cast(stackPop(), AstType.DOUBLE))
-			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(cast(stackPop(), AstType.INT))
-			Opcodes.I2B -> stackPush(cast(stackPop(), AstType.BYTE))
-			Opcodes.I2C -> stackPush(cast(stackPop(), AstType.CHAR))
-			Opcodes.I2S -> stackPush(cast(stackPop(), AstType.SHORT))
+			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(fastcast(stackPop(), AstType.LONG))
+			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(fastcast(stackPop(), AstType.FLOAT))
+			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(fastcast(stackPop(), AstType.DOUBLE))
+			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(fastcast(stackPop(), AstType.INT))
+			Opcodes.I2B -> stackPush(fastcast(stackPop(), AstType.BYTE))
+			Opcodes.I2C -> stackPush(fastcast(stackPop(), AstType.CHAR))
+			Opcodes.I2S -> stackPush(fastcast(stackPop(), AstType.SHORT))
 
 			Opcodes.LCMP -> pushBinop(AstType.LONG, AstBinop.LCMP)
 			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
@@ -381,7 +382,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			in Opcodes.IRETURN..Opcodes.ARETURN -> {
 				val ret = stackPop()
 				dumpExprs()
-				stmAdd(AstStm.RETURN(cast(ret, this.methodType.ret)))
+				stmAdd(AstStm.RETURN(fastcast(ret, this.methodType.ret)))
 			}
 			Opcodes.RETURN -> {
 				dumpExprs()
@@ -398,7 +399,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun handleMultiArray(i: MultiANewArrayInsnNode) {
 		when (i.opcode) {
 			Opcodes.MULTIANEWARRAY -> {
-				stackPush(AstExpr.NEW_ARRAY(AstType.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }))
+				stackPush(AstExpr.NEW_ARRAY(AstType.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }.reversed()))
 			}
 			else -> invalidOp("$i")
 		}
@@ -407,7 +408,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun handleType(i: TypeInsnNode) {
 		val type = AstType.REF_INT(i.desc)
 		when (i.opcode) {
-			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF))
+			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type))
@@ -499,18 +500,28 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val args = methodRef.type.args.reversed().map { cast(stackPop(), it.type) }.reversed()
+		val args = methodRef.type.args.reversed().map { fastcast(stackPop(), it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
 		when (i.opcode) {
 			Opcodes.INVOKESTATIC -> {
 				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
 			}
-			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE -> {
-				stackPush(AstExpr.CALL_INSTANCE(cast(obj!!, methodRef.containingClassType), methodRef, args, isSpecial))
-			}
-			Opcodes.INVOKESPECIAL -> {
-				stackPush(AstExprUtils.INVOKE_SPECIAL(obj!!, methodRef, args))
+			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE, Opcodes.INVOKESPECIAL -> {
+				if (obj!!.type !is AstType.REF) {
+					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
+				}
+				val obj = fastcast(obj!!, methodRef.containingClassType)
+				if (i.opcode != Opcodes.INVOKESPECIAL) {
+					stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
+				} else {
+					//if (methodRef.containingClassType != this.clazz) {
+					//	stackPush(AstExpr.CALL_SUPER(obj, methodRef.classRef.type.name, methodRef, args, isSpecial))
+					//} else {
+					//	stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
+					//}
+					stackPush(AstExpr.CALL_SPECIAL(AstExprUtils.fastcast(obj, methodRef.containingClassType), methodRef, args, isSpecial = true))
+				}
 			}
 			else -> invalidOp
 		}
@@ -664,10 +675,10 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stms[n] = optimize(stms, stms[n], n, stms.size)
 			}
 
-			// Remove tail empty returns
-			while (stms.isNotEmpty() && (stms.last() is AstStm.RETURN && (stms.last() as AstStm.RETURN).retval == null) || (stms.last() == null)) {
-				stms.removeAt(stms.size - 1)
-			}
+			// DO NOT Remove here tail empty returns
+			//while (stms.isNotEmpty() && (stms.last() is AstStm.RETURN && (stms.last() as AstStm.RETURN).retval == null) || (stms.last() == null)) {
+			//	stms.removeAt(stms.size - 1)
+			//}
 
 			return stms.filterNotNull()
 		}

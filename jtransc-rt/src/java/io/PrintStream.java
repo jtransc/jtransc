@@ -16,6 +16,8 @@
 
 package java.io;
 
+import jtransc.JTranscSystem;
+
 import java.nio.charset.Charset;
 import java.util.Locale;
 
@@ -28,7 +30,7 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
 	//private OutputStreamWriter charOut;
 	private Charset charset;
 
-	static private String lineSeparator = System.getProperty("line.separator");
+	static private String lineSeparator = JTranscSystem.fileSeparator();
 
 	private static <T> T requireNonNull(T obj, String message) {
 		if (obj == null) throw new NullPointerException(message);

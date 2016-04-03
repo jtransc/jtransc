@@ -45,7 +45,7 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 }
 
 
-fun MethodNode.astRef(clazz: AstClass) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
+fun MethodNode.astRef(clazz: AstClassRef) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
 
 class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
@@ -76,7 +76,7 @@ class AsmToAst : AstClassGenerator {
 
 	fun generateMethod(containingClass: AstClass, method: MethodNode): AstMethod {
 		val mods = AstModifiers(method.access)
-		val methodRef = method.astRef(containingClass)
+		val methodRef = method.astRef(containingClass.ref)
 		return AstMethod(
 			containingClass = containingClass,
 			annotations = method.getAnnotations(),

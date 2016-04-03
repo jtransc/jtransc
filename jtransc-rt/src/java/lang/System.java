@@ -64,10 +64,6 @@ public class System {
 		return getProps();
 	}
 
-	public static String lineSeparator() {
-		return JTranscSystem.isWindows() ? "\r\n" : "\n";
-	}
-
 	public static void setProperties(Properties props) {
 		Properties myprops = getProps();
 		for (Map.Entry<Object, Object> entry : props.entrySet()) {
@@ -99,9 +95,9 @@ public class System {
 			_setProperty("java.runtime.name", "jtransc-haxe");
 			_setProperty("java.vm.version", "1.7.0");
 			_setProperty("java.runtime.version", "1.7.0");
-			_setProperty("file.separator", JTranscSystem.isWindows() ? "\\" : "/");
-			_setProperty("line.separator", lineSeparator());
-			_setProperty("path.separator", JTranscSystem.isWindows() ? ";" : ":");
+			_setProperty("file.separator", JTranscSystem.fileSeparator());
+			_setProperty("line.separator", JTranscSystem.lineSeparator());
+			_setProperty("path.separator", JTranscSystem.pathSeparator());
 			_setProperty("file.encoding", "UTF-8");
 			_setProperty("java.home", "/jtransc-haxe");
 			_setProperty("java.specification.name", "jtransc-haxe");

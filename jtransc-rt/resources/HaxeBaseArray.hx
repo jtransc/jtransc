@@ -14,6 +14,7 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	#if debug
 	private function checkBounds(index:Int):Int {
 		if (index < 0 || index >= length) {
+			trace('Index $index out of range 0..$length');
 			throw new java_.lang.ArrayIndexOutOfBoundsException_().java_lang_ArrayIndexOutOfBoundsException_init__I_V(index);
 		}
 		return index;

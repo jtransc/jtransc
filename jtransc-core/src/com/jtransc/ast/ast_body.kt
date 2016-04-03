@@ -176,6 +176,10 @@ interface AstExpr : AstElement {
 		override val type = method.type.ret
 	}
 
+	data class CALL_SPECIAL(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+		override val type = method.type.ret
+	}
+
 	data class CALL_SUPER(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
 		override val type = method.type.ret
 	}
@@ -248,6 +252,16 @@ object AstExprUtils {
 		}
 	}
 
+	// Can cast nulls
+	fun fastcast(expr: AstExpr, to: AstType): AstExpr {
+		// LITERAL + IMMEDIATE = IMMEDIATE casted
+		if (expr.type != to) {
+			return AstExpr.CAST(expr, to)
+		} else {
+			return expr
+		}
+	}
+
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
 		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
 			bootstrapMethodRef.name == "metafactory"
@@ -276,7 +290,7 @@ object AstExprUtils {
 
 		//if (obj is AstExpr.THIS && ((obj.type as AstType.REF).name != method.containingClass)) {
 		if ((obj.type as AstType.REF).name != method.containingClass) {
-		//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
+			//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
 			return AstExpr.CALL_SUPER(cast(obj, method.containingClassType), method.containingClass, method, args, isSpecial = true)
 		} else {
 			return AstExpr.CALL_INSTANCE(cast(obj, method.containingClassType), method, args, isSpecial = true)
@@ -288,8 +302,42 @@ object AstExprUtils {
 			if (op == AstBinop.AND) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BAND, cast(r, AstType.BOOL))
 			if (op == AstBinop.OR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BOR, cast(r, AstType.BOOL))
 			if (op == AstBinop.XOR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.NE, cast(r, AstType.BOOL))
+		} else if (l.type == AstType.BOOL) {
+			return AstExpr.BINOP(type, cast(l, r.type), op, r)
+		} else if (r.type == AstType.BOOL) {
+			return AstExpr.BINOP(type, l, op, cast(r, l.type))
 		}
 		return AstExpr.BINOP(type, l, op, r)
+	}
+
+	fun RESOLVE_SPECIAL(program: AstProgram, e: AstExpr.CALL_SPECIAL, context: AstGenContext): AstExpr.CALL_BASE {
+		val clazz = program[e.method.classRef]
+		val refMethod = program.get(e.method) ?: invalidOp("Can't find method: ${e.method} while generating $context")
+		// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.invokespecial
+		return if (refMethod.modifiers.isPrivate || refMethod.isInstanceInit) {
+			// Call this!
+			AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
+		} else {
+			// Call super!
+			if (context.method.ref != e.method) {
+				AstExpr.CALL_SUPER(e.obj, e.method.containingClass, e.method, e.args, e.isSpecial)
+			} else {
+				AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
+			}
+			/*
+			val parentClass = clazz.parentClass
+			val superMethod = parentClass?.get(e.method.withoutClass)
+			if (superMethod == null) {
+				if (e.method.name == "append") {
+					println("NULL = ${e.method}")
+				}
+				//invalidOp("superMethod == null")
+				AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
+			} else {
+				AstExpr.CALL_SUPER(e.obj, superMethod.containingClass.ref.name, superMethod.ref, e.args, e.isSpecial)
+			}
+			*/
+		}
 	}
 }
 

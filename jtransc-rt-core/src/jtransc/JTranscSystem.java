@@ -116,15 +116,6 @@ public class JTranscSystem {
 		"#end"
 	)
 	static private String getOSRaw() {
-		//#if sys
-		//return Sys.systemName();
-		//#elseif js
-		//return "js"; // Use node process or navigator
-		//#elseif flash
-		//return "flash";
-		//#else
-		//return "haxe";
-		//#end
 		return System.getProperty("os.name");
 	}
 
@@ -153,4 +144,17 @@ public class JTranscSystem {
 	public static boolean isMac() {
 		return getOS().toLowerCase().startsWith("mac");
 	}
+
+	public static String fileSeparator() {
+		return isWindows() ? "\\" : "/";
+	}
+
+	public static String pathSeparator() {
+		return isWindows() ? ";" : ":";
+	}
+
+	public static String lineSeparator() {
+		return isWindows() ? "\r\n" : "\n";
+	}
+
 }

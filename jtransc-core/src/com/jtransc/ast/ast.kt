@@ -108,6 +108,19 @@ fun LocateRightClass.locateRightMethod(method: AstMethodRef): AstMethodRef {
 	return if (clazz == method.classRef) method else AstMethodRef(clazz.name, method.name, method.type)
 }
 
+class AstGenContext {
+	lateinit var clazz: AstClass
+	lateinit var method: AstMethod
+
+	override fun toString() = try {
+		"${clazz.name}::${method.name}"
+	} catch (e:Throwable) {
+		"${clazz.name}"
+	} catch (e:Throwable) {
+		"NO_CONTEXT"
+	}
+}
+
 class AstProgram(
 	val entrypoint: FqName,
 	val resourcesVfs: SyncVfsFile,
@@ -231,6 +244,8 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData() {
+	val ref = AstClassRef(name)
+	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType
 	val visibility: AstVisibility = modifiers.visibility
 	val fields = arrayListOf<AstField>()
@@ -431,9 +446,6 @@ fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	}
 }
 
-val AstClass.ref: AstClassRef get() = AstClassRef(this.name)
-val AstClass.astType: AstType.REF get() = AstType.REF(this.name)
-
 fun AstType.getRefClasses(): List<AstClassRef> = this.getRefTypesFqName().map { AstClassRef(it) }
 
 data class AstReferences(
@@ -505,6 +517,7 @@ class AstMethod(
 	val isInline: Boolean by lazy { annotations.contains<JTranscInline>() }
 
 	val isInstanceInit: Boolean get() = name == "<init>"
+	val isClassInit: Boolean get() = name == "<clinit>"
 
 	val isOverriding: Boolean by lazy {
 		containingClass.ancestors.any { it[ref.withoutClass] != null }

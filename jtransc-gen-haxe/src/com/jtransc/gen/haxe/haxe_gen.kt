@@ -22,8 +22,9 @@ class GenHaxeGen(
 ) {
 	val names = HaxeNames(program)
 	val refs = References()
-	lateinit var clazz: AstClass
-	lateinit var method: AstMethod
+	val context = AstGenContext()
+	//lateinit var clazz: AstClass
+	//lateinit var method: AstMethod
 	lateinit var mutableBody: MutableBody
 	lateinit var stm: AstStm
 
@@ -33,7 +34,8 @@ class GenHaxeGen(
 		if (this is AstExpr.THIS) {
 			return gen2(this)
 		} else {
-			return "HaxeNatives.checkNotNull(${gen2(this)})"
+			return gen2(this)
+			//return "HaxeNatives.checkNotNull(${gen2(this)})"
 		}
 	}
 	fun AstBody.gen(): Indenter = gen2(this)
@@ -42,10 +44,11 @@ class GenHaxeGen(
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
 	fun fix(field: AstFieldRef): AstFieldRef {
-		return program.get(field).ref // bugInnerMethodsWithSameName fail
-		return field
+		return program.get(field).ref
 	}
-	fun fix(method: AstMethodRef): AstMethodRef = method
+	fun fix(method: AstMethodRef): AstMethodRef {
+		return program.get(method)!!.ref
+	}
 
 	internal fun _write(): GenHaxe.ProgramInfo {
 		val vfs = srcFolder
@@ -291,7 +294,7 @@ class GenHaxeGen(
 	fun gen2(stm: AstStm): Indenter {
 		this.stm = stm
 		val program = program
-		val clazz = clazz
+		val clazz = context.clazz
 		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
@@ -307,7 +310,7 @@ class GenHaxeGen(
 				is AstStm.RETURN -> {
 					if (stm.retval != null) {
 						line("return ${stm.retval!!.gen()};")
-					} else if (method.isInstanceInit) {
+					} else if (context.method.isInstanceInit) {
 						line("return this;")
 					} else {
 						line("return;")
@@ -388,7 +391,7 @@ class GenHaxeGen(
 	}
 
 	fun gen2(body: AstBody): Indenter {
-		val method = method
+		val method = context.method
 		this.mutableBody = MutableBody(method)
 
 		return Indenter.gen {
@@ -430,58 +433,75 @@ class GenHaxeGen(
 				var l = e.left.gen()
 				var r = e.right.gen()
 				val opSymbol = e.op.symbol
+				val opName = e.op.str
 
-				if (resultType == AstType.INT && e.op.symbol == "/") {
+				val binexpr = if (resultType == AstType.LONG) {
+					when (opSymbol) {
+						"/" -> "haxe.Int64.div($l, $r)"
+						"<<" -> "haxe.Int64.shl($l, $r)"
+						"lcmp", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
+						else -> "$l $opSymbol $r"
+					}
+				} else if (resultType == AstType.INT && opSymbol == "/") {
 					"Std.int($l / $r)"
 				} else {
 					when (opSymbol) {
-						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "HaxeNatives.${e.op.str}($l, $r)"
-						else -> {
-							val binexpr = "$l $opSymbol $r"
-							when (resultType) {
-								AstType.INT -> "(($binexpr) | 0)"
-								AstType.CHAR -> "(($binexpr) & 0xFFFF)"
-								AstType.SHORT -> "((($binexpr) << 16) >> 16)"
-								AstType.BYTE -> "((($binexpr) << 24) >> 24)"
-								else -> binexpr
-							}
-						}
+						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
+						else -> "$l $opSymbol $r"
 					}
 				}
-
+				when (resultType) {
+					AstType.INT -> "(($binexpr) | 0)"
+					AstType.CHAR -> "(($binexpr) & 0xFFFF)"
+					AstType.SHORT -> "((($binexpr) << 16) >> 16)"
+					AstType.BYTE -> "((($binexpr) << 24) >> 24)"
+					else -> binexpr
+				}
 			}
 			is AstExpr.CALL_BASE -> {
-				val method = e.method
-				val refMethod = program.get(method) ?: invalidOp("Can't find method: ${method} while generating ${clazz.name}")
+				// Determine method to call!
 
-				if (e is AstExpr.CALL_STATIC) {
-					refs.add(e.clazz)
-					mutableBody.initClassRef(e.clazz.classRef)
+				val e2 = if (e is AstExpr.CALL_SPECIAL) {
+					AstExprUtils.RESOLVE_SPECIAL(program, e, context)
+				} else {
+					e
 				}
 
-				val commaArgs = e.args.map { it.gen() }.joinToString(", ")
+				val method = fix(e2.method)
+				val refMethod = program.get(method) ?: invalidOp("Can't find method: $method while generating $context")
+				val clazz = method.containingClassType
+				val args = e2.args
 
-				val base = when (e) {
-					is AstExpr.CALL_STATIC -> "${e.clazz.haxeTypeNew}"
+				if (e2 is AstExpr.CALL_STATIC) {
+					refs.add(clazz)
+					mutableBody.initClassRef(clazz.classRef)
+				}
+
+				val commaArgs = args.map { it.gen() }.joinToString(", ")
+
+				val base = when (e2) {
+					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
 					is AstExpr.CALL_SUPER -> "super"
-					is AstExpr.CALL_INSTANCE -> "${e.obj.genNotNull()}"
+					is AstExpr.CALL_INSTANCE -> "${e2.obj.genNotNull()}"
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
+				/*
 				val out = if (refMethod.getterField != null) {
 					if (refMethod.getterField!!.contains('$')) {
 						refMethod.getterField!!.replace("\$", base);
 					} else {
 						"$base.${refMethod.getterField}"
 					}
-
 				} else if (refMethod.setterField != null) {
 					"$base.${refMethod.setterField} = $commaArgs"
 				} else {
-					"$base.${method.haxeName}($commaArgs)"
-				}
+					*/
 
-				"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
+				//}
+
+				"$base.${refMethod.haxeName}($commaArgs)"
+				//"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
 				"${e.expr.genNotNull()}.${fix(e.field).haxeName}"
@@ -594,7 +614,7 @@ class GenHaxeGen(
 		//}
 
 		fun unhandled(): String {
-			noImplWarn("Unhandled conversion ($from -> $to) at ${this.clazz}::${this.method.name}")
+			noImplWarn("Unhandled conversion ($from -> $to) at $context")
 			return "($e)"
 		}
 
@@ -658,7 +678,7 @@ class GenHaxeGen(
 	}
 
 	fun gen2(clazz: AstClass): ClassResult {
-		this.clazz = clazz
+		context.clazz = clazz
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
 		val isInterface = clazz.isInterface
@@ -701,7 +721,7 @@ class GenHaxeGen(
 		}
 
 		fun writeMethod(method: AstMethod, isInterface: Boolean): Indenter {
-			this.method = method
+			context.method = method
 			// default methods
 			if (isInterface && method.body != null) {
 				return Indenter.gen { }
@@ -741,7 +761,7 @@ class GenHaxeGen(
 							}
 							line(features.apply(body, featureSet).gen())
 							//body.stms.l
-							if (method.isInstanceInit) line("return this;")
+							//if (method.isInstanceInit) line("return this;")
 						}
 					} else {
 						line("$decl { HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\"; }")

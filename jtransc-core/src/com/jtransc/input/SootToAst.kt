@@ -287,7 +287,17 @@ open class AstMethodProcessor private constructor(
 					val method = astMethodRef
 
 					if (isSpecial) {
-						AstExprUtils.INVOKE_SPECIAL(obj, method, args)
+						if (obj.type !is AstType.REF) {
+							invalidOp("Obj must be an object $obj, but was ${obj.type}")
+						}
+
+						//if (obj is AstExpr.THIS && ((obj.type as AstType.REF).name != method.containingClass)) {
+						if ((obj.type as AstType.REF).name != method.containingClass) {
+							//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
+							AstExpr.CALL_SUPER(AstExprUtils.cast(obj, method.containingClassType), method.containingClass, method, args, isSpecial = true)
+						} else {
+							AstExpr.CALL_INSTANCE(AstExprUtils.cast(obj, method.containingClassType), method, args, isSpecial = true)
+						}
 					} else {
 						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
 					}

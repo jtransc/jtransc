@@ -16,6 +16,7 @@
 
 package java.io;
 
+import jtransc.JTranscSystem;
 import jtransc.internal.IntJTranscStrings;
 
 import java.nio.charset.Charset;
@@ -54,7 +55,7 @@ public class PrintWriter extends Writer {
 		super(out);
 		this.out = out;
 		this.autoFlush = autoFlush;
-		lineSeparator = System.getProperty("line.separator");
+		lineSeparator = JTranscSystem.lineSeparator();
 	}
 
 	public PrintWriter(OutputStream out) {
