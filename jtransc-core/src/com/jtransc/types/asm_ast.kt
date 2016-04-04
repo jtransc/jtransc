@@ -27,7 +27,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		const val DEBUG = false
 
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
-		val JUMPOPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
 
 	data class LocalID(val index:Int, val type: AstType, val prefix:String)
@@ -432,17 +431,17 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		}
 
 		fun addJump0(op: AstBinop) {
-			addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(0)), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(0)), label(i.label))
 		}
 
 		fun addJumpNull(op: AstBinop) {
-			addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(null)), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(null)), label(i.label))
 		}
 
 		fun addJump2(op: AstBinop) {
 			val r = stackPop()
 			val l = stackPop()
-			addJump(AstExpr.BINOP(AstType.BOOL, l, op, r), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, l, op, r), label(i.label))
 		}
 
 		when (op) {

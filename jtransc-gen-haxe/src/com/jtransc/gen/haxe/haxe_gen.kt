@@ -195,6 +195,7 @@ class GenHaxeGen(
 						is AstAnnotation -> annotationInit(it)
 						is Pair<*, *> -> escapeValue(it.second)
 						is AstFieldRef -> listOf(it.containingTypeRef)
+						is AstFieldWithoutTypeRef -> listOf(it.containingClass.ref())
 						is List<*> -> it.flatMap { escapeValue(it) }
 						else -> listOf()
 					}

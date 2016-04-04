@@ -45,6 +45,7 @@ public class JTranscZipTest {
 		byte[] hexData = new byte[hexDataChar.length];
 		for (int n = 0; n < hexDataChar.length; n++) hexData[n] = (byte) hexDataChar[n];
 
+		System.out.println(hexData.length);
 
 		String tmpdir = System.getProperty("java.io.tmpdir");
 		String tmpfile = tmpdir + "/jtransc.test.zip";

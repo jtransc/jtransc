@@ -121,7 +121,7 @@ public class JTranscReflectionTest {
 	}
 
 	@Singleton static public class Test1 {}
-	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.DECLARE, b = "BB") static public class Test2 {}
+	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.REQUEST, b = "BB") static public class Test2 {}
 }
 
 class A extends B {
@@ -179,7 +179,7 @@ class ATest1<A, B> {
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @interface Singleton {
-	InjectStore declare() default InjectStore.DECLARE;
+	InjectStore declare() default InjectStore.REQUEST;
 
 	InjectStore store() default InjectStore.DECLARE;
 
