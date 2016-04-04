@@ -149,6 +149,17 @@ interface AstType {
 			return REF(internalName.replace('/', '.'))
 		}
 
+		fun demangle(desc: String): AstType {
+			if (desc !in AstTypeDemangleCache) {
+				AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
+			}
+			return AstTypeDemangleCache[desc]!!
+		}
+
+		fun demangleMethod(text: String): AstType.METHOD_TYPE {
+			return AstType.demangle(text) as AstType.METHOD_TYPE
+		}
+
 		fun fromConstant(value: Any?): AstType = when (value) {
 			null -> NULL
 			is Boolean -> BOOL
@@ -312,18 +323,8 @@ object AstTypeBuilder {
 
 fun <T : AstType> AstTypeBuild(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 
-fun AstType.Companion.demangleMethod(text: String): AstType.METHOD_TYPE {
-	return AstType.demangle(text) as AstType.METHOD_TYPE
-}
 
 val AstTypeDemangleCache = hashMapOf<String, AstType>()
-
-fun AstType.Companion.demangle(desc: String): AstType {
-	if (desc !in AstTypeDemangleCache) {
-		AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
-	}
-	return AstTypeDemangleCache[desc]!!
-}
 
 val REF_DELIMITER = setOf(';', '<')
 val REF_DELIMITER2 = setOf(';', '<', '.')

@@ -1,5 +1,7 @@
 package jtransc.bug;
 
+import java.util.*
+
 object JTranscBug12Test2 {
 	@JvmStatic fun main(args: Array<String>) {
 		println("[1]");
@@ -15,6 +17,13 @@ object JTranscBug12Test2 {
 		test1(abc + "def")
 		test1("abcdefg")
 		test2()
+		test3()
+	}
+
+	enum class TestEnum { A, B, C; }
+
+	fun test3() {
+		//val set = RegularEnumSet(TestEnum::class.java, arrayOf(TestEnum.A, TestEnum.B, TestEnum.C))
 	}
 
 	fun test1(str:String) {

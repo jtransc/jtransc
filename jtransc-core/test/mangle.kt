@@ -15,7 +15,6 @@
  */
 
 import com.jtransc.ast.AstType
-import com.jtransc.ast.demangle
 import com.jtransc.ast.mangle
 import org.junit.Assert
 import org.junit.Test

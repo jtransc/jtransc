@@ -18,7 +18,7 @@ class DummyLocateRightClass : LocateRightClass {
 	override fun locateRightClass(method: AstMethodRef) = method.classRef
 }
 
-fun Asm2Ast(clazz: AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
+@JvmOverloads fun Asm2Ast(clazz: AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
 private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
@@ -29,7 +29,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
 	}
 
-	data class LocalID(val index:Int, val type: AstType, val prefix:String)
+	data class LocalID(val index: Int, val type: AstType, val prefix: String)
 
 	val methodRef = method.astRef(clazz.classRef)
 	//val list = method.instructions
@@ -68,7 +68,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	}
 
 
-	fun localPair(index: Int, type: AstType, prefix:String) = LocalID(index, fixType(type), prefix)
+	fun localPair(index: Int, type: AstType, prefix: String) = LocalID(index, fixType(type), prefix)
 
 	//fun fix(field: AstFieldRef): AstFieldRef = locateRightClass.locateRightField(field)
 	//fun fix(method: AstMethodRef): AstMethodRef = locateRightClass.locateRightMethod(method)
@@ -116,9 +116,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		//if (false) {
 		//	stms.add(s)
 		//} else {
-			val stack = preserveStack()
-			stms.add(s)
-			restoreStack(stack)
+		val stack = preserveStack()
+		stms.add(s)
+		restoreStack(stack)
 		//}
 	}
 
@@ -144,9 +144,12 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		return stack.peek()
 	}
 
-	fun stmSet(local: AstExpr.LocalExpr, value: AstExpr) {
+	fun stmSet(local: AstExpr.LocalExpr, value: AstExpr): Boolean {
 		if (local != value) {
 			stmAdd(AstStm.SET(local, fastcast(value, local.type)))
+			return true
+		} else {
+			return false
 		}
 	}
 
@@ -205,7 +208,17 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		untestedWarn("$msg : ${clazz.name}::${method.name} @ $lastLine")
 	}
 
-	fun stackPopToLocalsCount(count:Int): List<AstExpr.LocalExpr> {
+	private var stackPopToLocalsItemsCount = 0
+
+	fun stackPopToLocalsFixOrder() {
+		if (stackPopToLocalsItemsCount == 0) return
+		val last = stms.takeLast(stackPopToLocalsItemsCount)
+		for (n in 0 until stackPopToLocalsItemsCount) stms.removeAt(stms.size - 1)
+		stms.addAll(last.reversed())
+		stackPopToLocalsItemsCount = 0
+	}
+
+	fun stackPopToLocalsCount(count: Int): List<AstExpr.LocalExpr> {
 		val pairs = (0 until count).map {
 			val v = stackPop()
 			val local = tempLocal(v.type)
@@ -214,10 +227,12 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 		//for (p in pairs.reversed()) {
 		for (p in pairs) {
-			stmSet(p.first, p.second)
+			if (stmSet(p.first, p.second)) {
+				stackPopToLocalsItemsCount++
+			}
 		}
 
-		return pairs.map { it.first }
+		return pairs.map { it.first }.reversed()
 	}
 
 	fun handleInsn(i: InsnNode): Unit {
@@ -247,11 +262,12 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			Opcodes.SASTORE -> arrayStore(AstType.SHORT)
 			Opcodes.POP -> {
 				// We store it, so we don't lose all the calculated stuff!
-				stmAdd(AstStm.STM_EXPR(stackPop()))
+				val pop = stackPopToLocalsCount(1)
+				stackPopToLocalsFixOrder()
 			}
 			Opcodes.POP2 -> {
-				stmAdd(AstStm.STM_EXPR(stackPop()))
-				stmAdd(AstStm.STM_EXPR(stackPop()))
+				val pop = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPopToLocalsFixOrder()
 			}
 			Opcodes.DUP -> {
 				val value = stackPop()
@@ -261,48 +277,54 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stackPush(local)
 				stackPush(local)
 			}
+		// value2, value1 → value1, value2, value1
+		// insert a copy of the top value into the stack two values from the top. value1 and value2 must not be of the type double or long.
 			Opcodes.DUP_X1 -> {
 				//untestedWarn2("DUP_X1")
-				val v1 = stackPop()
-				val v2 = stackPop()
-				val local1 = tempLocal(v1.type)
-				val local2 = tempLocal(v2.type)
-				stmSet(local2, v2)
-				stmSet(local1, v1)
-				stackPush(local1)
-				stackPush(local2)
-				stackPush(local1)
+				val chunk1 = stackPopToLocalsCount(1)
+				val chunk2 = stackPopToLocalsCount(1)
+				stackPopToLocalsFixOrder()
+				stackPushList(chunk1)
+				stackPushList(chunk2)
+				stackPushList(chunk1)
 			}
-			// value3, value2, value1 → value1, value3, value2, value1
-			// insert a copy of the top value into the stack two (if value2 is double or long it takes up the entry of value3, too)
-			// or three values (if value2 is neither double nor long) from the top
+		// value3, value2, value1 → value1, value3, value2, value1
+		// insert a copy of the top value into the stack two (if value2 is double or long it takes up the entry of value3, too)
+		// or three values (if value2 is neither double nor long) from the top
 			Opcodes.DUP_X2 -> {
 				val chunk1 = stackPopToLocalsCount(1)
 				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk2)
 				stackPushList(chunk1)
 			}
-			// {value2, value1} → {value2, value1}, {value2, value1}
-			// duplicate top two stack words (two values, if value1 is not double nor long; a single value, if value1 is double or long)
+		// {value2, value1} → {value2, value1}, {value2, value1}
+		// duplicate top two stack words (two values, if value1 is not double nor long; a single value, if value1 is double or long)
 			Opcodes.DUP2 -> {
 				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk1)
 			}
-			// value3, {value2, value1} → {value2, value1}, value3, {value2, value1}
-			// duplicate two words and insert beneath third word (see explanation above)
+		// value3, {value2, value1} → {value2, value1}, value3, {value2, value1}
+		// duplicate two words and insert beneath third word (see explanation above)
 			Opcodes.DUP2_X1 -> {
+				//untestedWarn2("DUP2_X1")
 				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
 				val chunk2 = stackPopToLocalsCount(1)
+				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk2)
 				stackPushList(chunk1)
 			}
+		// {value4, value3}, {value2, value1} → {value2, value1}, {value4, value3}, {value2, value1}
+		// duplicate two words and insert beneath fourth word
 			Opcodes.DUP2_X2 -> {
 				//untestedWarn2("DUP2_X2")
 				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
 				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk2)
 				stackPushList(chunk1)
@@ -310,6 +332,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			Opcodes.SWAP -> {
 				val v1 = stackPop()
 				val v2 = stackPop()
+				stackPopToLocalsFixOrder()
 				stackPush(v1)
 				stackPush(v2)
 			}
@@ -351,7 +374,10 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stmAdd(AstStm.RETURN(null))
 			}
 			Opcodes.ARRAYLENGTH -> stackPush(AstExpr.ARRAY_LENGTH(stackPop()))
-			Opcodes.ATHROW -> stmAdd(AstStm.THROW(stackPop()))
+			Opcodes.ATHROW -> {
+				stmAdd(AstStm.THROW(stackPop()))
+				stack.clear()
+			}
 			Opcodes.MONITORENTER -> stmAdd(AstStm.MONITOR_ENTER(stackPop()))
 			Opcodes.MONITOREXIT -> stmAdd(AstStm.MONITOR_EXIT(stackPop()))
 			else -> invalidOp("$op")

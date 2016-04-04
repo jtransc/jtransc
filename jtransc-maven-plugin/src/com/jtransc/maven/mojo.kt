@@ -65,8 +65,8 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "vsync", defaultValue = "true") @JvmField var vsync: Boolean = true
 	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
 	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
-	@Parameter(property = "backend", defaultValue = "SOOT") @JvmField var backend: BuildBackend = BuildBackend.SOOT
-	//@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
+	//@Parameter(property = "backend", defaultValue = "SOOT") @JvmField var backend: BuildBackend = BuildBackend.SOOT
+	@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()

@@ -62,9 +62,29 @@ public class MiscTest {
 
 		System.out.println(seedUniquifier());
 
+		Test test = new Test();
+		System.out.println(test.elements);
+		test.demo().testEmptyStack();
+		System.out.println(test.elements);
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+
+	static class Test {
+		private long elements = 0;
+
+		public Internal demo() {
+			return new Internal();
+		}
+
+		class Internal {
+			private void testEmptyStack() {
+				elements = 10;
+			}
+		}
+	}
 
 	private static long seedUniquifier = 8682522807148012L;
 	private static long seedUniquifier() {

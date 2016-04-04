@@ -45,8 +45,8 @@ import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
 	companion object {
-		val BACKEND = BuildBackend.SOOT
-		//val BACKEND = BuildBackend.ASM
+		//val BACKEND = BuildBackend.SOOT
+		val BACKEND = BuildBackend.ASM
 
 		//const val DEBUG = !USE_SOOT
 		const val DEBUG = false
