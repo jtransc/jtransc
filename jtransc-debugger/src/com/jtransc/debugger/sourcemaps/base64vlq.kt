@@ -46,20 +46,21 @@ object Base64Vlq {
 		return out
 	}
 
+	private fun encodeOne(item:Int):String {
+		val negative = (item < 0)
+		val absValue = Math.abs(item)
+		val valueToEncode = (absValue shl 1) or negative.map(1, 0)
+		var v = valueToEncode
+		var out = ""
+		do {
+			val chunk = v and 0x1F
+			v = v ushr 5
+			out += encodeB64Char(chunk or (v != 0).map(0x20, 0))
+		} while (v != 0)
+		return out
+	}
+
 	fun encode(items: List<Int>): String {
-		fun encodeOne(item:Int):String {
-			val negative = (item < 0)
-			val absValue = Math.abs(item)
-			val valueToEncode = (absValue shl 1) or negative.map(1, 0)
-			var v = valueToEncode
-			var out = ""
-			do {
-				val chunk = v and 0x1F
-				v = v ushr 5
-				out += encodeB64Char(chunk or (v != 0).map(0x20, 0))
-			} while (v != 0)
-			return out
-		}
 		return items.map { encodeOne(it) }.joinToString("")
 	}
 }

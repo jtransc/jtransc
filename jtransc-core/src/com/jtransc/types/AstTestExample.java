@@ -1,14 +1,8 @@
 package com.jtransc.types;
 
-public class AstTestExample extends Other {
-	public AstTestExample append(char c) {
-		super.append2(c);
-		return this;
-	}
-}
-
-class Other {
-	public void append2(char c) {
-
+public class AstTestExample {
+	static public void test1() {
+		int a = 10;
+		System.out.println(a >= 3);
 	}
 }

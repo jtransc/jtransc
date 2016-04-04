@@ -13,15 +13,9 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 	"}\n"
 })
 public class JTranscConsole {
-	@HaxeMethodBody("_log(p0);")
-	static public void log(Object obj) {
-		System.out.println(obj);
-	}
-
-	@HaxeMethodBody("_log(p0);")
-	static public void log(int i) {
-		System.out.println(i);
-	}
+	@HaxeMethodBody("_log(p0);") static public void log(Object obj) { System.out.println(obj); }
+	@HaxeMethodBody("_log(p0);") static public void log(boolean i) { System.out.println(i); }
+	@HaxeMethodBody("_log(p0);") static public void log(int i) { System.out.println(i); }
 
 	@HaxeMethodBody("" +
 		"var msg = '' + p0;\n" +

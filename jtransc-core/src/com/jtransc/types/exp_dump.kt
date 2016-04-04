@@ -68,7 +68,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.ARRAY_LENGTH -> "(${dump(expr.array)}).length"
 		is AstExpr.ARRAY_ACCESS -> dump(expr.array) + "[" + dump(expr.index) + "]"
 		is AstExpr.INSTANCE_FIELD_ACCESS -> dump(expr.expr) + "." + expr.field.name
-		is AstExpr.STATIC_FIELD_ACCESS -> expr.clazzName.fqname + "." + expr.field.name
+		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"

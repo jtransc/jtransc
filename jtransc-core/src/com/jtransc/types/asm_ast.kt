@@ -109,9 +109,15 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 	fun stmAdd(s: AstStm) {
 		// Adding statements must dump stack (and restore later) so we preserve calling order!
-		val stack = preserveStack()
-		stms.add(s)
-		restoreStack(stack)
+		// Unless it is just a LValue
+		//if (stack.size == 1 && stack.peek() is AstExpr.LocalExpr) {
+		//if (false) {
+		//	stms.add(s)
+		//} else {
+			val stack = preserveStack()
+			stms.add(s)
+			restoreStack(stack)
+		//}
 	}
 
 	fun stackPush(e: AstExpr) {
@@ -324,6 +330,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 			Opcodes.DUP2_X2 -> {
 				untestedWarn2("DUP2_X2")
+				noImpl("DUP2_X2")
 				stmAdd(AstStm.NOT_IMPLEMENTED)
 			}
 			Opcodes.SWAP -> {
@@ -402,48 +409,68 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		val op = i.opcode
 		val index = i.`var`
 
-		fun load(type:AstType) {
+		fun load(type: AstType) {
 			stackPush(local(type, index))
 		}
 
-		fun store(type:AstType) {
+		fun store(type: AstType) {
 			val expr = stackPop()
 			val newLocal = local(type, index)
 			stmSet(newLocal, expr)
 		}
 
 		when (op) {
-			in Opcodes.ILOAD .. Opcodes.ALOAD -> load(PTYPES[op - Opcodes.ILOAD])
+			in Opcodes.ILOAD..Opcodes.ALOAD -> load(PTYPES[op - Opcodes.ILOAD])
 			in Opcodes.ISTORE..Opcodes.ASTORE -> store(PTYPES[op - Opcodes.ISTORE])
 			Opcodes.RET -> deprecated
 			else -> invalidOp
 		}
 	}
 
-
-	fun addJump(cond: AstExpr?, label: AstLabel) {
-		preserveStack()
-		ref(label)
-		stmAdd(AstStm.IF_GOTO(label, cond))
-	}
-
 	fun handleJump(i: JumpInsnNode) {
 		val op = i.opcode
+
+		fun addJump(cond: AstExpr?, label: AstLabel) {
+			//val stack = preserveStack()
+
+			restoreStack(preserveStack())
+			ref(label)
+			stms.add(AstStm.IF_GOTO(label, cond))
+			//restoreStack(stack)
+		}
+
+		fun addJump0(op: AstBinop) {
+			addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(0)), label(i.label))
+		}
+
+		fun addJumpNull(op: AstBinop) {
+			addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(null)), label(i.label))
+		}
+
+		fun addJump2(op: AstBinop) {
+			val r = stackPop()
+			val l = stackPop()
+			addJump(AstExpr.BINOP(AstType.BOOL, l, op, r), label(i.label))
+		}
+
 		when (op) {
-			in Opcodes.IFEQ..Opcodes.IFLE -> {
-				addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), JUMPOPS[op - Opcodes.IFEQ], AstExpr.LITERAL(0)), label(i.label))
-			}
-			in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
-				addJump(AstExpr.BINOP(AstType.BOOL, stackPop(), JUMPOPS[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), label(i.label))
-			}
-			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
-				val r = stackPop()
-				val l = stackPop()
-				addJump(AstExpr.BINOP(AstType.BOOL, l, JUMPOPS[op - Opcodes.IF_ICMPEQ], r), label(i.label))
-			}
-			Opcodes.GOTO -> {
-				addJump(null, label(i.label))
-			}
+			Opcodes.IFEQ -> addJump0(AstBinop.EQ);
+			Opcodes.IFNE -> addJump0(AstBinop.NE);
+			Opcodes.IFLT -> addJump0(AstBinop.LT);
+			Opcodes.IFGE -> addJump0(AstBinop.GE);
+			Opcodes.IFGT -> addJump0(AstBinop.GT);
+			Opcodes.IFLE -> addJump0(AstBinop.LE);
+			Opcodes.IFNULL -> addJumpNull(AstBinop.EQ)
+			Opcodes.IFNONNULL -> addJumpNull(AstBinop.NE)
+			Opcodes.IF_ICMPEQ -> addJump2(AstBinop.EQ)
+			Opcodes.IF_ICMPNE -> addJump2(AstBinop.NE)
+			Opcodes.IF_ICMPLT -> addJump2(AstBinop.LT)
+			Opcodes.IF_ICMPGE -> addJump2(AstBinop.GE)
+			Opcodes.IF_ICMPGT -> addJump2(AstBinop.GT)
+			Opcodes.IF_ICMPLE -> addJump2(AstBinop.LE)
+			Opcodes.IF_ACMPEQ -> addJump2(AstBinop.EQ)
+			Opcodes.IF_ACMPNE -> addJump2(AstBinop.NE)
+			Opcodes.GOTO -> addJump(null, label(i.label))
 			Opcodes.JSR -> deprecated
 			else -> invalidOp
 		}
@@ -555,7 +582,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	}
 
 	fun preserveStackLocal(index: Int, type: AstType): AstExpr.LocalExpr {
-		return local(type, index + 2000)
+		return local(type, index + 2000, "stack")
 	}
 
 	fun dumpExprs() {
@@ -569,9 +596,14 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			return Collections.EMPTY_LIST as List<AstExpr.LocalExpr>
 		} else {
 			val items = arrayListOf<AstExpr.LocalExpr>()
-			while (stack.isNotEmpty()) {
-				val value = stackPop()
-				val local = preserveStackLocal(stack.size, value.type)
+			val preservedStack = (0 until stack.size).map { stackPop() }
+
+			if (DEBUG) println("--")
+			for ((index2, value) in preservedStack.withIndex()) {
+				//val index = index2
+				val index = preservedStack.size - index2 - 1
+				val local = preserveStackLocal(index, value.type)
+				if (DEBUG) println("PRESERVE: $local : $index, ${value.type}")
 				stmSet(local, value)
 				items.add(local)
 			}
@@ -584,6 +616,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			//println("stackToRestore.size:" + stackToRestore.size)
 		}
 		for (i in stackToRestore.reversed()) {
+			if (DEBUG) println("RESTORE: $i")
 			// @TODO: avoid reversed by inserting in the right order!
 			this.stack.push(i)
 		}
@@ -592,7 +625,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun handleFrame(i: FrameNode) {
 		stack.clear()
 		// validated order
-		for ((index, typeValue) in i.stack.withIndex()) {
+		for ((index2, typeValue) in i.stack.withIndex()) {
+			val index = index2
+			//val index = i.stack.size - index2 - 1
 			//val type = LiteralToAstType(typeValue)
 
 			val type = when (typeValue) {
@@ -604,8 +639,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				Opcodes.NULL -> AstType.OBJECT
 				Opcodes.UNINITIALIZED_THIS -> AstType.OBJECT
 				is String -> AstType.OBJECT
-				//else -> LiteralToAstType(typeValue)
-				else -> invalidOp
+				is LabelNode -> AstType.OBJECT
+			//else -> LiteralToAstType(typeValue)
+				else -> invalidOp("Invalid: $typeValue")
 			}
 
 			stackPush(preserveStackLocal(index, type))

@@ -86,7 +86,19 @@ class AsmToAst : AstClassGenerator {
 			genericSignature = method.signature,
 			defaultTag = method.annotationDefault,
 			modifiers = mods,
-			generateBody = { if (mods.isConcrete) Asm2Ast(containingClass.ref.type, method, containingClass.program) else null }
+			generateBody = {
+				if (mods.isConcrete) {
+					try {
+						Asm2Ast(containingClass.ref.type, method, containingClass.program)
+					} catch (e:Throwable) {
+						println("Error trying to generate ${containingClass.name}::${method.name}")
+						e.printStackTrace()
+						null
+					}
+				} else {
+					null
+				}
+			}
 		)
 	}
 
@@ -114,6 +126,13 @@ fun AstAnnotationValue(value: Any?): Any? {
 	}
 	if (value is ArrayList<*>) {
 		return value.map { AstAnnotationValue(it) }
+	}
+	if (clazz.isArray) {
+		val out = ArrayList<Any?>()
+		for (index in 0 until java.lang.reflect.Array.getLength(value)) {
+			out += java.lang.reflect.Array.get(value, index)
+		}
+		return out
 	}
 	return value
 }

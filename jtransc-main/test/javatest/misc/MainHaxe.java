@@ -24,6 +24,8 @@ public class MainHaxe {
     void main2(String[] args) throws Throwable {
         System.out.println("STARTED");
         System.out.println("args:" + Arrays.toString(args));
+		System.out.println(true);
+		System.out.println(false);
         systemPropertiesTest();
         testRegex();
         mapTest();

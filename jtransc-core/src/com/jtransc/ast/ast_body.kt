@@ -202,7 +202,7 @@ interface AstExpr : AstElement {
 	}
 
 	data class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr {
-		val clazzName = AstType.REF(field.name)
+		val clazzName = field.containingTypeRef
 		override val type: AstType = field.type
 	}
 
