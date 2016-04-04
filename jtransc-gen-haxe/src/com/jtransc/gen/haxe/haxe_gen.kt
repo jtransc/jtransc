@@ -437,17 +437,15 @@ class GenHaxeGen(
 
 				val binexpr = if (resultType == AstType.LONG) {
 					when (opSymbol) {
-						"/" -> "haxe.Int64.div($l, $r)"
-						"<<" -> "haxe.Int64.shl($l, $r)"
 						"lcmp", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
-						else -> "$l $opSymbol $r"
+						else -> "($l $opSymbol $r)"
 					}
 				} else if (resultType == AstType.INT && opSymbol == "/") {
 					"Std.int($l / $r)"
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
-						else -> "$l $opSymbol $r"
+						else -> "($l $opSymbol $r)"
 					}
 				}
 				when (resultType) {

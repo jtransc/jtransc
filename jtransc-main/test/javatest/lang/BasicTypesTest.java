@@ -22,6 +22,8 @@ public class BasicTypesTest {
 		System.out.println(Short.reverseBytes((short) 0xF5F2));
 		System.out.println(Integer.reverseBytes((int) 0x12345678));
 		System.out.println(Integer.reverseBytes((int) 0xF2345678));
+		System.out.println(0x123456789ABCDEF0L);
+		System.out.println(-1234567890);
 		System.out.println(Long.reverseBytes(0x123456789ABCDEF0L));
 		System.out.println(Long.reverseBytes(-1234567890));
 	}
