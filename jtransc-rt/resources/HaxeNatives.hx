@@ -219,7 +219,7 @@ class HaxeNatives {
     }
 
     static public inline function cast2<T, S> (value:T, c:Class<S>):S {
-        return (value != null) ? (cast value) : null;
+        return cast value;
     }
 
     static public function formatBoxed(fmt:String, args:Array<Dynamic>):String {
