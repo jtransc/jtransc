@@ -41,9 +41,11 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	val labels = hashMapOf<LabelNode, AstLabel>()
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val referencedLabels = hashSetOf<AstLabel>()
+	val referencedHandlers = hashSetOf<LabelNode>()
 	var tempLocalId = 1000
 	val localsAtIndex = hashMapOf<Int, AstExpr.LocalExpr>()
 	var lastLine = -1
+	var lastLabel: LabelNode? = null
 
 	fun fixType(type: AstType): AstType {
 		return if (type is AstType.Primitive) {
@@ -580,6 +582,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	}
 
 	fun handleLabel(i: LabelNode) {
+		lastLabel = i
 		//dumpExprs()
 		stmAdd(AstStm.STM_LABEL(label(i)))
 	}
@@ -638,32 +641,50 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	fun handleFrame(i: FrameNode) {
 		stack.clear()
 		// validated order
-		for ((index2, typeValue) in i.stack.withIndex()) {
-			val index = index2
-			//val index = i.stack.size - index2 - 1
-			//val type = LiteralToAstType(typeValue)
 
-			val type = when (typeValue) {
-				Opcodes.TOP -> invalidOp
-				Opcodes.INTEGER -> AstType.INT
-				Opcodes.FLOAT -> AstType.FLOAT
-				Opcodes.DOUBLE -> AstType.DOUBLE
-				Opcodes.LONG -> AstType.LONG
-				Opcodes.NULL -> AstType.OBJECT
-				Opcodes.UNINITIALIZED_THIS -> AstType.OBJECT
-				is String -> AstType.OBJECT
-				is LabelNode -> AstType.OBJECT
-			//else -> LiteralToAstType(typeValue)
-				else -> invalidOp("Invalid: $typeValue")
+		if (lastLabel in referencedHandlers) {
+			if (i.stack.size != 1) invalidOp("catch handler should have just one stack element!?")
+
+			stackPush(AstExpr.CAUGHT_EXCEPTION())
+		} else {
+
+			for ((index2, typeValue) in i.stack.withIndex()) {
+				val index = index2
+				//val index = i.stack.size - index2 - 1
+				//val type = LiteralToAstType(typeValue)
+
+				val type = when (typeValue) {
+					Opcodes.TOP -> invalidOp
+					Opcodes.INTEGER -> AstType.INT
+					Opcodes.FLOAT -> AstType.FLOAT
+					Opcodes.DOUBLE -> AstType.DOUBLE
+					Opcodes.LONG -> AstType.LONG
+					Opcodes.NULL -> AstType.OBJECT
+					Opcodes.UNINITIALIZED_THIS -> AstType.OBJECT
+					is String -> AstType.OBJECT
+					is LabelNode -> AstType.OBJECT
+				//else -> LiteralToAstType(typeValue)
+					else -> invalidOp("Invalid: $typeValue")
+				}
+
+
+				stackPush(preserveStackLocal(index, type))
+				if (DEBUG) println("$index: push($typeValue : ${typeValue?.javaClass})")
 			}
-
-			stackPush(preserveStackLocal(index, type))
-			if (DEBUG) println("$index: push($typeValue : ${typeValue?.javaClass})")
 		}
 	}
 
 	fun call(): AstBody {
 		var i = this.firstInstruction
+
+		for (b in tryCatchBlocks) {
+			ref(label(b.start))
+			ref(label(b.end))
+			ref(label(b.handler))
+			referencedHandlers += b.handler
+		}
+
+
 		if (DEBUG) {
 			println("--------------------------------------------------------------------")
 			println("::::::::::::: ${clazz.name}.${method.name}:${method.desc}")
@@ -730,12 +751,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		}
 
 		dumpExprs()
-
-		for (b in tryCatchBlocks) {
-			ref(label(b.start))
-			ref(label(b.end))
-			ref(label(b.handler))
-		}
 
 		return AstBody(
 			AstStm.STMS(stms.optimize()),

@@ -65,6 +65,7 @@ fun dump(expr: AstExpr?): String {
 			}
 		}
 		is AstExpr.LocalExpr -> expr.name
+		is AstExpr.CAUGHT_EXCEPTION -> "__expr"
 		is AstExpr.ARRAY_LENGTH -> "(${dump(expr.array)}).length"
 		is AstExpr.ARRAY_ACCESS -> dump(expr.array) + "[" + dump(expr.index) + "]"
 		is AstExpr.INSTANCE_FIELD_ACCESS -> dump(expr.expr) + "." + expr.field.name
