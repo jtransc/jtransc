@@ -60,7 +60,6 @@ val HaxeFeatures = setOf(SwitchesFeature)
 
 val HaxeKeywords = setOf(
 	"java",
-	"unix",
 	"package",
 	"import",
 	"class", "interface", "extends", "implements",
@@ -75,7 +74,13 @@ val HaxeKeywords = setOf(
 	"goto"
 )
 
-val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + setOf("toString", "hashCode")
+val HaxeSpecial = setOf(
+	"N", // used for HaxeNatives
+	"HaxeNatives", // used for HaxeNatives
+	"unix"
+)
+
+val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
 
 enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin") {
 	JS(switch = "-js", singleFile = true, interpreter = "node", extension = "js"),

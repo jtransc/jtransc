@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 	"public var __ID__ = __LAST_ID__++;",
 })
 @HaxeAddFiles({
+	"N.hx",
 	"HaxeNatives.hx",
 	"HaxeReflect.hx",
 	"HaxeDynamicLoad.hx",

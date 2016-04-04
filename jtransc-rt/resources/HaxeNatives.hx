@@ -218,9 +218,7 @@ class HaxeNatives {
         #end
     }
 
-    static public inline function cast2<T, S> (value:T, c:Class<S>):S {
-        return cast value;
-    }
+    static public inline function cast2<T, S> (value:T, c:Class<S>):S return N.c(value, c);
 
     static public function formatBoxed(fmt:String, args:Array<Dynamic>):String {
         return HaxeFormat.format(fmt, args.map(function(v) { return unbox(v); }).array());
