@@ -17,13 +17,15 @@
 package com.jtransc.text
 
 class Indenter : ToString {
-	interface Action
-	data class Line(val str: String) : Action
-	data class LineDeferred(val callback: () -> Indenter) : Action
+	interface Action {
+		data class Line(val str: String) : Action
 
-	object Indent : Action
+		data class LineDeferred(val callback: () -> Indenter) : Action
 
-	object Unindent : Action
+		object Indent : Action
+
+		object Unindent : Action
+	}
 
 	private val actions = arrayListOf<Action>()
 
@@ -44,9 +46,22 @@ class Indenter : ToString {
 				replacements[result.groupValues[1]] ?: ""
 			}
 		}
+
+		private val INDENTS = arrayListOf<String>("")
+
+		private fun getIndent(index: Int): String {
+			if (index >= INDENTS.size) {
+				val calculate = INDENTS.size * 10
+				var indent = INDENTS[INDENTS.size - 1]
+				while (calculate >= INDENTS.size) {
+					indent += "\t"
+					INDENTS.add(indent)
+				}
+			}
+			return INDENTS[index]
+		}
 	}
 
-	var indents: String = ""
 	var out: String = ""
 
 	fun line(indenter: Indenter): Indenter {
@@ -55,12 +70,12 @@ class Indenter : ToString {
 	}
 
 	fun line(str: String): Indenter {
-		this.actions.add(Line(str))
+		this.actions.add(Action.Line(str))
 		return this
 	}
 
 	fun linedeferred(init: Indenter.() -> Unit): Indenter {
-		this.actions.add(LineDeferred({
+		this.actions.add(Action.LineDeferred({
 			val indenter = Indenter()
 			indenter.init()
 			indenter
@@ -93,37 +108,33 @@ class Indenter : ToString {
 	}
 
 	fun _indent() {
-		actions.add(Indent)
+		actions.add(Action.Indent)
 	}
 
 	fun _unindent() {
-		actions.add(Unindent)
+		actions.add(Action.Unindent)
 	}
 
 	override fun toString(): String {
 		val chunks = arrayListOf<String>()
 
-		var indents = ""
+		var indentIndex = 0
 
 		fun eval(actions: List<Action>) {
 			for (action in actions) {
 				when (action) {
-					is Line -> {
-						if (action.str == "" && noIndentEmptyLines) {
+					is Action.Line -> {
+						if (noIndentEmptyLines && action.str.isEmpty()) {
 							chunks.add("\n")
 						} else {
-							chunks.add(indents + action.str + "\n")
+							chunks.add(getIndent(indentIndex))
+							chunks.add(action.str)
+							chunks.add("\n")
 						}
 					}
-					is LineDeferred -> {
-						eval(action.callback().actions)
-					}
-					Indent -> {
-						indents += "\t"
-					}
-					Unindent -> {
-						indents = indents.substring(0, indents.length - 1)
-					}
+					is Action.LineDeferred -> eval(action.callback().actions)
+					Action.Indent -> indentIndex++
+					Action.Unindent -> indentIndex--
 				}
 			}
 		}
@@ -133,59 +144,3 @@ class Indenter : ToString {
 		return chunks.joinToString("")
 	}
 }
-
-/*
-class IndentStringBuilder {
-	val noIndentEmptyLines = true
-
-	companion object {
-		fun gen(init: IndentStringBuilder.() -> Unit): String {
-			val builder = IndentStringBuilder()
-			builder.init()
-			return builder.toString()
-		}
-	}
-
-	var indents: String = ""
-	var out: String = ""
-
-	fun line(str: String) {
-		if (str == "" && noIndentEmptyLines) {
-			out += "\n"
-		} else {
-			out += indents + str + "\n"
-		}
-	}
-
-	fun line(str: String, callback: () -> Unit) {
-		line("$str {")
-		indent(callback)
-		line("}")
-	}
-
-	fun line(str: String, after:String, callback: () -> Unit) {
-		line("$str { $after")
-		indent(callback)
-		line("}")
-	}
-
-	inline fun indent(callback: () -> Unit) {
-		_indent()
-		try {
-			callback()
-		} finally {
-			_unindent()
-		}
-	}
-
-	fun _indent() {
-		indents += "\t"
-	}
-
-	fun _unindent() {
-		indents = indents.substring(0, indents.length - 1)
-	}
-
-	override fun toString() = out
-}
-*/
