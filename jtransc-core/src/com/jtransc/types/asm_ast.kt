@@ -126,6 +126,10 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		stack.push(e)
 	}
 
+	fun stackPushList(e: List<AstExpr>) {
+		for (i in e) stackPush(i)
+	}
+
 	fun stackPop(): AstExpr {
 		if (stack.isEmpty()) {
 			println("stack is empty!")
@@ -273,56 +277,35 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			// insert a copy of the top value into the stack two (if value2 is double or long it takes up the entry of value3, too)
 			// or three values (if value2 is neither double nor long) from the top
 			Opcodes.DUP_X2 -> {
-				if (stackPeek().type.isLongOrDouble()) {
-					untestedWarn2("DUP_X2 (double)")
-					val locals = stackPopToLocalsCount(2)
-					stackPush(locals[0])
-					stackPush(locals[1])
-					stackPush(locals[0])
-				} else {
-					untestedWarn2("DUP_X2 (single)")
-					val locals = stackPopToLocalsCount(3)
-					stackPush(locals[0])
-					stackPush(locals[2])
-					stackPush(locals[1])
-					stackPush(locals[0])
-				}
+				val chunk1 = stackPopToLocalsCount(1)
+				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPushList(chunk1)
+				stackPushList(chunk2)
+				stackPushList(chunk1)
 			}
 			// {value2, value1} → {value2, value1}, {value2, value1}
 			// duplicate top two stack words (two values, if value1 is not double nor long; a single value, if value1 is double or long)
-			// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
-				if (stackPeek().type.isLongOrDouble()) {
-					val locals = stackPopToLocalsCount(1)
-					stackPush(locals[0])
-					stackPush(locals[0])
-				} else {
-					untestedWarn2("DUP2 single")
-					val locals = stackPopToLocalsCount(2)
-					stackPush(locals[0])
-					stackPush(locals[1])
-				}
+				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPushList(chunk1)
+				stackPushList(chunk1)
 			}
+			// value3, {value2, value1} → {value2, value1}, value3, {value2, value1}
+			// duplicate two words and insert beneath third word (see explanation above)
 			Opcodes.DUP2_X1 -> {
-				//untestedWarn2("DUP2_X1")
-				if (!stackPeek().type.isLongOrDouble()) {
-					val locals = stackPopToLocalsCount(3)
-					stackPush(locals[0])
-					stackPush(locals[1])
-					stackPush(locals[2])
-					stackPush(locals[0])
-					stackPush(locals[1])
-				} else {
-					val locals = stackPopToLocalsCount(2)
-					stackPush(locals[0])
-					stackPush(locals[1])
-					stackPush(locals[2])
-				}
+				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk2 = stackPopToLocalsCount(1)
+				stackPushList(chunk1)
+				stackPushList(chunk2)
+				stackPushList(chunk1)
 			}
 			Opcodes.DUP2_X2 -> {
-				untestedWarn2("DUP2_X2")
-				noImpl("DUP2_X2")
-				stmAdd(AstStm.NOT_IMPLEMENTED)
+				//untestedWarn2("DUP2_X2")
+				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				stackPushList(chunk1)
+				stackPushList(chunk2)
+				stackPushList(chunk1)
 			}
 			Opcodes.SWAP -> {
 				val v1 = stackPop()
@@ -330,7 +313,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stackPush(v1)
 				stackPush(v2)
 			}
-
 			Opcodes.INEG, Opcodes.LNEG, Opcodes.FNEG, Opcodes.DNEG -> stackPush(AstExpr.UNOP(AstUnop.NEG, stackPop()))
 
 		// @TODO: try to homogeinize this!

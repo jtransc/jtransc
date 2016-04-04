@@ -14,6 +14,7 @@ object JTranscBug12Test2 {
 		test1("abcdef")
 		test1(abc + "def")
 		test1("abcdefg")
+		test2()
 	}
 
 	fun test1(str:String) {
@@ -23,6 +24,13 @@ object JTranscBug12Test2 {
 			"abcdef" -> println("my:abcdef")
 			else -> println("my:else:$str")
 		}
+	}
+
+	fun test2() {
+		//val range = 11L until 1000
+		//println(range.start)
+		//println(range.step)
+		//println(range.endInclusive)
 	}
 
 	class Demo {

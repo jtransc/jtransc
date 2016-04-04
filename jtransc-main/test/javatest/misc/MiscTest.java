@@ -60,9 +60,16 @@ public class MiscTest {
 	    StaticCall1.a = 20;
 	    System.out.println(StaticCall1.a);
 
+		System.out.println(seedUniquifier());
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	private static long seedUniquifier = 8682522807148012L;
+	private static long seedUniquifier() {
+		return seedUniquifier = seedUniquifier * 181783497276652981L;
+	}
 
     static private void testArrays() {
         byte[] bytes = new byte[16];
