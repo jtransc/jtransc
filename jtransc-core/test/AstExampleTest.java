@@ -1,14 +1,12 @@
-package com.jtransc.types;
-
 import com.jtransc.ast.AstType;
-import com.jtransc.ast.Ast_typeKt;
 import com.jtransc.io.ClassutilsKt;
+import com.jtransc.types.Asm_astKt;
+import com.jtransc.types.Exp_dumpKt;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-class AstTestExample {
+class AstExampleTest {
 	static private ClassNode readClassNode(Class<?> clazz) {
 		byte[] bytes = ClassutilsKt.readBytes(clazz);
 		ClassNode cn = new ClassNode();
@@ -17,9 +15,9 @@ class AstTestExample {
 	}
 
 	static public void main(String[] args) {
-		//System.out.println(AstTestExample.demo());
+		//System.out.println(AstExampleTest.demo());
 
-		ClassNode clazz = readClassNode(Test.Internal.class);
+		ClassNode clazz = readClassNode(AstExampleTest2.Test.Internal.class);
 		for (Object _method : clazz.methods) {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD_TYPE methodType = AstType.Companion.demangleMethod(method.desc);
@@ -32,17 +30,5 @@ class AstTestExample {
 		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
 	}
 
-	static class Test {
-		private long elements = 0;
 
-		public Internal demo() {
-			return new Internal();
-		}
-
-		class Internal {
-			private void testEmptyStack() {
-				elements = 0;
-			}
-		}
-	}
 }
