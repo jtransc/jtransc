@@ -1,8 +1,20 @@
 package com.jtransc.types;
 
 public class AstTestExample {
+	/*
 	public static long reverseBytes(long v) {
-		v = (v & 0x00ff00ff00ff00ffL) << 8 | (v >>> 8) & 0x00ff00ff00ff00ffL;
-		return (v << 48) | ((v & 0xffff0000L) << 16) | ((v >>> 16) & 0xffff0000L) | (v >>> 48);
+		public infix fun Long.until(to: Int): LongRange {
+			return this .. (to.toLong() - 1).toLong()
+		}
+	}
+	*/
+
+	public static LongRange reverseBytes(long a, int b) {
+		return new LongRange(a, (long) ((long) (b) - 1));
+	}
+}
+
+class LongRange {
+	public LongRange(long a, long b) {
 	}
 }

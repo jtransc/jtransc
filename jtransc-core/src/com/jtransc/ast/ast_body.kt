@@ -3,6 +3,7 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.lang.*
 
 data class AstBody(
 	val stm: AstStm,
@@ -143,19 +144,7 @@ interface AstExpr : AstElement {
 	}
 
 	data class LITERAL(override val value: Any?) : AstExpr, LiteralExpr {
-		override val type: AstType = when (value) {
-			null -> AstType.NULL
-			is Boolean -> AstType.BOOL
-			is Byte -> AstType.BYTE
-			is Char -> AstType.CHAR
-			is Short -> AstType.SHORT
-			is Int -> AstType.INT
-			is Long -> AstType.LONG
-			is Float -> AstType.FLOAT
-			is Double -> AstType.DOUBLE
-			is String -> AstType.STRING
-			else -> throw NotImplementedError("Literal type: ${value.javaClass} : $value")
-		}
+		override val type = AstType.fromConstant(value)
 	}
 
 	data class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr
@@ -244,7 +233,21 @@ interface AstExpr : AstElement {
 
 object AstExprUtils {
 	fun cast(expr: AstExpr, to: AstType): AstExpr {
-		// LITERAL + IMMEDIATE = IMMEDIATE casted
+		if (expr is AstExpr.LITERAL) {
+			val value = expr.value
+			when (value) {
+				is Boolean -> castLiteral(value, to)
+				is Byte -> castLiteral(value, to)
+				is Char -> castLiteral(value, to)
+				is Short -> castLiteral(value, to)
+				is Int -> castLiteral(value, to)
+				is Long -> castLiteral(value, to)
+				is Float -> castLiteral(value, to)
+				is Double -> castLiteral(value, to)
+			}
+			//return AstExpr.LITERAL(expr.value)
+		}
+
 		if (expr.type != to) {
 			return AstExpr.CAST(expr, to)
 		} else {

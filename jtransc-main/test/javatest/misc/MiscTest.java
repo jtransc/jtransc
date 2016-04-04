@@ -13,12 +13,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.zip.CRC32;
 
-public class MainHaxe {
+public class MiscTest {
     static public int MY_GREAT_CONSTANT = 10;
 
     static public void main(String[] args) throws Throwable {
-        new MainHaxe().main2(args);
+        new MiscTest().main2(args);
     }
 
     void main2(String[] args) throws Throwable {
@@ -47,11 +48,13 @@ public class MainHaxe {
         testCloneArray();
         //testMd5();
         //testSha1();
+		testCrc32();
         testCharset();
         testDynamicInstanceof();
         testGenericStuff();
         testAnnotations();
         testArrays();
+		testNulls();
 
 	    System.out.println(StaticCall1.a);
 	    StaticCall1.a = 20;
@@ -74,7 +77,19 @@ public class MainHaxe {
         System.out.println();
     }
 
-    static private void testAnnotations() {
+	static private void testNulls() {
+		testNulls2(null);
+	}
+
+	static private void testNulls2(ExampleClass ec) {
+		ExampleClass ec2 = ec;
+		Object ec3 = ec;
+		if (ec != null) ec.demo();
+		if (ec2 != null) ec2.demo();
+		if (ec3 != null) ec3.toString();
+	}
+
+	static private void testAnnotations() {
         new ExampleClass().demo();
         System.out.println("Annotations:");
         for (Annotation a : ExampleClass.class.getDeclaredAnnotations()) {
@@ -252,11 +267,11 @@ public class MainHaxe {
     private int FIELD = 10;
 
     static private void simpleReflection() {
-        System.out.println("simpleReflection:" + MainHaxe.class.getName());
+        System.out.println("simpleReflection:" + MiscTest.class.getName());
     }
 
     private void fieldReflection() throws NoSuchFieldException, IllegalAccessException {
-        Field field = MainHaxe.class.getDeclaredField("FIELD");
+        Field field = MiscTest.class.getDeclaredField("FIELD");
         System.out.println("fieldReflection:10:" + field.getName() + "," + field.get(this));
     }
 
@@ -336,6 +351,13 @@ public class MainHaxe {
             e.printStackTrace();
         }
     }
+
+	private void testCrc32() {
+		CRC32 crc32 = new CRC32();
+		System.out.println(crc32.getValue());
+		crc32.update(new byte[] { 1, 2, 3, 4 });
+		System.out.println(crc32.getValue());
+	}
 
     private void testCharset() {
         Charset utf8 = Charset.forName("UTF-8");

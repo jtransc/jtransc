@@ -25,7 +25,7 @@ import javatest.KotlinCollections
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
-import javatest.misc.MainHaxe
+import javatest.misc.MiscTest
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
 import jtransc.JTranscVersion
@@ -135,7 +135,7 @@ class HaxeGenSuiteTest {
 
 	@Test fun wrappedTest() = testClass<WrappedTest>()
 
-	@Test fun miscTest() = testClass<MainHaxe>() {
+	@Test fun miscTest() = testClass<MiscTest>() {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
 

@@ -4,6 +4,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.lang.*
 import com.jtransc.text.StrReader
 import com.jtransc.text.readUntil
 import java.io.Serializable
@@ -149,19 +150,83 @@ interface AstType {
 		}
 
 		fun fromConstant(value: Any?): AstType = when (value) {
-			null -> OBJECT
+			null -> NULL
+			is Boolean -> BOOL
+			is Byte -> BYTE
+			is Char -> CHAR
+			is Short -> SHORT
 			is Int -> INT
 			is Long -> LONG
 			is Float -> FLOAT
 			is Double -> DOUBLE
-			is Byte -> BYTE
-			is Short -> SHORT
-			is Char -> CHAR
 			is String -> STRING
-			else -> invalidOp // @TODO: custom type!
+			else -> invalidOp("Literal type: ${value.javaClass} : $value")
+
+			//null -> AstType.NULL
+			//is Boolean -> AstType.BOOL
+			//is Byte -> AstType.BYTE
+			//is Char -> AstType.CHAR
+			//is Short -> AstType.SHORT
+			//is Int -> AstType.INT
+			//is Long -> AstType.LONG
+			//is Float -> AstType.FLOAT
+			//is Double -> AstType.DOUBLE
+			//is String -> AstType.STRING
+			//else -> throw NotImplementedError("Literal type: ${value.javaClass} : $value")
 		}
 	}
 }
+
+fun _castLiteral(value: Int, to: AstType): Any {
+	return when (to) {
+		AstType.BOOL -> value.toBool()
+		AstType.BYTE -> value.toByte()
+		AstType.CHAR -> value.toChar()
+		AstType.SHORT -> value.toShort()
+		AstType.INT -> value.toInt()
+		AstType.LONG -> value.toLong()
+		AstType.FLOAT -> value.toFloat()
+		AstType.DOUBLE -> value.toDouble()
+		else -> invalidOp
+	}
+}
+
+fun _castLiteral(value: Long, to: AstType): Any {
+	return when (to) {
+		AstType.BOOL -> value.toBool()
+		AstType.BYTE -> value.toByte()
+		AstType.CHAR -> value.toChar()
+		AstType.SHORT -> value.toShort()
+		AstType.INT -> value.toInt()
+		AstType.LONG -> value.toLong()
+		AstType.FLOAT -> value.toFloat()
+		AstType.DOUBLE -> value.toDouble()
+		else -> invalidOp
+	}
+}
+
+fun _castLiteral(value: Double, to: AstType): Any {
+	return when (to) {
+		AstType.BOOL -> value.toBool()
+		AstType.BYTE -> value.toByte()
+		AstType.CHAR -> value.toChar()
+		AstType.SHORT -> value.toShort()
+		AstType.INT -> value.toInt()
+		AstType.LONG -> value.toLong()
+		AstType.FLOAT -> value.toFloat()
+		AstType.DOUBLE -> value.toDouble()
+		else -> invalidOp
+	}
+}
+
+fun castLiteral(value: Boolean, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Byte, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Char, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Short, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Int, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Long, to: AstType): Any = _castLiteral(value.toLong(), to)
+fun castLiteral(value: Float, to: AstType): Any = _castLiteral(value.toDouble(), to)
+fun castLiteral(value: Double, to: AstType): Any = _castLiteral(value.toDouble(), to)
 
 fun Iterable<AstType>.toArguments(): List<AstArgument> {
 	return this.mapIndexed { i, v -> AstArgument(i, v) }

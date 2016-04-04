@@ -3,13 +3,14 @@ package com.jtransc.gen.haxe
 import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
 import com.jtransc.lang.nullMap
+import com.jtransc.lang.toBetterString
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
+import jtransc.JTranscFunction
 import jtransc.annotation.JTranscKeep
 import jtransc.annotation.haxe.*
 import jtransc.ffi.StdCall
@@ -38,6 +39,7 @@ class GenHaxeGen(
 			//return "HaxeNatives.checkNotNull(${gen2(this)})"
 		}
 	}
+
 	fun AstBody.gen(): Indenter = gen2(this)
 	fun AstClass.gen(): ClassResult = gen2(this)
 
@@ -46,6 +48,7 @@ class GenHaxeGen(
 	fun fix(field: AstFieldRef): AstFieldRef {
 		return program.get(field).ref
 	}
+
 	fun fix(method: AstMethodRef): AstMethodRef {
 		return program.get(method)!!.ref
 	}
@@ -168,7 +171,9 @@ class GenHaxeGen(
 						is Float -> "HaxeNatives.boxFloat($it)"
 						is Double -> "HaxeNatives.boxDouble($it)"
 						is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-						else -> throw InvalidOperationException("Can't handle value ${it.javaClass.name} : $it")
+						else -> {
+							throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()}")
+						}
 					}
 				}
 				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
@@ -596,77 +601,53 @@ class GenHaxeGen(
 			}
 		}
 
-		//if (from is AstType.Primitive && to !is AstType.Primitive) {
-		//	// @TODO: Check!
-		//	return when (from) {
-		//		AstType.BOOL -> genCast("java_.lang.Boolean_.valueOf($e)", AstType.BOOL.CLASSTYPE, to)
-		//		AstType.BYTE -> genCast("java_.lang.Byte.valueOf($e)", AstType.BYTE.CLASSTYPE, to)
-		//		AstType.SHORT -> genCast("java_.lang.Short.valueOf($e)", AstType.SHORT.CLASSTYPE, to)
-		//		AstType.CHAR -> genCast("java_.lang.Character.valueOf($e)", AstType.CHAR.CLASSTYPE, to)
-		//		AstType.INT -> genCast("java_.lang.Integer.valueOf($e)", AstType.INT.CLASSTYPE, to)
-		//		AstType.LONG -> genCast("java_.lang.Long.valueOf($e)", AstType.LONG.CLASSTYPE, to)
-		//		AstType.FLOAT -> genCast("java_.lang.Float.valueOf($e)", AstType.FLOAT.CLASSTYPE, to)
-		//		AstType.DOUBLE -> genCast("java_.lang.Double.valueOf($e)", AstType.DOUBLE.CLASSTYPE, to)
-		//		else -> noImpl("Unhandled conversion $e : $from -> $to")
-		//	}
-		//}
-
 		fun unhandled(): String {
 			noImplWarn("Unhandled conversion ($from -> $to) at $context")
 			return "($e)"
 		}
 
 		return when (from) {
-			is AstType.BOOL -> {
+			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
+				val e = if (from == AstType.BOOL) "(($e) ? 1 : 0)" else "$e"
+
 				when (to) {
-					is AstType.LONG -> "HaxeNatives.intToLong(($e) ? 1 : 0)"
-					is AstType.INT -> "(($e) ? 1 : 0)"
-					is AstType.CHAR -> "(($e) ? 1 : 0)"
-					is AstType.SHORT -> "(($e) ? 1 : 0)"
-					is AstType.BYTE -> "(($e) ? 1 : 0)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "(($e) ? 1.0 : 0.0)"
-				//else -> genCast("(($e) ? 1 : 0)", AstType.INT, to)
-					else -> unhandled()
-				}
-			}
-			is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				when (to) {
-					is AstType.LONG -> "HaxeNatives.intToLong($e)"
-					is AstType.INT -> "($e)"
 					is AstType.BOOL -> "(($e) != 0)"
-					is AstType.CHAR -> "(($e) & 0xFFFF)"
-					is AstType.SHORT -> "((($e) << 16) >> 16)"
-					is AstType.BYTE -> "((($e) << 24) >> 24)"
+					is AstType.BYTE -> "N.byte($e)"
+					is AstType.CHAR -> "N.char($e)"
+					is AstType.SHORT -> "N.short($e)"
+					is AstType.INT -> "($e)"
+					is AstType.LONG -> "HaxeNatives.intToLong($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
 				when (to) {
-					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
-					is AstType.INT -> "Std.int($e)"
 					is AstType.BOOL -> "(Std.int($e) != 0)"
-					is AstType.CHAR -> "(Std.int($e) & 0xFFFF)"
-					is AstType.SHORT -> "((Std.int($e) << 16) >> 16)"
-					is AstType.BYTE -> "((Std.int($e) << 24) >> 24)"
+					is AstType.BYTE -> "N.byte(Std.int($e))"
+					is AstType.CHAR -> "N.char(Std.int($e))"
+					is AstType.SHORT -> "N.short(Std.int($e))"
+					is AstType.INT -> "Std.int($e)"
+					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.INT -> "($e).low"
 					is AstType.BOOL -> "(($e).low != 0)"
-					is AstType.CHAR -> "(($e).low & 0xFFFF)"
-					is AstType.SHORT -> "((($e).low << 16) >> 16)"
-					is AstType.BYTE -> "((($e).low << 24) >> 24)"
+					is AstType.BYTE -> "N.byte(($e).low)"
+					is AstType.CHAR -> "N.char(($e).low)"
+					is AstType.SHORT -> "N.short(($e).low)"
+					is AstType.INT -> "($e).low"
+					is AstType.LONG -> "($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
-					AstType.REF("all.core.AllFunction") -> "(HaxeNatives.getFunction($e))"
+					FUNCTION_REF -> "(HaxeNatives.getFunction($e))"
 					else -> "N.c($e, ${to.haxeTypeCast})"
 				}
 			}
@@ -674,6 +655,8 @@ class GenHaxeGen(
 			else -> unhandled()
 		}
 	}
+
+	val FUNCTION_REF = AstType.REF(jtransc.JTranscFunction::class.java.name)
 
 	fun gen2(clazz: AstClass): ClassResult {
 		context.clazz = clazz

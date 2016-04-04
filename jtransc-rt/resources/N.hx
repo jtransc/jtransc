@@ -15,5 +15,10 @@ class N {
 
 	static public inline function c<T, S> (value:T, c:Class<S>):S {
 		return cast value;
+		//return (value != null) ? cast value : null;
 	}
+
+	static public inline function byte(v:Int):Int return (v << 24) >> 24;
+	static public inline function short(v:Int):Int return (v << 16) >> 16;
+	static public inline function char(v:Int):Int return v & 0xFFFF;
 }

@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
+import com.jtransc.lang.ReflectedArray
 import com.jtransc.types.Asm2Ast
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
@@ -84,14 +85,14 @@ class AsmToAst : AstClassGenerator {
 			type = methodRef.type,
 			signature = methodRef.type.mangle(),
 			genericSignature = method.signature,
-			defaultTag = method.annotationDefault,
+			defaultTag = AstAnnotationValue(method.annotationDefault),
 			modifiers = mods,
 			generateBody = {
 				if (mods.isConcrete) {
 					try {
 						Asm2Ast(containingClass.ref.type, method, containingClass.program)
-					} catch (e:Throwable) {
-						println("Error trying to generate ${containingClass.name}::${method.name}")
+					} catch (e: Throwable) {
+						println("Error trying to generate ${containingClass.name}::${method.name} ${method.desc}")
 						e.printStackTrace()
 						null
 					}
@@ -128,11 +129,7 @@ fun AstAnnotationValue(value: Any?): Any? {
 		return value.map { AstAnnotationValue(it) }
 	}
 	if (clazz.isArray) {
-		val out = ArrayList<Any?>()
-		for (index in 0 until java.lang.reflect.Array.getLength(value)) {
-			out += java.lang.reflect.Array.get(value, index)
-		}
-		return out
+		return ReflectedArray(value).toList().map { AstAnnotationValue(it) }
 	}
 	return value
 }

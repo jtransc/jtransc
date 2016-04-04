@@ -202,6 +202,21 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		untestedWarn("$msg : ${clazz.name}::${method.name} @ $lastLine")
 	}
 
+	fun stackPopToLocalsCount(count:Int): List<AstExpr.LocalExpr> {
+		val pairs = (0 until count).map {
+			val v = stackPop()
+			val local = tempLocal(v.type)
+			Pair(local, v)
+		}
+
+		//for (p in pairs.reversed()) {
+		for (p in pairs) {
+			stmSet(p.first, p.second)
+		}
+
+		return pairs.map { it.first }
+	}
+
 	fun handleInsn(i: InsnNode): Unit {
 		val op = i.opcode
 		when (i.opcode) {
@@ -243,10 +258,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stackPush(local)
 				stackPush(local)
 			}
-		// @TODO: probably wrong!
-		// @TODO: Must reproduce these opcodes!
-		// It seems to be reproducible in java.lang.Object constructor!
 			Opcodes.DUP_X1 -> {
+				//untestedWarn2("DUP_X1")
 				val v1 = stackPop()
 				val v2 = stackPop()
 				val local1 = tempLocal(v1.type)
@@ -257,78 +270,54 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				stackPush(local2)
 				stackPush(local1)
 			}
-		// @TODO: probably wrong!
+			// value3, value2, value1 → value1, value3, value2, value1
+			// insert a copy of the top value into the stack two (if value2 is double or long it takes up the entry of value3, too)
+			// or three values (if value2 is neither double nor long) from the top
 			Opcodes.DUP_X2 -> {
-				untestedWarn2("DUP_X2")
-				val v1 = stackPop()
-				val v2 = stackPop()
-				val local1 = tempLocal(v1.type)
-				val local2 = tempLocal(v2.type)
-				if (v2.type.isLongOrDouble()) {
-					stmSet(local2, v2)
-					stmSet(local1, v1)
-					stackPush(local1)
-					stackPush(local2)
-					stackPush(local1)
+				if (stackPeek().type.isLongOrDouble()) {
+					untestedWarn2("DUP_X2 (double)")
+					val locals = stackPopToLocalsCount(2)
+					stackPush(locals[0])
+					stackPush(locals[1])
+					stackPush(locals[0])
 				} else {
-					val v3 = stackPop()
-					val local3 = tempLocal(v3.type)
-					// @TODO: Check order
-					stmSet(local1, v1)
-					stmSet(local2, v2)
-					stmSet(local3, v3)
-					stackPush(local3)
-					stackPush(local2)
-					stackPush(local1)
-					stackPush(local3)
+					untestedWarn2("DUP_X2 (single)")
+					val locals = stackPopToLocalsCount(3)
+					stackPush(locals[0])
+					stackPush(locals[2])
+					stackPush(locals[1])
+					stackPush(locals[0])
 				}
 			}
-		// @TODO: probably wrong!
+			// {value2, value1} → {value2, value1}, {value2, value1}
+			// duplicate top two stack words (two values, if value1 is not double nor long; a single value, if value1 is double or long)
+			// @TODO: probably wrong!
 			Opcodes.DUP2 -> {
-				val v1 = stackPop()
-				val local1 = tempLocal(v1.type)
-				if (v1.type.isLongOrDouble()) {
-					stmSet(local1, v1)
-					stackPush(local1)
-					stackPush(local1)
+				if (stackPeek().type.isLongOrDouble()) {
+					val locals = stackPopToLocalsCount(1)
+					stackPush(locals[0])
+					stackPush(locals[0])
 				} else {
 					untestedWarn2("DUP2 single")
-					val local2 = tempLocal(v1.type)
-					val v2 = stackPop()
-					stmSet(local1, v1)
-					stmSet(local2, v2)
-					stackPush(local1)
-					stackPush(local2)
+					val locals = stackPopToLocalsCount(2)
+					stackPush(locals[0])
+					stackPush(locals[1])
 				}
 			}
-		// @TODO: probably wrong!
 			Opcodes.DUP2_X1 -> {
-				untestedWarn2("DUP2_X1")
+				//untestedWarn2("DUP2_X1")
 				if (!stackPeek().type.isLongOrDouble()) {
-					val v1 = stackPop() // single
-					val v2 = stackPop() // single
-					val v3 = stackPop() // single
-					val local1 = tempLocal(v1.type)
-					val local2 = tempLocal(v2.type)
-					val local3 = tempLocal(v3.type)
-					stmSet(local1, v1)
-					stmSet(local2, v2)
-					stmSet(local3, v3)
-					stackPush(local1)
-					stackPush(local2)
-					stackPush(local3)
-					stackPush(local1)
-					stackPush(local2)
+					val locals = stackPopToLocalsCount(3)
+					stackPush(locals[0])
+					stackPush(locals[1])
+					stackPush(locals[2])
+					stackPush(locals[0])
+					stackPush(locals[1])
 				} else {
-					val v1 = stackPop() // double
-					val v2 = stackPop() // single
-					val local1 = tempLocal(v1.type)
-					val local2 = tempLocal(v2.type)
-					stmSet(local1, v1)
-					stmSet(local2, v2)
-					stackPush(local1)
-					stackPush(local2)
-					stackPush(local1)
+					val locals = stackPopToLocalsCount(2)
+					stackPush(locals[0])
+					stackPush(locals[1])
+					stackPush(locals[2])
 				}
 			}
 			Opcodes.DUP2_X2 -> {
