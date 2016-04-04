@@ -11,7 +11,7 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import java.util.*
 
-val Handle.ast: AstMethodRef get() = AstMethodRef(this.owner.fqname, this.name, AstType.demangleMethod(this.desc))
+val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner), this.name, AstType.demangleMethod(this.desc))
 
 class DummyLocateRightClass : LocateRightClass {
 	override fun locateRightClass(field: AstFieldRef) = field.classRef
@@ -562,7 +562,20 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		stackPush(AstExprUtils.INVOKE_DYNAMIC(
 			AstMethodWithoutClassRef(i.name, AstType.demangleMethod(i.desc)),
 			i.bsm.ast,
-			i.bsmArgs.map { AstExpr.LITERAL(it) }
+			i.bsmArgs.map {
+				when (it) {
+					is org.objectweb.asm.Type -> when (it.sort) {
+						Type.METHOD -> AstExpr.METHODTYPE_CONSTANT(AstType.demangleMethod(it.descriptor))
+						else -> noImpl("${it.sort} : ${it}")
+					}
+					is org.objectweb.asm.Handle -> {
+						val kind = AstMethodHandle.Kind.fromId(it.tag)
+						val type = AstType.demangleMethod(it.desc)
+						AstExpr.METHODHANDLE_CONSTANT(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind))
+					}
+					else -> AstExpr.LITERAL(it)
+				}
+			}
 		))
 	}
 

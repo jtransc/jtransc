@@ -154,7 +154,7 @@ interface AstExpr : AstElement {
 			is Float -> AstType.FLOAT
 			is Double -> AstType.DOUBLE
 			is String -> AstType.STRING
-			else -> throw NotImplementedError("Literal type: $value")
+			else -> throw NotImplementedError("Literal type: ${value.javaClass} : $value")
 		}
 	}
 
