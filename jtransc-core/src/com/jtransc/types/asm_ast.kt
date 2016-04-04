@@ -46,10 +46,13 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 	var lastLine = -1
 
 	fun fixType(type: AstType): AstType {
-		if (type is AstType.Primitive) {
-			return type
+		return if (type is AstType.Primitive) {
+			when (type) {
+				AstType.INT, AstType.FLOAT, AstType.DOUBLE, AstType.LONG -> type
+				else -> AstType.INT
+			}
 		} else {
-			return AstType.OBJECT
+			AstType.OBJECT
 		}
 	}
 
@@ -500,11 +503,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 				if (i.opcode != Opcodes.INVOKESPECIAL) {
 					stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
 				} else {
-					//if (methodRef.containingClassType != this.clazz) {
-					//	stackPush(AstExpr.CALL_SUPER(obj, methodRef.classRef.type.name, methodRef, args, isSpecial))
-					//} else {
-					//	stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
-					//}
 					stackPush(AstExpr.CALL_SPECIAL(AstExprUtils.fastcast(obj, methodRef.containingClassType), methodRef, args, isSpecial = true))
 				}
 			}
@@ -683,6 +681,12 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		}
 
 		dumpExprs()
+
+		for (b in tryCatchBlocks) {
+			ref(label(b.start))
+			ref(label(b.end))
+			ref(label(b.handler))
+		}
 
 		return AstBody(
 			AstStm.STMS(stms.optimize()),
