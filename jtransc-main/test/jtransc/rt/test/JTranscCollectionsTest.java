@@ -4,17 +4,27 @@ import java.util.*;
 
 public class JTranscCollectionsTest {
 	static public void main(String[] args) {
+		testRandom();
+		testReverseLoop();
+		testReverseLoop2();
 		testArrayList();
 		testHashSet();
 		testArrays();
 		testShuffle();
 	}
 
-	static private void testShuffle() {
-		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6);
-		System.out.println(list);
-		Collections.shuffle(list, new Random(0L));
-		System.out.println(list);
+	static private void testRandom() {
+		Random random = new Random(0L);
+		for (int n = 0; n < 30; n++) System.out.print(random.nextInt(5) + ",");
+		System.out.println();
+	}
+
+	static private void testReverseLoop() {
+		for (int n = 10; n >= 0; n--) System.out.println(n);
+	}
+
+	static private void testReverseLoop2() {
+		for (int n = 10; n >= 0; n -= 2) System.out.println(n);
 	}
 
 	static public void testArrayList() {
@@ -80,5 +90,12 @@ public class JTranscCollectionsTest {
 		//System.out.println(new int[] {1,2,3,4,5}.hashCode());
 		System.out.println(Arrays.hashCode(new long[] {1,2,3,4,5}));
 		System.out.println(new int[0].getClass().getName());
+	}
+
+	static private void testShuffle() {
+		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6);
+		System.out.println(list);
+		Collections.shuffle(list, new Random(0L));
+		System.out.println(list);
 	}
 }
