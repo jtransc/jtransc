@@ -20,9 +20,10 @@ val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner
 const val DEBUG = false
 
 fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
-	val locals = Locals()
-	val labels = Labels()
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
+	val basicBlocks = BasicBlocks(clazz, method)
+	val locals = basicBlocks.locals
+	val labels = basicBlocks.labels
 
 	for (b in tryCatchBlocks) {
 		labels.ref(labels.label(b.start))
@@ -32,10 +33,14 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	}
 
 	val prefix = createFunctionPrefix(clazz, method, locals)
-	val body = BasicBlockBuilder(clazz, method, locals, labels).call()
-	//println(prefix.output)
+	basicBlocks.queue(method.instructions.first, prefix.output)
+
+	val body2 = method.instructions.toArray().toList().flatMap {
+		basicBlocks.getBasicBlockForLabel(it)?.stms ?: listOf()
+	}
+
 	return AstBody(
-		AstStm.STMS(prefix.stms + body),
+		AstStm.STMS(prefix.stms + body2),
 		locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
 		tryCatchBlocks.map {
 			AstTrap(
@@ -49,6 +54,28 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 }
 
 data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
+
+class BasicBlocks(
+	private val clazz: AstType.REF,
+	private val method: MethodNode
+) {
+	val locals = Locals()
+	val labels = Labels()
+	private val blocks = hashMapOf<AbstractInsnNode, BasicBlock>()
+
+	fun queue(entry: AbstractInsnNode, input: BasicBlock.Input) {
+		add(BasicBlockBuilder(clazz, method, locals, labels, this).call(entry, input))
+	}
+
+	fun add(bb: BasicBlock) {
+		blocks[bb.entry] = bb
+	}
+
+	fun getBasicBlockForLabel(label: AbstractInsnNode): BasicBlock? {
+		return blocks[label]
+	}
+}
+
 
 fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals): FunctionPrefix {
 	val localsOutput = arrayListOf<AstExpr.LocalExpr>()
@@ -73,17 +100,10 @@ fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals)
 	return FunctionPrefix(BasicBlock.Input(Stack(), localsOutput), stms)
 }
 
-/*
-class BasicBlocks {
-	fun getBasicBlockForLabel(label: LabelNode): BasicBlock {
-
-	}
-}
-*/
-
 class BasicBlock(
 	val input: Input,
-	val entry: LabelNode
+	val entry: AbstractInsnNode,
+	val stms: List<AstStm>
 ) {
 	data class Input(val stack: Stack<AstExpr>, val locals: ArrayList<AstExpr.LocalExpr>)
 }
@@ -151,7 +171,8 @@ private class BasicBlockBuilder(
 	val clazz: AstType.REF,
 	val method: MethodNode,
 	val locals: Locals,
-	val labels: Labels
+	val labels: Labels,
+    val basicBlocks: BasicBlocks
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -163,7 +184,6 @@ private class BasicBlockBuilder(
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm>()
 	val stack = Stack<AstExpr>()
-	val firstInstruction = method.instructions.first
 	var lastLine = -1
 	var lastLabel: LabelNode? = null
 
@@ -717,8 +737,8 @@ private class BasicBlockBuilder(
 		}
 	}
 
-	fun call(): List<AstStm> {
-		var i = this.firstInstruction
+	fun call(entry: AbstractInsnNode, input: BasicBlock.Input): BasicBlock {
+		var i: AbstractInsnNode? = entry
 
 		if (DEBUG) {
 			println("--------------------------------------------------------------------")
@@ -752,6 +772,6 @@ private class BasicBlockBuilder(
 
 		dumpExprs()
 
-		return stms
+		return BasicBlock(input, entry, stms)
 	}
 }
