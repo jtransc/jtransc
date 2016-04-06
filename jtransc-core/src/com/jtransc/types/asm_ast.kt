@@ -51,7 +51,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	}
 
 	return AstBody(
-		AstStm.STMS(prefix.stms + body2),
+		AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels)),
 		locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
 		tryCatchBlocks.map {
 			AstTrap(
@@ -62,6 +62,18 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 			)
 		}
 	)
+}
+
+fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {
+	return stms.filter {
+		if (it is AstStm.STM_LABEL) {
+			it.label in referencedLabels
+		} else if (it is AstStm.NOP) {
+			false
+		} else {
+			true
+		}
+	}
 }
 
 data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
