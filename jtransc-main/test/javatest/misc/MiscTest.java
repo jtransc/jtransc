@@ -72,9 +72,30 @@ public class MiscTest {
 		test.demo().testEmptyStack();
 		System.out.println(test.elements);
 
+	    System.out.println(testTypeUnification(true));
+	    System.out.println(testTypeUnification(false));
+
+	    testCatchBlockAccessingArguments(3, 7);
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	private void testCatchBlockAccessingArguments(int a, int b) {
+		int c = 0;
+		try {
+			for (int n = 0; n < 4; n++) {
+				c += a * n + b;
+			}
+			throw new RuntimeException();
+		} catch (Throwable e) {
+			System.out.println(a + "," + b + "," + c + "," + e.getMessage());
+		}
+	}
+
+	private M1 testTypeUnification(boolean result) {
+		return result ? new M2() : new M3();
+	}
 
 	private void testThrowPrevStack() {
 		testThrowPrevStack2();
@@ -412,6 +433,22 @@ public class MiscTest {
         System.out.println("charset message length:" + message.length);
 
     }
+}
+
+class M1 {
+}
+
+class M2 extends M1 {
+	@Override
+	public String toString() {
+		return "M2";
+	}
+}
+class M3 extends M1 {
+	@Override
+	public String toString() {
+		return "M3";
+	}
 }
 
 class StaticCall1 extends StaticCall2 {

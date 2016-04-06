@@ -17,7 +17,7 @@ class AstExampleTest {
 	static public void main(String[] args) {
 		//System.out.println(AstExampleTest.demo());
 
-		ClassNode clazz = readClassNode(AstExampleTest2.Test.Internal.class);
+		ClassNode clazz = readClassNode(AstExampleTest2.class);
 		for (Object _method : clazz.methods) {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD methodType = AstType.Companion.demangleMethod(method.desc);

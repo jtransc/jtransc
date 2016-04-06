@@ -13,19 +13,105 @@ import java.util.*
 
 val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner), this.name, AstType.demangleMethod(this.desc))
 
-fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody = _Asm2Ast(clazz, method).call()
+//const val DEBUG = true
+const val DEBUG = false
+
+fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
+	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
+	val locals = Locals()
+	val methodType = AstType.demangleMethod(method.desc)
+	var idx = 0
+	var prefix = ArrayList<AstStm>()
+
+	if (!isStatic) {
+		//setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
+		prefix.add(AstStmUtils.set(locals.local(AstType.OBJECT, idx++), AstExpr.THIS(clazz.name)))
+	}
+	for (arg in methodType.args) {
+		//setLocalAtIndex(idx, AstExpr.PARAM(arg))
+		prefix.add(AstStmUtils.set(locals.local(fixType(arg.type), idx++), AstExpr.PARAM(arg)))
+		if (arg.type.isLongOrDouble()) idx++
+	}
+
+
+	val body = BasicBlockBuilder(clazz, method, locals).call()
+	return AstBody(
+		AstStm.STMS(prefix + (body.stm as AstStm.STMS).stms),
+		body.locals,
+		body.traps
+	)
+}
+
+class Locals {
+	data class ID(val index: Int, val type: AstType, val prefix: String)
+
+	var tempLocalId = 0
+	val locals = hashMapOf<Locals.ID, AstExpr.LocalExpr>()  // @TODO: remove this
+	val localsAtIndex = hashMapOf<Int, AstExpr.LocalExpr>()
+
+	fun localPair(index: Int, type: AstType, prefix: String) = Locals.ID(index, fixType(type), prefix)
+
+	fun local(type: AstType, index: Int, prefix: String = "l"): AstExpr.LocalExpr {
+		val info = localPair(index, type, prefix)
+		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
+		val type2 = fixType(type)
+		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${nameType(type2)}${index}", type2))
+		return locals[info]!!
+	}
+
+	fun tempLocal(type: AstType): AstExpr.LocalExpr {
+		return local(type, tempLocalId++, "t")
+	}
+}
+
+/*
+class BasicBlocks {
+	fun getBasicBlockForLabel(label: LabelNode): BasicBlock {
+
+	}
+}
+
+class BasicBlock(
+	val input: Input,
+	val entry: LabelNode
+) {
+	class Input {
+		val stack = Stack<AstExpr>()
+		val locals = ArrayList<AstExpr>()
+	}
+}
+*/
+
+fun fixType(type: AstType): AstType {
+	return if (type is AstType.Primitive) {
+		when (type) {
+			AstType.INT, AstType.FLOAT, AstType.DOUBLE, AstType.LONG -> type
+			else -> AstType.INT
+		}
+	} else {
+		AstType.OBJECT
+	}
+}
+
+fun nameType(type: AstType): String {
+	if (type is AstType.Primitive) {
+		return type.chstring
+	} else {
+		return "A"
+	}
+}
+
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
-private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
+private class BasicBlockBuilder(
+	val clazz: AstType.REF,
+	val method: MethodNode,
+	val locals: Locals
+) {
 	companion object {
-		//const val DEBUG = true
-		const val DEBUG = false
-
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
 		val CTYPES = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
-
-	data class LocalID(val index: Int, val type: AstType, val prefix: String)
 
 	val methodRef = method.astRef(clazz)
 	//val list = method.instructions
@@ -34,37 +120,11 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 	val stack = Stack<AstExpr>()
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 	val firstInstruction = method.instructions.first
-	val locals = hashMapOf<LocalID, AstExpr.LocalExpr>()  // @TODO: remove this
 	val labels = hashMapOf<LabelNode, AstLabel>()
-	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val referencedLabels = hashSetOf<AstLabel>()
 	val referencedHandlers = hashSetOf<LabelNode>()
-	var tempLocalId = 0
-	val localsAtIndex = hashMapOf<Int, AstExpr.LocalExpr>()
 	var lastLine = -1
 	var lastLabel: LabelNode? = null
-
-	fun fixType(type: AstType): AstType {
-		return if (type is AstType.Primitive) {
-			when (type) {
-				AstType.INT, AstType.FLOAT, AstType.DOUBLE, AstType.LONG -> type
-				else -> AstType.INT
-			}
-		} else {
-			AstType.OBJECT
-		}
-	}
-
-	fun nameType(type: AstType): String {
-		if (type is AstType.Primitive) {
-			return type.chstring
-		} else {
-			return "A"
-		}
-	}
-
-
-	fun localPair(index: Int, type: AstType, prefix: String) = LocalID(index, fixType(type), prefix)
 
 	//fun fix(field: AstFieldRef): AstFieldRef = locateRightClass.locateRightField(field)
 	//fun fix(method: AstMethodRef): AstMethodRef = locateRightClass.locateRightMethod(method)
@@ -84,17 +144,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 		}
 	}
 
-	fun local(type: AstType, index: Int, prefix: String = "l"): AstExpr.LocalExpr {
-		val info = localPair(index, type, prefix)
-		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
-		val type2 = fixType(type)
-		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${nameType(type2)}${index}", type2))
-		return locals[info]!!
-	}
-
-	fun tempLocal(type: AstType): AstExpr.LocalExpr {
-		return local(type, tempLocalId++, "t")
-	}
 
 	fun label(label: LabelNode): AstLabel {
 		if (label !in labels) labels[label] = AstLabel("label_${label.label}")
@@ -214,7 +263,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 	fun stackPopToLocalsCount(count: Int): List<AstExpr.LocalExpr> {
 		val pairs = (0 until count).map {
 			val v = stackPop()
-			val local = tempLocal(v.type)
+			val local = locals.tempLocal(v.type)
 			Pair(local, v)
 		}
 
@@ -250,7 +299,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 			}
 			Opcodes.DUP -> {
 				val value = stackPop()
-				val local = tempLocal(value.type)
+				val local = locals.tempLocal(value.type)
 
 				stmSet(local, value)
 				stackPush(local)
@@ -388,12 +437,12 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 		val index = i.`var`
 
 		fun load(type: AstType) {
-			stackPush(local(type, index))
+			stackPush(locals.local(type, index))
 		}
 
 		fun store(type: AstType) {
 			val expr = stackPop()
-			val newLocal = local(type, index)
+			val newLocal = locals.local(type, index)
 			stmSet(newLocal, expr)
 		}
 
@@ -551,7 +600,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 	}
 
 	fun handleIinc(i: IincInsnNode) {
-		val local = local(AstType.INT, i.`var`)
+		val local = locals.local(AstType.INT, i.`var`)
 		stmSet(local, local + AstExpr.LITERAL(i.incr))
 	}
 
@@ -561,7 +610,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 	}
 
 	fun preserveStackLocal(index: Int, type: AstType): AstExpr.LocalExpr {
-		return local(type, index, "s")
+		return locals.local(type, index, "s")
 	}
 
 	fun dumpExprs() {
@@ -654,19 +703,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 			println("--------------------------------------------------------------------")
 		}
 
-		if (true) {
-			var idx = 0
-			if (!isStatic) {
-				//setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
-				stmSet(local(AstType.OBJECT, idx++), AstExpr.THIS(clazz.name))
-			}
-			for (arg in methodType.args) {
-				//setLocalAtIndex(idx, AstExpr.PARAM(arg))
-				stmSet(local(fixType(arg.type), idx++), AstExpr.PARAM(arg))
-				if (arg.type.isLongOrDouble()) idx++
-			}
-		}
-
 		while (i != null) {
 			if (DEBUG) println(AsmOpcode.disasm(i))
 			when (i) {
@@ -717,7 +753,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 
 		return AstBody(
 			AstStm.STMS(stms.optimize()),
-			locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
+			locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
 			tryCatchBlocks.map {
 				AstTrap(
 					start = label(it.start),

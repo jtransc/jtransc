@@ -267,7 +267,7 @@ data class FqName(val fqname: String) : Serializable {
 	fun withPackageParts(packageParts: List<String>) = FqName(packageParts, simpleName)
 	fun withSimpleName(simpleName: String) = FqName(packagePath, simpleName)
 
-	override fun toString() = "$fqname"
+	override fun toString() = fqname
 
 	override fun hashCode(): Int = fqname.hashCode()
 

@@ -231,6 +231,12 @@ interface AstExpr : AstElement {
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
 }
 
+object AstStmUtils {
+	fun set(local: AstExpr.LocalExpr, value: AstExpr): AstStm.SET {
+		return AstStm.SET(local, AstExprUtils.fastcast(value, local.type))
+	}
+}
+
 object AstExprUtils {
 	fun cast(expr: AstExpr, to: AstType): AstExpr {
 		if (expr is AstExpr.LITERAL) {

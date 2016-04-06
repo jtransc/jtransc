@@ -1,5 +1,6 @@
 package com.jtransc.types
 
+import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import org.objectweb.asm.tree.*
 
@@ -217,14 +218,14 @@ enum class AsmOpcode(val id: Int) {
 				is InsnNode -> "$op"
 				is TypeInsnNode -> "$op ${i.desc}"
 				is VarInsnNode -> "$op ${i.`var`}"
-				is JumpInsnNode -> "$op ${i.label}"
+				is JumpInsnNode -> "$op ${i.label.label}"
 				is LdcInsnNode -> "$op (${i.cst}) : ${i.cst.javaClass}"
 				is IntInsnNode -> "$op ${i.operand}"
 				is MethodInsnNode -> "$op ${i.owner}.${i.name} :: ${i.desc} :: ${i.itf}"
-				is LookupSwitchInsnNode -> "$op ${i.dflt} ${i.keys} ${i.labels}"
-				is TableSwitchInsnNode -> "$op ${i.dflt} ${i.min}..${i.max} ${i.labels}"
+				is LookupSwitchInsnNode -> "$op ${i.dflt.label} ${i.keys} ${i.labels.cast<LabelNode>().map { it.label }}"
+				is TableSwitchInsnNode -> "$op ${i.dflt.label} ${i.min}..${i.max} ${i.labels.cast<LabelNode>().map { it.label }}"
 				is InvokeDynamicInsnNode -> "$op ${i.name} ${i.desc} ${i.bsm} ${i.bsmArgs}"
-				is LabelNode -> ":${i}"
+				is LabelNode -> ":${i.label}"
 				is IincInsnNode -> "$op ${i.`var`} += ${i.incr}"
 				is LineNumberNode -> "LINE_${i.line}"
 				is FrameNode -> "FRAME: ${i.local} : ${i.stack} : ${i.type}"

@@ -1,15 +1,8 @@
 public class AstExampleTest2 {
-	static class Test {
-		private long elements = 0;
+	int b;
 
-		public Internal demo() {
-			return new Internal();
-		}
-
-		class Internal {
-			private void testEmptyStack() {
-				elements = 0;
-			}
-		}
+	public void test(int a) {
+		int result = (this.b == a) ? 10 : 20;
+		System.out.println(result);
 	}
 }
