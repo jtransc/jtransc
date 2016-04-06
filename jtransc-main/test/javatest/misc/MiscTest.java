@@ -77,9 +77,29 @@ public class MiscTest {
 
 	    testCatchBlockAccessingArguments(3, 7);
 
+	    testLong1(1L, 2);
+	    testLong2(1, 2L);
+	    testLong3(1, 2L, 3);
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	private void testLong1(long a, int b) {
+		System.out.println(a);
+		System.out.println(b);
+	}
+
+	private void testLong2(int a, long b) {
+		System.out.println(a);
+		System.out.println(b);
+	}
+
+	private void testLong3(int a, long b, int c) {
+		System.out.println(a);
+		System.out.println(b);
+		System.out.println(c);
+	}
 
 	private void testCatchBlockAccessingArguments(int a, int b) {
 		int c = 0;

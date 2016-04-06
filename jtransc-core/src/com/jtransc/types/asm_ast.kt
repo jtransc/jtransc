@@ -3,7 +3,10 @@ package com.jtransc.types
 import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.*
+import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.deprecated
+import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.input.astRef
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
@@ -17,12 +20,8 @@ val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner
 const val DEBUG = false
 
 fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
-	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val locals = Locals()
 	val labels = Labels()
-	val methodType = AstType.demangleMethod(method.desc)
-	var idx = 0
-	var prefix = ArrayList<AstStm>()
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 
 	for (b in tryCatchBlocks) {
@@ -32,19 +31,11 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 		labels.referencedHandlers += b.handler
 	}
 
-	if (!isStatic) {
-		//setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
-		prefix.add(AstStmUtils.set(locals.local(AstType.OBJECT, idx++), AstExpr.THIS(clazz.name)))
-	}
-	for (arg in methodType.args) {
-		//setLocalAtIndex(idx, AstExpr.PARAM(arg))
-		prefix.add(AstStmUtils.set(locals.local(fixType(arg.type), idx++), AstExpr.PARAM(arg)))
-		if (arg.type.isLongOrDouble()) idx++
-	}
-
+	val prefix = createFunctionPrefix(clazz, method, locals)
 	val body = BasicBlockBuilder(clazz, method, locals, labels).call()
+	//println(prefix.output)
 	return AstBody(
-		AstStm.STMS(prefix + body),
+		AstStm.STMS(prefix.stms + body),
 		locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
 		tryCatchBlocks.map {
 			AstTrap(
@@ -55,6 +46,31 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 			)
 		}
 	)
+}
+
+data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
+
+fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals): FunctionPrefix {
+	val localsOutput = arrayListOf<AstExpr.LocalExpr>()
+	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
+	val methodType = AstType.demangleMethod(method.desc)
+
+	var stms = ArrayList<AstStm>()
+	var idx = 0
+
+	for (arg in (if (!isStatic) listOf(AstExpr.THIS(clazz.name)) else listOf()) + methodType.args.map { AstExpr.PARAM(it) }) {
+		//setLocalAtIndex(idx, AstExpr.PARAM(arg))
+		val local = locals.local(fixType(arg.type), idx)
+		stms.add(AstStmUtils.set(local, arg))
+		localsOutput += local
+		idx++
+		if (arg.type.isLongOrDouble()) {
+			localsOutput += local
+			idx++
+		}
+	}
+
+	return FunctionPrefix(BasicBlock.Input(Stack(), localsOutput), stms)
 }
 
 /*
@@ -69,10 +85,7 @@ class BasicBlock(
 	val input: Input,
 	val entry: LabelNode
 ) {
-	class Input {
-		val stack = Stack<AstExpr>()
-		val locals = ArrayList<AstExpr>()
-	}
+	data class Input(val stack: Stack<AstExpr>, val locals: ArrayList<AstExpr.LocalExpr>)
 }
 
 class Labels {
@@ -138,7 +151,7 @@ private class BasicBlockBuilder(
 	val clazz: AstType.REF,
 	val method: MethodNode,
 	val locals: Locals,
-    val labels: Labels
+	val labels: Labels
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
