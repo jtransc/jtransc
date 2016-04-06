@@ -13,20 +13,16 @@ import java.util.*
 
 val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner), this.name, AstType.demangleMethod(this.desc))
 
-class DummyLocateRightClass : LocateRightClass {
-	override fun locateRightClass(field: AstFieldRef) = field.classRef
-	override fun locateRightClass(method: AstMethodRef) = method.classRef
-}
-
-@JvmOverloads fun Asm2Ast(clazz: AstType.REF, method: MethodNode, locateRightClass: LocateRightClass = DummyLocateRightClass()): AstBody = _Asm2Ast(clazz, method, locateRightClass).call()
+fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody = _Asm2Ast(clazz, method).call()
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
-private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _locateRightClass: LocateRightClass) {
+private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 	companion object {
 		//const val DEBUG = true
 		const val DEBUG = false
 
-		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT)
+		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
+		val CTYPES = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	}
 
 	data class LocalID(val index: Int, val type: AstType, val prefix: String)
@@ -75,6 +71,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 
 	fun fix(field: AstFieldRef): AstFieldRef = field
 	fun fix(method: AstMethodRef): AstMethodRef = method
+
 
 	fun getType(value: Any?): AstType {
 		return when (value) {
@@ -244,22 +241,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
 			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
 			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
-			Opcodes.IALOAD -> arrayLoad(AstType.INT)
-			Opcodes.LALOAD -> arrayLoad(AstType.LONG)
-			Opcodes.FALOAD -> arrayLoad(AstType.FLOAT)
-			Opcodes.DALOAD -> arrayLoad(AstType.DOUBLE)
-			Opcodes.AALOAD -> arrayLoad(AstType.OBJECT)
-			Opcodes.BALOAD -> arrayLoad(AstType.BYTE)
-			Opcodes.CALOAD -> arrayLoad(AstType.CHAR)
-			Opcodes.SALOAD -> arrayLoad(AstType.SHORT)
-			Opcodes.IASTORE -> arrayStore(AstType.INT)
-			Opcodes.LASTORE -> arrayStore(AstType.LONG)
-			Opcodes.FASTORE -> arrayStore(AstType.FLOAT)
-			Opcodes.DASTORE -> arrayStore(AstType.DOUBLE)
-			Opcodes.AASTORE -> arrayStore(AstType.OBJECT)
-			Opcodes.BASTORE -> arrayStore(AstType.BYTE)
-			Opcodes.CASTORE -> arrayStore(AstType.CHAR)
-			Opcodes.SASTORE -> arrayStore(AstType.SHORT)
+			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(PTYPES[op - Opcodes.IALOAD])
+			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(PTYPES[op - Opcodes.IASTORE])
 			Opcodes.POP -> {
 				// We store it, so we don't lose all the calculated stuff!
 				val pop = stackPopToLocalsCount(1)
@@ -375,8 +358,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 			}
 			Opcodes.ARRAYLENGTH -> stackPush(AstExpr.ARRAY_LENGTH(stackPop()))
 			Opcodes.ATHROW -> {
-				stmAdd(AstStm.THROW(stackPop()))
-				stack.clear()
+				val ret = stackPop()
+				dumpExprs()
+				stmAdd(AstStm.THROW(ret))
 			}
 			Opcodes.MONITORENTER -> stmAdd(AstStm.MONITOR_ENTER(stackPop()))
 			Opcodes.MONITOREXIT -> stmAdd(AstStm.MONITOR_EXIT(stackPop()))
@@ -453,22 +437,9 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode, val _loca
 		}
 
 		when (op) {
-			Opcodes.IFEQ -> addJump0(AstBinop.EQ);
-			Opcodes.IFNE -> addJump0(AstBinop.NE);
-			Opcodes.IFLT -> addJump0(AstBinop.LT);
-			Opcodes.IFGE -> addJump0(AstBinop.GE);
-			Opcodes.IFGT -> addJump0(AstBinop.GT);
-			Opcodes.IFLE -> addJump0(AstBinop.LE);
-			Opcodes.IFNULL -> addJumpNull(AstBinop.EQ)
-			Opcodes.IFNONNULL -> addJumpNull(AstBinop.NE)
-			Opcodes.IF_ICMPEQ -> addJump2(AstBinop.EQ)
-			Opcodes.IF_ICMPNE -> addJump2(AstBinop.NE)
-			Opcodes.IF_ICMPLT -> addJump2(AstBinop.LT)
-			Opcodes.IF_ICMPGE -> addJump2(AstBinop.GE)
-			Opcodes.IF_ICMPGT -> addJump2(AstBinop.GT)
-			Opcodes.IF_ICMPLE -> addJump2(AstBinop.LE)
-			Opcodes.IF_ACMPEQ -> addJump2(AstBinop.EQ)
-			Opcodes.IF_ACMPNE -> addJump2(AstBinop.NE)
+			in Opcodes.IFEQ..Opcodes.IFLE -> addJump0(CTYPES[op - Opcodes.IFEQ]);
+			in Opcodes.IFNULL..Opcodes.IFNONNULL -> addJumpNull(CTYPES[op - Opcodes.IFNULL])
+			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> addJump2(CTYPES[op - Opcodes.IF_ICMPEQ])
 			Opcodes.GOTO -> addJump(null, label(i.label))
 			Opcodes.JSR -> deprecated
 			else -> invalidOp

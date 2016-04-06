@@ -33,7 +33,7 @@ public class Throwable implements Serializable {
 
 	public Throwable() {
 		fillInStackTrace();
-		t_init("Throwable", null, false, false);
+		t_init(null, null, false, false);
 	}
 
 	public Throwable(String message) {
@@ -48,7 +48,7 @@ public class Throwable implements Serializable {
 
 	public Throwable(Throwable cause) {
 		fillInStackTrace();
-		t_init("Throwable", cause, false, false);
+		t_init(null, cause, false, false);
 	}
 
 	protected Throwable(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {

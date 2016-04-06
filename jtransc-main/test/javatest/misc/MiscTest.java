@@ -55,6 +55,11 @@ public class MiscTest {
         testAnnotations();
         testArrays();
 		testNulls();
+	    try {
+		    testThrowPrevStack();
+	    } catch (Throwable t) {
+		    System.out.println(t.getMessage());
+	    }
 
 	    System.out.println(StaticCall1.a);
 	    StaticCall1.a = 20;
@@ -71,6 +76,14 @@ public class MiscTest {
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
 
+	private void testThrowPrevStack() {
+		testThrowPrevStack2();
+		throw new RuntimeException();
+	}
+
+	private void testThrowPrevStack2() {
+		System.out.println("testThrowPrevStack2");
+	}
 
 	static class Test {
 		private long elements = 0;

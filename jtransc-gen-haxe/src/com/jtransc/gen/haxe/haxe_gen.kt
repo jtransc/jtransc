@@ -50,7 +50,7 @@ class GenHaxeGen(
 	}
 
 	fun fix(method: AstMethodRef): AstMethodRef {
-		return program.get(method)!!.ref
+		return program[method]?.ref ?: invalidOp("Can't find method $method")
 	}
 
 	internal fun _write(): GenHaxe.ProgramInfo {
@@ -741,12 +741,16 @@ class GenHaxeGen(
 							when (GenHaxe.INIT_MODE) {
 								InitMode.START_OLD -> line("__hx_static__init__();")
 							}
-							line(features.apply(body, featureSet).gen())
-							//body.stms.l
-							//if (method.isInstanceInit) line("return this;")
+							try {
+								line(features.apply(body, featureSet).gen())
+							} catch (e:Throwable) {
+								println("WARNING:" + e.message)
+
+								line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
+							}
 						}
 					} else {
-						line("$decl { HaxeNatives.debugger(); throw \"Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}\"; }")
+						line("$decl { HaxeNatives.debugger(); throw " + "Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}".quote() + "; }")
 					}
 				}
 			}

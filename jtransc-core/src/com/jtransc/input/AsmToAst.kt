@@ -7,6 +7,7 @@ import com.jtransc.ds.hasFlag
 import com.jtransc.lang.ReflectedArray
 import com.jtransc.types.Asm2Ast
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
@@ -50,9 +51,12 @@ fun MethodNode.astRef(clazz: AstClassRef) = AstMethodRef(clazz.name, this.name, 
 
 class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
-		val classNode = ClassNode().apply {
-			ClassReader(program.getClassBytes(fqname)).accept(this, ClassReader.EXPAND_FRAMES)
-		}
+		val cr = ClassReader(program.getClassBytes(fqname))
+		val classNode = ClassNode()
+		cr.accept(classNode, ClassReader.EXPAND_FRAMES)
+
+		//val cw = ClassWriter(cr, ClassWriter.COMPUTE_MAXS or ClassWriter.COMPUTE_FRAMES);
+		//classNode.accept(cw);
 
 		val astClass = AstClass(
 			program = program,
@@ -90,7 +94,7 @@ class AsmToAst : AstClassGenerator {
 			generateBody = {
 				if (mods.isConcrete) {
 					try {
-						Asm2Ast(containingClass.ref.type, method, containingClass.program)
+						Asm2Ast(containingClass.ref.type, method)
 					} catch (e: Throwable) {
 						println("Error trying to generate ${containingClass.name}::${method.name} ${method.desc}")
 						e.printStackTrace()
