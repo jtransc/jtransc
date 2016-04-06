@@ -19,9 +19,18 @@ const val DEBUG = false
 fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val locals = Locals()
+	val labels = Labels()
 	val methodType = AstType.demangleMethod(method.desc)
 	var idx = 0
 	var prefix = ArrayList<AstStm>()
+	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
+
+	for (b in tryCatchBlocks) {
+		labels.ref(labels.label(b.start))
+		labels.ref(labels.label(b.end))
+		labels.ref(labels.label(b.handler))
+		labels.referencedHandlers += b.handler
+	}
 
 	if (!isStatic) {
 		//setLocalAtIndex(idx, AstExpr.THIS(clazz.name))
@@ -33,13 +42,53 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 		if (arg.type.isLongOrDouble()) idx++
 	}
 
-
-	val body = BasicBlockBuilder(clazz, method, locals).call()
+	val body = BasicBlockBuilder(clazz, method, locals, labels).call()
 	return AstBody(
-		AstStm.STMS(prefix + (body.stm as AstStm.STMS).stms),
-		body.locals,
-		body.traps
+		AstStm.STMS(prefix + body),
+		locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
+		tryCatchBlocks.map {
+			AstTrap(
+				start = labels.label(it.start),
+				end = labels.label(it.end),
+				handler = labels.label(it.handler),
+				exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
+			)
+		}
 	)
+}
+
+/*
+class BasicBlocks {
+	fun getBasicBlockForLabel(label: LabelNode): BasicBlock {
+
+	}
+}
+*/
+
+class BasicBlock(
+	val input: Input,
+	val entry: LabelNode
+) {
+	class Input {
+		val stack = Stack<AstExpr>()
+		val locals = ArrayList<AstExpr>()
+	}
+}
+
+class Labels {
+	val labels = hashMapOf<LabelNode, AstLabel>()
+	val referencedLabels = hashSetOf<AstLabel>()
+	val referencedHandlers = hashSetOf<LabelNode>()
+
+	fun label(label: LabelNode): AstLabel {
+		if (label !in labels) labels[label] = AstLabel("label_${label.label}")
+		return labels[label]!!
+	}
+
+	fun ref(label: AstLabel): AstLabel {
+		referencedLabels += label
+		return label
+	}
 }
 
 class Locals {
@@ -63,24 +112,6 @@ class Locals {
 		return local(type, tempLocalId++, "t")
 	}
 }
-
-/*
-class BasicBlocks {
-	fun getBasicBlockForLabel(label: LabelNode): BasicBlock {
-
-	}
-}
-
-class BasicBlock(
-	val input: Input,
-	val entry: LabelNode
-) {
-	class Input {
-		val stack = Stack<AstExpr>()
-		val locals = ArrayList<AstExpr>()
-	}
-}
-*/
 
 fun fixType(type: AstType): AstType {
 	return if (type is AstType.Primitive) {
@@ -106,7 +137,8 @@ fun nameType(type: AstType): String {
 private class BasicBlockBuilder(
 	val clazz: AstType.REF,
 	val method: MethodNode,
-	val locals: Locals
+	val locals: Locals,
+    val labels: Labels
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -116,13 +148,9 @@ private class BasicBlockBuilder(
 	val methodRef = method.astRef(clazz)
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
-	val stms = ArrayList<AstStm?>()
+	val stms = ArrayList<AstStm>()
 	val stack = Stack<AstExpr>()
-	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 	val firstInstruction = method.instructions.first
-	val labels = hashMapOf<LabelNode, AstLabel>()
-	val referencedLabels = hashSetOf<AstLabel>()
-	val referencedHandlers = hashSetOf<LabelNode>()
 	var lastLine = -1
 	var lastLabel: LabelNode? = null
 
@@ -144,16 +172,6 @@ private class BasicBlockBuilder(
 		}
 	}
 
-
-	fun label(label: LabelNode): AstLabel {
-		if (label !in labels) labels[label] = AstLabel("label_${label.label}")
-		return labels[label]!!
-	}
-
-	fun ref(label: AstLabel): AstLabel {
-		referencedLabels += label
-		return label
-	}
 
 	fun stmAdd(s: AstStm) {
 		// Adding statements must dump stack (and restore later) so we preserve calling order!
@@ -461,30 +479,30 @@ private class BasicBlockBuilder(
 			//val stack = preserveStack()
 
 			restoreStack(preserveStack())
-			ref(label)
+			labels.ref(label)
 			stms.add(AstStm.IF_GOTO(label, cond))
 			//restoreStack(stack)
 		}
 
 		fun addJump0(op: AstBinop) {
-			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(0)), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(0)), labels.label(i.label))
 		}
 
 		fun addJumpNull(op: AstBinop) {
-			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(null)), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), op, AstExpr.LITERAL(null)), labels.label(i.label))
 		}
 
 		fun addJump2(op: AstBinop) {
 			val r = stackPop()
 			val l = stackPop()
-			addJump(AstExprUtils.BINOP(AstType.BOOL, l, op, r), label(i.label))
+			addJump(AstExprUtils.BINOP(AstType.BOOL, l, op, r), labels.label(i.label))
 		}
 
 		when (op) {
 			in Opcodes.IFEQ..Opcodes.IFLE -> addJump0(CTYPES[op - Opcodes.IFEQ]);
 			in Opcodes.IFNULL..Opcodes.IFNONNULL -> addJumpNull(CTYPES[op - Opcodes.IFNULL])
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> addJump2(CTYPES[op - Opcodes.IF_ICMPEQ])
-			Opcodes.GOTO -> addJump(null, label(i.label))
+			Opcodes.GOTO -> addJump(null, labels.label(i.label))
 			Opcodes.JSR -> deprecated
 			else -> invalidOp
 		}
@@ -559,16 +577,16 @@ private class BasicBlockBuilder(
 	fun handleLookupSwitch(i: LookupSwitchInsnNode) {
 		stmAdd(AstStm.SWITCH_GOTO(
 			stackPop(),
-			ref(label(i.dflt)),
-			i.keys.cast<Int>().zip(i.labels.cast<LabelNode>().map { ref(label(it)) })
+			labels.ref(labels.label(i.dflt)),
+			i.keys.cast<Int>().zip(i.labels.cast<LabelNode>().map { labels.ref(labels.label(it)) })
 		))
 	}
 
 	fun handleTableSwitch(i: TableSwitchInsnNode) {
 		stmAdd(AstStm.SWITCH_GOTO(
 			stackPop(),
-			ref(label(i.dflt)),
-			(i.min..i.max).zip(i.labels.cast<LabelNode>().map { ref(label(it)) })
+			labels.ref(labels.label(i.dflt)),
+			(i.min..i.max).zip(i.labels.cast<LabelNode>().map { labels.ref(labels.label(it)) })
 		))
 	}
 
@@ -596,7 +614,7 @@ private class BasicBlockBuilder(
 	fun handleLabel(i: LabelNode) {
 		lastLabel = i
 		//dumpExprs()
-		stmAdd(AstStm.STM_LABEL(label(i)))
+		stmAdd(AstStm.STM_LABEL(labels.label(i)))
 	}
 
 	fun handleIinc(i: IincInsnNode) {
@@ -654,7 +672,7 @@ private class BasicBlockBuilder(
 		stack.clear()
 		// validated order
 
-		if (lastLabel in referencedHandlers) {
+		if (lastLabel in labels.referencedHandlers) {
 			if (i.stack.size != 1) invalidOp("catch handler should have just one stack element!?")
 
 			stackPush(AstExpr.CAUGHT_EXCEPTION())
@@ -686,16 +704,8 @@ private class BasicBlockBuilder(
 		}
 	}
 
-	fun call(): AstBody {
+	fun call(): List<AstStm> {
 		var i = this.firstInstruction
-
-		for (b in tryCatchBlocks) {
-			ref(label(b.start))
-			ref(label(b.end))
-			ref(label(b.handler))
-			referencedHandlers += b.handler
-		}
-
 
 		if (DEBUG) {
 			println("--------------------------------------------------------------------")
@@ -727,41 +737,8 @@ private class BasicBlockBuilder(
 			i = i.next
 		}
 
-		fun optimize(stms: MutableList<AstStm?>, item: AstStm?, index: Int, total: Int): AstStm? {
-			if (item == null) return null
-			// Remove not referenced labels
-			if (item is AstStm.STM_LABEL && item.label !in referencedLabels) return null
-			if (item is AstStm.NOP) return null
-			return item
-		}
-
-		fun List<AstStm?>.optimize(): List<AstStm> {
-			var stms = this.toMutableList()
-			for (n in 0 until stms.size) {
-				stms[n] = optimize(stms, stms[n], n, stms.size)
-			}
-
-			// DO NOT Remove here tail empty returns
-			//while (stms.isNotEmpty() && (stms.last() is AstStm.RETURN && (stms.last() as AstStm.RETURN).retval == null) || (stms.last() == null)) {
-			//	stms.removeAt(stms.size - 1)
-			//}
-
-			return stms.filterNotNull()
-		}
-
 		dumpExprs()
 
-		return AstBody(
-			AstStm.STMS(stms.optimize()),
-			locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
-			tryCatchBlocks.map {
-				AstTrap(
-					start = label(it.start),
-					end = label(it.end),
-					handler = label(it.handler),
-					exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
-				)
-			}
-		)
+		return stms
 	}
 }
