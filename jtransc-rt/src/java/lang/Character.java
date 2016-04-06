@@ -528,7 +528,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		}
 	}
 
-	public static enum UnicodeScript {
+	public enum UnicodeScript {
 		COMMON;
 
 		public static final UnicodeScript forName(String name) {

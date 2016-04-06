@@ -91,11 +91,10 @@ interface AstResolver {
 }
 
 operator fun AstResolver.get(ref: AstType.REF): AstClass = this[ref.name]!!
-operator fun AstResolver.get(ref: AstClassRef): AstClass = this[ref.name]!!
 
 interface LocateRightClass {
-	fun locateRightClass(field: AstFieldRef): AstClassRef
-	fun locateRightClass(method: AstMethodRef): AstClassRef
+	fun locateRightClass(field: AstFieldRef): AstType.REF
+	fun locateRightClass(method: AstMethodRef): AstType.REF
 }
 
 fun LocateRightClass.locateRightField(field: AstFieldRef): AstFieldRef {
@@ -131,16 +130,16 @@ class AstProgram(
 
 	val classes: List<AstClass> get() = _classes
 
-	private val classesToGenerate = LinkedList<AstClassRef>()
-	private val referencedClasses = hashSetOf<AstClassRef>()
+	private val classesToGenerate = LinkedList<AstType.REF>()
+	private val referencedClasses = hashSetOf<AstType.REF>()
 
 	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
 
 	fun getClassBytes(clazz: FqName): ByteArray = resourcesVfs[clazz.internalFqname + ".class"].readBytes()
 
-	fun readClassToGenerate(): AstClassRef = classesToGenerate.remove()
+	fun readClassToGenerate(): AstType.REF = classesToGenerate.remove()
 
-	fun addReference(clazz: AstClassRef) {
+	fun addReference(clazz: AstType.REF) {
 		if (clazz !in referencedClasses) {
 			classesToGenerate += clazz
 			referencedClasses += clazz
@@ -224,11 +223,11 @@ class AstProgram(
 		return (implementingClazz.fqname in this) && (this[implementingClazz.fqname] in getAllInterfaces(clazz))
 	}
 
-	override fun locateRightClass(field: AstFieldRef): AstClassRef {
+	override fun locateRightClass(field: AstFieldRef): AstType.REF {
 		return field.classRef
 	}
 
-	override fun locateRightClass(method: AstMethodRef): AstClassRef {
+	override fun locateRightClass(method: AstMethodRef): AstType.REF {
 		return method.classRef
 	}
 }
@@ -244,7 +243,7 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData() {
-	val ref = AstClassRef(name)
+	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType
 	val visibility: AstVisibility = modifiers.visibility
@@ -376,8 +375,8 @@ class AstClass(
 
 	val allDependencies: Set<AstRef> by lazy {
 		var out = hashSetOf<AstRef>()
-		if (extending != null) out.add(AstClassRef(extending))
-		for (i in implementing) out.add(AstClassRef(i))
+		if (extending != null) out.add(AstType.REF(extending))
+		for (i in implementing) out.add(AstType.REF(i))
 		for (f in fields) for (ref in f.type.getRefClasses()) out.add(ref)
 		for (m in methods) {
 			for (dep in m.dependencies.methods) {
@@ -395,8 +394,8 @@ class AstClass(
 		out.toSet()
 	}
 
-	val classDependencies: Set<AstClassRef> by lazy {
-		allDependencies.filterIsInstance<AstClassRef>().toSet()
+	val classDependencies: Set<AstType.REF> by lazy {
+		allDependencies.filterIsInstance<AstType.REF>().toSet()
 	}
 
 	//override fun toString() = "AstClass($name)"
@@ -415,7 +414,7 @@ class AstClass(
 
 fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	val classes = this.associateBy { it.name.fqname }
-	fun resolveClassRef(ref: AstClassRef) = classes[ref.fqname]!!
+	fun resolveClassRef(ref: AstType.REF) = classes[ref.fqname]!!
 	fun resolveMethodRef(ref: AstMethodRef) = resolveClassRef(ref.classRef)[ref]
 
 	return this.dependencySorter(allowCycles = true) {
@@ -446,15 +445,15 @@ fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	}
 }
 
-fun AstType.getRefClasses(): List<AstClassRef> = this.getRefTypesFqName().map { AstClassRef(it) }
+fun AstType.getRefClasses(): List<AstType.REF> = this.getRefTypesFqName().map { AstType.REF(it) }
 
 data class AstReferences(
 	val program: AstProgram?,
-	val classes: Set<AstClassRef> = setOf(),
+	val classes: Set<AstType.REF> = setOf(),
 	val methods: Set<AstMethodRef> = setOf(),
 	val fields: Set<AstFieldRef> = setOf()
 ) {
-	val allClasses: Set<AstClassRef> by lazy {
+	val allClasses: Set<AstType.REF> by lazy {
 		classes + methods.flatMap { it.allClassRefs } + fields.flatMap { listOf(it.classRef) }
 	}
 
@@ -492,7 +491,7 @@ class AstField(
 class AstMethod(
 	containingClass: AstClass,
 	name: String,
-	type: AstType.METHOD_TYPE,
+	type: AstType.METHOD,
 	annotations: List<AstAnnotation>,
 	val signature: String,
 	val genericSignature: String?,
@@ -505,8 +504,8 @@ class AstMethod(
 
 	val body: AstBody? by lazy { generateBody() }
 
-	val methodType: AstType.METHOD_TYPE = type
-	val genericMethodType: AstType.METHOD_TYPE = genericType as AstType.METHOD_TYPE
+	val methodType: AstType.METHOD = type
+	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD
 	val desc = methodType.desc
 	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }

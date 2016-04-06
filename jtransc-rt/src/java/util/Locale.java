@@ -192,7 +192,7 @@ public final class Locale implements Cloneable, Serializable {
 	native public boolean equals(Object obj);
 
 	public enum Category {
-		DISPLAY, FORMAT;
+		DISPLAY, FORMAT
 		/*
 		DISPLAY("user.language.display", "user.script.display", "user.country.display", "user.variant.display"),
         FORMAT("user.language.format", "user.script.format", "user.country.format", "user.variant.format");
@@ -243,7 +243,7 @@ public final class Locale implements Cloneable, Serializable {
 		native public Locale build();
 	}
 
-	public static enum FilteringMode {
+	public enum FilteringMode {
 		AUTOSELECT_FILTERING,
 		EXTENDED_FILTERING,
 		IGNORE_EXTENDED_RANGES,

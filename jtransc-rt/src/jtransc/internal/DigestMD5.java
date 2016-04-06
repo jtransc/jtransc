@@ -31,7 +31,7 @@ public final class DigestMD5 extends DigestBase {
 
 	public Object clone() throws CloneNotSupportedException {
 		DigestMD5 var1 = (DigestMD5) super.clone();
-		var1.state = (int[]) var1.state.clone();
+		var1.state = var1.state.clone();
 		var1.x = new int[16];
 		return var1;
 	}

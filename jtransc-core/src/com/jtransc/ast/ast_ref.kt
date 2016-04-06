@@ -1,39 +1,23 @@
 package com.jtransc.ast
 
-import com.jtransc.error.invalidArgument
-
 interface AstRef
 interface AstMemberRef : AstRef {
-	val classRef: AstClassRef
+	val classRef: AstType.REF
 	val containingClass: FqName
 	val name: String
 	val memberType: AstType
 }
 
-data class AstClassRef(val name: FqName) : AstRef {
-	constructor(name: String) : this(FqName(name))
-
-	init {
-		if (name.fqname.contains(';') || name.fqname.contains(']')) {
-			invalidArgument("Class reference containing ; or ] :: $name")
-		}
-	}
-
-	val fqname: String get() = name.fqname
-
-	val type: AstType.REF get() = AstType.REF(name)
-}
-
 data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef {
-	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
+	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type
 	val containingTypeRef = AstType.REF(containingClass)
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
 }
 
-data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD_TYPE) : AstMemberRef {
-	override val classRef: AstClassRef by lazy { AstClassRef(containingClass) }
+data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef {
+	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }
 	val containingClassType: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type
 	val fid: String get() = "${containingClass.fqname}:$name:$desc"
@@ -42,7 +26,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	val descWithoutRetval by lazy { type.desc2 }
 	val nameDesc by lazy { AstMethodWithoutClassRef(name, type) }
 
-	val allClassRefs: List<AstClassRef> by lazy { type.getRefClasses() + classRef }
+	val allClassRefs: List<AstType.REF> by lazy { type.getRefClasses() + classRef }
 
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 
@@ -52,7 +36,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 data class AstFieldWithoutClassRef(val name: String, val type: AstType)
 data class AstFieldWithoutTypeRef(val containingClass: FqName, val name: String)
 
-data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD_TYPE) {
+data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD) {
 	val fid2: String get() = "$name:${type.mangle()}"
 	val fid2Wildcard: String get() = "$name:*"
 	val desc = type.desc
@@ -69,5 +53,5 @@ val AstMethodRef.withoutRetval: AstMethodRef get() {
 
 val AstFieldRef.withoutClass: AstFieldWithoutClassRef get() = AstFieldWithoutClassRef(this.name, this.type)
 val AstMethodRef.withoutClass: AstMethodWithoutClassRef get() = AstMethodWithoutClassRef(this.name, this.type)
-fun AstMethodRef.withClass(other: AstClassRef) = AstMethodRef(other.name, this.name, this.type)
+fun AstMethodRef.withClass(other: AstType.REF) = AstMethodRef(other.name, this.name, this.type)
 fun AstMethodWithoutClassRef.withClass(containingClass: FqName): AstMethodRef = AstMethodRef(containingClass, this.name, this.type)

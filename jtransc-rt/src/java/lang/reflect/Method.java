@@ -115,7 +115,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	}
 
 	public Type[] getGenericParameterTypes() {
-		return (Class<?>[]) genericMethodType().args;
+		return genericMethodType().args;
 	}
 
 	public Class<?>[] getExceptionTypes() {

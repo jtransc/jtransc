@@ -33,7 +33,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 	}
 
 	public static boolean parseBoolean(String value) {
-		return (value != null) ? (value.compareToIgnoreCase("true") == 0) : false;
+		return (value != null) && (value.compareToIgnoreCase("true") == 0);
 	}
 
 	public boolean booleanValue() {

@@ -156,7 +156,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 
 	public final short readShort() throws IOException {
 		read(temp, 0, 2);
-		return (short) JTranscBits.readInt16BE(temp);
+		return JTranscBits.readInt16BE(temp);
 	}
 
 	public final int readUnsignedShort() throws IOException {
@@ -169,7 +169,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 
 	public final int readInt() throws IOException {
 		read(temp, 0, 4);
-		return (int) JTranscBits.readInt32BE(temp);
+		return JTranscBits.readInt32BE(temp);
 	}
 
 	public final long readLong() throws IOException {
@@ -235,7 +235,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public final void writeLong(long v) throws IOException {
-		write(JTranscBits.getInt64BE(temp, (long) v), 0, 8);
+		write(JTranscBits.getInt64BE(temp, v), 0, 8);
 	}
 
 	public final void writeFloat(float v) throws IOException {

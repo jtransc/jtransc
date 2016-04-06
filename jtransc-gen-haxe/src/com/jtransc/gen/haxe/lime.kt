@@ -167,7 +167,7 @@ object GenHaxeLime : GenTarget {
 		//val tempdir = System.getProperty("java.io.tmpdir")
 		val tempdir = tinfo.targetDirectory
 		var info: GenHaxe.ProgramInfo? = null
-		val projectDir = LocalVfs("$tempdir/jtransc-haxe/")
+		val projectDir = LocalVfs(File("$tempdir/jtransc-haxe/"))
 		val program = tinfo.program
 
 		File("$tempdir/jtransc-haxe/src").mkdirs()

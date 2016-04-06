@@ -177,7 +177,7 @@ class GenHaxeGen(
 					}
 				}
 				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-				val annotation = program[a.type.classRef]
+				val annotation = program[a.type]
 				val itStr = annotation.methods.map {
 					if (it.name in a.elements) {
 						escapeValue(a.elements[it.name]!!)
@@ -201,7 +201,7 @@ class GenHaxeGen(
 					}
 				}
 				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-				val annotation = program[a.type.classRef]
+				val annotation = program[a.type]
 				return annotation.methods.flatMap {
 					if (it.name in a.elements) {
 						escapeValue(a.elements[it.name]!!)
@@ -478,7 +478,7 @@ class GenHaxeGen(
 
 				if (e2 is AstExpr.CALL_STATIC) {
 					refs.add(clazz)
-					mutableBody.initClassRef(clazz.classRef)
+					mutableBody.initClassRef(clazz)
 				}
 
 				val commaArgs = args.map { it.gen() }.joinToString(", ")
@@ -918,7 +918,7 @@ class GenHaxeGen(
 							}
 						}
 
-						fun AstType.METHOD_TYPE.toCast(stdCall: Boolean): String {
+						fun AstType.METHOD.toCast(stdCall: Boolean): String {
 							val argTypes = this.args.map { it.type.nativeType() }
 							val typeInfix = if (stdCall) "__stdcall " else " "
 							return "(${this.ret.nativeType()} (${typeInfix}*)(${argTypes.joinToString(", ")}))(void *)(size_t)"
@@ -1017,7 +1017,7 @@ class GenHaxeGen(
 	val AstType.haxeTypeCast: FqName get() = names.getHaxeType(this, TypeKind.CAST)
 	val AstType.haxeDefault: Any? get() = names.getHaxeDefault(this)
 	val AstType.haxeDefaultString: String get() = names.escapeConstant(names.getHaxeDefault(this), this)
-	val AstType.METHOD_TYPE.functionalType: String get() = names.getHaxeFunctionalType(this)
+	val AstType.METHOD.functionalType: String get() = names.getHaxeFunctionalType(this)
 
 	fun AstType.box(arg: String): String {
 		return when (this) {
@@ -1056,8 +1056,8 @@ class GenHaxeGen(
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
 	class MutableBody(val method: AstMethod) {
-		val classes = linkedSetOf<AstClassRef>()
-		fun initClassRef(classRef: AstClassRef) {
+		val classes = linkedSetOf<AstType.REF>()
+		fun initClassRef(classRef: AstType.REF) {
 			classes.add(classRef)
 		}
 	}
@@ -1067,7 +1067,7 @@ class GenHaxeGen(
 		fun add(type: AstType?) {
 			when (type) {
 				null -> Unit
-				is AstType.METHOD_TYPE -> {
+				is AstType.METHOD -> {
 					for (arg in type.argTypes) add(arg)
 					add(type.ret)
 				}

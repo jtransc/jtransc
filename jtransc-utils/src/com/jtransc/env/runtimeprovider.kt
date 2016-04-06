@@ -35,13 +35,13 @@ class RuntimeProvider {
 	//val java_sample1_classes_path = "$project_root/out_sample1"
 	val java_sample1_classes_path = "$javaAotProjectPath"
 
-	var runtimeClassesVfs = MergeVfs(listOf(LocalVfs(java_runtime_classes_path)))
+	var runtimeClassesVfs = MergeVfs(listOf(LocalVfs(File(java_runtime_classes_path))))
 	var classpaths = listOf(java_runtime_classes_path)
 
 	fun setClassPaths(paths: List<String>): Unit {
 		classpaths = paths
 
-		runtimeClassesVfs = MergeVfs(listOf(LocalVfs(java_runtime_classes_path)) + LocalAndJars(paths))
+		runtimeClassesVfs = MergeVfs(listOf(LocalVfs(File(java_runtime_classes_path))) + LocalAndJars(paths))
 	}
 
 	fun getClassVfsNode(className: String): SyncVfsFile {

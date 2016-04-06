@@ -100,7 +100,7 @@ abstract class DigestBase extends MessageDigestSpi implements Cloneable {
 			this.engineDigest(data, 0, data.length);
 			return data;
 		} catch (DigestException var3) {
-			throw (ProviderException) (new ProviderException("Internal error")).initCause(var3);
+			throw (ProviderException) new ProviderException("Internal error", var3);
 		}
 	}
 

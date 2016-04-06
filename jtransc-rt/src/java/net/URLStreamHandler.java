@@ -262,10 +262,8 @@ public abstract class URLStreamHandler {
 			return false;
 
 		// Compare the hosts.
-		if (!hostsEqual(u1, u2))
-			return false;
+		return hostsEqual(u1, u2);
 
-		return true;
 	}
 
 	protected synchronized InetAddress getHostAddress(URL u) {

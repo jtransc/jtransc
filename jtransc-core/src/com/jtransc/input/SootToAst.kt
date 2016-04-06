@@ -299,7 +299,7 @@ open class AstMethodProcessor private constructor(
 							AstExpr.CALL_INSTANCE(AstExprUtils.cast(obj, method.containingClassType), method, args, isSpecial = true)
 						}
 					} else {
-						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef.type), method, args, isSpecial)
+						AstExpr.CALL_INSTANCE(AstExpr.CAST(obj, method.classRef), method, args, isSpecial)
 					}
 				}
 				is DynamicInvokeExpr -> {
@@ -331,7 +331,7 @@ open class AstMethodProcessor private constructor(
 val SootMethodRef.ast: AstMethodRef get() = AstMethodRef(
 	this.declaringClass().name.fqname,
 	this.name(),
-	AstType.METHOD_TYPE(this.returnType().astType, this.parameterTypes().cast<Type>().map { it.astType })
+	AstType.METHOD(this.returnType().astType, this.parameterTypes().cast<Type>().map { it.astType })
 )
 val SootMethodHandle.ast: AstMethodHandle get() = AstMethodHandle(
 	this.methodType.astType,
@@ -373,11 +373,11 @@ fun BinopExpr.getAstOp(l: AstType, r: AstType): AstBinop {
 	}
 }
 
-val SootClass.astRef: AstClassRef get() = AstClassRef(this.name)
+val SootClass.astRef: AstType.REF get() = AstType.REF(this.name)
 
 val SootMethod.astRef: AstMethodRef get() = AstMethodRef(
 	this.declaringClass.name.fqname, this.name,
-	AstType.METHOD_TYPE(
+	AstType.METHOD(
 		this.parameterTypes.withIndex().map { AstArgument(it.index, (it.value as Type).astType) },
 		this.returnType.astType
 	)
@@ -385,20 +385,20 @@ val SootMethod.astRef: AstMethodRef get() = AstMethodRef(
 
 val SootMethodRef.astRef: AstMethodRef get() = AstMethodRef(
 	this.declaringClass().name.fqname, this.name(),
-	AstType.METHOD_TYPE(
+	AstType.METHOD(
 		this.parameterTypes().withIndex().map { AstArgument(it.index, (it.value as Type).astType) },
 		this.returnType().astType
 	)
 )
 
-val SootMethodType.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(
+val SootMethodType.astType: AstType.METHOD get() = AstType.METHOD(
 	this.returnType.astType,
 	this.parameterTypes.map { it.astType }
 )
 
 val SootField.astRef: AstFieldRef get() = AstFieldRef(this.declaringClass.name.fqname, this.name, this.type.astType)
 
-val SootMethod.astType: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })
+val SootMethod.astType: AstType.METHOD get() = AstType.METHOD(this.returnType.astType, this.parameterTypes.map { (it as Type).astType })
 
 val SootClass.astType: AstType.REF get() = this.type.astType as AstType.REF
 

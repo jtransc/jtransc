@@ -498,7 +498,7 @@ class DisplayObject {
 }
 
 interface MyInterface {
-    public void sample();
+    void sample();
 }
 
 class ClassImplementingMyInterface implements MyInterface {

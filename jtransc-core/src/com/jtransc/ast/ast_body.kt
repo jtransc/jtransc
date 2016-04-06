@@ -128,7 +128,7 @@ interface AstExpr : AstElement {
 		override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
 	}
 
-	data class METHODTYPE_CONSTANT(val methodType: AstType.METHOD_TYPE) : AstExpr, LiteralExpr {
+	data class METHODTYPE_CONSTANT(val methodType: AstType.METHOD) : AstExpr, LiteralExpr {
 		override val value = methodType
 		override val type: AstType = methodType
 	}
@@ -270,7 +270,7 @@ object AstExprUtils {
 			bootstrapMethodRef.name == "metafactory"
 		) {
 			val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
-			val interfaceMethodType = literals[0].value as AstType.METHOD_TYPE
+			val interfaceMethodType = literals[0].value as AstType.METHOD
 			val methodHandle = literals[1].value as AstMethodHandle
 			val methodType = literals[2].type
 
@@ -373,7 +373,7 @@ open class AstTransformer {
 	}
 }
 
-class AstMethodHandle(val type: AstType.METHOD_TYPE, val methodRef: AstMethodRef, val kind: Kind) {
+class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val kind: Kind) {
 	enum class Kind(val id: Int) {
 		REF_getField(1),
 		REF_getStatic(2),

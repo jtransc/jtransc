@@ -40,7 +40,7 @@ data class SyncVfsStat(val file: SyncVfsFile, val size: Long, val mtime: Date, v
 	}
 }
 
-class SyncVfsFile(internal val vfs: SyncVfs, public val path: String) {
+class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	val size: Long get() = stat().size
 	val mtime: Date get() = stat().mtime
 	fun setMtime(time: Date) = vfs.setMtime(path, time)
@@ -344,8 +344,8 @@ abstract class ProxySyncVfs : SyncVfs() {
 
 // @TODO: paths should not start with "/"
 private class AccessSyncVfs(val parent: SyncVfs, val path: String) : ProxySyncVfs() {
-	override protected fun transform(path: String): SyncVfsFile = SyncVfsFile(parent, jailCombinePath(this.path, path))
-	override protected fun transformStat(stat: SyncVfsStat): SyncVfsStat {
+	override fun transform(path: String): SyncVfsFile = SyncVfsFile(parent, jailCombinePath(this.path, path))
+	override fun transformStat(stat: SyncVfsStat): SyncVfsStat {
 		// @TODO: Do this better!
 		val statFilePath = "/" + stat.file.path.trimStart('/')
 		val thisPath = "/" + this.path.trimStart('/')
@@ -358,7 +358,7 @@ private class AccessSyncVfs(val parent: SyncVfs, val path: String) : ProxySyncVf
 }
 
 private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
-	override protected fun transform(path: String): SyncVfsFile = SyncVfsFile(parent, path)
+	override fun transform(path: String): SyncVfsFile = SyncVfsFile(parent, path)
 
 	override fun write(path: String, data: ByteArray): Unit {
 		println("Writting $parent($path) with ${data.toString(UTF8)}")
@@ -380,9 +380,9 @@ fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 fun LocalVfs(path: String): SyncVfsFile = _LocalVfs().root().access(path).jail()
 
 fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
-fun CwdVfs(): SyncVfsFile = LocalVfs(RawIo.cwd())
+fun CwdVfs(): SyncVfsFile = LocalVfs(File(RawIo.cwd()))
 fun CwdVfs(path: String): SyncVfsFile = CwdVfs().jailAccess(path)
-fun ScriptVfs(): SyncVfsFile = LocalVfs(RawIo.script())
+fun ScriptVfs(): SyncVfsFile = LocalVfs(File(RawIo.script()))
 fun MemoryVfs(): SyncVfsFile = _MemoryVfs().root()
 fun MemoryVfs(vararg files: Pair<String, String>): SyncVfsFile {
 	val vfs = _MemoryVfs().root()
@@ -428,7 +428,7 @@ fun LogVfs(parent: SyncVfsFile): SyncVfsFile = _LogSyncVfs(parent.jail().vfs).ro
 fun SyncVfsFile.log() = LogVfs(this)
 
 
-public fun normalizePath(path: String): String {
+fun normalizePath(path: String): String {
 	val out = ArrayList<String>();
 	for (chunk in path.replace('\\', '/').split('/')) {
 		when (chunk) {
@@ -444,11 +444,11 @@ public fun normalizePath(path: String): String {
 	return out.joinToString("/")
 }
 
-public fun combinePaths(vararg paths: String): String {
+fun combinePaths(vararg paths: String): String {
 	return normalizePath(paths.filter { it != "" }.joinToString("/"))
 }
 
-public fun jailCombinePath(base: String, access: String): String {
+fun jailCombinePath(base: String, access: String): String {
 	return combinePaths(base, normalizePath(access))
 }
 

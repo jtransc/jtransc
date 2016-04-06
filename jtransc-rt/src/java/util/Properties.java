@@ -44,7 +44,7 @@ public class Properties extends Hashtable<Object, Object> {
 
 	native public void store(OutputStream out, String comments) throws IOException;
 
-	native public synchronized void loadFromXML(InputStream in) throws IOException, InvalidPropertiesFormatException;
+	native public synchronized void loadFromXML(InputStream in) throws IOException;
 
 	native public void storeToXML(OutputStream os, String comment) throws IOException;
 

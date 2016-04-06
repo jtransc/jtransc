@@ -150,7 +150,7 @@ class AllBuild(
 
 		// Preprocesses classes
 		projectContext.classNames.forEach {
-			program.addReference(AstClassRef(it))
+			program.addReference(AstType.REF(it))
 		}
 
 		log("Processing classes...")
@@ -194,7 +194,7 @@ class AllBuild(
 		return program
 	}
 
-	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD_TYPE, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
+	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
 		containingClass = containingClass,
 		annotations = listOf(),
 		name = name,

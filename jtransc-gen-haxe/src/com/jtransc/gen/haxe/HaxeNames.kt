@@ -24,7 +24,7 @@ class HaxeNames(val program: AstResolver) {
 		}
 	}
 
-	fun getHaxeFunctionalType(type: AstType.METHOD_TYPE): String {
+	fun getHaxeFunctionalType(type: AstType.METHOD): String {
 		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, GenHaxeGen.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
@@ -111,7 +111,7 @@ class HaxeNames(val program: AstResolver) {
 		return getHaxeClassFqName(clazz?.name ?: name) + ".${simpleName}_Lambda"
 	}
 
-	fun getHaxeClassStaticInit(classRef: AstClassRef): String {
+	fun getHaxeClassStaticInit(classRef: AstType.REF): String {
 		return "${getHaxeClassFqNameInt(classRef.name)}.__hx_static__init__();"
 	}
 

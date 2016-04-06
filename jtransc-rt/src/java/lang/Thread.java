@@ -180,7 +180,7 @@ public class Thread implements Runnable {
 
 	native public long getId();
 
-	public enum State {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED;}
+	public enum State {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED}
 
 	native public State getState();
 

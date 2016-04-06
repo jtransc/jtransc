@@ -56,7 +56,7 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
 	}
 
 	public final int compareTo(E o) {
-		Enum<?> other = (Enum<?>) o;
+		Enum<?> other = o;
 		Enum<E> self = this;
 		if (self.getClass() != other.getClass() && self.getDeclaringClass() != other.getDeclaringClass()) {
 			throw new ClassCastException();

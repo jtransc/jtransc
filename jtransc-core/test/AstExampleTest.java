@@ -20,7 +20,7 @@ class AstExampleTest {
 		ClassNode clazz = readClassNode(AstExampleTest2.Test.Internal.class);
 		for (Object _method : clazz.methods) {
 			MethodNode method = (MethodNode) _method;
-			AstType.METHOD_TYPE methodType = AstType.Companion.demangleMethod(method.desc);
+			AstType.METHOD methodType = AstType.Companion.demangleMethod(method.desc);
 			System.out.println("::" + method.name + " :: " + methodType);
 			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
 			System.out.println(Exp_dumpKt.dump(Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method)));

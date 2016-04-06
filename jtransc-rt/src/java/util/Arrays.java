@@ -93,7 +93,7 @@ public class Arrays {
 		if (length < 0) {
 			throw new IllegalArgumentException(from + " > " + to);
 		} else {
-			Object[] out = (newType == Object[].class) ? (Object[]) (new Object[length]) : (Object[]) ((Object[]) Array.newInstance(newType.getComponentType(), length));
+			Object[] out = (newType == Object[].class) ? new Object[length] : (Object[]) Array.newInstance(newType.getComponentType(), length);
 			System.arraycopy(original, from, out, 0, Math.min(original.length - from, length));
 			return (T[]) out;
 		}

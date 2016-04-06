@@ -76,7 +76,7 @@ open class AstVisitor {
 		}
 	}
 
-	open fun visit(ref: AstClassRef) {
+	open fun visit(ref: AstType.REF) {
 	}
 
 	open fun visit(local: AstLocal) {
@@ -85,16 +85,12 @@ open class AstVisitor {
 	open fun visit(label: AstLabel) {
 	}
 
-	open fun visit(ref: AstType.REF) {
-		visit(ref.classRef)
-	}
-
 	open fun visit(ref: AstType) {
 		for (c in ref.getRefClasses()) visit(c)
 	}
 
 	open fun visit(ref: FqName) {
-		visit(AstClassRef(ref))
+		visit(AstType.REF(ref))
 	}
 
 	open fun visit(ref: AstFieldRef) {

@@ -47,7 +47,7 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
 
-	data class REF(val name: FqName) : AstType {
+	data class REF(val name: FqName) : AstType, AstRef {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -57,8 +57,6 @@ interface AstType {
 		}
 
 		val fqname: String get() = name.fqname
-
-		val classRef: AstClassRef by lazy { AstClassRef(name) }
 
 		override fun hashCode(): Int = name.hashCode()
 		override fun equals(other: Any?): Boolean {
@@ -96,10 +94,7 @@ interface AstType {
 	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType
 	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType
 
-	//data class METHOD_TYPE(val args: List<AstArgument>, val ret: AstType) : AstType {
-	//	constructor(ret: AstType, args: List<AstType>) : this(args.toArguments(), ret)
-	//data class METHOD_TYPE(val ret: AstType, val argTypes: List<AstType>) : AstType {
-	data class METHOD_TYPE(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType {
+	data class METHOD(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType {
 		val argCount: Int get() = argTypes.size
 
 		constructor(ret: AstType, argTypes: List<AstType>, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, argTypes.toArguments(), true, paramTypes)
@@ -123,10 +118,10 @@ interface AstType {
 				argTypes + listOf(ret)
 			}
 		}
-		val withoutRetval: AstType.METHOD_TYPE get() = AstType.METHOD_TYPE(AstType.UNKNOWN, argTypes, paramTypes)
+		val withoutRetval: AstType.METHOD get() = AstType.METHOD(AstType.UNKNOWN, argTypes, paramTypes)
 
 		override fun hashCode() = desc.hashCode();
-		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD_TYPE?)?.desc)
+		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD?)?.desc)
 		override fun toString() = ret.toString() + " (" + args.joinToString(", ") + ")"
 	}
 
@@ -156,8 +151,8 @@ interface AstType {
 			return AstTypeDemangleCache[desc]!!
 		}
 
-		fun demangleMethod(text: String): AstType.METHOD_TYPE {
-			return AstType.demangle(text) as AstType.METHOD_TYPE
+		fun demangleMethod(text: String): AstType.METHOD {
+			return AstType.demangle(text) as AstType.METHOD
 		}
 
 		fun fromConstant(value: Any?): AstType = when (value) {
@@ -172,18 +167,6 @@ interface AstType {
 			is Double -> DOUBLE
 			is String -> STRING
 			else -> invalidOp("Literal type: ${value.javaClass} : $value")
-
-			//null -> AstType.NULL
-			//is Boolean -> AstType.BOOL
-			//is Byte -> AstType.BYTE
-			//is Char -> AstType.CHAR
-			//is Short -> AstType.SHORT
-			//is Int -> AstType.INT
-			//is Long -> AstType.LONG
-			//is Float -> AstType.FLOAT
-			//is Double -> AstType.DOUBLE
-			//is String -> AstType.STRING
-			//else -> throw NotImplementedError("Literal type: ${value.javaClass} : $value")
 		}
 	}
 }
@@ -316,9 +299,9 @@ object AstTypeBuilder {
 	fun REF(name: FqName) = AstType.REF(name)
 	//fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
 	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
-	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD_TYPE(args, ret)
+	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD(args, ret)
 
-	fun METHOD(ret: AstType, vararg args: AstType) = AstType.METHOD_TYPE(ret, args.toList())
+	fun METHOD(ret: AstType, vararg args: AstType) = AstType.METHOD(ret, args.toList())
 }
 
 fun <T : AstType> AstTypeBuild(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
@@ -418,8 +401,8 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 			}
 			reader.expect(">")
 			val item = this.readOne(reader)
-			if (item is AstType.METHOD_TYPE) {
-				AstType.METHOD_TYPE(item.ret, item.argTypes, types)
+			if (item is AstType.METHOD) {
+				AstType.METHOD(item.ret, item.argTypes, types)
 			} else {
 				AstType.GENERIC_DESCRIPTOR(item, types)
 			}
@@ -431,7 +414,7 @@ fun AstType.Companion.readOne(reader: StrReader): AstType {
 			}
 			assert(reader.readch() == ')')
 			val ret = AstType.readOne(reader)
-			AstType.METHOD_TYPE(ret, args)
+			AstType.METHOD(ret, args)
 		}
 		else -> {
 			throw NotImplementedError("Not implemented type '$typech' @ $reader")
@@ -459,7 +442,7 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 	is AstType.GENERIC_DESCRIPTOR -> {
 		"<" + this.types.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">" + this.element.mangle(retval)
 	}
-	is AstType.METHOD_TYPE -> {
+	is AstType.METHOD -> {
 		var param = if (this.paramTypes.size > 0) {
 			"<" + this.paramTypes.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">"
 		} else {
@@ -481,7 +464,7 @@ fun AstType.getRefTypes(): List<AstType> = this.getRefTypesFqName().map { AstTyp
 fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.REF -> listOf(this.name)
 	is AstType.ARRAY -> this.element.getRefTypesFqName()
-	is AstType.METHOD_TYPE -> {
+	is AstType.METHOD -> {
 		//if (this.paramTypes.isNotEmpty()) println(":::::::: " + this.paramTypes)
 		this.argTypes.flatMap { it.getRefTypesFqName() } + this.ret.getRefTypesFqName() + this.paramTypes.flatMap { it.second.getRefTypesFqName() }
 	}

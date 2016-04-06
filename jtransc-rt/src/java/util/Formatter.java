@@ -89,7 +89,7 @@ public final class Formatter implements Closeable, Flushable {
 	}
 
 	public Formatter(PrintStream ps) {
-		this(Locale.getDefault(Locale.Category.FORMAT), (Appendable) Objects.requireNonNull(ps));
+		this(Locale.getDefault(Locale.Category.FORMAT), Objects.requireNonNull(ps));
 	}
 
 	public Formatter(OutputStream os) {

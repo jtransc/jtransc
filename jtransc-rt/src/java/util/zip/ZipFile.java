@@ -40,7 +40,7 @@ public class ZipFile implements Closeable {
 		this(file, mode, Charset.forName("UTF-8"));
 	}
 
-	public ZipFile(File file) throws ZipException, IOException {
+	public ZipFile(File file) throws IOException {
 		this(file, OPEN_READ);
 	}
 

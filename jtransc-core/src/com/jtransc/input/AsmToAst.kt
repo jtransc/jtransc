@@ -47,7 +47,7 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 }
 
 
-fun MethodNode.astRef(clazz: AstClassRef) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
+fun MethodNode.astRef(clazz: AstType.REF) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
 
 class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
@@ -94,7 +94,7 @@ class AsmToAst : AstClassGenerator {
 			generateBody = {
 				if (mods.isConcrete) {
 					try {
-						Asm2Ast(containingClass.ref.type, method)
+						Asm2Ast(containingClass.ref, method)
 					} catch (e: Throwable) {
 						println("Error trying to generate ${containingClass.name}::${method.name} ${method.desc}")
 						e.printStackTrace()

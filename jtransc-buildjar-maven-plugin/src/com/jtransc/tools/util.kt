@@ -69,7 +69,7 @@ class JavaIds(val parent: JavaIds? = null) {
 					(it.id ?: "") + if (it.params != null) "<" + it.params!!.map { serializeValid(it, false) }.joinToString(", ") + ">" else ""
 				}
 			}
-			is AstType.METHOD_TYPE -> {
+			is AstType.METHOD -> {
 				val count = type.args.size
 				"_root.Functions.F$count<" + type.argsPlusReturn.map { serializeValid(it, false) }.joinToString(", ") + ">"
 			}

@@ -546,7 +546,7 @@ object HaxeTools {
 			val set = member.attribute("set")
 			val get = member.attribute("get")
 			val generics = member.attribute("params").split(":")
-			val type2 = parseHaxeType(member.elementChildren.firstOrNull { it.tagName !in SPECIAL_NAMES }) ?: AstType.OBJECT
+			val type2 = parseHaxeType(member.elementChildren.firstOrNull { it.tagName !in SPECIAL_NAMES })
 			var doc = ""
 
 			for (child in member.elementChildren) {
@@ -555,7 +555,7 @@ object HaxeTools {
 				}
 			}
 
-			val isMethod = (get == "inline" && type2 is AstType.METHOD_TYPE) || (set == "method")
+			val isMethod = (get == "inline" && type2 is AstType.METHOD) || (set == "method")
 
 			return if (isMethod) {
 				//println(args + ": RET : " + rettype)
@@ -565,7 +565,7 @@ object HaxeTools {
 					generics = generics,
 					isPublic = public,
 					isStatic = static,
-					methodType = type2 as AstType.METHOD_TYPE
+					methodType = type2 as AstType.METHOD
 				)
 
 			} else {
@@ -617,7 +617,7 @@ object HaxeTools {
 		override val doc: String,
 		override val generics: List<String>,
 		override val isPublic: Boolean,
-		val methodType: AstType.METHOD_TYPE,
+		val methodType: AstType.METHOD,
 		override val isStatic: Boolean
 	) : HaxeMember {
 		override val type by lazy { methodType }
@@ -669,7 +669,7 @@ object HaxeTools {
 				val types = it.elementChildren.map { parseHaxeType(it) }
 				val args = types.dropLast(1)
 				val rettype = types.last()
-				AstType.METHOD_TYPE(HaxeDocXmlParser.HaxeArguments(names, args), rettype)
+				AstType.METHOD(HaxeDocXmlParser.HaxeArguments(names, args), rettype)
 			}
 			"x", "c", "t", "e" -> {
 				val path = it.attribute("path")

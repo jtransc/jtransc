@@ -72,7 +72,7 @@ public class System {
 	}
 
 	public static String getProperty(String prop) {
-		return (String) getProps().getProperty(prop);
+		return getProps().getProperty(prop);
 	}
 
 	public static String getProperty(String key, String def) {

@@ -36,11 +36,7 @@ inline fun <reified T : Any> List<AstAnnotation>?.contains2(): Boolean {
 }
 
 operator inline fun <reified C : Annotation, T> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
-	if (this != null) {
-		return this?.get(C::class.java.name.fqname, field.name) as T?
-	} else {
-		return null
-	}
+	return this?.get(C::class.java.name.fqname, field.name) as T?
 }
 
 inline fun <reified C : Annotation> List<AstAnnotation>?.contains(): Boolean {

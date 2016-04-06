@@ -136,7 +136,7 @@ fun List<Any?>.toTypedArray2(clazz: Class<*>): Any {
 }
 
 fun List<Any?>?.toTypedArray2(): Any? {
-	return this?.toTypedArray2(this?.get(0)?.javaClass ?: Object::class.java)
+	return this?.toTypedArray2(this.get(0)?.javaClass ?: Object::class.java)
 }
 
 data class DiffResult<T>(val both: List<T>, val justFirst: List<T>, val justSecond: List<T>)

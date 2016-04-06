@@ -65,7 +65,7 @@ public interface Deque<E> extends Queue<E> {
 
 	boolean contains(Object o);
 
-	public int size();
+	int size();
 
 	Iterator<E> iterator();
 

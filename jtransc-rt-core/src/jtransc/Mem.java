@@ -57,13 +57,13 @@ final public class Mem {
     @JTranscInline
     @HaxeMethodBody("return #if flash flash.Memory.getByte(p0 << 0); #else byteMem.get(p0); #end")
 	static public byte li8(int address) {
-		return (byte) mem.getAlignedInt8(address);
+		return mem.getAlignedInt8(address);
 	}
 
 	@JTranscInline
     @HaxeMethodBody("return #if flash flash.Memory.getUI16(p0 << 1); #else shortMem.get(p0); #end")
 	static public short li16(int address2) {
-		return (short) mem.getAlignedInt16(address2);
+		return mem.getAlignedInt16(address2);
 	}
 
 	@JTranscInline

@@ -213,7 +213,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
 		typeCheck(e);
 
 		long oldElements = elements;
-		elements |= (1L << ((Enum<?>) e).ordinal());
+		elements |= (1L << e.ordinal());
 		return elements != oldElements;
 	}
 

@@ -34,7 +34,7 @@ public class SequenceInputStream extends InputStream {
 		if (in != null) in.close();
 
 		if (e.hasMoreElements()) {
-			in = (InputStream) e.nextElement();
+			in = e.nextElement();
 			Objects.requireNonNull(in);
 		} else {
 			in = null;

@@ -35,12 +35,12 @@ public class JTranscBugCompareInterfaceAndObject {
 	}
 
 	private static void cast1(A a, B b, C c, Object d) {
-		System.out.println((Object)a != null);
-		System.out.println((Object)b != null);
-		System.out.println((Object)c != null);
-		System.out.println((Object)d != null);
-		System.out.println((A)d != null);
-		System.out.println((B)d != null);
-		System.out.println((C)d != null);
+		System.out.println(a != null);
+		System.out.println(b != null);
+		System.out.println(c != null);
+		System.out.println(d != null);
+		System.out.println(d != null);
+		System.out.println(d != null);
+		System.out.println(d != null);
 	}
 }

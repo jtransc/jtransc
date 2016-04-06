@@ -26,7 +26,7 @@ public class JTranscBug12Test {
 	}
 
 	interface Test0 {
-		static class Setter implements TestSetter {
+		class Setter implements TestSetter {
 		}
 	}
 }

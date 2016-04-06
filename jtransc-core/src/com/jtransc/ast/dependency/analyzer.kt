@@ -90,7 +90,7 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.METHOD_CLASS -> {
 					ana(expr.type)
-					ana(expr.methodToConvertRef.allClassRefs.map { it.type })
+					ana(expr.methodToConvertRef.allClassRefs)
 				}
 				else -> noImpl("Not implemented $expr")
 			}
@@ -166,7 +166,7 @@ object AstDependencyAnalyzer {
 
 		return AstReferences(
 			program = program,
-			classes = types.map { AstClassRef(it) }.toSet(),
+			classes = types.map { AstType.REF(it) }.toSet(),
 			fields = fields.toSet(),
 			methods = methods.toSet()
 		)

@@ -27,7 +27,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 
 	data class LocalID(val index: Int, val type: AstType, val prefix: String)
 
-	val methodRef = method.astRef(clazz.classRef)
+	val methodRef = method.astRef(clazz)
 	//val list = method.instructions
 	val methodType = AstType.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm?>()
@@ -201,10 +201,6 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 		stmAdd(AstStm.SET_ARRAY(fastcast(array, AstType.ARRAY(elementType)), fastcast(index, AstType.INT), fastcast(expr, elementType)))
 	}
 
-	fun untestedWarn2(msg: String) {
-		untestedWarn("$msg : ${clazz.name}::${method.name} @ $lastLine")
-	}
-
 	private var stackPopToLocalsItemsCount = 0
 
 	fun stackPopToLocalsFixOrder() {
@@ -319,9 +315,8 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 				stackPush(v1)
 				stackPush(v2)
 			}
-			Opcodes.INEG, Opcodes.LNEG, Opcodes.FNEG, Opcodes.DNEG -> stackPush(AstExpr.UNOP(AstUnop.NEG, stackPop()))
+			in Opcodes.INEG..Opcodes.DNEG -> stackPush(AstExpr.UNOP(AstUnop.NEG, stackPop()))
 
-		// @TODO: try to homogeinize this!
 			in Opcodes.IADD..Opcodes.DADD -> pushBinop(PTYPES[op - Opcodes.IADD], AstBinop.ADD)
 			in Opcodes.ISUB..Opcodes.DSUB -> pushBinop(PTYPES[op - Opcodes.ISUB], AstBinop.SUB)
 			in Opcodes.IMUL..Opcodes.DMUL -> pushBinop(PTYPES[op - Opcodes.IMUL], AstBinop.MUL)
@@ -496,7 +491,7 @@ private class _Asm2Ast(val clazz: AstType.REF, val method: MethodNode) {
 				if (obj!!.type !is AstType.REF) {
 					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
 				}
-				val obj = fastcast(obj!!, methodRef.containingClassType)
+				val obj = fastcast(obj, methodRef.containingClassType)
 				if (i.opcode != Opcodes.INVOKESPECIAL) {
 					stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
 				} else {

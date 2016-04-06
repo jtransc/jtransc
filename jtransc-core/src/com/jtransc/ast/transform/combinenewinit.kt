@@ -35,7 +35,7 @@ object CombineNewInitTransform : AstTransform() {
 
 			// CALL <init> constructor method
 			if (stm is AstStm.STM_EXPR && stm.expr is AstExpr.CALL_INSTANCE) {
-				val callExpr = stm.expr as AstExpr.CALL_INSTANCE
+				val callExpr = stm.expr
 
 				val callLocal = if (callExpr.obj is AstExpr.LOCAL) {
 					callExpr.obj
@@ -72,7 +72,7 @@ object CombineNewInitTransform : AstTransform() {
 
 	override fun invoke(body: AstBody): AstBody {
 		if (body.stm is AstStm.STMS) {
-			val stms = (body.stm as AstStm.STMS).stms.toCollection(arrayListOf<AstStm>())
+			val stms = body.stm.stms.toCollection(arrayListOf<AstStm>())
 			transform(stms)
 			return AstBody(AstStm.STMS(stms.filter { it !is AstStm.NOP }), body.locals, body.traps)
 		}

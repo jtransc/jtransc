@@ -27,7 +27,7 @@ public class File implements Serializable, Comparable<File> {
 	private static final FileSystem fs = new JTranscFileSystem();
 	private final String path;
 
-	private static enum PathStatus {INVALID, CHECKED}
+	private enum PathStatus {INVALID, CHECKED}
 
 	private transient PathStatus status = null;
 

@@ -17,14 +17,14 @@
 package java.lang.reflect;
 
 public interface Member {
-	public static final int PUBLIC = 0;
-	public static final int DECLARED = 1;
+	int PUBLIC = 0;
+	int DECLARED = 1;
 
-	public Class<?> getDeclaringClass();
+	Class<?> getDeclaringClass();
 
-	public String getName();
+	String getName();
 
-	public int getModifiers();
+	int getModifiers();
 
-	public boolean isSynthetic();
+	boolean isSynthetic();
 }

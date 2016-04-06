@@ -26,7 +26,7 @@ public class StringBuilderTest {
 		sb.insert(2, (byte)-77);
 		sb.insert(8, 'Z');
 		sb.insert(3, (short)-77);
-		sb.insert(4, (int)-77);
+		sb.insert(4, -77);
 		sb.insert(5, (long)-77);
 		sb.insert(6, (double)-77);
 		sb.insert(7, (float)-77);
@@ -35,7 +35,7 @@ public class StringBuilderTest {
 		sb.append((byte)-77);
 		sb.append('a');
 		sb.append((short)-77);
-		sb.append((int)-77);
+		sb.append(-77);
 		sb.append((long)-77);
 		sb.append((double)-77);
 		sb.append((float)-77);

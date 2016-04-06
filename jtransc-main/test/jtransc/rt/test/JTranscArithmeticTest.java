@@ -10,12 +10,12 @@ public class JTranscArithmeticTest {
 			System.out.println(shl15((byte) value));
 			System.out.println(shl15((short) value));
 			System.out.println(shl15((char) value));
-			System.out.println(shl15((int) value));
+			System.out.println(shl15(value));
 			System.out.println(shl15((long) value));
 			System.out.println(mul33333((byte) value));
 			System.out.println(mul33333((short) value));
 			System.out.println(mul33333((char) value));
-			System.out.println(mul33333((int) value));
+			System.out.println(mul33333(value));
 			System.out.println(mul33333((long) value));
 		}
 		System.out.println(JTranscBits.makeInt((byte) 1, (byte) 2, (byte) 3, (byte) 4));
