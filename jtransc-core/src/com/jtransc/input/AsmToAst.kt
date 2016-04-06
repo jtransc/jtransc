@@ -53,7 +53,7 @@ class AsmToAst : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
 		val cr = ClassReader(program.getClassBytes(fqname))
 		val classNode = ClassNode()
-		cr.accept(classNode, ClassReader.EXPAND_FRAMES)
+		cr.accept(classNode, ClassReader.SKIP_FRAMES)
 
 		//val cw = ClassWriter(cr, ClassWriter.COMPUTE_MAXS or ClassWriter.COMPUTE_FRAMES);
 		//classNode.accept(cw);

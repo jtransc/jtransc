@@ -58,6 +58,7 @@ public class MiscTest {
 	    try {
 		    testThrowPrevStack();
 	    } catch (Throwable t) {
+		    System.out.println("[1]");
 		    System.out.println(t.getMessage());
 	    }
 

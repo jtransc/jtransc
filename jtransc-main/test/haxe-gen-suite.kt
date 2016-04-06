@@ -154,6 +154,7 @@ class HaxeGenSuiteTest {
 	val testClassesPath = File("target/test-classes").absolutePath
 
 	fun <T : Any> testClass(clazz: Class<T>, transformer: (String) -> String) {
+		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
 		val result = runClass(clazz)
 
