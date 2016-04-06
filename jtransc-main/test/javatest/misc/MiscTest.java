@@ -82,9 +82,55 @@ public class MiscTest {
 	    testLong2(1, 2L);
 	    testLong3(1, 2L, 3);
 
+	    testSwitch(1);
+	    testSwitch(3);
+	    testSwitch2(-1000);
+	    testSwitch2(5050);
+	    testSwitch2(3);
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	private void testSwitch(int b) {
+		System.out.println("zero");
+		switch (b) {
+			case 0:
+				System.out.println("0");
+			case 1:
+				System.out.println("1");
+			case 2:
+				System.out.println("2");
+				break;
+			case 3:
+				System.out.println("3");
+			case 4:
+				System.out.println("4");
+			default:
+				System.out.println("else");
+				break;
+		}
+		System.out.println("out");
+	}
+
+	private void testSwitch2(int b) {
+		System.out.println("start");
+		switch (b) {
+			case -1000:
+				System.out.println("-1000");
+			default:
+				System.out.println("other:" + b);
+			case 0:
+				System.out.println("0");
+				break;
+			case 5050:
+				System.out.println("5050");
+			case 3333:
+				System.out.println("3333");
+				break;
+		}
+		System.out.println("out");
+	}
 
 	private void testLong1(long a, int b) {
 		System.out.println(a);
