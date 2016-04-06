@@ -189,7 +189,9 @@ class AllBuild(
 
 		//for (dep in projectContext.deps2!!) println(dep)
 
-		log("Ok classes=${projectContext.classNames.size}, time=$elapsed")
+		val methodCount = program.classes.sumBy { it.methods.size }
+
+		log("Ok classes=${program.classes.size}, methods=$methodCount, time=$elapsed")
 
 		return program
 	}

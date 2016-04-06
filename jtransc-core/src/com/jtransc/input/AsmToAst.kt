@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
+import com.jtransc.error.noImpl
 import com.jtransc.lang.ReflectedArray
 import com.jtransc.types.Asm2Ast
 import org.objectweb.asm.ClassReader
@@ -46,7 +47,6 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 	AstVisibility.PRIVATE
 }
 
-
 fun MethodNode.astRef(clazz: AstType.REF) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
 
 class AsmToAst : AstClassGenerator {
@@ -68,13 +68,8 @@ class AsmToAst : AstClassGenerator {
 		)
 		program.add(astClass)
 
-		for (method in classNode.getMethods().map { generateMethod(astClass, it) }) {
-			astClass.add(method)
-		}
-
-		for (field in classNode.getFields().map { generateField(astClass, it) }) {
-			astClass.add(field)
-		}
+		classNode.getMethods().forEach { astClass.add(generateMethod(astClass, it)) }
+		classNode.getFields().forEach { astClass.add(generateField(astClass, it)) }
 
 		return astClass
 	}
@@ -135,23 +130,26 @@ fun AstAnnotationValue(value: Any?): Any? {
 	if (clazz.isArray) {
 		return ReflectedArray(value).toList().map { AstAnnotationValue(it) }
 	}
+	if (value is AnnotationNode) {
+		val type = AstType.demangle(value.desc) as AstType.REF
+		val fields = hashMapOf<String, Any?>()
+		if (value.values != null) {
+			val values = value.values
+			var n = 0
+			while (n < values.size) {
+				val name = values[n++] as String
+				val value = values[n++]
+				fields[name] = AstAnnotationValue(value)
+			}
+			//println(node.values)
+			//println(node.values)
+		}
+		return AstAnnotation(type, fields, true)
+	}
 	return value
 }
 
 fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
-	val type = AstType.demangle(node.desc) as AstType.REF
-	val fields = hashMapOf<String, Any?>()
-	if (node.values != null) {
-		val values = node.values
-		var n = 0
-		while (n < values.size) {
-			val name = values[n++] as String
-			val value = values[n++]
-			fields[name] = AstAnnotationValue(value)
-		}
-		//println(node.values)
-		//println(node.values)
-	}
-	return AstAnnotation(type, fields, true)
+	return AstAnnotationValue(node) as AstAnnotation
 }
 

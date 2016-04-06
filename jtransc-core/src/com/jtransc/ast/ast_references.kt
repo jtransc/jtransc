@@ -29,8 +29,22 @@ object References {
 		return this.flatMap { it.getClassReferences() }
 	}
 
+	fun Any?.getClassReferences(): List<AstType.REF> {
+		return when (this) {
+			null -> listOf()
+			is List<*> -> this.flatMap { it.getClassReferences() }
+			is AstAnnotation -> this.getClassReferences()
+			is AstBody -> this.getClassReferences()
+			is AstStm -> this.getClassReferences()
+			is AstMethod -> this.getClassReferences()
+			is AstField -> this.getClassReferences()
+			is AstClass -> this.getClassReferences()
+			else -> listOf()
+		}
+	}
+
 	fun AstAnnotation.getClassReferences(): List<AstType.REF> {
-		return listOf(this.type)
+		return listOf(this.type) + this.elements.values.getClassReferences()
 	}
 
 	fun AstBody.getClassReferences(): List<AstType.REF> {

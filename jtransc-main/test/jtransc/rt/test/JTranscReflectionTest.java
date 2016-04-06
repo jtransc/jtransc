@@ -14,6 +14,7 @@ public class JTranscReflectionTest {
 		annotationTest();
 		fieldTest();
 		arrayTest();
+		new TestDeprecatedExample().demo();
 	}
 
 	static public void arrayTest() {
@@ -201,4 +202,20 @@ enum EnumDemo {
 	EnumDemo(String msg) {
 		this.msg = msg;
 	}
+}
+
+class TestDeprecatedExample {
+	@TestDeprecated(replaceWith = @TestReplaceWith(value = "test", imports = {"a"}))
+	public void demo() {
+
+	}
+}
+
+@interface TestReplaceWith {
+	String value();
+	String[] imports() default {};
+}
+
+@interface TestDeprecated {
+	TestReplaceWith replaceWith();
 }

@@ -7,7 +7,22 @@ data class AstAnnotation(
 	val type: AstType.REF,
 	val elements: Map<String, Any?>,
     val runtimeVisible: Boolean
-)
+) {
+	private fun getAllDescendantAnnotations(value: Any?): List<AstAnnotation> {
+		return when (value) {
+			is AstAnnotation -> getAllDescendantAnnotations(elements.values.toList())
+			is List<*> -> value.filterIsInstance<AstAnnotation>() + value.filterIsInstance<List<*>>().flatMap { getAllDescendantAnnotations(it) }
+			else -> listOf()
+		}
+	}
+
+	fun getAllDescendantAnnotations(): List<AstAnnotation> {
+		var out = arrayListOf<AstAnnotation>()
+		out.add(this)
+		out.addAll(getAllDescendantAnnotations(this))
+		return out
+	}
+}
 
 operator fun List<AstAnnotation>?.get(name: FqName): AstAnnotation? {
 	val ref = AstType.REF(name)

@@ -29,27 +29,27 @@ class GenHaxeGen(
 	lateinit var mutableBody: MutableBody
 	lateinit var stm: AstStm
 
-	fun AstStm.gen(): Indenter = gen2(this)
-	fun AstExpr.gen(): String = gen2(this)
+	inline fun AstStm.genStm(): Indenter = genStm2(this)
+	inline fun AstExpr.genExpr(): String = genExpr2(this)
 	fun AstExpr.genNotNull(): String {
-		if (this is AstExpr.THIS) {
-			return gen2(this)
+		return if (this is AstExpr.THIS) {
+			genExpr2(this)
 		} else {
-			return gen2(this)
-			//return "HaxeNatives.checkNotNull(${gen2(this)})"
+			genExpr2(this)
+			//"HaxeNatives.checkNotNull(${gen2(this)})"
 		}
 	}
 
-	fun AstBody.gen(): Indenter = gen2(this)
-	fun AstClass.gen(): ClassResult = gen2(this)
+	inline fun AstBody.genBody(): Indenter = genBody2(this)
+	inline fun AstClass.genClass(): ClassResult = genClass2(this)
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
-	fun fix(field: AstFieldRef): AstFieldRef {
-		return program.get(field).ref
+	inline fun fixField(field: AstFieldRef): AstFieldRef {
+		return program[field].ref
 	}
 
-	fun fix(method: AstMethodRef): AstMethodRef {
+	inline fun fixMethod(method: AstMethodRef): AstMethodRef {
 		return program[method]?.ref ?: invalidOp("Can't find method $method")
 	}
 
@@ -59,7 +59,7 @@ class GenHaxeGen(
 			if (clazz.implCode != null) {
 				vfs[clazz.name.haxeFilePath] = clazz.implCode!!
 			} else {
-				val result = clazz.gen()
+				val result = clazz.genClass()
 				for (file in result.files) {
 					val (clazzName, content) = file
 					vfs[clazzName.haxeFilePath] = content.toString()
@@ -137,7 +137,9 @@ class GenHaxeGen(
 			}
 
 			val annotationProxyTypes = Indenter.genString {
-				val annotationTypes = program.allAnnotations.map { it.type }.distinct()
+				val annotationTypes = program.allAnnotations.flatMap {
+					it.getAllDescendantAnnotations()
+				}.map { it.type }.distinct()
 				for (at in annotationTypes) {
 					val clazz = program[at.name]
 					//at.name
@@ -172,18 +174,14 @@ class GenHaxeGen(
 						is Double -> "HaxeNatives.boxDouble($it)"
 						is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
 						else -> {
-							throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()}")
+							throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 						}
 					}
 				}
 				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 				val annotation = program[a.type]
 				val itStr = annotation.methods.map {
-					if (it.name in a.elements) {
-						escapeValue(a.elements[it.name]!!)
-					} else {
-						escapeValue(it.defaultTag)
-					}
+					escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
 				}.joinToString(", ")
 				return "new ${a.type.getAnnotationProxyName(program)}([$itStr])"
 			}
@@ -203,11 +201,7 @@ class GenHaxeGen(
 				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 				val annotation = program[a.type]
 				return annotation.methods.flatMap {
-					if (it.name in a.elements) {
-						escapeValue(a.elements[it.name]!!)
-					} else {
-						escapeValue(it.defaultTag)
-					}
+					escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
 				}
 			}
 
@@ -297,7 +291,7 @@ class GenHaxeGen(
 		return GenHaxe.ProgramInfo(entryPointClass, entryPointFilePath, vfs)
 	}
 
-	fun gen2(stm: AstStm): Indenter {
+	fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm
 		val program = program
 		val clazz = context.clazz
@@ -306,16 +300,16 @@ class GenHaxeGen(
 			when (stm) {
 				is AstStm.NOP -> Unit
 				is AstStm.IF -> {
-					line("if (${stm.cond.gen()})") {
-						line(stm.strue.gen())
+					line("if (${stm.cond.genExpr()})") {
+						line(stm.strue.genStm())
 					}
 					if (stm.sfalse != null) {
-						line("else") { line(stm.sfalse!!.gen()) }
+						line("else") { line(stm.sfalse!!.genStm()) }
 					}
 				}
 				is AstStm.RETURN -> {
 					if (stm.retval != null) {
-						line("return ${stm.retval!!.gen()};")
+						line("return ${stm.retval!!.genExpr()};")
 					} else if (context.method.isInstanceInit) {
 						line("return this;")
 					} else {
@@ -323,14 +317,14 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.SET -> {
-					val expr = stm.expr.gen()
+					val expr = stm.expr.genExpr()
 					line("${stm.local.haxeName} = $expr;")
 				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]
 					//val mapping = mappings.getClassMapping(newClazz)
 					refs.add(stm.target)
-					val commaArgs = stm.args.map { it.gen() }.joinToString(", ")
+					val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
 					val className = stm.target.haxeTypeNew
 					val localHaxeName = stm.local.haxeName
 
@@ -342,51 +336,51 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.SET_ARRAY -> {
-					line("${stm.array.genNotNull()}.set(${stm.index.gen()}, ${stm.expr.gen()});")
+					line("${stm.array.genNotNull()}.set(${stm.index.genExpr()}, ${stm.expr.genExpr()});")
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
-					mutableBody.initClassRef(fix(stm.field).classRef)
-					line("${fix(stm.field).haxeStaticText} = ${stm.expr.gen()};")
+					mutableBody.initClassRef(fixField(stm.field).classRef)
+					line("${fixField(stm.field).haxeStaticText} = ${stm.expr.genExpr()};")
 				}
-				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.gen()}.${fix(stm.field).haxeName} = ${stm.expr.gen()};")
-				is AstStm.STM_EXPR -> line("${stm.expr.gen()};")
-				is AstStm.STMS -> for (s in stm.stms) line(s.gen())
+				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.genExpr()}.${fixField(stm.field).haxeName} = ${stm.expr.genExpr()};")
+				is AstStm.STM_EXPR -> line("${stm.expr.genExpr()};")
+				is AstStm.STMS -> for (s in stm.stms) line(s.genStm())
 				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
 				is AstStm.BREAK -> line("break;")
 				is AstStm.BREAK -> line("break;")
 				is AstStm.CONTINUE -> line("continue;")
 				is AstStm.WHILE -> {
-					line("while (${stm.cond.gen()})") {
-						line(stm.iter.gen())
+					line("while (${stm.cond.genExpr()})") {
+						line(stm.iter.genStm())
 					}
 				}
 				is AstStm.SWITCH -> {
-					line("switch (${stm.subject.gen()})") {
+					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
 							val value = case.first
 							val caseStm = case.second
 							line("case $value:")
 							indent {
-								line(caseStm.gen())
+								line(caseStm.genStm())
 							}
 						}
 						line("default:")
 						indent {
-							line(stm.default.gen())
+							line(stm.default.genStm())
 						}
 					}
 				}
 				is AstStm.TRY_CATCH -> {
 					line("try") {
-						line(stm.trystm.gen())
+						line(stm.trystm.genStm())
 					}
 					line("catch (J__i__exception__: Dynamic)") {
 						line("J__exception__ = J__i__exception__;")
-						line(stm.catch.gen())
+						line(stm.catch.genStm())
 					}
 				}
-				is AstStm.THROW -> line("throw ${stm.value.gen()};")
+				is AstStm.THROW -> line("throw ${stm.value.genExpr()};")
 				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
@@ -396,7 +390,7 @@ class GenHaxeGen(
 		}
 	}
 
-	fun gen2(body: AstBody): Indenter {
+	fun genBody2(body: AstBody): Indenter {
 		val method = context.method
 		this.mutableBody = MutableBody(method)
 
@@ -416,7 +410,7 @@ class GenHaxeGen(
 				}
 			}
 
-			val bodyContent = body.stm.gen()
+			val bodyContent = body.stm.genStm()
 
 			if (GenHaxe.INIT_MODE == InitMode.LAZY) {
 				for (clazzRef in mutableBody.classes) {
@@ -427,17 +421,17 @@ class GenHaxeGen(
 		}
 	}
 
-	fun gen2(e: AstExpr): String {
+	fun genExpr2(e: AstExpr): String {
 		return when (e) {
 			is AstExpr.THIS -> "this"
 			is AstExpr.LITERAL -> names.escapeConstant(e.value)
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
-			is AstExpr.UNOP -> "${e.op.symbol}(" + e.right.gen() + ")"
+			is AstExpr.UNOP -> "(${e.op.symbol}(" + e.right.genExpr() + "))"
 			is AstExpr.BINOP -> {
 				val resultType = e.type
-				var l = e.left.gen()
-				var r = e.right.gen()
+				var l = e.left.genExpr()
+				var r = e.right.genExpr()
 				val opSymbol = e.op.symbol
 				val opName = e.op.str
 
@@ -464,14 +458,8 @@ class GenHaxeGen(
 			}
 			is AstExpr.CALL_BASE -> {
 				// Determine method to call!
-
-				val e2 = if (e is AstExpr.CALL_SPECIAL) {
-					AstExprUtils.RESOLVE_SPECIAL(program, e, context)
-				} else {
-					e
-				}
-
-				val method = fix(e2.method)
+				val e2 = if (e is AstExpr.CALL_SPECIAL) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e
+				val method = fixMethod(e2.method)
 				val refMethod = program.get(method) ?: invalidOp("Can't find method: $method while generating $context")
 				val clazz = method.containingClassType
 				val args = e2.args
@@ -481,7 +469,7 @@ class GenHaxeGen(
 					mutableBody.initClassRef(clazz)
 				}
 
-				val commaArgs = args.map { it.gen() }.joinToString(", ")
+				val commaArgs = args.map { it.genExpr() }.joinToString(", ")
 
 				val base = when (e2) {
 					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
@@ -508,20 +496,20 @@ class GenHaxeGen(
 				//"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
-				"${e.expr.genNotNull()}.${fix(e.field).haxeName}"
+				"${e.expr.genNotNull()}.${fixField(e.field).haxeName}"
 			}
 			is AstExpr.STATIC_FIELD_ACCESS -> {
 				refs.add(e.clazzName)
-				mutableBody.initClassRef(fix(e.field).classRef)
+				mutableBody.initClassRef(fixField(e.field).classRef)
 
-				"${fix(e.field).haxeStaticText}"
+				"${fixField(e.field).haxeStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> "cast(${e.array.genNotNull()}, HaxeBaseArray).length"
-			is AstExpr.ARRAY_ACCESS -> "${e.array.genNotNull()}.get(${e.index.gen()})"
+			is AstExpr.ARRAY_ACCESS -> "${e.array.genNotNull()}.get(${e.index.genExpr()})"
 			is AstExpr.CAST -> {
 				refs.add(e.from)
 				refs.add(e.to)
-				genCast(e.expr.gen(), e.from, e.to)
+				genCast(e.expr.genExpr(), e.from, e.to)
 			}
 			is AstExpr.NEW -> {
 				refs.add(e.target)
@@ -530,7 +518,7 @@ class GenHaxeGen(
 			}
 			is AstExpr.INSTANCE_OF -> {
 				refs.add(e.checkType)
-				"Std.is(${e.expr.gen()}, ${e.checkType.haxeTypeCast})"
+				"Std.is(${e.expr.genExpr()}, ${e.checkType.haxeTypeCast})"
 			}
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)
@@ -538,13 +526,13 @@ class GenHaxeGen(
 				when (e.counts.size) {
 					1 -> {
 						if (e.type.elementType !is AstType.Primitive) {
-							"new HaxeArray(${e.counts[0].gen()}, \"$desc\")"
+							"new HaxeArray(${e.counts[0].genExpr()}, \"$desc\")"
 						} else {
-							"new ${e.type.haxeTypeNew}(${e.counts[0].gen()})"
+							"new ${e.type.haxeTypeNew}(${e.counts[0].genExpr()})"
 						}
 					}
 					else -> {
-						"HaxeArray.createMultiSure([${e.counts.map { it.gen() }.joinToString(", ")}], \"$desc\")"
+						"HaxeArray.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
 					}
 				}
 			}
@@ -568,7 +556,7 @@ class GenHaxeGen(
 
 						val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
 
-						line("return " + gen2(AstExpr.CAST(AstExpr.CALL_STATIC(
+						line("return " + genExpr2(AstExpr.CAST(AstExpr.CALL_STATIC(
 							methodToConvertRef.containingClassType,
 							methodToConvertRef,
 							args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
@@ -659,7 +647,7 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(jtransc.JTranscFunction::class.java.name)
 
-	fun gen2(clazz: AstClass): ClassResult {
+	fun genClass2(clazz: AstClass): ClassResult {
 		context.clazz = clazz
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
@@ -742,7 +730,7 @@ class GenHaxeGen(
 								InitMode.START_OLD -> line("__hx_static__init__();")
 							}
 							try {
-								line(features.apply(body, featureSet).gen())
+								line(features.apply(body, featureSet).genBody())
 							} catch (e:Throwable) {
 								println("WARNING:" + e.message)
 
