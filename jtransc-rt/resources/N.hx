@@ -18,7 +18,10 @@ class N {
 		//return (value != null) ? cast value : null;
 	}
 
-	static public inline function byte(v:Int):Int return (v << 24) >> 24;
-	static public inline function short(v:Int):Int return (v << 16) >> 16;
-	static public inline function char(v:Int):Int return v & 0xFFFF;
+	static public function i2z(v:Int):Bool return v != 0;
+	static public function i2b(v:Int):Int return (v << 24) >> 24;
+	static public function i2s(v:Int):Int return (v << 16) >> 16;
+	static public function i2c(v:Int):Int return v & 0xFFFF;
+
+	static public function b2i(v:Bool):Int return v ? 1 : 0;
 }

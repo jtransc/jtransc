@@ -16,6 +16,9 @@
 
 package javatest
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
 /**
  * Created by mike on 5/11/15.
  */
@@ -24,5 +27,92 @@ object KotlinCollections {
     @JvmStatic fun main(args: Array<String>) {
         println(mapOf("a" to 1, "b" to 2).map { it.key }.get(0))
         println(arrayOf(1,2,3,4,5).map { it * 2 })
+
+	    paramOrderSimple(Reader())
+
+	    for (textFieldInfo in paramOrderComplex(Reader(), 11)) {
+		    println(textFieldInfo)
+	    }
     }
+
+	@JvmStatic fun paramOrderSimple(r:Reader) {
+		println(TripleInt(r.i8(), r.i16(), PairInt(r.i32(), r.i32())))
+	}
+
+	@JvmStatic fun paramOrderComplex(r:Reader, version:Int): List<TextFieldInfo> {
+		var multiline = false
+		fun setMultiline(value: Boolean):Boolean {
+			multiline = value
+			return value
+		}
+
+		return xrange(r.i16()).map {
+			TextFieldInfo(
+				symbolId = r.i16(),
+				symbolName = r.str(),
+				initialText = r.str(),
+				rectangle = Rectangle(r.i32(), r.i32(), r.i32(), r.i32()),
+				fontName = r.str(),
+				fontSize = r.i32(),
+				textColor = r.i32(),
+				hasHtml = r.bool(),
+				isEditable = r.bool(),
+				isMultiline = setMultiline(r.bool()),
+				extended = if (version >= 11) true else false,
+				wordWrap = if (version >= 11) r.bool() else multiline,
+				leftMargin = if (version >= 11) r.f32() else 0.0,
+				rightMargin = if (version >= 11) r.f32() else 0.0,
+				indent = if (version >= 11) r.f32() else 0.0,
+				leading = if (version >= 11) r.f32() else 0.0,
+				align = r.str(),
+				autoSize = false
+			)
+		}
+	}
+}
+
+data class PairInt(val a:Int, val b:Int)
+data class TripleInt(val a:Int, val b:Int, val c:PairInt)
+
+inline fun xrange(stop: Int): IntRange = (0..(stop - 1))
+
+data class Rectangle(var x: Int, var y: Int, var width: Int, var height: Int)
+
+data class TextFieldInfo2(
+	val symbolId: Int,
+	val symbolName: String,
+	val initialText: String,
+	val rectangle: Rectangle
+)
+
+data class TextFieldInfo(
+	val symbolId: Int,
+	val symbolName: String,
+	val initialText: String,
+	val rectangle: Rectangle,
+	val fontName: String,
+	val fontSize: Int,
+	val textColor: Int,
+	val hasHtml: Boolean,
+	val isEditable: Boolean,
+	val isMultiline: Boolean,
+	val extended: Boolean,
+	val wordWrap: Boolean,
+	val leftMargin: Double,
+	val rightMargin: Double,
+	val indent: Double,
+	val leading: Double,
+	val align: String,
+	val autoSize: Boolean
+)
+
+class Reader {
+	var index = 2
+
+	fun f32(): Double = index++.toDouble()
+	fun i32(): Int = index++
+	fun i16(): Int = index++
+	fun i8(): Int = index++
+	fun bool(): Boolean = ((index++) % 2) != 0
+	fun str(): String = "" + index++
 }

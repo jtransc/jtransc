@@ -16,12 +16,16 @@
 
 package java.lang;
 
+import jtransc.JTranscSystem;
+
 public class IndexOutOfBoundsException extends RuntimeException {
 
 	public IndexOutOfBoundsException() {
+		JTranscSystem.debugger();
 	}
 
 	public IndexOutOfBoundsException(String message) {
 		super(message);
+		JTranscSystem.debugger();
 	}
 }

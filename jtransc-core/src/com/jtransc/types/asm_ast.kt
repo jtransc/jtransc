@@ -18,6 +18,7 @@ val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner
 const val DEBUG = false
 
 fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
+	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
 		println("::::::::::::: ${clazz.name}.${method.name}:${method.desc}")
@@ -25,7 +26,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	}
 
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
-	val basicBlocks = BasicBlocks(clazz, method)
+	val basicBlocks = BasicBlocks(clazz, method, DEBUG)
 	val locals = basicBlocks.locals
 	val labels = basicBlocks.labels
 
@@ -80,7 +81,8 @@ data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
 
 class BasicBlocks(
 	private val clazz: AstType.REF,
-	private val method: MethodNode
+	private val method: MethodNode,
+    private val DEBUG: Boolean
 ) {
 	val locals = Locals()
 	val labels = Labels()
@@ -88,7 +90,7 @@ class BasicBlocks(
 
 	fun queue(entry: AbstractInsnNode, input: BasicBlock.Input) {
 		if (entry in blocks) return
-		val bb = BasicBlockBuilder(clazz, method, locals, labels).call(entry, input)
+		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG).call(entry, input)
 		blocks[bb.entry] = bb
 		for (item in bb.outgoingAll) queue(item, bb.output)
 	}
@@ -201,7 +203,8 @@ private class BasicBlockBuilder(
 	val clazz: AstType.REF,
 	val method: MethodNode,
 	val locals: Locals,
-	val labels: Labels
+	val labels: Labels,
+    val DEBUG: Boolean
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -227,6 +230,7 @@ private class BasicBlockBuilder(
 		//if (false) {
 		//	stms.add(s)
 		//} else {
+		if (DEBUG) println("Preserve because stm: ${s}")
 		val stack = preserveStack()
 		stms.add(s)
 		restoreStack(stack)
@@ -263,6 +267,15 @@ private class BasicBlockBuilder(
 			return false
 		}
 	}
+
+	//fun stmSet2(local: AstExpr.LocalExpr, value: AstExpr): Boolean {
+	//	if (local != value) {
+	//		stms.add(AstStm.SET(local, fastcast(value, local.type)))
+	//		return true
+	//	} else {
+	//		return false
+	//	}
+	//}
 
 	fun handleField(i: FieldInsnNode) {
 		//val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
@@ -322,6 +335,8 @@ private class BasicBlockBuilder(
 		val last = stms.takeLast(stackPopToLocalsItemsCount)
 		for (n in 0 until stackPopToLocalsItemsCount) stms.removeAt(stms.size - 1)
 		stms.addAll(last.reversed())
+		//stms.addAll(last)
+		//if (DEBUG) println("stackPopToLocalsFixOrder")
 		stackPopToLocalsItemsCount = 0
 	}
 
@@ -340,12 +355,16 @@ private class BasicBlockBuilder(
 		}
 
 		return pairs.map { it.first }.reversed()
+		//return pairs.map { it.first }
 	}
 
 	fun handleInsn(i: InsnNode): Unit {
 		val op = i.opcode
 		when (i.opcode) {
-			Opcodes.NOP -> stmAdd(AstStm.NOP);
+			Opcodes.NOP -> {
+				//stmAdd(AstStm.NOP)
+				Unit
+			}
 			Opcodes.ACONST_NULL -> stackPush(AstExpr.LITERAL(null))
 			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush(AstExpr.LITERAL((op - Opcodes.ICONST_0).toInt()))
 			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
@@ -496,6 +515,7 @@ private class BasicBlockBuilder(
 	}
 
 	fun addJump(cond: AstExpr?, label: AstLabel) {
+		if (DEBUG) println("Preserve because jump")
 		restoreStack(preserveStack())
 		labels.ref(label)
 		stms.add(AstStm.IF_GOTO(label, cond))
@@ -614,8 +634,8 @@ private class BasicBlockBuilder(
 			val items = arrayListOf<AstExpr.LocalExpr>()
 			val preservedStack = (0 until stack.size).map { stackPop() }
 
-			if (DEBUG) println("--")
-			for ((index2, value) in preservedStack.withIndex()) {
+			if (DEBUG) println("[[")
+			for ((index2, value) in preservedStack.withIndex().reversed()) {
 				//val index = index2
 				val index = preservedStack.size - index2 - 1
 				val local = preserveStackLocal(index, value.type)
@@ -623,6 +643,8 @@ private class BasicBlockBuilder(
 				stmSet(local, value)
 				items.add(local)
 			}
+			items.reverse()
+			if (DEBUG) println("]]")
 			return items
 		}
 	}
@@ -743,6 +765,7 @@ private class BasicBlockBuilder(
 					break@loop
 				}
 				is LabelNode -> {
+					if (DEBUG) println("Preserve because label")
 					restoreStack(preserveStack())
 					next = i
 					break@loop

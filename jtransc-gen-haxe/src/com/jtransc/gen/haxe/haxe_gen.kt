@@ -50,7 +50,7 @@ class GenHaxeGen(
 	}
 
 	inline fun fixMethod(method: AstMethodRef): AstMethodRef {
-		return program[method]?.ref ?: invalidOp("Can't find method $method")
+		return program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
 	}
 
 	internal fun _write(): GenHaxe.ProgramInfo {
@@ -597,13 +597,13 @@ class GenHaxeGen(
 
 		return when (from) {
 			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				val e = if (from == AstType.BOOL) "(($e) ? 1 : 0)" else "$e"
+				val e = if (from == AstType.BOOL) "N.b2i($e)" else "$e"
 
 				when (to) {
-					is AstType.BOOL -> "(($e) != 0)"
-					is AstType.BYTE -> "N.byte($e)"
-					is AstType.CHAR -> "N.char($e)"
-					is AstType.SHORT -> "N.short($e)"
+					is AstType.BOOL -> "N.i2z($e)"
+					is AstType.BYTE -> "N.i2b($e)"
+					is AstType.CHAR -> "N.i2c($e)"
+					is AstType.SHORT -> "N.i2s($e)"
 					is AstType.INT -> "($e)"
 					is AstType.LONG -> "HaxeNatives.intToLong($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
@@ -612,10 +612,10 @@ class GenHaxeGen(
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
 				when (to) {
-					is AstType.BOOL -> "(Std.int($e) != 0)"
-					is AstType.BYTE -> "N.byte(Std.int($e))"
-					is AstType.CHAR -> "N.char(Std.int($e))"
-					is AstType.SHORT -> "N.short(Std.int($e))"
+					is AstType.BOOL -> "N.i2z(Std.int($e))"
+					is AstType.BYTE -> "N.i2b(Std.int($e))"
+					is AstType.CHAR -> "N.i2c(Std.int($e))"
+					is AstType.SHORT -> "N.i2s(Std.int($e))"
 					is AstType.INT -> "Std.int($e)"
 					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
@@ -624,10 +624,10 @@ class GenHaxeGen(
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.BOOL -> "(($e).low != 0)"
-					is AstType.BYTE -> "N.byte(($e).low)"
-					is AstType.CHAR -> "N.char(($e).low)"
-					is AstType.SHORT -> "N.short(($e).low)"
+					is AstType.BOOL -> "N.i2z(($e).low)"
+					is AstType.BYTE -> "N.i2b(($e).low)"
+					is AstType.CHAR -> "N.i2c(($e).low)"
+					is AstType.SHORT -> "N.i2s(($e).low)"
 					is AstType.INT -> "($e).low"
 					is AstType.LONG -> "($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
