@@ -28,6 +28,7 @@ import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
 import jtransc.annotation.*
 import java.io.File
+import java.io.IOException
 import java.util.*
 
 data class AstBuildSettings(
@@ -132,17 +133,25 @@ class AstProgram(
 
 	private val classesToGenerate = LinkedList<AstType.REF>()
 	private val referencedClasses = hashSetOf<AstType.REF>()
+	private val referencedClassBy = hashMapOf<AstType.REF, AstType.REF>()
 
 	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
 
-	fun getClassBytes(clazz: FqName): ByteArray = resourcesVfs[clazz.internalFqname + ".class"].readBytes()
+	fun getClassBytes(clazz: FqName): ByteArray {
+		try {
+			return resourcesVfs[clazz.internalFqname + ".class"].readBytes()
+		} catch (e: Throwable) {
+			throw IOException(e.message + " referenced by " + referencedClassBy[AstType.REF(clazz)], e)
+		}
+	}
 
 	fun readClassToGenerate(): AstType.REF = classesToGenerate.remove()
 
-	fun addReference(clazz: AstType.REF) {
+	fun addReference(clazz: AstType.REF, referencedBy: AstType.REF) {
 		if (clazz !in referencedClasses) {
 			classesToGenerate += clazz
 			referencedClasses += clazz
+			referencedClassBy[clazz] = referencedBy
 		}
 	}
 

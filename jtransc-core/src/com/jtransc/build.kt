@@ -150,7 +150,7 @@ class AllBuild(
 
 		// Preprocesses classes
 		projectContext.classNames.forEach {
-			program.addReference(AstType.REF(it))
+			program.addReference(AstType.REF(it), AstType.REF(it))
 		}
 
 		log("Processing classes...")
@@ -168,7 +168,7 @@ class AllBuild(
 					val generatedClass = generator.generateClass(program, className.name)
 
 					for (ref in References.get(generatedClass)) {
-						program.addReference(ref)
+						program.addReference(ref, className)
 					}
 				}
 
