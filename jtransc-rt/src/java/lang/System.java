@@ -16,7 +16,6 @@
 
 package java.lang;
 
-import jtransc.FastStringMap;
 import jtransc.JTranscSystem;
 import jtransc.annotation.haxe.HaxeMethodBody;
 import jtransc.io.JTranscConsolePrintStream;
@@ -43,10 +42,11 @@ public class System {
 
 	native public static void setErr(PrintStream err);
 
-	@HaxeMethodBody(
-		"#if sys return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
-			"#else return HaxeNatives.floatToLong(Date.now().getTime());\n" +
-			"#end\n"
+	@HaxeMethodBody("" +
+		"#if js return HaxeNatives.floatToLong(untyped __js__('Date.now()'));\n" +
+		"#elseif sys return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
+		"#else return HaxeNatives.floatToLong(Date.now().getTime());\n" +
+		"#end\n"
 	)
 	public static native long currentTimeMillis();
 
@@ -84,7 +84,7 @@ public class System {
 	static private void _setProperty(String key, String value) {
 		_props.put(key, value);
 	}
-	
+
 	static private Properties getProps() {
 		if (_props == null) {
 			_props = new Properties();
@@ -112,7 +112,7 @@ public class System {
 			_setProperty("java.io.tmpdir", getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp"));
 			_setProperty("user.home", getenvs(new String[]{"HOME"}, "/tmp"));
 			_setProperty("user.dir", getenvs(new String[]{"HOME"}, "/tmp"));
-			_setProperty("user.name", getenvs(new String[]{"USERNAME","USER"}, "username"));
+			_setProperty("user.name", getenvs(new String[]{"USERNAME", "USER"}, "username"));
 		}
 		return _props;
 	}
@@ -127,7 +127,7 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBody(
+	@HaxeMethodBody("" +
 		"var key = p0._str;\n" +
 		"#if sys return HaxeNatives.str(Sys.getEnv(key));\n" +
 		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));\n" +
@@ -144,7 +144,7 @@ public class System {
 		return defaultValue;
 	}
 
-	@HaxeMethodBody(
+	@HaxeMethodBody("" +
 		"#if sys return HaxeNatives.hashMap(Sys.environment());\n" +
 		"#elseif js return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));\n" +
 		"#else return HaxeNatives.hashMap({});\n" +

@@ -6,7 +6,12 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({
         "static private var __start = -1.0;",
-        "static private function __stamp() { #if sys return Sys.time() * 1000; #else return Date.now().getTime(); #end }"
+        "static private function __stamp():Int {\n" +
+			"#if js return untyped __js__('Date.now()');\n" +
+			"#elseif sys return Sys.time() * 1000;\n" +
+			"#else return Date.now().getTime();\n" +
+			"#end\n" +
+		"}"
 })
 public class JTranscSystem {
     static long start = -1;
