@@ -23,7 +23,9 @@ import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
 	"public var _internalName = '';",
-	"public var _annotations = [];"
+	"public var _annotations = [];",
+	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Field extends AccessibleObject implements Member {
 	/*
@@ -148,34 +150,34 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public byte getByte(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public char getChar(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public short getShort(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public int getInt(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public long getLong(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public float getFloat(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("var clazz = this.clazz._hxClass, obj = p0, name = this._internalName; return Reflect.field((obj != null) ? obj : clazz, name);")
+	@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	native public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native private void _setObject(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
 	//@HaxeMethodBody("Reflect.setField(p0, this._internalName, HaxeNatives.unbox(p1));")
@@ -209,28 +211,28 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setBoolean(Object obj, boolean z) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setByte(Object obj, byte b) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setChar(Object obj, char c) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setShort(Object obj, short s) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setInt(Object obj, int i) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setLong(Object obj, long l) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setFloat(Object obj, float f) throws IllegalArgumentException, IllegalAccessException;
 
-	@HaxeMethodBody("Reflect.setField(p0, this._internalName, p1);")
+	@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
 	native public void setDouble(Object obj, double d) throws IllegalArgumentException, IllegalAccessException;
 
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {

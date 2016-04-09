@@ -27,7 +27,9 @@ import java.lang.annotation.Annotation;
 @HaxeAddMembers({
 	"public var _internalName = '';",
 	"public var id = 0;",
-	"public var _annotations = [];"
+	"public var _annotations = [];",
+	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Method extends AccessibleObject implements Member, GenericDeclaration {
 	@JTranscKeep
@@ -150,8 +152,8 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	native public String toGenericString();
 
 	@HaxeMethodBody(
-		"var obj:Dynamic = (p0 != null) ? p0 : this.clazz._hxClass;\n" +
-			"return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.data.toArray());\n"
+		"var obj:Dynamic = _getObjectOrClass(p0);\n" +
+			"return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray());\n"
 	)
 	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 

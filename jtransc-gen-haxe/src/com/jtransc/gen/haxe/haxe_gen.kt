@@ -93,17 +93,6 @@ class GenHaxeGen(
 
 		fun inits() = Indenter.gen {
 			line("haxe.CallStack.callStack();")
-			when (GenHaxe.INIT_MODE) {
-				InitMode.START_OLD -> line("$mainClass.__hx_static__init__();")
-				InitMode.START -> {
-					for (clazz in calcClasses(program, program[mainClassFq])) {
-						line(clazz.name.haxeClassFqNameInt + ".__hx_static__init__();")
-					}
-				}
-				else -> {
-
-				}
-			}
 		}
 
 		val customMain = program.classes
@@ -116,6 +105,7 @@ class GenHaxeGen(
 			line("class \$entryPointSimpleName") {
 				line("static public function main()") {
 					line("\$inits")
+					line("\$mainClass.SI();")
 					line("\$mainClass.\$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
 				}
 			}
@@ -212,7 +202,7 @@ class GenHaxeGen(
 			fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 				return Indenter.gen {
 					for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
-						line("${i.name.haxeGeneratedFqName}.__hx_static__init__();")
+						line("${i.name.haxeGeneratedFqName}.SI();")
 					}
 				}
 			}
@@ -412,19 +402,53 @@ class GenHaxeGen(
 
 			val bodyContent = body.stm.genStm()
 
-			if (GenHaxe.INIT_MODE == InitMode.LAZY) {
-				for (clazzRef in mutableBody.classes) {
-					line(names.getHaxeClassStaticInit(clazzRef))
-				}
+			for (clazzRef in mutableBody.classes) {
+				line(names.getHaxeClassStaticInit(clazzRef))
 			}
 			line(bodyContent)
 		}
 	}
 
+	class Strings {
+		private var id = 0
+		private val strings = hashMapOf<String, Int>()
+		private val idsToString = hashMapOf<Int, String>()
+
+		fun getIndices(): Set<Int> {
+			return idsToString.keys
+		}
+
+		fun getStringWithId(id: Int): String {
+			return idsToString[id]!!
+		}
+
+		fun getIndex(str: String): Int {
+			if (str !in strings) {
+				strings[str] = id
+				idsToString[id] = str
+				id++
+			}
+			return strings[str]!!
+		}
+
+		fun getId(str:String):String {
+			return "__str" + getIndex(str)
+		}
+	}
+
+	private var strings = Strings()
+
 	fun genExpr2(e: AstExpr): String {
 		return when (e) {
 			is AstExpr.THIS -> "this"
-			is AstExpr.LITERAL -> names.escapeConstant(e.value)
+			is AstExpr.LITERAL -> {
+				val value = e.value
+				if (value is String) {
+					strings.getId(value)
+				} else {
+					names.escapeConstant(value)
+				}
+			}
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
 			is AstExpr.UNOP -> "(${e.op.symbol}(" + e.right.genExpr() + "))"
@@ -649,6 +673,7 @@ class GenHaxeGen(
 
 	fun genClass2(clazz: AstClass): ClassResult {
 		context.clazz = clazz
+		strings = Strings()
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
 		val isInterface = clazz.isInterface
@@ -726,9 +751,6 @@ class GenHaxeGen(
 					} else if (method.body != null) {
 						val body = method.body!!
 						line(decl) {
-							when (GenHaxe.INIT_MODE) {
-								InitMode.START_OLD -> line("__hx_static__init__();")
-							}
 							try {
 								line(features.apply(body, featureSet).genBody())
 							} catch (e:Throwable) {
@@ -745,24 +767,21 @@ class GenHaxeGen(
 		}
 
 		fun addClassInit(clazz: AstClass) = Indenter.gen {
-			when (GenHaxe.INIT_MODE) {
-				InitMode.START_OLD, InitMode.LAZY -> line("static public var __hx_static__init__initialized_ = false;");
-				else -> Unit
+			line("static public var SII = false;");
+			for (index in strings.getIndices()) {
+				val str = strings.getStringWithId(index)
+				val id = strings.getId(str)
+				line("static private var $id:java_.lang.String_;")
 			}
-			line("static public function __hx_static__init__()") {
-				when (GenHaxe.INIT_MODE) {
-					InitMode.START_OLD, InitMode.LAZY -> {
-						line("if (__hx_static__init__initialized_) return;")
-						line("__hx_static__init__initialized_ = true;")
-					}
-					else -> Unit
-				}
-				when (GenHaxe.INIT_MODE) {
-					InitMode.START_OLD -> {
-						for (clazz in clazz.classDependencies) {
-							line(clazz.name.haxeClassFqNameInt + ".__hx_static__init__();")
-						}
-					}
+
+			line("static public function SI()") {
+				line("if (SII) return;")
+				line("SII = true;")
+
+				for (index in strings.getIndices()) {
+					val str = strings.getStringWithId(index)
+					val id = strings.getId(str)
+					line("$id = ${names.escapeConstant(str)};")
 				}
 
 				if (clazz.hasStaticInit) {
@@ -794,7 +813,7 @@ class GenHaxeGen(
 				if (!isInterface) {
 					line("public function new()") {
 						line(if (isRootObject) "" else "super();")
-						if (GenHaxe.INIT_MODE == InitMode.LAZY) line("__hx_static__init__();")
+						line("SI();")
 					}
 				}
 				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()

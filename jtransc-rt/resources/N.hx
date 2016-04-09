@@ -9,6 +9,13 @@ import haxe.CallStack;
 using Lambda;
 
 class N {
+	static private var strLitCache = new Map<String, java_.lang.String_>();
+
+    static public function strLit(str:String):java_.lang.String_ {
+    	if (!strLitCache.exists(str)) strLitCache[str] = java_.lang.String_.make(str);
+        return strLitCache[str];
+    }
+
     static public function str(str:String):java_.lang.String_ {
         return (str != null) ? java_.lang.String_.make(str) : null;
     }

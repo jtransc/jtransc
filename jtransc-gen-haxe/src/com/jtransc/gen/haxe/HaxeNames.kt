@@ -112,7 +112,7 @@ class HaxeNames(val program: AstResolver) {
 	}
 
 	fun getHaxeClassStaticInit(classRef: AstType.REF): String {
-		return "${getHaxeClassFqNameInt(classRef.name)}.__hx_static__init__();"
+		return "${getHaxeClassFqNameInt(classRef.name)}.SI();"
 	}
 
 
@@ -153,7 +153,7 @@ class HaxeNames(val program: AstResolver) {
 	fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
-		is String -> "HaxeNatives.str(\"" + value.escape() + "\")"
+		is String -> "N.strLit(\"" + value.escape() + "\")"
 		is Short -> "$value"
 		is Char -> "$value"
 		is Int -> "$value"

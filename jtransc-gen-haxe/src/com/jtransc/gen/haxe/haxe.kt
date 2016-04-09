@@ -49,12 +49,6 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 	override fun getGenerator() = GenHaxe
 }
 
-enum class InitMode {
-	START,
-	START_OLD,
-	LAZY
-}
-
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
 val HaxeFeatures = setOf(SwitchesFeature)
 
@@ -76,6 +70,8 @@ val HaxeKeywords = setOf(
 
 val HaxeSpecial = setOf(
 	"N", // used for HaxeNatives
+	"SI", // STATIC INIT
+	"SII", // STATIC INIT INITIALIZED
 	"HaxeNatives", // used for HaxeNatives
 	"unix"
 )
@@ -244,7 +240,6 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 object GenHaxe : GenTarget {
 	//val copyFiles = HaxeCopyFiles
 	//val mappings = HaxeMappings()
-	val INIT_MODE = InitMode.LAZY
 
 	override val runningAvailable: Boolean = true
 
