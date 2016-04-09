@@ -92,9 +92,19 @@ public class MiscTest {
 		executionOrderTest(r, 10);
 		executionOrderTest(r, 11);
 
+		testBoolArray();
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	boolean[] test = new boolean[16];
+
+	private void testBoolArray() {
+		for (int n = 0; n < test.length; n += 2) test[n] = true;
+		for (int n = 0; n < test.length; n++) System.out.print(test[n]);
+		System.out.println();
+	}
 
 	private void executionOrderTest(Reader r, int version) {
 		System.out.println(new TextFieldInfo(

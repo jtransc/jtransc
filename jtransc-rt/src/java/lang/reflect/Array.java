@@ -22,7 +22,7 @@ public final class Array {
 	private Array() {
 	}
 
-	@HaxeMethodBody("return new HaxeBoolArray(p0);")
+	@HaxeMethodBody("return new HaxeByteArray(p0);")
 	native private static Object newBoolInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeByteArray(p0);")
@@ -113,7 +113,7 @@ public final class Array {
 	    }
     }
 
-    @HaxeMethodBody("return cast(p0, HaxeBoolArray).get(p1);")
+    @HaxeMethodBody("return cast(p0, HaxeBoolArray).getBool(p1);")
 	native public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeByteArray).get(p1);")
@@ -164,7 +164,7 @@ public final class Array {
 		}
 	}
 
-    @HaxeMethodBody("cast(p0, HaxeBoolArray).set(p1, p2);")
+    @HaxeMethodBody("cast(p0, HaxeBoolArray).setBool(p1, p2);")
 	native public static void setBoolean(Object array, int index, boolean z) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeByteArray).set(p1, p2);")
