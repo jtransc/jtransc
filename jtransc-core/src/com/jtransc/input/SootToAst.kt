@@ -69,14 +69,6 @@ class SootToAst : AstClassGenerator {
 	)
 }
 
-open class BaseProjectContext(
-	val classNames: List<String>,
-	val mainClass: String,
-	val classPaths: List<String>,
-	val output: SyncVfsFile,
-	val generator: AstClassGenerator
-)
-
 open class AstMethodProcessor private constructor(
 	private val method: SootMethod,
 	private val containingClass: AstClass

@@ -326,7 +326,11 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.SET_ARRAY -> {
-					line("${stm.array.genNotNull()}.set(${stm.index.genExpr()}, ${stm.expr.genExpr()});")
+					val set = when (stm.array.type.elementType) {
+						AstType.BOOL -> "setBool"
+						else -> "set"
+					}
+					line("${stm.array.genNotNull()}.$set(${stm.index.genExpr()}, ${stm.expr.genExpr()});")
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
@@ -529,7 +533,13 @@ class GenHaxeGen(
 				"${fixField(e.field).haxeStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> "cast(${e.array.genNotNull()}, HaxeBaseArray).length"
-			is AstExpr.ARRAY_ACCESS -> "${e.array.genNotNull()}.get(${e.index.genExpr()})"
+			is AstExpr.ARRAY_ACCESS -> {
+				val get = when (e.array.type.elementType) {
+					AstType.BOOL -> "getBool"
+					else -> "get"
+				}
+				"${e.array.genNotNull()}.$get(${e.index.genExpr()})"
+			}
 			is AstExpr.CAST -> {
 				refs.add(e.from)
 				refs.add(e.to)
