@@ -205,9 +205,11 @@ class HaxeNatives {
             HaxeDoubleArray.copy(cast(src, HaxeDoubleArray), cast(dest, HaxeDoubleArray), srcPos, destPos, length);
         } else if (Std.is(src, HaxeShortArray)) {
              HaxeShortArray.copy(cast(src, HaxeShortArray), cast(dest, HaxeShortArray), srcPos, destPos, length);
-        } else {
-            trace("arraycopy failed unsupported array type!");
-            throw "arraycopy failed unsupported array type!";
+        } else if (Std.is(src, HaxeCharArray)) {
+			HaxeCharArray.copy(cast(src, HaxeCharArray), cast(dest, HaxeCharArray), srcPos, destPos, length);
+		} else {
+            trace("arraycopy failed unsupported array type! " + src + ", " + dest);
+            throw "arraycopy failed unsupported array type! " + src + ", " + dest;
         }
     }
 

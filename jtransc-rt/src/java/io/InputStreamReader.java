@@ -17,25 +17,53 @@
 package java.io;
 
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 
 public class InputStreamReader extends Reader {
+	private InputStream in;
+	private Charset cs;
 
 	public InputStreamReader(InputStream in) {
+		this(in, Charset.forName("UTF-8"));
 	}
 
 	public InputStreamReader(InputStream in, String charsetName) throws UnsupportedEncodingException {
+		this(in, Charset.forName(charsetName));
 	}
 
-	public InputStreamReader(InputStream in, Charset charset) throws UnsupportedEncodingException {
+	public InputStreamReader(InputStream in, Charset cs) {
+		super(in);
+		this.in = in;
+		this.cs = cs;
 	}
 
-	native public String getEncoding();
+	public InputStreamReader(InputStream in, CharsetDecoder dec) {
+		super(in);
+		this.in = in;
+		this.cs = dec.charset();
+	}
 
-	native public int read() throws IOException;
+	public String getEncoding() {
+		return cs.displayName();
+	}
 
-	native public int read(char cbuf[], int offset, int length) throws IOException;
+	public int read() throws IOException {
+		return in.read(); // @TODO: Use charset!
+	}
 
-	native public boolean ready() throws IOException;
+	public int read(char cbuf[], int offset, int length) throws IOException {
+		for (int n = 0; n < length; n++) {
+			int ch = read();
+			if (ch < 0) {
+				return (n == 0) ? -1 : n;
+			}
+			cbuf[offset + n] = (char) ch;
+		}
+		return length;
+	}
 
-	native public void close() throws IOException;
+	@Override
+	public void close() throws IOException {
+		in.close();
+	}
 }
