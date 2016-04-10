@@ -45,10 +45,12 @@ import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
 	companion object {
+		//val BACKEND = BuildBackend.SOOT
 		val BACKEND = BuildBackend.ASM
 
-		//const val DEBUG = false
-		const val DEBUG = true
+		//const val DEBUG = !USE_SOOT
+		const val DEBUG = false
+		//const val DEBUG = true
 	}
 
 	init {

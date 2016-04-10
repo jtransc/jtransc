@@ -23,6 +23,8 @@ import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.build
 import com.jtransc.input.AsmToAst
 import com.jtransc.input.BaseProjectContext
+import com.jtransc.input.SootToAst
+import com.jtransc.input.SootUtils
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
@@ -47,7 +49,8 @@ fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String): GenTargetSu
 }
 
 enum class BuildBackend {
-	ASM
+	SOOT,
+	ASM,
 }
 
 class AllBuild(
@@ -120,6 +123,7 @@ class AllBuild(
 		var program = measureProcess("Generating AST") {
 			createProgramAst(
 				when (settings.backend) {
+					BuildBackend.SOOT -> SootToAst()
 					BuildBackend.ASM -> AsmToAst()
 					else -> invalidOp("Unsupported backend")
 				},
@@ -132,6 +136,7 @@ class AllBuild(
 	}
 
 	fun createProgramAst(generator: AstClassGenerator, classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile): AstProgram {
+		SootUtils.init(classPaths)
 		return generateProgram(BaseProjectContext(classNames, mainClass, classPaths, outputPath, generator))
 	}
 
@@ -153,6 +158,7 @@ class AllBuild(
 		val (elapsed) = measureTime {
 			while (program.hasClassToGenerate()) {
 				val className = program.readClassToGenerate()
+				//val clazz = projectContext.getSootClass(className.name)
 				//val nativeClassTag = clazz.clazz.getTag("libcore.NativeClass", "")
 
 				//print("Processing class: " + clazz.clazz.name + "...")

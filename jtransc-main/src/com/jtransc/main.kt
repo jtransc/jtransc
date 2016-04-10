@@ -36,6 +36,7 @@ object JTranscMain {
 		fun showDebugEnv() {
 			println("property:java.io.tmpdir: " + System.getProperty("java.io.tmpdir"))
 			println("property:user.home: " + System.getProperty("user.home"))
+			println("property:soot.class.path: " + System.getProperty("soot.class.path"))
 			println("env:TMPDIR: " + System.getenv("TMPDIR"))
 			println("env:TEMP: " + System.getenv("TEMP"))
 			println("env:TMP: " + System.getenv("TMP"))
