@@ -1,7 +1,6 @@
 package jtransc.io;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class JTranscIoTools {
 	static public byte[] readStreamFully(InputStream ios) {
@@ -21,5 +20,14 @@ public class JTranscIoTools {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	static public byte[] readFile(File file) throws IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+		try {
+			return readStreamFully(fileInputStream);
+		} finally {
+			fileInputStream.close();
+		}
 	}
 }

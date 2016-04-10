@@ -247,14 +247,14 @@ private class BasicBlockBuilder(
 
 	fun stackPop(): AstExpr {
 		if (stack.isEmpty()) {
-			println("stack is empty!")
+			println("stackPop() : stack is empty! : ${this.clazz.name}::${this.method.name}")
 		}
 		return stack.pop()
 	}
 
 	fun stackPeek(): AstExpr {
 		if (stack.isEmpty()) {
-			println("stack is empty!")
+			println("stackPeek() : stack is empty! : ${this.clazz.name}::${this.method.name}")
 		}
 		return stack.peek()
 	}
@@ -340,6 +340,10 @@ private class BasicBlockBuilder(
 		stackPopToLocalsItemsCount = 0
 	}
 
+	fun stackPopDouble(): List<AstExpr.LocalExpr> {
+		return if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+	}
+
 	fun stackPopToLocalsCount(count: Int): List<AstExpr.LocalExpr> {
 		val pairs = (0 until count).map {
 			val v = stackPop()
@@ -378,7 +382,7 @@ private class BasicBlockBuilder(
 				stackPopToLocalsFixOrder()
 			}
 			Opcodes.POP2 -> {
-				val pop = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val pop = stackPopDouble()
 				stackPopToLocalsFixOrder()
 			}
 			Opcodes.DUP -> {
@@ -400,21 +404,21 @@ private class BasicBlockBuilder(
 			}
 			Opcodes.DUP_X2 -> {
 				val chunk1 = stackPopToLocalsCount(1)
-				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk2 = stackPopDouble()
 				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk2)
 				stackPushList(chunk1)
 			}
 			Opcodes.DUP2 -> {
-				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk1 = stackPopDouble()
 				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk1)
 			}
 			Opcodes.DUP2_X1 -> {
 				//untestedWarn2("DUP2_X1")
-				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk1 = stackPopDouble()
 				val chunk2 = stackPopToLocalsCount(1)
 				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
@@ -423,8 +427,8 @@ private class BasicBlockBuilder(
 			}
 			Opcodes.DUP2_X2 -> {
 				//untestedWarn2("DUP2_X2")
-				val chunk1 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
-				val chunk2 = if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
+				val chunk1 = stackPopDouble()
+				val chunk2 = stackPopDouble()
 				stackPopToLocalsFixOrder()
 				stackPushList(chunk1)
 				stackPushList(chunk2)
