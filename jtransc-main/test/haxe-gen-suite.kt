@@ -22,6 +22,7 @@ import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
 import javatest.KotlinCollections
+import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
@@ -100,6 +101,8 @@ class HaxeGenSuiteTest {
 	@Test fun regexTests() = testClass<javatest.utils.regex.RegexTest>()
 
 	@Test fun dateTests() = testClass<DateTest>()
+
+	@Test fun atomicTest() = testClass<AtomicTest>()
 
 	@Test fun bug12Test() = testClass<JTranscBug12Test>()
 	@Test fun bug12Test2() = testClass<JTranscBug12Test2>()
