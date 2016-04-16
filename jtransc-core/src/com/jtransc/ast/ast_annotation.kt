@@ -1,5 +1,6 @@
 package com.jtransc.ast
 
+import com.jtransc.ds.stripNulls
 import com.jtransc.ds.toTypedArray2
 import kotlin.reflect.KProperty1
 
@@ -50,8 +51,24 @@ inline fun <reified T : Any> List<AstAnnotation>?.contains2(): Boolean {
 	return FqName(T::class.java.name) in this
 }
 
-operator inline fun <reified C : Annotation, T> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
-	return this?.get(C::class.java.name.fqname, field.name) as T?
+operator inline fun <reified C : Annotation, reified T : Any> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
+	val cClass = C::class.java
+	val tClass = T::class.java
+	val value = this?.get(cClass.name.fqname, field.name)
+	val valueClass = value?.javaClass
+	if (valueClass != null && valueClass != tClass) {
+		if (tClass.isArray && valueClass.isArray) {
+			if (java.lang.reflect.Array.getLength(value) == 0) {
+				return java.lang.reflect.Array.newInstance(tClass.componentType, 0) as T?
+			}
+		}
+		println("different! $valueClass, $tClass")
+	}
+	return value as T?
+}
+
+inline fun <reified C : Annotation, reified T : Any> List<AstClass>.getAnnotation(field: KProperty1<C, T>): List<T> {
+	return this.map { it.annotations.get(field) }.stripNulls()
 }
 
 inline fun <reified C : Annotation> List<AstAnnotation>?.contains(): Boolean {

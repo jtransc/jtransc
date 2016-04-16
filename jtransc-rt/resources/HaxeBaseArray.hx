@@ -30,9 +30,7 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	    return null;
 	}
 
-	public function setDynamic(index:Int, value:Dynamic) {
-		checkBounds(index);
-	}
+	public function setDynamic(index:Int, value:Dynamic) checkBounds(index);
 
     public function sort(from:Int, to:Int) {
         if (from != 0 || to != length) throw "HaxeArray.sort not implementeed for ranges";

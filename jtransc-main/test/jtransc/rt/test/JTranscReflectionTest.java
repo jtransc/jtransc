@@ -1,9 +1,6 @@
 package jtransc.rt.test;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -14,7 +11,24 @@ public class JTranscReflectionTest {
 		annotationTest();
 		fieldTest();
 		arrayTest();
+		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
+	}
+
+	static private void annotationsInConstructorTest() {
+		Annotation[][] parameterAnnotations = Test.class.getConstructors()[0].getParameterAnnotations();
+		for (Annotation[] parameterAnnotation : parameterAnnotations) {
+			System.out.println("::");
+			for (Annotation annotation : parameterAnnotation) {
+				System.out.println(":: " + annotation.toString());
+			}
+		}
+
+	}
+
+	static class Test {
+		public Test(int a, @TestAnnotation1(10) @TestAnnotation2(20) int b) {
+		}
 	}
 
 	static public void arrayTest() {
@@ -218,4 +232,14 @@ class TestDeprecatedExample {
 
 @interface TestDeprecated {
 	TestReplaceWith replaceWith();
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface TestAnnotation1 {
+	int value();
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface TestAnnotation2 {
+	int value();
 }

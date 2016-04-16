@@ -20,14 +20,14 @@ import jtransc.annotation.JTranscInvisible;
 import jtransc.annotation.JTranscKeep;
 import jtransc.annotation.haxe.HaxeAddMembers;
 import jtransc.annotation.haxe.HaxeMethodBody;
+import jtransc.annotation.haxe.HaxeRemoveField;
 
 import java.lang.annotation.Annotation;
 
 @JTranscKeep
 @HaxeAddMembers({
-	"public var _internalName = '';",
-	"public var id = 0;",
-	"public var _annotations = [];",
+	"public var id:Int;\n",
+	"public var _parameterAnnotations = [];",
 	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
@@ -57,6 +57,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	@HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 
+	@HaxeMethodBody("return HaxeArray.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
 	native public Annotation[][] getParameterAnnotations();
 
 	private Method() {
@@ -151,9 +152,9 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 
 	native public String toGenericString();
 
-	@HaxeMethodBody(
+	@HaxeMethodBody("" +
 		"var obj:Dynamic = _getObjectOrClass(p0);\n" +
-			"return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray());\n"
+		"return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray());\n"
 	)
 	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 

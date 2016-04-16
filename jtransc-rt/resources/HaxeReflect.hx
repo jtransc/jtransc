@@ -28,7 +28,7 @@ class HaxeReflect {
 		out._annotations = annotations;
 		c._fields.push(out);
 	}
-	static public function method(c:java_.lang.Class_, id:Int, internalName:String, slot:Int, name:String, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>) {
+	static public function method(c:java_.lang.Class_, id:Int, internalName:String, slot:Int, name:String, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>, parameterAnnotations:Array<Array<Dynamic>>) {
 		var out = new java_.lang.reflect.Method_();
 		out._internalName = internalName;
 		out.clazz = c;
@@ -39,9 +39,10 @@ class HaxeReflect {
 		out.slot = slot;
 		out.modifiers = modifiers;
 		out._annotations = annotations;
+		out._parameterAnnotations = parameterAnnotations;
 		c._methods.push(out);
 	}
-	static public function constructor(c:java_.lang.Class_, internalName:String, slot:Int, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>) {
+	static public function constructor(c:java_.lang.Class_, internalName:String, slot:Int, modifiers:Int, signature:String, genericDescriptor:String, annotations:Array<Dynamic>, parameterAnnotations:Array<Array<Dynamic>>) {
 		var out = new java_.lang.reflect.Constructor_();
 		out._internalName = internalName;
 		out.clazz = c;
@@ -50,6 +51,7 @@ class HaxeReflect {
 		out.signature = HaxeNatives.str(signature);
 		out.genericSignature = HaxeNatives.str(genericDescriptor);
 		out._annotations = annotations;
+		out._parameterAnnotations = parameterAnnotations;
 		c._constructors.push(out);
 	}
 }

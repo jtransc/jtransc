@@ -49,31 +49,14 @@ class HaxeByteArray extends HaxeBaseArray {
         return out;
     }
 
-    public function get(index:Int):Int {
-		checkBounds(index);
-        return (this.data[index] << 24) >> 24;
-    }
+    public function get(index:Int):Int return (this.data[checkBounds(index)] << 24) >> 24;
+    public function set(index:Int, value:Int):Void this.data[checkBounds(index)] = value;
 
-    public function set(index:Int, value:Int):Void {
-		checkBounds(index);
-        this.data[index] = value;
-    }
+	public function getBool(index:Int):Bool return get(index) != 0;
+	public function setBool(index:Int, value:Bool):Void set(index, value ? 1 : 0);
 
-	public function getBool(index:Int):Bool {
-		return get(index) != 0;
-	}
-
-	public function setBool(index:Int, value:Bool):Void {
-		set(index, value ? 1 : 0);
-	}
-
-	override public function getDynamic(index:Int):Dynamic {
-	    return get(index);
-	}
-
-	override public function setDynamic(index:Int, value:Dynamic) {
-	    set(index, value);
-	}
+	override public function getDynamic(index:Int):Dynamic return get(index);
+	override public function setDynamic(index:Int, value:Dynamic) set(index, value);
 
     public function join(separator:String) {
         var out = '';

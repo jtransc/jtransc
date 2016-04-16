@@ -16,23 +16,11 @@ class HaxeCharArray extends HaxeBaseArray {
         return out;
     }
 
-    inline public function get(index:Int):Int {
-		checkBounds(index);
-        return this.data[index];
-    }
+    inline public function get(index:Int):Int return this.data[checkBounds(index)];
+    inline public function set(index:Int, value:Int):Void this.data[checkBounds(index)] = value;
 
-    inline public function set(index:Int, value:Int):Void {
-		checkBounds(index);
-		this.data[index] = value;
-    }
-
-	override public function getDynamic(index:Int):Dynamic {
-	    return get(index);
-	}
-
-	override public function setDynamic(index:Int, value:Dynamic) {
-	    set(index, value);
-	}
+	override public function getDynamic(index:Int):Dynamic return get(index);
+	override public function setDynamic(index:Int, value:Dynamic) set(index, value);
 
     public function join(separator:String) {
         var out = '';

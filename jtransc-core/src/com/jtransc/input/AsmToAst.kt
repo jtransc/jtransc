@@ -38,6 +38,8 @@ fun ClassNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleA
 fun MethodNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
 fun FieldNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
 
+fun MethodNode.getParameterAnnotations() = (this.visibleParameterAnnotations?.toList() ?: listOf()).map { it?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) }?.filterBlackList() ?: listOf() }
+
 fun MethodNode.isStatic() = this.access hasFlag Opcodes.ACC_STATIC
 fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 	AstVisibility.PUBLIC
@@ -80,6 +82,7 @@ class AsmToAst : AstClassGenerator {
 		return AstMethod(
 			containingClass = containingClass,
 			annotations = method.getAnnotations(),
+			parameterAnnotations = method.getParameterAnnotations(),
 			name = method.name,
 			type = methodRef.type,
 			signature = methodRef.type.mangle(),

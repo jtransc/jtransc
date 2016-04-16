@@ -193,7 +193,7 @@ class AstProgram(
 
 	val allAnnotations by lazy {
 		classes.flatMap {
-			it.annotations + it.methods.flatMap { it.annotations } + it.fields.flatMap { it.annotations }
+			it.annotations + it.methods.flatMap { it.annotations + it.parameterAnnotations.flatMap { it } } + it.fields.flatMap { it.annotations }
 		}
 	}
 
@@ -506,7 +506,8 @@ class AstMethod(
 	val genericSignature: String?,
 	val defaultTag: Any?,
 	val modifiers: AstModifiers,
-	val generateBody: () -> AstBody?
+	val generateBody: () -> AstBody?,
+	val parameterAnnotations: List<List<AstAnnotation>> = listOf()
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
 	val isNative: Boolean = modifiers.isNative

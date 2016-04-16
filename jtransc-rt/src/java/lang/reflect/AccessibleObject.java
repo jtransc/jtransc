@@ -16,8 +16,17 @@
 
 package java.lang.reflect;
 
+import jtransc.annotation.JTranscKeep;
+import jtransc.annotation.haxe.HaxeAddMembers;
+import jtransc.annotation.haxe.HaxeMethodBody;
+
 import java.lang.annotation.Annotation;
 
+@JTranscKeep
+@HaxeAddMembers({
+	"public var _internalName = '';",
+	"public var _annotations = [];",
+})
 public class AccessibleObject implements AnnotatedElement {
 	public static void setAccessible(AccessibleObject[] array, boolean flag) {
 		for (AccessibleObject o : array) o.setAccessible(flag);
@@ -48,5 +57,6 @@ public class AccessibleObject implements AnnotatedElement {
 		return this.getDeclaredAnnotations(); // @TODO: Fix me!
 	}
 
+	@HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 }

@@ -10,26 +10,31 @@ class HaxeArray extends HaxeBaseArray {
         this.desc = desc;
     }
 
-    static public function fromArray(items:Array<Dynamic>, desc:String) {
+    static public function fromArray(items:Array<Dynamic>, desc:String):HaxeArray {
         var out = new HaxeArray(items.length, desc);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
-    override public function toArray():Array<Dynamic> {
-        return data.toArray();
+    static public function fromArray1(items:Array<Dynamic>, desc:String):HaxeBaseArray {
+        var out = create(items.length, desc);
+        for (n in 0 ... items.length) out.setDynamic(n, items[n]);
+        return out;
     }
 
-    public function get(index:Int):Dynamic { return this.data[checkBounds(index)]; }
-    public function set(index:Int, value:Dynamic):Void { this.data[checkBounds(index)] = value; }
+    static public function fromArray2(items:Array<Array<Dynamic>>, desc:String) {
+        var out = new HaxeArray(items.length, desc);
+        for (n in 0 ... items.length) out.set(n, fromArray1(items[n], desc.substr(1)));
+        return out;
+    }
 
-	override public function getDynamic(index:Int):Dynamic {
-	    return get(index);
-	}
+    override public function toArray():Array<Dynamic> return data.toArray();
 
-	override public function setDynamic(index:Int, value:Dynamic) {
-	    set(index, value);
-	}
+    public function get(index:Int):Dynamic return this.data[checkBounds(index)];
+    public function set(index:Int, value:Dynamic):Void this.data[checkBounds(index)] = value;
+
+	override public function getDynamic(index:Int):Dynamic return get(index);
+	override public function setDynamic(index:Int, value:Dynamic) set(index, value);
 
     public function join(separator:String) {
         var out = '';

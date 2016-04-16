@@ -199,6 +199,10 @@ class GenHaxeGen(
 				return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
 			}
 
+			fun annotationsList(annotations: List<List<AstAnnotation>>): String {
+				return "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
+			}
+
 			fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 				return Indenter.gen {
 					for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
@@ -264,11 +268,11 @@ class GenHaxeGen(
 						for ((slot, method) in clazz.methods.withIndex()) {
 							val internalName = method.haxeName
 							if (method.name == "<init>") {
-								line("HaxeReflect.constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
+								line("HaxeReflect.constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
 							} else if (method.name == "<clinit>") {
 							} else {
 								val methodId = program.getMethodId(method.ref)
-								line("HaxeReflect.method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)});");
+								line("HaxeReflect.method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
 							}
 						}
 						line("return true;")
@@ -826,7 +830,10 @@ class GenHaxeGen(
 						line("SI();")
 					}
 				}
-				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
+
+				//val nativeMembers = clazz.thisAndAncestors.getAnnotation(HaxeAddMembers::value).flatMap { it.toList() }
+				//val nativeMembers = clazz.annotations.get(HaxeAddMembers::value).flatMap { it.toList() }
+				val nativeMembers = clazz.annotations.get(HaxeAddMembers::value)?.toList() ?: listOf()
 
 				for (member in nativeMembers) line(member)
 

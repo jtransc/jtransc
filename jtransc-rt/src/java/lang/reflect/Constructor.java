@@ -23,8 +23,9 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
-	"public var _internalName = '';",
-	"public var _annotations = [];"
+	"public var _parameterAnnotations = [];",
+	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Constructor<T> extends AccessibleObject implements Member, GenericDeclaration {
 	private Class<T> clazz;
@@ -128,5 +129,6 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 		return super.getDeclaredAnnotations();
 	}
 
+	@HaxeMethodBody("return HaxeArray.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
 	native public Annotation[][] getParameterAnnotations();
 }

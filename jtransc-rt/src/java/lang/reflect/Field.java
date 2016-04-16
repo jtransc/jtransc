@@ -22,8 +22,6 @@ import jtransc.annotation.haxe.HaxeMethodBody;
 import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
-	"public var _internalName = '';",
-	"public var _annotations = [];",
 	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })

@@ -22,7 +22,8 @@ object References {
 		val signatureRefs = this.genericMethodType.getRefClasses()
 		val refs = this.body?.getClassReferences() ?: listOf()
 		val annotations = this.annotations.getClassReferences()
-		return signatureRefs + refs + annotations
+		val parameterAnnotations = this.parameterAnnotations.flatMap { it }.getClassReferences()
+		return signatureRefs + refs + annotations + parameterAnnotations
 	}
 
 	fun List<AstAnnotation>.getClassReferences(): List<AstType.REF> {
