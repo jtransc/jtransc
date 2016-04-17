@@ -61,10 +61,11 @@ object GenHaxeLime : GenTarget {
 			line("""<app swf-version="11.8" />""")
 
 			line("""<window width="${settings.initialWidth}" height="${settings.initialHeight}" background="#FFFFFF" />""")
-			line("""<window fullscreen="false" resizable="true" borderless="false" vsync="false" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="false" stencil-buffer="true" orientation="${settings.orientation.lowName}" />""")
+			line("""<window fullscreen="false" resizable="true" borderless="false" vsync="false" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="false" stencil-buffer="true" orientation="${settings.orientation.lowName}" highdpi="true" allow-high-dpi="true" />""")
 			line("""<window fullscreen="true" if="mobile" />""")
 			line("""<window fps="60" unless="js" />""")
 			line("""<window fps="0" if="js" />""")
+			line("""<window width="0" height="0" if="html5" />""")
 
 			for (flag in program.haxeExtraFlags) {
 				line("""<haxeflag name="${flag.first}" value="${flag.second}" />""")

@@ -38,7 +38,12 @@ fun ClassNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleA
 fun MethodNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
 fun FieldNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
 
-fun MethodNode.getParameterAnnotations() = (this.visibleParameterAnnotations?.toList() ?: listOf()).map { it?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) }?.filterBlackList() ?: listOf() }
+fun MethodNode.getParameterAnnotations(): List<List<AstAnnotation>> {
+	val type = AstType.demangleMethod(this.desc)
+
+	return this.visibleParameterAnnotations?.toList()?.map { it?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) }?.filterBlackList() ?: listOf() }
+		?: (0 until type.argCount).map { listOf<AstAnnotation>() }
+}
 
 fun MethodNode.isStatic() = this.access hasFlag Opcodes.ACC_STATIC
 fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {

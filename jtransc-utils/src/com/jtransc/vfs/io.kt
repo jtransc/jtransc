@@ -153,10 +153,6 @@ object RawIo {
 
 		val process = ps.start()
 
-		val bw = process.outputStream.writer()
-		bw.write("yes\n")
-		bw.flush()
-
 		val output = process.inputStream.readBytes()
 		val error = process.errorStream.readBytes()
 

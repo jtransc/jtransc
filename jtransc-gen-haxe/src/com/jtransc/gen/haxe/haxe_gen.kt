@@ -766,6 +766,10 @@ class GenHaxeGen(
 						val body = method.body!!
 						line(decl) {
 							try {
+								// @TODO: Do not hardcode this!
+								if (method.name == "throwParameterIsNullException") {
+									line("HaxeNatives.debugger();")
+								}
 								line(features.apply(body, featureSet).genBody())
 							} catch (e:Throwable) {
 								println("WARNING:" + e.message)

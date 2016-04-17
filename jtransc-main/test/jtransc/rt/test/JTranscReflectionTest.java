@@ -24,6 +24,9 @@ public class JTranscReflectionTest {
 			}
 		}
 
+		System.out.println(Test.class.getConstructors()[0].getParameterAnnotations().length);
+		System.out.println(B.class.getConstructors()[0].getParameterAnnotations().length);
+		System.out.println(C.class.getConstructors()[0].getParameterAnnotations().length);
 	}
 
 	static class Test {
@@ -152,6 +155,11 @@ class B implements I {
 
 	public B() {
 		bCount++;
+	}
+}
+
+class C extends B {
+	public C(int a, int b, int c) {
 	}
 }
 
