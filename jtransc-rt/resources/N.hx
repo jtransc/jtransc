@@ -25,26 +25,26 @@ class N {
 		//return (value != null) ? cast value : null;
 	}
 
-	inline static public function i2z(v:Int):Bool return v != 0;
-	inline static public function i2b(v:Int):Int return (v << 24) >> 24;
-	inline static public function i2s(v:Int):Int return (v << 16) >> 16;
-	inline static public function i2c(v:Int):Int return v & 0xFFFF;
+	static public function i2z(v:Int):Bool return v != 0;
+	static public function i2b(v:Int):Int return (v << 24) >> 24;
+	static public function i2s(v:Int):Int return (v << 16) >> 16;
+	static public function i2c(v:Int):Int return v & 0xFFFF;
 
-	inline static public function f2i(v:Float):Int {
+	static public function f2i(v:Float):Int {
 		#if cpp
-		return untyped __cpp__("((int)({0}))", f);
+		return untyped __cpp__("((int)({0}))", v);
 		#else
 		return Std.int(v);
 		#end
 	}
 
-	inline static public function int(v:Float):Int return f2i(v);
+	static public function int(v:Float):Int return f2i(v);
 
-	inline static public function b2i(v:Bool):Int return v ? 1 : 0;
+	static public function b2i(v:Bool):Int return v ? 1 : 0;
 
-	inline static public function idiv(a:Int, b:Int):Int {
+	static public function idiv(a:Int, b:Int):Int {
 		#if cpp
-		return untyped __cpp__("(({0})/({1}))", num, denom);
+		return untyped __cpp__("(({0})/({1}))", a, b);
 		#else
 		return Std.int(a / b);
 		#end
