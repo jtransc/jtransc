@@ -1,4 +1,46 @@
 class HaxeReflect {
+	static public var classByJavaNames = new Map<String, java_.lang.Class_ -> java_.lang.Class_>();
+	static public var haxeToJavaName = new Map<String, String>();
+	static public var javaToHaxeName = new Map<String, String>();
+
+	static private var registeredClasses = false;
+
+	static private function registerClassesOnce() {
+		if (!registeredClasses) {
+			registeredClasses = true;
+			HaxeReflectionInfo.__registerClasses();
+		}
+	}
+
+	static public function internalClassNameToName(internalClassName:String):String {
+		registerClassesOnce();
+		return haxeToJavaName[internalClassName];
+	}
+
+	static public function classNameToInternalName(className:String):String {
+		registerClassesOnce();
+		return javaToHaxeName[className];
+	}
+
+	static public function __initClass(clazz:java_.lang.Class_):Bool {
+		registerClassesOnce();
+		var className = clazz.name._str;
+		if (className.substr(0, 1) == '[') return true;
+		var clazzGen = classByJavaNames[className];
+		if (clazzGen == null) return false;
+		clazzGen(clazz);
+		return true;
+	}
+
+	static public function register(javaName:String, haxeName:String, clazzGen:java_.lang.Class_ -> java_.lang.Class_) {
+		classByJavaNames[javaName] = clazzGen;
+		haxeToJavaName[haxeName] = javaName;
+		javaToHaxeName[javaName] = haxeName;
+	}
+
+	static public function getJavaClassName(clazz:Class<Dynamic>):String {
+		return Reflect.field(clazz, 'HAXE_CLASS_NAME');
+	}
 	static public function getJavaClass(str:String) {
 		return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(str));
 	}

@@ -160,7 +160,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@JTranscKeep
-	@HaxeMethodBody("return HaxeReflectionInfo.__initClass(this);")
+	@HaxeMethodBody("return HaxeReflect.__initClass(this);")
 	native private boolean _check();
 
 	@JTranscKeep

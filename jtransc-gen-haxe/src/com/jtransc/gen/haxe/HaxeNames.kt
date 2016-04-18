@@ -6,6 +6,35 @@ import com.jtransc.error.noImpl
 import com.jtransc.error.unexpected
 import com.jtransc.text.escape
 
+
+val HaxeKeywords = setOf(
+	"java",
+	"package",
+	"import",
+	"class", "interface", "extends", "implements",
+	"internal", "private", "protected", "final",
+	"function", "var", "const",
+	"if", "else",
+	"switch", "case", "default",
+	"do", "while", "for", "each", "in",
+	"try", "catch", "finally",
+	"break", "continue",
+	"int", "uint", "void",
+	"goto"
+)
+
+val HaxeSpecial = setOf(
+	"N", // used for HaxeNatives
+	"SI", // STATIC INIT
+	"SII", // STATIC INIT INITIALIZED
+	"HAXE_CLASS_INIT", // Information about the class
+	"HAXE_CLASS_NAME", // Information about the class
+	"HaxeNatives", // used for HaxeNatives
+	"unix"
+)
+
+val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
+
 class HaxeNames(val program: AstResolver) {
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
@@ -115,6 +144,17 @@ class HaxeNames(val program: AstResolver) {
 		return "${getHaxeClassFqNameInt(classRef.name)}.SI();"
 	}
 
+	fun getHaxeClassStaticClassInit(classRef: AstType.REF): String {
+		return "${getHaxeClassFqNameInt(classRef.name)}.HAXE_CLASS_INIT"
+	}
+
+	fun getAnnotationProxyName(classRef: AstType.REF): String {
+		return "AnnotationProxy_${getHaxeGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
+	}
+
+	fun getFullAnnotationProxyName(classRef: AstType.REF): String {
+		return getHaxeClassFqName(classRef.name) + ".AnnotationProxy_${getHaxeGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
+	}
 
 	fun getHaxeType(type: AstType, typeKind: GenHaxeGen.TypeKind): FqName {
 		return FqName(when (type) {

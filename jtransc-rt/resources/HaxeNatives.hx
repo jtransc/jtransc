@@ -165,7 +165,7 @@ class HaxeNatives {
         if (haxeClass == null) trace('haxeClass == null');
         var haxeClassName = Type.getClassName(haxeClass);
         if (haxeClassName == null) trace('haxeClassName == null');
-        var javaClassName = HaxeReflectionInfo.internalClassNameToName(haxeClassName);
+        var javaClassName = HaxeReflect.internalClassNameToName(haxeClassName);
         if (javaClassName == null) trace('javaClassName == null :: $haxeClassName');
         return javaClassName;
     }

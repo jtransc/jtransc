@@ -52,32 +52,6 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
 val HaxeFeatures = setOf(SwitchesFeature)
 
-val HaxeKeywords = setOf(
-	"java",
-	"package",
-	"import",
-	"class", "interface", "extends", "implements",
-	"internal", "private", "protected", "final",
-	"function", "var", "const",
-	"if", "else",
-	"switch", "case", "default",
-	"do", "while", "for", "each", "in",
-	"try", "catch", "finally",
-	"break", "continue",
-	"int", "uint", "void",
-	"goto"
-)
-
-val HaxeSpecial = setOf(
-	"N", // used for HaxeNatives
-	"SI", // STATIC INIT
-	"SII", // STATIC INIT INITIALIZED
-	"HaxeNatives", // used for HaxeNatives
-	"unix"
-)
-
-val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
-
 enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin") {
 	JS(switch = "-js", singleFile = true, interpreter = "node", extension = "js"),
 	CPP(switch = "-cpp", singleFile = false, interpreter = null, extension = "exe"),

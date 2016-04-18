@@ -53,6 +53,10 @@ class GenHaxeGen(
 		return program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
 	}
 
+	val allAnnotationTypes = program.allAnnotations.flatMap {
+		it.getAllDescendantAnnotations()
+	}.map { it.type }.distinct().map { program[it.name] }.toSet()
+
 	internal fun _write(): GenHaxe.ProgramInfo {
 		val vfs = srcFolder
 		for (clazz in program.classes.filter { !it.isNative }) {
@@ -122,167 +126,110 @@ class GenHaxeGen(
 		))
 
 		vfs["HaxeReflectionInfo.hx"] = Indenter.genString {
-			fun AstType.REF.getAnnotationProxyName(program: AstProgram): String {
-				return "AnnotationProxy_${this.name.haxeGeneratedFqName.fqname.replace('.', '_')}"
-			}
-
-			val annotationProxyTypes = Indenter.genString {
-				val annotationTypes = program.allAnnotations.flatMap {
-					it.getAllDescendantAnnotations()
-				}.map { it.type }.distinct()
-				for (at in annotationTypes) {
-					val clazz = program[at.name]
-					//at.name
-					line("// annotation type: $at")
-					line("class ${clazz.astType.getAnnotationProxyName(program)} extends jtransc.internal_.JTranscAnnotationBase_ implements ${clazz.name.haxeClassFqName}") {
-						line("private var _data:Array<Dynamic>;")
-						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
-
-						line("public function annotationType__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
-						line("override public function getClass__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
-						for ((index, m) in clazz.methods.withIndex()) {
-							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
-						}
-					}
-				}
-			}
-
-			fun annotation(a: AstAnnotation): String {
-				fun escapeValue(it: Any?): String {
-					return when (it) {
-						null -> "null"
-						is AstAnnotation -> annotation(it)
-						is Pair<*, *> -> escapeValue(it.second)
-						is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
-						is AstFieldWithoutTypeRef -> {
-							program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
-						}
-						is String -> "HaxeNatives.boxString(${it.quote()})"
-						is Int -> "HaxeNatives.boxInt($it)"
-						is Long -> "HaxeNatives.boxLong($it)"
-						is Float -> "HaxeNatives.boxFloat($it)"
-						is Double -> "HaxeNatives.boxDouble($it)"
-						is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-						else -> {
-							throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
-						}
-					}
-				}
-				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-				val annotation = program[a.type]
-				val itStr = annotation.methods.map {
-					escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-				}.joinToString(", ")
-				return "new ${a.type.getAnnotationProxyName(program)}([$itStr])"
-			}
-
-			fun annotationInit(a: AstAnnotation): List<AstType.REF> {
-				fun escapeValue(it: Any?): List<AstType.REF> {
-					return when (it) {
-						null -> listOf()
-						is AstAnnotation -> annotationInit(it)
-						is Pair<*, *> -> escapeValue(it.second)
-						is AstFieldRef -> listOf(it.containingTypeRef)
-						is AstFieldWithoutTypeRef -> listOf(it.containingClass.ref())
-						is List<*> -> it.flatMap { escapeValue(it) }
-						else -> listOf()
-					}
-				}
-				//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-				val annotation = program[a.type]
-				return annotation.methods.flatMap {
-					escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-				}
-			}
-
-			fun annotations(annotations: List<AstAnnotation>): String {
-				return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
-			}
-
-			fun annotationsList(annotations: List<List<AstAnnotation>>): String {
-				return "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
-			}
-
-			fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
-				return Indenter.gen {
-					for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
-						line("${i.name.haxeGeneratedFqName}.SI();")
-					}
-				}
-			}
-
 			line("class HaxeReflectionInfo") {
-				val classes = program.classes.sortedBy { it.fqname }
-				val classToId = classes.withIndex().map { Pair(it.value, it.index) }.toMap()
-
-				line("static public function __initClass(c:java_.lang.Class_):Bool") {
-					line("var cn = c.name._str;")
-					line("if (cn.substr(0, 1) == '[') return true;")
-					line("if (cn == 'V' || cn == 'B' || cn == 'C' || cn == 'S' || cn == 'I' || cn == 'L' || cn == 'J') return true;")
-					line("switch (cn.length)") {
-						for (clazzGroup in program.classes.groupBy { it.fqname.length }.toList().sortedBy { it.first }) {
-							val length = clazzGroup.first
-							val classesWithLength = clazzGroup.second
-							line("case $length:")
-							indent {
-								for (clazz in classesWithLength.sortedBy { it.fqname }) {
-									val index = classToId[clazz]
-									line("if (cn == \"${clazz.fqname}\") return c$index(c);")
-								}
-							}
-						}
-					}
-					line("return false;")
-				}
-
-				line("static public function internalClassNameToName(internalClassName:String):String") {
-					line("var cn = internalClassName;")
-					line("switch (cn.length)") {
-						for (clazzGroup in program.classes.groupBy { it.name.haxeGeneratedFqName.fqname.length }.toList().sortedBy { it.first }) {
-							val length = clazzGroup.first
-							val classesWithLength = clazzGroup.second
-							line("case $length:")
-							indent {
-								for (clazz in classesWithLength.sortedBy { it.fqname }) {
-									line("if (cn == \"${clazz.name.haxeGeneratedFqName.fqname}\") return \"${clazz.fqname}\";")
-								}
-							}
-						}
-					}
-					//line("return null;")
-					line("throw 'Unknown class \$internalClassName';")
-				}
-
-				for (clazz in classes) {
-					val index = classToId[clazz]
-					line("static private function c$index(c:java_.lang.Class_):Bool") {
-						//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
-						line(annotationsInit(clazz.runtimeAnnotations))
-						val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
-						val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
-						line("HaxeReflect.info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
-						for ((slot, field) in clazz.fields.withIndex()) {
-							val internalName = field.haxeName
-							line("HaxeReflect.field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
-						}
-						for ((slot, method) in clazz.methods.withIndex()) {
-							val internalName = method.haxeName
-							if (method.name == "<init>") {
-								line("HaxeReflect.constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
-							} else if (method.name == "<clinit>") {
-							} else {
-								val methodId = program.getMethodId(method.ref)
-								line("HaxeReflect.method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
-							}
-						}
-						line("return true;")
+				line("static public function __registerClasses()") {
+					for (clazz in program.classes) {
+						line("HaxeReflect.register(${clazz.ref.fqname.quote()}, ${clazz.ref.name.haxeClassFqName.quote()}, ${names.getHaxeClassStaticClassInit(clazz.ref)});")
 					}
 				}
 			}
-			line(annotationProxyTypes)
+			//line(annotationProxyTypes)
 		}
 
 		return GenHaxe.ProgramInfo(entryPointClass, entryPointFilePath, vfs)
+	}
+
+
+	fun annotation(a: AstAnnotation): String {
+		fun escapeValue(it: Any?): String {
+			return when (it) {
+				null -> "null"
+				is AstAnnotation -> annotation(it)
+				is Pair<*, *> -> escapeValue(it.second)
+				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
+				is AstFieldWithoutTypeRef -> {
+					program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
+				}
+				is String -> "HaxeNatives.boxString(${it.quote()})"
+				is Int -> "HaxeNatives.boxInt($it)"
+				is Long -> "HaxeNatives.boxLong($it)"
+				is Float -> "HaxeNatives.boxFloat($it)"
+				is Double -> "HaxeNatives.boxDouble($it)"
+				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
+				else -> {
+					throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
+				}
+			}
+		}
+		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
+		val annotation = program[a.type]
+		val itStr = annotation.methods.map {
+			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
+		}.joinToString(", ")
+		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
+	}
+
+	fun annotationInit(a: AstAnnotation): List<AstType.REF> {
+		fun escapeValue(it: Any?): List<AstType.REF> {
+			return when (it) {
+				null -> listOf()
+				is AstAnnotation -> annotationInit(it)
+				is Pair<*, *> -> escapeValue(it.second)
+				is AstFieldRef -> listOf(it.containingTypeRef)
+				is AstFieldWithoutTypeRef -> listOf(it.containingClass.ref())
+				is List<*> -> it.flatMap { escapeValue(it) }
+				else -> listOf()
+			}
+		}
+		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
+		val annotation = program[a.type]
+		return annotation.methods.flatMap {
+			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
+		}
+	}
+
+	fun annotations(annotations: List<AstAnnotation>): String {
+		return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
+	}
+
+	fun annotationsList(annotations: List<List<AstAnnotation>>): String {
+		return "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
+	}
+
+	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
+		return Indenter.gen {
+			for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
+				line("${i.name.haxeGeneratedFqName}.SI();")
+			}
+		}
+	}
+
+	fun dumpClassInfo(clazz: AstClass) = Indenter.genString {
+		line("static public var HAXE_CLASS_NAME = ${clazz.name.fqname.quote()};")
+		line("static public function HAXE_CLASS_INIT(c:java_.lang.Class_ = null):java_.lang.Class_") {
+			line("if (c == null) c = new java_.lang.Class_();")
+			line("c.name = N.strLit(HAXE_CLASS_NAME);")
+			//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+			line(annotationsInit(clazz.runtimeAnnotations))
+			val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
+			val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
+			line("HaxeReflect.info(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+			for ((slot, field) in clazz.fields.withIndex()) {
+				val internalName = field.haxeName
+				line("HaxeReflect.field(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
+			}
+			for ((slot, method) in clazz.methods.withIndex()) {
+				val internalName = method.haxeName
+				if (method.name == "<init>") {
+					line("HaxeReflect.constructor(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
+				} else if (method.name == "<clinit>") {
+				} else {
+					val methodId = program.getMethodId(method.ref)
+					line("HaxeReflect.method(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
+				}
+			}
+			line("return c;")
+		}
 	}
 
 	fun genStm2(stm: AstStm): Indenter {
@@ -875,6 +822,7 @@ class GenHaxeGen(
 
 				if (!isInterface) {
 					line(addClassInit(clazz))
+					line(dumpClassInfo(clazz))
 				}
 			}
 
@@ -887,6 +835,22 @@ class GenHaxeGen(
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))
+					line(dumpClassInfo(clazz))
+				}
+
+
+				if (clazz in allAnnotationTypes) {
+					line("// annotation type: ${clazz.name}")
+					line("class ${names.getAnnotationProxyName(clazz.astType)} extends jtransc.internal_.JTranscAnnotationBase_ implements ${clazz.name.haxeClassFqName}") {
+						line("private var _data:Array<Dynamic>;")
+						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
+
+						line("public function annotationType__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						line("override public function getClass__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						for ((index, m) in clazz.methods.withIndex()) {
+							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
+						}
+					}
 				}
 
 				if (clazz.hasFFI) {
