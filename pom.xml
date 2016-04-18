@@ -42,7 +42,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- dependencies-->
-        <kotlin.version>1.0.1</kotlin.version>
+        <kotlin.version>1.0.1-2</kotlin.version>
         <junit.version>4.12</junit.version>
     </properties>
 

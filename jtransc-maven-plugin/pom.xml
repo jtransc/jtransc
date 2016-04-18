@@ -23,7 +23,7 @@
     <packaging>maven-plugin</packaging>
 
     <properties>
-        <kotlin.version>1.0.1</kotlin.version>
+        <kotlin.version>1.0.1-2</kotlin.version>
         <jtransc.version>0.1.5</jtransc.version>
     </properties>
 

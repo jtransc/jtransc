@@ -473,7 +473,7 @@ class GenHaxeGen(
 						else -> "($l $opSymbol $r)"
 					}
 				} else if (resultType == AstType.INT && opSymbol == "/") {
-					"Std.int($l / $r)"
+					"N.idiv($l, $r)"
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "HaxeNatives.$opName($l, $r)"

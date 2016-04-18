@@ -3,7 +3,7 @@
 
 	<properties>
 		<jtransc.version>0.1.5</jtransc.version>
-		<kotlin.version>1.0.1</kotlin.version>
+		<kotlin.version>1.0.1-2</kotlin.version>
 	</properties>
 
 	<groupId>com.jtransc</groupId>
