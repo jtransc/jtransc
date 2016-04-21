@@ -521,7 +521,6 @@ class GenHaxeGen(
 					}
 				}
 			}
-			is AstExpr.CLASS_CONSTANT -> "HaxeNatives.resolveClass(${e.classType.mangle().quote()})"
 			is AstExpr.CAUGHT_EXCEPTION -> "J__exception__"
 			is AstExpr.METHOD_CLASS -> {
 				val methodInInterfaceRef = e.methodInInterfaceRef

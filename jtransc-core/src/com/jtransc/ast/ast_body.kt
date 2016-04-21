@@ -145,10 +145,10 @@ interface AstExpr : AstElement {
 		val value: Any?
 	}
 
-	data class CLASS_CONSTANT(val classType: AstType) : AstExpr, LiteralExpr {
-		override val value = classType
-		override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
-	}
+	//data class CLASS_CONSTANT(val classType: AstType) : AstExpr, LiteralExpr {
+	//	override val value = classType
+	//	override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
+	//}
 
 	data class METHODTYPE_CONSTANT(val methodType: AstType.METHOD) : AstExpr, LiteralExpr {
 		override val value = methodType

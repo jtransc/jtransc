@@ -64,9 +64,6 @@ object AstDependencyAnalyzer {
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
 				}
-				is AstExpr.CLASS_CONSTANT -> {
-					types.addAll(expr.type.getRefTypesFqName())
-				}
 				is AstExpr.INSTANCE_FIELD_ACCESS -> {
 					ana(expr.expr)
 					fields.add(expr.field)
@@ -75,7 +72,12 @@ object AstDependencyAnalyzer {
 				is AstExpr.INSTANCE_OF -> ana(expr.checkType)
 				is AstExpr.UNOP -> ana(expr.right)
 				is AstExpr.THIS -> ana(expr.type)
-				is AstExpr.LITERAL -> Unit
+				is AstExpr.LITERAL -> {
+					if (expr.value is AstType) {
+						types.addAll(expr.value.getRefTypesFqName())
+					}
+
+				}
 				is AstExpr.LOCAL -> Unit
 				is AstExpr.PARAM -> ana(expr.type)
 				is AstExpr.METHOD_CLASS -> {

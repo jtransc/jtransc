@@ -45,7 +45,7 @@ open class AstVisitor {
 		when (expr) {
 			null -> Unit
 			is AstExpr.THIS -> visit(expr)
-			is AstExpr.CLASS_CONSTANT -> visit(expr)
+			//is AstExpr.CLASS_CONSTANT -> visit(expr)
 			is AstExpr.LITERAL -> visit(expr)
 			is AstExpr.LOCAL -> visit(expr)
 			is AstExpr.PARAM -> visit(expr)
@@ -214,11 +214,10 @@ open class AstVisitor {
 		visit(expr.ref)
 	}
 
-	open fun visit(expr: AstExpr.CLASS_CONSTANT) {
-		visit(expr.classType)
-	}
-
 	open fun visit(expr: AstExpr.LITERAL) {
+		if (expr.value is AstType) {
+			visit(expr.value)
+		}
 	}
 
 	open fun visit(expr: AstExpr.LOCAL) {

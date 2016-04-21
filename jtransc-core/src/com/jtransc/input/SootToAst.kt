@@ -210,7 +210,7 @@ open class AstMethodProcessor private constructor(
 		is FloatConstant -> AstExpr.LITERAL(c.value)
 		is DoubleConstant -> AstExpr.LITERAL(c.value)
 		is StringConstant -> AstExpr.LITERAL(c.value)
-		is ClassConstant -> AstExpr.CLASS_CONSTANT(AstType.REF_INT(c.value))
+		is ClassConstant -> AstExpr.LITERAL(AstType.REF_INT(c.value))
 		is SootMethodType -> AstExpr.METHODTYPE_CONSTANT(c.astType)
 		is SootMethodRef -> AstExpr.METHODREF_CONSTANT(c.ast)
 		is SootMethodHandle -> AstExpr.METHODHANDLE_CONSTANT(c.ast)

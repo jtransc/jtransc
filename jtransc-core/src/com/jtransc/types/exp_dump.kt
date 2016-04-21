@@ -72,6 +72,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
+		is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }

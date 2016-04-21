@@ -166,6 +166,8 @@ interface AstType {
 			is Float -> FLOAT
 			is Double -> DOUBLE
 			is String -> STRING
+			is AstType.ARRAY -> CLASS
+			is AstType.REF -> CLASS
 			else -> invalidOp("Literal type: ${value.javaClass} : $value")
 		}
 	}

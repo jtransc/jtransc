@@ -26,9 +26,32 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	}
 
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
+
+	val referencedLabels = hashSetOf<LabelNode>()
+	for (i in method.instructions) {
+		when (i) {
+			is JumpInsnNode -> referencedLabels += i.label
+			is LookupSwitchInsnNode -> {
+				referencedLabels.add(i.dflt)
+				referencedLabels.addAll(i.labels.cast<LabelNode>())
+			}
+			is TableSwitchInsnNode -> {
+				referencedLabels.add(i.dflt)
+				referencedLabels.addAll(i.labels.cast<LabelNode>())
+			}
+		}
+	}
+
+	for (i in tryCatchBlocks) {
+		referencedLabels += i.handler
+		referencedLabels += i.start
+		referencedLabels += i.end
+	}
+
 	val basicBlocks = BasicBlocks(clazz, method, DEBUG)
 	val locals = basicBlocks.locals
 	val labels = basicBlocks.labels
+	labels.referencedLabelsAsm = referencedLabels
 
 	for (b in tryCatchBlocks) {
 		labels.ref(labels.label(b.start))
@@ -51,8 +74,16 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 		basicBlocks.getBasicBlockForLabel(it)?.stms ?: listOf()
 	}
 
+	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
+
+	for (local in locals.locals.values) {
+		if (local.writes.size == 1) {
+			//println("Written once! $local")
+		}
+	}
+
 	return AstBody(
-		AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels)),
+		optimizedStms,
 		locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(
@@ -142,13 +173,22 @@ data class BasicBlock(
 }
 
 class Labels {
-	val labels = hashMapOf<LabelNode, AstLabel>()
+	val labels = hashMapOf<AbstractInsnNode, AstLabel>()
 	val referencedLabels = hashSetOf<AstLabel>()
 	val referencedHandlers = hashSetOf<LabelNode>()
+	lateinit var referencedLabelsAsm: HashSet<LabelNode>
+	var labelId = 0
 
-	fun label(label: LabelNode): AstLabel {
-		if (label !in labels) labels[label] = AstLabel("label_${label.label}")
+	fun label(label: AbstractInsnNode): AstLabel {
+		if (label !in labels) {
+			labels[label] = AstLabel("label_$labelId")
+			labelId++
+		}
 		return labels[label]!!
+	}
+
+	fun ref(label: AbstractInsnNode): AstLabel {
+		return ref(label(label))
 	}
 
 	fun ref(label: AstLabel): AstLabel {
@@ -533,7 +573,7 @@ private class BasicBlockBuilder(
 		val cst = i.cst
 		when (cst) {
 			is Int, is Float, is Long, is Double, is String -> stackPush(AstExpr.LITERAL(cst))
-			is Type -> stackPush(AstExpr.CLASS_CONSTANT(AstType.REF_INT(cst.internalName)))
+			is Type -> stackPush(AstExpr.LITERAL(AstType.REF_INT(cst.internalName)))
 			else -> invalidOp
 		}
 	}
@@ -724,14 +764,17 @@ private class BasicBlockBuilder(
 					when (op) {
 						in Opcodes.IFEQ..Opcodes.IFLE -> {
 							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0)), labels.label(i.label))
+							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
 							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), labels.label(i.label))
+							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 							val r = stackPop()
 							val l = stackPop()
 							addJump(AstExprUtils.BINOP(AstType.BOOL, l, CTYPES[op - Opcodes.IF_ICMPEQ], r), labels.label(i.label))
+							//addJump(null, labels.label(i.next))
 						}
 						Opcodes.GOTO -> addJump(null, labels.label(i.label))
 						Opcodes.JSR -> deprecated
@@ -770,10 +813,12 @@ private class BasicBlockBuilder(
 					break@loop
 				}
 				is LabelNode -> {
-					if (DEBUG) println("Preserve because label")
-					restoreStack(preserveStack())
-					next = i
-					break@loop
+					if (i in labels.referencedLabelsAsm) {
+						if (DEBUG) println("Preserve because label")
+						restoreStack(preserveStack())
+						next = i
+						break@loop
+					}
 				}
 				is FrameNode -> Unit
 				is LdcInsnNode -> handleLdc(i)
