@@ -58,7 +58,11 @@ data class AstLabel(val name: String) {
 
 interface AstElement
 
-open class AstStm() : AstElement {
+interface Cloneable<T> {
+	fun clone(): T
+}
+
+open class AstStm() : AstElement, Cloneable<AstStm> {
 	class Box(_value: AstStm) {
 		var value: AstStm = _value
 			get() = field
@@ -74,6 +78,8 @@ open class AstStm() : AstElement {
 	}
 
 	var box: AstStm.Box = AstStm.Box(this)
+
+	override fun clone(): AstStm = noImpl("AstStm.clone: $this")
 
 	class STMS(stms: List<AstStm>) : AstStm() {
 		constructor(vararg stms: AstStm) : this(stms.toList())
@@ -174,8 +180,8 @@ open class AstStm() : AstElement {
 
 	}
 
-	class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm() {
-
+	class SWITCH_GOTO(subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm() {
+		val subject = subject.box
 	}
 
 	class IF_GOTO(val label: AstLabel, cond: AstExpr) : AstStm() {
@@ -200,7 +206,7 @@ open class AstStm() : AstElement {
 	//}
 }
 
-abstract class AstExpr : AstElement {
+abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class Box(_value: AstExpr) {
 		var value: AstExpr = _value
 			get() = field
@@ -220,6 +226,8 @@ abstract class AstExpr : AstElement {
 
 	abstract val type: AstType
 
+	override fun clone(): AstExpr = noImpl("AstExpr.clone: $this")
+
 	abstract class ImmutableRef : AstExpr()
 	abstract class LValueExpr : AstExpr() {
 	}
@@ -233,27 +241,29 @@ abstract class AstExpr : AstElement {
 	class THIS(val ref: FqName) : LocalExpr() {
 		override val name: String get() = "this"
 		override val type: AstType = AstType.REF(ref)
+
+		override fun clone(): AstExpr.THIS = THIS(ref)
 	}
 
 	class LOCAL(val local: AstLocal) : LocalExpr() {
 		override val name: String get() = local.name
 		override val type = local.type
+
+		override fun clone(): AstExpr.LOCAL = LOCAL(local)
 	}
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
 		override val type = argument.type
+
+		override fun clone(): AstExpr.PARAM = PARAM(argument)
 	}
 
 	abstract class LiteralExpr : AstExpr() {
 		abstract val value: Any?
 	}
 
-	//data class CLASS_CONSTANT(val classType: AstType) : AstExpr, LiteralExpr {
-	//	override val value = classType
-	//	override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
-	//}
-
+	/*
 	class METHODTYPE_CONSTANT(val methodType: AstType.METHOD) : LiteralExpr() {
 		override val value = methodType
 		override val type: AstType = methodType
@@ -268,51 +278,73 @@ abstract class AstExpr : AstElement {
 		override val value = methodHandle
 		override val type: AstType = AstType.UNKNOWN
 	}
+	*/
 
 	class LITERAL(override val value: Any?) : LiteralExpr() {
 		override val type = AstType.fromConstant(value)
 	}
 
-	class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr()
-	class BINOP(override val type: AstType, val left: AstExpr, val op: AstBinop, val right: AstExpr) : AstExpr()
+	class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr() {
 
-	class UNOP(val op: AstUnop, val right: AstExpr) : AstExpr() {
+	}
+
+	class BINOP(override val type: AstType, left: AstExpr, val op: AstBinop, right: AstExpr) : AstExpr() {
+		val left = left.box
+		val right = right.box
+	}
+
+	class UNOP(val op: AstUnop, right: AstExpr) : AstExpr() {
+		val right = right.box
 		override val type = right.type
 	}
 
 	abstract class CALL_BASE : AstExpr() {
 		//override val type = method.type.ret
 		abstract val method: AstMethodRef
-		abstract val args: List<AstExpr>
+		abstract val args: List<AstExpr.Box>
 		abstract val isSpecial: Boolean
 	}
 
-	class CALL_INSTANCE(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+		val obj = obj.box
+		override val args = args.map { it.box }
+
 		override val type = method.type.ret
 	}
 
-	class CALL_SPECIAL(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+	class CALL_SPECIAL(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+		val obj = obj.box
+		override val args = args.map { it.box }
+
 		override val type = method.type.ret
 	}
 
-	class CALL_SUPER(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+	class CALL_SUPER(obj: AstExpr, val target: FqName, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+		val obj = obj.box
+		override val args = args.map { it.box }
+
 		override val type = method.type.ret
 	}
 
-	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+		override val args = args.map { it.box }
 		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
 	}
 
-	class ARRAY_LENGTH(val array: AstExpr) : AstExpr() {
+	class ARRAY_LENGTH(array: AstExpr) : AstExpr() {
+		val array = array.box
 		override val type = AstType.INT
 	}
 
-	class ARRAY_ACCESS(val array: AstExpr, val index: AstExpr) : LValueExpr() {
+	class ARRAY_ACCESS(array: AstExpr, index: AstExpr) : LValueExpr() {
+		val array = array.box
+		val index = index.box
 		override val type = array.type.elementType
 	}
 
-	class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, val expr: AstExpr) : LValueExpr() {
+	class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, expr: AstExpr) : LValueExpr() {
+		val expr = expr.box
 		override val type: AstType = field.type
 	}
 
@@ -321,25 +353,32 @@ abstract class AstExpr : AstElement {
 		override val type: AstType = field.type
 	}
 
-	class INSTANCE_OF(val expr: AstExpr, val checkType: AstType) : AstExpr() {
+	class INSTANCE_OF(expr: AstExpr, val checkType: AstType) : AstExpr() {
+		val expr = expr.box
+
 		override val type = AstType.BOOL
 	}
 
-	class CAST(val expr: AstExpr, val to: AstType) : AstExpr() {
+	class CAST(expr: AstExpr, val to: AstType) : AstExpr() {
+		val expr = expr.box
 		val from: AstType get() = expr.type
 
 		override val type = to
+
+		override fun clone(): AstExpr = CAST(expr.value.clone(), to)
 	}
 
 	class NEW(val target: AstType.REF) : AstExpr() {
 		override val type = target
 	}
 
-	class NEW_WITH_CONSTRUCTOR(val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstExpr() {
+	class NEW_WITH_CONSTRUCTOR(val target: AstType.REF, val method: AstMethodRef, args: List<AstExpr>) : AstExpr() {
+		val args = args.map { it.box }
 		override val type = target
 	}
 
-	class NEW_ARRAY(val arrayType: AstType.ARRAY, val counts: List<AstExpr>) : AstExpr() {
+	class NEW_ARRAY(val arrayType: AstType.ARRAY, counts: List<AstExpr>) : AstExpr() {
+		val counts = counts.map { it.box }
 		override val type = arrayType
 	}
 
@@ -460,27 +499,14 @@ object AstExprUtils {
 		// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.invokespecial
 		return if (refMethod.modifiers.isPrivate || refMethod.isInstanceInit) {
 			// Call this!
-			AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
+			AstExpr.CALL_INSTANCE(e.obj.value, e.method, e.args.map { it.value }, e.isSpecial)
 		} else {
 			// Call super!
 			if (context.method.ref != e.method) {
-				AstExpr.CALL_SUPER(e.obj, e.method.containingClass, e.method, e.args, e.isSpecial)
+				AstExpr.CALL_SUPER(e.obj.value, e.method.containingClass, e.method, e.args.map { it.value }, e.isSpecial)
 			} else {
-				AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
+				AstExpr.CALL_INSTANCE(e.obj.value, e.method, e.args.map { it.value }, e.isSpecial)
 			}
-			/*
-			val parentClass = clazz.parentClass
-			val superMethod = parentClass?.get(e.method.withoutClass)
-			if (superMethod == null) {
-				if (e.method.name == "append") {
-					println("NULL = ${e.method}")
-				}
-				//invalidOp("superMethod == null")
-				AstExpr.CALL_INSTANCE(e.obj, e.method, e.args, e.isSpecial)
-			} else {
-				AstExpr.CALL_SUPER(e.obj, superMethod.containingClass.ref.name, superMethod.ref, e.args, e.isSpecial)
-			}
-			*/
 		}
 	}
 }

@@ -26,11 +26,19 @@ import com.jtransc.io.i8
 import java.io.OutputStream
 
 class AstWriter {
+	fun writeStm(stm: AstStm.Box, s: OutputStream) {
+		writeStm(stm.value, s)
+	}
+
+	fun writeExpr(expr: AstExpr.Box, s: OutputStream) {
+		writeExpr(expr.value, s)
+	}
+
 	fun writeStm(stm: AstStm, s: OutputStream) {
 		when (stm) {
 			is AstStm.STM_EXPR -> {
 				s.i8(AstStmOp.EXPR)
-				writeExpr(stm.expr.value!!, s)
+				writeExpr(stm.expr.value, s)
 			}
 			else -> noImpl
 		}
@@ -84,8 +92,8 @@ class AstWriter {
 					AstBinop.SUB -> s.i8(AstExprOp.BIN_SUB)
 					else -> noImpl
 				}
-				writeExpr(expr.left, s)
-				writeExpr(expr.right, s)
+				writeExpr(expr.left.value, s)
+				writeExpr(expr.right.value, s)
 			}
 			else -> noImpl
 		}

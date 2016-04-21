@@ -168,6 +168,8 @@ interface AstType {
 			is String -> STRING
 			is AstType.ARRAY -> CLASS
 			is AstType.REF -> CLASS
+			is AstType.METHOD -> CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
+			is AstMethodHandle -> CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
 			else -> invalidOp("Literal type: ${value.javaClass} : $value")
 		}
 	}

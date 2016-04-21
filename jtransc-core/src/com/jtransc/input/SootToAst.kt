@@ -175,9 +175,9 @@ open class AstMethodProcessor private constructor(
 			val r_casted = cast(r, l.type)
 			when (l) {
 				is AstExpr.LocalExpr -> AstStm.SET(l, r_casted)
-				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY(l.array, l.index, r_casted)
+				is AstExpr.ARRAY_ACCESS -> AstStm.SET_ARRAY(l.array.value, l.index.value, r_casted)
 				is AstExpr.STATIC_FIELD_ACCESS -> AstStm.SET_FIELD_STATIC(l.field, r_casted)
-				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.field, l.expr, r_casted)
+				is AstExpr.INSTANCE_FIELD_ACCESS -> AstStm.SET_FIELD_INSTANCE(l.field, l.expr.value, r_casted)
 				else -> invalidOp("Can't handle leftOp: $l")
 			}
 		}
@@ -211,9 +211,9 @@ open class AstMethodProcessor private constructor(
 		is DoubleConstant -> AstExpr.LITERAL(c.value)
 		is StringConstant -> AstExpr.LITERAL(c.value)
 		is ClassConstant -> AstExpr.LITERAL(AstType.REF_INT(c.value))
-		is SootMethodType -> AstExpr.METHODTYPE_CONSTANT(c.astType)
-		is SootMethodRef -> AstExpr.METHODREF_CONSTANT(c.ast)
-		is SootMethodHandle -> AstExpr.METHODHANDLE_CONSTANT(c.ast)
+		is SootMethodType -> AstExpr.LITERAL(c.astType)
+		is SootMethodRef -> AstExpr.LITERAL(c.ast)
+		is SootMethodHandle -> AstExpr.LITERAL(c.ast)
 		is ThisRef -> AstExpr.THIS(FqName(method.declaringClass.name))
 		is ParameterRef -> AstExpr.PARAM(AstArgument(c.index, c.type.astType))
 		is CaughtExceptionRef -> AstExpr.CAUGHT_EXCEPTION(c.type.astType)

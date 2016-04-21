@@ -7,20 +7,20 @@ open class AstVisitor {
 		visit(body.stm)
 	}
 
-	open fun visitStms(stms: List<AstStm?>?) {
+	open fun visitStms(stms: List<AstStm>?) {
 		if (stms != null) for (e in stms) visit(e)
 	}
 
-	open fun visitExprs(exprs: List<AstExpr?>?) {
+	open fun visitExprs(exprs: List<AstExpr>?) {
 		if (exprs != null) for (e in exprs) visit(e)
 	}
 
-	open fun visitStmsBox(stms: List<AstStm.Box?>?) {
+	open fun visitStmsBox(stms: List<AstStm.Box>?) {
 		if (stms != null) for (e in stms) visit(e)
 	}
 
-	open fun visitExprsBox(exprs: List<AstExpr.Box?>?) {
-		if (exprs != null) for (e in exprs) visit(e)
+	open fun visitExprsBox(exprs: List<AstExpr.Box>?) {
+		if (exprs != null) for (e in exprs) visit(e.value)
 	}
 
 	open fun visit(stm: AstStm.Box?) {
@@ -70,6 +70,7 @@ open class AstVisitor {
 			is AstExpr.THIS -> visit(expr)
 			//is AstExpr.CLASS_CONSTANT -> visit(expr)
 			is AstExpr.LITERAL -> visit(expr)
+			is AstExpr.METHOD_CLASS -> visit(expr)
 			is AstExpr.LOCAL -> visit(expr)
 			is AstExpr.PARAM -> visit(expr)
 			is AstExpr.CAUGHT_EXCEPTION -> visit(expr)
@@ -261,6 +262,11 @@ open class AstVisitor {
 		}
 	}
 
+	open fun visit(expr: AstExpr.METHOD_CLASS) {
+		visit(expr.methodInInterfaceRef)
+		visit(expr.methodToConvertRef)
+	}
+
 	open fun visit(expr: AstExpr.LOCAL) {
 		visit(expr.local)
 	}
@@ -334,11 +340,11 @@ open class AstVisitor {
 	open fun visit(expr: AstExpr.NEW_WITH_CONSTRUCTOR) {
 		visit(expr.target)
 		visit(expr.type)
-		visitExprs(expr.args)
+		visitExprsBox(expr.args)
 	}
 
 	open fun visit(expr: AstExpr.NEW_ARRAY) {
 		visit(expr.arrayType)
-		visitExprs(expr.counts)
+		visitExprsBox(expr.counts)
 	}
 }

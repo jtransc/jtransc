@@ -88,7 +88,7 @@ object GotosFeature : AstFeature() {
 						} else if (s is AstStm.SWITCH_GOTO) {
 							//throw NotImplementedError("Must implement switch goto ")
 							stateStms.add(AstStm.SWITCH(
-								s.subject,
+								s.subject.value,
 								simulateGotoLabel(s.default),
 								s.cases.map {
 									Pair(it.first, simulateGotoLabel(it.second))
