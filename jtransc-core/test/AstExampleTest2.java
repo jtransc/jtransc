@@ -1,7 +1,7 @@
 public class AstExampleTest2 {
-	String test = "test";
+	byte[] test = new byte[16];
 
-	public String getDeclaringClass() {
-		return test;
+	private void testBoolArray() {
+		test[0] = 1;
 	}
 }

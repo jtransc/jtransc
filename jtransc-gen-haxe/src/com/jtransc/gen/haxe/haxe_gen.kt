@@ -501,7 +501,14 @@ class GenHaxeGen(
 
 				"${fixField(e.field).haxeStaticText}"
 			}
-			is AstExpr.ARRAY_LENGTH -> "cast(${e.array.genNotNull()}, HaxeBaseArray).length"
+			is AstExpr.ARRAY_LENGTH -> {
+				val type = e.array.type
+				if (type is AstType.ARRAY) {
+					"(${e.array.genNotNull()}).length"
+				} else {
+					"cast(${e.array.genNotNull()}, HaxeBaseArray).length"
+				}
+			}
 			is AstExpr.ARRAY_ACCESS -> {
 				val get = when (e.array.type.elementType) {
 					AstType.BOOL -> "getBool"

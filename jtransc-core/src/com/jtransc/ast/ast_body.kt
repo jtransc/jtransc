@@ -98,7 +98,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val expr = expr.box
 	}
 
-	class SET(val local: AstExpr.LocalExpr, expr: AstExpr) : AstStm() {
+	class SET(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
 		val expr = expr.box
 	}
 
