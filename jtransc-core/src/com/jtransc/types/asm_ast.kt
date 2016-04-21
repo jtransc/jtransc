@@ -75,37 +75,8 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 		basicBlocks.getBasicBlockForLabel(it)?.stms ?: listOf()
 	}
 
-	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
-
-	val localsToRemove = arrayListOf<Locals.ID>()
-
-	// @TODO: this should be easier when having the SSA form
-	for ((localId, local) in locals.locals) {
-		if (local.writes.size == 1) {
-			val write = local.writes[0]
-			var writeExpr2 = write.expr.value
-			while (writeExpr2 is AstExpr.CAST) writeExpr2 = writeExpr2.expr.value
-			val writeExpr = writeExpr2
-			//println("Single write: $local = $writeExpr")
-			when (writeExpr) {
-				is AstExpr.PARAM, is AstExpr.THIS -> { // LITERALS!
-					for (read in local.reads) {
-						//println("  :: read: $read")
-						read.box.value = write.expr.value.clone()
-					}
-					write.box.value = AstStm.NOP()
-					local.reads.clear()
-					localsToRemove += localId
-				}
-			}
-			//println("Written once! $local")
-		}
-	}
-
-	for (id in localsToRemove) locals.locals.remove(id)
-
 	return AstBody(
-		optimizedStms,
+		AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels)),
 		locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(

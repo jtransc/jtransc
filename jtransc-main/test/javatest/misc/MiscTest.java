@@ -94,9 +94,23 @@ public class MiscTest {
 
 		testBoolArray();
 
+	    testAssignItself();
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	int a = 10;
+	static int b = 10;
+
+	@SuppressWarnings("all")
+	private void testAssignItself() {
+		this.a = 20;
+		this.a = a;
+		this.b = b;
+		System.out.println(a);
+		System.out.println(b);
+	}
 
 	boolean[] test = new boolean[16];
 

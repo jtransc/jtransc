@@ -1,6 +1,7 @@
 package com.jtransc.ast.optimize
 
 import com.jtransc.ast.*
+import com.jtransc.types.Locals
 
 //const val DEBUG = false
 //const val DEBUG = true
@@ -14,6 +15,29 @@ object AstOptimizer : AstVisitor() {
 	}
 
 	override fun visit(body: AstBody) {
+		// @TODO: this should be easier when having the SSA form
+		for (local in body.locals) {
+			if (local.writes.size == 1) {
+				val write = local.writes[0]
+				var writeExpr2 = write.expr.value
+				while (writeExpr2 is AstExpr.CAST) writeExpr2 = writeExpr2.expr.value
+				val writeExpr = writeExpr2
+				//println("Single write: $local = $writeExpr")
+				when (writeExpr) {
+					is AstExpr.PARAM, is AstExpr.THIS -> { // LITERALS!
+						for (read in local.reads) {
+							//println("  :: read: $read")
+							read.box.value = write.expr.value.clone()
+						}
+						write.box.value = AstStm.NOP()
+						local.writes.clear()
+						local.reads.clear()
+					}
+				}
+				//println("Written once! $local")
+			}
+		}
+
 		super.visit(body)
 
 		// REMOVE UNUSED VARIABLES
@@ -53,6 +77,7 @@ object AstOptimizer : AstVisitor() {
 				}
 			}
 
+			// @TODO: Still fails!
 			//if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
 			//	//val blocal = a.expr.value as AstExpr.LOCAL
 			//	val alocal = a.local.local

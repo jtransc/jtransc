@@ -307,9 +307,20 @@ class GenHaxeGen(
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
 					mutableBody.initClassRef(fixField(stm.field).classRef)
-					line("${fixField(stm.field).haxeStaticText} = ${stm.expr.genExpr()};")
+					val left = fixField(stm.field).haxeStaticText
+					val right = stm.expr.genExpr()
+					if (left != right) { // Avoid: Assigning a value to itself
+						line("$left = $right;")
+					}
 				}
-				is AstStm.SET_FIELD_INSTANCE -> line("${stm.left.genExpr()}.${fixField(stm.field).haxeName} = ${stm.expr.genExpr()};")
+				is AstStm.SET_FIELD_INSTANCE -> {
+					val left = "${stm.left.genExpr()}.${fixField(stm.field).haxeName}"
+					val right = stm.expr.genExpr()
+					if (left != right) {
+						// Avoid: Assigning a value to itself
+						line("$left = $right;")
+					}
+				}
 				is AstStm.STM_EXPR -> line("${stm.expr.genExpr()};")
 				is AstStm.STMS -> for (s in stm.stms) line(s.genStm())
 				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
