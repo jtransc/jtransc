@@ -39,80 +39,185 @@ enum class AstUnop(val symbol: String, val str: String) {
 data class AstLocal(val index: Int, val name: String, val type: AstType) {
 	override fun toString() = "AstLocal:$name:$type"
 	val writes = arrayListOf<AstStm.SET>()
-	val reads = arrayListOf<AstExpr.REF>()
+	val reads = arrayListOf<AstExpr>()
 
 	fun write(set: AstStm.SET) {
 		writes += set
 	}
 
-	fun read(ref: AstExpr.REF) {
+	fun read(ref: AstExpr) {
 		reads += ref
 	}
 }
 
 data class AstTrap(val start: AstLabel, val end: AstLabel, val handler: AstLabel, val exception: AstType.REF)
 
-data class AstLabel(val name: String)
+data class AstLabel(val name: String) {
+
+}
 
 interface AstElement
 
-class StmBox(var container: AstStm, var value: AstStm) {
-}
-
 open class AstStm() : AstElement {
-	var box: StmBox? = null
+	class Box(_value: AstStm) {
+		var value: AstStm = _value
+			get() = field
+			set(value) {
+				field.box = AstStm.Box(field)
+				field = value
+				field.box = this
+			}
 
-	class STMS(val stms: List<AstStm>) : AstStm() {
+		init {
+			_value.box = this
+		}
+	}
+
+	var box: AstStm.Box = AstStm.Box(this)
+
+	class STMS(stms: List<AstStm>) : AstStm() {
 		constructor(vararg stms: AstStm) : this(stms.toList())
+		val stms = stms.map { it.box }
 	}
 
-	class NOP() : AstStm()
+	class NOP() : AstStm() {
 
-	class LINE(val line: Int) : AstStm()
-	class STM_EXPR(val expr: AstExpr) : AstStm()
-	class SET(val local: AstExpr.LocalExpr, val expr: AstExpr) : AstStm()
-	class SET_ARRAY(val array: AstExpr, val index: AstExpr, val expr: AstExpr) : AstStm()
-	class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm() {
+	}
+
+	class LINE(val line: Int) : AstStm() {
+
+	}
+
+	class STM_EXPR(expr: AstExpr) : AstStm() {
+		val expr = expr.box
+	}
+
+	class SET(val local: AstExpr.LocalExpr, expr: AstExpr) : AstStm() {
+		val expr = expr.box
+	}
+
+	class SET_ARRAY(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
+		val array = array.box
+		val index = index.box
+		val expr = expr.box
+	}
+
+	class SET_FIELD_STATIC(val field: AstFieldRef, expr: AstExpr) : AstStm() {
 		val clazz = AstType.REF(field.classRef.fqname)
+		val expr = expr.box
 	}
 
-	class SET_FIELD_INSTANCE(val field: AstFieldRef, val left: AstExpr, val expr: AstExpr) : AstStm()
-	class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm()
+	class SET_FIELD_INSTANCE(val field: AstFieldRef, left: AstExpr, expr: AstExpr) : AstStm() {
+		val left = left.box
+		val expr = expr.box
+	}
 
-	class IF(val cond: AstExpr, val strue: AstStm, val sfalse: AstStm? = null) : AstStm()
-	class WHILE(val cond: AstExpr, val iter: AstStm) : AstStm()
-	class RETURN(val retval: AstExpr?) : AstStm()
-	class THROW(val value: AstExpr) : AstStm()
+	class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, args: List<AstExpr>) : AstStm() {
+		val args = args.map { it.box }
+	}
 
-	class RETHROW() : AstStm()
+	class IF(cond: AstExpr, strue: AstStm) : AstStm() {
+		val cond = cond.box
+		val strue = strue.box
+	}
+
+	class IF_ELSE(cond: AstExpr, strue: AstStm, sfalse: AstStm) : AstStm() {
+		val cond = cond.box
+		val strue = strue.box
+		val sfalse = sfalse.box
+	}
+
+	class WHILE(cond: AstExpr, iter: AstStm) : AstStm() {
+		val cond = cond.box
+		val iter = iter.box
+	}
+
+	class RETURN(retval: AstExpr) : AstStm() {
+		val retval = retval.box
+	}
+
+	class RETURN_VOID() : AstStm() {
+	}
+
+	class THROW(value: AstExpr) : AstStm() {
+		val value = value.box
+	}
+
+	class RETHROW() : AstStm() {
+
+	}
 
 	//data class TRY_CATCH(val trystm: AstStm, val catches: List<Pair<AstType, AstStm>>) : AstStm
-	class TRY_CATCH(val trystm: AstStm, val catch: AstStm) : AstStm()
+	class TRY_CATCH(trystm: AstStm, catch: AstStm) : AstStm() {
+		val trystm = trystm.box
+		val catch = catch.box
+	}
 
-	class BREAK() : AstStm()
-	class CONTINUE() : AstStm()
+	class BREAK() : AstStm() {
+
+	}
+
+	class CONTINUE() : AstStm() {
+
+	}
 
 	// SwitchFeature
-	class SWITCH(val subject: AstExpr, val default: AstStm, val cases: List<Pair<Int, AstStm>>) : AstStm()
+	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<Int, AstStm>>) : AstStm() {
+		val subject = subject.box
+		val default = default.box
+		val cases = cases.map { it.first to it.second.box }
+	}
 
 	// GotoFeature
 
-	class STM_LABEL(val label: AstLabel) : AstStm()
-	class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm()
+	class STM_LABEL(val label: AstLabel) : AstStm() {
 
-	class IF_GOTO(val label: AstLabel, val cond: AstExpr?) : AstStm()
+	}
 
-	class MONITOR_ENTER(val expr: AstExpr) : AstStm()
-	class MONITOR_EXIT(val expr: AstExpr) : AstStm()
+	class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm() {
 
-	class DEBUG : AstStm()
+	}
 
-	class NOT_IMPLEMENTED : AstStm()
+	class IF_GOTO(val label: AstLabel, cond: AstExpr) : AstStm() {
+		val cond = cond.box
+	}
+
+	class GOTO(val label: AstLabel) : AstStm() {
+	}
+
+	class MONITOR_ENTER(expr: AstExpr) : AstStm() {
+		val expr = expr.box
+	}
+
+	class MONITOR_EXIT(expr: AstExpr) : AstStm() {
+		val expr = expr.box
+	}
+
+	//class DEBUG() : AstStm() {
+	//}
+	//
+	//class NOT_IMPLEMENTED() : AstStm() {
+	//}
 }
 
-class ExprBox(val container: AstExpr, var value: AstExpr)
-
 abstract class AstExpr : AstElement {
+	class Box(_value: AstExpr) {
+		var value: AstExpr = _value
+			get() = field
+			set(value) {
+				field.box = AstExpr.Box(field)
+				field = value
+				field.box = this
+			}
+
+		init {
+			_value.box = this
+		}
+		val type: AstType get() = value.type
+	}
+
+	var box: AstExpr.Box = AstExpr.Box(this)
+
 	abstract val type: AstType
 
 	abstract class ImmutableRef : AstExpr()
@@ -124,14 +229,6 @@ abstract class AstExpr : AstElement {
 	}
 
 	// Reference
-	class REF(expr: AstExpr) : AstExpr() {
-		var expr = expr
-			get() = field
-			set(value) {
-				field = value
-			}
-		override val type: AstType = expr.type
-	}
 
 	class THIS(val ref: FqName) : LocalExpr() {
 		override val name: String get() = "this"
@@ -269,11 +366,11 @@ object AstStmUtils {
 }
 
 object AstExprUtils {
-	fun localRef(local: AstLocal): AstExpr.REF {
+	fun localRef(local: AstLocal): AstExpr.LOCAL {
 		val localExpr = AstExpr.LOCAL(local)
-		val refExpr = AstExpr.REF(localExpr)
-		local.read(refExpr)
-		return refExpr
+		//val refExpr = AstExpr.REF(localExpr)
+		local.read(localExpr)
+		return localExpr
 	}
 
 	fun cast(expr: AstExpr, to: AstType): AstExpr {

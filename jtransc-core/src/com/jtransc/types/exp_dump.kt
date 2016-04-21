@@ -16,9 +16,17 @@ fun dump(body: AstBody): Indenter {
 	}
 }
 
-fun dump(stm: AstStm): Indenter {
+fun dump(expr: AstStm.Box?): Indenter {
+	return dump(expr?.value)
+}
+
+
+fun dump(stm: AstStm?): Indenter {
 	return Indenter.gen {
 		when (stm) {
+			null -> {
+
+			}
 			is AstStm.STMS -> {
 				if (stm.stms.size == 1) {
 					line(dump(stm.stms.first()))
@@ -34,14 +42,10 @@ fun dump(stm: AstStm): Indenter {
 			is AstStm.SET -> line(stm.local.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_FIELD_INSTANCE -> line(dump(stm.left) + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.STM_EXPR -> line(dump(stm.expr) + ";")
-			is AstStm.IF_GOTO -> {
-				if (stm.cond != null) {
-					line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")
-				} else {
-					line("goto " + stm.label.name + ";")
-				}
-			}
+			is AstStm.IF_GOTO -> line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")
+			is AstStm.GOTO -> line("goto " + stm.label.name + ";")
 			is AstStm.RETURN -> line("return " + dump(stm.retval) + ";")
+			is AstStm.RETURN_VOID -> line("return;")
 			//is AstStm.CALL_INSTANCE -> line("call")
 			is AstStm.SET_FIELD_STATIC -> line(stm.clazz.fqname + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_ARRAY -> line(dump(stm.array) + "[" + dump(stm.index) + "] = " + dump(stm.expr) + ";")
@@ -51,6 +55,10 @@ fun dump(stm: AstStm): Indenter {
 			else -> noImpl("$stm")
 		}
 	}
+}
+
+fun dump(expr: AstExpr.Box?): String {
+	return dump(expr?.value)
 }
 
 fun dump(expr: AstExpr?): String {
@@ -72,7 +80,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
-		is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
+		//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }

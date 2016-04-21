@@ -43,7 +43,7 @@ object GotosFeature : AstFeature() {
 		fun strip(stm: AstStm): AstStm = when (stm) {
 			is AstStm.STMS -> {
 				// Without labels/gotos
-				if (!stm.stms.any { it is AstStm.STM_LABEL }) {
+				if (!stm.stms.any { it.value is AstStm.STM_LABEL }) {
 					stm
 				}
 				// With labels/gotos
@@ -67,7 +67,8 @@ object GotosFeature : AstFeature() {
 
 					fun simulateGotoLabel(label: AstLabel): AstStm = simulateGotoLabel(getStateFromLabel(label))
 
-					for (s in stms) {
+					for (ss in stms) {
+						val s = ss.value
 						if (s is AstStm.STM_LABEL) {
 							val nextIndex = getStateFromLabel(s.label)
 							val lastStm = stateStms.lastOrNull()
@@ -78,14 +79,12 @@ object GotosFeature : AstFeature() {
 							stateIndex = nextIndex
 							stateStms = arrayListOf<AstStm>()
 						} else if (s is AstStm.IF_GOTO) {
-							if (s.cond != null) {
-								stateStms.add(AstStm.IF(
-									s.cond,
-									simulateGotoLabel(s.label)
-								))
-							} else {
-								stateStms.add(simulateGotoLabel(s.label))
-							}
+							stateStms.add(AstStm.IF(
+								s.cond.value,
+								simulateGotoLabel(s.label)
+							))
+						} else if (s is AstStm.GOTO) {
+							stateStms.add(simulateGotoLabel(s.label))
 						} else if (s is AstStm.SWITCH_GOTO) {
 							//throw NotImplementedError("Must implement switch goto ")
 							stateStms.add(AstStm.SWITCH(

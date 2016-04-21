@@ -29,8 +29,26 @@ class GenHaxeGen(
 	lateinit var mutableBody: MutableBody
 	lateinit var stm: AstStm
 
-	inline fun AstStm.genStm(): Indenter = genStm2(this)
-	inline fun AstExpr.genExpr(): String = genExpr2(this)
+	fun AstStm.genStm(): Indenter = genStm2(this)
+	fun AstStm.Box.genStm(): Indenter {
+		if (this.value == null) {
+			invalidOp("stm is null")
+		}
+		return genStm2(this.value!!)
+	}
+
+	fun AstExpr.genExpr(): String = genExpr2(this)
+	fun AstExpr.Box.genExpr(): String {
+		if (this.value == null) {
+			invalidOp("expr is null")
+		}
+		return genExpr2(this.value!!)
+	}
+
+	fun AstExpr.Box.genNotNull(): String {
+		return this.value!!.genNotNull()
+	}
+
 	fun AstExpr.genNotNull(): String {
 		return if (this is AstExpr.THIS) {
 			genExpr2(this)
@@ -40,16 +58,16 @@ class GenHaxeGen(
 		}
 	}
 
-	inline fun AstBody.genBody(): Indenter = genBody2(this)
-	inline fun AstClass.genClass(): ClassResult = genClass2(this)
+	fun AstBody.genBody(): Indenter = genBody2(this)
+	fun AstClass.genClass(): ClassResult = genClass2(this)
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
-	inline fun fixField(field: AstFieldRef): AstFieldRef {
+	fun fixField(field: AstFieldRef): AstFieldRef {
 		return program[field].ref
 	}
 
-	inline fun fixMethod(method: AstMethodRef): AstMethodRef {
+	fun fixMethod(method: AstMethodRef): AstMethodRef {
 		return program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
 	}
 
@@ -241,21 +259,21 @@ class GenHaxeGen(
 			when (stm) {
 				is AstStm.NOP -> Unit
 				is AstStm.IF -> {
-					line("if (${stm.cond.genExpr()})") {
-						line(stm.strue.genStm())
-					}
-					if (stm.sfalse != null) {
-						line("else") { line(stm.sfalse!!.genStm()) }
-					}
+					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
 				}
-				is AstStm.RETURN -> {
-					if (stm.retval != null) {
-						line("return ${stm.retval!!.genExpr()};")
-					} else if (context.method.isInstanceInit) {
+				is AstStm.IF_ELSE -> {
+					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
+					line("else") { line(stm.sfalse.genStm()) }
+				}
+				is AstStm.RETURN_VOID -> {
+					if (context.method.isInstanceInit) {
 						line("return this;")
 					} else {
 						line("return;")
 					}
+				}
+				is AstStm.RETURN -> {
+					line("return ${stm.retval!!.genExpr()};")
 				}
 				is AstStm.SET -> {
 					val expr = stm.expr.genExpr()
@@ -550,7 +568,7 @@ class GenHaxeGen(
 				} + ")"
 
 			}
-			is AstExpr.REF -> genExpr2(e.expr)
+			//is AstExpr.REF -> genExpr2(e.expr)
 			else -> throw NotImplementedError("Unhandled expression $this")
 		}
 	}

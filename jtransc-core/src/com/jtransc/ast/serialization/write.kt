@@ -30,7 +30,7 @@ class AstWriter {
 		when (stm) {
 			is AstStm.STM_EXPR -> {
 				s.i8(AstStmOp.EXPR)
-				writeExpr(stm.expr, s)
+				writeExpr(stm.expr.value!!, s)
 			}
 			else -> noImpl
 		}

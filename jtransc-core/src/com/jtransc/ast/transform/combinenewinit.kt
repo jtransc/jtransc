@@ -20,6 +20,7 @@ import com.jtransc.ast.*
 import java.util.*
 
 object CombineNewInitTransform : AstTransform() {
+	/*
 	private fun transform(stms: ArrayList<AstStm>) {
 		var newToLocal = hashMapOf<AstExpr.LValueExpr, Pair<Int, AstType.REF>>()
 
@@ -27,15 +28,15 @@ object CombineNewInitTransform : AstTransform() {
 			val stm = stms[n]
 
 			// empty NEW
-			if (stm is AstStm.SET && stm.expr is AstExpr.NEW) {
+			if (stm is AstStm.SET && stm.expr.value is AstExpr.NEW) {
 				val setLocal = stm.local
-				val newExpr = stm.expr
+				val newExpr = stm.expr as AstExpr.NEW
 				newToLocal[setLocal] = Pair(n, newExpr.type)
 			}
 
 			// CALL <init> constructor method
-			if (stm is AstStm.STM_EXPR && stm.expr is AstExpr.CALL_INSTANCE) {
-				val callExpr = stm.expr
+			if (stm is AstStm.STM_EXPR && stm.expr.value is AstExpr.CALL_INSTANCE) {
+				val callExpr = stm.expr.value as AstExpr.CALL_INSTANCE
 
 				val callLocal = if (callExpr.obj is AstExpr.LOCAL) {
 					callExpr.obj
@@ -69,14 +70,18 @@ object CombineNewInitTransform : AstTransform() {
 			//println(stms.joinToString("\n"))
 		}
 	}
+	*/
 
 	override fun invoke(body: AstBody): AstBody {
+		/*
 		if (body.stm is AstStm.STMS) {
 			val stms = body.stm.stms.toCollection(arrayListOf<AstStm>())
 			transform(stms)
 			return AstBody(AstStm.STMS(stms.filter { it !is AstStm.NOP }), body.locals, body.traps)
 		}
 
+		return body
+		*/
 		return body
 	}
 }

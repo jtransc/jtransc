@@ -322,7 +322,7 @@ private class BasicBlockBuilder(
 	}
 
 	fun stmSet(local: AstLocal, value: AstExpr): Boolean {
-		if (value is AstExpr.REF && value.expr is AstExpr.LOCAL && (value.expr as AstExpr.LOCAL).local == local) return false
+		//if (value is AstExpr.REF && value.expr is AstExpr.LOCAL && (value.expr as AstExpr.LOCAL).local == local) return false
 		if (value is AstExpr.LOCAL && value.local == local) return false
 		stmAdd(AstStmUtils.set(local, value))
 		return true
@@ -580,7 +580,11 @@ private class BasicBlockBuilder(
 		if (DEBUG) println("Preserve because jump")
 		restoreStack(preserveStack())
 		labels.ref(label)
-		stms.add(AstStm.IF_GOTO(label, cond))
+		if (cond != null) {
+			stms.add(AstStm.IF_GOTO(label, cond))
+		} else {
+			stms.add(AstStm.GOTO(label))
+		}
 	}
 
 
@@ -761,7 +765,7 @@ private class BasicBlockBuilder(
 						}
 						Opcodes.RETURN -> {
 							dumpExprs()
-							stmAdd(AstStm.RETURN(null))
+							stmAdd(AstStm.RETURN_VOID())
 							next = null
 							break@loop
 						}

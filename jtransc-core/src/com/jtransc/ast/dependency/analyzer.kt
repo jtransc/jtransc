@@ -21,12 +21,19 @@ import com.jtransc.error.noImpl
 
 object AstDependencyAnalyzer {
 	@JvmStatic fun analyze(program: AstProgram, body: AstBody?): AstReferences {
+		return AstDependencyAnalyzerGen(program, body).references
+	}
+
+	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?) {
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
 		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
 		fun ana(types: List<AstType>) = types.map { ana(it) }
+
+		fun ana(expr: AstExpr.Box?) = ana(expr?.value)
+		fun ana(stm: AstStm.Box?) = ana(stm?.value)
 
 		fun ana(expr: AstExpr?) {
 			if (expr == null) return
@@ -84,7 +91,7 @@ object AstDependencyAnalyzer {
 					ana(expr.type)
 					ana(expr.methodToConvertRef.allClassRefs)
 				}
-				is AstExpr.REF -> ana(expr.expr)
+				//is AstExpr.REF -> ana(expr.expr)
 				else -> noImpl("Not implemented $expr")
 			}
 		}
@@ -94,13 +101,11 @@ object AstDependencyAnalyzer {
 			when (stm) {
 				is AstStm.STMS -> for (s in stm.stms) ana(s)
 				is AstStm.STM_EXPR -> ana(stm.expr)
-				is AstStm.CONTINUE -> {
-				}
-				is AstStm.BREAK -> {
-				}
-				is AstStm.STM_LABEL -> {
-				}
+				is AstStm.CONTINUE -> Unit
+				is AstStm.BREAK -> Unit
+				is AstStm.STM_LABEL -> Unit
 				is AstStm.IF_GOTO -> ana(stm.cond)
+				is AstStm.GOTO -> Unit
 				is AstStm.MONITOR_ENTER -> ana(stm.expr)
 				is AstStm.MONITOR_EXIT -> ana(stm.expr)
 				is AstStm.SET -> ana(stm.expr)
@@ -111,10 +116,14 @@ object AstDependencyAnalyzer {
 					fields.add(stm.field); ana(stm.left); ana(stm.expr)
 				}
 				is AstStm.SET_FIELD_STATIC -> {
-					fields.add(stm.field);  ana(stm.expr)
+					fields.add(stm.field); ana(stm.expr)
 				}
 				is AstStm.RETURN -> ana(stm.retval)
+				is AstStm.RETURN_VOID -> Unit
 				is AstStm.IF -> {
+					ana(stm.cond); ana(stm.strue);
+				}
+				is AstStm.IF_ELSE -> {
 					ana(stm.cond); ana(stm.strue); ana(stm.sfalse)
 				}
 				is AstStm.THROW -> ana(stm.value)
@@ -151,13 +160,15 @@ object AstDependencyAnalyzer {
 			}
 		}
 
-		if (body != null) {
-			for (local in body.locals) ana(local.type)
+		init {
+			if (body != null) {
+				for (local in body.locals) ana(local.type)
 
-			ana(body.stm)
+				ana(body.stm)
+			}
+
 		}
-
-		return AstReferences(
+		val references = AstReferences(
 			program = program,
 			classes = types.map { AstType.REF(it) }.toSet(),
 			fields = fields.toSet(),

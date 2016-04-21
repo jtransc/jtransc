@@ -1,5 +1,7 @@
 package com.jtransc.ast
 
+import com.jtransc.error.noImpl
+
 open class AstVisitor {
 	open fun visit(body: AstBody) {
 		visit(body.stm)
@@ -11,6 +13,22 @@ open class AstVisitor {
 
 	open fun visitExprs(exprs: List<AstExpr?>?) {
 		if (exprs != null) for (e in exprs) visit(e)
+	}
+
+	open fun visitStmsBox(stms: List<AstStm.Box?>?) {
+		if (stms != null) for (e in stms) visit(e)
+	}
+
+	open fun visitExprsBox(exprs: List<AstExpr.Box?>?) {
+		if (exprs != null) for (e in exprs) visit(e)
+	}
+
+	open fun visit(stm: AstStm.Box?) {
+		visit(stm?.value)
+	}
+
+	open fun visit(expr: AstExpr.Box?) {
+		visit(expr?.value)
 	}
 
 	open fun visit(stm: AstStm?) {
@@ -25,19 +43,24 @@ open class AstVisitor {
 			is AstStm.SET_FIELD_INSTANCE -> visit(stm)
 			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> visit(stm)
 			is AstStm.IF -> visit(stm)
+			is AstStm.IF_ELSE -> visit(stm)
 			is AstStm.WHILE -> visit(stm)
 			is AstStm.RETURN -> visit(stm)
+			is AstStm.RETURN_VOID -> visit(stm)
 			is AstStm.THROW -> visit(stm)
 			is AstStm.RETHROW  -> visit(stm)
 			is AstStm.TRY_CATCH -> visit(stm)
 			is AstStm.BREAK -> visit(stm)
 			is AstStm.CONTINUE -> visit(stm)
 			is AstStm.SWITCH -> visit(stm)
+			is AstStm.LINE -> visit(stm)
 			is AstStm.STM_LABEL -> visit(stm)
 			is AstStm.IF_GOTO -> visit(stm)
+			is AstStm.GOTO -> visit(stm)
 			is AstStm.SWITCH_GOTO -> visit(stm)
 			is AstStm.MONITOR_ENTER -> visit(stm)
 			is AstStm.MONITOR_EXIT -> visit(stm)
+			else -> noImpl("$stm")
 		}
 	}
 
@@ -62,6 +85,7 @@ open class AstVisitor {
 			is AstExpr.NEW -> visit(expr)
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> visit(expr)
 			is AstExpr.NEW_ARRAY -> visit(expr)
+			else -> noImpl("$expr")
 		}
 	}
 
@@ -73,6 +97,8 @@ open class AstVisitor {
 			is AstExpr.CALL_INSTANCE -> visit(expr)
 			is AstExpr.CALL_SUPER -> visit(expr)
 			is AstExpr.CALL_STATIC -> visit(expr)
+			is AstExpr.CALL_SPECIAL -> visit(expr)
+			else -> noImpl("$expr")
 		}
 	}
 
@@ -104,7 +130,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(stm: AstStm.STMS) {
-		visitStms(stm.stms)
+		visitStmsBox(stm.stms)
 	}
 
 	open fun visit(stm: AstStm.NOP) {
@@ -136,6 +162,11 @@ open class AstVisitor {
 	open fun visit(stm: AstStm.IF) {
 		visit(stm.cond)
 		visit(stm.strue)
+	}
+
+	open fun visit(stm: AstStm.IF_ELSE) {
+		visit(stm.cond)
+		visit(stm.strue)
 		visit(stm.sfalse)
 	}
 
@@ -146,6 +177,9 @@ open class AstVisitor {
 
 	open fun visit(stm: AstStm.RETURN) {
 		visit(stm.retval)
+	}
+
+	open fun visit(stm: AstStm.RETURN_VOID) {
 	}
 
 	open fun visit(stm: AstStm.THROW) {
@@ -177,6 +211,10 @@ open class AstVisitor {
 		visit(stm.cond)
 	}
 
+	open fun visit(stm: AstStm.GOTO) {
+		visit(stm.label)
+	}
+
 	open fun visit(stm: AstStm.SWITCH_GOTO) {
 		visit(stm.subject)
 		visit(stm.default)
@@ -197,13 +235,16 @@ open class AstVisitor {
 		visit(stm.local)
 		visit(stm.method)
 		visit(stm.target)
-		visitExprs(stm.args)
+		visitExprsBox(stm.args)
 	}
 
 	open fun visit(stm: AstStm.BREAK) {
 	}
 
 	open fun visit(stm: AstStm.CONTINUE) {
+	}
+
+	open fun visit(stm: AstStm.LINE) {
 	}
 
 	open fun visit(stm: AstStm.STM_EXPR) {
@@ -248,7 +289,10 @@ open class AstVisitor {
 
 	open fun visit(expr: AstExpr.CALL_SUPER) {
 		visit(expr.obj)
+	}
 
+	open fun visit(expr: AstExpr.CALL_SPECIAL) {
+		visit(expr.obj)
 	}
 
 	open fun visit(expr: AstExpr.CALL_STATIC) {

@@ -182,10 +182,10 @@ open class AstMethodProcessor private constructor(
 			}
 		}
 		is ReturnStmt -> AstStm.RETURN(cast(convert(s.op), method.returnType.astType))
-		is ReturnVoidStmt -> AstStm.RETURN(null)
+		is ReturnVoidStmt -> AstStm.RETURN_VOID()
 		is IfStmt -> AstStm.IF_GOTO(ensureLabel(s.target), cast(convert(s.condition), AstType.BOOL))
 		//is IfStmt -> AstStm.IF_GOTO(convert(s.condition), ensureLabel(s.target))
-		is GotoStmt -> AstStm.IF_GOTO(ensureLabel(s.target), null)
+		is GotoStmt -> AstStm.GOTO(ensureLabel(s.target))
 		is ThrowStmt -> AstStm.THROW(convert(s.op))
 		is InvokeStmt -> AstStm.STM_EXPR(convert(s.invokeExpr))
 		is EnterMonitorStmt -> AstStm.MONITOR_ENTER(convert(s.op))
