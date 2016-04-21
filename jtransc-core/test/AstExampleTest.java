@@ -24,8 +24,8 @@ class AstExampleTest {
 	static public void main(String[] args) throws IOException {
 		//System.out.println(AstExampleTest.demo());
 
-		//ClassNode clazz = readClassNode(AstExampleTest2.class);
-		ClassNode clazz = readClassNode(JTranscIoTools.readFile(new File("/Users/soywiz/Projects/jtransc/jtransc/inception/example/Example.class")));
+		ClassNode clazz = readClassNode(AstExampleTest2.class);
+		//ClassNode clazz = readClassNode(JTranscIoTools.readFile(new File("/Users/soywiz/Projects/jtransc/jtransc/inception/example/Example.class")));
 		for (Object _method : clazz.methods) {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD methodType = AstType.Companion.demangleMethod(method.desc);

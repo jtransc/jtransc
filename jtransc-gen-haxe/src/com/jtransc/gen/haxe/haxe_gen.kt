@@ -455,7 +455,7 @@ class GenHaxeGen(
 			}
 			is AstExpr.CALL_BASE -> {
 				// Determine method to call!
-				val e2 = if (e is AstExpr.CALL_SPECIAL) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e
+				val e2 = if (e.isSpecial && e is AstExpr.CALL_INSTANCE) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e
 				val method = fixMethod(e2.method)
 				val refMethod = program.get(method) ?: invalidOp("Can't find method: $method while generating $context")
 				val clazz = method.containingClassType

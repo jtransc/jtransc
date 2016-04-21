@@ -1,6 +1,7 @@
 package com.jtransc.types
 
 import com.jtransc.ast.*
+import com.jtransc.ast.optimize.optimize
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.deprecated
@@ -102,6 +103,8 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 	}
 
 	for (id in localsToRemove) locals.locals.remove(id)
+
+	optimizedStms.optimize()
 
 	return AstBody(
 		optimizedStms,
@@ -643,11 +646,8 @@ private class BasicBlockBuilder(
 					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
 				}
 				val obj = fastcast(obj, methodRef.containingClassType)
-				if (i.opcode != Opcodes.INVOKESPECIAL) {
-					stackPush(AstExpr.CALL_INSTANCE(obj, methodRef, args, isSpecial))
-				} else {
-					stackPush(AstExpr.CALL_SPECIAL(AstExprUtils.fastcast(obj, methodRef.containingClassType), methodRef, args, isSpecial = true))
-				}
+				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj else AstExprUtils.fastcast(obj, methodRef.containingClassType)
+				stackPush(AstExpr.CALL_INSTANCE(obj2, methodRef, args, isSpecial))
 			}
 			else -> invalidOp
 		}
