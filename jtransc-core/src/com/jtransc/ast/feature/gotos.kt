@@ -61,7 +61,7 @@ object GotosFeature : AstFeature() {
 					}
 
 					fun simulateGotoLabel(index: Int): AstStm = AstStm.STMS(
-						AstStm.SET(gotostate, AstExpr.LITERAL(index)),
+						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index)),
 						AstStm.CONTINUE()
 					)
 

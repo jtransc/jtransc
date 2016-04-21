@@ -108,7 +108,7 @@ object AstDependencyAnalyzer {
 				is AstStm.GOTO -> Unit
 				is AstStm.MONITOR_ENTER -> ana(stm.expr)
 				is AstStm.MONITOR_EXIT -> ana(stm.expr)
-				is AstStm.SET -> ana(stm.expr)
+				is AstStm.SET_LOCAL -> ana(stm.expr)
 				is AstStm.SET_ARRAY -> {
 					ana(stm.expr); ana(stm.index)
 				}

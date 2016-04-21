@@ -104,8 +104,6 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 
 	for (id in localsToRemove) locals.locals.remove(id)
 
-	optimizedStms.optimize()
-
 	return AstBody(
 		optimizedStms,
 		locals.locals.values.toList(),
@@ -117,7 +115,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 				exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
 			)
 		}
-	)
+	).optimize()
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {

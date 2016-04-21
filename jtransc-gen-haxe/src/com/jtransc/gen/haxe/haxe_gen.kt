@@ -273,11 +273,14 @@ class GenHaxeGen(
 					}
 				}
 				is AstStm.RETURN -> {
-					line("return ${stm.retval!!.genExpr()};")
+					line("return ${stm.retval.genExpr()};")
 				}
-				is AstStm.SET -> {
+				is AstStm.SET_LOCAL -> {
+					val localName = stm.local.haxeName
 					val expr = stm.expr.genExpr()
-					line("${stm.local.haxeName} = $expr;")
+					if (localName != expr) { // Avoid: Assigning a value to itself
+						line("$localName = $expr;")
+					}
 				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]

@@ -7,12 +7,12 @@ open class AstVisitor {
 		visit(body.stm)
 	}
 
-	open fun visitStms(stms: List<AstStm>?) {
-		if (stms != null) for (e in stms) visit(e)
+	open fun visitStms(stms: List<AstStm>) {
+		for (e in stms) visit(e)
 	}
 
-	open fun visitExprs(exprs: List<AstExpr>?) {
-		if (exprs != null) for (e in exprs) visit(e)
+	open fun visitExprs(exprs: List<AstExpr>) {
+		for (e in exprs) visit(e)
 	}
 
 	open fun visitStmsBox(stms: List<AstStm.Box>?) {
@@ -37,7 +37,7 @@ open class AstVisitor {
 			is AstStm.STMS -> visit(stm)
 			is AstStm.NOP -> visit(stm)
 			is AstStm.STM_EXPR -> visit(stm)
-			is AstStm.SET -> visit(stm)
+			is AstStm.SET_LOCAL -> visit(stm)
 			is AstStm.SET_ARRAY -> visit(stm)
 			is AstStm.SET_FIELD_STATIC -> visit(stm)
 			is AstStm.SET_FIELD_INSTANCE -> visit(stm)
@@ -137,7 +137,7 @@ open class AstVisitor {
 	open fun visit(stm: AstStm.NOP) {
 	}
 
-	open fun visit(stm: AstStm.SET) {
+	open fun visit(stm: AstStm.SET_LOCAL) {
 		visit(stm.local)
 		visit(stm.expr)
 	}

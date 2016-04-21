@@ -1,24 +1,92 @@
 package com.jtransc.ast.optimize
 
-import com.jtransc.ast.AstExpr
-import com.jtransc.ast.AstStm
-import com.jtransc.ast.AstType
-import com.jtransc.ast.AstVisitor
+import com.jtransc.ast.*
 
 //const val DEBUG = false
 //const val DEBUG = true
 
 object AstOptimizer : AstVisitor() {
-	override fun visit(stm: AstStm.SET) {
+	private var stm: AstStm? = null
+
+	override fun visit(stm: AstStm?) {
 		super.visit(stm)
+		this.stm = stm
+	}
+
+	override fun visit(body: AstBody) {
+		super.visit(body)
+
+		// REMOVE UNUSED VARIABLES
+		body.locals = body.locals.filter { it.isUsed }
+	}
+
+	override fun visit(stms: AstStm.STMS) {
+		super.visit(stms)
+
+		for (n in 1 until stms.stms.size) {
+			val abox = stms.stms[n - 1]
+			val bbox = stms.stms[n - 0]
+			val a = abox.value
+			val b = bbox.value
+			//println("${a.javaClass}")
+
+			if (a is AstStm.SET_LOCAL && b is AstStm.SET_LOCAL) {
+				val alocal = a.local.local
+				val blocal = b.local.local
+				val aexpr = a.expr.value
+				val bexpr = b.expr.value
+				if (aexpr is AstExpr.LOCAL && bexpr is AstExpr.LOCAL) {
+					//println("double set locals! $alocal = ${aexpr.local} :: ${blocal} == ${bexpr.local}")
+					if ((alocal == bexpr.local) && (aexpr.local == blocal)) {
+						//println("LOCAL[a]:" + alocal)
+
+						blocal.writes.remove(b)
+						alocal.reads.remove(bexpr)
+
+						val aold = a
+						abox.value = AstStm.NOP()
+						bbox.value = aold
+
+						//println("LOCAL[b]:" + alocal)
+						//println("double set! CROSS!")
+					}
+				}
+			}
+
+			//if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
+			//	//val blocal = a.expr.value as AstExpr.LOCAL
+			//	val alocal = a.local.local
+			//	if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
+			//		alocal.reads.first().box.value = a.expr.value
+			//		abox.value = AstStm.NOP()
+			//		alocal.writes.clear()
+			//		alocal.reads.clear()
+			//	}
+			//}
+		}
+	}
+
+	override fun visit(stm: AstStm.SET_LOCAL) {
+		super.visit(stm)
+		val box = stm.box
 		val expr = stm.expr.value
 
 		if (expr is AstExpr.LOCAL) {
 			// FIX: Assigning a value to itself
 			if (stm.local.local == expr.local) {
-				stm.box.value = AstStm.NOP()
+				val local = stm.local.local
+				local.writes.remove(stm)
+				local.reads.remove(expr)
+				box.value = AstStm.NOP()
 				return
 			}
+		}
+
+		// Dummy cast
+		if (expr is AstExpr.CAST && stm.local.type == expr.from) {
+			val exprBox = expr.box
+			exprBox.value = expr.expr.value
+			return
 		}
 	}
 
@@ -28,12 +96,14 @@ object AstOptimizer : AstVisitor() {
 		val castTo = expr.to
 		val child = expr.expr.value
 
+		val box = expr.box
+
 		//println("${expr.expr.type} -> ${expr.to}")
 
 		// DUMMY CAST
 		if (expr.expr.type == castTo) {
-			expr.box.value = expr.expr.value
-			expr.expr.optimize()
+			box.value = expr.expr.value
+			visit(box)
 			return
 		}
 
@@ -43,7 +113,7 @@ object AstOptimizer : AstVisitor() {
 			val cast2 = child
 			if ((cast1.type is AstType.REF) && (cast2.type is AstType.REF)) {
 				cast1.expr.value = cast2.expr.value
-				cast1.optimize()
+				visit(box)
 			}
 			return
 		}
@@ -52,19 +122,45 @@ object AstOptimizer : AstVisitor() {
 		if (child is AstExpr.LITERAL) {
 			val literalValue = child.value
 			if (literalValue is Int) {
+				val box = expr.box
 				when (castTo) {
-					AstType.BYTE -> expr.box.value = AstExpr.LITERAL(literalValue.toByte())
-					AstType.SHORT -> expr.box.value = AstExpr.LITERAL(literalValue.toShort())
+					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte())
+					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort())
 					//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
 				}
+				box.value.stm = stm
 				return
 			}
 		}
 	}
 }
 
-fun AstStm.Box.optimize() = this.apply { AstOptimizer.visit(this) }
-fun AstExpr.Box.optimize() = this.apply { AstOptimizer.visit(this) }
+object AstAnnotateExpressions : AstVisitor() {
+	private var stm: AstStm? = null
+
+	override fun visit(stm: AstStm?) {
+		super.visit(stm)
+		this.stm = stm
+	}
+
+	override fun visit(expr: AstExpr?) {
+		super.visit(expr)
+		expr?.stm = stm
+	}
+}
+
+fun AstBody.optimize() = this.apply {
+	AstAnnotateExpressions.visit(this)
+	AstOptimizer.visit(this)
+}
+fun AstStm.Box.optimize() = this.apply {
+	AstAnnotateExpressions.visit(this)
+	AstOptimizer.visit(this)
+}
+fun AstExpr.Box.optimize() = this.apply {
+	AstAnnotateExpressions.visit(this)
+	AstOptimizer.visit(this)
+}
 
 fun AstStm.optimize() = this.let { this.box.optimize().value }
 fun AstExpr.optimize() = this.let { this.box.optimize().value }

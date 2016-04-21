@@ -39,7 +39,7 @@ fun dump(stm: AstStm?): Indenter {
 				}
 			}
 			is AstStm.STM_LABEL -> line(":" + stm.label.name)
-			is AstStm.SET -> line(stm.local.name + " = " + dump(stm.expr) + ";")
+			is AstStm.SET_LOCAL -> line(stm.local.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_FIELD_INSTANCE -> line(dump(stm.left) + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.STM_EXPR -> line(dump(stm.expr) + ";")
 			is AstStm.IF_GOTO -> line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")

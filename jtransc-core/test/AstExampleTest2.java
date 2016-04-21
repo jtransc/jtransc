@@ -1,7 +1,5 @@
 public class AstExampleTest2 {
-	byte[] test = new byte[16];
-
-	private void testBoolArray() {
-		test[0] = 1;
+	private void test() {
+		int[] a = new int[] { 1, 2, 3, 4 };
 	}
 }

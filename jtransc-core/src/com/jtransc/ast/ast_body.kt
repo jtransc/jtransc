@@ -7,7 +7,7 @@ import com.jtransc.lang.*
 
 data class AstBody(
 	val stm: AstStm,
-	val locals: List<AstLocal>,
+	var locals: List<AstLocal>,
 	val traps: List<AstTrap>
 )
 
@@ -37,15 +37,20 @@ enum class AstUnop(val symbol: String, val str: String) {
 }
 
 data class AstLocal(val index: Int, val name: String, val type: AstType) {
-	override fun toString() = "AstLocal:$name:$type"
-	val writes = arrayListOf<AstStm.SET>()
-	val reads = arrayListOf<AstExpr>()
+	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
-	fun write(set: AstStm.SET) {
+	val writes = arrayListOf<AstStm.SET_LOCAL>()
+	val reads = arrayListOf<AstExpr.LOCAL>()
+
+	val writesCount: Int get() = writes.size // @TODO: In SSA this should be one
+	val readCount: Int get() = reads.size
+	val isUsed: Boolean get() = (writesCount != 0) || (readCount != 0)
+
+	fun write(set: AstStm.SET_LOCAL) {
 		writes += set
 	}
 
-	fun read(ref: AstExpr) {
+	fun read(ref: AstExpr.LOCAL) {
 		reads += ref
 	}
 }
@@ -98,7 +103,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val expr = expr.box
 	}
 
-	class SET(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
+	class SET_LOCAL(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
 		val expr = expr.box
 	}
 
@@ -223,6 +228,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 
 	var box: AstExpr.Box = AstExpr.Box(this)
+	var stm: AstStm? = null
 
 	abstract val type: AstType
 
@@ -397,8 +403,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 }
 
 object AstStmUtils {
-	fun set(local: AstLocal, value: AstExpr): AstStm.SET {
-		val stm = AstStm.SET(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
+	fun set(local: AstLocal, value: AstExpr): AstStm.SET_LOCAL {
+		val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
 		local.write(stm)
 		return stm
 	}
