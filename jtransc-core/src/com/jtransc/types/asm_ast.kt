@@ -53,7 +53,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 
 	return AstBody(
 		AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels)),
-		locals.locals.values.filterIsInstance<AstExpr.LOCAL>().map { it.local },
+		locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(
 				start = labels.label(it.start),
@@ -102,7 +102,7 @@ class BasicBlocks(
 
 fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals): FunctionPrefix {
 	//val localsOutput = arrayListOf<AstExpr.LocalExpr>()
-	val localsOutput = hashMapOf<Locals.ID, AstExpr.LocalExpr>()
+	val localsOutput = hashMapOf<Locals.ID, AstLocal>()
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val methodType = AstType.demangleMethod(method.desc)
 
@@ -137,7 +137,7 @@ data class BasicBlock(
 
 	data class Input(
 		val stack: Stack<AstExpr>,
-		val locals: Map<Locals.ID, AstExpr.LocalExpr>
+		val locals: Map<Locals.ID, AstLocal>
 	)
 }
 
@@ -163,19 +163,18 @@ class Locals {
 	data class ID(val index: Int, val type: AstType, val prefix: String)
 
 	var tempLocalId = 0
-	val locals = hashMapOf<Locals.ID, AstExpr.LocalExpr>()  // @TODO: remove this
+	val locals = hashMapOf<Locals.ID, AstLocal>()  // @TODO: remove this
 
-	fun local(type: AstType, index: Int, prefix: String = "l"): AstExpr.LocalExpr {
+	private fun _local(type: AstType, index: Int, prefix: String): AstLocal {
 		val info = localPair(index, type, prefix)
-		//if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "local${index}_$type", type))
 		val type2 = fixType(type)
-		if (info !in locals) locals[info] = AstExpr.LOCAL(AstLocal(index, "$prefix${nameType(type2)}${index}", type2))
+		if (info !in locals) locals[info] = AstLocal(index, "$prefix${nameType(type2)}${index}", type2)
 		return locals[info]!!
 	}
 
-	fun tempLocal(type: AstType): AstExpr.LocalExpr {
-		return local(type, tempLocalId++, "t")
-	}
+	fun local(type: AstType, index: Int): AstLocal = _local(type, index, "l")
+	fun temp(type: AstType): AstLocal = _local(type, tempLocalId++, "t")
+	fun frame(type: AstType, index: Int): AstLocal = _local(type, index, "f")
 }
 
 fun fixType(type: AstType): AstType {
@@ -241,7 +240,15 @@ private class BasicBlockBuilder(
 		stack.push(e)
 	}
 
+	fun stackPush(e: AstLocal) {
+		stack.push(AstExprUtils.localRef(e))
+	}
+
 	fun stackPushList(e: List<AstExpr>) {
+		for (i in e) stackPush(i)
+	}
+
+	fun stackPushListLocal(e: List<AstLocal>) {
 		for (i in e) stackPush(i)
 	}
 
@@ -259,13 +266,11 @@ private class BasicBlockBuilder(
 		return stack.peek()
 	}
 
-	fun stmSet(local: AstExpr.LocalExpr, value: AstExpr): Boolean {
-		if (local != value) {
-			stmAdd(AstStm.SET(local, fastcast(value, local.type)))
-			return true
-		} else {
-			return false
-		}
+	fun stmSet(local: AstLocal, value: AstExpr): Boolean {
+		if (value is AstExpr.REF && value.expr is AstExpr.LOCAL && (value.expr as AstExpr.LOCAL).local == local) return false
+		if (value is AstExpr.LOCAL && value.local == local) return false
+		stmAdd(AstStmUtils.set(local, value))
+		return true
 	}
 
 	//fun stmSet2(local: AstExpr.LocalExpr, value: AstExpr): Boolean {
@@ -340,14 +345,14 @@ private class BasicBlockBuilder(
 		stackPopToLocalsItemsCount = 0
 	}
 
-	fun stackPopDouble(): List<AstExpr.LocalExpr> {
+	fun stackPopDouble(): List<AstLocal> {
 		return if (stackPeek().type.isLongOrDouble()) stackPopToLocalsCount(1) else stackPopToLocalsCount(2)
 	}
 
-	fun stackPopToLocalsCount(count: Int): List<AstExpr.LocalExpr> {
+	fun stackPopToLocalsCount(count: Int): List<AstLocal> {
 		val pairs = (0 until count).map {
 			val v = stackPop()
-			val local = locals.tempLocal(v.type)
+			val local = locals.temp(v.type)
 			Pair(local, v)
 		}
 
@@ -387,7 +392,7 @@ private class BasicBlockBuilder(
 			}
 			Opcodes.DUP -> {
 				val value = stackPop()
-				val local = locals.tempLocal(value.type)
+				val local = locals.temp(value.type)
 
 				stmSet(local, value)
 				stackPush(local)
@@ -398,41 +403,41 @@ private class BasicBlockBuilder(
 				val chunk1 = stackPopToLocalsCount(1)
 				val chunk2 = stackPopToLocalsCount(1)
 				stackPopToLocalsFixOrder()
-				stackPushList(chunk1)
-				stackPushList(chunk2)
-				stackPushList(chunk1)
+				stackPushListLocal(chunk1)
+				stackPushListLocal(chunk2)
+				stackPushListLocal(chunk1)
 			}
 			Opcodes.DUP_X2 -> {
 				val chunk1 = stackPopToLocalsCount(1)
 				val chunk2 = stackPopDouble()
 				stackPopToLocalsFixOrder()
-				stackPushList(chunk1)
-				stackPushList(chunk2)
-				stackPushList(chunk1)
+				stackPushListLocal(chunk1)
+				stackPushListLocal(chunk2)
+				stackPushListLocal(chunk1)
 			}
 			Opcodes.DUP2 -> {
 				val chunk1 = stackPopDouble()
 				stackPopToLocalsFixOrder()
-				stackPushList(chunk1)
-				stackPushList(chunk1)
+				stackPushListLocal(chunk1)
+				stackPushListLocal(chunk1)
 			}
 			Opcodes.DUP2_X1 -> {
 				//untestedWarn2("DUP2_X1")
 				val chunk1 = stackPopDouble()
 				val chunk2 = stackPopToLocalsCount(1)
 				stackPopToLocalsFixOrder()
-				stackPushList(chunk1)
-				stackPushList(chunk2)
-				stackPushList(chunk1)
+				stackPushListLocal(chunk1)
+				stackPushListLocal(chunk2)
+				stackPushListLocal(chunk1)
 			}
 			Opcodes.DUP2_X2 -> {
 				//untestedWarn2("DUP2_X2")
 				val chunk1 = stackPopDouble()
 				val chunk2 = stackPopDouble()
 				stackPopToLocalsFixOrder()
-				stackPushList(chunk1)
-				stackPushList(chunk2)
-				stackPushList(chunk1)
+				stackPushListLocal(chunk1)
+				stackPushListLocal(chunk2)
+				stackPushListLocal(chunk1)
 			}
 			Opcodes.SWAP -> {
 				val v1 = stackPop()
@@ -501,13 +506,11 @@ private class BasicBlockBuilder(
 		val index = i.`var`
 
 		fun load(type: AstType) {
-			stackPush(locals.local(type, index))
+			stackPush(AstExprUtils.localRef(locals.local(type, index)))
 		}
 
 		fun store(type: AstType) {
-			val expr = stackPop()
-			val newLocal = locals.local(type, index)
-			stmSet(newLocal, expr)
+			stmSet(locals.local(type, index), stackPop())
 		}
 
 		when (op) {
@@ -613,7 +616,7 @@ private class BasicBlockBuilder(
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = locals.local(AstType.INT, i.`var`)
-		stmSet(local, local + AstExpr.LITERAL(i.incr))
+		stmSet(local, AstExprUtils.localRef(local) + AstExpr.LITERAL(i.incr))
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
@@ -621,8 +624,8 @@ private class BasicBlockBuilder(
 		stmAdd(AstStm.LINE(i.line))
 	}
 
-	fun preserveStackLocal(index: Int, type: AstType): AstExpr.LocalExpr {
-		return locals.local(type, index, "s")
+	fun preserveStackLocal(index: Int, type: AstType): AstLocal {
+		return locals.frame(type, index)
 	}
 
 	fun dumpExprs() {
@@ -631,36 +634,34 @@ private class BasicBlockBuilder(
 		}
 	}
 
-	fun preserveStack(): List<AstExpr.LocalExpr> {
-		if (stack.isEmpty()) {
-			return Collections.EMPTY_LIST as List<AstExpr.LocalExpr>
-		} else {
-			val items = arrayListOf<AstExpr.LocalExpr>()
-			val preservedStack = (0 until stack.size).map { stackPop() }
+	fun preserveStack(): List<AstLocal> {
+		if (stack.isEmpty()) return Collections.EMPTY_LIST as List<AstLocal>
 
-			if (DEBUG) println("[[")
-			for ((index2, value) in preservedStack.withIndex().reversed()) {
-				//val index = index2
-				val index = preservedStack.size - index2 - 1
-				val local = preserveStackLocal(index, value.type)
-				if (DEBUG) println("PRESERVE: $local : $index, ${value.type}")
-				stmSet(local, value)
-				items.add(local)
-			}
-			items.reverse()
-			if (DEBUG) println("]]")
-			return items
+		val items = arrayListOf<AstLocal>()
+		val preservedStack = (0 until stack.size).map { stackPop() }
+
+		if (DEBUG) println("[[")
+		for ((index2, value) in preservedStack.withIndex().reversed()) {
+			//val index = index2
+			val index = preservedStack.size - index2 - 1
+			val local = preserveStackLocal(index, value.type)
+			if (DEBUG) println("PRESERVE: $local : $index, ${value.type}")
+			stmSet(local, value)
+			items.add(local)
 		}
+		items.reverse()
+		if (DEBUG) println("]]")
+		return items
 	}
 
-	fun restoreStack(stackToRestore: List<AstExpr.LocalExpr>) {
+	fun restoreStack(stackToRestore: List<AstLocal>) {
 		if (stackToRestore.size >= 2) {
 			//println("stackToRestore.size:" + stackToRestore.size)
 		}
 		for (i in stackToRestore.reversed()) {
 			if (DEBUG) println("RESTORE: $i")
 			// @TODO: avoid reversed by inserting in the right order!
-			this.stack.push(i)
+			this.stack.push(AstExprUtils.localRef(i))
 		}
 	}
 
@@ -795,7 +796,7 @@ private class BasicBlockBuilder(
 			input = input,
 			output = BasicBlock.Input(
 				stack.clone() as Stack<AstExpr>,
-				locals.locals.clone() as Map<Locals.ID, AstExpr.LocalExpr>
+				locals.locals.clone() as Map<Locals.ID, AstLocal>
 			),
 			entry = entry,
 			stms = stms,

@@ -20,6 +20,8 @@ enum class AstBinop(val symbol: String, val str: String) {
 	LCMP("lcmp", "lcmp"), CMP("cmp", "cmp"), CMPL("cmpl", "cmpl"), CMPG("cmpg", "cmpg");
 
 	companion object {
+		val SHIFTS = setOf(SHL, SHR, USHR)
+		val COMPARISONS = setOf(EQ, NE, GE, LE, LT, GT)
 		//val operators = values.flatMap { listOf(Pair(it.symbol, it), Pair(it.str, it)) }.toMap()
 	}
 }
@@ -36,6 +38,16 @@ enum class AstUnop(val symbol: String, val str: String) {
 
 data class AstLocal(val index: Int, val name: String, val type: AstType) {
 	override fun toString() = "AstLocal:$name:$type"
+	val writes = arrayListOf<AstStm.SET>()
+	val reads = arrayListOf<AstExpr.REF>()
+
+	fun write(set: AstStm.SET) {
+		writes += set
+	}
+
+	fun read(ref: AstExpr.REF) {
+		reads += ref
+	}
 }
 
 data class AstTrap(val start: AstLabel, val end: AstLabel, val handler: AstLabel, val exception: AstType.REF)
@@ -102,6 +114,16 @@ interface AstExpr : AstElement {
 
 	interface LocalExpr : LValueExpr {
 		val name: String
+	}
+
+	// Reference
+	class REF(expr: AstExpr) : AstExpr {
+		var expr = expr
+			get() = field
+			set(value) {
+				field = value
+			}
+		override val type: AstType = expr.type
 	}
 
 	data class THIS(val ref: FqName) : LocalExpr {
@@ -232,12 +254,21 @@ interface AstExpr : AstElement {
 }
 
 object AstStmUtils {
-	fun set(local: AstExpr.LocalExpr, value: AstExpr): AstStm.SET {
-		return AstStm.SET(local, AstExprUtils.fastcast(value, local.type))
+	fun set(local: AstLocal, value: AstExpr): AstStm.SET {
+		val stm = AstStm.SET(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
+		local.write(stm)
+		return stm
 	}
 }
 
 object AstExprUtils {
+	fun localRef(local: AstLocal): AstExpr.REF {
+		val localExpr = AstExpr.LOCAL(local)
+		val refExpr = AstExpr.REF(localExpr)
+		local.read(refExpr)
+		return refExpr
+	}
+
 	fun cast(expr: AstExpr, to: AstType): AstExpr {
 		if (expr is AstExpr.LITERAL) {
 			val value = expr.value

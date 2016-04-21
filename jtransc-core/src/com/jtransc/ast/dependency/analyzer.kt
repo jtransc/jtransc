@@ -71,27 +71,18 @@ object AstDependencyAnalyzer {
 					ana(expr.expr)
 					fields.add(expr.field)
 				}
-				is AstExpr.STATIC_FIELD_ACCESS -> {
-					fields.add(expr.field)
-				}
-				is AstExpr.INSTANCE_OF -> {
-					ana(expr.checkType)
-				}
+				is AstExpr.STATIC_FIELD_ACCESS -> fields.add(expr.field)
+				is AstExpr.INSTANCE_OF -> ana(expr.checkType)
 				is AstExpr.UNOP -> ana(expr.right)
-				is AstExpr.THIS -> {
-					ana(expr.type)
-				}
-				is AstExpr.LITERAL -> {
-				}
-				is AstExpr.LOCAL -> {
-				}
-				is AstExpr.PARAM -> {
-					ana(expr.type)
-				}
+				is AstExpr.THIS -> ana(expr.type)
+				is AstExpr.LITERAL -> Unit
+				is AstExpr.LOCAL -> Unit
+				is AstExpr.PARAM -> ana(expr.type)
 				is AstExpr.METHOD_CLASS -> {
 					ana(expr.type)
 					ana(expr.methodToConvertRef.allClassRefs)
 				}
+				is AstExpr.REF -> ana(expr.expr)
 				else -> noImpl("Not implemented $expr")
 			}
 		}

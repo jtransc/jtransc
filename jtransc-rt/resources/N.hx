@@ -40,7 +40,7 @@ class N {
 
 	static public function int(v:Float):Int return f2i(v);
 
-	static public function b2i(v:Bool):Int return v ? 1 : 0;
+	static public function z2i(v:Bool):Int return v ? 1 : 0;
 
 	static public function idiv(a:Int, b:Int):Int {
 		#if cpp

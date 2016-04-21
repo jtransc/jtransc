@@ -551,6 +551,7 @@ class GenHaxeGen(
 				} + ")"
 
 			}
+			is AstExpr.REF -> genExpr2(e.expr)
 			else -> throw NotImplementedError("Unhandled expression $this")
 		}
 	}
@@ -582,7 +583,7 @@ class GenHaxeGen(
 
 		return when (from) {
 			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				val e = if (from == AstType.BOOL) "N.b2i($e)" else "$e"
+				val e = if (from == AstType.BOOL) "N.z2i($e)" else "$e"
 
 				when (to) {
 					is AstType.BOOL -> "N.i2z($e)"
