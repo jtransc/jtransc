@@ -76,11 +76,26 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 
 	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
 
+	/*
 	for (local in locals.locals.values) {
 		if (local.writes.size == 1) {
+			val write = local.writes[0]
+			var writeExpr = write.expr
+			while (writeExpr is AstExpr.CAST) writeExpr = writeExpr.expr
+			println("Single write: $local = $writeExpr")
+			when (writeExpr) {
+				is AstExpr.PARAM, is AstExpr.THIS -> { // LITERALS!
+					for (read in local.reads) {
+						//println("  :: read: $read")
+						read.expr = write.expr
+					}
+					local.reads.clear()
+				}
+			}
 			//println("Written once! $local")
 		}
 	}
+	*/
 
 	return AstBody(
 		optimizedStms,

@@ -52,7 +52,7 @@ object CombineNewInitTransform : AstTransform() {
 							if (callExpr.method.containingClass != instantiateType.name) {
 								throw AssertionError("Unexpected new + <init> call!")
 							}
-							stms[instantiateIndex] = AstStm.NOP
+							stms[instantiateIndex] = AstStm.NOP()
 							stms[n] = AstStm.SET_NEW_WITH_CONSTRUCTOR(callLocal, instantiateType, callExpr.method, callExpr.args)
 							newToLocal.remove(callLocal)
 						}

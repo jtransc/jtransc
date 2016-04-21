@@ -103,7 +103,7 @@ object GotosFeature : AstFeature() {
 					flush()
 
 					val plainWhile = AstStm.WHILE(AstExpr.LITERAL(true),
-						AstStm.SWITCH(gotostate, AstStm.NOP, cases)
+						AstStm.SWITCH(gotostate, AstStm.NOP(), cases)
 					)
 
 					if (traps.isEmpty()) {
@@ -124,7 +124,7 @@ object GotosFeature : AstFeature() {
 						AstStm.WHILE(AstExpr.LITERAL(true),
 							AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
 								checkTraps.stms,
-								AstStm.RETHROW
+								AstStm.RETHROW()
 							))
 						)
 					}

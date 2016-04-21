@@ -56,68 +56,75 @@ data class AstLabel(val name: String)
 
 interface AstElement
 
-interface AstStm : AstElement {
-	data class STMS(val stms: List<AstStm>) : AstStm {
+class StmBox(var container: AstStm, var value: AstStm) {
+}
+
+open class AstStm() : AstElement {
+	var box: StmBox? = null
+
+	class STMS(val stms: List<AstStm>) : AstStm() {
 		constructor(vararg stms: AstStm) : this(stms.toList())
 	}
 
-	object NOP : AstStm
+	class NOP() : AstStm()
 
-	data class LINE(val line: Int) : AstStm
-	data class STM_EXPR(val expr: AstExpr) : AstStm
-	data class SET(val local: AstExpr.LocalExpr, val expr: AstExpr) : AstStm
-	data class SET_ARRAY(val array: AstExpr, val index: AstExpr, val expr: AstExpr) : AstStm
-	data class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm {
+	class LINE(val line: Int) : AstStm()
+	class STM_EXPR(val expr: AstExpr) : AstStm()
+	class SET(val local: AstExpr.LocalExpr, val expr: AstExpr) : AstStm()
+	class SET_ARRAY(val array: AstExpr, val index: AstExpr, val expr: AstExpr) : AstStm()
+	class SET_FIELD_STATIC(val field: AstFieldRef, val expr: AstExpr) : AstStm() {
 		val clazz = AstType.REF(field.classRef.fqname)
 	}
 
-	data class SET_FIELD_INSTANCE(val field: AstFieldRef, val left: AstExpr, val expr: AstExpr) : AstStm
-	data class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm
+	class SET_FIELD_INSTANCE(val field: AstFieldRef, val left: AstExpr, val expr: AstExpr) : AstStm()
+	class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstStm()
 
-	data class IF(val cond: AstExpr, val strue: AstStm, val sfalse: AstStm? = null) : AstStm
-	data class WHILE(val cond: AstExpr, val iter: AstStm) : AstStm
-	data class RETURN(val retval: AstExpr?) : AstStm
-	data class THROW(val value: AstExpr) : AstStm
+	class IF(val cond: AstExpr, val strue: AstStm, val sfalse: AstStm? = null) : AstStm()
+	class WHILE(val cond: AstExpr, val iter: AstStm) : AstStm()
+	class RETURN(val retval: AstExpr?) : AstStm()
+	class THROW(val value: AstExpr) : AstStm()
 
-	object RETHROW : AstStm
+	class RETHROW() : AstStm()
 
 	//data class TRY_CATCH(val trystm: AstStm, val catches: List<Pair<AstType, AstStm>>) : AstStm
-	data class TRY_CATCH(val trystm: AstStm, val catch: AstStm) : AstStm
+	class TRY_CATCH(val trystm: AstStm, val catch: AstStm) : AstStm()
 
-	class BREAK() : AstStm
-	class CONTINUE() : AstStm
+	class BREAK() : AstStm()
+	class CONTINUE() : AstStm()
 
 	// SwitchFeature
-	data class SWITCH(val subject: AstExpr, val default: AstStm, val cases: List<Pair<Int, AstStm>>) : AstStm
+	class SWITCH(val subject: AstExpr, val default: AstStm, val cases: List<Pair<Int, AstStm>>) : AstStm()
 
 	// GotoFeature
 
-	data class STM_LABEL(val label: AstLabel) : AstStm
-	data class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm
+	class STM_LABEL(val label: AstLabel) : AstStm()
+	class SWITCH_GOTO(val subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm()
 
-	data class IF_GOTO(val label: AstLabel, val cond: AstExpr?) : AstStm
+	class IF_GOTO(val label: AstLabel, val cond: AstExpr?) : AstStm()
 
-	data class MONITOR_ENTER(val expr: AstExpr) : AstStm
-	data class MONITOR_EXIT(val expr: AstExpr) : AstStm
+	class MONITOR_ENTER(val expr: AstExpr) : AstStm()
+	class MONITOR_EXIT(val expr: AstExpr) : AstStm()
 
-	object DEBUG : AstStm
+	class DEBUG : AstStm()
 
-	object NOT_IMPLEMENTED : AstStm
+	class NOT_IMPLEMENTED : AstStm()
 }
 
-interface AstExpr : AstElement {
-	open val type: AstType
+class ExprBox(val container: AstExpr, var value: AstExpr)
 
-	interface ImmutableRef : AstExpr
-	interface LValueExpr : AstExpr {
+abstract class AstExpr : AstElement {
+	abstract val type: AstType
+
+	abstract class ImmutableRef : AstExpr()
+	abstract class LValueExpr : AstExpr() {
 	}
 
-	interface LocalExpr : LValueExpr {
-		val name: String
+	abstract class LocalExpr : LValueExpr() {
+		abstract val name: String
 	}
 
 	// Reference
-	class REF(expr: AstExpr) : AstExpr {
+	class REF(expr: AstExpr) : AstExpr() {
 		var expr = expr
 			get() = field
 			set(value) {
@@ -126,23 +133,23 @@ interface AstExpr : AstElement {
 		override val type: AstType = expr.type
 	}
 
-	data class THIS(val ref: FqName) : LocalExpr {
+	class THIS(val ref: FqName) : LocalExpr() {
 		override val name: String get() = "this"
 		override val type: AstType = AstType.REF(ref)
 	}
 
-	data class LOCAL(val local: AstLocal) : LocalExpr {
+	class LOCAL(val local: AstLocal) : LocalExpr() {
 		override val name: String get() = local.name
 		override val type = local.type
 	}
 
-	data class PARAM(val argument: AstArgument) : LocalExpr {
+	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
 		override val type = argument.type
 	}
 
-	interface LiteralExpr : AstExpr {
-		val value: Any?
+	abstract class LiteralExpr : AstExpr() {
+		abstract val value: Any?
 	}
 
 	//data class CLASS_CONSTANT(val classType: AstType) : AstExpr, LiteralExpr {
@@ -150,99 +157,99 @@ interface AstExpr : AstElement {
 	//	override val type: AstType = AstType.GENERIC(AstType.REF("java.lang.Class"), listOf(classType))
 	//}
 
-	data class METHODTYPE_CONSTANT(val methodType: AstType.METHOD) : AstExpr, LiteralExpr {
+	class METHODTYPE_CONSTANT(val methodType: AstType.METHOD) : LiteralExpr() {
 		override val value = methodType
 		override val type: AstType = methodType
 	}
 
-	data class METHODREF_CONSTANT(val methodRef: AstMethodRef) : AstExpr, LiteralExpr {
+	class METHODREF_CONSTANT(val methodRef: AstMethodRef) : LiteralExpr() {
 		override val value = methodRef
 		override val type: AstType = AstType.UNKNOWN
 	}
 
-	data class METHODHANDLE_CONSTANT(val methodHandle: AstMethodHandle) : AstExpr, LiteralExpr {
+	class METHODHANDLE_CONSTANT(val methodHandle: AstMethodHandle) : LiteralExpr() {
 		override val value = methodHandle
 		override val type: AstType = AstType.UNKNOWN
 	}
 
-	data class LITERAL(override val value: Any?) : AstExpr, LiteralExpr {
+	class LITERAL(override val value: Any?) : LiteralExpr() {
 		override val type = AstType.fromConstant(value)
 	}
 
-	data class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr
-	data class BINOP(override val type: AstType, val left: AstExpr, val op: AstBinop, val right: AstExpr) : AstExpr
+	class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr()
+	class BINOP(override val type: AstType, val left: AstExpr, val op: AstBinop, val right: AstExpr) : AstExpr()
 
-	data class UNOP(val op: AstUnop, val right: AstExpr) : AstExpr {
+	class UNOP(val op: AstUnop, val right: AstExpr) : AstExpr() {
 		override val type = right.type
 	}
 
-	interface CALL_BASE : AstExpr {
+	abstract class CALL_BASE : AstExpr() {
 		//override val type = method.type.ret
-		val method: AstMethodRef
-		val args: List<AstExpr>
-		val isSpecial: Boolean
+		abstract val method: AstMethodRef
+		abstract val args: List<AstExpr>
+		abstract val isSpecial: Boolean
 	}
 
-	data class CALL_INSTANCE(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+	class CALL_INSTANCE(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
 		override val type = method.type.ret
 	}
 
-	data class CALL_SPECIAL(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+	class CALL_SPECIAL(val obj: AstExpr, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
 		override val type = method.type.ret
 	}
 
-	data class CALL_SUPER(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+	class CALL_SUPER(val obj: AstExpr, val target: FqName, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
 		override val type = method.type.ret
 	}
 
-	data class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE {
+	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, override val args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
 		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
 	}
 
-	data class ARRAY_LENGTH(val array: AstExpr) : AstExpr {
+	class ARRAY_LENGTH(val array: AstExpr) : AstExpr() {
 		override val type = AstType.INT
 	}
 
-	data class ARRAY_ACCESS(val array: AstExpr, val index: AstExpr) : LValueExpr {
+	class ARRAY_ACCESS(val array: AstExpr, val index: AstExpr) : LValueExpr() {
 		override val type = array.type.elementType
 	}
 
-	data class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, val expr: AstExpr) : LValueExpr {
+	class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, val expr: AstExpr) : LValueExpr() {
 		override val type: AstType = field.type
 	}
 
-	data class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr {
+	class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr() {
 		val clazzName = field.containingTypeRef
 		override val type: AstType = field.type
 	}
 
-	data class INSTANCE_OF(val expr: AstExpr, val checkType: AstType) : AstExpr {
+	class INSTANCE_OF(val expr: AstExpr, val checkType: AstType) : AstExpr() {
 		override val type = AstType.BOOL
 	}
 
-	data class CAST(val expr: AstExpr, val to: AstType) : AstExpr {
+	class CAST(val expr: AstExpr, val to: AstType) : AstExpr() {
 		val from: AstType get() = expr.type
 
 		override val type = to
 	}
 
-	data class NEW(val target: AstType.REF) : AstExpr {
+	class NEW(val target: AstType.REF) : AstExpr() {
 		override val type = target
 	}
 
-	data class NEW_WITH_CONSTRUCTOR(val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstExpr {
+	class NEW_WITH_CONSTRUCTOR(val target: AstType.REF, val method: AstMethodRef, val args: List<AstExpr>) : AstExpr() {
 		override val type = target
 	}
 
-	data class NEW_ARRAY(val arrayType: AstType.ARRAY, val counts: List<AstExpr>) : AstExpr {
+	class NEW_ARRAY(val arrayType: AstType.ARRAY, val counts: List<AstExpr>) : AstExpr() {
 		override val type = arrayType
 	}
 
-	data class METHOD_CLASS(
+	class METHOD_CLASS(
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef
-	) : AstExpr {
+	) : AstExpr() {
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
