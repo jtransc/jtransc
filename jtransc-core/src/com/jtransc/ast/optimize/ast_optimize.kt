@@ -14,6 +14,18 @@ object AstOptimizer : AstVisitor() {
 		this.stm = stm
 	}
 
+	val METHODS_TO_STRIP = setOf<AstMethodRef>(
+		AstMethodRef("kotlin.jvm.internal.Intrinsics".fqname, "checkParameterIsNotNull", AstType.METHOD(AstType.VOID, listOf(AstType.OBJECT, AstType.STRING)))
+	)
+
+	override fun visit(expr: AstExpr.CALL_STATIC) {
+		super.visit(expr)
+
+		if (expr.method in METHODS_TO_STRIP) {
+			expr.stm?.box?.value = AstStm.NOP()
+		}
+	}
+
 	override fun visit(body: AstBody) {
 		// @TODO: this should be easier when having the SSA form
 		for (local in body.locals) {
@@ -77,17 +89,16 @@ object AstOptimizer : AstVisitor() {
 				}
 			}
 
-			// @TODO: Still fails!
-			//if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
-			//	//val blocal = a.expr.value as AstExpr.LOCAL
-			//	val alocal = a.local.local
-			//	if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
-			//		alocal.reads.first().box.value = a.expr.value
-			//		abox.value = AstStm.NOP()
-			//		alocal.writes.clear()
-			//		alocal.reads.clear()
-			//	}
-			//}
+			if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
+				//val blocal = a.expr.value as AstExpr.LOCAL
+				val alocal = a.local.local
+				if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
+					alocal.reads.first().box.value = a.expr.value
+					abox.value = AstStm.NOP()
+					alocal.writes.clear()
+					alocal.reads.clear()
+				}
+			}
 		}
 	}
 
@@ -164,13 +175,13 @@ object AstAnnotateExpressions : AstVisitor() {
 	private var stm: AstStm? = null
 
 	override fun visit(stm: AstStm?) {
-		super.visit(stm)
 		this.stm = stm
+		super.visit(stm)
 	}
 
 	override fun visit(expr: AstExpr?) {
-		super.visit(expr)
 		expr?.stm = stm
+		super.visit(expr)
 	}
 }
 
