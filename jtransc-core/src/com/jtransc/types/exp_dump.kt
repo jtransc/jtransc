@@ -67,6 +67,7 @@ fun dump(expr: AstExpr?): String {
 	return when (expr) {
 		null -> ""
 		is AstExpr.BINOP -> dump(expr.left) + " " + expr.op.symbol + " " + dump(expr.right)
+		is AstExpr.UNOP -> expr.op.symbol + dump(expr.right)
 		is AstExpr.LITERAL -> {
 			val value = expr.value
 			when (value) {

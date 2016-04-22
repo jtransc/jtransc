@@ -1,8 +1,9 @@
 public class AstExampleTest2 {
-	int c = 10;
+	boolean test = true;
 	//private void test() { int[] a = new int[] { 1, 2, 3, 4, c };}
-	private int test2(Object param) {
-		kotlin.jvm.internal.Intrinsics.checkParameterIsNotNull(param, "param");
-		return c;
+	private void test2() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("hello world!");
+		sb.append("hello world!");
 	}
 }

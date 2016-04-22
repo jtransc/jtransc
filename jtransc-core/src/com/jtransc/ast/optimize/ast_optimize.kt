@@ -1,6 +1,7 @@
 package com.jtransc.ast.optimize
 
 import com.jtransc.ast.*
+import com.jtransc.lang.toBool
 import com.jtransc.types.Locals
 
 //const val DEBUG = false
@@ -17,6 +18,28 @@ object AstOptimizer : AstVisitor() {
 	val METHODS_TO_STRIP = setOf<AstMethodRef>(
 		AstMethodRef("kotlin.jvm.internal.Intrinsics".fqname, "checkParameterIsNotNull", AstType.METHOD(AstType.VOID, listOf(AstType.OBJECT, AstType.STRING)))
 	)
+
+	override fun visit(expr: AstExpr.BINOP) {
+		super.visit(expr)
+		val box = expr.box
+		val left = expr.left.value
+		val right = expr.right.value
+		when (expr.op) {
+			AstBinop.EQ, AstBinop.NE -> {
+				if ((left is AstExpr.CAST) && (right is AstExpr.LITERAL)) {
+					if (left.from == AstType.BOOL && left.to == AstType.INT && right.value is Int) {
+						//println("optimize")
+						val leftExpr = left.expr.value
+						val toZero = right.value == 0
+						val equals = expr.op == AstBinop.EQ
+
+						box.value = if (toZero xor equals) leftExpr else AstExpr.UNOP(AstUnop.NOT, leftExpr)
+						AstAnnotateExpressions.visitExprWithStm(stm, box)
+					}
+				}
+			}
+		}
+	}
 
 	override fun visit(expr: AstExpr.CALL_STATIC) {
 		super.visit(expr)
@@ -106,25 +129,36 @@ object AstOptimizer : AstVisitor() {
 		super.visit(stm)
 		val box = stm.box
 		val expr = stm.expr.value
+		val storeLocal = stm.local.local
 
 		if (expr is AstExpr.LOCAL) {
 			// FIX: Assigning a value to itself
-			if (stm.local.local == expr.local) {
-				val local = stm.local.local
-				local.writes.remove(stm)
-				local.reads.remove(expr)
+			if (storeLocal == expr.local) {
+				storeLocal.writes.remove(stm)
+				storeLocal.reads.remove(expr)
 				box.value = AstStm.NOP()
 				return
 			}
+		}
+
+		// Do not assign and remove variables that are not going to be used!
+		if (storeLocal.readCount == 0 && storeLocal.writesCount == 1) {
+			box.value = AstStm.STM_EXPR(stm.expr.value)
+			storeLocal.writes.clear()
+			visit(box)
+			return
 		}
 
 		// Dummy cast
 		if (expr is AstExpr.CAST && stm.local.type == expr.from) {
 			val exprBox = expr.box
 			exprBox.value = expr.expr.value
+			AstAnnotateExpressions.visitExprWithStm(stm, exprBox)
 			return
 		}
 	}
+
+
 
 	override fun visit(expr: AstExpr.CAST) {
 		super.visit(expr)
@@ -160,11 +194,12 @@ object AstOptimizer : AstVisitor() {
 			if (literalValue is Int) {
 				val box = expr.box
 				when (castTo) {
+					AstType.BOOL -> box.value = AstExpr.LITERAL(literalValue.toBool())
 					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte())
 					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort())
 					//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
 				}
-				box.value.stm = stm
+				AstAnnotateExpressions.visitExprWithStm(stm, box)
 				return
 			}
 		}
@@ -173,6 +208,11 @@ object AstOptimizer : AstVisitor() {
 
 object AstAnnotateExpressions : AstVisitor() {
 	private var stm: AstStm? = null
+
+	fun visitExprWithStm(stm: AstStm?, box: AstExpr.Box) {
+		this.stm = stm
+		visit(box)
+	}
 
 	override fun visit(stm: AstStm?) {
 		this.stm = stm

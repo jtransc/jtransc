@@ -447,10 +447,7 @@ class GenHaxeGen(
 				val opName = e.op.str
 
 				val binexpr = if (resultType == AstType.LONG) {
-					when (opSymbol) {
-						"lcmp", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
-						else -> "($l $opSymbol $r)"
-					}
+					"N.l$opName($l, $r)"
 				} else if (resultType == AstType.INT && opSymbol == "/") {
 					"N.idiv($l, $r)"
 				} else {

@@ -49,4 +49,27 @@ class N {
 		return Std.int(a / b);
 		#end
 	}
+
+	// Long operators
+	static public function ladd(a:Int64, b:Int64):Int64 return a + b;
+	static public function lsub(a:Int64, b:Int64):Int64 return a - b;
+	static public function lmul(a:Int64, b:Int64):Int64 return a * b;
+	static public function ldiv(a:Int64, b:Int64):Int64 return a / b;
+	static public function lrem(a:Int64, b:Int64):Int64 return a % b;
+	static public function lband(a:Int64, b:Int64):Int64 return a & b;
+	static public function lbor(a:Int64, b:Int64):Int64 return a | b;
+	static public function land(a:Int64, b:Int64):Int64 return a & b;
+	static public function lor(a:Int64, b:Int64):Int64 return a | b;
+	static public function lxor(a:Int64, b:Int64):Int64 return a ^ b;
+	static public function lshl(a:Int64, b:Int):Int64 return a << b;
+	static public function lshr(a:Int64, b:Int):Int64 return a >> b;
+	static public function lushr(a:Int64, b:Int):Int64 return a >>> b;
+	static public function leq(a:Int64, b:Int64) return a == b;
+	static public function lne(a:Int64, b:Int64) return a != b;
+	static public function lge(a:Int64, b:Int64) return a >= b;
+	static public function lle(a:Int64, b:Int64) return a <= b;
+	static public function llt(a:Int64, b:Int64) return a < b;
+	static public function lgt(a:Int64, b:Int64) return a > b;
+	static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
+
 }

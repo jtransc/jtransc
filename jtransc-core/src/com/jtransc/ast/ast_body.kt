@@ -4,6 +4,7 @@ import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.lang.*
+import com.jtransc.text.Indenter
 
 data class AstBody(
 	val stm: AstStm,
@@ -520,30 +521,35 @@ object AstExprUtils {
 operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
 
-open class AstTransformer {
-	open fun visit(type: AstType) {
-	}
+class AstBuilder {
+	val BOOL = AstType.BOOL
+	val BYTE = AstType.BYTE
+	val SHORT = AstType.SHORT
+	val CHAR = AstType.CHAR
+	val INT = AstType.INT
+	val LONG = AstType.LONG
+	val FLOAT = AstType.FLOAT
+	val DOUBLE = AstType.DOUBLE
+	val OBJECT = AstType.OBJECT
+	val CLASS = AstType.CLASS
+	val STRING = AstType.STRING
 
-	open fun transform(body: AstBody): AstBody {
-		for (local in body.locals) visit(local.type)
-		return AstBody(
-			stm = transform(body.stm),
-			locals = body.locals,
-			traps = body.traps
-		)
-	}
+	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
+	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
 
-	open fun transform(stm: AstStm): AstStm = when (stm) {
-		is AstStm.STMS -> transform(stm)
-		else -> throw NotImplementedError("Unhandled statement $stm")
-	}
+	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
+	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
+	operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
+	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
+	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
+}
 
-	open fun transform(stm: AstStm.STMS): AstStm = AstStm.STMS(stm.stms.map { transform(stm) })
+fun AstBuild(build: AstBuilder.() -> AstExpr): AstExpr {
+	return AstBuilder().build()
+}
 
-	open fun transform(expr: AstExpr): AstExpr = when (expr) {
-	//else -> expr
-		else -> throw NotImplementedError("Unhandled expression $expr")
-	}
+fun AstExpr.builder() {
+
 }
 
 class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val kind: Kind) {

@@ -26,7 +26,7 @@ class HaxeNatives {
         return lowf + highf * M2P32_DBL;
     }
 
-    static public function lcmp(a:Long, b:Long):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+    static public function lcmp(a:Long, b:Long):Int return N.llcmp(a, b)
     static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
     static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
     static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
