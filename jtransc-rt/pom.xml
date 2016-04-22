@@ -39,7 +39,7 @@
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.1.5</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>jtransc-rt</artifactId>

@@ -2,13 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<jtransc.version>0.1.5</jtransc.version>
+		<jtransc.version>0.2.0</jtransc.version>
 		<kotlin.version>1.0.1-2</kotlin.version>
 	</properties>
 
 	<groupId>com.jtransc</groupId>
 	<artifactId>jtransc-main-inception</artifactId>
-	<version>0.1.5</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 
 	<dependencies>
