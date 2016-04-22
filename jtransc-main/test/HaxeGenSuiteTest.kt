@@ -149,9 +149,9 @@ class HaxeGenSuiteTest {
 	inline fun <reified T : Any> testClass(noinline transformer: (String) -> String) = testClass(T::class.java, transformer)
 
 	val kotlinPaths = listOf<String>() +
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1") +
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1") +
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.1")
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2") +
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2") +
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.1-2")
 	val testClassesPath = File("target/test-classes").absolutePath
 
 	fun <T : Any> testClass(clazz: Class<T>, transformer: (String) -> String) {
