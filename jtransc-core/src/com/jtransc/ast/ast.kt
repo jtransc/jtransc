@@ -50,7 +50,7 @@ data class AstBuildSettings(
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
-	val backend: BuildBackend = BuildBackend.SOOT
+	val backend: BuildBackend = BuildBackend.ASM
 ) {
 	val release: Boolean get() = !debug
 
@@ -171,7 +171,6 @@ class AstProgram(
 			println("AstProgram. Can't find class '$name'")
 			println("AstProgram. ClassFile: $classFile")
 			println("AstProgram. File exists: " + resourcesVfs[classFile].exists)
-			//println("AstProgram. Soot exists: " + SootToAst.checkIfClassExists(name))
 
 			throw RuntimeException("AstProgram. Can't find class '$name'")
 		} else {

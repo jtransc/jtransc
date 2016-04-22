@@ -38,6 +38,7 @@
 				<configuration>
 					<mainClass>com.jtransc.JTranscMain</mainClass>
 					<release>true</release>
+					<backend>ASM</backend>
 					<targets>
 						<param>haxe:js:jtransc-inception.js</param>
 <!--
