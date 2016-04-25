@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class StringBuilder extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
 	public StringBuilder() {

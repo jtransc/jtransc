@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.internal.GenericListIterator;
+import com.jtransc.internal.GenericListIterator;
 
 public abstract class AbstractList<E> extends AbstractCollection<E> implements List<E> {
 	protected AbstractList() {

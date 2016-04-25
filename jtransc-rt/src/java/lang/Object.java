@@ -16,10 +16,10 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeAddFiles;
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeAddFiles;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.IOException;
 import java.lang.reflect.Field;

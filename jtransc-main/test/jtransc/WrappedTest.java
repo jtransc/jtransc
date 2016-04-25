@@ -1,6 +1,7 @@
 package jtransc;
 
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.JTranscWrapped;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class WrappedTest {
 	static public void main(String[] args) {

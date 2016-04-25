@@ -25,7 +25,7 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
-import jtransc.JTranscVersion
+import com.jtransc.JTranscVersion
 import java.io.File
 
 object HaxeLimeGenDescriptor : GenTargetDescriptor() {

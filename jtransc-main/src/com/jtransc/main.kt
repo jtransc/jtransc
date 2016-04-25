@@ -18,7 +18,7 @@ package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.gen.GenTargetSubDescriptor
-import jtransc.JTranscVersion
+import com.jtransc.JTranscVersion
 import java.io.File
 import java.util.*
 

@@ -16,9 +16,8 @@
 
 package java.io;
 
-import jtransc.JTranscSystem;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.io.JTranscSyncIO;
+import com.jtransc.JTranscSystem;
+import com.jtransc.io.JTranscSyncIO;
 
 // @TODO: Move this to something JTransc can replace in jtransc-rt-core!
 class JTranscFileSystem extends FileSystem {

@@ -1,6 +1,6 @@
 package java.text;
 
-import jtransc.util.JTranscStringReader;
+import com.jtransc.util.JTranscStringReader;
 
 import java.util.*;
 

@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeep;
 
 public final class Byte extends Number implements Comparable<Byte> {
 	public static final byte MIN_VALUE = -128;

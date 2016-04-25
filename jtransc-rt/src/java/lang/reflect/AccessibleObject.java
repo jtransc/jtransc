@@ -16,9 +16,9 @@
 
 package java.lang.reflect;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.annotation.Annotation;
 

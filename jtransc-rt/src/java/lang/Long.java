@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.internal.JTranscCType;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.internal.JTranscCType;
 
 public final class Long extends Number implements Comparable<Long> {
 	public static final long MIN_VALUE = 0x8000000000000000L;

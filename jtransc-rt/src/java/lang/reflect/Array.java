@@ -16,7 +16,7 @@
 
 package java.lang.reflect;
 
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Array {
 	private Array() {

@@ -10,6 +10,7 @@ using Lambda;
 
 typedef Long = Int64;
 typedef JavaObject = java_.lang.Object_;
+typedef JtranscWrapped = com.jtransc.JTranscWrapped_;
 
 class HaxeNatives {
 	static private var M2P32_DBL = Math.pow(2, 32);
@@ -33,7 +34,7 @@ class HaxeNatives {
 	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
 	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
 
-    static public function wrap(value:Dynamic):jtransc.JTranscWrapped_ { return jtransc.JTranscWrapped_.wrap(value); }
+    static public function wrap(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 
     static public function toNativeString(str:java_.lang.String_):String {
         return (str != null) ? str._str : null;
@@ -232,7 +233,7 @@ class HaxeNatives {
 		if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
 		if (Std.is(value, String)) return str(cast(value, String));
 		if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
-		return jtransc.JTranscWrapped_.wrap(value);
+		return JtranscWrapped.wrap(value);
 	}
 
 	static public function unbox(value:JavaObject):Dynamic {
@@ -245,7 +246,7 @@ class HaxeNatives {
 		if (Std.is(value, java_.lang.Float_)) return unboxFloat(value);
 		if (Std.is(value, java_.lang.Double_)) return unboxDouble(value);
 		if (Std.is(value, java_.lang.String_)) return unboxString(value);
-		if (Std.is(value, jtransc.JTranscWrapped_)) return unboxWrapped(value);
+		if (Std.is(value, JtranscWrapped)) return unboxWrapped(value);
 		throw 'Was not able to unbox "$value"';
 	}
 
@@ -259,7 +260,7 @@ class HaxeNatives {
 	static public function boxFloat(value:Float):java_.lang.Float_ { return java_.lang.Float_.valueOf_F_Ljava_lang_Float_(value); }
 	static public function boxDouble(value:Float):java_.lang.Double_ { return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(value); }
 	static public function boxString(value:String):java_.lang.String_ { return (value != null) ? java_.lang.String_.make(value) : null; }
-	static public function boxWrapped(value:Dynamic):jtransc.JTranscWrapped_ { return jtransc.JTranscWrapped_.wrap(value); }
+	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
 	static public function unboxBool(value:JavaObject):Bool { return cast(value, java_.lang.Boolean_).value; }
@@ -271,7 +272,7 @@ class HaxeNatives {
 	static public function unboxFloat(value:JavaObject):Float { return cast(value, java_.lang.Float_).value; }
 	static public function unboxDouble(value:JavaObject):Float { return cast(value, java_.lang.Double_).value; }
 	static public function unboxString(value:JavaObject):String { return cast(value, java_.lang.String_)._str; }
-	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, jtransc.JTranscWrapped_)._wrapped; }
+	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
 
     static private var _tempBytes = haxe.io.Bytes.alloc(8);
     static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);

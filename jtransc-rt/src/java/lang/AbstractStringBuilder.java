@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({
 	"public var buffer:StringBuf = new StringBuf();",

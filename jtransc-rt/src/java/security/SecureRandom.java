@@ -16,9 +16,8 @@
 
 package java.security;
 
-import jtransc.JTranscBits;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.crypto.JTranscCrypto;
+import com.jtransc.JTranscBits;
+import com.jtransc.crypto.JTranscCrypto;
 
 public class SecureRandom extends java.util.Random {
 	public SecureRandom() {

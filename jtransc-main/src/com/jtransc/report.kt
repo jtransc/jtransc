@@ -10,8 +10,8 @@ import com.jtransc.vfs.GetClassJar
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
-import jtransc.JTranscVersion
-import jtransc.annotation.haxe.HaxeMethodBody
+import com.jtransc.JTranscVersion
+import com.jtransc.annotation.haxe.HaxeMethodBody
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AnnotationNode

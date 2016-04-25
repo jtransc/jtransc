@@ -1,6 +1,6 @@
 package javatest.misc;
 
-import jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeep;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Field;

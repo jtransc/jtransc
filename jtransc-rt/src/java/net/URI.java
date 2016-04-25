@@ -16,8 +16,8 @@
 
 package java.net;
 
-import jtransc.JTranscBits;
-import jtransc.internal.JTranscCType;
+import com.jtransc.JTranscBits;
+import com.jtransc.internal.JTranscCType;
 
 import java.io.*;
 

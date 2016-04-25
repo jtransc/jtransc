@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.JTranscSystem;
+import com.jtransc.JTranscSystem;
 
 public class BufferedWriter extends Writer {
 	private Writer out;

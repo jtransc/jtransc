@@ -2,12 +2,10 @@ import com.jtransc.ast.AstType;
 import com.jtransc.io.ClassutilsKt;
 import com.jtransc.types.Asm_astKt;
 import com.jtransc.types.Exp_dumpKt;
-import jtransc.io.JTranscIoTools;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.io.File;
 import java.io.IOException;
 
 class AstExampleTest {

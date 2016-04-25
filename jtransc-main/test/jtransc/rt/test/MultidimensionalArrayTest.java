@@ -1,6 +1,6 @@
 package jtransc.rt.test;
 
-import jtransc.io.JTranscConsole;
+import com.jtransc.io.JTranscConsole;
 
 public class MultidimensionalArrayTest {
 	static public void main(String[] args) {

@@ -29,7 +29,7 @@ import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
-import jtransc.JTranscVersion
+import com.jtransc.JTranscVersion
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest

@@ -16,9 +16,9 @@
 
 package java.util.regex;
 
-import jtransc.JTranscSystem;
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({
         "public var _ereg:EReg;",

@@ -1,7 +1,7 @@
 package jtransc.rt.test;
 
-import jtransc.io.JTranscIoTools;
-import jtransc.util.JTranscFiles;
+import com.jtransc.io.JTranscIoTools;
+import com.jtransc.util.JTranscFiles;
 
 import java.io.File;
 import java.io.IOException;

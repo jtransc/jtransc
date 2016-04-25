@@ -16,8 +16,8 @@
 
 package java.util;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({ "var _date:Date;" })
 public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {

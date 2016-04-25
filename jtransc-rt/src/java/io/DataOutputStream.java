@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.JTranscBits;
+import com.jtransc.JTranscBits;
 
 public class DataOutputStream extends FilterOutputStream implements DataOutput {
 	protected int written;

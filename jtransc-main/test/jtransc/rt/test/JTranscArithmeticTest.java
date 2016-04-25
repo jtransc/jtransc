@@ -1,6 +1,6 @@
 package jtransc.rt.test;
 
-import jtransc.JTranscBits;
+import com.jtransc.JTranscBits;
 
 public class JTranscArithmeticTest {
 	static public void main(String[] args) {

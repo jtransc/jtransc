@@ -16,9 +16,9 @@
 
 package java.lang;
 
-import jtransc.JTranscSystem;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.io.JTranscConsolePrintStream;
+import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
 import java.io.InputStream;

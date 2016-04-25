@@ -1,6 +1,6 @@
 package jtransc.bug;
 
-import jtransc.io.JTranscConsole;
+import com.jtransc.io.JTranscConsole;
 
 public class JTranscBugClInitConflictInAsm {
 	static public void main(String[] args) {

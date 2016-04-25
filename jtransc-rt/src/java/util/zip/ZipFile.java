@@ -16,9 +16,9 @@
 
 package java.util.zip;
 
-import jtransc.annotation.JTranscInline;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.internal.Inflater;
+import com.jtransc.annotation.JTranscInline;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.internal.Inflater;
 
 import java.io.*;
 import java.nio.charset.Charset;

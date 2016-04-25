@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import jtransc.io.JTranscProcess;
+import com.jtransc.io.JTranscProcess;
 
 import java.io.File;
 import java.io.IOException;

@@ -23,6 +23,7 @@ import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.build
 import com.jtransc.input.AsmToAst
 import com.jtransc.input.BaseProjectContext
+import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
@@ -96,24 +97,27 @@ class AllBuild(
 		for (cp in classPaths2) log("ClassPath: $cp")
 
 		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
+		@SuppressWarnings("all")
+		@Suppress("ALL")
 		var initialClasses = listOf(
-			"java.lang.Object",
-			"java.lang.Void",
-			"java.lang.Byte",
-			"java.lang.Character",
-			"java.lang.Short",
-			"java.lang.Integer",
-			"java.lang.Long",
-			"java.lang.Float",
-			"java.lang.Double",
-			"java.lang.Class",
-			"java.lang.reflect.Method",
-			"java.lang.reflect.Field",
-			"java.lang.reflect.Constructor",
-			"java.lang.annotation.Annotation",
-			"java.lang.reflect.InvocationHandler",
-			"jtransc.internal.JTranscAnnotationBase",
-			"jtransc.JTranscWrapped",
+			java.lang.Object::class.java.name,
+			java.lang.Void::class.java.name,
+			java.lang.Byte::class.java.name,
+			java.lang.Character::class.java.name,
+			java.lang.Short::class.java.name,
+			java.lang.Integer::class.java.name,
+			java.lang.Long::class.java.name,
+			java.lang.Float::class.java.name,
+			java.lang.Double::class.java.name,
+			java.lang.Class::class.java.name,
+			java.lang.Class::class.java.name,
+			java.lang.reflect.Method::class.java.name,
+			java.lang.reflect.Field::class.java.name,
+			java.lang.reflect.Constructor::class.java.name,
+			java.lang.annotation.Annotation::class.java.name,
+			java.lang.reflect.InvocationHandler::class.java.name,
+			com.jtransc.internal.JTranscAnnotationBase::class.java.name,
+			com.jtransc.JTranscWrapped::class.java.name,
 			entryPoint.fqname.fqname
 		)
 

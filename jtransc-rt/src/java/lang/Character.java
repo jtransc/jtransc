@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Character implements java.io.Serializable, Comparable<Character> {
 	public static final int MIN_RADIX = 2;

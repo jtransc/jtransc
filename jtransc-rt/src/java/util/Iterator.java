@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeep;
 
 public interface Iterator<E> {
 	@JTranscKeep

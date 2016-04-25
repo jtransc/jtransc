@@ -1,6 +1,6 @@
 package jtransc.annotation;
 
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class MethodBodyTest {
     static public void main(String[] args) {

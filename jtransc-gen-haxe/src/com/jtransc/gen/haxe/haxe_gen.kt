@@ -10,10 +10,11 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
-import jtransc.JTranscFunction
-import jtransc.annotation.JTranscKeep
-import jtransc.annotation.haxe.*
-import jtransc.ffi.StdCall
+import com.jtransc.JTranscFunction
+import com.jtransc.annotation.JTranscKeep
+import com.jtransc.annotation.haxe.*
+import com.jtransc.ffi.StdCall
+import com.jtransc.internal.JTranscAnnotationBase
 
 class GenHaxeGen(
 	val program: AstProgram,
@@ -618,16 +619,16 @@ class GenHaxeGen(
 
 		return when (from) {
 			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				val e = if (from == AstType.BOOL) "N.z2i($e)" else "$e"
+				val e2 = if (from == AstType.BOOL) "N.z2i($e)" else "$e"
 
 				when (to) {
-					is AstType.BOOL -> "N.i2z($e)"
-					is AstType.BYTE -> "N.i2b($e)"
-					is AstType.CHAR -> "N.i2c($e)"
-					is AstType.SHORT -> "N.i2s($e)"
-					is AstType.INT -> "($e)"
-					is AstType.LONG -> "HaxeNatives.intToLong($e)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
+					is AstType.BOOL -> "N.i2z($e2)"
+					is AstType.BYTE -> "N.i2b($e2)"
+					is AstType.CHAR -> "N.i2c($e2)"
+					is AstType.SHORT -> "N.i2s($e2)"
+					is AstType.INT -> "($e2)"
+					is AstType.LONG -> "HaxeNatives.intToLong($e2)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "($e2)"
 					else -> unhandled()
 				}
 			}
@@ -666,7 +667,7 @@ class GenHaxeGen(
 		}
 	}
 
-	val FUNCTION_REF = AstType.REF(jtransc.JTranscFunction::class.java.name)
+	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
 	fun genClass2(clazz: AstClass): ClassResult {
 		context.clazz = clazz
@@ -877,12 +878,13 @@ class GenHaxeGen(
 
 				if (clazz in allAnnotationTypes) {
 					line("// annotation type: ${clazz.name}")
-					line("class ${names.getAnnotationProxyName(clazz.astType)} extends jtransc.internal_.JTranscAnnotationBase_ implements ${clazz.name.haxeClassFqName}") {
+
+					line("class ${names.getAnnotationProxyName(clazz.astType)} extends ${names.haxeName<JTranscAnnotationBase>()} implements ${clazz.name.haxeClassFqName}") {
 						line("private var _data:Array<Dynamic>;")
 						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
 
-						line("public function annotationType__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
-						line("override public function getClass__Ljava_lang_Class_():java_.lang.Class_ { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						line("public function annotationType__Ljava_lang_Class_():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						line("override public function getClass__Ljava_lang_Class_():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						for ((index, m) in clazz.methods.withIndex()) {
 							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
 						}
@@ -890,7 +892,7 @@ class GenHaxeGen(
 				}
 
 				if (clazz.hasFFI) {
-					line("class ${simpleClassName}_FFI extends java_.lang.Object_ implements ${simpleClassName} implements HaxeFfiLibrary") {
+					line("class ${simpleClassName}_FFI extends ${names.haxeName<java.lang.Object>()} implements $simpleClassName implements HaxeFfiLibrary") {
 						val methods = clazz.allMethodsToImplement.map { clazz.getMethodInAncestorsAndInterfaces(it)!! }
 						line("private var __ffi_lib:haxe.Int64 = 0;")
 						for (method in methods) {
@@ -972,8 +974,8 @@ class GenHaxeGen(
 					}
 				}
 
-				line("class ${simpleClassName}_Proxy extends java_.lang.Object_ implements ${simpleClassName}") {
-					line("private var __clazz:java_.lang.Class_;")
+				line("class ${simpleClassName}_Proxy extends ${names.haxeName<java.lang.Object>()} implements $simpleClassName") {
+					line("private var __clazz:${names.haxeName<java.lang.Class<*>>()};")
 					line("private var __invocationHandler:java_.lang.reflect.InvocationHandler_;")
 					line("private var __methods:Map<Int, java_.lang.reflect.Method_>;")
 					line("public function new(handler:java_.lang.reflect.InvocationHandler_)") {

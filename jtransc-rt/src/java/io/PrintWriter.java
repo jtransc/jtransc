@@ -16,8 +16,8 @@
 
 package java.io;
 
-import jtransc.JTranscSystem;
-import jtransc.internal.IntJTranscStrings;
+import com.jtransc.JTranscSystem;
+import com.jtransc.internal.IntJTranscStrings;
 
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;

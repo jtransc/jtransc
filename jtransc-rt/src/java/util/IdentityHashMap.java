@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.internal.GenericMapEntry;
+import com.jtransc.internal.GenericMapEntry;
 
 // SLOW IMPLEMENTATION!
 public class IdentityHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, java.io.Serializable, Cloneable {

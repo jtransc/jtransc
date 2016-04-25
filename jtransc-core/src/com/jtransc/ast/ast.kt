@@ -17,6 +17,7 @@
 package com.jtransc.ast
 
 import com.jtransc.BuildBackend
+import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
@@ -26,7 +27,7 @@ import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
-import jtransc.annotation.*
+import com.jtransc.annotation.*
 import java.io.File
 import java.io.IOException
 import java.util.*

@@ -16,9 +16,9 @@
 
 package java.util;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.internal.GenericListIterator;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.internal.GenericListIterator;
 
 @HaxeAddMembers("var _data:Array<Dynamic> = [];")
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {

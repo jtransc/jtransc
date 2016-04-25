@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscInline;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscInline;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Math {
 	private Math() {

@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.io.JTranscSyncIO;
+import com.jtransc.io.JTranscSyncIO;
 
 public class FileInputStream extends InputStream {
 	private final FileDescriptor fd;

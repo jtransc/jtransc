@@ -85,6 +85,10 @@ class HaxeNames(val program: AstResolver) {
 		return "${name.simpleName.replace('$', '_')}_".capitalize()
 	}
 
+	inline fun <reified T : Any> haxeName(): String {
+		return getHaxeClassFqName(T::class.java.name.fqname)
+	}
+
 	fun getHaxeClassFqName(name: FqName): String {
 		val clazz = program[name]
 		if (clazz != null && clazz.isNative) {

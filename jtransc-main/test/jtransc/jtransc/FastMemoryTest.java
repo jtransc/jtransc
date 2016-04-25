@@ -1,7 +1,7 @@
 package jtransc.jtransc;
 
-import jtransc.FastMemory;
-import jtransc.Mem;
+import com.jtransc.FastMemory;
+import com.jtransc.Mem;
 
 public class FastMemoryTest {
 	static public void main(String[] args) {

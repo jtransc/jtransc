@@ -16,7 +16,7 @@
 
 package java.nio;
 
-import jtransc.JTranscBits;
+import com.jtransc.JTranscBits;
 
 class Bits {
 	private Bits() {

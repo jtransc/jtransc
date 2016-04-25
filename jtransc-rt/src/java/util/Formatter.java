@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.internal.IntJTranscStrings;
+import com.jtransc.internal.IntJTranscStrings;
 
 import java.io.*;
 import java.nio.charset.Charset;

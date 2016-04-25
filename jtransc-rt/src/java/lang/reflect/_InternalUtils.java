@@ -16,7 +16,7 @@
 
 package java.lang.reflect;
 
-import jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscInvisible;
 
 import java.util.ArrayList;
 

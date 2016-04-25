@@ -16,7 +16,7 @@
 
 package java.util.regex;
 
-import jtransc.JTranscSystem;
+import com.jtransc.JTranscSystem;
 
 public class PatternSyntaxException extends IllegalArgumentException {
 	private final String desc;

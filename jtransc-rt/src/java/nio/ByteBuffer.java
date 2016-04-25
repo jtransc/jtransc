@@ -16,8 +16,6 @@
 
 package java.nio;
 
-import jtransc.JTranscBits;
-
 public abstract class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	final byte[] hb;
 	final int offset;

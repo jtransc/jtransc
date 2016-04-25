@@ -16,8 +16,8 @@
 
 package java.lang;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Short extends Number implements Comparable<Short> {
 	public static final int SIZE = 16;

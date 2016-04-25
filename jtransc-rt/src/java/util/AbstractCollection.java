@@ -16,8 +16,8 @@
 
 package java.util;
 
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public abstract class AbstractCollection<E> implements Collection<E> {
 	protected AbstractCollection() {

@@ -31,9 +31,9 @@ import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserKey
 import com.jtransc.vfs.getCached
-import jtransc.JTranscVersion
-import jtransc.annotation.haxe.HaxeAddAssets
-import jtransc.annotation.haxe.HaxeAddLibraries
+import com.jtransc.JTranscVersion
+import com.jtransc.annotation.haxe.HaxeAddAssets
+import com.jtransc.annotation.haxe.HaxeAddLibraries
 import java.io.File
 
 object HaxeGenDescriptor : GenTargetDescriptor() {

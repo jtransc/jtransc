@@ -1,6 +1,6 @@
 package com.sun.jna;
 
-import jtransc.ffi.JTranscFFI;
+import com.jtransc.ffi.JTranscFFI;
 
 public class Native {
 	public static Object loadLibrary(String name, Class interfaceClass) {

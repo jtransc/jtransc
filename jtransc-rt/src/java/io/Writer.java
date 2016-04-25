@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.internal.JTranscTempBuffer;
+import com.jtransc.internal.JTranscTempBuffer;
 
 public abstract class Writer implements Appendable, Closeable, Flushable {
 

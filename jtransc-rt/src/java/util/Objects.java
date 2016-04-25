@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Objects {
 	private Objects() {

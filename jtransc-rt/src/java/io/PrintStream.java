@@ -16,7 +16,7 @@
 
 package java.io;
 
-import jtransc.JTranscSystem;
+import com.jtransc.JTranscSystem;
 
 import java.nio.charset.Charset;
 import java.util.Locale;

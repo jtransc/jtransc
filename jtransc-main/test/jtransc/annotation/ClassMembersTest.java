@@ -1,7 +1,7 @@
 package jtransc.annotation;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({"static public var mynativeField:Int = 123;" })
 public class ClassMembersTest {

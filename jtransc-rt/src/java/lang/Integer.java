@@ -16,10 +16,9 @@
 
 package java.lang;
 
-import jtransc.JTranscSystem;
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.internal.JTranscCType;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.internal.JTranscCType;
 
 public final class Integer extends Number implements Comparable<Integer> {
 	public static final int MIN_VALUE = 0x80000000;

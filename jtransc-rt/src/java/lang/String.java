@@ -16,9 +16,9 @@
 
 package java.lang;
 
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
-import jtransc.internal.IntJTranscStrings;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.internal.IntJTranscStrings;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;

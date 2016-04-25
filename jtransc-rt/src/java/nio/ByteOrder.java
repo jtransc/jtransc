@@ -16,7 +16,7 @@
 
 package java.nio;
 
-import jtransc.JTranscBits;
+import com.jtransc.JTranscBits;
 
 public final class ByteOrder {
 	public static final ByteOrder BIG_ENDIAN = new ByteOrder("BIG_ENDIAN");

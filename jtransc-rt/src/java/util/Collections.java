@@ -16,7 +16,7 @@
 
 package java.util;
 
-import jtransc.internal.JTranscSorter;
+import com.jtransc.internal.JTranscSorter;
 
 import java.util.concurrent.ThreadLocalRandom;
 

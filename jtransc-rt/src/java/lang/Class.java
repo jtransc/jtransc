@@ -16,10 +16,10 @@
 
 package java.lang;
 
-import jtransc.FastStringMap;
-import jtransc.annotation.JTranscKeep;
-import jtransc.annotation.haxe.HaxeAddMembers;
-import jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.FastStringMap;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
-import java.lang.AnnotatedElement;
 
 @HaxeAddMembers({
 	"public var _hxClass:Class<Dynamic> = null;",

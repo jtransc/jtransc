@@ -16,8 +16,8 @@
 
 package java.io;
 
-import jtransc.JTranscBits;
-import jtransc.internal.JTranscTempBuffer;
+import com.jtransc.JTranscBits;
+import com.jtransc.internal.JTranscTempBuffer;
 
 public class DataInputStream extends FilterInputStream implements DataInput {
 	static private byte[] temp = new byte[8];
