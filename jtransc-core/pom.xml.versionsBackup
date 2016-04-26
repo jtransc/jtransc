@@ -24,12 +24,12 @@
     <parent>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
-        <version>0.2.1</version>
+        <version>0.2.0</version>
 		<relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>jtransc-gen-haxe</artifactId>
-    <name>jtransc gen haxe</name>
+    <artifactId>jtransc-core</artifactId>
+    <name>jtransc core</name>
 
     <dependencies>
 		<dependency>
@@ -55,11 +55,6 @@
             <version>${jtransc.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.jtransc</groupId>
-            <artifactId>jtransc-core</artifactId>
-            <version>${jtransc.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-all</artifactId>
             <version>5.0.4</version>
@@ -75,12 +70,16 @@
             <version>${jtransc.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-rt-core</artifactId>
+            <version>${jtransc.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
-        <!--
         <resources>
             <resource>
                 <directory>resources</directory>
@@ -91,7 +90,6 @@
                 <directory>testresources</directory>
             </testResource>
         </testResources>
-        -->
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

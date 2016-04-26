@@ -24,8 +24,8 @@
     <parent>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
-        <relativePath>..</relativePath>
-        <version>0.2.0</version>
+        <version>0.2.1</version>
+		<relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jtransc-core</artifactId>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
-            <version>0.2.0</version>
+            <version>${jtransc.version}</version>
         </dependency>
     </dependencies>
 

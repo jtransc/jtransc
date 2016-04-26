@@ -20,26 +20,12 @@
         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelVersion>4.0.0</modelVersion>
-    <build>
-        <sourceDirectory>src</sourceDirectory>
-        <resources><resource><directory>resources</directory></resource></resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <parent>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
         <relativePath>..</relativePath>
-        <version>0.2.0</version>
+        <version>0.2.1</version>
     </parent>
 
     <artifactId>jtransc-rt</artifactId>
@@ -48,7 +34,22 @@
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
-            <version>${jtransc.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<resources><resource><directory>resources</directory></resource></resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

@@ -3,8 +3,10 @@ package com.jtransc;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscVersion {
+	static private final String version = "0.2.1";
+
 	static public String getVersion() {
-		return "0.2.0";
+		return version;
 	}
 
 	@HaxeMethodBody("return HaxeNatives.str('haxe');")

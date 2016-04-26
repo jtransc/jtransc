@@ -17,15 +17,15 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.jtransc</groupId>
-    <artifactId>jtransc-buildjar-maven-plugin</artifactId>
-    <version>0.2.0</version>
-    <packaging>maven-plugin</packaging>
+	<parent>
+		<groupId>com.jtransc</groupId>
+		<artifactId>jtransc</artifactId>
+		<version>0.2.1</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
-    <properties>
-        <kotlin.version>1.0.1-2</kotlin.version>
-        <jtransc.version>0.2.0</jtransc.version>
-    </properties>
+    <artifactId>jtransc-buildjar-maven-plugin</artifactId>
+    <packaging>maven-plugin</packaging>
 
     <!--
     <name>Sample Parameter-less Maven Plugin</name>
