@@ -53,7 +53,8 @@ public class JTranscBits {
 		return makeLong(bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]);
 	}
 
-	static public int makeInt(byte b3, byte b2, byte b1, byte b0) {
+	//@JTranscInline
+	static final public int makeInt(byte b3, byte b2, byte b1, byte b0) {
 		return (((b3 & 0xFF) << 24) | ((b2 & 0xFF) << 16) | ((b1 & 0xFF) << 8) | ((b0 & 0xFF) << 0));
 	}
 
