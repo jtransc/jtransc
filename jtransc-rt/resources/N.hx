@@ -25,9 +25,18 @@ class N {
 		//return (value != null) ? cast value : null;
 	}
 
+	static inline private function _shift(count:Int) {
+		#if php
+			return untyped __php__("PHP_INT_SIZE") * 8 - count;
+		#else
+			return 32 - count;
+		#end
+	}
+
+	static public function signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
 	static public function i2z(v:Int):Bool return v != 0;
-	static public function i2b(v:Int):Int return (v << 24) >> 24;
-	static public function i2s(v:Int):Int return (v << 16) >> 16;
+	static public function i2b(v:Int):Int return (v << _shift(8)) >> _shift(8);
+	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
 	static public function i2c(v:Int):Int return v & 0xFFFF;
 
 	static public function f2i(v:Float):Int {

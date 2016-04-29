@@ -52,7 +52,7 @@ class HaxeByteArray extends HaxeBaseArray {
         return out;
     }
 
-    public function get(index:Int):Int return (this.data[checkBounds(index)] << 24) >> 24;
+    public function get(index:Int):Int return N.i2b(this.data[checkBounds(index)]);
     public function set(index:Int, value:Int):Void this.data[checkBounds(index)] = value;
 
 	public function getBool(index:Int):Bool return get(index) != 0;

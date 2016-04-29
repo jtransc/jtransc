@@ -441,9 +441,9 @@ class GenHaxeGen(
 				}
 				when (resultType) {
 					AstType.INT -> "(($binexpr) | 0)"
-					AstType.CHAR -> "(($binexpr) & 0xFFFF)"
-					AstType.SHORT -> "((($binexpr) << 16) >> 16)"
-					AstType.BYTE -> "((($binexpr) << 24) >> 24)"
+					AstType.CHAR -> "I.i2c($binexpr)"
+					AstType.SHORT -> "I.i2s($binexpr)"
+					AstType.BYTE -> "I.i2b($binexpr)"
 					else -> binexpr
 				}
 			}

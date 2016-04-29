@@ -114,19 +114,19 @@ final public class Mem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return #if flash flash.Memory.signExtend1(p0); #else ((p0 << 31) >> 31); #end")
+	@HaxeMethodBody("return #if flash flash.Memory.signExtend1(p0); #else N.signExtend(p0, 1); #end")
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return #if flash flash.Memory.signExtend8(p0); #else ((p0 << 24) >> 24); #end")
+	@HaxeMethodBody("return #if flash flash.Memory.signExtend8(p0); #else N.i2b(p0); #end")
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return #if flash flash.Memory.signExtend16(p0); #else ((p0 << 16) >> 16); #end")
+	@HaxeMethodBody("return #if flash flash.Memory.signExtend16(p0); #else N.i2s(p0); #end")
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;
 	}

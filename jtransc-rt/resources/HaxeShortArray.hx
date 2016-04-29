@@ -18,13 +18,12 @@ class HaxeShortArray extends HaxeBaseArray {
     }
 
     inline public function get(index:Int):Int {
-		checkBounds(index);
-        return ((this.data[index] << 16) >> 16);
+        return N.i2s(this.data[checkBounds(index)]);
     }
 
     inline public function set(index:Int, value:Int):Void {
 		checkBounds(index);
-        this.data[index] = value;
+        this.data[checkBounds(index)] = value;
     }
 
 	override public function getDynamic(index:Int):Dynamic {
