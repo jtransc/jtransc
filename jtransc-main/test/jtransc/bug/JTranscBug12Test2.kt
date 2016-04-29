@@ -18,6 +18,9 @@ object JTranscBug12Test2 {
 		test1("abcdefg")
 		test2()
 		test3()
+
+		Demo2().test()
+		Demo2.test()
 	}
 
 	enum class TestEnum { A, B, C; }
@@ -44,6 +47,20 @@ object JTranscBug12Test2 {
 
 	class Demo {
 		var field: String = "test"
+	}
+
+	class Demo2 {
+		companion object {
+			internal var test = Demo()
+			fun test() {
+				println("[1]" + test.field)
+			}
+		}
+		private var test = Demo()
+
+		fun test() {
+			println("[2]" + test.field)
+		}
 	}
 }
 

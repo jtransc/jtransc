@@ -31,18 +31,21 @@ class HaxeByteArray extends HaxeBaseArray {
     }
 
     static public function fromArray(items:Array<Dynamic>) {
+        if (items == null) return null;
         var out = new HaxeByteArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
     static public function fromUInt8Array(items:UInt8Array) {
+        if (items == null) return null;
         var out = new HaxeByteArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
     static public function fromBytes(bytes:Bytes) {
+        if (bytes == null) return null;
         var out = new HaxeByteArray(bytes.length);
         var bytesData = bytes.getData();
         for (n in 0 ... bytes.length) out.set(n, Bytes.fastGet(bytesData, n));

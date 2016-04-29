@@ -119,10 +119,15 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun access(path: String): SyncVfsFile = SyncVfsFile(vfs, combinePaths(this.path, path));
 
 	operator fun get(path: String): SyncVfsFile = access(path)
-	operator fun set(path: String, content: String) = access(path).ensureParentDir().write(content)
-	operator fun set(path: String, content: ToString) = access(path).ensureParentDir().write(content.toString())
-	operator fun set(path: String, content: ByteArray) = access(path).ensureParentDir().write(content)
-	operator fun set(path: String, content: SyncVfsFile) = access(path).ensureParentDir().write(content.readBytes())
+	operator fun set(path: String, content: String) = set(path, content.toByteArray(UTF8))
+	operator fun set(path: String, content: ToString) = set(path, content.toString().toByteArray(UTF8))
+	operator fun set(path: String, content: SyncVfsFile) = set(path, content.readBytes())
+	operator fun set(path: String, content: ByteArray) {
+		val file = access(path).ensureParentDir()
+		if (!file.exists || file.read() != content) {
+			file.write(content)
+		}
+	}
 	operator fun contains(path: String): Boolean = access(path).exists
 
 	fun jailAccess(path: String): SyncVfsFile = access(path).jail()

@@ -12,6 +12,7 @@ class HaxeLongArray extends HaxeBaseArray {
     }
 
     static public function fromArray(items:Array<Dynamic>) {
+        if (items == null) return null;
         var out = new HaxeLongArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;

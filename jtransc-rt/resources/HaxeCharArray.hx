@@ -11,6 +11,7 @@ class HaxeCharArray extends HaxeBaseArray {
     }
 
     static public function fromArray(items:Array<Dynamic>) {
+        if (items == null) return null;
         var out = new HaxeCharArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;

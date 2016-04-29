@@ -1,20 +1,21 @@
 package com.jtransc.gen.haxe
 
+import com.jtransc.JTranscFunction
+import com.jtransc.annotation.JTranscKeep
+import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
+import com.jtransc.ffi.StdCall
+import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
+import com.jtransc.log.log
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.JTranscFunction
-import com.jtransc.annotation.JTranscKeep
-import com.jtransc.annotation.haxe.*
-import com.jtransc.ffi.StdCall
-import com.jtransc.internal.JTranscAnnotationBase
 
 class GenHaxeGen(
 	val program: AstProgram,
@@ -31,24 +32,10 @@ class GenHaxeGen(
 	lateinit var stm: AstStm
 
 	fun AstStm.genStm(): Indenter = genStm2(this)
-	fun AstStm.Box.genStm(): Indenter {
-		if (this.value == null) {
-			invalidOp("stm is null")
-		}
-		return genStm2(this.value!!)
-	}
-
+	fun AstStm.Box.genStm(): Indenter = genStm2(this.value)
 	fun AstExpr.genExpr(): String = genExpr2(this)
-	fun AstExpr.Box.genExpr(): String {
-		if (this.value == null) {
-			invalidOp("expr is null")
-		}
-		return genExpr2(this.value!!)
-	}
-
-	fun AstExpr.Box.genNotNull(): String {
-		return this.value!!.genNotNull()
-	}
+	fun AstExpr.Box.genExpr(): String = genExpr2(this.value)
+	fun AstExpr.Box.genNotNull(): String = this.value.genNotNull()
 
 	fun AstExpr.genNotNull(): String {
 		return if (this is AstExpr.THIS) {
@@ -133,7 +120,7 @@ class GenHaxeGen(
 
 		val realMain = customMain ?: plainMain
 
-		println("Using ... " + if (customMain != null) "customMain" else "plainMain")
+		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
 		vfs[entryPointFilePath] = Indenter.replaceString(realMain, mapOf(
 			"entryPointPackage" to entryPointPackage,
@@ -165,25 +152,19 @@ class GenHaxeGen(
 				is AstAnnotation -> annotation(it)
 				is Pair<*, *> -> escapeValue(it.second)
 				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
-				is AstFieldWithoutTypeRef -> {
-					program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
-				}
+				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
 				is String -> "HaxeNatives.boxString(${it.quote()})"
 				is Int -> "HaxeNatives.boxInt($it)"
 				is Long -> "HaxeNatives.boxLong($it)"
 				is Float -> "HaxeNatives.boxFloat($it)"
 				is Double -> "HaxeNatives.boxDouble($it)"
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-				else -> {
-					throw InvalidOperationException("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
-				}
+				else -> invalidOp("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 		val annotation = program[a.type]
-		val itStr = annotation.methods.map {
-			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-		}.joinToString(", ")
+		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
 		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
 	}
 
@@ -253,7 +234,7 @@ class GenHaxeGen(
 	fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm
 		val program = program
-		val clazz = context.clazz
+		//val clazz = context.clazz
 		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
@@ -278,7 +259,8 @@ class GenHaxeGen(
 				is AstStm.SET_LOCAL -> {
 					val localName = stm.local.haxeName
 					val expr = stm.expr.genExpr()
-					if (localName != expr) { // Avoid: Assigning a value to itself
+					if (localName != expr) {
+						// Avoid: Assigning a value to itself
 						line("$localName = $expr;")
 					}
 				}
@@ -309,7 +291,8 @@ class GenHaxeGen(
 					mutableBody.initClassRef(fixField(stm.field).classRef)
 					val left = fixField(stm.field).haxeStaticText
 					val right = stm.expr.genExpr()
-					if (left != right) { // Avoid: Assigning a value to itself
+					if (left != right) {
+						// Avoid: Assigning a value to itself
 						line("$left = $right;")
 					}
 				}
@@ -418,7 +401,7 @@ class GenHaxeGen(
 			return strings[str]!!
 		}
 
-		fun getId(str:String):String {
+		fun getId(str: String): String {
 			return "__str" + getIndex(str)
 		}
 	}
@@ -586,7 +569,7 @@ class GenHaxeGen(
 				} + ")"
 
 			}
-			//is AstExpr.REF -> genExpr2(e.expr)
+		//is AstExpr.REF -> genExpr2(e.expr)
 			else -> throw NotImplementedError("Unhandled expression $this")
 		}
 	}
@@ -678,22 +661,14 @@ class GenHaxeGen(
 		val isNormalClass = (clazz.classType == AstClassType.CLASS)
 		val classType = if (isInterface) "interface" else "class"
 		val simpleClassName = clazz.name.haxeGeneratedSimpleClassName
-		fun getInterfaceList(keyword: String): String {
-			return (
-				(if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.haxeClassFqName }.joinToString(" $keyword ")
-				)
-		}
+		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.haxeClassFqName }.joinToString(" $keyword ")
 		//val implementingString = getInterfaceList("implements")
 		val isInterfaceWithStaticMembers = isInterface && clazz.fields.any { it.isStatic }
 		//val isInterfaceWithStaticFields = clazz.name.withSimpleName(clazz.name.simpleName + "\$StaticMembers")
 		refs._usedDependencies.clear()
 
-		if (!clazz.extending?.fqname.isNullOrEmpty()) {
-			refs.add(AstType.REF(clazz.extending!!))
-		}
-		for (impl in clazz.implementing) {
-			refs.add(AstType.REF(impl))
-		}
+		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
+		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 		//val interfaceClassName = clazz.name.append("_Fields");
 
 		var output = arrayListOf<Pair<FqName, Indenter>>()
@@ -715,9 +690,7 @@ class GenHaxeGen(
 		fun writeMethod(method: AstMethod, isInterface: Boolean): Indenter {
 			context.method = method
 			// default methods
-			if (isInterface && method.body != null) {
-				return Indenter.gen { }
-			}
+			if (isInterface && method.body != null) return Indenter.gen { }
 			return Indenter.gen {
 				val static = if (method.isStatic) "static " else ""
 				val visibility = if (isInterface) " " else method.visibility.haxe
@@ -735,9 +708,7 @@ class GenHaxeGen(
 				}
 
 				if (isInterface) {
-					if (!method.isImplementing) {
-						line("$decl;")
-					}
+					if (!method.isImplementing) line("$decl;")
 				} else {
 					val body = method.annotations[HaxeMethodBody::value]
 					val meta = method.annotations[HaxeMeta::value]
@@ -746,15 +717,15 @@ class GenHaxeGen(
 						val body2 = if (method.isInstanceInit) "$body return this;" else body
 						line("$decl { $body2 }")
 					} else if (method.body != null) {
-						val body = method.body!!
+						val rbody = method.body!!
 						line(decl) {
 							try {
 								// @TODO: Do not hardcode this!
 								if (method.name == "throwParameterIsNullException") {
 									line("HaxeNatives.debugger();")
 								}
-								line(features.apply(body, featureSet).genBody())
-							} catch (e:Throwable) {
+								line(features.apply(rbody, featureSet).genBody())
+							} catch (e: Throwable) {
 								println("WARNING:" + e.message)
 
 								line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
