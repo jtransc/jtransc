@@ -28,6 +28,7 @@ import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
 import com.jtransc.annotation.*
+import com.jtransc.maven.MavenLocalRepository
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -51,7 +52,11 @@ data class AstBuildSettings(
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
-	val backend: BuildBackend = BuildBackend.ASM
+	val backend: BuildBackend = BuildBackend.ASM,
+	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
+		"com.jtransc:jtransc-rt:$jtranscVersion",
+		"com.jtransc:jtransc-rt-core:$jtranscVersion"
+	)
 ) {
 	val release: Boolean get() = !debug
 

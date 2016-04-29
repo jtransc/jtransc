@@ -30,6 +30,8 @@ import javatest.misc.MiscTest
 import javatest.utils.DateTest
 import javatest.utils.regex.RegexTest
 import com.jtransc.JTranscVersion
+import com.jtransc.error.invalidOp
+import com.jtransc.vfs.*
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest
@@ -168,6 +170,18 @@ class HaxeGenSuiteTest {
 		return runClass(T::class.java)
 	}
 
+	fun locateProjectRoot(): SyncVfsFile {
+		var current = UnjailedLocalVfs(File(""))
+		var count = 0
+		while ("jtransc-rt" !in current) {
+			//println("${current.realpathOS}")
+			current = current.parent
+			if (count++ > 20) invalidOp("Can't find project root")
+		}
+
+		return current
+	}
+
 	fun <T : Any> runClass(clazz: Class<T>): String {
 		val build = AllBuild(
 			target = HaxeGenDescriptor,
@@ -180,7 +194,11 @@ class HaxeGenSuiteTest {
 		return build.buildAndRunCapturingOutput(AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),
 			debug = DEBUG,
-			backend = BACKEND
+			backend = BACKEND,
+			rtAndRtCore = listOf(
+				locateProjectRoot()["jtransc-rt/target/classes"].realpathOS,
+				locateProjectRoot()["jtransc-rt-core/target/classes"].realpathOS
+			)
 		)).output
 	}
 

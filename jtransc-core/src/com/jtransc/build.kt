@@ -82,16 +82,20 @@ class AllBuild(
 		return _buildAndRun(settings = settings, captureRunOutput = captureRunOutput, run = run)
 	}
 
+	private fun locateRootPath(): String {
+		println(File("").absolutePath)
+		return File("").absolutePath
+	}
+
 	private fun _buildAndRun(settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
 		val jtranscVersion = settings.jtranscVersion
 
 		// Previously downloaded manually or with maven plugin!
-		val classPaths2 = (MavenLocalRepository.locateJars(listOf(
-			"com.jtransc:jtransc-rt:$jtranscVersion",
-			"com.jtransc:jtransc-rt-core:$jtranscVersion"
-		)) + target.extraLibraries.flatMap {
-			MavenLocalRepository.locateJars(it)
-		} + classPaths).distinct()
+		//val rtAndRtCore = MavenLocalRepository.locateJars(
+		//	"com.jtransc:jtransc-rt:$jtranscVersion",
+		//	"com.jtransc:jtransc-rt-core:$jtranscVersion"
+		//)
+		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + classPaths).distinct()
 
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
 		for (cp in classPaths2) log("ClassPath: $cp")

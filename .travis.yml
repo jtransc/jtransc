@@ -30,8 +30,6 @@ before_script:
 - nvm --version || true
 - which node || true
 - node --version || true
-- mvn install -f jtransc-rt-core/pom.xml
-- mvn install -f jtransc-rt/pom.xml
 
 script:
 - mvn install --settings settings.xml

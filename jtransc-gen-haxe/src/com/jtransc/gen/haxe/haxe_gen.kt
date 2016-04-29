@@ -118,10 +118,7 @@ class GenHaxeGen(
 			line("haxe.CallStack.callStack();")
 		}
 
-		val customMain = program.classes
-			.map { it.annotations[HaxeCustomMain::value] }
-			.filterNotNull()
-			.firstOrNull()
+		val customMain = program.classes.getAnnotation(HaxeCustomMain::value).firstOrNull()
 
 		val plainMain = Indenter.genString {
 			line("package \$entryPointPackage;")
@@ -135,6 +132,8 @@ class GenHaxeGen(
 		}
 
 		val realMain = customMain ?: plainMain
+
+		println("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
 		vfs[entryPointFilePath] = Indenter.replaceString(realMain, mapOf(
 			"entryPointPackage" to entryPointPackage,
