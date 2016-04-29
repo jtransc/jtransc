@@ -1,12 +1,16 @@
 package jtransc.jtransc;
 
 import com.jtransc.FastMemory;
+import com.jtransc.JTranscArrays;
 import com.jtransc.Mem;
+
+import java.util.Arrays;
 
 public class FastMemoryTest {
 	static public void main(String[] args) {
 		testFastMemory();
 		testMem();
+		testCopyReinterpret();
 	}
 
 	private static void testFastMemory() {
@@ -31,5 +35,10 @@ public class FastMemoryTest {
 		System.out.println(Mem.sxi8(255));
 		System.out.println(Mem.sxi8(0x80));
 		System.out.println(Mem.sxi8(0x7F));
+	}
+
+	private static void testCopyReinterpret() {
+		byte[] data = JTranscArrays.copyReinterpret(new int[] { 0x12345678, 0x33332222 });
+		System.out.println(Arrays.toString(data));
 	}
 }

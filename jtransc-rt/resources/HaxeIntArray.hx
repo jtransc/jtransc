@@ -1,4 +1,5 @@
 import haxe.io.Int32Array;
+import haxe.io.Bytes;
 
 class HaxeIntArray extends HaxeBaseArray {
     public var data:Int32Array = null;
@@ -14,6 +15,16 @@ class HaxeIntArray extends HaxeBaseArray {
         if (items == null) return null;
         var out = new HaxeIntArray(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
+        return out;
+    }
+
+    public function getBytes() return data.view.buffer;
+
+    static public function fromBytes(bytes:Bytes) {
+        if (bytes == null) return null;
+        var out = new HaxeIntArray(0);
+        out.length = Std.int(bytes.length / 4);
+        out.data = Int32Array.fromBytes(bytes); // @TODO: check copy! Must be copied!
         return out;
     }
 
