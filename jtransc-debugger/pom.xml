@@ -59,6 +59,12 @@
             <artifactId>jtransc-rt-core</artifactId>
             <version>${jtransc.version}</version>
         </dependency>
+
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-core</artifactId>
+			<version>3.2.1</version>
+		</dependency>
     </dependencies>
 
     <build>

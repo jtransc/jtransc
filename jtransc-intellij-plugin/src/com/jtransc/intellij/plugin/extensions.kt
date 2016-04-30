@@ -1,5 +1,7 @@
 package com.jtransc.intellij.plugin
 
+import com.intellij.execution.filters.TextConsoleBuilderFactory
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -9,6 +11,8 @@ import com.intellij.openapi.roots.ModuleFileIndex
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VirtualFile
 
 // http://www.jetbrains.org/intellij/sdk/docs/basics/project_structure.html
@@ -29,6 +33,21 @@ val Project.moduleManager: ModuleManager get() = ModuleManager.getInstance(this)
 val Project.rootManager: ProjectRootManager get() = ProjectRootManager.getInstance(this)
 val Project.sdk: Sdk? get() = this.rootManager.projectSdk
 
+fun <T> UserDataHolder.getOrCreateUserData(key: Key<T>, generator: () -> T): T {
+	val result = this.getUserData(key)
+	if (result != null) return result
+	val genResult = generator()
+	this.putUserData(key, genResult)
+	return genResult
+}
+
+val ProjectConsoleViewKey = Key<ConsoleView>("ProjectConsoleView")
+
+val Project.console: ConsoleView get() {
+	return this.getOrCreateUserData(ProjectConsoleViewKey) {
+		TextConsoleBuilderFactory.getInstance().createBuilder(this).console
+	}
+}
 
 fun Sdk?.getAllClassRoots(): List<VirtualFile> = this?.rootProvider?.getFiles(OrderRootType.CLASSES)?.toList() ?: listOf()
 
@@ -43,3 +62,6 @@ fun intellijWriteAction(action: () -> Unit) {
 		action()
 	}
 }
+
+//TextConsoleBuilderFactory.createBuilder(project).getConsole() creates a ConsoleView instance
+//ConsoleView.attachToProcess() attaches it to the output of a process.

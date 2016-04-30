@@ -44,43 +44,43 @@ class JTranscRunConfiguration(project: Project, factory: JTranscConfigurationFac
 	}
 
 	override fun getState(p0: Executor, p1: ExecutionEnvironment): RunProfileState? {
-		//return EmptyRunProfileState.INSTANCE
-		return RunProfileState { executor, programRunner ->
-			println("executor: $executor")
-			println("programRunner: $programRunner")
-			object : ExecutionResult {
-				override fun getExecutionConsole(): ExecutionConsole? {
-					return ConsoleViewImpl(p1.project, true)
-				}
-
-				override fun getProcessHandler(): ProcessHandler? {
-					return object : ProcessHandler() {
-						override fun getProcessInput(): OutputStream? {
-							//throw UnsupportedOperationException()
-							return null
-						}
-
-						override fun detachIsDefault(): Boolean {
-							//throw UnsupportedOperationException()
-							return true
-						}
-
-						override fun detachProcessImpl() {
-							//throw UnsupportedOperationException()
-						}
-
-						override fun destroyProcessImpl() {
-							//throw UnsupportedOperationException()
-						}
-
-					}
-				}
-
-				override fun getActions(): Array<out AnAction>? {
-					return arrayOf()
-				}
-			}
-		}
+		return EmptyRunProfileState.INSTANCE
+		//return RunProfileState { executor, programRunner ->
+		//	println("executor: $executor")
+		//	println("programRunner: $programRunner")
+		//	object : ExecutionResult {
+		//		override fun getExecutionConsole(): ExecutionConsole? {
+		//			return ConsoleViewImpl(p1.project, true)
+		//		}
+//
+		//		override fun getProcessHandler(): ProcessHandler? {
+		//			return object : ProcessHandler() {
+		//				override fun getProcessInput(): OutputStream? {
+		//					//throw UnsupportedOperationException()
+		//					return null
+		//				}
+//
+		//				override fun detachIsDefault(): Boolean {
+		//					//throw UnsupportedOperationException()
+		//					return true
+		//				}
+//
+		//				override fun detachProcessImpl() {
+		//					//throw UnsupportedOperationException()
+		//				}
+//
+		//				override fun destroyProcessImpl() {
+		//					//throw UnsupportedOperationException()
+		//				}
+//
+		//			}
+		//		}
+//
+		//		override fun getActions(): Array<out AnAction>? {
+		//			return arrayOf()
+		//		}
+		//	}
+		//}
 	}
 
 	override fun getValidModules(): MutableCollection<Module>? {

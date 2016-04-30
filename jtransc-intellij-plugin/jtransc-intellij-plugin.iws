@@ -2,164 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fedb07cf-a2e0-4989-ab83-997183721766" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/jdk1.2.2_017.txt.gz" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/jdk1.3.1_19.txt.gz" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/pom.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/AnnotationVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/AnnotationWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Attribute.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/ByteVector.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/ClassReader.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/ClassVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/ClassWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Context.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Edge.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/FieldVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/FieldWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Frame.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Handle.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Handler.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Item.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Label.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/MethodVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/MethodWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Opcodes.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/Type.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/TypePath.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/TypeReference.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/AdviceAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/AnalyzerAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/AnnotationRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/ClassRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/CodeSizeEvaluator.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/FieldRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/GeneratorAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/InstructionAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/JSRInlinerAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/LocalVariablesSorter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/Method.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/MethodRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/Remapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/RemappingAnnotationAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/RemappingClassAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/RemappingFieldAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/RemappingMethodAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/RemappingSignatureAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/SerialVersionUIDAdder.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/SignatureRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/SimpleRemapper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/StaticInitMerger.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/TableSwitchGenerator.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/TryCatchBlockSorter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/commons/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/AnnotationConstantsCollector.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/ClassConstantsCollector.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/ClassOptimizer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/Constant.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/ConstantPool.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/FieldConstantsCollector.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/JarOptimizer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/MethodConstantsCollector.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/MethodOptimizer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/NameMapping.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/Shrinker.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink-annotations.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink-frames.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink-resize.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink-signatures.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink-writer.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/optimizer/shrink.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/signature/SignatureReader.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/signature/SignatureVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/signature/SignatureWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/signature/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/AbstractInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/AnnotationNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/ClassNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/FieldInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/FieldNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/FrameNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/IincInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/InnerClassNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/InsnList.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/InsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/IntInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/InvokeDynamicInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/JumpInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LabelNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LdcInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LineNumberNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LocalVariableAnnotationNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LocalVariableNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/LookupSwitchInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/MethodInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/MethodNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/MultiANewArrayInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/ParameterNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/TableSwitchInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/TryCatchBlockNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/TypeAnnotationNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/TypeInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/VarInsnNode.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/Analyzer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/AnalyzerException.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/BasicInterpreter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/BasicValue.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/BasicVerifier.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/Frame.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/Interpreter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/SimpleVerifier.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/SmallSet.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/SourceInterpreter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/SourceValue.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/Subroutine.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/Value.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/analysis/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/tree/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/ASMifiable.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/ASMifier.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/CheckAnnotationAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/CheckClassAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/CheckFieldAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/CheckMethodAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/CheckSignatureAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/Printer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/Textifiable.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/Textifier.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/TraceAnnotationVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/TraceClassVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/TraceFieldVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/TraceMethodVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/TraceSignatureVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/util/package.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/ASMContentHandler.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/Processor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/SAXAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/SAXAnnotationAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/SAXClassAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/SAXCodeAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/SAXFieldAdapter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/asm-xml.dtd" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-asm/src/com/jtransc/org/objectweb/asm/xml/package.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../_old/experiments/opcode.kt" afterPath="$PROJECT_DIR$/../_old/experiments/opcode.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../_old/experiments/ref.kt" afterPath="$PROJECT_DIR$/../_old/experiments/ref.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../_old/experiments/ref2.kt" afterPath="$PROJECT_DIR$/../_old/experiments/ref2.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../_old/experiments/ref3.kt" afterPath="$PROJECT_DIR$/../_old/experiments/ref3.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-buildjar-maven-plugin/src/com/jtransc/tools/haxe_tools.kt" afterPath="$PROJECT_DIR$/../jtransc-buildjar-maven-plugin/src/com/jtransc/tools/haxe_tools.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-core/pom.xml" afterPath="$PROJECT_DIR$/../jtransc-core/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/input/AsmToAst.kt" afterPath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/input/AsmToAst.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_ast.kt" afterPath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_ast.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_opcodes.kt" afterPath="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_opcodes.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-core/test/AstExampleTest.java" afterPath="$PROJECT_DIR$/../jtransc-core/test/AstExampleTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/jtransc-intellij-plugin.iml" afterPath="$PROJECT_DIR$/jtransc-intellij-plugin.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../jtransc-debugger/test/example/v8example.kt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-debugger/pom.xml" afterPath="$PROJECT_DIR$/../jtransc-debugger/pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/jtransc-intellij-plugin.ipr" afterPath="$PROJECT_DIR$/jtransc-intellij-plugin.ipr" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/jtransc-intellij-plugin.iws" afterPath="$PROJECT_DIR$/jtransc-intellij-plugin.iws" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt" afterPath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunner.kt" afterPath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunner.kt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt" afterPath="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../jtransc-main/src/com/jtransc/report.kt" afterPath="$PROJECT_DIR$/../jtransc-main/src/com/jtransc/report.kt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pom.xml" afterPath="$PROJECT_DIR$/../pom.xml" />
     </list>
     <ignored path="jtransc-intellij-plugin.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -202,99 +51,35 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="AsmToAst.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../jtransc-core/src/com/jtransc/input/AsmToAst.kt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="32" column="43" selection-start-line="32" selection-start-column="43" selection-end-line="32" selection-end-column="43" />
-              <folding>
-                <element signature="e#27#622#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="JTranscBreakpointType.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscBreakpointType.kt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="7" column="48" selection-start-line="7" selection-start-column="48" selection-end-line="7" selection-end-column="48" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../jtransc-asm/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="1" column="3" selection-start-line="1" selection-start-column="3" selection-end-line="1" selection-end-column="3" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="JTranscRunner.kt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="JTranscRunner.kt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunner.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="61" column="30" selection-start-line="61" selection-start-column="30" selection-end-line="61" selection-end-column="30" />
+            <state relative-caret-position="1188">
+              <caret line="105" column="10" selection-start-line="105" selection-start-column="10" selection-end-line="105" selection-end-column="10" />
               <folding>
-                <element signature="e#37#1354#0" expanded="true" />
+                <element signature="e#37#1519#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="extensions.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt">
+      <file leaf-file-name="v8example.kt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../jtransc-debugger/test/example/v8example.kt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="82">
-              <caret line="34" column="44" selection-start-line="34" selection-start-column="44" selection-end-line="34" selection-end-column="44" />
+            <state relative-caret-position="119">
+              <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
               <folding>
-                <element signature="e#37#522#0" expanded="true" />
+                <marker date="1462026509023" expanded="true" signature="389:1448" placeholder="{...}" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="JTranscRunConfiguration.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt">
+      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../jtransc-debugger/pom.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-470">
-              <caret line="46" column="10" selection-start-line="46" selection-start-column="10" selection-end-line="46" selection-end-column="10" />
-              <folding>
-                <element signature="e#37#1037#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="JTranscRunConfigurationType.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfigurationType.kt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="68">
-              <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="asm_ast.kt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_ast.kt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1591">
-              <caret line="10" column="32" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="32" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ModuleFileIndex.class" pinned="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/openapi/roots/ModuleFileIndex.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="14" column="17" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
+            <state relative-caret-position="-663">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -331,7 +116,6 @@
         <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfigurationType.kt" />
         <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscBreakpointType.kt" />
         <option value="$PROJECT_DIR$/resources/META-INF/plugin.xml" />
-        <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt" />
         <option value="$PROJECT_DIR$/../jtransc-asm/pom.xml" />
         <option value="$PROJECT_DIR$/../pom.xml" />
         <option value="$PROJECT_DIR$/../jtransc-core/pom.xml" />
@@ -352,9 +136,12 @@
         <option value="$PROJECT_DIR$/../_old/experiments/ref3.kt" />
         <option value="$PROJECT_DIR$/../jtransc-main/src/com/jtransc/report.kt" />
         <option value="$PROJECT_DIR$/../jtransc-asm/.gitignore" />
-        <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt" />
         <option value="$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_ast.kt" />
+        <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt" />
+        <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt" />
         <option value="$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunner.kt" />
+        <option value="$PROJECT_DIR$/../jtransc-debugger/test/v8example.kt" />
+        <option value="$PROJECT_DIR$/../jtransc-debugger/pom.xml" />
       </list>
     </option>
   </component>
@@ -404,6 +191,10 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane">
+        <subPane />
+      </pane>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -502,19 +293,69 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-intellij-plugin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-debugger" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-intellij-plugin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-debugger" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-intellij-plugin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jtransc-debugger" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="debugger" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Scratches" />
-      <pane id="PackagesPane">
-        <subPane />
-      </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
-    <property name="SearchEverywhereHistoryKey" value="asm_ast.kt&#9;FILE&#9;file://C:/projects/jtransc/jtransc/jtransc-core/src/com/jtransc/types/asm_ast.kt&#10;processresult2&#9;null&#9;null&#10;icons&#9;FILE&#9;jar://C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 2016.1/lib/util.jar!/com/intellij/icons/AllIcons.class" />
+    <property name="SearchEverywhereHistoryKey" value="CommandLineState&#9;PSI&#9;JAVA://com.intellij.execution.configurations.CommandLineState&#10;consoleviewimpl&#9;PSI&#9;JAVA://com.intellij.execution.impl.ConsoleViewImpl&#10;asm_ast.kt&#9;FILE&#9;file://C:/projects/jtransc/jtransc/jtransc-core/src/com/jtransc/types/asm_ast.kt&#10;processresult2&#9;null&#9;null&#10;icons&#9;FILE&#9;jar://C:/Program Files (x86)/JetBrains/IntelliJ IDEA Community Edition 2016.1/lib/util.jar!/com/intellij/icons/AllIcons.class" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -532,7 +373,20 @@
       <recent name="C:\projects\jtransc-intellij-plugin\resources\runConfigurations" />
     </key>
   </component>
-  <component name="RunManager" selected="Plugin.Plugin">
+  <component name="RunManager" selected="Kotlin.V8Example">
+    <configuration default="false" name="V8Example" type="JetRunConfigurationType" factoryName="Kotlin" temporary="true" nameIsGenerated="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="MAIN_CLASS_NAME" value="V8Example" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="jtransc-debugger" />
+      <envs />
+      <method />
+    </configuration>
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
       <module name="jtransc-intellij-plugin" />
       <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
@@ -693,7 +547,7 @@
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
       <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="jtransc-intellij-plugin" />
+      <module name="jtransc-debugger" />
       <envs />
       <method />
     </configuration>
@@ -780,9 +634,15 @@
       <log_file path="$USER_HOME$/.IdeaIC2016/system/plugins-sandbox/system/log/idea.log" checked="false" skipped="true" show_all="false" alias="IDEA LOG" />
       <method />
     </configuration>
-    <list size="1">
+    <list size="2">
       <item index="0" class="java.lang.String" itemvalue="Plugin.Plugin" />
+      <item index="1" class="java.lang.String" itemvalue="Kotlin.V8Example" />
     </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="Kotlin.V8Example" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
     <option name="remove_strategy" value="false" />
@@ -802,7 +662,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="85" y="-8" width="1843" height="1096" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -817,17 +677,17 @@
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24957936" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32917964" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24957936" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.58566976" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2886812" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32917964" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -843,7 +703,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="30" />
+      <option name="time" value="32" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -852,92 +712,10 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/configurations/JavaCommandLineState.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="40" column="103" selection-start-line="40" selection-start-column="103" selection-end-line="40" selection-end-column="103" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/configurations/RunProfileState.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/org/jetbrains/concurrency/Promise.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="27" column="22" selection-start-line="27" selection-start-column="22" selection-end-line="27" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/xdebugger/XDebugSession.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="82" column="9" selection-start-line="82" selection-start-column="9" selection-end-line="82" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/idea.jar!/com/intellij/debugger/engine/JavaDebugProcess.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="269" column="16" selection-start-line="269" selection-start-column="16" selection-end-line="269" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/xdebugger/XDebugProcess.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="73" column="16" selection-start-line="73" selection-start-column="16" selection-end-line="73" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/idea.jar!/com/intellij/execution/application/ApplicationConfiguration.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="57" column="18" selection-start-line="57" selection-start-column="18" selection-end-line="57" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/jtransc-intellij-plugin.iws">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/idea.jar!/com/intellij/execution/configuration/EmptyRunProfileState.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscIcons.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/runners/GenericProgramRunner.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="22" column="22" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/lib/idea.jar!/com/intellij/execution/runners/DefaultProgramRunner.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="17" column="64" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="64" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -953,7 +731,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="494">
           <caret line="143" column="6" selection-start-line="143" selection-start-column="6" selection-end-line="143" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -969,11 +746,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-402">
           <caret line="10" column="19" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#11987#0" expanded="true" />
-            <element signature="e#6195#6196#0" expanded="true" />
-            <element signature="e#6224#6225#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -981,7 +753,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1141">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -989,7 +760,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1005,7 +775,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-673">
           <caret line="47" column="57" selection-start-line="47" selection-start-column="57" selection-end-line="47" selection-end-column="57" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1013,7 +782,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
           <caret line="39" column="22" selection-start-line="39" selection-start-column="22" selection-end-line="39" selection-end-column="22" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1021,9 +789,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="578">
           <caret line="62" column="22" selection-start-line="62" selection-start-column="22" selection-end-line="62" selection-end-column="22" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1039,7 +804,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1063,7 +827,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1071,7 +834,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1079,7 +841,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
           <caret line="35" column="0" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1087,7 +848,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-12570">
           <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1095,9 +855,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding>
-            <element signature="e#27#132#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1105,7 +862,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="206">
           <caret line="178" column="37" selection-start-line="178" selection-start-column="37" selection-end-line="178" selection-end-column="37" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1114,7 +870,6 @@
         <state relative-caret-position="221">
           <caret line="26" column="19" selection-start-line="26" selection-start-column="19" selection-end-line="26" selection-end-column="19" />
           <caret line="27" column="19" selection-start-line="27" selection-start-column="19" selection-end-line="27" selection-end-column="19" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1156,7 +911,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1164,23 +918,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="22" column="11" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="11" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../testintellijplugin.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../testintellijplugin.js" />
     <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/openapi/roots/OrderEnumerator.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="850">
           <caret line="71" column="41" selection-start-line="71" selection-start-column="41" selection-end-line="71" selection-end-column="41" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1188,7 +933,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="123">
           <caret line="68" column="20" selection-start-line="68" selection-start-column="20" selection-end-line="68" selection-end-column="20" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1210,29 +954,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../jtransc-core/src/com/jtransc/input/AsmToAst.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
+        <state relative-caret-position="306">
           <caret line="32" column="43" selection-start-line="32" selection-start-column="43" selection-end-line="32" selection-end-column="43" />
           <folding>
-            <element signature="e#27#622#0" expanded="true" />
+            <element signature="e#27#622#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../jtransc-core/src/com/jtransc/types/asm_ast.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1591">
+        <state relative-caret-position="170">
           <caret line="10" column="32" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="32" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-470">
-          <caret line="46" column="10" selection-start-line="46" selection-start-column="10" selection-end-line="46" selection-end-column="10" />
-          <folding>
-            <element signature="e#37#1037#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1244,16 +978,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="82">
-          <caret line="34" column="44" selection-start-line="34" selection-start-column="44" selection-end-line="34" selection-end-column="44" />
-          <folding>
-            <element signature="e#37#522#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscBreakpointType.kt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -1262,13 +986,123 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunConfiguration.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="521">
+          <caret line="61" column="2" selection-start-line="61" selection-start-column="2" selection-end-line="61" selection-end-column="2" />
+          <folding>
+            <element signature="e#37#1037#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/ui/ExecutionConsole.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="10" column="17" selection-start-line="10" selection-start-column="17" selection-end-line="10" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/idea.jar!/com/intellij/execution/impl/ConsoleViewImpl.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="155" column="60" selection-start-line="155" selection-start-column="60" selection-end-line="155" selection-end-column="60" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/xdebugger/XDebugProcess.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="123" column="28" selection-start-line="123" selection-start-column="28" selection-end-line="123" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/configurations/RunProfileState.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="14" column="17" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/configurations/CommandLineState.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-713">
+          <caret line="70" column="43" selection-start-line="70" selection-start-column="43" selection-end-line="70" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/execution/ui/ConsoleView.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="16" column="9" selection-start-line="16" selection-start-column="9" selection-end-line="16" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/util.jar!/com/intellij/openapi/util/UserDataHolder.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="11" column="17" selection-start-line="11" selection-start-column="17" selection-end-line="11" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/extensions.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="578">
+          <caret line="48" column="5" selection-start-line="48" selection-start-column="5" selection-end-line="48" selection-end-column="5" />
+          <folding>
+            <element signature="e#37#716#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/openapi.jar!/com/intellij/xdebugger/XDebugProcessStarter.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="13" column="11" selection-start-line="13" selection-start-column="11" selection-end-line="13" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_51/jre/lib/rt.jar!/sun/misc/Unsafe.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="348" column="23" selection-start-line="348" selection-start-column="23" selection-end-line="348" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/jtransc/intellij/plugin/JTranscRunner.kt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="61" column="30" selection-start-line="61" selection-start-column="30" selection-end-line="61" selection-end-column="30" />
+        <state relative-caret-position="1188">
+          <caret line="105" column="10" selection-start-line="105" selection-start-column="10" selection-end-line="105" selection-end-column="10" />
           <folding>
-            <element signature="e#37#1354#0" expanded="true" />
+            <element signature="e#37#1519#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../jtransc-debugger/test/example/v8example.kt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+          <folding>
+            <marker date="1462026509023" expanded="true" signature="389:1448" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../jtransc-debugger/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-663">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

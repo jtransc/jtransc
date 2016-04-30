@@ -3,9 +3,12 @@ package com.jtransc.intellij.plugin
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.DefaultProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
@@ -51,6 +54,8 @@ class JTranscRunner : DefaultProgramRunner() {
 		val module = profile.configurationModule.module!!
 		val moduleRootManager = module.rootManager
 
+		project.console.print("started!\n", ConsoleViewContentType.NORMAL_OUTPUT)
+
 		println("MAIN_CLASS_NAME: ${profile.MAIN_CLASS_NAME}")
 		for (root in module.getAllClassRootsWithoutSdk()) {
 			root.canonicalPath
@@ -61,11 +66,13 @@ class JTranscRunner : DefaultProgramRunner() {
 
 		println("outputPath: $outputPath")
 
+		val outputFile = """$outputPath/testintellijplugin.js"""
+
 		val build = AllBuild(
 			HaxeGenDescriptor,
 			classPaths = module.getAllClassRootsWithoutSdk().map { it.canonicalPath }.filterNotNull(),
 			entryPoint = profile.MAIN_CLASS_NAME,
-			output = """$outputPath/testintellijplugin.js""",
+			output = outputFile,
 			targetDirectory = "$outputPath",
 			subtarget = "js"
 		)
@@ -77,16 +84,9 @@ class JTranscRunner : DefaultProgramRunner() {
 		val debugSession = XDebuggerManager.getInstance(project).startSession(env, object : XDebugProcessStarter() {
 			override fun start(session: XDebugSession): XDebugProcess {
 				try {
-					// Start the debugger process, which is a class that
-					// implements the actual debugger functionality.  In this
-					// case, it does so by message passing through a socket.
 					val debugProcess = JTranscDebugProcess(session)
-
-					// Now accept the connection from the being-debugged
-					// process.
 					debugProcess.start()
-
-					return debugProcess;
+					return debugProcess
 				} catch (e: IOException) {
 					throw ExecutionException(e.message, e);
 				}
@@ -103,8 +103,14 @@ class JTranscRunner : DefaultProgramRunner() {
 
 class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 	fun start() {
-		val console = createConsole()
+		//session.consoleView.print("aaaaaaaaaaaaaaaa\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+		//val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(session.project).console
+
+		//intellijWriteAction {
+		//	TextConsoleBuilderFactory.getInstance().createBuilder(session.project).console.print("HELLO", ConsoleViewContentType.ERROR_OUTPUT)
+		//}
 		println("started!")
+
 
 		//session.consoleView.print("Started debugging!", ConsoleViewContentType.ERROR_OUTPUT)
 
