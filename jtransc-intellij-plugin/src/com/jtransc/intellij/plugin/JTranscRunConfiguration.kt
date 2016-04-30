@@ -11,6 +11,7 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.module.Module
@@ -44,43 +45,45 @@ class JTranscRunConfiguration(project: Project, factory: JTranscConfigurationFac
 	}
 
 	override fun getState(p0: Executor, p1: ExecutionEnvironment): RunProfileState? {
-		return EmptyRunProfileState.INSTANCE
-		//return RunProfileState { executor, programRunner ->
-		//	println("executor: $executor")
-		//	println("programRunner: $programRunner")
-		//	object : ExecutionResult {
-		//		override fun getExecutionConsole(): ExecutionConsole? {
-		//			return ConsoleViewImpl(p1.project, true)
-		//		}
-//
-		//		override fun getProcessHandler(): ProcessHandler? {
-		//			return object : ProcessHandler() {
-		//				override fun getProcessInput(): OutputStream? {
-		//					//throw UnsupportedOperationException()
-		//					return null
-		//				}
-//
-		//				override fun detachIsDefault(): Boolean {
-		//					//throw UnsupportedOperationException()
-		//					return true
-		//				}
-//
-		//				override fun detachProcessImpl() {
-		//					//throw UnsupportedOperationException()
-		//				}
-//
-		//				override fun destroyProcessImpl() {
-		//					//throw UnsupportedOperationException()
-		//				}
-//
-		//			}
-		//		}
-//
-		//		override fun getActions(): Array<out AnAction>? {
-		//			return arrayOf()
-		//		}
-		//	}
-		//}
+		//return EmptyRunProfileState.INSTANCE
+		return RunProfileState { executor, programRunner ->
+			println("executor: $executor")
+			println("programRunner: $programRunner")
+			p1.project.console.print("HEllo", ConsoleViewContentType.NORMAL_OUTPUT)
+			object : ExecutionResult {
+				override fun getExecutionConsole(): ExecutionConsole? {
+					return p1.project.console
+					//return ConsoleViewImpl(p1.project, true)
+				}
+
+				override fun getProcessHandler(): ProcessHandler? {
+					return object : ProcessHandler() {
+						override fun getProcessInput(): OutputStream? {
+							//throw UnsupportedOperationException()
+							//return "Hello world".toByteArray()
+							return null
+						}
+
+						override fun detachIsDefault(): Boolean {
+							//throw UnsupportedOperationException()
+							return true
+						}
+
+						override fun detachProcessImpl() {
+							//throw UnsupportedOperationException()
+						}
+
+						override fun destroyProcessImpl() {
+							//throw UnsupportedOperationException()
+						}
+					}
+				}
+
+				override fun getActions(): Array<out AnAction>? {
+					return arrayOf()
+				}
+			}
+		}
 	}
 
 	override fun getValidModules(): MutableCollection<Module>? {

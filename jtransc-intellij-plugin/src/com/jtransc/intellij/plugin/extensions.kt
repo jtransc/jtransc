@@ -1,8 +1,11 @@
 package com.jtransc.intellij.plugin
 
+import com.intellij.codeInsight.hint.HintManager
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -31,7 +34,10 @@ fun Module.getAllClassRootsWithoutSdk(): List<VirtualFile> {
 }
 val Project.moduleManager: ModuleManager get() = ModuleManager.getInstance(this)
 val Project.rootManager: ProjectRootManager get() = ProjectRootManager.getInstance(this)
+val Project.editor: Editor get() = FileEditorManager.getInstance(this).selectedTextEditor!!
 val Project.sdk: Sdk? get() = this.rootManager.projectSdk
+
+fun Editor.showHint(message:String) = HintManager.getInstance().showErrorHint(this, message)
 
 fun <T> UserDataHolder.getOrCreateUserData(key: Key<T>, generator: () -> T): T {
 	val result = this.getUserData(key)
@@ -45,7 +51,9 @@ val ProjectConsoleViewKey = Key<ConsoleView>("ProjectConsoleView")
 
 val Project.console: ConsoleView get() {
 	return this.getOrCreateUserData(ProjectConsoleViewKey) {
-		TextConsoleBuilderFactory.getInstance().createBuilder(this).console
+		val console = TextConsoleBuilderFactory.getInstance().createBuilder(this).console
+		console.getComponent()
+		console
 	}
 }
 

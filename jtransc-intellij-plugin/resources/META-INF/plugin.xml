@@ -31,12 +31,10 @@
   </extensions>
 
   <actions>
-    <!--
     <group id="MyPlugin.SampleMenu" text="_Sample Menu" description="Sample menu">
       <add-to-group group-id="MainMenu" anchor="last"  />
       <action id="Myplugin.Textboxes" class="Mypackage.TextBoxes" text="Text _Boxes" description="A test menu item" />
     </group>
-    -->
   </actions>
 
 </idea-plugin>

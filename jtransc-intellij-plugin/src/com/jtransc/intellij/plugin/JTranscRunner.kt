@@ -1,23 +1,24 @@
 package com.jtransc.intellij.plugin
 
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.ExecutionResult
+import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.filters.TextConsoleBuilderFactory
+import com.intellij.execution.process.ColoredProcessHandler
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.DefaultProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -30,10 +31,11 @@ import com.jtransc.ast.AstBuildSettings
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.debugger.v8.NodeJS
 import com.jtransc.gen.haxe.HaxeGenDescriptor
-import com.jtransc.gen.haxe.HaxeGenTargetProcessor
 import com.jtransc.io.ProcessUtils
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 
 // https://github.com/JetBrains/intellij-haxe/blob/master/src/14/com/intellij/plugins/haxe/runner/debugger/HaxeDebugRunner.java
 // http://www.jetbrains.org/intellij/sdk/docs/basics/project_structure.html
@@ -47,6 +49,7 @@ class JTranscRunner : DefaultProgramRunner() {
 	}
 
 	override fun doExecute(state: RunProfileState, env: ExecutionEnvironment): RunContentDescriptor? {
+		val programRunner = this
 		val project = env.project
 		val projectRootManager = project.rootManager
 		val moduleManager = project.moduleManager
@@ -54,6 +57,7 @@ class JTranscRunner : DefaultProgramRunner() {
 		val profile = env.runProfile as JTranscRunConfiguration
 		//val data = profile.data
 		//println("Executing... " + data.mainClass)
+		val executor = env.executor
 
 		val module = profile.configurationModule.module!!
 		val moduleRootManager = module.rootManager
@@ -68,7 +72,14 @@ class JTranscRunner : DefaultProgramRunner() {
 
 		val outputPath = module.getOutputDirectory()?.canonicalPath ?: "."
 
+		//state.execute().processHandler.notifyTextAvailable()
+
 		println("outputPath: $outputPath")
+		val consoleComponent = project.console.component // Force show?
+		project.console.print("outputPath: $outputPath", ConsoleViewContentType.SYSTEM_OUTPUT)
+
+		//project.editor.showHint("HELLO")
+		//HintManager.getInstance().showErrorHint(project.editor, "HELLO")
 
 		val outputFile = """$outputPath/testintellijplugin.js"""
 
@@ -86,11 +97,11 @@ class JTranscRunner : DefaultProgramRunner() {
 		println(result)
 
 
-
 		val debugSession = XDebuggerManager.getInstance(project).startSession(env, object : XDebugProcessStarter() {
 			override fun start(session: XDebugSession): XDebugProcess {
 				try {
-					val debugProcess = JTranscDebugProcess(session, File(outputFile))
+					val debugProcess = JTranscDebugProcess(session, File(outputFile), SimpleJTranscRunningState(env).execute(executor, programRunner))
+
 					debugProcess.start()
 					return debugProcess
 				} catch (e: IOException) {
@@ -107,43 +118,71 @@ class JTranscRunner : DefaultProgramRunner() {
 	}
 }
 
-class JTranscDebugProcess(session: XDebugSession, val file: File) : XDebugProcess(session) {
+class SimpleJTranscRunningState(environment: ExecutionEnvironment) : CommandLineState(environment) {
+	override fun startProcess(): ProcessHandler {
+		//val pb = ProcessBuilder("dir")
+		//val process = pb.start()
+		//return ColoredProcessHandler(process, pb.command().joinToString(" "))
+		return object : ProcessHandler() {
+			override fun getProcessInput(): OutputStream? {
+				return ByteArrayOutputStream()
+			}
+
+			override fun detachIsDefault(): Boolean {
+				return true
+			}
+
+			override fun detachProcessImpl() {
+			}
+
+			override fun destroyProcessImpl() {
+			}
+		}
+	}
+}
+
+class JTranscDebugProcess(session: XDebugSession, val file: File, val executionResult: ExecutionResult) : XDebugProcess(session) {
 	val process = this
 	val project = session.project
+	val suspendedContext = JTranscSuspendContext(process)
 	val debugger = NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
 		override fun onStarted() {
 			println("Started!")
 		}
 
 		override fun onOutputData(data: String) {
-			intellijWriteAction {
-				project.console.isOutputPaused = false
-				project.console.print(data, ConsoleViewContentType.NORMAL_OUTPUT)
-				System.out.println(data)
-			}
+			executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDOUT)
+			System.out.println(data)
 		}
 
 		override fun onErrorData(data: String) {
-			intellijWriteAction {
-				project.console.isOutputPaused = false
-				project.console.print(data, ConsoleViewContentType.ERROR_OUTPUT)
-				System.err.println(data)
-			}
+			executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDERR)
+			System.err.println(data)
 		}
 
 		override fun onCompleted(exitValue: Int) {
 			println("EXIT:$exitValue!")
 		}
-	},  object : JTranscDebugger.EventHandler() {
+	}, object : JTranscDebugger.EventHandler() {
 		override fun onBreak() {
 			//println(debugger.currentPosition)
 			//println("break!")
-			session.positionReached(JTranscSuspendContext(process))
+			session.positionReached(suspendedContext)
 		}
 	})
 
 	fun start() {
+		executionResult.processHandler.notifyTextAvailable("started!\n", ProcessOutputTypes.SYSTEM)
+		//executionResult.processHandler.notifyTextAvailable("STDOUT\n", ProcessOutputTypes.STDOUT)
 		println("started!")
+	}
+
+	//override fun doGetProcessHandler(): ProcessHandler? {
+	//	return executionResult.processHandler
+	//}
+
+	override fun createConsole(): ExecutionConsole {
+		return executionResult.executionConsole
 	}
 
 	override fun getEditorsProvider(): XDebuggerEditorsProvider {
