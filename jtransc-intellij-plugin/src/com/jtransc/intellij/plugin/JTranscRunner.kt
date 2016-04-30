@@ -27,8 +27,12 @@ import com.intellij.xdebugger.impl.XSourcePositionImpl
 import com.jtransc.AllBuild
 import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.debugger.JTranscDebugger
+import com.jtransc.debugger.v8.NodeJS
 import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.gen.haxe.HaxeGenTargetProcessor
+import com.jtransc.io.ProcessUtils
+import java.io.File
 import java.io.IOException
 
 // https://github.com/JetBrains/intellij-haxe/blob/master/src/14/com/intellij/plugins/haxe/runner/debugger/HaxeDebugRunner.java
@@ -81,10 +85,12 @@ class JTranscRunner : DefaultProgramRunner() {
 		))
 		println(result)
 
+
+
 		val debugSession = XDebuggerManager.getInstance(project).startSession(env, object : XDebugProcessStarter() {
 			override fun start(session: XDebugSession): XDebugProcess {
 				try {
-					val debugProcess = JTranscDebugProcess(session)
+					val debugProcess = JTranscDebugProcess(session, File(outputFile))
 					debugProcess.start()
 					return debugProcess
 				} catch (e: IOException) {
@@ -101,22 +107,43 @@ class JTranscRunner : DefaultProgramRunner() {
 	}
 }
 
-class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
+class JTranscDebugProcess(session: XDebugSession, val file: File) : XDebugProcess(session) {
+	val process = this
+	val project = session.project
+	val debugger = NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
+		override fun onStarted() {
+			println("Started!")
+		}
+
+		override fun onOutputData(data: String) {
+			intellijWriteAction {
+				project.console.isOutputPaused = false
+				project.console.print(data, ConsoleViewContentType.NORMAL_OUTPUT)
+				System.out.println(data)
+			}
+		}
+
+		override fun onErrorData(data: String) {
+			intellijWriteAction {
+				project.console.isOutputPaused = false
+				project.console.print(data, ConsoleViewContentType.ERROR_OUTPUT)
+				System.err.println(data)
+			}
+		}
+
+		override fun onCompleted(exitValue: Int) {
+			println("EXIT:$exitValue!")
+		}
+	},  object : JTranscDebugger.EventHandler() {
+		override fun onBreak() {
+			//println(debugger.currentPosition)
+			//println("break!")
+			session.positionReached(JTranscSuspendContext(process))
+		}
+	})
+
 	fun start() {
-		//session.consoleView.print("aaaaaaaaaaaaaaaa\n", ConsoleViewContentType.SYSTEM_OUTPUT)
-		//val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(session.project).console
-
-		//intellijWriteAction {
-		//	TextConsoleBuilderFactory.getInstance().createBuilder(session.project).console.print("HELLO", ConsoleViewContentType.ERROR_OUTPUT)
-		//}
 		println("started!")
-
-
-		//session.consoleView.print("Started debugging!", ConsoleViewContentType.ERROR_OUTPUT)
-
-		session.positionReached(JTranscSuspendContext(session))
-
-		//session.updateBreakpointPresentation(breakpoint, AllIcons.Debugger.Db_invalid_breakpoint, null);
 	}
 
 	override fun getEditorsProvider(): XDebuggerEditorsProvider {
@@ -132,15 +159,15 @@ class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 	}
 
 	override fun startStepInto() {
-		session.positionReached(JTranscSuspendContext(session))
+		debugger.stepInto()
 	}
 
 	override fun startStepOver() {
-		session.positionReached(JTranscSuspendContext(session))
+		debugger.stepOver()
 	}
 
 	override fun startStepOut() {
-		session.positionReached(JTranscSuspendContext(session))
+		debugger.stepOut()
 	}
 
 	override fun stop() {
@@ -148,20 +175,21 @@ class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 	}
 
 	override fun resume() {
+		debugger.resume()
 	}
 
 	override fun startPausing() {
 		//session.isPaused = true
 		//this.expectOK(debugger.Command.BreakNow);
-		session.positionReached(JTranscSuspendContext(session))
+		debugger.pause()
 	}
 
 	override fun runToPosition(p0: XSourcePosition) {
-		session.positionReached(JTranscSuspendContext(session))
+		session.positionReached(JTranscSuspendContext(process))
 	}
 
-	class JTranscSuspendContext(val session: XDebugSession) : XSuspendContext() {
-		val mainThread = JTranscExecutionStack(session)
+	class JTranscSuspendContext(val process: JTranscDebugProcess) : XSuspendContext() {
+		val mainThread = JTranscExecutionStack(process)
 		override fun getExecutionStacks(): Array<out XExecutionStack>? {
 			return arrayOf(mainThread)
 		}
@@ -171,8 +199,9 @@ class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 		}
 	}
 
-	class JTranscExecutionStack(val session: XDebugSession) : XExecutionStack("Main Thread", AllIcons.Debugger.ThreadCurrent) {
-		val frames = listOf(JTranscStackFrame(session), JTranscStackFrame(session), JTranscStackFrame(session))
+	class JTranscExecutionStack(val process: JTranscDebugProcess) : XExecutionStack("Main Thread", AllIcons.Debugger.ThreadCurrent) {
+		val session = process.session
+		val frames = listOf(JTranscStackFrame(process), JTranscStackFrame(process), JTranscStackFrame(process))
 
 		override fun getTopFrame(): XStackFrame? {
 			//throw UnsupportedOperationException()
@@ -183,21 +212,19 @@ class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 			container.addStackFrames(frames, true)
 			//throw UnsupportedOperationException()
 		}
-
-
 	}
 
-	class JTranscStackFrame(val session: XDebugSession) : XStackFrame() {
+	class JTranscStackFrame(val process: JTranscDebugProcess) : XStackFrame() {
 		override fun computeChildren(node: XCompositeNode) {
 			val list = XValueChildrenList()
-			list.add("test1", JTranscValue(session))
-			list.add("test2", JTranscValue(session))
+			list.add("test1", JTranscValue(process))
+			list.add("test2", JTranscValue(process))
 			node.addChildren(list, true)
 		}
 
 		override fun getSourcePosition(): XSourcePosition? {
 			//val file = BinaryLightVirtualFile("Test.java", JavaFileType.INSTANCE, "Hello\nWorld\nThis\nIs\nA\nTest".toByteArray())
-			val file = session.project.baseDir.findChild("src")?.findChild("Test.java")
+			val file = process.project.baseDir.findChild("src")?.findChild("Test.java")
 			return XSourcePositionImpl.create(file, 6)
 			//return null
 		}
@@ -207,7 +234,7 @@ class JTranscDebugProcess(session: XDebugSession) : XDebugProcess(session) {
 		}
 	}
 
-	class JTranscValue(val session: XDebugSession) : XValue() {
+	class JTranscValue(val process: JTranscDebugProcess) : XValue() {
 		override fun computePresentation(node: XValueNode, place: XValuePlace) {
 			node.setPresentation(AllIcons.Nodes.Property, "type", "value", false)
 		}

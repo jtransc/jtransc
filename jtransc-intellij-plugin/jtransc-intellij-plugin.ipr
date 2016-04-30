@@ -433,6 +433,17 @@
         <root url="jar://$MAVEN_REPOSITORY$/com/google/inject/guice/4.0/guice-4.0-sources.jar!/" />
       </SOURCES>
     </library>
+    <library name="Maven: com.googlecode.json-simple:json-simple:1.1.1">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1-sources.jar!/" />
+      </SOURCES>
+    </library>
     <library name="Maven: io.netty:netty-buffer:4.0.33.Final">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.0.33.Final/netty-buffer-4.0.33.Final.jar!/" />

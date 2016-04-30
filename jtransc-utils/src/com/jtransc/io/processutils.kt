@@ -46,13 +46,14 @@ object ProcessUtils {
 		return run(currentDir, command, args, redirect = true)
 	}
 
-	interface ProcessHandler {
-		fun onOutputData(data: String): Unit
-		fun onErrorData(data: String): Unit
-		fun onCompleted(exitValue: Int): Unit
+	open class ProcessHandler {
+		open fun onStarted(): Unit = Unit
+		open fun onOutputData(data: String): Unit = Unit
+		open fun onErrorData(data: String): Unit = Unit
+		open fun onCompleted(exitValue: Int): Unit = Unit
 	}
 
-	object RedirectOutputHandler : ProcessHandler {
+	object RedirectOutputHandler : ProcessHandler() {
 		override fun onOutputData(data: String) = System.out.print(data)
 		override fun onErrorData(data: String) = System.err.print(data)
 		override fun onCompleted(exitValue: Int) = Unit

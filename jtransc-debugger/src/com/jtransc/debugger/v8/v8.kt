@@ -1,17 +1,68 @@
 package com.jtransc.debugger.v8
 
 import com.jtransc.async.Promise
+import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.net.TcpClientAsync
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import java.nio.charset.Charset
+import java.util.*
 
 // https://github.com/v8/v8/wiki/Debugging%20Protocol
 
-class V8JTranscDebugger(val port: Int, val host: String = "127.0.0.1") : JTranscDebugger() {
+class V8JTranscDebugger(
+	val port: Int,
+	val host: String = "127.0.0.1",
+	handler: EventHandler
+) : JTranscDebugger(handler) {
 	val socket = createV8DebugSocket(port, host)
+
+	override var currentPosition: SourcePosition = SourcePosition("unknown", 0)
+
+	init {
+		socket.handle {
+			//println(it)
+		}
+		socket.handleBreak { body ->
+			currentPosition = body.script.toSourcePosition()
+			handler.onBreak()
+		}
+
+		socket.cmdRequestScripts().then {
+			println(it)
+		}
+	}
+
+	override fun pause() {
+		//socket.cmdPause().syncWait()
+	}
+
+	override fun resume() {
+		socket.cmdResume().syncWait()
+	}
+
+	override fun stepOver() {
+		socket.cmdStepNext().syncWait()
+	}
+
+	override fun stepInto() {
+		socket.cmdStepIn().syncWait()
+	}
+
+	override fun stepOut() {
+		socket.cmdStepOut().syncWait()
+	}
+
+	override fun disconnect() {
+		socket.cmdDisconnect()
+	}
+
+	private fun ScriptPosition.toSourcePosition(): JTranscDebugger.SourcePosition {
+		return JTranscDebugger.SourcePosition(this.name, this.lineOffset)
+	}
 }
+
 
 class ScriptPosition {
 	@JvmField var id: Int = 0
@@ -41,12 +92,13 @@ class BreakResponseBody {
 fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
 	this.handleEvent { message ->
 		if (message.getString("event") == "break") {
+			//println(message.encodePrettily())
 			handler(Json.decodeValue(message.getJsonObject("body").toString(), BreakResponseBody::class.java))
 		}
 	}
 }
 
-fun V8DebugSocket.cmdRequestScripts(handler: (JsonObject?) -> Unit): Promise<JsonObject> {
+fun V8DebugSocket.cmdRequestScripts(): Promise<JsonObject> {
 	return this.sendRequestAndWaitAsync("scripts", mapOf())
 }
 
@@ -60,6 +112,14 @@ fun V8DebugSocket.cmdStepNext(count: Int = 1): Promise<JsonObject> {
 
 fun V8DebugSocket.cmdStepOut(count: Int = 1): Promise<JsonObject> {
 	return cmdContinue("out", count)
+}
+
+fun V8DebugSocket.cmdDisconnect() {
+	this.sendRequestAndWaitAsync("disconnect", mapOf())
+}
+
+fun V8DebugSocket.cmdResume(): Promise<JsonObject> {
+	return this.sendRequestAndWaitAsync("continue", mapOf())
 }
 
 fun V8DebugSocket.cmdContinue(action: String, count: Int = 1): Promise<JsonObject> {
@@ -98,7 +158,7 @@ fun V8DebugSocket.cmdEvaluate(expression: String): Promise<Any> {
 fun V8DebugSocket.sendRequestAndWaitAsync(command: String, arguments: Map<String, Any?>): Promise<JsonObject> {
 	return this.writeAndWaitAsync(JsonObject(mapOf("seq" to seq++, "type" to "request", "command" to command, "arguments" to arguments))).then { message ->
 		if (message.getBoolean("success")) {
-			message.getJsonObject("body")
+			message.getJsonObject("body") ?: JsonObject(mapOf())
 		} else {
 			throw RuntimeException(message.getString("message"))
 		}
@@ -108,7 +168,7 @@ fun V8DebugSocket.sendRequestAndWaitAsync(command: String, arguments: Map<String
 fun createV8DebugSocket(port: Int = 5858, host: String = "127.0.0.1") = V8DebugSocket(port, host)
 
 class V8DebugSocket(val port: Int = 5858, val host: String = "127.0.0.1") {
-	private val handlers = arrayListOf<(message: JsonObject) -> Unit>()
+	private val handlers = Collections.synchronizedList(arrayListOf<(message: JsonObject) -> Unit>())
 	private var state = State.HEADER
 	@Volatile private var buffer = byteArrayOf()
 	var contentLength = 0
@@ -173,7 +233,7 @@ class V8DebugSocket(val port: Int = 5858, val host: String = "127.0.0.1") {
 					if (buffer.size < contentLength) return
 					val data = readBuffer(contentLength).toString(UTF8)
 					if (data.length > 0) {
-						//println("DATA($data)")
+						println("DATA($data)")
 						val message = JsonObject(data)
 						for (handler in handlers.toList()) handler(message)
 					}
