@@ -10,13 +10,13 @@ import java.nio.charset.Charset
 // https://github.com/v8/v8/wiki/Debugging%20Protocol
 
 class ScriptPosition {
-	@JvmField var id:Int = 0
-	@JvmField var name:String = ""
-	@JvmField var lineOffset:Int = 0
-	@JvmField var columnOffset:Int = 0
-	@JvmField var lineCount:Int = 0
+	@JvmField var id: Int = 0
+	@JvmField var name: String = ""
+	@JvmField var lineOffset: Int = 0
+	@JvmField var columnOffset: Int = 0
+	@JvmField var lineCount: Int = 0
 
-	override fun toString(): String{
+	override fun toString(): String {
 		return "ScriptPosition(id=$id, name='$name', lineOffset=$lineOffset, columnOffset=$columnOffset, lineCount=$lineCount)"
 	}
 }
@@ -29,10 +29,11 @@ class BreakResponseBody {
 	@JvmField var script: ScriptPosition = ScriptPosition()
 	@JvmField var breakpoints: List<Int> = listOf()
 
-	override fun toString(): String{
+	override fun toString(): String {
 		return "BreakResponseBody(invocationText='$invocationText', sourceLine=$sourceLine, sourceColumn=$sourceColumn, sourceLineText='$sourceLineText', script=$script, breakpoints=$breakpoints)"
 	}
 }
+
 fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
 	this.handleEvent { message ->
 		if (message.getString("event") == "break") {
@@ -41,41 +42,77 @@ fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
 	}
 }
 
-fun V8DebugSocket.cmdRequestScripts(handler: (JsonObject) -> Unit) {
-	this.writeAndWait(JsonObject(mapOf("seq" to this.seq++, "command" to "scripts", "type" to "request"))) { message ->
-		handler(message)
+fun V8DebugSocket.cmdRequestScripts(handler: (JsonObject?) -> Unit) {
+	this.sendRequestAndWait("scripts", mapOf()) { body, throwable ->
+		handler(body)
+	}
+}
+
+fun V8DebugSocket.cmdStepIn(count: Int = 1, handler: (JsonObject?) -> Unit) {
+	return cmdContinue("in", count, handler)
+}
+fun V8DebugSocket.cmdStepNext(count: Int = 1, handler: (JsonObject?) -> Unit) {
+	return cmdContinue("next", count, handler)
+}
+fun V8DebugSocket.cmdStepOut(count: Int = 1, handler: (JsonObject?) -> Unit) {
+	return cmdContinue("out", count, handler)
+}
+fun V8DebugSocket.cmdContinue(action: String, count: Int = 1, handler: (JsonObject?) -> Unit) {
+	this.sendRequestAndWait("continue", mapOf("stepaction" to action, "stepcount" to count)) { body, throwable ->
+		handler(body)
 	}
 }
 
 // https://github.com/v8/v8/wiki/Debugging-Protocol#request-source
-data class SourceResponse(val source:String, val fromLine:Int, val toLine:Int, val fromPosition:Int, val toPosition: Int, val totalLines:Int)
-fun V8DebugSocket.cmdRequestSource(fromLine:Int = -1, toLine:Int = Int.MAX_VALUE, handler: (SourceResponse) -> Unit) {
-	this.writeAndWait(JsonObject(mapOf("seq" to this.seq++, "command" to "source", "type" to "request", "arguments" to mapOf(
+class SourceResponse {
+	var source: String = ""
+	var fromLine: Int = 0
+	var toLine: Int = 0
+	var fromPosition: Int = 0
+	var toPosition: Int = 0
+	var totalLines: Int = 0
+}
+
+fun V8DebugSocket.cmdRequestSource(fromLine: Int = -1, toLine: Int = Int.MAX_VALUE, handler: (SourceResponse?) -> Unit) {
+	this.sendRequestAndWait("source", mapOf(
 		"fromLine" to fromLine,
 		"toLine" to toLine
-	)))) { message ->
-		val body = message.getJsonObject("body")
-		//println("REPLY: ${message.encodePrettily()}")
-		handler(SourceResponse(
-			source = body.getString("source", ""),
-			fromLine = body.getInteger("fromLine", 0),
-			toLine = body.getInteger("toLine", 0),
-			fromPosition = body.getInteger("fromPosition", 0),
-			toPosition = body.getInteger("toPosition", 0),
-			totalLines = body.getInteger("totalLines", 0)
-		))
+	)) { body, error ->
+		if (body != null) {
+			handler(Json.decodeValue(body.encode(), SourceResponse::class.java))
+		} else {
+			handler(null)
+		}
 	}
 }
 
-fun V8DebugSocket.cmdEvaluate(expression:String, handler: (Any?) -> Unit) {
-	//{"seq":117,"type":"request","command":"evaluate","arguments":{"expression":"1+2"}}
-	this.writeAndWait(JsonObject(mapOf("seq" to this.seq++, "type" to "request", "command" to "evaluate", "arguments" to mapOf(
-		"expression" to expression
-	)))) { message ->
-		val body = message.getJsonObject("body")
+fun V8DebugSocket.cmdRequestFrames(fromFrame:Int = 0, toFrame:Int = 10, handler: (Any?) -> Unit) {
+	this.sendRequestAndWait("backtrace", mapOf(
+		"fromFrame" to fromFrame,
+		"toFrame" to toFrame
+	)) { body, throwable ->
+		println(body?.encodePrettily())
+	}
+}
 
-		//println("REPLY: ${message.encodePrettily()}")
-		handler(body.getValue("value"))
+fun V8DebugSocket.cmdEvaluate(expression: String, handler: (Any?) -> Unit) {
+	//{"seq":117,"type":"request","command":"evaluate","arguments":{"expression":"1+2"}}
+	this.sendRequestAndWait("evaluate", mapOf(
+		"expression" to expression
+	)) { body, throwable ->
+		//println("V8DebugSocket.cmdEvaluate.REPLY: ${body?.encodePrettily()}")
+		handler(throwable ?: body?.getValue("value") ?: body?.getValue("source"))
+	}
+}
+
+fun V8DebugSocket.sendRequestAndWait(command: String, arguments: Map<String, Any?>, handler: (JsonObject?, Throwable?) -> Unit) {
+	this.writeAndWait(JsonObject(mapOf("seq" to seq++, "type" to "request", "command" to command, "arguments" to arguments))) { message ->
+		//println(message.encodePrettily())
+		if (message.getBoolean("success")) {
+			handler(message.getJsonObject("body"), null)
+		} else {
+			handler(null, RuntimeException(message.getString("message")))
+		}
 	}
 }
 
@@ -111,13 +148,13 @@ class V8DebugSocket(val vertx: Vertx, val port: Int = 5858, val host: String = "
 		}
 	}
 
-	private fun readBuffer(len:Int):ByteArray {
+	private fun readBuffer(len: Int): ByteArray {
 		val out = buffer.sliceArray(0 until len)
 		buffer = buffer.sliceArray(len until buffer.size)
 		return out
 	}
 
-	private fun tryReadLine():String? {
+	private fun tryReadLine(): String? {
 		val index = buffer.indexOf('\n'.toByte())
 		if (index >= 0) {
 			return readBuffer(index + 1).toString(UTF8)
@@ -147,7 +184,7 @@ class V8DebugSocket(val vertx: Vertx, val port: Int = 5858, val host: String = "
 					state = State.BODY
 					continue@main
 				}
-				State.BODY-> {
+				State.BODY -> {
 					if (buffer.size < contentLength) return
 					val data = readBuffer(contentLength).toString(UTF8)
 					if (data.length > 0) {

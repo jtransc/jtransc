@@ -19,13 +19,16 @@ class V8Example {
 			//val vertx = VertxImpl()
 			val socket = vertx.createV8DebugSocket(5858, "127.0.0.1")
 			socket.cmdRequestScripts() {
-				println(it.encodePrettily())
+				println(it?.encodePrettily())
 			}
 			socket.cmdRequestSource() {
 				println(it)
 			}
-			socket.cmdEvaluate("1+2") {
+			socket.cmdEvaluate("require") {
 				println(it)
+			}
+			socket.cmdRequestFrames() {
+				//println(it)
 			}
 			socket.handleBreak {
 				println(it)
