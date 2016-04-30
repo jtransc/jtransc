@@ -16,7 +16,7 @@
 
 package com.jtransc.input.asm
 
-import org.objectweb.asm.tree.*
+import com.jtransc.org.objectweb.asm.tree.*
 
 fun AbstractInsnNode.toGenericString():String {
 	val name = if (this.opcode in OPCODE_NAMES.indices) OPCODE_NAMES[this.opcode] else "unknown"

@@ -21,6 +21,11 @@ import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.impl.XSourcePositionImpl
+import com.jtransc.AllBuild
+import com.jtransc.JTranscVersion
+import com.jtransc.ast.AstBuildSettings
+import com.jtransc.gen.haxe.HaxeGenDescriptor
+import com.jtransc.gen.haxe.HaxeGenTargetProcessor
 import java.io.IOException
 
 // https://github.com/JetBrains/intellij-haxe/blob/master/src/14/com/intellij/plugins/haxe/runner/debugger/HaxeDebugRunner.java
@@ -43,12 +48,31 @@ class JTranscRunner : DefaultProgramRunner() {
 		//val data = profile.data
 		//println("Executing... " + data.mainClass)
 
-		val mainModule = profile.configurationModule.module!!
+		val module = profile.configurationModule.module!!
+		val moduleRootManager = module.rootManager
 
 		println("MAIN_CLASS_NAME: ${profile.MAIN_CLASS_NAME}")
-		for (root in mainModule.getAllClassRootsWithoutSdk()) {
+		for (root in module.getAllClassRootsWithoutSdk()) {
+			root.canonicalPath
 			println("ROOT: $root")
 		}
+
+		val outputPath = module.getOutputDirectory()?.canonicalPath ?: "."
+
+		println("outputPath: $outputPath")
+
+		val build = AllBuild(
+			HaxeGenDescriptor,
+			classPaths = module.getAllClassRootsWithoutSdk().map { it.canonicalPath }.filterNotNull(),
+			entryPoint = profile.MAIN_CLASS_NAME,
+			output = """$outputPath/testintellijplugin.js""",
+			targetDirectory = "$outputPath",
+			subtarget = "js"
+		)
+		val result = build.buildWithoutRunning(AstBuildSettings(
+			jtranscVersion = JTranscVersion.getVersion()
+		))
+		println(result)
 
 		val debugSession = XDebuggerManager.getInstance(project).startSession(env, object : XDebugProcessStarter() {
 			override fun start(session: XDebugSession): XDebugProcess {

@@ -55,9 +55,9 @@
             <version>${jtransc.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-all</artifactId>
-            <version>5.0.4</version>
+            <groupId>com.jtransc</groupId>
+            <artifactId>jtransc-asm</artifactId>
+            <version>${jtransc.version}</version>
         </dependency>
         <dependency>
             <groupId>com.jtransc</groupId>
@@ -69,11 +69,6 @@
             <artifactId>jtransc-rt</artifactId>
             <version>${jtransc.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jtransc</groupId>
-            <artifactId>jtransc-rt-core</artifactId>
-            <version>${jtransc.version}</version>
         </dependency>
     </dependencies>
 

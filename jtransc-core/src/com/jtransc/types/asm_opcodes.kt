@@ -2,7 +2,7 @@ package com.jtransc.types
 
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
-import org.objectweb.asm.tree.*
+import com.jtransc.org.objectweb.asm.tree.*
 
 enum class AsmOpcode(val id: Int) {
 	NOP(0), // visitInsn

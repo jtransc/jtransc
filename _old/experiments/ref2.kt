@@ -16,7 +16,7 @@
 
 package com.jtransc.input.asm
 
-import org.objectweb.asm.*
+import com.jtransc.org.objectweb.asm.*
 
 class ArrayReader<T>(val list: List<T>, var offset: Int) {
 

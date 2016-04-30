@@ -12,11 +12,11 @@ import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeMethodBody
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.AnnotationNode
-import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.MethodNode
+import com.jtransc.org.objectweb.asm.ClassReader
+import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.tree.AnnotationNode
+import com.jtransc.org.objectweb.asm.tree.ClassNode
+import com.jtransc.org.objectweb.asm.tree.MethodNode
 
 class JTranscRtReport {
 	companion object {

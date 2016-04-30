@@ -24,8 +24,8 @@ import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
 import com.jtransc.text.toUcFirst
 import com.jtransc.vfs.LocalVfs
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.ClassWriter
+import com.jtransc.org.objectweb.asm.Opcodes
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node

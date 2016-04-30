@@ -2,9 +2,9 @@ import com.jtransc.ast.AstType;
 import com.jtransc.io.ClassutilsKt;
 import com.jtransc.types.Asm_astKt;
 import com.jtransc.types.Exp_dumpKt;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
+import com.jtransc.org.objectweb.asm.ClassReader;
+import com.jtransc.org.objectweb.asm.tree.ClassNode;
+import com.jtransc.org.objectweb.asm.tree.MethodNode;
 
 import java.io.IOException;
 

@@ -7,13 +7,13 @@ import com.jtransc.ds.hasFlag
 import com.jtransc.error.noImpl
 import com.jtransc.lang.ReflectedArray
 import com.jtransc.types.Asm2Ast
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.AnnotationNode
-import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.FieldNode
-import org.objectweb.asm.tree.MethodNode
+import com.jtransc.org.objectweb.asm.ClassReader
+import com.jtransc.org.objectweb.asm.ClassWriter
+import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.tree.AnnotationNode
+import com.jtransc.org.objectweb.asm.tree.ClassNode
+import com.jtransc.org.objectweb.asm.tree.FieldNode
+import com.jtransc.org.objectweb.asm.tree.MethodNode
 import java.util.*
 
 fun AnnotationNode.toAst(): AstAnnotation {

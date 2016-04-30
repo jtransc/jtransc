@@ -9,5 +9,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="jtransc-core" />
+    <orderEntry type="module" module-name="jtransc-gen-haxe" />
+    <orderEntry type="module" module-name="jtransc-main" />
+    <orderEntry type="module" module-name="jtransc-rt-core" />
+    <orderEntry type="module" module-name="jtransc-utils" />
+    <orderEntry type="module" module-name="jtransc-asm" />
+    <orderEntry type="module" module-name="jtransc-debugger" />
   </component>
 </module>

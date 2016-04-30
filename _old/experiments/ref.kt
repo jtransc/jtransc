@@ -16,9 +16,9 @@
 
 package com.jtransc.input.asm
 
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.*
+import com.jtransc.org.objectweb.asm.ClassReader
+import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.tree.*
 import java.io.InputStream
 import java.util.*
 

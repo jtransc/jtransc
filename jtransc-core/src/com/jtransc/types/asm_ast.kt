@@ -7,10 +7,10 @@ import com.jtransc.ds.hasFlag
 import com.jtransc.error.deprecated
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import org.objectweb.asm.Handle
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
-import org.objectweb.asm.tree.*
+import com.jtransc.org.objectweb.asm.tree.*
+import com.jtransc.org.objectweb.asm.Handle
+import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.Type
 import java.util.*
 
 val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner), this.name, AstType.demangleMethod(this.desc))
@@ -106,7 +106,7 @@ data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
 class BasicBlocks(
 	private val clazz: AstType.REF,
 	private val method: MethodNode,
-    private val DEBUG: Boolean
+	private val DEBUG: Boolean
 ) {
 	val locals = Locals()
 	val labels = Labels()
@@ -236,7 +236,7 @@ private class BasicBlockBuilder(
 	val method: MethodNode,
 	val locals: Locals,
 	val labels: Labels,
-    val DEBUG: Boolean
+	val DEBUG: Boolean
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -633,11 +633,11 @@ private class BasicBlockBuilder(
 			i.bsm.ast,
 			i.bsmArgs.map {
 				when (it) {
-					is org.objectweb.asm.Type -> when (it.sort) {
+					is com.jtransc.org.objectweb.asm.Type -> when (it.sort) {
 						Type.METHOD -> AstExpr.LITERAL(AstType.demangleMethod(it.descriptor))
 						else -> noImpl("${it.sort} : ${it}")
 					}
-					is org.objectweb.asm.Handle -> {
+					is Handle -> {
 						val kind = AstMethodHandle.Kind.fromId(it.tag)
 						val type = AstType.demangleMethod(it.desc)
 						AstExpr.LITERAL(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind))

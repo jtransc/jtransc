@@ -22,6 +22,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
+        <module name="jtransc-asm" />
         <module name="jtransc-buildjar-maven-plugin" />
         <module name="jtransc-core" />
         <module name="jtransc-debugger" />
@@ -35,6 +36,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="jtransc" target="1.8" />
+      <module name="jtransc-asm" target="1.8" />
       <module name="jtransc-buildjar-maven-plugin" target="1.8" />
       <module name="jtransc-core" target="1.8" />
       <module name="jtransc-debugger" target="1.8" />
@@ -49,6 +51,7 @@
   <component name="CopyrightManager" default="" />
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/.." charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jtransc-asm" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-buildjar-maven-plugin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-core" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-debugger" charset="UTF-8" />
@@ -232,6 +235,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../jtransc.iml" filepath="$PROJECT_DIR$/../jtransc.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jtransc-asm/jtransc-asm.iml" filepath="$PROJECT_DIR$/../jtransc-asm/jtransc-asm.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-buildjar-maven-plugin/jtransc-buildjar-maven-plugin.iml" filepath="$PROJECT_DIR$/../jtransc-buildjar-maven-plugin/jtransc-buildjar-maven-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-buildjar-maven-plugin/jtransc-buildjar-maven-plugin.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-buildjar-maven-plugin/jtransc-buildjar-maven-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-core/jtransc-core.iml" filepath="$PROJECT_DIR$/../jtransc-core/jtransc-core.iml" />
