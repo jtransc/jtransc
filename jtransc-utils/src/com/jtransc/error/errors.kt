@@ -41,3 +41,11 @@ fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }
 // Warns
 fun untestedWarn(msg:String): Unit { println("Untested: $msg") }
 fun noImplWarn(msg:String): Unit { println("Not implemented: $msg") }
+
+inline fun ignoreErrors(action: () -> Unit) {
+	try {
+		action()
+	} catch (e:Throwable) {
+		e.printStackTrace()
+	}
+}

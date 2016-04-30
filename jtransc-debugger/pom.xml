@@ -69,18 +69,6 @@
 			<artifactId>vertx-core</artifactId>
 			<version>${vertx.version}</version>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-ext</artifactId>
-			<version>20</version>
-		</dependency>
-		-->
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-shell</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,35 +1,34 @@
 package example
 
+import com.jtransc.async.syncWait
 import com.jtransc.debugger.v8.*
-import io.vertx.core.Vertx
-import io.vertx.core.VertxOptions
-import io.vertx.core.buffer.Buffer
-import io.vertx.core.json.JsonObject
-import io.vertx.core.net.NetSocket
-import java.nio.charset.Charset
-import java.util.*
-import java.util.concurrent.locks.Lock
+import com.jtransc.io.ProcessUtils
+import java.io.File
 
 class V8Example {
 	companion object {
 		@JvmStatic fun main(args: Array<String>) {
-			val vertx = Vertx.vertx(VertxOptions());
+			val port = NodeJS.debugAsync(File("c:/projects/jtransc/test.js"), object : ProcessUtils.ProcessHandler {
+				override fun onOutputData(data: String) {
+					System.out.print(data)
+				}
 
-			//Launcher().dispatch(arrayOf("run", "example.V8Example"))
-			//val vertx = VertxImpl()
-			val socket = vertx.createV8DebugSocket(5858, "127.0.0.1")
+				override fun onErrorData(data: String) {
+					System.err.print(data)
+				}
+
+				override fun onCompleted(exitValue: Int) {
+					System.out.println("EXIT:$exitValue")
+				}
+			})
+
+			val socket = createV8DebugSocket(port, "127.0.0.1")
 			socket.cmdRequestScripts() {
 				println(it?.encodePrettily())
 			}
-			socket.cmdRequestSource() {
-				println(it)
-			}
-			socket.cmdEvaluate("require") {
-				println(it)
-			}
-			socket.cmdRequestFrames() {
-				//println(it)
-			}
+			println(socket.cmdRequestSource().syncWait())
+			println(socket.cmdEvaluate("require").syncWait())
+			println(socket.cmdRequestFrames().syncWait())
 			socket.handleBreak {
 				println(it)
 			}

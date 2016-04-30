@@ -1,13 +1,17 @@
 package com.jtransc.debugger.v8
 
-import io.vertx.core.Vertx
-import io.vertx.core.buffer.Buffer
+import com.jtransc.async.Promise
+import com.jtransc.debugger.JTranscDebugger
+import com.jtransc.net.TcpClientAsync
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
-import io.vertx.core.net.NetSocket
 import java.nio.charset.Charset
 
 // https://github.com/v8/v8/wiki/Debugging%20Protocol
+
+class V8JTranscDebugger(val port: Int, val host: String = "127.0.0.1") : JTranscDebugger() {
+	val socket = createV8DebugSocket(port, host)
+}
 
 class ScriptPosition {
 	@JvmField var id: Int = 0
@@ -42,25 +46,24 @@ fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
 	}
 }
 
-fun V8DebugSocket.cmdRequestScripts(handler: (JsonObject?) -> Unit) {
-	this.sendRequestAndWait("scripts", mapOf()) { body, throwable ->
-		handler(body)
-	}
+fun V8DebugSocket.cmdRequestScripts(handler: (JsonObject?) -> Unit): Promise<JsonObject> {
+	return this.sendRequestAndWaitAsync("scripts", mapOf())
 }
 
-fun V8DebugSocket.cmdStepIn(count: Int = 1, handler: (JsonObject?) -> Unit) {
-	return cmdContinue("in", count, handler)
+fun V8DebugSocket.cmdStepIn(count: Int = 1): Promise<JsonObject> {
+	return cmdContinue("in", count)
 }
-fun V8DebugSocket.cmdStepNext(count: Int = 1, handler: (JsonObject?) -> Unit) {
-	return cmdContinue("next", count, handler)
+
+fun V8DebugSocket.cmdStepNext(count: Int = 1): Promise<JsonObject> {
+	return cmdContinue("next", count)
 }
-fun V8DebugSocket.cmdStepOut(count: Int = 1, handler: (JsonObject?) -> Unit) {
-	return cmdContinue("out", count, handler)
+
+fun V8DebugSocket.cmdStepOut(count: Int = 1): Promise<JsonObject> {
+	return cmdContinue("out", count)
 }
-fun V8DebugSocket.cmdContinue(action: String, count: Int = 1, handler: (JsonObject?) -> Unit) {
-	this.sendRequestAndWait("continue", mapOf("stepaction" to action, "stepcount" to count)) { body, throwable ->
-		handler(body)
-	}
+
+fun V8DebugSocket.cmdContinue(action: String, count: Int = 1): Promise<JsonObject> {
+	return this.sendRequestAndWaitAsync("continue", mapOf("stepaction" to action, "stepcount" to count))
 }
 
 // https://github.com/v8/v8/wiki/Debugging-Protocol#request-source
@@ -71,57 +74,40 @@ class SourceResponse {
 	var fromPosition: Int = 0
 	var toPosition: Int = 0
 	var totalLines: Int = 0
+	override fun toString() = "SourceResponse(source='$source', fromLine=$fromLine, toLine=$toLine, fromPosition=$fromPosition, toPosition=$toPosition, totalLines=$totalLines)"
 }
 
-fun V8DebugSocket.cmdRequestSource(fromLine: Int = -1, toLine: Int = Int.MAX_VALUE, handler: (SourceResponse?) -> Unit) {
-	this.sendRequestAndWait("source", mapOf(
-		"fromLine" to fromLine,
-		"toLine" to toLine
-	)) { body, error ->
-		if (body != null) {
-			handler(Json.decodeValue(body.encode(), SourceResponse::class.java))
-		} else {
-			handler(null)
-		}
+fun V8DebugSocket.cmdRequestSource(fromLine: Int = -1, toLine: Int = Int.MAX_VALUE): Promise<SourceResponse> {
+	return this.sendRequestAndWaitAsync("source", mapOf("fromLine" to fromLine, "toLine" to toLine)).then {
+		Json.decodeValue(it.encode(), SourceResponse::class.java)
 	}
 }
 
-fun V8DebugSocket.cmdRequestFrames(fromFrame:Int = 0, toFrame:Int = 10, handler: (Any?) -> Unit) {
-	this.sendRequestAndWait("backtrace", mapOf(
-		"fromFrame" to fromFrame,
-		"toFrame" to toFrame
-	)) { body, throwable ->
-		println(body?.encodePrettily())
+fun V8DebugSocket.cmdRequestFrames(fromFrame: Int = 0, toFrame: Int = 10): Promise<JsonObject> {
+	return this.sendRequestAndWaitAsync("backtrace", mapOf("fromFrame" to fromFrame, "toFrame" to toFrame)).then {
+		println(it)
+		it
 	}
 }
 
-fun V8DebugSocket.cmdEvaluate(expression: String, handler: (Any?) -> Unit) {
-	//{"seq":117,"type":"request","command":"evaluate","arguments":{"expression":"1+2"}}
-	this.sendRequestAndWait("evaluate", mapOf(
-		"expression" to expression
-	)) { body, throwable ->
-		//println("V8DebugSocket.cmdEvaluate.REPLY: ${body?.encodePrettily()}")
-		handler(throwable ?: body?.getValue("value") ?: body?.getValue("source"))
-	}
+//{"seq":117,"type":"request","command":"evaluate","arguments":{"expression":"1+2"}}
+fun V8DebugSocket.cmdEvaluate(expression: String): Promise<Any> {
+	return this.sendRequestAndWaitAsync("evaluate", mapOf("expression" to expression)).then { it.getValue("value") ?: Unit }
 }
 
-fun V8DebugSocket.sendRequestAndWait(command: String, arguments: Map<String, Any?>, handler: (JsonObject?, Throwable?) -> Unit) {
-	this.writeAndWait(JsonObject(mapOf("seq" to seq++, "type" to "request", "command" to command, "arguments" to arguments))) { message ->
-		//println(message.encodePrettily())
+fun V8DebugSocket.sendRequestAndWaitAsync(command: String, arguments: Map<String, Any?>): Promise<JsonObject> {
+	return this.writeAndWaitAsync(JsonObject(mapOf("seq" to seq++, "type" to "request", "command" to command, "arguments" to arguments))).then { message ->
 		if (message.getBoolean("success")) {
-			handler(message.getJsonObject("body"), null)
+			message.getJsonObject("body")
 		} else {
-			handler(null, RuntimeException(message.getString("message")))
+			throw RuntimeException(message.getString("message"))
 		}
 	}
 }
 
-fun Vertx.createV8DebugSocket(port: Int = 5858, host: String = "127.0.0.1") = V8DebugSocket(this, port, host)
+fun createV8DebugSocket(port: Int = 5858, host: String = "127.0.0.1") = V8DebugSocket(port, host)
 
-class V8DebugSocket(val vertx: Vertx, val port: Int = 5858, val host: String = "127.0.0.1") {
-	private var socket: NetSocket? = null
-	private val bufferedMessages = arrayListOf<Buffer>()
-
+class V8DebugSocket(val port: Int = 5858, val host: String = "127.0.0.1") {
 	private val handlers = arrayListOf<(message: JsonObject) -> Unit>()
 	private var state = State.HEADER
 	@Volatile private var buffer = byteArrayOf()
@@ -131,21 +117,20 @@ class V8DebugSocket(val vertx: Vertx, val port: Int = 5858, val host: String = "
 
 	enum class State { HEADER, HEADER_SPACE, BODY }
 
-	init {
-		val client = vertx.createNetClient()
-		client.connect(5858, "127.0.0.1") {
-			socket = it.result()
-			while (bufferedMessages.isNotEmpty()) {
-				val m = bufferedMessages.removeAt(0)
-				write(m)
-			}
-
-			socket!!.handler {
-				//val data = it.toString("UTF-8")
-				buffer += it.bytes
-				processBuffer()
-			}
+	private var client = TcpClientAsync(host, port, object : TcpClientAsync.Handler {
+		override fun onOpen() {
+			println("Connected!")
 		}
+
+		override fun onData(data: ByteArray) {
+			buffer += data
+			processBuffer()
+		}
+
+		override fun onClose() {
+		}
+	}).apply {
+		println("Connecting...")
 	}
 
 	private fun readBuffer(len: Int): ByteArray {
@@ -211,31 +196,29 @@ class V8DebugSocket(val vertx: Vertx, val port: Int = 5858, val host: String = "
 		}
 	}
 
-	fun write(data: Buffer) {
-		if (socket != null) {
-			//println("SEND:$data")
-			socket!!.write(data)
-		} else {
-			bufferedMessages += data
-		}
+	fun write(data: ByteArray) {
+		client.write(data)
 	}
 
 	fun write(message: JsonObject) {
 		val body = message.encode().toByteArray(Charset.forName("UTF-8"))
 		val head = "Content-Length: ${body.size}\r\n\r\n".toByteArray(Charset.forName("UTF-8"))
-		write(Buffer.buffer(head + body))
+		write(head + body)
 	}
 
-	fun writeAndWait(message: JsonObject, handler: (JsonObject) -> Unit) {
+	fun writeAndWaitAsync(message: JsonObject): Promise<JsonObject> {
+		val deferred = Promise.Deferred<JsonObject>()
+
 		val seq = message.getInteger("seq")
 		var myhandler: ((obj: JsonObject) -> Unit)? = null
 		myhandler = { message: JsonObject ->
 			if (message.getInteger("request_seq") == seq) {
 				handlers -= myhandler!!
-				handler(message)
+				deferred.resolve(message)
 			}
 		}
 		write(message)
 		handlers += myhandler
+		return deferred.promise
 	}
 }

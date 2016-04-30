@@ -21,6 +21,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+	<properties>
+		<!--<jackson.version>2.7.4</jackson.version>-->
+	</properties>
+
     <parent>
         <groupId>com.jtransc</groupId>
         <artifactId>jtransc</artifactId>
@@ -47,6 +51,18 @@
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 			<version>${kotlin.version}</version>
+		</dependency>
+		<!--
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		-->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 	</dependencies>
 

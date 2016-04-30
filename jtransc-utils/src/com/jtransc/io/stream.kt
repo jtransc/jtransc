@@ -34,3 +34,11 @@ fun InputStream.i32(value:Int):Int {
 	val l = i16()
 	return ((h shl 16) or (l shl 0)).toInt().toInt()
 }
+
+val EmptyByteArray = ByteArray(0)
+fun InputStream.readAvailableChunk(): ByteArray {
+	if (this.available() <= 0) return EmptyByteArray
+	val out = ByteArray(this.available())
+	val readed = this.read(out, 0, out.size)
+	return out.sliceArray(0 until readed)
+}
