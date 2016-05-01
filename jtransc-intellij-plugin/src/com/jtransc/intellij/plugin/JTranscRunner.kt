@@ -83,19 +83,20 @@ class JTranscRunner : DefaultProgramRunner() {
 
 		val outputFile = """$outputPath/testintellijplugin.js"""
 
-		val build = AllBuild(
-			HaxeGenDescriptor,
-			classPaths = module.getAllClassRootsWithoutSdk().map { it.canonicalPath }.filterNotNull(),
-			entryPoint = profile.MAIN_CLASS_NAME,
-			output = outputFile,
-			targetDirectory = "$outputPath",
-			subtarget = "js"
-		)
-		val result = build.buildWithoutRunning(AstBuildSettings(
-			jtranscVersion = JTranscVersion.getVersion()
-		))
-		println(result)
-
+		BuildJTranscRunningState(env, {
+			val build = AllBuild(
+				HaxeGenDescriptor,
+				classPaths = module.getAllClassRootsWithoutSdk().map { it.canonicalPath }.filterNotNull(),
+				entryPoint = profile.MAIN_CLASS_NAME,
+				output = outputFile,
+				targetDirectory = "$outputPath",
+				subtarget = "js"
+			)
+			val result = build.buildWithoutRunning(AstBuildSettings(
+				jtranscVersion = JTranscVersion.getVersion()
+			))
+			println(result)
+		}).execute(executor, programRunner)
 
 		val debugSession = XDebuggerManager.getInstance(project).startSession(env, object : XDebugProcessStarter() {
 			override fun start(session: XDebugSession): XDebugProcess {
@@ -116,6 +117,41 @@ class JTranscRunner : DefaultProgramRunner() {
 	override fun execute(environment: ExecutionEnvironment, callback: ProgramRunner.Callback?, state: RunProfileState) {
 		super.execute(environment, callback, state)
 	}
+}
+
+class TaskProcessHandler(action: () -> Unit) : ProcessHandler() {
+	init {
+		Thread {
+			try {
+				action()
+				notifyProcessTerminated(0)
+			} catch (e: Throwable) {
+				e.printStackTrace()
+				notifyProcessTerminated(-1)
+			}
+		}.start()
+	}
+
+	override fun getProcessInput(): OutputStream? {
+		return null
+	}
+
+	override fun detachIsDefault(): Boolean {
+		return true
+	}
+
+	override fun detachProcessImpl() {
+	}
+
+	override fun destroyProcessImpl() {
+	}
+}
+
+class BuildJTranscRunningState(environment: ExecutionEnvironment, val action: () -> Unit) : CommandLineState(environment) {
+	override fun startProcess(): ProcessHandler {
+		return TaskProcessHandler(action)
+	}
+
 }
 
 class SimpleJTranscRunningState(environment: ExecutionEnvironment) : CommandLineState(environment) {

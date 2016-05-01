@@ -16,5 +16,6 @@
     <orderEntry type="module" module-name="jtransc-utils" />
     <orderEntry type="module" module-name="jtransc-asm" />
     <orderEntry type="module" module-name="jtransc-debugger" />
+    <orderEntry type="module" module-name="jtransc-jps-plugin" />
   </component>
 </module>

@@ -245,6 +245,7 @@
       <module fileurl="file://$PROJECT_DIR$/../jtransc-gen-haxe/jtransc-gen-haxe.iml" filepath="$PROJECT_DIR$/../jtransc-gen-haxe/jtransc-gen-haxe.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-gen-haxe/jtransc-gen-haxe.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-gen-haxe/jtransc-gen-haxe.iml" />
       <module fileurl="file://$PROJECT_DIR$/jtransc-intellij-plugin.iml" filepath="$PROJECT_DIR$/jtransc-intellij-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" filepath="$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-main/jtransc-main.iml" filepath="$PROJECT_DIR$/../jtransc-main/jtransc-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-main/jtransc-main.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-main/jtransc-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-maven-plugin/jtransc-maven-plugin.iml" filepath="$PROJECT_DIR$/../jtransc-maven-plugin/jtransc-maven-plugin.iml" />
@@ -255,6 +256,7 @@
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-rt-core/jtransc-rt-core.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-rt-core/jtransc-rt-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-utils/jtransc-utils.iml" filepath="$PROJECT_DIR$/../jtransc-utils/jtransc-utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-utils/jtransc-utils.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-utils/jtransc-utils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../teavm/tools/idea/teavm-idea-plugin.iml" filepath="$PROJECT_DIR$/../../../teavm/tools/idea/teavm-idea-plugin.iml" />
     </modules>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" assert-keyword="true" jdk-15="true" project-jdk-name="IntelliJ IDEA Community Edition IC-145.597.3" project-jdk-type="IDEA JDK">
