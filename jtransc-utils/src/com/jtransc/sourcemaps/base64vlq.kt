@@ -1,4 +1,4 @@
-package com.jtransc.debugger.sourcemaps
+package com.jtransc.sourcemaps
 
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl

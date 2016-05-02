@@ -1,6 +1,10 @@
-package com.jtransc.debugger.sourcemaps
+package com.jtransc.sourcemaps
 
+import com.jtransc.error.noImpl
 import io.vertx.core.json.Json
+import io.vertx.core.json.JsonObject
+import org.json.simple.JSONObject
+import java.util.*
 
 object Sourcemaps {
 	fun decodeRaw(str:String):List<List<List<Int>>> {
@@ -49,11 +53,11 @@ object Sourcemaps {
 		}
 	}
 
-	fun decodeFile(str:String):SourceMap {
-		return Json.decodeValue(str, SourceMap::class.java).init()
+	fun decodeFile(str:String): SourceMap {
+		return io.vertx.core.json.Json.decodeValue(str, SourceMap::class.java).init()
 	}
 
-	fun decode(str:String):MappingFile {
+	fun decode(str:String): MappingFile {
 		var sourceLine = 0
 		var sourceIndex = 0
 		var sourceColumn = 0
@@ -73,5 +77,19 @@ object Sourcemaps {
 				}
 			})
 		})
+	}
+
+	fun encode(mapping: MappingFile): String {
+		noImpl("no impl encoding!")
+	}
+
+	fun encodeFile(targetPath: String, targetContent:String, source: String, mappings: HashMap<Int, Int>): String {
+		//(0 until targetContent.count { it == '\n' }).map {}
+		return JsonObject(mapOf(
+			"version" to 3,
+			"file" to targetPath,
+			"sources" to arrayListOf(source),
+			"names" to arrayListOf<String>()
+		)).encodePrettily()
 	}
 }

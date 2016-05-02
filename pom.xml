@@ -35,13 +35,11 @@
     <url>http://github.com/jtransc/jtransc</url>
 
     <properties>
-        <!-- base-->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
         <jtransc.version>${project.version}</jtransc.version>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-        <!-- dependencies-->
+		<vertx.version>3.2.1</vertx.version>
         <kotlin.version>1.0.1-2</kotlin.version>
         <junit.version>4.12</junit.version>
     </properties>

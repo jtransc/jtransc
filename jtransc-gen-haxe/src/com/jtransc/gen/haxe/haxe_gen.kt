@@ -12,6 +12,7 @@ import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
+import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
@@ -47,7 +48,6 @@ class GenHaxeGen(
 	}
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
-	fun AstClass.genClass(): ClassResult = genClass2(this)
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
@@ -69,11 +69,7 @@ class GenHaxeGen(
 			if (clazz.implCode != null) {
 				vfs[clazz.name.haxeFilePath] = clazz.implCode!!
 			} else {
-				val result = clazz.genClass()
-				for (file in result.files) {
-					val (clazzName, content) = file
-					vfs[clazzName.haxeFilePath] = content.toString()
-				}
+				writeClass(clazz, vfs)
 			}
 		}
 
@@ -344,7 +340,10 @@ class GenHaxeGen(
 				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
-				is AstStm.LINE -> line("// ${stm.line}")
+				is AstStm.LINE -> {
+					mark(stm)
+					line("// ${stm.line}")
+				}
 				else -> throw RuntimeException("Unhandled statement $stm")
 			}
 		}
@@ -651,7 +650,7 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
-	fun genClass2(clazz: AstClass): ClassResult {
+	fun writeClass(clazz: AstClass, vfs: SyncVfsFile) {
 		context.clazz = clazz
 		strings = Strings()
 
@@ -671,7 +670,7 @@ class GenHaxeGen(
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 		//val interfaceClassName = clazz.name.append("_Fields");
 
-		var output = arrayListOf<Pair<FqName, Indenter>>()
+		var output = arrayListOf<Pair<String, String>>()
 
 		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter.gen {
 			val static = if (field.isStatic) "static " else ""
@@ -763,7 +762,7 @@ class GenHaxeGen(
 			}
 		}
 
-		output.add(clazz.name to Indenter.gen {
+		val classCodeIndenter = Indenter.gen {
 			line("package ${clazz.name.haxeGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")
@@ -998,15 +997,25 @@ class GenHaxeGen(
 					}
 				}
 			}
-		})
+		}
 
-		return ClassResult(output)
+		val lineMappings = hashMapOf<Int, Int>()
+
+		val fileStr = classCodeIndenter.toString { sb, line, data ->
+			if (data is AstStm.LINE) {
+				//println("MARKER: ${sb.length}, $line, $data, ${clazz.source}")
+				lineMappings[line] = data.line
+				//clazzName.internalFqname + ".java"
+			}
+		}
+
+		val haxeFilePath = clazz.name.haxeFilePath
+		vfs["$haxeFilePath"] = fileStr
+		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs["$haxeFilePath"].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
 	//val FqName.as3Fqname: String get() = this.fqname
 	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
-
-	data class ClassResult(val files: List<Pair<FqName, Indenter>>)
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
 

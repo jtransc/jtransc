@@ -62,10 +62,13 @@ class AsmToAst : AstClassGenerator {
 		val classNode = ClassNode()
 		cr.accept(classNode, ClassReader.SKIP_FRAMES)
 
+		// SourceFile
+
 		//val cw = ClassWriter(cr, ClassWriter.COMPUTE_MAXS or ClassWriter.COMPUTE_FRAMES);
 		//classNode.accept(cw);
 
 		val astClass = AstClass(
+			source = classNode.sourceDebug ?: "${classNode.name}.java",
 			program = program,
 			name = FqName.fromInternal(classNode.name),
 			modifiers = AstModifiers(classNode.access),
@@ -74,6 +77,7 @@ class AsmToAst : AstClassGenerator {
 			implementing = classNode.getInterfaces().map { FqName.fromInternal(it) }
 		)
 		program.add(astClass)
+
 
 		classNode.getMethods().forEach { astClass.add(generateMethod(astClass, it)) }
 		classNode.getFields().forEach { astClass.add(generateField(astClass, it)) }

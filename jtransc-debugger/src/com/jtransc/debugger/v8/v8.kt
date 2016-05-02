@@ -5,7 +5,7 @@ import com.jtransc.async.EventLoop
 import com.jtransc.async.Promise
 import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
-import com.jtransc.debugger.sourcemaps.Sourcemaps
+import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.net.TcpClientAsync
 import com.jtransc.vfs.UTF8
 import io.vertx.core.json.Json
@@ -124,7 +124,7 @@ class V8JTranscDebugger(
 
 	class V8Value(val param: JsonObject?) : Value() {
 		init {
-			println("V8Value: $param")
+			//println("V8Value: $param")
 		}
 		override val type: String = param?.getString("type") ?: "type"
 		override val value: String = param?.getString("name") ?: "value"
@@ -135,6 +135,10 @@ class V8JTranscDebugger(
 	}
 }
 
+internal fun normalizePath(path: String): String {
+	if (path.startsWith("file://")) return normalizePath(path.substring(7))
+	return path
+}
 
 class ScriptPosition {
 	@JvmField var id: Int = 0

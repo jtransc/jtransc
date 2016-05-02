@@ -250,6 +250,7 @@ enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
 class AstClass(
+	val source: String,
 	val program: AstProgram,
 	val name: FqName,
 	val modifiers: AstModifiers,

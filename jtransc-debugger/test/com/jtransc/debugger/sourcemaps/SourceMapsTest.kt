@@ -1,5 +1,7 @@
 package com.jtransc.debugger.sourcemaps
 
+import com.jtransc.sourcemaps.Base64Vlq
+import com.jtransc.sourcemaps.Sourcemaps
 import org.junit.Assert
 import org.junit.Test
 

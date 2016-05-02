@@ -21,10 +21,6 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<properties>
-		<vertx.version>3.2.1</vertx.version>
-	</properties>
-
 	<parent>
 		<groupId>com.jtransc</groupId>
 		<artifactId>jtransc</artifactId>

@@ -313,8 +313,8 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 		override fun getSourcePosition(): XSourcePosition? {
 			//val file = BinaryLightVirtualFile("Test.java", JavaFileType.INSTANCE, "Hello\nWorld\nThis\nIs\nA\nTest".toByteArray())
 			val position = frame.position
-			val file = LocalFileSystem.getInstance().findFileByIoFile(File(position.file)) ?: BinaryLightVirtualFile(position.file, PlainTextFileType.INSTANCE, "Unknown\nUnknown\n".toByteArray())
-			//println("" + file + " : " + position.line)
+			val file = LocalFileSystem.getInstance().findFileByIoFile(File(position.normalizedFile)) ?: BinaryLightVirtualFile(position.normalizedFile, PlainTextFileType.INSTANCE, "Unknown\nUnknown\n".toByteArray())
+			println("$position :: " + file + " : " + position.line)
 			return XSourcePositionImpl.create(file, position.line)
 		}
 

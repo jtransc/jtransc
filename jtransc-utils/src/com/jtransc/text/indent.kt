@@ -18,6 +18,8 @@ package com.jtransc.text
 
 class Indenter : ToString {
 	interface Action {
+		data class Marker(val data: Any) : Action
+
 		data class Line(val str: String) : Action
 
 		data class LineDeferred(val callback: () -> Indenter) : Action
@@ -64,15 +66,9 @@ class Indenter : ToString {
 
 	var out: String = ""
 
-	fun line(indenter: Indenter): Indenter {
-		this.actions.addAll(indenter.actions)
-		return this
-	}
-
-	fun line(str: String): Indenter {
-		this.actions.add(Action.Line(str))
-		return this
-	}
+	fun line(indenter: Indenter) = this.apply { this.actions.addAll(indenter.actions) }
+	fun line(str: String) = this.apply { this.actions.add(Action.Line(str)) }
+	fun mark(data: Any) = this.apply { this.actions.add(Action.Marker(data)) }
 
 	fun linedeferred(init: Indenter.() -> Unit): Indenter {
 		this.actions.add(Action.LineDeferred({
@@ -115,8 +111,9 @@ class Indenter : ToString {
 		actions.add(Action.Unindent)
 	}
 
-	override fun toString(): String {
-		val chunks = arrayListOf<String>()
+	fun toString(markHandler: ((sb: StringBuilder, line: Int, data: Any) -> Unit)?): String {
+		val out = StringBuilder()
+		var line = 0
 
 		var indentIndex = 0
 
@@ -125,22 +122,30 @@ class Indenter : ToString {
 				when (action) {
 					is Action.Line -> {
 						if (noIndentEmptyLines && action.str.isEmpty()) {
-							chunks.add("\n")
+							out.append("\n")
+							line++
 						} else {
-							chunks.add(getIndent(indentIndex))
-							chunks.add(action.str)
-							chunks.add("\n")
+							out.append(getIndent(indentIndex))
+							out.append(action.str)
+							line += action.str.count { it == '\n' }
+							out.append("\n")
+							line++
 						}
 					}
 					is Action.LineDeferred -> eval(action.callback().actions)
 					Action.Indent -> indentIndex++
 					Action.Unindent -> indentIndex--
+					is Action.Marker -> {
+						markHandler?.invoke(out, line, action.data)
+					}
 				}
 			}
 		}
 
 		eval(actions)
 
-		return chunks.joinToString("")
+		return out.toString()
 	}
+
+	override fun toString(): String = toString(null)
 }

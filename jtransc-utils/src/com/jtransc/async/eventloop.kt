@@ -17,13 +17,21 @@ object EventLoop {
 	}
 
 	fun queue(action: () -> Unit) {
-		actions += action
+		synchronized(actions) {
+			actions += action
+		}
+	}
+
+	private fun tryDequeue(): (() -> Unit)? {
+		return synchronized(actions) {
+			if (actions.isNotEmpty()) actions.removeAt(0) else null
+		}
 	}
 
 	fun executeStep() {
-		while (actions.isNotEmpty()) {
-			val action = actions.removeAt(0)
-			action()
+		while (true) {
+			val action = tryDequeue()
+			if (action != null) action() else break
 		}
 	}
 }

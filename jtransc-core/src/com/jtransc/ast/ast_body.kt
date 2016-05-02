@@ -97,7 +97,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	}
 
 	class LINE(val line: Int) : AstStm() {
-
+		override fun toString() = "AstStm.LINE($line)"
 	}
 
 	class STM_EXPR(expr: AstExpr) : AstStm() {

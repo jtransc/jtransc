@@ -1,6 +1,7 @@
 package com.jtransc.debugger
 
 import com.jtransc.async.Promise
+import com.jtransc.debugger.v8.normalizePath
 
 open class JTranscDebugger(val handler: EventHandler) {
 	open class EventHandler {
@@ -12,7 +13,10 @@ open class JTranscDebugger(val handler: EventHandler) {
 		return Promise.resolved(Unit)
 	}
 
-	data class SourcePosition(val file: String, val line: Int)
+	data class SourcePosition(val file: String, val line: Int) {
+		val normalizedFile = normalizePath(file)
+		override fun toString(): String = "SourcePosition($normalizedFile:$line)"
+	}
 
 	open class Value() {
 		open val type: String = "type"
