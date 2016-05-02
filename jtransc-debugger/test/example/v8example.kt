@@ -2,7 +2,9 @@ package example
 
 import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
-import com.jtransc.debugger.v8.*
+import com.jtransc.debugger.v8.NodeJS
+import com.jtransc.debugger.v8.V8JTranscDebugger
+import com.jtransc.debugger.v8.cmdRequestScripts
 import com.jtransc.io.ProcessUtils
 import java.io.File
 
@@ -11,7 +13,16 @@ class V8Example {
 		@JvmStatic fun main(args: Array<String>) {
 			class Test {
 				val process = this
-				val debugger: JTranscDebugger = NodeJS.debug2Async(File("c:/projects/jtransc/test.js"), object : ProcessUtils.ProcessHandler() {
+
+				val testjsPath = V8Example::class.java.getResource("/test.js")
+				val testjsFile = File(testjsPath.path).absoluteFile
+
+				init {
+					println("testjsPath: $testjsPath")
+				}
+
+				@Volatile var debugger: V8JTranscDebugger? = null
+				val debuggerPromise = NodeJS.debug2Async(testjsFile, object : ProcessUtils.ProcessHandler() {
 					override fun onStarted() {
 						println("Started!")
 					}
@@ -29,10 +40,24 @@ class V8Example {
 					}
 				}, object : JTranscDebugger.EventHandler() {
 					override fun onBreak() {
-						println(process.debugger.currentPosition)
+						println(process.debugger?.currentPosition)
 						println("break!")
+						//debugger!!.socket.cmdRequestScripts()
+						for (frame in debugger!!.backtrace()) {
+							println("FRAME: $frame")
+						}
 					}
-				})
+				}).then {
+					println("set debugger!")
+					debugger = it as V8JTranscDebugger
+					startedDebugger(it as V8JTranscDebugger)
+				}
+
+				fun startedDebugger(debugger: V8JTranscDebugger){
+					//for (script in debugger.socket.cmdRequestScripts().syncWait()) {
+					//	println("SCRIPT: $script")
+					//}
+				}
 			}
 
 			Test()

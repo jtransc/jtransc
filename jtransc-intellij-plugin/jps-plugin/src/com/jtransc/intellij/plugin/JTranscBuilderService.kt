@@ -27,6 +27,7 @@ class JTranscBuilderService : BuilderService() {
 			}
 
 			override fun build(context: CompileContext, chunk: ModuleChunk, dirtyFilesHolder: DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget>?, outputConsumer: OutputConsumer): ExitCode {
+				context.markNonIncremental(chunk.representativeTarget())
 				fun warn(message: String) {
 					context.processMessage(CompilerMessage("JTransc", BuildMessage.Kind.WARNING, message))
 				}

@@ -272,7 +272,7 @@ class Promise<T : Any>(var parent: Promise<*>?) {
 
 val <T : Any> Promise<T>.unit: Promise<Unit> get() = then { Unit }
 
-fun <T : Any> Promise<T>.syncWait(): T {
+fun <T : Any> Promise<T>.syncWait(maxMs:Int = Integer.MAX_VALUE): T {
 	var completed = false
 	var value: T? = null
 	var exception: Throwable? = null
@@ -283,7 +283,11 @@ fun <T : Any> Promise<T>.syncWait(): T {
 		exception = it
 		completed = true
 	}
+	val start = System.currentTimeMillis()
 	while (!completed) {
+		val current = System.currentTimeMillis()
+		val elapsed = current - start
+		if (elapsed >= maxMs) throw RuntimeException("Waiting too much!")
 		EventLoop.executeStep()
 		Thread.sleep(1)
 	}

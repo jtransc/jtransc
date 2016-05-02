@@ -180,32 +180,37 @@ class SimpleJTranscRunningState(environment: ExecutionEnvironment) : CommandLine
 class JTranscDebugProcess(session: XDebugSession, val file: File, val executionResult: ExecutionResult) : XDebugProcess(session) {
 	val process = this
 	val project = session.project
-	val suspendedContext = JTranscSuspendContext(process)
-	val debugger = NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
-		override fun onStarted() {
-			println("Started!")
-		}
+	var debugger: JTranscDebugger? = null
+	init {
+		NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
+			override fun onStarted() {
+				println("Started!")
+			}
 
-		override fun onOutputData(data: String) {
-			executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDOUT)
-			System.out.println(data)
-		}
+			override fun onOutputData(data: String) {
+				executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDOUT)
+				System.out.println(data)
+			}
 
-		override fun onErrorData(data: String) {
-			executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDERR)
-			System.err.println(data)
-		}
+			override fun onErrorData(data: String) {
+				executionResult.processHandler.notifyTextAvailable(data, ProcessOutputTypes.STDERR)
+				System.err.println(data)
+			}
 
-		override fun onCompleted(exitValue: Int) {
-			println("EXIT:$exitValue!")
+			override fun onCompleted(exitValue: Int) {
+				println("EXIT:$exitValue!")
+			}
+		}, object : JTranscDebugger.EventHandler() {
+			override fun onBreak() {
+				//println(debugger.currentPosition)
+				//println("break!")
+
+				session.positionReached(JTranscSuspendContext(process))
+			}
+		}).then {
+			debugger = it
 		}
-	}, object : JTranscDebugger.EventHandler() {
-		override fun onBreak() {
-			//println(debugger.currentPosition)
-			//println("break!")
-			session.positionReached(suspendedContext)
-		}
-	})
+	}
 
 	fun start() {
 		executionResult.processHandler.notifyTextAvailable("started!\n", ProcessOutputTypes.SYSTEM)
@@ -234,15 +239,15 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	}
 
 	override fun startStepInto() {
-		debugger.stepInto()
+		debugger?.stepInto()
 	}
 
 	override fun startStepOver() {
-		debugger.stepOver()
+		debugger?.stepOver()
 	}
 
 	override fun startStepOut() {
-		debugger.stepOut()
+		debugger?.stepOut()
 	}
 
 	override fun stop() {
@@ -250,13 +255,13 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	}
 
 	override fun resume() {
-		debugger.resume()
+		debugger?.resume()
 	}
 
 	override fun startPausing() {
 		//session.isPaused = true
 		//this.expectOK(debugger.Command.BreakNow);
-		debugger.pause()
+		debugger?.pause()
 	}
 
 	override fun runToPosition(p0: XSourcePosition) {
@@ -265,6 +270,7 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 
 	class JTranscSuspendContext(val process: JTranscDebugProcess) : XSuspendContext() {
 		val mainThread = JTranscExecutionStack(process)
+
 		override fun getExecutionStacks(): Array<out XExecutionStack>? {
 			return arrayOf(mainThread)
 		}
@@ -275,8 +281,9 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	}
 
 	class JTranscExecutionStack(val process: JTranscDebugProcess) : XExecutionStack("Main Thread", AllIcons.Debugger.ThreadCurrent) {
+		val backtrace = process.debugger!!.backtrace()
 		val session = process.session
-		val frames = listOf(JTranscStackFrame(process), JTranscStackFrame(process), JTranscStackFrame(process))
+		val frames = backtrace.map { JTranscStackFrame(process, it) }
 
 		override fun getTopFrame(): XStackFrame? {
 			//throw UnsupportedOperationException()
@@ -289,7 +296,7 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 		}
 	}
 
-	class JTranscStackFrame(val process: JTranscDebugProcess) : XStackFrame() {
+	class JTranscStackFrame(val process: JTranscDebugProcess, val frame: JTranscDebugger.Frame) : XStackFrame() {
 		override fun computeChildren(node: XCompositeNode) {
 			val list = XValueChildrenList()
 			list.add("test1", JTranscValue(process))

@@ -7,7 +7,10 @@ object EventLoop {
 
 	init {
 		val thread = Thread {
-			executeStep()
+			while (!Thread.currentThread().isInterrupted) {
+				executeStep()
+				Thread.sleep(1)
+			}
 		}
 		thread.isDaemon = false
 		thread.start()

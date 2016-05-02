@@ -46,11 +46,11 @@ object ProcessUtils {
 		return run(currentDir, command, args, redirect = true)
 	}
 
-	open class ProcessHandler {
-		open fun onStarted(): Unit = Unit
-		open fun onOutputData(data: String): Unit = Unit
-		open fun onErrorData(data: String): Unit = Unit
-		open fun onCompleted(exitValue: Int): Unit = Unit
+	open class ProcessHandler(val parent: ProcessHandler? = null) {
+		open fun onStarted(): Unit = parent?.onStarted() ?: Unit
+		open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit
+		open fun onErrorData(data: String): Unit = parent?.onErrorData(data) ?: Unit
+		open fun onCompleted(exitValue: Int): Unit = parent?.onCompleted(exitValue) ?: Unit
 	}
 
 	object RedirectOutputHandler : ProcessHandler() {

@@ -1,5 +1,6 @@
 package com.jtransc.debugger.v8
 
+import com.jtransc.async.Promise
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.io.ProcessUtils
 import com.jtransc.net.SocketUtils
@@ -17,8 +18,23 @@ object NodeJS {
 		ProcessUtils.runAsync(js.parentFile, "node", listOf(js.absolutePath), handler)
 	}
 
-	fun debug2Async(js: File, processHandler: ProcessUtils.ProcessHandler, debuggerHandler: JTranscDebugger.EventHandler): JTranscDebugger {
-		val port = NodeJS.debugAsync(js, processHandler)
-		return V8JTranscDebugger(port, "127.0.0.1", debuggerHandler)
+	fun debug2Async(js: File, processHandler: ProcessUtils.ProcessHandler, debuggerHandler: JTranscDebugger.EventHandler): Promise<JTranscDebugger> {
+		val deferred = Promise.Deferred<JTranscDebugger>()
+		var done = false
+		var error = ""
+		var port = 0
+		port = NodeJS.debugAsync(js, object : ProcessUtils.ProcessHandler(processHandler) {
+			override fun onErrorData(data: String) {
+				super.onErrorData(data)
+				if (!done) {
+					error += data
+					if (error.contains("Debugger listening")) {
+						done = true
+						deferred.resolve(V8JTranscDebugger(port, "127.0.0.1", debuggerHandler))
+					}
+				}
+			}
+		})
+		return deferred.promise
 	}
 }

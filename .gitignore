@@ -42,3 +42,4 @@ out.jar
 out_java
 *.map
 jtransc-intellij-plugin/jtransc-intellij-plugin.zip
+/classes
