@@ -1,43 +1,46 @@
 package com.jtransc.debugger.v8
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.jtransc.async.EventLoop
 import com.jtransc.async.Promise
 import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
+import com.jtransc.debugger.sourcemaps.Sourcemaps
 import com.jtransc.net.TcpClientAsync
+import com.jtransc.vfs.UTF8
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 
 // https://github.com/v8/v8/wiki/Debugging%20Protocol
 
 class V8JTranscDebugger(
-	val port: Int,
-	val host: String = "127.0.0.1",
+	private val port: Int,
+	private val host: String = "127.0.0.1",
 	handler: EventHandler
 ) : JTranscDebugger(handler) {
-	val socket = createV8DebugSocket(port, host)
+	private val socket = createV8DebugSocket(port, host)
 
 	override var currentPosition: SourcePosition = SourcePosition("unknown", 0)
-	val scriptsByHandle = hashMapOf<Long, V8ScriptResponse>()
 
 	init {
 		socket.handle {
 			//println(it)
 		}
-		socket.handleBreak { body ->
-			currentPosition = body.script.toSourcePosition()
-			handler.onBreak()
-		}
-
-		socket.cmdRequestScripts().then { scripts ->
-			for (script in scripts) {
-				scriptsByHandle[script.handle] = script
+		socket.handleEvents(object : V8EventHandlers() {
+			override fun handleBreak(body: BreakResponseBody) {
+				currentPosition = body.script.toSourcePosition()
+				handler.onBreak()
 			}
+
+			override fun handleAfterCompile(body: AfterCompileResponseBody) {
+			}
+		})
+
+		socket.cmdRequestScriptsAsync().then {
 		}
 	}
 
@@ -65,20 +68,66 @@ class V8JTranscDebugger(
 		socket.cmdDisconnect()
 	}
 
-	override fun backtrace(): List<Frame> {
-		//println("aaaaaaaaaaaaaa")
-		val frames = socket.cmdRequestFrames().syncWait()
-		//println("FRAMES: $frames")
-		return frames.frames.map { frame ->
-			val script2 = scriptsByHandle[frame.script.ref]
-			//println("frame: $frame")
-			object : Frame() {
-				//override val position: SourcePosition get() = SourcePosition(frame.file, frame.line)
-				override val position: SourcePosition get() = SourcePosition(script2?.name ?: "unknown", frame.line)
+	override fun setBreakpoint(script: String, line: Int): Breakpoint {
+		return V8Breakpoint(socket.cmdScriptBreakpoint(script, line).syncWait())
+	}
 
-				override fun evaluate(expr: String): Any? = socket.cmdEvaluate(frame.index, expr).syncWait()
+	class V8Breakpoint(val id: Int) : Breakpoint()
+
+	override fun backtrace(): List<Frame> {
+		val frames = socket.cmdRequestFrames().syncWait()
+
+		val lookupResult = socket.cmdLookup(frames.frames.map { it.script.ref }.distinct()).syncWait()
+
+		return frames.frames.map { frame -> V8Frame(this, frame, lookupResult) }
+	}
+
+	private val sourceMaps = hashMapOf<String, Sourcemaps.SourceMap?>()
+
+	private fun getSourceMap(path: String): Sourcemaps.SourceMap? {
+		if (path !in sourceMaps) {
+			val sourceMap = File(path + ".map")
+			sourceMaps[path] = if (sourceMap.exists()) Sourcemaps.decodeFile(sourceMap.readText(UTF8)) else null
+		}
+		return sourceMaps[path]
+	}
+
+	private fun getScript(path: String, line: Int, deep:Int = 0): SourcePosition {
+		if (deep < 10) {
+			val sourceMap = getSourceMap(path)
+			val result = sourceMap?.decodePos(line)
+			if (result != null) {
+				return getScript(result.name, result.line, deep + 1)
 			}
 		}
+		return SourcePosition(path, line)
+	}
+
+	class V8Frame(val debugger: V8JTranscDebugger, val frame: V8FrameResponse, scriptsByHandle: Map<Int, Any?>) : Frame() {
+		val socket = debugger.socket
+		val script2 = scriptsByHandle[frame.script.ref] as V8ScriptResponse?
+
+		override val position: SourcePosition get() = debugger.getScript(script2?.name ?: "unknown.js", frame.line)
+
+		override val locals: List<Local> get() {
+			val localsMap = socket.cmdLookup(frame.locals.map { it.value.ref }.distinct()).syncWait()
+			return frame.locals.map { V8Local(it, localsMap) }
+		}
+
+		override fun evaluate(expr: String): Any? = socket.cmdEvaluate(frame.index, expr).syncWait()
+	}
+
+	class V8Local(val local: com.jtransc.debugger.v8.V8Local, val localsMap: Map<Int, Any?>) : Local() {
+		override val name: String get() = local.name
+		override val value: Value get() = V8Value(localsMap[local.value.ref] as JsonObject?)
+	}
+
+	class V8Value(val param: JsonObject?) : Value() {
+		init {
+			println("V8Value: $param")
+		}
+		override val type: String = param?.getString("type") ?: "type"
+		override val value: String = param?.getString("name") ?: "value"
 	}
 
 	private fun ScriptPosition.toSourcePosition(): JTranscDebugger.SourcePosition {
@@ -112,18 +161,31 @@ class BreakResponseBody {
 	}
 }
 
-fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
+class AfterCompileResponseBody {
+	@JvmField var script = V8ScriptResponse()
+}
+
+open class V8EventHandlers {
+	open fun handleBreak(body: BreakResponseBody) {
+	}
+
+	open fun handleAfterCompile(body: AfterCompileResponseBody) {
+	}
+}
+
+fun V8DebugSocket.handleEvents(handler: V8EventHandlers) {
 	this.handleEvent { message ->
-		if (message.getString("event") == "break") {
-			//println(message.encodePrettily())
-			handler(Json.decodeValue(message.getJsonObject("body").toString(), BreakResponseBody::class.java))
+		when (message.getString("event")) {
+			"break" -> handler.handleBreak(Json.decodeValue(message.getJsonObject("body").toString(), BreakResponseBody::class.java))
+			"afterCompile" -> handler.handleAfterCompile(Json.decodeValue(message.getJsonObject("body").toString(), AfterCompileResponseBody::class.java))
+			else -> Unit
 		}
 	}
 }
 
 @JsonIgnoreProperties class V8ScriptResponse {
-	@JvmField var handle = 14L
-	@JvmField var id = 0
+	@JvmField var handle = 0
+	@JvmField var id = 0L
 	@JvmField var type = ""
 	@JvmField var name = ""
 	@JvmField var lineCount = 0
@@ -141,8 +203,8 @@ fun V8DebugSocket.handleBreak(handler: (BreakResponseBody) -> Unit) {
 	}
 }
 
-fun V8DebugSocket.cmdRequestScripts(): Promise<List<V8ScriptResponse>> {
-	return this.sendRequestAndWaitAsync("scripts", mapOf()).then {
+fun V8DebugSocket.cmdRequestScriptsAsync(includeSource: Boolean = false): Promise<List<V8ScriptResponse>> {
+	return this.sendRequestAndWaitAsync("scripts", mapOf("includeSource" to includeSource)).then {
 		//println("SCRIPTS:" + it.encodePrettily())
 		//it
 		it.getJsonArray("array").map { Json.decodeValue(it.toString(), V8ScriptResponse::class.java) }
@@ -165,6 +227,10 @@ fun V8DebugSocket.cmdStepOut(count: Int = 1): Promise<JsonObject> {
 
 fun V8DebugSocket.cmdDisconnect() {
 	this.sendRequestAndWaitAsync("disconnect")
+}
+
+fun V8DebugSocket.cmdScriptBreakpoint(target:String, line:Int): Promise<Int> {
+	return this.sendRequestAndWaitAsync("setbreakpoint", mapOf("type" to "script", "target" to target, "line" to line)).then { it.getInteger("breakpoint") }
 }
 
 fun V8DebugSocket.cmdResume(): Promise<JsonObject> {
@@ -193,7 +259,7 @@ fun V8DebugSocket.cmdRequestSource(fromLine: Int = -1, toLine: Int = Int.MAX_VAL
 }
 
 class V8Ref {
-	@JvmField var ref: Long = 0
+	@JvmField var ref: Int = 0
 
 	override fun toString() = "V8Ref(ref=$ref)"
 
@@ -228,6 +294,7 @@ class V8FrameResponse {
 	@JvmField var atReturn: Boolean = false
 	@JvmField var debuggerFrame: Boolean = false
 	@JvmField var arguments: List<V8Arguments> = arrayListOf()
+	@JvmField var returnValue: Any? = Unit
 	@JvmField var locals: List<V8Local> = arrayListOf()
 	@JvmField var scopes: List<V8Scope> = arrayListOf()
 	@JvmField var position: Int = 0
@@ -251,6 +318,23 @@ fun V8DebugSocket.cmdRequestFrames(fromFrame: Int = 0, toFrame: Int = 10): Promi
 		//println("BACKTRACE: ${it.encodePrettily()}")
 
 		Json.decodeValue(it.toString(), V8BacktraceResponse::class.java)
+	}
+}
+
+fun V8DebugSocket.cmdLookup(handles: List<Int>, includeSource: Boolean = false): Promise<Map<Int, Any>> {
+	return this.sendRequestAndWaitAsync("lookup", mapOf("handles" to handles, "includeSource" to includeSource)).then { body ->
+		body.map { pair ->
+			val obj = pair.value as JsonObject?
+			Pair(pair.key.toInt(), try {
+				when (obj?.getString("type")) {
+					"script" -> Json.decodeValue(obj.toString(), V8ScriptResponse::class.java)
+					else -> obj
+				} ?: Unit
+			} catch (e:Throwable) {
+				println("ERROR: $e")
+				Unit
+			})
+		}.toMap()
 	}
 }
 
@@ -374,6 +458,7 @@ class V8DebugSocket(val port: Int = 5858, val host: String = "127.0.0.1") {
 	fun handleEvent(handler: (message: JsonObject) -> Unit) {
 		handlers += { message ->
 			if (message.getString("type") == "event") {
+				println("EVENT: " + message.encodePrettily())
 				handler(message)
 			}
 		}
@@ -409,4 +494,5 @@ class V8DebugSocket(val port: Int = 5858, val host: String = "127.0.0.1") {
 	}
 }
 
-const val DEBUG = true
+//const val DEBUG = true
+const val DEBUG = false

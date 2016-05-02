@@ -31,7 +31,7 @@
 		<compiler.task implementation="com.jtransc.intellij.plugin.JTranscCompilerTask" order="last"/>
 		-->
 		<compileServer.plugin classpath="jtransc-jps-plugin.jar;kotlin-stdlib-1.0.1-2.jar;kotlin-runtime-1.0.1-2.jar;jtransc-intellij-plugin.jar"/>
-		<programRunner implementation="com.jtransc.intellij.plugin.JTranscRunner"/>
+		<programRunner implementation="com.jtransc.intellij.plugin.JTranscDebuggerRunner"/>
 		<xdebugger.breakpointType implementation="com.jtransc.intellij.plugin.JTranscBreakpointType"/>
 	</extensions>
 

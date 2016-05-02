@@ -18,7 +18,10 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.testFramework.BinaryLightVirtualFile
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -39,7 +42,7 @@ import java.io.OutputStream
 
 // https://github.com/JetBrains/intellij-haxe/blob/master/src/14/com/intellij/plugins/haxe/runner/debugger/HaxeDebugRunner.java
 // http://www.jetbrains.org/intellij/sdk/docs/basics/project_structure.html
-class JTranscRunner : DefaultProgramRunner() {
+class JTranscDebuggerRunner : DefaultProgramRunner() {
 	override fun canRun(name: String, profile: RunProfile): Boolean {
 		return profile is JTranscRunConfiguration
 	}
@@ -264,6 +267,8 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 		debugger?.pause()
 	}
 
+
+
 	override fun runToPosition(p0: XSourcePosition) {
 		session.positionReached(JTranscSuspendContext(process))
 	}
@@ -299,16 +304,18 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	class JTranscStackFrame(val process: JTranscDebugProcess, val frame: JTranscDebugger.Frame) : XStackFrame() {
 		override fun computeChildren(node: XCompositeNode) {
 			val list = XValueChildrenList()
-			list.add("test1", JTranscValue(process))
-			list.add("test2", JTranscValue(process))
+			for (local in frame.locals) {
+				list.add(local.name, JTranscValue(process, local.value))
+			}
 			node.addChildren(list, true)
 		}
 
 		override fun getSourcePosition(): XSourcePosition? {
 			//val file = BinaryLightVirtualFile("Test.java", JavaFileType.INSTANCE, "Hello\nWorld\nThis\nIs\nA\nTest".toByteArray())
-			val file = process.project.baseDir.findChild("src")?.findChild("Test.java")
-			return XSourcePositionImpl.create(file, 6)
-			//return null
+			val position = frame.position
+			val file = LocalFileSystem.getInstance().findFileByIoFile(File(position.file)) ?: BinaryLightVirtualFile(position.file, PlainTextFileType.INSTANCE, "Unknown\nUnknown\n".toByteArray())
+			//println("" + file + " : " + position.line)
+			return XSourcePositionImpl.create(file, position.line)
 		}
 
 		override fun getEvaluator(): XDebuggerEvaluator? {
@@ -316,9 +323,9 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 		}
 	}
 
-	class JTranscValue(val process: JTranscDebugProcess) : XValue() {
+	class JTranscValue(val process: JTranscDebugProcess, val value: JTranscDebugger.Value) : XValue() {
 		override fun computePresentation(node: XValueNode, place: XValuePlace) {
-			node.setPresentation(AllIcons.Nodes.Property, "type", "value", false)
+			node.setPresentation(AllIcons.Nodes.Property, value.type, value.value, false)
 		}
 
 		override fun computeChildren(node: XCompositeNode) {

@@ -36,7 +36,9 @@ class TcpClientAsync(val host: String, val port: Int, val handler: Handler) {
 
 			while (!mustClose && !socket.isClosed) {
 				val chunk = input.readAvailableChunk()
-				if (chunk.size >= 1) handler.onData(chunk)
+				if (chunk.size >= 1) {
+					handler.onData(chunk)
+				}
 				while (writeChunks.isNotEmpty()) {
 					ignoreErrors { output.write(writeChunks.removeAt(0)) }
 				}
