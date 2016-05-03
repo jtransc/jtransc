@@ -2,20 +2,30 @@ package com.jtransc.json
 
 class JsonWriterException(message: String) : RuntimeException(message)
 
-class JsonWriter(prettify: Boolean = false) {
-	val sb = StringBuilder()
-	fun write(chr: Char) = this.apply { sb.append(chr) }
-	fun write(str: String) = this.apply { sb.append(str) }
-	inline fun indent(callback: () -> Unit) {
-		try {
-			callback()
-		} finally {
-
+class JsonWriter(private val prettify: Boolean = false) {
+	private val sb = StringBuilder()
+	var indentation = 0
+	var lineStart = true
+	private fun _write() {
+		if (lineStart && prettify) {
+			lineStart = false
+			for (n in 0 until indentation) sb.append('\t')
 		}
 	}
-	fun line() {
 
+	fun write(chr: Char) = this.apply { _write(); sb.append(chr) }
+	fun write(str: String) = this.apply { _write(); sb.append(str) }
+	inline fun indent(callback: () -> Unit) {
+		try {
+			indentation++
+			callback()
+		} finally {
+			indentation--
+		}
 	}
+
+	fun space() = this.apply { if (prettify) write(' ') }
+	fun line() = this.apply { if (prettify) write('\n'); lineStart = true }
 	override fun toString() = sb.toString()
 }
 
@@ -57,35 +67,50 @@ fun JsonWriter.writeString(str: String): JsonWriter = this.apply {
 }
 
 fun JsonWriter.writeObject(obj: Map<*, *>): JsonWriter = this.apply {
-	write('{')
-	indent {
+	if (obj.isEmpty()) {
+		write("{}")
+	} else {
+		write('{')
 		var first = true
-		for (pair in obj) {
-			if (first) {
-				first = false
-			} else {
-				write(',')
-				line()
+		indent {
+			line()
+			for (pair in obj) {
+				if (first) {
+					first = false
+				} else {
+					write(',')
+					line()
+				}
+				writeString("${pair.key}")
+				space()
+				write(':')
+				space()
+				writeValue(pair.value)
 			}
-			writeString("${pair.key}")
-			write(':')
-			writeValue(pair.value)
 		}
+		if (first != true) line()
+		write('}')
 	}
-	write('}')
 }
 
 fun JsonWriter.writeArray(list: Iterable<*>): JsonWriter = this.apply {
-	write('[')
-	indent {
+	val list2 = list.toList()
+	if (list2.isEmpty()) {
+		write("[]")
+	} else {
+		write('[')
+		line()
 		var first = true
-		for (item in list) {
-			if (first) first = false else {
-				write(',')
-				line()
+		indent {
+			for (item in list2) {
+				if (first) first = false else {
+					write(',')
+					line()
+				}
+				writeValue(item)
 			}
-			writeValue(item)
 		}
+		if (first != true) line()
+		write(']')
 	}
-	write(']')
 }

@@ -1,6 +1,5 @@
 package com.jtransc.sourcemaps
 
-import com.jtransc.error.noImpl
 import com.jtransc.json.Json
 import java.util.*
 
@@ -68,16 +67,40 @@ object Sourcemaps {
 	}
 
 	fun encode(mapping: MappingFile): String {
-		noImpl("no impl encoding!")
+		var sourceLine = 0
+		var sourceIndex = 0
+		var sourceColumn = 0
+		val lists = mapping.rows.map { row ->
+			var targetColumn = 0
+			row.mappings.map {
+				listOf(
+					it.targetColumn - targetColumn,
+					it.sourceIndex - sourceIndex,
+					it.sourceLine - sourceLine,
+					it.sourceColumn - sourceColumn
+				).apply {
+					sourceIndex = it.sourceIndex
+					sourceLine = it.sourceLine
+					sourceColumn = it.sourceColumn
+					targetColumn = it.targetColumn
+				}
+			}
+		}
+		return encodeRaw(lists)
 	}
 
 	fun encodeFile(targetPath: String, targetContent: String, source: String, mappings: HashMap<Int, Int>): String {
 		//(0 until targetContent.count { it == '\n' }).map {}
+		val mapping = MappingFile((0 until (mappings.keys.max() ?: 1)).map {
+			val targetLine = mappings[it]
+			MappingRow(if (targetLine == null) listOf() else listOf(MappingItem(0, targetLine, 0, 0)))
+		})
 		return Json.encode(mapOf(
 			"version" to 3,
 			"file" to targetPath,
 			"sources" to arrayListOf(source),
-			"names" to arrayListOf<String>()
+			"names" to arrayListOf<String>(),
+			"mappings" to encode(mapping)
 		), prettify = true)
 	}
 }
