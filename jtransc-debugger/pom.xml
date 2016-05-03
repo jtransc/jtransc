@@ -44,11 +44,13 @@
 			<version>${kotlin.version}</version>
 		</dependency>
 
+		<!--
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 			<version>${kotlin.version}</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>com.jtransc</groupId>
 			<artifactId>jtransc-utils</artifactId>
@@ -58,12 +60,6 @@
 			<groupId>com.jtransc</groupId>
 			<artifactId>jtransc-rt-core</artifactId>
 			<version>${jtransc.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
 		</dependency>
 	</dependencies>
 

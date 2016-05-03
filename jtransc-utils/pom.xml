@@ -16,23 +16,23 @@
   -->
 
 <project
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
 		<!--<jackson.version>2.7.4</jackson.version>-->
 	</properties>
 
-    <parent>
-        <groupId>com.jtransc</groupId>
-        <artifactId>jtransc</artifactId>
-        <relativePath>..</relativePath>
-        <version>0.2.1</version>
-    </parent>
+	<parent>
+		<groupId>com.jtransc</groupId>
+		<artifactId>jtransc</artifactId>
+		<relativePath>..</relativePath>
+		<version>0.2.1</version>
+	</parent>
 
-    <artifactId>jtransc-utils</artifactId>
+	<artifactId>jtransc-utils</artifactId>
 
 	<dependencies>
 		<dependency>
@@ -47,28 +47,13 @@
 			<version>${kotlin.version}</version>
 		</dependency>
 
+		<!--
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 			<version>${kotlin.version}</version>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
 		-->
-		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,16 +1,14 @@
 package com.jtransc.debugger.v8
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.jtransc.async.EventLoop
 import com.jtransc.async.Promise
 import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
+import com.jtransc.json.Json
+import com.jtransc.json.JsonObject
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.net.TcpClientAsync
 import com.jtransc.vfs.UTF8
-import io.vertx.core.json.Json
-import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
@@ -119,15 +117,16 @@ class V8JTranscDebugger(
 
 	class V8Local(val local: com.jtransc.debugger.v8.V8Local, val localsMap: Map<Int, Any?>) : Local() {
 		override val name: String get() = local.name
-		override val value: Value get() = V8Value(localsMap[local.value.ref] as JsonObject?)
+		override val value: Value get() = V8Value(localsMap[local.value.ref] as Map<*, *>?)
 	}
 
-	class V8Value(val param: JsonObject?) : Value() {
+	class V8Value(val param: Map<*, *>?) : Value() {
+		val obj = JsonObject(param ?: mapOf<Any?, Any?>())
 		init {
 			//println("V8Value: $param")
 		}
-		override val type: String = param?.getString("type") ?: "type"
-		override val value: String = param?.getString("name") ?: "value"
+		override val type: String = obj.getString("type") ?: "type"
+		override val value: String = obj.getString("name") ?: "value"
 	}
 
 	private fun ScriptPosition.toSourcePosition(): JTranscDebugger.SourcePosition {
@@ -180,14 +179,14 @@ open class V8EventHandlers {
 fun V8DebugSocket.handleEvents(handler: V8EventHandlers) {
 	this.handleEvent { message ->
 		when (message.getString("event")) {
-			"break" -> handler.handleBreak(Json.decodeValue(message.getJsonObject("body").toString(), BreakResponseBody::class.java))
-			"afterCompile" -> handler.handleAfterCompile(Json.decodeValue(message.getJsonObject("body").toString(), AfterCompileResponseBody::class.java))
+			"break" -> handler.handleBreak(Json.decodeTo<BreakResponseBody>(message.getJsonObject("body").toString()))
+			"afterCompile" -> handler.handleAfterCompile(Json.decodeTo<AfterCompileResponseBody>(message.getJsonObject("body").toString()))
 			else -> Unit
 		}
 	}
 }
 
-@JsonIgnoreProperties class V8ScriptResponse {
+class V8ScriptResponse {
 	@JvmField var handle = 0
 	@JvmField var id = 0L
 	@JvmField var type = ""
@@ -211,7 +210,9 @@ fun V8DebugSocket.cmdRequestScriptsAsync(includeSource: Boolean = false): Promis
 	return this.sendRequestAndWaitAsync("scripts", mapOf("includeSource" to includeSource)).then {
 		//println("SCRIPTS:" + it.encodePrettily())
 		//it
-		it.getJsonArray("array").map { Json.decodeValue(it.toString(), V8ScriptResponse::class.java) }
+		it.getArray("array").map {
+			Json.decodeTo<V8ScriptResponse>(Json.encodeAny(it))
+		}
 		//listOf<V8ScriptResponse>()
 		//DATA({"seq":2,"type":"response","command":"scripts","success":true,"body":[{"handle":14,"type":"script","name":"node.js","id":37,"lineOffset":0,"columnOffset":0,"lineCount":446,"sourceStart":"// Hello, and welcome to hacking node.js!\n//\n// This file is invoked by node::Lo","sourceLength":13764,"scriptType":2,"compilationType":0,"context":{"ref":13},"text":"node.js (lines: 446)"},{"handle":16,"type":"script","name":"events.js","id":38,"lineOffset":0,"columnOffset":0,"lineCount":478,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nvar","sourceLength":13015,"scriptType":2,"compilationType":0,"context":{"ref":15},"text":"events.js (lines: 478)"},{"handle":18,"type":"script","name":"util.js","id":39,"lineOffset":0,"columnOffset":0,"lineCount":927,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":25960,"scriptType":2,"compilationType":0,"context":{"ref":17},"text":"util.js (lines: 927)"},{"handle":20,"type":"script","name":"buffer.js","id":40,"lineOffset":0,"columnOffset":0,"lineCount":1295,"sourceStart":"(function (exports, require, module, __filename, __dirname) { /* eslint-disable ","sourceLength":32678,"scriptType":2,"compilationType":0,"context":{"ref":19},"text":"buffer.js (lines: 1295)"},{"handle":22,"type":"script","name":"internal/util.js","id":41,"lineOffset":0,"columnOffset":0,"lineCount":94,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":2710,"scriptType":2,"compilationType":0,"context":{"ref":21},"text":"internal/util.js (lines: 94)"},{"handle":24,"type":"script","name":"timers.js","id":42,"lineOffset":0,"columnOffset":0,"lineCount":636,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":17519,"scriptType":2,"compilationType":0,"context":{"ref":23},"text":"timers.js (lines: 636)"},{"handle":26,"type":"script","name":"internal/linkedlist.js","id":43,"lineOffset":0,"columnOffset":0,"lineCount":59,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nfun","sourceLength":1098,"scriptType":2,"compilationType":0,"context":{"ref":25},"text":"internal/linkedlist.js (lines: 59)"},{"handle":28,"type":"script","name":"assert.js","id":44,"lineOffset":0,"columnOffset":0,"lineCount":364,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // http://wiki.com","sourceLength":12444,"scriptType":2,"compilationType":0,"context":{"ref":27},"text":"assert.js (lines: 364)"},{"handle":30,"type":"script","name":"internal/process.js","id":45,"lineOffset":0,"columnOffset":0,"lineCount":188,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nvar","sourceLength":4628,"scriptType":2,"compilationType":0,"context":{"ref":29},"text":"internal/process.js (lines: 188)"},{"handle":32,"type":"script","name":"internal/process/warning.js","id":46,"lineOffset":0,"columnOffset":0,"lineCount":51,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":1773,"scriptType":2,"compilationType":0,"context":{"ref":31},"text":"internal/process/warning.js (lines: 51)"},{"handle":34,"type":"script","name":"internal/process/next_tick.js","id":47,"lineOffset":0,"columnOffset":0,"lineCount":159,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nexp","sourceLength":4392,"scriptType":2,"compilationType":0,"context":{"ref":33},"text":"internal/process/next_tick.js (lines: 159)"},{"handle":36,"type":"script","name":"internal/process/promises.js","id":48,"lineOffset":0,"columnOffset":0,"lineCount":63,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":1942,"scriptType":2,"compilationType":0,"context":{"ref":35},"text":"internal/process/promises.js (lines: 63)"},{"handle":38,"type":"script","name":"internal/process/stdio.js","id":49,"lineOffset":0,"columnOffset":0,"lineCount":163,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nexp","sourceLength":4260,"scriptType":2,"compilationType":0,"context":{"ref":37},"text":"internal/process/stdio.js (lines: 163)"},{"handle":40,"type":"script","name":"path.js","id":50,"lineOffset":0,"columnOffset":0,"lineCount":1597,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":46529,"scriptType":2,"compilationType":0,"context":{"ref":39},"text":"path.js (lines: 1597)"},{"handle":42,"type":"script","name":"module.js","id":51,"lineOffset":0,"columnOffset":0,"lineCount":641,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":18241,"scriptType":2,"compilationType":0,"context":{"ref":41},"text":"module.js (lines: 641)"},{"handle":44,"type":"script","name":"internal/module.js","id":52,"lineOffset":0,"columnOffset":0,"lineCount":98,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nexp","sourceLength":2625,"scriptType":2,"compilationType":0,"context":{"ref":43},"text":"internal/module.js (lines: 98)"},{"handle":46,"type":"script","name":"vm.js","id":53,"lineOffset":0,"columnOffset":0,"lineCount":59,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\ncon","sourceLength":1697,"scriptType":2,"compilationType":0,"context":{"ref":45},"text":"vm.js (lines: 59)"},{"handle":48,"type":"script","name":"fs.js","id":54,"lineOffset":0,"columnOffset":0,"lineCount":2035,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // Maintainers, ke","sourceLength":51790,"scriptType":2,"compilationType":0,"context":{"ref":47},"text":"fs.js (lines: 2035)"},{"handle":50,"type":"script","name":"stream.js","id":56,"lineOffset":0,"columnOffset":0,"lineCount":109,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nmod","sourceLength":2506,"scriptType":2,"compilationType":0,"context":{"ref":49},"text":"stream.js (lines: 109)"},{"handle":52,"type":"script","name":"_stream_readable.js","id":57,"lineOffset":0,"columnOffset":0,"lineCount":930,"sourceStart":"(function (exports, require, module, __filename, __dirname) { 'use strict';\n\nmod","sourceLength":25764,"scriptType":2,"compilationType":0,"context":{"ref":51},"text":"_stream_readable.js (lines: 930)"},{"handle":54,"type":"script","name":"_stream_writable.js","id":58,"lineOffset":0,"columnOffset":0,"lineCount":531,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // A bit simpler t","sourceLength":14353,"scriptType":2,"compilationType":0,"context":{"ref":53},"text":"_stream_writable.js (lines: 531)"},{"handle":56,"type":"script","name":"_stream_duplex.js","id":59,"lineOffset":0,"columnOffset":0,"lineCount":59,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // a duplex stream","sourceLength":1501,"scriptType":2,"compilationType":0,"context":{"ref":55},"text":"_stream_duplex.js (lines: 59)"},{"handle":58,"type":"script","name":"_stream_transform.js","id":60,"lineOffset":0,"columnOffset":0,"lineCount":194,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // a transform str","sourceLength":6414,"scriptType":2,"compilationType":0,"context":{"ref":57},"text":"_stream_transform.js (lines: 194)"},{"handle":60,"type":"script","name":"_stream_passthrough.js","id":61,"lineOffset":0,"columnOffset":0,"lineCount":24,"sourceStart":"(function (exports, require, module, __filename, __dirname) { // a passthrough s","sourceLength":592,"scriptType":2,"compilationType":0,"context":{"ref":59},"text":"_stream_passthrough.js (lines: 24)"},{"handle":12,"type":"script","name":"/Users/soywiz/Projects/jtransc/jtransc/jtransc-debugger/target/test-classes/test.js","id":62,"lineOffset":0,"columnOffset":0,"lineCount":2,"sourceStart":"(function (exports, require, module, __filename, __dirname) { console.log('test'","sourceLength":86,"scriptType":2,"compilationType":0,"context":{"ref":11},"text":"/Users/soywiz/Projects/jtransc/jtransc/jtransc-debugger/target/test-classes/test.js (lines: 2)"}],"refs":[{"handle":13,"type":"context","text":"#<ContextMirror>"},{"handle":15,"type":"context","text":"#<ContextMirror>"},{"handle":17,"type":"context","text":"#<ContextMirror>"},{"handle":19,"type":"context","text":"#<ContextMirror>"},{"handle":21,"type":"context","text":"#<ContextMirror>"},{"handle":23,"type":"context","text":"#<ContextMirror>"},{"handle":25,"type":"context","text":"#<ContextMirror>"},{"handle":27,"type":"context","text":"#<ContextMirror>"},{"handle":29,"type":"context","text":"#<ContextMirror>"},{"handle":31,"type":"context","text":"#<ContextMirror>"},{"handle":33,"type":"context","text":"#<ContextMirror>"},{"handle":35,"type":"context","text":"#<ContextMirror>"},{"handle":37,"type":"context","text":"#<ContextMirror>"},{"handle":39,"type":"context","text":"#<ContextMirror>"},{"handle":41,"type":"context","text":"#<ContextMirror>"},{"handle":43,"type":"context","text":"#<ContextMirror>"},{"handle":45,"type":"context","text":"#<ContextMirror>"},{"handle":47,"type":"context","text":"#<ContextMirror>"},{"handle":49,"type":"context","text":"#<ContextMirror>"},{"handle":51,"type":"context","text":"#<ContextMirror>"},{"handle":53,"type":"context","text":"#<ContextMirror>"},{"handle":55,"type":"context","text":"#<ContextMirror>"},{"handle":57,"type":"context","text":"#<ContextMirror>"},{"handle":59,"type":"context","text":"#<ContextMirror>"},{"handle":11,"type":"context","text":"#<ContextMirror>"}],"running":false})
 	}
@@ -258,7 +259,7 @@ class SourceResponse {
 
 fun V8DebugSocket.cmdRequestSource(fromLine: Int = -1, toLine: Int = Int.MAX_VALUE): Promise<SourceResponse> {
 	return this.sendRequestAndWaitAsync("source", mapOf("fromLine" to fromLine, "toLine" to toLine)).then {
-		Json.decodeValue(it.encode(), SourceResponse::class.java)
+		Json.decodeTo(it.encode(), SourceResponse::class.java)
 	}
 }
 
@@ -269,25 +270,21 @@ class V8Ref {
 
 }
 
-@JsonIgnoreProperties
 class V8Arguments {
 	@JvmField var name: String = ""
 	@JvmField var value: V8Ref = V8Ref()
 }
 
-@JsonIgnoreProperties
 class V8Local {
 	@JvmField var name: String = ""
 	@JvmField var value: V8Ref = V8Ref()
 }
 
-@JsonIgnoreProperties
 class V8Scope {
 	@JvmField var type: Int = 0
 	@JvmField var index: Int = 0
 }
 
-@JsonIgnoreProperties
 class V8FrameResponse {
 	@JvmField var type: String = ""
 	@JvmField var index: Int = 0
@@ -321,17 +318,17 @@ fun V8DebugSocket.cmdRequestFrames(fromFrame: Int = 0, toFrame: Int = 10): Promi
 	return this.sendRequestAndWaitAsync("backtrace", mapOf("fromFrame" to fromFrame, "toFrame" to toFrame)).then {
 		//println("BACKTRACE: ${it.encodePrettily()}")
 
-		Json.decodeValue(it.toString(), V8BacktraceResponse::class.java)
+		Json.decodeTo<V8BacktraceResponse>(it.toString())
 	}
 }
 
 fun V8DebugSocket.cmdLookup(handles: List<Int>, includeSource: Boolean = false): Promise<Map<Int, Any>> {
 	return this.sendRequestAndWaitAsync("lookup", mapOf("handles" to handles, "includeSource" to includeSource)).then { body ->
 		body.map { pair ->
-			val obj = pair.value as JsonObject?
-			Pair(pair.key.toInt(), try {
-				when (obj?.getString("type")) {
-					"script" -> Json.decodeValue(obj.toString(), V8ScriptResponse::class.java)
+			val obj = pair.value as Map<*, *>?
+			Pair("${pair.key}".toInt(), try {
+				when (obj?.get("type")) {
+					"script" -> JsonObject(obj as Map<Any?, Any?>).to<V8ScriptResponse>()
 					else -> obj
 				} ?: Unit
 			} catch (e:Throwable) {
@@ -362,8 +359,9 @@ fun V8DebugSocket.sendRequestAndWaitAsync(command: String, arguments: Map<String
 			val result = message.getValue("body")
 			when (result) {
 				is JsonObject -> result
-				is JsonArray -> JsonObject(mapOf("array" to result))
-				else -> JsonObject(mapOf())
+				is Map<*, *> -> JsonObject(result)
+				is Iterable<*> -> JsonObject(mapOf("array" to result))
+				else -> JsonObject(mapOf<Any?, Any?>())
 			}
 		} else {
 			throw RuntimeException(message.getString("message"))
