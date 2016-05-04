@@ -38,6 +38,19 @@ public class JTranscArithmeticTest {
 		System.out.println(-1022);
 		System.out.println((double)-77);
 		System.out.println((float)-77);
+		testOperatorOrder();
+	}
+
+	static private void testOperatorOrder() {
+		for (int n = 0; n < 10; n++) {
+			if (((n * 3 + 2) % 5) != 1) {
+				System.out.print("1");
+			} else {
+				System.out.print("0");
+			}
+			System.out.println((((n + 3 * 2) % 5) != 1) ? "1" : "0");
+		}
+		System.out.println();
 	}
 
 	static public int shl15(byte value) {
