@@ -52,6 +52,11 @@ fun dump(stm: AstStm?): Indenter {
 			is AstStm.LINE -> line("LINE(${stm.line})")
 			is AstStm.NOP -> line("NOP")
 			is AstStm.THROW -> line("throw ${dump(stm.value)};")
+			is AstStm.IF -> line("if (${dump(stm.cond)})") { line(dump(stm.strue)) }
+			is AstStm.IF_ELSE -> {
+				line("if (${dump(stm.cond)})") { line(dump(stm.strue)) }
+				line("else") { line(dump(stm.sfalse)) }
+			}
 			else -> noImpl("$stm")
 		}
 	}

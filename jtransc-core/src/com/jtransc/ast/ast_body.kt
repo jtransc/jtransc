@@ -3,8 +3,6 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.lang.*
-import com.jtransc.text.Indenter
 
 data class AstBody(
 	val stm: AstStm,
@@ -56,6 +54,8 @@ data class AstLocal(val index: Int, val name: String, val type: AstType) {
 	}
 }
 
+fun AstType.local(name: String, index: Int = 0) = AstExpr.LOCAL(AstLocal(index, name, this))
+
 data class AstTrap(val start: AstLabel, val end: AstLabel, val handler: AstLabel, val exception: AstType.REF)
 
 data class AstLabel(val name: String) {
@@ -89,6 +89,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	class STMS(stms: List<AstStm>) : AstStm() {
 		constructor(vararg stms: AstStm) : this(stms.toList())
+
 		val stms = stms.map { it.box }
 	}
 
@@ -210,6 +211,10 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	//
 	//class NOT_IMPLEMENTED() : AstStm() {
 	//}
+
+	companion object {
+		fun build(build: AstBuilder.() -> AstStm): AstStm = AstBuilder().build()
+	}
 }
 
 abstract class AstExpr : AstElement, Cloneable<AstExpr> {
@@ -225,6 +230,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		init {
 			_value.box = this
 		}
+
 		val type: AstType get() = value.type
 	}
 
@@ -401,6 +407,10 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
+
+	companion object {
+		fun build(build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder().build()
+	}
 }
 
 object AstStmUtils {
@@ -408,6 +418,12 @@ object AstStmUtils {
 		val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
 		local.write(stm)
 		return stm
+	}
+
+	fun stms(stms: List<AstStm>): AstStm = when (stms.size) {
+		0 -> AstStm.NOP()
+		1 -> stms[0]
+		else -> AstStm.STMS(stms)
 	}
 }
 
@@ -542,9 +558,17 @@ class AstBuilder {
 	operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
 	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
 	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
+	fun AstExpr.stm() = AstStm.STM_EXPR(this)
+	infix fun AstLocal.assignTo(that: AstExpr) = AstStm.SET_LOCAL(AstExpr.LOCAL(this), that)
+	infix fun AstExpr.LOCAL.assignTo(that: AstExpr) = AstStm.SET_LOCAL(this, that)
+	//fun FqName.get(name:String):AstExpr.STATIC_FIELD_ACCESS = AstExpr.STATIC_FIELD_ACCESS(AstFieldRef())
 }
 
 fun AstBuild(build: AstBuilder.() -> AstExpr): AstExpr {
+	return AstBuilder().build()
+}
+
+fun AstBuildStm(build: AstBuilder.() -> AstStm): AstStm {
 	return AstBuilder().build()
 }
 

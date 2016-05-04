@@ -20,6 +20,8 @@ import java.util.*
 
 inline fun <reified T> Iterable<Any?>.cast() = this.filterIsInstance<T>()
 
+fun <T> queueOf(vararg items: T): java.util.Queue<T> = LinkedList<T>(items.toList())
+
 fun <A, B> List<Pair<A, B>>.uniqueMap(): HashMap<A, B>? {
 	val h = hashMapOf<A, B>()
 	val okay = this.all { x ->

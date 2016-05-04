@@ -111,7 +111,7 @@ class Indenter : ToString {
 		actions.add(Action.Unindent)
 	}
 
-	fun toString(markHandler: ((sb: StringBuilder, line: Int, data: Any) -> Unit)?): String {
+	fun toString(markHandler: ((sb: StringBuilder, line: Int, data: Any) -> Unit)?, doIndent: Boolean = true): String {
 		val out = StringBuilder()
 		var line = 0
 
@@ -122,13 +122,13 @@ class Indenter : ToString {
 				when (action) {
 					is Action.Line -> {
 						if (noIndentEmptyLines && action.str.isEmpty()) {
-							out.append("\n")
+							if (doIndent) out.append("\n")
 							line++
 						} else {
-							out.append(getIndent(indentIndex))
+							if (doIndent) out.append(getIndent(indentIndex)) else out.append(" ")
 							out.append(action.str)
 							line += action.str.count { it == '\n' }
-							out.append("\n")
+							if (doIndent) out.append("\n")
 							line++
 						}
 					}
@@ -147,5 +147,6 @@ class Indenter : ToString {
 		return out.toString()
 	}
 
+	fun toString(doIndent: Boolean = true): String = toString(null, doIndent)
 	override fun toString(): String = toString(null)
 }
