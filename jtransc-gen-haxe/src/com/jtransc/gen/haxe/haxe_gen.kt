@@ -651,7 +651,7 @@ class GenHaxeGen(
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
 					FUNCTION_REF -> "(HaxeNatives.getFunction($e))"
-					else -> "hx.N.c($e, ${to.haxeTypeCast})"
+					else -> "N.c($e, ${to.haxeTypeCast})"
 				}
 			}
 			is AstType.NULL -> "$e"
