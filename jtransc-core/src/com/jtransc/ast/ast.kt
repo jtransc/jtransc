@@ -53,6 +53,8 @@ data class AstBuildSettings(
 	var icon: String? = null,
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
 	val backend: BuildBackend = BuildBackend.ASM,
+	val relooper: Boolean = false,
+	val minimize: Boolean = false,
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
 		"com.jtransc:jtransc-rt:$jtranscVersion",
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"

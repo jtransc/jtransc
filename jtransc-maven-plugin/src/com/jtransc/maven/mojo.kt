@@ -66,6 +66,8 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "icon", defaultValue = "") @JvmField var icon: String? = null
 	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
 	@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
+	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
+	@Parameter(property = "minimize", defaultValue = "false") @JvmField var minimize: Boolean = false
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -137,7 +139,9 @@ class JTranscMojo : AbstractMojo() {
 			orientation = AstBuildSettings.Orientation.fromString(orientation),
 			resizable = resizable,
 			vsync = vsync,
-			backend = backend
+			backend = backend,
+			relooper = relooper,
+			minimize = minimize
 		)
 		//project.version
 

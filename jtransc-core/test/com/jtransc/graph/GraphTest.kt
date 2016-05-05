@@ -61,34 +61,5 @@ class GraphTest {
 		)
 	}
 
-	@Test fun testRelooper() {
-		val relooper = Relooper()
-		val A = relooper.node(AstStm.build { INT.local("a") assignTo 1.lit })
-		val B = relooper.node(AstStm.build { INT.local("b") assignTo 1.lit })
-		relooper.edge(A, B, AstExpr.build { INT.local("a") eq 1.lit })
-		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } NOP }", dump(relooper.render(A)).toString(doIndent = false).trim())
-	}
 
-	@Test fun testRelooper2() {
-		val relooper = Relooper()
-		val A = relooper.node(AstStm.build { INT.local("a") assignTo 1.lit })
-		val B = relooper.node(AstStm.build { INT.local("b") assignTo 1.lit })
-		val C = relooper.node(AstStm.build { INT.local("c") assignTo 1.lit })
-		relooper.edge(A, B, AstExpr.build { INT.local("a") eq 1.lit })
-		relooper.edge(A, C)
-		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } NOP }", dump(relooper.render(A)).toString(doIndent = false).trim())
-	}
-
-	@Test fun testRelooper3() {
-		val relooper = Relooper()
-		val A = relooper.node(AstStm.build { INT.local("a") assignTo 1.lit })
-		val B = relooper.node(AstStm.build { INT.local("b") assignTo 1.lit })
-		val C = relooper.node(AstStm.build { INT.local("c") assignTo 1.lit })
-		val D = relooper.node(AstStm.build { INT.local("d") assignTo 1.lit })
-		relooper.edge(A, B, AstExpr.build { INT.local("a") eq 1.lit })
-		relooper.edge(A, C)
-		relooper.edge(B, D)
-		relooper.edge(C, D)
-		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
-	}
 }

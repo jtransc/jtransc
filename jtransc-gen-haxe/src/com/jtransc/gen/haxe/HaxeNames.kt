@@ -36,7 +36,10 @@ val HaxeSpecial = setOf(
 
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
 
-class HaxeNames(val program: AstResolver) {
+class HaxeNames(
+	val program: AstResolver,
+	val minimize: Boolean = false
+) {
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
