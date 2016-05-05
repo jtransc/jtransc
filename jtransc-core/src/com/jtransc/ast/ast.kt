@@ -335,7 +335,6 @@ class AstClass(
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
 	val fqname = name.fqname
-	val isNative by lazy { (nativeName != null) }
 
 	val classAndFieldAndMethodAnnotations by lazy {
 		annotations + methods.flatMap { it.annotations } + fields.flatMap { it.annotations }
@@ -429,6 +428,8 @@ class AstClass(
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 }
+
+val AstClass?.isNative: Boolean get() = if (this != null) (this.nativeName != null) else false
 
 fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	val classes = this.associateBy { it.name.fqname }

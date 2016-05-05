@@ -136,11 +136,9 @@ class HaxeNames(
 	inline fun <reified T : Any> haxeName(): String = getHaxeClassFqName(T::class.java.name.fqname)
 
 	fun getHaxeClassFqName(name: FqName): String {
-		val clazz = program[name]
-		return if (clazz != null && clazz.isNative) "${clazz.nativeName}" else getHaxeGeneratedFqName(name).fqname
+		val clazz = if (name in program) program[name] else null
+		return clazz?.nativeName ?: getHaxeGeneratedFqName(name).fqname
 	}
-
-	data class FieldName(val name: String)
 
 	fun getHaxeFieldName(clazz: Class<*>, name:String): String {
 		return getHaxeFieldName(program[clazz.name.fqname]!!.fieldsByName[name]!!)
@@ -261,7 +259,7 @@ class HaxeNames(
 		else -> throw NotImplementedError("Literal of type $value")
 	}
 
-	private val templateRegex = Regex("#(CLASS|METHOD|FIELD):(.*?)#")
+	private val templateRegex = Regex("#(CLASS|SMETHOD|METHOD|SFIELD|FIELD|CONSTRUCTOR|SINIT):(.*?)#")
 
 	fun template(s: String): String {
 		return templateRegex.replace(s) {
@@ -271,17 +269,23 @@ class HaxeNames(
 				val dataParts = data.split(':')
 				val clazz = program[dataParts[0].fqname]!!
 				when (type) {
-					"METHOD" -> {
-						if (dataParts.size >= 3) {
+					"SINIT" -> getHaxeClassFqName(clazz.name) + ".SI()"
+					"CONSTRUCTOR" -> {
+						"new ${getHaxeClassFqName(clazz.name)}().${getHaxeMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
+					}
+					"SMETHOD", "METHOD" -> {
+						val methodName = if (dataParts.size >= 3) {
 							getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
 						} else {
 							val methods = clazz.methodsByName[dataParts[1]]!!
 							if (methods.size > 1) invalidOp("Several signatures, please specify signature")
 							getHaxeMethodName(methods.first())
 						}
+						if (type == "SMETHOD") getHaxeClassFqName(clazz.name) + "." + methodName else methodName
 					}
-					"FIELD" -> {
-						getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
+					"SFIELD", "FIELD" -> {
+						val fieldName = getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
+						if (type == "SFIELD") getHaxeClassFqName(clazz.name) + "." + fieldName else fieldName
 					}
 					"CLASS" -> getHaxeClassFqName(clazz.name)
 					else -> data

@@ -27,19 +27,19 @@ final public class FastMemory4Float {
     }
 
     @JTranscInline
-    @HaxeMethodBody("return this.mem._length;")
+    @HaxeMethodBody("return N.idiv(this.#FIELD:com.jtransc.FastMemory4Float:mem#._length, 4);")
     final public int getLength() {
         return mem.getLength() / 4;
     }
 
     @JTranscInline
-    @HaxeMethodBody("return this.mem.floatData.get(p0);")
+    @HaxeMethodBody("return this.#FIELD:com.jtransc.FastMemory4Float:mem#.floatData.get(p0);")
     final public float get(int index) {
         return mem.getAlignedFloat32(index);
     }
 
     @JTranscInline
-    @HaxeMethodBody("this.mem.floatData.set(p0, p1);")
+    @HaxeMethodBody("this.#FIELD:com.jtransc.FastMemory4Float:mem#.floatData.set(p0, p1);")
     final public void set(int index, float value) {
         mem.setAlignedFloat32(index, value);
     }

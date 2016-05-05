@@ -135,7 +135,14 @@ fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
 			outputVfs[file] = resourcesVfs[file]
 		}
 	}
+}
 
+object HaxeGenTools {
+	fun getSrcFolder(tempdir: String): SyncVfsFile {
+		log("Temporal haxe files: $tempdir/jtransc-haxe")
+		File("$tempdir/jtransc-haxe/src").mkdirs()
+		return LocalVfs(File("$tempdir/jtransc-haxe")).ensuredir()["src"]
+	}
 }
 
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {
@@ -146,16 +153,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	val tempdir = tinfo.targetDirectory
 	var info: GenHaxe.ProgramInfo? = null
 	val program = tinfo.program
-
-	init {
-		File("$tempdir/jtransc-haxe/src").mkdirs()
-	}
-
-	val srcFolder = LocalVfs(File("$tempdir/jtransc-haxe/src")).ensuredir()
-
-	init {
-		log("Temporal haxe files: $tempdir/jtransc-haxe")
-	}
+	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
 
 	override fun buildSource() {
 		info = GenHaxeGen(

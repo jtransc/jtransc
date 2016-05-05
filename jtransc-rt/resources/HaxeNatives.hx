@@ -304,9 +304,7 @@ class HaxeNatives {
         #end
     }
 
-    static public function newException(msg:String) {
-        return new #CLASS:java.lang.Exception#().#METHOD:java.lang.Exception:<init>:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
-    }
+    static public function newException(msg:String) return #CONSTRUCTOR:java.lang.Exception:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
 
     static public inline function rethrow(J__i__exception__:Dynamic) {
         #if js
@@ -324,7 +322,7 @@ class HaxeNatives {
     }
 
 	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):#CLASS:java.lang.StackTraceElement# {
-		return new #CLASS:java.lang.StackTraceElement#().#METHOD:java.lang.StackTraceElement:<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V#(
+		return #CONSTRUCTOR:java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V#(
 			HaxeNatives.str(className),
 			HaxeNatives.str(methodName),
 			HaxeNatives.str(fileName),
@@ -369,7 +367,7 @@ class HaxeNatives {
 	}
 
 	static public inline function throwRuntimeException(msg:String) {
-		throw new #CLASS:java.lang.RuntimeException#().#METHOD:java.lang.RuntimeException:<init>:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
+		throw #CONSTRUCTOR:java.lang.RuntimeException:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
 	}
 
 	static public function swap32(p0:Int):Int { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
@@ -378,7 +376,7 @@ class HaxeNatives {
 
 	#if debug
 		static public function checkNotNull<T>(item:T):T {
-			if (item == null) throw new #CLASS:java.lang.NullPointerException#().#METHOD:java.lang.NullPointerException:<init>:()V#();
+			if (item == null) throw #CONSTRUCTOR:java.lang.NullPointerException:()V#();
 			return item;
 		}
 	#else

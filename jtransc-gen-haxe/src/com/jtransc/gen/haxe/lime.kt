@@ -26,6 +26,7 @@ import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.JTranscVersion
+import com.jtransc.vfs.parent
 import java.io.File
 
 object HaxeLimeGenDescriptor : GenTargetDescriptor() {
@@ -48,16 +49,17 @@ object GenHaxeLime : GenTarget {
 
 	val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
 
-	fun createLimeProjectFromSettings(tinfo: GenTargetInfo, program: AstProgram, info: GenHaxe.ProgramInfo, settings: AstBuildSettings) = Indenter.gen {
+	fun createLimeProjectFromSettings(tinfo: GenTargetInfo, program: AstProgram, info: GenHaxe.ProgramInfo, haxegen:GenHaxeGen, settings: AstBuildSettings) = Indenter.gen {
 		val tempAssetsDir = tinfo.mergedAssetsFolder
 		val tempAssetsVfs = LocalVfs(tempAssetsDir)
+		val names = haxegen.names
 
 		line("""<?xml version="1.0" encoding="utf-8"?>""")
 		line("""<project>""")
 		indent {
 			line("""<meta title="${settings.title}" package="${settings.package_}" version="${settings.version}" company="${settings.company}" />""")
 			//line("""<app main="${info.getEntryPointFq(program)}" path="out" file="${settings.name}" />""")
-			line("""<app main="${info.entryPointClass}_" path="out" file="${settings.name}" />""")
+			line("""<app main="${names.getHaxeClassFqName(info.entryPointClass)}" path="out" file="${settings.name}" />""")
 			line("""<app swf-version="11.8" />""")
 
 			line("""<window width="${settings.initialWidth}" height="${settings.initialHeight}" background="#FFFFFF" />""")
@@ -168,25 +170,22 @@ object GenHaxeLime : GenTarget {
 		//val tempdir = System.getProperty("java.io.tmpdir")
 		val tempdir = tinfo.targetDirectory
 		var info: GenHaxe.ProgramInfo? = null
-		val projectDir = LocalVfs(File("$tempdir/jtransc-haxe/"))
+		val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
+		val projectDir = srcFolder.parent
 		val program = tinfo.program
-
-		File("$tempdir/jtransc-haxe/src").mkdirs()
-		val srcFolder = projectDir["src"]
-
-		println("Temporal haxe files: $tempdir/jtransc-haxe")
-
 
 		return object : GenTargetProcessor {
 			override fun buildSource() {
-				info = GenHaxeGen(
+				val haxegen = GenHaxeGen(
 					program = tinfo.program,
 					features = AstFeatures(),
 					srcFolder = srcFolder,
 					featureSet = HaxeFeatures,
 					settings = settings
-				)._write()
-				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo, tinfo.program, info!!, tinfo.settings)
+				)
+
+				info = haxegen._write()
+				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo, tinfo.program, info!!, haxegen, tinfo.settings)
 			}
 
 			override fun compile(): Boolean {
