@@ -17,70 +17,36 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
-	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getClass() { var clazz = this.#FIELD:java.lang.reflect.Field:clazz#._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Field extends AccessibleObject implements Member {
-	/*
-		static public function box(value:Dynamic):java_.lang.Object_ {
-        if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
-        if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
-        if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
-        if (Std.is(value, String)) return str(cast(value, String));
-        if ((value == null) || Std.is(value, java_.lang.Object_)) return value;
-		return jtransc.JTranscWrapped_.wrap(value);
-    }
-
-    static public function unbox(value:Dynamic):Dynamic {
-		if (Std.is(value, java_.lang.Boolean_)) return cast(value, java_.lang.Boolean_).value;
-        if (Std.is(value, java_.lang.Byte_)) return cast(value, java_.lang.Byte_).value;
-        if (Std.is(value, java_.lang.Short_)) return cast(value, java_.lang.Short_).value;
-        if (Std.is(value, java_.lang.Character_)) return cast(value, java_.lang.Character_).value;
-        if (Std.is(value, java_.lang.Integer_)) return cast(value, java_.lang.Integer_).value;
-        if (Std.is(value, java_.lang.Float_)) return cast(value, java_.lang.Float_).value;
-        if (Std.is(value, java_.lang.Double_)) return cast(value, java_.lang.Double_).value;
-        if (Std.is(value, java_.lang.Long_)) return cast(value, java_.lang.Long_).value;
-        if (Std.is(value, java_.lang.String_)) return cast(value, java_.lang.String_)._str;
-		if (Std.is(value, jtransc.JTranscWrapped_)) return cast(value, jtransc.JTranscWrapped_)._wrapped;
-        throw 'Was not able to unbox "$value"';
-    }
-
-	 */
-
 	@JTranscKeep
-	@JTranscKeepName
 	private Class<?> clazz;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private String name;
 
 	//private Class<?> type = null;
 	@JTranscKeep
-	@JTranscKeepName
 	protected int modifiers;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private int slot;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private transient String signature;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private transient String genericSignature;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private byte[] annotations;
 	//private transient FieldRepository genericInfo;
 

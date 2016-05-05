@@ -195,7 +195,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 	override fun run(redirect: Boolean): ProcessResult2 {
 		if (!outputFile2.exists()) {
-			return ProcessResult2("file $outputFile2 doesn't exist", -1)
+			return ProcessResult2(-1, "file $outputFile2 doesn't exist")
 		}
 		val fileSize = outputFile2.length()
 		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
@@ -203,6 +203,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		val runner = actualSubtarget.interpreter ?: "echo"
 
+		println("Running: $runner, ${outputFile2.absolutePath}")
 		return measureProcess("Running") {
 			ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
 		}

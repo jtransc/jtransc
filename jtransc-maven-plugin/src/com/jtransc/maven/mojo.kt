@@ -181,7 +181,7 @@ class JTranscMojo : AbstractMojo() {
 			)
 			val buildResult = allBuild.buildWithoutRunning()
 			val afterBuild = System.currentTimeMillis()
-			if (buildResult.success) {
+			if (buildResult.process.success) {
 				log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
 			} else {
 				log.error("ERROR building in " + (afterBuild - beforeBuild) + " ms")

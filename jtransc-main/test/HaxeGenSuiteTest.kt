@@ -87,7 +87,10 @@ class HaxeGenSuiteTest {
 	@Test fun jtranscBugWithStaticInits() = testClass<JTranscBugWithStaticInits>()
 
 	@Test fun arrayListTest() = testClass<JTranscCollectionsTest>()
-	@Test fun cloneTest() = testClass<JTranscCloneTest>()
+
+	@Test fun cloneTest() = testClass<JTranscCloneTest>(minimize = false)
+	@Test fun cloneTestMinimized() = testClass<JTranscCloneTest>(minimize = true)
+
 	@Test fun stringBuilderTest() = testClass<StringBuilderTest>()
 	@Test fun stackTraceTest() = testClass<JTranscStackTraceTest>()
 	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()
@@ -147,9 +150,9 @@ class HaxeGenSuiteTest {
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 
 	// Shortcut
-	inline fun <reified T : Any> testClass() = testClass(T::class.java, { it })
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null) = testClass(minimize, T::class.java, { it })
 
-	inline fun <reified T : Any> testClass(noinline transformer: (String) -> String) = testClass(T::class.java, transformer)
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, noinline transformer: (String) -> String) = testClass(minimize, T::class.java, transformer)
 
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2")
@@ -159,18 +162,18 @@ class HaxeGenSuiteTest {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(clazz: Class<T>, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, clazz: Class<T>, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz)
+		val result = runClass(clazz, minimize)
 
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
-	inline fun <reified T : Any> runClass(): String {
-		return runClass(T::class.java)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null): String {
+		return runClass(T::class.java, minimize)
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -185,7 +188,7 @@ class HaxeGenSuiteTest {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>): String {
+	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean? = null): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = HaxeGenDescriptor,
@@ -198,13 +201,13 @@ class HaxeGenSuiteTest {
 				jtranscVersion = JTranscVersion.getVersion(),
 				debug = DEBUG,
 				backend = BACKEND,
-				minimizeNames = MINIMIZE,
+				minimizeNames = minimize ?: MINIMIZE,
 				rtAndRtCore = listOf(
 					projectRoot["jtransc-rt/target/classes"].realpathOS,
 					projectRoot["jtransc-rt-core/target/classes"].realpathOS
 				)
 			)
-		).buildAndRunCapturingOutput().process.output
+		).buildAndRunCapturingOutput().process.outerr
 	}
 }
 

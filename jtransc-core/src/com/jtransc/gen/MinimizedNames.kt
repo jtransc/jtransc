@@ -3,7 +3,9 @@ package com.jtransc.gen
 object MinimizedNames {
 	private val firstTypeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	private val firstFieldChars = "abcdefghijklmnopqrstuvwxyz"
-	private val laterChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+	//private val laterFieldChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+	private val laterFieldChars = "abcdefghijklmnopqrstuvwxyz0123456789_"
+	private val laterTypeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 
 	fun genName(id:Int, first:String, later:String):String {
 		var out = ""
@@ -21,6 +23,6 @@ object MinimizedNames {
 		return out
 	}
 
-	fun getTypeNameById(id:Int) = genName(id, firstTypeChars, laterChars)
-	fun getIdNameById(id:Int) = genName(id, firstFieldChars, laterChars)
+	fun getTypeNameById(id:Int) = genName(id, firstTypeChars, laterTypeChars)
+	fun getIdNameById(id:Int) = genName(id, firstFieldChars, laterFieldChars)
 }

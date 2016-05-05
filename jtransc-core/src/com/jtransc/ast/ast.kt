@@ -97,6 +97,7 @@ interface AstResolver {
 	operator fun get(ref: AstMethodRef): AstMethod?
 	operator fun get(ref: AstFieldRef): AstField?
 	operator fun get(name: FqName): AstClass?
+	operator fun contains(name: FqName): Boolean
 }
 
 operator fun AstResolver.get(ref: AstType.REF): AstClass = this[ref.name]!!
@@ -170,7 +171,7 @@ class AstProgram(
 		return methodIds[ref]!!
 	}
 
-	operator fun contains(name: FqName) = name.fqname in _classesByFqname
+	override operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
 	override operator fun get(name: FqName): AstClass {
 		val result = _classesByFqname[name.fqname]

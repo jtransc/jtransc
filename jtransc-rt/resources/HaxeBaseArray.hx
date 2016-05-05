@@ -1,4 +1,4 @@
-class HaxeBaseArray extends java_.lang.Object_ {
+class HaxeBaseArray extends #CLASS:java.lang.Object# {
     public var length:Int = 0;
 	public var desc:String;
 
@@ -15,7 +15,7 @@ class HaxeBaseArray extends java_.lang.Object_ {
 	private function checkBounds(index:Int):Int {
 		if (index < 0 || index >= length) {
 			trace('Index $index out of range 0..$length');
-			throw new java_.lang.ArrayIndexOutOfBoundsException_().java_lang_ArrayIndexOutOfBoundsException_init__I_V(index);
+			throw new #CLASS:java.lang.ArrayIndexOutOfBoundsException#().#METHOD:java.lang.ArrayIndexOutOfBoundsException:<init>:(I)V#(index);
 		}
 		return index;
 	}

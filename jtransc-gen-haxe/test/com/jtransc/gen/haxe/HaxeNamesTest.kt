@@ -9,6 +9,7 @@ class HaxeNamesTest {
 		override fun get(ref: AstMethodRef): AstMethod? = null
 		override fun get(ref: AstFieldRef): AstField? = null
 		override fun get(name: FqName): AstClass? = null
+		override fun contains(name: FqName): Boolean = false
 	})
 
 	@Test

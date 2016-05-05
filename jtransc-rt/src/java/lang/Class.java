@@ -18,7 +18,6 @@ package java.lang;
 
 import com.jtransc.FastStringMap;
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -29,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
+import java.lang.AnnotatedElement;
 
 @HaxeAddMembers({
 	"public var _hxClass:Class<Dynamic> = null;",
@@ -39,16 +39,16 @@ import java.util.Objects;
 	"public var _interfaces:Array<String> = [];",
 	"public var _fields = [];",
 	"public var _modifiers = 0;",
-	"public var _methods:Array<java_.lang.reflect.Method_> = [];",
+	"public var _methods:Array<#CLASS:java.lang.reflect.Method#> = [];",
 	"public var _constructors = [];",
 	"public var _annotations = [];",
 	"public var _methodsById = null;",
 	"" +
 		"public function populateMethodsById() {\n" +
 		"  if (_methodsById != null) return;\n" +
-		"  _methodsById = new Map<Int, java_.lang.reflect.Method_>();\n" +
-		"  function populate(clazz:java_.lang.Class_) {\n" +
-		"    for (m in clazz._methods) _methodsById.set(m.id, m);\n" +
+		"  _methodsById = new Map<Int, #CLASS:java.lang.reflect.Method#>();\n" +
+		"  function populate(clazz:#CLASS:java.lang.Class#) {\n" +
+		"    for (m in clazz._methods) _methodsById.set(m.#FIELD:java.lang.reflect.Method:id#, m);\n" +
 		"    if (clazz._parent != null) populate(HaxeNatives.resolveClass(clazz._parent));\n" +
 		"    for (i in clazz._interfaces) populate(HaxeNatives.resolveClass(i));\n" +
 		"  }\n" +
@@ -58,11 +58,9 @@ import java.util.Objects;
 })
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
 	@JTranscKeep
-	@JTranscKeepName
 	private String name;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private boolean primitive = false;
 
 	private static final int ANNOTATION = 0x00002000;
@@ -163,7 +161,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@JTranscKeep
-	@HaxeMethodBody("return HaxeReflect.__initClass(this);")
+	@HaxeMethodBody("return R.__initClass(this);")
 	native private boolean _check();
 
 	@JTranscKeep

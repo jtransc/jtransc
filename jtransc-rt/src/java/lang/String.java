@@ -29,13 +29,13 @@ import java.util.regex.Pattern;
 
 @HaxeAddMembers({
 	"public var _str:String = '';",
-	"public function setStr(str:String) {\n" +
+	"public function setStr(str:String):#CLASS:java.lang.String# {\n" +
 		"this._str = str;\n" +
 		// @TODO: Locate a bug!
 		//"if (str == 'java.lang.reflect.Fi') HaxeNatives.debugger();\n" +
 		"return this;\n" +
 	"}\n" +
-	"static public function make(str:String) { return new java_.lang.String_().setStr(str); }",
+	"static public function make(str:String):#CLASS:java.lang.String# { return new #CLASS:java.lang.String#().setStr(str); }",
 })
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	@HaxeMethodBody("this.setStr('');")
@@ -155,7 +155,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str);")
 	native public byte[] getBytes();
 
-	@HaxeMethodBody("return Std.is(p0, java_.lang.String_) && (cast(p0, java_.lang.String_)._str == this._str);")
+	@HaxeMethodBody("return Std.is(p0, #CLASS:java.lang.String#) && (cast(p0, #CLASS:java.lang.String#)._str == this._str);")
 	native public boolean equals(Object anObject);
 
 	public boolean contentEquals(StringBuffer sb) {

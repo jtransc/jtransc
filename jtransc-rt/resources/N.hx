@@ -9,15 +9,15 @@ import haxe.CallStack;
 using Lambda;
 
 class N {
-	static private var strLitCache = new Map<String, java_.lang.String_>();
+	static private var strLitCache = new Map<String, #CLASS:java.lang.String#>();
 
-    static public function strLit(str:String):java_.lang.String_ {
-    	if (!strLitCache.exists(str)) strLitCache[str] = java_.lang.String_.make(str);
+    static public function strLit(str:String):#CLASS:java.lang.String# {
+    	if (!strLitCache.exists(str)) strLitCache[str] = #CLASS:java.lang.String#.make(str);
         return strLitCache[str];
     }
 
-    static public function str(str:String):java_.lang.String_ {
-        return (str != null) ? java_.lang.String_.make(str) : null;
+    static public function str(str:String):#CLASS:java.lang.String# {
+        return (str != null) ? #CLASS:java.lang.String#.make(str) : null;
     }
 
 	static public inline function c<T, S> (value:T, c:Class<S>):S {

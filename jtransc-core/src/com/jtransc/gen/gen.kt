@@ -57,11 +57,11 @@ fun GenTarget.build(
 	}
 
 	val processResult = if (!compileResult) {
-		ProcessResult2("", -1)
+		ProcessResult2(-1)
 	} else if (run) {
 		processor.run(redirect = !captureRunOutput)
 	} else {
-		ProcessResult2("", 0)
+		ProcessResult2(0)
 	}
 
 	return AllBuild.Result(processResult)

@@ -7,7 +7,6 @@ import com.jtransc.gen.MinimizedNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 
-
 val HaxeKeywords = setOf(
 	"haxe",
 	"Dynamic",
@@ -28,7 +27,11 @@ val HaxeKeywords = setOf(
 )
 
 val HaxeSpecial = setOf(
+	"hx",
+	"z", // used for package
 	"N", // used for HaxeNatives
+	"NN", // used for HaxeNatives without references to other classes
+	"R", // used for reflect
 	"SI", // STATIC INIT
 	"SII", // STATIC INIT INITIALIZED
 	"HAXE_CLASS_INIT", // Information about the class
@@ -52,13 +55,20 @@ class HaxeNames(
 
 	//val ENABLED_MINIFY = false
 	val ENABLED_MINIFY = true
-	private val ENABLED_MINIFY_METHODS = ENABLED_MINIFY && minimize
-	private val ENABLED_MINIFY_FIELDS = ENABLED_MINIFY && minimize
+	private val ENABLED_MINIFY_MEMBERS = ENABLED_MINIFY && minimize
+	private val ENABLED_MINIFY_CLASSES = ENABLED_MINIFY && minimize
+
+	//private val ENABLED_MINIFY_CLASSES = true
+	//private val ENABLED_MINIFY_MEMBERS = false
 
 	private var minClassLastId: Int = 0
 	private var minMemberLastId: Int = 0
+	private val classNames = hashMapOf<FqName, FqName>()
 	private val methodNmaes = hashMapOf<Any?, String>()
 	private val fieldNames = hashMapOf<Any?, String>()
+
+	val minClassPrefix = "z."
+	//val minClassPrefix = ""
 
 	private fun <T> Set<T>.runUntilNotInSet(callback: () -> T): T {
 		while (true) {
@@ -78,7 +88,7 @@ class HaxeNames(
 		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
 
 		return methodNmaes.getOrPut2(objectToCache) {
-			if (ENABLED_MINIFY_METHODS && !realmethod.keepName) {
+			if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
 				allocMemberName()
 			} else {
 				if (realmethod.nativeMethod != null) {
@@ -107,25 +117,23 @@ class HaxeNames(
 
 	fun getHaxeDefault(type: AstType): Any? = type.getNull()
 
+	private fun _getHaxeFqName(name: FqName): FqName {
+		val realclass = if (name in program) program[name]!! else null
+		return classNames.getOrPut2(name) {
+			if (ENABLED_MINIFY_CLASSES && !realclass.keepName) {
+				FqName(minClassPrefix + allocClassName())
+			} else {
+				FqName(name.packageParts.map { if (it in HaxeKeywords) "${it}_" else it }.map { it.decapitalize() }, "${name.simpleName.replace('$', '_')}_".capitalize())
+			}
+		}
+	}
+
 	fun getHaxeFilePath(name: FqName): String = getHaxeGeneratedFqName(name).internalFqname + ".hx"
 
-	fun getHaxeGeneratedFqPackage(name: FqName): String {
-		return name.packageParts.map {
-			if (it in HaxeKeywords) "${it}_" else it
-		}.map { it.decapitalize() }.joinToString(".")
-	}
-
-	fun getHaxeGeneratedFqName(name: FqName): FqName {
-		return FqName(getHaxeGeneratedFqPackage(name), getHaxeGeneratedSimpleClassName(name))
-	}
-
-	fun getHaxeGeneratedSimpleClassName(name: FqName): String {
-		return "${name.simpleName.replace('$', '_')}_".capitalize()
-	}
-
-	inline fun <reified T : Any> haxeName(): String {
-		return getHaxeClassFqName(T::class.java.name.fqname)
-	}
+	fun getHaxeGeneratedFqPackage(name: FqName): String = _getHaxeFqName(name).packagePath
+	fun getHaxeGeneratedFqName(name: FqName): FqName = _getHaxeFqName(name)
+	fun getHaxeGeneratedSimpleClassName(name: FqName): String = _getHaxeFqName(name).simpleName
+	inline fun <reified T : Any> haxeName(): String = getHaxeClassFqName(T::class.java.name.fqname)
 
 	fun getHaxeClassFqName(name: FqName): String {
 		val clazz = program[name]
@@ -134,6 +142,10 @@ class HaxeNames(
 
 	data class FieldName(val name: String)
 
+	fun getHaxeFieldName(clazz: Class<*>, name:String): String {
+		return getHaxeFieldName(program[clazz.name.fqname]!!.fieldsByName[name]!!)
+	}
+
 	fun getHaxeFieldName(field: AstFieldRef): String {
 		val realfield = program[field]
 		//val keyToUse = if (realfield.keepName) field else field.name
@@ -141,7 +153,7 @@ class HaxeNames(
 		val keyToUse = field
 
 		return fieldNames.getOrPut2(keyToUse) {
-			if (ENABLED_MINIFY_FIELDS && !realfield.keepName) {
+			if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
 				allocMemberName()
 			} else {
 				if (field !in cachedFieldNames) {

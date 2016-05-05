@@ -18,7 +18,6 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -26,63 +25,53 @@ import java.lang.annotation.Annotation;
 
 @JTranscKeep
 @HaxeAddMembers({
-	"public var id:Int;\n",
 	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.clazz._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getClass() { var clazz = this.#FIELD:java.lang.reflect.Method:clazz#._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Method extends AccessibleObject implements Member, GenericDeclaration {
 	@JTranscKeep
-	@JTranscKeepName
+	private int id;
+
+	@JTranscKeep
 	private Class<?> clazz;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private int slot;
 
 	// This is guaranteed to be interned by the VM in the 1.4
 	// reflection implementation
 	@JTranscKeep
-	@JTranscKeepName
 	private String name;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private Class<?> returnType;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private Class<?>[] parameterTypes;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private Class<?>[] exceptionTypes;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private int modifiers;
 
 	// Generics and annotations support
 	@JTranscKeep
-	@JTranscKeepName
 	private transient String signature;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private transient String genericSignature;
 
 	// generic info repository; lazily initialized
 	//private transient MethodRepository genericInfo;
 	@JTranscKeep
-	@JTranscKeepName
 	private byte[] annotations;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private byte[] parameterAnnotations;
 
 	@JTranscKeep
-	@JTranscKeepName
 	private byte[] annotationDefault;
 	//private volatile MethodAccessor methodAccessor;
 

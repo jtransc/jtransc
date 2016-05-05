@@ -208,13 +208,13 @@ object GenHaxeLime : GenTarget {
 
 			override fun run(redirect: Boolean): ProcessResult2 {
 				if (!outputFile2.exists()) {
-					return ProcessResult2("file $outputFile2 doesn't exist", -1)
+					return ProcessResult2(-1, "file $outputFile2 doesn't exist")
 				}
 				println("run: ${outputFile2.absolutePath}")
 				val parentDir = outputFile2.parentFile
 
 				//return ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
-				return ProcessResult2("not run", 0)
+				return ProcessResult2(0, "not run")
 			}
 		}
 	}

@@ -21,21 +21,36 @@ import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
 
-data class ProcessResult2(val output: String, val exitValue: Int) {
+data class ProcessResult2(val exitValue: Int, val out:String = "", val err:String = "", val outerr: String = out + err) {
 	val success = exitValue == 0
 }
 
 object ProcessUtils {
 	fun run(currentDir: File, command: String, args: List<String>, redirect: Boolean): ProcessResult2 {
-		val pb = ProcessBuilder(command, *args.toTypedArray());
-		pb.directory(currentDir)
-		if (redirect) {
-			pb.inheritIO()
-		}
-		val p = pb.start()
-		val err = if (redirect) "" else p.inputStream.readBytes().toString(UTF8) + p.errorStream.readBytes().toString(UTF8)
-		p.waitFor()
-		return ProcessResult2(err, p.exitValue())
+		var out = ""
+		var err = ""
+		var outerr = ""
+		val exitValue = run2(currentDir, command, args, object : ProcessHandler() {
+			override fun onStarted() {
+			}
+
+			override fun onOutputData(data: String) {
+				if (redirect) System.out.print(data)
+				out += data
+				outerr += data
+			}
+
+			override fun onErrorData(data: String) {
+				if (redirect) System.err.print(data)
+				err += data
+				outerr += data
+			}
+
+			override fun onCompleted(exitValue: Int) {
+			}
+		})
+
+		return ProcessResult2(exitValue, out, err, outerr)
 	}
 
 	fun runAndReadStderr(currentDir: File, command: String, args: List<String>): ProcessResult2 {
@@ -65,11 +80,12 @@ object ProcessUtils {
 		val p = pb.start()
 		val input = p.inputStream
 		val error = p.errorStream
-		while (p.isAlive) {
+		while (true) {
 			val i = input.readAvailableChunk()
 			val e = error.readAvailableChunk()
 			if (i.size > 0) handler.onOutputData(i.toString(charset))
 			if (e.size > 0) handler.onErrorData(e.toString(charset))
+			if (i.size == 0 && e.size == 0 && !p.isAlive) break
 			Thread.sleep(1L)
 		}
 		p.waitFor()
