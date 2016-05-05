@@ -1,14 +1,20 @@
 package com.jtransc.gen.haxe
 
+import com.jtransc.annotation.JTranscKeep
+import com.jtransc.annotation.JTranscKeepName
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.unexpected
+import com.jtransc.gen.MinimizedNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 
 
 val HaxeKeywords = setOf(
+	"haxe",
+	"Dynamic",
+	"Void",
 	"java",
 	"package",
 	"import",
@@ -40,39 +46,69 @@ class HaxeNames(
 	val program: AstResolver,
 	val minimize: Boolean = false
 ) {
+	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
+
+	val ENABLED_MINIFY = false
+	//val ENABLED_MINIFY = true
+	private val ENABLED_MINIFY_METHODS = ENABLED_MINIFY
+	private val ENABLED_MINIFY_FIELDS = ENABLED_MINIFY
+
+	private var minClassLastId:Int = 0
+	private var minMemberLastId:Int = 0
+	private val methodNmaes = hashMapOf<Any?, String>()
+	private val fieldNames = hashMapOf<String, String>()
+
+	private fun <T> Set<T>.runUntilNotInSet(callback: () -> T): T {
+		while (true) {
+			val result = callback()
+			if (result !in this) return result
+		}
+	}
+
+	fun allocClassName(obj: Any?): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) }
+	fun allocMemberName(obj: Any?): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) }
+
+	fun setClassName(obj: Any?): String = methodNmaes.getOrPut(obj) { HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) } }
+	fun setMemberName(obj: Any?): String = methodNmaes.getOrPut(obj) { HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) } }
+
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
-		if (realmethod.nativeMethod != null) {
-			return realmethod.nativeMethod!!
-		} else {
-			val name2 = "${method.name}${method.desc}"
-			val name = when (method.name) {
-				"<init>", "<clinit>" -> "${method.containingClass}$name2"
-				else -> name2
+		val methodWithoutClass = method.withoutClass
+
+		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
+
+		return methodNmaes.getOrPut(objectToCache) {
+			if (ENABLED_MINIFY_METHODS && !realmethod.keepName && minimize) {
+				allocMemberName(objectToCache)
+			} else {
+				if (realmethod.nativeMethod != null) {
+					realmethod.nativeMethod!!
+				} else {
+					val name2 = "${method.name}${method.desc}"
+					val name = when (method.name) {
+						"<init>", "<clinit>" -> "${method.containingClass}$name2"
+						else -> name2
+					}
+					cleanName(name)
+				}
 			}
-			return name.map {
-				if (it.isLetterOrDigit()) "$it" else if (it == '.' || it == '/') "_" else "_"
-			}.joinToString("")
 		}
+	}
+
+	private fun cleanName(name:String):String {
+		val out = CharArray(name.length)
+		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
+		return String(out)
 	}
 
 	fun getHaxeFunctionalType(type: AstType.METHOD): String {
 		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, GenHaxeGen.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
-	fun getHaxeDefault(type: AstType): Any? = when (type) {
-		is AstType.BOOL -> false
-		is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> 0
-		is AstType.LONG -> 0L
-		is AstType.FLOAT, is AstType.DOUBLE -> 0.0
-		is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
-		else -> noImpl("Not supported haxe type $type")
-	}
+	fun getHaxeDefault(type: AstType): Any? = type.getNull()
 
-	fun getHaxeFilePath(name: FqName): String {
-		return getHaxeGeneratedFqName(name).internalFqname + ".hx"
-	}
+	fun getHaxeFilePath(name: FqName): String = getHaxeGeneratedFqName(name).internalFqname + ".hx"
 
 	fun getHaxeGeneratedFqPackage(name: FqName): String {
 		return name.packageParts.map {
@@ -94,39 +130,46 @@ class HaxeNames(
 
 	fun getHaxeClassFqName(name: FqName): String {
 		val clazz = program[name]
-		if (clazz != null && clazz.isNative) {
-			return "${clazz.nativeName}"
-		} else {
-			return getHaxeGeneratedFqName(name).fqname
-		}
+		return if (clazz != null && clazz.isNative) "${clazz.nativeName}" else getHaxeGeneratedFqName(name).fqname
 	}
 
-	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
+	data class FieldName(val name:String)
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
-		if (field !in cachedFieldNames) {
-			val fieldName = field.name.replace('$', '_')
-			var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+		val realfield = program[field]
+		val fieldWithoutClass = field.withoutClass
+		val keyToUse = field.name
 
-			val clazz = program[field]?.containingClass
-			val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
-			val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
-			val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
+		return fieldNames.getOrPut(keyToUse) {
+			if (ENABLED_MINIFY_FIELDS && !realfield.keepName && minimize) {
+				return allocMemberName(keyToUse)
+			} else {
+				if (field !in cachedFieldNames) {
+					val fieldName = field.name.replace('$', '_')
+					var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
-			// JTranscBugInnerMethodsWithSameName.kt
-			for (f2 in fieldsColliding) {
-				while (name in names) name += "_"
-				cachedFieldNames[f2] = name
-				names += name
+					val clazz = program[field]?.containingClass
+					val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
+					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
+					val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
+
+					// JTranscBugInnerMethodsWithSameName.kt
+					for (f2 in fieldsColliding) {
+						while (name in names) name += "_"
+						cachedFieldNames[f2] = name
+						names += name
+					}
+					return cachedFieldNames[field] ?:
+						unexpected("Unexpected. Not cached: $field")
+				}
+				return cachedFieldNames[field] ?:
+					unexpected("Unexpected. Not cached: $field")
 			}
-			return cachedFieldNames[field] ?:
-				unexpected("Unexpected. Not cached: $field")
 		}
-		return cachedFieldNames[field] ?:
-			unexpected("Unexpected. Not cached: $field")
 	}
 
 	fun getHaxeFieldName(field: AstField): String {
+		//field.annotations.contains<JTranscKeepName>()
 		return getHaxeFieldName(field.ref)
 	}
 
@@ -191,30 +234,18 @@ class HaxeNames(
 
 	fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)
-		return if (type == AstType.BOOL) {
-			if (result != "false" && result != "0") "true" else "false"
-		} else {
-			result
-		}
+		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
 	}
 
 	fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
 		is String -> "N.strLit(\"" + value.escape() + "\")"
-		is Short -> "$value"
-		is Char -> "$value"
-		is Int -> "$value"
-		is Byte -> "$value"
-		is Long -> "haxe.Int64.make(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
+		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
 		is Float -> escapeConstant(value.toDouble())
-		is Double -> if (value.isInfinite()) {
-			if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY"
-		} else if (value.isNaN()) {
-			"Math.NaN"
-		} else {
-			"$value"
-		}
+		is Double -> if (value.isInfinite()) if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY" else if (value.isNaN()) "Math.NaN" else "$value"
+		is Number -> "${value.toInt()}"
+		is Char -> "${value.toInt()}"
 		is AstType.REF -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
 		is AstType.ARRAY -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
 		else -> throw NotImplementedError("Literal of type $value")

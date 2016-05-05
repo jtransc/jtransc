@@ -54,7 +54,7 @@ data class AstBuildSettings(
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
 	val backend: BuildBackend = BuildBackend.ASM,
 	val relooper: Boolean = false,
-	val minimize: Boolean = false,
+	val minimizeNames: Boolean = false,
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
 		"com.jtransc:jtransc-rt:$jtranscVersion",
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"
@@ -258,8 +258,8 @@ class AstClass(
 	val modifiers: AstModifiers,
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
-	val annotations: List<AstAnnotation> = listOf()
-) : IUserData by UserData() {
+	override val annotations: List<AstAnnotation> = listOf()
+) : IUserData by UserData(), AstAnnotated {
 	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType
@@ -477,6 +477,12 @@ data class AstReferences(
 	val fields2 by lazy { fields.map { program!![it] } }
 }
 
+interface AstAnnotated {
+	val annotations: List<AstAnnotation>
+}
+
+val AstAnnotated?.keepName: Boolean get() = this?.annotations.contains<JTranscKeepName>()
+
 open class AstMember(
 	val containingClass: AstClass,
 	val name: String,
@@ -484,8 +490,8 @@ open class AstMember(
 	val genericType: AstType,
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
-	val annotations: List<AstAnnotation> = listOf()
-) : IUserData by UserData() {
+	override val annotations: List<AstAnnotation> = listOf()
+) : IUserData by UserData(), AstAnnotated {
 	val program = containingClass.program
 }
 
@@ -535,6 +541,7 @@ class AstMethod(
 
 	val isInstanceInit: Boolean get() = name == "<init>"
 	val isClassInit: Boolean get() = name == "<clinit>"
+	val isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
 
 	val isOverriding: Boolean by lazy {
 		containingClass.ancestors.any { it[ref.withoutClass] != null }
@@ -546,6 +553,11 @@ class AstMethod(
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
+
+val AstMethodRef.isInstanceInit: Boolean get() = name == "<init>"
+val AstMethodRef.isClassInit: Boolean get() = name == "<clinit>"
+val AstMethodRef.isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
+
 
 data class AstModifiers(val acc: Int) {
 	companion object {

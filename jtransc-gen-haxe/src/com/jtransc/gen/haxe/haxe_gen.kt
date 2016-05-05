@@ -17,6 +17,11 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction4
+import kotlin.reflect.KProperty1
 
 class GenHaxeGen(
 	val program: AstProgram,
@@ -25,7 +30,7 @@ class GenHaxeGen(
 	val featureSet: Set<AstFeature>,
     val settings: AstBuildSettings
 ) {
-	val names = HaxeNames(program, minimize = settings.minimize)
+	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val refs = References()
 	val context = AstGenContext()
 	//lateinit var clazz: AstClass
@@ -84,8 +89,7 @@ class GenHaxeGen(
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
-		val mainMethod = "main__Ljava_lang_String__V"
-
+		val mainMethod = program[mainClassFq].getMethod("main", AstType.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.haxeName
 		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		val entryPointFilePath = entryPointClass.haxeFilePath
 		val entryPointFqName = entryPointClass.haxeGeneratedFqName
@@ -763,6 +767,20 @@ class GenHaxeGen(
 			}
 		}
 
+
+		val objectHaxeName = names.haxeName<java.lang.Object>()
+		val classHaxeName = names.haxeName<java.lang.Class<*>>()
+		val invocationHandlerHaxeName = names.haxeName<java.lang.reflect.InvocationHandler>()
+		val methodHaxeName = names.haxeName<java.lang.reflect.Method>()
+		val invokeHaxeName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", AstType.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).haxeName
+		val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", AstType.build { METHOD(STRING) }).haxeName
+		val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", AstType.build { METHOD(INT) }).haxeName
+		val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", AstType.build { METHOD(CLASS) }).haxeName
+		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
+		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(CLASS) }).haxeName
+		// java.lang.annotation.Annotation
+		//abstract fun annotationType():Class<out Annotation>
+
 		val classCodeIndenter = Indenter.gen {
 			line("package ${clazz.name.haxeGeneratedFqPackage};")
 
@@ -823,8 +841,8 @@ class GenHaxeGen(
 				}
 				*/
 				if (isRootObject) {
-					line("public function toString():String { return HaxeNatives.toNativeString(this.toString__Ljava_lang_String_()); }")
-					line("public function hashCode():Int { return this.hashCode__I(); }")
+					line("public function toString():String { return HaxeNatives.toNativeString(this.$toStringHaxeName()); }")
+					line("public function hashCode():Int { return this.$hashCodeHaxeName(); }")
 				}
 
 				if (!isInterface) {
@@ -853,8 +871,8 @@ class GenHaxeGen(
 						line("private var _data:Array<Dynamic>;")
 						line("public function new(_data:Dynamic = null) { super(); this._data = _data; }")
 
-						line("public function annotationType__Ljava_lang_Class_():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
-						line("override public function getClass__Ljava_lang_Class_():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						line("public function $annotationTypeHaxeName():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
+						line("override public function $getClassHaxeName():${names.haxeName<java.lang.Class<*>>()} { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						for ((index, m) in clazz.methods.withIndex()) {
 							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
 						}
@@ -944,11 +962,12 @@ class GenHaxeGen(
 					}
 				}
 
-				line("class ${simpleClassName}_Proxy extends ${names.haxeName<java.lang.Object>()} implements $simpleClassName") {
-					line("private var __clazz:${names.haxeName<java.lang.Class<*>>()};")
-					line("private var __invocationHandler:java_.lang.reflect.InvocationHandler_;")
-					line("private var __methods:Map<Int, java_.lang.reflect.Method_>;")
-					line("public function new(handler:java_.lang.reflect.InvocationHandler_)") {
+				line("class ${simpleClassName}_Proxy extends $objectHaxeName implements $simpleClassName") {
+
+					line("private var __clazz:$classHaxeName;")
+					line("private var __invocationHandler:$invocationHandlerHaxeName;")
+					line("private var __methods:Map<Int, $methodHaxeName>;")
+					line("public function new(handler:$invocationHandlerHaxeName)") {
 						line("super();")
 						line("this.__clazz = HaxeNatives.resolveClass(\"${clazz.name.fqname}\");")
 						line("this.__invocationHandler = handler;")
@@ -956,7 +975,7 @@ class GenHaxeGen(
 					// public Object invoke(Object proxy, Method method, Object[] args)
 					line("private function _invoke(methodId:Int, args:Array<java_.lang.Object_>):java_.lang.Object_") {
 						line("var method = this.__clazz.locateMethodById(methodId);");
-						line("return this.__invocationHandler.invoke_Ljava_lang_Object_Ljava_lang_reflect_Method__Ljava_lang_Object__Ljava_lang_Object_(this, method, HaxeArray.fromArray(args, '[Ljava.lang.Object;'));")
+						line("return this.__invocationHandler.$invokeHaxeName(this, method, HaxeArray.fromArray(args, '[Ljava.lang.Object;'));")
 					}
 
 					for (methodRef in clazz.allMethodsToImplement) {
@@ -990,7 +1009,7 @@ class GenHaxeGen(
 					val returnOrEmpty = if (methodType.retVoid) "" else "return "
 					val margNames = methodType.args.map { it.name }.joinToString(", ")
 					val typeStr = methodType.functionalType
-					line("class ${simpleClassName}_Lambda extends java_.lang.Object_ implements ${simpleClassName}") {
+					line("class ${simpleClassName}_Lambda extends $objectHaxeName implements $simpleClassName") {
 						line("private var ___func__:$typeStr;")
 						line("public function new(func: $typeStr) { super(); this.___func__ = func; }")
 						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]

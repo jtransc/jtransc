@@ -16,11 +16,16 @@
 
 import com.jtransc.AllBuild
 import com.jtransc.BuildBackend
+import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
+import com.jtransc.vfs.SyncVfsFile
+import com.jtransc.vfs.UnjailedLocalVfs
+import com.jtransc.vfs.parent
 import javatest.KotlinCollections
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -28,28 +33,24 @@ import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import javatest.utils.DateTest
-import javatest.utils.regex.RegexTest
-import com.jtransc.JTranscVersion
-import com.jtransc.error.invalidOp
-import com.jtransc.vfs.*
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
-import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.rt.test.*
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
-import javax.script.ScriptEngineManager
 
 class HaxeGenSuiteTest {
 	companion object {
 		val BACKEND = BuildBackend.ASM
+		const val MINIMIZE = true
 
+		//const val MINIMIZE = false
 		const val DEBUG = false
 		//const val DEBUG = true
 	}
@@ -152,7 +153,7 @@ class HaxeGenSuiteTest {
 
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2")
-		,MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2")
+		, MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2")
 		//,MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.1-2")
 	).flatMap { it }
 
@@ -185,6 +186,7 @@ class HaxeGenSuiteTest {
 	}
 
 	fun <T : Any> runClass(clazz: Class<T>): String {
+		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = HaxeGenDescriptor,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
@@ -196,23 +198,13 @@ class HaxeGenSuiteTest {
 				jtranscVersion = JTranscVersion.getVersion(),
 				debug = DEBUG,
 				backend = BACKEND,
+				minimizeNames = MINIMIZE,
 				rtAndRtCore = listOf(
-					locateProjectRoot()["jtransc-rt/target/classes"].realpathOS,
-					locateProjectRoot()["jtransc-rt-core/target/classes"].realpathOS
+					projectRoot["jtransc-rt/target/classes"].realpathOS,
+					projectRoot["jtransc-rt-core/target/classes"].realpathOS
 				)
 			)
-		).buildAndRunCapturingOutput().output
-	}
-
-	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")
-	@Test
-	fun testExecJsTest1() {
-		Assert.assertEquals(10, engine.eval("(function() { return 10; })()"));
-	}
-
-	@Test
-	fun testExecJsTest2() {
-		Assert.assertEquals(10, engine.eval("(function() { return 10; })()"));
+		).buildAndRunCapturingOutput().process.output
 	}
 }
 

@@ -1,11 +1,26 @@
 package com.jtransc.ast
 
+import com.jtransc.error.noImpl
+import kotlin.reflect.KProperty1
+
 interface AstRef
 interface AstMemberRef : AstRef {
 	val classRef: AstType.REF
 	val containingClass: FqName
 	val name: String
 	val memberType: AstType
+}
+
+inline fun <reified T1 : Any, reified T2 : Any> KProperty1<T1, T2>.ast(): AstFieldRef {
+	return AstFieldRef(T1::class.java.name.fqname, this.name, T2::class.java.ast())
+}
+
+inline fun <reified T: Any> Class<T>.ast(): AstType {
+	if (this.isPrimitive) {
+		noImpl("Not implemented " + T::class.java)
+	} else {
+		return AstType.REF(this.name.fqname)
+	}
 }
 
 data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef {

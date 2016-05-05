@@ -76,19 +76,19 @@ class AllBuild(
 	}
 	*/
 
-	fun buildAndRunCapturingOutput() = buildAndRun(captureRunOutput = true, run = true)
-	fun buildAndRunRedirecting() = buildAndRun(captureRunOutput = false, run = true)
-	fun buildWithoutRunning() = buildAndRun(captureRunOutput = false, run = false)
-	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true): ProcessResult2 {
-		return _buildAndRun(captureRunOutput = captureRunOutput, run = run)
-	}
+	fun buildAndRunCapturingOutput() = _buildAndRun(captureRunOutput = true, run = true)
+	fun buildAndRunRedirecting() = _buildAndRun(captureRunOutput = false, run = true)
+	fun buildWithoutRunning() = _buildAndRun(captureRunOutput = false, run = false)
+	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true) = _buildAndRun(captureRunOutput = captureRunOutput, run = run)
+
+	class Result(val process: ProcessResult2)
 
 	private fun locateRootPath(): String {
 		println(File("").absolutePath)
 		return File("").absolutePath
 	}
 
-	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
+	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
 		val jtranscVersion = settings.jtranscVersion
 
 		// Previously downloaded manually or with maven plugin!

@@ -16,6 +16,7 @@
 
 package com.jtransc.gen
 
+import com.jtransc.AllBuild
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstProgram
 import com.jtransc.io.ProcessResult2
@@ -43,7 +44,7 @@ fun GenTarget.build(
 	run: Boolean = false,
 	subtarget: String = "",
 	targetDirectory: String = "target"
-): ProcessResult2 {
+): AllBuild.Result {
 	val processor = log.logAndTime("Preparing processor") { this.getProcessor(GenTargetInfo(program, outputFile, settings, subtarget, targetDirectory), settings) }
 	log.logAndTime("Building source") { processor.buildSource() }
 
@@ -55,12 +56,15 @@ fun GenTarget.build(
 		log("ERROR ($compileTime) ($compileResult)")
 	}
 
-	if (!compileResult) return ProcessResult2("", -1)
-	if (run) {
-		return processor.run(redirect = !captureRunOutput)
+	val processResult = if (!compileResult) {
+		ProcessResult2("", -1)
+	} else if (run) {
+		processor.run(redirect = !captureRunOutput)
 	} else {
-		return ProcessResult2("", 0)
+		ProcessResult2("", 0)
 	}
+
+	return AllBuild.Result(processResult)
 }
 
 interface GenTargetProcessor {

@@ -67,7 +67,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "embedResources", defaultValue = "") @JvmField var embedResources: Boolean = false
 	@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
 	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
-	@Parameter(property = "minimize", defaultValue = "false") @JvmField var minimize: Boolean = false
+	@Parameter(property = "minimizeNames", defaultValue = "false") @JvmField var minimizeNames: Boolean = false
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -141,7 +141,7 @@ class JTranscMojo : AbstractMojo() {
 			vsync = vsync,
 			backend = backend,
 			relooper = relooper,
-			minimize = minimize
+			minimizeNames = minimizeNames
 		)
 		//project.version
 

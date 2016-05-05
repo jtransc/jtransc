@@ -16,6 +16,8 @@
 
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -27,7 +29,7 @@ import java.lang.annotation.Annotation;
 })
 public final class Field extends AccessibleObject implements Member {
 	/*
-	    static public function box(value:Dynamic):java_.lang.Object_ {
+		static public function box(value:Dynamic):java_.lang.Object_ {
         if (Std.is(value, Int)) return java_.lang.Integer_.valueOf_I_Ljava_lang_Integer_(cast(value, Int));
         if (Std.is(value, Float)) return java_.lang.Double_.valueOf_D_Ljava_lang_Double_(cast(value, Float));
         if (Int64.is(value)) return java_.lang.Long_.valueOf_J_Ljava_lang_Long_(cast value);
@@ -52,13 +54,33 @@ public final class Field extends AccessibleObject implements Member {
 
 	 */
 
+	@JTranscKeep
+	@JTranscKeepName
 	private Class<?> clazz;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private String name;
+
 	//private Class<?> type = null;
+	@JTranscKeep
+	@JTranscKeepName
 	protected int modifiers;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private int slot;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private transient String signature;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private transient String genericSignature;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private byte[] annotations;
 	//private transient FieldRepository genericInfo;
 
@@ -188,11 +210,11 @@ public final class Field extends AccessibleObject implements Member {
 		} else if (type.isPrimitive()) {
 			if (type == Void.TYPE) {
 			} else if (type == Boolean.TYPE) {
-				this.setBoolean(obj, (Boolean)value);
+				this.setBoolean(obj, (Boolean) value);
 			} else if (type == Byte.TYPE) {
-				this.setByte(obj, (Byte)value);
+				this.setByte(obj, (Byte) value);
 			} else if (type == Short.TYPE) {
-				this.setShort(obj, (Short)value);
+				this.setShort(obj, (Short) value);
 			} else if (type == Character.TYPE) {
 				this.setChar(obj, (Character) value);
 			} else if (type == Integer.TYPE) {

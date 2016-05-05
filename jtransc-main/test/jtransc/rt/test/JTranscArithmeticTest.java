@@ -5,6 +5,14 @@ import com.jtransc.JTranscBits;
 public class JTranscArithmeticTest {
 	static public void main(String[] args) {
 		int[] values = {-1, 0, 1, 3123456, -12121212};
+		System.out.println(false);
+		System.out.println((byte)0);
+		System.out.println((short)0);
+		System.out.println((int)0);
+		System.out.println('a');
+		System.out.println(123456789123456789L);
+		System.out.println(1f);
+		System.out.println(1.0);
 		for (int value : values) {
 			System.out.println((long) value);
 			System.out.println(shl15((byte) value));

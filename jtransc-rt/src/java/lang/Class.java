@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.FastStringMap;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -56,6 +57,14 @@ import java.util.Objects;
 	"public function locateMethodById(id:Int) { populateMethodsById(); return _methodsById.get(id); }",
 })
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
+	@JTranscKeep
+	@JTranscKeepName
+	private String name;
+
+	@JTranscKeep
+	@JTranscKeepName
+	private boolean primitive = false;
+
 	private static final int ANNOTATION = 0x00002000;
 	private static final int ENUM = 0x00004000;
 	private static final int SYNTHETIC = 0x00001000;
@@ -139,11 +148,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@JTranscKeep
 	private Class() {
 	}
-
-	@JTranscKeep
-	private String name;
-	@JTranscKeep
-	private boolean primitive = false;
 
 	@JTranscKeep
 	Class(String name) throws ClassNotFoundException {

@@ -172,6 +172,8 @@ interface AstType {
 			is AstMethodHandle -> CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
 			else -> invalidOp("Literal type: ${value.javaClass} : $value")
 		}
+
+		fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 	}
 }
 
@@ -229,6 +231,28 @@ fun castLiteral(value: Double, to: AstType): Any = _castLiteral(value.toDouble()
 fun Iterable<AstType>.toArguments(): List<AstArgument> {
 	return this.mapIndexed { i, v -> AstArgument(i, v) }
 }
+
+fun AstType.getNull(): Any? = when(this) {
+	is AstType.BOOL -> false
+	is AstType.INT -> 0.toInt()
+	is AstType.SHORT -> 0.toShort()
+	is AstType.CHAR -> 0.toChar()
+	is AstType.BYTE -> 0.toByte()
+	is AstType.LONG -> 0.toLong()
+	is AstType.FLOAT -> 0f.toFloat()
+	is AstType.DOUBLE -> 0.0.toDouble()
+	is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
+	else -> noImpl("Not supported type $this")
+}
+
+//fun AstType.getNullCompact(): Any? = when(this) {
+//	is AstType.BOOL -> false
+//	is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> 0
+//	is AstType.LONG -> 0L
+//	is AstType.FLOAT, is AstType.DOUBLE -> 0.0
+//	is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
+//	else -> noImpl("Not supported type $this")
+//}
 
 data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
 	override fun toString() = "$type $name"
@@ -290,6 +314,8 @@ object AstTypeBuilder {
 	val UNKNOWN = AstType.UNKNOWN
 	val STRING = AstType.STRING
 	val OBJECT = AstType.OBJECT
+	val CLASS = AstType.CLASS
+	val METHOD = AstType.REF("java.lang.reflect.Method")
 	val NULL = AstType.NULL
 	val VOID = AstType.VOID
 	val BOOL = AstType.BOOL
@@ -301,6 +327,7 @@ object AstTypeBuilder {
 	val FLOAT = AstType.FLOAT
 	val DOUBLE = AstType.DOUBLE
 	fun REF(name: FqName) = AstType.REF(name)
+	fun ARRAY(element: AstType) = AstType.ARRAY(element)
 	//fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
 	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
 	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD(args, ret)

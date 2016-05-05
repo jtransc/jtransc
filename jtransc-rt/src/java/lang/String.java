@@ -383,5 +383,4 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		for (CharSequence element : elements) out.add(element);
 		return join(delimiter, out.toArray(new CharSequence[out.size()]));
 	}
-
 }

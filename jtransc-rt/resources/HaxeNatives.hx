@@ -11,6 +11,7 @@ using Lambda;
 typedef Long = Int64;
 typedef JavaObject = java_.lang.Object_;
 typedef JtranscWrapped = com.jtransc.JTranscWrapped_;
+typedef JavaBoolean = java_.lang.Boolean_;
 
 class HaxeNatives {
 	static private var M2P32_DBL = Math.pow(2, 32);
@@ -237,7 +238,7 @@ class HaxeNatives {
 	}
 
 	static public function unbox(value:JavaObject):Dynamic {
-		if (Std.is(value, java_.lang.Boolean_)) return unboxBool(value);
+		if (Std.is(value, JavaBoolean)) return unboxBool(value);
 		if (Std.is(value, java_.lang.Byte_)) return unboxByte(value);
 		if (Std.is(value, java_.lang.Short_)) return unboxShort(value);
 		if (Std.is(value, java_.lang.Character_)) return unboxChar(value);
@@ -251,7 +252,7 @@ class HaxeNatives {
 	}
 
 	static public function boxVoid(value:Dynamic):java_.lang.Void_ { return null; }
-	static public function boxBool(value:Bool):java_.lang.Boolean_ { return java_.lang.Boolean_.valueOf_Z_Ljava_lang_Boolean_(value); }
+	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.valueOf_Z_Ljava_lang_Boolean_(value); }
 	static public function boxByte(value:Int):java_.lang.Byte_ { return java_.lang.Byte_.valueOf_B_Ljava_lang_Byte_(value); }
 	static public function boxShort(value:Int):java_.lang.Short_ { return java_.lang.Short_.valueOf_S_Ljava_lang_Short_(value); }
 	static public function boxChar(value:Int):java_.lang.Character_ { return java_.lang.Character_.valueOf_C_Ljava_lang_Character_(value); }
@@ -263,7 +264,7 @@ class HaxeNatives {
 	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
-	static public function unboxBool(value:JavaObject):Bool { return cast(value, java_.lang.Boolean_).value; }
+	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).value; }
 	static public function unboxByte(value:JavaObject):Int { return cast(value, java_.lang.Byte_).value; }
 	static public function unboxShort(value:JavaObject):Int { return cast(value, java_.lang.Short_).value; }
 	static public function unboxChar(value:JavaObject):Int { return cast(value, java_.lang.Character_).value; }

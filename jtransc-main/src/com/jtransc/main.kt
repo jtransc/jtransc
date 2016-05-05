@@ -152,7 +152,7 @@ object JTranscMain {
 				settings = config.settings
 			)
 			val result = build.buildAndRun(captureRunOutput = false, run = config.run)
-			System.exit(result.exitValue)
+			System.exit(result.process.exitValue)
 		} catch (e: Throwable) {
 			e.printStackTrace(System.err)
 			System.exit(-1)

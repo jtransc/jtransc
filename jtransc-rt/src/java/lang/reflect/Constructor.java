@@ -17,6 +17,8 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscKeepName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -28,16 +30,42 @@ import java.lang.annotation.Annotation;
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Constructor<T> extends AccessibleObject implements Member, GenericDeclaration {
+	@JTranscKeep
+	@JTranscKeepName
 	private Class<T> clazz;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private int slot;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private Class<?>[] parameterTypes;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private Class<?>[] exceptionTypes;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private int modifiers;
+
 	// Generics and annotations support
+	@JTranscKeep
+	@JTranscKeepName
 	private transient String signature;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private transient String genericSignature;
 	// generic info repository; lazily initialized
+
+	@JTranscKeep
+	@JTranscKeepName
 	private byte[] annotations;
+
+	@JTranscKeep
+	@JTranscKeepName
 	private byte[] parameterAnnotations;
 
 	public Class<T> getDeclaringClass() {

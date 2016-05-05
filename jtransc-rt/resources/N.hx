@@ -60,6 +60,7 @@ class N {
 	}
 
 	// Long operators
+	static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
 	static public function ladd(a:Int64, b:Int64):Int64 return a + b;
 	static public function lsub(a:Int64, b:Int64):Int64 return a - b;
 	static public function lmul(a:Int64, b:Int64):Int64 return a * b;
