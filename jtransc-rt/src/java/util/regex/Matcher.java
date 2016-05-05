@@ -21,40 +21,41 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({
-        "public var _ereg:EReg;",
-        "public var _matches:Bool;",
-        "public var _offset:Int = 0;",
-        "public var _matchPos:Int = 0;",
-        "public var _matchLen:Int = 0;",
-        "public function _find() {\n" +
-                "\tvar r = this._ereg;\n" +
-                "\tthis._matches = r.matchSub(this.text._str, this._offset);\n" +
-                "\tif (this._matches) {\n" +
-                "\t\tvar rpos = r.matchedPos();\n" +
-                "\t\tthis._matchPos = rpos.pos;\n" +
-                "\t\tthis._matchLen = rpos.len;\n" +
-                "\t\tthis._offset = rpos.pos + rpos.len;\n" +
-                "\t} else {\n" +
-                "\t\tthis._matchPos = 0;\n" +
-                "\t\tthis._matchLen = 0;\n" +
-                "\t}\n" +
-                "\treturn this._matches;\n" +
-                "}"
-        //public static final int UNIX_LINES = 0x01;
-        //public static final int CASE_INSENSITIVE = 0x02;
-        //public static final int COMMENTS = 0x04;
-        //public static final int MULTILINE = 0x08;
-        //public static final int LITERAL = 0x10;
-        //public static final int DOTALL = 0x20;
-        //public static final int UNICODE_CASE = 0x40;
-        //public static final int CANON_EQ = 0x80;
-        //public static final int UNICODE_CHARACTER_CLASS = 0x100;
-        //i case insensitive matching
-        //g global replace or split, see below
-        //m multiline matching, ^ and $ represent the beginning and end of a line
-        //s the dot . will also match newlines (Neko, C++, PHP, Flash and Java targets only)
-        //u use UTF-8 matching (Neko and C++ targets only)
-        })
+	"public var _ereg:EReg;",
+	"public var _matches:Bool;",
+	"public var _offset:Int = 0;",
+	"public var _matchPos:Int = 0;",
+	"public var _matchLen:Int = 0;",
+	"" +
+		"public function _find() {\n" +
+		"\tvar r = this._ereg;\n" +
+		"\tthis._matches = r.matchSub(this.#FIELD:java.util.regex.Matcher:text:Ljava/lang/String;#._str, this._offset);\n" +
+		"\tif (this._matches) {\n" +
+		"\t\tvar rpos = r.matchedPos();\n" +
+		"\t\tthis._matchPos = rpos.pos;\n" +
+		"\t\tthis._matchLen = rpos.len;\n" +
+		"\t\tthis._offset = rpos.pos + rpos.len;\n" +
+		"\t} else {\n" +
+		"\t\tthis._matchPos = 0;\n" +
+		"\t\tthis._matchLen = 0;\n" +
+		"\t}\n" +
+		"\treturn this._matches;\n" +
+		"}"
+	//public static final int UNIX_LINES = 0x01;
+	//public static final int CASE_INSENSITIVE = 0x02;
+	//public static final int COMMENTS = 0x04;
+	//public static final int MULTILINE = 0x08;
+	//public static final int LITERAL = 0x10;
+	//public static final int DOTALL = 0x20;
+	//public static final int UNICODE_CASE = 0x40;
+	//public static final int CANON_EQ = 0x80;
+	//public static final int UNICODE_CHARACTER_CLASS = 0x100;
+	//i case insensitive matching
+	//g global replace or split, see below
+	//m multiline matching, ^ and $ represent the beginning and end of a line
+	//s the dot . will also match newlines (Neko, C++, PHP, Flash and Java targets only)
+	//u use UTF-8 matching (Neko and C++ targets only)
+})
 public final class Matcher implements MatchResult {
 	private Pattern parent;
 	private String pattern;
@@ -69,14 +70,17 @@ public final class Matcher implements MatchResult {
 		_init();
 	}
 
-    @HaxeMethodBody(
-            "var opts = '';\n" +
-            "if ((this.flags & 0x02) != 0) opts += 'i';\n" +
-            "if ((this.flags & 0x08) != 0) opts += 'm';\n" +
-            //"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
-            "this._ereg = new EReg(this.pattern._str, opts);\n" +
-            "this._matches = (new EReg('^' + this.pattern._str + '$', opts)).match(this.text._str);"
-    )
+	@HaxeMethodBody("" +
+		"var opts = '';\n" +
+		"var flags = this.#FIELD:java.util.regex.Matcher:flags:I#;\n" +
+		"var pattern = this.#FIELD:java.util.regex.Matcher:pattern:Ljava/lang/String;#;\n" +
+		"var text = this.#FIELD:java.util.regex.Matcher:text:Ljava/lang/String;#;\n" +
+		"if ((flags & 0x02) != 0) opts += 'i';\n" +
+		"if ((flags & 0x08) != 0) opts += 'm';\n" +
+		//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
+		"this._ereg = new EReg(pattern._str, opts);\n" +
+		"this._matches = (new EReg('^' + pattern._str + '$', opts)).match(text._str);"
+	)
 	private void _init() {
 	}
 
@@ -98,7 +102,7 @@ public final class Matcher implements MatchResult {
 		return this;
 	}
 
-    @HaxeMethodBody("return this._matchPos;")
+	@HaxeMethodBody("return this._matchPos;")
 	native public int start();
 
 	public int start(int group) {
@@ -109,7 +113,7 @@ public final class Matcher implements MatchResult {
 
 	native public int start(String name);
 
-    @HaxeMethodBody("return this._matchPos + this._matchLen;")
+	@HaxeMethodBody("return this._matchPos + this._matchLen;")
 	native public int end();
 
 	public int end(int group) {
@@ -120,23 +124,23 @@ public final class Matcher implements MatchResult {
 
 	native public int end(String name);
 
-    @HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(0));")
+	@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(0));")
 	native public String group();
 
-    @HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(p0));")
+	@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(p0));")
 	native public String group(int group);
 
 	native public String group(String name);
 
 	native public int groupCount();
 
-    @HaxeMethodBody("return this._matches;")
+	@HaxeMethodBody("return this._matches;")
 	native public boolean matches();
 
-    @HaxeMethodBody("return _find();")
+	@HaxeMethodBody("return _find();")
 	native public boolean find();
 
-    @HaxeMethodBody("this._offset = p0; return _find();")
+	@HaxeMethodBody("this._offset = p0; return _find();")
 	native public boolean find(int start);
 
 	native public boolean lookingAt();

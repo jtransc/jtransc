@@ -38,12 +38,8 @@ class HaxeReflect {
 		javaToHaxeName[javaName] = haxeName;
 	}
 
-	static public function getJavaClassName(clazz:Class<Dynamic>):String {
-		return Reflect.field(clazz, 'HAXE_CLASS_NAME');
-	}
-	static public function getJavaClass(str:String) {
-		return java_.lang.Class_.forName_Ljava_lang_String__Ljava_lang_Class_(HaxeNatives.str(str));
-	}
+	static public function getJavaClassName(clazz:Class<Dynamic>):String return Reflect.field(clazz, 'HAXE_CLASS_NAME');
+	static public function getJavaClass(str:String) return #CLASS:java.lang.Class#.#METHOD:java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class;#(HaxeNatives.str(str));
 	static public function info(c:java_.lang.Class_, haxeClass:Class<Dynamic>, proxyClass:Class<Dynamic>, ffiClass:Class<Dynamic>, parent:String, interfaces:Array<String>, modifiers:Int, annotations:Array<Dynamic>) {
 		c._hxClass = haxeClass;
 		c._hxProxyClass = proxyClass;
@@ -62,7 +58,7 @@ class HaxeReflect {
 		var out = new java_.lang.reflect.Field_();
 		out.clazz = c;
 		out.name = HaxeNatives.str(name);
-		out._internalName = name;
+		out._internalName = internalName;
 		out.modifiers = modifiers;
 		out.signature = HaxeNatives.str(type);
 		out.genericSignature = HaxeNatives.str(genericDescriptor);

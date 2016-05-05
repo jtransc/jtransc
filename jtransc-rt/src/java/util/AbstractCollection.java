@@ -122,6 +122,6 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 		removeAll(this);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str('[' + this.toArray___Ljava_lang_Object_().join(', ') + ']');")
+	@HaxeMethodBody("return HaxeNatives.str('[' + this.#METHOD:java.util.AbstractCollection:toArray:()[Ljava/lang/Object;#().join(', ') + ']');")
 	native public String toString();
 }

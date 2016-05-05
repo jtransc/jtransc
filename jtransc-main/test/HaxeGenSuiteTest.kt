@@ -49,8 +49,8 @@ class HaxeGenSuiteTest {
 	companion object {
 		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true
-
 		//const val MINIMIZE = false
+
 		const val DEBUG = false
 		//const val DEBUG = true
 	}

@@ -1,5 +1,8 @@
 package jtransc.rt.test;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 public class JTranscCloneTest {
 	static public void main(String[] args) throws CloneNotSupportedException {
 		MyClass mc = new MyClass();
@@ -13,6 +16,14 @@ public class JTranscCloneTest {
 		mc.d = 0.125;
 		mc.ref = new Object();
 		MyClass mc2 = (MyClass) mc.clone();
+		System.out.println(mc2.bb);
+		System.out.println(mc2.b);
+		System.out.println(mc2.c);
+		System.out.println(mc2.s);
+		System.out.println(mc2.i);
+		System.out.println(mc2.l);
+		//System.out.println(mc2.f);
+		//System.out.println(mc2.d);
 		System.out.println(mc.bb == mc2.bb);
 		System.out.println(mc.b == mc2.b);
 		System.out.println(mc.c == mc2.c);
@@ -22,6 +33,14 @@ public class JTranscCloneTest {
 		System.out.println(mc.f == mc2.f);
 		System.out.println(mc.d == mc2.d);
 		System.out.println(mc.ref == mc2.ref);
+		System.out.println(Arrays.toString(new boolean[] { true, false }.clone()));
+		System.out.println(Arrays.toString(new byte[] { 1, 2, 3 }.clone()));
+		System.out.println(Arrays.toString(new char[] { 'a', 'b', 'c' }.clone()));
+		System.out.println(Arrays.toString(new short[] { 1, 2, 3 }.clone()));
+		System.out.println(Arrays.toString(new int[] { 1, 2, 3 }.clone()));
+		System.out.println(Arrays.toString(new long[] { 1, 2, 3 }.clone()));
+		System.out.println(Arrays.toString(new float[] { 1, 2, 3 }.clone()));
+		System.out.println(Arrays.toString(new double[] { 1, 2, 3 }.clone()));
 	}
 
 	static class MyClass implements Cloneable {
@@ -36,6 +55,10 @@ public class JTranscCloneTest {
 		public Object ref;
 
 		public Object clone() throws CloneNotSupportedException {
+			for (Field field : getClass().getDeclaredFields()) {
+				//field.getDeclaringClass().isPrimitive()
+				System.out.println(field.getName());
+			}
 			return super.clone();
 		}
 	}

@@ -44,7 +44,7 @@ class HaxeDoubleArray extends HaxeBaseArray {
         return out;
     }
 
-    public override function clone__Ljava_lang_Object_():java_.lang.Object_ {
+    public override function clone() {
         var out = new HaxeDoubleArray(length);
         copy(this, out, 0, 0, length);
         return out;

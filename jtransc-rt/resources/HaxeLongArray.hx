@@ -45,9 +45,7 @@ class HaxeLongArray extends HaxeBaseArray {
         return out;
     }
 
-    public override function clone__Ljava_lang_Object_():java_.lang.Object_ {
-        return fromArray(this.data.toArray());
-    }
+    public override function clone() return fromArray(this.data.toArray());
 
     static public function copy(from:HaxeLongArray, to:HaxeLongArray, fromPos:Int, toPos:Int, length:Int) {
         for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));

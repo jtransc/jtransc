@@ -23,7 +23,7 @@ public final class Objects {
 		throw new AssertionError("No java.util.Objects instances for you!");
 	}
 
-	@HaxeMethodBody("return (p0 == p1) || (p0 != null && p0.equals_Ljava_lang_Object__Z(p1));")
+	@HaxeMethodBody("return (p0 == p1) || (p0 != null && p0.#METHOD:java.lang.Object:equals:(Ljava.lang.Object;)Z#(p1));")
 	public static boolean equals(Object a, Object b) {
 		return (a == b) || (a != null && a.equals(b));
 	}
@@ -34,7 +34,7 @@ public final class Objects {
 		return Arrays.deepEquals0(a, b);
 	}
 
-	@HaxeMethodBody("return (p0 != null) ? p0.hashCode__I() : 0;")
+	@HaxeMethodBody("return (p0 != null) ? p0.#METHOD:java.lang.Object:hashCode:()I#() : 0;")
 	public static int hashCode(Object o) {
 		return o != null ? o.hashCode() : 0;
 	}

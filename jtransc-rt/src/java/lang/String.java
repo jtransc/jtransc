@@ -75,7 +75,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3.canonicalName._str));")
+	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str));")
 	public String(byte[] bytes, int offset, int length, Charset charset) {
 	}
 
@@ -83,7 +83,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(byte[] bytes, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1.canonicalName._str));")
+	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str));")
 	public String(byte[] bytes, Charset charset) {
 	}
 
@@ -149,7 +149,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0._str);")
 	native public byte[] getBytes(String charsetName) throws UnsupportedEncodingException;
 
-	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0.canonicalName._str);")
+	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str);")
 	native public byte[] getBytes(Charset charset);
 
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str);")

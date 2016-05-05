@@ -203,8 +203,10 @@ public final class Field extends AccessibleObject implements Member {
 	//@HaxeMethodBody("Reflect.setField(p0, this._internalName, HaxeNatives.unbox(p1));")
 	//native private void _setUnboxed(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
+	@HaxeMethodBody("return HaxeNatives.str(this._internalName);")
+	native String getInternalName();
+
 	public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
-		//System.out.println(clazz + "," + clazz.isPrimitive());
 		Class<?> type = getType();
 		if (type == null) {
 		} else if (type.isPrimitive()) {

@@ -2,7 +2,7 @@ class HaxeBaseArray extends java_.lang.Object_ {
     public var length:Int = 0;
 	public var desc:String;
 
-	override public function toString__Ljava_lang_String_():java_.lang.String_ {
+	override public function #METHOD:java.lang.Object:toString:()Ljava/lang/String;#() {
 		var className = Type.getClassName(Type.getClass(this));
 	    return HaxeNatives.str('$className($length, $desc)');
 	}
@@ -39,6 +39,11 @@ class HaxeBaseArray extends java_.lang.Object_ {
     }
 
     public function clone():HaxeBaseArray {
-        return cast(clone__Ljava_lang_Object_(), HaxeBaseArray);
+        //return cast(#METHOD:java.lang.Object:clone:()Ljava/lang/Object;#(), HaxeBaseArray);
+        throw 'Must override';
+    }
+
+    public override function #METHOD:java.lang.Object:clone:()Ljava/lang/Object;#():#CLASS:java.lang.Object# {
+    	return this.clone();
     }
 }

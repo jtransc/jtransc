@@ -69,7 +69,6 @@ public class Object {
 			Class<?> clazz = this.getClass();
 			Object newObject = clazz.newInstance();
 			for (Field field : clazz.getDeclaredFields()) {
-				//field.getDeclaringClass().isPrimitive()
 				field.set(newObject, field.get(this));
 			}
 			return newObject;

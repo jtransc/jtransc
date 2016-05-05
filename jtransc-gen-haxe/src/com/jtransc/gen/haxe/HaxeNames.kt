@@ -1,10 +1,7 @@
 package com.jtransc.gen.haxe
 
-import com.jtransc.annotation.JTranscKeep
-import com.jtransc.annotation.JTranscKeepName
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.error.unexpected
 import com.jtransc.gen.MinimizedNames
 import com.jtransc.text.escape
@@ -42,21 +39,26 @@ val HaxeSpecial = setOf(
 
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
 
+inline fun <T1, T2> MutableMap<T1, T2>.getOrPut2(key: T1, generator: () -> T2): T2 {
+	if (key !in this) this[key] = generator()
+	return this[key]!!
+}
+
 class HaxeNames(
 	val program: AstResolver,
 	val minimize: Boolean = false
 ) {
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
-	val ENABLED_MINIFY = false
-	//val ENABLED_MINIFY = true
-	private val ENABLED_MINIFY_METHODS = ENABLED_MINIFY
-	private val ENABLED_MINIFY_FIELDS = ENABLED_MINIFY
+	//val ENABLED_MINIFY = false
+	val ENABLED_MINIFY = true
+	private val ENABLED_MINIFY_METHODS = ENABLED_MINIFY && minimize
+	private val ENABLED_MINIFY_FIELDS = ENABLED_MINIFY && minimize
 
-	private var minClassLastId:Int = 0
-	private var minMemberLastId:Int = 0
+	private var minClassLastId: Int = 0
+	private var minMemberLastId: Int = 0
 	private val methodNmaes = hashMapOf<Any?, String>()
-	private val fieldNames = hashMapOf<String, String>()
+	private val fieldNames = hashMapOf<Any?, String>()
 
 	private fun <T> Set<T>.runUntilNotInSet(callback: () -> T): T {
 		while (true) {
@@ -65,11 +67,8 @@ class HaxeNames(
 		}
 	}
 
-	fun allocClassName(obj: Any?): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) }
-	fun allocMemberName(obj: Any?): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) }
-
-	fun setClassName(obj: Any?): String = methodNmaes.getOrPut(obj) { HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) } }
-	fun setMemberName(obj: Any?): String = methodNmaes.getOrPut(obj) { HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) } }
+	fun allocClassName(): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) }
+	fun allocMemberName(): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) }
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
@@ -78,9 +77,9 @@ class HaxeNames(
 
 		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
 
-		return methodNmaes.getOrPut(objectToCache) {
-			if (ENABLED_MINIFY_METHODS && !realmethod.keepName && minimize) {
-				allocMemberName(objectToCache)
+		return methodNmaes.getOrPut2(objectToCache) {
+			if (ENABLED_MINIFY_METHODS && !realmethod.keepName) {
+				allocMemberName()
 			} else {
 				if (realmethod.nativeMethod != null) {
 					realmethod.nativeMethod!!
@@ -96,7 +95,7 @@ class HaxeNames(
 		}
 	}
 
-	private fun cleanName(name:String):String {
+	private fun cleanName(name: String): String {
 		val out = CharArray(name.length)
 		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
 		return String(out)
@@ -133,16 +132,17 @@ class HaxeNames(
 		return if (clazz != null && clazz.isNative) "${clazz.nativeName}" else getHaxeGeneratedFqName(name).fqname
 	}
 
-	data class FieldName(val name:String)
+	data class FieldName(val name: String)
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
 		val realfield = program[field]
-		val fieldWithoutClass = field.withoutClass
-		val keyToUse = field.name
+		//val keyToUse = if (realfield.keepName) field else field.name
+		//val keyToUse = if (ENABLED_MINIFY_FIELDS) field else field.name
+		val keyToUse = field
 
-		return fieldNames.getOrPut(keyToUse) {
-			if (ENABLED_MINIFY_FIELDS && !realfield.keepName && minimize) {
-				return allocMemberName(keyToUse)
+		return fieldNames.getOrPut2(keyToUse) {
+			if (ENABLED_MINIFY_FIELDS && !realfield.keepName) {
+				allocMemberName()
 			} else {
 				if (field !in cachedFieldNames) {
 					val fieldName = field.name.replace('$', '_')
@@ -159,11 +159,9 @@ class HaxeNames(
 						cachedFieldNames[f2] = name
 						names += name
 					}
-					return cachedFieldNames[field] ?:
-						unexpected("Unexpected. Not cached: $field")
+					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 				}
-				return cachedFieldNames[field] ?:
-					unexpected("Unexpected. Not cached: $field")
+				cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 			}
 		}
 	}
@@ -251,4 +249,34 @@ class HaxeNames(
 		else -> throw NotImplementedError("Literal of type $value")
 	}
 
+	private val templateRegex = Regex("#(CLASS|METHOD|FIELD):(.*?)#")
+
+	fun template(s: String): String {
+		return templateRegex.replace(s) {
+			try {
+				val type = it.groupValues[1]
+				val data = it.groupValues[2]
+				val dataParts = data.split(':')
+				val clazz = program[dataParts[0].fqname]!!
+				when (type) {
+					"METHOD" -> {
+						if (dataParts.size >= 3) {
+							getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
+						} else {
+							val methods = clazz.methodsByName[dataParts[1]]!!
+							if (methods.size > 1) invalidOp("Several signatures, please specify signature")
+							getHaxeMethodName(methods.first())
+						}
+					}
+					"FIELD" -> {
+						getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
+					}
+					"CLASS" -> getHaxeClassFqName(clazz.name)
+					else -> data
+				}
+			} catch (t:Throwable) {
+				throw RuntimeException("${t.message} :: Problem replacing template '${it.value}'", t)
+			}
+		}
+	}
 }

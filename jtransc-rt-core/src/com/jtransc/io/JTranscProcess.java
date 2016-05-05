@@ -82,14 +82,14 @@ public class JTranscProcess extends Process {
 	@Override
 	@HaxeMethodBody("" +
 		"#if sys return this.process.exitCode();\n" +
-		"#else return this.exitCode;\n" +
+		"#else return this.#FIELD:com.jtransc.io.JTranscProcess:exitCode#;\n" +
 		"#end\n"
 	)
 	public native int exitValue();
 
 	@HaxeMethodBody("" +
 		"#if sys return this.process.getPid();\n" +
-		"#else return this.pid;\n" +
+		"#else return this.#FIELD:com.jtransc.io.JTranscProcess:pid#;\n" +
 		"#end\n"
 	)
 	public native int pid();

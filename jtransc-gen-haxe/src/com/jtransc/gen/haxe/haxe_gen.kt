@@ -84,7 +84,7 @@ class GenHaxeGen(
 		}
 
 		for (file in copyFiles) {
-			vfs[file] = program.resourcesVfs[file]
+			vfs[file] = program.resourcesVfs[file].readString().template()
 		}
 
 		val mainClassFq = program.entrypoint
@@ -188,13 +188,8 @@ class GenHaxeGen(
 		}
 	}
 
-	fun annotations(annotations: List<AstAnnotation>): String {
-		return "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
-	}
-
-	fun annotationsList(annotations: List<List<AstAnnotation>>): String {
-		return "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
-	}
+	fun annotations(annotations: List<AstAnnotation>): String =  "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
+	fun annotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
 
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
@@ -294,7 +289,7 @@ class GenHaxeGen(
 					val right = stm.expr.genExpr()
 					if (left != right) {
 						// Avoid: Assigning a value to itself
-						line("$left = $right;")
+						line("$left /*${stm.field.name}*/ = $right;")
 					}
 				}
 				is AstStm.SET_FIELD_INSTANCE -> {
@@ -584,14 +579,14 @@ class GenHaxeGen(
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
 			// @TODO: Check!
-				AstType.BOOL.CLASSTYPE -> genCast("($e).booleanValue__Z()", AstType.BOOL, to)
-				AstType.BYTE.CLASSTYPE -> genCast("($e).byteValue__B()", AstType.BYTE, to)
-				AstType.SHORT.CLASSTYPE -> genCast("($e).shortValue__S()", AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE -> genCast("($e).charValue__C()", AstType.CHAR, to)
-				AstType.INT.CLASSTYPE -> genCast("($e).intValue__I()", AstType.INT, to)
-				AstType.LONG.CLASSTYPE -> genCast("($e).longValue__J()", AstType.LONG, to)
-				AstType.FLOAT.CLASSTYPE -> genCast("($e).floatValue__F()", AstType.FLOAT, to)
-				AstType.DOUBLE.CLASSTYPE -> genCast("($e).doubleValue__D()", AstType.DOUBLE, to)
+				AstType.BOOL.CLASSTYPE   -> genCast("HaxeNatives.unboxBool($e)", AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE   -> genCast("HaxeNatives.unboxByte($e)", AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE  -> genCast("HaxeNatives.unboxShort($e)", AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE   -> genCast("HaxeNatives.unboxChar($e)", AstType.CHAR, to)
+				AstType.INT.CLASSTYPE    -> genCast("HaxeNatives.unboxInt($e)", AstType.INT, to)
+				AstType.LONG.CLASSTYPE   -> genCast("HaxeNatives.unboxLong($e)", AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE  -> genCast("HaxeNatives.unboxFloat($e)", AstType.FLOAT, to)
+				AstType.DOUBLE.CLASSTYPE -> genCast("HaxeNatives.unboxDouble($e)", AstType.DOUBLE, to)
 			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			//else -> noImpl("Unhandled conversion $e : $from -> $to")
 				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
@@ -687,7 +682,7 @@ class GenHaxeGen(
 			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
 			if (!field.annotations.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
-				line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)};")
+				line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
 			}
 		}
 
@@ -714,15 +709,16 @@ class GenHaxeGen(
 				if (isInterface) {
 					if (!method.isImplementing) line("$decl;")
 				} else {
-					val body = method.annotations[HaxeMethodBody::value]
+					val body = method.annotations[HaxeMethodBody::value]?.template()
 					val meta = method.annotations[HaxeMeta::value]
 					if (meta != null) line(meta)
 					if (body != null) {
 						val body2 = if (method.isInstanceInit) "$body return this;" else body
-						line("$decl { $body2 }")
+						line("$decl { $body2 } // ${method.name}")
 					} else if (method.body != null) {
 						val rbody = method.body!!
 						line(decl) {
+							line("// ${method.name}")
 							try {
 								// @TODO: Do not hardcode this!
 								if (method.name == "throwParameterIsNullException") {
@@ -809,9 +805,9 @@ class GenHaxeGen(
 
 				//val nativeMembers = clazz.thisAndAncestors.getAnnotation(HaxeAddMembers::value).flatMap { it.toList() }
 				//val nativeMembers = clazz.annotations.get(HaxeAddMembers::value).flatMap { it.toList() }
-				val nativeMembers = clazz.annotations.get(HaxeAddMembers::value)?.toList() ?: listOf()
+				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
 
-				for (member in nativeMembers) line(member)
+				for (member in nativeMembers) line(member.template())
 
 				if (!isInterface) {
 					for (field in clazz.fields) {
@@ -1081,6 +1077,8 @@ class GenHaxeGen(
 	val FqName.haxeGeneratedFqPackage: String get() = names.getHaxeGeneratedFqPackage(this)
 	val FqName.haxeGeneratedFqName: FqName get() = names.getHaxeGeneratedFqName(this)
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getHaxeGeneratedSimpleClassName(this)
+
+	fun String.template():String = names.template(this)
 
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
