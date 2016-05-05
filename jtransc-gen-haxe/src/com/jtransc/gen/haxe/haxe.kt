@@ -16,11 +16,7 @@
 
 package com.jtransc.gen.haxe
 
-import com.jtransc.ast.AstFeatures
-import com.jtransc.ast.AstProgram
-import com.jtransc.ast.FqName
 import com.jtransc.ast.feature.SwitchesFeature
-import com.jtransc.ast.get
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.gen.*
 import com.jtransc.io.ProcessResult2
@@ -34,6 +30,7 @@ import com.jtransc.vfs.getCached
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeAddAssets
 import com.jtransc.annotation.haxe.HaxeAddLibraries
+import com.jtransc.ast.*
 import java.io.File
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
@@ -141,7 +138,7 @@ fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
 
 }
 
-class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
+class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {
 	val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
 
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
@@ -165,7 +162,8 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo) : GenTargetProcessor {
 			program = program,
 			features = AstFeatures(),
 			srcFolder = srcFolder,
-			featureSet = HaxeFeatures
+			featureSet = HaxeFeatures,
+			settings = settings
 		)._write()
 	}
 
@@ -217,8 +215,8 @@ object GenHaxe : GenTarget {
 
 	override val runningAvailable: Boolean = true
 
-	override fun getProcessor(tinfo: GenTargetInfo): GenTargetProcessor {
-		return HaxeGenTargetProcessor(tinfo)
+	override fun getProcessor(tinfo: GenTargetInfo, settings: AstBuildSettings): GenTargetProcessor {
+		return HaxeGenTargetProcessor(tinfo, settings)
 	}
 
 	data class ProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val vfs: SyncVfsFile) {

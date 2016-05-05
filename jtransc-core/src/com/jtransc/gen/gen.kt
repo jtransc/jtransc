@@ -32,21 +32,20 @@ data class GenTargetInfo(
 
 interface GenTarget {
 	val runningAvailable: Boolean
-	fun getProcessor(tinfo: GenTargetInfo): GenTargetProcessor
+	fun getProcessor(tinfo: GenTargetInfo, settings: AstBuildSettings): GenTargetProcessor
 }
 
-fun GenTarget.build(program: AstProgram, outputFile: String, settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false, subtarget: String = "", targetDirectory: String = "target"): ProcessResult2 {
-	log("Preparing processor...")
-	val (preparingTime, processor) = measureTime {
-		this.getProcessor(GenTargetInfo(
-			program, outputFile, settings, subtarget, targetDirectory
-		))
-	}
-	log("Ok ($preparingTime)")
-
-	log("Building source...")
-	val (buildTime, sourceResult) = measureTime { processor.buildSource() }
-	log("Ok ($buildTime)")
+fun GenTarget.build(
+	program: AstProgram,
+	outputFile: String,
+	settings: AstBuildSettings,
+	captureRunOutput: Boolean = true,
+	run: Boolean = false,
+	subtarget: String = "",
+	targetDirectory: String = "target"
+): ProcessResult2 {
+	val processor = log.logAndTime("Preparing processor") { this.getProcessor(GenTargetInfo(program, outputFile, settings, subtarget, targetDirectory), settings) }
+	log.logAndTime("Building source") { processor.buildSource() }
 
 	log("Compiling...")
 	val (compileTime, compileResult) = measureTime { processor.compile() }

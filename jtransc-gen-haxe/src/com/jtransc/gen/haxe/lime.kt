@@ -161,7 +161,7 @@ object GenHaxeLime : GenTarget {
 		}
 	}
 
-	override fun getProcessor(tinfo: GenTargetInfo): GenTargetProcessor {
+	override fun getProcessor(tinfo: GenTargetInfo, settings: AstBuildSettings): GenTargetProcessor {
 		val actualSubtarget = LimeSubtarget.fromString(tinfo.subtarget)
 
 		val outputFile2 = File(File(tinfo.outputFile).absolutePath)
@@ -183,7 +183,8 @@ object GenHaxeLime : GenTarget {
 					program = tinfo.program,
 					features = AstFeatures(),
 					srcFolder = srcFolder,
-					featureSet = HaxeFeatures
+					featureSet = HaxeFeatures,
+					settings = settings
 				)._write()
 				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo, tinfo.program, info!!, tinfo.settings)
 			}

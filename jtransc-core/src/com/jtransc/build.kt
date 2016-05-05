@@ -57,11 +57,12 @@ class AllBuild(
 	val entryPoint: String,
 	val output: String,
 	val subtarget: String,
+	val settings: AstBuildSettings,
 	val targetDirectory: String = System.getProperty("java.io.tmpdir")
 ) {
-	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
+	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, settings: AstBuildSettings, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
 		AllBuildTargets.locateTargetByName(target).descriptor,
-		classPaths, entryPoint, output, subtarget, targetDirectory
+		classPaths, entryPoint, output, subtarget, settings, targetDirectory
 	)
 
 	val tempdir = System.getProperty("java.io.tmpdir")
@@ -75,11 +76,11 @@ class AllBuild(
 	}
 	*/
 
-	fun buildAndRunCapturingOutput(settings: AstBuildSettings) = buildAndRun(captureRunOutput = true, settings = settings, run = true)
-	fun buildAndRunRedirecting(settings: AstBuildSettings) = buildAndRun(captureRunOutput = false, settings = settings, run = true)
-	fun buildWithoutRunning(settings: AstBuildSettings) = buildAndRun(captureRunOutput = false, settings = settings, run = false)
-	fun buildAndRun(captureRunOutput: Boolean, settings: AstBuildSettings, run: Boolean = true): ProcessResult2 {
-		return _buildAndRun(settings = settings, captureRunOutput = captureRunOutput, run = run)
+	fun buildAndRunCapturingOutput() = buildAndRun(captureRunOutput = true, run = true)
+	fun buildAndRunRedirecting() = buildAndRun(captureRunOutput = false, run = true)
+	fun buildWithoutRunning() = buildAndRun(captureRunOutput = false, run = false)
+	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true): ProcessResult2 {
+		return _buildAndRun(captureRunOutput = captureRunOutput, run = run)
 	}
 
 	private fun locateRootPath(): String {
@@ -87,7 +88,7 @@ class AllBuild(
 		return File("").absolutePath
 	}
 
-	private fun _buildAndRun(settings: AstBuildSettings, captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
+	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): ProcessResult2 {
 		val jtranscVersion = settings.jtranscVersion
 
 		// Previously downloaded manually or with maven plugin!

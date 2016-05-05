@@ -22,9 +22,10 @@ class GenHaxeGen(
 	val program: AstProgram,
 	val features: AstFeatures,
 	val srcFolder: SyncVfsFile,
-	val featureSet: Set<AstFeature>
+	val featureSet: Set<AstFeature>,
+    val settings: AstBuildSettings
 ) {
-	val names = HaxeNames(program)
+	val names = HaxeNames(program, minimize = settings.minimize)
 	val refs = References()
 	val context = AstGenContext()
 	//lateinit var clazz: AstClass

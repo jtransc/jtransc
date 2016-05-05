@@ -185,23 +185,23 @@ class HaxeGenSuiteTest {
 	}
 
 	fun <T : Any> runClass(clazz: Class<T>): String {
-		val build = AllBuild(
+		return AllBuild(
 			target = HaxeGenDescriptor,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.js", subtarget = "js",
 			//output = "program.haxe.cpp", subtarget = "cpp",
-			targetDirectory = System.getProperty("java.io.tmpdir")
-		)
-		return build.buildAndRunCapturingOutput(AstBuildSettings(
-			jtranscVersion = JTranscVersion.getVersion(),
-			debug = DEBUG,
-			backend = BACKEND,
-			rtAndRtCore = listOf(
-				locateProjectRoot()["jtransc-rt/target/classes"].realpathOS,
-				locateProjectRoot()["jtransc-rt-core/target/classes"].realpathOS
+			targetDirectory = System.getProperty("java.io.tmpdir"),
+			settings = AstBuildSettings(
+				jtranscVersion = JTranscVersion.getVersion(),
+				debug = DEBUG,
+				backend = BACKEND,
+				rtAndRtCore = listOf(
+					locateProjectRoot()["jtransc-rt/target/classes"].realpathOS,
+					locateProjectRoot()["jtransc-rt-core/target/classes"].realpathOS
+				)
 			)
-		)).output
+		).buildAndRunCapturingOutput().output
 	}
 
 	val engine = ScriptEngineManager().getEngineByMimeType("text/javascript")

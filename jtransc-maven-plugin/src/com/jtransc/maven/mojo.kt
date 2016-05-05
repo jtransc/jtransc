@@ -169,16 +169,17 @@ class JTranscMojo : AbstractMojo() {
 
 			val beforeBuild = System.currentTimeMillis()
 			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
-			val allBuild = AllBuild(
+			val allBuild: AllBuild = AllBuild(
 				AllBuildTargets,
 				targetActual,
 				dependencyJarPaths,
 				mainClass,
 				File(finalOutputDirectory!!, outputActual).absolutePath,
 				subtargetActual,
+				settings,
 				targetDirectory
 			)
-			val buildResult = allBuild.buildWithoutRunning(settings)
+			val buildResult = allBuild.buildWithoutRunning()
 			val afterBuild = System.currentTimeMillis()
 			if (buildResult.success) {
 				log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")
