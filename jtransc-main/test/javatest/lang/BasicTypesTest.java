@@ -44,14 +44,14 @@ public class BasicTypesTest {
 	private static void charTests() {
 		char one = 1;
 		char min = Character.MIN_VALUE;
-		System.out.println("Char MIN_VALUE: " + min);
+		System.out.println("Char MIN_VALUE: " + (int)min);
 		char max = Character.MAX_VALUE;
-		System.out.println("Char MAX_VALUE: " + max);
+		System.out.println("Char MAX_VALUE: " + (int)max);
 		char maxOverflow = (char) (max + one);
-		System.out.println("Char MAX overflow: " + maxOverflow);
+		System.out.println("Char MAX overflow: " + (int)maxOverflow);
 		char minOverflow = (char) (max - one);
-		System.out.println("Char MIN overflow: " + minOverflow);
-		System.out.println("Char MAX - MIN: " + (max - min));
+		System.out.println("Char MIN overflow: " + (int)minOverflow);
+		System.out.println("Char MAX - MIN: " + (int)(max - min));
 	}
 
 	private static void shortTests() {
