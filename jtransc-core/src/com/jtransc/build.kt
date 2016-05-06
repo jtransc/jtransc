@@ -197,6 +197,7 @@ class AllBuild(
 
 	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
 		containingClass = containingClass,
+		id = -1,
 		annotations = listOf(),
 		name = name,
 		type = methodType,

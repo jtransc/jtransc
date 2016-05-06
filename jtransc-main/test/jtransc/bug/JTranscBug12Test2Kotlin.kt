@@ -1,9 +1,11 @@
 package jtransc.bug;
 
+import com.jtransc.kotlin.JTranscKotlinReflectStripper
 import java.util.*
 
-object JTranscBug12Test2 {
+object JTranscBug12Test2Kotlin {
 	@JvmStatic fun main(args: Array<String>) {
+		JTranscKotlinReflectStripper.init()
 		println("[1]");
 		val field = Demo::field
 		var abc = "cba".reversed()

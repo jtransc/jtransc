@@ -164,15 +164,6 @@ class AstProgram(
 		}
 	}
 
-	private var lastMethodId = hashMapOf<FqName, Int>()
-	private val methodIds = hashMapOf<AstMethodRef, Int>()
-	fun getMethodId(ref: AstMethodRef): Int {
-		if (ref.containingClass !in lastMethodId) lastMethodId[ref.containingClass] = 0
-		if (ref !in methodIds) methodIds[ref] = lastMethodId[ref.containingClass]!!
-		lastMethodId[ref.containingClass] = lastMethodId[ref.containingClass]!! + 1
-		return methodIds[ref]!!
-	}
-
 	override operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
 	override operator fun get(name: FqName): AstClass {
@@ -212,21 +203,6 @@ class AstProgram(
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
 
 	operator fun get(ref: AstFieldWithoutTypeRef): AstField = this[ref.containingClass].get(ref)
-
-	// @TODO: Cache all this stuff!
-	/*
-	fun getAncestors(clazz: AstClass): List<AstClass> {
-		var out = arrayListOf<AstClass>()
-		var current = clazz
-		while (current != null) {
-			out.add(current)
-			val extending = current.extending ?: break
-			if (extending.fqname.isNullOrEmpty()) break
-			current = this[extending]
-		}
-		return out
-	}
-	*/
 
 	fun getInterfaces(clazz: AstClass) = clazz.implementing.map { this[it] }
 
@@ -502,6 +478,7 @@ open class AstMember(
 }
 
 class AstField(
+	id: Int,
 	containingClass: AstClass,
 	name: String,
 	type: AstType,
@@ -519,6 +496,7 @@ class AstField(
 
 class AstMethod(
 	containingClass: AstClass,
+	val id: Int,
 	name: String,
 	type: AstType.METHOD,
 	annotations: List<AstAnnotation>,

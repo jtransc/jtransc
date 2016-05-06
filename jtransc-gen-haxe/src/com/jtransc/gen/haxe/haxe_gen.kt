@@ -1,6 +1,8 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.JTranscFunction
+import com.jtransc.annotation.JTranscInvisible
+import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
@@ -51,6 +53,19 @@ class GenHaxeGen(
 	val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", AstType.build { METHOD(STRING) }).haxeName
 	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", AstType.build { METHOD(INT) }).haxeName
 	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", AstType.build { METHOD(CLASS) }).haxeName
+
+	val invisibleExternalList = program.allAnnotations
+		.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull()
+		.flatMap { it.classes.toList() }
+
+	fun AstClass.isVisible(): Boolean {
+		if (this.fqname in invisibleExternalList) return false
+		if (this.annotations.contains<JTranscInvisible>()) return false
+		return true
+	}
+
+	fun AstField.isVisible(): Boolean = !this.annotations.contains<JTranscInvisible>()
+	fun AstMethod.isVisible(): Boolean = !this.annotations.contains<JTranscInvisible>()
 
 	fun AstExpr.genNotNull(): String {
 		return if (this is AstExpr.THIS) {
@@ -216,18 +231,23 @@ class GenHaxeGen(
 			val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
 			val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
 			line("R.i(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + visibleAnnotations(clazz.runtimeAnnotations) + ");")
-			for ((slot, field) in clazz.fields.withIndex()) {
-				val internalName = field.haxeName
-				line("R.f(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${visibleAnnotations(field.annotations)});");
-			}
-			for ((slot, method) in clazz.methods.withIndex()) {
-				val internalName = method.haxeName
-				if (method.name == "<init>") {
-					line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
-				} else if (method.name == "<clinit>") {
-				} else {
-					val methodId = program.getMethodId(method.ref)
-					line("R.m(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
+			if (clazz.isVisible()) {
+				for ((slot, field) in clazz.fields.withIndex()) {
+					val internalName = field.haxeName
+					if (field.isVisible()) {
+						line("R.f(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${visibleAnnotations(field.annotations)});");
+					}
+				}
+				for ((slot, method) in clazz.methods.withIndex()) {
+					val internalName = method.haxeName
+					if (method.isVisible()) {
+						if (method.name == "<init>") {
+							line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
+						} else if (method.name == "<clinit>") {
+						} else {
+							line("R.m(c, ${method.id}, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
+						}
+					}
 				}
 			}
 			line("return c;")
@@ -757,7 +777,7 @@ class GenHaxeGen(
 							}
 						}
 					} else {
-						line("$decl { HaxeNatives.debugger(); throw " + "Native or abstract: ${clazz.name}.${method.name} :: ${method.desc}".quote() + "; }")
+						line("$decl { throw R.n(HAXE_CLASS_NAME, ${method.id}); }")
 					}
 				}
 			}
@@ -1003,7 +1023,7 @@ class GenHaxeGen(
 						val margBoxedNames = methodType.args.map { it.type.box(it.name) }.joinToString(", ")
 						val typeStr = methodType.functionalType
 						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]
-						val methodId = program.getMethodId(mainMethod.ref)
+						val methodId = mainMethod.id
 
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { return " + methodType.ret.unbox("this._invoke($methodId, [$margBoxedNames]") + ");  }")
 					}

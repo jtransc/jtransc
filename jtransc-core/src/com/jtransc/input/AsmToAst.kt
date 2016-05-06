@@ -84,16 +84,17 @@ class AsmToAst : AstClassGenerator {
 		program.add(astClass)
 
 
-		classNode.getMethods().forEach { astClass.add(generateMethod(astClass, it)) }
-		classNode.getFields().forEach { astClass.add(generateField(astClass, it)) }
+		classNode.getMethods().withIndex().forEach { astClass.add(generateMethod(astClass, it.value, it.index)) }
+		classNode.getFields().withIndex().forEach { astClass.add(generateField(astClass, it.value, it.index)) }
 
 		return astClass
 	}
 
-	fun generateMethod(containingClass: AstClass, method: MethodNode): AstMethod {
+	fun generateMethod(containingClass: AstClass, method: MethodNode, id: Int): AstMethod {
 		val mods = AstModifiers(method.access)
 		val methodRef = method.astRef(containingClass.ref)
 		return AstMethod(
+			id = id,
 			containingClass = containingClass,
 			annotations = method.getAnnotations(),
 			parameterAnnotations = method.getParameterAnnotations(),
@@ -119,9 +120,10 @@ class AsmToAst : AstClassGenerator {
 		)
 	}
 
-	fun generateField(containingClass: AstClass, field: FieldNode): AstField {
+	fun generateField(containingClass: AstClass, field: FieldNode, id: Int): AstField {
 		val mods = AstModifiers(field.access)
 		return AstField(
+			id = id,
 			containingClass = containingClass,
 			name = field.name,
 			annotations = field.getAnnotations(),
