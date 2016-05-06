@@ -2,8 +2,6 @@ package com.jtransc.io;
 
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
-import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -60,14 +58,14 @@ public class JTranscSyncIO {
 		public native String[] list(String file);
 
 		@Override
-		@HaxeMethodBodySys("return HaxeNatives.str(Sys.getCwd());")
-		@HaxeMethodBodyJs("return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));")
+		@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getCwd());")
+		@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));")
 		@HaxeMethodBody("return HaxeNatives.str('');")
 		public native String getCwd();
 
 		@Override
-		@HaxeMethodBodySys("return Sys.setCwd(p0._str);")
-		@HaxeMethodBodyJs("untyped __js__('process.chdir({0})', p0._str);")
+		@HaxeMethodBody(target = "sys", value = "return Sys.setCwd(p0._str);")
+		@HaxeMethodBody(target = "js", value = "untyped __js__('process.chdir({0})', p0._str);")
 		@HaxeMethodBody("")
 		public native void setCwd(String path);
 	};

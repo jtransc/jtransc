@@ -19,7 +19,6 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyFlash;
 import com.jtransc.annotation.haxe.HaxeRemoveField;
 
 // Flash-compatible intrinsics that will use fastest inlined memory access
@@ -35,7 +34,7 @@ final public class Mem {
 	@HaxeRemoveField
 	static private FastMemory mem;
 
-	@HaxeMethodBodyFlash("flash.Memory.select(p0._data.getData());")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.select(p0._data.getData());")
 	@HaxeMethodBody("" +
 		"var mem   = p0._data;\n" +
 		"bytes     = mem;\n" +
@@ -50,70 +49,70 @@ final public class Mem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.getByte(p0 << 0);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.getByte(p0 << 0);")
 	@HaxeMethodBody("return byteMem.get(p0);")
 	static public int li8(int address) {
 		return mem.getAlignedInt8(address);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.getUI16(p0 << 1);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.getUI16(p0 << 1);")
 	@HaxeMethodBody("return shortMem.get(p0);")
 	static public int li16(int address2) {
 		return mem.getAlignedInt16(address2);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.getI32(p0 << 2);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.getI32(p0 << 2);")
 	@HaxeMethodBody("return intMem.get(p0);")
 	static public int li32(int address4) {
 		return mem.getAlignedInt32(address4);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.getFloat(p0 << 2);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.getFloat(p0 << 2);")
 	@HaxeMethodBody("return floatMem.get(p0);")
 	static public float lf32(int address4) {
 		return mem.getAlignedFloat32(address4);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash flash.Memory.getDouble(p0 << 3);")
+	@HaxeMethodBody(target = "flash", value = "return flash flash.Memory.getDouble(p0 << 3);")
 	@HaxeMethodBody("return floatMem.get(p0);")
 	static public double lf64(int address8) {
 		return mem.getAlignedFloat64(address8);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("flash flash.Memory.setByte(p0 << 0, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash flash.Memory.setByte(p0 << 0, p1);")
 	@HaxeMethodBody("byteMem.set(p0, p1);")
 	static public void si8(int address, int value) {
 		mem.setAlignedInt8(address, value);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("flash.Memory.setI16(p0 << 1, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.setI16(p0 << 1, p1);")
 	@HaxeMethodBody("shortMem.set(p0, p1);")
 	static public void si16(int address2, int value) {
 		mem.setAlignedInt16(address2, value);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("flash.Memory.setI32(p0 << 2, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.setI32(p0 << 2, p1);")
 	@HaxeMethodBody("intMem.set(p0, p1);")
 	static public void si32(int address4, int value) {
 		mem.setAlignedInt32(address4, value);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("flash.Memory.setFloat(p0 << 2, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.setFloat(p0 << 2, p1);")
 	@HaxeMethodBody("floatMem.set(p0, p1);")
 	static public void sf32(int address4, float value) {
 		mem.setAlignedFloat32(address4, value);
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("flash.Memory.setDouble(p0 << 3, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.setDouble(p0 << 3, p1);")
 	@HaxeMethodBody("floatMem.set(p0, p1);")
 	static public void sf64(int address8, double value) {
 		mem.setAlignedFloat64(address8, value);

@@ -191,6 +191,8 @@ fun _castLiteral(value: Int, to: AstType): Any {
 	}
 }
 
+fun <T> Class<T>.ref() = AstType.REF(this.name)
+
 fun _castLiteral(value: Long, to: AstType): Any {
 	return when (to) {
 		AstType.BOOL -> value.toBool()

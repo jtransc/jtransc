@@ -16,34 +16,33 @@
 
 package com.jtransc.gen.haxe
 
+import com.jtransc.JTranscVersion
+import com.jtransc.annotation.haxe.*
+import com.jtransc.ast.*
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
-import com.jtransc.gen.*
+import com.jtransc.error.noImpl
+import com.jtransc.gen.GenTarget
+import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.GenTargetInfo
+import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
+import com.jtransc.template.Minitemplate
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserKey
 import com.jtransc.vfs.getCached
-import com.jtransc.JTranscVersion
-import com.jtransc.annotation.haxe.HaxeAddAssets
-import com.jtransc.annotation.haxe.HaxeAddLibraries
-import com.jtransc.annotation.haxe.HaxeCustomBuildCommandLine
-import com.jtransc.ast.*
-import com.jtransc.gen.haxe.GenHaxeLime.mergedAssetsFolder
-import com.jtransc.template.Minitemplate
 import java.io.File
+import java.lang.reflect.Proxy
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
 	override val name = "haxe"
 	override val longName = "Haxe"
 	override val sourceExtension = "hx"
 	override val outputExtension = "bin"
-	override val subtargets = HaxeSubtarget.values().map {
-		GenTargetSubDescriptor(HaxeGenDescriptor, it.name.toLowerCase(), it.extension)
-	}
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override fun getGenerator() = GenHaxe
@@ -51,33 +50,6 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
 val HaxeFeatures = setOf(SwitchesFeature)
-
-enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin", val interpreterSuffix: String = "") {
-	JS(switch = "-js", singleFile = true, interpreter = "node", extension = "js"),
-	CPP(switch = "-cpp", singleFile = false, interpreter = null, extension = "exe"),
-	SWF(switch = "-swf", singleFile = true, interpreter = null, extension = "swf"),
-	NEKO(switch = "-neko", singleFile = true, interpreter = "neko", extension = "n"),
-	PHP(switch = "-php", singleFile = false, interpreter = "php", extension = "php", interpreterSuffix = "/index.php"),
-	CS(switch = "-cs", singleFile = false, interpreter = null, extension = "exe"),
-	JAVA(switch = "-java", singleFile = false, interpreter = "java -jar", extension = "jar"),
-	PYTHON(switch = "-python", singleFile = true, interpreter = "python", extension = "py")
-	;
-
-	companion object {
-		fun fromString(subtarget: String) = when (subtarget.toLowerCase()) {
-			"" -> HaxeSubtarget.JS
-			"js", "javascript" -> HaxeSubtarget.JS
-			"cpp", "c", "c++" -> HaxeSubtarget.CPP
-			"swf", "flash", "as3" -> HaxeSubtarget.SWF
-			"neko" -> HaxeSubtarget.NEKO
-			"php" -> HaxeSubtarget.PHP
-			"cs", "c#" -> HaxeSubtarget.CS
-			"java" -> HaxeSubtarget.JAVA
-			"python" -> HaxeSubtarget.PYTHON
-			else -> throw InvalidOperationException("Unknown subtarget '$subtarget'")
-		}
-	}
-}
 
 private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
@@ -124,7 +96,7 @@ fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
 	}
 }
 
-fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder:File?) {
+fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
 	val program = this.program
 	val files = program.classes.map { it.annotations[HaxeAddAssets::value] }.filterNotNull().flatMap { it.toList() }
 	//val assetsFolder = settings.assets.firstOrNull()
@@ -147,8 +119,79 @@ object HaxeGenTools {
 	}
 }
 
+val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
+
+class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings, val actualSubtarget: HaxeAddSubtarget) {
+	val program = tinfo.program
+	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
+	val tempAssetsDir = tinfo.mergedAssetsFolder
+	val tempdir = tinfo.targetDirectory
+	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
+
+	val params = hashMapOf(
+		"srcFolder" to srcFolder.realpathOS,
+		"haxeExtraFlags" to program.haxeExtraFlags(settings),
+		"haxeExtraDefines" to program.haxeExtraDefines(settings),
+		"actualSubtarget" to actualSubtarget,
+		"outputFile" to outputFile2.absolutePath,
+		"release" to tinfo.settings.release,
+		"debug" to !tinfo.settings.release,
+		"settings" to settings,
+		"title" to settings.title,
+		"name" to settings.name,
+		"package" to settings.package_,
+		"version" to settings.version,
+		"company" to settings.company,
+		"initialWidth" to settings.initialWidth,
+		"initialHeight" to settings.initialHeight,
+		"orientation" to settings.orientation.lowName,
+		"haxeExtraFlags" to program.haxeExtraFlags(settings),
+		"haxeExtraDefines" to program.haxeExtraDefines(settings),
+		"tempAssetsDir" to tempAssetsDir,
+		"embedResources" to settings.embedResources,
+		"assets" to settings.assets,
+		"hasIcon" to !settings.icon.isNullOrEmpty(),
+		"icon" to settings.icon,
+		"libraries" to settings.libraries
+	)
+
+	init {
+		params["defaultBuildCommand"] = {
+			Minitemplate("""
+				haxe
+				-cp
+				{{ srcFolder }}
+				-main
+				{{ entryPointFile }}
+				{% if debug %}
+					-debug
+				{% end %}
+				{{ actualSubtarget.cmdSwitch }}
+				{{ outputFile }}
+				{% for flag in haxeExtraFlags %}
+					{{ flag.first }}
+					{{ flag.second }}
+				{% end %}
+				{% for define in haxeExtraDefines %}
+					-D
+					define
+				{% end %}
+			""").invoke(params)
+		}
+	}
+
+	fun setProgramInfo(info: GenHaxe.ProgramInfo) {
+		params["entryPointFile"] = info.entryPointFile
+		params["entryPointClass"] = names.getHaxeClassFqName(info.entryPointClass)
+	}
+
+	fun gen(template: String): String = Minitemplate(names.template(template)).invoke(params)
+}
+
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {
-	val actualSubtarget = HaxeSubtarget.fromString(tinfo.subtarget)
+	val actualSubtargetName = tinfo.subtarget
+	val availableHaxeSubtargets = tinfo.program.allAnnotations.map { it.toObject<HaxeAddSubtargetList>() }.filterNotNull().flatMap { it.value.toList() }
+	val actualSubtarget: HaxeAddSubtarget = availableHaxeSubtargets.first { it.name == actualSubtargetName }
 
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
 	//val tempdir = System.getProperty("java.io.tmpdir")
@@ -157,39 +200,28 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	lateinit var gen: GenHaxeGen
 	val program = tinfo.program
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
+	val tempAssetsDir = tinfo.mergedAssetsFolder
+	val tempAssetsVfs = LocalVfs(tempAssetsDir)
+	val names = HaxeNames(program, minimize = settings.minimizeNames)
+	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget)
 
 	override fun buildSource() {
 		gen = GenHaxeGen(
+			tinfo = tinfo,
 			program = program,
 			features = AstFeatures(),
 			srcFolder = srcFolder,
 			featureSet = HaxeFeatures,
-			settings = settings
+			settings = settings,
+			names = names,
+			haxeTemplateString = haxeTemplateString
 		)
 		info = gen._write()
+		haxeTemplateString.setProgramInfo(info!!)
 	}
 
 	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
-	val BUILD_COMMAND = """
-		haxe
-		-cp
-		{{ srcFolder }}
-		-main
-		{{ entryPointFile }}
-		{% if debug %}
-			-debug
-		{% end %}
-		{{ actualSubtarget.switch }}
-		{{ outputFile }}
-		{% for flag in haxeExtraFlags %}
-			{{ flag.first }}
-			{{ flag.second }}
-		{% end %}
-		{% for define in haxeExtraDefines %}
-			-D
-			define
-		{% end %}
-	"""
+
 
 	override fun compile(): Boolean {
 		val names = tinfo
@@ -201,56 +233,16 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		program.haxeInstallRequiredLibs(settings)
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
-		val tempAssetsDir = tinfo.mergedAssetsFolder
-		val tempAssetsVfs = LocalVfs(tempAssetsDir)
-
 		log("Copying assets... ")
 		for (asset in settings.assets) {
 			LocalVfs(asset).copyTreeTo(tempAssetsVfs)
 		}
 
-		val params = hashMapOf(
-			"srcFolder" to srcFolder.realpathOS,
-			"entryPointFile" to info.entryPointFile,
-			"haxeExtraFlags" to program.haxeExtraFlags(settings),
-			"haxeExtraDefines" to program.haxeExtraDefines(settings),
-			"actualSubtarget" to actualSubtarget,
-			"outputFile" to outputFile2.absolutePath,
-			"release" to tinfo.settings.release,
-			"debug" to !tinfo.settings.release,
-			"settings" to settings,
-			"title" to settings.title,
-			"name" to settings.name,
-			"package" to settings.package_,
-			"version" to settings.version,
-			"company" to settings.company,
-			"initialWidth" to settings.initialWidth,
-			"initialHeight" to settings.initialHeight,
-			"orientation" to settings.orientation.lowName,
-			"entryPointClass" to gen.names.getHaxeClassFqName(info.entryPointClass),
-			"haxeExtraFlags" to program.haxeExtraFlags(settings),
-			"haxeExtraDefines" to program.haxeExtraDefines(settings),
-			"tempAssetsDir" to tempAssetsDir,
-			"embedResources" to settings.embedResources,
-			"assets" to settings.assets,
-			"hasIcon" to !settings.icon.isNullOrEmpty(),
-			"icon" to settings.icon,
-			"libraries" to settings.libraries
-		)
-
-		params["defaultBuildCommand"] = { Minitemplate(BUILD_COMMAND).invoke(params) }
-
-
 		log("Compiling... ")
 
-		val customCommand = program.allAnnotations[HaxeCustomBuildCommandLine::value]
-		val ACTUAL_BUILD_COMMAND = if (customCommand != null) {
-			customCommand.joinToString("\n")
-		} else {
-			BUILD_COMMAND
-		}
-
-		val cmd = Minitemplate(ACTUAL_BUILD_COMMAND).invoke(params).split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+		val cmd = haxeTemplateString.gen(
+			program.allAnnotations[HaxeCustomBuildCommandLine::value]?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
+		).split("\n").map { it.trim() }.filter { it.isNotEmpty() }
 
 		log("Compiling: ${cmd.joinToString(" ")}")
 		println("Compiling: ${cmd.joinToString(" ")}")
@@ -265,8 +257,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
 		val parentDir = outputFile2.parentFile
 
-		val runner = actualSubtarget.interpreter ?: "echo"
-
+		val runner = actualSubtarget.interpreter
 		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
 
 		println("Running: $runner ${arguments.joinToString(" ")}")

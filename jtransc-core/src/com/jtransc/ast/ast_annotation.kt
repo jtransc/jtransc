@@ -2,6 +2,11 @@ package com.jtransc.ast
 
 import com.jtransc.ds.stripNulls
 import com.jtransc.ds.toTypedArray2
+import com.jtransc.lang.Dynamic
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+import java.util.*
 import kotlin.reflect.KProperty1
 
 data class AstAnnotation(
@@ -25,9 +30,52 @@ data class AstAnnotation(
 	}
 }
 
+class AstAnnotationList(val list: List<AstAnnotation>) {
+
+}
+
+inline fun <reified T : Any> AstAnnotation.toObject(): T? {
+	return this.toObject(T::class.java)
+}
+
+fun <T> AstAnnotation.toObject(clazz: Class<T>): T? {
+	return if (clazz.name == this.type.fqname) toAnyObject() as T else null
+}
+
+fun AstAnnotation.toAnyObject(): Any? {
+	val classLoader = this.javaClass.classLoader
+
+	fun minicast(it: Any?, type: Class<*>): Any? {
+		return when (it) {
+			is List<*> -> {
+				val array = java.lang.reflect.Array.newInstance(type.componentType, it.size)
+				for (n in 0 until it.size) java.lang.reflect.Array.set(array, n, minicast(it[n], type.componentType))
+				array
+			}
+			is AstAnnotation -> {
+				it.toAnyObject()
+			}
+			else -> {
+				it
+			}
+		}
+	}
+
+	return Proxy.newProxyInstance(classLoader, arrayOf(classLoader.loadClass(this.type.fqname))) { proxy, method, args ->
+		val valueUncasted = this.elements[method.name] ?: method.defaultValue
+		val returnType = method.returnType
+		minicast(valueUncasted, returnType)
+	}
+}
+
 operator fun List<AstAnnotation>?.get(name: FqName): AstAnnotation? {
 	val ref = AstType.REF(name)
 	return this?.firstOrNull { it.type == ref }
+}
+
+inline fun <reified T : Any> List<AstAnnotation>?.getTyped(): T? {
+	val ref = AstType.REF(T::class.java.name)
+	return this?.firstOrNull { it.type == ref }?.toObject<T>()
 }
 
 operator fun List<AstAnnotation>?.get(name: FqName, field: String): Any? {

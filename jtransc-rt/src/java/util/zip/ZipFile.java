@@ -19,7 +19,6 @@ package java.util.zip;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 import com.jtransc.internal.Inflater;
 
 import java.io.*;
@@ -251,7 +250,7 @@ public class ZipFile implements Closeable {
 		return new ByteArrayInputStream(getCompressedBytes(entry));
 	}
 
-	@HaxeMethodBodySys("" +
+	@HaxeMethodBody(target = "sys", value = "" +
 		"var u = new haxe.zip.Uncompress(-15);\n" +
 		"var src = p0.getBytes();\n" +
 		"var dst = haxe.io.Bytes.alloc(p1);\n" +

@@ -17,7 +17,6 @@
 import com.jtransc.AllBuild
 import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
-import com.jtransc.annotation.haxe.HaxeMethodBodyEntry
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.haxe.HaxeGenDescriptor
@@ -144,7 +143,7 @@ class HaxeGenSuiteTest {
 
 	@Test fun wrappedTest() = testClass<WrappedTest>()
 
-	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true) {
+	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
 

@@ -4,10 +4,12 @@ import com.jtransc.JTranscFunction
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
+import com.jtransc.ds.concatNotNull
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
 import com.jtransc.ffi.StdCall
+import com.jtransc.gen.GenTargetInfo
 import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
@@ -23,9 +25,11 @@ class GenHaxeGen(
 	val features: AstFeatures,
 	val srcFolder: SyncVfsFile,
 	val featureSet: Set<AstFeature>,
-	val settings: AstBuildSettings
+	val settings: AstBuildSettings,
+	val tinfo: GenTargetInfo,
+	val names: HaxeNames,
+	val haxeTemplateString: HaxeTemplateString
 ) {
-	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val refs = References()
 	val context = AstGenContext()
 	lateinit var mutableBody: MutableBody
@@ -87,7 +91,7 @@ class GenHaxeGen(
 		val copyFilesTemplate = program.classes.flatMap { it.annotations[HaxeAddFilesTemplate::value]?.toList() ?: listOf() }
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
-		for (file in copyFilesTemplate) vfs[file] = program.resourcesVfs[file].readString().template()
+		for (file in copyFilesTemplate) vfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
@@ -162,6 +166,7 @@ class GenHaxeGen(
 				is Float -> "HaxeNatives.boxFloat($it)"
 				is Double -> "HaxeNatives.boxDouble($it)"
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
+				is com.jtransc.org.objectweb.asm.Type -> "HaxeNatives.resolveClass(" + it.descriptor.quote() + ")"
 				else -> invalidOp("Can't handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
@@ -637,46 +642,37 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
-	val targetsMethodBody = mapOf(
-		"flash" to HaxeMethodBodyFlash::value.ref(),
-		"js" to HaxeMethodBodyJs::value.ref(),
-		"sys" to HaxeMethodBodySys::value.ref(),
-		"cpp" to HaxeMethodBodyCpp::value.ref(),
-		"neko" to HaxeMethodBodyNeko::value.ref(),
-		"java" to HaxeMethodBodyJava::value.ref(),
-		"csharp" to HaxeMethodBodyCSharp::value.ref(),
-		"php" to HaxeMethodBodyPhp::value.ref(),
-		"python" to HaxeMethodBodyPython::value.ref()
-	)
-
 	private fun AstMethod.getHaxeNativeBody(): String? {
 		val method = this
-		val defaultBody = method.annotations[HaxeMethodBody::value]
-		return if (defaultBody == null) {
-			null
-		} else {
-			val extraBodies = targetsMethodBody.map {
-				val str = method.annotations[it.value]
-				if (str != null) it.key to str else null
-			}.filterNotNull().toMap()
 
+		val bodyList = method.annotations.getTyped<HaxeMethodBodyList>()
+		val bodyEntry = method.annotations.getTyped<HaxeMethodBody>()
+		val bodies = listOf(bodyList?.value?.toList(), listOf(bodyEntry)).concatNotNull()
+
+		return if (bodies.size > 0) {
+			val pre = method.annotations.getTyped<HaxeMethodBodyPre>()?.value ?: ""
+			val post = method.annotations.getTyped<HaxeMethodBodyPost>()?.value ?: ""
+
+			val bodiesmap = bodies.map { it.target to it.value }.toMap()
+			val defaultbody = bodiesmap[""] ?: invalidOp(HaxeMethodBody::class.java.name + " without default target")
+			val extrabodies = bodiesmap.filterKeys { it != "" }
 			return Indenter.genString {
-				var first = true
-				val pre = method.annotations[HaxeMethodBodyAllPre::value]
-				val post = method.annotations[HaxeMethodBodyAllPost::value]
-				if (pre != null) line(pre)
-				if (extraBodies.isNotEmpty()) {
-					for ((target, body) in extraBodies) {
-						line(if (first) "#if ($target) $body" else "#elseif ($target) $body")
+				line(pre)
+				if (extrabodies.size == 0) {
+					line(defaultbody)
+				} else {
+					var first = true
+					for ((target, extrabody) in extrabodies) {
+						line((if (first) "#if" else "#elseif") + " ($target) $extrabody")
 						first = false
 					}
-					line("#else $defaultBody")
+					line("#else $defaultbody")
 					line("#end")
-				} else {
-					line(defaultBody)
 				}
-				if (post != null) line(post)
+				line(post)
 			}
+		} else {
+			null
 		}
 	}
 

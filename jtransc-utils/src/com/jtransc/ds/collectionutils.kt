@@ -163,3 +163,22 @@ infix fun Int.clearFlags(that:Int) = (this and that.inv())
 infix fun Int.hasFlag(that:Int) = (this and that) != 0
 infix fun Int.hasAnyFlags(that:Int) = (this and that) != 0
 infix fun Int.hasAllFlags(that:Int) = (this and that) == that
+
+fun <T> List<List<T?>?>?.concatNotNull(): List<T> {
+	val out = arrayListOf<T>()
+	if (this != null) for (l in this) {
+		if (l != null) {
+			for (i in l) {
+				if (i != null) out += i
+			}
+		}
+	}
+	return out
+}
+
+fun <T> Concat(vararg list: List<T>?): List<T> {
+	var out = listOf<T>()
+	for (l in list) if (l != null) out += l
+	return out
+}
+

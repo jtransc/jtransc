@@ -7,9 +7,11 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 	"{{ defaultBuildCommand() }}",
 	"-D", "custombuildtestwork",
 })
-
 public class CustomBuildTest {
-	@HaxeMethodBody("#if custombuildtestwork return true; #else return false; #end")
+	//@HaxeMethodBody("#if custombuildtestwork return true; #else return false; #end")
+	//@HaxeMethodBodyEntry("")
+	@HaxeMethodBody(target = "custombuildtestwork", value = "return true;")
+	@HaxeMethodBody("return false;")
 	static public boolean worked() {
 		return true;
 	}

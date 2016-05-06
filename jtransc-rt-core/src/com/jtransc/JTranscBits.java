@@ -19,7 +19,6 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyFlash;
 
 @JTranscInvisible
 public class JTranscBits {
@@ -60,16 +59,16 @@ public class JTranscBits {
 		return (((b3 & 0xFF) << 24) | ((b2 & 0xFF) << 16) | ((b1 & 0xFF) << 8) | ((b0 & 0xFF) << 0));
 	}
 
-    static public int makeInt(byte[] bytes) {
-        return makeInt(bytes[0], bytes[1], bytes[2], bytes[3]);
-    }
+	static public int makeInt(byte[] bytes) {
+		return makeInt(bytes[0], bytes[1], bytes[2], bytes[3]);
+	}
 
-    static public int makeInt(byte[] bytes, int offset) {
-        return makeInt(bytes[offset + 0], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
-    }
+	static public int makeInt(byte[] bytes, int offset) {
+		return makeInt(bytes[offset + 0], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+	}
 
 
-    public static byte long7(long x) {
+	public static byte long7(long x) {
 		return (byte) (x >> 56);
 	}
 
@@ -134,8 +133,8 @@ public class JTranscBits {
 		if (offset < 0 || out.length - offset < 4) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
-		out[offset + 0] = (byte) (value >>  0);
-		out[offset + 1] = (byte) (value >>  8);
+		out[offset + 0] = (byte) (value >> 0);
+		out[offset + 1] = (byte) (value >> 8);
 		out[offset + 2] = (byte) (value >> 16);
 		out[offset + 3] = (byte) (value >> 24);
 	}
@@ -246,28 +245,28 @@ public class JTranscBits {
 	}
 
 	static public byte[] getInt64BE(byte[] data, long v) {
-		data[0] = (byte)(v >> 56);
-		data[1] = (byte)(v >> 48);
-		data[2] = (byte)(v >> 40);
-		data[3] = (byte)(v >> 32);
-		data[4] = (byte)(v >> 24);
-		data[5] = (byte)(v >> 16);
-		data[6] = (byte)(v >> 8);
-		data[7] = (byte)(v >> 0);
+		data[0] = (byte) (v >> 56);
+		data[1] = (byte) (v >> 48);
+		data[2] = (byte) (v >> 40);
+		data[3] = (byte) (v >> 32);
+		data[4] = (byte) (v >> 24);
+		data[5] = (byte) (v >> 16);
+		data[6] = (byte) (v >> 8);
+		data[7] = (byte) (v >> 0);
 		return data;
 	}
 
 	static public byte[] getInt32BE(byte[] data, int v) {
-		data[0] = (byte)(v >> 24);
-		data[1] = (byte)(v >> 16);
-		data[2] = (byte)(v >> 8);
-		data[3] = (byte)(v >> 0);
+		data[0] = (byte) (v >> 24);
+		data[1] = (byte) (v >> 16);
+		data[2] = (byte) (v >> 8);
+		data[3] = (byte) (v >> 0);
 		return data;
 	}
 
 	static public byte[] getInt16BE(byte[] data, short v) {
-		data[0] = (byte)(v >> 8);
-		data[1] = (byte)(v >> 0);
+		data[0] = (byte) (v >> 8);
+		data[1] = (byte) (v >> 0);
 		return data;
 	}
 
@@ -277,7 +276,7 @@ public class JTranscBits {
 	}
 
 	static public short readInt16BE(byte[] data) {
-		return (short)((data[0] << 8) | (data[1] & 0xFF));
+		return (short) ((data[0] << 8) | (data[1] & 0xFF));
 	}
 
 	static public int readInt32BE(byte[] data) {
@@ -291,21 +290,21 @@ public class JTranscBits {
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.signExtend1(p0);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend1(p0);")
 	@HaxeMethodBody("return N.signExtend(p0, 1);")
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.signExtend8(p0);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend8(p0);")
 	@HaxeMethodBody("return N.i2b(p0);")
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return flash.Memory.signExtend16(p0);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend16(p0);")
 	@HaxeMethodBody("return N.i2s(p0);")
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;

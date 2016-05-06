@@ -124,7 +124,8 @@ object JTranscMain {
 			}
 
 			if (targetName == null && out != null) {
-				targetName = targets.locateTargetByOutExt(File(out).extension).fullName
+				//targetName = targets.locateTargetByOutExt(File(out).extension).fullName
+				targetName = "auto"
 			}
 
 			val target = targets.locateTargetByName(targetName ?: "js")

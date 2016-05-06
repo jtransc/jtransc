@@ -50,7 +50,19 @@ class Minitemplate(val template: String) {
 		}
 
 		data class ACCESS(val expr: ExprNode, val name: ExprNode) : ExprNode {
-			override fun eval(context: Context): Any? = Dynamic.accessAny(expr.eval(context), name.eval(context))
+			override fun eval(context: Context): Any? {
+				val obj = expr.eval(context)
+				val key = name.eval(context)
+				try {
+					return Dynamic.accessAny(obj, key)
+				} catch (t:Throwable) {
+					try {
+						return Dynamic.callAny(obj, key, listOf())
+					} catch (t: Throwable) {
+						return null
+					}
+				}
+			}
 		}
 
 		data class CALL(val method: ExprNode, val args: List<ExprNode>) : ExprNode {

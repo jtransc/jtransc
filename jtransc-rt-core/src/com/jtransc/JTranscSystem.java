@@ -11,7 +11,7 @@ public class JTranscSystem {
 		return System.currentTimeMillis();
 	}
 
-	@HaxeMethodBodySys("Sys.sleep(p0 / 1000.0);")
+	@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
 	@HaxeMethodBody("var start = N.getTime(); while (N.getTime() - start < p0) { }") // BUSY WAIT!
 	static public void sleep(double ms) {
 		try {
@@ -30,17 +30,17 @@ public class JTranscSystem {
 		return second - first;
 	}
 
-	@HaxeMethodBodyCpp("cpp.vm.Gc.enable(false);")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);")
 	@HaxeMethodBody("")
 	static public void gcDisable() {
 	}
 
-	@HaxeMethodBodyCpp("cpp.vm.Gc.enable(true);")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);")
 	@HaxeMethodBody("")
 	static public void gcEnable() {
 	}
 
-	@HaxeMethodBodyCpp("cpp.vm.Gc.compact();")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();")
 	@HaxeMethodBody("")
 	static public void gc() {
 		System.gc();
@@ -87,52 +87,52 @@ public class JTranscSystem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBodySys("return true;")
+	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isSys();
 
 	@JTranscInline
-	@HaxeMethodBodyCpp("return true;")
+	@HaxeMethodBody(target = "cpp", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isCpp();
 
 	@JTranscInline
-	@HaxeMethodBodyCSharp("return true;")
+	@HaxeMethodBody(target = "cs", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isCsharp();
 
 	@JTranscInline
-	@HaxeMethodBodyJava("return true;")
+	@HaxeMethodBody(target = "java", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isJava();
 
 	@JTranscInline
-	@HaxeMethodBodyJs("return true;")
+	@HaxeMethodBody(target = "js", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isJs();
 
 	@JTranscInline
-	@HaxeMethodBodyFlash("return true;")
+	@HaxeMethodBody(target = "flash", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isSwf();
 
 	@JTranscInline
-	@HaxeMethodBodyNeko("return true;")
+	@HaxeMethodBody(target = "neko", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isNeko();
 
 	@JTranscInline
-	@HaxeMethodBodyPhp("return true;")
+	@HaxeMethodBody(target = "php", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isPhp();
 
 	@JTranscInline
-	@HaxeMethodBodyPython("return true;")
+	@HaxeMethodBody(target = "python", value = "return true;")
 	@HaxeMethodBody("return false;")
 	native public static boolean isPython();
 
-	@HaxeMethodBodySys("return HaxeNatives.str(Sys.systemName());")
-	@HaxeMethodBodyJs("return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
+	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.systemName());")
+	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
 	@HaxeMethodBody("return HaxeNatives.str('unknown');")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");

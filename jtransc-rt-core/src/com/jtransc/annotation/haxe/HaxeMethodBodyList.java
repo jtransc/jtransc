@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface HaxeMethodBodyList {
-	HaxeMethodBodyEntry[] value() default {};
+	HaxeMethodBody[] value() default {};
 }

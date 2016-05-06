@@ -4,7 +4,6 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMeta;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -120,7 +119,7 @@ public class JTranscFFI {
 			}
 		}
 
-		@HaxeMethodBodyJs("" +
+		@HaxeMethodBody(target ="js", value = "" +
 			"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
 			"var obj:Dynamic = {};\n" +
 			"for (item in p1.toArray()) {\n" +
@@ -132,7 +131,7 @@ public class JTranscFFI {
 		public NodeFFI_Library(String name, Function[] functions) {
 		}
 
-		@HaxeMethodBodyJs("" +
+		@HaxeMethodBody(target = "js", value = "" +
 			"var name = HaxeNatives.toNativeString(p0);\n" +
 			"var args = HaxeNatives.toNativeUnboxedArray(p1);\n" +
 			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"

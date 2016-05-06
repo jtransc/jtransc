@@ -18,7 +18,6 @@ package java.lang;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 
 import java.util.Map;
 

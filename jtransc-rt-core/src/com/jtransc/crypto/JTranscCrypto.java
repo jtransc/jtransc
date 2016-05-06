@@ -1,17 +1,16 @@
 package com.jtransc.crypto;
 
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyAllPost;
-import com.jtransc.annotation.haxe.HaxeMethodBodyAllPre;
-import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
+import com.jtransc.annotation.haxe.HaxeMethodBodyPost;
+import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 
 public class JTranscCrypto {
-	@HaxeMethodBodyAllPre("" +
+	@HaxeMethodBodyPre("" +
 		"var bytes = p0;\n" +
 		"var length = bytes.length;\n" +
 		"\n"
 	)
-	@HaxeMethodBodyJs("" +
+	@HaxeMethodBody(target = "js", value = "" +
 		"try {\n" +
 		"  var _bytes = bytes.data;\n" +
 		"  untyped __js__(\"crypto.getRandomValues(_bytes);\");\n" +
@@ -21,7 +20,7 @@ public class JTranscCrypto {
 		"}\n"
 	)
 	@HaxeMethodBody("")
-	@HaxeMethodBodyAllPost("" +
+	@HaxeMethodBodyPost("" +
 		"for (n in 0 ... length) {\n" +
 		"  bytes.set(n, Std.int(Math.random() * 255));\n" +
 		"}"

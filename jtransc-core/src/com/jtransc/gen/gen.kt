@@ -89,7 +89,6 @@ abstract class GenTargetDescriptor {
 	abstract val longName: String
 	abstract val sourceExtension: String
 	abstract val outputExtension: String
-	open val subtargets: List<GenTargetSubDescriptor> = listOf()
 	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()

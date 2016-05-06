@@ -1,12 +1,11 @@
 package com.jtransc.annotation.haxe;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
+@Repeatable(value = HaxeMethodBodyList.class)
 public @interface HaxeMethodBody {
 	String value();
+	String target() default "";
 }

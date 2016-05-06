@@ -38,15 +38,11 @@ fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetS
 	val parts = target.split(":")
 	val target = this.firstOrNull { it.name == parts[0] } ?: throw Exception("Unknown target $target")
 	return if (parts.size >= 2) {
-		target.subtargets.firstOrNull { it.sub == parts[1] } ?: throw Exception("Unknown subtarget $parts")
+		GenTargetSubDescriptor(target, parts[1])
 	} else {
-		target.defaultSubtarget ?: target.subtargets.firstOrNull() ?: GenTargetSubDescriptor(target, "", "bin")
+		GenTargetSubDescriptor(target, "default")
 	}
 }
-fun Iterable<GenTargetDescriptor>.locateTargetByOutExt(ext: String): GenTargetSubDescriptor {
-	return this.map { it.subtargets }.map { it.firstOrNull { it.ext == ext } }.filterNotNull().firstOrNull() ?: throw Exception("Can't find target by extension $ext")
-}
-
 enum class BuildBackend {
 	ASM,
 }

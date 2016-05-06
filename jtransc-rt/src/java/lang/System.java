@@ -17,11 +17,8 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscSetter;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyAllPre;
-import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
-import com.jtransc.annotation.haxe.HaxeMethodBodySys;
+import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 import com.jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
@@ -127,9 +124,9 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBodyAllPre("var key = p0._str;")
-	@HaxeMethodBodySys("return HaxeNatives.str(Sys.getEnv(key));")
-	@HaxeMethodBodyJs("return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
+	@HaxeMethodBodyPre("var key = p0._str;")
+	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getEnv(key));")
+	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
 	@HaxeMethodBody("return HaxeNatives.str(null);")
 	native public static String getenv(String name);
 
@@ -141,13 +138,13 @@ public class System {
 		return defaultValue;
 	}
 
-	@HaxeMethodBodySys("return HaxeNatives.hashMap(Sys.environment());")
-	@HaxeMethodBodyJs("return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
+	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.hashMap(Sys.environment());")
+	@HaxeMethodBody(target = "js", value = "return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
 	@HaxeMethodBody("return HaxeNatives.hashMap({});")
 	native public static java.util.Map<String, String> getenv();
 
-	@HaxeMethodBodySys("Sys.exit(p0);")
-	@HaxeMethodBodyJs("untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
+	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")
+	@HaxeMethodBody(target = "js", value = "untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
 	@HaxeMethodBody("throw 'EXIT!';")
 	native public static void exit(int status);
 

@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
-public @interface HaxeMethodBodyNeko {
-	String value();
+@Target(ElementType.TYPE)
+public @interface HaxeAddSubtargetList {
+	HaxeAddSubtarget[] value() default {};
 }

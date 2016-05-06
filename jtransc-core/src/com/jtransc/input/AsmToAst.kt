@@ -1,6 +1,7 @@
 package com.jtransc.input
 
 import com.jtransc.ast.*
+import com.jtransc.ds.Concat
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
@@ -25,12 +26,6 @@ fun ClassNode.hasSuperclass() = this.superName != null
 fun ClassNode.getInterfaces() = this.interfaces.cast<String>()
 fun ClassNode.getMethods() = this.methods.cast<MethodNode>()
 fun ClassNode.getFields() = this.fields.cast<FieldNode>()
-
-fun <T> Concat(vararg list: List<T>?): List<T> {
-	var out = listOf<T>()
-	for (l in list) if (l != null) out += l
-	return out
-}
 
 private fun getAnnotations(visibleAnnotations: List<AnnotationNode>?, invisibleAnnotations: List<AnnotationNode>?): List<AstAnnotation> {
 	val visible = Concat(visibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = true) }.filterBlackList()
