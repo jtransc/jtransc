@@ -116,8 +116,8 @@ public class ClassNode extends ClassVisitor {
      * The runtime visible annotations of this class. This list is a list of
      * {@link AnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates AnnotationNode
-     * @label visible
+     * associates AnnotationNode
+     * label visible
      */
     public List<AnnotationNode> visibleAnnotations;
 
@@ -125,8 +125,8 @@ public class ClassNode extends ClassVisitor {
      * The runtime invisible annotations of this class. This list is a list of
      * {@link AnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates AnnotationNode
-     * @label invisible
+     * associates AnnotationNode
+     * label invisible
      */
     public List<AnnotationNode> invisibleAnnotations;
 
@@ -134,8 +134,8 @@ public class ClassNode extends ClassVisitor {
      * The runtime visible type annotations of this class. This list is a list
      * of {@link TypeAnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates TypeAnnotationNode
-     * @label visible
+     * associates TypeAnnotationNode
+     * label visible
      */
     public List<TypeAnnotationNode> visibleTypeAnnotations;
 
@@ -143,8 +143,8 @@ public class ClassNode extends ClassVisitor {
      * The runtime invisible type annotations of this class. This list is a list
      * of {@link TypeAnnotationNode} objects. May be <tt>null</tt>.
      * 
-     * @associates TypeAnnotationNode
-     * @label invisible
+     * associates TypeAnnotationNode
+     * label invisible
      */
     public List<TypeAnnotationNode> invisibleTypeAnnotations;
 
@@ -152,7 +152,7 @@ public class ClassNode extends ClassVisitor {
      * The non standard attributes of this class. This list is a list of
      * {@link Attribute} objects. May be <tt>null</tt>.
      * 
-     * @associates Attribute
+     * associates Attribute
      */
     public List<Attribute> attrs;
 
@@ -160,7 +160,7 @@ public class ClassNode extends ClassVisitor {
      * Informations about the inner classes of this class. This list is a list
      * of {@link InnerClassNode} objects.
      * 
-     * @associates InnerClassNode
+     * associates InnerClassNode
      */
     public List<InnerClassNode> innerClasses;
 
@@ -168,7 +168,7 @@ public class ClassNode extends ClassVisitor {
      * The fields of this class. This list is a list of {@link FieldNode}
      * objects.
      * 
-     * @associates FieldNode
+     * associates FieldNode
      */
     public List<FieldNode> fields;
 
@@ -176,7 +176,7 @@ public class ClassNode extends ClassVisitor {
      * The methods of this class. This list is a list of {@link MethodNode}
      * objects.
      * 
-     * @associates MethodNode
+     * associates MethodNode
      */
     public List<MethodNode> methods;
 

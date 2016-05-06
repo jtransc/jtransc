@@ -170,6 +170,7 @@ public abstract class Remapper {
 
     /**
      * @deprecated use {@link #createSignatureRemapper} instead.
+	 * @return SignatureVisitor
      */
     @Deprecated
     protected SignatureVisitor createRemappingSignatureAdapter(

@@ -134,8 +134,8 @@ public abstract class AbstractInsnNode {
      * number nodes). This list is a list of {@link TypeAnnotationNode} objects.
      * May be <tt>null</tt>.
      * 
-     * @associates TypeAnnotationNode
-     * @label visible
+     * associates TypeAnnotationNode
+     * label visible
      */
     public List<TypeAnnotationNode> visibleTypeAnnotations;
 
@@ -145,8 +145,8 @@ public abstract class AbstractInsnNode {
      * number nodes). This list is a list of {@link TypeAnnotationNode} objects.
      * May be <tt>null</tt>.
      * 
-     * @associates TypeAnnotationNode
-     * @label invisible
+     * associates TypeAnnotationNode
+     * label invisible
      */
     public List<TypeAnnotationNode> invisibleTypeAnnotations;
 

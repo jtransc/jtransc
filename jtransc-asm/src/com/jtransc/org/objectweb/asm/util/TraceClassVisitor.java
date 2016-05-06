@@ -44,9 +44,9 @@ import com.jtransc.org.objectweb.asm.TypePath;
  * {@link Printer}. This class visitor can be used in the middle of a class
  * visitor chain to trace the class that is visited at a given point in this
  * chain. This may be useful for debugging purposes.
- * <p>
+ *
  * The trace printed when visiting the <tt>Hello</tt> class is the following:
- * <p>
+ *
  * <blockquote>
  * 
  * <pre>
@@ -64,7 +64,7 @@ import com.jtransc.org.objectweb.asm.TypePath;
  * </pre>
  * 
  * </blockquote> where <tt>Hello</tt> is defined by:
- * <p>
+ *
  * <blockquote>
  * 
  * <pre>

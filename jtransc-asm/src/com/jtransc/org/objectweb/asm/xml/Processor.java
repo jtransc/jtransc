@@ -74,35 +74,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * <tt>javax.xml.transform.TransformerFactory</tt> must be set to one of the
  * following values.
  * 
- * <blockquote>
- * <table border="1" cellspacing="0" cellpadding="3">
- * <tr>
- * <td>jd.xslt</td>
- * <td>jd.xml.xslt.trax.TransformerFactoryImpl</td>
- * </tr>
- * 
- * <tr>
- * <td>Saxon</td>
- * <td>net.sf.saxon.TransformerFactoryImpl</td>
- * </tr>
- * 
- * <tr>
- * <td>Caucho</td>
- * <td>com.caucho.xsl.Xsl</td>
- * </tr>
- * 
- * <tr>
- * <td>Xalan interpeter</td>
- * <td>org.apache.xalan.processor.TransformerFactory</td>
- * </tr>
- * 
- * <tr>
- * <td>Xalan xsltc</td>
- * <td>org.apache.xalan.xsltc.trax.TransformerFactoryImpl</td>
- * </tr>
- * </table>
- * </blockquote>
- * 
  * @author Eugene Kuleshov
  */
 public class Processor {
