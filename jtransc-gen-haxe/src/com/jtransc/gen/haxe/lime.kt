@@ -26,6 +26,7 @@ import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.JTranscVersion
+import com.jtransc.template.Minitemplate
 import com.jtransc.vfs.parent
 import java.io.File
 
@@ -49,55 +50,79 @@ object GenHaxeLime : GenTarget {
 
 	val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
 
-	fun createLimeProjectFromSettings(tinfo: GenTargetInfo, program: AstProgram, info: GenHaxe.ProgramInfo, haxegen:GenHaxeGen, settings: AstBuildSettings) = Indenter.gen {
+	val TEMPLATE = """<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="{{ title }}" package="{{ package }}" version="{{ version }}" company="{{ company }}" />
+	<app main="{{ entryPointClass }}" path="out" file="{{ name }}" />
+	<app swf-version="11.8" />
+
+	<window width="{{ initialWidth }}" height="{{ initialHeight }}" background="#FFFFFF" />
+	<window fullscreen="false" resizable="true" borderless="false" vsync="false" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="false" stencil-buffer="true" orientation="{{ orientation }}" highdpi="true" allow-high-dpi="true" />
+	<window fullscreen="true" if="mobile" />
+	<window fps="60" unless="js" />
+	<window fps="0" if="js" />
+	<window width="0" height="0" if="html5" />
+
+	{% for flag in haxeExtraFlags %}
+		<haxeflag name="{{ flag.first }}" value="{{ flag.second }}" />
+	{% end %}
+
+	{% for define in haxeExtraDefines %}
+		<haxedef name="{{ define }}" />
+	{% end %}
+
+	<source path="src" />
+	<assets path="{{ tempAssetsDir.absolutePath }}" rename="assets" embed="{{ embedResources }}" exclude="*.ttf|*.fla|*.zip|*.swf" />
+
+	{% for asset in assets %}
+		LocalVfs(asset).copyTreeTo(tempAssetsVfs)
+	{% end %}
+
+	{% if hasIcon %}
+		<icon path="{{ settings.icon }}" />
+	{% end %}
+
+	<haxelib name="lime" />
+	{% for lib in libraries %}
+		{% if version != null %}
+			<haxelib name="{{ lib.name }}" version="{{ lib.version }}" />
+		{% else %}
+			<haxelib name="{{ lib.name }}" />
+		{% end %}
+	{% end %}
+</project>
+	"""
+
+	fun createLimeProjectFromSettings(tinfo: GenTargetInfo, program: AstProgram, info: GenHaxe.ProgramInfo, haxegen:GenHaxeGen, settings: AstBuildSettings): String {
 		val tempAssetsDir = tinfo.mergedAssetsFolder
 		val tempAssetsVfs = LocalVfs(tempAssetsDir)
 		val names = haxegen.names
 
-		line("""<?xml version="1.0" encoding="utf-8"?>""")
-		line("""<project>""")
-		indent {
-			line("""<meta title="${settings.title}" package="${settings.package_}" version="${settings.version}" company="${settings.company}" />""")
-			//line("""<app main="${info.getEntryPointFq(program)}" path="out" file="${settings.name}" />""")
-			line("""<app main="${names.getHaxeClassFqName(info.entryPointClass)}" path="out" file="${settings.name}" />""")
-			line("""<app swf-version="11.8" />""")
-
-			line("""<window width="${settings.initialWidth}" height="${settings.initialHeight}" background="#FFFFFF" />""")
-			line("""<window fullscreen="false" resizable="true" borderless="false" vsync="false" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="false" stencil-buffer="true" orientation="${settings.orientation.lowName}" highdpi="true" allow-high-dpi="true" />""")
-			line("""<window fullscreen="true" if="mobile" />""")
-			line("""<window fps="60" unless="js" />""")
-			line("""<window fps="0" if="js" />""")
-			line("""<window width="0" height="0" if="html5" />""")
-
-			for (flag in program.haxeExtraFlags(settings)) {
-				line("""<haxeflag name="${flag.first}" value="${flag.second}" />""")
-			}
-
-			for (define in program.haxeExtraDefines(settings)) {
-				line("""<haxedef name="$define" />""")
-			}
-
-			line("""<source path="src" />""")
-			line("""<assets path="${tempAssetsDir.absolutePath}" rename="assets" embed="${settings.embedResources}" exclude="*.ttf|*.fla|*.zip|*.swf" />""")
-
-			for (asset in settings.assets) {
-				LocalVfs(asset).copyTreeTo(tempAssetsVfs)
-			}
-			if (!settings.icon.isNullOrEmpty()) {
-				line("""<icon path="${settings.icon}" />""")
-			}
-			line("""<haxelib name="lime" />""")
-			for (lib in settings.libraries) {
-				if (lib.version != null) {
-					line("""<haxelib name="${lib.name}" version="${lib.version}" />""")
-				} else {
-					line("""<haxelib name="${lib.name}" />""")
-				}
-			}
-			//line("""<assets path="assets" rename="assets" />""")
+		for (asset in settings.assets) {
+			LocalVfs(asset).copyTreeTo(tempAssetsVfs)
 		}
-		line("""</project>""")
-	}.toString()
+
+		return Minitemplate(TEMPLATE)(mapOf(
+			"settings" to settings,
+			"title" to settings.title,
+			"name" to settings.name,
+			"package" to settings.package_,
+			"version" to settings.version,
+			"company" to settings.company,
+			"initialWidth" to settings.initialWidth,
+			"initialHeight" to settings.initialHeight,
+			"orientation" to settings.orientation.lowName,
+			"entryPointClass" to names.getHaxeClassFqName(info.entryPointClass),
+			"haxeExtraFlags" to program.haxeExtraFlags(settings),
+			"haxeExtraDefines" to program.haxeExtraDefines(settings),
+			"tempAssetsDir" to tempAssetsDir,
+			"embedResources" to settings.embedResources,
+			"assets" to settings.assets,
+			"hasIcon" to !settings.icon.isNullOrEmpty(),
+			"icon" to settings.icon,
+			"libraries" to settings.libraries
+		))
+	}
 
 	fun createAdobeAirDescriptor(name: String): String {
 		return Indenter.gen {
@@ -188,6 +213,8 @@ object GenHaxeLime : GenTarget {
 				projectDir["program.xml"] = createLimeProjectFromSettings(tinfo, tinfo.program, info!!, haxegen, tinfo.settings)
 			}
 
+			val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
+
 			override fun compile(): Boolean {
 				if (info == null) throw InvalidOperationException("Must call .buildSource first")
 				outputFile2.delete()
@@ -200,9 +227,16 @@ object GenHaxeLime : GenTarget {
 				val switches = if (tinfo.settings.release) listOf() else listOf("-debug")
 
 				println("Compiling...")
-				val args = listOf("run", "lime") + switches + listOf("build", actualSubtarget.type)
-				println("haxelib " + args.joinToString(" "))
-				return ProcessUtils.runAndRedirect(projectDir.realfile, "haxelib", args).success
+
+				val CMD = BUILD_COMMAND.flatMap { when (it) {
+					"@@SWITCHES" -> switches
+					"@@SUBTARGET" -> listOf(actualSubtarget.type)
+					else -> listOf(it)
+				}  }
+
+				println(CMD.joinToString(" "))
+
+				return ProcessUtils.runAndRedirect(projectDir.realfile, CMD.first(), CMD.drop(1)).success
 			}
 
 			override fun run(redirect: Boolean): ProcessResult2 {

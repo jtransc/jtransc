@@ -17,6 +17,7 @@
 import com.jtransc.AllBuild
 import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
+import com.jtransc.annotation.haxe.HaxeMethodBodyEntry
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.haxe.HaxeGenDescriptor
@@ -39,6 +40,7 @@ import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
+import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.FastMemoryTest
 import jtransc.rt.test.*
 import org.junit.Assert
@@ -133,6 +135,8 @@ class HaxeGenSuiteTest {
 
 	@Test fun java8Test() = testClass<Java8Test>()
 	//@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>()
+
+	@Test fun customBuild() = testClass<CustomBuildTest>()
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 

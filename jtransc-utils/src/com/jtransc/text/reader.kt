@@ -31,7 +31,7 @@ class StrReader(val str:String) {
 		if (offset >= length) return ""
 		return this.str.substring(offset, Math.min(length, offset + count))
 	}
-	fun peekch():Char = this.str[offset]
+	fun peekch():Char = if (hasMore) this.str[offset] else 0.toChar()
 	fun read(count:Int):String {
 		val out = this.peek(count)
 		this.offset += count
@@ -160,4 +160,8 @@ inline fun StrReader.readWhile(cond: (Char) -> Boolean):String? {
 			this.readch()
 		}
 	}
+}
+
+inline fun StrReader.readUntil(cond: (Char) -> Boolean):String? {
+	return readWhile { !cond(it) }
 }

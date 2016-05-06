@@ -61,6 +61,10 @@ object ProcessUtils {
 		return run(currentDir, command, args, redirect = true)
 	}
 
+	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>): ProcessResult2 {
+		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), redirect = true)
+	}
+
 	open class ProcessHandler(val parent: ProcessHandler? = null) {
 		open fun onStarted(): Unit = parent?.onStarted() ?: Unit
 		open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit

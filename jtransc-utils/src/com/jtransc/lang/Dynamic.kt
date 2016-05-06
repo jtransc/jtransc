@@ -4,6 +4,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.noImpl
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.util.*
 
 object Dynamic {
 	@Suppress("UNCHECKED_CAST")
@@ -55,12 +56,30 @@ object Dynamic {
 		}
 	}
 
-	fun toIterable(instance: Any?): Iterable<*> {
-		return when (instance) {
+	fun toIterable(it: Any?): Iterable<*> {
+		return when (it) {
 			null -> listOf<Any?>()
-			is Iterable<*> -> instance
-			is CharSequence -> instance.toList()
+			is Iterable<*> -> it
+			is CharSequence -> it.toList()
 			else -> listOf<Any?>()
+		}
+	}
+
+	fun toComparable(it: Any?): Comparable<Any?> {
+		return when (it) {
+			null -> 0 as Comparable<Any?>
+			is Comparable<*> -> it as Comparable<Any?>
+			else -> it.toString() as Comparable<Any?>
+		}
+	}
+
+	fun compare(l: Any?, r: Any?): Int {
+		val lc = toComparable(l)
+		val rc = toComparable(r)
+		if (lc.javaClass.isAssignableFrom(rc.javaClass)) {
+			return lc.compareTo(rc)
+		} else {
+			return -1
 		}
 	}
 
@@ -236,7 +255,26 @@ object Dynamic {
 			"^"  -> toInt(l) xor toInt(r)
 			"&&" -> toBool(l) && toBool(r)
 			"||" -> toBool(l) || toBool(r)
+			"==" -> Objects.equals(l, r)
+			"!=" -> !Objects.equals(l, r)
+			"<" -> compare(l, r) < 0
+			"<=" -> compare(l, r) <= 0
+			">" -> compare(l, r) > 0
+			">=" -> compare(l, r) >= 0
 			else -> noImpl("Not implemented binary operator $op")
 		}
+	}
+
+	fun callAny(obj: Any?, key: Any?, args: List<Any?>): Any? {
+		if (obj == null) return null
+		if (key == null) return null
+		val method = obj.javaClass.methods.first { it.name == key }
+		method.isAccessible = true
+		val result = method.invoke(obj, *args.toTypedArray())
+		return result
+	}
+
+	fun callAny(callable: Any?, args: List<Any?>): Any? {
+		return callAny(callable, "invoke", args)
 	}
 }

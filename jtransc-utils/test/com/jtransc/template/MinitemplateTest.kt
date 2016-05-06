@@ -26,10 +26,14 @@ class MinitemplateTest {
 
 	@Test fun testEval() {
 		Assert.assertEquals("-5", Minitemplate("{{ -(1 + 4) }}")(null))
+		Assert.assertEquals("false", Minitemplate("{{ 1 == 2 }}")(null))
+		Assert.assertEquals("true", Minitemplate("{{ 1 < 2 }}")(null))
+		Assert.assertEquals("true", Minitemplate("{{ 1 <= 1 }}")(null))
 	}
 
 	@Test fun testForAccess() {
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n.surname }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
+		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n['sur'+'name'] }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 	}
 
 	data class Person(val name:String, val surname:String)

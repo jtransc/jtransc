@@ -30,7 +30,10 @@ import com.jtransc.vfs.getCached
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeAddAssets
 import com.jtransc.annotation.haxe.HaxeAddLibraries
+import com.jtransc.annotation.haxe.HaxeCustomBuildCommandLine
 import com.jtransc.ast.*
+import com.jtransc.gen.haxe.GenHaxeLime.mergedAssetsFolder
+import com.jtransc.template.Minitemplate
 import java.io.File
 
 object HaxeGenDescriptor : GenTargetDescriptor() {
@@ -151,43 +154,107 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	//val tempdir = System.getProperty("java.io.tmpdir")
 	val tempdir = tinfo.targetDirectory
 	var info: GenHaxe.ProgramInfo? = null
+	lateinit var gen: GenHaxeGen
 	val program = tinfo.program
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
 
 	override fun buildSource() {
-		info = GenHaxeGen(
+		gen = GenHaxeGen(
 			program = program,
 			features = AstFeatures(),
 			srcFolder = srcFolder,
 			featureSet = HaxeFeatures,
 			settings = settings
-		)._write()
+		)
+		info = gen._write()
 	}
 
+	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
+	val BUILD_COMMAND = """
+		haxe
+		-cp
+		{{ srcFolder }}
+		-main
+		{{ entryPointFile }}
+		{% if debug %}
+			-debug
+		{% end %}
+		{{ actualSubtarget.switch }}
+		{{ outputFile }}
+		{% for flag in haxeExtraFlags %}
+			{{ flag.first }}
+			{{ flag.second }}
+		{% end %}
+		{% for define in haxeExtraDefines %}
+			-D
+			define
+		{% end %}
+	"""
+
 	override fun compile(): Boolean {
+		val names = tinfo
 		if (info == null) throw InvalidOperationException("Must call .buildSource first")
+		val info = info!!
 		outputFile2.delete()
 		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
-		val buildArgs = arrayListOf(
-			"-cp", srcFolder.realpathOS,
-			"-main", info!!.entryPointFile
-		)
-		val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
-		val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
-
 		program.haxeInstallRequiredLibs(settings)
-		buildArgs += program.haxeExtraFlags(settings).flatMap { listOf(it.first, it.second) }
-		buildArgs += program.haxeExtraDefines(settings).flatMap { listOf("-D", it) }
-
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
+
+		val tempAssetsDir = tinfo.mergedAssetsFolder
+		val tempAssetsVfs = LocalVfs(tempAssetsDir)
+
+		log("Copying assets... ")
+		for (asset in settings.assets) {
+			LocalVfs(asset).copyTreeTo(tempAssetsVfs)
+		}
+
+		val params = hashMapOf(
+			"srcFolder" to srcFolder.realpathOS,
+			"entryPointFile" to info.entryPointFile,
+			"haxeExtraFlags" to program.haxeExtraFlags(settings),
+			"haxeExtraDefines" to program.haxeExtraDefines(settings),
+			"actualSubtarget" to actualSubtarget,
+			"outputFile" to outputFile2.absolutePath,
+			"release" to tinfo.settings.release,
+			"debug" to !tinfo.settings.release,
+			"settings" to settings,
+			"title" to settings.title,
+			"name" to settings.name,
+			"package" to settings.package_,
+			"version" to settings.version,
+			"company" to settings.company,
+			"initialWidth" to settings.initialWidth,
+			"initialHeight" to settings.initialHeight,
+			"orientation" to settings.orientation.lowName,
+			"entryPointClass" to gen.names.getHaxeClassFqName(info.entryPointClass),
+			"haxeExtraFlags" to program.haxeExtraFlags(settings),
+			"haxeExtraDefines" to program.haxeExtraDefines(settings),
+			"tempAssetsDir" to tempAssetsDir,
+			"embedResources" to settings.embedResources,
+			"assets" to settings.assets,
+			"hasIcon" to !settings.icon.isNullOrEmpty(),
+			"icon" to settings.icon,
+			"libraries" to settings.libraries
+		)
+
+		params["defaultBuildCommand"] = { Minitemplate(BUILD_COMMAND).invoke(params) }
+
 
 		log("Compiling... ")
 
-		val args = releaseArgs + subtargetArgs + buildArgs
+		val customCommand = program.allAnnotations[HaxeCustomBuildCommandLine::value]
+		val ACTUAL_BUILD_COMMAND = if (customCommand != null) {
+			customCommand.joinToString("\n")
+		} else {
+			BUILD_COMMAND
+		}
 
-		log("Running: haxe ${args.joinToString(" ")}")
-		return ProcessUtils.runAndRedirect(srcFolder.realfile, "haxe", args).success
+		val cmd = Minitemplate(ACTUAL_BUILD_COMMAND).invoke(params).split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+
+		log("Compiling: ${cmd.joinToString(" ")}")
+		println("Compiling: ${cmd.joinToString(" ")}")
+		return ProcessUtils.runAndRedirect(srcFolder.realfile, cmd).success
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

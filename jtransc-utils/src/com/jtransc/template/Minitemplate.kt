@@ -4,9 +4,7 @@ import com.jtransc.ds.ListReader
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.lang.Dynamic
-import com.jtransc.text.StrReader
-import com.jtransc.text.isLetterDigitOrUnderscore
-import com.jtransc.text.readWhile
+import com.jtransc.text.*
 
 class Minitemplate(val template: String) {
 	val templateTokens = Token.tokenize(template)
@@ -55,6 +53,16 @@ class Minitemplate(val template: String) {
 			override fun eval(context: Context): Any? = Dynamic.accessAny(expr.eval(context), name.eval(context))
 		}
 
+		data class CALL(val method: ExprNode, val args: List<ExprNode>) : ExprNode {
+			override fun eval(context: Context): Any? {
+				if (method !is ACCESS) {
+					return Dynamic.callAny(method.eval(context), args.map { it.eval(context) })
+				} else {
+					return Dynamic.callAny(method.expr.eval(context), method.name.eval(context), args.map { it.eval(context) })
+				}
+			}
+		}
+
 		data class BINOP(val l: ExprNode, val r: ExprNode, val op: String) : ExprNode {
 			override fun eval(context: Context): Any? = Dynamic.binop(l.eval(context), r.eval(context), op)
 		}
@@ -76,6 +84,7 @@ class Minitemplate(val template: String) {
 
 			private val BINOPS = setOf(
 				"+", "-", "*", "/", "%",
+				"==", "!=", "<", ">", "<=", ">=", "<=>",
 				"&&", "||"
 			)
 
@@ -104,9 +113,8 @@ class Minitemplate(val template: String) {
 						return result
 					}
 				}
-				if (r.peek() is Token.TNumber) {
-					return ExprNode.LIT(r.read().text.toDouble())
-				}
+				if (r.peek() is Token.TNumber) return ExprNode.LIT(r.read().text.toDouble())
+				if (r.peek() is Token.TString) return ExprNode.LIT(r.read().text)
 
 				var construct: ExprNode = ExprNode.VAR(r.read().text)
 				loop@while (r.hasMore) {
@@ -121,10 +129,17 @@ class Minitemplate(val template: String) {
 							r.read()
 							val expr = parse(r)
 							construct = ExprNode.ACCESS(construct, expr)
-							if (r.read().text != "]") throw RuntimeException("Expected ']'")
+							val end = r.read()
+							if (end.text != "]") throw RuntimeException("Expected ']' but found $end")
 						}
 						"(" -> {
-							noImpl("Not implemented function calls!")
+							r.read()
+							if (r.peek().text == ")") {
+								r.read()
+								construct = ExprNode.CALL(construct, listOf())
+							} else {
+								noImpl("Not implemented function calls with arguments!")
+							}
 						}
 						else -> break@loop
 					}
@@ -149,6 +164,7 @@ class Minitemplate(val template: String) {
 					"{", "}",
 					"&&", "||",
 					"&", "^",
+					"==", "!=", "<", ">", "<=", ">=", "<=>",
 					"+", "-", "*", "/", "%", "**",
 					"!", "~",
 					"."
@@ -171,6 +187,18 @@ class Minitemplate(val template: String) {
 						if (r.peek(3) in OPERATORS) emit(TOperator(r.read(3)))
 						if (r.peek(2) in OPERATORS) emit(TOperator(r.read(2)))
 						if (r.peek(1) in OPERATORS) emit(TOperator(r.read(1)))
+						if (r.peekch() == '\'') {
+							r.readch()
+							val strt = r.readUntil { it == '\'' } ?: ""
+							r.readch()
+							emit(TString(strt))
+						}
+						if (r.peekch() == '"') {
+							r.readch()
+							val strt = r.readUntil { it == '"' } ?: ""
+							r.readch()
+							emit(TString(strt))
+						}
 						val end = r.offset
 						if (end == start) invalidOp("Don't know how to handle '${r.peekch()}'")
 					}
