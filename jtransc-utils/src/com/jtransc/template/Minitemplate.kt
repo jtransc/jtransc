@@ -295,7 +295,7 @@ class Minitemplate(val template: String) {
 										children.clear()
 									}
 									else -> {
-										val newtag = Tag.ALL_MAP[it.name]!!
+										val newtag = Tag.ALL_MAP[it.name] ?: invalidOp("Can't find tag ${it.name}")
 										if (tag.end != null) {
 											children += handle(newtag, it)
 										} else {

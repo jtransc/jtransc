@@ -1,4 +1,4 @@
-package com.jtransc.annotation;
+package com.jtransc.annotation.haxe;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,8 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface JTranscCustomTargets {
-	String name();
-	String base();
-	String[] names();
+public @interface HaxeAddFilesBeforeBuildTemplate {
+	String[] value();
 }

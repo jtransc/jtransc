@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Repeatable(HaxeAddSubtargetList.class)
 public @interface HaxeAddSubtarget {
 	String name();
-	String cmdSwitch();
+	String cmdSwitch() default "-bin";
 	String[] alias() default {};
 	boolean singleFile() default true;
 	String interpreter() default "echo";

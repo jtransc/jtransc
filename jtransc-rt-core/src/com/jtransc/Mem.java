@@ -77,14 +77,14 @@ final public class Mem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "flash", value = "return flash flash.Memory.getDouble(p0 << 3);")
+	@HaxeMethodBody(target = "flash", value = "return flash.Memory.getDouble(p0 << 3);")
 	@HaxeMethodBody("return floatMem.get(p0);")
 	static public double lf64(int address8) {
 		return mem.getAlignedFloat64(address8);
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "flash", value = "flash flash.Memory.setByte(p0 << 0, p1);")
+	@HaxeMethodBody(target = "flash", value = "flash.Memory.setByte(p0 << 0, p1);")
 	@HaxeMethodBody("byteMem.set(p0, p1);")
 	static public void si8(int address, int value) {
 		mem.setAlignedInt8(address, value);

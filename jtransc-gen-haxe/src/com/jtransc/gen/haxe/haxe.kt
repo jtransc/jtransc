@@ -147,7 +147,7 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		"orientation" to settings.orientation.lowName,
 		"haxeExtraFlags" to program.haxeExtraFlags(settings),
 		"haxeExtraDefines" to program.haxeExtraDefines(settings),
-		"tempAssetsDir" to tempAssetsDir,
+		"tempAssetsDir" to tempAssetsDir.absolutePath,
 		"embedResources" to settings.embedResources,
 		"assets" to settings.assets,
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
@@ -190,8 +190,21 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {
 	val actualSubtargetName = tinfo.subtarget
-	val availableHaxeSubtargets = tinfo.program.allAnnotations.map { it.toObject<HaxeAddSubtargetList>() }.filterNotNull().flatMap { it.value.toList() }
-	val actualSubtarget: HaxeAddSubtarget = availableHaxeSubtargets.first { it.name == actualSubtargetName }
+	val availableHaxeSubtargets = tinfo.program.allAnnotations
+		.map { it.toObject<HaxeAddSubtargetList>() ?: it.toObject<HaxeAddSubtarget>() }
+		.flatMap {
+			if (it == null) {
+				listOf()
+			} else if (it is HaxeAddSubtargetList) {
+				it.value.toList()
+			} else if (it is HaxeAddSubtarget) {
+				listOf(it)
+			} else {
+				listOf()
+			}
+		}
+		.filterNotNull()
+	val actualSubtarget: HaxeAddSubtarget = availableHaxeSubtargets.last { it.name == actualSubtargetName || actualSubtargetName in it.alias }
 
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
 	//val tempdir = System.getProperty("java.io.tmpdir")
@@ -239,6 +252,10 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		}
 
 		log("Compiling... ")
+
+		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotations[HaxeAddFilesBeforeBuildTemplate::value]?.toList() ?: listOf() }
+		for (file in copyFilesBeforeBuildTemplate) srcFolder[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
+
 
 		val cmd = haxeTemplateString.gen(
 			program.allAnnotations[HaxeCustomBuildCommandLine::value]?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
