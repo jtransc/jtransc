@@ -1,10 +1,11 @@
 package com.jtransc.lang
 
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.noImpl
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-object Reflect {
+object Dynamic {
 	@Suppress("UNCHECKED_CAST")
 	fun <T> createEmptyClass(clazz: Class<T>): T {
 		if (clazz == java.util.List::class.java) return listOf<Any?>() as T
@@ -33,12 +34,24 @@ object Reflect {
 		return field?.get(instance)
 	}
 
-	fun toInt(instance: Any?): Int {
-		return when (instance) {
-			null -> 0
-			is Number -> instance.toInt()
-			is Char -> instance.toInt()
-			else -> instance.toString().toInt()
+	fun toNumber(it: Any?): Double {
+		return when (it) {
+			null -> 0.0
+			is Number -> it.toDouble()
+			else -> it.toString().toDouble()
+		}
+	}
+
+	fun toInt(it: Any?): Int {
+		return toNumber(it).toInt()
+	}
+
+	fun toBool(it: Any?): Boolean {
+		return when (it) {
+			null -> false
+			is Boolean -> it
+			is String -> it.isNotEmpty() && it != "0" && it != "false"
+			else -> toInt(it) != 0
 		}
 	}
 
@@ -127,7 +140,7 @@ object Reflect {
 		if (value is Map<*, *>) {
 			val map = value as Map<Any?, *>
 			val resultClass = target as Class<Any>
-			val result = Reflect.createEmptyClass(resultClass)
+			val result = Dynamic.createEmptyClass(resultClass)
 			for (field in result.javaClass.declaredFields) {
 				if (field.name in map) {
 					val value = map[field.name]
@@ -186,6 +199,44 @@ object Reflect {
 				}
 				out
 			}
+		}
+	}
+
+	fun unop(r: Any?, op: String): Any? {
+		return when (op) {
+			"+" -> r
+			"-" -> toFixNumber(-toNumber(r))
+			"~" -> toInt(r).inv()
+			"!" -> !toBool(r)
+			else -> noImpl("Not implemented unary operator $op")
+		}
+	}
+
+	fun toFixNumber(value: Double): Any {
+		return if (value == value.toInt().toDouble()) value.toInt() else value
+	}
+
+	fun binop(l: Any?, r: Any?, op: String): Any? {
+		return when (op) {
+			"+" -> {
+				when (l) {
+					is String -> l.toString() + r.toBetterString()
+					is Iterable<*> -> toIterable(l) + toIterable(r)
+					else -> toFixNumber(toNumber(l) + toNumber(r))
+				}
+			}
+			"-"  -> toFixNumber(toNumber(l) - toNumber(r))
+			"+"  -> toFixNumber(toNumber(l) + toNumber(r))
+			"*"  -> toFixNumber(toNumber(l) * toNumber(r))
+			"/"  -> toFixNumber(toNumber(l) / toNumber(r))
+			"%"  -> toFixNumber(toNumber(l) % toNumber(r))
+			"**" -> toFixNumber(Math.pow(toNumber(l), toNumber(r)))
+			"&"  -> toInt(l) and toInt(r)
+			"or" -> toInt(l) or toInt(r)
+			"^"  -> toInt(l) xor toInt(r)
+			"&&" -> toBool(l) && toBool(r)
+			"||" -> toBool(l) || toBool(r)
+			else -> noImpl("Not implemented binary operator $op")
 		}
 	}
 }

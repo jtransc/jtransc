@@ -1,58 +1,31 @@
 package com.jtransc.template
 
 import com.jtransc.ds.ListReader
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.lang.Reflect
+import com.jtransc.lang.Dynamic
 import com.jtransc.text.StrReader
 import com.jtransc.text.isLetterDigitOrUnderscore
-import com.jtransc.text.readUntil
 import com.jtransc.text.readWhile
 
 class Minitemplate(val template: String) {
 	val templateTokens = Token.tokenize(template)
 	val node = BlockNode.parse(templateTokens)
 
-	private fun Context.evaluate(it: BlockNode) {
-		when (it) {
-			is BlockNode.GROUP -> for (n in it.children) this.evaluate(n)
-			is BlockNode.TEXT -> this.write(it.content)
-			is BlockNode.EXPR -> this.write(this.evaluate(it.expr).toString())
-			is BlockNode.FOR -> {
-				this.createScope {
-					for (v in Reflect.toIterable(this.evaluate(it.expr))) {
-						this.scope[it.varname] = v
-						this.evaluate(it.loop)
-					}
-				}
-			}
-			else -> noImpl("Not implemented $it")
-		}
-	}
-
-	class Scope(val map: Any?, val parent: Scope? = null){
+	class Scope(val map: Any?, val parent: Scope? = null) {
 		operator fun get(key: Any?): Any? {
-			return Reflect.accessAny(map, key) ?: parent?.get(key)
+			return Dynamic.accessAny(map, key) ?: parent?.get(key)
 		}
-		operator fun set(key: Any?, value: Any?) {
-			Reflect.setAny(map, key, value)
-		}
-	}
 
-	private fun Context.evaluate(node: ExprNode): Any? {
-		return when (node) {
-			is ExprNode.VAR -> this.scope[node.name]
-			is ExprNode.LIT -> node.value
-			is ExprNode.ACCESS -> Reflect.accessAny(this.evaluate(node.expr), this.evaluate(node.name))
-			else -> noImpl("Not implemented $node")
+		operator fun set(key: Any?, value: Any?) {
+			Dynamic.setAny(map, key, value)
 		}
 	}
 
 	operator fun invoke(args: Any?): String {
-		val ctx = Context(Scope(args))
-		ctx.createScope {
-			ctx.evaluate(node)
-		}
-		return ctx.str.toString()
+		val context = Context(Scope(args))
+		context.createScope { node.eval(context) }
+		return context.str.toString()
 	}
 
 	class Context(var scope: Scope) {
@@ -68,11 +41,27 @@ class Minitemplate(val template: String) {
 	}
 
 	interface ExprNode {
-		data class VAR(val name: String) : ExprNode
-		data class LIT(val value: Any?) : ExprNode
-		data class ACCESS(val expr: ExprNode, val name: ExprNode) : ExprNode
-		data class BINOP(val l: ExprNode, val r: ExprNode, val op: String) : ExprNode
-		data class UNOP(val r: ExprNode, val op: String) : ExprNode
+		fun eval(context: Context): Any?
+
+		data class VAR(val name: String) : ExprNode {
+			override fun eval(context: Context): Any? = context.scope[name]
+		}
+
+		data class LIT(val value: Any?) : ExprNode {
+			override fun eval(context: Context): Any? = value
+		}
+
+		data class ACCESS(val expr: ExprNode, val name: ExprNode) : ExprNode {
+			override fun eval(context: Context): Any? = Dynamic.accessAny(expr.eval(context), name.eval(context))
+		}
+
+		data class BINOP(val l: ExprNode, val r: ExprNode, val op: String) : ExprNode {
+			override fun eval(context: Context): Any? = Dynamic.binop(l.eval(context), r.eval(context), op)
+		}
+
+		data class UNOP(val r: ExprNode, val op: String) : ExprNode {
+			override fun eval(context: Context): Any? = Dynamic.unop(r.eval(context), op)
+		}
 
 		companion object {
 			fun parse(str: String): ExprNode {
@@ -82,18 +71,60 @@ class Minitemplate(val template: String) {
 			}
 
 			fun parse(r: ListReader<Token>): ExprNode {
-				return parseExpr(r)
+				return parseBinop(r)
 			}
 
-			fun parseExpr(r: ListReader<Token>): ExprNode {
+			private val BINOPS = setOf(
+				"+", "-", "*", "/", "%",
+				"&&", "||"
+			)
+
+			fun parseBinop(r: ListReader<Token>): ExprNode {
+				var result = parseFinal(r)
+				while (r.hasMore) {
+					if (r.peek() !is Token.TOperator || r.peek().text !in BINOPS) break
+					val operator = r.read().text
+					var right = parseFinal(r)
+					result = ExprNode.BINOP(result, right, operator)
+				}
+				// @TODO: Fix order!
+				return result
+			}
+
+			fun parseFinal(r: ListReader<Token>): ExprNode {
+				when (r.peek().text) {
+					"!", "~", "-", "+" -> {
+						val op = r.read().text
+						return ExprNode.UNOP(parseFinal(r), op)
+					}
+					"(" -> {
+						r.read()
+						val result = parse(r)
+						if (r.read().text != ")") throw RuntimeException("Expected ')'")
+						return result
+					}
+				}
+				if (r.peek() is Token.TNumber) {
+					return ExprNode.LIT(r.read().text.toDouble())
+				}
+
 				var construct: ExprNode = ExprNode.VAR(r.read().text)
-				loop@while (true) {
+				loop@while (r.hasMore) {
 					when (r.peek().text) {
 						"." -> {
 							r.read()
 							val id = r.read().text
 							construct = ExprNode.ACCESS(construct, ExprNode.LIT(id))
 							continue@loop
+						}
+						"[" -> {
+							r.read()
+							val expr = parse(r)
+							construct = ExprNode.ACCESS(construct, expr)
+							if (r.read().text != "]") throw RuntimeException("Expected ']'")
+						}
+						"(" -> {
+							noImpl("Not implemented function calls!")
 						}
 						else -> break@loop
 					}
@@ -103,14 +134,26 @@ class Minitemplate(val template: String) {
 		}
 
 		interface Token {
-			val text:String
-			data class TId(override val text:String) : Token
-			data class TNumber(override val text:String) : Token
-			data class TString(override val text:String) : Token
-			data class TOperator(override val text:String) : Token
-			data class TEnd(override val text:String = "") : Token
+			val text: String
+
+			data class TId(override val text: String) : Token
+			data class TNumber(override val text: String) : Token
+			data class TString(override val text: String) : Token
+			data class TOperator(override val text: String) : Token
+			data class TEnd(override val text: String = "") : Token
 
 			companion object {
+				private val OPERATORS = setOf(
+					"(", ")",
+					"[", "]",
+					"{", "}",
+					"&&", "||",
+					"&", "^",
+					"+", "-", "*", "/", "%", "**",
+					"!", "~",
+					"."
+				)
+
 				fun tokenize(str: String): List<Token> {
 					val r = StrReader(str)
 					val out = arrayListOf<Token>()
@@ -118,12 +161,18 @@ class Minitemplate(val template: String) {
 						out += str
 					}
 					while (r.hasMore) {
+						val start = r.offset
 						r.skipSpaces()
 						val id = r.readWhile { it.isLetterDigitOrUnderscore() }
-						if (id != null) emit(TId(id))
+						if (id != null) {
+							if (id[0].isDigit()) emit(TNumber(id)) else emit(TId(id))
+						}
 						r.skipSpaces()
-						val symbol = r.readWhile { !it.isLetterDigitOrUnderscore() && !it.isWhitespace() }
-						if (symbol != null) emit(TOperator(symbol))
+						if (r.peek(3) in OPERATORS) emit(TOperator(r.read(3)))
+						if (r.peek(2) in OPERATORS) emit(TOperator(r.read(2)))
+						if (r.peek(1) in OPERATORS) emit(TOperator(r.read(1)))
+						val end = r.offset
+						if (end == start) invalidOp("Don't know how to handle '${r.peekch()}'")
 					}
 					emit(TEnd())
 					return out
@@ -133,11 +182,50 @@ class Minitemplate(val template: String) {
 	}
 
 	interface BlockNode {
-		data class GROUP(val children: List<BlockNode>) : BlockNode
-		data class TEXT(val content: String) : BlockNode
-		data class EXPR(val expr: ExprNode) : BlockNode
-		data class IF(val cond: BlockNode, val trueContent: BlockNode, val falseContent: BlockNode?) : BlockNode
-		data class FOR(val varname: String, val expr: ExprNode, val loop: BlockNode) : BlockNode
+		fun eval(context: Context): BlockNode
+
+		/*
+			is BlockNode.FOR -> {
+			}
+			is BlockNode.FOR -> {
+
+			}
+			else -> noImpl("Not implemented $it")
+
+		 */
+
+		data class GROUP(val children: List<BlockNode>) : BlockNode {
+			override fun eval(context: Context) = this.apply { for (n in children) n.eval(context) }
+		}
+
+		data class TEXT(val content: String) : BlockNode {
+			override fun eval(context: Context) = this.apply { context.write(content) }
+		}
+
+		data class EXPR(val expr: ExprNode) : BlockNode {
+			override fun eval(context: Context) = this.apply { context.write(this.expr.eval(context).toString()) }
+		}
+
+		data class IF(val cond: ExprNode, val trueContent: BlockNode, val falseContent: BlockNode?) : BlockNode {
+			override fun eval(context: Context) = this.apply {
+				if (Dynamic.toBool(cond.eval(context))) {
+					trueContent.eval(context)
+				} else {
+					falseContent?.eval(context)
+				}
+			}
+		}
+
+		data class FOR(val varname: String, val expr: ExprNode, val loop: BlockNode) : BlockNode {
+			override fun eval(context: Context) = this.apply {
+				context.createScope {
+					for (v in Dynamic.toIterable(expr.eval(context))) {
+						context.scope[varname] = v
+						loop.eval(context)
+					}
+				}
+			}
+		}
 
 		companion object {
 			fun group(children: List<BlockNode>): BlockNode = if (children.size == 1) children[0] else GROUP(children.toList())
@@ -176,6 +264,7 @@ class Minitemplate(val template: String) {
 									}
 								}
 							}
+							else -> break@loop
 						}
 					}
 
@@ -195,10 +284,12 @@ class Minitemplate(val template: String) {
 			val EMPTY = Tag("", setOf(""), "") { parts ->
 				BlockNode.group(parts.map { it.body })
 			}
-			val IF = Tag("if", setOf("elseif", "else"), "end") { parts ->
-				noImpl
+			val IF = Tag("if", setOf("else"), "end") { parts ->
+				val main = parts[0]
+				val elseBlock = parts.getOrNull(1)
+				BlockNode.IF(ExprNode.parse(main.token.content), main.body, elseBlock?.body)
 			}
-			val FOR = Tag("for", setOf("else"), "end") { parts ->
+			val FOR = Tag("for", setOf(), "end") { parts ->
 				val main = parts[0]
 				val parts2 = main.token.content.split("in", limit = 2).map { it.trim() }
 				BlockNode.FOR(parts2[0], ExprNode.parse(parts2[1]), main.body)

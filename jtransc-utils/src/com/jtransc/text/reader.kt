@@ -28,7 +28,8 @@ class StrReader(val str:String) {
 	fun readch():Char = this.str[offset++]
 	fun read():Int = if (!eof) readch().toInt() else -1
 	fun peek(count:Int):String {
-		return this.str.substring(offset, offset + count)
+		if (offset >= length) return ""
+		return this.str.substring(offset, Math.min(length, offset + count))
 	}
 	fun peekch():Char = this.str[offset]
 	fun read(count:Int):String {

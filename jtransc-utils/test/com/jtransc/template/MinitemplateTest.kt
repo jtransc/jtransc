@@ -17,6 +17,17 @@ class MinitemplateTest {
 		Assert.assertEquals("123", Minitemplate("{% for n in numbers %}{{ n }}{% end %}")(mapOf("numbers" to listOf(1, 2, 3))))
 	}
 
+	@Test fun testSimpleIf() {
+		Assert.assertEquals("true", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 1)))
+		Assert.assertEquals("false", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 0)))
+		Assert.assertEquals("true", Minitemplate("{% if cond %}true{% end %}")(mapOf("cond" to 1)))
+		Assert.assertEquals("", Minitemplate("{% if cond %}true{% end %}")(mapOf("cond" to 0)))
+	}
+
+	@Test fun testEval() {
+		Assert.assertEquals("-5", Minitemplate("{{ -(1 + 4) }}")(null))
+	}
+
 	@Test fun testForAccess() {
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n.surname }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 	}
