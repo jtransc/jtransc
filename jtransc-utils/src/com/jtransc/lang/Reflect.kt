@@ -1,21 +1,10 @@
-package com.jtransc.json
+package com.jtransc.lang
 
 import com.jtransc.error.InvalidOperationException
-import com.jtransc.error.invalidOp
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-object Typer {
-	fun <T : Any> toTyped(value: Any?, target: Class<T>): T {
-		return Reflect.dynamicCast(value, target)!!
-	}
-
-	fun <T : Any> fromTyped(value: T?): Any? {
-		return Reflect.fromTyped(value)
-	}
-}
-
-private object Reflect {
+object Reflect {
 	@Suppress("UNCHECKED_CAST")
 	fun <T> createEmptyClass(clazz: Class<T>): T {
 		if (clazz == java.util.List::class.java) return listOf<Any?>() as T
@@ -34,6 +23,50 @@ private object Reflect {
 		//val field = instance.javaClass.getField(name)
 		field?.isAccessible = true
 		field?.set(instance, value)
+	}
+
+	fun <T : Any> getField(instance: T?, name: String): Any? {
+		if (instance == null) return null
+		val field = instance.javaClass.declaredFields.find { it.name == name }
+		//val field = instance.javaClass.getField(name)
+		field?.isAccessible = true
+		return field?.get(instance)
+	}
+
+	fun toInt(instance: Any?): Int {
+		return when (instance) {
+			null -> 0
+			is Number -> instance.toInt()
+			is Char -> instance.toInt()
+			else -> instance.toString().toInt()
+		}
+	}
+
+	fun toIterable(instance: Any?): Iterable<*> {
+		return when (instance) {
+			null -> listOf<Any?>()
+			is Iterable<*> -> instance
+			is CharSequence -> instance.toList()
+			else -> listOf<Any?>()
+		}
+	}
+
+	fun accessAny(instance: Any?, key:Any?): Any? {
+		return when (instance) {
+			null -> null
+			is Map<*, *> -> instance[key]
+			is Iterable<*> -> instance.toList()[toInt(key)]
+			else -> getField(instance, key.toString())
+		}
+	}
+
+	fun setAny(instance: Any?, key:Any?, value: Any?): Any? {
+		return when (instance) {
+			null -> null
+			is MutableMap<*, *> -> (instance as MutableMap<Any?, Any?>).set(key, value)
+			is MutableList<*> -> (instance as MutableList<Any?>)[toInt(key)] = value
+			else -> setField(instance, key.toString(), value)
+		}
 	}
 
 	fun hasField(javaClass: Class<Any>, name: String): Boolean {

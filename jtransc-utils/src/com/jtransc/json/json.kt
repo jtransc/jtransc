@@ -1,5 +1,7 @@
 package com.jtransc.json
 
+import com.jtransc.lang.Typer
+
 object Json {
 	fun decode(str: String): JsonObject = JsonObject(JsonReader(str).readObject())
 	fun decodeAny(str: String): Any? = JsonReader(str).readValue()
@@ -18,6 +20,7 @@ object Json {
 
 class JsonObject(val map: Map<*, *>) : Map<Any?, Any?> by map as Map<Any?, Any?> {
 	constructor(str: String) : this(Json.decode(str))
+
 	fun getString(key: String): String = map[key] as String
 	fun getJsonObject(key: String): JsonObject = JsonObject(map[key] as Map<*, *>)
 	fun getArray(key: String): List<*> = (map[key] as Iterable<*>).toList()

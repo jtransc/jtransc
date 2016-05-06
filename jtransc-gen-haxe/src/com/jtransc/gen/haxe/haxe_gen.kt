@@ -17,18 +17,13 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import kotlin.reflect.KFunction
-import kotlin.reflect.KFunction4
-import kotlin.reflect.KProperty1
 
 class GenHaxeGen(
 	val program: AstProgram,
 	val features: AstFeatures,
 	val srcFolder: SyncVfsFile,
 	val featureSet: Set<AstFeature>,
-    val settings: AstBuildSettings
+	val settings: AstBuildSettings
 ) {
 	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val refs = References()
@@ -88,13 +83,11 @@ class GenHaxeGen(
 			}
 		}
 
-		val copyFiles = program.classes.flatMap {
-			it.annotations[HaxeAddFiles::value]?.toList() ?: listOf()
-		}
+		val copyFilesRaw = program.classes.flatMap { it.annotations[HaxeAddFiles::value]?.toList() ?: listOf() }
+		val copyFilesTemplate = program.classes.flatMap { it.annotations[HaxeAddFilesTemplate::value]?.toList() ?: listOf() }
 
-		for (file in copyFiles) {
-			vfs[file] = program.resourcesVfs[file].readString().template()
-		}
+		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
+		for (file in copyFilesTemplate) vfs[file] = program.resourcesVfs[file].readString().template()
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
@@ -197,7 +190,7 @@ class GenHaxeGen(
 		}
 	}
 
-	fun visibleAnnotations(annotations: List<AstAnnotation>): String =  "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
+	fun visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
 	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { visibleAnnotations(it) }.joinToString(", ") + "]"
 
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
@@ -573,13 +566,13 @@ class GenHaxeGen(
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
 			// @TODO: Check!
-				AstType.BOOL.CLASSTYPE   -> genCast("HaxeNatives.unboxBool($e)", AstType.BOOL, to)
-				AstType.BYTE.CLASSTYPE   -> genCast("HaxeNatives.unboxByte($e)", AstType.BYTE, to)
-				AstType.SHORT.CLASSTYPE  -> genCast("HaxeNatives.unboxShort($e)", AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE   -> genCast("HaxeNatives.unboxChar($e)", AstType.CHAR, to)
-				AstType.INT.CLASSTYPE    -> genCast("HaxeNatives.unboxInt($e)", AstType.INT, to)
-				AstType.LONG.CLASSTYPE   -> genCast("HaxeNatives.unboxLong($e)", AstType.LONG, to)
-				AstType.FLOAT.CLASSTYPE  -> genCast("HaxeNatives.unboxFloat($e)", AstType.FLOAT, to)
+				AstType.BOOL.CLASSTYPE -> genCast("HaxeNatives.unboxBool($e)", AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE -> genCast("HaxeNatives.unboxByte($e)", AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE -> genCast("HaxeNatives.unboxShort($e)", AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE -> genCast("HaxeNatives.unboxChar($e)", AstType.CHAR, to)
+				AstType.INT.CLASSTYPE -> genCast("HaxeNatives.unboxInt($e)", AstType.INT, to)
+				AstType.LONG.CLASSTYPE -> genCast("HaxeNatives.unboxLong($e)", AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE -> genCast("HaxeNatives.unboxFloat($e)", AstType.FLOAT, to)
 				AstType.DOUBLE.CLASSTYPE -> genCast("HaxeNatives.unboxDouble($e)", AstType.DOUBLE, to)
 			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			//else -> noImpl("Unhandled conversion $e : $from -> $to")
@@ -1104,7 +1097,7 @@ class GenHaxeGen(
 	val FqName.haxeGeneratedFqName: FqName get() = names.getHaxeGeneratedFqName(this)
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getHaxeGeneratedSimpleClassName(this)
 
-	fun String.template():String = names.template(this)
+	fun String.template(): String = names.template(this)
 
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 

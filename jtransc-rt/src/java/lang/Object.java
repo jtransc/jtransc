@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.haxe.HaxeAddFiles;
+import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -28,7 +29,7 @@ import java.lang.reflect.Field;
 	"static public var __LAST_ID__ = 0;",
 	"public var __ID__ = __LAST_ID__++;",
 })
-@HaxeAddFiles({
+@HaxeAddFilesTemplate({
 	"N.hx",
 	//"hx/N.hx",
 	"R.hx",

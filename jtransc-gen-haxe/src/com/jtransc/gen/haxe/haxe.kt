@@ -96,7 +96,6 @@ fun AstProgram.haxeExtraFlags(settings: AstBuildSettings): List<Pair<String, Str
 }
 
 fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> {
-
 	//-D no-analyzer
 	//--times : measure compilation times
 	//--no-inline : disable inlining

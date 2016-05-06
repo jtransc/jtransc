@@ -37,13 +37,19 @@ class StrReader(val str:String) {
 		return out
 	}
 	fun skipSpaces():StrReader {
-		while (this.peek(1).isNullOrBlank()) this.read()
+		while (this.hasMore && this.peek(1).isNullOrBlank()) this.read()
 		return this
 	}
 	fun expect(expected:String):String {
 		val result = this.read(expected.length)
 		if (result != expected) throw InvalidOperationException("Expecting '$expected' but found '$result' in '$str'")
 		return result
+	}
+	fun matchEReg(v: Regex): String? {
+		var result = v.find(this.str.substring(this.offset)) ?: return null
+		var m = result.groups[0]!!.value
+		this.offset += m.length;
+		return m;
 	}
 	override fun toString() = "StrReader('$str')"
 
@@ -122,11 +128,6 @@ fun <T : Reader> T.skipSpaces():T {
 	return this
 }
 
-
-
-
-
-
 fun StrReader.readUntil(expectedCh:Set<Char>, including:Boolean = false, readDelimiter:Boolean = true):String {
 	var out = ""
 	while (this.hasMore) {
@@ -143,3 +144,19 @@ fun StrReader.readUntil(expectedCh:Set<Char>, including:Boolean = false, readDel
 }
 
 fun StrReader.readUntil(vararg expectedCh:Char, including:Boolean = false, readDelimiter:Boolean = true):String = this.readUntil(expectedCh.toSet(), including)
+
+inline fun StrReader.createRange(action: () -> Unit): String? {
+	val start = this.offset
+	action()
+	val end = this.offset
+	return if (start < end) this.str.substring(start, end) else null
+}
+
+inline fun StrReader.readWhile(cond: (Char) -> Boolean):String? {
+	return this.createRange {
+		while (this.hasMore) {
+			if (!cond(this.peekch())) break
+			this.readch()
+		}
+	}
+}
