@@ -2,6 +2,8 @@ package com.jtransc.io;
 
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
+import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 
 @HaxeAddMembers({"" +
 	"static public function _log(p0:Dynamic) {\n" +
@@ -17,13 +19,9 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);") static public void log(boolean i) { System.out.println(i); }
 	@HaxeMethodBody("_log(p0);") static public void log(int i) { System.out.println(i); }
 
-	@HaxeMethodBody("" +
-		"var msg = '' + p0;\n" +
-		"#if js  var _msg = msg; untyped __js__(\"console.error(_msg);\");\n" +
-		"#elseif sys Sys.stderr().writeString(msg + \"\\n\");\n" +
-		"#else trace(msg);\n" +
-		"#end\n"
-	)
+	@HaxeMethodBody("trace('' + p0);")
+	@HaxeMethodBodyJs("var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");")
+	@HaxeMethodBodySys("var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");")
 	static public void error(Object msg) {
 		System.err.println(msg);
 	}

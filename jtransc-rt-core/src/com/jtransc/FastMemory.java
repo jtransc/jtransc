@@ -21,9 +21,7 @@ import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeRemoveField;
-import sun.misc.Unsafe;
 
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -39,195 +37,195 @@ import java.nio.ByteOrder;
 })
 final public class FastMemory {
 	@HaxeRemoveField
-    private int length;
+	private int length;
 
 	@HaxeRemoveField
-    private ByteBuffer data;
+	private ByteBuffer data;
 
-	@HaxeMethodBody(
+	@HaxeMethodBody("" +
 		"this._length = p0;\n" +
-			"this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
-			"this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
-			"this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
-			"this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
-			"this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
+		"this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
+		"this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
+		"this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
+		"this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
+		"this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
 	)
-    public FastMemory(int size) {
-        this.length = size;
-        this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
-    }
+	public FastMemory(int size) {
+		this.length = size;
+		this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._length;")
-    final public int getLength() {
-        return this.length;
-    }
+	final public int getLength() {
+		return this.length;
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.length;")
-    final public int getAllocatedLength() {
-        return this.data.limit();
-    }
+	final public int getAllocatedLength() {
+		return this.data.limit();
+	}
 
-    // Unaligned
-    @JTranscInline
+	// Unaligned
+	@JTranscInline
 	@HaxeMethodBody("return this._data.get(p0);")
-    final public byte getInt8(int index) {
-        return data.get(index);
-    }
+	final public int getInt8(int index) {
+		return data.get(index) & 0xFF;
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return (this._data.getUInt16(p0) << 16) >> 16;")
-    final public short getInt16(int index) {
-        return data.getShort(index);
-    }
+	final public int getInt16(int index) {
+		return data.getShort(index) & 0xFFFF;
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.getInt32(p0);")
-    final public int getInt32(int index) {
-        return data.getInt(index);
-    }
+	final public int getInt32(int index) {
+		return data.getInt(index);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.getInt64(p0);")
-    final public long getInt64(int index) {
-        return data.getLong(index);
-    }
+	final public long getInt64(int index) {
+		return data.getLong(index);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.getFloat(p0);")
-    final public float getFloat32(int index) {
-        return data.getFloat(index);
-    }
+	final public float getFloat32(int index) {
+		return data.getFloat(index);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.getDouble(p0);")
-    final public double getFloat64(int index) {
-        return data.getDouble(index);
-    }
+	final public double getFloat64(int index) {
+		return data.getDouble(index);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.set(p0, p1);")
-    final public void setInt8(int index, byte value) {
-        data.put(index, value);
-    }
+	final public void setInt8(int index, int value) {
+		data.put(index, (byte) value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setUInt16(p0, p1);")
-    final public void setInt16(int index, short value) {
-        data.putShort(index, value);
-    }
+	final public void setInt16(int index, int value) {
+		data.putShort(index, (short) value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setInt32(p0, p1);")
-    final public void setInt32(int index, int value) {
-        data.putInt(index, value);
-    }
+	final public void setInt32(int index, int value) {
+		data.putInt(index, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setInt64(p0, p1);")
-    final public void setInt64(int index, long value) {
-        data.putLong(index, value);
-    }
+	final public void setInt64(int index, long value) {
+		data.putLong(index, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setFloat(p0, p1);")
-    final public void setFloat32(int index, float value) {
-        data.putFloat(index, value);
-    }
+	final public void setFloat32(int index, float value) {
+		data.putFloat(index, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setDouble(p0, p1);")
-    final public void setFloat64(int index, double value) {
-        data.putDouble(index, value);
-    }
+	final public void setFloat64(int index, double value) {
+		data.putDouble(index, value);
+	}
 
-    // Aligned
+	// Aligned
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.get(p0);")
-    final public byte getAlignedInt8(int index) {
-        return data.get(index << 0);
-    }
+	final public int getAlignedInt8(int index) {
+		return data.get(index << 0) & 0xFF;
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return (this.shortData.get(p0) << 16) >> 16;")
-    final public short getAlignedInt16(int index2) {
-        return data.getShort(index2 << 1);
-    }
+	final public int getAlignedInt16(int index2) {
+		return data.getShort(index2 << 1) & 0xFFFF;
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this.intData.get(p0);")
-    final public int getAlignedInt32(int index4) {
-        return data.getInt(index4 << 2);
-    }
+	final public int getAlignedInt32(int index4) {
+		return data.getInt(index4 << 2);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this._data.getInt64(p0 << 3);") // @TODO: Optimize
-    final public long getAlignedInt64(int index8) {
-        return data.getLong(index8 << 3);
-    }
+	final public long getAlignedInt64(int index8) {
+		return data.getLong(index8 << 3);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this.floatData.get(p0);")
-    final public float getAlignedFloat32(int index4) {
-        return data.getFloat(index4 << 2);
-    }
+	final public float getAlignedFloat32(int index4) {
+		return data.getFloat(index4 << 2);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("return this.doubleData.get(p0);")
-    final public double getAlignedFloat64(int index8) {
-        return data.getDouble(index8 << 3);
-    }
+	final public double getAlignedFloat64(int index8) {
+		return data.getDouble(index8 << 3);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.set(p0, p1);")
-    final public void setAlignedInt8(int index, byte value) {
-        data.put(index << 0, value);
-    }
+	final public void setAlignedInt8(int index, int value) {
+		data.put(index << 0, (byte) value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this.shortData.set(p0, p1);")
-    final public void setAlignedInt16(int index2, short value) {
-        data.putShort(index2 << 1, value);
-    }
+	final public void setAlignedInt16(int index2, int value) {
+		data.putShort(index2 << 1, (short) value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this.intData.set(p0, p1);")
-    final public void setAlignedInt32(int index4, int value) {
-        data.putInt(index4 << 2, value);
-    }
+	final public void setAlignedInt32(int index4, int value) {
+		data.putInt(index4 << 2, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this._data.setInt64(p0 << 3, p1);") // @TODO: Optimize
-    final public void setAlignedInt64(int index8, long value) {
-        data.putLong(index8 << 3, value);
-    }
+	final public void setAlignedInt64(int index8, long value) {
+		data.putLong(index8 << 3, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this.floatData.set(p0, p1);")
-    final public void setAlignedFloat32(int index4, float value) {
-        data.putFloat(index4 << 2, value);
-    }
+	final public void setAlignedFloat32(int index4, float value) {
+		data.putFloat(index4 << 2, value);
+	}
 
-    @JTranscInline
+	@JTranscInline
 	@HaxeMethodBody("this.doubleData.set(p0, p1);")
-    final public void setAlignedFloat64(int index8, double value) {
-        data.putDouble(index8 << 3, value);
-    }
+	final public void setAlignedFloat64(int index8, double value) {
+		data.putDouble(index8 << 3, value);
+	}
 
 	// UNALIGNED REVERSED
 
 	@JTranscInline
 	@HaxeMethodBody("return this._data.get(p0);")
-	final public byte getInt8_REV(int index) {
-		return data.get(index);
+	final public int getInt8_REV(int index) {
+		return data.get(index) & 0xFF;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("return HaxeNatives.swap16((this._data.getUInt16(p0) << 16) >> 16);")
-	final public short getInt16_REV(int index) {
-		return Short.reverseBytes(data.getShort(index));
+	final public int getInt16_REV(int index) {
+		return Short.reverseBytes(data.getShort(index)) & 0xFFFF;
 	}
 
 	@JTranscInline
@@ -246,9 +244,9 @@ final public class FastMemory {
 		for (int n = 0; n < length; n++) to[toOffset + n] = from[fromOffset + n];
 	}
 
-    static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
-        for (int n = 0; n < length; n++) to[toOffset + n] = from.getInt8(fromOffset + n);
-    }
+	static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
+		for (int n = 0; n < length; n++) to[toOffset + n] = (byte)from.getInt8(fromOffset + n);
+	}
 
 	static public void copy(byte[] from, int fromOffset, FastMemory to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to.setInt8(toOffset + n, from[fromOffset + n]);

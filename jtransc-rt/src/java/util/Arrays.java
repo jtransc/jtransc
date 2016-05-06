@@ -62,7 +62,7 @@ public class Arrays {
 	}
 
     @HaxeMethodBody(
-            "var array = cast(p0, HaxeArray);\n" +
+            "var array = cast(p0, HaxeArrayAny);\n" +
             "var start = p1;\n" +
             "var end = p2;\n" +
             "var comparator = p3;\n" +

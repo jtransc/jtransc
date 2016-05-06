@@ -1,6 +1,7 @@
 package javatest.misc;
 
 import com.jtransc.annotation.JTranscKeep;
+import jtransc.jtransc.FastMemoryTest;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Field;
@@ -95,6 +96,8 @@ public class MiscTest {
 		testBoolArray();
 
 	    testAssignItself();
+
+		FastMemoryTest.main(new String[0]);
 
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");

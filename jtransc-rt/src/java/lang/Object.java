@@ -38,16 +38,16 @@ import java.lang.reflect.Field;
 	"HaxeIO.hx",
 	"HaxeFormat.hx",
 	"HaxeNativeWrapper.hx",
-	"HaxeBaseArray.hx",
-	"HaxeBoolArray.hx",
-	"HaxeByteArray.hx",
-	"HaxeShortArray.hx",
-	"HaxeCharArray.hx",
-	"HaxeIntArray.hx",
-	"HaxeFloatArray.hx",
-	"HaxeDoubleArray.hx",
-	"HaxeLongArray.hx",
-	"HaxeArray.hx"
+	"HaxeArrayBase.hx",
+	"HaxeArrayBool.hx",
+	"HaxeArrayByte.hx",
+	"HaxeArrayShort.hx",
+	"HaxeArrayChar.hx",
+	"HaxeArrayInt.hx",
+	"HaxeArrayFloat.hx",
+	"HaxeArrayDouble.hx",
+	"HaxeArrayLong.hx",
+	"HaxeArrayAny.hx"
 })
 public class Object {
 	@JTranscKeep

@@ -226,19 +226,22 @@ class HaxeNames(
 			is AstType.LONG -> "haxe.Int64"
 			is AstType.REF -> program[type.name]?.nativeName ?: getHaxeClassFqName(type.name)
 			is AstType.ARRAY -> when (type.element) {
-				is AstType.BOOL -> "HaxeBoolArray"
-				is AstType.BYTE -> "HaxeByteArray"
-				is AstType.CHAR -> "HaxeCharArray"
-				is AstType.SHORT -> "HaxeShortArray"
-				is AstType.INT -> "HaxeIntArray"
-				is AstType.LONG -> "HaxeLongArray"
-				is AstType.FLOAT -> "HaxeFloatArray"
-				is AstType.DOUBLE -> "HaxeDoubleArray"
-				else -> "HaxeArray"
+				is AstType.BOOL -> "HaxeArrayBool"
+				is AstType.BYTE -> "HaxeArrayByte"
+				is AstType.CHAR -> "HaxeArrayChar"
+				is AstType.SHORT -> "HaxeArrayShort"
+				is AstType.INT -> "HaxeArrayInt"
+				is AstType.LONG -> "HaxeArrayLong"
+				is AstType.FLOAT -> "HaxeArrayFloat"
+				is AstType.DOUBLE -> "HaxeArrayDouble"
+				else -> "HaxeArrayAny"
 			}
 			else -> throw RuntimeException("Not supported haxe type $type, $typeKind")
 		})
 	}
+
+	val HaxeArrayAny = "HaxeArrayAny"
+	val HaxeArrayBase = "HaxeArrayBase"
 
 	fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)

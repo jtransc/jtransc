@@ -2,7 +2,7 @@ import haxe.io.UInt8Array;
 import haxe.io.Bytes;
 import haxe.io.BytesData;
 
-class HaxeByteArray extends HaxeBaseArray {
+class HaxeArrayByte extends HaxeArrayBase {
     public var data:UInt8Array = null;
 
     public function new(length:Int) {
@@ -32,21 +32,21 @@ class HaxeByteArray extends HaxeBaseArray {
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeByteArray(items.length);
+        var out = new HaxeArrayByte(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
     static public function fromUInt8Array(items:UInt8Array) {
         if (items == null) return null;
-        var out = new HaxeByteArray(items.length);
+        var out = new HaxeArrayByte(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
     static public function fromBytes(bytes:Bytes) {
         if (bytes == null) return null;
-        var out = new HaxeByteArray(bytes.length);
+        var out = new HaxeArrayByte(bytes.length);
         var bytesData = bytes.getData();
         for (n in 0 ... bytes.length) out.set(n, Bytes.fastGet(bytesData, n));
         return out;
@@ -71,12 +71,12 @@ class HaxeByteArray extends HaxeBaseArray {
     }
 
     public override function clone() {
-        var out = new HaxeByteArray(length);
+        var out = new HaxeArrayByte(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeByteArray, to:HaxeByteArray, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:HaxeArrayByte, to:HaxeArrayByte, fromPos:Int, toPos:Int, length:Int) {
         for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
     }
 }

@@ -51,10 +51,8 @@ inline fun <reified T : Any> List<AstAnnotation>?.contains2(): Boolean {
 	return FqName(T::class.java.name) in this
 }
 
-operator inline fun <reified C : Annotation, reified T : Any> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
-	val cClass = C::class.java
-	val tClass = T::class.java
-	val value = this?.get(cClass.name.fqname, field.name)
+operator fun <C, T> List<AstAnnotation>?.get(cClass: Class<C>, tClass: Class<T>, fieldName: String): T? {
+	val value = this?.get(cClass.name.fqname, fieldName)
 	val valueClass = value?.javaClass
 	if (valueClass != null && valueClass != tClass) {
 		if (tClass.isArray && valueClass.isArray) {
@@ -67,8 +65,25 @@ operator inline fun <reified C : Annotation, reified T : Any> List<AstAnnotation
 	return value as T?
 }
 
+data class FieldReference<C, T>(val cClass: Class<C>, val tClass: Class<T>, val fieldName: String) {
+}
+
+inline fun <reified C : Any, reified T : Any> FieldReference(field: KProperty1<C, T>): FieldReference<C, T> {
+	return FieldReference(C::class.java, T::class.java, field.name)
+}
+
+inline fun <reified C : Any, reified T : Any> KProperty1<C, T>.ref(): FieldReference<C, T> = FieldReference(C::class.java, T::class.java, this.name)
+
+operator fun <C : Any, T : Any> List<AstAnnotation>?.get(ref: FieldReference<C, T>): T? {
+	return this[ref.cClass, ref.tClass, ref.fieldName]
+}
+
+operator inline fun <reified C : Annotation, reified T : Any> List<AstAnnotation>?.get(field: KProperty1<C, T>): T? {
+	return this[C::class.java, T::class.java, field.name]
+}
+
 inline fun <reified C : Annotation, reified T : Any> List<AstClass>.getAnnotation(field: KProperty1<C, T>): List<T> {
-	return this.map { it.annotations.get(field) }.stripNulls()
+	return this.map { it.annotations[field] }.stripNulls()
 }
 
 inline fun <reified C : Annotation> List<AstAnnotation>?.contains(): Boolean {

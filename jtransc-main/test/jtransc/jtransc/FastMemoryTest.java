@@ -10,6 +10,7 @@ public class FastMemoryTest {
 		testMem();
 		testCopyReinterpret();
 		testViews();
+		testRawMem();
 	}
 
 	private static void testFastMemory() {
@@ -50,5 +51,17 @@ public class FastMemoryTest {
 		System.out.println(ints.getLength());
 		System.out.println(floats.getLength());
 		System.out.println(ints.get(0));
+	}
+
+	private static void testRawMem() {
+		System.out.println("testRawMem:");
+		Mem.select(new FastMemory(1024));
+		Mem.si32(0, 0x12345670);
+		System.out.println(Mem.li8(0));
+		System.out.println(Mem.li8(1));
+		System.out.println(Mem.li8(2));
+		System.out.println(Mem.li8(3));
+		Mem.si8(0, (byte)255);
+		System.out.println(Mem.li8(0) < 0);
 	}
 }

@@ -22,31 +22,31 @@ public final class Array {
 	private Array() {
 	}
 
-	@HaxeMethodBody("return new HaxeByteArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayBool(p0);")
 	native private static Object newBoolInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeByteArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayByte(p0);")
 	native private static Object newByteInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeCharArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayChar(p0);")
 	native private static Object newCharInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeShortArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayShort(p0);")
 	native private static Object newShortInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeIntArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayInt(p0);")
 	native private static Object newIntInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeLongArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayLong(p0);")
 	native private static Object newLongInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeFloatArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayFloat(p0);")
 	native private static Object newFloatInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeDoubleArray(p0);")
+	@HaxeMethodBody("return new HaxeArrayDouble(p0);")
 	native private static Object newDoubleInstance(int length) throws NegativeArraySizeException;
 
-	@HaxeMethodBody("return new HaxeArray(p0, p1._str);")
+	@HaxeMethodBody("return new HaxeArrayAny(p0, p1._str);")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;
 
 	public static Object newInstance(Class<?> type, int length) throws NegativeArraySizeException {
@@ -83,11 +83,11 @@ public final class Array {
 		}
 	}
 
-    @HaxeMethodBody("return cast(p0, HaxeBaseArray).length;")
+    @HaxeMethodBody("return cast(p0, HaxeArrayBase).length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 
-	@HaxeMethodBody("return cast(p0, HaxeArray).getDynamic(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayAny).getDynamic(p1);")
 	native private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
     public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
@@ -113,32 +113,32 @@ public final class Array {
 	    }
     }
 
-    @HaxeMethodBody("return cast(p0, HaxeBoolArray).getBool(p1);")
+    @HaxeMethodBody("return cast(p0, HaxeArrayBool).getBool(p1);")
 	native public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeByteArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayByte).get(p1);")
 	native public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeCharArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayChar).get(p1);")
 	native public static char getChar(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeShortArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayShort).get(p1);")
 	native public static short getShort(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeIntArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayInt).get(p1);")
 	native public static int getInt(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeLongArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayLong).get(p1);")
 	native public static long getLong(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeFloatArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayFloat).get(p1);")
 	native public static float getFloat(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("return cast(p0, HaxeDoubleArray).get(p1);")
+	@HaxeMethodBody("return cast(p0, HaxeArrayDouble).get(p1);")
 	native public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 
-	@HaxeMethodBody("cast(p0, HaxeArray).setDynamic(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayAny).setDynamic(p1, p2);")
 	native private static void setInstance(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
@@ -164,28 +164,28 @@ public final class Array {
 		}
 	}
 
-    @HaxeMethodBody("cast(p0, HaxeBoolArray).setBool(p1, p2);")
+    @HaxeMethodBody("cast(p0, HaxeArrayBool).setBool(p1, p2);")
 	native public static void setBoolean(Object array, int index, boolean z) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeByteArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayByte).set(p1, p2);")
 	native public static void setByte(Object array, int index, byte b) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeCharArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayChar).set(p1, p2);")
 	native public static void setChar(Object array, int index, char c) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeShortArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayShort).set(p1, p2);")
 	native public static void setShort(Object array, int index, short s) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeIntArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayInt).set(p1, p2);")
 	native public static void setInt(Object array, int index, int i) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeLongArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayLong).set(p1, p2);")
 	native public static void setLong(Object array, int index, long l) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeFloatArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayFloat).set(p1, p2);")
 	native public static void setFloat(Object array, int index, float f) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-	@HaxeMethodBody("cast(p0, HaxeDoubleArray).set(p1, p2);")
+	@HaxeMethodBody("cast(p0, HaxeArrayDouble).set(p1, p2);")
 	native public static void setDouble(Object array, int index, double d) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	static private Type getArrayElementType(Class<?> clazz) {

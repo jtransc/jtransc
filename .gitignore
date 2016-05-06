@@ -25,7 +25,6 @@
 /jtransc-gen-as3/target
 /jtransc-gen-haxe/target
 /jtransc-main/target
-/jtransc-main/program.js
 /jtransc-main/program.swf.xml
 /jtransc-utils/target
 /jtransc-tools/target
@@ -36,8 +35,6 @@
 /example-as3/tempsrc
 /outas3
 /program.swf
-jtransc-main/program.haxe.js
-jtransc-core/program.haxe.js
 out.jar
 out_java
 *.map
@@ -46,3 +43,4 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 *.7z
 *.zip
 *.js
+*.php

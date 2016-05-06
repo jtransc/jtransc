@@ -147,6 +147,6 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 		return super.getDeclaredAnnotations();
 	}
 
-	@HaxeMethodBody("return HaxeArray.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
+	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
 	native public Annotation[][] getParameterAnnotations();
 }

@@ -4,6 +4,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMeta;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -119,28 +120,24 @@ public class JTranscFFI {
 			}
 		}
 
-		@HaxeMethodBody("" +
-			"#if js\n" +
+		@HaxeMethodBodyJs("" +
 			"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
 			"var obj:Dynamic = {};\n" +
 			"for (item in p1.toArray()) {\n" +
 			"  Reflect.setField(obj, item.name, [HaxeNatives.toNativeString(item.retval), HaxeNatives.toNativeStrArray(item.args)]);\n" +
 			"}\n" +
-			"this.lib = ffi.Library(p0._str, obj);\n" +
-			"#end\n"
+			"this.lib = ffi.Library(p0._str, obj);\n"
 		)
+		@HaxeMethodBody("")
 		public NodeFFI_Library(String name, Function[] functions) {
 		}
 
-		@HaxeMethodBody("" +
-			"#if js\n" +
+		@HaxeMethodBodyJs("" +
 			"var name = HaxeNatives.toNativeString(p0);\n" +
 			"var args = HaxeNatives.toNativeUnboxedArray(p1);\n" +
-			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));" +
-			"#else\n" +
-			"return null;\n" +
-			"#end\n"
+			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
 		)
+		@HaxeMethodBody("return null;")
 		public native Object invoke(String name, Object... args);
 	}
 

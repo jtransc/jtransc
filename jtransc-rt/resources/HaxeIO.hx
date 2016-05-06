@@ -183,7 +183,7 @@ class SyncStream {
 		}
 	}
 
-	public function syncioReadBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
+	public function syncioReadBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
@@ -200,7 +200,7 @@ class SyncStream {
 		#end
 	}
 
-	public function syncioWriteBytes(data:HaxeByteArray, offset:Int, length:Int):Int {
+	public function syncioWriteBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js

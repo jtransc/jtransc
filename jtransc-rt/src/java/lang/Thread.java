@@ -16,7 +16,9 @@
 
 package java.lang;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 
 import java.util.Map;
 
@@ -37,7 +39,7 @@ public class Thread implements Runnable {
 	public StackTraceElement[] getStackTrace() {
 		StackTraceElement[] stackTrace = _getStackTrace();
 		if (stackTrace.length == 0) {
-			return new StackTraceElement[] {
+			return new StackTraceElement[]{
 				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
 				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
 				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1)
@@ -54,23 +56,12 @@ public class Thread implements Runnable {
 
 	}
 
-	/*
-	@HaxeMethodBody("" +
-		"#if sys Sys.sleep(p0 / 1000.0);\n" +
-		"#else \n" +
-		"#end \n"
-	)
-	native public static void sleep(long millis) throws InterruptedException;
-	*/
 	public static void sleep(long millis) throws InterruptedException {
-		long start = System.currentTimeMillis();
-		while (System.currentTimeMillis() - start < millis) {
-			// Do something that yields the thread!
-		}
+		JTranscSystem.sleep(millis);
 	}
 
 	public static void sleep(long millis, int nanos) throws InterruptedException {
-		sleep(millis);
+		JTranscSystem.sleep(millis);
 	}
 
 	public Thread() {
@@ -162,11 +153,9 @@ public class Thread implements Runnable {
 	public String toString() {
 		ThreadGroup group = getThreadGroup();
 		if (group != null) {
-			return "Thread[" + getName() + "," + getPriority() + "," +
-				group.getName() + "]";
+			return "Thread[" + getName() + "," + getPriority() + "," + group.getName() + "]";
 		} else {
-			return "Thread[" + getName() + "," + getPriority() + "," +
-				"" + "]";
+			return "Thread[" + getName() + "," + getPriority() + "," + "]";
 		}
 	}
 

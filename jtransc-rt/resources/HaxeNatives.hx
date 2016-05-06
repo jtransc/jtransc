@@ -51,11 +51,11 @@ class HaxeNatives {
         return (str != null) ? str._str : null;
     }
 
-    static public function toNativeStrArray(strs:HaxeArray):Array<String> {
+    static public function toNativeStrArray(strs:HaxeArrayAny):Array<String> {
         return [for (s in strs.toArray()) toNativeString(cast s)];
     }
 
-    static public function toNativeUnboxedArray(strs:HaxeArray):Array<Dynamic> {
+    static public function toNativeUnboxedArray(strs:HaxeArrayAny):Array<Dynamic> {
         return [for (s in strs.toArray()) unbox(cast s)];
     }
 
@@ -95,11 +95,11 @@ class HaxeNatives {
     static public function float(value:Float):JavaFloat return boxFloat(value);
     static public function double(value:Float):JavaDouble return boxDouble(value);
 
-    static public function strArray(strs:Array<String>):HaxeArray {
-        return HaxeArray.fromArray(strs.map(function(s) { return str(s); }).array(), "[Ljava.lang.String;");
+    static public function strArray(strs:Array<String>):HaxeArrayAny {
+        return HaxeArrayAny.fromArray(strs.map(function(s) { return str(s); }).array(), "[Ljava.lang.String;");
     }
 
-    static public function byteArrayToString(chars:HaxeByteArray, start:Int = 0, count:Int = -1, charset:String = "UTF-8"):String {
+    static public function byteArrayToString(chars:HaxeArrayByte, start:Int = 0, count:Int = -1, charset:String = "UTF-8"):String {
         if (count < 0) count = chars.length;
         var out = "";
         var end = start + count;
@@ -108,7 +108,7 @@ class HaxeNatives {
         return out;
     }
 
-    static public function charArrayToString(chars:HaxeCharArray, start:Int = 0, count:Int = 999999999):String {
+    static public function charArrayToString(chars:HaxeArrayChar, start:Int = 0, count:Int = 999999999):String {
         var out = "";
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
@@ -116,7 +116,7 @@ class HaxeNatives {
         return out;
     }
 
-    static public function intArrayToString(chars:HaxeIntArray, start:Int = 0, count:Int = 999999999):String {
+    static public function intArrayToString(chars:HaxeArrayInt, start:Int = 0, count:Int = 999999999):String {
         var out = "";
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
@@ -124,8 +124,8 @@ class HaxeNatives {
         return out;
     }
 
-    static public function stringToByteArray(str:String, charset:String = "UTF-8"):HaxeByteArray {
-        var out = new HaxeByteArray(str.length);
+    static public function stringToByteArray(str:String, charset:String = "UTF-8"):HaxeArrayByte {
+        var out = new HaxeArrayByte(str.length);
         for (n in 0 ... str.length) out.set(n, str.charCodeAt(n));
         return out;
     }
@@ -162,7 +162,7 @@ class HaxeNatives {
     }
 
     static public function getClassDescriptor(object:JavaObject):String {
-        if (Std.is(object, HaxeBaseArray)) return cast(object, HaxeBaseArray).desc;
+        if (Std.is(object, HaxeArrayBase)) return cast(object, HaxeArrayBase).desc;
         var haxeClass = Type.getClass(object);
         if (haxeClass == null) trace('haxeClass == null');
         var haxeClassName = Type.getClassName(haxeClass);
@@ -193,22 +193,22 @@ class HaxeNatives {
     }
 
     static public function arraycopy(src:JavaObject, srcPos:Int, dest:JavaObject, destPos:Int, length:Int) {
-        if (Std.is(src, HaxeArray)) {
-            HaxeArray.copy(cast(src, HaxeArray), cast(dest, HaxeArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeByteArray)) {
-             HaxeByteArray.copy(cast(src, HaxeByteArray), cast(dest, HaxeByteArray), srcPos, destPos, length);
-         } else if (Std.is(src, HaxeIntArray)) {
-            HaxeIntArray.copy(cast(src, HaxeIntArray), cast(dest, HaxeIntArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeLongArray)) {
-            HaxeLongArray.copy(cast(src, HaxeLongArray), cast(dest, HaxeLongArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeFloatArray)) {
-            HaxeFloatArray.copy(cast(src, HaxeFloatArray), cast(dest, HaxeFloatArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeDoubleArray)) {
-            HaxeDoubleArray.copy(cast(src, HaxeDoubleArray), cast(dest, HaxeDoubleArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeShortArray)) {
-             HaxeShortArray.copy(cast(src, HaxeShortArray), cast(dest, HaxeShortArray), srcPos, destPos, length);
-        } else if (Std.is(src, HaxeCharArray)) {
-			HaxeCharArray.copy(cast(src, HaxeCharArray), cast(dest, HaxeCharArray), srcPos, destPos, length);
+        if (Std.is(src, HaxeArrayAny)) {
+            HaxeArrayAny.copy(cast(src, HaxeArrayAny), cast(dest, HaxeArrayAny), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayByte)) {
+             HaxeArrayByte.copy(cast(src, HaxeArrayByte), cast(dest, HaxeArrayByte), srcPos, destPos, length);
+         } else if (Std.is(src, HaxeArrayInt)) {
+            HaxeArrayInt.copy(cast(src, HaxeArrayInt), cast(dest, HaxeArrayInt), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayLong)) {
+            HaxeArrayLong.copy(cast(src, HaxeArrayLong), cast(dest, HaxeArrayLong), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayFloat)) {
+            HaxeArrayFloat.copy(cast(src, HaxeArrayFloat), cast(dest, HaxeArrayFloat), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayDouble)) {
+            HaxeArrayDouble.copy(cast(src, HaxeArrayDouble), cast(dest, HaxeArrayDouble), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayShort)) {
+             HaxeArrayShort.copy(cast(src, HaxeArrayShort), cast(dest, HaxeArrayShort), srcPos, destPos, length);
+        } else if (Std.is(src, HaxeArrayChar)) {
+			HaxeArrayChar.copy(cast(src, HaxeArrayChar), cast(dest, HaxeArrayChar), srcPos, destPos, length);
 		} else {
             trace("arraycopy failed unsupported array type! " + src + ", " + dest);
             throw "arraycopy failed unsupported array type! " + src + ", " + dest;
@@ -358,12 +358,12 @@ class HaxeNatives {
 		return createStackItem(className, methodName, fileName, line);
 	}
 
-	static public function getStackTrace(skip:Int):HaxeArray {
+	static public function getStackTrace(skip:Int):HaxeArrayAny {
 		var out = [];
 		for (stack in CallStack.callStack()) {
 			out.push(convertStackItem(stack));
 		}
-		return HaxeArray.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
+		return HaxeArrayAny.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
 	}
 
 	static public inline function throwRuntimeException(msg:String) {

@@ -33,8 +33,6 @@ class GenHaxeGen(
 	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val refs = References()
 	val context = AstGenContext()
-	//lateinit var clazz: AstClass
-	//lateinit var method: AstMethod
 	lateinit var mutableBody: MutableBody
 	lateinit var stm: AstStm
 
@@ -199,12 +197,12 @@ class GenHaxeGen(
 		}
 	}
 
-	fun annotations(annotations: List<AstAnnotation>): String =  "[" + annotations.map { annotation(it) }.joinToString(", ") + "]"
-	fun annotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { annotations(it) }.joinToString(", ") + "]"
+	fun visibleAnnotations(annotations: List<AstAnnotation>): String =  "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
+	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { visibleAnnotations(it) }.joinToString(", ") + "]"
 
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
-			for (i in annotations.flatMap { annotationInit(it) }.toHashSet()) {
+			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
 				line("${i.name.haxeGeneratedFqName}.SI();")
 			}
 		}
@@ -219,19 +217,19 @@ class GenHaxeGen(
 			line(annotationsInit(clazz.runtimeAnnotations))
 			val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
 			val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
-			line("R.i(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
+			line("R.i(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + visibleAnnotations(clazz.runtimeAnnotations) + ");")
 			for ((slot, field) in clazz.fields.withIndex()) {
 				val internalName = field.haxeName
-				line("R.f(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${annotations(field.annotations)});");
+				line("R.f(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${visibleAnnotations(field.annotations)});");
 			}
 			for ((slot, method) in clazz.methods.withIndex()) {
 				val internalName = method.haxeName
 				if (method.name == "<init>") {
-					line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
+					line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
 				} else if (method.name == "<clinit>") {
 				} else {
 					val methodId = program.getMethodId(method.ref)
-					line("R.m(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${annotations(method.annotations)}, ${annotationsList(method.parameterAnnotations)});");
+					line("R.m(c, $methodId, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
 				}
 			}
 			line("return c;")
@@ -479,22 +477,7 @@ class GenHaxeGen(
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
-				/*
-				val out = if (refMethod.getterField != null) {
-					if (refMethod.getterField!!.contains('$')) {
-						refMethod.getterField!!.replace("\$", base);
-					} else {
-						"$base.${refMethod.getterField}"
-					}
-				} else if (refMethod.setterField != null) {
-					"$base.${refMethod.setterField} = $commaArgs"
-				} else {
-					*/
-
-				//}
-
 				"$base.${refMethod.haxeName}($commaArgs)"
-				//"$out /* isSpecial = ${e.isSpecial} (${e.type}) */"
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
 				"${e.expr.genNotNull()}.${fixField(e.field).haxeName}"
@@ -510,7 +493,7 @@ class GenHaxeGen(
 				if (type is AstType.ARRAY) {
 					"(${e.array.genNotNull()}).length"
 				} else {
-					"cast(${e.array.genNotNull()}, HaxeBaseArray).length"
+					"cast(${e.array.genNotNull()}, ${names.HaxeArrayBase}).length"
 				}
 			}
 			is AstExpr.ARRAY_ACCESS -> {
@@ -540,13 +523,13 @@ class GenHaxeGen(
 				when (e.counts.size) {
 					1 -> {
 						if (e.type.elementType !is AstType.Primitive) {
-							"new HaxeArray(${e.counts[0].genExpr()}, \"$desc\")"
+							"new ${names.HaxeArrayAny}(${e.counts[0].genExpr()}, \"$desc\")"
 						} else {
 							"new ${e.type.haxeTypeNew}(${e.counts[0].genExpr()})"
 						}
 					}
 					else -> {
-						"HaxeArray.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
+						"${names.HaxeArrayAny}.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
 					}
 				}
 			}
@@ -661,6 +644,49 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
+	val targetsMethodBody = mapOf(
+		"flash" to HaxeMethodBodyFlash::value.ref(),
+		"js" to HaxeMethodBodyJs::value.ref(),
+		"sys" to HaxeMethodBodySys::value.ref(),
+		"cpp" to HaxeMethodBodyCpp::value.ref(),
+		"neko" to HaxeMethodBodyNeko::value.ref(),
+		"java" to HaxeMethodBodyJava::value.ref(),
+		"csharp" to HaxeMethodBodyCSharp::value.ref(),
+		"php" to HaxeMethodBodyPhp::value.ref(),
+		"python" to HaxeMethodBodyPython::value.ref()
+	)
+
+	private fun AstMethod.getHaxeNativeBody(): String? {
+		val method = this
+		val defaultBody = method.annotations[HaxeMethodBody::value]
+		return if (defaultBody == null) {
+			null
+		} else {
+			val extraBodies = targetsMethodBody.map {
+				val str = method.annotations[it.value]
+				if (str != null) it.key to str else null
+			}.filterNotNull().toMap()
+
+			return Indenter.genString {
+				var first = true
+				val pre = method.annotations[HaxeMethodBodyAllPre::value]
+				val post = method.annotations[HaxeMethodBodyAllPost::value]
+				if (pre != null) line(pre)
+				if (extraBodies.isNotEmpty()) {
+					for ((target, body) in extraBodies) {
+						line(if (first) "#if ($target) $body" else "#elseif ($target) $body")
+						first = false
+					}
+					line("#else $defaultBody")
+					line("#end")
+				} else {
+					line(defaultBody)
+				}
+				if (post != null) line(post)
+			}
+		}
+	}
+
 	fun writeClass(clazz: AstClass, vfs: SyncVfsFile) {
 		context.clazz = clazz
 		strings = Strings()
@@ -720,7 +746,7 @@ class GenHaxeGen(
 				if (isInterface) {
 					if (!method.isImplementing) line("$decl;")
 				} else {
-					val body = method.annotations[HaxeMethodBody::value]?.template()
+					val body = method.getHaxeNativeBody()?.template()
 					val meta = method.annotations[HaxeMeta::value]
 					if (meta != null) line(meta)
 					if (body != null) {
@@ -805,8 +831,6 @@ class GenHaxeGen(
 					}
 				}
 
-				//val nativeMembers = clazz.thisAndAncestors.getAnnotation(HaxeAddMembers::value).flatMap { it.toList() }
-				//val nativeMembers = clazz.annotations.get(HaxeAddMembers::value).flatMap { it.toList() }
 				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
 
 				for (member in nativeMembers) line(member.template())
@@ -973,7 +997,7 @@ class GenHaxeGen(
 					// public Object invoke(Object proxy, Method method, Object[] args)
 					line("private function _invoke(methodId:Int, args:Array<$JAVA_LANG_OBJECT>):$JAVA_LANG_OBJECT") {
 						line("var method = this.__clazz.locateMethodById(methodId);");
-						line("return this.__invocationHandler.$invokeHaxeName(this, method, HaxeArray.fromArray(args, '[Ljava.lang.Object;'));")
+						line("return this.__invocationHandler.$invokeHaxeName(this, method, ${names.HaxeArrayAny}.fromArray(args, '[Ljava.lang.Object;'));")
 					}
 
 					for (methodRef in clazz.allMethodsToImplement) {

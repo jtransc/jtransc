@@ -49,12 +49,12 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
 val HaxeFeatures = setOf(SwitchesFeature)
 
-enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin") {
+enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interpreter: String? = null, val extension: String = "bin", val interpreterSuffix: String = "") {
 	JS(switch = "-js", singleFile = true, interpreter = "node", extension = "js"),
 	CPP(switch = "-cpp", singleFile = false, interpreter = null, extension = "exe"),
 	SWF(switch = "-swf", singleFile = true, interpreter = null, extension = "swf"),
 	NEKO(switch = "-neko", singleFile = true, interpreter = "neko", extension = "n"),
-	PHP(switch = "-php", singleFile = false, interpreter = "php", extension = "php"),
+	PHP(switch = "-php", singleFile = false, interpreter = "php", extension = "php", interpreterSuffix = "/index.php"),
 	CS(switch = "-cs", singleFile = false, interpreter = null, extension = "exe"),
 	JAVA(switch = "-java", singleFile = false, interpreter = "java -jar", extension = "jar"),
 	PYTHON(switch = "-python", singleFile = true, interpreter = "python", extension = "py")
@@ -78,7 +78,7 @@ enum class HaxeSubtarget(val switch: String, val singleFile: Boolean, val interp
 
 private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
-val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LIBS_KEY) {
+fun AstProgram.haxeLibs(settings: AstBuildSettings): List<HaxeLib.LibraryRef> = this.getCached(HAXE_LIBS_KEY) {
 	this.classes
 		.map { it.annotations[HaxeAddLibraries::value] }
 		.filterNotNull()
@@ -86,8 +86,8 @@ val AstProgram.haxeLibs: List<HaxeLib.LibraryRef> get() = this.getCached(HAXE_LI
 		.map { HaxeLib.LibraryRef.fromVersion(it) }
 }
 
-val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() {
-	return this.haxeLibs.map { "-lib" to it.nameWithVersion } + listOf(
+fun AstProgram.haxeExtraFlags(settings: AstBuildSettings): List<Pair<String, String>> {
+	return this.haxeLibs(settings).map { "-lib" to it.nameWithVersion } + listOf(
 		//"-dce" to "no"
 		//"-D" to "analyzer-no-module",
 		//"--no-inline" to "1",
@@ -95,7 +95,7 @@ val AstProgram.haxeExtraFlags: List<Pair<String, String>> get() {
 	)
 }
 
-val AstProgram.haxeExtraDefines: List<String> get() {
+fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> {
 
 	//-D no-analyzer
 	//--times : measure compilation times
@@ -107,14 +107,14 @@ val AstProgram.haxeExtraDefines: List<String> get() {
 	//fusion: Moves variable expressions to its usage in case of single-occurrence. Disabled on Flash and Java.
 	//purity_inference: Infers if fields are "pure", i.e. do not have any side-effects. This can improve the effect of the fusion module.
 	//unreachable_code: Reports unreachable code.
+
 	return listOf(
-		//"analyzer"
-		"no-analyzer"
+		if (settings.analyzer) "analyzer" else "no-analyzer"
 	)
 }
 
-fun AstProgram.haxeInstallRequiredLibs() {
-	val libs = this.haxeLibs
+fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
+	val libs = this.haxeLibs(settings)
 	log(":: REFERENCED LIBS: $libs")
 	for (lib in libs) {
 		log(":: TRYING TO INSTALL LIBRARY $lib")
@@ -177,9 +177,9 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		val releaseArgs = if (tinfo.settings.release) listOf() else listOf("-debug")
 		val subtargetArgs = listOf(actualSubtarget.switch, outputFile2.absolutePath)
 
-		program.haxeInstallRequiredLibs()
-		buildArgs += program.haxeExtraFlags.flatMap { listOf(it.first, it.second) }
-		buildArgs += program.haxeExtraDefines.flatMap { listOf("-D", it) }
+		program.haxeInstallRequiredLibs(settings)
+		buildArgs += program.haxeExtraFlags(settings).flatMap { listOf(it.first, it.second) }
+		buildArgs += program.haxeExtraDefines(settings).flatMap { listOf("-D", it) }
 
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
@@ -201,9 +201,11 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		val runner = actualSubtarget.interpreter ?: "echo"
 
-		println("Running: $runner, ${outputFile2.absolutePath}")
+		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+
+		println("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
-			ProcessUtils.run(parentDir, runner, listOf(outputFile2.absolutePath), redirect = redirect)
+			ProcessUtils.run(parentDir, runner, arguments, redirect = redirect)
 		}
 	}
 }

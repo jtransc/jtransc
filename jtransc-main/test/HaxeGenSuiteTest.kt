@@ -49,10 +49,8 @@ class HaxeGenSuiteTest {
 	companion object {
 		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true
-		//const val MINIMIZE = false
-
+		const val ANALYZER = false
 		const val DEBUG = false
-		//const val DEBUG = true
 	}
 
 	init {
@@ -71,7 +69,7 @@ class HaxeGenSuiteTest {
 		)
 	}
 
-	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>()
+	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>(minimize = false)
 
 	//-----------------------------------------------------------------
 	// Java Utils
@@ -82,7 +80,7 @@ class HaxeGenSuiteTest {
 	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
-	@Test fun fastMemoryTest() = testClass<FastMemoryTest>()
+	@Test fun fastMemoryTest() = testClass<FastMemoryTest>(minimize = false)
 
 	@Test fun jtranscBugWithStaticInits() = testClass<JTranscBugWithStaticInits>()
 
@@ -142,17 +140,18 @@ class HaxeGenSuiteTest {
 
 	@Test fun wrappedTest() = testClass<WrappedTest>()
 
-	@Test fun miscTest() = testClass<MiscTest>() {
+	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true) {
+		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+	}
+
+	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
 
-	// Shortcut
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null) = testClass(minimize, T::class.java, { it })
-
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, noinline transformer: (String) -> String) = testClass(minimize, T::class.java, transformer)
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
 
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2")
@@ -162,18 +161,17 @@ class HaxeGenSuiteTest {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, clazz: Class<T>, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz, minimize)
-
+		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang)
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null): String {
-		return runClass(T::class.java, minimize)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang:String = "js"): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang)
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -188,13 +186,13 @@ class HaxeGenSuiteTest {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean? = null): String {
+	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean?, analyze: Boolean?, lang:String): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = HaxeGenDescriptor,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
 			entryPoint = clazz.name,
-			output = "program.haxe.js", subtarget = "js",
+			output = "program.haxe.$lang", subtarget = "$lang",
 			//output = "program.haxe.cpp", subtarget = "cpp",
 			targetDirectory = System.getProperty("java.io.tmpdir"),
 			settings = AstBuildSettings(
@@ -202,6 +200,7 @@ class HaxeGenSuiteTest {
 				debug = DEBUG,
 				backend = BACKEND,
 				minimizeNames = minimize ?: MINIMIZE,
+				analyzer = analyze ?: ANALYZER,
 				rtAndRtCore = listOf(
 					projectRoot["jtransc-rt/target/classes"].realpathOS,
 					projectRoot["jtransc-rt-core/target/classes"].realpathOS

@@ -1,49 +1,55 @@
 package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.*;
 
-@HaxeAddMembers({
-        "static private var __start = -1.0;",
-        "static private function __stamp():Float {\n" +
-			"#if js return untyped __js__('Date.now()');\n" +
-			"#elseif sys return Sys.time() * 1000;\n" +
-			"#else return Date.now().getTime();\n" +
-			"#end\n" +
-		"}"
-})
 public class JTranscSystem {
-    static long start = -1;
+	static double start = -1;
 
-    @HaxeMethodBody("if (__start < 0) __start = __stamp(); return N.int(__stamp() - __start);")
-    static public int stamp() {
-        if (start < 0) start = System.currentTimeMillis();
-        return (int) (System.currentTimeMillis() - start);
-    }
+	@HaxeMethodBody("return N.getTime();")
+	static public double fastTime() {
+		return System.currentTimeMillis();
+	}
+
+	@HaxeMethodBodySys("Sys.sleep(p0 / 1000.0);")
+	@HaxeMethodBody("var start = N.getTime(); while (N.getTime() - start < p0) { }") // BUSY WAIT!
+	static public void sleep(double ms) {
+		try {
+			Thread.sleep((long) ms);
+		} catch (Throwable t) {
+		}
+	}
+
+	static public int stamp() {
+		if (start < 0) start = fastTime();
+		return (int) (fastTime() - start);
+	}
 
 	static public int elapsedTime(int first, int second) {
 		// @TODO: Check overflow!
 		return second - first;
 	}
 
-    @HaxeMethodBody("#if cpp cpp.vm.Gc.enable(false); #end")
-    static public void gcDisable() {
-    }
+	@HaxeMethodBodyCpp("cpp.vm.Gc.enable(false);")
+	@HaxeMethodBody("")
+	static public void gcDisable() {
+	}
 
-    @HaxeMethodBody("#if cpp cpp.vm.Gc.enable(true); #end")
-    static public void gcEnable() {
-    }
+	@HaxeMethodBodyCpp("cpp.vm.Gc.enable(true);")
+	@HaxeMethodBody("")
+	static public void gcEnable() {
+	}
 
-    @HaxeMethodBody("#if cpp cpp.vm.Gc.compact(); #end")
-    static public void gc() {
-        System.gc();
-    }
+	@HaxeMethodBodyCpp("cpp.vm.Gc.compact();")
+	@HaxeMethodBody("")
+	static public void gc() {
+		System.gc();
+	}
 
-    @HaxeMethodBody("return true;")
-    static public boolean usingJTransc() {
-        return false;
-    }
+	@HaxeMethodBody("return true;")
+	static public boolean usingJTransc() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody("HaxeNatives.debugger();")
@@ -56,7 +62,7 @@ public class JTranscSystem {
 	 * Assertion for debug builds
 	 *
 	 * @param trueCond
-     */
+	 */
 	@JTranscInline
 	@HaxeMethodBody("if (!p0) HaxeNatives.debugger();")
 	static public void assert2(boolean trueCond) {
@@ -66,60 +72,68 @@ public class JTranscSystem {
 		}
 	}
 
-	@HaxeMethodBody(
-		"var out = 'unknown';\n" +
-		"#if js out = 'js'; #end\n" +
-		"#if swf out = 'swf'; #end\n" +
-		"#if java out = 'java'; #end\n" +
-		"#if cs out = 'cs'; #end\n" +
-		"#if cpp out = 'cpp'; #end\n" +
-		"#if neko out = 'neko'; #end\n" +
-		"#if php out = 'php'; #end\n" +
-		"#if python out = 'python'; #end\n" +
-		"return HaxeNatives.str(out);\n"
-	)
+	@SuppressWarnings("all")
 	static public String getRuntimeKind() {
-		return "java";
+		if (!usingJTransc()) return "java";
+		if (isJs()) return "js";
+		if (isSwf()) return "swf";
+		if (isJava()) return "java";
+		if (isCsharp()) return "csharp";
+		if (isCpp()) return "cpp";
+		if (isNeko()) return "neko";
+		if (isPhp()) return "php";
+		if (isPython()) return "python";
+		return "unknown";
 	}
 
-	public static boolean isCpp() {
-		return getRuntimeKind().equals("cpp");
-	}
+	@JTranscInline
+	@HaxeMethodBodySys("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isSys();
 
-	public static boolean isCsharp() {
-		return getRuntimeKind().equals("cs");
-	}
+	@JTranscInline
+	@HaxeMethodBodyCpp("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isCpp();
 
-	public static boolean isJava() {
-		return getRuntimeKind().equals("java");
-	}
+	@JTranscInline
+	@HaxeMethodBodyCSharp("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isCsharp();
 
-	public static boolean isJs() {
-		return getRuntimeKind().equals("js");
-	}
+	@JTranscInline
+	@HaxeMethodBodyJava("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isJava();
 
-	public static boolean isSwf() {
-		return getRuntimeKind().equals("swf");
-	}
+	@JTranscInline
+	@HaxeMethodBodyJs("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isJs();
 
-	public static boolean isNeko() {
-		return getRuntimeKind().equals("neko");
-	}
+	@JTranscInline
+	@HaxeMethodBodyFlash("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isSwf();
 
-	public static boolean isPhp() {
-		return getRuntimeKind().equals("php");
-	}
+	@JTranscInline
+	@HaxeMethodBodyNeko("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isNeko();
 
-	public static boolean isPython() {
-		return getRuntimeKind().equals("python");
-	}
+	@JTranscInline
+	@HaxeMethodBodyPhp("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isPhp();
 
-	@HaxeMethodBody(
-		"#if sys return HaxeNatives.str(Sys.systemName());\n" +
-		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));\n" +
-		"#else return HaxeNatives.str('unknown');\n" +
-		"#end"
-	)
+	@JTranscInline
+	@HaxeMethodBodyPython("return true;")
+	@HaxeMethodBody("return false;")
+	native public static boolean isPython();
+
+	@HaxeMethodBodySys("return HaxeNatives.str(Sys.systemName());")
+	@HaxeMethodBodyJs("return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
+	@HaxeMethodBody("return HaxeNatives.str('unknown');")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}

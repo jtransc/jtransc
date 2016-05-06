@@ -82,4 +82,10 @@ class N {
 	static public function lgt(a:Int64, b:Int64) return a > b;
 	static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
 
+	static public function getTime():Float {
+		#if js return untyped __js__('Date.now()');
+		#elseif sys return Sys.time() * 1000;
+		#else return Date.now().getTime();
+		#end
+	}
 }

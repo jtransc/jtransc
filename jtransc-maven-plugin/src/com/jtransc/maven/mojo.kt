@@ -68,6 +68,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
 	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
 	@Parameter(property = "minimizeNames", defaultValue = "false") @JvmField var minimizeNames: Boolean = false
+	@Parameter(property = "analyzer", defaultValue = "true") @JvmField var analyzer: Boolean = true
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -141,7 +142,8 @@ class JTranscMojo : AbstractMojo() {
 			vsync = vsync,
 			backend = backend,
 			relooper = relooper,
-			minimizeNames = minimizeNames
+			minimizeNames = minimizeNames,
+			analyzer = analyzer
 		)
 		//project.version
 

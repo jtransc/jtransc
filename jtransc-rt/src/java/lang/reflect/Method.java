@@ -75,10 +75,10 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	private byte[] annotationDefault;
 	//private volatile MethodAccessor methodAccessor;
 
-	@HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
+	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 
-	@HaxeMethodBody("return HaxeArray.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
+	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
 	native public Annotation[][] getParameterAnnotations();
 
 	private Method() {

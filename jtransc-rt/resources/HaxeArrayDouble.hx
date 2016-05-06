@@ -1,18 +1,18 @@
-import haxe.io.Float32Array;
+import haxe.io.Float64Array;
 
-class HaxeFloatArray extends HaxeBaseArray {
-    public var data:Float32Array = null;
+class HaxeArrayDouble extends HaxeArrayBase {
+    public var data:Float64Array = null;
 
     public function new(length:Int) {
         super();
-        this.data = new Float32Array(length);
+        this.data = new Float64Array(length);
         this.length = length;
-        this.desc = "[F";
+        this.desc = "[D";
     }
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeFloatArray(items.length);
+        var out = new HaxeArrayDouble(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
@@ -45,12 +45,14 @@ class HaxeFloatArray extends HaxeBaseArray {
     }
 
     public override function clone() {
-        var out = new HaxeFloatArray(length);
+        var out = new HaxeArrayDouble(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeFloatArray, to:HaxeFloatArray, fromPos:Int, toPos:Int, length:Int) {
-        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
+    static public function copy(from:HaxeArrayDouble, to:HaxeArrayDouble, fromPos:Int, toPos:Int, length:Int) {
+		var _from:Float64Array = from.data;
+		var _to:Float64Array = to.data;
+        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
     }
 }

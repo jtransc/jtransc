@@ -2,8 +2,7 @@ package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -19,16 +18,15 @@ import java.util.Objects;
 public class JTranscProcess extends Process {
 	private JTranscWrapped processWrapped;
 
-	@HaxeMethodBody("" +
+	@HaxeMethodBodyAllPre("" +
 		"var cmd = HaxeNatives.toNativeString(p0);\n" +
 		"var args = HaxeNatives.toNativeStrArray(p1);\n" +
 		"var cwd = HaxeNatives.toNativeString(p2);\n" +
-		"var env = HaxeNatives.mapToObject(p3);\n" +
-		"#if sys return HaxeNatives.wrap(new sys.io.Process(cmd, args));\n" +
-		"#elseif js return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));\n" +
-		"#else return null; \n" +
-		"#end\n"
+		"var env = HaxeNatives.mapToObject(p3);\n"
 	)
+	@HaxeMethodBodySys("return HaxeNatives.wrap(new sys.io.Process(cmd, args));")
+	@HaxeMethodBodyJs("return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));")
+	@HaxeMethodBody("return null;")
 	private native JTranscWrapped create(String cmd, String[] args, String cwd, Map<String, String> env);
 
 	private InputStream stdout;
@@ -80,26 +78,17 @@ public class JTranscProcess extends Process {
 	}
 
 	@Override
-	@HaxeMethodBody("" +
-		"#if sys return this.process.exitCode();\n" +
-		"#else return this.#FIELD:com.jtransc.io.JTranscProcess:exitCode#;\n" +
-		"#end\n"
-	)
+	@HaxeMethodBodySys("return this.process.exitCode();")
+	@HaxeMethodBody("return this.#FIELD:com.jtransc.io.JTranscProcess:exitCode#;")
 	public native int exitValue();
 
-	@HaxeMethodBody("" +
-		"#if sys return this.process.getPid();\n" +
-		"#else return this.#FIELD:com.jtransc.io.JTranscProcess:pid#;\n" +
-		"#end\n"
-	)
+	@HaxeMethodBodySys("return this.process.getPid();")
+	@HaxeMethodBody("return this.#FIELD:com.jtransc.io.JTranscProcess:pid#;")
 	public native int pid();
 
 	@Override
-	@HaxeMethodBody("" +
-		"#if sys this.process.kill();\n" +
-		"#else \n" +
-		"#end\n"
-	)
+	@HaxeMethodBodySys("this.process.kill();")
+	@HaxeMethodBody("")
 	public native void destroy();
 }
 

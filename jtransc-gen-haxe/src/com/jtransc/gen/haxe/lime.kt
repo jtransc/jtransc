@@ -69,11 +69,11 @@ object GenHaxeLime : GenTarget {
 			line("""<window fps="0" if="js" />""")
 			line("""<window width="0" height="0" if="html5" />""")
 
-			for (flag in program.haxeExtraFlags) {
+			for (flag in program.haxeExtraFlags(settings)) {
 				line("""<haxeflag name="${flag.first}" value="${flag.second}" />""")
 			}
 
-			for (define in program.haxeExtraDefines) {
+			for (define in program.haxeExtraDefines(settings)) {
 				line("""<haxedef name="$define" />""")
 			}
 
@@ -193,7 +193,7 @@ object GenHaxeLime : GenTarget {
 				outputFile2.delete()
 				println("lime.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
-				program.haxeInstallRequiredLibs()
+				program.haxeInstallRequiredLibs(settings)
 
 				tinfo.haxeCopyEmbeddedResourcesToFolder(tinfo.mergedAssetsFolder)
 

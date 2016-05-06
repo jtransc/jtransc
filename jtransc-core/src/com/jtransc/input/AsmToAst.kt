@@ -4,16 +4,14 @@ import com.jtransc.ast.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.noImpl
 import com.jtransc.lang.ReflectedArray
-import com.jtransc.types.Asm2Ast
 import com.jtransc.org.objectweb.asm.ClassReader
-import com.jtransc.org.objectweb.asm.ClassWriter
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.AnnotationNode
 import com.jtransc.org.objectweb.asm.tree.ClassNode
 import com.jtransc.org.objectweb.asm.tree.FieldNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
+import com.jtransc.types.Asm2Ast
 import java.util.*
 
 fun AnnotationNode.toAst(): AstAnnotation {
@@ -34,14 +32,26 @@ fun <T> Concat(vararg list: List<T>?): List<T> {
 	return out
 }
 
-fun ClassNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
-fun MethodNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
-fun FieldNode.getAnnotations() = Concat(this.visibleAnnotations, this.invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it) }.filterBlackList()
+private fun getAnnotations(visibleAnnotations: List<AnnotationNode>?, invisibleAnnotations: List<AnnotationNode>?): List<AstAnnotation> {
+	val visible = Concat(visibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = true) }.filterBlackList()
+	val invisible = Concat(invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = false) }.filterBlackList()
+	return visible + invisible
+}
+
+fun ClassNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
+fun MethodNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
+fun FieldNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
 
 fun MethodNode.getParameterAnnotations(): List<List<AstAnnotation>> {
 	val type = AstType.demangleMethod(this.desc)
 
-	return this.visibleParameterAnnotations?.toList()?.map { it?.filterNotNull()?.filterIsInstance<AnnotationNode>()?.map { AstAnnotationBuilder(it) }?.filterBlackList() ?: listOf() }
+	return this.visibleParameterAnnotations?.toList()
+		?.map {
+			it?.filterNotNull()?.filterIsInstance<AnnotationNode>()
+				?.map { AstAnnotationBuilder(it, visible = true) }
+				?.filterBlackList()
+				?: listOf()
+		}
 		?: (0 until type.argCount).map { listOf<AstAnnotation>() }
 }
 
@@ -96,7 +106,7 @@ class AsmToAst : AstClassGenerator {
 			type = methodRef.type,
 			signature = methodRef.type.mangle(),
 			genericSignature = method.signature,
-			defaultTag = AstAnnotationValue(method.annotationDefault),
+			defaultTag = AstAnnotationValue(method.annotationDefault, visible = true),
 			modifiers = mods,
 			generateBody = {
 				if (mods.isConcrete) {
@@ -129,7 +139,7 @@ class AsmToAst : AstClassGenerator {
 	}
 }
 
-fun AstAnnotationValue(value: Any?): Any? {
+fun AstAnnotationValue(value: Any?, visible:Boolean): Any? {
 	if (value == null) return null
 	val clazz = value.javaClass
 	if (clazz.isArray && clazz.componentType == java.lang.String::class.java) {
@@ -137,10 +147,10 @@ fun AstAnnotationValue(value: Any?): Any? {
 		return AstFieldWithoutTypeRef((AstType.demangle(array[0]) as AstType.REF).name, array[1])
 	}
 	if (value is ArrayList<*>) {
-		return value.map { AstAnnotationValue(it) }
+		return value.map { AstAnnotationValue(it, visible) }
 	}
 	if (clazz.isArray) {
-		return ReflectedArray(value).toList().map { AstAnnotationValue(it) }
+		return ReflectedArray(value).toList().map { AstAnnotationValue(it, visible) }
 	}
 	if (value is AnnotationNode) {
 		val type = AstType.demangle(value.desc) as AstType.REF
@@ -151,17 +161,17 @@ fun AstAnnotationValue(value: Any?): Any? {
 			while (n < values.size) {
 				val name = values[n++] as String
 				val value = values[n++]
-				fields[name] = AstAnnotationValue(value)
+				fields[name] = AstAnnotationValue(value, visible)
 			}
 			//println(node.values)
 			//println(node.values)
 		}
-		return AstAnnotation(type, fields, true)
+		return AstAnnotation(type, fields, visible)
 	}
 	return value
 }
 
-fun AstAnnotationBuilder(node: AnnotationNode): AstAnnotation {
-	return AstAnnotationValue(node) as AstAnnotation
+fun AstAnnotationBuilder(node: AnnotationNode, visible:Boolean): AstAnnotation {
+	return AstAnnotationValue(node, visible) as AstAnnotation
 }
 

@@ -50,7 +50,7 @@ public final class Field extends AccessibleObject implements Member {
 	private byte[] annotations;
 	//private transient FieldRepository genericInfo;
 
-	@HaxeMethodBody("return HaxeArray.fromArray(_annotations, '[Ljava.lang.Annotation;');")
+	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 
 	private Field() {

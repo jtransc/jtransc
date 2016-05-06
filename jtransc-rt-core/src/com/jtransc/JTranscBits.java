@@ -18,6 +18,8 @@ package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyFlash;
 
 @JTranscInvisible
 public class JTranscBits {
@@ -286,5 +288,26 @@ public class JTranscBits {
 		if (v < min) return min;
 		if (v > max) return max;
 		return v;
+	}
+
+	@JTranscInline
+	@HaxeMethodBodyFlash("return flash.Memory.signExtend1(p0);")
+	@HaxeMethodBody("return N.signExtend(p0, 1);")
+	static public int sxi1(int value) {
+		return (value << 31) >> 31;
+	}
+
+	@JTranscInline
+	@HaxeMethodBodyFlash("return flash.Memory.signExtend8(p0);")
+	@HaxeMethodBody("return N.i2b(p0);")
+	static public int sxi8(int value) {
+		return (value << 24) >> 24;
+	}
+
+	@JTranscInline
+	@HaxeMethodBodyFlash("return flash.Memory.signExtend16(p0);")
+	@HaxeMethodBody("return N.i2s(p0);")
+	static public int sxi16(int value) {
+		return (value << 16) >> 16;
 	}
 }

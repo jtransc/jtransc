@@ -17,7 +17,11 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscSetter;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyAllPre;
+import com.jtransc.annotation.haxe.HaxeMethodBodyJs;
+import com.jtransc.annotation.haxe.HaxeMethodBodySys;
 import com.jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
@@ -42,13 +46,9 @@ public class System {
 
 	native public static void setErr(PrintStream err);
 
-	@HaxeMethodBody("" +
-		"#if js return HaxeNatives.floatToLong(untyped __js__('Date.now()'));\n" +
-		"#elseif sys return HaxeNatives.floatToLong(Sys.time() * 1000);\n" +
-		"#else return HaxeNatives.floatToLong(Date.now().getTime());\n" +
-		"#end\n"
-	)
-	public static native long currentTimeMillis();
+	public static long currentTimeMillis() {
+		return (long) JTranscSystem.fastTime();
+	}
 
 	public static long nanoTime() {
 		return currentTimeMillis() * 1000000L;
@@ -127,13 +127,10 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBody("" +
-		"var key = p0._str;\n" +
-		"#if sys return HaxeNatives.str(Sys.getEnv(key));\n" +
-		"#elseif js return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));\n" +
-		"#else return HaxeNatives.str(null);\n" +
-		"#end\n"
-	)
+	@HaxeMethodBodyAllPre("var key = p0._str;")
+	@HaxeMethodBodySys("return HaxeNatives.str(Sys.getEnv(key));")
+	@HaxeMethodBodyJs("return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
+	@HaxeMethodBody("return HaxeNatives.str(null);")
 	native public static String getenv(String name);
 
 	private static String getenvs(String[] names, String defaultValue) {
@@ -144,20 +141,14 @@ public class System {
 		return defaultValue;
 	}
 
-	@HaxeMethodBody("" +
-		"#if sys return HaxeNatives.hashMap(Sys.environment());\n" +
-		"#elseif js return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));\n" +
-		"#else return HaxeNatives.hashMap({});\n" +
-		"#end\n"
-	)
+	@HaxeMethodBodySys("return HaxeNatives.hashMap(Sys.environment());")
+	@HaxeMethodBodyJs("return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
+	@HaxeMethodBody("return HaxeNatives.hashMap({});")
 	native public static java.util.Map<String, String> getenv();
 
-	@HaxeMethodBody(
-		"#if sys Sys.exit(p0);\n" +
-			"#elseif js untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");\n" +
-			"#else throw 'EXIT!';\n" +
-			"#end\n"
-	)
+	@HaxeMethodBodySys("Sys.exit(p0);")
+	@HaxeMethodBodyJs("untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
+	@HaxeMethodBody("throw 'EXIT!';")
 	native public static void exit(int status);
 
 	@HaxeMethodBody("")

@@ -6,7 +6,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import java.util.Arrays;
 
 public class JTranscArrays {
-	@HaxeMethodBody("return HaxeByteArray.fromBytes(p0.getBytes());")
+	@HaxeMethodBody("return HaxeArrayByte.fromBytes(p0.getBytes());")
 	static public byte[] copyReinterpret(int[] data) {
 		byte[] out = new byte[data.length * 4];
 		int m = 0;

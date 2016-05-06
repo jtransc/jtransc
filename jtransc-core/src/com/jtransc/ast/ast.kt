@@ -23,12 +23,11 @@ import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
-import com.jtransc.annotation.*
-import com.jtransc.maven.MavenLocalRepository
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -55,6 +54,7 @@ data class AstBuildSettings(
 	val backend: BuildBackend = BuildBackend.ASM,
 	val relooper: Boolean = false,
 	val minimizeNames: Boolean = false,
+	val analyzer: Boolean = false,
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
 		"com.jtransc:jtransc-rt:$jtranscVersion",
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"
@@ -123,9 +123,9 @@ class AstGenContext {
 
 	override fun toString() = try {
 		"${clazz.name}::${method.name}"
-	} catch (e:Throwable) {
+	} catch (e: Throwable) {
 		"${clazz.name}"
-	} catch (e:Throwable) {
+	} catch (e: Throwable) {
 		"NO_CONTEXT"
 	}
 }
@@ -164,10 +164,12 @@ class AstProgram(
 		}
 	}
 
-	private var lastMethodId = 0
+	private var lastMethodId = hashMapOf<FqName, Int>()
 	private val methodIds = hashMapOf<AstMethodRef, Int>()
 	fun getMethodId(ref: AstMethodRef): Int {
-		if (ref !in methodIds) methodIds[ref] = lastMethodId++
+		if (ref.containingClass !in lastMethodId) lastMethodId[ref.containingClass] = 0
+		if (ref !in methodIds) methodIds[ref] = lastMethodId[ref.containingClass]!!
+		lastMethodId[ref.containingClass] = lastMethodId[ref.containingClass]!! + 1
 		return methodIds[ref]!!
 	}
 
@@ -208,6 +210,7 @@ class AstProgram(
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
+
 	operator fun get(ref: AstFieldWithoutTypeRef): AstField = this[ref.containingClass].get(ref)
 
 	// @TODO: Cache all this stuff!
@@ -374,6 +377,7 @@ class AstClass(
 
 	// Methods
 	operator fun get(ref: AstMethodRef): AstMethod = getMethodSure(ref.name, ref.desc)
+
 	operator fun get(ref: AstMethodWithoutClassRef): AstMethod? = getMethod(ref.name, ref.desc)
 
 	// Fields
@@ -536,22 +540,17 @@ class AstMethod(
 	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }
 
-	val getterField: String? by lazy { annotations.get(JTranscGetter::value) }
-	val setterField: String? by lazy { annotations.get(JTranscSetter::value) }
-	val nativeMethod: String? by lazy { annotations.get(JTranscMethod::value) }
+	val getterField: String? by lazy { annotations[JTranscGetter::value] }
+	val setterField: String? by lazy { annotations[JTranscSetter::value] }
+	val nativeMethod: String? by lazy { annotations[JTranscMethod::value] }
 	val isInline: Boolean by lazy { annotations.contains<JTranscInline>() }
 
 	val isInstanceInit: Boolean get() = name == "<init>"
 	val isClassInit: Boolean get() = name == "<clinit>"
 	val isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
 
-	val isOverriding: Boolean by lazy {
-		containingClass.ancestors.any { it[ref.withoutClass] != null }
-	}
-
-	val isImplementing: Boolean by lazy {
-		containingClass.allInterfaces.any { it.getMethod(this.name, this.desc) != null }
-	}
+	val isOverriding: Boolean by lazy { containingClass.ancestors.any { it[ref.withoutClass] != null } }
+	val isImplementing: Boolean by lazy { containingClass.allInterfaces.any { it.getMethod(this.name, this.desc) != null } }
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }
