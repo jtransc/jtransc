@@ -32,10 +32,7 @@ import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
 import com.jtransc.template.Minitemplate
 import com.jtransc.time.measureProcess
-import com.jtransc.vfs.LocalVfs
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.UserKey
-import com.jtransc.vfs.getCached
+import com.jtransc.vfs.*
 import java.io.File
 import java.lang.reflect.Proxy
 
@@ -299,9 +296,10 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		log("Compiling... ")
 
-		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
-		for (file in copyFilesBeforeBuildTemplate) srcFolder[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
+		val buildVfs = srcFolder.parent.jail()
 
+		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
+		for (file in copyFilesBeforeBuildTemplate) buildVfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
 
 		val cmd = haxeTemplateString.gen(
 			program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
@@ -309,7 +307,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		log("Compiling: ${cmd.joinToString(" ")}")
 		println("Compiling: ${cmd.joinToString(" ")}")
-		return ProcessUtils.runAndRedirect(srcFolder.realfile, cmd).success
+		return ProcessUtils.runAndRedirect(buildVfs.realfile, cmd).success
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

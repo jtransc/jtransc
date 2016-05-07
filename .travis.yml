@@ -15,6 +15,7 @@ install:
 - mvn clean --settings settings.xml
 - nvm install 4 || true
 - nvm use 4 || true
+- apt-get install -y php5
 
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
