@@ -99,8 +99,8 @@ class R {
 		HaxeNatives.debugger();
 		var clazz = HaxeNatives.resolveClass(className);
 		var method = (clazz != null) ? clazz.locateMethodById(methodId) : null;
-		var methodName = (method != null) ? method.{% FIELD java.lang.reflect.Method:name %}._str : "unknown";
-		var methodSignature = (method != null) ? method.{% FIELD java.lang.reflect.Method:signature %}._str : "unknown";
+		var methodName:String = (method != null) ? method.{% FIELD java.lang.reflect.Method:name %}._str : "unknown";
+		var methodSignature:String = (method != null) ? method.{% FIELD java.lang.reflect.Method:signature %}._str : "unknown";
 		return 'Native or abstract: $className.$methodName ($methodId) :: $methodSignature';
 	}
 }

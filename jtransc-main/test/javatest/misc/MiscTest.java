@@ -99,9 +99,21 @@ public class MiscTest {
 
 		FastMemoryTest.main(new String[0]);
 
+		testStringUnicode();
+
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testStringUnicode() {
+		String str = "áéíóúあいうえお";
+		System.out.println(str.length());
+		for (int n = 0; n < str.length(); n++) {
+			System.out.print((int)str.charAt(n));
+			System.out.print(',');
+		}
+		System.out.println();
+	}
 
 	int a = 10;
 	static int b = 10;

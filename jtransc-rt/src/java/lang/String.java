@@ -29,27 +29,21 @@ import java.util.regex.Pattern;
 
 @HaxeAddMembers({
 	"public var _str:String = '';",
-	"public function setStr(str:String):{% CLASS java.lang.String %} {\n" +
-		"this._str = str;\n" +
-		// @TODO: Locate a bug!
-		//"if (str == 'java.lang.reflect.Fi') HaxeNatives.debugger();\n" +
-		"return this;\n" +
-	"}\n" +
-	"static public function make(str:String):{% CLASS java.lang.String %} { return new {% CLASS java.lang.String %}().setStr(str); }",
+	"public var _array:HaxeArrayChar = null;",
+	"public function setStr(str:String16) { this._str = str; this._array = str.getChars(); return this; }",
+	"static public function make(str:String) { return new {% CLASS java.lang.String %}().setStr(str); }",
 })
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	@HaxeMethodBody("this.setStr('');")
 	public String() {
-
 	}
 
 	@HaxeMethodBody("this.setStr(p0._str);")
 	public String(String original) {
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.charArrayToString(p0));")
 	public String(char value[]) {
-
+		this(value, 0, value.length);
 	}
 
 	@HaxeMethodBody("this.setStr(HaxeNatives.charArrayToString(p0, p1, p2));")
@@ -96,28 +90,27 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(bytes, 0, bytes.length);
 	}
 
-	@HaxeMethodBody("this.setStr(p0.getStr());")
 	public String(StringBuffer buffer) {
 		this(buffer.toString());
 	}
 
-	@HaxeMethodBody("this.setStr(p0.getStr());")
 	public String(StringBuilder builder) {
 		this(builder.toString());
 	}
 
-	@HaxeMethodBody("return _str.length;")
+	@HaxeMethodBody("return _array.length;")
 	native public int length();
 
 	public boolean isEmpty() {
 		return length() == 0;
 	}
 
-	@HaxeMethodBody("return _str.charCodeAt(p0);")
+	@HaxeMethodBody("return _array.get(p0);")
 	native public char charAt(int index);
 
-	@HaxeMethodBody("return _str.charCodeAt(p0);")
-	native public int codePointAt(int index);
+	public int codePointAt(int index) {
+		return (int)charAt(index);
+	}
 
 	public int codePointBefore(int index) {
 		return codePointAt(index - 1);
@@ -147,13 +140,19 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0._str);")
-	native public byte[] getBytes(String charsetName) throws UnsupportedEncodingException;
+	native private byte[] _getBytes(String charsetName);
 
-	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str);")
-	native public byte[] getBytes(Charset charset);
+	public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
+		return _getBytes(charsetName);
+	}
 
-	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str);")
-	native public byte[] getBytes();
+	public byte[] getBytes(Charset charset) {
+		return _getBytes(charset.name());
+	}
+
+	public byte[] getBytes() {
+		return _getBytes("UTF-8");
+	}
 
 	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
 	native public boolean equals(Object anObject);
@@ -222,26 +221,31 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return h;
 	}
 
-	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0));")
-	native public int indexOf(int ch);
+	public int indexOf(int ch) {
+		return indexOf(ch, 0);
+	}
+
+	public int lastIndexOf(int ch) {
+		return lastIndexOf(ch, 0);
+	}
+
+	public int indexOf(String str) {
+		return indexOf(str, 0);
+	}
+
+	public int lastIndexOf(String str) {
+		return lastIndexOf(str, 0);
+	}
+
 
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0), p1);")
 	native public int indexOf(int ch, int fromIndex);
 
-	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0));")
-	native public int lastIndexOf(int ch);
-
 	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0), p1);")
 	native public int lastIndexOf(int ch, int fromIndex);
 
-	@HaxeMethodBody("return _str.indexOf(p0._str);")
-	native public int indexOf(String str);
-
 	@HaxeMethodBody("return _str.indexOf(p0._str, p1);")
 	native public int indexOf(String str, int fromIndex);
-
-	@HaxeMethodBody("return _str.lastIndexOf(p0._str);")
-	native public int lastIndexOf(String str);
 
 	@HaxeMethodBody("return _str.lastIndexOf(p0._str, p1);")
 	native public int lastIndexOf(String str, int fromIndex);
@@ -285,11 +289,8 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return this;
 	}
 
-	public char[] toCharArray() {
-		char[] out = new char[length()];
-		for (int n = 0; n < out.length; n++) out[n] = this.charAt(n);
-		return out;
-	}
+	@HaxeMethodBody("return _array;")
+	native public char[] toCharArray();
 
 	//static private Formatter formatter;
 	//static private StringBuilder formatterSB;

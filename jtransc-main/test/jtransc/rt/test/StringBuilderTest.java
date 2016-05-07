@@ -44,6 +44,7 @@ public class StringBuilderTest {
 		System.out.println(sb);
 		System.out.println(sb.substring(3));
 		System.out.println(sb.substring(3, 10));
+		System.out.println(new String(sb));
 	}
 
 	static private String getNullString() {

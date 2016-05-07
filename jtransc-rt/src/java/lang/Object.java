@@ -17,7 +17,10 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.haxe.*;
+import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeAddSubtarget;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -36,32 +39,15 @@ import java.lang.reflect.Field;
 	"HaxeIO.hx",
 	"HaxeFormat.hx",
 	"HaxeNativeWrapper.hx",
-	"HaxeArrayBase.hx",
-	"HaxeArrayBool.hx",
-	"HaxeArrayByte.hx",
-	"HaxeArrayShort.hx",
-	"HaxeArrayChar.hx",
-	"HaxeArrayInt.hx",
-	"HaxeArrayFloat.hx",
-	"HaxeArrayDouble.hx",
-	"HaxeArrayLong.hx",
-	"HaxeArrayAny.hx",
-	"JA_0.hx",
-	"JA_B.hx",
-	"JA_C.hx",
-	"JA_D.hx",
-	"JA_F.hx",
-	"JA_I.hx",
-	"JA_J.hx",
-	"JA_L.hx",
-	"JA_S.hx",
-	"JA_Z.hx",
+	"HaxeArrayBase.hx", "HaxeArrayBool.hx", "HaxeArrayByte.hx", "HaxeArrayShort.hx", "HaxeArrayChar.hx", "HaxeArrayInt.hx", "HaxeArrayFloat.hx", "HaxeArrayDouble.hx", "HaxeArrayLong.hx", "HaxeArrayAny.hx",
+	"JA_0.hx", "JA_B.hx", "JA_C.hx", "JA_D.hx", "JA_F.hx", "JA_I.hx", "JA_J.hx", "JA_L.hx", "JA_S.hx", "JA_Z.hx",
+	"String16.hx"
 })
 @HaxeAddSubtarget(name = "js", alias = {"default", "javascript"}, cmdSwitch = "-js", singleFile = true, interpreter = "node", extension = "js")
 @HaxeAddSubtarget(name = "cpp", alias = {"c", "c++"}, cmdSwitch = "-cpp", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "swf", alias = {"flash", "as3"}, cmdSwitch = "-swf", singleFile = true, interpreter = "", extension = "swf")
 @HaxeAddSubtarget(name = "neko", cmdSwitch = "-neko", singleFile = true, interpreter = "neko", extension = "n")
-@HaxeAddSubtarget(name = "php", cmdSwitch = "-php", singleFile = false, interpreter = "neko", extension = "php", interpreterSuffix = "/index.php")
+@HaxeAddSubtarget(name = "php", cmdSwitch = "-php", singleFile = false, interpreter = "php", extension = "php", interpreterSuffix = "/index.php")
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
