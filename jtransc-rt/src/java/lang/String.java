@@ -221,22 +221,17 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return h;
 	}
 
-	public int indexOf(int ch) {
-		return indexOf(ch, 0);
-	}
+	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0));")
+	native public int indexOf(int ch);
 
-	public int lastIndexOf(int ch) {
-		return lastIndexOf(ch, 0);
-	}
+	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0));")
+	native public int lastIndexOf(int ch);
 
-	public int indexOf(String str) {
-		return indexOf(str, 0);
-	}
+	@HaxeMethodBody("return _str.indexOf(p0._str);")
+	native public int indexOf(String str);
 
-	public int lastIndexOf(String str) {
-		return lastIndexOf(str, 0);
-	}
-
+	@HaxeMethodBody("return _str.lastIndexOf(p0._str);")
+	native public int lastIndexOf(String str);
 
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0), p1);")
 	native public int indexOf(int ch, int fromIndex);

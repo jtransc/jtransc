@@ -63,10 +63,12 @@ public class MiscTest {
 		    System.out.println(t.getMessage());
 	    }
 
+		StaticCall2.a = 10;
 	    System.out.println(StaticCall1.a);
 	    StaticCall1.a = 20;
 	    System.out.println(StaticCall1.a);
 
+		seedUniquifier = 8682522807148012L;
 		System.out.println(seedUniquifier());
 
 		Test test = new Test();

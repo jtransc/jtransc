@@ -34,11 +34,11 @@ public class StringsTest {
 		System.out.println("hello".replace('l', 'p'));
 		System.out.println("hello".replace("ll", "__"));
 
-		for (String s : new String[]{"a", "b", "aa"}) {
-			System.out.println("aaaaa".indexOf(s));
-			System.out.println("aaaaa".indexOf(s, 2));
-			System.out.println("aaaaa".lastIndexOf(s));
-			System.out.println("aaaaa".lastIndexOf(s, 2));
+		for (String s : new String[]{"a", "b", "aa", "aaaaaaa"}) {
+			System.out.println("i0:" + "aaaaa".indexOf(s));
+			System.out.println("i1:" + "aaaaa".indexOf(s, 2));
+			System.out.println("i2:" + "aaaaa".lastIndexOf(s));
+			System.out.println("i3:" + "aaaaa".lastIndexOf(s, 2));
 		}
 
 		System.out.println(Arrays.toString("1:2:3:4:5".split(":")));
