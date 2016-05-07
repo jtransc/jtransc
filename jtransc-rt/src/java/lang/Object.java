@@ -45,7 +45,17 @@ import java.lang.reflect.Field;
 	"HaxeArrayFloat.hx",
 	"HaxeArrayDouble.hx",
 	"HaxeArrayLong.hx",
-	"HaxeArrayAny.hx"
+	"HaxeArrayAny.hx",
+	"JA_0.hx",
+	"JA_B.hx",
+	"JA_C.hx",
+	"JA_D.hx",
+	"JA_F.hx",
+	"JA_I.hx",
+	"JA_J.hx",
+	"JA_L.hx",
+	"JA_S.hx",
+	"JA_Z.hx",
 })
 @HaxeAddSubtarget(name = "js", alias = {"default", "javascript"}, cmdSwitch = "-js", singleFile = true, interpreter = "node", extension = "js")
 @HaxeAddSubtarget(name = "cpp", alias = {"c", "c++"}, cmdSwitch = "-cpp", singleFile = true, interpreter = "", extension = "exe")

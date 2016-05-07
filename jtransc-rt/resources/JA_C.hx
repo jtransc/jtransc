@@ -1,0 +1,1 @@
+typedef JA_C = HaxeArrayChar

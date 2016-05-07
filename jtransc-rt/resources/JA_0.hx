@@ -1,0 +1,1 @@
+typedef JA_0 = HaxeArrayBase
