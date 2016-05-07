@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
 	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Field:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
+	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Field extends AccessibleObject implements Member {
 	@JTranscKeep

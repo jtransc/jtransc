@@ -10,12 +10,12 @@ before_install:
 - sudo apt-get update -qq
 
 install:
+- sudo apt-get -y install php5
 - curl -s -S -O http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-linux64.tar.gz
 - tar xzf haxe-3.2.1-linux64.tar.gz
 - mvn clean --settings settings.xml
 - nvm install 4 || true
 - nvm use 4 || true
-- apt-get install -y php5
 
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
