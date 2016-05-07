@@ -10,8 +10,8 @@ public class JTranscStackTraceTest {
 		int a = 10;
 		System.out.println(a >= 3);
 		System.out.println(items.length >= 3);
-		//System.out.println(items[1].getMethodName().contains("test"));
-		//System.out.println(items[2].getMethodName().contains("main"));
+		System.out.println(items[1].getMethodName() != null); // .contains("test")
+		System.out.println(items[2].getMethodName() != null); // .contains("main")
 		//for (StackTraceElement i : items) System.out.println(i);
 	}
 }

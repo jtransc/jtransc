@@ -102,6 +102,7 @@ public class MiscTest {
 		FastMemoryTest.main(new String[0]);
 
 		testStringUnicode();
+		testStringUnicode2();
 
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
@@ -109,7 +110,19 @@ public class MiscTest {
 
 	static private void testStringUnicode() {
 		String str = "áéíóúあいうえお";
-		System.out.println(str.length());
+		dumpStringUnicode(str);
+		System.out.println(Arrays.toString(str.toCharArray()));
+	}
+
+	static private void testStringUnicode2() {
+		dumpStringUnicode(new String(new char[] {225, 12354}));
+		dumpStringUnicode(new String(new char[] {225, 12354}, 0, 1));
+		dumpStringUnicode(new String(new char[] {225, 12354}, 1, 1));
+		//dumpStringUnicode(new String(new byte[] {(byte)225}));
+	}
+
+	static private void dumpStringUnicode(String str) {
+		System.out.print("dumpStringUnicode:" + str.length() + ":");
 		for (int n = 0; n < str.length(); n++) {
 			System.out.print((int)str.charAt(n));
 			System.out.print(',');

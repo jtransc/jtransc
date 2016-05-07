@@ -30,7 +30,8 @@ import java.util.regex.Pattern;
 @HaxeAddMembers({
 	"public var _str:String = '';",
 	"public var _array:HaxeArrayChar = null;",
-	"public function setStr(str:String16) { this._str = str; this._array = str.getChars(); return this; }",
+	"public function setStr(str:String) { this._str = str; return this; }",
+	"public function _getArray():HaxeArrayChar { if (this._array == null) { this._array = HaxeNatives.stringToCharArray(_str); } return this._array; }",
 	"static public function make(str:String) { return new {% CLASS java.lang.String %}().setStr(str); }",
 })
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
@@ -42,10 +43,6 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(String original) {
 	}
 
-	public String(char value[]) {
-		this(value, 0, value.length);
-	}
-
 	@HaxeMethodBody("this.setStr(HaxeNatives.charArrayToString(p0, p1, p2));")
 	public String(char value[], int offset, int count) {
 	}
@@ -55,39 +52,45 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@Deprecated
-	@HaxeMethodBody("throw 'Not implemented this String.constructor';")
+	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayWithHiToString(p0, p1, p2, p3));")
 	public String(byte[] ascii, int hibyte, int offset, int count) {
 	}
 
-	@Deprecated
-	@HaxeMethodBody("throw 'Not implemented this String.constructor';")
-	public String(byte[] ascii, int hibyte) {
-
-	}
-
 	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3._str));")
+	private String(byte[] bytes, int offset, int length, String charsetName, boolean dummy) {
+	}
+
+	@Deprecated
+	public String(byte[] ascii, int hibyte) {
+		this(ascii, hibyte, 0, ascii.length);
+	}
+
+	public String(char value[]) {
+		this(value, 0, value.length);
+	}
+
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
+		this(bytes, offset, length, charsetName, false);
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str));")
 	public String(byte[] bytes, int offset, int length, Charset charset) {
+		this(bytes, offset, length, charset.name(), false);
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1._str));")
 	public String(byte[] bytes, String charsetName) throws UnsupportedEncodingException {
+		this(bytes, 0, bytes.length, charsetName, false);
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str));")
 	public String(byte[] bytes, Charset charset) {
+		this(bytes, 0, bytes.length, charset.name(), false);
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2));")
 	public String(byte[] bytes, int offset, int length) {
+		this(bytes, offset, length, "UTF-8", false);
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0));")
 	public String(byte[] bytes) {
-		this(bytes, 0, bytes.length);
+		this(bytes, 0, bytes.length, "UTF-8", false);
 	}
 
 	public String(StringBuffer buffer) {
@@ -98,15 +101,9 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(builder.toString());
 	}
 
-	@HaxeMethodBody("return _array.length;")
-	native public int length();
-
 	public boolean isEmpty() {
 		return length() == 0;
 	}
-
-	@HaxeMethodBody("return _array.get(p0);")
-	native public char charAt(int index);
 
 	public int codePointAt(int index) {
 		return (int)charAt(index);
@@ -260,32 +257,24 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return HaxeNatives.str(StringTools.replace(this._str, String.fromCharCode(p0), String.fromCharCode(p1)));")
 	native public String replace(char oldChar, char newChar);
 
+	@HaxeMethodBody("return N.str(_str.toLowerCase());")
+	native public String toLowerCase(Locale locale);
+
+	@HaxeMethodBody("return N.str(_str.toLowerCase());")
+	native public String toLowerCase();
+
+	@HaxeMethodBody("return N.str(_str.toUpperCase());")
+	native public String toUpperCase(Locale locale);
+
+	@HaxeMethodBody("return N.str(_str.toUpperCase());")
+	native public String toUpperCase();
+
+	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")
+	native public String trim();
+
 	public boolean contains(CharSequence s) {
 		return indexOf(s.toString()) >= 0;
 	}
-
-	@HaxeMethodBody("return make(_str.toLowerCase());")
-	native public String toLowerCase(Locale locale);
-
-	@HaxeMethodBody("return make(_str.toLowerCase());")
-	native public String toLowerCase();
-
-	@HaxeMethodBody("return make(_str.toUpperCase());")
-	native public String toUpperCase(Locale locale);
-
-	@HaxeMethodBody("return make(_str.toUpperCase());")
-	native public String toUpperCase();
-
-	@HaxeMethodBody("return HaxeNatives.str(StringTools.trim(this._str));")
-	native public String trim();
-
-	@HaxeMethodBody("return this;")
-	public String toString() {
-		return this;
-	}
-
-	@HaxeMethodBody("return _array;")
-	native public char[] toCharArray();
 
 	//static private Formatter formatter;
 	//static private StringBuilder formatterSB;
@@ -349,9 +338,6 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	// REGULAR EXPRESIONS
 
-	@HaxeMethodBody("return new EReg('^' + p0._str + '$', '').match(this._str);")
-	native public boolean matches(String regex);
-
 	public String replaceFirst(String regex, String replacement) {
 		return Pattern.compile(regex).matcher(this).replaceFirst(replacement);
 	}
@@ -359,9 +345,6 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String replaceAll(String regex, String replacement) {
 		return Pattern.compile(regex).matcher(this).replaceAll(replacement);
 	}
-
-	@HaxeMethodBody("return HaxeNatives.str(StringTools.replace(this._str, '$p0', '$p1'));")
-	native public String replace(CharSequence target, CharSequence replacement);
 
 	public String[] split(String regex, int limit) {
 		return Pattern.compile(regex).split(this, limit);
@@ -371,12 +354,33 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return Pattern.compile(regex).split(this);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(p1.toArray().join('$p0'));")
-	native public static String join(CharSequence delimiter, CharSequence... elements);
-
 	public static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements) {
 		ArrayList<CharSequence> out = new ArrayList<>();
 		for (CharSequence element : elements) out.add(element);
 		return join(delimiter, out.toArray(new CharSequence[out.size()]));
 	}
+
+	public String toString() {
+		return this;
+	}
+
+	@HaxeMethodBody("return new EReg('^' + p0._str + '$', '').match(this._str);")
+	native public boolean matches(String regex);
+
+	@HaxeMethodBody("return HaxeNatives.str(StringTools.replace(this._str, '$p0', '$p1'));")
+	native public String replace(CharSequence target, CharSequence replacement);
+
+	@HaxeMethodBody("return HaxeNatives.str(p1.toArray().join('$p0'));")
+	native public static String join(CharSequence delimiter, CharSequence... elements);
+
+	@HaxeMethodBody("return _getArray();")
+	native public char[] toCharArray();
+
+	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.length;")
+	@HaxeMethodBody("return _getArray().length;")
+	native public int length();
+
+	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.charCodeAt(p0);")
+	@HaxeMethodBody("return _getArray().get(p0);")
+	native public char charAt(int index);
 }
