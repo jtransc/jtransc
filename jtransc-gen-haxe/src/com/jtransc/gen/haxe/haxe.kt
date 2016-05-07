@@ -183,6 +183,12 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		params["entryPointClass"] = names.getHaxeClassFqName(info.entryPointClass)
 	}
 
+	fun setExtraData(map: Map<String, Any?>) {
+		for ((key, value) in map) {
+			this.params[key] = value
+		}
+	}
+
 	private fun evalReference(type: String, desc: String): String {
 		val dataParts = desc.split(':')
 		val clazz = names.program[dataParts[0].fqname]!!

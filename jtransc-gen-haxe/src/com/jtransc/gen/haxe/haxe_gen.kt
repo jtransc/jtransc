@@ -17,6 +17,7 @@ import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
+import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
@@ -130,27 +131,26 @@ class GenHaxeGen(
 		val customMain = program.allAnnotationsList.getTyped<HaxeCustomMain>()?.value
 
 		val plainMain = Indenter.genString {
-			line("package \$entryPointPackage;")
-			line("class \$entryPointSimpleName") {
+			line("package {{ entryPointPackage }};")
+			line("class {{ entryPointSimpleName }}") {
 				line("static public function main()") {
-					line("\$inits")
-					line("\$mainClass.SI();")
-					line("\$mainClass.\$mainMethod(HaxeNatives.strArray(HaxeNatives.args()));")
+					line("{{ inits }}")
+					line("{{ mainClass }}.SI();")
+					line("{{ mainClass }}.{{ mainMethod }}(HaxeNatives.strArray(HaxeNatives.args()));")
 				}
 			}
 		}
 
-		val realMain = customMain ?: plainMain
-
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
-		vfs[entryPointFilePath] = Indenter.replaceString(realMain, mapOf(
+		haxeTemplateString.setExtraData(mapOf(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
 			"mainMethod" to mainMethod,
 			"inits" to inits().toString()
 		))
+		vfs[entryPointFilePath] = haxeTemplateString.gen(customMain ?: plainMain)
 
 		vfs["HaxeReflectionInfo.hx"] = Indenter.genString {
 			line("class HaxeReflectionInfo") {
