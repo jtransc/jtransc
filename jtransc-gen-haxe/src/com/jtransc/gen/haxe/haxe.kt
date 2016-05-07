@@ -21,6 +21,7 @@ import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetDescriptor
@@ -185,7 +186,52 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		params["entryPointClass"] = names.getHaxeClassFqName(info.entryPointClass)
 	}
 
-	fun gen(template: String): String = Minitemplate(names.template(template)).invoke(params)
+	private fun evalReference(type: String, desc: String): String {
+		val dataParts = desc.split(':')
+		val clazz = names.program[dataParts[0].fqname]!!
+		return when (type.toUpperCase()) {
+			"SINIT" -> names.getHaxeClassFqName(clazz.name) + ".SI()"
+			"CONSTRUCTOR" -> {
+				"new ${names.getHaxeClassFqName(clazz.name)}().${names.getHaxeMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
+			}
+			"SMETHOD", "METHOD" -> {
+				val methodName = if (dataParts.size >= 3) {
+					names.getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
+				} else {
+					val methods = clazz.methodsByName[dataParts[1]]!!
+					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
+					names.getHaxeMethodName(methods.first())
+				}
+				if (type == "SMETHOD") names.getHaxeClassFqName(clazz.name) + "." + methodName else methodName
+			}
+			"SFIELD", "FIELD" -> {
+				val fieldName = names.getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
+				if (type == "SFIELD") names.getHaxeClassFqName(clazz.name) + "." + fieldName else fieldName
+			}
+			"CLASS" -> names.getHaxeClassFqName(clazz.name)
+			else -> invalidOp("Unknown type!")
+		}
+	}
+
+	class ProgramRefNode(val ts: HaxeTemplateString, val type:String, val desc:String) : Minitemplate.BlockNode {
+		override fun eval(context: Minitemplate.Context) {
+			context.write(ts.evalReference(type, desc))
+		}
+	}
+
+	val miniConfig = Minitemplate.Config(
+		extraTags = listOf(
+			Minitemplate.Tag(
+				":programref:", setOf(), null,
+				aliases = listOf(
+					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
+					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
+				)
+			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
+		)
+	)
+
+	fun gen(template: String): String = Minitemplate(template, miniConfig).invoke(params)
 }
 
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {

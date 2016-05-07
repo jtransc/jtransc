@@ -68,7 +68,7 @@ public class Arrays {
             "var comparator = p3;\n" +
             "var slice = array.toArray().slice(start, end);\n" +
             "haxe.ds.ArraySort.sort(slice, function(a, b) {\n" +
-            "\treturn comparator.#METHOD:java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I#(cast a, cast b);\n" +
+            "\treturn comparator.{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}(cast a, cast b);\n" +
             "});\n" +
             "for (n in 0 ... slice.length) {\n" +
             "\tarray.set(start + n, slice[n]);\n" +

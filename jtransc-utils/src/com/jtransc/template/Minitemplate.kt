@@ -6,9 +6,21 @@ import com.jtransc.error.noImpl
 import com.jtransc.lang.Dynamic
 import com.jtransc.text.*
 
-class Minitemplate(val template: String) {
+class Minitemplate(val template: String, val config: Config = Config()) {
 	val templateTokens = Token.tokenize(template)
-	val node = BlockNode.parse(templateTokens)
+	val node = BlockNode.parse(templateTokens, config)
+
+	class Config(
+		val extraTags: List<Tag> = listOf()
+	) {
+		val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET) + extraTags
+		val allTagsByName = hashMapOf<String, Tag>().apply {
+			for (tag in allTags) {
+				this[tag.name] = tag
+				for (alias in tag.aliases) this[alias] = tag
+			}
+		}
+	}
 
 	class Scope(val map: Any?, val parent: Scope? = null) {
 		operator fun get(key: Any?): Any? {
@@ -21,15 +33,13 @@ class Minitemplate(val template: String) {
 	}
 
 	operator fun invoke(args: Any?): String {
-		val context = Context(Scope(args))
+		val str = StringBuilder()
+		val context = Context(Scope(args)) { str.append(it) }
 		context.createScope { node.eval(context) }
-		return context.str.toString()
+		return str.toString()
 	}
 
-	class Context(var scope: Scope) {
-		var str = StringBuilder()
-
-		fun write(text: String) = this.apply { str.append(text) }
+	class Context(var scope: Scope, val write: (str:String) -> Unit) {
 		inline fun createScope(callback: () -> Unit) = this.apply {
 			val old = this.scope
 			this.scope = Scope(hashMapOf<Any?, Any?>(), old)
@@ -222,32 +232,22 @@ class Minitemplate(val template: String) {
 	}
 
 	interface BlockNode {
-		fun eval(context: Context): BlockNode
-
-		/*
-			is BlockNode.FOR -> {
-			}
-			is BlockNode.FOR -> {
-
-			}
-			else -> noImpl("Not implemented $it")
-
-		 */
+		fun eval(context: Context): Unit
 
 		data class GROUP(val children: List<BlockNode>) : BlockNode {
-			override fun eval(context: Context) = this.apply { for (n in children) n.eval(context) }
+			override fun eval(context: Context) = Unit.apply { for (n in children) n.eval(context) }
 		}
 
 		data class TEXT(val content: String) : BlockNode {
-			override fun eval(context: Context) = this.apply { context.write(content) }
+			override fun eval(context: Context) = Unit.apply { context.write(content) }
 		}
 
 		data class EXPR(val expr: ExprNode) : BlockNode {
-			override fun eval(context: Context) = this.apply { context.write(this.expr.eval(context).toString()) }
+			override fun eval(context: Context) = Unit.apply { context.write(expr.eval(context).toString()) }
 		}
 
 		data class IF(val cond: ExprNode, val trueContent: BlockNode, val falseContent: BlockNode?) : BlockNode {
-			override fun eval(context: Context) = this.apply {
+			override fun eval(context: Context) = Unit.apply {
 				if (Dynamic.toBool(cond.eval(context))) {
 					trueContent.eval(context)
 				} else {
@@ -257,7 +257,7 @@ class Minitemplate(val template: String) {
 		}
 
 		data class FOR(val varname: String, val expr: ExprNode, val loop: BlockNode) : BlockNode {
-			override fun eval(context: Context) = this.apply {
+			override fun eval(context: Context) = Unit.apply {
 				context.createScope {
 					for (v in Dynamic.toIterable(expr.eval(context))) {
 						context.scope[varname] = v
@@ -270,7 +270,7 @@ class Minitemplate(val template: String) {
 		companion object {
 			fun group(children: List<BlockNode>): BlockNode = if (children.size == 1) children[0] else GROUP(children.toList())
 
-			fun parse(tokens: List<Token>): BlockNode {
+			fun parse(tokens: List<Token>, config: Config): BlockNode {
 				val tr = ListReader(tokens)
 				fun handle(tag: Tag, token: Token.TTag): BlockNode {
 					val parts = arrayListOf<TagPart>()
@@ -295,8 +295,8 @@ class Minitemplate(val template: String) {
 										children.clear()
 									}
 									else -> {
-										val newtag = Tag.ALL_MAP[it.name] ?: invalidOp("Can't find tag ${it.name}")
-										if (tag.end != null) {
+										val newtag = config.allTagsByName[it.name] ?: invalidOp("Can't find tag ${it.name}")
+										if (newtag.end != null) {
 											children += handle(newtag, it)
 										} else {
 											children += newtag.buildNode(listOf(TagPart(it, BlockNode.TEXT(""))))
@@ -319,7 +319,7 @@ class Minitemplate(val template: String) {
 
 	data class TagPart(val token: Token.TTag, val body: BlockNode)
 
-	data class Tag(val name: String, val nextList: Set<String>, val end: String?, val buildNode: (parts: List<TagPart>) -> BlockNode) {
+	data class Tag(val name: String, val nextList: Set<String>, val end: String?, val aliases: List<String> = listOf(), val buildNode: (parts: List<TagPart>) -> BlockNode) {
 		companion object {
 			val EMPTY = Tag("", setOf(""), "") { parts ->
 				BlockNode.group(parts.map { it.body })
@@ -337,9 +337,6 @@ class Minitemplate(val template: String) {
 			val SET = Tag("set", setOf(), null) {
 				noImpl
 			}
-
-			val ALL = listOf(EMPTY, IF, FOR, SET)
-			val ALL_MAP = ALL.associateBy { it.name }
 		}
 	}
 

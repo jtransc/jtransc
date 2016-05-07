@@ -1113,7 +1113,7 @@ class GenHaxeGen(
 	val FqName.haxeGeneratedFqName: FqName get() = names.getHaxeGeneratedFqName(this)
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getHaxeGeneratedSimpleClassName(this)
 
-	fun String.template(): String = names.template(this)
+	fun String.template(): String = haxeTemplateString.gen(this)
 
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 

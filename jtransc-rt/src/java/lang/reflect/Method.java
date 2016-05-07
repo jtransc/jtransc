@@ -26,7 +26,7 @@ import java.lang.annotation.Annotation;
 @JTranscKeep
 @HaxeAddMembers({
 	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.#FIELD:java.lang.reflect.Method:clazz#._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Method:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Method extends AccessibleObject implements Member, GenericDeclaration {

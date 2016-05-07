@@ -36,5 +36,20 @@ class MinitemplateTest {
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n['sur'+'name'] }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 	}
 
+	@Test fun testCustomTag() {
+		class CustomNode(val text:String) : Minitemplate.BlockNode {
+			override fun eval(context: Minitemplate.Context) = Unit.apply { context.write("CUSTOM($text)") }
+		}
+
+		val CustomTag = Minitemplate.Tag("custom", setOf(), null) {
+			CustomNode(it.first().token.content)
+		}
+
+		Assert.assertEquals(
+			"CUSTOM(test)CUSTOM(demo)",
+			Minitemplate("{% custom test %}{% custom demo %}", Minitemplate.Config(extraTags = listOf(CustomTag))).invoke(null)
+		)
+	}
+
 	data class Person(val name:String, val surname:String)
 }

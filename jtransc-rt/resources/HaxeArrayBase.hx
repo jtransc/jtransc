@@ -1,8 +1,8 @@
-class HaxeArrayBase extends #CLASS:java.lang.Object# {
+class HaxeArrayBase extends {% CLASS java.lang.Object %} {
     public var length:Int = 0;
 	public var desc:String;
 
-	override public function #METHOD:java.lang.Object:toString:()Ljava/lang/String;#() {
+	override public function {% METHOD java.lang.Object:toString:()Ljava/lang/String; %}() {
 		var className = Type.getClassName(Type.getClass(this));
 	    return HaxeNatives.str('$className($length, $desc)');
 	}
@@ -15,7 +15,7 @@ class HaxeArrayBase extends #CLASS:java.lang.Object# {
 	private function checkBounds(index:Int):Int {
 		if (index < 0 || index >= length) {
 			trace('Index $index out of range 0..$length');
-			throw new #CLASS:java.lang.ArrayIndexOutOfBoundsException#().#METHOD:java.lang.ArrayIndexOutOfBoundsException:<init>:(I)V#(index);
+			throw new {% CLASS java.lang.ArrayIndexOutOfBoundsException %}().{% METHOD java.lang.ArrayIndexOutOfBoundsException:<init>:(I)V %}(index);
 		}
 		return index;
 	}
@@ -39,11 +39,11 @@ class HaxeArrayBase extends #CLASS:java.lang.Object# {
     }
 
     public function clone():HaxeArrayBase {
-        //return cast(#METHOD:java.lang.Object:clone:()Ljava/lang/Object;#(), HaxeArrayBase);
+        //return cast({% METHOD java.lang.Object:clone:()Ljava/lang/Object; %}(), HaxeArrayBase);
         throw 'Must override';
     }
 
-    public override function #METHOD:java.lang.Object:clone:()Ljava/lang/Object;#():#CLASS:java.lang.Object# {
+    public override function {% METHOD java.lang.Object:clone:()Ljava/lang/Object; %}():{% CLASS java.lang.Object %} {
     	return this.clone();
     }
 }

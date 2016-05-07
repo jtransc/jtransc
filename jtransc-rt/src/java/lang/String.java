@@ -29,13 +29,13 @@ import java.util.regex.Pattern;
 
 @HaxeAddMembers({
 	"public var _str:String = '';",
-	"public function setStr(str:String):#CLASS:java.lang.String# {\n" +
+	"public function setStr(str:String):{% CLASS java.lang.String %} {\n" +
 		"this._str = str;\n" +
 		// @TODO: Locate a bug!
 		//"if (str == 'java.lang.reflect.Fi') HaxeNatives.debugger();\n" +
 		"return this;\n" +
 	"}\n" +
-	"static public function make(str:String):#CLASS:java.lang.String# { return new #CLASS:java.lang.String#().setStr(str); }",
+	"static public function make(str:String):{% CLASS java.lang.String %} { return new {% CLASS java.lang.String %}().setStr(str); }",
 })
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	@HaxeMethodBody("this.setStr('');")
@@ -75,7 +75,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str));")
+	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str));")
 	public String(byte[] bytes, int offset, int length, Charset charset) {
 	}
 
@@ -83,7 +83,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(byte[] bytes, String charsetName) throws UnsupportedEncodingException {
 	}
 
-	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str));")
+	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, 0, -1, p1.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str));")
 	public String(byte[] bytes, Charset charset) {
 	}
 
@@ -149,13 +149,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0._str);")
 	native public byte[] getBytes(String charsetName) throws UnsupportedEncodingException;
 
-	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0.#FIELD:java.nio.charset.Charset:canonicalName:Ljava/lang/String;#._str);")
+	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0.{% FIELD java.nio.charset.Charset:canonicalName:Ljava/lang/String; %}._str);")
 	native public byte[] getBytes(Charset charset);
 
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str);")
 	native public byte[] getBytes();
 
-	@HaxeMethodBody("return Std.is(p0, #CLASS:java.lang.String#) && (cast(p0, #CLASS:java.lang.String#)._str == this._str);")
+	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
 	native public boolean equals(Object anObject);
 
 	public boolean contentEquals(StringBuffer sb) {

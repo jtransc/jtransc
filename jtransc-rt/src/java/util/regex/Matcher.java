@@ -29,7 +29,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 	"" +
 		"public function _find() {\n" +
 		"\tvar r = this._ereg;\n" +
-		"\tthis._matches = r.matchSub(this.#FIELD:java.util.regex.Matcher:text:Ljava/lang/String;#._str, this._offset);\n" +
+		"\tthis._matches = r.matchSub(this.{% FIELD java.util.regex.Matcher:text:Ljava/lang/String; %}._str, this._offset);\n" +
 		"\tif (this._matches) {\n" +
 		"\t\tvar rpos = r.matchedPos();\n" +
 		"\t\tthis._matchPos = rpos.pos;\n" +
@@ -72,9 +72,9 @@ public final class Matcher implements MatchResult {
 
 	@HaxeMethodBody("" +
 		"var opts = '';\n" +
-		"var flags = this.#FIELD:java.util.regex.Matcher:flags:I#;\n" +
-		"var pattern = this.#FIELD:java.util.regex.Matcher:pattern:Ljava/lang/String;#;\n" +
-		"var text = this.#FIELD:java.util.regex.Matcher:text:Ljava/lang/String;#;\n" +
+		"var flags = this.{% FIELD java.util.regex.Matcher:flags:I %};\n" +
+		"var pattern = this.{% FIELD java.util.regex.Matcher:pattern:Ljava/lang/String; %};\n" +
+		"var text = this.{% FIELD java.util.regex.Matcher:text:Ljava/lang/String; %};\n" +
 		"if ((flags & 0x02) != 0) opts += 'i';\n" +
 		"if ((flags & 0x08) != 0) opts += 'm';\n" +
 		//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript

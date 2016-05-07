@@ -79,11 +79,11 @@ public class JTranscProcess extends Process {
 
 	@Override
 	@HaxeMethodBody(target = "sys", value = "return this.process.exitCode();")
-	@HaxeMethodBody("return this.#FIELD:com.jtransc.io.JTranscProcess:exitCode#;")
+	@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:exitCode %};")
 	public native int exitValue();
 
 	@HaxeMethodBody(target = "sys", value = "return this.process.getPid();")
-	@HaxeMethodBody("return this.#FIELD:com.jtransc.io.JTranscProcess:pid#;")
+	@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:pid %};")
 	public native int pid();
 
 	@Override

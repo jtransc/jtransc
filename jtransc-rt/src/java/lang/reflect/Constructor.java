@@ -25,7 +25,7 @@ import java.lang.annotation.Annotation;
 
 @HaxeAddMembers({
 	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.#FIELD:java.lang.reflect.Constructor:clazz#._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
+	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Constructor:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
 	"private function _getObjectOrClass(obj:Dynamic) { return (obj != null) ? obj : _getClass(); }",
 })
 public final class Constructor<T> extends AccessibleObject implements Member, GenericDeclaration {
@@ -125,7 +125,7 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 
 	@HaxeMethodBody(
 		"//trace('dynamic newInstance : ' + this._internalName);\n" +
-		"var instance = HaxeNatives.newInstance(this.#FIELD:java.lang.reflect.Constructor:clazz#._internalName);\n" +
+		"var instance = HaxeNatives.newInstance(this.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);\n" +
 		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), p0.data.toArray());\n" +
 		"return instance;"
 	)

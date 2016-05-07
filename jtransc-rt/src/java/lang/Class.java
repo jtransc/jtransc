@@ -39,16 +39,16 @@ import java.lang.AnnotatedElement;
 	"public var _interfaces:Array<String> = [];",
 	"public var _fields = [];",
 	"public var _modifiers = 0;",
-	"public var _methods:Array<#CLASS:java.lang.reflect.Method#> = [];",
+	"public var _methods:Array<{% CLASS java.lang.reflect.Method %}> = [];",
 	"public var _constructors = [];",
 	"public var _annotations = [];",
 	"public var _methodsById = null;",
 	"" +
 		"public function populateMethodsById() {\n" +
 		"  if (_methodsById != null) return;\n" +
-		"  _methodsById = new Map<Int, #CLASS:java.lang.reflect.Method#>();\n" +
-		"  function populate(clazz:#CLASS:java.lang.Class#) {\n" +
-		"    for (m in clazz._methods) _methodsById.set(m.#FIELD:java.lang.reflect.Method:id#, m);\n" +
+		"  _methodsById = new Map<Int, {% CLASS java.lang.reflect.Method %}>();\n" +
+		"  function populate(clazz:{% CLASS java.lang.Class %}) {\n" +
+		"    for (m in clazz._methods) _methodsById.set(m.{% FIELD java.lang.reflect.Method:id %}, m);\n" +
 		"    if (clazz._parent != null) populate(HaxeNatives.resolveClass(clazz._parent));\n" +
 		"    for (i in clazz._interfaces) populate(HaxeNatives.resolveClass(i));\n" +
 		"  }\n" +

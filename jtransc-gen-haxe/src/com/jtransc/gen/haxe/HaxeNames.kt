@@ -261,41 +261,4 @@ class HaxeNames(
 		is AstType.ARRAY -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
 		else -> throw NotImplementedError("Literal of type $value")
 	}
-
-	private val templateRegex = Regex("#(CLASS|SMETHOD|METHOD|SFIELD|FIELD|CONSTRUCTOR|SINIT):(.*?)#")
-
-	fun template(s: String): String {
-		return templateRegex.replace(s) {
-			try {
-				val type = it.groupValues[1]
-				val data = it.groupValues[2]
-				val dataParts = data.split(':')
-				val clazz = program[dataParts[0].fqname]!!
-				when (type) {
-					"SINIT" -> getHaxeClassFqName(clazz.name) + ".SI()"
-					"CONSTRUCTOR" -> {
-						"new ${getHaxeClassFqName(clazz.name)}().${getHaxeMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
-					}
-					"SMETHOD", "METHOD" -> {
-						val methodName = if (dataParts.size >= 3) {
-							getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
-						} else {
-							val methods = clazz.methodsByName[dataParts[1]]!!
-							if (methods.size > 1) invalidOp("Several signatures, please specify signature")
-							getHaxeMethodName(methods.first())
-						}
-						if (type == "SMETHOD") getHaxeClassFqName(clazz.name) + "." + methodName else methodName
-					}
-					"SFIELD", "FIELD" -> {
-						val fieldName = getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
-						if (type == "SFIELD") getHaxeClassFqName(clazz.name) + "." + fieldName else fieldName
-					}
-					"CLASS" -> getHaxeClassFqName(clazz.name)
-					else -> data
-				}
-			} catch (t:Throwable) {
-				throw RuntimeException("${t.message} :: Problem replacing template '${it.value}'", t)
-			}
-		}
-	}
 }

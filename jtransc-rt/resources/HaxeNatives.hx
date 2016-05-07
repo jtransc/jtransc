@@ -9,19 +9,19 @@ import haxe.CallStack;
 using Lambda;
 
 typedef Long = Int64;
-typedef JavaVoid = #CLASS:java.lang.Void#;
-typedef JavaClass = #CLASS:java.lang.Class#;
-typedef JavaString = #CLASS:java.lang.String#;
-typedef JavaObject = #CLASS:java.lang.Object#;
-typedef JtranscWrapped = #CLASS:com.jtransc.JTranscWrapped#;
-typedef JavaBoolean = #CLASS:java.lang.Boolean#;
-typedef JavaByte = #CLASS:java.lang.Byte#;
-typedef JavaShort = #CLASS:java.lang.Short#;
-typedef JavaCharacter = #CLASS:java.lang.Character#;
-typedef JavaInteger = #CLASS:java.lang.Integer#;
-typedef JavaLong = #CLASS:java.lang.Long#;
-typedef JavaFloat = #CLASS:java.lang.Float#;
-typedef JavaDouble = #CLASS:java.lang.Double#;
+typedef JavaVoid = {% CLASS java.lang.Void %}
+typedef JavaClass = {% CLASS java.lang.Class %}
+typedef JavaString = {% CLASS java.lang.String %}
+typedef JavaObject = {% CLASS java.lang.Object %}
+typedef JtranscWrapped = {% CLASS com.jtransc.JTranscWrapped %}
+typedef JavaBoolean = {% CLASS java.lang.Boolean %}
+typedef JavaByte = {% CLASS java.lang.Byte %}
+typedef JavaShort = {% CLASS java.lang.Short %}
+typedef JavaCharacter = {% CLASS java.lang.Character %}
+typedef JavaInteger = {% CLASS java.lang.Integer %}
+typedef JavaLong = {% CLASS java.lang.Long %}
+typedef JavaFloat = {% CLASS java.lang.Float %}
+typedef JavaDouble = {% CLASS java.lang.Double %}
 
 class HaxeNatives {
 	static private var M2P32_DBL = Math.pow(2, 32);
@@ -59,31 +59,31 @@ class HaxeNatives {
         return [for (s in strs.toArray()) unbox(cast s)];
     }
 
-    static public function hashMap(obj:Dynamic):#CLASS:java.util.HashMap# {
-	    var out = new #CLASS:java.util.HashMap#().#METHOD:java.util.HashMap:<init>:()V#();
+    static public function hashMap(obj:Dynamic):{% CLASS java.util.HashMap %} {
+	    var out = new {% CLASS java.util.HashMap %}().{% METHOD java.util.HashMap:<init>:()V %}();
 	    for (key in Reflect.fields(obj)) {
 	    	var value = Reflect.field(obj, key);
-	    	out.#METHOD:java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;#(box(key), box(value));
+	    	out.{% METHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
 	    }
 	    return out;
     }
 
-    static public function mapToObject(map:#CLASS:java.util.Map#):Dynamic {
+    static public function mapToObject(map:{% CLASS java.util.Map %}):Dynamic {
 	    if (map == null) return null;
     	var obj = {};
-    	for (item in iteratorToArray(map.#METHOD:java.util.Map:entrySet#().#METHOD:java.util.Set:iterator#())) {
-			var key:JavaObject = item.#METHOD:java.util.Map$Entry:getKey#();
-			var value:JavaObject = item.#METHOD:java.util.Map$Entry:getValue#();
+    	for (item in iteratorToArray(map.{% METHOD java.util.Map:entrySet %}().{% METHOD java.util.Set:iterator %}())) {
+			var key:JavaObject = item.{% METHOD java.util.Map$Entry:getKey %}();
+			var value:JavaObject = item.{% METHOD java.util.Map$Entry:getValue %}();
 			Reflect.setField(obj, unbox(key), unbox(value));
     	}
     	return obj;
     }
 
-    static public function iteratorToArray(it:#CLASS:java.util.Iterator#):Array<Dynamic> {
+    static public function iteratorToArray(it:{% CLASS java.util.Iterator %}):Array<Dynamic> {
 	    if (it == null) return null;
 	    var out = [];
-		while (it.#METHOD:java.util.Iterator:hasNext:()Z#()) {
-			out.push(it.#METHOD:java.util.Iterator:next:()Ljava/lang/Object;#());
+		while (it.{% METHOD java.util.Iterator:hasNext:()Z %}()) {
+			out.push(it.{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
 		}
 		return out;
     }
@@ -147,13 +147,13 @@ class HaxeNatives {
 		#end
 	}
 
-    static public function resolveClass(name:String):#CLASS:java.lang.Class# {
+    static public function resolveClass(name:String):{% CLASS java.lang.Class %} {
         if (name == null) {
             trace('resolveClass:name:null');
 			debugger();
             return null;
         }
-        var result = JavaClass.#METHOD:java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class;#(HaxeNatives.str(name));
+        var result = JavaClass.{% METHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(HaxeNatives.str(name));
         if (result == null) {
             trace('resolveClass:result:null');
 			debugger();
@@ -172,7 +172,7 @@ class HaxeNatives {
         return javaClassName;
     }
 
-    static public function getClass(object:JavaObject):#CLASS:java.lang.Class# {
+    static public function getClass(object:JavaObject):{% CLASS java.lang.Class %} {
         return resolveClass(getClassDescriptor(object));
     }
 
@@ -252,26 +252,26 @@ class HaxeNatives {
 	}
 
 	static public function boxVoid(value:Dynamic):JavaVoid { return null; }
-	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.#METHOD:java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean;#(value); }
-	static public function boxByte(value:Int):JavaByte { return JavaByte.#METHOD:java.lang.Byte:valueOf:(B)Ljava/lang/Byte;#(value); }
-	static public function boxShort(value:Int):JavaShort { return JavaShort.#METHOD:java.lang.Short:valueOf:(S)Ljava/lang/Short;#(value); }
-	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter.#METHOD:java.lang.Character:valueOf:(C)Ljava/lang/Character;#(value); }
-	static public function boxInt(value:Int):JavaInteger { return JavaInteger.#METHOD:java.lang.Integer:valueOf:(I)Ljava/lang/Integer;#(value); }
-	static public function boxLong(value:Long):JavaLong { return JavaLong.#METHOD:java.lang.Long:valueOf:(J)Ljava/lang/Long;#(value); }
-	static public function boxFloat(value:Float):JavaFloat { return JavaFloat.#METHOD:java.lang.Float:valueOf:(F)Ljava/lang/Float;#(value); }
-	static public function boxDouble(value:Float):JavaDouble { return JavaDouble.#METHOD:java.lang.Double:valueOf:(D)Ljava/lang/Double;#(value); }
+	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.{% METHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+	static public function boxByte(value:Int):JavaByte { return JavaByte.{% METHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+	static public function boxShort(value:Int):JavaShort { return JavaShort.{% METHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter.{% METHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+	static public function boxInt(value:Int):JavaInteger { return JavaInteger.{% METHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+	static public function boxLong(value:Long):JavaLong { return JavaLong.{% METHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	static public function boxFloat(value:Float):JavaFloat { return JavaFloat.{% METHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	static public function boxDouble(value:Float):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 	static public function boxString(value:String):JavaString { return (value != null) ? JavaString.make(value) : null; }
 	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
-	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).#FIELD:java.lang.Boolean:value:Z#; }
-	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte).#FIELD:java.lang.Byte:value:B#; }
-	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort).#FIELD:java.lang.Short:value:S#; }
-	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter).#FIELD:java.lang.Character:value:C#; }
-	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger).#FIELD:java.lang.Integer:value:I#; }
-	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong).#FIELD:java.lang.Long:value:J#; }
-	static public function unboxFloat(value:JavaObject):Float { return cast(value, JavaFloat).#FIELD:java.lang.Float:value:F#; }
-	static public function unboxDouble(value:JavaObject):Float { return cast(value, JavaDouble).#FIELD:java.lang.Double:value:D#; }
+	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).{% FIELD java.lang.Boolean:value:Z %}; }
+	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte).{% FIELD java.lang.Byte:value:B %}; }
+	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort).{% FIELD java.lang.Short:value:S %}; }
+	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter).{% FIELD java.lang.Character:value:C %}; }
+	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger).{% FIELD java.lang.Integer:value:I %}; }
+	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong).{% FIELD java.lang.Long:value:J %}; }
+	static public function unboxFloat(value:JavaObject):Float { return cast(value, JavaFloat).{% FIELD java.lang.Float:value:F %}; }
+	static public function unboxDouble(value:JavaObject):Float { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
 	static public function unboxString(value:JavaObject):String { return cast(value, JavaString)._str; }
 	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
 
@@ -304,7 +304,7 @@ class HaxeNatives {
         #end
     }
 
-    static public function newException(msg:String) return #CONSTRUCTOR:java.lang.Exception:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
+    static public function newException(msg:String) return {% CONSTRUCTOR java.lang.Exception:(Ljava/lang/String;)V %}(HaxeNatives.str(msg));
 
     static public inline function rethrow(J__i__exception__:Dynamic) {
         #if js
@@ -321,8 +321,8 @@ class HaxeNatives {
         #end
     }
 
-	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):#CLASS:java.lang.StackTraceElement# {
-		return #CONSTRUCTOR:java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V#(
+	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):{% CLASS java.lang.StackTraceElement %} {
+		return {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
 			HaxeNatives.str(className),
 			HaxeNatives.str(methodName),
 			HaxeNatives.str(fileName),
@@ -330,7 +330,7 @@ class HaxeNatives {
 		);
 	}
 
-	static public function convertStackItem(i):#CLASS:java.lang.StackTraceElement# {
+	static public function convertStackItem(i):{% CLASS java.lang.StackTraceElement %} {
 		var className = "DummyClass";
 		var methodName = "dummyMethod";
 		var fileName = "DummyClass.java";
@@ -367,7 +367,7 @@ class HaxeNatives {
 	}
 
 	static public inline function throwRuntimeException(msg:String) {
-		throw #CONSTRUCTOR:java.lang.RuntimeException:(Ljava/lang/String;)V#(HaxeNatives.str(msg));
+		throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(HaxeNatives.str(msg));
 	}
 
 	static public function swap32(p0:Int):Int { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
@@ -376,7 +376,7 @@ class HaxeNatives {
 
 	#if debug
 		static public function checkNotNull<T>(item:T):T {
-			if (item == null) throw #CONSTRUCTOR:java.lang.NullPointerException:()V#();
+			if (item == null) throw {% CONSTRUCTOR java.lang.NullPointerException:()V %}();
 			return item;
 		}
 	#else
