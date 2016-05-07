@@ -23,6 +23,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 	"public var buffer:StringBuf = new StringBuf();",
 	"public var str2:String = null;",
 	"public function add(str:String) { this.str2 = null; buffer.add(str); return this; }",
+	"public function addChar(c:Int) { this.str2 = null; buffer.add(String.fromCharCode(c)); return this; }",
 	"public function getStr() { if (this.str2 == null) this.str2 = buffer.toString(); return this.str2; }",
 	"public function setStr(str:String) { this.str2 = str; buffer = new StringBuf(); buffer.add(str); return this; }",
 })
@@ -111,9 +112,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	//@Override
-	public AbstractStringBuilder append(char v) {
-		return this.append(String.valueOf(v));
-	}
+	@HaxeMethodBody("return this.addChar(p0);")
+	native public AbstractStringBuilder append(char v);
 
 	public AbstractStringBuilder append(int v) {
 		return this.append(String.valueOf(v));

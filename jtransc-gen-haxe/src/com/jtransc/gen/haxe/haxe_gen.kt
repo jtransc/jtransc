@@ -662,21 +662,28 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
-	private fun AstMethod.getHaxeNativeBody(): String? {
+	private fun AstMethod.getHaxeNativeBodyList(): List<HaxeMethodBody> {
+		val bodyList = this.annotationsList.getTyped<HaxeMethodBodyList>()
+		val bodyEntry = this.annotationsList.getTyped<HaxeMethodBody>()
+		val bodies = listOf(bodyList?.value?.toList(), listOf(bodyEntry)).concatNotNull()
+		return bodies
+	}
+
+	private fun AstMethod.hasHaxeNativeBody(): Boolean = this.annotationsList.contains<HaxeMethodBodyList>() || this.annotationsList.contains<HaxeMethodBody>()
+
+	private fun AstMethod.getHaxeNativeBody(defaultContent: Indenter): Indenter {
 		val method = this
 
-		val bodyList = method.annotationsList.getTyped<HaxeMethodBodyList>()
-		val bodyEntry = method.annotationsList.getTyped<HaxeMethodBody>()
-		val bodies = listOf(bodyList?.value?.toList(), listOf(bodyEntry)).concatNotNull()
+		val bodies = this.getHaxeNativeBodyList()
 
 		return if (bodies.size > 0) {
 			val pre = method.annotationsList.getTyped<HaxeMethodBodyPre>()?.value ?: ""
 			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
 			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody = bodiesmap[""] ?: invalidOp(HaxeMethodBody::class.java.name + " without default target")
+			val defaultbody: Indenter = if ("" in bodiesmap) Indenter.gen { line(bodiesmap[""]!!) } else defaultContent
 			val extrabodies = bodiesmap.filterKeys { it != "" }
-			return Indenter.genString {
+			Indenter.gen {
 				line(pre)
 				if (extrabodies.size == 0) {
 					line(defaultbody)
@@ -686,13 +693,14 @@ class GenHaxeGen(
 						line((if (first) "#if" else "#elseif") + " ($target) $extrabody")
 						first = false
 					}
-					line("#else $defaultbody")
+					line("#else")
+					line(defaultbody)
 					line("#end")
 				}
 				line(post)
 			}
 		} else {
-			null
+			defaultContent
 		}
 	}
 
@@ -755,29 +763,25 @@ class GenHaxeGen(
 				if (isInterface) {
 					if (!method.isImplementing) line("$decl;")
 				} else {
-					val body = method.getHaxeNativeBody()?.template()
 					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
-					if (body != null) {
-						val body2 = if (method.isInstanceInit) "$body return this;" else body
-						line("$decl { $body2 } // ${method.name}")
-					} else if (method.body != null) {
-						val rbody = method.body!!
-						line(decl) {
-							try {
-								// @TODO: Do not hardcode this!
-								if (method.name == "throwParameterIsNullException") {
-									line("HaxeNatives.debugger();")
-								}
-								line(features.apply(rbody, featureSet).genBody())
-							} catch (e: Throwable) {
-								println("WARNING:" + e.message)
-
-								line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
+					val rbody = method.body
+					line(decl) {
+						try {
+							// @TODO: Do not hardcode this!
+							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
+							val javaBody = if (rbody != null) {
+								features.apply(rbody, featureSet).genBody()
+							} else Indenter.gen {
+								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							}
+							line(method.getHaxeNativeBody(javaBody).toString().template())
+							if (method.isInstanceInit) line("return this;")
+						} catch (e: Throwable) {
+							println("WARNING:" + e.message)
+
+							line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
 						}
-					} else {
-						line("$decl { throw R.n(HAXE_CLASS_NAME, ${method.id}); }")
 					}
 				}
 			}

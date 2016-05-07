@@ -104,7 +104,7 @@ class HaxeNatives {
         if (count < 0) count = chars.length;
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
-        var out = new Utf8(end - start);
+        var out = new Utf8();
         for (n in start ... end) out.addChar(chars.get(n));
         return out.toString();
     }
@@ -113,7 +113,7 @@ class HaxeNatives {
         if (count < 0) count = chars.length;
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
-        var out = new Utf8(end - start);
+        var out = new Utf8();
         for (n in start ... end) out.addChar((chars.get(n) & 0xFF) | ((hi & 0xFF) << 8));
         return out.toString();
     }
@@ -121,7 +121,7 @@ class HaxeNatives {
     static public function charArrayToString(chars:HaxeArrayChar, start:Int = 0, count:Int = 999999999):String {
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
-        var out = new Utf8(end - start);
+        var out = new Utf8();
         for (n in start ... end) out.addChar(chars.get(n));
         return out.toString();
     }
@@ -129,7 +129,7 @@ class HaxeNatives {
     static public function intArrayToString(chars:HaxeArrayInt, start:Int = 0, count:Int = 999999999):String {
         var end = start + count;
         end = Std.int(Math.min(end, chars.length));
-        var out = new Utf8(end - start);
+        var out = new Utf8();
         for (n in start ... end) out.addChar(chars.get(n));
         return out.toString();
     }

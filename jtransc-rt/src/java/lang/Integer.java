@@ -36,19 +36,21 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
+	static private char[] temp = new char[16];
+
+	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	public static String toString(int i, int radix) {
 		if (i == 0) return "0";
 		if (i == MIN_VALUE) return "-2147483648";
 		boolean negative = (i < 0);
 		if (i < 0) i = -i;
-		StringBuilder out = new StringBuilder();
+		int tempPos = temp.length;
 		while (i != 0) {
-			out.append(JTranscCType.encodeDigit(Integer.remainderUnsigned(i, radix)));
+			temp[--tempPos] = JTranscCType.encodeDigit(Integer.remainderUnsigned(i, radix));
 			i = Integer.divideUnsigned(i, radix);
 		}
-		if (negative) out.append('-');
-		out.reverse();
-		return out.toString();
+		if (negative) temp[--tempPos] = '-';
+		return new String(temp, tempPos, temp.length - tempPos);
 	}
 
 	public static String toUnsignedString(int i, int radix) {

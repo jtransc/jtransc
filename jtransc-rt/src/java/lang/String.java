@@ -65,7 +65,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(ascii, hibyte, 0, ascii.length);
 	}
 
-	public String(char value[]) {
+	public String(char[] value) {
 		this(value, 0, value.length);
 	}
 
