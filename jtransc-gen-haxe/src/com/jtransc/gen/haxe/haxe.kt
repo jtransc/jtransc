@@ -56,7 +56,7 @@ private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
 fun AstProgram.haxeLibs(settings: AstBuildSettings): List<HaxeLib.LibraryRef> = this.getCached(HAXE_LIBS_KEY) {
 	this.classes
-		.map { it.annotations[HaxeAddLibraries::value] }
+		.map { it.annotationsList.getTyped<HaxeAddLibraries>()?.value }
 		.filterNotNull()
 		.flatMap { it.toList() }
 		.map { HaxeLib.LibraryRef.fromVersion(it) }
@@ -99,7 +99,7 @@ fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
 
 fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
 	val program = this.program
-	val files = program.classes.map { it.annotations[HaxeAddAssets::value] }.filterNotNull().flatMap { it.toList() }
+	val files = program.classes.map { it.annotationsList.getTyped<HaxeAddAssets>()?.value }.filterNotNull().flatMap { it.toList() }
 	//val assetsFolder = settings.assets.firstOrNull()
 	val resourcesVfs = program.resourcesVfs
 	log("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
@@ -299,12 +299,12 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		log("Compiling... ")
 
-		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotations[HaxeAddFilesBeforeBuildTemplate::value]?.toList() ?: listOf() }
+		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
 		for (file in copyFilesBeforeBuildTemplate) srcFolder[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
 
 
 		val cmd = haxeTemplateString.gen(
-			program.allAnnotations[HaxeCustomBuildCommandLine::value]?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
+			program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
 		).split("\n").map { it.trim() }.filter { it.isNotEmpty() }
 
 		log("Compiling: ${cmd.joinToString(" ")}")

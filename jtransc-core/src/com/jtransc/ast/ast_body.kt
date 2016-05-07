@@ -517,7 +517,7 @@ object AstExprUtils {
 	}
 
 	fun RESOLVE_SPECIAL(program: AstProgram, e: AstExpr.CALL_INSTANCE, context: AstGenContext): AstExpr.CALL_BASE {
-		val clazz = program[e.method.classRef]
+		val clazz = program.get3(e.method.classRef)
 		val refMethod = program.get(e.method) ?: invalidOp("Can't find method: ${e.method} while generating $context")
 		// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.invokespecial
 		return if (refMethod.modifiers.isPrivate || refMethod.isInstanceInit) {

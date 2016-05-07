@@ -100,7 +100,7 @@ interface AstResolver {
 	operator fun contains(name: FqName): Boolean
 }
 
-operator fun AstResolver.get(ref: AstType.REF): AstClass = this[ref.name]!!
+fun AstResolver.get3(ref: AstType.REF): AstClass = this[ref.name]!!
 
 interface LocateRightClass {
 	fun locateRightClass(field: AstFieldRef): AstType.REF
@@ -198,6 +198,8 @@ class AstProgram(
 		}
 	}
 
+	val allAnnotationsList by lazy { AstAnnotationList(allAnnotations) }
+
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
@@ -240,6 +242,7 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	override val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData(), AstAnnotated {
+	override val annotationsList = AstAnnotationList(annotations)
 	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType
@@ -308,8 +311,8 @@ class AstClass(
 	}
 
 	//val dependencies: AstReferences = AstReferences()
-	val implCode by lazy { annotations.get(JTranscNativeClassImpl::value) }
-	val nativeName by lazy { annotations.get(JTranscNativeClass::value) }
+	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
+	val nativeName by lazy { annotationsList.getTyped<JTranscNativeClass>()?.value }
 
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
@@ -461,9 +464,10 @@ data class AstReferences(
 
 interface AstAnnotated {
 	val annotations: List<AstAnnotation>
+	val annotationsList: AstAnnotationList
 }
 
-val AstAnnotated?.keepName: Boolean get() = this?.annotations.contains<JTranscKeepName>()
+val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
 
 open class AstMember(
 	val containingClass: AstClass,
@@ -474,6 +478,7 @@ open class AstMember(
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
 	override val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData(), AstAnnotated {
+	override val annotationsList = AstAnnotationList(annotations)
 	val program = containingClass.program
 }
 
@@ -518,10 +523,10 @@ class AstMethod(
 	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }
 
-	val getterField: String? by lazy { annotations[JTranscGetter::value] }
-	val setterField: String? by lazy { annotations[JTranscSetter::value] }
-	val nativeMethod: String? by lazy { annotations[JTranscMethod::value] }
-	val isInline: Boolean by lazy { annotations.contains<JTranscInline>() }
+	val getterField: String? by lazy { annotationsList.getTyped<JTranscGetter>()?.value }
+	val setterField: String? by lazy { annotationsList.getTyped<JTranscSetter>()?.value }
+	val nativeMethod: String? by lazy { annotationsList.getTyped<JTranscMethod>()?.value }
+	val isInline: Boolean by lazy { annotationsList.contains<JTranscInline>() }
 
 	val isInstanceInit: Boolean get() = name == "<init>"
 	val isClassInit: Boolean get() = name == "<clinit>"

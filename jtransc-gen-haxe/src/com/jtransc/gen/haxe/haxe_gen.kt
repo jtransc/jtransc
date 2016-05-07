@@ -60,12 +60,12 @@ class GenHaxeGen(
 
 	fun AstClass.isVisible(): Boolean {
 		if (this.fqname in invisibleExternalList) return false
-		if (this.annotations.contains<JTranscInvisible>()) return false
+		if (this.annotationsList.contains<JTranscInvisible>()) return false
 		return true
 	}
 
-	fun AstField.isVisible(): Boolean = !this.annotations.contains<JTranscInvisible>()
-	fun AstMethod.isVisible(): Boolean = !this.annotations.contains<JTranscInvisible>()
+	fun AstField.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
+	fun AstMethod.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
 
 	fun AstExpr.genNotNull(): String {
 		return if (this is AstExpr.THIS) {
@@ -102,8 +102,8 @@ class GenHaxeGen(
 			}
 		}
 
-		val copyFilesRaw = program.classes.flatMap { it.annotations[HaxeAddFiles::value]?.toList() ?: listOf() }
-		val copyFilesTemplate = program.classes.flatMap { it.annotations[HaxeAddFilesTemplate::value]?.toList() ?: listOf() }
+		val copyFilesRaw = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFiles>()?.value?.toList() ?: listOf() }
+		val copyFilesTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf() }
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
 		for (file in copyFilesTemplate) vfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
@@ -119,7 +119,7 @@ class GenHaxeGen(
 
 		fun calcClasses(program: AstProgram, mainClass: AstClass): List<AstClass> {
 			return sortDependenciesSimple(mainClass) {
-				it.classDependencies.map { program[it] }
+				it.classDependencies.map { program.get3(it) }
 			}
 		}
 
@@ -127,7 +127,7 @@ class GenHaxeGen(
 			line("haxe.CallStack.callStack();")
 		}
 
-		val customMain = program.classes.getAnnotation(HaxeCustomMain::value).firstOrNull()
+		val customMain = program.allAnnotationsList.getTyped<HaxeCustomMain>()?.value
 
 		val plainMain = Indenter.genString {
 			line("package \$entryPointPackage;")
@@ -186,7 +186,7 @@ class GenHaxeGen(
 			}
 		}
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-		val annotation = program[a.type]
+		val annotation = program.get3(a.type)
 		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
 		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
 	}
@@ -204,7 +204,7 @@ class GenHaxeGen(
 			}
 		}
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-		val annotation = program[a.type]
+		val annotation = program.get3(a.type)
 		return annotation.methods.flatMap {
 			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
 		}
@@ -665,13 +665,13 @@ class GenHaxeGen(
 	private fun AstMethod.getHaxeNativeBody(): String? {
 		val method = this
 
-		val bodyList = method.annotations.getTyped<HaxeMethodBodyList>()
-		val bodyEntry = method.annotations.getTyped<HaxeMethodBody>()
+		val bodyList = method.annotationsList.getTyped<HaxeMethodBodyList>()
+		val bodyEntry = method.annotationsList.getTyped<HaxeMethodBody>()
 		val bodies = listOf(bodyList?.value?.toList(), listOf(bodyEntry)).concatNotNull()
 
 		return if (bodies.size > 0) {
-			val pre = method.annotations.getTyped<HaxeMethodBodyPre>()?.value ?: ""
-			val post = method.annotations.getTyped<HaxeMethodBodyPost>()?.value ?: ""
+			val pre = method.annotationsList.getTyped<HaxeMethodBodyPre>()?.value ?: ""
+			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
 			val bodiesmap = bodies.map { it.target to it.value }.toMap()
 			val defaultbody = bodiesmap[""] ?: invalidOp(HaxeMethodBody::class.java.name + " without default target")
@@ -726,8 +726,8 @@ class GenHaxeGen(
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
 			val fieldName = field.haxeName
 			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
-			if (!field.annotations.contains<HaxeRemoveField>()) {
-				val keep = if (field.annotations.contains<JTranscKeep>()) "@:keep " else ""
+			if (!field.annotationsList.contains<HaxeRemoveField>()) {
+				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 				line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
 			}
 		}
@@ -756,7 +756,7 @@ class GenHaxeGen(
 					if (!method.isImplementing) line("$decl;")
 				} else {
 					val body = method.getHaxeNativeBody()?.template()
-					val meta = method.annotations[HaxeMeta::value]
+					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
 					if (body != null) {
 						val body2 = if (method.isInstanceInit) "$body return this;" else body
@@ -827,10 +827,10 @@ class GenHaxeGen(
 			}
 
 			// Additional imports!
-			val imports = clazz.annotations[HaxeImports::value]
+			val imports = clazz.annotationsList.getTyped<HaxeImports>()?.value
 			if (imports != null) for (i in imports) line(i)
 
-			val meta = clazz.annotations[HaxeMeta::value]
+			val meta = clazz.annotationsList.getTyped<HaxeMeta>()?.value
 			if (meta != null) line(meta)
 			line(declaration) {
 				if (!isInterface) {
@@ -840,7 +840,7 @@ class GenHaxeGen(
 					}
 				}
 
-				val nativeMembers = clazz.annotations[HaxeAddMembers::value]?.toList() ?: listOf()
+				val nativeMembers = clazz.annotationsList.getTyped<HaxeAddMembers>()?.value?.toList() ?: listOf()
 
 				for (member in nativeMembers) line(member.template())
 
@@ -979,7 +979,7 @@ class GenHaxeGen(
 							val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 							val rettype = methodType.ret.haxeTypeTag
 
-							val stdCall = method.annotations.contains2<StdCall>()
+							val stdCall = method.annotationsList.contains<StdCall>()
 
 							line("@:noStack public function $methodName($margs):$rettype") {
 								val argIds = methodType.args.withIndex().map { "${it.value.type.castToNative()}{${(it.index + 1)}}" }.joinToString(", ")

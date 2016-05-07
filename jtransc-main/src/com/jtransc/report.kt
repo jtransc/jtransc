@@ -1,6 +1,5 @@
 package com.jtransc
 
-import com.jtransc.ast.contains
 import com.jtransc.ds.diff
 import com.jtransc.ds.hasAnyFlags
 import com.jtransc.ds.hasFlag
@@ -12,6 +11,7 @@ import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeMethodBody
+import com.jtransc.ast.AstAnnotationList
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.AnnotationNode
@@ -59,7 +59,7 @@ class JTranscRtReport {
 				println("${clazz.name} (native without body):")
 				for (method in nativeMethodsWithoutBody.filter {
 					if (it.invisibleAnnotations != null) {
-						!it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst() }.contains<HaxeMethodBody>()
+						!AstAnnotationList(it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst() }).contains<HaxeMethodBody>()
 					} else {
 						true
 					}
