@@ -111,7 +111,15 @@ public class MiscTest {
 	static private void testStringUnicode() {
 		String str = "áéíóúあいうえお";
 		dumpStringUnicode(str);
-		System.out.println(Arrays.toString(str.toCharArray()));
+		System.out.println(toSafeStringCharArray(str.toCharArray()));
+	}
+
+	static private String toSafeStringCharArray(char[] chars) {
+		String out = "";
+		for (char c : chars) {
+			out += (int)c + ",";
+		}
+		return "[" + out + "]";
 	}
 
 	static private void testStringUnicode2() {
