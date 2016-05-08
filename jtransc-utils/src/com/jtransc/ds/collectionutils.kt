@@ -182,3 +182,20 @@ fun <T> Concat(vararg list: List<T>?): List<T> {
 	return out
 }
 
+fun <T> List<T>.split(separator: T): List<List<T>> {
+	val out = arrayListOf<List<T>>()
+	val part = arrayListOf<T>()
+	fun flush() {
+		out += part.toList()
+		part.clear()
+	}
+	for (item in this) {
+		if (item == separator) {
+			flush()
+		} else {
+			part += item
+		}
+	}
+	flush()
+	return out
+}

@@ -15,6 +15,7 @@
  */
 
 import com.jtransc.ds.flatMapInChunks
+import com.jtransc.ds.split
 import org.junit.Assert
 import org.junit.Test
 
@@ -44,5 +45,10 @@ class CollectionUtilsTest {
 			it.map { -it }
 		}
 		Assert.assertEquals("[CHUNK([1, 2]), CHUNK([-2, 3]), CHUNK([-3, 4]), CHUNK([-4, 5])]", log.toString())
+	}
+
+	@Test fun split() {
+		val parts = listOf("a", ":", "b", "c", ":", "d").split(":")
+		Assert.assertEquals(listOf(listOf("a"), listOf("b", "c"), listOf("d")), parts)
 	}
 }

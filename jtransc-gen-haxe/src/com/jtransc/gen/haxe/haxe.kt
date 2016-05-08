@@ -20,6 +20,7 @@ import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ds.split
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
@@ -128,12 +129,14 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 
 	val params = hashMapOf(
 		"srcFolder" to srcFolder.realpathOS,
+		"buildFolder" to srcFolder.parent.realpathOS,
 		"haxeExtraFlags" to program.haxeExtraFlags(settings),
 		"haxeExtraDefines" to program.haxeExtraDefines(settings),
 		"actualSubtarget" to actualSubtarget,
 		"outputFile" to outputFile2.absolutePath,
 		"release" to tinfo.settings.release,
 		"debug" to !tinfo.settings.release,
+		"releasetype" to if (tinfo.settings.release) "release" else "debug",
 		"settings" to settings,
 		"title" to settings.title,
 		"name" to settings.name,
@@ -315,13 +318,32 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
 		for (file in copyFilesBeforeBuildTemplate) buildVfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
 
-		val cmd = haxeTemplateString.gen(
-			program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.joinToString("\n") ?: "{{ defaultBuildCommand() }}"
-		).split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+		val lines = (program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
 
-		log("Compiling: ${cmd.joinToString(" ")}")
-		println("Compiling: ${cmd.joinToString(" ")}")
-		return ProcessUtils.runAndRedirect(buildVfs.realfile, cmd).success
+		val lines2 = lines.map {
+			if (it.startsWith("@")) {
+				program.resourcesVfs[it.substring(1).trim()].readString()
+			} else {
+				it
+			}
+		}
+
+		val cmdAll = haxeTemplateString.gen(lines2.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+
+
+		val cmdList = cmdAll.split("----")
+
+		log("Commands to execute:")
+		for (cmd in cmdList) {
+			log("- ${cmd.joinToString(" ")}")
+		}
+		for (cmd in cmdList) {
+			log("Executing: ${cmd.joinToString(" ")}")
+			if (!ProcessUtils.runAndRedirect(buildVfs.realfile, cmd).success) {
+				return false
+			}
+		}
+		return true
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

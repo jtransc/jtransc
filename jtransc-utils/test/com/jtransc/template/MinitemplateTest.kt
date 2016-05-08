@@ -52,6 +52,12 @@ class MinitemplateTest {
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n['sur'+'name'] }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 	}
 
+	@Test fun testFilters() {
+		Assert.assertEquals("CARLOS", Minitemplate("{{ name|upper }}")(mapOf("name" to "caRLos")))
+		Assert.assertEquals("carlos", Minitemplate("{{ name|lower }}")(mapOf("name" to "caRLos")))
+		Assert.assertEquals("Carlos", Minitemplate("{{ name|capitalize }}")(mapOf("name" to "caRLos")))
+	}
+
 	@Test fun testCustomTag() {
 		class CustomNode(val text:String) : Minitemplate.BlockNode {
 			override fun eval(context: Minitemplate.Context) = Unit.apply { context.write("CUSTOM($text)") }

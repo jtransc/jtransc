@@ -11,14 +11,30 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 	val node = BlockNode.parse(templateTokens, config)
 
 	class Config(
-		val extraTags: List<Tag> = listOf()
+			private val extraTags: List<Tag> = listOf(),
+		private val extraFilters: List<Filter> = listOf()
 	) {
-		val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET, Tag.DEBUG) + extraTags
-		val allTagsByName = hashMapOf<String, Tag>().apply {
+		private val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET, Tag.DEBUG) + extraTags
+		private val allFilters = listOf(Filter.CAPITALIZE, Filter.UPPER, Filter.LOWER) + extraFilters
+
+		val tags = hashMapOf<String, Tag>().apply {
 			for (tag in allTags) {
 				this[tag.name] = tag
 				for (alias in tag.aliases) this[alias] = tag
 			}
+		}
+
+		val filters = hashMapOf<String, Filter>().apply {
+			for (filter in allFilters) this[filter.name] = filter
+		}
+	}
+
+	data class Filter(val name:String, val eval: (subject: Any?, args: List<Any?>) -> Any?) {
+		companion object {
+			val CAPITALIZE = Filter("capitalize") { subject, args -> subject.toString().toLowerCase().capitalize() }
+			val UPPER = Filter("upper") { subject, args -> subject.toString().toUpperCase() }
+			val LOWER = Filter("lower") { subject, args -> subject.toString().toLowerCase() }
+			val TRIM = Filter("trim") { subject, args -> subject.toString().trim() }
 		}
 	}
 
@@ -34,12 +50,12 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 
 	operator fun invoke(args: Any?): String {
 		val str = StringBuilder()
-		val context = Context(Scope(args)) { str.append(it) }
+		val context = Context(Scope(args), config) { str.append(it) }
 		context.createScope { node.eval(context) }
 		return str.toString()
 	}
 
-	class Context(var scope: Scope, val write: (str:String) -> Unit) {
+	class Context(var scope: Scope, val config: Config, val write: (str:String) -> Unit) {
 		inline fun createScope(callback: () -> Unit) = this.apply {
 			val old = this.scope
 			this.scope = Scope(hashMapOf<Any?, Any?>(), old)
@@ -57,6 +73,13 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 
 		data class LIT(val value: Any?) : ExprNode {
 			override fun eval(context: Context): Any? = value
+		}
+
+		data class FILTER(val name:String, val expr: ExprNode, val params: List<ExprNode>) : ExprNode {
+			override fun eval(context: Context): Any? {
+				val filter = context.config.filters[name]!!
+				return filter.eval(expr.eval(context), params.map { it.eval(context) })
+			}
 		}
 
 		data class ACCESS(val expr: ExprNode, val name: ExprNode) : ExprNode {
@@ -154,6 +177,14 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 							val end = r.read()
 							if (end.text != "]") throw RuntimeException("Expected ']' but found $end")
 						}
+						"|" -> {
+							r.read()
+							val name = r.read().text
+							if (r.peek().text == "(") {
+								noImpl("Not implemented filters with arguments")
+							}
+							construct = ExprNode.FILTER(name, construct, listOf())
+						}
 						"(" -> {
 							r.read()
 							if (r.peek().text == ")") {
@@ -185,7 +216,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					"[", "]",
 					"{", "}",
 					"&&", "||",
-					"&", "^",
+					"&", "|", "^",
 					"==", "!=", "<", ">", "<=", ">=", "<=>",
 					"+", "-", "*", "/", "%", "**",
 					"!", "~",
@@ -301,7 +332,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 										children.clear()
 									}
 									else -> {
-										val newtag = config.allTagsByName[it.name] ?: invalidOp("Can't find tag ${it.name}")
+										val newtag = config.tags[it.name] ?: invalidOp("Can't find tag ${it.name}")
 										if (newtag.end != null) {
 											children += handle(newtag, it)
 										} else {
