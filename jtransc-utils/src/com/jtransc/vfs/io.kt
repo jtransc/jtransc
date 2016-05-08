@@ -16,6 +16,7 @@
 
 package com.jtransc.vfs
 
+import com.jtransc.io.ProcessUtils
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
@@ -139,51 +140,8 @@ object RawIo {
 	}
 
 	fun execOrPassthruSync(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {
-		return if (options.passthru) {
-			passthruSync(path, cmd, args, options.filter)
-		} else {
-			execSync(path, cmd, args)
-		}
-	}
-
-	fun execSync(path: String, cmd: String, args: List<String>): ProcessResult {
-		val ps = ProcessBuilder(listOf(cmd) + args)
-		ps.directory(File(path))
-		ps.redirectErrorStream(false)
-
-		val process = ps.start()
-
-		val output = process.inputStream.readBytes()
-		val error = process.errorStream.readBytes()
-
-		return ProcessResult(output, error, process.exitValue())
-	}
-
-	fun passthruSync(path: String, cmd: String, args: List<String>, filter: ((line: String) -> Boolean)? = null): ProcessResult {
-		val ps = ProcessBuilder(listOf(cmd) + args)
-		ps.directory(File(path))
-		ps.redirectErrorStream(true)
-
-		val process = ps.start()
-
-		val os = BufferedReader(InputStreamReader(process.inputStream))
-		var out = ""
-
-		try {
-			while (true) {
-				val line = os.readLine () ?: break
-				out += "$line\n"
-				if (filter == null || filter(line)) {
-					//println("Stdout: $line")
-					println(line)
-				}
-			}
-		} catch (e: StopExecException) {
-			//Runtime.getRuntime().exec("kill -SIGINT ${(process as UNIXProcess)}");
-
-			process.destroy()
-		}
-		return ProcessResult(out.toByteArray(), "".toByteArray(), process.exitValue())
+		val result = ProcessUtils.run(File(path), cmd, args, redirect = options.passthru)
+		return ProcessResult(result.out.toByteArray(), result.err.toByteArray(), result.exitValue)
 	}
 
 	fun mkdir(path: String) {
