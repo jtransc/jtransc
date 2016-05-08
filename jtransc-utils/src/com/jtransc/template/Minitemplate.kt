@@ -13,7 +13,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 	class Config(
 		val extraTags: List<Tag> = listOf()
 	) {
-		val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET) + extraTags
+		val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET, Tag.DEBUG) + extraTags
 		val allTagsByName = hashMapOf<String, Tag>().apply {
 			for (tag in allTags) {
 				this[tag.name] = tag
@@ -100,7 +100,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				return result
 			}
 
-			fun parse(r: ListReader<Token>): ExprNode {
+			private fun parse(r: ListReader<Token>): ExprNode {
 				return parseBinop(r)
 			}
 
@@ -110,7 +110,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				"&&", "||"
 			)
 
-			fun parseBinop(r: ListReader<Token>): ExprNode {
+			private fun parseBinop(r: ListReader<Token>): ExprNode {
 				var result = parseFinal(r)
 				while (r.hasMore) {
 					if (r.peek() !is Token.TOperator || r.peek().text !in BINOPS) break
@@ -122,7 +122,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				return result
 			}
 
-			fun parseFinal(r: ListReader<Token>): ExprNode {
+			private fun parseFinal(r: ListReader<Token>): ExprNode {
 				when (r.peek().text) {
 					"!", "~", "-", "+" -> {
 						val op = r.read().text
@@ -267,6 +267,12 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			}
 		}
 
+		data class DEBUG(val expr: ExprNode) : BlockNode {
+			override fun eval(context: Context) = Unit.apply {
+				println(expr.eval(context))
+			}
+		}
+
 		companion object {
 			fun group(children: List<BlockNode>): BlockNode = if (children.size == 1) children[0] else GROUP(children.toList())
 
@@ -333,6 +339,9 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				val main = parts[0]
 				val parts2 = main.token.content.split("in", limit = 2).map { it.trim() }
 				BlockNode.FOR(parts2[0], ExprNode.parse(parts2[1]), main.body)
+			}
+			val DEBUG = Tag("debug", setOf(), null) { parts ->
+				BlockNode.DEBUG(ExprNode.parse(parts[0].token.content))
 			}
 			val SET = Tag("set", setOf(), null) {
 				noImpl

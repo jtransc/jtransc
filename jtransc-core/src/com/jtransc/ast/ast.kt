@@ -55,6 +55,7 @@ data class AstBuildSettings(
 	val relooper: Boolean = false,
 	val minimizeNames: Boolean = false,
 	val analyzer: Boolean = false,
+	val extra: String<String?, String?> = mapOf(),
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
 		"com.jtransc:jtransc-rt:$jtranscVersion",
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"

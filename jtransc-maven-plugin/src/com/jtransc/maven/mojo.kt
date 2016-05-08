@@ -69,6 +69,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
 	@Parameter(property = "minimizeNames", defaultValue = "false") @JvmField var minimizeNames: Boolean = false
 	@Parameter(property = "analyzer", defaultValue = "true") @JvmField var analyzer: Boolean = true
+	@Parameter(property = "extra") @JvmField var extra = hashMapOf<String?, String?>()
 
 	// @TODO: Use <resources> instead?
 	@Parameter(property = "assets") @JvmField var assets: Array<File> = arrayOf()
@@ -143,7 +144,8 @@ class JTranscMojo : AbstractMojo() {
 			backend = backend,
 			relooper = relooper,
 			minimizeNames = minimizeNames,
-			analyzer = analyzer
+			analyzer = analyzer,
+			extra = extra
 		)
 		//project.version
 

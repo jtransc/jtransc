@@ -1,5 +1,6 @@
 package com.jtransc.template
 
+import com.jtransc.text.captureStdout
 import org.junit.Assert
 import org.junit.Test
 
@@ -17,6 +18,15 @@ class MinitemplateTest {
 		Assert.assertEquals("123", Minitemplate("{% for n in numbers %}{{ n }}{% end %}")(mapOf("numbers" to listOf(1, 2, 3))))
 	}
 
+	@Test fun testDebug() {
+		var result:String? = null
+		val stdout = captureStdout {
+			result = Minitemplate("a {% debug 'hello ' + name %} b")(mapOf("name" to "world"))
+		}
+		Assert.assertEquals("hello world", stdout.trim())
+		Assert.assertEquals("a  b", result)
+	}
+
 	@Test fun testSimpleIf() {
 		Assert.assertEquals("true", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 1)))
 		Assert.assertEquals("false", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 0)))
@@ -29,6 +39,12 @@ class MinitemplateTest {
 		Assert.assertEquals("false", Minitemplate("{{ 1 == 2 }}")(null))
 		Assert.assertEquals("true", Minitemplate("{{ 1 < 2 }}")(null))
 		Assert.assertEquals("true", Minitemplate("{{ 1 <= 1 }}")(null))
+	}
+
+	@Test fun testExists() {
+		Assert.assertEquals("false", Minitemplate("{% if prop %}true{% else %}false{% end %}")(null))
+		Assert.assertEquals("true", Minitemplate("{% if prop %}true{% else %}false{% end %}")(mapOf("prop" to "any")))
+		Assert.assertEquals("false", Minitemplate("{% if prop %}true{% else %}false{% end %}")(mapOf("prop" to "")))
 	}
 
 	@Test fun testForAccess() {

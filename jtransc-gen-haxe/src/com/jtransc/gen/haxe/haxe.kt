@@ -150,7 +150,8 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		"assets" to settings.assets,
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
 		"icon" to settings.icon,
-		"libraries" to settings.libraries
+		"libraries" to settings.libraries,
+		"extra" to settings.extra
 	)
 
 	init {
@@ -222,6 +223,12 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		}
 	}
 
+	//class CopyFileNode(val ts: HaxeTemplateString, val type:String, val expr:Minitemplate.ExprNode) : Minitemplate.BlockNode {
+	//	override fun eval(context: Minitemplate.Context) {
+	//		val filetocopy = expr.eval(context)
+	//	}
+	//}
+
 	val miniConfig = Minitemplate.Config(
 		extraTags = listOf(
 			Minitemplate.Tag(
@@ -231,6 +238,9 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
 				)
 			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
+			//, Minitemplate.Tag("copyfile", setOf(), null) {
+			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
+			//}
 		)
 	)
 
@@ -296,9 +306,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
 		log("Copying assets... ")
-		for (asset in settings.assets) {
-			LocalVfs(asset).copyTreeTo(tempAssetsVfs)
-		}
+		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(tempAssetsVfs)
 
 		log("Compiling... ")
 
