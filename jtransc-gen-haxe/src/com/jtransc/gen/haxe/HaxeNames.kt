@@ -37,7 +37,9 @@ val HaxeSpecial = setOf(
 	"HAXE_CLASS_INIT", // Information about the class
 	"HAXE_CLASS_NAME", // Information about the class
 	"HaxeNatives", // used for HaxeNatives
-	"unix"
+	"unix",
+	"OVERFLOW", // iphone sdk
+	"UNDERFLOW" // iphone sdk
 )
 
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
