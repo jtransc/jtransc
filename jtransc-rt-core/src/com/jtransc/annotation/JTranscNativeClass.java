@@ -21,6 +21,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Haxe interoperability. This annotations allows to mark a class as a class that is defined in haxe.
+ *
+ * Inside that class you can mark methods as native.
+ *
+ * In those definitions you can use:
+ * - Primitives
+ * - java.lang.String that will be automatically converted to haxe String
+ * - byte[] that will be converted to haxe.io.Bytes
+ * - Other classes marked with @JTranscNativeClass
+ * - Other classes marked with @HaxeNativeConversion that allows to define how to convert between java and haxe types
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface JTranscNativeClass {

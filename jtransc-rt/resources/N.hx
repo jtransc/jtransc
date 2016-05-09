@@ -16,9 +16,8 @@ class N {
         return strLitCache[str];
     }
 
-    static public function str(str:String):{% CLASS java.lang.String %} {
-        return (str != null) ? {% CLASS java.lang.String %}.make(str) : null;
-    }
+    static public function str(str:String):{% CLASS java.lang.String %} return (str != null) ? {% CLASS java.lang.String %}.make(str) : null;
+    static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
 
 	static public inline function c<T, S> (value:T, c:Class<S>):S {
 		return cast value;

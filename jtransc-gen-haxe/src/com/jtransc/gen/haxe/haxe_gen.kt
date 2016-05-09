@@ -479,7 +479,8 @@ class GenHaxeGen(
 				// Determine method to call!
 				val e2 = if (e.isSpecial && e is AstExpr.CALL_INSTANCE) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e
 				val method = fixMethod(e2.method)
-				val refMethod = program.get(method) ?: invalidOp("Can't find method: $method while generating $context")
+				val refMethod = program[method] ?: invalidOp("Can't find method: $method while generating $context")
+				val refMethodClass = refMethod.containingClass
 				val clazz = method.containingClassType
 				val args = e2.args
 
@@ -488,7 +489,11 @@ class GenHaxeGen(
 					mutableBody.initClassRef(clazz)
 				}
 
-				val commaArgs = args.map { it.genExpr() }.joinToString(", ")
+				val isNativeCall = refMethodClass.isNative
+
+				val commaArgs = args.map {
+					if (isNativeCall) convertToHaxe(it) else it.genExpr()
+				}.joinToString(", ")
 
 				val base = when (e2) {
 					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
@@ -497,7 +502,8 @@ class GenHaxeGen(
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
-				"$base.${refMethod.haxeName}($commaArgs)"
+				val result = "$base.${refMethod.haxeName}($commaArgs)"
+				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
 			is AstExpr.INSTANCE_FIELD_ACCESS -> {
 				"${e.expr.genNotNull()}.${fixField(e.field).haxeName}"
@@ -585,6 +591,36 @@ class GenHaxeGen(
 		//is AstExpr.REF -> genExpr2(e.expr)
 			else -> throw NotImplementedError("Unhandled expression $this")
 		}
+	}
+
+	fun convertToHaxe(expr: AstExpr.Box): String {
+		return convertToHaxe(expr.type, expr.genExpr())
+	}
+
+	fun convertToJava(expr: AstExpr.Box): String {
+		return convertToJava(expr.type, expr.genExpr())
+	}
+
+	fun convertToHaxe(type: AstType, text: String): String {
+		return return convertToFromHaxe(type, text, toHaxe = true)
+	}
+
+	fun convertToJava(type: AstType, text: String): String {
+		return return convertToFromHaxe(type, text, toHaxe = false)
+	}
+
+	fun convertToFromHaxe(type: AstType, text: String, toHaxe:Boolean): String {
+		if (type is AstType.ARRAY) {
+			return (if (toHaxe) "HaxeNatives.unbox($text)" else "HaxeNatives.box($text)")
+		}
+
+		if (type is AstType.REF) {
+			val conversion = program[type.name].annotationsList.getTyped<HaxeNativeConversion>()
+			if (conversion != null) {
+				return (if (toHaxe) conversion.toHaxe else conversion.toJava).replace("@self", text)
+			}
+		}
+		return text
 	}
 
 	fun genCast(e: String, from: AstType, to: AstType): String {

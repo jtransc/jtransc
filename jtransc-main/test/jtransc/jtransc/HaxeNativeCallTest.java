@@ -3,11 +3,13 @@ package jtransc.jtransc;
 import com.jtransc.annotation.JTranscNativeClass;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 
-public class NativeCallTest {
+public class HaxeNativeCallTest {
 	static public void main(String[] args) {
-		HaxeBytes bytes = HaxeBytesTools.toBytes(new byte[]{1, 2, 3});
+		byte[] bytes = new byte[]{1, 2, 3};
 		System.out.println("STATIC:" + HaxeAdler32.make(bytes));
 		//HaxeAdler32 adler = new HaxeAdler32();
 		HaxeAdler32 adler = HaxeAdler32Tools.create();
@@ -19,37 +21,30 @@ public class NativeCallTest {
 
 		System.out.println("MAP:" + map.get("adler").get());
 
-		NativeCallTest.adler = adler;
+		//System.out.println(new JTranscWrapped(adler).hashCode());
 
-		System.out.println("FIELD:" + NativeCallTest.adler.get());
+		HaxeNativeCallTest.adler = adler;
+
+		System.out.println("FIELD:" + HaxeNativeCallTest.adler.get());
+
+		System.out.println("INPUT:" + HaxeAdler32.read(new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 })).get());
+
+		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>"));
+		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>", true));
 	}
 
 	static private HaxeAdler32 adler;
 
-	static private class HaxeBytesTools {
-		@HaxeMethodBody("return p0.getBytes();")
-		native static private HaxeBytes toBytes(byte[] data);
-	}
-
+	@JTranscNativeClass("StringTools")
 	static private class HaxeStringTools {
-		@HaxeMethodBody("return p0._str;")
-		native static private HaxeString toHaxe(String str);
+		native static String htmlEscape(String s);
 
-		@HaxeMethodBody("return N.str(p0);")
-		native static private String toJava(HaxeString str);
+		native static String htmlEscape(String s, boolean quotes);
 	}
 
 	static private class HaxeAdler32Tools {
 		@HaxeMethodBody("return new haxe.crypto.Adler32();")
 		native static public HaxeAdler32 create();
-	}
-
-	@JTranscNativeClass("String")
-	private static class HaxeString {
-	}
-
-	@JTranscNativeClass("haxe.io.Bytes")
-	private static class HaxeBytes {
 	}
 
 	@JTranscNativeClass("haxe.io.Input")
@@ -65,10 +60,10 @@ public class NativeCallTest {
 
 		native public int get();
 
-		native public void update(HaxeBytes b, int pos, int len);
+		native public void update(byte[] b, int pos, int len);
 
-		native static public int make(HaxeBytes b);
+		native static public int make(byte[] b);
 
-		native static public HaxeAdler32 read(HaxeInput i);
+		native static public HaxeAdler32 read(InputStream i);
 	}
 }

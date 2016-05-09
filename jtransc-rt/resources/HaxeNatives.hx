@@ -257,6 +257,7 @@ class HaxeNatives {
 		if (Int64.is(value)) return boxLong(cast value);
 		if (Std.is(value, String)) return str(cast value);
 		if ((value == null) || Std.is(value, JavaObject)) return value;
+		if (Std.is(value, haxe.io.Bytes)) return HaxeArrayByte.fromBytes(value);
 		return JtranscWrapped.wrap(value);
 	}
 
@@ -270,6 +271,7 @@ class HaxeNatives {
 		if (Std.is(value, JavaFloat)) return unboxFloat(value);
 		if (Std.is(value, JavaDouble)) return unboxDouble(value);
 		if (Std.is(value, JavaString)) return unboxString(value);
+		if (Std.is(value, HaxeArrayByte)) return unboxByteArray(value);
 		if (Std.is(value, JtranscWrapped)) return unboxWrapped(value);
 		throw 'Was not able to unbox "$value"';
 	}
@@ -285,6 +287,7 @@ class HaxeNatives {
 	static public function boxDouble(value:Float):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 	static public function boxString(value:String):JavaString { return (value != null) ? JavaString.make(value) : null; }
 	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
+	static public function boxByteArray(value:Bytes):HaxeArrayByte { return HaxeArrayByte.fromBytes(value); }
 
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
 	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).{% FIELD java.lang.Boolean:value:Z %}; }
@@ -297,6 +300,7 @@ class HaxeNatives {
 	static public function unboxDouble(value:JavaObject):Float { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
 	static public function unboxString(value:JavaObject):String { return cast(value, JavaString)._str; }
 	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
+	static public function unboxByteArray(value:JavaObject):Bytes { return cast(value, HaxeArrayByte).getBytes(); }
 
     static private var _tempBytes = haxe.io.Bytes.alloc(8);
     static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);

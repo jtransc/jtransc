@@ -16,6 +16,11 @@
 
 package java.io;
 
+import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
+import com.jtransc.annotation.haxe.HaxeNativeConversion;
+
+@HaxeAddFilesTemplate({ "JavaHaxeInput.hx" })
+@HaxeNativeConversion(haxeType = "haxe.io.Input", toHaxe = "new JavaHaxeInput.Haxe(@self)", toJava = "new JavaHaxeInput.Java(@self)")
 public abstract class InputStream implements Closeable {
 	private static final int MAX_SKIP_BUFFER_SIZE = 2048;
 

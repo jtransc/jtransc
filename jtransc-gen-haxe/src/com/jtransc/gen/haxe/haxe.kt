@@ -205,7 +205,7 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 				val methodName = if (dataParts.size >= 3) {
 					names.getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
 				} else {
-					val methods = clazz.methodsByName[dataParts[1]]!!
+					val methods = clazz.methodsByName[dataParts[1]] ?: invalidOp("Can't found method $desc")
 					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
 					names.getHaxeMethodName(methods.first())
 				}

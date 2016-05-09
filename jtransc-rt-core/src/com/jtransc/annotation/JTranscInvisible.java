@@ -18,7 +18,9 @@ package com.jtransc.annotation;
 
 import java.lang.annotation.*;
 
-// Avoid providing reflection information for this class
+/**
+ * Avoid providing reflection information for this class
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD, ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.CONSTRUCTOR})
 public @interface JTranscInvisible {

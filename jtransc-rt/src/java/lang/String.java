@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeNativeConversion;
 import com.jtransc.internal.IntJTranscStrings;
 
 import java.io.UnsupportedEncodingException;
@@ -34,6 +35,7 @@ import java.util.regex.Pattern;
 	"public function _getArray():HaxeArrayChar { if (this._array == null) { this._array = HaxeNatives.stringToCharArray(_str); } return this._array; }",
 	"static public function make(str:String) { return new {% CLASS java.lang.String %}().setStr(str); }",
 })
+@HaxeNativeConversion(haxeType = "String", toHaxe = "N.i_str(@self)", toJava = "N.str(@self)")
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	@HaxeMethodBody("this.setStr('');")
 	public String() {
