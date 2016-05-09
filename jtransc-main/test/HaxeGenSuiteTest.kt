@@ -41,6 +41,7 @@ import jtransc.bug.*
 import jtransc.java8.Java8Test
 import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.FastMemoryTest
+import jtransc.jtransc.NativeCallTest
 import jtransc.rt.test.*
 import org.junit.Assert
 import org.junit.Test
@@ -153,6 +154,15 @@ class HaxeGenSuiteTest {
 
 	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
 	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
+
+	@Test fun nativeCallTest() = Assert.assertEquals("""
+		STATIC:851975
+		INSTANCE:851975
+		MAP:851975
+		FIELD:851975
+	""".trimIndent(),
+		runClass<NativeCallTest>().trim()
+	)
 
 	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
 

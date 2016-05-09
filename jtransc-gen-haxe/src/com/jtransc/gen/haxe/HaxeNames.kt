@@ -85,12 +85,15 @@ class HaxeNames(
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
+		val realclass = realmethod.containingClass
 		val methodWithoutClass = method.withoutClass
 
 		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
 
 		return methodNmaes.getOrPut2(objectToCache) {
-			if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
+			if (realclass.isNative) {
+				method.name
+			} else if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
 				allocMemberName()
 			} else {
 				if (realmethod.nativeMethod != null) {
@@ -122,7 +125,9 @@ class HaxeNames(
 	private fun _getHaxeFqName(name: FqName): FqName {
 		val realclass = if (name in program) program[name]!! else null
 		return classNames.getOrPut2(name) {
-			if (ENABLED_MINIFY_CLASSES && !realclass.keepName) {
+			if (realclass?.nativeName != null) {
+				FqName(realclass!!.nativeName!!)
+			} else if (ENABLED_MINIFY_CLASSES && !realclass.keepName) {
 				FqName(minClassPrefix + allocClassName())
 			} else {
 				FqName(name.packageParts.map { if (it in HaxeKeywords) "${it}_" else it }.map { it.decapitalize() }, "${name.simpleName.replace('$', '_')}_".capitalize())
@@ -148,12 +153,15 @@ class HaxeNames(
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
 		val realfield = program[field]
+		val realclass = program[field.containingClass]
 		//val keyToUse = if (realfield.keepName) field else field.name
 		//val keyToUse = if (ENABLED_MINIFY_FIELDS) field else field.name
 		val keyToUse = field
 
 		return fieldNames.getOrPut2(keyToUse) {
-			if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
+			if (realclass.isNative) {
+				field.name
+			} else if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
 				allocMemberName()
 			} else {
 				if (field !in cachedFieldNames) {
@@ -202,7 +210,12 @@ class HaxeNames(
 	}
 
 	fun getHaxeClassStaticInit(classRef: AstType.REF): String {
-		return "${getHaxeClassFqNameInt(classRef.name)}.SI();"
+		val clazz = program[classRef.name]
+		if (clazz?.nativeName != null) {
+			return ""
+		} else {
+			return "${getHaxeClassFqNameInt(classRef.name)}.SI();"
+		}
 	}
 
 	fun getHaxeClassStaticClassInit(classRef: AstType.REF): String {

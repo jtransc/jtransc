@@ -413,7 +413,7 @@ class AstClass(
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 }
 
-val AstClass?.isNative: Boolean get() = if (this != null) (this.nativeName != null) else false
+val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
 
 fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	val classes = this.associateBy { it.name.fqname }

@@ -156,7 +156,9 @@ class GenHaxeGen(
 			line("class HaxeReflectionInfo") {
 				line("static public function __registerClasses()") {
 					for (clazz in program.classes) {
-						line("R.register(${clazz.ref.fqname.quote()}, ${clazz.ref.name.haxeClassFqName.quote()}, ${names.getHaxeClassStaticClassInit(clazz.ref)});")
+						if (clazz.nativeName == null) {
+							line("R.register(${clazz.ref.fqname.quote()}, ${clazz.ref.name.haxeClassFqName.quote()}, ${names.getHaxeClassStaticClassInit(clazz.ref)});")
+						}
 					}
 				}
 			}
@@ -216,7 +218,7 @@ class GenHaxeGen(
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
 			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-				line("${i.name.haxeGeneratedFqName}.SI();")
+				line("${names.getHaxeClassStaticInit(i)};")
 			}
 		}
 	}
