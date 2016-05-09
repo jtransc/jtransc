@@ -218,7 +218,7 @@ class GenHaxeGen(
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
 			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-				line("${names.getHaxeClassStaticInit(i)};")
+				line("${names.getHaxeClassStaticInit(i)}")
 			}
 		}
 	}
