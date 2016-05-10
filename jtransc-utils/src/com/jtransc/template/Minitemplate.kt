@@ -135,17 +135,24 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			}
 
 			fun parse(str: String): ExprNode {
-				val tokens = Token.tokenize(str)
-				val tr = ListReader(tokens)
-				val result = parse(tr)
-				if (tr.hasMore && tr.peek() !is Token.TEnd) {
-					invalidOp("Expected expression at " + tr.peek())
-				}
-				return result
+				return parseFullExpr(Token.tokenize(str))
 			}
 
-			private fun parse(r: ListReader<Token>): ExprNode {
-				return parseBinop(r)
+			fun parseId(r: ListReader<ExprNode.Token>):String {
+				return r.read().text
+			}
+
+			fun expect(r: ListReader<ExprNode.Token>, vararg tokens:String) {
+				val token = r.read()
+				if (token.text !in tokens) invalidOp("Expected ${tokens.joinToString(", ")} but found $token")
+			}
+
+			fun parseFullExpr(r: ListReader<Token>): ExprNode {
+				val result = parseExpr(r)
+				if (r.hasMore && r.peek() !is Token.TEnd) {
+					invalidOp("Expected expression at " + r.peek() + " :: " + r.list.map { it.text }.joinToString(""))
+				}
+				return result
 			}
 
 			private val BINOPS = setOf(
@@ -154,7 +161,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				"&&", "||"
 			)
 
-			private fun parseBinop(r: ListReader<Token>): ExprNode {
+			fun parseExpr(r: ListReader<Token>): ExprNode {
 				var result = parseFinal(r)
 				while (r.hasMore) {
 					if (r.peek() !is Token.TOperator || r.peek().text !in BINOPS) break
@@ -175,7 +182,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					}
 					"(" -> {
 						r.read()
-						val result = parse(r)
+						val result = parseExpr(r)
 						if (r.read().text != ")") throw RuntimeException("Expected ')'")
 						return result
 					}
@@ -184,7 +191,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						val items = arrayListOf<ExprNode>()
 						r.read()
 						loop@while (r.hasMore && r.peek().text != "]") {
-							items += parse(r)
+							items += parseExpr(r)
 							when (r.peek().text) {
 								"," -> r.read()
 								"]" -> continue@loop
@@ -211,7 +218,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						}
 						"[" -> {
 							r.read()
-							val expr = parse(r)
+							val expr = parseExpr(r)
 							construct = ExprNode.ACCESS(construct, expr)
 							val end = r.read()
 							if (end.text != "]") throw RuntimeException("Expected ']' but found $end")
@@ -223,7 +230,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 							if (r.peek().text == "(") {
 								r.read()
 								callargsloop@while (r.hasMore && r.peek().text != ")") {
-									args += parse(r)
+									args += parseExpr(r)
 									when (r.expectPeek(",", ")").text) {
 										"," -> r.read()
 										")" -> break@callargsloop
@@ -237,7 +244,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 							r.read()
 							val args = arrayListOf<ExprNode>()
 							callargsloop@while (r.hasMore && r.peek().text != ")") {
-								args += parse(r)
+								args += parseExpr(r)
 								when (r.expectPeek(",", ")").text) {
 									"," -> r.read()
 									")" -> break@callargsloop
@@ -272,10 +279,11 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					"==", "!=", "<", ">", "<=", ">=", "<=>",
 					"+", "-", "*", "/", "%", "**",
 					"!", "~",
-					".", ",", ";", ":"
+					".", ",", ";", ":",
+					"="
 				)
 
-				fun tokenize(str: String): List<Token> {
+				fun tokenize(str: String): ListReader<Token> {
 					val r = StrReader(str)
 					val out = arrayListOf<Token>()
 					fun emit(str: Token) {
@@ -302,7 +310,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						if (end == start) invalidOp("Don't know how to handle '${r.peekch()}'")
 					}
 					emit(TEnd())
-					return out
+					return ListReader(out)
 				}
 			}
 		}
@@ -420,16 +428,22 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			}
 			val FOR = Tag("for", setOf(), "end") { parts ->
 				val main = parts[0]
-				val parts2 = main.token.content.split("in", limit = 2).map { it.trim() }
-				BlockNode.FOR(parts2[0], ExprNode.parse(parts2[1]), main.body)
+				val tr = ExprNode.Token.tokenize(main.token.content)
+				val varname = ExprNode.parseId(tr)
+				ExprNode.expect(tr, "in")
+				val expr = ExprNode.parseExpr(tr)
+				BlockNode.FOR(varname, expr, main.body)
 			}
 			val DEBUG = Tag("debug", setOf(), null) { parts ->
 				BlockNode.DEBUG(ExprNode.parse(parts[0].token.content))
 			}
 			val SET = Tag("set", setOf(), null) { parts ->
 				val main = parts[0]
-				val parts2 = main.token.content.split("=", limit = 2).map { it.trim() }
-				BlockNode.SET(parts2[0], ExprNode.parse(parts2[1]))
+				val tr = ExprNode.Token.tokenize(main.token.content)
+				val varname = ExprNode.parseId(tr)
+				ExprNode.expect(tr, "=")
+				val expr = ExprNode.parseExpr(tr)
+				BlockNode.SET(varname, expr)
 			}
 		}
 	}

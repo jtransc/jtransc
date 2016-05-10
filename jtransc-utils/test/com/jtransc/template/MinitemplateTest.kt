@@ -50,6 +50,7 @@ class MinitemplateTest {
 	@Test fun testForAccess() {
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n.surname }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for n in persons %}{{ n['sur'+'name'] }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
+		Assert.assertEquals("ZardBallesteros", Minitemplate("{% for nin in persons %}{{ nin['sur'+'name'] }}{% end %}")(mapOf("persons" to listOf(Person("Soywiz", "Zard"), Person("Carlos", "Ballesteros")))))
 	}
 
 	@Test fun testFilters() {
