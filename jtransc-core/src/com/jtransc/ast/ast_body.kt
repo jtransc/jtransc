@@ -93,8 +93,8 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val stms = stms.map { it.box }
 	}
 
-	class NOP() : AstStm() {
-
+	class NOP(val reason: String) : AstStm() {
+		override fun toString(): String = "NOP($reason)"
 	}
 
 	class LINE(val line: Int) : AstStm() {
@@ -107,6 +107,8 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	class SET_LOCAL(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
 		val expr = expr.box
+
+		override fun toString(): String = "SET_LOCAL($local = $expr)"
 	}
 
 	class SET_ARRAY(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
@@ -220,7 +222,6 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class Box(_value: AstExpr) {
 		var value: AstExpr = _value
-			get() = field
 			set(value) {
 				field.box = AstExpr.Box(field)
 				field = value
@@ -232,6 +233,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		}
 
 		val type: AstType get() = value.type
+
+		override fun toString(): String = "BOX($value)"
 	}
 
 	var box: AstExpr.Box = AstExpr.Box(this)
@@ -263,6 +266,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = local.type
 
 		override fun clone(): AstExpr.LOCAL = LOCAL(local)
+		override fun toString(): String = "LOCAL($local)"
 	}
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
@@ -411,6 +415,10 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	companion object {
 		fun build(build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder().build()
 	}
+
+	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr) : AstExpr() {
+		override val type: AstType = AstType.unify(etrue.type, efalse.type)
+	}
 }
 
 object AstStmUtils {
@@ -421,9 +429,10 @@ object AstStmUtils {
 	}
 
 	fun stms(stms: List<AstStm>): AstStm = when (stms.size) {
-		0 -> AstStm.NOP()
+		0 -> AstStm.NOP("empty stm")
 		1 -> stms[0]
 		else -> AstStm.STMS(stms)
+		//else -> AstStm.STMS(stms.flatMap { if (it is AstStm.STMS) it.stms.map { it.value } else listOf(it) })
 	}
 }
 
@@ -550,6 +559,7 @@ class AstBuilder {
 	val CLASS = AstType.CLASS
 	val STRING = AstType.STRING
 
+	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
 	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
 
@@ -598,3 +608,4 @@ class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val
 
 val Iterable<AstStm>.stms: AstStm get() = AstStm.STMS(this.toList())
 val Any?.lit: AstExpr get() = AstExpr.LITERAL(this)
+fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)

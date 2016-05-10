@@ -7,16 +7,21 @@ interface AcyclicDigraph<T> : Digraph<T>
 
 fun <T> Digraph<T>.assertAcyclic(): AcyclicDigraph<T> = if (this is AcyclicDigraph<T>) this else AcyclicDigraphImpl(this)
 
-fun <T> Digraph<T>.isAcyclic(): Boolean = try {
-	AcyclicDigraphImpl(this); true
-} catch (t: Throwable) {
-	false
+fun <T> Digraph<T>.hasCycles(): Boolean = !isAcyclic()
+
+fun <T> Digraph<T>.isAcyclic(): Boolean = this.tarjanStronglyConnectedComponentsAlgorithm().components.all {
+	if (it.indices.size == 1) {
+		val item = it.indices.first()
+		item !in it.scgraph.graph.getOut(item)
+	} else {
+		false
+	}
 }
 
 class AcyclicDigraphImpl<T>(val graph: Digraph<T>) : AcyclicDigraph<T> {
 	override val nodes: List<T> = graph.nodes
 	override val nodeIndices: Map<T, Int> = graph.nodeIndices
-	override fun getIn(node: Int): List<Int> = graph.getIn(node)
+	//override fun getIn(node: Int): List<Int> = graph.getIn(node)
 	override fun getOut(node: Int): List<Int> = graph.getOut(node)
 
 	init {

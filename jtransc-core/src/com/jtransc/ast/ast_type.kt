@@ -174,6 +174,11 @@ interface AstType {
 		}
 
 		fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
+
+		fun unify(a: AstType, b: AstType): AstType {
+			// @TODO: implement unification
+			return a
+		}
 	}
 }
 

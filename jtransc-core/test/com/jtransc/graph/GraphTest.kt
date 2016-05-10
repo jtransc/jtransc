@@ -46,6 +46,8 @@ class GraphTest {
 	@Test fun testAcyclic() {
 		Assert.assertEquals(true, graph(A to C, B to C).isAcyclic())
 		Assert.assertEquals(true, graph(A to B, A to C, B to D, C to D).isAcyclic())
+		Assert.assertEquals(false, graph(A to A).isAcyclic())
+		Assert.assertEquals(false, graph(A to B, B to A).isAcyclic())
 	}
 
 	@Test fun testCommon() {

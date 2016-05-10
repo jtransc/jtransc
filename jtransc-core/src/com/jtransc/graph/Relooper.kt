@@ -3,24 +3,27 @@ package com.jtransc.graph
 import com.jtransc.ast.AstExpr
 import com.jtransc.ast.AstStm
 import com.jtransc.ast.AstStmUtils
+import com.jtransc.ast.not
+import com.jtransc.error.noImpl
 import com.jtransc.types.dump
 import java.util.*
 
 class Relooper {
 	class Graph
-	class Node(val body: AstStm) {
+	class Node(val body: List<AstStm>) {
 		var next: Node? = null
 		val edges = arrayListOf<Edge>()
 		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + edges.map { it.dst }
 
-		override fun toString(): String = dump(body).toString().trim()
+		override fun toString(): String = dump(AstStmUtils.stms(body)).toString().trim()
 	}
 
 	class Edge(val dst: Node, val cond: AstExpr) {
 		override fun toString(): String = "IF ($cond) goto $dst;"
 	}
 
-	fun node(body: AstStm): Node = Node(body)
+	fun node(body: List<AstStm>): Node = Node(body)
+	fun node(body: AstStm): Node = Node(listOf(body))
 
 	fun edge(a: Node, b: Node) {
 		a.next = b
@@ -31,7 +34,7 @@ class Relooper {
 	}
 
 	private fun prepare(entry: Node): List<Node> {
-		val exit = node(AstStm.NOP())
+		val exit = node(listOf())
 		val explored = LinkedHashSet<Node>()
 		fun explore(node: Node) {
 			if (node in explored) return
@@ -48,7 +51,7 @@ class Relooper {
 		return explored.toList()
 	}
 
-	fun render(entry: Node): AstStm {
+	fun render(entry: Node): AstStm? {
 		val nodes = prepare(entry)
 		val graph = graphList(nodes.map {
 			//println("$it -> ${it.possibleNextNodes}")
@@ -58,12 +61,19 @@ class Relooper {
 		//graph.dump()
 		//println("----------")
 
+		if (graph.hasCycles()) {
+			//noImpl("acyclic!")
+			//println("cyclic!")
+			return null
+		}
+
+
 		val graph2 = graph.tarjanStronglyConnectedComponentsAlgorithm()
 		val entry2 = graph2.findComponentIndexWith(entry)
 
 		//graph2.outputEdges
 
-		return renderInternal(graph2, entry2)
+		return AstStmUtils.stms(renderInternal(graph2, entry2, -1))
 		/*
 		println(entry)
 		println(entry2)
@@ -74,10 +84,10 @@ class Relooper {
 		// @TODO: strong components
 	}
 
-	private fun renderInternal2(scgraph: Digraph<StrongComponent<Node>>, node: Int): AstStm {
+	private fun renderInternal2(scgraph: Digraph<StrongComponent<Node>>, node: Int): List<AstStm> {
 		val node2 = scgraph.getNode(node)
 		// @TODO: recursive strong components!
-		return AstStmUtils.stms(node2.nodes.map { it.body })
+		return node2.nodes.flatMap { it.body }
 		//return AstStm.NOP()
 	}
 
@@ -85,9 +95,16 @@ class Relooper {
 		return from.edges.firstOrNull() { it.dst == to }
 	}
 
-	private fun renderInternal(scgraph: Digraph<StrongComponent<Node>>, node: Int, lookup: AcyclicDigraphLookup<StrongComponent<Node>> = scgraph.assertAcyclic().createCommonDescendantLookup()): AstStm {
+	private fun renderInternal(
+		scgraph: Digraph<StrongComponent<Node>>,
+		node: Int,
+		endnode: Int,
+		lookup: AcyclicDigraphLookup<StrongComponent<Node>> = scgraph.assertAcyclic().createCommonDescendantLookup()
+	): List<AstStm> {
+		if (node == endnode) return listOf()
+
 		val stms = arrayListOf<AstStm>()
-		stms.add(renderInternal2(scgraph, node))
+		stms += renderInternal2(scgraph, node)
 
 		//node.scgraph.dump()
 
@@ -97,33 +114,38 @@ class Relooper {
 		val nodeSrc = nodeNode.nodes.last()
 		val nodeDsts = targets.map { scgraph.getNode(it).nodes.first() }
 
-		if (targets.size == 2) {
-			val common = lookup.common(targets)
-			val branches = targets.map { branch -> renderInternal(scgraph.subgraph(branch, common), branch, lookup) }
+		when (targets.size) {
+			0 -> Unit
+			1 -> stms += renderInternal(scgraph, targets.first(), endnode, lookup)
+			2 -> {
+				val common = lookup.common(targets)
+				val branches = targets.map { branch -> renderInternal(scgraph, branch, common, lookup) }
 
-			val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().first()
-			val cond = edge.cond
+				val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().first()
+				val cond = edge.cond
 
-			// IF
-			if (common in targets) {
-				stms.add(AstStm.IF(cond, branches[1]))
-				stms.add(branches[0])
+				// IF
+				if (common in targets) {
+					//val type1 = targets.indexOfFirst { it != common }
+					//stms += AstStm.IF(cond.not(), AstStmUtils.stms(branches[type1]))
+					stms += AstStm.IF(cond.not(), AstStmUtils.stms(branches[0]))
+				}
+				// IF-ELSE
+				else {
+					stms += AstStm.IF_ELSE(cond.not(), AstStmUtils.stms(branches[0]), AstStmUtils.stms(branches[1]))
+				}
+				stms += renderInternal(scgraph, common, endnode, lookup)
 			}
-			// IF-ELSE
-			else {
-				stms.add(AstStm.IF_ELSE(cond, branches[1], branches[0]))
-				stms.add(renderInternal(scgraph, common, lookup))
+			else -> {
+				val common = lookup.common(targets)
+				val branches = targets.map { branch -> renderInternal(scgraph, branch, common, lookup) }
+
+				println(branches)
+				println("COMMON: $common")
+				//println(outNode.next)
+				//println(outNode.possibleNextNodes.size)
 			}
-		} else if (targets.size >= 2) {
-			val common = lookup.common(targets)
-			val branches = targets.map { branch -> renderInternal(scgraph.subgraph(branch, common), branch, lookup) }
-
-			println(branches)
-			println("COMMON: $common")
-			//println(outNode.next)
-			//println(outNode.possibleNextNodes.size)
-
 		}
-		return AstStmUtils.stms(stms)
+		return stms
 	}
 }

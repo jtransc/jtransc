@@ -16,6 +16,6 @@ class FilterDigraph<T>(val graph: Digraph<T>, val filter: (graph: Digraph<T>, in
 	override val nodes: List<T> = graph.nodes
 	override val nodeIndices: Map<T, Int> = graph.nodeIndices
 
-	override fun getIn(node: Int): List<Int> = graph.getIn(node).filter { filter(graph, it, nodes[it]) }
+	//override fun getIn(node: Int): List<Int> = graph.getIn(node).filter { filter(graph, it, nodes[it]) }
 	override fun getOut(node: Int): List<Int> = graph.getOut(node).filter { filter(graph, it, nodes[it]) }
 }

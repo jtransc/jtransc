@@ -19,6 +19,7 @@ package com.jtransc.ast.dependency
 import com.jtransc.ast.*
 import com.jtransc.error.noImpl
 
+// @TODO: Use generic visitor!
 object AstDependencyAnalyzer {
 	@JvmStatic fun analyze(program: AstProgram, body: AstBody?): AstReferences {
 		return AstDependencyAnalyzerGen(program, body).references
@@ -57,6 +58,11 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.ARRAY_LENGTH -> {
 					ana(expr.array)
+				}
+				is AstExpr.TERNARY -> {
+					ana(expr.cond)
+					ana(expr.etrue)
+					ana(expr.efalse)
 				}
 				is AstExpr.BINOP -> {
 					ana(expr.left)

@@ -4,14 +4,29 @@ import java.util.*
 
 internal const val UNDEFINED = -1
 
-interface Digraph<T> {
-	val nodes: List<T>
-	val nodeIndices: Map<T, Int>
-	fun getIn(node: Int): List<Int>
+class SDigraph {
+	interface Node {
+		val targets: List<Edge>
+	}
+
+	interface Edge {
+		val target: Node
+	}
+}
+
+interface DigraphSimple {
+	val size: Int
 	fun getOut(node: Int): List<Int>
 }
 
-val <T> Digraph<T>.size: Int get() = nodes.size
+interface Digraph<T> : DigraphSimple {
+	val nodes: List<T>
+	val nodeIndices: Map<T, Int>
+	override val size: Int get() = nodes.size
+	//fun getIn(node: Int): List<Int>
+	override fun getOut(node: Int): List<Int>
+}
+
 
 fun <T> Digraph<T>.descendants(entry: Int = 0): List<Int> {
 	val explored = BooleanArray(size)
@@ -70,16 +85,16 @@ fun <T> Digraph<T>.getIndex(node: T): Int = nodeIndices[node]!!
 fun <T> Digraph<T>.getNode(index: Int): T = nodes[index]
 fun <T> Digraph<T>.toNodes(indices: Iterable<Int>): List<T> = indices.map { nodes[it] }
 fun <T> Digraph<T>.toIndices(nodes: Iterable<T>): List<Int> = nodes.map { nodeIndices[it]!! }
-fun <T> Digraph<T>.getInNodes(index: Int): List<T> = toNodes(this.getIn(index))
+//fun <T> Digraph<T>.getInNodes(index: Int): List<T> = toNodes(this.getIn(index))
 fun <T> Digraph<T>.getOutNodes(index: Int): List<T> = toNodes(this.getOut(index))
 
-fun <T> Digraph<T>.getInNodes(node: T): List<T> = this.getInNodes(nodeIndices[node]!!)
+//fun <T> Digraph<T>.getInNodes(node: T): List<T> = this.getInNodes(nodeIndices[node]!!)
 fun <T> Digraph<T>.getOutNodes(node: T): List<T> = this.getOutNodes(nodeIndices[node]!!)
 
 fun <T> Digraph<T>.dump() {
 	println("DigraphWithNodes: SIZE($size)")
 	for (n in 0 until size) {
-		println("NODE: [${nodes[n]}] : IN[${getInNodes(n)}] : OUT[${getOutNodes(n)}]")
+		println("NODE: [${nodes[n]}] : OUT[${getOutNodes(n)}]")
 	}
 	for (v in nodes) {
 		for (w in getOutNodes(v)) {
@@ -91,13 +106,14 @@ fun <T> Digraph<T>.dump() {
 fun <T> Digraph<T>.dumpSimple() {
 	println("Digraph: SIZE($size)")
 	for (n in 0 until size) {
-		println("[$n] : IN[${getIn(n)}] : OUT[${getOut(n)}]")
+		//println("[$n] : IN[${getIn(n)}] : OUT[${getOut(n)}]")
+		println("[$n] : OUT[${getOut(n)}]")
 	}
 }
 
 open class DigraphImpl<T>(override val nodes: List<T>, private val pairFrom: IntArray, private val pairTo: IntArray) : Digraph<T> {
 	override val nodeIndices = (0 until size).map { nodes[it] to it }.toMap()
-	override fun getIn(node: Int): List<Int> = input[node]
+	//override fun getIn(node: Int): List<Int> = input[node]
 	override fun getOut(node: Int): List<Int> = output[node]
 
 	val input = (0 until size).map { arrayListOf<Int>() }

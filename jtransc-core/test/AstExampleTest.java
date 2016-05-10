@@ -1,4 +1,6 @@
+import com.jtransc.ast.AstBody;
 import com.jtransc.ast.AstType;
+import com.jtransc.ast.feature.GotosFeature;
 import com.jtransc.io.ClassutilsKt;
 import com.jtransc.types.Asm_astKt;
 import com.jtransc.types.Exp_dumpKt;
@@ -20,21 +22,15 @@ class AstExampleTest {
 	}
 
 	static public void main(String[] args) throws IOException {
-		//System.out.println(AstExampleTest.demo());
-
 		ClassNode clazz = readClassNode(AstExampleTest2.class);
-		//ClassNode clazz = readClassNode(JTranscIoTools.readFile(new File("/Users/soywiz/Projects/jtransc/jtransc/inception/example/Example.class")));
 		for (Object _method : clazz.methods) {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD methodType = AstType.Companion.demangleMethod(method.desc);
 			System.out.println("::" + method.name + " :: " + methodType);
-			//val jimple = Baf2Jimple(Asm2Baf(clazz, method))
-			System.out.println(Exp_dumpKt.dump(Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method)));
-			//println(jimple)
+			AstBody astBody = Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method);
+			System.out.println(Exp_dumpKt.dump(astBody));
+			System.out.println(Exp_dumpKt.dump(GotosFeature.INSTANCE.remove(astBody)));
+			//System.out.println(Exp_dumpKt.dump(astBody));
 		}
-		//println(Asm2Baf(clazz, method).toExpr())
-		//val builder = AstMethodBuilder(node.methods[0] as MethodNode)
 	}
-
-
 }

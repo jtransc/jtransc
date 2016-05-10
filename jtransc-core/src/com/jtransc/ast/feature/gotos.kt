@@ -17,9 +17,108 @@
 package com.jtransc.ast.feature
 
 import com.jtransc.ast.*
+import com.jtransc.ast.optimize.optimize
+import com.jtransc.graph.Relooper
 
 object GotosFeature : AstFeature() {
 	override fun remove(body: AstBody): AstBody {
+		try {
+			return removeRelooper(body) ?: removeMachineState(body)
+		} catch (t: Throwable) {
+			t.printStackTrace()
+			return removeMachineState(body)
+		}
+	}
+
+	private fun removeRelooper(body: AstBody): AstBody? {
+		class BasicBlock(var index: Int) {
+			var node: Relooper.Node? = null
+			var visited = false
+			val stms = arrayListOf<AstStm>()
+			var next: BasicBlock? = null
+			var condExpr: AstExpr? = null
+			var ifNext: BasicBlock? = null
+			var switchNext: Map<Int, BasicBlock>? = null
+
+			//val targets by lazy { (listOf(next, ifNext) + (switchNext?.values ?: listOf())).filterNotNull() }
+
+			override fun toString(): String = "BasicBlock($index)"
+		}
+
+		val entryStm = body.stm
+		if (entryStm !is AstStm.STMS) return null // Not relooping single statements
+		if (body.traps.isNotEmpty()) return null // Not relooping functions with traps by the moment
+
+		val stms = entryStm.stms
+		val bblist = arrayListOf<BasicBlock>()
+		var bbs = hashMapOf<AstLabel, BasicBlock>()
+		fun createBB(): BasicBlock {
+			val bb = BasicBlock(bblist.size)
+			bblist += bb
+			return bb
+		}
+
+		fun getBBForLabel(label: AstLabel): BasicBlock {
+			return bbs.getOrPut(label) { createBB() }
+		}
+
+		val entry = createBB()
+		var current = entry
+		for (stmBox in stms) {
+			val stm = stmBox.value
+			when (stm) {
+				is AstStm.STM_LABEL -> {
+					val prev = current
+					current = getBBForLabel(stm.label)
+					prev.next = current
+				}
+				is AstStm.GOTO -> {
+					val prev = current
+					current = createBB()
+					prev.next = getBBForLabel(stm.label)
+				}
+				is AstStm.IF_GOTO -> {
+					val prev = current
+					current = createBB()
+					prev.condExpr = stm.cond.value
+					prev.ifNext = getBBForLabel(stm.label)
+					prev.next = current
+				}
+				is AstStm.SWITCH_GOTO -> {
+					// Not handled switches yet!
+					return null
+				}
+				is AstStm.RETURN, is AstStm.THROW, is AstStm.RETHROW -> {
+					current.stms += stm
+					val prev = current
+					current = createBB()
+					prev.next = null
+				}
+				else -> {
+					current.stms += stm
+				}
+			}
+		}
+
+		val relooper = Relooper()
+		for (n in bblist) {
+			n.node = relooper.node(n.stms)
+			//println("NODE(${n.index}): ${n.stms}")
+			//if (n.next != null) println("   -> ${n.next}")
+			//if (n.ifNext != null) println("   -> ${n.ifNext} [${n.condExpr}]")
+		}
+		for (n in bblist) {
+			val next = n.next
+			val ifNext = n.ifNext
+			if (next != null) relooper.edge(n.node!!, next.node!!)
+			if (n.condExpr != null && ifNext != null) relooper.edge(n.node!!, ifNext.node!!, n.condExpr!!)
+		}
+
+		return AstBody(relooper.render(bblist[0].node!!)?.optimize() ?: return null, body.locals, body.traps)
+		//return AstBody(relooper.render(bblist[0].node!!) ?: return null, body.locals, body.traps)
+	}
+
+	fun removeMachineState(body: AstBody): AstBody {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
 		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
@@ -69,40 +168,46 @@ object GotosFeature : AstFeature() {
 
 					for (ss in stms) {
 						val s = ss.value
-						if (s is AstStm.STM_LABEL) {
-							val nextIndex = getStateFromLabel(s.label)
-							val lastStm = stateStms.lastOrNull()
-							if ((lastStm !is AstStm.CONTINUE) && (lastStm !is AstStm.BREAK) && (lastStm !is AstStm.RETURN)) {
+						when (s) {
+							is AstStm.STM_LABEL -> {
+								val nextIndex = getStateFromLabel(s.label)
+								val lastStm = stateStms.lastOrNull()
+								if ((lastStm !is AstStm.CONTINUE) && (lastStm !is AstStm.BREAK) && (lastStm !is AstStm.RETURN)) {
+									stateStms.add(simulateGotoLabel(s.label))
+								}
+								flush()
+								stateIndex = nextIndex
+								stateStms = arrayListOf<AstStm>()
+							}
+							is AstStm.IF_GOTO -> {
+								stateStms.add(AstStm.IF(
+									s.cond.value,
+									simulateGotoLabel(s.label)
+								))
+							}
+							is AstStm.GOTO -> {
 								stateStms.add(simulateGotoLabel(s.label))
 							}
-							flush()
-							stateIndex = nextIndex
-							stateStms = arrayListOf<AstStm>()
-						} else if (s is AstStm.IF_GOTO) {
-							stateStms.add(AstStm.IF(
-								s.cond.value,
-								simulateGotoLabel(s.label)
-							))
-						} else if (s is AstStm.GOTO) {
-							stateStms.add(simulateGotoLabel(s.label))
-						} else if (s is AstStm.SWITCH_GOTO) {
-							//throw NotImplementedError("Must implement switch goto ")
-							stateStms.add(AstStm.SWITCH(
-								s.subject.value,
-								simulateGotoLabel(s.default),
-								s.cases.map {
-									Pair(it.first, simulateGotoLabel(it.second))
-								}
-							))
-						} else {
-							stateStms.add(s)
+							is AstStm.SWITCH_GOTO -> {
+								//throw NotImplementedError("Must implement switch goto ")
+								stateStms.add(AstStm.SWITCH(
+									s.subject.value,
+									simulateGotoLabel(s.default),
+									s.cases.map {
+										Pair(it.first, simulateGotoLabel(it.second))
+									}
+								))
+							}
+							else -> {
+								stateStms.add(s)
+							}
 						}
 					}
 
 					flush()
 
 					val plainWhile = AstStm.WHILE(AstExpr.LITERAL(true),
-						AstStm.SWITCH(gotostate, AstStm.NOP(), cases)
+						AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
 					)
 
 					if (traps.isEmpty()) {
@@ -140,4 +245,5 @@ object GotosFeature : AstFeature() {
 
 		return AstBody(stm, locals, traps)
 	}
+
 }

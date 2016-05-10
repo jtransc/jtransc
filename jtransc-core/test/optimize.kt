@@ -33,4 +33,11 @@ class OptimizeTest {
 		Assert.assertEquals("false", AstBuild { 0.lit.cast(BOOL) }.optimize().exprDump())
 		Assert.assertEquals("true", AstBuild { 1.lit.cast(BOOL) }.optimize().exprDump())
 	}
+
+	@Test fun test5() {
+		val test = AstExpr.LOCAL(AstLocal(0, "test", AstType.INT))
+		Assert.assertEquals("(test != 10)", AstBuild { test ne 10.lit }.optimize().exprDump())
+		Assert.assertEquals("(test == 10)", AstBuild { (test ne 10.lit).not() }.optimize().exprDump())
+		Assert.assertEquals("(test != 10)", AstBuild { (test ne 10.lit).not().not() }.optimize().exprDump())
+	}
 }

@@ -45,7 +45,7 @@ object AstOptimizer : AstVisitor() {
 		super.visit(expr)
 
 		if (expr.method in METHODS_TO_STRIP) {
-			expr.stm?.box?.value = AstStm.NOP()
+			expr.stm?.box?.value = AstStm.NOP("method to strip")
 		}
 	}
 
@@ -64,7 +64,7 @@ object AstOptimizer : AstVisitor() {
 							//println("  :: read: $read")
 							read.box.value = write.expr.value.clone()
 						}
-						write.box.value = AstStm.NOP()
+						write.box.value = AstStm.NOP("optimized literal")
 						local.writes.clear()
 						local.reads.clear()
 					}
@@ -103,7 +103,7 @@ object AstOptimizer : AstVisitor() {
 						alocal.reads.remove(bexpr)
 
 						val aold = a
-						abox.value = AstStm.NOP()
+						abox.value = AstStm.NOP("optimized set local")
 						bbox.value = aold
 
 						//println("LOCAL[b]:" + alocal)
@@ -117,9 +117,42 @@ object AstOptimizer : AstVisitor() {
 				val alocal = a.local.local
 				if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
 					alocal.reads.first().box.value = a.expr.value
-					abox.value = AstStm.NOP()
+					abox.value = AstStm.NOP("optimized set local 2")
 					alocal.writes.clear()
 					alocal.reads.clear()
+				}
+			}
+		}
+
+		val finalStms = stms.stms.filter { it.value !is AstStm.NOP }
+
+		if (finalStms.size == 1) {
+			stms.box.value = finalStms.first().value
+		}
+	}
+
+	override fun visit(expr: AstExpr.UNOP) {
+		super.visit(expr)
+		if (expr.op == AstUnop.NOT) {
+			val right = expr.right.value
+			when (right) {
+				is AstExpr.BINOP -> {
+					var newop = when (right.op) {
+						AstBinop.NE -> AstBinop.EQ
+						AstBinop.EQ -> AstBinop.NE
+						AstBinop.LT -> AstBinop.GE
+						AstBinop.LE -> AstBinop.GT
+						AstBinop.GT -> AstBinop.LE
+						AstBinop.GE -> AstBinop.LT
+						else -> null
+					}
+					if (newop != null) expr.box.value = AstExpr.BINOP(right.type, right.left.value, newop, right.right.value)
+				}
+				is AstExpr.UNOP -> {
+					if (right.op == AstUnop.NOT) {
+						// negate twice!
+						expr.box.value = right.right.value
+					}
 				}
 			}
 		}
@@ -136,7 +169,7 @@ object AstOptimizer : AstVisitor() {
 			if (storeLocal == expr.local) {
 				storeLocal.writes.remove(stm)
 				storeLocal.reads.remove(expr)
-				box.value = AstStm.NOP()
+				box.value = AstStm.NOP("assign to itself")
 				return
 			}
 		}
@@ -202,6 +235,33 @@ object AstOptimizer : AstVisitor() {
 				AstAnnotateExpressions.visitExprWithStm(stm, box)
 				return
 			}
+		}
+	}
+
+	override fun visit(stm: AstStm.IF) {
+		super.visit(stm)
+		val strue = stm.strue.value
+		if (strue is AstStm.IF) {
+			val cond = AstExpr.BINOP(AstType.BOOL, stm.cond.value, AstBinop.BAND, strue.cond.value)
+			stm.box.value = AstStm.IF(cond, strue.strue.value)
+		}
+	}
+
+	override fun visit(stm: AstStm.IF_ELSE) {
+		super.visit(stm)
+		val cond = stm.cond.value
+		val strue = stm.strue.value
+		val sfalse = stm.sfalse.value
+		if ((strue is AstStm.SET_LOCAL) && (sfalse is AstStm.SET_LOCAL) && (strue.local.local == sfalse.local.local)) {
+			val local = strue.local
+			// TERNARY OPERATOR
+			//println("ternary!")
+			local.local.writes.remove(strue)
+			local.local.writes.remove(sfalse)
+
+			val newset = AstStm.SET_LOCAL(local, AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value))
+			stm.box.value = newset
+			local.local.writes.add(newset)
 		}
 	}
 }

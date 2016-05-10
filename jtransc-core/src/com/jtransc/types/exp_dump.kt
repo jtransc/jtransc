@@ -49,13 +49,28 @@ fun dump(stm: AstStm?): Indenter {
 			//is AstStm.CALL_INSTANCE -> line("call")
 			is AstStm.SET_FIELD_STATIC -> line(stm.clazz.fqname + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_ARRAY -> line(dump(stm.array) + "[" + dump(stm.index) + "] = " + dump(stm.expr) + ";")
-			is AstStm.LINE -> line("LINE(${stm.line})")
-			is AstStm.NOP -> line("NOP")
+			is AstStm.LINE -> {
+				//line("LINE(${stm.line})")
+			}
+			is AstStm.NOP -> line("NOP(${stm.reason})")
+			is AstStm.CONTINUE -> line("continue;")
+			is AstStm.BREAK -> line("break;")
 			is AstStm.THROW -> line("throw ${dump(stm.value)};")
 			is AstStm.IF -> line("if (${dump(stm.cond)})") { line(dump(stm.strue)) }
 			is AstStm.IF_ELSE -> {
 				line("if (${dump(stm.cond)})") { line(dump(stm.strue)) }
 				line("else") { line(dump(stm.sfalse)) }
+			}
+			is AstStm.WHILE -> {
+				line("while (${dump(stm.cond)})") {
+					line(dump(stm.iter))
+				}
+			}
+			is AstStm.SWITCH -> {
+				line("switch (${dump(stm.subject)})") {
+					for ((index, case) in stm.cases) line("case $index: ${dump(case)}")
+					line("default: ${dump(stm.default)}")
+				}
 			}
 			else -> noImpl("$stm")
 		}
@@ -88,6 +103,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
+		is AstExpr.TERNARY -> dump(expr.cond) + " ? " + dump(expr.etrue) + " : " + dump(expr.efalse)
 		//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {

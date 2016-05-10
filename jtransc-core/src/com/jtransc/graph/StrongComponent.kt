@@ -6,13 +6,13 @@ import java.util.*
 // G = Graph
 // V = Vertices (Nodes)
 // E = Edges (E)
-fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm() = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm<T>(this).calculate())
+fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm() = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this).calculate())
 
 // A strong component list is a disjoint set : https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 class StrongComponent<T>(val scgraph: StrongComponentGraph<T>, val indices: LinkedHashSet<Int>) {
 	val graph: Digraph<T> = scgraph.graph
 	val nodes: List<T> = graph.toNodes(indices)
-	val inp: List<StrongComponent<T>> get() = scgraph.getInNodes(this)
+	//val inp: List<StrongComponent<T>> get() = scgraph.getInNodes(this)
 	val out: List<StrongComponent<T>> get() = scgraph.getOutNodes(this)
 	override fun toString() = graph.toNodes(indices).toString()
 }
@@ -28,7 +28,7 @@ class StrongComponentGraph<T>(val graph: Digraph<T>, componentsData: List<Linked
 	val components = componentsData.map { StrongComponent(this, it) }
 	override val nodes: List<StrongComponent<T>> = components
 	override val nodeIndices = (0 until size).map { nodes[it] to it }.toMap()
-	override fun getIn(node: Int): List<Int> = input[node]
+	//override fun getIn(node: Int): List<Int> = input[node]
 	override fun getOut(node: Int): List<Int> = output[node]
 
 	private val input = (0 until size).map { arrayListOf<Int>() }
@@ -83,7 +83,7 @@ fun <T> List<StrongComponent<T>>.toNodes(graph: Digraph<T>): List<List<T>> {
 	return this.map { graph.toNodes(it.indices) }
 }
 
-private class TarjanStronglyConnectedComponentsAlgorithm<T>(val graph: Digraph<T>) {
+private class TarjanStronglyConnectedComponentsAlgorithm(val graph: DigraphSimple) {
 	val indices = IntArray(graph.size) { UNDEFINED }
 	val lowlinks = IntArray(graph.size) { UNDEFINED }
 	val onStackList = BooleanArray(graph.size) { false }

@@ -6,6 +6,7 @@ import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
+import com.jtransc.ast.feature.GotosFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
@@ -22,6 +23,9 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
+
+//const val ENABLE_HXCPP_GOTO_HACK = true
+const val ENABLE_HXCPP_GOTO_HACK = false
 
 class GenHaxeGen(
 	val program: AstProgram,
@@ -263,6 +267,19 @@ class GenHaxeGen(
 		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
+				// c++ goto hack
+				is AstStm.STM_LABEL -> line("untyped __cpp__('${stm.label.name}:');")
+				is AstStm.GOTO -> line("untyped __cpp__('goto ${stm.label.name};');")
+				is AstStm.IF_GOTO -> line("if (${stm.cond.genExpr()}) { untyped __cpp__('goto ${stm.label.name};'); }")
+				is AstStm.SWITCH_GOTO -> {
+					line("switch (${stm.subject.genExpr()})") {
+						for ((value, label) in stm.cases) {
+							line("case $value: untyped __cpp__('goto ${label.name};');");
+						}
+						line("default: untyped __cpp__('goto ${stm.default.name};');");
+					}
+				}
+				// plain
 				is AstStm.NOP -> Unit
 				is AstStm.IF -> {
 					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
@@ -447,6 +464,7 @@ class GenHaxeGen(
 					names.escapeConstant(value)
 				}
 			}
+			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
 			is AstExpr.UNOP -> "(${e.op.symbol}(" + e.right.genExpr() + "))"
@@ -809,14 +827,19 @@ class GenHaxeGen(
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
 							val javaBody = if (rbody != null) {
-								features.apply(rbody, featureSet).genBody()
+								if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
+									features.apply(rbody, (featureSet + setOf(GotosFeature))).genBody()
+								} else {
+									features.apply(rbody, featureSet).genBody()
+								}
 							} else Indenter.gen {
 								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							}
 							line(method.getHaxeNativeBody(javaBody).toString().template())
 							if (method.isInstanceInit) line("return this;")
 						} catch (e: Throwable) {
-							println("WARNING:" + e.message)
+							e.printStackTrace()
+							println("WARNING haxe_gen.writeMethod:" + e.message)
 
 							line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
 						}
