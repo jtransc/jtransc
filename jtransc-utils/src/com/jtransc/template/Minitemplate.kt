@@ -15,7 +15,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		private val extraFilters: List<Filter> = listOf()
 	) {
 		private val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET, Tag.DEBUG) + extraTags
-		private val allFilters = listOf(Filter.CAPITALIZE, Filter.UPPER, Filter.LOWER) + extraFilters
+		private val allFilters = listOf(Filter.CAPITALIZE, Filter.UPPER, Filter.LOWER, Filter.TRIM, Filter.JOIN) + extraFilters
 
 		val tags = hashMapOf<String, Tag>().apply {
 			for (tag in allTags) {
@@ -35,6 +35,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			val UPPER = Filter("upper") { subject, args -> subject.toString().toUpperCase() }
 			val LOWER = Filter("lower") { subject, args -> subject.toString().toLowerCase() }
 			val TRIM = Filter("trim") { subject, args -> subject.toString().trim() }
+			val JOIN = Filter("join") { subject, args -> Dynamic.toIterable(subject).map { Dynamic.toString(it) }.joinToString(Dynamic.toString(args[0])) }
 		}
 	}
 
@@ -75,9 +76,13 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			override fun eval(context: Context): Any? = value
 		}
 
+		data class ARRAY_LIT(val items: List<ExprNode>) : ExprNode {
+			override fun eval(context: Context): Any? = items.map { it.eval(context) }
+		}
+
 		data class FILTER(val name:String, val expr: ExprNode, val params: List<ExprNode>) : ExprNode {
 			override fun eval(context: Context): Any? {
-				val filter = context.config.filters[name]!!
+				val filter = context.config.filters[name] ?: invalidOp("Unknown filter '$name'")
 				return filter.eval(expr.eval(context), params.map { it.eval(context) })
 			}
 		}
@@ -117,9 +122,25 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 
 		companion object {
+			fun ListReader<Token>.expectPeek(vararg types:String):Token {
+				val token = this.peek()
+				if (token.text !in types) throw RuntimeException("Expected ${types.joinToString(", ")}")
+				return token
+			}
+
+			fun ListReader<Token>.expect(vararg types:String):Token {
+				val token = this.read()
+				if (token.text !in types) throw RuntimeException("Expected ${types.joinToString(", ")}")
+				return token
+			}
+
 			fun parse(str: String): ExprNode {
 				val tokens = Token.tokenize(str)
-				val result = parse(ListReader(tokens))
+				val tr = ListReader(tokens)
+				val result = parse(tr)
+				if (tr.hasMore && tr.peek() !is Token.TEnd) {
+					invalidOp("Expected expression at " + tr.peek())
+				}
 				return result
 			}
 
@@ -146,6 +167,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			}
 
 			private fun parseFinal(r: ListReader<Token>): ExprNode {
+				var construct: ExprNode
 				when (r.peek().text) {
 					"!", "~", "-", "+" -> {
 						val op = r.read().text
@@ -157,11 +179,28 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						if (r.read().text != ")") throw RuntimeException("Expected ')'")
 						return result
 					}
+					// Array literal
+					"[" -> {
+						val items = arrayListOf<ExprNode>()
+						r.read()
+						loop@while (r.hasMore && r.peek().text != "]") {
+							items += parse(r)
+							when (r.peek().text) {
+								"," -> r.read()
+								"]" -> continue@loop
+								else -> invalidOp("Expected , or ]")
+							}
+						}
+						r.expect("]")
+						construct = ExprNode.ARRAY_LIT(items)
+					}
+					else -> {
+						if (r.peek() is Token.TNumber) return ExprNode.LIT(r.read().text.toDouble())
+						if (r.peek() is Token.TString) return ExprNode.LIT((r.read() as Token.TString).processedValue)
+						construct = ExprNode.VAR(r.read().text)
+					}
 				}
-				if (r.peek() is Token.TNumber) return ExprNode.LIT(r.read().text.toDouble())
-				if (r.peek() is Token.TString) return ExprNode.LIT(r.read().text)
 
-				var construct: ExprNode = ExprNode.VAR(r.read().text)
 				loop@while (r.hasMore) {
 					when (r.peek().text) {
 						"." -> {
@@ -180,19 +219,32 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						"|" -> {
 							r.read()
 							val name = r.read().text
+							val args = arrayListOf<ExprNode>()
 							if (r.peek().text == "(") {
-								noImpl("Not implemented filters with arguments")
+								r.read()
+								callargsloop@while (r.hasMore && r.peek().text != ")") {
+									args += parse(r)
+									when (r.expectPeek(",", ")").text) {
+										"," -> r.read()
+										")" -> break@callargsloop
+									}
+								}
+								r.expect(")")
 							}
-							construct = ExprNode.FILTER(name, construct, listOf())
+							construct = ExprNode.FILTER(name, construct, args)
 						}
 						"(" -> {
 							r.read()
-							if (r.peek().text == ")") {
-								r.read()
-								construct = ExprNode.CALL(construct, listOf())
-							} else {
-								noImpl("Not implemented function calls with arguments!")
+							val args = arrayListOf<ExprNode>()
+							callargsloop@while (r.hasMore && r.peek().text != ")") {
+								args += parse(r)
+								when (r.expectPeek(",", ")").text) {
+									"," -> r.read()
+									")" -> break@callargsloop
+								}
 							}
+							r.expect(")")
+							construct = ExprNode.CALL(construct, args)
 						}
 						else -> break@loop
 					}
@@ -206,7 +258,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 
 			data class TId(override val text: String) : Token
 			data class TNumber(override val text: String) : Token
-			data class TString(override val text: String) : Token
+			data class TString(override val text: String, val processedValue: String) : Token
 			data class TOperator(override val text: String) : Token
 			data class TEnd(override val text: String = "") : Token
 
@@ -220,7 +272,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					"==", "!=", "<", ">", "<=", ">=", "<=>",
 					"+", "-", "*", "/", "%", "**",
 					"!", "~",
-					"."
+					".", ",", ";", ":"
 				)
 
 				fun tokenize(str: String): List<Token> {
@@ -240,17 +292,11 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						if (r.peek(3) in OPERATORS) emit(TOperator(r.read(3)))
 						if (r.peek(2) in OPERATORS) emit(TOperator(r.read(2)))
 						if (r.peek(1) in OPERATORS) emit(TOperator(r.read(1)))
-						if (r.peekch() == '\'') {
-							r.readch()
-							val strt = r.readUntil { it == '\'' } ?: ""
-							r.readch()
-							emit(TString(strt))
-						}
-						if (r.peekch() == '"') {
-							r.readch()
-							val strt = r.readUntil { it == '"' } ?: ""
-							r.readch()
-							emit(TString(strt))
+						if (r.peekch() == '\'' || r.peekch() == '"') {
+							val strStart = r.readch()
+							val strBody = r.readUntil { it == strStart } ?: ""
+							val strEnd = r.readch()
+							emit(TString(strStart + strBody + strEnd, strBody))
 						}
 						val end = r.offset
 						if (end == start) invalidOp("Don't know how to handle '${r.peekch()}'")
@@ -274,7 +320,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 
 		data class EXPR(val expr: ExprNode) : BlockNode {
-			override fun eval(context: Context) = Unit.apply { context.write(expr.eval(context).toString()) }
+			override fun eval(context: Context) = Unit.apply { context.write(Dynamic.toString(expr.eval(context))) }
 		}
 
 		data class IF(val cond: ExprNode, val trueContent: BlockNode, val falseContent: BlockNode?) : BlockNode {
@@ -295,6 +341,12 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						loop.eval(context)
 					}
 				}
+			}
+		}
+
+		data class SET(val varname: String, val expr: ExprNode) : BlockNode {
+			override fun eval(context: Context) = Unit.apply {
+				context.scope[varname] = expr.eval(context)
 			}
 		}
 
@@ -374,8 +426,10 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			val DEBUG = Tag("debug", setOf(), null) { parts ->
 				BlockNode.DEBUG(ExprNode.parse(parts[0].token.content))
 			}
-			val SET = Tag("set", setOf(), null) {
-				noImpl
+			val SET = Tag("set", setOf(), null) { parts ->
+				val main = parts[0]
+				val parts2 = main.token.content.split("=", limit = 2).map { it.trim() }
+				BlockNode.SET(parts2[0], ExprNode.parse(parts2[1]))
 			}
 		}
 	}

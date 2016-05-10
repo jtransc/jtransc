@@ -224,15 +224,24 @@ object Dynamic {
 	fun unop(r: Any?, op: String): Any? {
 		return when (op) {
 			"+" -> r
-			"-" -> toFixNumber(-toNumber(r))
+			"-" -> -toNumber(r)
 			"~" -> toInt(r).inv()
 			"!" -> !toBool(r)
 			else -> noImpl("Not implemented unary operator $op")
 		}
 	}
 
-	fun toFixNumber(value: Double): Any {
-		return if (value == value.toInt().toDouble()) value.toInt() else value
+	//fun toFixNumber(value: Double): Any = if (value == value.toInt().toDouble()) value.toInt() else value
+
+	fun toString(value: Any?): String {
+		when (value) {
+			is Double -> {
+				if (value == value.toInt().toDouble()) {
+					return value.toInt().toString()
+				}
+			}
+		}
+		return value.toString()
 	}
 
 	fun binop(l: Any?, r: Any?, op: String): Any? {
@@ -241,15 +250,15 @@ object Dynamic {
 				when (l) {
 					is String -> l.toString() + r.toBetterString()
 					is Iterable<*> -> toIterable(l) + toIterable(r)
-					else -> toFixNumber(toNumber(l) + toNumber(r))
+					else -> toNumber(l) + toNumber(r)
 				}
 			}
-			"-"  -> toFixNumber(toNumber(l) - toNumber(r))
-			"+"  -> toFixNumber(toNumber(l) + toNumber(r))
-			"*"  -> toFixNumber(toNumber(l) * toNumber(r))
-			"/"  -> toFixNumber(toNumber(l) / toNumber(r))
-			"%"  -> toFixNumber(toNumber(l) % toNumber(r))
-			"**" -> toFixNumber(Math.pow(toNumber(l), toNumber(r)))
+			"-"  -> toNumber(l) - toNumber(r)
+			"+"  -> toNumber(l) + toNumber(r)
+			"*"  -> toNumber(l) * toNumber(r)
+			"/"  -> toNumber(l) / toNumber(r)
+			"%"  -> toNumber(l) % toNumber(r)
+			"**" -> Math.pow(toNumber(l), toNumber(r))
 			"&"  -> toInt(l) and toInt(r)
 			"or" -> toInt(l) or toInt(r)
 			"^"  -> toInt(l) xor toInt(r)

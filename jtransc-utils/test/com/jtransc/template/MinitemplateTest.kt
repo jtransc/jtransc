@@ -58,6 +58,16 @@ class MinitemplateTest {
 		Assert.assertEquals("Carlos", Minitemplate("{{ name|capitalize }}")(mapOf("name" to "caRLos")))
 	}
 
+	@Test fun testArrayLiterals() {
+		Assert.assertEquals("1234", Minitemplate("{% for n in [1, 2, 3, 4] %}{{ n }}{% end %}")(null))
+		Assert.assertEquals("", Minitemplate("{% for n in [] %}{{ n }}{% end %}")(null))
+		Assert.assertEquals("1, 2, 3, 4", Minitemplate("{{ [1, 2, 3, 4]|join(', ') }}")(null))
+	}
+
+	@Test fun testSet() {
+		Assert.assertEquals("1,2,3", Minitemplate("{% set a = [1,2,3] %}{{ a|join(',') }}")(null))
+	}
+
 	@Test fun testCustomTag() {
 		class CustomNode(val text:String) : Minitemplate.BlockNode {
 			override fun eval(context: Minitemplate.Context) = Unit.apply { context.write("CUSTOM($text)") }
