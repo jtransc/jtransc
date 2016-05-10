@@ -51,6 +51,7 @@ class HaxeGenSuiteTest {
 	companion object {
 		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true
+		const val RELOOPER = true
 		const val ANALYZER = false
 		const val DEBUG = false
 	}
@@ -216,6 +217,7 @@ class HaxeGenSuiteTest {
 				debug = DEBUG,
 				backend = BACKEND,
 				minimizeNames = minimize ?: MINIMIZE,
+				relooper = RELOOPER,
 				analyzer = analyze ?: ANALYZER,
 				rtAndRtCore = listOf(
 					projectRoot["jtransc-rt/target/classes"].realpathOS,

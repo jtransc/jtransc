@@ -4,6 +4,7 @@ import com.jtransc.ast.AstExpr
 import com.jtransc.ast.AstStm
 import com.jtransc.ast.AstStmUtils
 import com.jtransc.ast.not
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.types.dump
 import java.util.*
@@ -73,7 +74,11 @@ class Relooper {
 
 		//graph2.outputEdges
 
-		return AstStmUtils.stms(renderInternal(graph2, entry2, -1))
+		scgraph = graph2
+		lookup = scgraph.assertAcyclic().createCommonDescendantLookup()
+		processedCount = IntArray(scgraph.size)
+
+		return AstStmUtils.stms(renderInternal(entry2, -1))
 		/*
 		println(entry)
 		println(entry2)
@@ -84,27 +89,24 @@ class Relooper {
 		// @TODO: strong components
 	}
 
-	private fun renderInternal2(scgraph: Digraph<StrongComponent<Node>>, node: Int): List<AstStm> {
-		val node2 = scgraph.getNode(node)
-		// @TODO: recursive strong components!
-		return node2.nodes.flatMap { it.body }
-		//return AstStm.NOP()
-	}
+	lateinit var processedCount: IntArray
+	lateinit var scgraph: Digraph<StrongComponent<Node>>
+	lateinit var lookup: AcyclicDigraphLookup<StrongComponent<Node>>
 
 	private fun getEdge(from: Node, to: Node): Edge? {
 		return from.edges.firstOrNull() { it.dst == to }
 	}
 
-	private fun renderInternal(
-		scgraph: Digraph<StrongComponent<Node>>,
-		node: Int,
-		endnode: Int,
-		lookup: AcyclicDigraphLookup<StrongComponent<Node>> = scgraph.assertAcyclic().createCommonDescendantLookup()
-	): List<AstStm> {
+	private fun renderInternal(node: Int, endnode: Int): List<AstStm> {
+		processedCount[node]++
+		if (processedCount[node] > 4) {
+			//println("Processed several!")
+			throw RelooperException("Node processed several times!")
+		}
 		if (node == endnode) return listOf()
 
 		val stms = arrayListOf<AstStm>()
-		stms += renderInternal2(scgraph, node)
+		stms += scgraph.getNode(node).nodes.flatMap { it.body }
 
 		//node.scgraph.dump()
 
@@ -116,10 +118,10 @@ class Relooper {
 
 		when (targets.size) {
 			0 -> Unit
-			1 -> stms += renderInternal(scgraph, targets.first(), endnode, lookup)
+			1 -> stms += renderInternal( targets.first(), endnode)
 			2 -> {
 				val common = lookup.common(targets)
-				val branches = targets.map { branch -> renderInternal(scgraph, branch, common, lookup) }
+				val branches = targets.map { branch -> renderInternal(branch, common) }
 
 				val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().first()
 				val cond = edge.cond
@@ -134,11 +136,11 @@ class Relooper {
 				else {
 					stms += AstStm.IF_ELSE(cond.not(), AstStmUtils.stms(branches[0]), AstStmUtils.stms(branches[1]))
 				}
-				stms += renderInternal(scgraph, common, endnode, lookup)
+				stms += renderInternal(common, endnode)
 			}
 			else -> {
 				val common = lookup.common(targets)
-				val branches = targets.map { branch -> renderInternal(scgraph, branch, common, lookup) }
+				val branches = targets.map { branch -> renderInternal(branch, common) }
 
 				println(branches)
 				println("COMMON: $common")
@@ -149,3 +151,5 @@ class Relooper {
 		return stms
 	}
 }
+
+class RelooperException(message: String) : RuntimeException(message)

@@ -19,13 +19,18 @@ package com.jtransc.ast.feature
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
 import com.jtransc.graph.Relooper
+import com.jtransc.graph.RelooperException
 
 object GotosFeature : AstFeature() {
-	override fun remove(body: AstBody): AstBody {
-		try {
-			return removeRelooper(body) ?: removeMachineState(body)
-		} catch (t: Throwable) {
-			t.printStackTrace()
+	override fun remove(body: AstBody, settings: AstBuildSettings): AstBody {
+		if (settings.relooper) {
+			try {
+				return removeRelooper(body) ?: removeMachineState(body)
+			} catch (t: Throwable) {
+				t.printStackTrace()
+				return removeMachineState(body)
+			}
+		} else {
 			return removeMachineState(body)
 		}
 	}
@@ -114,7 +119,12 @@ object GotosFeature : AstFeature() {
 			if (n.condExpr != null && ifNext != null) relooper.edge(n.node!!, ifNext.node!!, n.condExpr!!)
 		}
 
-		return AstBody(relooper.render(bblist[0].node!!)?.optimize() ?: return null, body.locals, body.traps)
+		try {
+			return AstBody(relooper.render(bblist[0].node!!)?.optimize() ?: return null, body.locals, body.traps)
+		} catch (e: RelooperException) {
+			//println("RelooperException: ${e.message}")
+			return null
+		}
 		//return AstBody(relooper.render(bblist[0].node!!) ?: return null, body.locals, body.traps)
 	}
 

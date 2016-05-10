@@ -1,4 +1,5 @@
 import com.jtransc.ast.AstBody;
+import com.jtransc.ast.AstBuildSettings;
 import com.jtransc.ast.AstType;
 import com.jtransc.ast.feature.GotosFeature;
 import com.jtransc.io.ClassutilsKt;
@@ -29,7 +30,7 @@ class AstExampleTest {
 			System.out.println("::" + method.name + " :: " + methodType);
 			AstBody astBody = Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method);
 			System.out.println(Exp_dumpKt.dump(astBody));
-			System.out.println(Exp_dumpKt.dump(GotosFeature.INSTANCE.remove(astBody)));
+			System.out.println(Exp_dumpKt.dump(GotosFeature.INSTANCE.remove(astBody, new AstBuildSettings())));
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}
 	}

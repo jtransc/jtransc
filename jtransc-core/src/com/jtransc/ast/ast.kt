@@ -17,6 +17,8 @@
 package com.jtransc.ast
 
 import com.jtransc.BuildBackend
+import com.jtransc.JTranscSystem
+import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ds.clearFlags
@@ -33,7 +35,7 @@ import java.io.IOException
 import java.util.*
 
 data class AstBuildSettings(
-	var jtranscVersion: String,
+	var jtranscVersion: String = JTranscVersion.getVersion(),
 	var title: String = "App Title",
 	var name: String = "AppName",
 	var version: String = "0.0.0",

@@ -48,7 +48,7 @@ class AstFeatures {
 		return this
 	}
 
-	fun apply(body: AstBody, supportedFeatures: Set<AstFeature>): AstBody {
+	fun apply(body: AstBody, supportedFeatures: Set<AstFeature>, settings: AstBuildSettings): AstBody {
 		var out = body
 		for (transform in TRANSFORMS) {
 			out = transform(out)
@@ -56,9 +56,9 @@ class AstFeatures {
 		for (feature in AVAILABLE_FEATUES) {
 			val included = (feature in supportedFeatures)
 			if (included) {
-				out = feature.add(out)
+				out = feature.add(out, settings)
 			} else {
-				out = feature.remove(out)
+				out = feature.remove(out, settings)
 			}
 		}
 		return out
@@ -66,8 +66,8 @@ class AstFeatures {
 }
 
 open class AstFeature {
-	open fun remove(body: AstBody): AstBody = body
-	open fun add(body: AstBody): AstBody = body
+	open fun remove(body: AstBody, settings: AstBuildSettings): AstBody = body
+	open fun add(body: AstBody, settings: AstBuildSettings): AstBody = body
 }
 
 open class AstTransform {

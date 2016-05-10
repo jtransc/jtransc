@@ -1,3 +1,5 @@
+import java.nio.*;
+
 public class AstExampleTest2 {
 	/*
 	boolean test = true;
@@ -11,9 +13,9 @@ public class AstExampleTest2 {
 	}
 	*/
 
-	//static private boolean isLetterOrDigit(char c) {
-	//	return Character.isLetter(c) || Character.isDigit(c);
-	//}
+	static private boolean isLetterOrDigit(char c) {
+		return Character.isLetter(c) || Character.isDigit(c);
+	}
 //
 	//public boolean isDirectory() {
 	//	//if (isInvalid()) return false;
@@ -21,14 +23,42 @@ public class AstExampleTest2 {
 	//	return false;
 	//}
 
-	public void demo() {
-		int[] items = new int[4];
-		int a = 10;
-		System.out.println(a >= 3);
-		//System.out.println(items.length >= 3);
-		//System.out.println(items[1] != 0); // .contains("test")
-		//System.out.println(items[2] != 0); // .contains("main")
-	}
+	//public void demo() {
+	//	int[] items = new int[4];
+	//	int a = 10;
+	//	System.out.println(a >= 3);
+	//	//System.out.println(items.length >= 3);
+	//	//System.out.println(items[1] != 0); // .contains("test")
+	//	//System.out.println(items[2] != 0); // .contains("main")
+	//}
+
+	//public static void copy (Buffer src, Buffer dst, int numElements) {
+	//	int srcPos = src.position();
+	//	int dstPos = dst.position();
+	//	src.limit(srcPos + numElements);
+	//	final boolean srcIsByte = src instanceof ByteBuffer;
+	//	final boolean dstIsByte = dst instanceof ByteBuffer;
+	//	dst.limit(dst.capacity());
+	//	if (srcIsByte && dstIsByte)
+	//		((ByteBuffer)dst).put((ByteBuffer)src);
+	//	else if ((srcIsByte || src instanceof CharBuffer) && (dstIsByte || dst instanceof CharBuffer))
+	//		(dstIsByte ? ((ByteBuffer)dst).asCharBuffer() : (CharBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asCharBuffer() : (CharBuffer)src));
+	//	//else if ((srcIsByte || src instanceof ShortBuffer) && (dstIsByte || dst instanceof ShortBuffer))
+	//	//	(dstIsByte ? ((ByteBuffer)dst).asShortBuffer() : (ShortBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asShortBuffer() : (ShortBuffer)src));
+	//	//else if ((srcIsByte || src instanceof IntBuffer) && (dstIsByte || dst instanceof IntBuffer))
+	//	//	(dstIsByte ? ((ByteBuffer)dst).asIntBuffer() : (IntBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asIntBuffer() : (IntBuffer)src));
+	//	//else if ((srcIsByte || src instanceof LongBuffer) && (dstIsByte || dst instanceof LongBuffer))
+	//	//	(dstIsByte ? ((ByteBuffer)dst).asLongBuffer() : (LongBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asLongBuffer() : (LongBuffer)src));
+	//	//else if ((srcIsByte || src instanceof FloatBuffer) && (dstIsByte || dst instanceof FloatBuffer))
+	//	//	(dstIsByte ? ((ByteBuffer)dst).asFloatBuffer() : (FloatBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asFloatBuffer() : (FloatBuffer)src));
+	//	//else if ((srcIsByte || src instanceof DoubleBuffer) && (dstIsByte || dst instanceof DoubleBuffer))
+	//	//	(dstIsByte ? ((ByteBuffer)dst).asDoubleBuffer() : (DoubleBuffer)dst).put((srcIsByte ? ((ByteBuffer)src).asDoubleBuffer() : (DoubleBuffer)src));
+	//	else
+	//		throw new RuntimeException("Buffers must be of same type or ByteBuffer");
+	//	src.position(srcPos);
+	//	dst.flip();
+	//	dst.position(dstPos);
+	//}
 
 	//public static File createTempFile(String prefix, String suffix, File directory) throws IOException {
 	//	return (prefix != null) ? new File(prefix) : null;

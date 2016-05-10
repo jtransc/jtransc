@@ -828,9 +828,9 @@ class GenHaxeGen(
 							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
 							val javaBody = if (rbody != null) {
 								if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-									features.apply(rbody, (featureSet + setOf(GotosFeature))).genBody()
+									features.apply(rbody, (featureSet + setOf(GotosFeature)), settings).genBody()
 								} else {
-									features.apply(rbody, featureSet).genBody()
+									features.apply(rbody, featureSet, settings).genBody()
 								}
 							} else Indenter.gen {
 								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")

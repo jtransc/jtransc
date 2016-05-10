@@ -102,6 +102,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.INSTANCE_FIELD_ACCESS -> dump(expr.expr) + "." + expr.field.name
 		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
+		is AstExpr.INSTANCE_OF -> "(" + dump(expr.expr) + " instance of " + javaDump(expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
 		is AstExpr.TERNARY -> dump(expr.cond) + " ? " + dump(expr.etrue) + " : " + dump(expr.efalse)
 		//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
