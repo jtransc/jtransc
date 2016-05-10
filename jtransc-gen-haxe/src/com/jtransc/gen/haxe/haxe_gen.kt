@@ -103,7 +103,7 @@ class GenHaxeGen(
 			}
 		}
 
-		val copyFilesRaw = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFiles>()?.value?.toList() ?: listOf() }
+		val copyFilesRaw = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesRaw>()?.value?.toList() ?: listOf() }
 		val copyFilesTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf() }
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]

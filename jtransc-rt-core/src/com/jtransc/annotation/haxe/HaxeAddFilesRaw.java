@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface HaxeAddFiles {
+public @interface HaxeAddFilesRaw {
     String[] value();
 }
