@@ -178,7 +178,7 @@ class AllBuild(
 			for (clazz in program.classes) {
 				for (method in clazz.allInterfaces.flatMap { it.methods }) {
 					val methodRef = method.ref.withoutClass
-					if (method.hasBody) {
+					if (method.hasBody && !method.isStatic && !method.isClassOrInstanceInit) {
 						if (clazz.getMethodInAncestors(methodRef) == null) {
 							clazz.add(generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
 						}
