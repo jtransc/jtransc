@@ -81,9 +81,7 @@ fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> {
 	//purity_inference: Infers if fields are "pure", i.e. do not have any side-effects. This can improve the effect of the fusion module.
 	//unreachable_code: Reports unreachable code.
 
-	return listOf(
-		if (settings.analyzer) "analyzer" else "no-analyzer"
-	)
+	return if (settings.analyzer) listOf() else listOf("no-analyzer")
 }
 
 fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
