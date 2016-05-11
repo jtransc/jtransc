@@ -11,6 +11,9 @@ public class DefaultMethodsTest {
 		System.out.println(new MyImpl1b().test());
 		System.out.println(new MyImpl2b().test());
 		System.out.println(new MyImpl3b().test());
+
+		MyInterface minterface = new MyImpl3b();
+		System.out.println(minterface.test());
 	}
 
 	static private class MyImpl1 implements MyInterface {

@@ -82,6 +82,13 @@ class GenHaxeGen(
 	}
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
+	fun AstBody.genBodyWithFeatures(): Indenter {
+		return if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
+			features.apply(this, (featureSet + setOf(GotosFeature)), settings).genBody()
+		} else {
+			features.apply(this, featureSet, settings).genBody()
+		}
+	}
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
@@ -798,8 +805,6 @@ class GenHaxeGen(
 
 		fun writeMethod(method: AstMethod, isInterface: Boolean): Indenter {
 			context.method = method
-			// default methods
-			if (isInterface && method.body != null) return Indenter.gen { }
 			return Indenter.gen {
 				val static = if (method.isStatic) "static " else ""
 				val visibility = if (isInterface) " " else method.visibility.haxe
@@ -833,11 +838,7 @@ class GenHaxeGen(
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
 							val javaBody = if (rbody != null) {
-								if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-									features.apply(rbody, (featureSet + setOf(GotosFeature)), settings).genBody()
-								} else {
-									features.apply(rbody, featureSet, settings).genBody()
-								}
+								rbody.genBodyWithFeatures()
 							} else Indenter.gen {
 								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							}
@@ -1116,6 +1117,14 @@ class GenHaxeGen(
 						line("public function new(func: $typeStr) { super(); this.___func__ = func; }")
 						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { $returnOrEmpty ___func__($margNames); }")
+						for (dmethod in clazz.methods.filter { it.body != null }) {
+							val dmethodName = dmethod.ref.haxeName
+							val dmethodArgs = dmethod.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
+							val dmethodRettype = dmethod.methodType.ret.haxeTypeTag
+							line("${methodInObject.nullMap("override", "")} public function $dmethodName($dmethodArgs):$dmethodRettype") {
+								line(dmethod.body!!.genBodyWithFeatures())
+							}
+						}
 					}
 				}
 			}

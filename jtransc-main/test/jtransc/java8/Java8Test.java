@@ -1,5 +1,6 @@
 package jtransc.java8;
 
+import java.lang.invoke.MethodHandle;
 import java.util.function.Predicate;
 
 public class Java8Test {
@@ -15,6 +16,8 @@ public class Java8Test {
 		myrunnerFloat(Java8Test::exampleFloat);
 		myrunnerDouble(Java8Test::exampleDouble);
 		myrunnerInt(i -> i < 10);
+
+		//myrunnerDoubleDefaultNegate(Java8Test::exampleDouble);
 
 		//MethodHandle method = Java8Test::example1;
 	}
@@ -86,6 +89,11 @@ public class Java8Test {
 	static public void myrunnerDouble(Predicate<Double> pred) {
 		System.out.println("0: " + pred.test(0.0));
 		System.out.println("10: " + pred.test(10.0));
+	}
+
+	static public void myrunnerDoubleDefaultNegate(Predicate<Double> pred) {
+		System.out.println("0: " + pred.negate().test(0.0));
+		System.out.println("10: " + pred.negate().test(10.0));
 	}
 }
 

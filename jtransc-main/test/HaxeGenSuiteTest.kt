@@ -92,9 +92,6 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
 
-	@Test fun java8Test() = testClass<Java8Test>()
-	@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>(minimize = false)
-
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
 	@Test fun proxyTest() = testClass<ProxyTest>()
