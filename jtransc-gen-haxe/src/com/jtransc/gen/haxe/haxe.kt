@@ -61,12 +61,7 @@ fun AstProgram.haxeLibs(settings: AstBuildSettings): List<HaxeLib.LibraryRef> = 
 }
 
 fun AstProgram.haxeExtraFlags(settings: AstBuildSettings): List<Pair<String, String>> {
-	return this.haxeLibs(settings).map { "-lib" to it.nameWithVersion } + listOf(
-		//"-dce" to "no"
-		//"-D" to "analyzer-no-module",
-		//"--no-inline" to "1",
-		//"--no-opt" to "1"
-	)
+	return this.haxeLibs(settings).map { "-lib" to it.nameWithVersion }
 }
 
 fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> {
@@ -95,11 +90,14 @@ fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
 
 fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
 	val program = this.program
-	val files = program.classes.map { it.annotationsList.getTyped<HaxeAddAssets>()?.value }.filterNotNull().flatMap { it.toList() }
+	//program.allAnnotationsList.getTyped<>()
+	//val files = program.classes.map { it.annotationsList.getTyped<HaxeAddAssets>()?.value }.filterNotNull().flatMap { it.toList() }
+	val files = program.allAnnotationsList.getAllTyped<HaxeAddAssets>().flatMap { it.value.toList() }
 	//val assetsFolder = settings.assets.firstOrNull()
 	val resourcesVfs = program.resourcesVfs
 	log("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
 	if (assetsFolder != null) {
+		assetsFolder.mkdirs()
 		val outputVfs = LocalVfs(assetsFolder)
 		for (file in files) {
 			log("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
@@ -121,7 +119,7 @@ val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}
 class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings, val actualSubtarget: HaxeAddSubtarget) {
 	val program = tinfo.program
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-	val tempAssetsDir = tinfo.mergedAssetsFolder
+	val mergedAssetsDir = tinfo.mergedAssetsFolder
 	val tempdir = tinfo.targetDirectory
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
 
@@ -146,7 +144,8 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		"orientation" to settings.orientation.lowName,
 		"haxeExtraFlags" to program.haxeExtraFlags(settings),
 		"haxeExtraDefines" to program.haxeExtraDefines(settings),
-		"tempAssetsDir" to tempAssetsDir.absolutePath,
+		"tempAssetsDir" to mergedAssetsDir.absolutePath, // @deprecated
+		"mergedAssetsDir" to mergedAssetsDir.absolutePath,
 		"embedResources" to settings.embedResources,
 		"assets" to settings.assets,
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
@@ -273,8 +272,8 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	lateinit var gen: GenHaxeGen
 	val program = tinfo.program
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
-	val tempAssetsDir = tinfo.mergedAssetsFolder
-	val tempAssetsVfs = LocalVfs(tempAssetsDir)
+	val mergedAssetsFolder = tinfo.mergedAssetsFolder
+	val mergedAssetsVfs = LocalVfs(mergedAssetsFolder)
 	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget)
 
@@ -304,10 +303,10 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
 		program.haxeInstallRequiredLibs(settings)
-		tinfo.haxeCopyEmbeddedResourcesToFolder(outputFile2.parentFile)
 
 		log("Copying assets... ")
-		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(tempAssetsVfs)
+		tinfo.haxeCopyEmbeddedResourcesToFolder(mergedAssetsFolder)
+		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(mergedAssetsVfs)
 
 		log("Compiling... ")
 
@@ -329,7 +328,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		val cmdAll = haxeTemplateString.gen(lines2.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
 
 
-		val cmdList = cmdAll.split("----")
+		val cmdList = cmdAll.split("----").filter { it.isNotEmpty() }
 
 		log("Commands to execute:")
 		for (cmd in cmdList) {

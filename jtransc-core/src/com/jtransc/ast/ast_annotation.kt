@@ -66,6 +66,7 @@ class AstAnnotationList(val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
 
 	inline fun <reified T : Any> getTyped(): T? = byClassName[T::class.java.name]?.firstOrNull()?.toObject<T>()
+	inline fun <reified T : Any> getAllTyped(): List<T> = byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf()
 	operator fun get(name: FqName): AstAnnotation? = byClassName[name.fqname]?.firstOrNull()
 	inline fun <reified T : Any> contains(): Boolean = T::class.java.name in byClassName
 }

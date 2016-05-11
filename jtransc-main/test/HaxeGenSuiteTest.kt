@@ -47,19 +47,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.File
 
-class HaxeGenSuiteTest {
-	companion object {
-		val BACKEND = BuildBackend.ASM
-		const val MINIMIZE = true
-		const val RELOOPER = true
-		const val ANALYZER = false
-		const val DEBUG = false
-	}
-
-	init {
-		if (!DEBUG) log.logger = { }
-	}
-
+class HaxeGenSuiteTest : HaxeTestBase() {
 	//-----------------------------------------------------------------
 	// Java Lang
 
@@ -137,8 +125,6 @@ class HaxeGenSuiteTest {
 	@Test fun java8Test() = testClass<Java8Test>()
 	//@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>()
 
-	@Test fun customBuild() = testClass<CustomBuildTest>()
-
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
 	@Test fun proxyTest() = testClass<ProxyTest>()
@@ -167,64 +153,5 @@ class HaxeGenSuiteTest {
 	""".trimIndent(),
 		runClass<HaxeNativeCallTest>().trim()
 	)
-
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
-
-	val kotlinPaths = listOf<String>() + listOf(
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2")
-		, MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2")
-		//,MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.1-2")
-	).flatMap { it }
-
-	val testClassesPath = File("target/test-classes").absolutePath
-
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, transformer: (String) -> String) {
-		println(clazz.name)
-		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang)
-		Assert.assertEquals(normalize(expected), normalize(result))
-	}
-
-	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
-
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang:String = "js"): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang)
-	}
-
-	fun locateProjectRoot(): SyncVfsFile {
-		var current = UnjailedLocalVfs(File(""))
-		var count = 0
-		while ("jtransc-rt" !in current) {
-			//println("${current.realpathOS}")
-			current = current.parent
-			if (count++ > 20) invalidOp("Can't find project root")
-		}
-
-		return current
-	}
-
-	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean?, analyze: Boolean?, lang:String): String {
-		val projectRoot = locateProjectRoot()
-		return AllBuild(
-			target = HaxeGenDescriptor,
-			classPaths = listOf(testClassesPath) + kotlinPaths,
-			entryPoint = clazz.name,
-			output = "program.haxe.$lang", subtarget = "$lang",
-			//output = "program.haxe.cpp", subtarget = "cpp",
-			targetDirectory = System.getProperty("java.io.tmpdir"),
-			settings = AstBuildSettings(
-				jtranscVersion = JTranscVersion.getVersion(),
-				debug = DEBUG,
-				backend = BACKEND,
-				minimizeNames = minimize ?: MINIMIZE,
-				relooper = RELOOPER,
-				analyzer = analyze ?: ANALYZER,
-				rtAndRtCore = listOf(
-					projectRoot["jtransc-rt/target/classes"].realpathOS,
-					projectRoot["jtransc-rt-core/target/classes"].realpathOS
-				)
-			)
-		).buildAndRunCapturingOutput().process.outerr
-	}
 }
 

@@ -57,6 +57,8 @@ class MinitemplateTest {
 		Assert.assertEquals("CARLOS", Minitemplate("{{ name|upper }}")(mapOf("name" to "caRLos")))
 		Assert.assertEquals("carlos", Minitemplate("{{ name|lower }}")(mapOf("name" to "caRLos")))
 		Assert.assertEquals("Carlos", Minitemplate("{{ name|capitalize }}")(mapOf("name" to "caRLos")))
+		Assert.assertEquals("Carlos", Minitemplate("{{ (name)|capitalize }}")(mapOf("name" to "caRLos")))
+		Assert.assertEquals("Carlos", Minitemplate("{{ 'caRLos'|capitalize }}")(null))
 	}
 
 	@Test fun testArrayLiterals() {

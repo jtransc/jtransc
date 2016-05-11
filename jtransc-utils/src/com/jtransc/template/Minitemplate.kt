@@ -5,6 +5,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.lang.Dynamic
 import com.jtransc.text.*
+import java.io.File
 
 class Minitemplate(val template: String, val config: Config = Config()) {
 	val templateTokens = Token.tokenize(template)
@@ -14,8 +15,17 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			private val extraTags: List<Tag> = listOf(),
 		private val extraFilters: List<Filter> = listOf()
 	) {
+		val integratedFilters = listOf(
+			Filter("capitalize") { subject, args -> Dynamic.toString(subject).toLowerCase().capitalize() },
+			Filter("upper") { subject, args -> Dynamic.toString(subject).toUpperCase() },
+			Filter("lower") { subject, args -> Dynamic.toString(subject).toLowerCase() },
+			Filter("trim") { subject, args -> Dynamic.toString(subject).trim() },
+			Filter("join") { subject, args -> Dynamic.toIterable(subject).map { Dynamic.toString(it) }.joinToString(Dynamic.toString(args[0])) },
+			Filter("file_exists") { subject, args -> File(Dynamic.toString(subject)).exists() }
+		)
+
 		private val allTags = listOf(Tag.EMPTY, Tag.IF, Tag.FOR, Tag.SET, Tag.DEBUG) + extraTags
-		private val allFilters = listOf(Filter.CAPITALIZE, Filter.UPPER, Filter.LOWER, Filter.TRIM, Filter.JOIN) + extraFilters
+		private val allFilters = integratedFilters + extraFilters
 
 		val tags = hashMapOf<String, Tag>().apply {
 			for (tag in allTags) {
@@ -29,15 +39,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 	}
 
-	data class Filter(val name:String, val eval: (subject: Any?, args: List<Any?>) -> Any?) {
-		companion object {
-			val CAPITALIZE = Filter("capitalize") { subject, args -> subject.toString().toLowerCase().capitalize() }
-			val UPPER = Filter("upper") { subject, args -> subject.toString().toUpperCase() }
-			val LOWER = Filter("lower") { subject, args -> subject.toString().toLowerCase() }
-			val TRIM = Filter("trim") { subject, args -> subject.toString().trim() }
-			val JOIN = Filter("join") { subject, args -> Dynamic.toIterable(subject).map { Dynamic.toString(it) }.joinToString(Dynamic.toString(args[0])) }
-		}
-	}
+	data class Filter(val name:String, val eval: (subject: Any?, args: List<Any?>) -> Any?)
 
 	class Scope(val map: Any?, val parent: Scope? = null) {
 		operator fun get(key: Any?): Any? {
@@ -174,17 +176,17 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			}
 
 			private fun parseFinal(r: ListReader<Token>): ExprNode {
-				var construct: ExprNode
-				when (r.peek().text) {
+
+				var construct: ExprNode = when (r.peek().text) {
 					"!", "~", "-", "+" -> {
 						val op = r.read().text
-						return ExprNode.UNOP(parseFinal(r), op)
+						ExprNode.UNOP(parseFinal(r), op)
 					}
 					"(" -> {
 						r.read()
 						val result = parseExpr(r)
 						if (r.read().text != ")") throw RuntimeException("Expected ')'")
-						return result
+						result
 					}
 					// Array literal
 					"[" -> {
@@ -199,12 +201,16 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 							}
 						}
 						r.expect("]")
-						construct = ExprNode.ARRAY_LIT(items)
+						ExprNode.ARRAY_LIT(items)
 					}
 					else -> {
-						if (r.peek() is Token.TNumber) return ExprNode.LIT(r.read().text.toDouble())
-						if (r.peek() is Token.TString) return ExprNode.LIT((r.read() as Token.TString).processedValue)
-						construct = ExprNode.VAR(r.read().text)
+						if (r.peek() is Token.TNumber) {
+							ExprNode.LIT(r.read().text.toDouble())
+						} else if (r.peek() is Token.TString) {
+							ExprNode.LIT((r.read() as Token.TString).processedValue)
+						} else {
+							ExprNode.VAR(r.read().text)
+						}
 					}
 				}
 
