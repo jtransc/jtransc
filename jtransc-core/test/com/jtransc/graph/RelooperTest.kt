@@ -21,6 +21,18 @@ class RelooperTest {
 		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } NOP }", dump(relooper.render(A)!!.optimize()).toString(doIndent = false).trim())
 	}
 
+	@Test fun testIf2() {
+		val A = relooper.node(stmt("a"))
+		val B = relooper.node(stmt("b"))
+		val C = relooper.node(stmt("c"))
+		relooper.edge(A, B)
+		relooper.edge(A, C, AstExpr.build { INT.local("a") eq 1.lit })
+		relooper.edge(C, B)
+		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } NOP }", dump(relooper.render(A)!!.optimize()).toString(doIndent = false).trim())
+	}
+	*/
+
+	/*
 	@Test fun testIfElseNoExplicitEnd() {
 		val A = relooper.node(stmt("a"))
 		val B = relooper.node(stmt("b"))

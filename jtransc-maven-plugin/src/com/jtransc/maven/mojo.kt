@@ -36,6 +36,7 @@ import java.io.File
 import java.util.*
 
 @Mojo(name = "jtransc", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Suppress("UNUSED")
 class JTranscMojo : AbstractMojo() {
 	@Component @JvmField var project: MavenProject? = null
 	@Component @JvmField var session: MavenSession? = null
