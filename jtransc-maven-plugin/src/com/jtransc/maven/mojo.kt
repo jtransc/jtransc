@@ -68,7 +68,7 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "backend", defaultValue = "ASM") @JvmField var backend: BuildBackend = BuildBackend.ASM
 	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
 	@Parameter(property = "minimizeNames", defaultValue = "false") @JvmField var minimizeNames: Boolean = false
-	@Parameter(property = "analyzer", defaultValue = "true") @JvmField var analyzer: Boolean = true
+	@Parameter(property = "analyzer", defaultValue = "false") @JvmField var analyzer: Boolean = false
 	@Parameter(property = "extra") @JvmField var extra = hashMapOf<String?, String?>()
 
 	// @TODO: Use <resources> instead?
