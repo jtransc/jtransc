@@ -174,6 +174,18 @@ class AllBuild(
 				//println("Ok(${time.time})");
 			}
 
+			// Reference default methods
+			for (clazz in program.classes) {
+				for (method in clazz.allInterfaces.flatMap { it.methods }) {
+					val methodRef = method.ref.withoutClass
+					if (method.hasBody) {
+						if (clazz.getMethodInAncestors(methodRef) == null) {
+							clazz.add(generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
+						}
+					}
+				}
+			}
+
 			// Add synthetic methods to abstracts to simulate in haxe
 			// @TODO: Maybe we could generate those methods in haxe generator since the requirement for this
 			// @TODO: is target dependant
@@ -195,7 +207,7 @@ class AllBuild(
 		return program
 	}
 
-	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility) = AstMethod(
+	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility, bodyRef: AstMethodRef? = null) = AstMethod(
 		containingClass = containingClass,
 		id = -1,
 		annotations = listOf(),
@@ -205,6 +217,7 @@ class AllBuild(
 		signature = methodType.mangle(),
 		genericSignature = methodType.mangle(),
 		defaultTag = null,
+		bodyRef = bodyRef,
 		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility)
 	)
 }

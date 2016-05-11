@@ -481,7 +481,7 @@ class GenHaxeGen(
 					"N.idiv($l, $r)"
 				} else {
 					when (opSymbol) {
-						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "HaxeNatives.$opName($l, $r)"
+						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
 						else -> "($l $opSymbol $r)"
 					}
 				}
@@ -821,7 +821,13 @@ class GenHaxeGen(
 				} else {
 					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
-					val rbody = method.body
+					val rbody = if (method.body != null) {
+						method.body
+					} else if (method.bodyRef != null) {
+						program[method.bodyRef!!]?.body
+					} else {
+						null
+					}
 					line(decl) {
 						try {
 							// @TODO: Do not hardcode this!

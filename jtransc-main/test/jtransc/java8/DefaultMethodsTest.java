@@ -8,6 +8,9 @@ public class DefaultMethodsTest {
 	static private void test1() {
 		System.out.println(new MyImpl1().test());
 		System.out.println(new MyImpl2().test());
+		System.out.println(new MyImpl1b().test());
+		System.out.println(new MyImpl2b().test());
+		System.out.println(new MyImpl3b().test());
 	}
 
 	static private class MyImpl1 implements MyInterface {
@@ -18,6 +21,18 @@ public class DefaultMethodsTest {
 		public String test() {
 			return "overriden";
 		}
+	}
+
+	static private abstract class MyImpl3 implements MyInterface {
+	}
+
+	static private class MyImpl1b extends MyImpl1 {
+	}
+
+	static private class MyImpl2b extends MyImpl2 {
+	}
+
+	static private class MyImpl3b extends MyImpl3 {
 	}
 
 	interface MyInterface {

@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-import com.jtransc.AllBuild
-import com.jtransc.BuildBackend
-import com.jtransc.JTranscVersion
-import com.jtransc.ast.AstBuildSettings
-import com.jtransc.error.invalidOp
-import com.jtransc.gen.haxe.HaxeGenDescriptor
-import com.jtransc.log.log
-import com.jtransc.maven.MavenLocalRepository
-import com.jtransc.util.ClassUtils
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.UnjailedLocalVfs
-import com.jtransc.vfs.parent
 import javatest.KotlinCollections
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -35,40 +23,22 @@ import javatest.misc.MiscTest
 import javatest.utils.DateTest
 import jtransc.ProcessTest
 import jtransc.WrappedTest
-import jtransc.annotation.ClassMembersTest
-import jtransc.annotation.MethodBodyTest
 import jtransc.bug.*
+import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
-import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.FastMemoryTest
-import jtransc.jtransc.HaxeNativeCallTest
 import jtransc.rt.test.*
-import org.junit.Assert
 import org.junit.Test
-import java.io.File
 
 class HaxeGenSuiteTest : HaxeTestBase() {
-	//-----------------------------------------------------------------
-	// Java Lang
-
-	//@Test fun langBasicTypesTest() = testClass<BasicTypesTest>()
 	@Test fun langStringsTest() = testClass<StringsTest>()
 
 	@Test fun langSystemTest() = testClass<SystemTest>() {
-		it.replace(
-			"java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe"
-		)
+		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
 
 	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>(minimize = false)
 
-	//-----------------------------------------------------------------
-	// Java Utils
-
-	//@Test fun utilsCollectionsTest() = testClass<CollectionsTest>()
-
-	//-----------------------------------------------------------------
-	// Kotlin Collections
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
 	@Test fun fastMemoryTest() = testClass<FastMemoryTest>(minimize = false)
@@ -123,7 +93,7 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
 
 	@Test fun java8Test() = testClass<Java8Test>()
-	//@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>()
+	@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>(minimize = false)
 
 	@Test fun zipTest() = testClass<JTranscZipTest>()
 
@@ -138,20 +108,5 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
-
-	@Test fun methodBodyTest() = Assert.assertEquals("INT:777", runClass<MethodBodyTest>().trim())
-	@Test fun classMembersTest() = Assert.assertEquals("mult:246", runClass<ClassMembersTest>().trim())
-
-	@Test fun haxeNativeCallTest() = Assert.assertEquals("""
-		STATIC:851975
-		INSTANCE:851975
-		MAP:851975
-		FIELD:851975
-		INPUT:16909060
-		&lt;hello&gt;"&amp;"&lt;/hello&gt;
-		&lt;hello&gt;&quot;&amp;&quot;&lt;/hello&gt;
-	""".trimIndent(),
-		runClass<HaxeNativeCallTest>().trim()
-	)
 }
 

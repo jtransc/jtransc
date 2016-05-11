@@ -282,7 +282,7 @@ class AstClass(
 				}
 			}
 		}
-		out
+		out.distinct()
 	}
 
 	val allMethodsToImplement: List<AstMethodWithoutClassRef> by lazy {
@@ -513,12 +513,14 @@ class AstMethod(
 	val defaultTag: Any?,
 	val modifiers: AstModifiers,
 	val generateBody: () -> AstBody?,
+	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf()
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
 	val isNative: Boolean = modifiers.isNative
 
 	val body: AstBody? by lazy { generateBody() }
+	val hasBody: Boolean get() = body != null
 
 	val methodType: AstType.METHOD = type
 	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD

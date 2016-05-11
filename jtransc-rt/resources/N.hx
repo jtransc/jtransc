@@ -81,6 +81,13 @@ class N {
 	static public function lgt(a:Int64, b:Int64) return a > b;
 	static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
 
+	static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
+	static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+	static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
+	static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
+	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
+	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
+
 	static public function getTime():Float {
 		#if js return untyped __js__('Date.now()');
 		#elseif sys return Sys.time() * 1000;
