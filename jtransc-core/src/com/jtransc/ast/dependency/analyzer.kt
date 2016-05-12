@@ -77,11 +77,11 @@ object AstDependencyAnalyzer {
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
 				}
-				is AstExpr.INSTANCE_FIELD_ACCESS -> {
+				is AstExpr.FIELD_INSTANCE_ACCESS -> {
 					ana(expr.expr)
 					fields.add(expr.field)
 				}
-				is AstExpr.STATIC_FIELD_ACCESS -> fields.add(expr.field)
+				is AstExpr.FIELD_STATIC_ACCESS -> fields.add(expr.field)
 				is AstExpr.INSTANCE_OF -> ana(expr.checkType)
 				is AstExpr.UNOP -> ana(expr.right)
 				is AstExpr.THIS -> ana(expr.type)

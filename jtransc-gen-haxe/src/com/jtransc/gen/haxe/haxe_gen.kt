@@ -296,11 +296,7 @@ class GenHaxeGen(
 					line("else") { line(stm.sfalse.genStm()) }
 				}
 				is AstStm.RETURN_VOID -> {
-					if (context.method.isInstanceInit) {
-						line("return this;")
-					} else {
-						line("return;")
-					}
+					if (context.method.methodVoidReturnThis) line("return this;") else line("return;")
 				}
 				is AstStm.RETURN -> {
 					line("return ${stm.retval.genExpr()};")
@@ -424,7 +420,7 @@ class GenHaxeGen(
 
 			val bodyContent = body.stm.genStm()
 
-			for (clazzRef in mutableBody.classes) {
+			for (clazzRef in mutableBody.referencedClasses) {
 				line(names.getHaxeClassStaticInit(clazzRef))
 			}
 			line(bodyContent)
@@ -530,10 +526,10 @@ class GenHaxeGen(
 				val result = "$base.${refMethod.haxeName}($commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
-			is AstExpr.INSTANCE_FIELD_ACCESS -> {
+			is AstExpr.FIELD_INSTANCE_ACCESS -> {
 				"${e.expr.genNotNull()}.${fixField(e.field).haxeName}"
 			}
-			is AstExpr.STATIC_FIELD_ACCESS -> {
+			is AstExpr.FIELD_STATIC_ACCESS -> {
 				refs.add(e.clazzName)
 				mutableBody.initClassRef(fixField(e.field).classRef)
 
@@ -812,7 +808,7 @@ class GenHaxeGen(
 				val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
 				var override = if (method.haxeIsOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
-				val rettype = if (method.isInstanceInit) method.containingClass.astType else method.methodType.ret
+				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
 					"$static $visibility $inline $override function ${method.haxeName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.haxeTypeTag}".trim()
 				} catch (e: RuntimeException) {
@@ -843,7 +839,7 @@ class GenHaxeGen(
 								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							}
 							line(method.getHaxeNativeBody(javaBody).toString().template())
-							if (method.isInstanceInit) line("return this;")
+							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							e.printStackTrace()
 							println("WARNING haxe_gen.writeMethod:" + e.message)
@@ -1198,9 +1194,9 @@ class GenHaxeGen(
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
 	class MutableBody(val method: AstMethod) {
-		val classes = linkedSetOf<AstType.REF>()
+		val referencedClasses = linkedSetOf<AstType.REF>()
 		fun initClassRef(classRef: AstType.REF) {
-			classes.add(classRef)
+			referencedClasses.add(classRef)
 		}
 	}
 

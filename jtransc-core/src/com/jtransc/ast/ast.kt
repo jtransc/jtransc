@@ -536,6 +536,7 @@ class AstMethod(
 	val isInstanceInit: Boolean get() = name == "<init>"
 	val isClassInit: Boolean get() = name == "<clinit>"
 	val isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
+	val methodVoidReturnThis: Boolean get() = isInstanceInit
 
 	val isOverriding: Boolean by lazy { containingClass.ancestors.any { it[ref.withoutClass] != null } }
 	val isImplementing: Boolean by lazy { containingClass.allInterfaces.any { it.getMethod(this.name, this.desc) != null } }

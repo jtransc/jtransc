@@ -320,11 +320,11 @@ private class BasicBlockBuilder(
 		val ref = fix(AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> {
-				stackPush(AstExprUtils.fastcast(AstExpr.STATIC_FIELD_ACCESS(ref), ref.type))
+				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_STATIC_ACCESS(ref), ref.type))
 			}
 			Opcodes.GETFIELD -> {
 				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
-				stackPush(AstExprUtils.fastcast(AstExpr.INSTANCE_FIELD_ACCESS(ref, obj), ref.type))
+				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_INSTANCE_ACCESS(ref, obj), ref.type))
 			}
 			Opcodes.PUTSTATIC -> {
 				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.fastcast(stackPop(), ref.type)))

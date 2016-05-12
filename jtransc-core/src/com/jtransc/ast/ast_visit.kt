@@ -79,8 +79,8 @@ open class AstVisitor {
 			is AstExpr.CALL_BASE -> visit(expr)
 			is AstExpr.ARRAY_LENGTH -> visit(expr)
 			is AstExpr.ARRAY_ACCESS -> visit(expr)
-			is AstExpr.INSTANCE_FIELD_ACCESS -> visit(expr)
-			is AstExpr.STATIC_FIELD_ACCESS -> visit(expr)
+			is AstExpr.FIELD_INSTANCE_ACCESS -> visit(expr)
+			is AstExpr.FIELD_STATIC_ACCESS -> visit(expr)
 			is AstExpr.INSTANCE_OF -> visit(expr)
 			is AstExpr.CAST -> visit(expr)
 			is AstExpr.NEW -> visit(expr)
@@ -314,12 +314,12 @@ open class AstVisitor {
 		visit(expr.index)
 	}
 
-	open fun visit(expr: AstExpr.INSTANCE_FIELD_ACCESS) {
+	open fun visit(expr: AstExpr.FIELD_INSTANCE_ACCESS) {
 		visit(expr.field)
 		visit(expr.expr)
 	}
 
-	open fun visit(expr: AstExpr.STATIC_FIELD_ACCESS) {
+	open fun visit(expr: AstExpr.FIELD_STATIC_ACCESS) {
 		visit(expr.field)
 	}
 

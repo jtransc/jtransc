@@ -99,8 +99,8 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.CAUGHT_EXCEPTION -> "__expr"
 		is AstExpr.ARRAY_LENGTH -> "(${dump(expr.array)}).length"
 		is AstExpr.ARRAY_ACCESS -> dump(expr.array) + "[" + dump(expr.index) + "]"
-		is AstExpr.INSTANCE_FIELD_ACCESS -> dump(expr.expr) + "." + expr.field.name
-		is AstExpr.STATIC_FIELD_ACCESS -> "" + expr.clazzName + "." + expr.field.name
+		is AstExpr.FIELD_INSTANCE_ACCESS -> dump(expr.expr) + "." + expr.field.name
+		is AstExpr.FIELD_STATIC_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.CAST -> "((" + javaDump(expr.to) + ")" + dump(expr.expr) + ")"
 		is AstExpr.INSTANCE_OF -> "(" + dump(expr.expr) + " instance of " + javaDump(expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"

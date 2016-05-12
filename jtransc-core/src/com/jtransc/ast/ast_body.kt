@@ -360,12 +360,12 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = array.type.elementType
 	}
 
-	class INSTANCE_FIELD_ACCESS(val field: AstFieldRef, expr: AstExpr) : LValueExpr() {
+	class FIELD_INSTANCE_ACCESS(val field: AstFieldRef, expr: AstExpr) : LValueExpr() {
 		val expr = expr.box
 		override val type: AstType = field.type
 	}
 
-	class STATIC_FIELD_ACCESS(val field: AstFieldRef) : LValueExpr() {
+	class FIELD_STATIC_ACCESS(val field: AstFieldRef) : LValueExpr() {
 		val clazzName = field.containingTypeRef
 		override val type: AstType = field.type
 	}

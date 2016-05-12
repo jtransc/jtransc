@@ -16,7 +16,7 @@ class OptimizeTest {
 	@Test fun test2() {
 		Assert.assertEquals("1", AstBuild { 1.lit.cast(INT) }.optimize().exprDump())
 		Assert.assertEquals("(Class1.array).length", AstExpr.ARRAY_LENGTH(
-			AstExpr.STATIC_FIELD_ACCESS(AstFieldRef("Class1".fqname, "array", AstType.ARRAY(AstType.INT)))
+			AstExpr.FIELD_STATIC_ACCESS(AstFieldRef("Class1".fqname, "array", AstType.ARRAY(AstType.INT)))
 		).optimize().exprDump())
 	}
 
