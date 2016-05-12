@@ -194,7 +194,9 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		val dataParts = desc.split(':')
 		val clazz = names.program[dataParts[0].fqname]!!
 		return when (type.toUpperCase()) {
-			"SINIT" -> names.getHaxeClassFqName(clazz.name) + ".SI()"
+			"SINIT" -> {
+				names.getHaxeClassStaticInit(clazz.ref, "template sinit")
+			}
 			"CONSTRUCTOR" -> {
 				"new ${names.getHaxeClassFqName(clazz.name)}().${names.getHaxeMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
 			}
@@ -241,6 +243,8 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 			//, Minitemplate.Tag("copyfile", setOf(), null) {
 			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
 			//}
+		),
+		extraFilters = listOf(
 		)
 	)
 

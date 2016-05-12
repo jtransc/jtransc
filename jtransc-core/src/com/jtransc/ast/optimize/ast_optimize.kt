@@ -191,8 +191,6 @@ object AstOptimizer : AstVisitor() {
 		}
 	}
 
-
-
 	override fun visit(expr: AstExpr.CAST) {
 		super.visit(expr)
 
@@ -263,6 +261,39 @@ object AstOptimizer : AstVisitor() {
 			stm.box.value = newset
 			local.local.writes.add(newset)
 		}
+	}
+
+	override fun visit(stm: AstStm.STM_EXPR) {
+		if (stm.expr.value.isPure()) {
+			stm.box.value = AstStm.NOP("pure stm")
+		}
+	}
+}
+
+fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
+
+fun AstExpr.isPure(): Boolean = when (this) {
+	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds
+	is AstExpr.ARRAY_LENGTH -> true // Can cause null pointer
+	is AstExpr.BINOP -> this.left.isPure() && this.right.isPure()
+	is AstExpr.UNOP -> this.right.isPure()
+	is AstExpr.CALL_BASE -> false // we would have to check call pureness
+	is AstExpr.CAST -> this.expr.isPure()
+	is AstExpr.FIELD_INSTANCE_ACCESS -> this.expr.isPure()
+	is AstExpr.INSTANCE_OF -> this.expr.isPure()
+	is AstExpr.TERNARY -> this.cond.isPure() && this.etrue.isPure() && this.efalse.isPure()
+	is AstExpr.CAUGHT_EXCEPTION -> true
+	is AstExpr.FIELD_STATIC_ACCESS -> true
+	is AstExpr.LITERAL -> true
+	is AstExpr.LOCAL -> true
+	is AstExpr.NEW -> false
+	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
+	is AstExpr.NEW_ARRAY -> true
+	is AstExpr.PARAM -> true
+	is AstExpr.THIS -> true
+	else -> {
+		println("Warning: Unhandled expr $this to check pureness")
+		false
 	}
 }
 

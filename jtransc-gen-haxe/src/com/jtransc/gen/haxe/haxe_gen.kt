@@ -23,6 +23,7 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
+import java.util.*
 
 //const val ENABLE_HXCPP_GOTO_HACK = true
 const val ENABLE_HXCPP_GOTO_HACK = false
@@ -137,6 +138,7 @@ class GenHaxeGen(
 
 		fun inits() = Indenter.gen {
 			line("haxe.CallStack.callStack();")
+			line(names.getHaxeClassStaticInit(program[mainClassFq].ref, "program main"))
 		}
 
 		val customMain = program.allAnnotationsList.getTyped<HaxeCustomMain>()?.value
@@ -146,7 +148,6 @@ class GenHaxeGen(
 			line("class {{ entryPointSimpleName }}") {
 				line("static public function main()") {
 					line("{{ inits }}")
-					line("{{ mainClass }}.SI();")
 					line("{{ mainClass }}.{{ mainMethod }}(HaxeNatives.strArray(HaxeNatives.args()));")
 				}
 			}
@@ -158,6 +159,7 @@ class GenHaxeGen(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
+			"mainClass2" to mainClassFq.fqname,
 			"mainMethod" to mainMethod,
 			"inits" to inits().toString()
 		))
@@ -229,7 +231,7 @@ class GenHaxeGen(
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
 			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-				line("${names.getHaxeClassStaticInit(i)}")
+				line(names.getHaxeClassStaticInit(i, "annotationsInit"))
 			}
 		}
 	}
@@ -333,7 +335,7 @@ class GenHaxeGen(
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
-					mutableBody.initClassRef(fixField(stm.field).classRef)
+					mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
 					val left = fixField(stm.field).haxeStaticText
 					val right = stm.expr.genExpr()
 					if (left != right) {
@@ -420,8 +422,8 @@ class GenHaxeGen(
 
 			val bodyContent = body.stm.genStm()
 
-			for (clazzRef in mutableBody.referencedClasses) {
-				line(names.getHaxeClassStaticInit(clazzRef))
+			for ((clazzRef, reasons) in mutableBody.referencedClasses) {
+				line(names.getHaxeClassStaticInit(clazzRef, reasons.joinToString(", ")))
 			}
 			line(bodyContent)
 		}
@@ -507,7 +509,7 @@ class GenHaxeGen(
 
 				if (e2 is AstExpr.CALL_STATIC) {
 					refs.add(clazz)
-					mutableBody.initClassRef(clazz)
+					mutableBody.initClassRef(clazz, "CALL_STATIC")
 				}
 
 				val isNativeCall = refMethodClass.isNative
@@ -531,7 +533,7 @@ class GenHaxeGen(
 			}
 			is AstExpr.FIELD_STATIC_ACCESS -> {
 				refs.add(e.clazzName)
-				mutableBody.initClassRef(fixField(e.field).classRef)
+				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
 
 				"${fixField(e.field).haxeStaticText}"
 			}
@@ -1194,9 +1196,10 @@ class GenHaxeGen(
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
 	class MutableBody(val method: AstMethod) {
-		val referencedClasses = linkedSetOf<AstType.REF>()
-		fun initClassRef(classRef: AstType.REF) {
-			referencedClasses.add(classRef)
+		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
+		fun initClassRef(classRef: AstType.REF, reason:String) {
+			referencedClasses.putIfAbsent(classRef, arrayListOf())
+			referencedClasses[classRef]!! += reason
 		}
 	}
 

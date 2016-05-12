@@ -209,12 +209,12 @@ class HaxeNames(
 		return getHaxeClassFqName(clazz?.name ?: name) + ".${simpleName}_Lambda"
 	}
 
-	fun getHaxeClassStaticInit(classRef: AstType.REF): String {
+	fun getHaxeClassStaticInit(classRef: AstType.REF, reason: String): String {
 		val clazz = program[classRef.name]
 		if (clazz?.nativeName != null) {
 			return ""
 		} else {
-			return "${getHaxeClassFqNameInt(classRef.name)}.SI();"
+			return "${getHaxeClassFqNameInt(classRef.name)}.SI() /* $reason */;"
 		}
 	}
 
