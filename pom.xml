@@ -40,7 +40,7 @@
 
         <jtransc.version>${project.version}</jtransc.version>
 		<vertx.version>3.2.1</vertx.version>
-        <kotlin.version>1.0.1-2</kotlin.version>
+        <kotlin.version>1.0.2</kotlin.version>
         <junit.version>4.12</junit.version>
     </properties>
 

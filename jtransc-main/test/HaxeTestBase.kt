@@ -17,6 +17,7 @@
 import com.jtransc.AllBuild
 import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
+import com.jtransc.KotlinVersion
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.haxe.HaxeGenDescriptor
@@ -63,9 +64,8 @@ open class HaxeTestBase {
 	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
 
 	val kotlinPaths = listOf<String>() + listOf(
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:1.0.1-2")
-		, MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2")
-		//,MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-reflect:1.0.1-2")
+		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
+		, MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
 	).flatMap { it }
 
 	val testClassesPath = File("target/test-classes").absolutePath

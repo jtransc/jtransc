@@ -6,7 +6,7 @@
     <!-- http://stackoverflow.com/questions/3970753/how-to-run-an-ant-target-from-maven2 -->
 
     <properties>
-        <kotlin.version>1.0.1-2</kotlin.version>
+        <kotlin.version>1.0.2</kotlin.version>
         <jtransc.version>0.0.1</jtransc.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
