@@ -47,10 +47,6 @@ public class HaxeNativeCallTest {
 		native static public HaxeAdler32 create();
 	}
 
-	@JTranscNativeClass("haxe.io.Input")
-	private static class HaxeInput {
-	}
-
 	@JTranscNativeClass("haxe.crypto.Adler32")
 	private static class HaxeAdler32 {
 		public HaxeAdler32() {
