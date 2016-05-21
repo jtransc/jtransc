@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jtransc;
+package com.jtransc.ds;
 
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
@@ -27,10 +27,6 @@ import java.util.HashMap;
 @HaxeAddMembers({
         "var _map = new Map<Int, Dynamic>();"
 })
-@Deprecated
-/**
- * @deprecated Use com.jtransc.ds.FastIntMap
- */
 public class FastIntMap<T> {
     @HaxeRemoveField
     private HashMap<Integer, T> map;
