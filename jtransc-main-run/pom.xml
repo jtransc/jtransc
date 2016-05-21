@@ -16,10 +16,10 @@
   -->
 
 <project
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.jtransc</groupId>
@@ -28,61 +28,61 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-    <artifactId>jtransc-main-run</artifactId>
+	<artifactId>jtransc-main-run</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.jtransc</groupId>
-            <artifactId>jtransc-main</artifactId>
-            <version>${jtransc.version}</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>com.jtransc</groupId>
+			<artifactId>jtransc-main</artifactId>
+			<version>${jtransc.version}</version>
+		</dependency>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.4.0</version>
-		<configuration>
-			<mainClass>com.jtransc.JTranscMain</mainClass>
-		</configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<configuration>
+					<mainClass>com.jtransc.JTranscMain</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
-<plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-assembly-plugin</artifactId>
-	<version>2.6</version>
-	<configuration>
-		<descriptorRefs>
-			<descriptorRef>jar-with-dependencies</descriptorRef>
-		</descriptorRefs>
-		<archive>
-		<manifest>
-			<mainClass>com.jtransc.JTranscMain</mainClass>
-		</manifest>
-		</archive>
-	</configuration>
-	<executions>
-		<execution>
-			<id>assemble-all</id>
-			<phase>package</phase>
-			<goals>
-				<goal>single</goal>
-			</goals>
-		</execution>
-	</executions>
-</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>com.jtransc.JTranscMain</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>assemble-all</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
 
-        </plugins>
-    </build>
+		</plugins>
+	</build>
 
 </project>

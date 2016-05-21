@@ -51,11 +51,12 @@ class JTranscBuilderService : BuilderService() {
 					entryPoint = "Test",
 					output = "C:/temp/output.js",
 					targetDirectory = "C:/temp",
-					subtarget = "js"
+					subtarget = "js",
+					settings = AstBuildSettings(
+						jtranscVersion = JTranscVersion.getVersion()
+					)
 				)
-				val result = build.buildWithoutRunning(AstBuildSettings(
-					jtranscVersion = JTranscVersion.getVersion()
-				))
+				val result = build.buildWithoutRunning()
 				println(result)
 
 				/*

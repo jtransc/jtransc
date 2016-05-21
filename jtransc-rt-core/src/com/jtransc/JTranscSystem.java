@@ -20,12 +20,17 @@ public class JTranscSystem {
 		}
 	}
 
-	static public int stamp() {
+	static public double stamp() {
 		if (start < 0) start = fastTime();
-		return (int) (fastTime() - start);
+		return elapsedTime(start, fastTime());
 	}
 
 	static public int elapsedTime(int first, int second) {
+		// @TODO: Check overflow!
+		return second - first;
+	}
+
+	static public double elapsedTime(double first, double second) {
 		// @TODO: Check overflow!
 		return second - first;
 	}

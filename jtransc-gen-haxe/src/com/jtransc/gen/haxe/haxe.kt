@@ -142,8 +142,6 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		"initialWidth" to settings.initialWidth,
 		"initialHeight" to settings.initialHeight,
 		"orientation" to settings.orientation.lowName,
-		"haxeExtraFlags" to program.haxeExtraFlags(settings),
-		"haxeExtraDefines" to program.haxeExtraDefines(settings),
 		"tempAssetsDir" to mergedAssetsDir.absolutePath, // @deprecated
 		"mergedAssetsDir" to mergedAssetsDir.absolutePath,
 		"embedResources" to settings.embedResources,

@@ -93,11 +93,12 @@ class JTranscDebuggerRunner : DefaultProgramRunner() {
 				entryPoint = profile.MAIN_CLASS_NAME,
 				output = outputFile,
 				targetDirectory = "$outputPath",
-				subtarget = "js"
+				subtarget = "js",
+				settings = AstBuildSettings(
+					jtranscVersion = JTranscVersion.getVersion()
+				)
 			)
-			val result = build.buildWithoutRunning(AstBuildSettings(
-				jtranscVersion = JTranscVersion.getVersion()
-			))
+			val result = build.buildWithoutRunning()
 			println(result)
 		}).execute(executor, programRunner)
 
