@@ -94,47 +94,65 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isSys();
+	public static boolean isSys() {
+		return true;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "cpp", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isCpp();
+	public static boolean isCpp() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "cs", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isCsharp();
+	public static boolean isCsharp() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "java", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isJava();
+	public static boolean isJava() {
+		return true;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "js", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isJs();
+	public static boolean isJs() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "flash", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isSwf();
+	public static boolean isSwf() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "neko", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isNeko();
+	public static boolean isNeko() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "php", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isPhp();
+	public static boolean isPhp() {
+		return false;
+	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "python", value = "return true;")
 	@HaxeMethodBody("return false;")
-	native public static boolean isPython();
+	public static boolean isPython() {
+		return false;
+	}
 
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.systemName());")
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
