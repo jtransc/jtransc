@@ -7,6 +7,7 @@ import com.jtransc.gradle.tasks.JTranscRunTask
 import groovy.lang.Closure
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
 
 /**
  * References:
@@ -33,8 +34,8 @@ open class JTranscPlugin : Plugin<Project> {
 		// https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.util.Map, java.lang.String)
 		fun addBuildTarget(name: String, target: String?, outputFile: String?, run: Boolean) {
 			val clazz = if (run) JTranscRunTask::class.java else JTranscDistTask::class.java
-			//project.task(mapOf("type" to clazz, "group" to "distribution", "overwrite" to true), name, LambdaClosure({ it: AbstractJTranscTask -> it.target = target; it.outputFile = outputFile })).dependsOn("build")
-			project.task(mapOf("type" to clazz, "group" to "jtransc"), name, LambdaClosure({ it: AbstractJTranscTask -> it.target = target; it.outputFile = outputFile })).dependsOn("build")
+			val group = if (run) "application" else "distribution"
+			project.task(mapOf("type" to clazz, "group" to group), name, LambdaClosure({ it: AbstractJTranscTask -> it.target = target; it.outputFile = outputFile })).dependsOn("build")
 		}
 
 		addBuildTarget("distJtransc", null, null, run = false)
