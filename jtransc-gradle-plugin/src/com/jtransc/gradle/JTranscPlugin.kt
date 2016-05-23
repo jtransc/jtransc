@@ -1,13 +1,11 @@
 package com.jtransc.gradle
 
 import com.jtransc.JTranscVersion
-import com.jtransc.gradle.tasks.AbstractJTranscTask
 import com.jtransc.gradle.tasks.JTranscDistTask
 import com.jtransc.gradle.tasks.JTranscRunTask
 import groovy.lang.Closure
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePlugin
 
 /**
  * References:
@@ -31,30 +29,21 @@ open class JTranscPlugin : Plugin<Project> {
 		//project.setProperty(JTranscDistTask::class.java.simpleName, JTranscDistTask::class.java)
 		//project.setProperty(JTransRunTask::class.java.simpleName, JTransRunTask::class.java)
 
-		// https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.util.Map, java.lang.String)
-		fun addBuildTarget(name: String, target: String?, outputFile: String?, run: Boolean) {
-			val clazz = if (run) JTranscRunTask::class.java else JTranscDistTask::class.java
-			val group = if (run) "application" else "distribution"
-			project.task(mapOf("type" to clazz, "group" to group), name, LambdaClosure({ it: AbstractJTranscTask -> it.target = target; it.outputFile = outputFile })).dependsOn("build")
+		fun addBuildTarget(name: String, target: String?, outputFile: String?) {
+			JTranscExtension.addBuildTarget(project, name, target, outputFile)
 		}
 
-		addBuildTarget("distJtransc", null, null, run = false)
-		addBuildTarget("runJtransc", null, null, run = true)
+		JTranscExtension.addBuildTarget(project, "distJtransc", null, null, run = false)
+		JTranscExtension.addBuildTarget(project, "runJtransc", null, null, run = true)
 
-		addBuildTarget("distJs", "haxe:js", "program.js", run = false)
-		addBuildTarget("distSwf", "haxe:swf", "program.swf", run = false)
-		addBuildTarget("distCpp", "haxe:cpp", "program.exe", run = false)
-		addBuildTarget("distNeko", "haxe:neko", "program.n", run = false)
-		addBuildTarget("distPhp", "haxe:php", "program.php", run = false)
-
-		addBuildTarget("runNodeJs", "haxe:js", "program.js", run = true)
-		addBuildTarget("runSwf", "haxe:swf", "program.swf", run = true)
-		addBuildTarget("runCpp", "haxe:cpp", "program.exe", run = true)
-		addBuildTarget("runNeko", "haxe:neko", "program.n", run = true)
-		addBuildTarget("runPhp", "haxe:php", "program.php", run = true)
+		addBuildTarget("js", "haxe:js", "program.js")
+		addBuildTarget("swf", "haxe:swf", "program.swf")
+		addBuildTarget("cpp", "haxe:cpp", "program.exe")
+		addBuildTarget("neko", "haxe:neko", "program.n")
+		addBuildTarget("php", "haxe:php", "program.php")
 	}
 
-	private open class LambdaClosure<T, TR>(val lambda: (value: T) -> TR) : Closure<T>(Unit) {
+	open class LambdaClosure<T, TR>(val lambda: (value: T) -> TR) : Closure<T>(Unit) {
 		fun doCall(vararg arguments: T) = lambda(arguments[0])
 
 		override fun getProperty(property: String): Any = "lambda"
