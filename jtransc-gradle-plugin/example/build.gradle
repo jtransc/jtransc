@@ -1,0 +1,44 @@
+apply plugin: "java"
+apply plugin: "jtransc"
+
+/*
+apply plugin: GreetingPlugin
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hello') << {
+            println "Hello from the GreetingPlugin"
+        }
+    }
+}
+*/
+buildscript {
+	repositories {
+		mavenLocal()
+	}
+
+	dependencies {
+		classpath "com.jtransc:jtransc-gradle-plugin:0.2.5"
+	}
+
+	//apply plugin: "jtransc"
+}
+
+jtransc {
+	demo = "test"
+	println "jtransc!"
+}
+
+
+println "configuring $project"
+task hello << {
+	println 'hello from other script'
+
+	tasks.testJTranscTask.execute()
+
+	project.plugins.each {
+		println it
+	}
+}
+
+	

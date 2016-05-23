@@ -78,6 +78,7 @@
         <module>jtransc-main</module>
         <module>jtransc-buildjar-maven-plugin</module>
         <module>jtransc-maven-plugin</module>
+		<module>jtransc-gradle-plugin</module>
 		<module>jtransc-debugger</module>
     </modules>
 
