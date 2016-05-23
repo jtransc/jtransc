@@ -12,6 +12,9 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 
 abstract class AbstractJTranscTask : DefaultTask() {
+	var target: String? = null
+	var outputFile: String? = null
+
 	open protected fun prepare(): AllBuild {
 		val extension = project.getIfExists<JTranscExtension>(JTranscExtension.NAME)!!
 		val mainClassName = project.getIfExists<String>("mainClassName")
@@ -65,8 +68,8 @@ abstract class AbstractJTranscTask : DefaultTask() {
 			entryPoint = mainClassName ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!"),
 			classPaths = listOf(classesDir.absolutePath) + compileConfiguration.files.map { it.absolutePath },
 			//AllBuildTargets = AllBuildTargets,
-			target = extension.target,
-			output = extension.output,
+			target = target ?: extension.target,
+			output = outputFile ?: extension.output,
 			settings = settings,
 			targetDirectory = buildDir.absolutePath
 		)

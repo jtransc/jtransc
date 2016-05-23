@@ -17,7 +17,7 @@ open class JTranscExtension(val project: Project) {
 	var name = "AppName"
 	var version = "0.0.1"
 	var target = "haxe:js"
-	var output = "program.js"
+	var output: String? = null
 	var extra = hashMapOf<String?, String?>()
 	var company = "MyCompany"
 	var package_ = "com.test"
