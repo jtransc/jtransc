@@ -6,38 +6,19 @@ ext.jtranscVersion = "0.2.5"
 
 mainClassName = "HelloWorld"
 
-/*
-apply plugin: GreetingPlugin
-
-class GreetingPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.task('hello') << {
-            println "Hello from the GreetingPlugin"
-        }
-    }
-}
-*/
 sourceSets {
 	main {
-		java {
-			srcDir 'src'
-		}
-		resources {
-			srcDir 'resources'
-		}
+		java { srcDir 'src' }
+		resources { srcDir 'resources' }
 	}
 }
 
 buildscript {
 	repositories {
 		mavenLocal()
+		mavenCentral()
 	}
-
-	dependencies {
-		classpath "com.jtransc:jtransc-gradle-plugin:0.2.5"
-	}
-
-	//apply plugin: "jtransc"
+	dependencies {  classpath "com.jtransc:jtransc-gradle-plugin:0.2.5" }
 }
 
 repositories {
@@ -52,55 +33,56 @@ dependencies {
 }
 
 jtransc {
-	minimizeNames = true
-	target = "haxe:js"
-	println "jtransc!"
+	// Optional properties (https://github.com/jtransc/jtransc/blob/master/jtransc-gradle-plugin/src/com/jtransc/gradle/JTranscExtension.kt)
+	// tittle = "App Title"
+	// name = "AppName"
+	// version = "0.0.1"
+	// target = "haxe:js"
+	// output: String? = null
+	// extra = hashMapOf<String?, String?>()
+	// company = "MyCompany"
+	// package_ = "com.test"
+	// embedResources = true
+	// libraries = arrayListOf<String>()
+	// assets = arrayListOf<File>()
+	// debug = true
+	// initialWidth = 1280
+	// initialHeight = 720
+	// vsync = true
+	// resizable = true
+	// borderless = false
+	// fullscreen = false
+	// icon: String? = null
+	// orientation = "auto"
+	// relooper = false
+	// minimizeNames = false
+	// analyzer = false
 }
 
-/*
-println "configuring $project"
-task hello << {
-	println 'hello from other script'
+// Defined tasks
 
-	tasks.testJTranscTask.execute()
+// Building tasks:
+// - jtransc:cpp
+// - jtransc:js
+// - jtransc:neko
+// - jtransc:php
 
-	project.plugins.each {
-		println it
-	}
+// Building and running tasks:
+// - jtransc:runCpp
+// - jtransc:runNeko
+// - jtransc:runNodeJs
+// - jtransc:runPhp
+// - jtransc:runSwd
+
+// Custom Building/running tasks:
+// - jtransc:jtransc (must specify target and outputFile options)
+// - jtransc:runJtransc (must specify target and outputFile options)
+
+task windows(type: JTransBuildTask) {
+	target = "haxe:cpp"
+	outputFile = "program.exe"
+	minimizedNames = false
 }
-
-task jtransc2 << {
-	println sourceSets.main.output.classesDir
-}
-*/
-
-task demo << {
-	//file("build/project-dependencies").deleteDir()
-	println "demo"
-	subprojects.findAll().each { project ->
-		println "project: $project"
-		/*
-		copy {
-			from project.jar
-			from project.configurations.runtime
-			into "build/project-dependencies/jars"
-		}
-		*/
-		println project.jar
-		println project.configurations.runtime
-	}
-	project.buildscript.configurations.classpath.each {
-		String jarName = it.getName();
-		print jarName + ":"
-	}
-
-	configurations.classpath.files.each {
-		println it
-	}
-}
-
-demo.dependsOn build
-
 
 task runWindows(type: JTransBuildAndRunTask) {
 	target = "haxe:cpp"
