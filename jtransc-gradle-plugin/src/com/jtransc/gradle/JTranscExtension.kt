@@ -14,7 +14,7 @@ open class JTranscExtension(val project: Project) {
 
 	var extra = hashMapOf<String?, String?>()
 	var libraries = arrayListOf<String>()
-	var assets = arrayListOf<File>()
+	var assets = arrayListOf<String>()
 	var title: String? = null
 	var name: String? = null
 	var version: String? = null

@@ -32,7 +32,7 @@ open class AbstractJTranscTask : DefaultTask() {
 	var initialWidth: Int? = null
 	var initialHeight: Int? = null
 	var extra = hashMapOf<String?, String?>()
-	var assets = arrayListOf<File>()
+	var assets = arrayListOf<String>()
 	var libraries = arrayListOf<String>()
 	var package_: String? = null
 	var company: String? = null
@@ -74,7 +74,7 @@ open class AbstractJTranscTask : DefaultTask() {
 			package_ = package_ ?: extension.package_ ?: default.package_,
 			embedResources = embedResources ?: extension.embedResources ?: default.embedResources,
 			libraries = (libraries + extension.libraries).map { AstBuildSettings.Library.fromInfo(it) },
-			assets = assets + extension.assets,
+			assets = (assets + extension.assets).map { File(it) },
 			debug = debug ?: extension.debug ?: default.debug,
 			initialWidth = initialWidth ?: extension.initialWidth ?: default.initialWidth,
 			initialHeight = initialHeight ?: extension.initialHeight ?: default.initialHeight,

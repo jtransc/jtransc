@@ -843,7 +843,7 @@ class GenHaxeGen(
 							line(method.getHaxeNativeBody(javaBody).toString().template())
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
-							e.printStackTrace()
+							//e.printStackTrace()
 							println("WARNING haxe_gen.writeMethod:" + e.message)
 
 							line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
