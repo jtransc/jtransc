@@ -1,5 +1,6 @@
 package com.jtransc.gradle.tasks
 
+import com.jtransc.error.invalidOp
 import org.gradle.api.tasks.TaskAction
 
 open class JTranscDistTask() : AbstractJTranscTask() {
@@ -11,6 +12,10 @@ open class JTranscDistTask() : AbstractJTranscTask() {
 	@TaskAction open fun task() {
 		logger.info("buildWithoutRunning $name : $target")
 		//println("buildWithoutRunning $name : $target")
-		prepare().buildWithoutRunning()
+		val result = prepare().buildWithoutRunning()
+		val process = result.process
+		if (!process.success) {
+			invalidOp("Process exited with code ${process.exitValue}")
+		}
 	}
 }

@@ -54,4 +54,9 @@ public class FastIntMap<T> {
     public boolean has(int key) {
         return this.map.containsKey(key);
     }
+
+	@HaxeMethodBody("_map.remove(p0);")
+	public void remove(int key) {
+		this.map.remove(key);
+	}
 }
