@@ -7,9 +7,11 @@ open class JTranscExtension(val project: Project) {
 		@JvmStatic val NAME = "jtransc"
 	}
 
+	var tittle = "App Title"
 	var demo = "demo"
 
 	init {
+
 		println("Instantiated JTranscExtension! with project '$project' name: $NAME, demo: $demo")
 	}
 }

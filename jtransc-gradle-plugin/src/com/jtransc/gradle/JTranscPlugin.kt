@@ -4,6 +4,11 @@ import com.jtransc.JTranscVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+/**
+ * References:
+ * - https://docs.gradle.org/current/userguide/java_plugin.html
+ * - https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/JavaPlugin.java
+ */
 open class JTranscPlugin : Plugin<Project> {
 	companion object {
 		@Suppress("unused")
@@ -13,8 +18,8 @@ open class JTranscPlugin : Plugin<Project> {
 	override fun apply(project: Project) {
 		println("JTranscPlugin.apply")
 
-		project.getExtensions().create(JTranscExtension.NAME, JTranscExtension::class.java, project)
+		project.extensions.create(JTranscExtension.NAME, JTranscExtension::class.java, project)
 
-		project.task(mapOf("type" to JTranscTask::class.java), "testJTranscTask")
+		project.task(mapOf("type" to JTranscTask::class.java), JTranscTask::jtransc.name).dependsOn("build")
 	}
 }

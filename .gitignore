@@ -44,3 +44,4 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 *.zip
 *.js
 *.php
+.gradle

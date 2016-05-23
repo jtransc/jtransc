@@ -1,5 +1,8 @@
 apply plugin: "java"
 apply plugin: "jtransc"
+apply plugin: 'application'
+
+mainClassName = "HelloWorld"
 
 /*
 apply plugin: GreetingPlugin
@@ -12,7 +15,19 @@ class GreetingPlugin implements Plugin<Project> {
     }
 }
 */
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+		resources {
+			srcDir 'resources'
+		}
+	}
+}
+
 buildscript {
+
 	repositories {
 		mavenLocal()
 	}
@@ -30,6 +45,8 @@ jtransc {
 }
 
 
+
+
 println "configuring $project"
 task hello << {
 	println 'hello from other script'
@@ -41,4 +58,7 @@ task hello << {
 	}
 }
 
+task jtransc2 << {
+	println sourceSets.main.output.classesDir
+}
 	
