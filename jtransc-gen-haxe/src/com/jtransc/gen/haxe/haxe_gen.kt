@@ -844,7 +844,7 @@ class GenHaxeGen(
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							//e.printStackTrace()
-							println("WARNING haxe_gen.writeMethod:" + e.message)
+							log.warn("WARNING haxe_gen.writeMethod:" + e.message)
 
 							line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
 						}

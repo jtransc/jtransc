@@ -3,10 +3,32 @@ package com.jtransc.log
 import com.jtransc.time.measureTime
 
 object log {
-	var logger: (Any?) -> Unit = { println(it) }
+	enum class Level { DEBUG, INFO, WARN, ERROR }
+
+	var logger: (Any?, Level) -> Unit = { content, level -> println(content) }
 
 	operator fun invoke(v: Any?) {
-		logger(v)
+		logger(v, Level.INFO)
+	}
+
+	operator fun invoke(v: Any?, type: Level) {
+		logger(v, type)
+	}
+
+	fun debug(v: Any?) {
+		logger(v, Level.DEBUG)
+	}
+
+	fun info(v: Any?) {
+		logger(v, Level.INFO)
+	}
+
+	fun warn(v: Any?) {
+		logger(v, Level.WARN)
+	}
+
+	fun error(v: Any?) {
+		logger(v, Level.ERROR)
 	}
 
 	inline fun <T> logAndTime(text:String, callback: () -> T): T {

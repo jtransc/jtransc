@@ -58,7 +58,7 @@ open class HaxeTestBase {
 	}
 
 	init {
-		if (!DEBUG) log.logger = { }
+		if (!DEBUG) log.logger = { content, level -> }
 	}
 
 	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)

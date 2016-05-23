@@ -48,7 +48,14 @@ open class AbstractJTranscTask : DefaultTask() {
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		val compileConfiguration = configurations["compile"]
 
-		log.logger = { logger.info(it.toString()) }
+		log.logger = { content, level ->
+			when (level) {
+				log.Level.DEBUG -> logger.debug(content.toString())
+				log.Level.INFO -> logger.info(content.toString())
+				log.Level.WARN -> logger.warn(content.toString())
+				log.Level.ERROR -> logger.error(content.toString())
+			}
+		}
 
 		//for (file in compileConfiguration.files) println("file: $file")
 

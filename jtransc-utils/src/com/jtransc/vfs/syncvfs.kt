@@ -152,7 +152,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun copyTo(that: SyncVfsFile): Unit = that.ensureParentDir().write(this.read())
 
 	fun copyTreeTo(that: SyncVfsFile, filter: (from: SyncVfsFile, to: SyncVfsFile) -> Boolean = { from, to -> true }): Unit {
-		println("copyTreeTo " + this.realpath + " -> " + that.realpath)
+		com.jtransc.log.log("copyTreeTo " + this.realpath + " -> " + that.realpath)
 		val stat = this.stat()
 		if (stat.isDirectory) {
 			that.mkdir()
