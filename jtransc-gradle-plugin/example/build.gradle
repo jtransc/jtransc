@@ -2,6 +2,8 @@ apply plugin: "java"
 apply plugin: "jtransc"
 apply plugin: 'application'
 
+ext.jtranscVersion = "0.2.5"
+
 mainClassName = "HelloWorld"
 
 /*
@@ -27,7 +29,6 @@ sourceSets {
 }
 
 buildscript {
-
 	repositories {
 		mavenLocal()
 	}
@@ -39,14 +40,24 @@ buildscript {
 	//apply plugin: "jtransc"
 }
 
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	//compile group: 'com.jtransc.media', name: 'jtransc-media', version: '$jtranscVersion'
+	compile "com.jtransc.media:jtransc-media-lime:$jtranscVersion"
+	testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
 jtransc {
-	demo = "test"
+	target = "haxe:js"
+	output = "simple.js"
 	println "jtransc!"
 }
 
-
-
-
+/*
 println "configuring $project"
 task hello << {
 	println 'hello from other script'
@@ -61,4 +72,31 @@ task hello << {
 task jtransc2 << {
 	println sourceSets.main.output.classesDir
 }
-	
+*/
+
+task demo << {
+	//file("build/project-dependencies").deleteDir()
+	println "demo"
+	subprojects.findAll().each { project ->
+		println "project: $project"
+		/*
+		copy {
+			from project.jar
+			from project.configurations.runtime
+			into "build/project-dependencies/jars"
+		}
+		*/
+		println project.jar
+		println project.configurations.runtime
+	}
+	project.buildscript.configurations.classpath.each {
+		String jarName = it.getName();
+		print jarName + ":"
+	}
+
+	configurations.classpath.files.each {
+		println it
+	}
+}
+
+demo.dependsOn build
