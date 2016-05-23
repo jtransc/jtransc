@@ -24,6 +24,9 @@ open class JTranscPlugin : Plugin<Project> {
 
 		project.extensions.create(JTranscExtension.NAME, JTranscExtension::class.java, project)
 
+		//project.setProperty(JTranscBuildTask::class.java.name, JTranscBuildTask::class.java)
+		//project.setProperty(JTransBuildAndRunTask::class.java.name, JTransBuildAndRunTask::class.java)
+
 		// https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.util.Map, java.lang.String)
 		fun addBuildTarget(name:String, target:String?, outputFile: String?, run:Boolean) {
 			val clazz = if (run) JTransBuildAndRunTask::class.java else JTranscBuildTask::class.java
@@ -46,28 +49,28 @@ open class JTranscPlugin : Plugin<Project> {
 		addBuildTarget("runPhp", "haxe:php", "program.php", run = true)
 	}
 
-	open class JTranscBuildTask() : AbstractJTranscTask() {
-		@Suppress("unused")
-		@TaskAction open fun task() {
-			logger.info("buildWithoutRunning $name : $target")
-			//println("buildWithoutRunning $name : $target")
-			prepare().buildWithoutRunning()
-		}
-	}
-
-	open class JTransBuildAndRunTask() : AbstractJTranscTask() {
-
-		@Suppress("unused")
-		@TaskAction open fun task() {
-			logger.info("buildAndRunRedirecting $name : $target")
-			//println("buildAndRunRedirecting $name : $target")
-			prepare().buildAndRunRedirecting()
-		}
-	}
 
 	private open class LambdaClosure<T, TR>(val lambda: (value: T) -> TR) : Closure<T>(Unit) {
 		fun doCall(vararg arguments: T) = lambda(arguments[0])
 
 		override fun getProperty(property: String): Any = "lambda"
+	}
+}
+
+open class JTranscBuildTask() : AbstractJTranscTask() {
+	@Suppress("unused")
+	@TaskAction open fun task() {
+		logger.info("buildWithoutRunning $name : $target")
+		//println("buildWithoutRunning $name : $target")
+		prepare().buildWithoutRunning()
+	}
+}
+
+open class JTransBuildAndRunTask() : AbstractJTranscTask() {
+	@Suppress("unused")
+	@TaskAction open fun task() {
+		logger.info("buildAndRunRedirecting $name : $target")
+		//println("buildAndRunRedirecting $name : $target")
+		prepare().buildAndRunRedirecting()
 	}
 }

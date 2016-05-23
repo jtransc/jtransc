@@ -52,6 +52,7 @@ dependencies {
 }
 
 jtransc {
+	minimizeNames = true
 	target = "haxe:js"
 	println "jtransc!"
 }
@@ -99,3 +100,10 @@ task demo << {
 }
 
 demo.dependsOn build
+
+
+task runWindows(type: JTransBuildAndRunTask) {
+	target = "haxe:cpp"
+	outputFile = "program.exe"
+	minimizedNames = false
+}

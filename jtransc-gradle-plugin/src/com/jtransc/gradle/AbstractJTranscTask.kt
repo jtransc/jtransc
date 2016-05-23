@@ -14,6 +14,9 @@ import org.gradle.api.tasks.TaskAction
 abstract class AbstractJTranscTask : DefaultTask() {
 	var target: String? = null
 	var outputFile: String? = null
+	var mainClassName: String? = null
+	var minimizedNames: Boolean? = null
+	var relooper: Boolean? = null
 
 	open protected fun prepare(): AllBuild {
 		val extension = project.getIfExists<JTranscExtension>(JTranscExtension.NAME)!!
@@ -57,15 +60,15 @@ abstract class AbstractJTranscTask : DefaultTask() {
 			icon = extension.icon,
 			orientation = AstBuildSettings.Orientation.fromString(extension.orientation),
 			backend = BuildBackend.ASM,
-			relooper = extension.relooper,
-			minimizeNames = extension.minimizeNames,
+			relooper = relooper ?: extension.relooper,
+			minimizeNames = minimizedNames ?: extension.minimizeNames,
 			analyzer = extension.analyzer,
 			extra = extension.extra
 			//,rtAndRtCore =
 		)
 
 		return AllBuildSimple(
-			entryPoint = mainClassName ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!"),
+			entryPoint = this.mainClassName ?: mainClassName ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!"),
 			classPaths = listOf(classesDir.absolutePath) + compileConfiguration.files.map { it.absolutePath },
 			//AllBuildTargets = AllBuildTargets,
 			target = target ?: extension.target,
