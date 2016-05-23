@@ -1,6 +1,5 @@
 package com.jtransc.gradle
 
-import com.jtransc.ast.AstBuildSettings
 import org.gradle.api.Project
 import java.io.File
 
@@ -13,27 +12,27 @@ open class JTranscExtension(val project: Project) {
 		project.logger.debug("Instantiated JTranscExtension! with project '$project' name: $NAME")
 	}
 
-	var tittle = "App Title"
-	var name = "AppName"
-	var version = "0.0.1"
-	var target = "haxe:js"
-	var output: String? = null
 	var extra = hashMapOf<String?, String?>()
-	var company = "MyCompany"
-	var package_ = "com.test"
-	var embedResources = true
 	var libraries = arrayListOf<String>()
 	var assets = arrayListOf<File>()
-	var debug = true
-	var initialWidth = 1280
-	var initialHeight = 720
-	var vsync = true
-	var resizable = true
-	var borderless = false
-	var fullscreen = false
+	var title: String? = null
+	var name: String? = null
+	var version: String? = null
+	var target: String? = null
+	var output: String? = null
+	var company: String? = null
+	var package_: String? = null
+	var embedResources: Boolean? = null
+	var debug: Boolean? = null
+	var initialWidth: Int? = null
+	var initialHeight: Int? = null
+	var vsync: Boolean? = null
+	var resizable: Boolean? = null
+	var borderless: Boolean? = null
+	var fullscreen: Boolean? = null
 	var icon: String? = null
-	var orientation = "auto"
-	var relooper = false
-	var minimizeNames = false
-	var analyzer = false
+	var orientation: String? = null
+	var relooper: Boolean? = null
+	var minimizeNames: Boolean? = null
+	var analyzer: Boolean? = null
 }

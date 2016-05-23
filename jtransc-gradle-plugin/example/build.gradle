@@ -1,15 +1,17 @@
 apply plugin: "java"
-apply plugin: "jtransc"
 apply plugin: 'application'
+apply plugin: "jtransc"
 
 ext.jtranscVersion = "0.2.5"
 
 mainClassName = "HelloWorld"
 
-sourceSets {
-	main {
-		java { srcDir 'src' }
-		resources { srcDir 'resources' }
+sourceSets.main {
+	java {
+		srcDir 'src'
+	}
+	resources {
+		srcDir 'resources'
 	}
 }
 
@@ -18,7 +20,9 @@ buildscript {
 		mavenLocal()
 		mavenCentral()
 	}
-	dependencies {  classpath "com.jtransc:jtransc-gradle-plugin:0.2.5" }
+	dependencies {
+		classpath "com.jtransc:jtransc-gradle-plugin:0.2.5"
+	}
 }
 
 repositories {
@@ -28,13 +32,13 @@ repositories {
 
 dependencies {
 	//compile group: 'com.jtransc.media', name: 'jtransc-media', version: '$jtranscVersion'
-	compile "com.jtransc.media:jtransc-media-lime:$jtranscVersion"
+	compile "com.jtransc.media:jtransc-media-lime:0.2.5"
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
 jtransc {
 	// Optional properties (https://github.com/jtransc/jtransc/blob/master/jtransc-gradle-plugin/src/com/jtransc/gradle/JTranscExtension.kt)
-	// tittle = "App Title"
+	// title = "App Title"
 	// name = "AppName"
 	// version = "0.0.1"
 	// target = "haxe:js"
@@ -55,37 +59,40 @@ jtransc {
 	// icon: String? = null
 	// orientation = "auto"
 	// relooper = false
-	// minimizeNames = false
+	minimizeNames = false
 	// analyzer = false
 }
 
 // Defined tasks
 
 // Building tasks:
-// - jtransc:cpp
-// - jtransc:js
-// - jtransc:neko
-// - jtransc:php
+// - distribution:distCpp
+// - distribution:distJs
+// - distribution:distNeko
+// - distribution:distPhp
 
 // Building and running tasks:
-// - jtransc:runCpp
-// - jtransc:runNeko
-// - jtransc:runNodeJs
-// - jtransc:runPhp
-// - jtransc:runSwd
+// - distribution:runCpp
+// - distribution:runNeko
+// - distribution:runNodeJs
+// - distribution:runPhp
+// - distribution:runSwd
 
 // Custom Building/running tasks:
-// - jtransc:jtransc (must specify target and outputFile options)
+// - jtransc:distJtransc (must specify target and outputFile options)
 // - jtransc:runJtransc (must specify target and outputFile options)
 
-task windows(type: JTransBuildTask) {
+import com.jtransc.gradle.tasks.JTranscDistTask
+import com.jtransc.gradle.tasks.JTranscRunTask
+
+task distWindows(type: JTranscDistTask) {
 	target = "haxe:cpp"
 	outputFile = "program.exe"
 	minimizedNames = false
 }
 
-task runWindows(type: JTransBuildAndRunTask) {
+task runWindows(type: JTranscRunTask) {
 	target = "haxe:cpp"
-	outputFile = "program.exe"
+	//outputFile = "program.exe"
 	minimizedNames = false
 }

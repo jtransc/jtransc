@@ -63,6 +63,10 @@ data class AstBuildSettings(
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"
 	)
 ) {
+	companion object {
+		val DEFAULT = AstBuildSettings()
+	}
+
 	val release: Boolean get() = !debug
 
 	data class Library(val name: String, val version: String?) {
