@@ -18,6 +18,7 @@ import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.HaxeNativeCallTest
+import jtransc.jtransc.JTranscSystemTest
 import org.junit.Assert
 import org.junit.Test
 
@@ -47,6 +48,12 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		INPUT:16909060
 		&lt;hello&gt;"&amp;"&lt;/hello&gt;
 		&lt;hello&gt;&quot;&amp;&quot;&lt;/hello&gt;
+	""")
+
+	@Test fun jtranscSystemTest() = testNativeClass<JTranscSystemTest>("""
+		true
+		true
+		false
 	""")
 }
 

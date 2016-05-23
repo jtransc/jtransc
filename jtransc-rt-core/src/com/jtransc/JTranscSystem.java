@@ -3,6 +3,8 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.haxe.*;
 
+import java.lang.instrument.Instrumentation;
+
 public class JTranscSystem {
 	static double start = -1;
 
@@ -199,4 +201,8 @@ public class JTranscSystem {
 		return isWindows() ? "\r\n" : "\n";
 	}
 
+	@HaxeMethodBody("return HaxeNatives.strArray(R.getAllClasses());")
+	static public String[] getAllClasses() {
+		throw new RuntimeException("Not implemented on JVM yet!");
+	}
 }

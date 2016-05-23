@@ -4,6 +4,7 @@ class R {
 	static public var classByJavaNames = new Map<String, {% CLASS java.lang.Class %} -> {% CLASS java.lang.Class %}>();
 	static public var haxeToJavaName = new Map<String, String>();
 	static public var javaToHaxeName = new Map<String, String>();
+	static public var javaClasses = [];
 
 	static private var registeredClasses = false;
 
@@ -24,6 +25,11 @@ class R {
 		return javaToHaxeName[className];
 	}
 
+	static public function getAllClasses():Array<String> {
+		registerClassesOnce();
+		return javaClasses;
+	}
+
 	static public function __initClass(clazz:{% CLASS java.lang.Class %}):Bool {
 		registerClassesOnce();
 		var className = clazz.{% FIELD java.lang.Class:name %}._str;
@@ -38,6 +44,7 @@ class R {
 		classByJavaNames[javaName] = clazzGen;
 		haxeToJavaName[haxeName] = javaName;
 		javaToHaxeName[javaName] = haxeName;
+		javaClasses.push(javaName);
 	}
 
 	static public function getJavaClassName(clazz:Class<Dynamic>):String return Reflect.field(clazz, 'HAXE_CLASS_NAME');
