@@ -319,7 +319,9 @@ class AstClass(
 
 	//val dependencies: AstReferences = AstReferences()
 	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
-	val nativeName by lazy { annotationsList.getTyped<JTranscNativeClass>()?.value }
+	val nativeName: String? by lazy {
+		annotationsList.getTyped<JTranscNativeClass>()?.value ?: annotationsList.getTyped<JTranscNativeName>()?.value
+	}
 
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
@@ -487,6 +489,10 @@ open class AstMember(
 ) : IUserData by UserData(), AstAnnotated {
 	override val annotationsList = AstAnnotationList(annotations)
 	val program = containingClass.program
+
+	val nativeName: String? by lazy {
+		annotationsList.getTyped<JTranscNativeName>()?.value
+	}
 }
 
 class AstField(

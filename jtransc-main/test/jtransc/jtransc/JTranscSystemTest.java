@@ -2,6 +2,7 @@ package jtransc.jtransc;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscNativeClass;
+import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -20,10 +21,10 @@ public class JTranscSystemTest {
 		intMap.set(0, Simple.Utils.create());
 		intMap.set(1, Simple.Utils.create());
 		System.out.println(intMap.exists(0));
-		System.out.println(intMap.exists(1));
+		System.out.println(intMap.has(1));
 		System.out.println(intMap.exists(2));
 		intMap.remove(1);
-		System.out.println(intMap.exists(1));
+		System.out.println(intMap.has(1));
 		intMap.get(0).flush();
 	}
 
@@ -36,6 +37,9 @@ public class JTranscSystemTest {
 		native public void remove(int key);
 
 		native public boolean exists(int key);
+
+		@JTranscNativeName("exists")
+		native public boolean has(int key);
 
 		static public class Utils {
 			@HaxeMethodBody("return new haxe.ds.IntMap<Dynamic>();")

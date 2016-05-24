@@ -92,7 +92,7 @@ class HaxeNames(
 
 		return if (realclass.isNative) {
 			// No cache
-			method.name
+			realmethod.nativeName ?: method.name
 		} else {
 			methodNmaes.getOrPut2(objectToCache) {
 				if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
@@ -163,7 +163,7 @@ class HaxeNames(
 
 		return if (realclass.isNative) {
 			// No cache
-			field.name
+			realfield?.nativeName ?: field.name
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
 				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
