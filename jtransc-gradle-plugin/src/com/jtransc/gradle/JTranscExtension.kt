@@ -10,11 +10,20 @@ open class JTranscExtension(val project: Project) {
 		@JvmStatic val NAME = "jtransc"
 
 		fun addBuildTarget(project: Project, name: String, target: String?, outputFile: String?) {
-			JTranscExtension.addBuildTarget(project, "dist" + name.capitalize(), target, outputFile, run = false)
-			JTranscExtension.addBuildTarget(project, "run" + name.capitalize(), target, outputFile, run = true)
+			addBuildTargetExtra(project, name, target, outputFile, minimizeNames = false)
 		}
 
-		fun addBuildTarget(project: Project, name: String, target: String?, outputFile: String?, run: Boolean) {
+		fun addBuildTargetMinimized(project: Project, name: String, target: String?, outputFile: String?) {
+			addBuildTargetExtra(project, name, target, outputFile, minimizeNames = true)
+		}
+
+		fun addBuildTargetExtra(project: Project, name: String, target: String?, outputFile: String?, minimizeNames: Boolean) {
+			JTranscExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, minimizeNames = minimizeNames)
+			JTranscExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, minimizeNames = minimizeNames)
+		}
+
+		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, minimizeNames: Boolean) {
+			val justBuild = !run
 			val clazz = if (run) JTranscRunTask::class.java else JTranscDistTask::class.java
 			val group = if (run) "application" else "distribution"
 			val verb = (if (run) "Runs" else "Packages")
@@ -27,7 +36,7 @@ open class JTranscExtension(val project: Project) {
 			), name, JTranscPlugin.LambdaClosure({ it: AbstractJTranscTask ->
 				it.target = target
 				it.outputFile = outputFile
-				it.minimizedNames = if (run) false else true
+				it.minimizedNames = justBuild && minimizeNames
 				it.debug = if (run) true else false
 			})).dependsOn("build")
 		}
@@ -84,5 +93,10 @@ open class JTranscExtension(val project: Project) {
 	@Suppress("unused")
 	fun customTarget(name: String, target: String, extension: String) {
 		JTranscExtension.addBuildTarget(project, name, target, "program.$extension")
+	}
+
+	@Suppress("unused")
+	fun customTargetMinimized(name: String, target: String, extension: String) {
+		JTranscExtension.addBuildTargetMinimized(project, name, target, "program.$extension")
 	}
 }

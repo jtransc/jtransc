@@ -29,14 +29,14 @@ open class JTranscPlugin : Plugin<Project> {
 		//project.setProperty(JTranscDistTask::class.java.simpleName, JTranscDistTask::class.java)
 		//project.setProperty(JTransRunTask::class.java.simpleName, JTransRunTask::class.java)
 
-		fun addBuildTarget(name: String, target: String?, outputFile: String?) {
-			JTranscExtension.addBuildTarget(project, name, target, outputFile)
+		fun addBuildTarget(name: String, target: String?, outputFile: String?, minimizeNames: Boolean = false) {
+			JTranscExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
 		}
 
-		JTranscExtension.addBuildTarget(project, "distJtransc", null, null, run = false)
-		JTranscExtension.addBuildTarget(project, "runJtransc", null, null, run = true)
+		JTranscExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, minimizeNames = false)
+		JTranscExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, minimizeNames = false)
 
-		addBuildTarget("js", "haxe:js", "program.js")
+		addBuildTarget("js", "haxe:js", "program.js", minimizeNames = true)
 		addBuildTarget("swf", "haxe:swf", "program.swf")
 		addBuildTarget("cpp", "haxe:cpp", "program.exe")
 		addBuildTarget("neko", "haxe:neko", "program.n")
