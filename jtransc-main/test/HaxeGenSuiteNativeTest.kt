@@ -54,6 +54,11 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		true
 		true
 		false
+		true
+		true
+		false
+		false
+		flush
 	""")
 }
 

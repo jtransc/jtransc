@@ -90,21 +90,24 @@ class HaxeNames(
 
 		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
 
-		return methodNmaes.getOrPut2(objectToCache) {
-			if (realclass.isNative) {
-				method.name
-			} else if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
-				allocMemberName()
-			} else {
-				if (realmethod.nativeMethod != null) {
-					realmethod.nativeMethod!!
+		return if (realclass.isNative) {
+			// No cache
+			method.name
+		} else {
+			methodNmaes.getOrPut2(objectToCache) {
+				if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
+					allocMemberName()
 				} else {
-					val name2 = "${method.name}${method.desc}"
-					val name = when (method.name) {
-						"<init>", "<clinit>" -> "${method.containingClass}$name2"
-						else -> name2
+					if (realmethod.nativeMethod != null) {
+						realmethod.nativeMethod!!
+					} else {
+						val name2 = "${method.name}${method.desc}"
+						val name = when (method.name) {
+							"<init>", "<clinit>" -> "${method.containingClass}$name2"
+							else -> name2
+						}
+						cleanName(name)
 					}
-					cleanName(name)
 				}
 			}
 		}
@@ -158,30 +161,33 @@ class HaxeNames(
 		//val keyToUse = if (ENABLED_MINIFY_FIELDS) field else field.name
 		val keyToUse = field
 
-		return fieldNames.getOrPut2(keyToUse) {
-			if (realclass.isNative) {
-				field.name
-			} else if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
-				allocMemberName()
-			} else {
-				if (field !in cachedFieldNames) {
-					val fieldName = field.name.replace('$', '_')
-					var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+		return if (realclass.isNative) {
+			// No cache
+			field.name
+		} else {
+			fieldNames.getOrPut2(keyToUse) {
+				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
+					allocMemberName()
+				} else {
+					if (field !in cachedFieldNames) {
+						val fieldName = field.name.replace('$', '_')
+						var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
-					val clazz = program[field]?.containingClass
-					val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
-					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
-					val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
+						val clazz = program[field]?.containingClass
+						val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
+						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
+						val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
 
-					// JTranscBugInnerMethodsWithSameName.kt
-					for (f2 in fieldsColliding) {
-						while (name in names) name += "_"
-						cachedFieldNames[f2] = name
-						names += name
+						// JTranscBugInnerMethodsWithSameName.kt
+						for (f2 in fieldsColliding) {
+							while (name in names) name += "_"
+							cachedFieldNames[f2] = name
+							names += name
+						}
+						cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 					}
 					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 				}
-				cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 			}
 		}
 	}
