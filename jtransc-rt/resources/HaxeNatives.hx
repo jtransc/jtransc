@@ -29,13 +29,13 @@ class HaxeNatives {
     inline static public function intToLong(v:Int):Long {
 		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
 	}
-    inline static public function floatToLong(v:Float):Long {
+    inline static public function floatToLong(v:Float64):Long {
 		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 	}
     static public function longToInt(v:Long):Int { return v.low; }
-    static public function longToFloat(v:Long):Float {
-        var lowf:Float = cast v.low;
-        var highf:Float = cast v.high;
+    static public function longToFloat(v:Long):Float64 {
+        var lowf:Float64 = cast v.low;
+        var highf:Float64 = cast v.high;
         return lowf + highf * M2P32_DBL;
     }
 
@@ -92,9 +92,9 @@ class HaxeNatives {
 	// BOX alias
     static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
     static public function int(value:Int):JavaInteger return boxInt(value);
-    static public function long(value:Long):JavaLong return boxLong(value);
-    static public function float(value:Float):JavaFloat return boxFloat(value);
-    static public function double(value:Float):JavaDouble return boxDouble(value);
+    static public function long(value:Int64):JavaLong return boxLong(value);
+    static public function float(value:Float32):JavaFloat return boxFloat(value);
+    static public function double(value:Float64):JavaDouble return boxDouble(value);
 
     static public function strArray(strs:Array<String>):HaxeArrayAny {
         return HaxeArrayAny.fromArray(strs.map(function(s) { return str(s); }).array(), "[Ljava.lang.String;");
@@ -283,8 +283,8 @@ class HaxeNatives {
 	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter.{% METHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
 	static public function boxInt(value:Int):JavaInteger { return JavaInteger.{% METHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
 	static public function boxLong(value:Long):JavaLong { return JavaLong.{% METHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-	static public function boxFloat(value:Float):JavaFloat { return JavaFloat.{% METHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-	static public function boxDouble(value:Float):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat.{% METHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	static public function boxDouble(value:Float64):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 	static public function boxString(value:String):JavaString { return (value != null) ? JavaString.make(value) : null; }
 	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 	static public function boxByteArray(value:Bytes):HaxeArrayByte { return HaxeArrayByte.fromBytes(value); }
@@ -296,8 +296,8 @@ class HaxeNatives {
 	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter).{% FIELD java.lang.Character:value:C %}; }
 	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger).{% FIELD java.lang.Integer:value:I %}; }
 	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong).{% FIELD java.lang.Long:value:J %}; }
-	static public function unboxFloat(value:JavaObject):Float { return cast(value, JavaFloat).{% FIELD java.lang.Float:value:F %}; }
-	static public function unboxDouble(value:JavaObject):Float { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
+	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat).{% FIELD java.lang.Float:value:F %}; }
+	static public function unboxDouble(value:JavaObject):Float64 { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
 	static public function unboxString(value:JavaObject):String { return cast(value, JavaString)._str; }
 	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
 	static public function unboxByteArray(value:JavaObject):Bytes { return cast(value, HaxeArrayByte).getBytes(); }
@@ -307,7 +307,7 @@ class HaxeNatives {
     static private var _tempI32 = haxe.io.Int32Array.fromBytes(_tempBytes);
     static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
 
-    static public function intBitsToFloat(value: Int) {
+    static public function intBitsToFloat(value: Int): Float32 {
         #if cpp
         	untyped __cpp__("int value2 = (int){0};", value);
         	return untyped __cpp__("*(float *)(&value2)");
@@ -316,7 +316,7 @@ class HaxeNatives {
         #end
     }
 
-    static public function floatToIntBits(value: Float) {
+    static public function floatToIntBits(value: Float32): Int {
         #if cpp
         	untyped __cpp__("float value2 = (float){0};", value);
         	return untyped __cpp__("*(int *)(&value2)");
@@ -325,7 +325,7 @@ class HaxeNatives {
         #end
     }
 
-    static public function longBitsToDouble(value: Long) {
+    static public function longBitsToDouble(value: Int64): Float64 {
         #if cpp
         	untyped __cpp__("cpp::Int64 value2 = (cpp::Int64){0};", value);
         	return untyped __cpp__("*(double *)(&value2)");
@@ -334,7 +334,7 @@ class HaxeNatives {
         #end
     }
 
-    static public function doubleToLongBits(value: Float):Int64 {
+    static public function doubleToLongBits(value: Float64):Int64 {
         #if cpp
         	untyped __cpp__("double value2 = (double){0};", value);
         	return untyped __cpp__("*(long *)(&value2)");

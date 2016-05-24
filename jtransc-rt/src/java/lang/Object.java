@@ -39,6 +39,7 @@ import java.lang.reflect.Field;
 	"HaxeIO.hx",
 	"HaxeFormat.hx",
 	"HaxeNativeWrapper.hx",
+	"Float32.hx", "Float64.hx",
 	"HaxeArrayBase.hx", "HaxeArrayBool.hx", "HaxeArrayByte.hx", "HaxeArrayShort.hx", "HaxeArrayChar.hx", "HaxeArrayInt.hx", "HaxeArrayFloat.hx", "HaxeArrayDouble.hx", "HaxeArrayLong.hx", "HaxeArrayAny.hx",
 	"JA_0.hx", "JA_B.hx", "JA_C.hx", "JA_D.hx", "JA_F.hx", "JA_I.hx", "JA_J.hx", "JA_L.hx", "JA_S.hx", "JA_Z.hx"
 })

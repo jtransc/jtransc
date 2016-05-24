@@ -243,7 +243,8 @@ class HaxeNames(
 			is AstType.BOOL -> "Bool"
 			is AstType.GENERIC -> getHaxeType(type.type, typeKind).fqname
 			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
-			is AstType.FLOAT, is AstType.DOUBLE -> "Float"
+			is AstType.FLOAT -> "Float32"
+			is AstType.DOUBLE -> "Float64"
 			is AstType.LONG -> "haxe.Int64"
 			is AstType.REF -> program[type.name]?.nativeName ?: getHaxeClassFqName(type.name)
 			is AstType.ARRAY -> when (type.element) {
