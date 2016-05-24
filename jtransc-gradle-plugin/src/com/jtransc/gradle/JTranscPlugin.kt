@@ -14,8 +14,10 @@ import org.gradle.api.Project
  */
 open class JTranscPlugin : Plugin<Project> {
 	companion object {
+		val jtranscVersion = JTranscVersion.getVersion()
+
 		@Suppress("unused")
-		@JvmStatic fun getJTranscVersion() = JTranscVersion.getVersion()
+		@JvmStatic fun getJTranscVersion() = jtranscVersion
 	}
 
 	override fun apply(project: Project) {
@@ -41,6 +43,12 @@ open class JTranscPlugin : Plugin<Project> {
 		addBuildTarget("cpp", "haxe:cpp", "program.exe")
 		addBuildTarget("neko", "haxe:neko", "program.n")
 		addBuildTarget("php", "haxe:php", "program.php")
+
+		project.configurations.create("jtranscRuntime")
+		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt:$jtranscVersion")
+		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt-core:$jtranscVersion")
+
+		//project.
 	}
 
 	open class LambdaClosure<T, TR>(val lambda: (value: T) -> TR) : Closure<T>(Unit) {

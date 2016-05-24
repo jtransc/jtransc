@@ -47,6 +47,7 @@ open class AbstractJTranscTask : DefaultTask() {
 		val dependencies = project.dependencies!!
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		val compileConfiguration = configurations["compile"]
+		val runtimeConfiguration = configurations["jtranscRuntime"]
 
 		log.logger = { content, level ->
 			when (level) {
@@ -57,7 +58,13 @@ open class AbstractJTranscTask : DefaultTask() {
 			}
 		}
 
-		//for (file in compileConfiguration.files) println("file: $file")
+		for (file in runtimeConfiguration.files) {
+			logger.info("jtranscRuntime: $file")
+		}
+
+		for (file in compileConfiguration.files) {
+			logger.info("compile: $file")
+		}
 
 		logger.info("JTranscTask.jtransc() extension: $extension");
 		//println(project.property("output.classesDir"))
@@ -95,7 +102,7 @@ open class AbstractJTranscTask : DefaultTask() {
 			minimizeNames = minimizedNames ?: extension.minimizeNames ?: default.minimizeNames,
 			analyzer = analyzer ?: extension.analyzer ?: default.analyzer,
 			extra = extra + extension.extra,
-			rtAndRtCore = default.rtAndRtCore
+			rtAndRtCore = runtimeConfiguration.files.map { it.absolutePath }
 		)
 
 		return AllBuildSimple(
