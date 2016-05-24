@@ -302,46 +302,10 @@ class HaxeNatives {
 	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
 	static public function unboxByteArray(value:JavaObject):Bytes { return cast(value, HaxeArrayByte).getBytes(); }
 
-    static private var _tempBytes = haxe.io.Bytes.alloc(8);
-    static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);
-    static private var _tempI32 = haxe.io.Int32Array.fromBytes(_tempBytes);
-    static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
-
-    static public function intBitsToFloat(value: Int): Float32 {
-        #if cpp
-        	untyped __cpp__("int value2 = (int){0};", value);
-        	return untyped __cpp__("*(float *)(&value2)");
-        #else
-        	_tempI32[0] = value; return _tempF32[0];
-        #end
-    }
-
-    static public function floatToIntBits(value: Float32): Int {
-        #if cpp
-        	untyped __cpp__("float value2 = (float){0};", value);
-        	return untyped __cpp__("*(int *)(&value2)");
-        #else
-        	_tempF32[0] = value; return _tempI32[0];
-        #end
-    }
-
-    static public function longBitsToDouble(value: Int64): Float64 {
-        #if cpp
-        	untyped __cpp__("cpp::Int64 value2 = (cpp::Int64){0};", value);
-        	return untyped __cpp__("*(double *)(&value2)");
-        #else
-        	_tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
-        #end
-    }
-
-    static public function doubleToLongBits(value: Float64):Int64 {
-        #if cpp
-        	untyped __cpp__("double value2 = (double){0};", value);
-        	return untyped __cpp__("*(long *)(&value2)");
-        #else
-        	_tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
-        #end
-    }
+    static public function intBitsToFloat(value: Int): Float32 return haxe.io.FPHelper.i32ToFloat(value);
+    static public function floatToIntBits(value: Float32): Int return haxe.io.FPHelper.floatToI32(value);
+    static public function longBitsToDouble(value: Int64): Float64 return haxe.io.FPHelper.i64ToDouble(value.low, value.high);
+    static public function doubleToLongBits(value: Float64):Int64 return haxe.io.FPHelper.doubleToI64(value);
 
     static public function newException(msg:String) return {% CONSTRUCTOR java.lang.Exception:(Ljava/lang/String;)V %}(HaxeNatives.str(msg));
 

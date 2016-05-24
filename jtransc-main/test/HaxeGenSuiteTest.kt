@@ -97,13 +97,4 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun proxyTest() = testClass<ProxyTest>()
 
 	@Test fun wrappedTest() = testClass<WrappedTest>()
-
-	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) {
-		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
-	}
-
-	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) {
-		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
-	}
 }
-

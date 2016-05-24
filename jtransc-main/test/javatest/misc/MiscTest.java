@@ -99,6 +99,8 @@ public class MiscTest {
 
 	    testAssignItself();
 
+		testBits();
+
 		FastMemoryTest.main(new String[0]);
 
 		testStringUnicode();
@@ -107,6 +109,17 @@ public class MiscTest {
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testBits() {
+		System.out.println("testBits:");
+		System.out.println("Float.floatToIntBits:" + Float.floatToIntBits(1f));
+		System.out.println("Float.floatToRawIntBits:" + Float.floatToRawIntBits(1f));
+		System.out.println("Double.doubleToLongBits:" + Double.doubleToLongBits(1.0));
+		System.out.println("Double.doubleToRawLongBits:" + Double.doubleToRawLongBits(1.0));
+
+		System.out.println("Float.intBitsToFloat:" + Float.intBitsToFloat(1065353216));
+		System.out.println("Double.longBitsToDouble:" + Double.longBitsToDouble(4607182418800017408L));
+	}
 
 	static private void testStringUnicode() {
 		String str = "áéíóúあいうえお";
