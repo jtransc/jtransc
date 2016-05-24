@@ -1,6 +1,7 @@
 package jtransc.jtransc;
 
 import com.jtransc.*;
+import com.jtransc.mem.BytesRead;
 
 import java.util.Arrays;
 
@@ -11,6 +12,7 @@ public class FastMemoryTest {
 		testCopyReinterpret();
 		testViews();
 		testRawMem();
+		testBits();
 	}
 
 	private static void testFastMemory() {
@@ -38,7 +40,7 @@ public class FastMemoryTest {
 	}
 
 	private static void testCopyReinterpret() {
-		byte[] data = JTranscArrays.copyReinterpret(new int[] { 0x12345678, 0x33332222 });
+		byte[] data = JTranscArrays.copyReinterpret(new int[]{0x12345678, 0x33332222});
 		System.out.println(Arrays.toString(data));
 	}
 
@@ -61,7 +63,19 @@ public class FastMemoryTest {
 		System.out.println(Mem.li8(1));
 		System.out.println(Mem.li8(2));
 		System.out.println(Mem.li8(3));
-		Mem.si8(0, (byte)255);
+		Mem.si8(0, (byte) 255);
 		System.out.println(Mem.li8(0) < 0);
+	}
+
+	private static void testBits() {
+		System.out.println("testBits (all true):");
+		System.out.println(BytesRead.s32l(new byte[]{0, 1, 0, 0, 0}, 1) == 1);
+		System.out.println(BytesRead.s32l(new byte[]{0, 2, 1, 0, 0}, 1) == 0x100 + 2);
+		System.out.println(BytesRead.s32b(new byte[]{(byte) 0x71, (byte) 0x32, (byte) 0xE3, (byte) 0xF4}, 0) == 0x7132E3F4);
+		System.out.println(BytesRead.s32l(new byte[]{(byte) 0x71, (byte) 0x32, (byte) 0xE3, (byte) 0xF4}, 0) == 0xF4E33271);
+		System.out.println(BytesRead.u16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == 0xF132);
+		System.out.println(BytesRead.u16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == 0x32F1);
+		System.out.println(BytesRead.s16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == (int)(short)0xF132);
+		System.out.println(BytesRead.s16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == (int)(short)0x32F1);
 	}
 }
