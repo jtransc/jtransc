@@ -77,5 +77,14 @@ public class FastMemoryTest {
 		System.out.println(BytesRead.u16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == 0x32F1);
 		System.out.println(BytesRead.s16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == (int)(short)0xF132);
 		System.out.println(BytesRead.s16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0) == (int)(short)0x32F1);
+		System.out.println("testBits (values):");
+		System.out.println(BytesRead.s32l(new byte[]{0, 1, 0, 0, 0}, 1));
+		System.out.println(BytesRead.s32l(new byte[]{0, 2, 1, 0, 0}, 1));
+		System.out.println(BytesRead.s32b(new byte[]{(byte) 0x71, (byte) 0x32, (byte) 0xE3, (byte) 0xF4}, 0));
+		System.out.println(BytesRead.s32l(new byte[]{(byte) 0x71, (byte) 0x32, (byte) 0xE3, (byte) 0xF4}, 0));
+		System.out.println(BytesRead.u16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
+		System.out.println(BytesRead.u16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
+		System.out.println(BytesRead.s16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
+		System.out.println(BytesRead.s16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
 	}
 }

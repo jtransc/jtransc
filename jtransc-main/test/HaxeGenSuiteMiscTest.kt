@@ -38,5 +38,9 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) {
 		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 	}
+
+	//@Test fun miscTestNeko() = testClass<MiscTest>(lang = "neko", minimize = false) {
+	//	it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+	//}
 }
 

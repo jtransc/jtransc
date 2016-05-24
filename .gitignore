@@ -45,3 +45,4 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 *.js
 *.php
 .gradle
+*.neko

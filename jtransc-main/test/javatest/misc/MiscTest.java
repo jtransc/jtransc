@@ -99,7 +99,8 @@ public class MiscTest {
 
 	    testAssignItself();
 
-		testBits();
+		testBitsConv();
+		testBitsReverse();
 
 		FastMemoryTest.main(new String[0]);
 
@@ -110,8 +111,8 @@ public class MiscTest {
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
 
-	static private void testBits() {
-		System.out.println("testBits:");
+	static private void testBitsConv() {
+		System.out.println("testBitsConv:");
 		System.out.println("Float.floatToIntBits:" + Float.floatToIntBits(1f));
 		System.out.println("Float.floatToRawIntBits:" + Float.floatToRawIntBits(1f));
 		System.out.println("Double.doubleToLongBits:" + Double.doubleToLongBits(1.0));
@@ -119,6 +120,16 @@ public class MiscTest {
 
 		System.out.println("Float.intBitsToFloat:" + Float.intBitsToFloat(1065353216));
 		System.out.println("Double.longBitsToDouble:" + Double.longBitsToDouble(4607182418800017408L));
+	}
+
+	static private void testBitsReverse() {
+		System.out.println("testBitsReverse:");
+		System.out.println("Integer.reverse:" + Integer.reverse(0x12345678));
+		System.out.println("Integer.reverse:" + Integer.reverse(0xF2345678));
+		System.out.println("Integer.reverse:" + Integer.reverseBytes(0x12345678));
+		System.out.println("Integer.reverse:" + Integer.reverseBytes(0xF2345678));
+		System.out.println("Short.reverseBytes:" + Short.reverseBytes((short)0x1234));
+		System.out.println("Short.reverseBytes:" + Short.reverseBytes((short)0xF234));
 	}
 
 	static private void testStringUnicode() {
