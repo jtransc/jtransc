@@ -308,26 +308,38 @@ class HaxeNatives {
     static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
 
     static public function intBitsToFloat(value: Int) {
-        #if cpp return untyped __cpp__("*(float *)(&{0})", value);
-        #else _tempI32[0] = value; return _tempF32[0];
+        #if cpp
+        	untyped __cpp__("int value2 = (int){0};", value);
+        	return untyped __cpp__("*(float *)(&value2)");
+        #else
+        	_tempI32[0] = value; return _tempF32[0];
         #end
     }
 
     static public function floatToIntBits(value: Float) {
-        #if cpp return untyped __cpp__("*(int *)(&{0})", value);
-        #else _tempF32[0] = value; return _tempI32[0];
+        #if cpp
+        	untyped __cpp__("float value2 = (float){0};", value);
+        	return untyped __cpp__("*(int *)(&value2)");
+        #else
+        	_tempF32[0] = value; return _tempI32[0];
         #end
     }
 
     static public function longBitsToDouble(value: Long) {
-        #if cpp return untyped __cpp__("*(double *)(&{0})", value);
-        #else _tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
+        #if cpp
+        	untyped __cpp__("cpp::Int64 value2 = (cpp::Int64){0};", value);
+        	return untyped __cpp__("*(double *)(&value2)");
+        #else
+        	_tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
         #end
     }
 
     static public function doubleToLongBits(value: Float):Int64 {
-        #if cpp return untyped __cpp__("*(long *)(&{0})", value);
-        #else _tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
+        #if cpp
+        	untyped __cpp__("double value2 = (double){0};", value);
+        	return untyped __cpp__("*(long *)(&value2)");
+        #else
+        	_tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
         #end
     }
 
