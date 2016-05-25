@@ -27,17 +27,24 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 
 class HaxeNatives {
 	static private var M2P32_DBL = Math.pow(2, 32);
+
+	static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
+	static private var MIN_INT64 = haxe.Int64.make(0x80000000, 0x00000000);
+
     inline static public function intToLong(v:Int):Long {
 		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
 	}
     inline static public function floatToLong(v:Float64):Long {
 		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 	}
-    static public function longToInt(v:Long):Int { return v.low; }
-    static public function longToFloat(v:Long):Float64 {
-        var lowf:Float64 = cast v.low;
-        var highf:Float64 = cast v.high;
-        return lowf + highf * M2P32_DBL;
+    static public function longToInt(v:Int64):Int { return v.low; }
+    static public function longToFloat(v:Int64):Float64 {
+        if (v < 0) {
+			return (v == MIN_INT64) ? -9223372036854775808.0 : -longToFloat(-v);
+		}
+		var lowf:Float64 = cast v.low;
+		var highf:Float64 = cast v.high;
+		return lowf + highf * M2P32_DBL;
     }
 
     static public function lcmp(a:Long, b:Long):Int return N.llcmp(a, b);

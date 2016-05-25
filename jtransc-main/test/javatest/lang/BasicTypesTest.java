@@ -255,6 +255,17 @@ public class BasicTypesTest {
 
 		System.out.println(Double.parseDouble("0.0"));
 		System.out.println(Double.parseDouble("1.0"));
+		System.out.println(Double.parseDouble("-74"));
+
+		System.out.println(Long.parseLong("74"));
+		System.out.println((double)(int)Long.parseLong("74"));
+		System.out.println((double)Long.parseLong("74"));
+
+		System.out.println(Long.parseLong("-74"));
+		System.out.println((double)(int)Long.parseLong("-74"));
+		System.out.println((double)Long.parseLong("-74"));
+		System.out.println((double)Long.MIN_VALUE < 0.0);
+		System.out.println((double)Long.MAX_VALUE < 0.0);
 	}
 
 	private static void compareInts() {
