@@ -21,6 +21,9 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @HaxeAddMembers({
+	"public var _pattern:String;",
+	"public var _opts:String;",
+	"public var _text:String;",
 	"public var _ereg:EReg;",
 	"public var _matches:Bool;",
 	"public var _offset:Int = 0;",
@@ -78,6 +81,9 @@ public final class Matcher implements MatchResult {
 		"if ((flags & 0x02) != 0) opts += 'i';\n" +
 		"if ((flags & 0x08) != 0) opts += 'm';\n" +
 		//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
+		"this._pattern = pattern._str;\n" +
+		"this._opts = opts;\n" +
+		"this._text = text._str;\n" +
 		"this._ereg = new EReg(pattern._str, opts);\n" +
 		"this._matches = (new EReg('^' + pattern._str + '$', opts)).match(text._str);"
 	)
@@ -151,8 +157,10 @@ public final class Matcher implements MatchResult {
 
 	native public StringBuffer appendTail(StringBuffer sb);
 
+	@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
 	native public String replaceAll(String replacement);
 
+	@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts).replace(this._text, p0._str));")
 	native public String replaceFirst(String replacement);
 
 	native public Matcher region(int start, int end);

@@ -7,6 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class JTranscSyncIO {
+	static public final int BA_EXISTS    = 0x01;
+	static public final int BA_REGULAR   = 0x02;
+	static public final int BA_DIRECTORY = 0x04;
+	static public final int BA_HIDDEN    = 0x08;
+
 	public static final int O_RDONLY = 1;
 	public static final int O_RDWR = 2;
 	public static final int O_SYNC = 4;

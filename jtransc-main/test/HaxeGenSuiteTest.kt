@@ -61,7 +61,7 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 
 	@Test fun basicTypesTest() = testClass<BasicTypesTest>()
 
-	@Test fun regexTests() = testClass<javatest.utils.regex.RegexTest>()
+	@Test fun regexTests() = testClass<javatest.utils.regex.RegexTest>(minimize = false)
 
 	@Test fun dateTests() = testClass<DateTest>()
 
