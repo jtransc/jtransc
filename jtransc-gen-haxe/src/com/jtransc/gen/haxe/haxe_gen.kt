@@ -482,8 +482,8 @@ class GenHaxeGen(
 
 				val binexpr = if (resultType == AstType.LONG) {
 					"N.l$opName($l, $r)"
-				} else if (resultType == AstType.INT && opSymbol == "/") {
-					"N.idiv($l, $r)"
+				} else if (resultType == AstType.INT && opSymbol in setOf("/", "<<", ">>", ">>>")) {
+					"N.i$opName($l, $r)"
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
@@ -491,7 +491,7 @@ class GenHaxeGen(
 					}
 				}
 				when (resultType) {
-					AstType.INT -> "(($binexpr) | 0)"
+					AstType.INT -> "N.i($binexpr)"
 					AstType.CHAR -> "N.i2c($binexpr)"
 					AstType.SHORT -> "N.i2s($binexpr)"
 					AstType.BYTE -> "N.i2b($binexpr)"

@@ -2,6 +2,7 @@ package ;
 
 import haxe.ds.Vector;
 import haxe.Int64;
+import haxe.Int32;
 import haxe.io.Bytes;
 import Lambda;
 import haxe.CallStack;
@@ -38,6 +39,12 @@ class N {
 	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
 	static public function i2c(v:Int):Int return v & 0xFFFF;
 
+	#if (js || cpp || flash)
+	inline static public function i(v:Int):Int32 return v | 0;
+	#else
+	static public function i(v:Int):Int32 return (v << _shift(32)) >> _shift(32);
+	#end
+
 	static public function f2i(v:Float):Int {
 		#if cpp
 		return untyped __cpp__("((int)({0}))", v);
@@ -57,6 +64,17 @@ class N {
 		return Std.int(a / b);
 		#end
 	}
+
+	#if php
+	static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : (32 + v);
+	static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
+	static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
+	static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
+	#else
+	static public function ishl(a:Int32, b:Int32):Int32 return a << b;
+	static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
+	static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
+	#end
 
 	// Long operators
 	static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);

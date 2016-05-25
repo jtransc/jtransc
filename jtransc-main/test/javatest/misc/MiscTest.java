@@ -100,7 +100,7 @@ public class MiscTest {
 	    testAssignItself();
 
 		testBitsConv();
-		testBitsReverse();
+		testBitsOps();
 
 		FastMemoryTest.main(new String[0]);
 
@@ -122,12 +122,15 @@ public class MiscTest {
 		System.out.println("Double.longBitsToDouble:" + Double.longBitsToDouble(4607182418800017408L));
 	}
 
-	static private void testBitsReverse() {
-		System.out.println("testBitsReverse:");
+	static private void testBitsOps() {
+		System.out.println("testBitsOps:");
+		System.out.println("Integer.bitCount:" + Integer.bitCount(0x12345678));
 		System.out.println("Integer.reverse:" + Integer.reverse(0x12345678));
 		System.out.println("Integer.reverse:" + Integer.reverse(0xF2345678));
-		System.out.println("Integer.reverse:" + Integer.reverseBytes(0x12345678));
-		System.out.println("Integer.reverse:" + Integer.reverseBytes(0xF2345678));
+		System.out.println("Integer.reverseBytes:" + Integer.reverseBytes(0x12345678));
+		System.out.println("Integer.reverseBytes:" + Integer.reverseBytes(0xF2345678));
+		System.out.println("Integer.rotateLeft:" + Integer.rotateLeft(0x12345678, 13));
+		System.out.println("Integer.rotateRight:" + Integer.rotateRight(0xF2345678, 27));
 		System.out.println("Short.reverseBytes:" + Short.reverseBytes((short)0x1234));
 		System.out.println("Short.reverseBytes:" + Short.reverseBytes((short)0xF234));
 	}

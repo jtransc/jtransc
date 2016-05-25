@@ -1,6 +1,7 @@
 package ;
 
 import haxe.ds.Vector;
+import haxe.Int32;
 import haxe.Int64;
 import haxe.Utf8;
 import haxe.io.Bytes;
@@ -305,7 +306,9 @@ class HaxeNatives {
     static public function intBitsToFloat(value: Int): Float32 return haxe.io.FPHelper.i32ToFloat(value);
     static public function floatToIntBits(value: Float32): Int return haxe.io.FPHelper.floatToI32(value);
     static public function longBitsToDouble(value: Int64): Float64 return haxe.io.FPHelper.i64ToDouble(value.low, value.high);
-    static public function doubleToLongBits(value: Float64):Int64 return haxe.io.FPHelper.doubleToI64(value);
+    static public function doubleToLongBits(value: Float64):Int64 {
+        return haxe.io.FPHelper.doubleToI64(value);
+    }
 
     static public function newException(msg:String) return {% CONSTRUCTOR java.lang.Exception:(Ljava/lang/String;)V %}(HaxeNatives.str(msg));
 
@@ -373,9 +376,9 @@ class HaxeNatives {
 		throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(HaxeNatives.str(msg));
 	}
 
-	static public function swap32(p0:Int):Int { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
-	static public function swap16(p0:Int):Int { return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16; }
-	static public function swap16u(p0:Int):Int { return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)); }
+	static public function swap32(p0:Int32):Int32 { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
+	static public function swap16(p0:Int32):Int32 { return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16; }
+	static public function swap16u(p0:Int32):Int32 { return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)); }
 
 	#if debug
 		static public function checkNotNull<T>(item:T):T {
