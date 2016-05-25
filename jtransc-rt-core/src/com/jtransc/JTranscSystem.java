@@ -190,7 +190,8 @@ public class JTranscSystem {
 	}
 
 	public static String fileSeparator() {
-		return isWindows() ? "\\" : "/";
+		//return (!isJs() && isWindows()) ? "\\" : "/";
+		return "/";
 	}
 
 	public static String pathSeparator() {
