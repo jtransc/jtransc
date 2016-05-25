@@ -47,6 +47,7 @@ open class AbstractJTranscTask : DefaultTask() {
 		val dependencies = project.dependencies!!
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		val compileConfiguration = configurations["compile"]
+		val jtranscConfiguration = configurations["jtransc"]
 		val runtimeConfiguration = configurations["jtranscRuntime"]
 
 		log.logger = { content, level ->
@@ -58,13 +59,9 @@ open class AbstractJTranscTask : DefaultTask() {
 			}
 		}
 
-		for (file in runtimeConfiguration.files) {
-			logger.info("jtranscRuntime: $file")
-		}
-
-		for (file in compileConfiguration.files) {
-			logger.info("compile: $file")
-		}
+		for (file in runtimeConfiguration.files) logger.info("jtranscRuntime: $file")
+		for (file in jtranscConfiguration.files) logger.info("jtransc: $file")
+		for (file in compileConfiguration.files) logger.info("compile: $file")
 
 		logger.info("JTranscTask.jtransc() extension: $extension");
 		//println(project.property("output.classesDir"))
@@ -107,7 +104,7 @@ open class AbstractJTranscTask : DefaultTask() {
 
 		return AllBuildSimple(
 			entryPoint = mainClassName,
-			classPaths = listOf(classesDir.absolutePath) + compileConfiguration.files.map { it.absolutePath },
+			classPaths = listOf(classesDir.absolutePath) + jtranscConfiguration.files.map { it.absolutePath } + compileConfiguration.files.map { it.absolutePath },
 			//AllBuildTargets = AllBuildTargets,
 			target = target ?: extension.target ?: "haxe:js",
 			output = outputFile ?: extension.output,
