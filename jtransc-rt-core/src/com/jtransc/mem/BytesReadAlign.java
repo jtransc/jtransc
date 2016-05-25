@@ -1,7 +1,7 @@
 package com.jtransc.mem;
 
 /**
- * @TODO: Optimize this!
+ * TODO: Optimize this!
  */
 public class BytesReadAlign {
 	// 8-bit
