@@ -48,35 +48,40 @@ fun GenTarget.build(
 	val processor = log.logAndTime("Preparing processor") { this.getProcessor(GenTargetInfo(program, outputFile, settings, subtarget, targetDirectory), settings) }
 	log.logAndTime("Building source") { processor.buildSource() }
 
-	log("Compiling...")
-	val (compileTime, compileResult) = measureTime { processor.compile() }
-	if (compileResult) {
-		log("Ok ($compileTime)")
+	if (run) {
+		log("Compiling and running...")
+		val (compileTime, result) = measureTime { processor.compileAndRun(!captureRunOutput) }
+		if (result.success) {
+			log("Ok ($compileTime)")
+		} else {
+			log.error("ERROR ($compileTime) (${result.exitValue})")
+		}
+		return AllBuild.Result(result)
 	} else {
-		log("ERROR ($compileTime) ($compileResult)")
-	}
+		log("Compiling...")
+		val (compileTime, compileResult) = measureTime { processor.compile() }
+		if (compileResult.success) {
+			log("Ok ($compileTime)")
+		} else {
+			log.error("ERROR ($compileTime) ($compileResult)")
+		}
 
-	val processResult = if (!compileResult) {
-		ProcessResult2(-1)
-	} else if (run) {
-		processor.run(redirect = !captureRunOutput)
-	} else {
-		ProcessResult2(0)
+		return AllBuild.Result(ProcessResult2(compileResult.exitValue))
 	}
-
-	return AllBuild.Result(processResult)
 }
 
-interface GenTargetProcessor {
-	fun buildSource(): Unit
-	fun compile(): Boolean
-	fun run(redirect: Boolean = true): ProcessResult2
-}
-
-fun GenTargetProcessor.process(redirect: Boolean = true): ProcessResult2 {
-	this.buildSource()
-	this.compile()
-	return this.run(redirect)
+abstract class GenTargetProcessor {
+	abstract fun buildSource(): Unit
+	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
+		val compileResult = compile()
+		return if (!compileResult.success) {
+			ProcessResult2(compileResult.exitValue)
+		} else {
+			this.run(redirect)
+		}
+	}
+	abstract fun compile(): ProcessResult2
+	abstract fun run(redirect: Boolean = true): ProcessResult2
 }
 
 data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: String, val ext: String = sub) {

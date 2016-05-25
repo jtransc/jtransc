@@ -249,7 +249,7 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 	fun gen(template: String): String = Minitemplate(template, miniConfig).invoke(params)
 }
 
-class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor {
+class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor() {
 	val actualSubtargetName = tinfo.subtarget
 	val availableHaxeSubtargets = tinfo.program.allAnnotations
 		.map { it.toObject<HaxeAddSubtargetList>() ?: it.toObject<HaxeAddSubtarget>() }
@@ -296,11 +296,15 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
 
+	override fun compileAndRun(redirect: Boolean): ProcessResult2 {
+		return _compileRun(run = true, redirect = redirect)
+	}
 
-	override fun compile(): Boolean {
-		val names = tinfo
-		if (info == null) throw InvalidOperationException("Must call .buildSource first")
-		val info = info!!
+	override fun compile(): ProcessResult2 {
+		return _compileRun(run = false, redirect = false)
+	}
+
+	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
 		outputFile2.delete()
 		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
@@ -317,7 +321,13 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
 		for (file in copyFilesBeforeBuildTemplate) buildVfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
 
-		val lines = (program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
+		val buildAndRunAsASingleCommand = run && program.allAnnotationsList.contains<HaxeCustomBuildAndRunCommandLine>()
+
+		val lines = if (buildAndRunAsASingleCommand) {
+			(program.allAnnotationsList.getTyped<HaxeCustomBuildAndRunCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
+		} else {
+			(program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
+		}
 
 		val lines2 = lines.map {
 			if (it.startsWith("@")) {
@@ -328,21 +338,18 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		}
 
 		val cmdAll = haxeTemplateString.gen(lines2.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
-
-
 		val cmdList = cmdAll.split("----").filter { it.isNotEmpty() }
 
-		log("Commands to execute:")
+		log("Commands to execute (buildAndRunAsASingleCommand=$buildAndRunAsASingleCommand):")
 		for (cmd in cmdList) {
 			log("- ${cmd.joinToString(" ")}")
 		}
 		for (cmd in cmdList) {
 			log("Executing: ${cmd.joinToString(" ")}")
-			if (!ProcessUtils.runAndRedirect(buildVfs.realfile, cmd).success) {
-				return false
-			}
+			val processResult = ProcessUtils.runAndRedirect(buildVfs.realfile, cmd)
+			if (!processResult.success) return ProcessResult2(processResult.exitValue)
 		}
-		return true
+		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
