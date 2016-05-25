@@ -42,7 +42,7 @@ open class AbstractJTranscTask : DefaultTask() {
 
 	open protected fun prepare(): AllBuild {
 		val extension = project.getIfExists<JTranscExtension>(JTranscExtension.NAME)!!
-		val mainClassName = project.getIfExists<String>("mainClassName")
+		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
 		val buildDir = project.buildDir
 		val dependencies = project.dependencies!!
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
@@ -106,7 +106,7 @@ open class AbstractJTranscTask : DefaultTask() {
 		)
 
 		return AllBuildSimple(
-			entryPoint = this.mainClassName ?: mainClassName ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!"),
+			entryPoint = mainClassName,
 			classPaths = listOf(classesDir.absolutePath) + compileConfiguration.files.map { it.absolutePath },
 			//AllBuildTargets = AllBuildTargets,
 			target = target ?: extension.target ?: "haxe:js",

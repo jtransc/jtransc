@@ -69,6 +69,7 @@ open class JTranscExtension(val project: Project) {
 	var relooper: Boolean? = null
 	var minimizeNames: Boolean? = null
 	var analyzer: Boolean? = null
+	var mainClassName: String? = null
 
 	/*
 	Alias for:
