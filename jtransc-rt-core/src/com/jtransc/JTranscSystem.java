@@ -200,9 +200,4 @@ public class JTranscSystem {
 	public static String lineSeparator() {
 		return isWindows() ? "\r\n" : "\n";
 	}
-
-	@HaxeMethodBody("return HaxeNatives.strArray(R.getAllClasses());")
-	static public String[] getAllClasses() {
-		throw new RuntimeException("Not implemented on JVM yet!");
-	}
 }
