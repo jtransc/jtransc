@@ -203,6 +203,7 @@ public class BasicTypesTest {
 	}
 
 	private static void parseTests() {
+		System.out.println("parseTests:");
 		System.out.println("+10: " + Integer.parseInt("+10"));
 		System.out.println("+20: " + Integer.parseInt("+20", 16));
 		try {
@@ -257,6 +258,7 @@ public class BasicTypesTest {
 	}
 
 	private static void compareInts() {
+		System.out.println("compareInts:");
 		int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
 		for (int a : ints) {
 			for (int b : ints) {
@@ -284,6 +286,7 @@ public class BasicTypesTest {
 	}
 
 	private static void compareNans() {
+		System.out.println("compareNans:");
 		float[] floats = new float[]{0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN};
 		double[] doubles = new double[]{0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN};
 		for (float l : floats) {

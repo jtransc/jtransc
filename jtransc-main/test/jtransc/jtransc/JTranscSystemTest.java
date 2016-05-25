@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscNativeClass;
 import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.reflection.JTranscReflection;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 @HaxeAddFilesTemplate("Simple.hx")
 public class JTranscSystemTest {
 	static public void main(String[] args) {
-		List<String> classes = Arrays.asList(JTranscSystem.getAllClasses());
+		List<String> classes = Arrays.asList(JTranscReflection.getAllClasses());
 		System.out.println(classes.size() >= 2);
 		System.out.println(classes.contains(JTranscSystemTest.class.getName()));
 		System.out.println(classes.contains("com.donot.exists"));
