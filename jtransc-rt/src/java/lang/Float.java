@@ -143,7 +143,7 @@ public final class Float extends Number implements Comparable<Float> {
 		return compare(this.value, that.value);
 	}
 
-	strictfp public static int compare(float f1, float f2) {
+	public static int compare(float f1, float f2) {
 		if (f1 < f2) return -1;
 		if (f1 > f2) return 1;
 		int b1 = Float.floatToIntBits(f1);

@@ -19,6 +19,15 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		AstMethodRef("kotlin.jvm.internal.Intrinsics".fqname, "checkParameterIsNotNull", AstType.METHOD(AstType.VOID, listOf(AstType.OBJECT, AstType.STRING)))
 	)
 
+	private val invertComparisons = mapOf(
+		AstBinop.LT to AstBinop.GE,
+		AstBinop.LE to AstBinop.GT,
+		AstBinop.EQ to AstBinop.NE,
+		AstBinop.NE to AstBinop.EQ,
+		AstBinop.GT to AstBinop.LE,
+		AstBinop.GE to AstBinop.LT
+	)
+
 	override fun visit(expr: AstExpr.BINOP) {
 		super.visit(expr)
 		val box = expr.box
@@ -39,7 +48,6 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 				}
 			}
 			AstBinop.LT, AstBinop.LE, AstBinop.EQ, AstBinop.NE, AstBinop.GT, AstBinop.GE -> {
-				//if (flags.strictfp) println("strictfp!")
 				if (!flags.strictfp && (left is AstExpr.BINOP) && (right is AstExpr.LITERAL)) {
 					when (left.op) {
 						AstBinop.CMPG, AstBinop.CMPL, AstBinop.CMP -> {
@@ -48,7 +56,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 							val op = expr.op
 							val compareValue = right.value
 							if (compareValue == 0) {
-								box.value = AstExpr.BINOP(AstType.BOOL, l.value, op, r.value)
+								box.value = AstExpr.UNOP(AstUnop.NOT, AstExpr.BINOP(AstType.BOOL, l.value, invertComparisons[op]!!, r.value))
 							} else {
 								log.warn("WARNING: Unhandled float comparison (because compareValue != 0)! op = ${expr.op} :: compareValue = $compareValue")
 							}
