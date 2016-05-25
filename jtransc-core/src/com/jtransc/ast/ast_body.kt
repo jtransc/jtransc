@@ -7,8 +7,11 @@ import com.jtransc.error.noImpl
 data class AstBody(
 	val stm: AstStm,
 	var locals: List<AstLocal>,
-	val traps: List<AstTrap>
+	val traps: List<AstTrap>,
+	val flags: AstBodyFlags
 )
+
+data class AstBodyFlags(val strictfp: Boolean)
 
 enum class AstBinop(val symbol: String, val str: String) {
 	ADD("+", "add"), SUB("-", "sub"), MUL("*", "mul"), DIV("/", "div"), REM("%", "rem"),

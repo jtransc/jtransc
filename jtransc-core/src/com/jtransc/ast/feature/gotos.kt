@@ -120,7 +120,7 @@ object GotosFeature : AstFeature() {
 		}
 
 		try {
-			return AstBody(relooper.render(bblist[0].node!!)?.optimize() ?: return null, body.locals, body.traps)
+			return AstBody(relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.locals, body.traps, body.flags)
 		} catch (e: RelooperException) {
 			//println("RelooperException: ${e.message}")
 			return null
@@ -253,7 +253,7 @@ object GotosFeature : AstFeature() {
 			locals.add(gotostate.local)
 		}
 
-		return AstBody(stm, locals, traps)
+		return AstBody(stm, locals, traps, body.flags)
 	}
 
 }

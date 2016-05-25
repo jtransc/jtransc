@@ -71,9 +71,9 @@ class N {
 	static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
 	static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
 	#else
-	static public function ishl(a:Int32, b:Int32):Int32 return a << b;
-	static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
-	static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
+	inline static public function ishl(a:Int32, b:Int32):Int32 return a << b;
+	inline static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
+	inline static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
 	#end
 
 	// Long operators
@@ -102,7 +102,7 @@ class N {
 	static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
 	static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 	static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
-	static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? 1 : cmp(a, b); }
+	static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ?  1 : cmp(a, b); }
 	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
 	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
 

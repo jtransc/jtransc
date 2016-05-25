@@ -85,7 +85,8 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 				handler = labels.label(it.handler),
 				exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
 			)
-		}
+		},
+		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT))
 	).optimize()
 }
 

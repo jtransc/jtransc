@@ -153,7 +153,7 @@ public final class Double extends Number implements Comparable<Double> {
 		return Double.compare(this.value, that.value);
 	}
 
-	public static int compare(double d1, double d2) {
+	strictfp public static int compare(double d1, double d2) {
 		if (d1 < d2) return -1;
 		if (d1 > d2) return 1;
 		long b1 = Double.doubleToLongBits(d1);

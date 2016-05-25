@@ -290,11 +290,25 @@ public class BasicTypesTest {
 		float[] floats = new float[]{0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN};
 		double[] doubles = new double[]{0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN};
 		for (float l : floats) {
+			System.out.print(l + ": ");
 			for (float r : floats) System.out.print(", " + Float.compare(l, r));
 			System.out.println();
 		}
 		for (double l : doubles) {
+			System.out.print(l + ": ");
 			for (double r : doubles) System.out.print(", " + Double.compare(l, r));
+			System.out.println();
+		}
+		float[] floats2 = new float[] {-360f, -180f, 0f, 1f, 180f, 360f};
+		for (double l : floats2) {
+			System.out.println(l + ": ");
+			for (double r : doubles) System.out.print(", " + (l < 180f));
+			System.out.println();
+			for (double r : doubles) System.out.print(", " + (l >= 1f));
+			System.out.println();
+			for (double r : doubles) System.out.print(", " + (l == 180f));
+			System.out.println();
+			for (double r : doubles) System.out.print(", " + (l != 0f));
 			System.out.println();
 		}
 		System.out.println(Float.floatToIntBits(1f));

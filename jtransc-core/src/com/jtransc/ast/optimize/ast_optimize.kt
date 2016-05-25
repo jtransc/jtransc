@@ -2,12 +2,12 @@ package com.jtransc.ast.optimize
 
 import com.jtransc.ast.*
 import com.jtransc.lang.toBool
-import com.jtransc.types.Locals
+import com.jtransc.log.log
 
 //const val DEBUG = false
 //const val DEBUG = true
 
-object AstOptimizer : AstVisitor() {
+class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 	private var stm: AstStm? = null
 
 	override fun visit(stm: AstStm?) {
@@ -35,6 +35,24 @@ object AstOptimizer : AstVisitor() {
 
 						box.value = if (toZero xor equals) leftExpr else AstExpr.UNOP(AstUnop.NOT, leftExpr)
 						AstAnnotateExpressions.visitExprWithStm(stm, box)
+					}
+				}
+			}
+			AstBinop.LT, AstBinop.LE, AstBinop.EQ, AstBinop.NE, AstBinop.GT, AstBinop.GE -> {
+				//if (flags.strictfp) println("strictfp!")
+				if (!flags.strictfp && (left is AstExpr.BINOP) && (right is AstExpr.LITERAL)) {
+					when (left.op) {
+						AstBinop.CMPG, AstBinop.CMPL, AstBinop.CMP -> {
+							val l = left.left
+							val r = left.right
+							val op = expr.op
+							val compareValue = right.value
+							if (compareValue == 0) {
+								box.value = AstExpr.BINOP(AstType.BOOL, l.value, op, r.value)
+							} else {
+								log.warn("WARNING: Unhandled float comparison (because compareValue != 0)! op = ${expr.op} :: compareValue = $compareValue")
+							}
+						}
 					}
 				}
 			}
@@ -228,7 +246,7 @@ object AstOptimizer : AstVisitor() {
 					AstType.BOOL -> box.value = AstExpr.LITERAL(literalValue.toBool())
 					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte())
 					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort())
-					//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
+				//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
 				}
 				AstAnnotateExpressions.visitExprWithStm(stm, box)
 				return
@@ -318,16 +336,18 @@ object AstAnnotateExpressions : AstVisitor() {
 
 fun AstBody.optimize() = this.apply {
 	AstAnnotateExpressions.visit(this)
-	AstOptimizer.visit(this)
-}
-fun AstStm.Box.optimize() = this.apply {
-	AstAnnotateExpressions.visit(this)
-	AstOptimizer.visit(this)
-}
-fun AstExpr.Box.optimize() = this.apply {
-	AstAnnotateExpressions.visit(this)
-	AstOptimizer.visit(this)
+	AstOptimizer(this.flags).visit(this)
 }
 
-fun AstStm.optimize() = this.let { this.box.optimize().value }
-fun AstExpr.optimize() = this.let { this.box.optimize().value }
+fun AstStm.Box.optimize(flags: AstBodyFlags) = this.apply {
+	AstAnnotateExpressions.visit(this)
+	AstOptimizer(flags).visit(this)
+}
+
+fun AstExpr.Box.optimize(flags: AstBodyFlags) = this.apply {
+	AstAnnotateExpressions.visit(this)
+	AstOptimizer(flags).visit(this)
+}
+
+fun AstStm.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
+fun AstExpr.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
