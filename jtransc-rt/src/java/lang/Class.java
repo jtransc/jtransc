@@ -77,8 +77,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
 	native public Method[] getDeclaredMethods() throws SecurityException;
 
+	public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
+		Constructor<?>[] constructors = _getDeclaredConstructors();
+		return (constructors != null) ? constructors : new Constructor[0];
+	}
+
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
-	native public Constructor<?>[] getDeclaredConstructors() throws SecurityException;
+	native private Constructor<?>[] _getDeclaredConstructors() throws SecurityException;
 
 	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
 	native public Class<? super T> getSuperclass();
@@ -220,7 +225,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		if (!_classCache.has(className)) {
 			_classCache.set(className, new Class<Object>(className));
 		}
-		return _classCache.get(className);
+		Class<?> result = _classCache.get(className);
+		if (result == null) {
+			System.err.println("Couldn't find class " + className);
+		}
+		return result;
 	}
 
 	public static Class<?> forName(String name, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
@@ -430,8 +439,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
+		Class<?>[] parameterTypes2 = (parameterTypes != null) ? parameterTypes : new Class[0];
 		for (Constructor c : getDeclaredConstructors()) {
-			if (Arrays.equals(c.getParameterTypes(), parameterTypes)) {
+			if (Arrays.equals(c.getParameterTypes(), parameterTypes2)) {
 				return c;
 			}
 		}

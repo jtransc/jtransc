@@ -2,17 +2,25 @@ package jtransc.rt.test;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class JTranscReflectionTest {
-	static public void main(String[] args) {
+	static public void main(String[] args) throws Throwable {
 		assignableTest();
 		annotationTest();
 		fieldTest();
 		arrayTest();
 		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
+		nullArgs();
+	}
+
+	static private void nullArgs() throws Throwable {
+		Constructor<MyDemoItem> constructor = MyDemoItem.class.getConstructor((Class[]) null);
+		MyDemoItem myDemoItem = constructor.newInstance((Object[]) null);
+		System.out.println(myDemoItem.a);
 	}
 
 	static private void annotationsInConstructorTest() {
@@ -181,7 +189,10 @@ class MyDemo {
 }
 
 class MyDemoItem {
+	public int a = 3;
 
+	public MyDemoItem() {
+	}
 }
 
 class ATest1<A, B> {

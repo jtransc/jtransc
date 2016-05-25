@@ -126,7 +126,7 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 	@HaxeMethodBody(
 		"//trace('dynamic newInstance : ' + this._internalName);\n" +
 		"var instance = HaxeNatives.newInstance(this.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);\n" +
-		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), p0.data.toArray());\n" +
+		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), HaxeArrayAny.toArrayOrEmpty(p0));\n" +
 		"return instance;"
 	)
 	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;

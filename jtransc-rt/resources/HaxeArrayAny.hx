@@ -11,24 +11,31 @@ class HaxeArrayAny extends HaxeArrayBase {
     }
 
     static public function fromArray(items:Array<Dynamic>, desc:String):HaxeArrayAny {
+        if (items == null) return null;
         var out = new HaxeArrayAny(items.length, desc);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
     static public function fromArray1(items:Array<Dynamic>, desc:String):HaxeArrayBase {
+        if (items == null) return null;
         var out = create(items.length, desc);
         for (n in 0 ... items.length) out.setDynamic(n, items[n]);
         return out;
     }
 
     static public function fromArray2(items:Array<Array<Dynamic>>, desc:String) {
+        if (items == null) return null;
         var out = new HaxeArrayAny(items.length, desc);
         for (n in 0 ... items.length) out.set(n, fromArray1(items[n], desc.substr(1)));
         return out;
     }
 
     override public function toArray():Array<Dynamic> return data.toArray();
+
+    static public function toArrayOrEmpty(v:HaxeArrayAny):Array<Dynamic> {
+    	return (v != null) ? v.toArray() : [];
+    }
 
     public function get(index:Int):Dynamic return this.data[checkBounds(index)];
     public function set(index:Int, value:Dynamic):Void this.data[checkBounds(index)] = value;

@@ -61,19 +61,19 @@ public class Arrays {
 		sort(a, fromIndex, toIndex, (Comparator<? super Object>) ComparableComparator.INSTANCE);
 	}
 
-    @HaxeMethodBody(
-            "var array = cast(p0, HaxeArrayAny);\n" +
-            "var start = p1;\n" +
-            "var end = p2;\n" +
-            "var comparator = p3;\n" +
-            "var slice = array.toArray().slice(start, end);\n" +
-            "haxe.ds.ArraySort.sort(slice, function(a, b) {\n" +
-            "\treturn comparator.{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}(cast a, cast b);\n" +
-            "});\n" +
-            "for (n in 0 ... slice.length) {\n" +
-            "\tarray.set(start + n, slice[n]);\n" +
-            "}"
-    )
+	@HaxeMethodBody(
+		"var array = cast(p0, HaxeArrayAny);\n" +
+			"var start = p1;\n" +
+			"var end = p2;\n" +
+			"var comparator = p3;\n" +
+			"var slice = array.toArray().slice(start, end);\n" +
+			"haxe.ds.ArraySort.sort(slice, function(a, b) {\n" +
+			"\treturn comparator.{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}(cast a, cast b);\n" +
+			"});\n" +
+			"for (n in 0 ... slice.length) {\n" +
+			"\tarray.set(start + n, slice[n]);\n" +
+			"}"
+	)
 	native public static <T> void sort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c);
 
 	native public static int deepHashCode(Object a[]);
@@ -244,54 +244,72 @@ public class Arrays {
 	}
 
 	public static boolean equals(long[] a, long[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(int[] a, int[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(short[] a, short a2[]) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(char[] a, char[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(byte[] a, byte[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(boolean[] a, boolean[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(double[] a, double[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(float[] a, float[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (a[n] != a2[n]) return false;
 		return true;
 	}
 
 	public static boolean equals(Object[] a, Object[] a2) {
+		if (a == a2) return true;
+		if (a == null || a2 == null) return false;
 		if (a.length != a2.length) return false;
 		for (int n = 0; n < a.length; n++) if (!Objects.equals(a[n], a2[n])) return false;
 		return true;
