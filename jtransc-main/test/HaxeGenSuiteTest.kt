@@ -33,10 +33,6 @@ import org.junit.Test
 class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun langStringsTest() = testClass<StringsTest>()
 
-	@Test fun langSystemTest() = testClass<SystemTest>() {
-		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
-	}
-
 	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>(minimize = false)
 
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
@@ -92,7 +88,7 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun regressionTest2() = testClass<JTranscRegression2Test>()
 	@Test fun regressionTest3() = testClass<JTranscRegression3Test>()
 
-	@Test fun zipTest() = testClass<JTranscZipTest>()
+	@Test fun zipTest() = testClass<JTranscZipTest>(minimize = false)
 
 	@Test fun proxyTest() = testClass<ProxyTest>()
 

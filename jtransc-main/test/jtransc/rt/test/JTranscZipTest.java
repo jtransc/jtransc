@@ -19,7 +19,11 @@ public class JTranscZipTest {
 	static private void testFs() {
 		System.out.println("FS:");
 		System.out.println(new File("__nonExistantFile__").exists());
-		System.out.println(new File("__nonExistantFile__").getAbsolutePath());
+		System.out.println(normalizePath(new File("__nonExistantFile__").getAbsolutePath()));
+	}
+
+	static private String normalizePath(String path) {
+		return path.replace('\\', '/');
 	}
 
 	static private void testZip() throws IOException {
@@ -51,13 +55,16 @@ public class JTranscZipTest {
 		String tmpfile = tmpdir + "/jtransc.test.zip";
 		JTranscFiles.write(new File(tmpfile), hexData);
 
+		System.out.println(normalizePath(new File(tmpfile).getParentFile().getAbsolutePath()));
+		//System.out.println(normalizePath(new File(tmpfile).getParentFile().getParent()));
+
 		for (File file : new File[]{
 			new File(tmpdir + "/__non_existant_file__"),
 			new File(tmpfile),
 			new File(tmpfile.replace('\\', '/')),
 			new File(tmpdir)
 		}) {
-			System.out.println("file:" + file.getAbsolutePath());
+			System.out.println("file:" + normalizePath(file.getAbsolutePath()));
 			System.out.println("isFile:" + file.isFile());
 			System.out.println("isDirectory:" + file.isDirectory());
 			System.out.println("canRead:" + file.canRead());
@@ -70,7 +77,7 @@ public class JTranscZipTest {
 		System.out.println(r.readInt());
 		r.close();
 		ZipFile zipFile = new ZipFile(tmpfile);
-		System.out.println(zipFile.getName());
+		System.out.println(normalizePath(zipFile.getName()));
 		System.out.println(zipFile.getComment());
 		System.out.println(zipFile.getEntry("hello.txt"));
 		for (ZipEntry entry : Collections.list(zipFile.entries())) {

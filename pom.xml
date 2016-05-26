@@ -21,7 +21,7 @@
 
     <groupId>com.jtransc</groupId>
     <artifactId>jtransc</artifactId>
-    <version>0.2.7</version>
+    <version>0.2.8</version>
     <packaging>pom</packaging>
 
     <parent>

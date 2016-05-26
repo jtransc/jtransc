@@ -22,15 +22,9 @@ import com.jtransc.io.JTranscSyncIO;
 // @TODO: Move this to something JTransc can replace in jtransc-rt-core!
 class JTranscFileSystem extends FileSystem {
 
-	private final char slash;
-	private final char colon;
-	private final String javaHome;
-
-	public JTranscFileSystem() {
-		slash = JTranscSystem.fileSeparator().charAt(0);
-		colon = JTranscSystem.pathSeparator().charAt(0);
-		javaHome = System.getProperty("java.home");
-	}
+	private final char slash = '/';
+	private final char colon = ':';
+	private final String javaHome = System.getProperty("java.home");
 
 	public char getSeparator() {
 		return slash;
@@ -106,11 +100,11 @@ class JTranscFileSystem extends FileSystem {
 
 	public String resolve(File f) {
 		if (isAbsolute(f)) return normalize2(f.getPath());
-		return normalize2(resolve(JTranscSyncIO.impl.getCwd(), f.getPath()));
+		return normalize2(resolve(normalize2(JTranscSyncIO.impl.getCwd()), f.getPath()));
 	}
 
 	private String normalize2(String i) {
-		return i.replace('/', slash);
+		return i.replace('/', slash).replace('\\', slash);
 	}
 
 	public String canonicalize(String path) throws IOException {

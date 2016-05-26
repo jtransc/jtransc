@@ -29,7 +29,7 @@
 		<groupId>com.jtransc</groupId>
 		<artifactId>jtransc</artifactId>
 		<relativePath>..</relativePath>
-		<version>0.2.7</version>
+		<version>0.2.8</version>
 	</parent>
 
 	<artifactId>jtransc-utils</artifactId>

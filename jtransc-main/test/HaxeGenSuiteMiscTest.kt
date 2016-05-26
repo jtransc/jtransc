@@ -31,12 +31,16 @@ import jtransc.rt.test.*
 import org.junit.Test
 
 class HaxeGenSuiteMiscTest : HaxeTestBase() {
-	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) {
-		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
-	}
+	@Test fun langSystemTest() = testClass<SystemTest>() { normalize2(it) }
 
-	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) {
-		it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) { normalize2(it) }
+
+	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
+
+	private fun normalize2(str:String):String {
+		return str
+			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+			.replace("path.separator:;", "path.separator::")
 	}
 
 	//@Test fun miscTestNeko() = testClass<MiscTest>(lang = "neko", minimize = false) {
