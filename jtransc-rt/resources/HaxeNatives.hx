@@ -284,6 +284,24 @@ class HaxeNatives {
 		throw 'Was not able to unbox "$value"';
 	}
 
+	static public function boxWithType(clazz:JavaClass, value:Dynamic):JavaObject {
+		if (Std.is(value, JavaObject)) return cast value;
+		var clazzName:String = clazz.{% FIELD java.lang.Class:name %}._str;
+
+		switch (clazzName) {
+			case 'boolean': return boxBool(cast value);
+			case 'byte': return boxByte(cast value);
+			case 'short': return boxShort(cast value);
+			case 'char': return boxChar(cast value);
+			case 'int': return boxInt(cast value);
+			case 'long': return boxLong(cast value);
+			case 'float': return boxFloat(cast value);
+			case 'double': return boxDouble(cast value);
+		}
+
+		throwRuntimeException("Don't know how to unbox " + clazzName + " with value '" + value + "'");
+	}
+
 	static public function boxVoid(value:Dynamic):JavaVoid { return null; }
 	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.{% METHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
 	static public function boxByte(value:Int):JavaByte { return JavaByte.{% METHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }

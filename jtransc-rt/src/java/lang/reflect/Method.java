@@ -175,7 +175,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 
 	@HaxeMethodBody("" +
 		"var obj:Dynamic = _getObjectOrClass(p0);\n" +
-		"return Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray());\n"
+		"return HaxeNatives.boxWithType(this.{% METHOD java.lang.reflect.Method:getReturnType %}(), Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray()));\n"
 	)
 	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 

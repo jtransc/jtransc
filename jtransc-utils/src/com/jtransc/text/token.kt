@@ -45,7 +45,9 @@ class TokenReader<T>(val list: List<T>) {
 
 	fun expect(expected: T): T {
 		val value = read()
-		if (value != expected) throw InvalidOperationException("Expected $expected but found $value")
+		if (value != expected) {
+			throw InvalidOperationException("Expected $expected but found $value")
+		}
 		return value
 	}
 

@@ -48,7 +48,8 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 
 	@Test fun stringBuilderTest() = testClass<StringBuilderTest>()
 	@Test fun stackTraceTest() = testClass<JTranscStackTraceTest>()
-	@Test fun reflectionTest() = testClass<JTranscReflectionTest>()
+	@Test fun reflectionTestMinimized() = testClass<JTranscReflectionTest>(minimize = true)
+	@Test fun reflectionTestNotMinimized() = testClass<JTranscReflectionTest>(minimize = false)
 	@Test fun nioTest() = testClass<JTranscNioTest>()
 	@Test fun arithmeticTest() = testClass<JTranscArithmeticTest>()
 	@Test fun mathTest() = testClass<MathTest>()

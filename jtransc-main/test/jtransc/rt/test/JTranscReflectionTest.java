@@ -15,6 +15,28 @@ public class JTranscReflectionTest {
 		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
 		nullArgs();
+		invokeTest();
+		annotationTypesTest();
+	}
+
+	static public char getC() {
+		return 'C';
+	}
+
+	static private void invokeTest() throws Throwable {
+		System.out.println(JTranscReflectionTest.class.getDeclaredMethod("getC").invoke(null).getClass());
+	}
+
+	static private void annotationTypesTest() {
+		TestAnnotationTypes a = TestAnnotationTypesClass.class.getAnnotation(TestAnnotationTypes.class);
+		System.out.println(a.b());
+		System.out.println(a.c());
+		System.out.println((int)a.c());
+		System.out.println(a.d());
+		System.out.println(a.f());
+		System.out.println(a.i());
+		System.out.println(a.s());
+		System.out.println(a.z());
 	}
 
 	static private void nullArgs() throws Throwable {
@@ -261,4 +283,28 @@ class TestDeprecatedExample {
 @Retention(RetentionPolicy.RUNTIME)
 @interface TestAnnotation2 {
 	int value();
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface TestAnnotationTypes {
+	boolean z();
+	byte b();
+	short s();
+	char c();
+	int i();
+	float f();
+	double d();
+}
+
+@TestAnnotationTypes(
+	z = true,
+	b = 1,
+	s = 2,
+	c = 'a',
+	i = 3,
+	f = 1f,
+	d = 2.2
+)
+class TestAnnotationTypesClass {
+
 }
