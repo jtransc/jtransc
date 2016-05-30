@@ -191,14 +191,7 @@ class GenHaxeGen(
 				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
 				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
 				is String -> "HaxeNatives.boxString(${it.quote()})"
-				is Boolean -> "HaxeNatives.boxBool($it)"
-				is Byte -> "HaxeNatives.boxByte($it)"
-				is Short -> "HaxeNatives.boxShort($it)"
-				is Character -> "HaxeNatives.boxChar(${it.charValue().toInt()})"
-				is Int -> "HaxeNatives.boxInt($it)"
-				is Long -> "HaxeNatives.boxLong($it)"
-				is Float -> "HaxeNatives.boxFloat($it)"
-				is Double -> "HaxeNatives.boxDouble($it)"
+				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
 				is com.jtransc.org.objectweb.asm.Type -> "HaxeNatives.resolveClass(" + it.descriptor.quote() + ")"
 				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
@@ -979,19 +972,7 @@ class GenHaxeGen(
 						line("public function $annotationTypeHaxeName():$JAVA_LANG_CLASS { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						line("override public function $getClassHaxeName():$JAVA_LANG_CLASS { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						for ((index, m) in clazz.methods.withIndex()) {
-							val raw = "this._data[$index]"
-							val retstr = when (m.methodType.ret) {
-								AstType.BOOL -> ("HaxeNatives.unboxBool($raw)")
-								AstType.BYTE -> ("HaxeNatives.unboxByte($raw)")
-								AstType.SHORT -> ("HaxeNatives.unboxShort($raw)")
-								AstType.CHAR -> ("HaxeNatives.unboxChar($raw)")
-								AstType.INT -> ("HaxeNatives.unboxInt($raw)")
-								AstType.LONG -> ("HaxeNatives.unboxLong($raw)")
-								AstType.FLOAT -> ("HaxeNatives.unboxFloat($raw)")
-								AstType.DOUBLE -> ("HaxeNatives.unboxDouble($raw)")
-								else -> ("$raw")
-							}
-							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return $retstr; }")
+							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
 						}
 					}
 				}
