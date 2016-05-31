@@ -83,8 +83,8 @@ open class HaxeTestBase {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang)
 	}
 
-	inline fun <reified T: Any> testNativeClass(expected:String) {
-		Assert.assertEquals(expected.trimIndent(), runClass<T>().trim())
+	inline fun <reified T: Any> testNativeClass(expected:String, minimize: Boolean? = null) {
+		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize).trim())
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {

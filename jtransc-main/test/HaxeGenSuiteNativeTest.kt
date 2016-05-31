@@ -63,6 +63,8 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 
 	@Test fun UseMinitemplatesTest() = testNativeClass<UseMinitemplatesTest>("""
 		methodToExecute1:1
-	""")
+		Class1.method1
+		Class1.method2
+	""", minimize = false)
 }
 

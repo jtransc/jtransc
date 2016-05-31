@@ -331,8 +331,16 @@ class AstClass(
 		annotations + methods.flatMap { it.annotations } + fields.flatMap { it.annotations }
 	}
 
-	fun getMethods(name: String): List<AstMethod> = methodsByName[name]!!
+	fun getMethods(name: String): List<AstMethod> = methodsByName[name] ?: listOf()
 	fun getMethod(name: String, desc: String): AstMethod? = methodsByName[name]?.firstOrNull { it.desc == desc }
+
+	fun getMethodsInAncestorsAndInterfaces(name: String): List<AstMethod> {
+		val methods = hashMapOf<AstMethodWithoutClassRef, AstMethod>()
+		for (m in thisAncestorsAndInterfaces.flatMap { it.getMethods(name) }) {
+			methods.putIfAbsent(m.ref.withoutClass, m)
+		}
+		return methods.values.toList()
+	}
 
 	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? {
 		var result = methodsByNameDesc[nameDesc]
@@ -419,6 +427,7 @@ class AstClass(
 	}
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
+	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allInterfaces }
 }
 
 val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
