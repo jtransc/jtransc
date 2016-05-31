@@ -33,7 +33,8 @@ import java.nio.ByteOrder;
 	"public var shortData:haxe.io.UInt16Array;",
 	"public var intData:haxe.io.Int32Array;",
 	"public var floatData:haxe.io.Float32Array;",
-	"public var doubleData:haxe.io.Float64Array;"
+	"public var doubleData:haxe.io.Float64Array;",
+	"public function getBytes():haxe.io.Bytes return _data;"
 })
 final public class FastMemory {
 	@HaxeRemoveField
@@ -240,18 +241,22 @@ final public class FastMemory {
 		return Float.intBitsToFloat(Integer.reverseBytes(data.getInt(index)));
 	}
 
+	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
 	static public void copy(byte[] from, int fromOffset, byte[] to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to[toOffset + n] = from[fromOffset + n];
 	}
 
+	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
 	static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to[toOffset + n] = (byte)from.getInt8(fromOffset + n);
 	}
 
+	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
 	static public void copy(byte[] from, int fromOffset, FastMemory to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to.setInt8(toOffset + n, from[fromOffset + n]);
 	}
 
+	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
 	static public void copy(FastMemory from, int fromOffset, FastMemory to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to.setInt8(toOffset + n, from.getInt8(fromOffset + n));
 	}
