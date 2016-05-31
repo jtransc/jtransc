@@ -631,7 +631,7 @@ class GenHaxeGen(
 
 	fun convertToFromHaxe(type: AstType, text: String, toHaxe:Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toHaxe) "HaxeNatives.unbox($text)" else "HaxeNatives.box($text)")
+			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getHaxeType(type, TypeKind.CAST)})")
 		}
 
 		if (type is AstType.REF) {

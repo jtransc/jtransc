@@ -95,16 +95,19 @@ public class Throwable implements Serializable {
 		for (StackTraceElement traceElement : trace)
 			s.println("\tat " + traceElement);
 
-		/*
 		// Print suppressed exceptions, if any
-		for (Throwable se : getSuppressed())
-			se.printEnclosedStackTrace(s, trace, SUPPRESSED_CAPTION, "\t", dejaVu);
+		for (Throwable se : getSuppressed()) {
+			System.out.println("Supressed:");
+			se.printStackTrace(s);
+		}
 
 		// Print cause, if any
 		Throwable ourCause = getCause();
-		if (ourCause != null)
-			ourCause.printEnclosedStackTrace(s, trace, CAUSE_CAPTION, "", dejaVu);
-		*/
+
+		if (ourCause != null) {
+			System.out.println("Cause:");
+			ourCause.printStackTrace(s);
+		}
 	}
 
 	native public void printStackTrace(PrintWriter s);
