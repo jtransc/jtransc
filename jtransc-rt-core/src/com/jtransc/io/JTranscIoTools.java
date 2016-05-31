@@ -30,4 +30,13 @@ public class JTranscIoTools {
 			fileInputStream.close();
 		}
 	}
+
+	static public <TOutputStream extends OutputStream> TOutputStream copy(InputStream is, TOutputStream os) throws IOException {
+		byte[] chunk = new byte[64 * 1024];
+		while (is.available() > 0) {
+			int readed = is.read(chunk);
+			os.write(chunk, 0, readed);
+		}
+		return os;
+	}
 }

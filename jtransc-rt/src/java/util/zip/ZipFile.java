@@ -16,10 +16,7 @@
 
 package java.util.zip;
 
-import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.internal.Inflater;
+import com.jtransc.compression.JTranscZlib;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -129,7 +126,8 @@ public class ZipFile implements Closeable {
 		String defaultEncoding = "utf-8";
 		while (hasMore()) {
 			int MAGIC = readUnsignedShort();
-			if (MAGIC != 0x4b50) throw new RuntimeException(String.format("Not a ZIP file (%s). Magic found: %04X at offset %d, chunks:%d", file.getAbsolutePath(), MAGIC, dis.getFilePointer(), chunkCount));
+			if (MAGIC != 0x4b50)
+				throw new RuntimeException(String.format("Not a ZIP file (%s). Magic found: %04X at offset %d, chunks:%d", file.getAbsolutePath(), MAGIC, dis.getFilePointer(), chunkCount));
 			chunkCount++;
 
 			switch (readUnsignedShort()) {
@@ -250,47 +248,15 @@ public class ZipFile implements Closeable {
 		return new ByteArrayInputStream(getCompressedBytes(entry));
 	}
 
-	@HaxeMethodBody(target = "sys", value = "" +
-		"var u = new haxe.zip.Uncompress(-15);\n" +
-		"var src = p0.getBytes();\n" +
-		"var dst = haxe.io.Bytes.alloc(p1);\n" +
-		"u.execute(src, 0, dst, 0);\n" +
-		"u.close();\n" +
-		"return HaxeByteArray.fromBytes(dst);\n"
-	)
-	@HaxeMethodBody("return null;")
-	native static private byte[] nativeDeflate(byte[] data, int outputSize);
-
-	@JTranscInline
-	static private boolean hasNativeDeflate() {
-		return JTranscSystem.isSys();
-	}
-
-	static private byte[] deflate(byte[] data, int outputSize) throws IOException, DataFormatException {
-		if (hasNativeDeflate()) {
-			return nativeDeflate(data, outputSize);
-		} else {
-			ByteArrayInputStream bis = new ByteArrayInputStream(data);
-			ByteArrayOutputStream bos = new ByteArrayOutputStream(outputSize);
-			Inflater inflater = new Inflater(bis, bos);
-			//inflater.
-			return bos.toByteArray();
-		}
-	}
-
 	static private final int METHOD_STORED = 0;
 	static private final int METHOD_DEFLATED = 8;
 
 	public InputStream getInputStream(ZipEntry entry) throws IOException {
-		try {
-			switch (entry.method) {
-				case METHOD_STORED: // stored
-					return getCompressedInputStream(entry);
-				case METHOD_DEFLATED: // deflated
-					return new ByteArrayInputStream(deflate(getCompressedBytes(entry), (int) entry.size));
-			}
-		} catch (DataFormatException dfe) {
-			throw new IOException(dfe);
+		switch (entry.method) {
+			case METHOD_STORED: // stored
+				return getCompressedInputStream(entry);
+			case METHOD_DEFLATED: // deflated
+				return new ByteArrayInputStream(JTranscZlib.inflate(getCompressedBytes(entry), (int) entry.size));
 		}
 		throw new RuntimeException("Not supported method " + entry.method + "!");
 	}
@@ -315,20 +281,20 @@ public class ZipFile implements Closeable {
 		close();
 	}
 
-	static private final int FLAG_Encrypted             = 0x0001; //Bit 0: If set, indicates that the file is encrypted.
-	static private final int FLAG_CompressionFlagBit1   = 0x0002;
-	static private final int FLAG_CompressionFlagBit2   = 0x0004;
-	static private final int FLAG_DescriptorUsedMask    = 0x0008;
-	static private final int FLAG_Reserved1             = 0x0010;
-	static private final int FLAG_Reserved2             = 0x0020;
-	static private final int FLAG_StrongEncrypted       = 0x0040; //Bit 6: Strong encryption
-	static private final int FLAG_CurrentlyUnused1      = 0x0080;
-	static private final int FLAG_CurrentlyUnused2      = 0x0100;
-	static private final int FLAG_CurrentlyUnused3      = 0x0200;
-	static private final int FLAG_CurrentlyUnused4      = 0x0400;
-	static private final int FLAG_Utf8                  = 0x0800; // Bit 11: filename and comment encoded using UTF-8
-	static private final int FLAG_ReservedPKWARE1       = 0x1000;
-	static private final int FLAG_CDEncrypted           = 0x2000; // Bit 13: Used when encrypting the Central Directory to indicate selected data values in the Local Header are masked to hide their actual values.
-	static private final int FLAG_ReservedPKWARE2       = 0x4000;
-	static private final int FLAG_ReservedPKWARE3       = 0x8000;
+	static private final int FLAG_Encrypted = 0x0001; //Bit 0: If set, indicates that the file is encrypted.
+	static private final int FLAG_CompressionFlagBit1 = 0x0002;
+	static private final int FLAG_CompressionFlagBit2 = 0x0004;
+	static private final int FLAG_DescriptorUsedMask = 0x0008;
+	static private final int FLAG_Reserved1 = 0x0010;
+	static private final int FLAG_Reserved2 = 0x0020;
+	static private final int FLAG_StrongEncrypted = 0x0040; //Bit 6: Strong encryption
+	static private final int FLAG_CurrentlyUnused1 = 0x0080;
+	static private final int FLAG_CurrentlyUnused2 = 0x0100;
+	static private final int FLAG_CurrentlyUnused3 = 0x0200;
+	static private final int FLAG_CurrentlyUnused4 = 0x0400;
+	static private final int FLAG_Utf8 = 0x0800; // Bit 11: filename and comment encoded using UTF-8
+	static private final int FLAG_ReservedPKWARE1 = 0x1000;
+	static private final int FLAG_CDEncrypted = 0x2000; // Bit 13: Used when encrypting the Central Directory to indicate selected data values in the Local Header are masked to hide their actual values.
+	static private final int FLAG_ReservedPKWARE2 = 0x4000;
+	static private final int FLAG_ReservedPKWARE3 = 0x8000;
 }
