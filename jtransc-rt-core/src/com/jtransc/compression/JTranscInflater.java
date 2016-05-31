@@ -1,10 +1,7 @@
 package com.jtransc.compression;
 
-import com.jtransc.compression.jzlib.GZIPException;
-import com.jtransc.compression.jzlib.Inflater;
 import com.jtransc.compression.jzlib.JZlib;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.zip.DataFormatException;
 
@@ -57,6 +54,7 @@ public class JTranscInflater {
 	}
 
 	public int getRemaining() {
+		System.out.println("getRemaining()=" + inf.getAvailIn());
 		return inf.getAvailIn();
 	}
 
@@ -80,15 +78,21 @@ public class JTranscInflater {
 		if (off < 0 || len < 0 || off > b.length - len) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
-		int thisLen = getRemaining();
+		long instart = inf.getTotalIn();
 		inf.setOutput(b, off, len);
 
 		long outstart = inf.getTotalOut();
-		inf.inflate(len);
+		//inf.inflate(len);
+		int err = inf.inflate(JZlib.Z_NO_FLUSH);
 		long outend = inf.getTotalOut();
-		int n = (int)(outend - outstart);
+
+		long inend = inf.getTotalIn();
+
+		//System.out.println("inflate: " + instart + "/" + inend + " || " + outstart + "/" + outend);
+
+		int n = (int) (outend - outstart);
 		bytesWritten += n;
-		bytesRead += (thisLen - getRemaining());
+		bytesRead += (int) (inend - instart);
 		return n;
 	}
 
@@ -127,5 +131,8 @@ public class JTranscInflater {
 	public void end() {
 		//inf.inflateEnd()
 		inf.end();
+		needDict = true;
+		bytesRead = 0;
+		bytesWritten = 0;
 	}
 }
