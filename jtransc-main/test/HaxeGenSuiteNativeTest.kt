@@ -19,7 +19,7 @@ import jtransc.annotation.MethodBodyTest
 import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.HaxeNativeCallTest
 import jtransc.jtransc.JTranscSystemTest
-import org.junit.Assert
+import jtransc.jtransc.UseMinitemplatesTest
 import org.junit.Test
 
 class HaxeGenSuiteNativeTest : HaxeTestBase() {
@@ -59,6 +59,10 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		false
 		false
 		flush
+	""")
+
+	@Test fun UseMinitemplatesTest() = testNativeClass<UseMinitemplatesTest>("""
+		methodToExecute1:1
 	""")
 }
 

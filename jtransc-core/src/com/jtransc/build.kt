@@ -111,7 +111,6 @@ class AllBuild(
 			java.lang.Float::class.java.name,
 			java.lang.Double::class.java.name,
 			java.lang.Class::class.java.name,
-			java.lang.Class::class.java.name,
 			java.lang.reflect.Method::class.java.name,
 			java.lang.reflect.Field::class.java.name,
 			java.lang.reflect.Constructor::class.java.name,
