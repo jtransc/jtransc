@@ -10,6 +10,8 @@ import haxe.CallStack;
 using Lambda;
 
 class N {
+	static public var MIN_INT32:Int32 = -2147483648;
+
 	static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
     static public function strLit(str:String):{% CLASS java.lang.String %} {

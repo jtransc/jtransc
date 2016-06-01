@@ -73,6 +73,8 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun bugAbstractInheritance1() = testClass<JTranscBugAbstractInheritance1>()
 	@Test fun bugAbstractInheritance2() = testClass<JTranscBugAbstractInheritance2>()
 
+	@Test fun jtranscBug41Test() = testClass<JTranscBug41Test>(minimize = false)
+
 	@Test fun bugClassRefTest() = testClass<JTranscBugClassRefTest>()
 
 	@Test fun bugLongNotInitialized() = testClass<JTranscBugLongNotInitialized>()

@@ -277,6 +277,13 @@ class HaxeNames(
 		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
 		is Float -> escapeConstant(value.toDouble())
 		is Double -> if (value.isInfinite()) if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY" else if (value.isNaN()) "Math.NaN" else "$value"
+		is Int -> {
+			if (value == Int.MIN_VALUE) {
+				"N.MIN_INT32"
+			} else {
+				"$value"
+			}
+		}
 		is Number -> "${value.toInt()}"
 		is Char -> "${value.toInt()}"
 		is AstType.REF -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
