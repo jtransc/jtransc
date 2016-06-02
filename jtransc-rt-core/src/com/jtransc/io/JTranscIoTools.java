@@ -23,11 +23,20 @@ public class JTranscIoTools {
 	}
 
 	static public byte[] readFile(File file) throws IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
+		FileInputStream fis = new FileInputStream(file);
 		try {
-			return readStreamFully(fileInputStream);
+			return readStreamFully(fis);
 		} finally {
-			fileInputStream.close();
+			fis.close();
+		}
+	}
+
+	static public void writeFile(File file, byte[] data) throws IOException {
+		FileOutputStream fos = new FileOutputStream(file);
+		try {
+			fos.write(data);
+		} finally {
+			fos.close();
 		}
 	}
 
