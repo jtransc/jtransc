@@ -318,22 +318,36 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	}
 
 	@Deprecated
-	native public static boolean isJavaLetter(char ch);
+	public static boolean isJavaLetter(char ch) {
+		return isLetter(ch);
+	}
 
 	@Deprecated
-	native public static boolean isJavaLetterOrDigit(char ch);
+	public static boolean isJavaLetterOrDigit(char ch) {
+		return isLetter(ch) || isDigit(ch);
+	}
 
-	native public static boolean isAlphabetic(int codePoint);
+	public static boolean isAlphabetic(int codePoint) {
+		return isLetter(codePoint);
+	}
 
 	native public static boolean isIdeographic(int codePoint);
 
-	native public static boolean isJavaIdentifierStart(char ch);
+	public static boolean isJavaIdentifierStart(char ch) {
+		return isLetter(ch) || ch == '_';
+	}
 
-	native public static boolean isJavaIdentifierStart(int codePoint);
+	public static boolean isJavaIdentifierStart(int codePoint) {
+		return isJavaIdentifierStart((char)codePoint);
+	}
 
-	native public static boolean isJavaIdentifierPart(char ch);
+	public static boolean isJavaIdentifierPart(char ch) {
+		return isLetter(ch) || isDigit(ch) || ch == '_';
+	}
 
-	native public static boolean isJavaIdentifierPart(int codePoint);
+	public static boolean isJavaIdentifierPart(int codePoint) {
+		return isJavaIdentifierPart((char)codePoint);
+	}
 
 	native public static boolean isUnicodeIdentifierStart(char ch);
 
