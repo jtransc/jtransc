@@ -36,24 +36,30 @@ object HaxeCompiler {
 		else -> listOf()
 	}
 
-	fun ensureHaxeCompilerVfs(): SyncVfsFile {
-		log.info("ensureHaxeCompilerVfs:")
-		if (!haxeCompilerLocalFileVfs.exists) {
-			log.info("Downloading haxe: $haxeCompilerUrl...")
-			haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
-		}
-		if (!haxeCompilerLocalFolderVfs["std"].exists) {
-			val compvfs = CompressedVfs(haxeCompilerLocalFileVfs.realfile)
-			val compvfsBase = compvfs.firstRecursive { it.file.name == "std" }.file.parent
-			compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs)
-		}
+	var ensured = false
 
-		if (!haxeCompilerLocalFolderVfs["lib"].exists) {
-			haxeCompilerLocalFolderVfs.passthru("haxelib", "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS)
-			if (!JTranscSystem.isWindows()) {
-				haxeCompilerLocalFolderVfs["haxe"].chmod("0777".toInt(8))
-				haxeCompilerLocalFolderVfs["haxelib"].chmod("0777".toInt(8))
+	fun ensureHaxeCompilerVfs(): SyncVfsFile {
+		if (!ensured) {
+			log.info("ensureHaxeCompilerVfs:")
+			if (!haxeCompilerLocalFileVfs.exists) {
+				log.info("Downloading haxe: $haxeCompilerUrl...")
+				haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
 			}
+			if (!haxeCompilerLocalFolderVfs["std"].exists) {
+				val compvfs = CompressedVfs(haxeCompilerLocalFileVfs.realfile)
+				val compvfsBase = compvfs.firstRecursive { it.file.name == "std" }.file.parent
+				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs)
+				if (!JTranscSystem.isWindows()) {
+					haxeCompilerLocalFolderVfs["haxe"].chmod("0777".toInt(8))
+					haxeCompilerLocalFolderVfs["haxelib"].chmod("0777".toInt(8))
+				}
+			}
+
+			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
+				haxeCompilerLocalFolderVfs.passthru("haxelib", "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS)
+			}
+
+			ensured = true
 		}
 
 		return haxeCompilerLocalFolderVfs

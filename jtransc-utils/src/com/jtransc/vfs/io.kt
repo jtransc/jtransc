@@ -16,6 +16,7 @@
 
 package com.jtransc.vfs
 
+import com.jtransc.JTranscSystem
 import com.jtransc.io.ProcessUtils
 import java.io.BufferedReader
 import java.io.File
@@ -149,7 +150,12 @@ object RawIo {
 	}
 
 	fun chmod(path: String, mode: Int) {
-		execOrPassthruSync(path, "chmod", listOf("%04o".format(mode)), ExecOptions(passthru = true))
+		val modeStr = "%04o".format(mode)
+		if (JTranscSystem.isPosix()) {
+			execOrPassthruSync(path, "chmod", listOf(modeStr, path), ExecOptions(passthru = true))
+		} else {
+			println("chmod $modeStr $path")
+		}
 	}
 }
 

@@ -46,6 +46,11 @@
 			<artifactId>kotlin-runtime</artifactId>
 			<version>${kotlin.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.jtransc</groupId>
+			<artifactId>jtransc-rt-core</artifactId>
+			<version>${jtransc.version}</version>
+		</dependency>
 
 		<!--
 		<dependency>

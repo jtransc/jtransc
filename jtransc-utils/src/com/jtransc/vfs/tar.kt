@@ -60,6 +60,7 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 				override fun write(data: ByteArray) = noImpl("Writting not implemented on tar files")
 				override fun size(): Long = fileSize.toLong()
 				override fun mtime(): Date = Date(lastModification.toLong() * 1000L)
+				override fun mode(): FileMode = FileMode.fromOctal(fileMode)
 			}
 		}
 		currentOffset = (currentOffset + 0x200 + fileSize).nextMultipleOf(0x200)

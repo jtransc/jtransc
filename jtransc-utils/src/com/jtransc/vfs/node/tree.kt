@@ -1,5 +1,7 @@
 package com.jtransc.vfs.node
 
+import com.jtransc.numeric.toInt
+import com.jtransc.vfs.FileMode
 import com.jtransc.vfs.UserData
 import java.io.File
 import java.util.*
@@ -15,6 +17,7 @@ interface FileNodeIO {
 	fun write(data: ByteArray): Unit
 	fun size(): Long
 	fun mtime(): Date
+	fun mode(): FileMode
 }
 
 open class FileNode(val tree: FileNodeTree, val parent: FileNode?, val name: String, var type: FileNodeType) : Iterable<FileNode> {
@@ -34,6 +37,7 @@ open class FileNode(val tree: FileNodeTree, val parent: FileNode?, val name: Str
 
 	fun size(): Long = io?.size() ?: 0
 	fun mtime(): Date = io?.mtime() ?: Date()
+	fun mode(): FileMode = io?.mode() ?: FileMode.FULL_ACCESS
 	fun isDirectory(): Boolean = (type == FileNodeType.ROOT) || (type == FileNodeType.DIRECTORY)
 
 	fun getChildren(): List<FileNode> = children

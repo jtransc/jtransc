@@ -220,4 +220,8 @@ public class JTranscSystem {
 	static public String getUserHome() {
 		return System.getProperty("user.home");
 	}
+
+	public static boolean isPosix() {
+		return !isWindows();
+	}
 }
