@@ -40,6 +40,7 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 	private fun normalize2(str:String):String {
 		return str
 			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
+			.replace("java.runtime.name:OpenJDK Runtime Environment", "java.runtime.name:jtransc-haxe")
 			.replace("path.separator:;", "path.separator::")
 	}
 
