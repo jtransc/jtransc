@@ -35,6 +35,7 @@ fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
 fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
 fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
 fun invalidOp(msg:String): Nothing { throw InvalidOperationException(msg) }
+fun unsupported(msg:String): Nothing { throw UnsupportedOperationException(msg) }
 fun invalidArgument(msg:String): Nothing { throw InvalidArgumentException(msg) }
 fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }
 

@@ -22,8 +22,12 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStreamReader
+import java.net.URI
 import java.nio.ByteOrder
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 
 //fun String.toBuffer(encoding: Charset = UTF8): ByteBuffer = encoding.toBuffer(this)
@@ -149,12 +153,12 @@ object RawIo {
 		File(path).mkdir()
 	}
 
-	fun chmod(path: String, mode: Int) {
-		val modeStr = "%04o".format(mode)
-		if (JTranscSystem.isPosix()) {
-			execOrPassthruSync(path, "chmod", listOf(modeStr, path), ExecOptions(passthru = true))
-		} else {
-			println("chmod $modeStr $path")
+	fun chmod(path: String, mode: FileMode): Boolean {
+		try {
+			Files.setPosixFilePermissions(Paths.get(URI("file://$path")), mode.toPosix())
+			return true
+		} catch (t: Throwable) {
+			return false
 		}
 	}
 }

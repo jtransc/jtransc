@@ -18,16 +18,28 @@ package com.jtransc.util
 
 object Bits {
 	@JvmStatic
-	fun mask(count:Int):Int = (1 shl count) - 1
+	fun mask(count: Int): Int = (1 shl count) - 1
 
 	@JvmStatic
 	fun extract(data: Int, offset: Int, length: Int): Int {
 		return (data ushr offset) and mask(length)
 	}
+
+	@JvmStatic
+	fun extractBool(data: Int, offset: Int): Boolean = extract(data, offset, 1) != 0
+
 }
 
-fun Int.extract(offset: Int, length: Int):Int {
-	return Bits.extract(this, offset, length)
+fun Int.extract(offset: Int, length: Int): Int = Bits.extract(this, offset, length)
+fun Int.extractBool(offset: Int): Boolean = Bits.extractBool(this, offset)
+fun Int.hasBitmask(mask: Int): Boolean = (this and mask) == mask
+
+fun Int.withBool(offset: Int): Int {
+	val v = (1 shl offset)
+	return (this and v.inv()) or (v)
 }
 
-fun Int.hasBitmask(mask: Int):Boolean = (this and mask) == mask
+fun Int.withoutBool(offset: Int): Int {
+	val v = (1 shl offset)
+	return (this and v.inv())
+}

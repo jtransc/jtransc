@@ -18,7 +18,6 @@ package com.jtransc.vfs
 
 import com.jtransc.env.OS
 import com.jtransc.error.*
-import com.jtransc.numeric.toInt
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import com.jtransc.vfs.node.FileNode
@@ -34,7 +33,7 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-data class SyncVfsStat(val file: SyncVfsFile, val size: Long, val mtime: Date, val isDirectory: Boolean, val exists: Boolean, val mode:FileMode) {
+data class SyncVfsStat(val file: SyncVfsFile, val size: Long, val mtime: Date, val isDirectory: Boolean, val exists: Boolean, val mode: FileMode) {
 	val name: String get() = file.name
 	val path: String get() = file.path
 	val isFile: Boolean get() = !isDirectory
@@ -49,7 +48,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	val mtime: Date get() = stat().mtime
 	fun setMtime(time: Date) = vfs.setMtime(path, time)
 	fun stat(): SyncVfsStat = vfs.stat(path)
-	fun chmod(mode: Int): Unit = vfs.chmod(path, mode)
+	fun chmod(mode: FileMode): Unit = vfs.chmod(path, mode)
 	fun read(): ByteArray = vfs.read(path)
 	fun readBytes(): ByteArray = read()
 	fun readOrNull(): ByteArray? = if (exists) read() else null
@@ -164,13 +163,13 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 
 	fun copyTo(that: SyncVfsFile): Unit = that.ensureParentDir().write(this.read())
 
-	fun copyTreeTo(that: SyncVfsFile, filter: (from: SyncVfsFile, to: SyncVfsFile) -> Boolean = { from, to -> true }): Unit {
-		com.jtransc.log.log("copyTreeTo " + this.realpath + " -> " + that.realpath)
+	fun copyTreeTo(that: SyncVfsFile, filter: (from: SyncVfsFile, to: SyncVfsFile) -> Boolean = { from, to -> true }, doLog: Boolean = true): Unit {
+		if (doLog) com.jtransc.log.log("copyTreeTo " + this.realpath + " -> " + that.realpath)
 		val stat = this.stat()
 		if (stat.isDirectory) {
 			that.mkdir()
 			for (node in this.listdir()) {
-				node.file.copyTreeTo(that[node.name], filter)
+				node.file.copyTreeTo(that[node.name], filter, doLog = doLog)
 			}
 		} else {
 			this.copyTo(that)
@@ -247,7 +246,7 @@ open class SyncVfs {
 		//throw NotImplementedException()
 	}
 
-	open fun chmod(path: String, mode: Int): Unit {
+	open fun chmod(path: String, mode: FileMode): Unit {
 		throw NotImplementedException()
 	}
 
@@ -275,7 +274,9 @@ private class _LocalVfs : SyncVfs() {
 	override fun exists(path: String): Boolean = RawIo.fileExists(path)
 	override fun remove(path: String): Unit = RawIo.fileRemove(path)
 	override fun stat(path: String): SyncVfsStat = RawIo.fileStat(path).toSyncStat(this, path)
-	override fun chmod(path: String, mode:Int): Unit = RawIo.chmod(path, mode)
+	override fun chmod(path: String, mode: FileMode): Unit {
+		RawIo.chmod(path, mode)
+	}
 	override fun setMtime(path: String, time: Date) = RawIo.setMtime(path, time)
 }
 
@@ -304,7 +305,7 @@ abstract class ProxySyncVfs : SyncVfs() {
 	override fun exists(path: String): Boolean = transform(path).exists
 	override fun remove(path: String): Unit = transform(path).remove()
 	override fun stat(path: String): SyncVfsStat = transformStat(transform(path).stat())
-	override fun chmod(path: String, mode: Int): Unit = transform(path).chmod(mode)
+	override fun chmod(path: String, mode: FileMode): Unit = transform(path).chmod(mode)
 	override fun setMtime(path: String, time: Date) = transform(path).setMtime(time)
 }
 

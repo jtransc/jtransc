@@ -316,7 +316,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		log("Copying assets... ")
 		tinfo.haxeCopyEmbeddedResourcesToFolder(mergedAssetsFolder)
-		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(mergedAssetsVfs)
+		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(mergedAssetsVfs, doLog = true)
 
 		log("Compiling... ")
 

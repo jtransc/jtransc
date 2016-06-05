@@ -48,10 +48,10 @@ object HaxeCompiler {
 			if (!haxeCompilerLocalFolderVfs["std"].exists) {
 				val compvfs = CompressedVfs(haxeCompilerLocalFileVfs.realfile)
 				val compvfsBase = compvfs.firstRecursive { it.file.name == "std" }.file.parent
-				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs)
+				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs, doLog = false)
 				if (!JTranscSystem.isWindows()) {
-					haxeCompilerLocalFolderVfs["haxe"].chmod("0777".toInt(8))
-					haxeCompilerLocalFolderVfs["haxelib"].chmod("0777".toInt(8))
+					haxeCompilerLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeCompilerLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
 				}
 			}
 
