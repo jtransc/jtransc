@@ -147,6 +147,10 @@ object RawIo {
 	fun mkdir(path: String) {
 		File(path).mkdir()
 	}
+
+	fun chmod(path: String, mode: Int) {
+		execOrPassthruSync(path, "chmod", listOf("%04o".format(mode)), ExecOptions(passthru = true))
+	}
 }
 
 

@@ -3,6 +3,7 @@ package com.jtransc.gen.haxe
 import com.jtransc.JTranscSystem
 import com.jtransc.error.invalidOp
 import com.jtransc.log.log
+import com.jtransc.numeric.toInt
 import com.jtransc.vfs.*
 import java.io.File
 import java.net.URL
@@ -35,7 +36,6 @@ object HaxeCompiler {
 		else -> listOf()
 	}
 
-
 	fun ensureHaxeCompilerVfs(): SyncVfsFile {
 		log.info("ensureHaxeCompilerVfs:")
 		if (!haxeCompilerLocalFileVfs.exists) {
@@ -50,6 +50,10 @@ object HaxeCompiler {
 
 		if (!haxeCompilerLocalFolderVfs["lib"].exists) {
 			haxeCompilerLocalFolderVfs.passthru("haxelib", "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS)
+			if (!JTranscSystem.isWindows()) {
+				haxeCompilerLocalFolderVfs["haxe"].chmod("0777".toInt(8))
+				haxeCompilerLocalFolderVfs["haxelib"].chmod("0777".toInt(8))
+			}
 		}
 
 		return haxeCompilerLocalFolderVfs

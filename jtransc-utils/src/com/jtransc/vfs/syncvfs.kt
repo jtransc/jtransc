@@ -18,16 +18,14 @@ package com.jtransc.vfs
 
 import com.jtransc.env.OS
 import com.jtransc.error.*
-import com.jtransc.io.bytes
-import com.jtransc.io.stringz
-import com.jtransc.numeric.nextMultipleOf
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import com.jtransc.vfs.node.FileNode
-import com.jtransc.vfs.node.FileNodeIO
 import com.jtransc.vfs.node.FileNodeTree
-import com.jtransc.vfs.node.FileNodeType
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.*
@@ -50,6 +48,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	val mtime: Date get() = stat().mtime
 	fun setMtime(time: Date) = vfs.setMtime(path, time)
 	fun stat(): SyncVfsStat = vfs.stat(path)
+	fun chmod(mode: Int): Unit = vfs.chmod(path, mode)
 	fun read(): ByteArray = vfs.read(path)
 	fun readBytes(): ByteArray = read()
 	fun readOrNull(): ByteArray? = if (exists) read() else null
@@ -91,6 +90,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 			}
 		}
 	}
+
 	fun firstRecursive(filter: (stat: SyncVfsStat) -> Boolean): SyncVfsStat {
 		for (item in listdirRecursive()) {
 			if (filter(item)) return item
@@ -245,6 +245,10 @@ open class SyncVfs {
 		//throw NotImplementedException()
 	}
 
+	open fun chmod(path: String, mode: Int): Unit {
+		throw NotImplementedException()
+	}
+
 	open fun setMtime(path: String, time: Date) {
 		throw NotImplementedException()
 	}
@@ -253,7 +257,6 @@ open class SyncVfs {
 fun FileNode.toSyncStat(vfs: SyncVfs, path: String): SyncVfsStat {
 	return SyncVfsStat(SyncVfsFile(vfs, path), this.size(), this.mtime(), this.isDirectory(), true)
 }
-
 
 
 private class _MemoryVfs : BaseTreeVfs(FileNodeTree()) {
@@ -272,6 +275,7 @@ private class _LocalVfs : SyncVfs() {
 	override fun exists(path: String): Boolean = RawIo.fileExists(path)
 	override fun remove(path: String): Unit = RawIo.fileRemove(path)
 	override fun stat(path: String): SyncVfsStat = RawIo.fileStat(path).toSyncStat(this, path)
+	override fun chmod(path: String, mode:Int): Unit = RawIo.chmod(path, mode)
 	override fun setMtime(path: String, time: Date) = RawIo.setMtime(path, time)
 }
 
@@ -300,6 +304,7 @@ abstract class ProxySyncVfs : SyncVfs() {
 	override fun exists(path: String): Boolean = transform(path).exists
 	override fun remove(path: String): Unit = transform(path).remove()
 	override fun stat(path: String): SyncVfsStat = transformStat(transform(path).stat())
+	override fun chmod(path: String, mode: Int): Unit = transform(path).chmod(mode)
 	override fun setMtime(path: String, time: Date) = transform(path).setMtime(time)
 }
 
@@ -368,6 +373,7 @@ fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
 fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = RootLocalVfs().access(path).jail()
+
 fun UnjailedLocalVfs(file: File): SyncVfsFile = RootLocalVfs().access(file.absolutePath)
 
 fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
@@ -375,6 +381,7 @@ fun LocalVfsEnsureDirs(file: File): SyncVfsFile {
 	ignoreErrors { file.mkdirs() }
 	return _LocalVfs().root().access(file.absolutePath).jail()
 }
+
 fun CwdVfs(): SyncVfsFile = LocalVfs(File(RawIo.cwd()))
 fun CwdVfs(path: String): SyncVfsFile = CwdVfs().jailAccess(path)
 fun ScriptVfs(): SyncVfsFile = LocalVfs(File(RawIo.script()))
@@ -445,7 +452,6 @@ fun jailCombinePath(base: String, access: String): String {
 }
 
 class VfsPath(val path: String)
-
 
 
 data class UserKey<T>(val name: String)
