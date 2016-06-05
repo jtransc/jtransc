@@ -26,7 +26,7 @@ data class ProcessResult2(val exitValue: Int, val out:String = "", val err:Strin
 }
 
 object ProcessUtils {
-	fun run(currentDir: File, command: String, args: List<String>, redirect: Boolean): ProcessResult2 {
+	fun run(currentDir: File, command: String, args: List<String>, redirect: Boolean, env: Map<String, String> = mapOf()): ProcessResult2 {
 		var out = ""
 		var err = ""
 		var outerr = ""
@@ -48,21 +48,21 @@ object ProcessUtils {
 
 			override fun onCompleted(exitValue: Int) {
 			}
-		})
+		}, env = env)
 
 		return ProcessResult2(exitValue, out, err, outerr)
 	}
 
-	fun runAndReadStderr(currentDir: File, command: String, args: List<String>): ProcessResult2 {
-		return run(currentDir, command, args, redirect = false)
+	fun runAndReadStderr(currentDir: File, command: String, args: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+		return run(currentDir, command, args, redirect = false, env = env)
 	}
 
-	fun runAndRedirect(currentDir: File, command: String, args: List<String>): ProcessResult2 {
-		return run(currentDir, command, args, redirect = true)
+	fun runAndRedirect(currentDir: File, command: String, args: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+		return run(currentDir, command, args, redirect = true, env = env)
 	}
 
-	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>): ProcessResult2 {
-		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), redirect = true)
+	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), redirect = true, env = env)
 	}
 
 	open class ProcessHandler(val parent: ProcessHandler? = null) {
@@ -78,9 +78,10 @@ object ProcessUtils {
 		override fun onCompleted(exitValue: Int) = Unit
 	}
 
-	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8): Int {
+	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8, env: Map<String, String> = mapOf()): Int {
 		val pb = ProcessBuilder(command, *args.toTypedArray());
 		pb.directory(currentDir)
+		pb.environment().putAll(env)
 		val p = pb.start()
 		val input = p.inputStream
 		val error = p.errorStream

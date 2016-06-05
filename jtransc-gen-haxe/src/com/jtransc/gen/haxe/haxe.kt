@@ -360,7 +360,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 			log("Executing: $command ${cmdArgs.joinToString(" ")}")
 
-			val processResult = ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs)
+			val processResult = ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs, env = HaxeCompiler.getExtraEnvs())
 			if (!processResult.success) return ProcessResult2(processResult.exitValue)
 		}
 		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)

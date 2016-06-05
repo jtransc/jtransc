@@ -16,16 +16,17 @@ object HaxeLib {
 	}
 
 	val vfs by lazy { HaxeCompiler.ensureHaxeCompilerVfs() }
+	val haxelibCmd by lazy { vfs["haxelib"].realpathOS }
 
 	fun exists(lib: LibraryRef): Boolean {
-		return vfs.exec("haxelib", "--always", "path", lib.nameWithVersion).success
+		return vfs.exec(haxelibCmd, "--always", "path", lib.nameWithVersion).success
 	}
 
 	fun install(lib: LibraryRef) {
 		if (lib.version.isEmpty()) {
-			vfs.passthru("haxelib", "--always", "install", lib.name)
+			vfs.passthru(haxelibCmd, "--always", "install", lib.name)
 		} else {
-			vfs.passthru("haxelib", "--always", "install", lib.name, lib.version)
+			vfs.passthru(haxelibCmd, "--always", "install", lib.name, lib.version)
 		}
 	}
 
