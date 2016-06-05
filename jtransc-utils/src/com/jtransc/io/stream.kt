@@ -2,37 +2,54 @@ package com.jtransc.io
 
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.Charset
+import java.util.*
 
-fun OutputStream.i8(value:Int) {
+fun OutputStream.i8(value: Int) {
 	this.write(value.toInt())
 }
 
-fun OutputStream.i16(value:Int) {
+fun OutputStream.i16(value: Int) {
 	this.write((value.toInt() ushr 8) and 0xFF)
 	this.write((value.toInt() ushr 0) and 0xFF)
 }
 
-fun OutputStream.i32(value:Int) {
+fun OutputStream.i32(value: Int) {
 	this.write((value.toInt() ushr 24) and 0xFF)
 	this.write((value.toInt() ushr 16) and 0xFF)
 	this.write((value.toInt() ushr 8) and 0xFF)
 	this.write((value.toInt() ushr 0) and 0xFF)
 }
 
-fun InputStream.i8():Int {
+fun InputStream.i8(): Int {
 	return (this.read() and 0xFF).toByte().toInt()
 }
 
-fun InputStream.i16():Int {
+fun InputStream.i16(): Int {
 	val h = i8()
 	val l = i8()
 	return ((h shl 8) or (l shl 0)).toShort().toInt()
 }
 
-fun InputStream.i32(value:Int):Int {
+fun InputStream.i32(value: Int): Int {
 	val h = i16()
 	val l = i16()
 	return ((h shl 16) or (l shl 0)).toInt().toInt()
+}
+
+fun InputStream.bytes(count: Int): ByteArray {
+	val out = ByteArray(count)
+	this.read(out)
+	return out
+}
+
+fun ByteArray.stripTailZeros():ByteArray {
+	val index = this.indexOf(0)
+	return Arrays.copyOf(this, if (index >= 0) index else this.size)
+}
+
+fun InputStream.stringz(count: Int, charset: Charset = Charsets.UTF_8): String {
+	return this.bytes(count).stripTailZeros().toString(charset)
 }
 
 val EmptyByteArray = ByteArray(0)

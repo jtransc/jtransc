@@ -19,6 +19,7 @@ package com.jtransc.tools
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.gen.haxe.HaxeCompiler
 import com.jtransc.gen.haxe.HaxeLib
 import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
@@ -110,6 +111,7 @@ object HaxeTools {
 
 		println("haxe " + haxeargs)
 
+		HaxeCompiler.ensureHaxeCompilerVfs()
 		vfs.passthru("haxe", haxeargs)
 
 		//val file = HaxeTools::class.java.getResourceAsStream("sample_lime_neko.xml")

@@ -17,16 +17,21 @@
 package com.jtransc.vfs
 
 import com.jtransc.env.OS
-import com.jtransc.error.InvalidArgumentException
-import com.jtransc.error.InvalidOperationException
-import com.jtransc.error.NotImplementedException
+import com.jtransc.error.*
+import com.jtransc.io.bytes
+import com.jtransc.io.stringz
+import com.jtransc.numeric.nextMultipleOf
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
+import com.jtransc.vfs.node.FileNode
+import com.jtransc.vfs.node.FileNodeIO
+import com.jtransc.vfs.node.FileNodeTree
+import com.jtransc.vfs.node.FileNodeType
+import java.io.*
+import java.net.URL
 import java.nio.charset.Charset
 import java.util.*
+import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -76,7 +81,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 			if (filter(it)) {
 				if (it.isDirectory) {
 					//log("directory! ${it.path}")
-					it.file.listdirRecursive()
+					listOf(it) + it.file.listdirRecursive()
 				} else {
 					//log("file! ${it.path}")
 					listOf(it)
@@ -85,6 +90,12 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 				listOf()
 			}
 		}
+	}
+	fun firstRecursive(filter: (stat: SyncVfsStat) -> Boolean): SyncVfsStat {
+		for (item in listdirRecursive()) {
+			if (filter(item)) return item
+		}
+		invalidOp("No item on SyncVfsFile.firstRecursive")
 	}
 
 	fun mkdir(): Unit = vfs.mkdir(path)
@@ -128,6 +139,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 			file.write(content)
 		}
 	}
+
 	operator fun contains(path: String): Boolean = access(path).exists
 
 	fun jailAccess(path: String): SyncVfsFile = access(path).jail()
@@ -242,67 +254,11 @@ fun FileNode.toSyncStat(vfs: SyncVfs, path: String): SyncVfsStat {
 	return SyncVfsStat(SyncVfsFile(vfs, path), this.size(), this.mtime(), this.isDirectory(), true)
 }
 
-private class _MemoryVfs : SyncVfs() {
-	val tree = FileNodeTree()
-	private val _root = tree.root
 
-	override val absolutePath: String get() = ""
-	override fun read(path: String): ByteArray {
-		return _root.access(path).io?.read()!!
-	}
 
-	override fun write(path: String, data: ByteArray): Unit {
-		val item = _root.access(path, true)
-		var writtenData = data
-		var writtenTime = Date()
-		item.type = FileNodeType.FILE
-		item.io = object : FileNodeIO {
-			override fun mtime(): Date = writtenTime
-			override fun read(): ByteArray = writtenData
-			override fun write(data: ByteArray) {
-				writtenTime = Date()
-				writtenData = data
-			}
+private class _MemoryVfs : BaseTreeVfs(FileNodeTree()) {
 
-			override fun size(): Long = writtenData.size.toLong()
 
-		}
-	}
-
-	override fun listdir(path: String): Iterable<SyncVfsStat> {
-		return _root.access(path).map {
-			it.toSyncStat(this, "${path}/${it.name}")
-		}
-	}
-
-	override fun mkdir(path: String): Unit {
-		_root.access(path, true)
-	}
-
-	override fun rmdir(path: String): Unit {
-		try {
-			val node = _root.access(path, false)
-			node.remove()
-		} catch (e: Throwable) {
-
-		}
-	}
-
-	override fun exists(path: String): Boolean {
-		try {
-			_root.access(path)
-			return true
-		} catch(e: Throwable) {
-			return false
-		}
-	}
-
-	override fun remove(path: String): Unit = _root.access(path).remove()
-	override fun stat(path: String): SyncVfsStat = _root.access(path).toSyncStat(this, path)
-
-	override fun setMtime(path: String, time: Date) {
-		// @TODO!
-	}
 }
 
 private class _LocalVfs : SyncVfs() {
@@ -371,12 +327,41 @@ private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
 	}
 }
 
+
+private class _UrlVfs : SyncVfs() {
+	override fun read(path: String): ByteArray {
+		val fixedUrl = Regex("^http:/([^/])").replace(path, "http://$1")
+		val sin = URL(fixedUrl).openStream();
+		val sout = ByteArrayOutputStream();
+		sin.copyTo(sout)
+		return sout.toByteArray()
+	}
+}
+
+fun RootUrlVfs(): SyncVfsFile = _UrlVfs().root()
+fun UrlVfs(url: String): SyncVfsFile = _UrlVfs().root().jailAccess(url)
+fun UrlVfs(url: URL): SyncVfsFile = _UrlVfs().root().jailAccess(url.toExternalForm())
 fun RootLocalVfs(): SyncVfsFile = _LocalVfs().root()
 fun MergeVfs(nodes: List<SyncVfsFile>) = MergedSyncVfs(nodes).root()
 fun MergedLocalAndJars(paths: List<String>) = MergeVfs(LocalAndJars(paths))
 fun LocalAndJars(paths: List<String>): List<SyncVfsFile> {
 	return paths.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(File(it)) }
 }
+
+fun CompressedVfs(file: File): SyncVfsFile {
+	val npath = file.absolutePath.toLowerCase()
+
+	return if (npath.endsWith(".tar.gz")) {
+		TarVfs(GZIPInputStream(file.inputStream()).readBytes())
+	} else if (npath.endsWith(".zip") || npath.endsWith(".jar")) {
+		ZipVfs(file)
+	} else if (npath.endsWith(".tar")) {
+		TarVfs(file)
+	} else {
+		invalidOp("Don't know how to handle compressed file: $file")
+	}
+}
+
 
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
 fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
@@ -386,6 +371,10 @@ fun LocalVfs(path: String): SyncVfsFile = RootLocalVfs().access(path).jail()
 fun UnjailedLocalVfs(file: File): SyncVfsFile = RootLocalVfs().access(file.absolutePath)
 
 fun LocalVfs(file: File): SyncVfsFile = _LocalVfs().root().access(file.absolutePath).jail()
+fun LocalVfsEnsureDirs(file: File): SyncVfsFile {
+	ignoreErrors { file.mkdirs() }
+	return _LocalVfs().root().access(file.absolutePath).jail()
+}
 fun CwdVfs(): SyncVfsFile = LocalVfs(File(RawIo.cwd()))
 fun CwdVfs(path: String): SyncVfsFile = CwdVfs().jailAccess(path)
 fun ScriptVfs(): SyncVfsFile = LocalVfs(File(RawIo.script()))
@@ -439,11 +428,8 @@ fun normalizePath(path: String): String {
 	for (chunk in path.replace('\\', '/').split('/')) {
 		when (chunk) {
 			".." -> if (out.size > 0) out.removeAt(0)
-			"." -> {
-			}
-			"" -> {
-				if (out.size == 0) out.add("")
-			}
+			"." -> Unit
+			"" -> if (out.size == 0) out.add("")
 			else -> out.add(chunk)
 		}
 	}
@@ -461,18 +447,6 @@ fun jailCombinePath(base: String, access: String): String {
 class VfsPath(val path: String)
 
 
-open class FileNodeTree {
-	val root = FileNode(this, null, "", FileNodeType.ROOT)
-}
-
-enum class FileNodeType { ROOT, DIRECTORY, FILE }
-
-interface FileNodeIO {
-	fun read(): ByteArray
-	fun write(data: ByteArray): Unit
-	fun size(): Long
-	fun mtime(): Date
-}
 
 data class UserKey<T>(val name: String)
 
@@ -499,80 +473,6 @@ class UserData : IUserData {
 	}
 }
 
-open class FileNode(val tree: FileNodeTree, val parent: FileNode?, val name: String, var type: FileNodeType) : Iterable<FileNode> {
-	private val children = arrayListOf<FileNode>()
-	val userData = UserData()
-	var io: FileNodeIO? = null
-
-	override fun toString(): String = "FileNode($path, type=$type leaf=$isLeaf)"
-
-	val path: String get() = if (parent != null) "${parent.path}/$name" else name
-	val root: FileNode get() = if (parent != null) parent.root else this
-	val isLeaf: Boolean get() = children.size == 0
-
-	init {
-		if (parent != null) parent.children.add(this)
-	}
-
-	fun size(): Long = io?.size() ?: 0
-	fun mtime(): Date = io?.mtime() ?: Date()
-	fun isDirectory(): Boolean = (type == FileNodeType.ROOT) || (type == FileNodeType.DIRECTORY)
-
-	fun getChildren(): List<FileNode> = children
-
-	override fun iterator(): Iterator<FileNode> {
-		return children.iterator()
-	}
-
-	fun leafs(): Iterable<FileNode> {
-		return descendants().filter { it.isLeaf }
-	}
-
-	fun descendants(): Iterable<FileNode> {
-		return children + children.flatMap { it.descendants() }
-	}
-
-	fun child(name: String): FileNode? {
-		return when (name) {
-			"" -> this
-			"." -> this
-			".." -> parent
-			else -> children.firstOrNull { it.name == name }
-		}
-	}
-
-	open protected fun _createChild(name: String, type: FileNodeType): FileNode {
-		return FileNode(tree, this, name, type)
-	}
-
-	fun createChild(name: String, type: FileNodeType): FileNode {
-		if (child(name) != null) throw FileAlreadyExistsException(File(name), reason = "Child $name already exists")
-		return _createChild(name, type)
-	}
-
-	fun access(path: String, mustCreate: Boolean = false): FileNode {
-		var node: FileNode = this
-		var first = true
-
-		for (name in path.split("/")) {
-			var child = if (name == "" && first) root else node.child(name)
-			if (child == null && mustCreate) {
-				child = FileNode(tree, node, name, FileNodeType.DIRECTORY)
-			}
-			if (child == null) throw NoSuchFileException(File(path), reason = "Can't access '$path' (missing '$name')")
-			node = child
-			first = false
-		}
-
-		return node
-	}
-
-	fun remove() {
-		if (parent != null) {
-			parent.children.remove(this)
-		}
-	}
-}
 
 object Path {
 	fun parent(path: String): String = if (path.contains('/')) path.substringBeforeLast('/') else ""
@@ -608,7 +508,7 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 				lastError = t
 			}
 		}
-		throw RuntimeException("Can't $act file '$path'")
+		throw RuntimeException("Can't $act file '$path' : $lastError")
 	}
 
 	override fun read(path: String): ByteArray = op(path, "read") { it[path].read() }
@@ -648,7 +548,7 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 
 	constructor(file: File) : this(ZipFile(file))
 
-	override val absolutePath: String = "#zip#"
+	override val absolutePath: String = zip.name + "#"
 
 	override fun read(path: String): ByteArray {
 		val entry = zip.getEntry(path) ?: throw FileNotFoundException(path)

@@ -171,10 +171,23 @@ public class JTranscSystem {
 		return os;
 	}
 
+	// http://lopica.sourceforge.net/os.html
 	@HaxeMethodBody("return HaxeNatives.str('x86');")
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
 		return System.getProperty("os.arch");
+	}
+
+	public static boolean isOs32() {
+		return !isOs64();
+	}
+
+	public static boolean isOs64() {
+		if (System.getProperty("os.name").contains("Windows")) {
+			return (System.getenv("ProgramFiles(x86)") != null);
+		} else {
+			return (System.getProperty("os.arch").indexOf("64") != -1);
+		}
 	}
 
 	public static boolean isWindows() {
@@ -202,5 +215,9 @@ public class JTranscSystem {
 	public static String lineSeparator() {
 		//return isWindows() ? "\r\n" : "\n";
 		return "\n";
+	}
+
+	static public String getUserHome() {
+		return System.getProperty("user.home");
 	}
 }
