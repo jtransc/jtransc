@@ -22,12 +22,12 @@ object HaxeCompiler {
 	}
 
 	val nekoFile: String by lazy {
-		//"haxe-$HaxeVersion-linux32.tar.gz"
-		if (JTranscSystem.isWindows()) "neko-$NekoVersion-win.zip"
-		else if (JTranscSystem.isMac()) "neko-$NekoVersion-osx64.tar.gz"
-		else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "neko-$NekoVersion-linux.tar.gz"
-		else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "neko-$NekoVersion-linux64.tar.gz"
-		else invalidOp("Not supported operaning system. Just supporting windows, osx and linux.")
+		"neko-$NekoVersion-linux64.tar.gz"
+		//if (JTranscSystem.isWindows()) "neko-$NekoVersion-win.zip"
+		//else if (JTranscSystem.isMac()) "neko-$NekoVersion-osx64.tar.gz"
+		//else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "neko-$NekoVersion-linux.tar.gz"
+		//else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "neko-$NekoVersion-linux64.tar.gz"
+		//else invalidOp("Not supported operaning system. Just supporting windows, osx and linux.")
 	}
 
 	//http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-win.zip
@@ -87,6 +87,8 @@ object HaxeCompiler {
 			}
 
 			if (!nekoLocalFolderVfs["std.ndll"].exists) {
+				//for (syncVfsStat in CompressedVfs(nekoLocalFileVfs.realfile).listdirRecursive()) println(syncVfsStat)
+
 				val compvfsBase = CompressedVfs(nekoLocalFileVfs.realfile).firstRecursive { it.file.name == "std.ndll" }.file.parent
 				compvfsBase.copyTreeTo(nekoLocalFolderVfs, doLog = false)
 

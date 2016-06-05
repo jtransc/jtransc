@@ -2,6 +2,7 @@ package com.jtransc.vfs
 
 import com.jtransc.error.noImpl
 import com.jtransc.io.stringz
+import com.jtransc.io.stringzTrim
 import com.jtransc.numeric.nextMultipleOf
 import com.jtransc.numeric.toInt
 import com.jtransc.vfs.node.FileNodeIO
@@ -20,15 +21,19 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 	private fun readOne(): Boolean {
 		val nodeHeaderOffset = currentOffset
 		val header = ByteArrayInputStream(tarData, currentOffset, 0x200)
-		val fileName = header.stringz(100)
-		val fileMode = header.stringz(8)
-		val ownerNumeric = header.stringz(8).toInt(8, 0)
-		val ownerGroup = header.stringz(8).toInt(8, 0)
-		val fileSize = header.stringz(12).toInt(8, 0)
-		val lastModification = header.stringz(12).toInt(8, 0)
-		val checksum = header.stringz(8)
-		val linkIndicator = header.stringz(1)
-		val nameOfLinkedFile = header.stringz(100)
+		val fileName = header.stringzTrim(100)
+		if (fileName.isEmpty()) return false
+
+		val fileMode = header.stringzTrim(8)
+		val ownerNumeric = header.stringzTrim(8).toInt(8, 0)
+		val ownerGroup = header.stringzTrim(8).toInt(8, 0)
+		val fileSize = header.stringzTrim(12)
+		val lastModification = header.stringzTrim(12).toInt(8, 0)
+		val checksum = header.stringzTrim(8)
+		val linkIndicator = header.stringzTrim(1)
+		val nameOfLinkedFile = header.stringzTrim(100)
+
+		val fileSizeLong = java.lang.Long.parseLong(fileSize, 8)
 
 		//0	100	File name
 		//100	8	File mode
@@ -56,15 +61,15 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 			val node = tree.root[fileName, true]
 			node.type = if (fileName.endsWith("/")) FileNodeType.DIRECTORY else FileNodeType.FILE
 			node.io = object : FileNodeIO {
-				override fun read(): ByteArray = Arrays.copyOfRange(tarData, nodeHeaderOffset + 0x200, nodeHeaderOffset + 0x200 + fileSize)
+				override fun read(): ByteArray = Arrays.copyOfRange(tarData, nodeHeaderOffset + 0x200, nodeHeaderOffset + 0x200 + fileSizeLong.toInt())
 				override fun write(data: ByteArray) = noImpl("Writting not implemented on tar files")
-				override fun size(): Long = fileSize.toLong()
+				override fun size(): Long = fileSizeLong
 				override fun mtime(): Date = Date(lastModification.toLong() * 1000L)
 				override fun mode(): FileMode = FileMode.fromOctal(fileMode)
 			}
 		}
-		currentOffset = (currentOffset + 0x200 + fileSize).nextMultipleOf(0x200)
-		return fileName.isNotEmpty()
+		currentOffset = (currentOffset + 0x200 + fileSizeLong.toInt()).nextMultipleOf(0x200)
+		return true
 	}
 
 	init {

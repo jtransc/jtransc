@@ -52,6 +52,10 @@ fun InputStream.stringz(count: Int, charset: Charset = Charsets.UTF_8): String {
 	return this.bytes(count).stripTailZeros().toString(charset)
 }
 
+fun InputStream.stringzTrim(count: Int, charset: Charset = Charsets.UTF_8): String {
+	return stringz(count, charset).trimEnd()
+}
+
 val EmptyByteArray = ByteArray(0)
 fun InputStream.readAvailableChunk(): ByteArray {
 	if (this.available() <= 0) return EmptyByteArray
