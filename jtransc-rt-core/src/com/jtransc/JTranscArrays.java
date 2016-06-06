@@ -1,7 +1,6 @@
 package com.jtransc;
 
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.util.JTranscMath;
 
 import java.util.Arrays;
 
@@ -56,12 +55,14 @@ public class JTranscArrays {
 	@HaxeMethodBody("var p8 = 1 - p7; for (n in 0 ... p0) p1.data[p2 + n] = Std.int(p3.data[p4 + n] * p7 + p5.data[p6 + n] * p8);")
 	static public void mixUnsigned(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos, double ratio) {
 		double ratiob = 1.0 - ratio;
-		for (int n = 0; n < count; n++) target[targetpos + n] = (byte) ((a[apos + n] & 0xFF) * ratio + (b[bpos + n] & 0xFF) * ratiob);
+		for (int n = 0; n < count; n++)
+			target[targetpos + n] = (byte) ((a[apos + n] & 0xFF) * ratio + (b[bpos + n] & 0xFF) * ratiob);
 	}
 
 	// Use clamped array?
 	static public void addUnsignedClamped(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos) {
-		for (int n = 0; n < count; n++) target[targetpos + n] = (byte) clamp255((a[apos + n] & 0xFF) + (b[bpos + n] & 0xFF));
+		for (int n = 0; n < count; n++)
+			target[targetpos + n] = (byte) clamp255((a[apos + n] & 0xFF) + (b[bpos + n] & 0xFF));
 	}
 
 	static private int clamp255(int v) {
