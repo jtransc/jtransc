@@ -224,4 +224,8 @@ public class JTranscSystem {
 	public static boolean isPosix() {
 		return !isWindows();
 	}
+
+	static public String getTimeZone() {
+		return "GMT";
+	}
 }

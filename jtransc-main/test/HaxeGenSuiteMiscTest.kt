@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-import javatest.KotlinCollections
-import javatest.lang.AtomicTest
-import javatest.lang.BasicTypesTest
-import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
-import javatest.utils.DateTest
-import jtransc.ProcessTest
-import jtransc.WrappedTest
-import jtransc.bug.*
-import jtransc.java8.DefaultMethodsTest
-import jtransc.java8.Java8Test
-import jtransc.jtransc.FastMemoryTest
-import jtransc.rt.test.*
 import org.junit.Test
 
 class HaxeGenSuiteMiscTest : HaxeTestBase() {
@@ -37,7 +25,7 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 
 	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 
-	private fun normalize2(str:String):String {
+	private fun normalize2(str: String): String {
 		return str
 			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
 			.replace("java.runtime.name:OpenJDK Runtime Environment", "java.runtime.name:jtransc-haxe")

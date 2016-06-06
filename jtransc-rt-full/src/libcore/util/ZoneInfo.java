@@ -28,8 +28,7 @@ import libcore.io.BufferIterator;
  */
 public final class ZoneInfo extends TimeZone {
     private static final long MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-    private static final long MILLISECONDS_PER_400_YEARS =
-            MILLISECONDS_PER_DAY * (400 * 365 + 100 - 3);
+    private static final long MILLISECONDS_PER_400_YEARS = MILLISECONDS_PER_DAY * (400 * 365 + 100 - 3);
 
     private static final long UNIX_OFFSET = 62167219200000L;
 

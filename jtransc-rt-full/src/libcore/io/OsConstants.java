@@ -751,7 +751,9 @@ public final class OsConstants {
         return null;
     }
 
-    private static native void initConstants();
+    private static void initConstants() {
+
+	}
 
     // A hack to avoid these constants being inlined by javac...
     private static int placeholder() { return 0; }

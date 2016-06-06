@@ -141,5 +141,7 @@ public class ObjectStreamField implements Comparable<Object> {
 		return signature;
 	}
 
-	native private static String getClassSignature(Class<?> cl);
+	private static String getClassSignature(Class<?> cl) {
+		return cl.getName();
+	}
 }

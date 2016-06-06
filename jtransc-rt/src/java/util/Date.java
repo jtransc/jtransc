@@ -68,7 +68,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	native public void setYear(int year);
 
 	@Deprecated
-	@HaxeMethodBody("return _date.getMonth() + 1;")
+	@HaxeMethodBody("return _date.getMonth();")
 	native public int getMonth();
 
 	@Deprecated

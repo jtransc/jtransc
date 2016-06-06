@@ -27,25 +27,7 @@ import com.jtransc.util.ClassUtils
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UnjailedLocalVfs
 import com.jtransc.vfs.parent
-import javatest.KotlinCollections
-import javatest.lang.AtomicTest
-import javatest.lang.BasicTypesTest
-import javatest.lang.StringsTest
-import javatest.lang.SystemTest
-import javatest.misc.MiscTest
-import javatest.utils.DateTest
-import jtransc.ProcessTest
-import jtransc.WrappedTest
-import jtransc.annotation.ClassMembersTest
-import jtransc.annotation.MethodBodyTest
-import jtransc.bug.*
-import jtransc.java8.Java8Test
-import jtransc.jtransc.CustomBuildTest
-import jtransc.jtransc.FastMemoryTest
-import jtransc.jtransc.HaxeNativeCallTest
-import jtransc.rt.test.*
 import org.junit.Assert
-import org.junit.Test
 import java.io.File
 
 open class HaxeTestBase {
@@ -61,7 +43,7 @@ open class HaxeTestBase {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang:String = "js", analyze:Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
 
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
@@ -79,11 +61,11 @@ open class HaxeTestBase {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang:String = "js"): String {
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js"): String {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang)
 	}
 
-	inline fun <reified T: Any> testNativeClass(expected:String, minimize: Boolean? = null) {
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null) {
 		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize).trim())
 	}
 
@@ -99,7 +81,7 @@ open class HaxeTestBase {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean?, analyze: Boolean?, lang:String): String {
+	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean?, analyze: Boolean?, lang: String): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = HaxeGenDescriptor,

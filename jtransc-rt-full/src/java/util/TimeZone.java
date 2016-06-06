@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.jtransc.JTranscSystem;
 import libcore.icu.TimeZoneNames;
 import libcore.io.IoUtils;
 import libcore.util.ZoneInfoDB;
@@ -142,14 +144,7 @@ public abstract class TimeZone implements Serializable, Cloneable {
                 zoneName = ZoneInfoDB.getInstance().getDefaultID();
             }
             if (zoneName == null || zoneName.isEmpty()) {
-                try {
-                    // On the host, we can find the configured timezone here.
-                    zoneName = IoUtils.readFileAsString("/etc/timezone");
-                } catch (IOException ex) {
-                    // "vogar --mode device" can end up here.
-                    // TODO: give libcore access to Android system properties and read "persist.sys.timezone".
-                    zoneName = "GMT";
-                }
+				zoneName = JTranscSystem.getTimeZone();
             }
             defaultTimeZone = TimeZone.getTimeZone(zoneName);
         }

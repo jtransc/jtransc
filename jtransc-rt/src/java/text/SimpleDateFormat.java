@@ -52,7 +52,7 @@ public class SimpleDateFormat extends DateFormat {
 					value = String.valueOf(date.getYear() + 1900);
 					break;
 				case 'M':
-					value = String.valueOf(date.getMonth());
+					value = String.valueOf(date.getMonth() + 1);
 					break;
 				case 'd':
 					value = String.valueOf(date.getDate());
