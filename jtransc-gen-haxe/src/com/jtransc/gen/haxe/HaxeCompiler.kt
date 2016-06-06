@@ -77,6 +77,8 @@ object HaxeCompiler {
 
 	fun ensureHaxeCompilerVfs(): SyncVfsFile {
 		if (!ensured) {
+			ensured = true
+
 			log.info("ensureHaxeCompilerVfs:")
 
 			/////////////////////////////////////////
@@ -96,13 +98,7 @@ object HaxeCompiler {
 			}
 
 			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
-				//println(haxeCompilerLocalFolderVfs["haxelib"].realpathOS)
-				//println(haxeCompilerLocalFolderVfs["lib"].realpathOS)
-				haxeCompilerLocalFolderVfs.passthru(
-					haxeCompilerLocalFolderVfs["haxelib"].realpathOS, "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS,
-					env = getExtraEnvs()
-				)
-				//println(result)
+				HaxeLib.setup(haxeCompilerLocalFolderVfs["lib"].realpathOS)
 			}
 
 			/////////////////////////////////////////
@@ -125,8 +121,6 @@ object HaxeCompiler {
 					nekoLocalFolderVfs["nekoml"].chmod(FileMode.fromString("-rwxr-xr-x"))
 				}
 			}
-
-			ensured = true
 		}
 
 		return haxeCompilerLocalFolderVfs
