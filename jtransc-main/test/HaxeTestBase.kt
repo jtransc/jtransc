@@ -117,6 +117,7 @@ open class HaxeTestBase {
 				analyzer = analyze ?: ANALYZER,
 				rtAndRtCore = listOf(
 					projectRoot["jtransc-rt/target/classes"].realpathOS,
+					projectRoot["jtransc-rt-full/target/classes"].realpathOS,
 					projectRoot["jtransc-rt-core/target/classes"].realpathOS
 				)
 			)

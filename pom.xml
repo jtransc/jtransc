@@ -71,6 +71,7 @@
     <modules>
 		<module>jtransc-asm</module>
         <module>jtransc-rt-core</module>
+		<module>jtransc-rt-full</module>
         <module>jtransc-rt</module>
         <module>jtransc-utils</module>
         <module>jtransc-core</module>
