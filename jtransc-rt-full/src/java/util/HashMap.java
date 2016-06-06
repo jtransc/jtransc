@@ -17,13 +17,14 @@
 
 package java.util;
 
+import com.jtransc.util.JTranscMath;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.io.Serializable;
-import libcore.util.Objects;
 
 /**
  * HashMap is an implementation of {@link Map}. All optional operations are supported.
@@ -153,7 +154,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
         } else if (capacity > MAXIMUM_CAPACITY) {
             capacity = MAXIMUM_CAPACITY;
         } else {
-            capacity = Collections.roundUpToPowerOfTwo(capacity);
+            capacity = JTranscMath.roundUpToPowerOfTwo(capacity);
         }
         makeTable(capacity);
     }
@@ -533,7 +534,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
      *  <p>This method is called only by putAll.
      */
     private void ensureCapacity(int numMappings) {
-        int newCapacity = Collections.roundUpToPowerOfTwo(capacityForInitSize(numMappings));
+        int newCapacity = JTranscMath.roundUpToPowerOfTwo(capacityForInitSize(numMappings));
         HashMapEntry<K, V>[] oldTable = table;
         int oldCapacity = oldTable.length;
         if (newCapacity <= oldCapacity) {
@@ -766,8 +767,8 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
                 return false;
             }
             Entry<?, ?> e = (Entry<?, ?>) o;
-            return Objects.equal(e.getKey(), key)
-                    && Objects.equal(e.getValue(), value);
+            return Objects.equals(e.getKey(), key)
+                    && Objects.equals(e.getValue(), value);
         }
 
         @Override public final int hashCode() {
@@ -849,7 +850,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
     private boolean containsMapping(Object key, Object value) {
         if (key == null) {
             HashMapEntry<K, V> e = entryForNullKey;
-            return e != null && Objects.equal(value, e.value);
+            return e != null && Objects.equals(value, e.value);
         }
 
         int hash = secondaryHash(key);
@@ -857,7 +858,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
         int index = hash & (tab.length - 1);
         for (HashMapEntry<K, V> e = tab[index]; e != null; e = e.next) {
             if (e.hash == hash && key.equals(e.key)) {
-                return Objects.equal(value, e.value);
+                return Objects.equals(value, e.value);
             }
         }
         return false; // No entry for key
@@ -870,7 +871,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
     private boolean removeMapping(Object key, Object value) {
         if (key == null) {
             HashMapEntry<K, V> e = entryForNullKey;
-            if (e == null || !Objects.equal(value, e.value)) {
+            if (e == null || !Objects.equals(value, e.value)) {
                 return false;
             }
             entryForNullKey = null;
@@ -886,7 +887,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
         for (HashMapEntry<K, V> e = tab[index], prev = null;
                 e != null; prev = e, e = e.next) {
             if (e.hash == hash && key.equals(e.key)) {
-                if (!Objects.equal(value, e.value)) {
+                if (!Objects.equals(value, e.value)) {
                     return false;  // Map has wrong value for key
                 }
                 if (prev == null) {
@@ -1008,7 +1009,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
         } else if (capacity > MAXIMUM_CAPACITY) {
             capacity = MAXIMUM_CAPACITY;
         } else {
-            capacity = Collections.roundUpToPowerOfTwo(capacity);
+            capacity = JTranscMath.roundUpToPowerOfTwo(capacity);
         }
         makeTable(capacity);
 
