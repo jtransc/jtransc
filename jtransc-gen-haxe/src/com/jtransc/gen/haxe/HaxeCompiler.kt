@@ -129,7 +129,8 @@ object HaxeCompiler {
 	fun getExtraEnvs(): Map<String, String> = mapOf(
 		"HAXE_STD_PATH" to haxeCompilerLocalFolderVfs["std"].realpathOS,
 		"HAXE_HOME" to haxeCompilerLocalFolderVfs.realpathOS,
-		"NEKOPATH" to nekoLocalFolderVfs.realpathOS
+		"NEKOPATH" to nekoLocalFolderVfs.realpathOS,
+		"*PATH" to nekoLocalFolderVfs.realpathOS + File.pathSeparator + haxeCompilerLocalFolderVfs.realpathOS + File.pathSeparator
 	)
 
 	fun ensureHaxeSubtarget(subtarget: String) {

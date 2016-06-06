@@ -81,7 +81,18 @@ object ProcessUtils {
 	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8, env: Map<String, String> = mapOf()): Int {
 		val pb = ProcessBuilder(command, *args.toTypedArray());
 		pb.directory(currentDir)
-		pb.environment().putAll(env)
+		val penv = pb.environment()
+		for ((key, value) in env.entries) {
+			if (key.startsWith("*")) {
+				val akey = key.substring(1)
+				penv[akey] = value + penv[akey]
+			} else if (key.endsWith("*")) {
+				val akey = key.substring(0, key.length - 1)
+				penv[akey] = penv[akey] + value
+			} else {
+				penv[key] = value
+			}
+		}
 		val p = pb.start()
 		val input = p.inputStream
 		val error = p.errorStream
