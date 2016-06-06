@@ -27,6 +27,7 @@ import jtransc.bug.*
 import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
+import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
 import org.junit.Test
 
@@ -38,6 +39,7 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
 	@Test fun fastMemoryTest() = testClass<FastMemoryTest>(minimize = false)
+	@Test fun simdTest() = testClass<SimdTest>(minimize = false)
 
 	@Test fun jtranscBugWithStaticInits() = testClass<JTranscBugWithStaticInits>()
 

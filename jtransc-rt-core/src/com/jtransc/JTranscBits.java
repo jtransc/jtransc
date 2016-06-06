@@ -59,6 +59,10 @@ public class JTranscBits {
 		return (((b3 & 0xFF) << 24) | ((b2 & 0xFF) << 16) | ((b1 & 0xFF) << 8) | ((b0 & 0xFF) << 0));
 	}
 
+	static final public int makeInt(int b3, int b2, int b1, int b0) {
+		return (((b3 & 0xFF) << 24) | ((b2 & 0xFF) << 16) | ((b1 & 0xFF) << 8) | ((b0 & 0xFF) << 0));
+	}
+
 	static public int makeInt(byte[] bytes) {
 		return makeInt(bytes[0], bytes[1], bytes[2], bytes[3]);
 	}
