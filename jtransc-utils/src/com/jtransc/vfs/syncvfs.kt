@@ -336,8 +336,16 @@ private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
 
 private class _UrlVfs : SyncVfs() {
 	override fun read(path: String): ByteArray {
-		val fixedUrl = Regex("^http:/([^/])").replace(path, "http://$1")
-		val sin = URL(fixedUrl).openStream();
+		val fixedUrl = Regex("^http(s?):/([^/])").replace(path, "http$1://$2")
+		val connection = URL(fixedUrl).openConnection()
+		connection.allowUserInteraction = false
+		connection.connectTimeout = 10000
+		connection.readTimeout = 10000
+		connection.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
+		connection.addRequestProperty("User-Agent", "Mozilla");
+		//connection.addRequestProperty("Referer", fixedUrl);
+		//println(connection.headerFields)
+		val sin = connection.inputStream;
 		val sout = ByteArrayOutputStream();
 		sin.copyTo(sout)
 		return sout.toByteArray()

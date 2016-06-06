@@ -3,47 +3,68 @@ package com.jtransc.gen.haxe
 import com.jtransc.JTranscSystem
 import com.jtransc.error.invalidOp
 import com.jtransc.log.log
-import com.jtransc.numeric.toInt
 import com.jtransc.vfs.*
 import java.io.File
 import java.net.URL
 
 object HaxeCompiler {
-	val HaxeVersion = "3.3.0-rc.1"
-	val NekoVersion = "2.1.0"
+	val HAXE_VERSION = "3.3.0-rc.1"
+	val NEKO_VERSION = "2.1.0"
 
-	val haxeCompilerFile: String by lazy {
-		//"haxe-$HaxeVersion-linux32.tar.gz"
-		if (JTranscSystem.isWindows()) "haxe-$HaxeVersion-win.zip"
-		else if (JTranscSystem.isMac()) "haxe-$HaxeVersion-osx.tar.gz"
-		else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "haxe-$HaxeVersion-linux32.tar.gz"
-		else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "haxe-$HaxeVersion-linux64.tar.gz"
+	val HAXE_FILE: String by lazy {
+		if (JTranscSystem.isWindows()) "haxe-$HAXE_VERSION-win.zip"
+		else if (JTranscSystem.isMac()) "haxe-$HAXE_VERSION-osx.tar.gz"
+		else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "haxe-$HAXE_VERSION-linux32.tar.gz"
+		else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "haxe-$HAXE_VERSION-linux64.tar.gz"
 		else invalidOp("Not supported operaning system. Just supporting windows, osx and linux.")
 	}
 
-	val nekoFile: String by lazy {
-		"neko-$NekoVersion-linux64.tar.gz"
-		//if (JTranscSystem.isWindows()) "neko-$NekoVersion-win.zip"
-		//else if (JTranscSystem.isMac()) "neko-$NekoVersion-osx64.tar.gz"
-		//else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "neko-$NekoVersion-linux.tar.gz"
-		//else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "neko-$NekoVersion-linux64.tar.gz"
-		//else invalidOp("Not supported operaning system. Just supporting windows, osx and linux.")
+	val NEKO_FILE: String by lazy {
+		if (JTranscSystem.isWindows()) "neko-$NEKO_VERSION-win.zip"
+		else if (JTranscSystem.isMac()) "neko-$NEKO_VERSION-osx64.tar.gz"
+		else if (JTranscSystem.isLinux() && JTranscSystem.isOs32()) "neko-$NEKO_VERSION-linux.tar.gz"
+		else if (JTranscSystem.isLinux() && JTranscSystem.isOs64()) "neko-$NEKO_VERSION-linux64.tar.gz"
+		else invalidOp("Not supported operaning system. Just supporting windows, osx and linux.")
 	}
 
+	//https://github.com/jtransc/haxe-releases/releases/download/neko-2.1.0/neko-2.1.0-linux.tar.gz
 	//http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-win.zip
 	//http://nekovm.org/media/neko-2.1.0-linux64.tar.gz
-	val haxeCompilerUrl: URL by lazy { URL("http://haxe.org/website-content/downloads/$HaxeVersion/downloads/$haxeCompilerFile") }
-	val nekoUrl: URL by lazy { URL("http://nekovm.org/media/$nekoFile") }
+
+	//val haxeCompilerUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/haxe-$HaxeVersion/$haxeCompilerFile") }
+	//val nekoUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/neko-$NekoVersion/$nekoFile") }
+
+	val HAXE_URL: URL by lazy {
+		if (System.getenv("TRAVIS") == "true") {
+			// Unsecure but official download to avoid spamming github
+			// It would be great to use maven
+			// https://github.com/HaxeFoundation/haxe/issues/5331
+			URL("http://haxe.org/website-content/downloads/$HAXE_VERSION/downloads/$HAXE_FILE")
+		} else {
+			URL("https://github.com/jtransc/haxe-releases/blob/master/haxe/$HAXE_VERSION/$HAXE_FILE?raw=true")
+		}
+	}
+	val NEKO_URL: URL by lazy {
+		if (System.getenv("TRAVIS") == "true") {
+			// Unsecure but official download to avoid spamming github
+			// It would be great to use maven
+			// https://github.com/HaxeFoundation/haxe/issues/5331
+			URL("http://nekovm.org/media/$NEKO_FILE")
+		} else {
+			URL("https://github.com/jtransc/haxe-releases/blob/master/neko/$NEKO_VERSION/$NEKO_FILE?raw=true")
+		}
+	}
+
 	val jtranscHaxeFolder: String by lazy { JTranscSystem.getUserHome() + "/.jtransc/haxe" }
 	val jtranscNekoFolder: String by lazy { JTranscSystem.getUserHome() + "/.jtransc/neko" }
 
-	val haxeCompilerUrlVfs: SyncVfsFile by lazy { UrlVfs(haxeCompilerUrl) }
-	val haxeCompilerLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscHaxeFolder)).access(haxeCompilerFile) }
-	val haxeCompilerLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscHaxeFolder/$HaxeVersion")) }
+	val haxeCompilerUrlVfs: SyncVfsFile by lazy { UrlVfs(HAXE_URL) }
+	val haxeCompilerLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscHaxeFolder)).access(HAXE_FILE) }
+	val haxeCompilerLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscHaxeFolder/$HAXE_VERSION")) }
 
-	val nekoUrlVfs: SyncVfsFile by lazy { UrlVfs(nekoUrl) }
-	val nekoLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscNekoFolder)).access(nekoFile) }
-	val nekoLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscNekoFolder/$NekoVersion")) }
+	val nekoUrlVfs: SyncVfsFile by lazy { UrlVfs(NEKO_URL) }
+	val nekoLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscNekoFolder)).access(NEKO_FILE) }
+	val nekoLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscNekoFolder/$NEKO_VERSION")) }
 
 	fun getHaxeTargetLibraries(subtarget: String): List<String> = when (subtarget) {
 		"cpp", "windows", "linux", "mac", "osx" -> listOf("hxcpp")
@@ -62,7 +83,7 @@ object HaxeCompiler {
 			// HAXE
 			/////////////////////////////////////////
 			if (!haxeCompilerLocalFileVfs.exists) {
-				log.info("Downloading haxe: $haxeCompilerUrl...")
+				log.info("Downloading haxe: $HAXE_URL...")
 				haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
 			}
 			if (!haxeCompilerLocalFolderVfs["std"].exists) {
@@ -82,7 +103,7 @@ object HaxeCompiler {
 			// NEKO
 			/////////////////////////////////////////
 			if (!nekoLocalFileVfs.exists) {
-				log.info("Downloading neko: $nekoUrl...")
+				log.info("Downloading neko: $NEKO_URL...")
 				nekoUrlVfs.copyTo(nekoLocalFileVfs)
 			}
 
