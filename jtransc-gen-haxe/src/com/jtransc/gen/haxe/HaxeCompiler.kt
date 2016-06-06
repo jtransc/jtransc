@@ -96,7 +96,13 @@ object HaxeCompiler {
 			}
 
 			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
-				haxeCompilerLocalFolderVfs.passthru(haxeCompilerLocalFolderVfs["haxelib"].realpathOS, "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS)
+				//println(haxeCompilerLocalFolderVfs["haxelib"].realpathOS)
+				//println(haxeCompilerLocalFolderVfs["lib"].realpathOS)
+				haxeCompilerLocalFolderVfs.passthru(
+					haxeCompilerLocalFolderVfs["haxelib"].realpathOS, "setup", haxeCompilerLocalFolderVfs["lib"].realpathOS,
+					env = getExtraEnvs()
+				)
+				//println(result)
 			}
 
 			/////////////////////////////////////////

@@ -145,7 +145,7 @@ object RawIo {
 	}
 
 	fun execOrPassthruSync(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {
-		val result = ProcessUtils.run(File(path), cmd, args, redirect = options.passthru)
+		val result = ProcessUtils.run(File(path), cmd, args, redirect = options.passthru, env = options.env)
 		return ProcessResult(result.out.toByteArray(), result.err.toByteArray(), result.exitValue)
 	}
 

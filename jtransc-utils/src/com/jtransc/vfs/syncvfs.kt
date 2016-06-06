@@ -63,10 +63,10 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	}
 
 	fun exec(cmd: String, args: List<String>, options: ExecOptions): ProcessResult = vfs.exec(path, cmd, args, options)
-	fun exec(cmd: String, args: List<String>): ProcessResult = exec(cmd, args, ExecOptions(passthru = false))
-	fun exec(cmd: String, vararg args: String): ProcessResult = exec(cmd, args.toList(), ExecOptions(passthru = false))
-	fun passthru(cmd: String, args: List<String>, filter: ((line: String) -> Boolean)? = null): ProcessResult = exec(cmd, args, ExecOptions(passthru = true, filter = filter))
-	fun passthru(cmd: String, vararg args: String, filter: ((line: String) -> Boolean)? = null): ProcessResult = exec(cmd, args.toList(), ExecOptions(passthru = true, filter = filter))
+	fun exec(cmd: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args, ExecOptions(passthru = false, env = env))
+	fun exec(cmd: String, vararg args: String, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args.toList(), ExecOptions(passthru = false, env = env))
+	fun passthru(cmd: String, args: List<String>, filter: ((line: String) -> Boolean)? = null, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args, ExecOptions(passthru = true, filter = filter, env = env))
+	fun passthru(cmd: String, vararg args: String, filter: ((line: String) -> Boolean)? = null, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args.toList(), ExecOptions(passthru = true, filter = filter, env = env))
 	val name: String get() = path.substringAfterLast('/')
 	val realpath: String get() = jailCombinePath(vfs.absolutePath, path)
 	val realpathOS: String get() = if (OS.isWindows) realpath.replace('/', '\\') else realpath
@@ -182,7 +182,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	}
 }
 
-data class ExecOptions(val passthru: Boolean = false, val filter: ((line: String) -> Boolean)? = null)
+data class ExecOptions(val passthru: Boolean = false, val filter: ((line: String) -> Boolean)? = null, val env: Map<String, String> = mapOf())
 
 open class SyncVfs {
 	final fun root() = SyncVfsFile(this, "")
