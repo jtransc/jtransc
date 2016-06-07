@@ -39,6 +39,11 @@ public class JTranscReflectionTest {
 		System.out.println(a.z());
 	}
 
+	static private void classNewInstance() throws Throwable {
+		MyDemoItem instance = MyDemoItem.class.newInstance();
+		System.out.println(instance.a);
+	}
+
 	static private void nullArgs() throws Throwable {
 		Constructor<MyDemoItem> constructor = MyDemoItem.class.getConstructor((Class[]) null);
 		MyDemoItem myDemoItem = constructor.newInstance((Object[]) null);

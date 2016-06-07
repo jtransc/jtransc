@@ -170,7 +170,12 @@ class GenHaxeGen(
 				line("static public function __registerClasses()") {
 					for (clazz in program.classes) {
 						if (clazz.nativeName == null) {
+
+							val availableOnTargets = clazz.annotationsList.getTyped<HaxeAvailableOnTargets>()?.value
+
+							if (availableOnTargets != null) line("#if (" + availableOnTargets.joinToString(" || ") + ")")
 							line("R.register(${clazz.ref.fqname.quote()}, ${clazz.ref.name.haxeClassFqName.quote()}, ${names.getHaxeClassStaticClassInit(clazz.ref)});")
+							if (availableOnTargets != null) line("#end")
 						}
 					}
 				}
@@ -898,6 +903,12 @@ class GenHaxeGen(
 			if (imports != null) for (i in imports) line(i)
 
 			val meta = clazz.annotationsList.getTyped<HaxeMeta>()?.value
+			val availableOnTargets = clazz.annotationsList.getTyped<HaxeAvailableOnTargets>()?.value
+
+			if (availableOnTargets != null) {
+				//println("availableOnTargets:" + availableOnTargets.joinToString(" || "))
+				line("#if (" + availableOnTargets.joinToString(" || ") + ")")
+			}
 			if (meta != null) line(meta)
 			line(declaration) {
 				if (!isInterface) {
@@ -947,6 +958,10 @@ class GenHaxeGen(
 					line(addClassInit(clazz))
 					line(dumpClassInfo(clazz))
 				}
+			}
+
+			if (availableOnTargets != null) {
+				line("#end")
 			}
 
 			//if (isInterfaceWithStaticMembers) {

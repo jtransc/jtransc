@@ -97,8 +97,19 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@HaxeMethodBody("return _modifiers;")
 	native public int getModifiers();
 
-	@HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
-	native public T newInstance() throws InstantiationException, IllegalAccessException;
+	//@HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
+	//native public T newInstance() throws InstantiationException, IllegalAccessException;
+
+	public T newInstance() throws InstantiationException, IllegalAccessException {
+		try {
+			Constructor<T> constructor = getDeclaredConstructor();
+			return constructor.newInstance();
+		} catch (NoSuchMethodException e) {
+			throw new InstantiationException(e.getMessage());
+		} catch (InvocationTargetException e) {
+			throw new InstantiationException(e.getMessage());
+		}
+	}
 
 	native public Class<?>[] getDeclaredClasses() throws SecurityException;
 
