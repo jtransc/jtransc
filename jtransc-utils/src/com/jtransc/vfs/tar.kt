@@ -35,6 +35,8 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 
 		val fileSizeLong = java.lang.Long.parseLong(fileSize, 8)
 
+		val isSymLink = nameOfLinkedFile.isNotEmpty()
+
 		//0	100	File name
 		//100	8	File mode
 		//108	8	Owner's numeric user ID
@@ -58,10 +60,31 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 
 		if (fileName.isNotEmpty()) {
 			//println("$fileName : $fileMode : $fileSize")
+			println("$fileName -> $nameOfLinkedFile")
 			val node = tree.root[fileName, true]
-			node.type = if (fileName.endsWith("/")) FileNodeType.DIRECTORY else FileNodeType.FILE
-			node.io = object : FileNodeIO {
-				override fun read(): ByteArray = Arrays.copyOfRange(tarData, nodeHeaderOffset + 0x200, nodeHeaderOffset + 0x200 + fileSizeLong.toInt())
+			node.type = if (fileName.endsWith("/")) {
+				FileNodeType.DIRECTORY
+			} else if (isSymLink) {
+				FileNodeType.SYMLINK
+			} else {
+				FileNodeType.FILE
+			}
+
+			fun readBytes() = Arrays.copyOfRange(tarData, nodeHeaderOffset + 0x200, nodeHeaderOffset + 0x200 + fileSizeLong.toInt())
+
+			node.io = object : FileNodeIO() {
+				override fun readLink(): String? = nameOfLinkedFile
+				override fun read(): ByteArray {
+					return if (isSymLink) {
+						try {
+							this@TarSyncVfs.root()[fileName].parent[nameOfLinkedFile].read()
+						} catch (t:Throwable) {
+							readBytes()
+						}
+					} else {
+						readBytes()
+					}
+				}
 				override fun write(data: ByteArray) = noImpl("Writting not implemented on tar files")
 				override fun size(): Long = fileSizeLong
 				override fun mtime(): Date = Date(lastModification.toLong() * 1000L)

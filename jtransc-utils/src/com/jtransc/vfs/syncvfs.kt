@@ -33,13 +33,29 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-data class SyncVfsStat(val file: SyncVfsFile, val size: Long, val mtime: Date, val isDirectory: Boolean, val exists: Boolean, val mode: FileMode) {
+data class SyncVfsStat(
+	val file: SyncVfsFile,
+	val size: Long,
+	val mtime: Date,
+	val isDirectory: Boolean,
+	val isSymlink: Boolean,
+	val exists: Boolean,
+	val mode: FileMode
+) {
 	val name: String get() = file.name
 	val path: String get() = file.path
 	val isFile: Boolean get() = !isDirectory
 
 	companion object {
-		fun notExists(file: SyncVfsFile) = SyncVfsStat(file = file, size = 0L, mtime = Date(), isDirectory = false, exists = false, mode = FileMode.FULL_ACCESS)
+		fun notExists(file: SyncVfsFile) = SyncVfsStat(
+			file = file,
+			size = 0L,
+			mtime = Date(),
+			isDirectory = false,
+			isSymlink = false,
+			exists = false,
+			mode = FileMode.FULL_ACCESS
+		)
 	}
 }
 
@@ -49,6 +65,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun setMtime(time: Date) = vfs.setMtime(path, time)
 	fun stat(): SyncVfsStat = vfs.stat(path)
 	fun chmod(mode: FileMode): Unit = vfs.chmod(path, mode)
+	fun symlinkTo(target: String): Unit = vfs.symlink(path, target)
 	fun read(): ByteArray = vfs.read(path)
 	fun readBytes(): ByteArray = read()
 	fun readOrNull(): ByteArray? = if (exists) read() else null
@@ -238,6 +255,7 @@ open class SyncVfs {
 				mtime = Date(),
 				isDirectory = false,
 				exists = true,
+				isSymlink = false,
 				mode = FileMode.FULL_ACCESS
 			)
 		} catch (e: IOException) {
@@ -250,13 +268,25 @@ open class SyncVfs {
 		throw NotImplementedException()
 	}
 
+	open fun symlink(link: String, target: String): Unit {
+		throw NotImplementedException()
+	}
+
 	open fun setMtime(path: String, time: Date) {
 		throw NotImplementedException()
 	}
 }
 
 fun FileNode.toSyncStat(vfs: SyncVfs, path: String): SyncVfsStat {
-	return SyncVfsStat(SyncVfsFile(vfs, path), this.size(), this.mtime(), this.isDirectory(), true, mode = this.mode())
+	return SyncVfsStat(
+		file = SyncVfsFile(vfs, path),
+		size = this.size(),
+		mtime = this.mtime(),
+		isDirectory = this.isDirectory(),
+		isSymlink = this.isSymlink(),
+		exists = true,
+		mode = this.mode()
+	)
 }
 
 
@@ -274,13 +304,20 @@ private class _LocalVfs : SyncVfs() {
 	override fun exists(path: String): Boolean = RawIo.fileExists(path)
 	override fun remove(path: String): Unit = RawIo.fileRemove(path)
 	override fun stat(path: String): SyncVfsStat = RawIo.fileStat(path).toSyncStat(this, path)
-	override fun chmod(path: String, mode: FileMode): Unit {
-		RawIo.chmod(path, mode)
-	}
+	override fun chmod(path: String, mode: FileMode): Unit = Unit.apply { RawIo.chmod(path, mode) }
+	override fun symlink(link: String, target: String): Unit = RawIo.symlink(link, target)
 	override fun setMtime(path: String, time: Date) = RawIo.setMtime(path, time)
 }
 
-fun File.toSyncStat(vfs: SyncVfs, path: String) = SyncVfsStat(SyncVfsFile(vfs, path), this.length(), Date(this.lastModified()), this.isDirectory, true, mode = FileMode.FULL_ACCESS)
+fun File.toSyncStat(vfs: SyncVfs, path: String) = SyncVfsStat(
+	file = SyncVfsFile(vfs, path),
+	size = this.length(),
+	mtime = Date(this.lastModified()),
+	isDirectory = this.isDirectory,
+	isSymlink = java.nio.file.Files.isSymbolicLink(java.nio.file.Paths.get(this.toURI())),
+	exists = true,
+	mode = FileMode.FULL_ACCESS
+)
 
 abstract class ProxySyncVfs : SyncVfs() {
 	abstract protected fun transform(path: String): SyncVfsFile
@@ -306,6 +343,7 @@ abstract class ProxySyncVfs : SyncVfs() {
 	override fun remove(path: String): Unit = transform(path).remove()
 	override fun stat(path: String): SyncVfsStat = transformStat(transform(path).stat())
 	override fun chmod(path: String, mode: FileMode): Unit = transform(path).chmod(mode)
+	override fun symlink(link: String, target: String): Unit = transform(link).symlinkTo(transform(target).path)
 	override fun setMtime(path: String, time: Date) = transform(path).setMtime(time)
 }
 
@@ -320,7 +358,15 @@ private class AccessSyncVfs(val parent: SyncVfs, val path: String) : ProxySyncVf
 			throw InvalidOperationException("Assertion failed $statFilePath must start with $thisPath")
 		}
 
-		return SyncVfsStat(SyncVfsFile(this, "/" + statFilePath.removePrefix(thisPath)), stat.size, stat.mtime, stat.isDirectory, true, stat.mode)
+		return SyncVfsStat(
+			file = SyncVfsFile(this, "/" + statFilePath.removePrefix(thisPath)),
+			size = stat.size,
+			mtime = stat.mtime,
+			isDirectory = stat.isDirectory,
+			isSymlink = stat.isSymlink,
+			exists = true,
+			mode = stat.mode
+		)
 	}
 }
 
@@ -581,6 +627,7 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 				size = entry?.size ?: 0,
 				mtime = Date(entry?.time ?: 0),
 				isDirectory = entry?.isDirectory ?: true,
+				isSymlink = false,
 				exists = true,
 				mode = FileMode.FULL_ACCESS
 			)

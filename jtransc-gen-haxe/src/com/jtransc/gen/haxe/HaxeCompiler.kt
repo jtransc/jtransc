@@ -82,26 +82,6 @@ object HaxeCompiler {
 			log.info("ensureHaxeCompilerVfs:")
 
 			/////////////////////////////////////////
-			// HAXE
-			/////////////////////////////////////////
-			if (!haxeCompilerLocalFileVfs.exists) {
-				log.info("Downloading haxe: $HAXE_URL...")
-				haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
-			}
-			if (!haxeCompilerLocalFolderVfs["std"].exists) {
-				val compvfsBase = CompressedVfs(haxeCompilerLocalFileVfs.realfile).firstRecursive { it.file.name == "std" }.file.parent
-				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs, doLog = false)
-				if (!JTranscSystem.isWindows()) {
-					haxeCompilerLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
-					haxeCompilerLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
-				}
-			}
-
-			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
-				HaxeLib.setup(haxeCompilerLocalFolderVfs["lib"].realpathOS)
-			}
-
-			/////////////////////////////////////////
 			// NEKO
 			/////////////////////////////////////////
 			if (!nekoLocalFileVfs.exists) {
@@ -121,6 +101,34 @@ object HaxeCompiler {
 					nekoLocalFolderVfs["nekoml"].chmod(FileMode.fromString("-rwxr-xr-x"))
 				}
 			}
+
+			/////////////////////////////////////////
+			// HAXE
+			/////////////////////////////////////////
+			if (!haxeCompilerLocalFileVfs.exists) {
+				log.info("Downloading haxe: $HAXE_URL...")
+				haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
+			}
+			if (!haxeCompilerLocalFolderVfs["std"].exists) {
+				val compvfsBase = CompressedVfs(haxeCompilerLocalFileVfs.realfile).firstRecursive { it.file.name == "std" }.file.parent
+				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs, doLog = false)
+				if (!JTranscSystem.isWindows()) {
+					haxeCompilerLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeCompilerLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				}
+			}
+
+
+			/////////////////////////////////////////
+			// HAXELIB
+			/////////////////////////////////////////
+			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
+				HaxeLib.setup(haxeCompilerLocalFolderVfs["lib"].realpathOS)
+			}
+
+			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
+				throw RuntimeException("haxelib setup failed!")
+			}
 		}
 
 		return haxeCompilerLocalFolderVfs
@@ -130,6 +138,7 @@ object HaxeCompiler {
 		"HAXE_STD_PATH" to haxeCompilerLocalFolderVfs["std"].realpathOS,
 		"HAXE_HOME" to haxeCompilerLocalFolderVfs.realpathOS,
 		"NEKOPATH" to nekoLocalFolderVfs.realpathOS,
+		"DYLD_LIBRARY_PATH" to nekoLocalFolderVfs.realpathOS,
 		"*PATH" to nekoLocalFolderVfs.realpathOS + File.pathSeparator + haxeCompilerLocalFolderVfs.realpathOS + File.pathSeparator
 	)
 

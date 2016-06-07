@@ -19,7 +19,7 @@ open class BaseTreeVfs(val tree: FileNodeTree) : SyncVfs() {
 		var writtenData = data
 		var writtenTime = Date()
 		item.type = FileNodeType.FILE
-		item.io = object : FileNodeIO {
+		item.io = object : FileNodeIO() {
 			override fun mtime(): Date = writtenTime
 			override fun read(): ByteArray = writtenData
 			override fun write(data: ByteArray) {

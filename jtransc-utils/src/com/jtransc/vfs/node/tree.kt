@@ -10,14 +10,15 @@ open class FileNodeTree {
 	val root = FileNode(this, null, "", FileNodeType.ROOT)
 }
 
-enum class FileNodeType { ROOT, DIRECTORY, FILE }
+enum class FileNodeType { ROOT, DIRECTORY, FILE, SYMLINK }
 
-interface FileNodeIO {
-	fun read(): ByteArray
-	fun write(data: ByteArray): Unit
-	fun size(): Long
-	fun mtime(): Date
-	fun mode(): FileMode
+abstract class FileNodeIO {
+	open fun readLink(): String? = null
+	open fun read(): ByteArray = ByteArray(0)
+	open fun write(data: ByteArray): Unit = Unit
+	open fun size(): Long = 0L
+	open fun mtime(): Date = Date(0L)
+	open fun mode(): FileMode = FileMode.FULL_ACCESS
 }
 
 open class FileNode(val tree: FileNodeTree, val parent: FileNode?, val name: String, var type: FileNodeType) : Iterable<FileNode> {
@@ -39,6 +40,7 @@ open class FileNode(val tree: FileNodeTree, val parent: FileNode?, val name: Str
 	fun mtime(): Date = io?.mtime() ?: Date()
 	fun mode(): FileMode = io?.mode() ?: FileMode.FULL_ACCESS
 	fun isDirectory(): Boolean = (type == FileNodeType.ROOT) || (type == FileNodeType.DIRECTORY)
+	fun isSymlink(): Boolean = (type == FileNodeType.SYMLINK)
 
 	fun getChildren(): List<FileNode> = children
 

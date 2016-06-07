@@ -27,6 +27,7 @@ import java.nio.ByteOrder
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 
@@ -153,13 +154,20 @@ object RawIo {
 		File(path).mkdir()
 	}
 
+	private fun getNioPath(path:String):java.nio.file.Path = Paths.get(URI("file://$path"))
+
 	fun chmod(path: String, mode: FileMode): Boolean {
 		try {
-			Files.setPosixFilePermissions(Paths.get(URI("file://$path")), mode.toPosix())
+			Files.setPosixFilePermissions(getNioPath(path), mode.toPosix())
 			return true
 		} catch (t: Throwable) {
 			return false
 		}
+	}
+
+	fun symlink(link: String, target: String) {
+		Files.createSymbolicLink(getNioPath(link), getNioPath(target))
+		//execOrPassthruSync(".", "ln", listOf("-s", target, link))
 	}
 }
 
