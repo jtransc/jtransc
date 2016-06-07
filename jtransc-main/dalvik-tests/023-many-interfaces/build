@@ -23,6 +23,3 @@ gcc -o iface-gen iface-gen.c
 
 mkdir classes
 ${JAVAC} -d classes src/*.java
-
-dx --debug --dex --dump-to=classes.lst --output=classes.dex classes
-zip test.jar classes.dex

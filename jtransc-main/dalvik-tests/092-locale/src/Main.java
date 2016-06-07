@@ -109,13 +109,13 @@ public class Main {
         Currency dollars = Currency.getInstance(usa);
 
         System.out.println(usa.toString() + ": " + dollars.toString()
-            + " " + dollars.getSymbol() + dollars.getDefaultFractionDigits());
+            + " " + dollars.getSymbol(Locale.US) + dollars.getDefaultFractionDigits());
 
         Locale japan = new Locale("jp", "JP");
         Currency yen = Currency.getInstance(japan);
 
         System.out.println(japan.toString() + ": " + yen.toString()
-            + " " + yen.getSymbol() + yen.getDefaultFractionDigits());
+            + " " + yen.getSymbol(Locale.JAPAN) + yen.getDefaultFractionDigits());
     }
 
     static void testNormalizer() {

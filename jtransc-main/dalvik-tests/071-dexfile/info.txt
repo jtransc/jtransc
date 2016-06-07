@@ -1,4 +1,0 @@
-Exercise some Dalvik-specific DEX file features.  This is not expected to
-work on other VMs.
-
-NOTE: the test requires that /sdcard exists and is writable.

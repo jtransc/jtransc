@@ -1,2 +1,0 @@
-Got expected ITE/NPE
-GC complete.

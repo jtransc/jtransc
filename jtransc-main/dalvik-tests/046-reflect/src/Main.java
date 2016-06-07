@@ -351,12 +351,20 @@ public class Main {
 
         System.out.println("ReflectTest done!");
     }
+    
+    static <E> E checkType(E obj, Class<? extends E> type) {
+       if (obj != null && !type.isInstance(obj)) {
+           throw new ClassCastException("Attempt to insert element of type " + obj.getClass() +
+                   " into collection of type " + type);
+      }
+       return obj;
+   }
 
     public static void checkType() {
         Method m;
 
         try {
-            m = Collections.class.getDeclaredMethod("checkType",
+            m = Main.class.getDeclaredMethod("checkType",
                             Object.class, Class.class);
         } catch (NoSuchMethodException nsme) {
             nsme.printStackTrace();

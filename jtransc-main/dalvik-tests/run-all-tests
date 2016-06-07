@@ -20,6 +20,7 @@ prog="$0"
 while [ -h "${prog}" ]; do
     newProg=`/bin/ls -ld "${prog}"`
     newProg=`expr "${newProg}" : ".* -> \(.*\)$"`
+    echo newProg
     if expr "x${newProg}" : 'x/' >/dev/null; then
         prog="${newProg}"
     else
@@ -103,8 +104,25 @@ fi
 passed=0
 failed=0
 failNames=""
+skipped=0
+skipNames=""
 
+IFS=$'\n' read -d '' -r -a lines < "exclude.txt"
 for i in *; do
+    skip=0    
+    for element in ${lines[@]}; do
+        if [[ $i == "$element"* ]];
+            then
+            echo "Skipping test: $i"
+            skip=1
+            ((skipped += 1))
+            skipNames="$skipNames $i"
+            break 1
+        fi
+    done
+    if [[ "$skip" == 1 ]]; then
+        continue 50
+    fi
     if [ -d "$i" -a -r "$i" -a -r "${i}/info.txt" ]; then
         ./run-test ${run_args} "$i"
         if [ "$?" = "0" ]; then
@@ -117,8 +135,11 @@ for i in *; do
 done
 
 echo "passed: $passed test(s)"
+echo "skipped: $skipped test(s)"
+for i in $skipNames; do
+    echo "skipped: $i"
+done
 echo "failed: $failed test(s)"
-
 for i in $failNames; do
     echo "failed: $i"
 done

@@ -24,4 +24,3 @@ ${JAVAC} -d classes `find src -name '*.java'`
 
 # ...but not at run time.
 rm classes/android/test/anno/MissingAnnotation.class
-dx -JXmx256m --debug --dex --output=test.jar classes

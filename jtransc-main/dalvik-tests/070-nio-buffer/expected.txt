@@ -1,4 +1,4 @@
-Direct byte buffer has array: true
+Direct byte buffer has array: false
 Got expected buffer overflow exception
 Got expected out-of-bounds exception
 Got expected buffer overflow exception

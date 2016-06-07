@@ -4,7 +4,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.AccessibleObject;
+import java.util.Arrays;
 import java.util.TreeMap;
+import java.util.Comparator;
 
 public class TestAnnotations {
     /**
@@ -20,7 +23,7 @@ public class TestAnnotations {
         }
 
         for (Annotation a : sorted.values()) {
-            System.out.println(prefix + "  " + a);
+            System.out.println(prefix + "  " + annoToString(a));
             System.out.println(prefix + "    " + a.annotationType());
         }
     }
@@ -35,7 +38,7 @@ public class TestAnnotations {
         printAnnotationArray("", annos);
         System.out.println();
 
-        for (Constructor c: clazz.getDeclaredConstructors()) {
+        for (Constructor c: sortCtors(clazz.getDeclaredConstructors())) {
             annos = c.getDeclaredAnnotations();
             System.out.println("  annotations on CTOR " + c + ":");
             printAnnotationArray("  ", annos);
@@ -46,7 +49,7 @@ public class TestAnnotations {
             }
         }
 
-        for (Method m: clazz.getDeclaredMethods()) {
+        for (Method m: sortMethods(clazz.getDeclaredMethods())) {
             annos = m.getDeclaredAnnotations();
             System.out.println("  annotations on METH " + m + ":");
             printAnnotationArray("  ", annos);
@@ -57,7 +60,7 @@ public class TestAnnotations {
             }
         }
 
-        for (Field f: clazz.getDeclaredFields()) {
+        for (Field f: sortFields(clazz.getDeclaredFields())) {
             annos = f.getDeclaredAnnotations();
             System.out.println("  annotations on FIELD " + f + ":");
             printAnnotationArray("  ", annos);
@@ -104,17 +107,77 @@ public class TestAnnotations {
         Annotation[] annotations;
 
         try {
-            field = TestAnnotations.class.getDeclaredField("thing1");
-            annotations = field.getAnnotations();
-            System.out.println(field + ": " + annotations[0].toString());
-
-            field = TestAnnotations.class.getDeclaredField("thing2");
-            annotations = field.getAnnotations();
-            System.out.println(field + ": " + annotations[0].toString());
-        } catch (NoSuchFieldException nsfe) {
-            throw new RuntimeException(nsfe);
-        }
+           field = TestAnnotations.class.getDeclaredField("thing1");
+           annotations = field.getAnnotations();
+           System.out.println(field + ": " + annoToString(annotations[0]));
+           
+           field = TestAnnotations.class.getDeclaredField("thing2");
+           annotations = field.getAnnotations();
+           System.out.println(field + ": " + annoToString(annotations[0]));
+       } catch (NoSuchFieldException nsfe) {
+           throw new RuntimeException(nsfe);
+       }
     }
+    private static Method[] sortMethods(Method[] methods){
+   	 Arrays.sort(methods, new Comparator<Method>(){
+				public int compare(Method a, Method b){
+					return a.getName().compareTo(b.getName());
+				}
+			});
+   	 return methods;
+    }
+    
+    private static Field[] sortFields(Field[] fields){
+   	 Arrays.sort(fields, new Comparator<Field>(){
+				public int compare(Field a, Field b){
+					return a.getName().compareTo(b.getName());
+				}
+			});
+   	 return fields;
+    }
+    
+    private static Constructor[] sortCtors(Constructor[] ctor){
+   	 Arrays.sort(ctor, new Comparator<Constructor>(){
+				public int compare(Constructor a, Constructor b){
+					return a.getName().compareTo(b.getName());
+				}
+			});
+   	 return ctor;
+    }
+    
+	private static String annoToString (Annotation a) {
+		StringBuilder b = new StringBuilder();
+		try {
+			Method[] methods = a.annotationType().getDeclaredMethods();
+			sortMethods(methods);
+			b.append("@" + a.annotationType().getName() + "(");
+			for (int k = 0; k < methods.length; k++) {
+				Method m = methods[k];				
+				Object o = m.invoke(a, new Object[0]);
+				b.append(m.getName() + "=");
+				if (o.getClass().isArray()) {
+					b.append("[");
+					for (int i = 0, length = java.lang.reflect.Array.getLength(o); i < length; i++) {
+						b.append(java.lang.reflect.Array.get(o, i));
+						if (i != length - 1) {
+							b.append(", ");
+						}
+					}
+					b.append("]");
+				} else {
+					b.append(o);
+				}
+				if (k != methods.length - 1) {
+					b.append(", ");
+				}
+			}
+			b.append(")");
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		return b.toString();
+	}
 
     public static void testArrayProblem() {
         Method meth;

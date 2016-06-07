@@ -46,7 +46,7 @@ public class Main {
          * installed when running the test.
          */
         try {
-            Field field = Unsafe.class.getDeclaredField("THE_ONE");
+            Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
 
             UNSAFE = (Unsafe) field.get(null);

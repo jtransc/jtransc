@@ -31,12 +31,12 @@ FloatMath.checkConvI
 FloatMath.checkConvL
 FloatMath.checkConvF
  0: -2.0054409E9
- 1: -8.613303E18
+ 1: -8.6133031E18
  2: -3.1415927
 -2.0054409E9, -8.6133031E18, -3.1415927
 FloatMath.checkConvD
  0: -2.005440939E9
- 1: -8.613303245920329E18
+ 1: -8.6133032459203287E18
  2: 123.45600128173828
 -2.005440939E9, -8.6133032459203287E18, 123.4560012817382
 FloatMath.checkConsts
@@ -68,7 +68,6 @@ Throw.twoN
 Throw.rethrow
 UnresTest1...
 UnresTest1...
-UnresTest2...
-UnresTest2 done
+NOTE: UnresTest2 not available
 InternedString.run
 Done!

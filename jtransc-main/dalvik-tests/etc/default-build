@@ -24,20 +24,8 @@ if [ -r src2 ]; then
     ${JAVAC} -d classes `find src2 -name '*.java'`
 fi
 
-dx -JXmx256m --debug --dex --dump-to=classes.lst --output=classes.dex \
-    --dump-width=1000 classes
-zip test.jar classes.dex
 
 if [ -r src-ex ]; then
     mkdir classes-ex
     ${JAVAC} -d classes-ex -cp classes `find src-ex -name '*.java'`
-    dx -JXmx256m --debug --dex --dump-to=classes-ex.lst \
-        --output=classes-ex.dex --dump-width=1000 classes-ex
-
-    # quick shuffle so that the stored name is "classes.dex"
-    mv classes.dex classes-1.dex
-    mv classes-ex.dex classes.dex
-    zip test-ex.jar classes.dex
-    mv classes.dex classes-ex.dex
-    mv classes-1.dex classes.dex
 fi

@@ -18,4 +18,3 @@ Uncaught exception DEFAULT!
 java.lang.NullPointerException: Hi diddly-ho, neighborino.
 	at Main.catchTheUncaught(Main.java:49)
 	at Main.main(Main.java:12)
-	at dalvik.system.NativeStart.main(Native Method)
