@@ -11,8 +11,8 @@ public class DateTest {
 	}
 
 	private static void dateTest() {
-		String formatString = "MM/dd/yyyy HH:mm:ss z";
-		//String formatString = "MM/dd/yyyy HH:mm:ss"; // time zone not reliable for tests
+		//String formatString = "MM/dd/yyyy HH:mm:ss z";
+		String formatString = "MM/dd/yyyy HH:mm:ss"; // time zone not reliable for tests
 		SimpleDateFormat format = new SimpleDateFormat(formatString, Locale.US);
 		Date date = new Date(0, 1, 2, 3, 4, 5);
 		String formattedString = format.format(date);
