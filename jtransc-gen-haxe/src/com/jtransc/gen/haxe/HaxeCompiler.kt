@@ -57,14 +57,17 @@ object HaxeCompiler {
 
 	val jtranscHaxeFolder: String by lazy { JTranscSystem.getUserHome() + "/.jtransc/haxe" }
 	val jtranscNekoFolder: String by lazy { JTranscSystem.getUserHome() + "/.jtransc/neko" }
+	val jtranscHaxeNekoFolder: String by lazy { JTranscSystem.getUserHome() + "/.jtransc/haxeneko" }
 
 	val haxeCompilerUrlVfs: SyncVfsFile by lazy { UrlVfs(HAXE_URL) }
 	val haxeCompilerLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscHaxeFolder)).access(HAXE_FILE) }
-	val haxeCompilerLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscHaxeFolder/$HAXE_VERSION")) }
+	val haxeLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscHaxeFolder/$HAXE_VERSION")) }
 
 	val nekoUrlVfs: SyncVfsFile by lazy { UrlVfs(NEKO_URL) }
 	val nekoLocalFileVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File(jtranscNekoFolder)).access(NEKO_FILE) }
 	val nekoLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscNekoFolder/$NEKO_VERSION")) }
+
+	val haxeNekoLocalFolderVfs: SyncVfsFile by lazy { LocalVfsEnsureDirs(File("$jtranscHaxeNekoFolder/${HAXE_VERSION}_$NEKO_VERSION")) }
 
 	fun getHaxeTargetLibraries(subtarget: String): List<String> = when (subtarget) {
 		"cpp", "windows", "linux", "mac", "osx" -> listOf("hxcpp")
@@ -109,37 +112,56 @@ object HaxeCompiler {
 				log.info("Downloading haxe: $HAXE_URL...")
 				haxeCompilerUrlVfs.copyTo(haxeCompilerLocalFileVfs)
 			}
-			if (!haxeCompilerLocalFolderVfs["std"].exists) {
+			if (!haxeLocalFolderVfs["std"].exists) {
 				val compvfsBase = CompressedVfs(haxeCompilerLocalFileVfs.realfile).firstRecursive { it.file.name == "std" }.file.parent
-				compvfsBase.copyTreeTo(haxeCompilerLocalFolderVfs, doLog = false)
+				compvfsBase.copyTreeTo(haxeLocalFolderVfs, doLog = false)
 				if (!JTranscSystem.isWindows()) {
-					haxeCompilerLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
-					haxeCompilerLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
 				}
+			}
+
+			/////////////////////////////////////////
+			// NEKO-HAXE mixed so haxelib works fine without strange stuff
+			/////////////////////////////////////////
+			if (!haxeNekoLocalFolderVfs["haxe"].exists || !haxeNekoLocalFolderVfs["neko"].exists) {
+				haxeNekoLocalFolderVfs.ensuredir()
+				haxeLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
+				nekoLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
+
+				haxeNekoLocalFolderVfs["neko"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				haxeNekoLocalFolderVfs["nekoc"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				haxeNekoLocalFolderVfs["nekoml"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				haxeNekoLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				haxeNekoLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
 			}
 
 
 			/////////////////////////////////////////
 			// HAXELIB
 			/////////////////////////////////////////
-			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
-				HaxeLib.setup(haxeCompilerLocalFolderVfs["lib"].realpathOS)
+			if (!haxeNekoLocalFolderVfs["lib"].exists || HaxeLib.getHaxelibFolderFile() == null) {
+				HaxeLib.setup(haxeNekoLocalFolderVfs["lib"].realpathOS)
 			}
 
-			if (!haxeCompilerLocalFolderVfs["lib"].exists) {
+			if (!haxeNekoLocalFolderVfs["lib"].exists) {
 				throw RuntimeException("haxelib setup failed!")
 			}
 		}
 
-		return haxeCompilerLocalFolderVfs
+		return haxeNekoLocalFolderVfs
 	}
 
 	fun getExtraEnvs(): Map<String, String> = mapOf(
-		"HAXE_STD_PATH" to haxeCompilerLocalFolderVfs["std"].realpathOS,
-		"HAXE_HOME" to haxeCompilerLocalFolderVfs.realpathOS,
-		"NEKOPATH" to nekoLocalFolderVfs.realpathOS,
-		"DYLD_LIBRARY_PATH" to nekoLocalFolderVfs.realpathOS,
-		"*PATH" to nekoLocalFolderVfs.realpathOS + File.pathSeparator + haxeCompilerLocalFolderVfs.realpathOS + File.pathSeparator
+		"HAXE_STD_PATH" to haxeNekoLocalFolderVfs["std"].realpathOS,
+		"HAXE_HOME" to haxeNekoLocalFolderVfs.realpathOS,
+		"HAXEPATH" to haxeNekoLocalFolderVfs.realpathOS,
+		"NEKOPATH" to haxeNekoLocalFolderVfs.realpathOS,
+		// OSX
+		"*DYLD_LIBRARY_PATH" to haxeNekoLocalFolderVfs.realpathOS + File.pathSeparator,
+		// Linux
+		"*LD_LIBRARY_PATH" to haxeNekoLocalFolderVfs.realpathOS + File.pathSeparator,
+		"*PATH" to haxeNekoLocalFolderVfs.realpathOS + File.pathSeparator
 	)
 
 	fun ensureHaxeSubtarget(subtarget: String) {

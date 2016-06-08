@@ -1,6 +1,7 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.text.toUcFirst
+import com.jtransc.vfs.LocalVfs
 
 object HaxeLib {
 	data class LibraryRef(val name: String, val version: String) {
@@ -31,6 +32,15 @@ object HaxeLib {
 			haxelib("--always", "install", lib.name)
 		} else {
 			haxelib("--always", "install", lib.name, lib.version)
+		}
+	}
+
+	fun getHaxelibFolderFile(): String? {
+		// default folder: /usr/local/lib/haxe/lib
+		try {
+			return LocalVfs(System.getProperty("user.home") + "/.haxelib").readString().trim()
+		} catch (t: Throwable) {
+			return null
 		}
 	}
 

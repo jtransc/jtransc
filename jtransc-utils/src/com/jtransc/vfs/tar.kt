@@ -60,7 +60,8 @@ private class TarSyncVfs(val tarData: ByteArray) : BaseTreeVfs(FileNodeTree()) {
 
 		if (fileName.isNotEmpty()) {
 			//println("$fileName : $fileMode : $fileSize")
-			println("$fileName -> $nameOfLinkedFile")
+			//println("$fileName -> $nameOfLinkedFile")
+
 			val node = tree.root[fileName, true]
 			node.type = if (fileName.endsWith("/")) {
 				FileNodeType.DIRECTORY
