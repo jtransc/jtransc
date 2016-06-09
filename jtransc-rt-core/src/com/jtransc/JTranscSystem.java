@@ -228,4 +228,9 @@ public class JTranscSystem {
 	static public String getTimeZone() {
 		return "GMT";
 	}
+
+	@HaxeMethodBody(target = "debug", value = "return true;")
+	public static boolean isDebug() {
+		return false;
+	}
 }

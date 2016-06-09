@@ -20,6 +20,7 @@ import jtransc.jtransc.CustomBuildTest
 import jtransc.jtransc.HaxeNativeCallTest
 import jtransc.jtransc.JTranscSystemTest
 import jtransc.jtransc.UseMinitemplatesTest
+import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
 class HaxeGenSuiteNativeTest : HaxeTestBase() {
@@ -66,5 +67,12 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		Class1.method1
 		Class1.method2
 	""", minimize = false)
+
+	@Test fun AssertionTests() = testNativeClass<AssertionTests>("""
+		Error !(10 < 10)
+		ok
+	""", minimize = false, debug = true)
+
+
 }
 

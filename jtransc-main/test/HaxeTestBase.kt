@@ -61,12 +61,12 @@ open class HaxeTestBase {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js"): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null) {
-		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize).trim())
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null) {
+		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize, debug = debug).trim())
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -81,7 +81,7 @@ open class HaxeTestBase {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, minimize: Boolean?, analyze: Boolean?, lang: String): String {
+	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = HaxeGenDescriptor,
@@ -92,7 +92,7 @@ open class HaxeTestBase {
 			targetDirectory = System.getProperty("java.io.tmpdir"),
 			settings = AstBuildSettings(
 				jtranscVersion = JTranscVersion.getVersion(),
-				debug = DEBUG,
+				debug = debug ?: DEBUG,
 				backend = BACKEND,
 				minimizeNames = minimize ?: MINIMIZE,
 				relooper = RELOOPER,

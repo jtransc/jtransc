@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.FastStringMap;
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -348,7 +349,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public boolean desiredAssertionStatus() {
-		return false;
+		return JTranscSystem.isDebug();
 	}
 
 	public T[] getEnumConstants() {
