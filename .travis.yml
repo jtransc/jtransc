@@ -36,3 +36,8 @@ script:
 - pushd jtransc-main-run/example-gradle
 - gradle runJs && node build/program.js
 - popd
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.gradle
