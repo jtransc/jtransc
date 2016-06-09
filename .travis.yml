@@ -37,6 +37,7 @@ script:
 - gradle runJs && node build/program.js
 - popd
 
+# Cache gradle and maven cache folders!
 cache:
   directories:
   - $HOME/.m2
