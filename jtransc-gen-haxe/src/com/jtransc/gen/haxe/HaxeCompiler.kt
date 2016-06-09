@@ -129,8 +129,8 @@ object HaxeCompiler {
 				(!haxeNekoLocalFolderVfs["haxe.exe"].exists || !haxeNekoLocalFolderVfs["neko.exe"].exists)
 			) {
 				haxeNekoLocalFolderVfs.ensuredir()
-				haxeLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
-				nekoLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
+				haxeLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs, doLog = false)
+				nekoLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs, doLog = false)
 
 				if (JTranscSystem.isNotWindows()) {
 					haxeNekoLocalFolderVfs["neko"].chmod(FileMode.fromString("-rwxr-xr-x"))
