@@ -123,11 +123,14 @@ object JTranscMain {
 				}
 			}
 
+			//println("args: $args")
+			//println("targetName: $targetName")
+
 			if (targetName == null && out != null) {
 				targetName = targets.locateTargetByOutExt(File(out).extension) ?: "haxe:js"
 			}
 
-			val target = targets.locateTargetByName(targetName ?: "js")
+			val target = targets.locateTargetByName(targetName ?: "haxe:js")
 
 			return ProgramConfig(
 				classPaths = classPaths.toList(),
