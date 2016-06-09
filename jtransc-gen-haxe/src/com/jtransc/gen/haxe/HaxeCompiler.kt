@@ -124,16 +124,21 @@ object HaxeCompiler {
 			/////////////////////////////////////////
 			// NEKO-HAXE mixed so haxelib works fine without strange stuff
 			/////////////////////////////////////////
-			if (!haxeNekoLocalFolderVfs["haxe"].exists || !haxeNekoLocalFolderVfs["neko"].exists) {
+			if (
+			(!haxeNekoLocalFolderVfs["haxe"].exists || !haxeNekoLocalFolderVfs["neko"].exists) &&
+				(!haxeNekoLocalFolderVfs["haxe.exe"].exists || !haxeNekoLocalFolderVfs["neko.exe"].exists)
+			) {
 				haxeNekoLocalFolderVfs.ensuredir()
 				haxeLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
 				nekoLocalFolderVfs.copyTreeTo(haxeNekoLocalFolderVfs)
 
-				haxeNekoLocalFolderVfs["neko"].chmod(FileMode.fromString("-rwxr-xr-x"))
-				haxeNekoLocalFolderVfs["nekoc"].chmod(FileMode.fromString("-rwxr-xr-x"))
-				haxeNekoLocalFolderVfs["nekoml"].chmod(FileMode.fromString("-rwxr-xr-x"))
-				haxeNekoLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
-				haxeNekoLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				if (JTranscSystem.isNotWindows()) {
+					haxeNekoLocalFolderVfs["neko"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeNekoLocalFolderVfs["nekoc"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeNekoLocalFolderVfs["nekoml"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeNekoLocalFolderVfs["haxe"].chmod(FileMode.fromString("-rwxr-xr-x"))
+					haxeNekoLocalFolderVfs["haxelib"].chmod(FileMode.fromString("-rwxr-xr-x"))
+				}
 			}
 
 

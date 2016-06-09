@@ -46,3 +46,4 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 *.php
 .gradle
 *.neko
+jtransc-main-run/example/program.swf

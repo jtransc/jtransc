@@ -225,6 +225,10 @@ public class JTranscSystem {
 		return !isWindows();
 	}
 
+	public static boolean isNotWindows() {
+		return !isWindows();
+	}
+
 	static public String getTimeZone() {
 		return "GMT";
 	}
