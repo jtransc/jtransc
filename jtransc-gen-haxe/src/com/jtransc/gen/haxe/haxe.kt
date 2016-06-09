@@ -384,7 +384,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 		val runner = actualSubtarget.interpreter
 		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
 
-		println("Running: $runner ${arguments.joinToString(" ")}")
+		log.info("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
 			ProcessUtils.run(parentDir, runner, arguments, redirect = redirect)
 		}
