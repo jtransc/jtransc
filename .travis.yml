@@ -30,5 +30,9 @@ before_script:
 
 script:
 - mvn install --settings settings.xml
-- pushd jtransc-main-run/example && ./run && node program.js
-- pushd jtransc-main-run/example-gradle && gradle runJs && node build/program.js
+- pushd jtransc-main-run/example
+- ./run && node program.js
+- popd
+- pushd jtransc-main-run/example-gradle
+- gradle runJs && node build/program.js
+- popd
