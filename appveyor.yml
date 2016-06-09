@@ -5,6 +5,11 @@ install:
   #- cmd: cinst -y maven
   - cmd: copy c:\tools\php\php.ini-production c:\tools\php\php.ini
   - cmd: echo date.timezone="UTC" >> c:\tools\php\php.ini
+  - echo extension_dir=ext >> c:\tools\php\php.ini
+  - echo extension=php_openssl.dll >> c:\tools\php\php.ini
+  - echo extension=php_mbstring.dll >> c:\tools\php\php.ini
+  - echo extension=php_sockets.dll >> c:\tools\php\php.ini
+  - echo extension=php_curl.dll >> c:\tools\php\php.ini
   - ps: |
       Add-Type -AssemblyName System.IO.Compression.FileSystem
       if (!(Test-Path -Path "C:\maven" )) {
