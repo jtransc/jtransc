@@ -1,10 +1,9 @@
 version: '{build}'
 os: Windows Server 2012
 install:
-  - cinst -y php
-  - cd c:\tools\php
-  - copy php.ini-production php.ini
-  - echo date.timezone="UTC" >> php.ini
+  - cmd: cinst -y php
+  - cmd: copy c:\tools\php\php.ini-production c:\tools\php\php.ini
+  - cmd: echo date.timezone="UTC" >> c:\tools\php\php.ini
   - ps: |
       Add-Type -AssemblyName System.IO.Compression.FileSystem
       if (!(Test-Path -Path "C:\maven" )) {
