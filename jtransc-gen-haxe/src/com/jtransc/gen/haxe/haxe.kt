@@ -45,6 +45,13 @@ object HaxeGenDescriptor : GenTargetDescriptor() {
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override fun getGenerator() = GenHaxe
+	override fun getTargetByExtension(ext:String): String? = when (ext) {
+		"js" -> "haxe:js"
+		"php" -> "haxe:php"
+		"exe" -> "haxe:cpp"
+		"swf" -> "haxe:swf"
+		else -> null
+	}
 }
 
 //val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)

@@ -1,3 +1,3 @@
 @echo off
 javac HelloWorld.java
-call ../all.bat . -main HelloWorld -release -out program.swf -run
+call ../jtransc.bat . -main HelloWorld -release -out program.js -run

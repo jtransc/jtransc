@@ -105,23 +105,29 @@ class JTranscMojo : AbstractMojo() {
 
 		log.info("KT: JTransc version : $jtranscVersion");
 
-		val jtranscRuntimeArtifact = DefaultArtifact("com.jtransc:jtransc-rt:$jtranscVersion")
+		for (artifact in listOf(
+			"com.jtransc:jtransc-rt:$jtranscVersion",
+			"com.jtransc:jtransc-rt-full:$jtranscVersion",
+			"com.jtransc:jtransc-rt-core:$jtranscVersion"
+		)) {
+			val jtranscRuntimeArtifact = DefaultArtifact(artifact)
 
-		log.info("KT: Resolving $jtranscRuntimeArtifact");
+			log.info("KT: Resolving $jtranscRuntimeArtifact");
 
-		fun remote(id: String, url: String) = RemoteRepository.Builder(id, "default", url).build()
+			fun remote(id: String, url: String) = RemoteRepository.Builder(id, "default", url).build()
 
-		val allRemoteRepos = remoteRepos + listOf(
-			remote("sonatype.oss.snapshots", "https://oss.sonatype.org/content/repositories/snapshots/"),
-			remote("central.mirror", "https://uk.maven.org/maven2")
-		)
+			val allRemoteRepos = remoteRepos + listOf(
+				remote("sonatype.oss.snapshots", "https://oss.sonatype.org/content/repositories/snapshots/"),
+				remote("central.mirror", "https://uk.maven.org/maven2")
+			)
 
-		val result = repoSystem.resolveArtifact(
-			repoSession,
-			ArtifactRequest(jtranscRuntimeArtifact, allRemoteRepos, JavaScopes.COMPILE)
-		)
+			val result = repoSystem.resolveArtifact(
+				repoSession,
+				ArtifactRequest(jtranscRuntimeArtifact, allRemoteRepos, JavaScopes.COMPILE)
+			)
 
-		log.info("KT: Resolved: $result : ${result.artifact.file.absolutePath}");
+			log.info("KT: Resolved: $result : ${result.artifact.file.absolutePath}");
+		}
 
 		val settings = AstBuildSettings(
 			jtranscVersion = jtranscVersion,

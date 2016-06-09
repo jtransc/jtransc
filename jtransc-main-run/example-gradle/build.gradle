@@ -1,0 +1,26 @@
+apply plugin: "java"
+apply plugin: 'application'
+apply plugin: "jtransc"
+
+mainClassName = "HelloWorld"
+
+sourceSets.main {
+	java {
+		srcDirs = ['src']
+	}
+}
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "com.jtransc:jtransc-gradle-plugin:$jtranscVersion"
+	}
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}

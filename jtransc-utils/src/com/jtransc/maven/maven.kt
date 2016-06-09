@@ -22,10 +22,10 @@ object MavenLocalRepository {
 
 	@JvmStatic fun locateJars(id:String):List<String> {
 		val parts = id.split(":")
-		return locateJars(parts[0], parts[1], parts[2])
+		return locateJarsWithParts(parts[0], parts[1], parts[2])
 	}
 
-	@JvmStatic fun locateJars(groupId:String, artifactId:String, version:String):List<String> {
+	@JvmStatic fun locateJarsWithParts(groupId:String, artifactId:String, version:String):List<String> {
 		val userDir = System.getProperty("user.home");
 		val groupPath = groupId.replace('.', '/')
 		return listOf("$userDir/.m2/repository/$groupPath/$artifactId/$version/$artifactId-$version.jar")

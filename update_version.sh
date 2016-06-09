@@ -4,4 +4,5 @@ if [ "$1" == '' ]; then
 fi
 
 sed -i -e "s/static private final String version = \"\(.*\)\";/static private final String version = \"$1\";/g" jtransc-rt-core/src/com/jtransc/JTranscVersion.java
+echo "jtranscVersion=$1" >> jtransc-main-run/example-gradle/gradle.properties
 mvn versions:set -DnewVersion=$1

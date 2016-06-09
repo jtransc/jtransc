@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
-BASEDIR=$(dirname "$0")
-mvn -q -f $BASEDIR/pom.xml exec:java $*
+export BASEDIR=`dirname "$0"`
+export CWD=`pwd`
+mvn -q -f $BASEDIR/pom.xml exec:java -Dexec.workingdir="$CWD" -Dexec.args="$@"
+

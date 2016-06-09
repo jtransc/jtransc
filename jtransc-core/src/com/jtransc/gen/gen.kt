@@ -98,4 +98,5 @@ abstract class GenTargetDescriptor {
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()
 	abstract fun getGenerator(): GenTarget
+	open fun getTargetByExtension(ext:String): String? = null
 }

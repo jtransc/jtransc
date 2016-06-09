@@ -123,12 +123,14 @@ class AllBuild(
 
 		var program = measureProcess("Generating AST") {
 			createProgramAst(
-				when (settings.backend) {
+				generator = when (settings.backend) {
 					BuildBackend.ASM -> AsmToAst()
 					else -> invalidOp("Unsupported backend")
 				},
-				initialClasses, entryPoint, classPaths2,
-				LocalVfs(File("$tempdir/out_ast"))
+				classNames = initialClasses,
+				mainClass = entryPoint,
+				classPaths = classPaths2,
+				outputPath = LocalVfs(File("$tempdir/out_ast"))
 			)
 		}
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
@@ -136,7 +138,13 @@ class AllBuild(
 	}
 
 	fun createProgramAst(generator: AstClassGenerator, classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile): AstProgram {
-		return generateProgram(BaseProjectContext(classNames, mainClass, classPaths, outputPath, generator))
+		return generateProgram(BaseProjectContext(
+			classNames = classNames,
+			mainClass = mainClass,
+			classPaths = classPaths,
+			output = outputPath,
+			generator = generator
+		))
 	}
 
 	fun generateProgram(projectContext: BaseProjectContext): AstProgram {

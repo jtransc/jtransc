@@ -1,0 +1,2 @@
+javac HelloWorld.java
+../jtransc . -main HelloWorld -release -out program.js -run
