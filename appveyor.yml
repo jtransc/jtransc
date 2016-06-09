@@ -2,20 +2,28 @@ version: '{build}'
 os: Windows Server 2012
 install:
   - cmd: cinst -y php
+  - cmd: cinst -y maven
   - cmd: copy c:\tools\php\php.ini-production c:\tools\php\php.ini
   - cmd: echo date.timezone="UTC" >> c:\tools\php\php.ini
-  - ps: |
-      Add-Type -AssemblyName System.IO.Compression.FileSystem
-      if (!(Test-Path -Path "C:\maven" )) {
-        (new-object System.Net.WebClient).DownloadFile(
-          'http://www.us.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip',
-          'C:\maven-bin.zip'
-        )
-        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
-      }
-  - cmd: SET PATH=C:\maven\apache-maven-3.2.5\bin;%JAVA_HOME%\bin;%PATH%
+  #- ps: |
+  #    Add-Type -AssemblyName System.IO.Compression.FileSystem
+  #    if (!(Test-Path -Path "C:\maven" )) {
+  #      (new-object System.Net.WebClient).DownloadFile(
+  #        'http://www.us.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip',
+  #        'C:\maven-bin.zip'
+  #      )
+  #      [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
+  #    }
+  - cmd: SET PATH=C:\tools\php;%PATH%
+  - cmd: SET PATH=C:\tools\maven;%PATH%
+  - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
+  - cmd: php -v
+  - cmd: node -v
+  - cmd: java -version
+  - cmd: mvn -v
+  - cmd: gradle -v
 build_script:
   - mvn clean package --batch-mode -DskipTest
 test_script:
