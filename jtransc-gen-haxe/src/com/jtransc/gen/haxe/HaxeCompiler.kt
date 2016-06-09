@@ -34,8 +34,14 @@ object HaxeCompiler {
 	//val haxeCompilerUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/haxe-$HaxeVersion/$haxeCompilerFile") }
 	//val nekoUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/neko-$NekoVersion/$nekoFile") }
 
+	val ON_CI by lazy {
+		listOf("CI", "TRAVIS", "APPVEYOR")
+			.map { (System.getenv(it) ?: "").toLowerCase() }
+			.any { it in listOf("true", "yes") }
+	}
+
 	val HAXE_URL: URL by lazy {
-		if (System.getenv("TRAVIS") == "true") {
+		if (ON_CI) {
 			// Unsecure but official download to avoid spamming github
 			// It would be great to use maven
 			// https://github.com/HaxeFoundation/haxe/issues/5331
@@ -45,7 +51,7 @@ object HaxeCompiler {
 		}
 	}
 	val NEKO_URL: URL by lazy {
-		if (System.getenv("TRAVIS") == "true") {
+		if (ON_CI) {
 			// Unsecure but official download to avoid spamming github
 			// It would be great to use maven
 			// https://github.com/HaxeFoundation/haxe/issues/5331
