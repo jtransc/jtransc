@@ -88,7 +88,9 @@
         </testResources>
         <plugins>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>${assembly.plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
