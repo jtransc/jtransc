@@ -7,6 +7,6 @@ import org.junit.Test
 class AstBuildSettingsTest {
 	@Test
 	fun testDefaultSettings() {
-		Assert.assertEquals(3, AstBuildSettings().rtAndRtCore.size)
+		Assert.assertTrue(AstBuildSettings().rtAndRtCore.size > 1)
 	}
 }
