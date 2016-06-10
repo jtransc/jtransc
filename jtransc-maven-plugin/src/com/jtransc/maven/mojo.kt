@@ -107,7 +107,7 @@ class JTranscMojo : AbstractMojo() {
 
 		for (artifact in listOf(
 			"com.jtransc:jtransc-rt:$jtranscVersion",
-			"com.jtransc:jtransc-rt-full:$jtranscVersion",
+			//"com.jtransc:jtransc-rt-full:$jtranscVersion",
 			"com.jtransc:jtransc-rt-core:$jtranscVersion"
 		)) {
 			val jtranscRuntimeArtifact = DefaultArtifact(artifact)
