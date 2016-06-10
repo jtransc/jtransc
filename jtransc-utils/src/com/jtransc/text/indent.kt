@@ -36,6 +36,8 @@ class Indenter : ToString {
 	companion object {
 		fun genString(init: Indenter.() -> Unit) = gen(init).toString()
 
+		val EMPTY = Indenter.gen {  }
+
 		fun gen(init: Indenter.() -> Unit): Indenter {
 			val indenter = Indenter()
 			indenter.init()

@@ -10,7 +10,7 @@ public @interface JTranscAddFile {
 
 	String target();
 
-	boolean process();
+	boolean process() default false;
 
 	String prepend() default "";
 

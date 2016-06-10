@@ -608,29 +608,29 @@ class GenJsGen(
 					is AstType.CHAR -> "N.i2c($e2)"
 					is AstType.SHORT -> "N.i2s($e2)"
 					is AstType.INT -> "($e2)"
-					is AstType.LONG -> "HaxeNatives.intToLong($e2)"
+					is AstType.LONG -> "N.i2j($e2)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e2)"
 					else -> unhandled()
 				}
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
 				when (to) {
-					is AstType.BOOL -> "N.i2z(Std.int($e))"
-					is AstType.BYTE -> "N.i2b(Std.int($e))"
-					is AstType.CHAR -> "N.i2c(Std.int($e))"
-					is AstType.SHORT -> "N.i2s(Std.int($e))"
-					is AstType.INT -> "Std.int($e)"
-					is AstType.LONG -> "HaxeNatives.floatToLong($e)"
+					is AstType.BOOL  -> "N.i2z($e)"
+					is AstType.BYTE  -> "N.i2b($e)"
+					is AstType.CHAR  -> "N.i2c($e)"
+					is AstType.SHORT -> "N.i2s($e)"
+					is AstType.INT   -> "N.i2i($e)"
+					is AstType.LONG  -> "N.i2l($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.BOOL -> "N.i2z(($e).low)"
-					is AstType.BYTE -> "N.i2b(($e).low)"
-					is AstType.CHAR -> "N.i2c(($e).low)"
-					is AstType.SHORT -> "N.i2s(($e).low)"
+					is AstType.BOOL  -> "N.i2z(N.l2i($e))"
+					is AstType.BYTE  -> "N.i2b(N.l2i($e))"
+					is AstType.CHAR  -> "N.i2c(N.l2i($e))"
+					is AstType.SHORT -> "N.i2s(N.l2i($e))"
 					is AstType.INT -> "($e).low"
 					is AstType.LONG -> "($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
@@ -651,25 +651,17 @@ class GenJsGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
-	private fun AstMethod.getHaxeNativeBody(defaultContent: Indenter): Indenter {
-		val bodies = this.annotationsList.getTypedList(JTranscMethodBodyList::value)
+	private fun AstMethod.getJsNativeBody(): Indenter? {
+		val bodies = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { it.target == "js" }
 
-		return if (bodies.size > 0) {
-			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody: Indenter = if ("" in bodiesmap) Indenter.gen { line(bodiesmap[""]!!) } else defaultContent
-			val extrabodies = bodiesmap.filterKeys { it != "" }
-			Indenter.gen {
-				if (extrabodies.size == 0) {
-					line(defaultbody)
-				} else {
-					for ((target, extrabody) in extrabodies) {
-						line(extrabody)
-					}
-				}
+		if (bodies.size > 0) {
+			return Indenter.gen {
+				for (body in bodies) line(body.value)
 			}
-		} else {
-			defaultContent
 		}
+
+
+		return null
 	}
 
 	fun writeClass(clazz: AstClass, vfs: SyncVfsFile) {
@@ -698,34 +690,26 @@ class GenJsGen(
 			val fieldType = field.type
 			refs.add(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
-			val fieldName = field.haxeName
+
+			val defaultFieldName = field.name
+			val fieldName = if (field.haxeName == defaultFieldName) null else field.haxeName
+
 			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
 
 			//val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 
 			//line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
-			line("this.registerField(${fieldName.quote()}, ${fieldType.haxeTypeTag.fqname.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)});")
+			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)});")
 		}
 
 		fun writeMethod(method: AstMethod): Indenter {
 			context.method = method
 			return Indenter.gen {
-				//val static = if (method.isStatic) "static " else ""
-				//val visibility = if (isInterface) " " else method.visibility.haxe
 				refs.add(method.methodType)
-				//val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
 				val margs = method.methodType.args.map { it.name }
-				//var override = if (method.haxeIsOverriding) "override " else ""
-				//val inline = if (method.isInline) "inline " else ""
-				//val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
-				val decl = try {
-					"this.registerMethod(${method.haxeName.quote()}, ${method.modifiers.acc}, function (${margs.joinToString(", ")}) {".trim()
-				} catch (e: RuntimeException) {
-					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
-					//null
-					throw e
-				}
-				val declTail = "});"
+
+				val defaultMethodName = method.name + method.desc
+				val methodName = if (method.haxeName == defaultMethodName) null else method.haxeName
 
 				val rbody = if (method.body != null) {
 					method.body
@@ -734,27 +718,40 @@ class GenJsGen(
 				} else {
 					null
 				}
-				line(decl)
-				indent {
-					try {
-						// @TODO: Do not hardcode this!
-						if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
-						val javaBody = if (rbody != null) {
-							rbody.genBodyWithFeatures()
-						} else Indenter.gen {
-							line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
-						}
-						//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
-						line(method.getHaxeNativeBody(javaBody))
-						if (method.methodVoidReturnThis) line("return this;")
-					} catch (e: Throwable) {
-						//e.printStackTrace()
-						log.warn("WARNING haxe_gen.writeMethod:" + e.message)
+				val actualBody = try {
+					val nativeBody = method.getJsNativeBody()
+					val javaBody = rbody?.genBodyWithFeatures()
 
-						line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
+					// @TODO: Do not hardcode this!
+					if (javaBody == null && nativeBody == null) {
+						//line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
+						null
+					} else {
+						//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
+						Indenter.gen {
+							line(nativeBody ?: javaBody ?: Indenter.EMPTY)
+							if (method.methodVoidReturnThis) line("return this;")
+						}
 					}
+				} catch (e: Throwable) {
+					//e.printStackTrace()
+					log.warn("WARNING haxe_gen.writeMethod:" + e.message)
+
+					//line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
+					null
 				}
-				line(declTail)
+
+				val commonArgs = "${methodName.quote()}, ${method.name.quote()}, ${method.desc.quote()}, ${method.modifiers.acc}"
+
+				if (actualBody == null) {
+					line("this.registerMethod($commonArgs, null)")
+				} else {
+					line("this.registerMethod($commonArgs, function (${margs.joinToString(", ")}) {".trim())
+					indent {
+						line(actualBody)
+					}
+					line("});")
+				}
 			}
 		}
 

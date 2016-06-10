@@ -1,6 +1,8 @@
 package javatest.misc;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.simd.MutableFloat32x4;
+import com.jtransc.simd.Simd;
 import jtransc.jtransc.FastMemoryTest;
 
 import java.lang.annotation.*;
@@ -57,6 +59,7 @@ public class MiscTest {
         testAnnotations();
         testArrays();
 		testNulls();
+		testSimd();
 	    try {
 		    testThrowPrevStack();
 	    } catch (Throwable t) {
@@ -111,6 +114,14 @@ public class MiscTest {
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testSimd() {
+		MutableFloat32x4 a = new MutableFloat32x4(-1, -1, -1, -1);
+		MutableFloat32x4 b = new MutableFloat32x4(1, 1, 1, 1);
+		MutableFloat32x4 c = new MutableFloat32x4(1, 2, 3, 0);
+		a.setToAdd(b, c);
+		System.out.println(a.toString());
+	}
 
 	static private void testShifts() {
 		int[] values = {-111, -32, -31, -16, -1, 0, 1, 16, 31, 32, 111};

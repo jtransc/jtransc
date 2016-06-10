@@ -3,6 +3,10 @@ package com.jtransc.simd;
 import com.jtransc.annotation.JTranscInline;
 
 public class MutableFloat32x4 {
+	static {
+		Simd.ref();
+	}
+
 	private float a;
 	private float b;
 	private float c;
@@ -81,5 +85,10 @@ public class MutableFloat32x4 {
 	@JTranscInline
 	public float getD() {
 		return this.d;
+	}
+
+	@Override
+	public String toString() {
+		return "MutableFloat32x4(" + a + ", " + b + ", " + c + ", " + d + ")";
 	}
 }

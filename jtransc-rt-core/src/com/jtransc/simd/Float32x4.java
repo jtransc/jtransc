@@ -4,6 +4,10 @@ package com.jtransc.simd;
  * IMMUTABLE FLOAT32 x 4
  */
 public class Float32x4 {
+	static {
+		Simd.ref();
+	}
+
 	public final float a;
 	public final float b;
 	public final float c;

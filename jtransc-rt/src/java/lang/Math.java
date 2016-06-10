@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscInline;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Math {
@@ -69,6 +70,7 @@ public final class Math {
 
 	@JTranscInline
 	@HaxeMethodBody("return Math.sqrt(p0);")
+	@JTranscMethodBody(target = "js", value = "return Math.sqrt(p0);")
 	native public static double sqrt(double a);
 
 	static public double cbrt(double x) {
