@@ -100,7 +100,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		override fun toString(): String = "NOP($reason)"
 	}
 
-	class LINE(val line: Int) : AstStm() {
+	class LINE(val file: String, val line: Int) : AstStm() {
 		override fun toString() = "AstStm.LINE($line)"
 	}
 
@@ -435,7 +435,7 @@ object AstStmUtils {
 		0 -> AstStm.NOP("empty stm")
 		1 -> stms[0]
 		else -> AstStm.STMS(stms)
-		//else -> AstStm.STMS(stms.flatMap { if (it is AstStm.STMS) it.stms.map { it.value } else listOf(it) })
+	//else -> AstStm.STMS(stms.flatMap { if (it is AstStm.STMS) it.stms.map { it.value } else listOf(it) })
 	}
 }
 

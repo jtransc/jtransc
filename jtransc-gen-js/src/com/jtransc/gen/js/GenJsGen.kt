@@ -8,10 +8,9 @@ import com.jtransc.error.noImplWarn
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
+import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
-import com.jtransc.vfs.MemoryVfs
-import com.jtransc.vfs.SyncVfsFile
 import java.util.*
 
 class GenJsGen(
@@ -74,8 +73,6 @@ class GenJsGen(
 	}.map { it.type }.distinct().map { program[it.name] }.toSet()
 
 	internal fun _write(): JsProgramInfo {
-		val out = StringBuilder()
-
 		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" } }.sortedBy { it.priority }
 
 		data class CopyFile(val prepend: String?, val append: String?)
@@ -92,13 +89,13 @@ class GenJsGen(
 			CopyFile(process(prepend), process(append))
 		}
 
-		val vfs = MemoryVfs()
+		val classesIndenter = arrayListOf<Indenter>()
 
 		for (clazz in program.classes.filter { !it.isNative }) {
 			if (clazz.implCode != null) {
-				vfs[clazz.name.haxeFilePath] = clazz.implCode!!
+				classesIndenter.add(Indenter.gen { line(clazz.implCode!!) })
 			} else {
-				writeClass(clazz, vfs)
+				classesIndenter.add(writeClass(clazz))
 			}
 		}
 
@@ -144,19 +141,33 @@ class GenJsGen(
 			line("});");
 		}
 
-		for (f in copyFilesTrans) if (f.prepend != null) out.append(f.prepend)
 
-		out.append(strs.toString())
+		val out = Indenter.gen {
+			for (f in copyFilesTrans) if (f.prepend != null) line(f.prepend)
 
-		for (file in vfs.listdirRecursive()) {
-			out.append(file.file.readString())
+			line(strs.toString())
+
+			for (indent in classesIndenter) line(indent)
+
+			line(jsTemplateString.gen(customMain ?: plainMain, context, "customMain"))
+
+			for (f in copyFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
 
-		out.append(jsTemplateString.gen(customMain ?: plainMain, context, "customMain"))
+		val lineMappings = hashMapOf<Int, Int>()
 
-		for (f in copyFilesTrans.reversed()) if (f.append != null) out.append(f.append)
+		val source = out.toString { sb, line, data ->
+			if (data is AstStm.LINE) {
+				//println("MARKER: ${sb.length}, $line, $data, ${clazz.source}")
+				lineMappings[line] = data.line
+				//clazzName.internalFqname + ".java"
+			}
+		}
 
-		return JsProgramInfo(entryPointClass, entryPointFilePath, out.toString())
+		//val sourceMap = Sourcemaps.encodeFile(vfs["$haxeFilePath"].realpathOS, fileStr, clazz.source, lineMappings)
+		val sourceMap = "[not implemented SourceMap]";
+
+		return JsProgramInfo(entryPointClass, entryPointFilePath, source, sourceMap)
 	}
 
 
@@ -353,10 +364,7 @@ class GenJsGen(
 				is AstStm.RETHROW -> line("""throw J__i__exception__;""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
-				is AstStm.LINE -> {
-					mark(stm)
-					//line("// ${stm.line}")
-				}
+				is AstStm.LINE -> mark(stm)
 				else -> throw RuntimeException("Unhandled statement $stm")
 			}
 		}
@@ -667,7 +675,7 @@ class GenJsGen(
 		return null
 	}
 
-	fun writeClass(clazz: AstClass, vfs: SyncVfsFile) {
+	fun writeClass(clazz: AstClass): Indenter {
 		context.clazz = clazz
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
@@ -816,17 +824,7 @@ class GenJsGen(
 
 		val lineMappings = hashMapOf<Int, Int>()
 
-		val fileStr = classCodeIndenter.toString { sb, line, data ->
-			if (data is AstStm.LINE) {
-				//println("MARKER: ${sb.length}, $line, $data, ${clazz.source}")
-				lineMappings[line] = data.line
-				//clazzName.internalFqname + ".java"
-			}
-		}
-
-		val haxeFilePath = clazz.name.haxeFilePath
-		vfs["$haxeFilePath"] = fileStr
-		//vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs["$haxeFilePath"].realpathOS, fileStr, clazz.source, lineMappings)
+		return classCodeIndenter
 	}
 
 	//val FqName.as3Fqname: String get() = this.fqname

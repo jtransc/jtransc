@@ -656,7 +656,7 @@ private class BasicBlockBuilder(
 
 	fun handleLineNumber(i: LineNumberNode) {
 		lastLine = i.line
-		stmAdd(AstStm.LINE(i.line))
+		stmAdd(AstStm.LINE("unknown.file", i.line))
 	}
 
 	fun preserveStackLocal(index: Int, type: AstType): AstLocal {
