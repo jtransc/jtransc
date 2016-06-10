@@ -39,4 +39,8 @@ object log {
 		log("Ok($time)")
 		return result
 	}
+
+	fun printStackTrace(e: Throwable) {
+		e.printStackTrace()
+	}
 }

@@ -1,6 +1,7 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.JTranscSystem
+import com.jtransc.env.CI
 import com.jtransc.error.invalidOp
 import com.jtransc.log.log
 import com.jtransc.vfs.*
@@ -34,11 +35,7 @@ object HaxeCompiler {
 	//val haxeCompilerUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/haxe-$HaxeVersion/$haxeCompilerFile") }
 	//val nekoUrl: URL by lazy { URL("https://github.com/jtransc/haxe-releases/releases/download/neko-$NekoVersion/$nekoFile") }
 
-	val ON_CI by lazy {
-		listOf("CI", "TRAVIS", "APPVEYOR")
-			.map { (System.getenv(it) ?: "").toLowerCase() }
-			.any { it in listOf("true", "yes") }
-	}
+	val ON_CI by lazy { CI.isOnCiSystem }
 
 	val HAXE_URL: URL by lazy {
 		if (ON_CI) {

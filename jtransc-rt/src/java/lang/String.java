@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
@@ -269,6 +270,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	native public String toUpperCase(Locale locale);
 
 	@HaxeMethodBody("return N.str(_str.toUpperCase());")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toUpperCase());")
 	native public String toUpperCase();
 
 	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")

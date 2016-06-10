@@ -5,15 +5,11 @@ import com.jtransc.annotation.*
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
-import com.jtransc.ffi.StdCall
 import com.jtransc.gen.GenTargetInfo
-import com.jtransc.internal.JTranscAnnotationBase
-import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
-import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.MemoryVfs
 import com.jtransc.vfs.SyncVfsFile
 import java.util.*
@@ -82,11 +78,18 @@ class GenJsGen(
 
 		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" } }.sortedBy { it.priority }
 
-		fun renderFiles(files: List<JTranscAddFile>, textSelector: (JTranscAddFile) -> String) {
-			for (file in files.filter { textSelector(it) != "" }) {
-				val str = program.resourcesVfs[textSelector(file)].readString() + "\n"
-				out.append(if (file.process) str.template("includeFile") else str)
-			}
+		data class CopyFile(val prepend: String?, val append: String?)
+
+		val copyFilesTrans = copyFiles.map {
+			val prependAppend = if (it.prependAppend.isNotEmpty()) (program.resourcesVfs[it.prependAppend].readString() + "\n") else null
+			val prependAppendParts = prependAppend?.split("/* ## BODY ## */")
+
+			val prepend = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[0] else if (it.prepend.isNotEmpty()) (program.resourcesVfs[it.prepend].readString() + "\n") else null
+			val append = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[1] else if (it.append.isNotEmpty()) (program.resourcesVfs[it.append].readString() + "\n") else null
+
+			fun process(str: String?): String? = if (it.process) str?.template("includeFile") else str
+
+			CopyFile(process(prepend), process(append))
 		}
 
 		val vfs = MemoryVfs()
@@ -141,7 +144,7 @@ class GenJsGen(
 			line("});");
 		}
 
-		renderFiles(copyFiles.toList()) { it.prepend }
+		for (f in copyFilesTrans) if (f.prepend != null) out.append(f.prepend)
 
 		out.append(strs.toString())
 
@@ -151,7 +154,7 @@ class GenJsGen(
 
 		out.append(jsTemplateString.gen(customMain ?: plainMain, context, "customMain"))
 
-		renderFiles(copyFiles.reversed().toList()) { it.append }
+		for (f in copyFilesTrans.reversed()) if (f.append != null) out.append(f.append)
 
 		return JsProgramInfo(entryPointClass, entryPointFilePath, out.toString())
 	}
@@ -347,7 +350,7 @@ class GenJsGen(
 					}
 				}
 				is AstStm.THROW -> line("throw ${stm.value.genExpr()};")
-				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
+				is AstStm.RETHROW -> line("""throw J__i__exception__;""")
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
 				is AstStm.LINE -> {
@@ -417,7 +420,7 @@ class GenJsGen(
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg" -> "N.$opName($l, $r)"
-						//"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
+					//"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
 						else -> "($l $opSymbol $r)"
 					}
 				}
@@ -451,7 +454,7 @@ class GenJsGen(
 
 				val base = when (e2) {
 					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
-					is AstExpr.CALL_SUPER -> "_super"
+					is AstExpr.CALL_SUPER -> "this._super"
 					is AstExpr.CALL_INSTANCE -> "${e2.obj.genNotNull()}"
 					else -> invalidOp("Unexpected")
 				}
@@ -559,7 +562,7 @@ class GenJsGen(
 		return return convertToFromHaxe(type, text, toHaxe = false)
 	}
 
-	fun convertToFromHaxe(type: AstType, text: String, toHaxe:Boolean): String {
+	fun convertToFromHaxe(type: AstType, text: String, toHaxe: Boolean): String {
 		if (type is AstType.ARRAY) {
 			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getJsType(type, TypeKind.CAST)})")
 		}
@@ -615,21 +618,21 @@ class GenJsGen(
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
 				when (to) {
-					is AstType.BOOL  -> "N.i2z($e)"
-					is AstType.BYTE  -> "N.i2b($e)"
-					is AstType.CHAR  -> "N.i2c($e)"
+					is AstType.BOOL -> "N.i2z($e)"
+					is AstType.BYTE -> "N.i2b($e)"
+					is AstType.CHAR -> "N.i2c($e)"
 					is AstType.SHORT -> "N.i2s($e)"
-					is AstType.INT   -> "N.i2i($e)"
-					is AstType.LONG  -> "N.i2l($e)"
+					is AstType.INT -> "N.i2i($e)"
+					is AstType.LONG -> "N.i2l($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.BOOL  -> "N.i2z(N.l2i($e))"
-					is AstType.BYTE  -> "N.i2b(N.l2i($e))"
-					is AstType.CHAR  -> "N.i2c(N.l2i($e))"
+					is AstType.BOOL -> "N.i2z(N.l2i($e))"
+					is AstType.BYTE -> "N.i2b(N.l2i($e))"
+					is AstType.CHAR -> "N.i2c(N.l2i($e))"
 					is AstType.SHORT -> "N.i2s(N.l2i($e))"
 					is AstType.INT -> "($e).low"
 					is AstType.LONG -> "($e)"
@@ -640,7 +643,7 @@ class GenJsGen(
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
 					FUNCTION_REF -> "(HaxeNatives.getFunction($e))"
-					//else -> "N.c($e, ${to.haxeTypeCast})"
+				//else -> "N.c($e, ${to.haxeTypeCast})"
 					else -> "$e"
 				}
 			}
@@ -734,7 +737,7 @@ class GenJsGen(
 						}
 					}
 				} catch (e: Throwable) {
-					//e.printStackTrace()
+					log.printStackTrace(e)
 					log.warn("WARNING haxe_gen.writeMethod:" + e.message)
 
 					//line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
@@ -884,7 +887,7 @@ class GenJsGen(
 
 	class MutableBody(val method: AstMethod) {
 		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
-		fun initClassRef(classRef: AstType.REF, reason:String) {
+		fun initClassRef(classRef: AstType.REF, reason: String) {
 			referencedClasses.putIfAbsent(classRef, arrayListOf())
 			referencedClasses[classRef]!! += reason
 		}

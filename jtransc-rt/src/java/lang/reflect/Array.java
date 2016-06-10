@@ -16,6 +16,7 @@
 
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Array {
@@ -23,30 +24,39 @@ public final class Array {
 	}
 
 	@HaxeMethodBody("return new HaxeArrayBool(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_Z(p0);")
 	native private static Object newBoolInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayByte(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_B(p0);")
 	native private static Object newByteInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayChar(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_C(p0);")
 	native private static Object newCharInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayShort(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_S(p0);")
 	native private static Object newShortInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayInt(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_I(p0);")
 	native private static Object newIntInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayLong(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_J(p0);")
 	native private static Object newLongInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayFloat(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_F(p0);")
 	native private static Object newFloatInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayDouble(p0);")
+	@JTranscMethodBody(target = "js", value = "return new JA_D(p0);")
 	native private static Object newDoubleInstance(int length) throws NegativeArraySizeException;
 
 	@HaxeMethodBody("return new HaxeArrayAny(p0, p1._str);")
+	@JTranscMethodBody(target = "js", value = "return new JA_L(p0, N.istr(p1));")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;
 
 	public static Object newInstance(Class<?> type, int length) throws NegativeArraySizeException {
@@ -84,6 +94,7 @@ public final class Array {
 	}
 
     @HaxeMethodBody("return cast(p0, HaxeArrayBase).length;")
+	@JTranscMethodBody(target = "js", value = "return p0.length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 

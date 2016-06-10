@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.jtransc.env.CI
 import com.jtransc.gen.js.JsGenDescriptor
 import com.jtransc.gen.js.JsGenTargetProcessor
 import javatest.lang.SystemTest
@@ -25,7 +26,11 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 
 	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) { normalize2(it) }
 
-	//@Test fun miscTestNativeJs() = testClass<MiscTest>(lang = "js", target = JsGenDescriptor, analyze = true, minimize = false) { normalize2(it) }
+	@Test fun miscTestNativeJs() {
+		if (!CI.isOnCiSystem) {
+			testClass<MiscTest>(lang = "js", target = JsGenDescriptor, analyze = true, minimize = false) { normalize2(it) }
+		}
+	}
 
 	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 

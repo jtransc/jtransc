@@ -81,13 +81,20 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 
 	fun getJsDefault(type: AstType): Any? = type.getNull()
 
-	fun getStaticFieldText(astFieldRef: AstFieldRef): String {
-		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+	fun getStaticFieldText(field: AstFieldRef): String {
+		val clazz = getJsClassFqNameForCalling(field.containingClass)
+		return clazz + "[" + getJsFieldName(field).quote() + "]"
 	}
 
 	fun getJsMethodName(method: AstMethod): String = getJsMethodName(method.ref)
 
-	fun getJsMethodName(method: AstMethodRef): String = "${method.name}${method.desc}"
+	fun getJsMethodName(method: AstMethodRef): String {
+		return if (method.isInstanceInit) {
+			"${method.classRef.fqname}${method.name}${method.desc}"
+		} else {
+			"${method.name}${method.desc}"
+		}
+	}
 
 	fun getJsClassFqNameLambda(fqName: FqName): String {
 		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -98,7 +105,8 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 	}
 
 	fun getJsClassStaticInit(clazzRef: AstType.REF, joinToString: String): String {
-		return "throw 'Not implemented getJsClassStaticInit';"
+		//return "throw 'Not implemented getJsClassStaticInit';"
+		return getJsClassFqNameForCalling(clazzRef.name) + ".SI();"
 	}
 
 	fun getFullAnnotationProxyName(type: AstType.REF): String {

@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Float extends Number implements Comparable<Float> {
@@ -54,9 +55,11 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	@HaxeMethodBody("return Math.isNaN(p0);")
+	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	native public static boolean isNaN(float value);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
+	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	native private static boolean _isFinite(float v);
 
 	public static boolean isInfinite(float v) {
@@ -131,12 +134,15 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	native public static int floatToIntBits(float value);
 
 	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	native public static int floatToRawIntBits(float value);
 
 	@HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.intBitsToFloat(p0);")
 	native public static float intBitsToFloat(int bits);
 
 	public int compareTo(Float that) {

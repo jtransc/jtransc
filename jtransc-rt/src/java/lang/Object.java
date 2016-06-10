@@ -55,7 +55,7 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
 @JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/MathPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/Int64.js")
-@JTranscAddFile(target = "js", priority = -1000, process = true, prepend = "js/Runtime.js", append = "js/RuntimeSufix.js")
+@JTranscAddFile(target = "js", priority = -1000, process = true, prependAppend = "js/Runtime.js")
 public class Object {
 	@JTranscKeep
 	public boolean equals(Object obj) {

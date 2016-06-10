@@ -1,6 +1,7 @@
 package javatest.misc;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.Simd;
 import jtransc.jtransc.FastMemoryTest;
@@ -22,14 +23,29 @@ public class MiscTest {
     static public int MY_GREAT_CONSTANT = 10;
 
     static public void main(String[] args) throws Throwable {
-        new MiscTest().main2(args);
+		testBootstrap1();
+		testBootstrap2();
+
+		new MiscTest().main2(args);
     }
 
+	static private void testBootstrap1() {
+		JTranscConsole.log("Hello World!");
+	}
+
+	static private void testBootstrap2() {
+		int[] ints = {-1, -2, -3, -4, -6};
+		JTranscConsole.log(ints.length);
+		JTranscConsole.log(ints[0]);
+		JTranscConsole.log(ints[1]);
+		JTranscConsole.log(ints[2]);
+	}
+
     void main2(String[] args) throws Throwable {
-        System.out.println("STARTED");
-        System.out.println("args:" + Arrays.toString(args));
-		System.out.println(true);
-		System.out.println(false);
+        JTranscConsole.log("STARTED");
+        JTranscConsole.log("args:" + Arrays.toString(args));
+		JTranscConsole.log(true);
+		JTranscConsole.log(false);
         systemPropertiesTest();
 		testShifts();
         testRegex();

@@ -16,5 +16,7 @@ public @interface JTranscAddFile {
 
 	String append() default "";
 
+	String prependAppend() default "";
+
 	String file() default "";
 }

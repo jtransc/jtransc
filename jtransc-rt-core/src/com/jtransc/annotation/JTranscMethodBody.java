@@ -8,6 +8,6 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Repeatable(value = JTranscMethodBodyList.class)
 public @interface JTranscMethodBody {
+	String target();
 	String value();
-	String target() default "";
 }
