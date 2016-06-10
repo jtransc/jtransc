@@ -20,6 +20,7 @@ import com.jtransc.JTranscVersion
 import com.jtransc.KotlinVersion
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
+import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.haxe.HaxeGenDescriptor
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
@@ -43,7 +44,9 @@ open class HaxeTestBase {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, noinline transformer: (String) -> String = { it }) = testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer)
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, noinline transformer: (String) -> String = { it }) {
+		testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target)
+	}
 
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
@@ -52,17 +55,17 @@ open class HaxeTestBase {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, target: GenTargetDescriptor = HaxeGenDescriptor, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang)
+		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target)
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target)
 	}
 
 	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null) {
@@ -81,10 +84,10 @@ open class HaxeTestBase {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null): String {
+	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
-			target = HaxeGenDescriptor,
+			target = target,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",

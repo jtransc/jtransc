@@ -357,7 +357,6 @@ class GenHaxeGen(
 				is AstStm.STMS -> for (s in stm.stms) line(s.genStm())
 				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
 				is AstStm.BREAK -> line("break;")
-				is AstStm.BREAK -> line("break;")
 				is AstStm.CONTINUE -> line("continue;")
 				is AstStm.WHILE -> {
 					line("while (${stm.cond.genExpr()})") {
@@ -725,6 +724,7 @@ class GenHaxeGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
+	// @TODO: Use this.annotationsList.getTypedList
 	private fun AstMethod.getHaxeNativeBodyList(): List<HaxeMethodBody> {
 		val bodyList = this.annotationsList.getTyped<HaxeMethodBodyList>()
 		val bodyEntry = this.annotationsList.getTyped<HaxeMethodBody>()
@@ -933,15 +933,16 @@ class GenHaxeGen(
 					line(writeMethod(method, isInterface))
 				}
 
-				if (!isInterface) {
-					//println(clazz.fqname + " -> " + program.getAllInterfaces(clazz))
-					val isFunctionType = program.isImplementing(clazz, "all.core.AllFunction")
-
-					if (isFunctionType) {
-						val executeFirst = clazz.methodsByName["execute"]!!.first()
-						line("public const _execute:Function = ${executeFirst.ref.haxeName};")
-					}
-				}
+				// @TODO: Check!
+				//if (!isInterface) {
+				//	//println(clazz.fqname + " -> " + program.getAllInterfaces(clazz))
+				//	val isFunctionType = program.isImplementing(clazz, JTranscFunction::class.java.name)
+				//
+				//	if (isFunctionType) {
+				//		val executeFirst = clazz.methodsByName["execute"]!!.first()
+				//		line("public const _execute:Function = ${executeFirst.ref.haxeName};")
+				//	}
+				//}
 
 				/*
 				if (isNormalClass) {

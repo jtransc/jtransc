@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAddFile;
+import com.jtransc.annotation.JTranscAddMembersList;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
@@ -51,6 +53,7 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
+@JTranscAddFile(target = "js", priority = -1000, process = true, prepend = "js/Runtime.js", append = "js/RuntimeSufix.js")
 public class Object {
 	@JTranscKeep
 	public boolean equals(Object obj) {

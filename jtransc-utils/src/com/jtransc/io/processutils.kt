@@ -16,6 +16,7 @@
 
 package com.jtransc.io
 
+import com.jtransc.vfs.ProcessResult
 import com.jtransc.vfs.UTF8
 import java.io.File
 import java.io.InputStream
@@ -23,6 +24,8 @@ import java.nio.charset.Charset
 
 data class ProcessResult2(val exitValue: Int, val out:String = "", val err:String = "", val outerr: String = out + err) {
 	val success = exitValue == 0
+
+	constructor(pr: ProcessResult) : this(pr.exitCode, pr.outputString, pr.errorString, pr.outputString + pr.errorString)
 }
 
 object ProcessUtils {

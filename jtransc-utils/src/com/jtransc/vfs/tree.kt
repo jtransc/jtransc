@@ -1,6 +1,5 @@
 package com.jtransc.vfs
 
-import com.jtransc.numeric.toInt
 import com.jtransc.vfs.node.FileNodeIO
 import com.jtransc.vfs.node.FileNodeTree
 import com.jtransc.vfs.node.FileNodeType

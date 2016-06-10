@@ -17,7 +17,6 @@
 package com.jtransc.ast
 
 import com.jtransc.BuildBackend
-import com.jtransc.JTranscSystem
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
@@ -132,9 +131,11 @@ class AstGenContext {
 	override fun toString() = try {
 		"${clazz.name}::${method.name}"
 	} catch (e: Throwable) {
-		"${clazz.name}"
-	} catch (e: Throwable) {
-		"NO_CONTEXT"
+		try {
+			"${clazz.name}"
+		} catch (e: Throwable) {
+			"NO_CONTEXT"
+		}
 	}
 }
 

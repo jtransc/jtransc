@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import com.jtransc.gen.js.JsGenDescriptor
+import com.jtransc.gen.js.JsGenTargetProcessor
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import org.junit.Test
@@ -22,6 +24,8 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 	@Test fun langSystemTest() = testClass<SystemTest>() { normalize2(it) }
 
 	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) { normalize2(it) }
+
+	//@Test fun miscTestNativeJs() = testClass<MiscTest>(lang = "js", target = JsGenDescriptor, analyze = true, minimize = false) { normalize2(it) }
 
 	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 

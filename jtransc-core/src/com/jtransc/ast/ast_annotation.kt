@@ -1,6 +1,10 @@
 package com.jtransc.ast
 
+import com.jtransc.annotation.JTranscAddMembers
+import com.jtransc.annotation.JTranscAddMembersList
+import com.jtransc.error.noImpl
 import java.lang.reflect.Proxy
+import kotlin.reflect.KProperty1
 
 data class AstAnnotation(
 	val type: AstType.REF,
@@ -64,6 +68,12 @@ data class AstAnnotation(
 
 class AstAnnotationList(val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
+
+	inline fun <reified TItem : Any, reified TList : Any> getTypedList(field: KProperty1<TList, Array<TItem>>): List<TItem> {
+		val single = this.getTyped<TItem>()
+		val list = this.getTyped<TList>()
+		return listOf(single).filterNotNull() + (if (list != null) field.get(list).toList() else listOf())
+	}
 
 	inline fun <reified T : Any> getTyped(): T? = byClassName[T::class.java.name]?.firstOrNull()?.toObject<T>()
 	inline fun <reified T : Any> getAllTyped(): List<T> = byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf()

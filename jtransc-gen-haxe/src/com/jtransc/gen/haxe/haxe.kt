@@ -124,6 +124,7 @@ object HaxeGenTools {
 val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
 val cmpvfs: SyncVfsFile by lazy { HaxeCompiler.ensureHaxeCompilerVfs() }
 
+// @TODO: Make this generic!
 class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings, val actualSubtarget: HaxeAddSubtarget) {
 	val program = tinfo.program
 	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
@@ -365,9 +366,10 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 				else -> commandRaw
 			}
 
-			log("Executing: $command ${cmdArgs.joinToString(" ")}")
+			val processResult = log.logAndTime("Executing: $command ${cmdArgs.joinToString(" ")}") {
+				ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs, env = HaxeCompiler.getExtraEnvs())
+			}
 
-			val processResult = ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs, env = HaxeCompiler.getExtraEnvs())
 			if (!processResult.success) return ProcessResult2(processResult.exitValue)
 		}
 		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)

@@ -47,6 +47,11 @@
             <artifactId>jtransc-gen-haxe</artifactId>
             <version>${jtransc.version}</version>
         </dependency>
+		<dependency>
+			<groupId>com.jtransc</groupId>
+			<artifactId>jtransc-gen-js</artifactId>
+			<version>${jtransc.version}</version>
+		</dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-all</artifactId>
