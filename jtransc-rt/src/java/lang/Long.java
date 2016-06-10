@@ -51,15 +51,15 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	public static String toHexString(long i) {
-		return toString(i, 16);
+		return toUnsignedString(i, 16);
 	}
 
 	public static String toOctalString(long i) {
-		return toString(i, 8);
+		return toUnsignedString(i, 8);
 	}
 
 	public static String toBinaryString(long i) {
-		return toString(i, 2);
+		return toUnsignedString(i, 2);
 	}
 
 	//@HaxeMethodBody("return HaxeNatives.str('' + p0);")

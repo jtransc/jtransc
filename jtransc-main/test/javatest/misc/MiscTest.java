@@ -60,6 +60,7 @@ public class MiscTest {
         testArrays();
 		testNulls();
 		testSimd();
+		testHexString();
 	    try {
 		    testThrowPrevStack();
 	    } catch (Throwable t) {
@@ -114,6 +115,17 @@ public class MiscTest {
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testHexString() {
+		System.out.println(Long.toHexString(-1L));
+		System.out.println(Long.toHexString(-999999999999999999L));
+		System.out.println(Long.toHexString(1L));
+		System.out.println(Long.toHexString(999999999999999999L));
+		System.out.println(Integer.toHexString(-1));
+		System.out.println(Integer.toHexString(-999999999));
+		System.out.println(Integer.toHexString(1));
+		System.out.println(Integer.toHexString(999999999));
+	}
 
 	static private void testSimd() {
 		MutableFloat32x4 a = new MutableFloat32x4(-1, -1, -1, -1);
