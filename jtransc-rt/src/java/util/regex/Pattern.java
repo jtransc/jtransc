@@ -16,8 +16,13 @@
 
 package java.util.regex;
 
+import regexodus.REFlags;
+
 import java.util.ArrayList;
 
+/**
+ * Created by Tommy Ettinger on 6/7/2016.
+ */
 public final class Pattern implements java.io.Serializable {
 	public static final int UNIX_LINES = 0x01;
 	public static final int CASE_INSENSITIVE = 0x02;
@@ -28,6 +33,8 @@ public final class Pattern implements java.io.Serializable {
 	public static final int UNICODE_CASE = 0x40;
 	public static final int CANON_EQ = 0x80;
 	public static final int UNICODE_CHARACTER_CLASS = 0x100;
+
+	public regexodus.Pattern internal;
 
 	public static Pattern compile(String regex) {
 		return new Pattern(regex, 0);
@@ -43,6 +50,19 @@ public final class Pattern implements java.io.Serializable {
 	private Pattern(String pattern, int flags) {
 		this.pattern = pattern;
 		this.flags = flags;
+
+		internal = regexodus.Pattern.compile(pattern, convertFlags(flags));
+	}
+
+	// @TODO: Maybe we could match flags to avoid conversion at all!
+	static private int convertFlags(int flags) {
+		int fm = 0;
+		fm |= (flags & CASE_INSENSITIVE) != 0 ? REFlags.IGNORE_CASE : 0;
+		fm |= (flags & DOTALL) != 0 ? REFlags.DOTALL : 0;
+		fm |= (flags & COMMENTS) != 0 ? REFlags.IGNORE_SPACES : 0;
+		fm |= (flags & MULTILINE) != 0 ? REFlags.MULTILINE : 0;
+		fm |= (flags & UNICODE_CHARACTER_CLASS) != 0 ? REFlags.UNICODE : 0;
+		return fm;
 	}
 
 	public String pattern() {

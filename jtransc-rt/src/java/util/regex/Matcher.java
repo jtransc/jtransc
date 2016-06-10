@@ -16,170 +16,206 @@
 
 package java.util.regex;
 
-import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import regexodus.PerlSubstitution;
+import regexodus.Replacer;
 
-@HaxeAddMembers({
-	"public var _pattern:String;",
-	"public var _opts:String;",
-	"public var _text:String;",
-	"public var _ereg:EReg;",
-	"public var _matches:Bool;",
-	"public var _offset:Int = 0;",
-	"public var _matchPos:Int = 0;",
-	"public var _matchLen:Int = 0;",
-	"" +
-		"public function _find() {\n" +
-		"\tvar r = this._ereg;\n" +
-		"\tthis._matches = r.matchSub(this.{% FIELD java.util.regex.Matcher:text:Ljava/lang/String; %}._str, this._offset);\n" +
-		"\tif (this._matches) {\n" +
-		"\t\tvar rpos = r.matchedPos();\n" +
-		"\t\tthis._matchPos = rpos.pos;\n" +
-		"\t\tthis._matchLen = rpos.len;\n" +
-		"\t\tthis._offset = rpos.pos + rpos.len;\n" +
-		"\t} else {\n" +
-		"\t\tthis._matchPos = 0;\n" +
-		"\t\tthis._matchLen = 0;\n" +
-		"\t}\n" +
-		"\treturn this._matches;\n" +
-		"}"
-	//public static final int UNIX_LINES = 0x01;
-	//public static final int CASE_INSENSITIVE = 0x02;
-	//public static final int COMMENTS = 0x04;
-	//public static final int MULTILINE = 0x08;
-	//public static final int LITERAL = 0x10;
-	//public static final int DOTALL = 0x20;
-	//public static final int UNICODE_CASE = 0x40;
-	//public static final int CANON_EQ = 0x80;
-	//public static final int UNICODE_CHARACTER_CLASS = 0x100;
-	//i case insensitive matching
-	//g global replace or split, see below
-	//m multiline matching, ^ and $ represent the beginning and end of a line
-	//s the dot . will also match newlines (Neko, C++, PHP, Flash and Java targets only)
-	//u use UTF-8 matching (Neko and C++ targets only)
-})
+/**
+ * Created by Tommy Ettinger on 6/7/2016.
+ */
 public final class Matcher implements MatchResult {
-	private Pattern parent;
-	private String pattern;
-	private int flags;
-	private String text;
+	public regexodus.Matcher matcher;
+	public regexodus.Pattern internalPattern;
+	public Pattern pattern;
+	public CharSequence text;
 
 	Matcher(Pattern parent, CharSequence text) {
-		this.parent = parent;
-		this.pattern = parent.pattern();
-		this.flags = parent.flags();
-		this.text = text.toString();
-		_init();
+		this.pattern = parent;
+		this.internalPattern = parent.internal;
+		this.text = text;
+		this.matcher = new regexodus.Matcher(internalPattern, text);
 	}
 
-	@HaxeMethodBody("" +
-		"var opts = '';\n" +
-		"var flags = this.{% FIELD java.util.regex.Matcher:flags:I %};\n" +
-		"var pattern = this.{% FIELD java.util.regex.Matcher:pattern:Ljava/lang/String; %};\n" +
-		"var text = this.{% FIELD java.util.regex.Matcher:text:Ljava/lang/String; %};\n" +
-		"if ((flags & 0x02) != 0) opts += 'i';\n" +
-		"if ((flags & 0x08) != 0) opts += 'm';\n" +
-		//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
-		"this._pattern = pattern._str;\n" +
-		"this._opts = opts;\n" +
-		"this._text = text._str;\n" +
-		"this._ereg = new EReg(pattern._str, opts);\n" +
-		"this._matches = (new EReg('^' + pattern._str + '$', opts)).match(text._str);"
-	)
-	private void _init() {
+	private Matcher() {
+	}
+
+	private Matcher copy() {
+		// @TODO: Copy!
+		return this;
 	}
 
 	public Pattern pattern() {
-		return this.parent;
+		return this.pattern;
 	}
 
 	public MatchResult toMatchResult() {
+		return copy();
+	}
+
+	public Matcher usePattern(Pattern newPattern) {
+		this.matcher.setPattern(newPattern.internal);
+		this.pattern = newPattern;
+		this.internalPattern = newPattern.internal;
 		return this;
 	}
 
-	native public Matcher usePattern(Pattern newPattern);
-
-	native public Matcher reset();
+	public Matcher reset() {
+		this.matcher.flush();
+		return this;
+	}
 
 	public Matcher reset(CharSequence input) {
-		this.text = input.toString();
-		this.reset();
+		matcher.setTarget(input);
+		return reset();
+	}
+
+	public int start() {
+		return matcher.start();
+	}
+
+	public int start(int group) {
+		return matcher.start(group);
+	}
+
+	public int end() {
+		return matcher.end();
+	}
+
+	public int end(int group) {
+		return matcher.end(group);
+	}
+
+	public String group() {
+		return matcher.group();
+	}
+
+	public String group(int group) {
+		return matcher.group(group);
+	}
+
+	public String group(String name) {
+		return matcher.group(name);
+	}
+
+	public int groupCount() {
+		return matcher.groupCount();
+	}
+
+	public boolean matches() {
+		return matcher.matches();
+	}
+
+	public boolean find() {
+		return matcher.find();
+	}
+
+	public boolean find(int start) {
+		int limit = matcher.targetEnd();
+		if ((start < 0) || (start > limit))
+			throw new IndexOutOfBoundsException("Illegal start index");
+		reset();
+		matcher.setPosition(start);
+		return matcher.find();
+	}
+
+	public boolean lookingAt() {
+		return matcher.search(regexodus.Matcher.ACCEPT_INCOMPLETE);
+	}
+
+	public static String quoteReplacement(String s) {
+		if ((s.indexOf('\\') == -1) && (s.indexOf('$') == -1))
+			return s;
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '\\' || c == '$') {
+				sb.append('\\');
+			}
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
+	public Matcher appendReplacement(StringBuffer sb, String replacement) {
+		Replacer rep = internalPattern.replacer(replacement);
+		Replacer.replaceStep(matcher, new PerlSubstitution(replacement), Replacer.wrap(sb));
 		return this;
 	}
 
-	@HaxeMethodBody("return this._matchPos;")
-	native public int start();
-
-	public int start(int group) {
-		if (group == 0) return start();
-		JTranscSystem.debugger();
-		throw new Error("No implemented Matcher.start(int group) with group != 0");
+	public StringBuffer appendTail(StringBuffer sb) {
+		matcher.getGroup(regexodus.MatchResult.TARGET, Replacer.wrap(sb));
+		return sb;
 	}
 
-	native public int start(String name);
-
-	@HaxeMethodBody("return this._matchPos + this._matchLen;")
-	native public int end();
-
-	public int end(int group) {
-		if (group == 0) return end();
-		JTranscSystem.debugger();
-		throw new Error("No implemented Matcher.end(int group) with group != 0");
+	public String replaceAll(String replacement) {
+		reset();
+		return matcher.replaceAll(replacement);
 	}
 
-	native public int end(String name);
+	public String replaceFirst(String replacement) {
+		if (replacement == null)
+			throw new NullPointerException("replacement");
+		reset();
+		return matcher.replaceFirst(replacement);
+	}
 
-	@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(0));")
-	native public String group();
+	public Matcher region(int start, int end) {
+		if ((start < 0) || (start > matcher.targetEnd()))
+			throw new IndexOutOfBoundsException("start");
+		if ((end < 0) || (end > matcher.targetEnd()))
+			throw new IndexOutOfBoundsException("end");
+		if (start > end)
+			throw new IndexOutOfBoundsException("start > end");
+		matcher.setTarget(matcher.target(), start, end - start);
+		return this;
+	}
 
-	@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(p0));")
-	native public String group(int group);
+	public int regionStart() {
+		return matcher.targetStart();
+	}
 
-	native public String group(String name);
+	public int regionEnd() {
+		return matcher.targetEnd();
+	}
 
-	native public int groupCount();
+	public boolean hasTransparentBounds() {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	@HaxeMethodBody("return this._matches;")
-	native public boolean matches();
+	public Matcher useTransparentBounds(boolean b) {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	@HaxeMethodBody("return _find();")
-	native public boolean find();
+	public boolean hasAnchoringBounds() {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	@HaxeMethodBody("this._offset = p0; return _find();")
-	native public boolean find(int start);
+	public Matcher useAnchoringBounds(boolean b){
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	native public boolean lookingAt();
+	public String toString() {
+		return matcher.toString();
+	}
 
-	native public static String quoteReplacement(String s);
+	public boolean hitEnd() {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	native public Matcher appendReplacement(StringBuffer sb, String replacement);
+	public boolean requireEnd() {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	native public StringBuffer appendTail(StringBuffer sb);
+	///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
 
-	@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
-	native public String replaceAll(String replacement);
+	// @TODO: Implement this!
+	public int start(String name) {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts).replace(this._text, p0._str));")
-	native public String replaceFirst(String replacement);
+	// @TODO: Implement this!
+	public int end(String name) {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-	native public Matcher region(int start, int end);
-
-	native public int regionStart();
-
-	native public int regionEnd();
-
-	native public boolean hasTransparentBounds();
-
-	native public Matcher useTransparentBounds(boolean b);
-
-	native public boolean hasAnchoringBounds();
-
-	native public Matcher useAnchoringBounds(boolean b);
-
-	native public String toString();
-
-	native public boolean hitEnd();
-
-	native public boolean requireEnd();
 }
