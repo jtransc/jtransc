@@ -67,8 +67,10 @@ class N {
 		#end
 	}
 
+	static public function umod(a:Int32, b:Int32):Int32 return ((a % b) + b) % b;
+
 	#if php
-	static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : (32 + v);
+	static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
 	static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
 	static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
 	static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);

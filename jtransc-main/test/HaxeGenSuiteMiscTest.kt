@@ -23,7 +23,7 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 
 	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) { normalize2(it) }
 
-	@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
+	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 
 	private fun normalize2(str: String): String {
 		return str

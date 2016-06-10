@@ -29,6 +29,7 @@ public class MiscTest {
 		System.out.println(true);
 		System.out.println(false);
         systemPropertiesTest();
+		testShifts();
         testRegex();
         mapTest();
         arrayListTest();
@@ -110,6 +111,23 @@ public class MiscTest {
 	    System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testShifts() {
+		int[] values = {-111, -32, -31, -16, -1, 0, 1, 16, 31, 32, 111};
+		for (int v1 : values) {
+			for (int v2 : values) {
+				//System.out.printf("(%d, %d, %d):", v1 << v2, v1 >> v2, v1 >>> v2);
+				System.out.print("(");
+				System.out.print(v1 << v2);
+				System.out.print(",");
+				System.out.print(v1 >> v2);
+				System.out.print(",");
+				System.out.print(v1 >>> v2);
+				System.out.print("):");
+			}
+			System.out.println();
+		}
+	}
 
 	static private void testBitsConv() {
 		System.out.println("testBitsConv:");
