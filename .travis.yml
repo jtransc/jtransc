@@ -27,7 +27,7 @@ script:
 - "./run && node program.js"
 - popd
 - pushd jtransc-main-run/example-gradle
-- gradle runJs && node build/program.js
+- gradle runPlainJs && node build/program.js
 - popd
 cache:
   directories:

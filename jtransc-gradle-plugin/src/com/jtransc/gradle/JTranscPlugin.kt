@@ -38,7 +38,12 @@ open class JTranscPlugin : Plugin<Project> {
 		JTranscExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, minimizeNames = false)
 		JTranscExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, minimizeNames = false)
 
+		// @DEFAULT JS is Haxe
 		addBuildTarget("js", "haxe:js", "program.js", minimizeNames = true)
+
+		addBuildTarget("plainJs", "js", "program.js", minimizeNames = true)
+		addBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true)
+
 		addBuildTarget("swf", "haxe:swf", "program.swf")
 		addBuildTarget("cpp", "haxe:cpp", "program.exe")
 		addBuildTarget("neko", "haxe:neko", "program.n")

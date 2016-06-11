@@ -182,16 +182,20 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 	}
 
 	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		val folder= LocalVfs(File(tinfo.targetDirectory))
-		val outputFile = folder[tinfo.outputFile]
-		val outputFileMap = folder["${tinfo.outputFile}.map"]
+		//val folder= LocalVfs(File(tinfo.targetDirectory))
+		val outputFile = LocalVfs(File(File(tinfo.outputFile).absolutePath))
+		val outputFileMap = LocalVfs(File(File(tinfo.outputFile).absolutePath + ".map"))
 		outputFile.write(info!!.source)
 		if (info!!.sourceMap != null) outputFileMap.write(info!!.sourceMap!!)
 		log.info("Generated javascript at..." + outputFile.realpathOS)
-		println("Generated javascript at..." + outputFile.realpathOS)
+		//println("Generated javascript at..." + outputFile.realpathOS)
 
-		val result = NodeJs.run(outputFile.realpathOS, listOf())
-		return ProcessResult2(result)
+		if (run) {
+			val result = NodeJs.run(outputFile.realpathOS, listOf(), passthru = redirect)
+			return ProcessResult2(result)
+		} else {
+			return ProcessResult2(0)
+		}
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
