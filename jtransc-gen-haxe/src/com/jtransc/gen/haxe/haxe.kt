@@ -35,6 +35,7 @@ import com.jtransc.template.Minitemplate
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.*
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.lang.reflect.Proxy
 
 object HaxeTarget : GenTargetDescriptor() {
@@ -115,9 +116,11 @@ fun GenTargetInfo.haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
 
 object HaxeGenTools {
 	fun getSrcFolder(tempdir: String): SyncVfsFile {
-		log("Temporal haxe files: $tempdir/jtransc-haxe")
-		File("$tempdir/jtransc-haxe/src").mkdirs()
-		return LocalVfs(File("$tempdir/jtransc-haxe")).ensuredir()["src"]
+		//val randomId = "" + System.currentTimeMillis() + ":" + Math.floor(Math.random() * 1000)
+		val baseDir = "$tempdir/jtransc-haxe"
+		log("Temporal haxe files: $baseDir")
+		File("$baseDir/src").mkdirs()
+		return LocalVfs(File("$baseDir")).ensuredir()["src"]
 	}
 }
 

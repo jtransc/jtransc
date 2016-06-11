@@ -18,8 +18,8 @@ package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.gen.GenTargetSubDescriptor
-import com.jtransc.JTranscVersion
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.util.*
 
 object JTranscMain {
@@ -56,6 +56,7 @@ object JTranscMain {
 			println("  -main   <fqname> - Specifies class with static void main method that will be the entry point of the app")
 			println("  -target <target> - Language target to do the AOT possible values ($targetNames)")
 			println("  -out    <file>   - Output file that will hold the generated aot result file")
+			println("  -temp   <folder> - Temp folder (default system temp folder)")
 			println("  -release         - Optimizes and performs compression minimization to the output")
 			println("")
 			println("  -run             - Runs generated executable")
@@ -98,6 +99,7 @@ object JTranscMain {
 			var out: String? = null
 			var run = false
 			val settings = AstBuildSettings(jtranscVersion = jtranscVersion)
+			var tempFolder = System.getProperty("java.io.tmpdir")
 
 			if (args.isEmpty()) {
 				help()
@@ -113,6 +115,7 @@ object JTranscMain {
 						"-main" -> entryPoint = args.remove()
 						"-debugenv" -> showDebugEnv()
 						"-target" -> targetName = args.remove()
+						"-temp" -> tempFolder = args.remove()
 						"-release" -> settings.debug = false
 						"-out" -> out = args.remove()
 						"-run" -> run = true
@@ -138,7 +141,7 @@ object JTranscMain {
 				target = target,
 				settings = settings,
 				output = out ?: "program.${target.ext}",
-				targetDirectory = System.getProperty("java.io.tmpdir"),
+				targetDirectory = tempFolder,
 				run = run
 			)
 		}

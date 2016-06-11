@@ -19,14 +19,10 @@ import javatest.KotlinCollections
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
-import javatest.lang.SystemTest
-import javatest.misc.MiscTest
 import javatest.utils.DateTest
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.bug.*
-import jtransc.java8.DefaultMethodsTest
-import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*

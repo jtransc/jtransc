@@ -30,6 +30,7 @@ import com.jtransc.vfs.UnjailedLocalVfs
 import com.jtransc.vfs.parent
 import org.junit.Assert
 import java.io.File
+import java.lang.management.ManagementFactory
 
 open class HaxeTestBase {
 	companion object {
@@ -86,13 +87,17 @@ open class HaxeTestBase {
 
 	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
 		val projectRoot = locateProjectRoot()
+
+		val threadId = Thread.currentThread().id
+		val pid = ManagementFactory.getRuntimeMXBean().getName()
+
 		return AllBuild(
 			target = target,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",
 			//output = "program.haxe.cpp", subtarget = "cpp",
-			targetDirectory = System.getProperty("java.io.tmpdir"),
+			targetDirectory = System.getProperty("java.io.tmpdir") + "/${pid}_$threadId",
 			settings = AstBuildSettings(
 				jtranscVersion = JTranscVersion.getVersion(),
 				debug = debug ?: DEBUG,
