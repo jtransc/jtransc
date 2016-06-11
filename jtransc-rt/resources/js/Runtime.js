@@ -98,7 +98,7 @@ ProgramContext.prototype.registerType = function(name, flags, parent, interfaces
 	callback.apply(context, []);
 	this.types[name] = context;
 	context.completeTypeFirst();
-	return context;
+	return context.clazz;
 };
 
 ProgramContext.prototype.registerMainClass = function(name) {
@@ -215,20 +215,26 @@ ProgramContext.prototype.finishTypes = function() {
 	__buildStrings();
 };
 
-ProgramContext.prototype.registerProgram = function(callback) {
-	if (__TRACE) console.log('registering program...');
-	callback.apply(this, []);
-	if (__TRACE) console.log('registered program...');
+//ProgramContext.prototype.registerProgram = function(callback) {
+//	if (__TRACE) console.log('registering program...');
+//	callback.apply(this, []);
+//	if (__TRACE) console.log('registered program...');
+//
+//	this.finishTypes();
+//
+//	if (__TRACE) console.log('executing program...');
+//	var mainMethod = _global.jtranscClasses[this.mainClass]["main([Ljava/lang/String;)V"];
+//	mainMethod(N.strArray(N.args()));
+//};
 
+ProgramContext.prototype.finish = function() {
 	this.finishTypes();
-
-	if (__TRACE) console.log('executing program...');
 	var mainMethod = _global.jtranscClasses[this.mainClass]["main([Ljava/lang/String;)V"];
 	mainMethod(N.strArray(N.args()));
 };
 
-var jtranscProgram = new ProgramContext();
+var program = new ProgramContext();
 
-jtranscProgram.registerProgram(function() {
-	/* ## BODY ## */
-});
+/* ## BODY ## */
+
+program.finish();

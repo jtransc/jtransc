@@ -27,7 +27,15 @@ class HaxeArrayInt extends HaxeArrayBase {
         return out;
     }
 
-    //public function getBytes() return data.view.buffer;
+    public function getBytes() {
+    	#if flash
+    	var out = Bytes.alloc(this.length * 4);
+    	for (n in 0 ... this.length) out.setInt32(n * 4, this.get(n));
+    	return out;
+    	#else
+    	return data.view.buffer;
+    	#end
+    }
 
     static public function fromBytes(bytes:Bytes) {
         if (bytes == null) return null;

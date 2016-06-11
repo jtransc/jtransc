@@ -118,7 +118,7 @@ class GenJsGen(
 		val customMain = program.allAnnotationsList.getTypedList(JTranscCustomMainList::value).firstOrNull { it.target == "js" }?.value
 
 		val plainMain = Indenter.genString {
-			line("this.registerMainClass('{{ mainClass }}');")
+			line("program.registerMainClass('{{ mainClass }}');")
 		}
 
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
@@ -133,7 +133,7 @@ class GenJsGen(
 		))
 
 		val strs = Indenter.gen {
-			line("this.registerStrings({")
+			line("program.registerStrings({")
 			indent {
 				for (e in names.allocatedStrings.entries.sortedBy { it.value }) {
 					line("${e.value} : ${e.key.quote()},")
@@ -828,7 +828,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "this.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() { 'use strict';"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() { 'use strict';"
 			val declarationTail = "});"
 
 			line(declarationHead)
