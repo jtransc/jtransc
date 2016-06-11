@@ -121,10 +121,18 @@ TypeContext.prototype.registerMethod = function(id, name, desc, flags, callback)
 	//console.log("  - Register method: " + name);
 };
 
-TypeContext.prototype.registerField = function(id, name, desc, flags, value) {
+TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value) {
 	if (id == null) id = '_' + name;
 	this._getScopeFromFlags(flags)[name] = value;
-	this.fields.push({ id : id, name : name, desc : desc, flags: flags, value: value, static : (flags & 0x00000008) != 0 });
+	this.fields.push({
+		id : id,
+		name : name,
+		desc : desc,
+		genericDesc : genericDesc,
+		flags: flags,
+		value: value,
+		static : (flags & 0x00000008) != 0
+	});
 	//console.log("  - Register field: " + name);
 };
 

@@ -88,14 +88,8 @@ public class MiscTest {
 		testSimd2();
 		testHexString();
 		testIdentityHashCode();
-
-		StaticCall2.a = 10;
-		System.out.println(StaticCall1.a);
-		StaticCall1.a = 20;
-		System.out.println(StaticCall1.a);
-
-		seedUniquifier = 8682522807148012L;
-		System.out.println(seedUniquifier());
+		testStaticTest1();
+		testSeedUniquifier();
 
 		Test test = new Test();
 		System.out.println(test.elements);
@@ -156,6 +150,21 @@ public class MiscTest {
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
+	}
+
+	static private void testStaticTest1() {
+		System.out.println("testStaticTest1:");
+		StaticCall2.a = 10;
+		System.out.println(StaticCall1.a);
+		StaticCall1.a = 20;
+		System.out.println(StaticCall1.a);
+	}
+
+	static private void testSeedUniquifier() {
+		System.out.println("testSeedUniquifier:");
+		seedUniquifier = 8682522807148012L;
+		System.out.println(seedUniquifier);
+		System.out.println(seedUniquifier());
 	}
 
 	static private void testIdentityHashCode() {
@@ -585,6 +594,7 @@ public class MiscTest {
 
 	private static long seedUniquifier() {
 		return seedUniquifier = seedUniquifier * 181783497276652981L;
+		//return seedUniquifier = seedUniquifier * 1000L;
 	}
 
 	static private void testArrays() {

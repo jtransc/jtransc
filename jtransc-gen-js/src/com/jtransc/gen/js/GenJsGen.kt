@@ -738,7 +738,7 @@ class GenJsGen(
 			//val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 
 			//line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
-			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)});")
+			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)});")
 		}
 
 		fun writeMethod(method: AstMethod): Indenter {

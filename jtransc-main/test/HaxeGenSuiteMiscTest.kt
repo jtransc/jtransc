@@ -16,7 +16,6 @@
 
 import com.jtransc.env.CI
 import com.jtransc.gen.js.JsTarget
-import com.jtransc.gen.js.JsGenTargetProcessor
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import org.junit.Test
@@ -24,10 +23,11 @@ import org.junit.Test
 class HaxeGenSuiteMiscTest : HaxeTestBase() {
 	@Test fun langSystemTest() = testClass<SystemTest>() { normalize2(it) }
 
-	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false) { normalize2(it) }
+	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false, lang = "js") { normalize2(it) }
 
 	@Test fun miscTestNativeJs() {
 		if (!CI.isOnCiSystem) {
+			//Thread.sleep(5000L)
 			testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false) { normalize2(it, runtime = "jtransc-js") }
 		}
 	}

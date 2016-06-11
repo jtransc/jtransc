@@ -64,6 +64,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@JTranscKeep
 	private boolean primitive = false;
 
+	@JTranscKeep
+	@SuppressWarnings("unused")
+	private int modifiers;
+
 	private static final int ANNOTATION = 0x00002000;
 	private static final int ENUM = 0x00004000;
 	private static final int SYNTHETIC = 0x00001000;
@@ -77,6 +81,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	native public Field[] getDeclaredFields() throws SecurityException;
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._methods, '[Ljava.lang.reflect.Method;');")
 	native public Method[] getDeclaredMethods() throws SecurityException;
 
 	public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
@@ -85,7 +90,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._constructors, '[Ljava.lang.reflect.Constructor;');")
 	native private Constructor<?>[] _getDeclaredConstructors() throws SecurityException;
+
+	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
+	native public Annotation[] getDeclaredAnnotations();
 
 	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
 	public Class<? super T> getSuperclass() {
@@ -106,11 +116,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@JTranscMethodBody(target = "js", value = "return N.strArray(this._interfaces);")
 	native private String[] getInterfaceNames();
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
-	native public Annotation[] getDeclaredAnnotations();
-
 	@HaxeMethodBody("return _modifiers;")
-	native public int getModifiers();
+	public int getModifiers() {
+		return modifiers;
+	}
 
 	//@HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
 	//native public T newInstance() throws InstantiationException, IllegalAccessException;

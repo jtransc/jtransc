@@ -22,6 +22,8 @@ Int32.ucompare = function(a, b) {
 	return 0;
 };
 
+Int32.mul = function(a, b) { return Math.imul(a, b); }
+
 var Int64 = function(high, low) {
 	this.high = high | 0;
 	this.low = low | 0;
@@ -246,19 +248,19 @@ Int64.mul = function(a, b) {
 	var mask = 0xFFFF;
 	var al = a.low & mask, ah = a.low >>> 16;
 	var bl = b.low & mask, bh = b.low >>> 16;
-	var p00 = al * bl;
-	var p10 = ah * bl;
-	var p01 = al * bh;
-	var p11 = ah * bh;
+	var p00 = Int32.mul(al, bl);
+	var p10 = Int32.mul(ah, bl);
+	var p01 = Int32.mul(al, bh);
+	var p11 = Int32.mul(ah, bh);
 	var low = p00;
-	var high = p11 + (p01 >>> 16) + (p10 >>> 16);
+	var high = (p11 + (p01 >>> 16) + (p10 >>> 16)) | 0;
 	p01 <<= 16;
 	low += p01;
 	if( Int32.ucompare(low, p01) < 0 ) high++;
 	p10 <<= 16;
 	low += p10;
 	if( Int32.ucompare(low, p10) < 0 ) high++;
-	high += a.low * b.high + a.high * b.low;
+	high += Int32.mul(a.low, b.high) + Int32.mul(a.high, b.low);
 	return Int64.make( high, low );
 };
 
