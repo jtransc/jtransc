@@ -3,6 +3,7 @@ package com.jtransc.gen.js
 import com.jtransc.JTranscFunction
 import com.jtransc.annotation.*
 import com.jtransc.ast.*
+import com.jtransc.ds.Allocator
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
 import com.jtransc.gen.GenTargetInfo
@@ -143,6 +144,10 @@ class GenJsGen(
 
 
 		val out = Indenter.gen {
+			if (settings.debug) {
+				line("//# sourceMappingURL=program.haxe.js.map")
+			}
+
 			for (f in copyFilesTrans) if (f.prepend != null) line(f.prepend)
 
 			line(strs.toString())
@@ -154,18 +159,28 @@ class GenJsGen(
 			for (f in copyFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
 
-		val lineMappings = hashMapOf<Int, Int>()
+		val sources = Allocator<String>()
+		val mappings = hashMapOf<Int, Sourcemaps.MappingItem>()
 
 		val source = out.toString { sb, line, data ->
-			if (data is AstStm.LINE) {
+			if (settings.debug && data is AstStm.LINE) {
 				//println("MARKER: ${sb.length}, $line, $data, ${clazz.source}")
-				lineMappings[line] = data.line
+				mappings[line] = Sourcemaps.MappingItem(
+					sourceIndex = sources.allocateOnce(data.file),
+					sourceLine = data.line,
+					sourceColumn = 0,
+					targetColumn = 0
+				)
 				//clazzName.internalFqname + ".java"
 			}
 		}
 
-		//val sourceMap = Sourcemaps.encodeFile(vfs["$haxeFilePath"].realpathOS, fileStr, clazz.source, lineMappings)
-		val sourceMap = "[not implemented SourceMap]";
+		val sourceMap = if (settings.debug) {
+			Sourcemaps.encodeFile(sources.array, mappings)
+		} else {
+			null
+		}
+		//val sourceMap = "[not implemented SourceMap]";
 
 		return JsProgramInfo(entryPointClass, entryPointFilePath, source, sourceMap)
 	}
@@ -179,10 +194,10 @@ class GenJsGen(
 				is Pair<*, *> -> escapeValue(it.second)
 				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
 				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
-				is String -> "HaxeNatives.boxString(${it.quote()})"
+				is String -> "N.boxString(${it.quote()})"
 				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-				is com.jtransc.org.objectweb.asm.Type -> "HaxeNatives.resolveClass(" + it.descriptor.quote() + ")"
+				is com.jtransc.org.objectweb.asm.Type -> "N.resolveClass(" + it.descriptor.quote() + ")"
 				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
@@ -587,7 +602,7 @@ class GenJsGen(
 
 	fun convertToFromHaxe(type: AstType, text: String, toHaxe: Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getJsType(type, TypeKind.CAST)})")
+			return (if (toHaxe) "N.unbox($text)" else "N.box($text)")
 		}
 
 		//if (type is AstType.REF) {
@@ -605,14 +620,14 @@ class GenJsGen(
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
 			// @TODO: Check!
-				AstType.BOOL.CLASSTYPE -> genCast("HaxeNatives.unboxBool($e)", AstType.BOOL, to)
-				AstType.BYTE.CLASSTYPE -> genCast("HaxeNatives.unboxByte($e)", AstType.BYTE, to)
-				AstType.SHORT.CLASSTYPE -> genCast("HaxeNatives.unboxShort($e)", AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE -> genCast("HaxeNatives.unboxChar($e)", AstType.CHAR, to)
-				AstType.INT.CLASSTYPE -> genCast("HaxeNatives.unboxInt($e)", AstType.INT, to)
-				AstType.LONG.CLASSTYPE -> genCast("HaxeNatives.unboxLong($e)", AstType.LONG, to)
-				AstType.FLOAT.CLASSTYPE -> genCast("HaxeNatives.unboxFloat($e)", AstType.FLOAT, to)
-				AstType.DOUBLE.CLASSTYPE -> genCast("HaxeNatives.unboxDouble($e)", AstType.DOUBLE, to)
+				AstType.BOOL.CLASSTYPE -> genCast("N.unboxBool($e)", AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE -> genCast("N.unboxByte($e)", AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE -> genCast("N.unboxShort($e)", AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE -> genCast("N.unboxChar($e)", AstType.CHAR, to)
+				AstType.INT.CLASSTYPE -> genCast("N.unboxInt($e)", AstType.INT, to)
+				AstType.LONG.CLASSTYPE -> genCast("N.unboxLong($e)", AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE -> genCast("N.unboxFloat($e)", AstType.FLOAT, to)
+				AstType.DOUBLE.CLASSTYPE -> genCast("N.unboxDouble($e)", AstType.DOUBLE, to)
 			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			//else -> noImpl("Unhandled conversion $e : $from -> $to")
 				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
@@ -659,13 +674,13 @@ class GenJsGen(
 					is AstType.SHORT -> "N.i2s(N.l2i($e))"
 					is AstType.INT -> "($e).low"
 					is AstType.LONG -> "($e)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "HaxeNatives.longToFloat($e)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "N.longToFloat($e)"
 					else -> unhandled()
 				}
 			}
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
-					FUNCTION_REF -> "(HaxeNatives.getFunction($e))"
+					FUNCTION_REF -> "(N.getFunction($e))"
 				//else -> "N.c($e, ${to.haxeTypeCast})"
 					else -> "$e"
 				}
@@ -682,11 +697,9 @@ class GenJsGen(
 
 		if (bodies.size > 0) {
 			return Indenter.gen {
-				for (body in bodies) line(body.value)
+				for (body in bodies) line(body.value.template("nativeBody"))
 			}
 		}
-
-
 		return null
 	}
 
@@ -857,14 +870,14 @@ class GenJsGen(
 
 	fun AstType.box(arg: String): String {
 		return when (this) {
-			is AstType.Primitive -> "HaxeNatives.box${this.shortName.capitalize()}($arg)"
+			is AstType.Primitive -> "N.box${this.shortName.capitalize()}($arg)"
 			else -> "cast($arg)";
 		}
 	}
 
 	fun AstType.unbox(arg: String): String {
 		return when (this) {
-			is AstType.Primitive -> "HaxeNatives.unbox${this.shortName.capitalize()}($arg)"
+			is AstType.Primitive -> "N.unbox${this.shortName.capitalize()}($arg)"
 			else -> "cast($arg)";
 		}
 	}

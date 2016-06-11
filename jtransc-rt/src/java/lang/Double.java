@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Double extends Number implements Comparable<Double> {
@@ -34,6 +35,7 @@ public final class Double extends Number implements Comparable<Double> {
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
 	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
+	@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
 	native private static String _toString(double d);
 
 	public static String toString(double d) {
@@ -141,12 +143,15 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	native public static long doubleToLongBits(double value);
 
 	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	native public static long doubleToRawLongBits(double value);
 
 	@HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.longBitsToDouble(p0);")
 	public static native double longBitsToDouble(long bits);
 
 	public int compareTo(Double that) {

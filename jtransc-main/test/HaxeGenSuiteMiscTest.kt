@@ -28,16 +28,16 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 
 	@Test fun miscTestNativeJs() {
 		if (!CI.isOnCiSystem) {
-			testClass<MiscTest>(lang = "js", target = JsGenDescriptor, analyze = true, minimize = false) { normalize2(it) }
+			testClass<MiscTest>(lang = "js", target = JsGenDescriptor, analyze = true, minimize = false, debug = false) { normalize2(it, runtime = "jtransc-js") }
 		}
 	}
 
 	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 
-	private fun normalize2(str: String): String {
+	private fun normalize2(str: String, runtime: String = "jtransc-haxe"): String {
 		return str
-			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")
-			.replace("java.runtime.name:OpenJDK Runtime Environment", "java.runtime.name:jtransc-haxe")
+			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:$runtime")
+			.replace("java.runtime.name:OpenJDK Runtime Environment", "java.runtime.name:$runtime")
 			.replace("path.separator:;", "path.separator::")
 	}
 

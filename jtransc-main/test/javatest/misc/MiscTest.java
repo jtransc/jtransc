@@ -1,5 +1,6 @@
 package javatest.misc;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.MutableFloat32x4;
@@ -26,6 +27,10 @@ public class MiscTest {
 		testBootstrap1();
 		testBootstrap2();
 		testBootstrap3();
+
+		//if (JTranscSystem.isJs()) {
+		//	JTranscSystem.debugger();
+		//}
 
 		new MiscTest().main2(args);
     }
@@ -57,7 +62,6 @@ public class MiscTest {
 		JTranscConsole.log(false);
         systemPropertiesTest();
 		testShifts();
-        testRegex();
         mapTest();
         arrayListTest();
         stringConstructTest();
@@ -67,31 +71,19 @@ public class MiscTest {
         instanceOfTest();
         abstractInterfaceTest();
         operatorTest();
-        simpleReflection();
         toStringInterface();
         shortCalc();
-        fieldReflection();
         accessInterfaceStaticFields();
-        tryCatchTest();
         testRandom();
         testCloneArray();
         //testMd5();
         //testSha1();
 		testCrc32();
         testCharset();
-        testDynamicInstanceof();
-        testGenericStuff();
-        testAnnotations();
         testArrays();
 		testNulls();
 		testSimd();
 		testHexString();
-	    try {
-		    testThrowPrevStack();
-	    } catch (Throwable t) {
-		    System.out.println("[1]");
-		    System.out.println(t.getMessage());
-	    }
 
 		StaticCall2.a = 10;
 	    System.out.println(StaticCall1.a);
@@ -108,8 +100,6 @@ public class MiscTest {
 
 	    System.out.println(testTypeUnification(true));
 	    System.out.println(testTypeUnification(false));
-
-	    testCatchBlockAccessingArguments(3, 7);
 
 	    testLong1(1L, 2);
 	    testLong2(1, 2L);
@@ -137,9 +127,39 @@ public class MiscTest {
 		testStringUnicode();
 		testStringUnicode2();
 
-	    System.out.println("COMPLETED");
+		//if (JTranscSystem.isJs()) {
+		//	JTranscSystem.debugger();
+		//}
+
+		tryCatchTest();
+		testDynamicInstanceof();
+		simpleReflection();
+		fieldReflection();
+		testGenericStuff();
+		testAnnotations();
+		testRegex();
+		testTestSpecialIdentifiers();
+
+		try {
+			testThrowPrevStack();
+		} catch (Throwable t) {
+			System.out.println("[1]");
+			System.out.println(t.getMessage());
+		}
+
+		testCatchBlockAccessingArguments(3, 7);
+
+		System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testTestSpecialIdentifiers() {
+		TestSpecialIdentifiers i = new TestSpecialIdentifiers();
+		JTranscConsole.log(i.name);
+		JTranscConsole.log(i.constructor);
+		JTranscConsole.log(i.prototype);
+		JTranscConsole.log(i.__proto__);
+	}
 
 	static private void testHexString() {
 		System.out.println(Long.toHexString(-1L));
@@ -941,4 +961,11 @@ class ExampleClass {
     public void demo() {
 
     }
+}
+
+class TestSpecialIdentifiers {
+	String name = "1";
+	String constructor = "2";
+	String prototype = "3";
+	String __proto__ = "4";
 }

@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.FastStringMap;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
-import java.lang.AnnotatedElement;
 
 @HaxeAddMembers({
 	"public var _hxClass:Class<Dynamic> = null;",
@@ -73,6 +73,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_fields, '[Ljava.lang.reflect.Field;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._fields, '[Ljava.lang.reflect.Field;');")
 	native public Field[] getDeclaredFields() throws SecurityException;
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
@@ -121,6 +122,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	native public java.net.URL getResource(String name);
 
 	@HaxeMethodBody("return Std.is(p0, _hxClass);")
+	@JTranscMethodBody(target = "js", value = "return N.isInstanceOfClass(p0, this);")
 	public native boolean isInstance(Object obj);
 
 	native public InputStream getResourceAsStream(String name);
@@ -179,6 +181,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	@JTranscKeep
 	@HaxeMethodBody("return R.__initClass(this);")
+	@JTranscMethodBody(target = "js", value = "return R.__initClass(this);")
 	native private boolean _check();
 
 	@JTranscKeep

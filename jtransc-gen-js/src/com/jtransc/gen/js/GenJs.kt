@@ -25,7 +25,7 @@ object GenJs : GenTarget {
 	}
 }
 
-data class JsProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val source: String, val sourceMap: String) {
+data class JsProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val source: String, val sourceMap: String?) {
 	//fun getEntryPointFq(program: AstProgram) = getHaxeClassFqName(program, entryPointClass)
 }
 
@@ -186,7 +186,7 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 		val outputFile = folder[tinfo.outputFile]
 		val outputFileMap = folder["${tinfo.outputFile}.map"]
 		outputFile.write(info!!.source)
-		outputFileMap.write(info!!.sourceMap)
+		if (info!!.sourceMap != null) outputFileMap.write(info!!.sourceMap!!)
 		log.info("Generated javascript at..." + outputFile.realpathOS)
 		println("Generated javascript at..." + outputFile.realpathOS)
 

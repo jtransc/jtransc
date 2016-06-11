@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.PrintStream;
@@ -124,6 +125,7 @@ public class Throwable implements Serializable {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.getStackTrace(1);")
+	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(1);")
 	native private StackTraceElement[] getStackTraceInternal();
 
 	//private native Throwable fillInStackTrace(int dummy);

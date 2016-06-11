@@ -104,21 +104,18 @@ object Sourcemaps {
 		), prettify = true)
 	}
 
-	//fun encodeFile(sources: Map<String, String>, mappings: Map<Int, Pair<String, Int>>): String {
-	//	val sourcesByIndex = sources.keys
-	//	val sourceToIndex = sources.keys
-	//
-	//	//(0 until targetContent.count { it == '\n' }).map {}
-	//	val mapping = MappingFile((0 until (mappings.keys.max() ?: 1)).map {
-	//		val targetLine = mappings[it]
-	//		MappingRow(if (targetLine == null) listOf() else listOf(MappingItem(0, targetLine, 0, 0)))
-	//	})
-	//	return Json.encode(mapOf(
-	//		"version" to 3,
-	//		"file" to targetPath,
-	//		"sources" to sourcesByIndex,
-	//		"names" to arrayListOf<String>(),
-	//		"mappings" to encode(mapping)
-	//	), prettify = true)
-	//}
+	fun encodeFile(files: List<String>, mappings: Map<Int, MappingItem>): String {
+		val mapping = MappingFile((0 until (mappings.keys.max() ?: 1)).map {
+			val item = mappings[it]
+			MappingRow(if (item == null) listOf() else listOf(item))
+		})
+
+		return Json.encode(mapOf(
+			"version" to 3,
+			"file" to "program.js",
+			"sources" to files,
+			"names" to arrayListOf<String>(),
+			"mappings" to encode(mapping)
+		), prettify = true)
+	}
 }

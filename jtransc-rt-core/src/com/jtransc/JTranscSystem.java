@@ -67,8 +67,8 @@ public class JTranscSystem {
 	@HaxeMethodBody("HaxeNatives.debugger();")
 	@JTranscMethodBody(target = "js", value = "debugger;")
 	static public void debugger() {
-		System.out.println("debugger");
-		throw new Error("Debugger");
+		//System.out.println("debugger");
+		//throw new Error("Debugger");
 	}
 
 	/**

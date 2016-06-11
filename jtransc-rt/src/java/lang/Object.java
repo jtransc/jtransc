@@ -54,8 +54,12 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
-@JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/MathPolyfill.js")
-@JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/Int64.js")
+@JTranscAddFile(target = "js", priority = -1006, process = true, prepend = "js/StringPolyfill.js")
+@JTranscAddFile(target = "js", priority = -1005, process = true, prepend = "js/MathPolyfill.js")
+@JTranscAddFile(target = "js", priority = -1004, process = true, prepend = "js/Int64.js")
+@JTranscAddFile(target = "js", priority = -1003, process = true, prepend = "js/Arrays.js")
+@JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/N.js")
+@JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/R.js")
 @JTranscAddFile(target = "js", priority = -1000, process = true, prependAppend = "js/Runtime.js")
 public class Object {
 	@JTranscMethodBody(target = "js", value = "this.$JS$__id = $JS$__lastId++;")
@@ -68,6 +72,7 @@ public class Object {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.getClass(this);")
+	@JTranscMethodBody(target = "js", value = "return R.getClass(this);")
 	native public final Class<?> getClass();
 
 	@JTranscKeep

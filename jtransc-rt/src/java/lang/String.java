@@ -168,6 +168,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
+	@JTranscMethodBody(target = "js", value = "return N.is(p0, {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0);")
 	native public boolean equals(Object anObject);
 
 	public boolean contentEquals(StringBuffer sb) {
@@ -209,6 +210,10 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		}
 	}
 
+	/////////////////////
+	// startsWith/startsWith
+	/////////////////////
+
 	public boolean startsWith(String prefix, int toffset) {
 		return this.substring(toffset).startsWith(prefix);
 	}
@@ -218,77 +223,98 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	native public boolean startsWith(String prefix);
 
 	@HaxeMethodBody("return StringTools.endsWith(this._str, p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.endsWith(p0._str);")
 	native public boolean endsWith(String suffix);
 
-	private int hash = 0;
-
-	@Override
-	public int hashCode() {
-		int h = hash;
-		int length = this.length();
-		if (h == 0 && length > 0) {
-			for (int i = 0; i < length; i++) {
-				h = 31 * h + this.charAt(i);
-			}
-			hash = h;
-		}
-		return h;
-	}
+	/////////////////////
+	// indexOf
+	/////////////////////
 
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0));")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.ichar(p0));")
 	native public int indexOf(int ch);
 
-	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0));")
-	native public int lastIndexOf(int ch);
-
 	@HaxeMethodBody("return _str.indexOf(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0));")
 	native public int indexOf(String str);
 
-	@HaxeMethodBody("return _str.lastIndexOf(p0._str);")
-	native public int lastIndexOf(String str);
-
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0), p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.ichar(p0), p1);")
 	native public int indexOf(int ch, int fromIndex);
 
-	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0), p1);")
-	native public int lastIndexOf(int ch, int fromIndex);
-
 	@HaxeMethodBody("return _str.indexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0), p1);")
 	native public int indexOf(String str, int fromIndex);
 
+	/////////////////////
+	// lastIndexOf
+	/////////////////////
+
+	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0));")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(String.fromCharCode(p0));")
+	native public int lastIndexOf(int ch);
+
+	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0), p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(String.fromCharCode(p0), p1);")
+	native public int lastIndexOf(int ch, int fromIndex);
+
+	@HaxeMethodBody("return _str.lastIndexOf(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0));")
+	native public int lastIndexOf(String str);
+
 	@HaxeMethodBody("return _str.lastIndexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
 	native public int lastIndexOf(String str, int fromIndex);
 
+	/////////////////////
+	// substring
+	/////////////////////
+
 	@HaxeMethodBody("return make(_str.substring(p0));")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str.slice(p0));")
 	native public String substring(int beginIndex);
 
 	@HaxeMethodBody("return make(_str.substring(p0, p1));")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str.slice(p0, p1));")
 	native public String substring(int beginIndex, int endIndex);
 
-	@HaxeMethodBody("return make(_str.substring(p0, p1));")
-	native public CharSequence subSequence(int beginIndex, int endIndex);
+	// @TODO: Optimize in some targets to avoid copying?!
+	public CharSequence subSequence(int beginIndex, int endIndex) {
+		return this.substring(beginIndex, endIndex);
+	}
+
+	/////////////////////
+	// concat
+	/////////////////////
 
 	@HaxeMethodBody("return HaxeNatives.str(this._str + p0._str);")
+	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this) + N.istr(p0));")
 	native public String concat(String str);
 
 	@HaxeMethodBody("return HaxeNatives.str(StringTools.replace(this._str, String.fromCharCode(p0), String.fromCharCode(p1)));")
+	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this).replaceAll(String.fromCharCode(p0), String.fromCharCode(p1)));")
 	native public String replace(char oldChar, char newChar);
 
-	@HaxeMethodBody("return N.str(_str.toLowerCase());")
-	native public String toLowerCase(Locale locale);
+	// @TODO: Implement locale?
+	public String toLowerCase(Locale locale) {
+		return toLowerCase();
+	}
 
 	@HaxeMethodBody("return N.str(_str.toLowerCase());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toLowerCase());")
 	native public String toLowerCase();
 
-	@HaxeMethodBody("return N.str(_str.toUpperCase());")
-	native public String toUpperCase(Locale locale);
+	// @TODO: Implement Locale?
+	public String toUpperCase(Locale locale) {
+		return toUpperCase();
+	}
 
 	@HaxeMethodBody("return N.str(_str.toUpperCase());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toUpperCase());")
 	native public String toUpperCase();
 
 	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str.trim());")
 	native public String trim();
 
 	public boolean contains(CharSequence s) {
@@ -405,4 +431,20 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return _getArray().get(p0);")
 	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
 	native public char charAt(int index);
+
+	private int hash = 0;
+
+	@Override
+	public int hashCode() {
+		int h = hash;
+		int length = this.length();
+		if (h == 0 && length > 0) {
+			for (int i = 0; i < length; i++) {
+				h = 31 * h + this.charAt(i);
+			}
+			hash = h;
+		}
+		return h;
+	}
+
 }

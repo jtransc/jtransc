@@ -16,16 +16,19 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.internal.GenericListIterator;
 
 @HaxeAddMembers("var _data:Array<Dynamic> = [];")
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+	@JTranscMethodBody(target = "js", value = "this._data = [];")
 	public ArrayList(int initialCapacity) {
 	}
 
 	public ArrayList() {
+		this(0);
 	}
 
 	public ArrayList(Collection<? extends E> c) {
@@ -39,34 +42,44 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	}
 
 	@HaxeMethodBody("return _data.length;")
+	@JTranscMethodBody(target = "js", value = "return this._data.length;")
 	native public int size();
 
 	@HaxeMethodBody("return _data[p0];")
+	@JTranscMethodBody(target = "js", value = "return this._data[p0];")
 	native private E _get(int index);
 
 	@HaxeMethodBody("_data[p0] = p1;")
+	@JTranscMethodBody(target = "js", value = "this._data[p0] = p1;")
 	native private void _set(int index, E element);
 
 	@HaxeMethodBody("_data = _data.slice(0, p0);")
+	@JTranscMethodBody(target = "js", value = "this._data.length = p0;")
 	native private void _setLength(int length);
 
 	@HaxeMethodBody("_data.push(p0);")
+	@JTranscMethodBody(target = "js", value = "this._data.push(p0);")
 	native private void _add(E element);
 
 	@HaxeMethodBody("_data.insert(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 0, p1);")
 	native private void _insert(int index, E element);
 
 	@HaxeMethodBody("_data = _data.slice(0, p0).concat(p1.toArray()).concat(_data.slice(p0));")
+	@JTranscMethodBody(target = "js", value = "this._data.splice.apply(this._data, [p0, 0].concat(p1.toArray()));")
 	native private void _insert(int index, Object[] elements);
 
 	@HaxeMethodBody("_data = _data.slice(0, p0).concat(_data.slice(p0));")
+	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, p1 - p0);")
 	native private void _remove(int from, int to);
 
 	@HaxeMethodBody("_data.splice(p0, 1);")
+	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 1);")
 	native private void _remove(int index);
 
-	@HaxeMethodBody("_data = [];")
-	native private void _clear();
+	private void _clear() {
+		_setLength(0);
+	}
 
 	@HaxeMethodBody("p0._data = p1._data.slice(0);")
 	native static private void _copy(ArrayList<?> dst, ArrayList<?> src);

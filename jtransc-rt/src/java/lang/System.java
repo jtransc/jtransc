@@ -53,6 +53,7 @@ public class System {
 	}
 
 	@HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
+	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
 	@HaxeMethodBody("return p0.__ID__ | 0;")

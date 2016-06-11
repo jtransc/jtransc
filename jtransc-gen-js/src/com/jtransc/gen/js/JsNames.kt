@@ -21,9 +21,8 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		return T::class.java.name
 	}
 
-	fun getJsFieldName(java: Class<Class<*>>, name: String): String = name
-	fun getJsFieldName(field: AstFieldRef): String = field.name
-	fun getJsFieldName(field: AstField): String = field.name
+	fun getJsFieldName(field: AstField): String = getJsFieldName(field.ref)
+	fun getJsFieldName(field: AstFieldRef): String = "_" + field.name
 
 	fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)
@@ -48,8 +47,7 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		is Int -> "$value"
 		is Number -> "${value.toInt()}"
 		is Char -> "${value.toInt()}"
-		is AstType.REF -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
-		is AstType.ARRAY -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
+		is AstType.REF, is AstType.ARRAY -> "N.resolveClass(${(value as AstType).mangle().quote()})"
 		else -> throw NotImplementedError("Literal of type $value")
 	}
 

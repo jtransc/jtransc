@@ -44,8 +44,8 @@ open class HaxeTestBase {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, noinline transformer: (String) -> String = { it }) {
-		testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target)
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, debug:Boolean? = null, noinline transformer: (String) -> String = { it }) {
+		testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target, debug = debug)
 	}
 
 	val kotlinPaths = listOf<String>() + listOf(
@@ -55,10 +55,10 @@ open class HaxeTestBase {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, target: GenTargetDescriptor = HaxeGenDescriptor, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target)
+		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug)
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
