@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import com.jtransc.gen.js.JsGenDescriptor
+import com.jtransc.gen.js.JsTarget
 import javatest.KotlinCollections
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -40,7 +40,7 @@ class HaxeGenSuiteTest : HaxeTestBase() {
 	@Test fun kotlinCollectionsTest() = testClass<KotlinCollections>()
 
 	@Test fun fastMemoryTest() = testClass<FastMemoryTest>(minimize = false)
-	@Test fun fastMemoryTestNativeJs() = testClass<FastMemoryTest>(minimize = false, target = JsGenDescriptor)
+	@Test fun fastMemoryTestNativeJs() = testClass<FastMemoryTest>(minimize = false, target = JsTarget)
 	@Test fun simdTest() = testClass<SimdTest>(minimize = false)
 
 	@Test fun jtranscBugWithStaticInits() = testClass<JTranscBugWithStaticInits>()

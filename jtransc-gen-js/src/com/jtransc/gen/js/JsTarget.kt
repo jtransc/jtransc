@@ -2,7 +2,7 @@ package com.jtransc.gen.js
 
 import com.jtransc.gen.GenTargetDescriptor
 
-object JsGenDescriptor : GenTargetDescriptor() {
+object JsTarget : GenTargetDescriptor() {
 	override val name = "js"
 	override val longName = "Javascript"
 	override val sourceExtension = "js"

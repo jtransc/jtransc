@@ -37,7 +37,7 @@ import com.jtransc.vfs.*
 import java.io.File
 import java.lang.reflect.Proxy
 
-object HaxeGenDescriptor : GenTargetDescriptor() {
+object HaxeTarget : GenTargetDescriptor() {
 	override val name = "haxe"
 	override val longName = "Haxe"
 	override val sourceExtension = "hx"

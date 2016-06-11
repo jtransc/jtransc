@@ -21,7 +21,7 @@ import com.jtransc.KotlinVersion
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.haxe.HaxeGenDescriptor
+import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
@@ -44,7 +44,7 @@ open class HaxeTestBase {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, debug:Boolean? = null, noinline transformer: (String) -> String = { it }) {
+	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeTarget, debug:Boolean? = null, noinline transformer: (String) -> String = { it }) {
 		testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target, debug = debug)
 	}
 
@@ -55,7 +55,7 @@ open class HaxeTestBase {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
 		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug)
@@ -64,7 +64,7 @@ open class HaxeTestBase {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor): String {
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target)
 	}
 
@@ -84,7 +84,7 @@ open class HaxeTestBase {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor): String {
+	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
 		val projectRoot = locateProjectRoot()
 		return AllBuild(
 			target = target,
