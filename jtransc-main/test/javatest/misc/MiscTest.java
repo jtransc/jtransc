@@ -62,6 +62,7 @@ public class MiscTest {
 		JTranscConsole.log(true);
 		JTranscConsole.log(false);
 		testDefaultValues();
+		testDefaultValuesStatic();
         systemPropertiesTest();
 		testShifts();
         mapTest();
@@ -136,13 +137,13 @@ public class MiscTest {
 
 		tryCatchTest();
 		testDynamicInstanceof();
+		testArrays2();
 		simpleReflection();
-		fieldReflection();
+		testRegex();
 		testGenericStuff();
 		testAnnotations();
-		testRegex();
+		fieldReflection();
 		//testTestSpecialIdentifiers();
-		testArrays2();
 
 		try {
 			testThrowPrevStack();
@@ -171,6 +172,19 @@ public class MiscTest {
 		JTranscConsole.log(o.obj);
 	}
 
+	static private void testDefaultValuesStatic() {
+		JTranscConsole.log("testDefaultValuesStatic:");
+		JTranscConsole.log(DefaultValuesClassStatic.z);
+		JTranscConsole.log(DefaultValuesClassStatic.b);
+		JTranscConsole.log(DefaultValuesClassStatic.s);
+		JTranscConsole.log(DefaultValuesClassStatic.c);
+		JTranscConsole.log(DefaultValuesClassStatic.i);
+		System.out.println(DefaultValuesClassStatic.j);
+		System.out.println(DefaultValuesClassStatic.f);
+		System.out.println(DefaultValuesClassStatic.d);
+		JTranscConsole.log(DefaultValuesClassStatic.obj);
+	}
+
 	static private class DefaultValuesClass {
 		public boolean z;
 		public byte b;
@@ -181,6 +195,18 @@ public class MiscTest {
 		public float f;
 		public double d;
 		public Object obj;
+	}
+
+	static private class DefaultValuesClassStatic {
+		static public boolean z;
+		static public byte b;
+		static public short s;
+		static public char c;
+		static public int i;
+		static public long j;
+		static public float f;
+		static public double d;
+		static public Object obj;
 	}
 
 	static private void testTestSpecialIdentifiers() {
@@ -723,16 +749,30 @@ public class MiscTest {
         System.out.println("Map:" + sb.toString());
     }
 
+	@SuppressWarnings("all")
     static private void instanceOfTest() {
         Object str = "test";
+		int[] intArray = new int[0];
         A a = new A();
         B b = new B();
-        System.out.println("INSTANCEOF[true]:" + (str instanceof String));
-        System.out.println("INSTANCEOF[false]:" + (str instanceof A));
-        System.out.println("INSTANCEOF[true]:" + (a instanceof A));
-        System.out.println("INSTANCEOF[false]:" + (a instanceof B));
-        System.out.println("INSTANCEOF[true]:" + (b instanceof A));
-        System.out.println("INSTANCEOF[true]:" + (b instanceof B));
+        System.out.println("INSTANCEOF[(str instanceof String)]:" + (str instanceof String));
+        System.out.println("INSTANCEOF[(str instanceof A)]:" + (str instanceof A));
+        System.out.println("INSTANCEOF[(a instanceof A)]:" + (a instanceof A));
+        System.out.println("INSTANCEOF[(a instanceof B)]:" + (a instanceof B));
+        System.out.println("INSTANCEOF[(b instanceof A)]:" + (b instanceof A));
+        System.out.println("INSTANCEOF[(b instanceof B)]:" + (b instanceof B));
+		System.out.println("INSTANCEOF[(b instanceof Object)]:" + (b instanceof Object));
+
+		System.out.println("INSTANCEOF[(a instanceof IA)]:" + (a instanceof IA));
+		System.out.println("INSTANCEOF[(a instanceof IB)]:" + (a instanceof IB));
+
+		System.out.println("INSTANCEOF[(b instanceof IA)]:" + (b instanceof IA));
+		System.out.println("INSTANCEOF[(b instanceof IB)]:" + (b instanceof IB));
+
+		//System.out.println("INSTANCEOF[(IA.class.isInstance(intArray))]:" + (IA.class.isInstance(intArray)));
+
+		System.out.println("INSTANCEOF[(intArray instanceof Object)]:" + (intArray instanceof Object));
+		System.out.println("INSTANCEOF[(intArray instanceof int[])]:" + (intArray instanceof int[]));
     }
 
     static private void inheritanceTest() {
@@ -925,13 +965,19 @@ class CC {
     }
 }
 
-class A {
+interface IA {
+}
+
+interface IB {
+}
+
+class A implements IA {
     public String test() {
         return "A";
     }
 }
 
-class B extends A {
+class B extends A implements IB {
     public String test() {
         return "B" + super.test();
     }

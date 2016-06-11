@@ -661,7 +661,7 @@ class GenJsGen(
 					is AstType.CHAR -> "N.i2c($e)"
 					is AstType.SHORT -> "N.i2s($e)"
 					is AstType.INT -> "N.i2i($e)"
-					is AstType.LONG -> "N.i2l($e)"
+					is AstType.LONG -> "N.i2j($e)"
 					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
 					else -> unhandled()
 				}
@@ -672,9 +672,9 @@ class GenJsGen(
 					is AstType.BYTE -> "N.i2b(N.l2i($e))"
 					is AstType.CHAR -> "N.i2c(N.l2i($e))"
 					is AstType.SHORT -> "N.i2s(N.l2i($e))"
-					is AstType.INT -> "($e).low"
+					is AstType.INT -> "N.l2i($e)"
 					is AstType.LONG -> "($e)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "N.longToFloat($e)"
+					is AstType.FLOAT, is AstType.DOUBLE -> "N.l2d($e)"
 					else -> unhandled()
 				}
 			}

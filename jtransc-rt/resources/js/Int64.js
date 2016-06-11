@@ -1,3 +1,7 @@
+var _global = (typeof window !== "undefined") ? window : global;
+
+var M2P32_DBL = Math.pow(2, 32);
+
 var Int32 = function(value) {
 	this.value = value | 0;
 };
@@ -113,13 +117,17 @@ Int64.prototype.toString = function() {
 };
 
 Int64.toInt = function(a) { return a.low; };
+Int64.toFloat = function(v) {
+	if (Int64.isNeg(v)) return (v == MIN_INT64) ? Int64.ofFloat(-9223372036854775808.0) : Int64.neg(Int64.toFloat(Int64.neg(v)));
+	var lowf = v.low;
+	var highf = v.high;
+	return lowf + highf * M2P32_DBL;
+};
+
 Int64.isNeg = function(a) { return a.high < 0; };
 Int64.isZero = function(a) { return a.high == 0 && a.low == 0; };
 Int64.isNotZero = function(a) { return !Int64.isZero(a); };
 
-Int64.toString = function(a) {
-
-};
 
 // Comparisons
 
@@ -291,3 +299,5 @@ Int64.sign = function(a) {
 Int64.abs = function(a) {
 	return (Int64.sign(a) < 0) ? Int64.neg(a) : a;
 };
+
+_global.Int64 = Int64;

@@ -37,3 +37,9 @@ if (!String.prototype.trim) {
 		return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
 	};
 }
+
+if (!String.prototype.quote) {
+	String.prototype.quote = function () {
+		return JSON.stringify(this);
+	};
+}

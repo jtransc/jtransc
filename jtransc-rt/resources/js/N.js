@@ -76,14 +76,25 @@ N.lshl = function(a, b) { return Int64.shl(a, b); }
 N.lshr = function(a, b) { return Int64.shr(a, b); }
 N.lushr = function(a, b) { return Int64.ushr(a, b); }
 
+N.l2i = function(v) { return Int64.toInt(v); }
+N.l2d = function(v) { return Int64.toFloat(v); }
+
 N.getTime = function() { return Date.now(); };
 
-N.is = function(i, obj) {
-	// @TODO: interfaces
-	//console.log(i);
-	//console.log(obj);
-	//debugger;
-	return i instanceof obj;
+N.is = function(i, clazz) {
+	if (i == null) return false;
+	if (clazz == null) return false;
+	if (i instanceof clazz) return true;
+	var sourceContext = i.$$JS_TYPE_CONTEXT$$;
+	var targetContext = clazz.$$JS_TYPE_CONTEXT$$;
+
+	if (sourceContext && targetContext) {
+		//console.log(sourceContext.name + " : " + targetContext.allAncestorsAndInterfaces);
+		if (sourceContext.allAncestorsAndInterfaces.contains(targetContext.name)) return true;
+		//console.log(sourceContext.name + " : " + targetContext.allInterfaces);
+	}
+
+	return false;
 };
 
 N.istr = function(str) {
@@ -110,7 +121,7 @@ N.strLit = function(str) {
 };
 
 N.strArray = function(strs) {
-	var out = new JA_L(strs.length);
+	var out = new JA_L(strs.length, '[Ljava/lang/String;');
 	for (var n = 0; n < strs.length; n++) {
 		out.set(n, N.str(strs[n]));
 	}
@@ -148,7 +159,7 @@ N.stringToCharArray = function(str) {
 
 N.resolveClass = function(name) {
 	//var clazz = jtranscClasses[name];
-	//var clazzInfo = clazz.$$JS_CONTEXT$$;
+	//var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
 	//if (!this.clazzInfo.clazzClass) {
 	//	this.clazzInfo.clazzClass = java_lang_Class["forName"]();
 	//}
@@ -157,9 +168,22 @@ N.resolveClass = function(name) {
 	return java_lang_Class["forName(Ljava/lang/String;)Ljava/lang/Class;"](N.str(name));
 };
 
+N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
+	var out = new java_lang_StackTraceElement();
+	out["java.lang.StackTraceElement<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V"](
+		N.str(declaringClass),
+		N.str(methodName),
+		N.str(fileName),
+		lineNumber | 0
+	);
+	return out;
+};
+
 N.getStackTrace = function(count) {
-	var out = new JA_L(0, '[Ljava/lang/StackTraceElement;');
-	console.log('@TODO: N.getStackTrace not implemented!');
+	var out = new JA_L(3, '[Ljava/lang/StackTraceElement;');
+	out.set(0, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
+	out.set(1, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
+	out.set(2, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
 	return out;
 };
 
@@ -170,6 +194,5 @@ N.arraycopy = function(src, srcPos, dest, destPos, length) {
 };
 
 N.isInstanceOfClass = function(obj, javaClass) {
-	console.log('@TODO: N.isInstanceOfClass');
-	return true;
+	return N.is(obj, jtranscClasses[N.istr(javaClass._name)]);
 };

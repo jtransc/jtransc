@@ -37,8 +37,8 @@ var TypeContext = function (name, flags, parent, interfaces) {
 	//this.clazz.prototype.name = name;
 	this.parent = parent;
 	this.interfaces = interfaces;
-	this.clazz.$$JS_CONTEXT$$ = this;
-	this.clazz.prototype.$$JS_CONTEXT$$ = this;
+	this.clazz.$$JS_TYPE_CONTEXT$$ = this;
+	this.clazz.prototype.$$JS_TYPE_CONTEXT$$ = this;
 	this.fields = [];
 	this.methods = [];
 };
@@ -55,20 +55,28 @@ ProgramContext.prototype.registerStrings = function(strs) {
 
 var EMPTY_FUNCTION = function(){};
 
-TypeContext.prototype.completeType = function() {
-	var instanceInit = '';
-	var staticInit = '';
+TypeContext.prototype.completeTypeFirst = function() {
+	var inits = ['', ''];
+
 	for (var n = 0; n < this.fields.length; n++) {
 		var field = this.fields[n];
-		if (field.static) {
-			//staticInit += 'this["' + field.id + '"] = ' + field.value + ";\n";
+		var value = field.value;
+		var valueStr;
+		var index = field.static ? 1 : 0;
+
+		if (value instanceof Int64) {
+			valueStr = 'Int64.make(' + value.high + ',' + value.low + ')';
+		} else if (value instanceof String) {
+			valueStr = "N.strLit(" + (value).quote() + ")";
 		} else {
-			instanceInit += 'this["' + field.id + '"] = ' + field.value + ";\n";
+			valueStr = JSON.stringify(value);
 		}
+
+		inits[index] += 'this["' + field.id + '"] = ' + valueStr + ";\n";
 	}
 
-	this.clazz.$staticInit = new Function(staticInit);
-	this.clazz.prototype.$instanceInit = new Function(instanceInit);
+	this.clazz.$staticInit = new Function(inits[1]);
+	this.clazz.prototype.$instanceInit = new Function(inits[0]);
 };
 
 ProgramContext.prototype.registerType = function(name, flags, parent, interfaces, callback) {
@@ -87,7 +95,7 @@ ProgramContext.prototype.registerType = function(name, flags, parent, interfaces
 	};
 	callback.apply(context, []);
 	this.types[name] = context;
-	context.completeType();
+	context.completeTypeFirst();
 	return context;
 };
 
@@ -122,14 +130,19 @@ TypeContext.prototype.registerField = function(id, name, desc, flags, value) {
 
 ProgramContext.prototype.getType = function(clazzName) {
 	var clazz = _global.jtranscClasses[clazzName];
-	var clazzInfo = clazz.$$JS_CONTEXT$$;
+	var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
+
 	if (!clazzInfo.initialized) {
 		clazzInfo.initialized = true;
+
+		var allInterfaces = clazzInfo.interfaces.slice(0);
+
+		var allAncestors = [clazzInfo.name];
 
 		// Normal classes
 		if (clazzInfo.parent != null) {
 			var parentClazz = this.getType(clazzInfo.parent);
-			var parentClazzInfo = parentClazz.$$JS_CONTEXT$$;
+			var parentClazzInfo = parentClazz.$$JS_TYPE_CONTEXT$$;
 
 			//console.log(clazzName);
 			if (clazzName == "java.lang.AbstractStringBuilder") {
@@ -138,6 +151,9 @@ ProgramContext.prototype.getType = function(clazzName) {
 
 			__extends(clazz.prototype, parentClazz.prototype);
 			clazz.prototype._super = parentClazz.prototype;
+
+			allInterfaces = allInterfaces.concat(parentClazzInfo.allInterfaces);
+			allAncestors = allAncestors.concat(parentClazzInfo.allAncestors);
 		}
 		// java.lang.Object
 		else if (clazzName == "java.lang.Object") {
@@ -147,6 +163,10 @@ ProgramContext.prototype.getType = function(clazzName) {
 		// Interfaces
 		else {
 		}
+
+		clazzInfo.allInterfaces = allInterfaces;
+		clazzInfo.allAncestors = allAncestors;
+		clazzInfo.allAncestorsAndInterfaces = allAncestors.concat(allInterfaces);
 
 		clazz.prototype.toString = function() {
 			//console.log('called object.toString!');

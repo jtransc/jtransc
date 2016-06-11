@@ -3,7 +3,10 @@ var R = function() {
 
 function __createField(info) {
 	var out = new java_lang_reflect_Field();
-
+	out._clazz = N.resolveClass(info.desc);
+	out._name = N.str(info.name);
+	out._signature = N.str(info.desc);
+	out._modifiers = N.str(info.flags);
 	return out;
 }
 
@@ -15,7 +18,7 @@ R.__initClass = function(clazzClazz) {
 	if (clazzName.startsWith('[')) {
 		return true;
 	} else {
-		var clazzInfo = clazz.$$JS_CONTEXT$$;
+		var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
 
 		//console.log('__initClass:' + clazzClazz._name);
 		//console.log(clazzInfo.fields);
@@ -23,6 +26,8 @@ R.__initClass = function(clazzClazz) {
 		clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(info); });
 		clazzClazz._methods = [];
 		clazzClazz._jsClass = clazz;
+		clazzClazz._interfaces = clazzInfo.interfaces;
+		clazzClazz._superclass = clazzInfo.parent;
 
 		//java.lang.reflect.Field
 
@@ -35,7 +40,7 @@ R.getClass = function(obj) {
 		return N.resolveClass(obj.desc);
 	}
 
-	var typeContext = obj.$$JS_CONTEXT$$;
+	var typeContext = obj.$$JS_TYPE_CONTEXT$$;
 	if (!typeContext.clazzClazz) {
 		typeContext.clazzClazz = N.resolveClass(typeContext.name);
 	}

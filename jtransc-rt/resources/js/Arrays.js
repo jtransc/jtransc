@@ -4,12 +4,24 @@ function __createJavaArrayBaseType() {
 	var ARRAY = function() {
 	};
 
-	__extends(ARRAY.prototype, _global.jtranscClasses["java.lang.Object"].prototype)
+	__decorateArray(ARRAY);
 
 	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
 		return N.resolveClass(this.desc);
 	};
 	return ARRAY;
+}
+
+function __decorateArray(ARRAY) {
+	var tc = new TypeContext();
+
+	tc.allInterfaces = [];
+	tc.allAncestors = ["java.lang.Object"];
+	tc.interfaces = [];
+	tc.allAncestorsAndInterfaces = tc.allInterfaces.concat(tc.allAncestors);
+
+	ARRAY.$$JS_TYPE_CONTEXT$$ = tc;
+	ARRAY.prototype.$$JS_TYPE_CONTEXT$$ = tc;
 }
 
 function __createJavaArrayType(desc, type) {
@@ -20,6 +32,8 @@ function __createJavaArrayType(desc, type) {
 
 		//console.log('Created array instance: [' + desc + ":" + type.name + ":" + size + "]");
 	};
+
+	__decorateArray(ARRAY);
 
 	ARRAY.prototype.get = function(index) {
     	return this.data[index];
@@ -59,6 +73,8 @@ function __createGenericArrayType() {
 		this.length = size;
 		for (var n = 0; n < size; n++) this.data[n] = null;
 	};
+
+	__decorateArray(ARRAY);
 
 	ARRAY.fromArray = function(array, desc) {
 		var out = new JA_L(array.length, desc);

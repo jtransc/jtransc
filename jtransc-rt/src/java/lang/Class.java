@@ -88,10 +88,23 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	native private Constructor<?>[] _getDeclaredConstructors() throws SecurityException;
 
 	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
-	native public Class<? super T> getSuperclass();
+	public Class<? super T> getSuperclass() {
+		return (Class<? super T>) forName0(getSuperclassName());
+	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(Lambda.array(Lambda.map(_interfaces, function(i) { return HaxeNatives.resolveClass(i); })), '[Ljava.lang.Class;');")
-	native public Class<?>[] getInterfaces();
+	@JTranscMethodBody(target = "js", value = "return N.str(this._superclass);")
+	native private String getSuperclassName();
+
+	public Class<?>[] getInterfaces() {
+		String[] names = getInterfaceNames();
+		Class<?>[] out = new Class<?>[names.length];
+		for (int n = 0; n < out.length; n++) out[n] = forName0(names[n]);
+		return out;
+	}
+
+	@HaxeMethodBody("return HaxeNatives.strArray(_interfaces);")
+	@JTranscMethodBody(target = "js", value = "return N.strArray(this._interfaces);")
+	native private String[] getInterfaceNames();
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
@@ -203,6 +216,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	private static FastStringMap<Class<?>> _classCache = new FastStringMap<Class<?>>();
 
 	static Class<?> forName0(String className) {
+		if (className == null) return null;
 		try {
 			return forName(className);
 		} catch (ClassNotFoundException e) {

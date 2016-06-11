@@ -99,6 +99,7 @@ public final class Array {
 
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayAny).getDynamic(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
     public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
