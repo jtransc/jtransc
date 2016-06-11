@@ -59,6 +59,7 @@ public class JTranscSystem {
 
 	@HaxeMethodBody("return true;")
 	@JTranscMethodBody(target = "js", value = "return true;")
+	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
 		return false;
 	}

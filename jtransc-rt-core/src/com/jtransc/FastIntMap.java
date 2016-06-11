@@ -16,47 +16,8 @@
 
 package com.jtransc;
 
-import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeRemoveField;
-
-import java.util.HashMap;
-
-@JTranscInvisible
-@HaxeAddMembers({
-        "var _map = new Map<Int, Dynamic>();"
-})
-@Deprecated
 /**
  * @deprecated Use com.jtransc.ds.FastIntMap
  */
-public class FastIntMap<T> {
-    @HaxeRemoveField
-    private HashMap<Integer, T> map;
-
-    @HaxeMethodBody("")
-    public FastIntMap() {
-        this.map = new HashMap<Integer, T>();
-    }
-
-    @HaxeMethodBody("return _map.get(p0);")
-    public T get(int key) {
-        return this.map.get(key);
-    }
-
-    @HaxeMethodBody("_map.set(p0, p1);")
-    public void set(int key, T value) {
-        this.map.put(key, value);
-    }
-
-    @HaxeMethodBody("return _map.exists(p0);")
-    public boolean has(int key) {
-        return this.map.containsKey(key);
-    }
-
-	@HaxeMethodBody("_map.remove(p0);")
-	public void remove(int key) {
-		this.map.remove(key);
-	}
+public class FastIntMap<T> extends com.jtransc.ds.FastIntMap<T> {
 }

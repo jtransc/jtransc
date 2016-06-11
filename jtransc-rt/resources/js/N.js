@@ -1,3 +1,5 @@
+var onNodeJs = typeof window == "undefined";
+
 var N = function() {
 };
 
@@ -199,4 +201,17 @@ N.isInstanceOfClass = function(obj, javaClass) {
 
 N.identityHashCode = function(p0) {
 	return (p0 != null) ? p0.$JS$ID$ : 0;
+};
+
+N.fillSecureRandomBytes = function(array) {
+	var buf;
+
+	if (onNodeJs) {
+		buf = require('crypto').randomBytes(256);
+	} else {
+		buf = new Uint8Array(array.length);
+		window.crypto.getRandomValues(buf);
+	}
+
+	for (var n = 0; n < array.length; n++) array.set(n, buf[n]);
 };

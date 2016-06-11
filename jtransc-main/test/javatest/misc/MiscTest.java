@@ -1,6 +1,8 @@
 package javatest.misc;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.crypto.JTranscCrypto;
+import com.jtransc.ds.FastIntMap;
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
@@ -91,6 +93,9 @@ public class MiscTest {
 		testStaticTest1();
 		testSeedUniquifier();
 
+		testCrypto();
+		testFastMaps();
+
 		Test test = new Test();
 		System.out.println(test.elements);
 		test.demo().testEmptyStack();
@@ -150,6 +155,37 @@ public class MiscTest {
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
+	}
+
+	private void testFastMaps() {
+		testFastMapsInt();
+		testFastMapsString();
+	}
+
+	private void testFastMapsInt() {
+		System.out.println("testFastMapsInt:");
+		FastIntMap<String> map = new FastIntMap<>();
+		System.out.println(map.has(10));
+		System.out.println(map.get(10));
+		map.set(10, "hello");
+		System.out.println(map.has(10));
+		System.out.println(map.get(10));
+		map.remove(10);
+		System.out.println(map.has(10));
+		System.out.println(map.get(10));
+	}
+
+	private void testFastMapsString() {
+		System.out.println("testFastMapsString:");
+	}
+
+	private void testCrypto() {
+		System.out.println("testCrypto:");
+		byte[] b1 = new byte[16];
+		byte[] b2 = new byte[16];
+		JTranscCrypto.fillSecureRandomBytes(b1);
+		JTranscCrypto.fillSecureRandomBytes(b2);
+		System.out.println("Equals:" + Arrays.equals(b1, b2));
 	}
 
 	static private void testStaticTest1() {

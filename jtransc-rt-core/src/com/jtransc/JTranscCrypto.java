@@ -16,25 +16,13 @@
 
 package com.jtransc;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
+@Deprecated
 public class JTranscCrypto {
 	static public byte[] md5(byte[] data) {
-		try {
-			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			return md5.digest(data);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("");
-		}
+		return com.jtransc.crypto.JTranscCrypto.md5(data);
 	}
 
 	static public byte[] sha1(byte[] data) {
-		try {
-			MessageDigest sha1 = MessageDigest.getInstance("SHA1");
-			return sha1.digest(data);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("");
-		}
+		return com.jtransc.crypto.JTranscCrypto.sha1(data);
 	}
 }
