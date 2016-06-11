@@ -196,3 +196,7 @@ N.arraycopy = function(src, srcPos, dest, destPos, length) {
 N.isInstanceOfClass = function(obj, javaClass) {
 	return N.is(obj, jtranscClasses[N.istr(javaClass._name)]);
 };
+
+N.identityHashCode = function(p0) {
+	return (p0 != null) ? p0.$JS$ID$ : 0;
+};

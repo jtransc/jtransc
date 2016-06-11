@@ -15,7 +15,7 @@ var CLASSES = {};
 
 if (__TRACE) console.log("global:" + _global);
 
-var $JS$__lastId = 0;
+_global.$JS$__lastId = 0;
 
 _global.jtranscClasses = {};
 
@@ -56,7 +56,7 @@ ProgramContext.prototype.registerStrings = function(strs) {
 var EMPTY_FUNCTION = function(){};
 
 TypeContext.prototype.completeTypeFirst = function() {
-	var inits = ['', ''];
+	var inits = ['this.$JS$ID$ = $JS$__lastId++;', ''];
 
 	for (var n = 0; n < this.fields.length; n++) {
 		var field = this.fields[n];

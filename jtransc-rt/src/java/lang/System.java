@@ -57,6 +57,7 @@ public class System {
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
 	@HaxeMethodBody("return p0.__ID__ | 0;")
+	@JTranscMethodBody(target = "js", value = "return N.identityHashCode(p0);")
 	public static native int identityHashCode(Object x);
 
 	public static Properties getProperties() {

@@ -78,7 +78,7 @@ function __createGenericArrayType() {
 
 	ARRAY.fromArray = function(array, desc) {
 		var out = new JA_L(array.length, desc);
-		for (var n = 0; n < out.length; n++) out.set(array[n]);
+		for (var n = 0; n < out.length; n++) out.set(n, array[n]);
 		return out;
 	};
 
