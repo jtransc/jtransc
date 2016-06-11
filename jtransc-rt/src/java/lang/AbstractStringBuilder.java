@@ -72,7 +72,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	native public AbstractStringBuilder reverse();
 
 	@HaxeMethodBody("return this.add(HaxeNatives.toNativeString(p0));")
-	@JTranscMethodBody(target = "js", value = "this._str += p0._str; return this;")
+	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
 	native public AbstractStringBuilder append(String str);
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + this.getStr().substr(p1));")
@@ -241,5 +241,6 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	@Override
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
 	public abstract String toString();
 }

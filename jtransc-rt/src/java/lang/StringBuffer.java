@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class StringBuffer extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
@@ -313,5 +314,6 @@ public final class StringBuffer extends AbstractStringBuilder implements java.io
 
 	@Override
 	@HaxeMethodBody("return HaxeNatives.str(this.getStr());")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
 	native public String toString();
 }

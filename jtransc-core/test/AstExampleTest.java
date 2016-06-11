@@ -28,7 +28,7 @@ class AstExampleTest {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD methodType = AstType.Companion.demangleMethod(method.desc);
 			System.out.println("::" + method.name + " :: " + methodType);
-			AstBody astBody = Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method);
+			AstBody astBody = Asm_astKt.Asm2Ast(AstType.Companion.REF_INT2(clazz.name), method, (clazz.sourceFile != null) ? clazz.sourceFile : (clazz.name + ".java"));
 			System.out.println(Exp_dumpKt.dump(astBody));
 			System.out.println(Exp_dumpKt.dump(GotosFeature.INSTANCE.remove(astBody, new AstBuildSettings())));
 			//System.out.println(Exp_dumpKt.dump(astBody));

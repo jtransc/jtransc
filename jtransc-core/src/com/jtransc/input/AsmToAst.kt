@@ -107,7 +107,7 @@ class AsmToAst : AstClassGenerator {
 			generateBody = {
 				if (mods.isConcrete) {
 					try {
-						Asm2Ast(containingClass.ref, method)
+						Asm2Ast(containingClass.ref, method, containingClass.source)
 					} catch (e: Throwable) {
 						println("Error trying to generate ${containingClass.name}::${method.name} ${method.desc}")
 						e.printStackTrace()

@@ -413,7 +413,17 @@ class GenJsGen(
 			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
-			is AstExpr.UNOP -> "(${e.op.symbol}(" + e.right.genExpr() + "))"
+			is AstExpr.UNOP -> {
+				val resultType = e.type
+				val expr = "(${e.op.symbol}(" + e.right.genExpr() + "))"
+				when (resultType) {
+					AstType.INT -> "N.i($expr)"
+					AstType.CHAR -> "N.i2c($expr)"
+					AstType.SHORT -> "N.i2s($expr)"
+					AstType.BYTE -> "N.i2b($expr)"
+					else -> expr
+				}
+			}
 			is AstExpr.BINOP -> {
 				val resultType = e.type
 				var l = e.left.genExpr()
@@ -467,7 +477,12 @@ class GenJsGen(
 					else -> invalidOp("Unexpected")
 				}
 
-				val result = "$base${refMethod.haxeNameAccess}($commaArgs)"
+				val base2 = when (e2) {
+					is AstExpr.CALL_SUPER -> if (commaArgs.isEmpty()) ".call(this" else ".call(this, "
+					else -> "("
+				}
+
+				val result = "$base${refMethod.haxeNameAccess}$base2$commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
 			is AstExpr.FIELD_INSTANCE_ACCESS -> {
@@ -502,7 +517,7 @@ class GenJsGen(
 			}
 			is AstExpr.INSTANCE_OF -> {
 				refs.add(e.checkType)
-				"Std.is(${e.expr.genExpr()}, ${e.checkType.haxeTypeCast})"
+				"N.is(${e.expr.genExpr()}, ${e.checkType.haxeTypeCast})"
 			}
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)

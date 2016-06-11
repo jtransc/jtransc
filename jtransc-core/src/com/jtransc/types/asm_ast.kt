@@ -18,7 +18,8 @@ val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner
 //const val DEBUG = true
 const val DEBUG = false
 
-fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
+// classNode.sourceDebug ?: "${classNode.name}.java"
+fun Asm2Ast(clazz: AstType.REF, method: MethodNode, source:String = "unknown.java"): AstBody {
 	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
@@ -49,7 +50,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode): AstBody {
 		referencedLabels += i.end
 	}
 
-	val basicBlocks = BasicBlocks(clazz, method, DEBUG)
+	val basicBlocks = BasicBlocks(clazz, method, DEBUG, source)
 	val locals = basicBlocks.locals
 	val labels = basicBlocks.labels
 	labels.referencedLabelsAsm = referencedLabels
@@ -107,7 +108,8 @@ data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
 class BasicBlocks(
 	private val clazz: AstType.REF,
 	private val method: MethodNode,
-	private val DEBUG: Boolean
+	private val DEBUG: Boolean,
+	private val source: String
 ) {
 	val locals = Locals()
 	val labels = Labels()
@@ -115,7 +117,7 @@ class BasicBlocks(
 
 	fun queue(entry: AbstractInsnNode, input: BasicBlock.Input) {
 		if (entry in blocks) return
-		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG).call(entry, input)
+		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG, source).call(entry, input)
 		blocks[bb.entry] = bb
 		for (item in bb.outgoingAll) queue(item, bb.output)
 	}
@@ -237,7 +239,8 @@ private class BasicBlockBuilder(
 	val method: MethodNode,
 	val locals: Locals,
 	val labels: Labels,
-	val DEBUG: Boolean
+	val DEBUG: Boolean,
+	val source:String
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -656,7 +659,7 @@ private class BasicBlockBuilder(
 
 	fun handleLineNumber(i: LineNumberNode) {
 		lastLine = i.line
-		stmAdd(AstStm.LINE("unknown.file", i.line))
+		stmAdd(AstStm.LINE(source, i.line))
 	}
 
 	fun preserveStackLocal(index: Int, type: AstType): AstLocal {

@@ -1,20 +1,21 @@
 package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.haxe.*;
-
-import java.lang.instrument.Instrumentation;
+import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscSystem {
 	static double start = -1;
 
 	@HaxeMethodBody("return N.getTime();")
+	@JTranscMethodBody(target = "js", value = "return N.getTime();")
 	static public double fastTime() {
 		return System.currentTimeMillis();
 	}
 
 	@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
 	@HaxeMethodBody("var start = N.getTime(); while (N.getTime() - start < p0) { }") // BUSY WAIT!
+	@JTranscMethodBody(target = "js", value = "var start = N.getTime(); while (N.getTime() - start < p0) { }")
 	static public void sleep(double ms) {
 		try {
 			Thread.sleep((long) ms);
@@ -39,27 +40,32 @@ public class JTranscSystem {
 
 	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);")
 	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
 	static public void gcDisable() {
 	}
 
 	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);")
 	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
 	static public void gcEnable() {
 	}
 
 	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();")
 	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
 	static public void gc() {
 		System.gc();
 	}
 
 	@HaxeMethodBody("return true;")
+	@JTranscMethodBody(target = "js", value = "return true;")
 	static public boolean usingJTransc() {
 		return false;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("HaxeNatives.debugger();")
+	@JTranscMethodBody(target = "js", value = "debugger;")
 	static public void debugger() {
 		System.out.println("debugger");
 		throw new Error("Debugger");
@@ -72,6 +78,7 @@ public class JTranscSystem {
 	 */
 	@JTranscInline
 	@HaxeMethodBody("if (!p0) HaxeNatives.debugger();")
+	@JTranscMethodBody(target = "js", value = "if (!p0) debugger;")
 	static public void assert2(boolean trueCond) {
 		if (!trueCond) {
 			System.out.println("debugger");
@@ -96,6 +103,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isSys() {
 		return true;
 	}
@@ -103,6 +111,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "cpp", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isCpp() {
 		return false;
 	}
@@ -110,6 +119,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "cs", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isCsharp() {
 		return false;
 	}
@@ -117,6 +127,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "java", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isJava() {
 		return true;
 	}
@@ -124,6 +135,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "js", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isJs() {
 		return false;
 	}
@@ -131,6 +143,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "flash", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isSwf() {
 		return false;
 	}
@@ -138,6 +151,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "neko", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isNeko() {
 		return false;
 	}
@@ -145,6 +159,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "php", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPhp() {
 		return false;
 	}
@@ -152,6 +167,7 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody(target = "python", value = "return true;")
 	@HaxeMethodBody("return false;")
+	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPython() {
 		return false;
 	}
@@ -159,6 +175,7 @@ public class JTranscSystem {
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.systemName());")
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
 	@HaxeMethodBody("return HaxeNatives.str('unknown');")
+	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}
@@ -173,6 +190,7 @@ public class JTranscSystem {
 
 	// http://lopica.sourceforge.net/os.html
 	@HaxeMethodBody("return HaxeNatives.str('x86');")
+	@JTranscMethodBody(target = "js", value = "return N.str('x86');")
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
 		return System.getProperty("os.arch");
@@ -234,7 +252,20 @@ public class JTranscSystem {
 	}
 
 	@HaxeMethodBody(target = "debug", value = "return true;")
+	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isDebug() {
 		return false;
+	}
+
+	@HaxeMethodBody("return N.str('jtransc-haxe');")
+	@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');")
+	public static String getRuntimeName() {
+		return "java";
+	}
+
+	@HaxeMethodBody("return N.str('/jtransc-haxe');")
+	@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');")
+	public static String getJavaHome() {
+		return System.getenv("java.home");
 	}
 }

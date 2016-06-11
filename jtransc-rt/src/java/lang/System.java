@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 import com.jtransc.io.JTranscConsolePrintStream;
@@ -89,15 +90,15 @@ public class System {
 			_setProperty("os.arch", JTranscSystem.getArch());
 			_setProperty("os.name", JTranscSystem.getOS());
 			_setProperty("os.version", "0.1");
-			_setProperty("java.runtime.name", "jtransc-haxe");
+			_setProperty("java.runtime.name", JTranscSystem.getRuntimeName());
 			_setProperty("java.vm.version", "1.7.0");
 			_setProperty("java.runtime.version", "1.7.0");
 			_setProperty("file.separator", JTranscSystem.fileSeparator());
 			_setProperty("line.separator", JTranscSystem.lineSeparator());
 			_setProperty("path.separator", JTranscSystem.pathSeparator());
 			_setProperty("file.encoding", "UTF-8");
-			_setProperty("java.home", "/jtransc-haxe");
-			_setProperty("java.specification.name", "jtransc-haxe");
+			_setProperty("java.home", JTranscSystem.getJavaHome());
+			_setProperty("java.specification.name", JTranscSystem.getRuntimeName());
 			_setProperty("java.specification.vendor", "jtransc");
 			_setProperty("java.specification.version", "1.7");
 			_setProperty("java.vendor", "jtransc");
@@ -128,6 +129,7 @@ public class System {
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getEnv(key));")
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
 	@HaxeMethodBody("return HaxeNatives.str(null);")
+	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[p0] : null);")
 	native public static String getenv(String name);
 
 	private static String getenvs(String[] names, String defaultValue) {

@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscAddFile;
 import com.jtransc.annotation.JTranscAddMembersList;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
@@ -57,6 +58,10 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/Int64.js")
 @JTranscAddFile(target = "js", priority = -1000, process = true, prependAppend = "js/Runtime.js")
 public class Object {
+	@JTranscMethodBody(target = "js", value = "this.$JS$__id = $JS$__lastId++;")
+	public Object() {
+	}
+
 	@JTranscKeep
 	public boolean equals(Object obj) {
 		return (this == obj);

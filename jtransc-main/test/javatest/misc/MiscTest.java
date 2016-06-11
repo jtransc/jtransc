@@ -25,6 +25,7 @@ public class MiscTest {
     static public void main(String[] args) throws Throwable {
 		testBootstrap1();
 		testBootstrap2();
+		testBootstrap3();
 
 		new MiscTest().main2(args);
     }
@@ -41,9 +42,17 @@ public class MiscTest {
 		JTranscConsole.log(ints[2]);
 	}
 
+	static private void testBootstrap3() {
+		M3 m3 = new M3();
+		JTranscConsole.log(m3.a);
+		JTranscConsole.log(m3);
+	}
+
     void main2(String[] args) throws Throwable {
         JTranscConsole.log("STARTED");
-        JTranscConsole.log("args:" + Arrays.toString(args));
+        JTranscConsole.log("args:");
+		JTranscConsole.log(Arrays.toString(args));
+		JTranscConsole.log("args:" + Arrays.toString(args));
 		JTranscConsole.log(true);
 		JTranscConsole.log(false);
         systemPropertiesTest();
@@ -795,15 +804,28 @@ public class MiscTest {
 }
 
 class M1 {
+	public int a = 10;
+
+	public M1() {
+		a += 1;
+	}
 }
 
 class M2 extends M1 {
+	public M2() {
+		a += 2;
+	}
+
 	@Override
 	public String toString() {
 		return "M2";
 	}
 }
 class M3 extends M1 {
+	public M3() {
+		a += 3;
+	}
+
 	@Override
 	public String toString() {
 		return "M3";

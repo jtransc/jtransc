@@ -39,28 +39,40 @@ import java.util.regex.Pattern;
 @HaxeNativeConversion(haxeType = "String", toHaxe = "N.i_str(@self)", toJava = "N.str(@self)")
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	@HaxeMethodBody("this.setStr('');")
+	@JTranscMethodBody(target = "js", value = "this._str = '';")
 	public String() {
+		throw new RuntimeException("Native");
 	}
 
 	@HaxeMethodBody("this.setStr(p0._str);")
+	@JTranscMethodBody(target = "js", value = "this._str = p0._str;")
 	public String(String original) {
+		throw new RuntimeException("Native");
 	}
 
 	@HaxeMethodBody("this.setStr(HaxeNatives.charArrayToString(p0, p1, p2));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, p1, p2);")
 	public String(char value[], int offset, int count) {
+		throw new RuntimeException("Native");
 	}
 
 	@HaxeMethodBody("this.setStr(HaxeNatives.intArrayToString(p0, p1, p2));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.intArrayToString(p0, p1, p2);")
 	public String(int[] codePoints, int offset, int count) {
+		throw new RuntimeException("Native");
 	}
 
 	@Deprecated
 	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayWithHiToString(p0, p1, p2, p3));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.byteArrayWithHiToString(p0, p1, p2, p3);")
 	public String(byte[] ascii, int hibyte, int offset, int count) {
+		throw new RuntimeException("Native");
 	}
 
 	@HaxeMethodBody("this.setStr(HaxeNatives.byteArrayToString(p0, p1, p2, p3._str));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.byteArrayToString(p0, p1, p2, p3._str);")
 	private String(byte[] bytes, int offset, int length, String charsetName, boolean dummy) {
+		throw new RuntimeException("Native");
 	}
 
 	@Deprecated
@@ -140,6 +152,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("return HaxeNatives.stringToByteArray(this._str, p0._str);")
+	@JTranscMethodBody(target = "js", value = "return N.stringToByteArray(this._str, p0._str);")
 	native private byte[] _getBytes(String charsetName);
 
 	public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
@@ -201,6 +214,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("return StringTools.startsWith(this._str, p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.startsWith(p0._str);")
 	native public boolean startsWith(String prefix);
 
 	@HaxeMethodBody("return StringTools.endsWith(this._str, p0._str);")
@@ -264,6 +278,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	native public String toLowerCase(Locale locale);
 
 	@HaxeMethodBody("return N.str(_str.toLowerCase());")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toLowerCase());")
 	native public String toLowerCase();
 
 	@HaxeMethodBody("return N.str(_str.toUpperCase());")
@@ -378,13 +393,16 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	native public static String join(CharSequence delimiter, CharSequence... elements);
 
 	@HaxeMethodBody("return _getArray();")
+	@JTranscMethodBody(target = "js", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	native public char[] toCharArray();
 
 	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.length;")
 	@HaxeMethodBody("return _getArray().length;")
+	@JTranscMethodBody(target = "js", value = "return this._str.length;")
 	native public int length();
 
 	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.charCodeAt(p0);")
 	@HaxeMethodBody("return _getArray().get(p0);")
+	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
 	native public char charAt(int index);
 }
