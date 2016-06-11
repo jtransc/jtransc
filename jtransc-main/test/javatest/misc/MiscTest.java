@@ -3,6 +3,7 @@ package javatest.misc;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.io.JTranscConsole;
+import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.Simd;
 import jtransc.jtransc.FastMemoryTest;
@@ -60,6 +61,7 @@ public class MiscTest {
 		JTranscConsole.log("args:" + Arrays.toString(args));
 		JTranscConsole.log(true);
 		JTranscConsole.log(false);
+		testDefaultValues();
         systemPropertiesTest();
 		testShifts();
         mapTest();
@@ -83,6 +85,7 @@ public class MiscTest {
         testArrays();
 		testNulls();
 		testSimd();
+		testSimd2();
 		testHexString();
 
 		StaticCall2.a = 10;
@@ -138,7 +141,8 @@ public class MiscTest {
 		testGenericStuff();
 		testAnnotations();
 		testRegex();
-		testTestSpecialIdentifiers();
+		//testTestSpecialIdentifiers();
+		testArrays2();
 
 		try {
 			testThrowPrevStack();
@@ -152,6 +156,32 @@ public class MiscTest {
 		System.out.println("COMPLETED");
         //stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
     }
+
+	static private void testDefaultValues() {
+		JTranscConsole.log("testDefaultValues:");
+		DefaultValuesClass o = new DefaultValuesClass();
+		JTranscConsole.log(o.z);
+		JTranscConsole.log(o.b);
+		JTranscConsole.log(o.s);
+		JTranscConsole.log(o.c);
+		JTranscConsole.log(o.i);
+		System.out.println(o.j);
+		System.out.println(o.f);
+		System.out.println(o.d);
+		JTranscConsole.log(o.obj);
+	}
+
+	static private class DefaultValuesClass {
+		public boolean z;
+		public byte b;
+		public short s;
+		public char c;
+		public int i;
+		public long j;
+		public float f;
+		public double d;
+		public Object obj;
+	}
 
 	static private void testTestSpecialIdentifiers() {
 		TestSpecialIdentifiers i = new TestSpecialIdentifiers();
@@ -173,11 +203,17 @@ public class MiscTest {
 	}
 
 	static private void testSimd() {
+		JTranscConsole.log("testSimd:");
 		MutableFloat32x4 a = new MutableFloat32x4(-1, -1, -1, -1);
 		MutableFloat32x4 b = new MutableFloat32x4(1, 1, 1, 1);
 		MutableFloat32x4 c = new MutableFloat32x4(1, 2, 3, 0);
 		a.setToAdd(b, c);
 		System.out.println(a.toString());
+	}
+
+	static private void testSimd2() {
+		JTranscConsole.log("testSimd2:");
+		System.out.println(Float32x4.toString(Float32x4.add(Float32x4.create(1, 2, 3, 4), Float32x4.create(-3, 7, 13, 12))));
 	}
 
 	static private void testShifts() {
@@ -526,6 +562,17 @@ public class MiscTest {
         System.out.println();
     }
 
+	static private void testArrays2() {
+		boolean[] z = new boolean[0];
+		byte[] b = new byte[0];
+		short[] s = new short[0];
+		char[] c = new char[0];
+		int[] i = new int[0];
+		long[] j = new long[0];
+		float[] f = new float[0];
+		double[] d = new double[0];
+	}
+
 	static private void testNulls() {
 		testNulls2(null);
 	}
@@ -655,8 +702,12 @@ public class MiscTest {
     }
 
     static private void mapTest() {
+		JTranscConsole.log("mapTest:");
         Map<String, String> map = new HashMap<String, String>();
         StringBuilder sb = new StringBuilder();
+
+		JTranscConsole.log("MapSize:");
+		JTranscConsole.log(map.size());
 
         sb.append(map.size());
         map.put("hello", "world");

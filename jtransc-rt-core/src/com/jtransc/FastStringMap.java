@@ -37,19 +37,19 @@ public class FastStringMap<T> {
 	}
 
     @HaxeMethodBody("return _map.get(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this.data.get(p0._key);")
+	@JTranscMethodBody(target = "js", value = "return this.data.get(N.istr(p0));")
     public T get(String key) {
 		return this.map.get(key);
 	}
 
     @HaxeMethodBody("_map.set(p0._str, p1);")
-	@JTranscMethodBody(target = "js", value = "this.data.set(p0._key, p1);")
+	@JTranscMethodBody(target = "js", value = "this.data.set(N.istr(p0), p1);")
 	public void set(String key, T value) {
 		this.map.put(key, value);
 	}
 
     @HaxeMethodBody("return _map.exists(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this.data.has(p0._key);")
+	@JTranscMethodBody(target = "js", value = "return this.data.has(N.istr(p0));")
 	public boolean has(String key) {
 		return this.map.containsKey(key);
 	}

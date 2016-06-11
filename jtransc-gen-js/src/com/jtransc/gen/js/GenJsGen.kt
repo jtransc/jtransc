@@ -697,7 +697,7 @@ class GenJsGen(
 
 		if (bodies.size > 0) {
 			return Indenter.gen {
-				for (body in bodies) line(body.value.template("nativeBody"))
+				for (body in bodies.flatMap { it.value.toList() }) line(body.template("nativeBody"))
 			}
 		}
 		return null

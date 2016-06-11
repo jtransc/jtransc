@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Repeatable(value = JTranscMethodBodyList.class)
 public @interface JTranscMethodBody {
 	String target();
-	String value();
+	String[] value();
 }

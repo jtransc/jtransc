@@ -16,15 +16,39 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	static public void log(Object obj) { System.out.println(obj); }
+	static public void log(Object v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	static public void log(boolean i) { System.out.println(i); }
+	static public void log(boolean v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	static public void log(int i) { System.out.println(i); }
+	static public void log(byte v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	static public void log(short v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(String.fromCharCode(p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));")
+	static public void log(char v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	static public void log(int v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	static public void log(long v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	static public void log(float v) { System.out.println(v); }
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	static public void log(double v) { System.out.println(v); }
 
 	@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");")
 	@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");")

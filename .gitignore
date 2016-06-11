@@ -42,8 +42,10 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 /classes
 *.7z
 *.zip
-*.js
 *.php
 .gradle
 *.neko
 jtransc-main-run/example/program.swf
+jtransc-main-run/example/program.js
+jtransc-main/program.haxe.js
+jtransc-main/program.haxe.noanalyzer.js

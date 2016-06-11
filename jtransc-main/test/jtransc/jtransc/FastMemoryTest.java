@@ -1,6 +1,7 @@
 package jtransc.jtransc;
 
 import com.jtransc.*;
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.mem.BytesRead;
 
 import java.util.Arrays;
@@ -16,6 +17,7 @@ public class FastMemoryTest {
 	}
 
 	private static void testFastMemory() {
+		JTranscConsole.log("testFastMemory:");
 		FastMemory mem = new FastMemory(1024);
 		mem.setInt8(0, (byte) 255);
 		mem.setInt8(1, (byte) 255);
@@ -25,6 +27,7 @@ public class FastMemoryTest {
 	}
 
 	private static void testMem() {
+		JTranscConsole.log("testMem:");
 		FastMemory mem = new FastMemory(1024);
 		mem.setInt8(0, (byte) 255);
 		mem.setInt8(1, (byte) 255);
@@ -40,16 +43,19 @@ public class FastMemoryTest {
 	}
 
 	private static void testCopyReinterpret() {
+		JTranscConsole.log("testCopyReinterpret:");
 		byte[] data = JTranscArrays.copyReinterpret(new int[]{0x12345678, 0x33332222});
 		System.out.println(Arrays.toString(data));
 	}
 
 	private static void testViews() {
+		JTranscConsole.log("testViews:");
 		FastMemory mem = new FastMemory(1024);
 		FastMemory4Int ints = new FastMemory4Int(mem);
 		FastMemory4Float floats = new FastMemory4Float(mem);
 		floats.set(0, 1f);
 		System.out.println(mem.getLength());
+		System.out.println(mem.getAllocatedLength());
 		System.out.println(ints.getLength());
 		System.out.println(floats.getLength());
 		System.out.println(ints.get(0));
