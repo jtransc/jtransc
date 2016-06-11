@@ -35,8 +35,9 @@ open class JTranscPlugin : Plugin<Project> {
 			JTranscExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
 		}
 
-		JTranscExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, minimizeNames = false)
-		JTranscExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, minimizeNames = false)
+		JTranscExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, minimizeNames = false)
+		JTranscExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, minimizeNames = false)
+		JTranscExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, minimizeNames = false)
 
 		// @DEFAULT JS is Haxe
 		addBuildTarget("js", "haxe:js", "program.js", minimizeNames = true)

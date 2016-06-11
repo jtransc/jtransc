@@ -18,6 +18,7 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -82,7 +83,6 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	native public Annotation[][] getParameterAnnotations();
 
 	private Method() {
-
 	}
 
 	public Class<?> getDeclaringClass() {
@@ -177,6 +177,7 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 		"var obj:Dynamic = _getObjectOrClass(p0);\n" +
 		"return HaxeNatives.boxWithType(this.{% METHOD java.lang.reflect.Method:getReturnType %}(), Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray()));\n"
 	)
+	@JTranscMethodBody(target = "js", value = "return R.invokeMethod(this, p0, p1);")
 	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 
 	public boolean isBridge() {

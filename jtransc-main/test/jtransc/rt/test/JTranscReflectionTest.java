@@ -9,13 +9,13 @@ import java.util.List;
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
 		assignableTest();
+		invokeTest();
 		annotationTest();
 		fieldTest();
 		arrayTest();
 		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
 		nullArgs();
-		invokeTest();
 		annotationTypesTest();
 	}
 
@@ -267,7 +267,6 @@ enum EnumDemo {
 class TestDeprecatedExample {
 	@TestDeprecated(replaceWith = @TestReplaceWith(value = "test", imports = {"a"}))
 	public void demo() {
-
 	}
 }
 

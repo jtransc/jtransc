@@ -692,15 +692,14 @@ class GenJsGen(
 
 	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
-	private fun AstMethod.getJsNativeBody(): Indenter? {
+	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> {
 		val bodies = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { it.target == "js" }
 
-		if (bodies.size > 0) {
-			return Indenter.gen {
-				for (body in bodies.flatMap { it.value.toList() }) line(body.template("nativeBody"))
+		return bodies.associate { body ->
+			body.cond to Indenter.gen {
+				for (line in body.value.toList()) line(line.template("nativeBody"))
 			}
 		}
-		return null
 	}
 
 	fun writeClass(clazz: AstClass): Indenter {
@@ -747,7 +746,7 @@ class GenJsGen(
 				refs.add(method.methodType)
 				val margs = method.methodType.args.map { it.name }
 
-				val defaultMethodName = method.name + method.desc
+				val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
 				val methodName = if (method.haxeName == defaultMethodName) null else method.haxeName
 
 				val rbody = if (method.body != null) {
@@ -758,17 +757,37 @@ class GenJsGen(
 					null
 				}
 				val actualBody = try {
-					val nativeBody = method.getJsNativeBody()
+					val nativeBodies = method.getJsNativeBodies()
 					val javaBody = rbody?.genBodyWithFeatures()
 
 					// @TODO: Do not hardcode this!
-					if (javaBody == null && nativeBody == null) {
+					if (javaBody == null && nativeBodies.isEmpty()) {
 						//line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 						null
 					} else {
 						//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
 						Indenter.gen {
-							line(nativeBody ?: javaBody ?: Indenter.EMPTY)
+							if (nativeBodies.isNotEmpty()) {
+								val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody ?: Indenter.EMPTY
+								val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
+
+								if (options.size == 1) {
+									line(default)
+								} else {
+									for (opt in options.withIndex()) {
+										if (opt.index != options.size - 1) {
+											val iftype = if (opt.index == 0) "if" else "else if"
+											line("$iftype (${opt.value.first})") { line(opt.value.second) }
+										} else {
+											line("else") { line(opt.value.second) }
+										}
+									}
+								}
+								//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
+							} else {
+								line(javaBody ?: Indenter.EMPTY)
+							}
+
 							if (method.methodVoidReturnThis) line("return this;")
 						}
 					}
@@ -780,13 +799,19 @@ class GenJsGen(
 					null
 				}
 
-				val commonArgs = "${methodName.quote()}, ${method.name.quote()}, ${method.desc.quote()}, ${method.modifiers.acc}"
+				val registerMethodName = if (method.isInstanceInit) "registerConstructor" else "registerMethod"
+				val commonArgs = if (method.isInstanceInit) {
+					"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
+				} else {
+					"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
+				}
 
 				if (actualBody == null) {
-					line("this.registerMethod($commonArgs, null)")
+					line("this.$registerMethodName($commonArgs, null)")
 				} else {
-					line("this.registerMethod($commonArgs, function (${margs.joinToString(", ")}) {".trim())
+					line("this.$registerMethodName($commonArgs, function (${margs.joinToString(", ")}) {".trim())
 					indent {
+						line("'use strict';")
 						line(actualBody)
 					}
 					line("});")
@@ -803,7 +828,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "this.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() {"
+			val declarationHead = "this.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() { 'use strict';"
 			val declarationTail = "});"
 
 			line(declarationHead)

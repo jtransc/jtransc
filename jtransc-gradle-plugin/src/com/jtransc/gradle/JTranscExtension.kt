@@ -18,11 +18,12 @@ open class JTranscExtension(val project: Project) {
 		}
 
 		fun addBuildTargetExtra(project: Project, name: String, target: String?, outputFile: String?, minimizeNames: Boolean) {
-			JTranscExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, minimizeNames = minimizeNames)
-			JTranscExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, minimizeNames = minimizeNames)
+			JTranscExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, debug = false, minimizeNames = minimizeNames)
+			JTranscExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, debug = false, minimizeNames = minimizeNames)
+			JTranscExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, debug = true, minimizeNames = minimizeNames)
 		}
 
-		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, minimizeNames: Boolean) {
+		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, debug: Boolean, minimizeNames: Boolean) {
 			val justBuild = !run
 			val clazz = if (run) JTranscRunTask::class.java else JTranscDistTask::class.java
 			val group = if (run) "application" else "distribution"
@@ -31,13 +32,13 @@ open class JTranscExtension(val project: Project) {
 			project.task(mapOf(
 				"type" to clazz,
 				"group" to group,
-				"description" to "$verb the application as $name; target=$target, outputFile=$outputFile",
+				"description" to "$verb the application as $name; target=$target, debug=$debug, outputFile=$outputFile",
 				"overwrite" to true
 			), name, JTranscPlugin.LambdaClosure({ it: AbstractJTranscTask ->
 				it.target = target
 				it.outputFile = outputFile
 				it.minimizedNames = justBuild && minimizeNames
-				it.debug = if (run) true else false
+				it.debug = if (debug) true else false
 			})).dependsOn("build")
 		}
 	}

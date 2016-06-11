@@ -1,12 +1,21 @@
 import haxe.io.Int32Array;
 import haxe.io.Bytes;
+import haxe.ds.Vector;
 
 class HaxeArrayInt extends HaxeArrayBase {
-    public var data:Int32Array = null;
+	#if flash
+	public var data:Vector<Int> = null;
+	#else
+	public var data:Int32Array = null;
+	#end
 
     public function new(length:Int) {
         super();
+        #if flash
+        this.data = new Vector<Int>(length);
+        #else
         this.data = new Int32Array(length);
+        #end
         this.length = length;
         this.desc = "[I";
     }
@@ -18,13 +27,13 @@ class HaxeArrayInt extends HaxeArrayBase {
         return out;
     }
 
-    public function getBytes() return data.view.buffer;
+    //public function getBytes() return data.view.buffer;
 
     static public function fromBytes(bytes:Bytes) {
         if (bytes == null) return null;
         var out = new HaxeArrayInt(0);
         out.length = Std.int(bytes.length / 4);
-        out.data = Int32Array.fromBytes(bytes); // @TODO: check copy! Must be copied!
+        for (n in 0 ... out.length) out.set(n, bytes.getInt32(n * 4));
         return out;
     }
 

@@ -54,6 +54,7 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
+@JTranscAddFile(target = "js", priority = -999999999, process = true, prependAppend = "js/Wrapper.js")
 @JTranscAddFile(target = "js", priority = -1007, process = true, prepend = "js/ArrayPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1006, process = true, prepend = "js/StringPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1005, process = true, prepend = "js/MathPolyfill.js")

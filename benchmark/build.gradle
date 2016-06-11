@@ -2,7 +2,7 @@ apply plugin: "java"
 apply plugin: 'application'
 apply plugin: "jtransc"
 
-mainClassName = "HelloWorld"
+mainClassName = "Benchmark"
 
 sourceSets.main {
 	java {

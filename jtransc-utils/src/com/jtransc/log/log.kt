@@ -7,6 +7,16 @@ object log {
 
 	var logger: (Any?, Level) -> Unit = { content, level -> println(content) }
 
+	fun setTempLogger(logger: (Any?, Level) -> Unit, callback: () -> Unit) {
+		val oldLogger = this.logger
+		this.logger = logger
+		try {
+			callback()
+		} finally {
+			this.logger = oldLogger
+		}
+	}
+
 	operator fun invoke(v: Any?) {
 		logger(v, Level.INFO)
 	}

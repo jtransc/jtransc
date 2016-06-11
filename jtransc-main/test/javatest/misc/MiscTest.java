@@ -7,6 +7,7 @@ import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
 import jtransc.jtransc.FastMemoryTest;
+import jtransc.rt.test.JTranscReflectionTest;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Field;
@@ -152,6 +153,8 @@ public class MiscTest {
 
 		testCatchBlockAccessingArguments(3, 7);
 		testRegex();
+
+		JTranscReflectionTest.main(new String[0]);
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
@@ -698,6 +701,8 @@ public class MiscTest {
 			// java.lang.reflect.ParameterizedType
 			System.out.println("Field.null: " + (f == null));
 			System.out.println("Field.name: " + f.getName());
+			System.out.println("Field.type: " + f.getType());
+			System.out.println("Field.declaringClass: " + f.getDeclaringClass());
 			System.out.println("Field.string: " + f.toString());
 			Type genericType = f.getGenericType();
 			if (genericType instanceof ParameterizedType) {

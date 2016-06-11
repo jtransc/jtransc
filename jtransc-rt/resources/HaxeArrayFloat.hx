@@ -1,11 +1,20 @@
 import haxe.io.Float32Array;
+import haxe.ds.Vector;
 
 class HaxeArrayFloat extends HaxeArrayBase {
-    public var data:Float32Array = null;
+	#if flash
+	public var data:Vector<Float32> = null;
+	#else
+	public var data:Float32Array = null;
+	#end
 
     public function new(length:Int) {
         super();
-        this.data = new Float32Array(length);
+		#if flash
+		this.data = new Vector<Float32>(length);
+		#else
+		this.data = new Float32Array(length);
+		#end
         this.length = length;
         this.desc = "[F";
     }

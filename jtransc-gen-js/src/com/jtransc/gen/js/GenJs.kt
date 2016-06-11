@@ -133,7 +133,7 @@ class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val setting
 				if (type == "SMETHOD") names.getJsClassFqNameForCalling(clazz.name) + "[" + methodName.quote() + "]" else methodName
 			}
 			"SFIELD", "FIELD" -> {
-				val fieldName = names.getJsFieldName(clazz.fieldsByName[dataParts[1]]!!)
+				val fieldName = names.getJsFieldName(clazz.fieldsByName[dataParts[1]] ?: invalidOp("Can't find field $desc"))
 				if (type == "SFIELD") names.getJsClassFqNameForCalling(clazz.name) + "[" + fieldName.quote() + "]" else fieldName
 			}
 			"CLASS" -> names.getJsClassFqNameForCalling(clazz.name)

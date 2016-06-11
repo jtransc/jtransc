@@ -41,6 +41,8 @@ var TypeContext = function (name, flags, parent, interfaces) {
 	this.clazz.prototype.$$JS_TYPE_CONTEXT$$ = this;
 	this.fields = [];
 	this.methods = [];
+	this.constructors = [];
+	this.annotations = [];
 };
 
 var MethodContext = function (name, flags) {
@@ -108,17 +110,37 @@ TypeContext.prototype._getScopeFromFlags = function(flags) {
 	return (flags & 0x00000008) ? this.clazz : this.clazz.prototype;
 };
 
-TypeContext.prototype.registerMethod = function(id, name, desc, flags, callback) {
+TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, flags, callback) {
 	if (id == null) id = name + desc;
 	var typeContext = this;
 	if (callback == null) callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
 	this._getScopeFromFlags(flags)[id] = callback;
-
-	//callback.name = typeContext.name + "." + name;
 	Object.defineProperty(callback, "name", { value: typeContext.name + "." + name });
+	this.methods.push({
+		id : id,
+		name : name,
+		desc : desc,
+		genericDesc : genericDesc,
+		flags: flags,
+		static : (flags & 0x00000008) != 0
+	});
+};
 
-
-	//console.log("  - Register method: " + name);
+TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flags, callback) {
+	var name = '<init>';
+	if (id == null) id = this.name + name + desc;
+	var typeContext = this;
+	if (callback == null) callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
+	this._getScopeFromFlags(flags)[id] = callback;
+	Object.defineProperty(callback, "name", { value: typeContext.name + "." + name });
+	this.constructors.push({
+		id : id,
+		name : name,
+		desc : desc,
+		genericDesc : genericDesc,
+		flags: flags,
+		static : (flags & 0x00000008) != 0
+	});
 };
 
 TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value) {
