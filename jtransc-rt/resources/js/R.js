@@ -8,19 +8,26 @@ function __createField(info) {
 }
 
 R.__initClass = function(clazzClazz) {
-	var clazz = jtranscClasses[clazzClazz._name];
-	var clazzInfo = clazz.$$JS_CONTEXT$$;
+	var clazzName = N.istr(clazzClazz._name);
+	var clazz = jtranscClasses[clazzName];
 
-	//console.log('__initClass:' + clazzClazz._name);
-	//console.log(clazzInfo.fields);
+	// Array
+	if (clazzName.startsWith('[')) {
+		return true;
+	} else {
+		var clazzInfo = clazz.$$JS_CONTEXT$$;
 
-	clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(info); });
-	clazzClazz._methods = [];
-	clazzClazz._jsClass = clazz;
+		//console.log('__initClass:' + clazzClazz._name);
+		//console.log(clazzInfo.fields);
 
-	//java.lang.reflect.Field
+		clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(info); });
+		clazzClazz._methods = [];
+		clazzClazz._jsClass = clazz;
 
-	return true;
+		//java.lang.reflect.Field
+
+		return true;
+	}
 };
 
 R.getClass = function(obj) {

@@ -78,7 +78,7 @@ final public class FastMemory {
 
 	@JTranscInline
 	@HaxeMethodBody("return this._data.length;")
-	@JTranscMethodBody(target = "js", value = "return this.buffer.length;")
+	@JTranscMethodBody(target = "js", value = "return this.buffer.byteLength;")
 	final public int getAllocatedLength() {
 		return this.data.limit();
 	}
@@ -228,14 +228,14 @@ final public class FastMemory {
 
 	@JTranscInline
 	@HaxeMethodBody("this.intData.set(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.u32[p0] = p1;")
+	@JTranscMethodBody(target = "js", value = "this.s32[p0] = p1;")
 	final public void setAlignedInt32(int index4, int value) {
 		data.putInt(index4 << 2, value);
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setInt64(p0 << 3, p1);") // @TODO: Optimize
-	@JTranscMethodBody(target = "js", value = "this.u32[p0 << 1 + 0] = p1.low; this.u32[p0 << 1 + 1] = p1.high;")
+	@JTranscMethodBody(target = "js", value = "this.s32[p0 << 1 + 0] = p1.low; this.s32[p0 << 1 + 1] = p1.high;")
 	final public void setAlignedInt64(int index8, long value) {
 		data.putLong(index8 << 3, value);
 	}

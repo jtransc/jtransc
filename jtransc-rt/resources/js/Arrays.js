@@ -1,9 +1,14 @@
+var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_F, JA_D, JA_L;
+
 function __createJavaArrayBaseType() {
 	var ARRAY = function() {
 	};
 
 	__extends(ARRAY.prototype, _global.jtranscClasses["java.lang.Object"].prototype)
 
+	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
+		return N.resolveClass(this.desc);
+	};
 	return ARRAY;
 }
 
@@ -37,6 +42,10 @@ function __createJavaArrayType(desc, type) {
 	};
 
 	ARRAY.prototype["clone()Ljava/lang/Object;"] = ARRAY.prototype.clone;
+
+	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
+		return N.resolveClass(this.desc);
+	};
 
 	__extends(ARRAY.prototype, JA_0);
 
@@ -77,21 +86,14 @@ function __createGenericArrayType() {
 
 	ARRAY.prototype["clone()Ljava/lang/Object;"] = ARRAY.prototype.clone;
 
+	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
+		return N.resolveClass(this.desc);
+	};
+
 	__extends(ARRAY.prototype, JA_0);
 
 	return ARRAY;
 }
-
-var JA_0;
-var JA_Z;
-var JA_B;
-var JA_C;
-var JA_S;
-var JA_I;
-var JA_F;
-var JA_D;
-var JA_L;
-
 
 function __createJavaArrays() {
 	JA_0 = __createJavaArrayBaseType();

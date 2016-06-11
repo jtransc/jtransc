@@ -62,7 +62,7 @@ open class HaxeTestBase {
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
-	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n')
+	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
 	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor = HaxeGenDescriptor): String {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target)

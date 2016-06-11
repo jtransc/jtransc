@@ -125,31 +125,40 @@ public final class Array {
     }
 
     @HaxeMethodBody("return cast(p0, HaxeArrayBool).getBool(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1) != 0;")
 	native public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayByte).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayChar).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static char getChar(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayShort).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static short getShort(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayInt).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static int getInt(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayLong).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static long getLong(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayFloat).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static float getFloat(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayDouble).get(p1);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 
 	@HaxeMethodBody("cast(p0, HaxeArrayAny).setDynamic(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	native private static void setInstance(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
