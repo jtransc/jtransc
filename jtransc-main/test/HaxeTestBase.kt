@@ -22,6 +22,7 @@ import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.haxe.HaxeTarget
+import com.jtransc.gen.js.JsTarget
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
@@ -39,6 +40,8 @@ open class HaxeTestBase {
 		const val RELOOPER = true
 		const val ANALYZER = false
 		const val DEBUG = false
+		//val DEFAULT_TARGET = JsTarget
+		val DEFAULT_TARGET = HaxeTarget
 	}
 
 	init {
@@ -49,7 +52,7 @@ open class HaxeTestBase {
 		minimize: Boolean? = null,
 		lang: String = "js",
 		analyze: Boolean? = null,
-		target: GenTargetDescriptor = HaxeTarget,
+		target: GenTargetDescriptor? = null,
 		debug:Boolean? = null,
 		log:Boolean? = null,
 		noinline transformer: (String) -> String = { it }
@@ -66,7 +69,7 @@ open class HaxeTestBase {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget, transformer: (String) -> String) {
+	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null, transformer: (String) -> String) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
 		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug)
@@ -75,12 +78,12 @@ open class HaxeTestBase {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor? = null): String {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null) {
-		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize, debug = debug).trim())
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null) {
+		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize, debug = debug, target = target).trim())
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -95,7 +98,12 @@ open class HaxeTestBase {
 		return current
 	}
 
-	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
+	fun <T : Any> runClass(
+		clazz: Class<T>, lang: String, minimize: Boolean?,
+		analyze: Boolean?, debug: Boolean? = null,
+		//target: GenTargetDescriptor = HaxeTarget
+		target: GenTargetDescriptor? = null
+	): String {
 		val projectRoot = locateProjectRoot()
 
 		//val threadId = Thread.currentThread().id
@@ -105,7 +113,7 @@ open class HaxeTestBase {
 		val pid = 0
 
 		return AllBuild(
-			target = target,
+			target = target ?: DEFAULT_TARGET,
 			classPaths = listOf(testClassesPath) + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",

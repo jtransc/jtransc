@@ -467,7 +467,12 @@ class GenJsGen(
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
 			is AstExpr.UNOP -> {
 				val resultType = e.type
-				val expr = "(${e.op.symbol}(" + e.right.genExpr() + "))"
+				val opName = e.op.str
+				val expr = if (resultType == AstType.LONG) {
+					"N.l$opName(" + e.right.genExpr() + ")"
+				} else {
+					"(${e.op.symbol}(" + e.right.genExpr() + "))"
+				}
 				when (resultType) {
 					AstType.INT -> N_i(expr)
 					AstType.CHAR -> N_i2c(expr)
@@ -874,7 +879,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() {"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)

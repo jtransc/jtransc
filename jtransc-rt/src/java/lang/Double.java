@@ -67,12 +67,15 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	@HaxeMethodBody("return Std.parseFloat(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
 	native public static double parseDouble(String value);
 
 	@HaxeMethodBody("return Math.isNaN(p0);")
+	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	native public static boolean isNaN(double v);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
+	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {

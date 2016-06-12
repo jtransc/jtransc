@@ -43,7 +43,7 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		is String -> "\"" + value.escape() + "\""
 		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
 		is Float -> escapeConstant(value.toDouble())
-		is Double -> if (value.isInfinite()) if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY" else if (value.isNaN()) "Math.NaN" else "$value"
+		is Double -> if (value.isInfinite()) if (value < 0) "-Infinity" else "Infinity" else if (value.isNaN()) "NaN" else "$value"
 		is Int -> "$value"
 		is Number -> "${value.toInt()}"
 		is Char -> "${value.toInt()}"

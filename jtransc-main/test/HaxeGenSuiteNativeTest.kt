@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
+import com.jtransc.gen.haxe.HaxeTarget
+import com.jtransc.gen.js.JsTarget
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
-import jtransc.jtransc.CustomBuildTest
-import jtransc.jtransc.HaxeNativeCallTest
-import jtransc.jtransc.JTranscSystemTest
-import jtransc.jtransc.UseMinitemplatesTest
+import jtransc.jtransc.*
 import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
@@ -72,6 +71,16 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		Error !(10 < 10)
 		ok
 	""", minimize = false, debug = true)
+
+	@Test fun JTranscInternalNamesHaxe() = testNativeClass<JTranscInternalNames>("""
+		jtransc.jtransc.JTranscInternalNames_
+		main__Ljava_lang_String__V
+	""", minimize = false, debug = true, target = HaxeTarget)
+
+	@Test fun JTranscInternalNamesJs() = testNativeClass<JTranscInternalNames>("""
+		jtransc_jtransc_JTranscInternalNames
+		main([Ljava/lang/String;)V
+	""", minimize = false, debug = true, target = JsTarget)
 
 
 }

@@ -1,11 +1,14 @@
 package com.jtransc.io;
 
+import com.jtransc.annotation.JTranscAddFile;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+@JTranscAddFile(target = "js", priority = -2000, prepend = "js/io.js")
 public class JTranscSyncIO {
 	static public final int BA_EXISTS    = 0x01;
 	static public final int BA_REGULAR   = 0x02;
@@ -44,6 +47,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
+		@JTranscMethodBody(target = "js", value = "return IO.getBooleanAttributes(N.istr(p0));")
 		native public int getBooleanAttributes(String file);
 
 		@Override
@@ -66,6 +70,7 @@ public class JTranscSyncIO {
 		@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getCwd());")
 		@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));")
 		@HaxeMethodBody("return HaxeNatives.str('');")
+		@JTranscMethodBody(target = "js", value = "return N.str(IO.getCwd());")
 		public native String getCwd();
 
 		@Override

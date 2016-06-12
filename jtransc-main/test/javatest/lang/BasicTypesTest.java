@@ -292,8 +292,6 @@ public class BasicTypesTest {
 			}
 			System.out.println();
 		}
-
-
 	}
 
 	private static void compareNans() {

@@ -163,11 +163,67 @@ public class MiscTest {
 	}
 
 	private void testArithmetic() {
-		int[] ints = new int[]{0, 1, 0x7FFFFFFF, -1, 0x80000000, 0x12345678};
-		testMult(ints);
-		testDiv(ints);
+		int[] ints = {0, 1, 0x7FFFFFFF, -1, 0x80000000, 0x12345678};
 		testNeg(ints);
 		testInv(ints);
+		testMult(ints);
+		testDiv(ints);
+
+		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678};
+		testPrintLong(longs);
+		testNegLong(longs);
+		testInvLong(longs);
+		testMulLong(longs);
+		testDivLong(longs);
+	}
+
+	private void testPrintLong(long[] v) {
+		JTranscConsole.log("testPrintLong:");
+		for (int y = 0; y < v.length; y++) {
+			JTranscConsole.log(v[y]);
+		}
+		System.out.println();
+	}
+
+	private void testNegLong(long[] v) {
+		JTranscConsole.log("testNegLong:");
+		for (int y = 0; y < v.length; y++) {
+			JTranscConsole.log(-v[y]);
+		}
+		System.out.println();
+	}
+
+	private void testInvLong(long[] v) {
+		JTranscConsole.log("testInvLong:");
+		for (int y = 0; y < v.length; y++) {
+			System.out.print(~v[y]);
+			System.out.print(",");
+		}
+		System.out.println();
+	}
+
+	private void testMulLong(long[] v) {
+		JTranscConsole.log("testMulLong:");
+		for (int y = 0; y < v.length; y++) {
+			for (int x = 0; x < v.length; x++) {
+				System.out.print(v[x] * v[y]);
+				System.out.print(",");
+			}
+			System.out.println();
+		}
+	}
+
+	private void testDivLong(long[] v) {
+		JTranscConsole.log("testDivLong:");
+		for (int y = 0; y < v.length; y++) {
+			for (int x = 0; x < v.length; x++) {
+				if (v[y] != 0) {
+					System.out.print(v[x] / v[y]);
+					System.out.print(",");
+				}
+			}
+			System.out.println();
+		}
 	}
 
 	private void testMult(int[] ints) {

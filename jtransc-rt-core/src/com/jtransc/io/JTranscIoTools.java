@@ -41,11 +41,20 @@ public class JTranscIoTools {
 	}
 
 	static public <TOutputStream extends OutputStream> TOutputStream copy(InputStream is, TOutputStream os) throws IOException {
-		byte[] chunk = new byte[64 * 1024];
-		while (is.available() > 0) {
-			int readed = is.read(chunk);
-			os.write(chunk, 0, readed);
-		}
+		copyLarge(is, os, new byte[64 * 1024]);
 		return os;
 	}
+
+	public static long copyLarge(final InputStream input, final OutputStream output, final byte[] buffer)
+		throws IOException {
+		long count = 0;
+		int n;
+		while (EOF != (n = input.read(buffer))) {
+			output.write(buffer, 0, n);
+			count += n;
+		}
+		return count;
+	}
+
+	private static final int EOF = -1;
 }

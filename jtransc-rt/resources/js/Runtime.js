@@ -30,8 +30,9 @@ var ProgramContext = function() {
 
 var lastTypeId = 1;
 
-var TypeContext = function (name, flags, parent, interfaces) {
+var TypeContext = function (internalName, name, flags, parent, interfaces) {
 	this.id = lastTypeId++;
+	this.internalName = internalName;
 	this.initialized = false;
 	this.name = name;
 	this.flags = flags;
@@ -100,10 +101,11 @@ TypeContext.prototype.completeTypeFirst = function() {
 	this.instanceMethodsBody['$instanceInit'] = this.instanceInit;
 };
 
-ProgramContext.prototype.registerType = function(name, flags, parent, interfaces, callback) {
+ProgramContext.prototype.registerType = function(internalName, name, flags, parent, interfaces, callback) {
 	//console.log("Register class: " + name);
+	if (internalName == null) internalName = name.replace(/\./g, '_');
 
-	var context = new TypeContext(name, flags, parent, interfaces);
+	var context = new TypeContext(internalName, name, flags, parent, interfaces);
 
 	//_global[name.replace(/\./g, '_')] = context.clazz;
 	context.clazz.SI = function() {

@@ -184,6 +184,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("var a = this._str; var b = p0._str; return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
+	@JTranscMethodBody(target = "js", value = "var a = N.istr(this), b = N.istr(p0); return (a < b) ? -1 : ((a > b) ? 1 : 0);")
 	native private int _compareTo(String anotherString);
 
 	public int compareTo(String anotherString) {
@@ -395,8 +396,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return Pattern.compile(regex).split(this, limit);
 	}
 
+	//native public String replaceFirst(String regex, String replacement);
+	//native public String replaceAll(String regex, String replacement);
+	//
+	//@JTranscMethodBody(target = "js", value="return N.strArray(N.istr(this).split(N.istr(p0), p1));")
+	//native public String[] split(String regex, int limit);
+
 	public String[] split(String regex) {
-		return Pattern.compile(regex).split(this);
+		return split(regex, Integer.MAX_VALUE);
 	}
 
 	public static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements) {
@@ -410,10 +417,16 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("return new EReg('^' + p0._str + '$', '').match(this._str);")
+	@JTranscMethodBody(target = "js", value = "return new RegExp('^' + N.istr(p0) + '$').test(N.istr(this));")
 	native public boolean matches(String regex);
 
+	public String replace(CharSequence target, CharSequence replacement) {
+		return _replace(target.toString(), replacement.toString());
+	}
+
 	@HaxeMethodBody("return HaxeNatives.str(StringTools.replace(this._str, '$p0', '$p1'));")
-	native public String replace(CharSequence target, CharSequence replacement);
+	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this).replaceAll(N.istr(p0), N.istr(p1)));")
+	native private String _replace(String target, String replacement);
 
 	@HaxeMethodBody("return HaxeNatives.str(p1.toArray().join('$p0'));")
 	native public static String join(CharSequence delimiter, CharSequence... elements);

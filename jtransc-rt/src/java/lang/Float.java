@@ -34,6 +34,7 @@ public final class Float extends Number implements Comparable<Float> {
 	public static final Class<Float> TYPE = (Class<Float>) Class.getPrimitiveClass("float");
 
 	@HaxeMethodBody("return Std.parseFloat(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
 	native public static float parseFloat(String value) throws NumberFormatException;
 
 	public static String toString(float value) {

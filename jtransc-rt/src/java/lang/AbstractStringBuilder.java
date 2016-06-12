@@ -80,6 +80,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	native public AbstractStringBuilder delete(int start, int end);
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + p2._str + this.getStr().substr(p1));")
+	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
 	native public AbstractStringBuilder replace(int start, int end, String str);
 
 	public int capacity() {

@@ -1,5 +1,4 @@
-var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_F, JA_D, JA_L;
-
+var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_J, JA_F, JA_D, JA_L;
 
 function __decorateArray(ARRAY) {
 	var tc = new TypeContext();
@@ -38,6 +37,7 @@ function __createJavaArrayType(desc, type) {
 		this.desc = desc;
 		this.data = new type(size);
 		this.length = size;
+		this.init();
 
 		//console.log('Created array instance: [' + desc + ":" + type.name + ":" + size + "]");
 	};
@@ -46,13 +46,16 @@ function __createJavaArrayType(desc, type) {
 
 	ARRAY.prototype = $extend(JA_0.prototype, {});
 
-	ARRAY.prototype.get = function(index) {
-    	return this.data[index];
-    };
+	if (desc == '[J') {
+		ARRAY.prototype.init = function() {
+			for (var n = 0; n < this.length; n++) this.set(n, Int64.zero);
+		};
+	} else {
+		ARRAY.prototype.init = function() { };
+	}
 
-	ARRAY.prototype.set = function(index, value) {
-    	this.data[index] = value;
-    };
+	ARRAY.prototype.get = function(index) { return this.data[index]; };
+	ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
 
 	ARRAY.prototype.toArray = function() {
     	var out = new Array(this.length);
@@ -129,7 +132,20 @@ function __createJavaArrays() {
 	JA_C = __createJavaArrayType('[C', Uint16Array);  // Character Array
 	JA_S = __createJavaArrayType('[S', Int16Array);   // Short Array
 	JA_I = __createJavaArrayType('[I', Int32Array);   // Int Array
+	JA_J = __createJavaArrayType('[J', Array);        // Long Array
 	JA_F = __createJavaArrayType('[F', Float32Array); // Float Array
 	JA_D = __createJavaArrayType('[D', Float64Array); // Double Array
+
 	JA_L =__createGenericArrayType(); // Generic Array
+
+	JA_L.createMultiSure = function(sizes, desc) {
+		if (!desc.startsWith('[')) return null;
+		var out = new JA_L(sizes[0], desc);
+		var sizes2 = sizes.slice(1);
+		var desc2 = desc.substr(1);
+		for (var n = 0; n < out.length; n++) {
+			out.set(n, JA_L.createMultiSure(sizes2, desc2));
+		}
+		return out;
+	};
 }

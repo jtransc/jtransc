@@ -45,9 +45,13 @@ R.__initClass = function(clazzClazz) {
 
 	// Array
 	if (clazzName.startsWith('[')) {
+		clazzInfo._internalName = clazzName;
+
 		return true;
 	} else {
 		var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
+
+    	clazzInfo._internalName = clazzInfo.internalName;
 
 		if (!clazzInfo.__initClassOnce) {
 			clazzInfo.__initClassOnce = true;
@@ -96,6 +100,6 @@ R.setField = function(field, obj, value) {
 
 R.invokeMethod = function(method, obj, args) {
 	var obj2 = (obj == null) ? jtranscClasses[N.istr(method._clazz._name)] : obj;
-
+	obj2[method._internalName].apply(obj2, args.data);
 	//N.boxWithType();
 };

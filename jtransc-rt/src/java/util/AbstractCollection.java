@@ -122,6 +122,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 		removeAll(this);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str('[' + this.{% METHOD java.util.AbstractCollection:toArray:()[Ljava/lang/Object; %}().join(', ') + ']');")
-	native public String toString();
+	public String toString() {
+		return Arrays.toString(this.toArray());
+	}
 }

@@ -2,6 +2,11 @@ import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableMatrixFloat32x4x4;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Random;
+import java.util.zip.DeflaterInputStream;
+
 public class Benchmark {
 	interface Task {
 		int run();
@@ -127,6 +132,19 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("String Builder", new Task() {
+			@Override
+			public int run() {
+				StringBuilder out = new StringBuilder();
+
+				for (int n = 0; n < 100000; n++) {
+					out.append(n);
+				}
+
+				return (int)out.toString().hashCode();
+			}
+		});
+
 		benchmark("simd mutable", new Task() {
 			@Override
 			public int run() {
@@ -178,6 +196,26 @@ public class Benchmark {
 				return (int)a.getSumAll();
 			}
 		});
+
+		//benchmark("compress zlib", new Task() {
+		//	@Override
+		//	public int run() {
+		//		try {
+		//			Random random = new Random(0L);
+		//			byte[] bytes = new byte[16 * 1024];
+		//			for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
+		//
+		//
+		//			DeflaterInputStream is = new DeflaterInputStream(new ByteArrayInputStream(bytes));
+		//			ByteArrayOutputStream out = new ByteArrayOutputStream();
+		//			com.jtransc.io.JTranscIoTools.copy(is, out);
+		//			return (int) out.size();
+		//		} catch (Throwable t) {
+		//			t.printStackTrace();
+		//			return 0;
+		//		}
+		//	}
+		//});
 	}
 
 	static private void benchmark(String name, Task run) {
