@@ -422,7 +422,11 @@ class GenJsGen(
 	private fun N_ASET(array: String, index: String, value: String) = "$array.data[$index] = $value;"
 	private fun N_ASET_T(type: AstType, array: String, index: String, value: String) = N_ASET(array, index, value)
 
+	//typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined"
+	//private fun N_is(a: String, b: String) = "((typeof (($b).\$instanceOf[$a.\$JS\$CLASS_ID$])) !== 'undefined')"
 	private fun N_is(a: String, b: String) = "N.is($a, $b)"
+	//private fun N_is(a: String, b: String) = "$a instanceof $b"
+	//private fun N_is(a: String, b: String) = "$a != null"
 
 	//private fun N_i(str:String) = "N.i($str)"
 	//private fun N_i2z(str:String) = "N.i2z($str)"

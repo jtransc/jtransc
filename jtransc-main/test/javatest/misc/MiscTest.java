@@ -878,6 +878,7 @@ public class MiscTest {
 		int[] intArray = new int[0];
 		A a = new A();
 		B b = new B();
+		Object c = null;
 		System.out.println("INSTANCEOF[(str instanceof String)]:" + (str instanceof String));
 		System.out.println("INSTANCEOF[(str instanceof A)]:" + (str instanceof A));
 		System.out.println("INSTANCEOF[(a instanceof A)]:" + (a instanceof A));
@@ -891,6 +892,13 @@ public class MiscTest {
 
 		System.out.println("INSTANCEOF[(b instanceof IA)]:" + (b instanceof IA));
 		System.out.println("INSTANCEOF[(b instanceof IB)]:" + (b instanceof IB));
+
+		System.out.println("INSTANCEOF[(c instanceof A)]:" + (c instanceof A));
+		System.out.println("INSTANCEOF[(c instanceof B)]:" + (c instanceof B));
+		System.out.println("INSTANCEOF[(c instanceof IA)]:" + (c instanceof IA));
+		System.out.println("INSTANCEOF[(c instanceof IB)]:" + (c instanceof IB));
+		System.out.println("INSTANCEOF[(c instanceof Object)]:" + (c instanceof Object));
+		System.out.println("INSTANCEOF[(c instanceof int[])]:" + (c instanceof int[]));
 
 		//System.out.println("INSTANCEOF[(IA.class.isInstance(intArray))]:" + (IA.class.isInstance(intArray)));
 

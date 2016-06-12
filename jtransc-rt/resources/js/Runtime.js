@@ -28,7 +28,10 @@ var ProgramContext = function() {
 	this.mainClass = null;
 };
 
+var lastTypeId = 1;
+
 var TypeContext = function (name, flags, parent, interfaces) {
+	this.id = lastTypeId++;
 	this.initialized = false;
 	this.name = name;
 	this.flags = flags;
@@ -44,12 +47,15 @@ var TypeContext = function (name, flags, parent, interfaces) {
 	this.constructors = [];
 	this.annotations = [];
 	this.initialized = false;
+	this.instanceOf = {};
 
 	this.staticMethodsBody = {};
 	this.instanceMethodsBody = {};
 
 	this.staticInit = null;
 	this.instanceInit = null;
+
+	this.clazz.$$instanceOf = this.instanceOf;
 
 	_global.jtranscClasses[name] = this.clazz;
 	_global.jtranscTypeContext[name] = this;
@@ -68,7 +74,7 @@ ProgramContext.prototype.registerStrings = function(strs) {
 var EMPTY_FUNCTION = function(){};
 
 TypeContext.prototype.completeTypeFirst = function() {
-	var inits = ['this.$JS$ID$ = $JS$__lastId++;', ''];
+	var inits = ['this.$JS$ID$ = $JS$__lastId++;this.$JS$CLASS_ID$ = ' + this.id + ';', ''];
 
 	for (var n = 0; n < this.fields.length; n++) {
 		var field = this.fields[n];
@@ -218,6 +224,12 @@ ProgramContext.prototype.getType = function(clazzName) {
 		clazzInfo.allInterfaces = allInterfaces;
 		clazzInfo.allAncestors = allAncestors;
 		clazzInfo.allAncestorsAndInterfaces = allAncestors.concat(allInterfaces);
+
+		for (var n = 0; n < clazzInfo.allAncestorsAndInterfaces.length; n++) {
+			var ancestorName = clazzInfo.allAncestorsAndInterfaces[n];
+			var ancestor = _global.jtranscTypeContext[ancestorName];
+			ancestor.instanceOf[clazzInfo.id] = true;
+		}
 
 		clazz.prototype.toString = function() {
 			//console.log('called object.toString!');

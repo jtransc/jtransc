@@ -84,21 +84,7 @@ N.l2d = function(v) { return Int64.toFloat(v); }
 
 N.getTime = function() { return Date.now(); };
 
-N.is = function(i, clazz) {
-	if (i == null) return false;
-	if (clazz == null) return false;
-	if (i instanceof clazz) return true;
-	var sourceContext = i.$$JS_TYPE_CONTEXT$$;
-	var targetContext = clazz.$$JS_TYPE_CONTEXT$$;
-
-	if (sourceContext && targetContext) {
-		//console.log(sourceContext.name + " : " + targetContext.allAncestorsAndInterfaces);
-		if (sourceContext.allAncestorsAndInterfaces.contains(targetContext.name)) return true;
-		//console.log(sourceContext.name + " : " + targetContext.allInterfaces);
-	}
-
-	return false;
-};
+N.is = function(i, clazz) { return (i != null) ? (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined") : false; };
 
 N.istr = function(str) {
 	if (str == null) return null;

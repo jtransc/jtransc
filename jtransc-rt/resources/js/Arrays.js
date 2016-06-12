@@ -1,7 +1,26 @@
 var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_F, JA_D, JA_L;
 
+
+function __decorateArray(ARRAY) {
+	var tc = new TypeContext();
+
+	tc.allInterfaces = [];
+	tc.allAncestors = ["java.lang.Object"];
+	tc.interfaces = [];
+	tc.allAncestorsAndInterfaces = tc.allInterfaces.concat(tc.allAncestors);
+
+	jtranscTypeContext["java.lang.Object"].instanceOf[tc.id] = true;
+	tc.instanceOf[tc.id] = true;
+	ARRAY.$$instanceOf = tc.instanceOf;
+
+	ARRAY.$$JS_TYPE_CONTEXT$$ = tc;
+	ARRAY.prototype.$$JS_TYPE_CONTEXT$$ = tc;
+}
+
 function __createJavaArrayBaseType() {
 	var ARRAY = function() {
+		this.$JS$ID$ = $JS$__lastId++;
+		this.$JS$CLASS_ID$ = ARRAY.$$JS_TYPE_CONTEXT$$.id;
 	};
 
 	__decorateArray(ARRAY);
@@ -12,20 +31,10 @@ function __createJavaArrayBaseType() {
 	return ARRAY;
 }
 
-function __decorateArray(ARRAY) {
-	var tc = new TypeContext();
-
-	tc.allInterfaces = [];
-	tc.allAncestors = ["java.lang.Object"];
-	tc.interfaces = [];
-	tc.allAncestorsAndInterfaces = tc.allInterfaces.concat(tc.allAncestors);
-
-	ARRAY.$$JS_TYPE_CONTEXT$$ = tc;
-	ARRAY.prototype.$$JS_TYPE_CONTEXT$$ = tc;
-}
-
 function __createJavaArrayType(desc, type) {
 	var ARRAY = function(size) {
+		this.$JS$ID$ = $JS$__lastId++;
+		this.$JS$CLASS_ID$ = ARRAY.$$JS_TYPE_CONTEXT$$.id;
 		this.desc = desc;
 		this.data = new type(size);
 		this.length = size;
@@ -63,13 +72,13 @@ function __createJavaArrayType(desc, type) {
 		return N.resolveClass(this.desc);
 	};
 
-
-
 	return ARRAY;
 }
 
 function __createGenericArrayType() {
 	var ARRAY = function(size, desc) {
+		this.$JS$ID$ = $JS$__lastId++;
+		this.$JS$CLASS_ID$ = ARRAY.$$JS_TYPE_CONTEXT$$.id;
 		this.desc = desc;
 		this.data = new Array(size);
 		this.length = size;
