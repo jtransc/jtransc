@@ -790,65 +790,70 @@ class GenJsGen(
 				} else {
 					null
 				}
-				val actualBody = try {
-					val nativeBodies = method.getJsNativeBodies()
-					val javaBody = rbody?.genBodyWithFeatures()
 
-					// @TODO: Do not hardcode this!
-					if (javaBody == null && nativeBodies.isEmpty()) {
-						//line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
-						null
+
+				fun renderBranch(actualBody:Indenter?) = Indenter.gen {
+					val registerMethodName = if (method.isInstanceInit) "registerConstructor" else "registerMethod"
+					val commonArgs = if (method.isInstanceInit) {
+						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
 					} else {
-						//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
-						Indenter.gen {
+						"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
+					}
+
+					if (actualBody == null) {
+						line("this.$registerMethodName($commonArgs, null)")
+					} else {
+						line("this.$registerMethodName($commonArgs, function (${margs.joinToString(", ")}) {".trim())
+						indent {
+							line(actualBody)
+							if (method.methodVoidReturnThis) line("return this;")
+						}
+						line("});")
+					}
+				}
+
+				fun renderBranches() = Indenter.gen {
+					try {
+						val nativeBodies = method.getJsNativeBodies()
+						val javaBody = rbody?.genBodyWithFeatures()
+
+						// @TODO: Do not hardcode this!
+						if (javaBody == null && nativeBodies.isEmpty()) {
+							//line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
+							line(renderBranch(null))
+						} else {
+							//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
 							if (nativeBodies.isNotEmpty()) {
 								val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody ?: Indenter.EMPTY
 								val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
 
 								if (options.size == 1) {
-									line(default)
+									line(renderBranch(default))
 								} else {
 									for (opt in options.withIndex()) {
 										if (opt.index != options.size - 1) {
 											val iftype = if (opt.index == 0) "if" else "else if"
-											line("$iftype (${opt.value.first})") { line(opt.value.second) }
+											line("$iftype (${opt.value.first})") { line(renderBranch(opt.value.second)) }
 										} else {
-											line("else") { line(opt.value.second) }
+											line("else") { line(renderBranch(opt.value.second)) }
 										}
 									}
 								}
 								//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
 							} else {
-								line(javaBody ?: Indenter.EMPTY)
+								line(renderBranch(javaBody))
 							}
-
-							if (method.methodVoidReturnThis) line("return this;")
 						}
+					} catch (e: Throwable) {
+						log.printStackTrace(e)
+						log.warn("WARNING haxe_gen.writeMethod:" + e.message)
+
+						line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
+						line(renderBranch(null))
 					}
-				} catch (e: Throwable) {
-					log.printStackTrace(e)
-					log.warn("WARNING haxe_gen.writeMethod:" + e.message)
-
-					//line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
-					null
 				}
 
-				val registerMethodName = if (method.isInstanceInit) "registerConstructor" else "registerMethod"
-				val commonArgs = if (method.isInstanceInit) {
-					"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
-				} else {
-					"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
-				}
-
-				if (actualBody == null) {
-					line("this.$registerMethodName($commonArgs, null)")
-				} else {
-					line("this.$registerMethodName($commonArgs, function (${margs.joinToString(", ")}) {".trim())
-					indent {
-						line(actualBody)
-					}
-					line("});")
-				}
+				line(renderBranches())
 			}
 		}
 
