@@ -1,4 +1,6 @@
 import com.jtransc.simd.MutableFloat32x4;
+import com.jtransc.simd.Float32x4;
+import com.jtransc.simd.MutableMatrixFloat32x4x4;
 
 public class Benchmark {
 	interface Task {
@@ -125,7 +127,7 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("simd", new Task() {
+		benchmark("simd mutable", new Task() {
 			@Override
 			public int run() {
 				MutableFloat32x4 a = new MutableFloat32x4();
@@ -136,6 +138,44 @@ public class Benchmark {
 				}
 
 				return (int)a.getX() + (int)a.getY() + (int)a.getZ() + (int)a.getW();
+			}
+		});
+
+		benchmark("simd immutable", new Task() {
+			@Override
+			public int run() {
+				Float32x4 a = Float32x4.create(0f, 0f, 0f, 0f);
+				Float32x4 b = Float32x4.create(2f, 3f, 4f, 5f);
+
+				for (int n = 0; n < 1000000; n++) {
+					a = Float32x4.add(a, b);
+				}
+
+				return (int)Float32x4.getX(a) + (int)Float32x4.getY(a) + (int)Float32x4.getZ(a) + (int)Float32x4.getW(a);
+			}
+		});
+
+		benchmark("simd mutable matrix mult", new Task() {
+			@Override
+			public int run() {
+				MutableMatrixFloat32x4x4 a = new MutableMatrixFloat32x4x4().setTo(
+					1f, 9f, 1f, 7f,
+					3f, 2f, 4f, 5f,
+					3f, 7f, 3f, 3f,
+					3f, 8f, 4f, 4f
+				);
+				MutableMatrixFloat32x4x4 b = new MutableMatrixFloat32x4x4().setTo(
+					2f, 3f, 4f, 5f,
+					2f, 3f, 4f, 5f,
+					2f, 3f, 4f, 5f,
+					2f, 3f, 4f, 5f
+				);
+
+				for (int n = 0; n < 100000; n++) {
+					a.setToMul44(a, b);
+				}
+
+				return (int)a.getSumAll();
 			}
 		});
 	}

@@ -50,7 +50,7 @@ We can decide which code to execute at runtime, but once, depending on runtime f
 
 So for:
 
-```
+```java
 @JTranscMethodBody(target = "js", cond = "hasSIMD", value = "this.simd = SIMD.Float32x4(+0, +0, +0, +0);")
 public MutableFloat32x4() {
 	setTo(0f, 0f, 0f, 0f);
@@ -59,7 +59,7 @@ public MutableFloat32x4() {
 
 Instead of generating (which would be the Haxe option):
 
-```
+```javascript
 var hasSIMD = typeof SIMD !== "undefined";
 
 this.registerConstructor(null, "()V", null, 1, function () {
@@ -79,7 +79,7 @@ this.registerConstructor(null, "()V", null, 1, function () {
 
 we can generate this, which is not possible on Haxe directly, because it is a runtime detected feature:
 
-```
+```javascript
 var hasSIMD = typeof SIMD !== "undefined";
 
 var com_jtransc_simd_MutableFloat32x4 = program.registerType("com.jtransc.simd.MutableFloat32x4", 33, "java.lang.Object", [], function() {
