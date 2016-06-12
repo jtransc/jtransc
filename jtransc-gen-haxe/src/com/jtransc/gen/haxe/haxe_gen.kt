@@ -137,6 +137,7 @@ class GenHaxeGen(
 		}
 
 		fun inits() = Indenter.gen {
+			line("HaxePolyfills.install();");
 			line("haxe.CallStack.callStack();")
 			line(names.getHaxeClassStaticInit(program[mainClassFq].ref, "program main"))
 		}
@@ -473,7 +474,17 @@ class GenHaxeGen(
 			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
-			is AstExpr.UNOP -> "(${e.op.symbol}(" + e.right.genExpr() + "))"
+			is AstExpr.UNOP -> {
+				val resultType = e.type
+				val expr = "(${e.op.symbol}(" + e.right.genExpr() + "))"
+				when (resultType) {
+					AstType.INT -> "N.i($expr)"
+					AstType.CHAR -> "N.i2c($expr)"
+					AstType.SHORT -> "N.i2s($expr)"
+					AstType.BYTE -> "N.i2b($expr)"
+					else -> expr
+				}
+			}
 			is AstExpr.BINOP -> {
 				val resultType = e.type
 				var l = e.left.genExpr()
@@ -483,7 +494,7 @@ class GenHaxeGen(
 
 				val binexpr = if (resultType == AstType.LONG) {
 					"N.l$opName($l, $r)"
-				} else if (resultType == AstType.INT && opSymbol in setOf("/", "<<", ">>", ">>>")) {
+				} else if (resultType == AstType.INT && opSymbol in setOf("/", "*", "<<", ">>", ">>>")) {
 					"N.i$opName($l, $r)"
 				} else {
 					when (opSymbol) {

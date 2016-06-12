@@ -6,6 +6,7 @@ import com.jtransc.ast.*
 import com.jtransc.ds.Allocator
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
+import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
@@ -480,8 +481,11 @@ class GenJsGen(
 
 				val binexpr = if (resultType == AstType.LONG) {
 					"N.l$opName($l, $r)"
-				} else if (resultType == AstType.INT && opSymbol in setOf("/", "<<", ">>", ">>>")) {
-					"N.i$opName($l, $r)"
+				} else if (resultType == AstType.INT && opSymbol in setOf("*")) {
+					when (opSymbol) {
+						"*" -> "Math.imul($l, $r)"
+						else -> unexpected(opSymbol)
+					}
 				} else {
 					when (opSymbol) {
 						"lcmp", "cmp", "cmpl", "cmpg" -> "N.$opName($l, $r)"

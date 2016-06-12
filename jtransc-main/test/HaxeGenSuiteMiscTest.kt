@@ -28,11 +28,7 @@ class HaxeGenSuiteMiscTest : HaxeTestBase() {
 
 	@Test fun miscTestNativeJs() {
 		if (!CI.isOnCiSystem) {
-			//log.setTempLogger({ content, level -> println(content) }) {
-			log.setTempLogger({ content, level -> }) {
-				//Thread.sleep(5000L)
-				testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false) { normalize2(it, runtime = "jtransc-js") }
-			}
+			testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false, log = true) { normalize2(it, runtime = "jtransc-js") }
 		}
 	}
 

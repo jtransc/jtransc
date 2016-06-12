@@ -36,6 +36,7 @@ import java.lang.reflect.Field;
 	"N.hx",
 	//"hx/N.hx",
 	"R.hx",
+	"HaxePolyfills.hx",
 	"HaxeNatives.hx",
 	"HaxeDynamicLoad.hx",
 	"HaxeFfiLibrary.hx",

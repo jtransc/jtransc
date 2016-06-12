@@ -41,6 +41,12 @@ class N {
 	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
 	static public function i2c(v:Int):Int return v & 0xFFFF;
 
+	#if js
+	inline static public function imul(a:Int32, b:Int32):Int32 return untyped __js__("Math.imul({0}, {1})", a, b);
+	#else
+	inline static public function imul(a:Int32, b:Int32):Int32 return a * b;
+	#end
+
 	#if (js || cpp || flash)
 	inline static public function i(v:Int):Int32 return v | 0;
 	#else

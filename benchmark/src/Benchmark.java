@@ -19,7 +19,7 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("call static", new Task() {
+		benchmark("call static mult", new Task() {
 			@Override
 			public int run() {
 				int m = 0;
@@ -30,7 +30,7 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("call instance", new Task() {
+		benchmark("call instance mult", new Task() {
 			@Override
 			public int run() {
 				int m = 0;
@@ -42,6 +42,21 @@ public class Benchmark {
 
 			private int calc(int a, int b) {
 				return (a + b) * (a + b);
+			}
+		});
+
+		benchmark("call instance div", new Task() {
+			@Override
+			public int run() {
+				int m = 1;
+				for (int n = 1; n < 10000000; n++) {
+					m += calc(m, n);
+				}
+				return m;
+			}
+
+			private int calc(int a, int b) {
+				return (a - b) / (a + b);
 			}
 		});
 

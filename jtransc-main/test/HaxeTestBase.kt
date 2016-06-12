@@ -45,8 +45,18 @@ open class HaxeTestBase {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(minimize: Boolean? = null, lang: String = "js", analyze: Boolean? = null, target: GenTargetDescriptor = HaxeTarget, debug:Boolean? = null, noinline transformer: (String) -> String = { it }) {
-		testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target, debug = debug)
+	inline fun <reified T : Any> testClass(
+		minimize: Boolean? = null,
+		lang: String = "js",
+		analyze: Boolean? = null,
+		target: GenTargetDescriptor = HaxeTarget,
+		debug:Boolean? = null,
+		log:Boolean? = null,
+		noinline transformer: (String) -> String = { it }
+	) {
+		com.jtransc.log.log.setTempLogger({ content, level -> if (log ?: DEBUG) println(content) }) {
+			testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target, debug = debug)
+		}
 	}
 
 	val kotlinPaths = listOf<String>() + listOf(
@@ -88,8 +98,11 @@ open class HaxeTestBase {
 	fun <T : Any> runClass(clazz: Class<T>, lang: String, minimize: Boolean?, analyze: Boolean?, debug: Boolean? = null, target: GenTargetDescriptor = HaxeTarget): String {
 		val projectRoot = locateProjectRoot()
 
-		val threadId = Thread.currentThread().id
-		val pid = ManagementFactory.getRuntimeMXBean().getName()
+		//val threadId = Thread.currentThread().id
+		//val pid = ManagementFactory.getRuntimeMXBean().getName()
+
+		val threadId = 0
+		val pid = 0
 
 		return AllBuild(
 			target = target,
@@ -97,7 +110,7 @@ open class HaxeTestBase {
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",
 			//output = "program.haxe.cpp", subtarget = "cpp",
-			targetDirectory = System.getProperty("java.io.tmpdir") + "/${pid}_$threadId",
+			targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/${pid}_$threadId",
 			settings = AstBuildSettings(
 				jtranscVersion = JTranscVersion.getVersion(),
 				debug = debug ?: DEBUG,

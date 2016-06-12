@@ -6,6 +6,7 @@ import com.jtransc.ds.FastIntMap;
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
+import javatest.lang.BasicTypesTest;
 import jtransc.jtransc.FastMemoryTest;
 import jtransc.rt.test.JTranscReflectionTest;
 
@@ -22,7 +23,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 
-@SuppressWarnings("all")
 public class MiscTest {
 	static public int MY_GREAT_CONSTANT = 10;
 
@@ -93,6 +93,8 @@ public class MiscTest {
 		testIdentityHashCode();
 		testStaticTest1();
 		testSeedUniquifier();
+		testArithmetic();
+		//testBasicTypes();
 
 		testCrypto();
 		testFastMaps();
@@ -158,6 +160,60 @@ public class MiscTest {
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
+	}
+
+	private void testArithmetic() {
+		int[] ints = new int[]{0, 1, 0x7FFFFFFF, -1, 0x80000000, 0x12345678};
+		testMult(ints);
+		testDiv(ints);
+		testNeg(ints);
+		testInv(ints);
+	}
+
+	private void testMult(int[] ints) {
+		JTranscConsole.log("testMult:");
+		for (int y = 0; y < ints.length; y++) {
+			for (int x = 0; x < ints.length; x++) {
+				System.out.print(ints[x] * ints[y]);
+				System.out.print(",");
+			}
+			System.out.println();
+		}
+	}
+
+	private void testDiv(int[] ints) {
+		JTranscConsole.log("testMult:");
+		for (int y = 0; y < ints.length; y++) {
+			for (int x = 0; x < ints.length; x++) {
+				if (ints[y] != 0) {
+					System.out.print(ints[x] / ints[y]);
+					System.out.print(",");
+				}
+			}
+			System.out.println();
+		}
+	}
+
+	private void testNeg(int[] ints) {
+		JTranscConsole.log("testNeg:");
+		for (int x = 0; x < ints.length; x++) {
+			System.out.print(-ints[x]);
+			System.out.print(",");
+		}
+		System.out.println();
+	}
+
+	private void testInv(int[] ints) {
+		JTranscConsole.log("testInv:");
+		for (int x = 0; x < ints.length; x++) {
+			System.out.print(~ints[x]);
+			System.out.print(",");
+		}
+		System.out.println();
+	}
+
+	private void testBasicTypes() throws Throwable {
+		BasicTypesTest.main(new String[0]);
 	}
 
 	private void testFastMaps() {
