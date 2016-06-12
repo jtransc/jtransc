@@ -316,11 +316,7 @@ class GenJsGen(
 					}
 				}
 				is AstStm.SET_ARRAY -> {
-					val set = when (stm.array.type.elementType) {
-						AstType.BOOL -> "setBool"
-						else -> "set"
-					}
-					line("${stm.array.genNotNull()}.$set(${stm.index.genExpr()}, ${stm.expr.genExpr()});")
+					line(N_ASET_T(stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
@@ -414,30 +410,41 @@ class GenJsGen(
 		}
 	}
 
-	private fun N_is(a:String, b:String) = "N.is($a, $b)"
+	private fun N_AGET(array: String, index: String) = "($array.data[$index])"
+	private fun N_AGET_T(type: AstType, array: String, index: String) = N_AGET(array, index)
+	//private fun N_AGET_BOOL(array:String, index:String) = "(${N_AGET(array, index)}!=0)"
+	//private fun N_AGET_T(type: AstType, array:String, index:String) = when (type) {
+	//	AstType.BOOL -> N_AGET_BOOL(array, index)
+	//	else -> N_AGET(array, index)
+	//}
+
+	private fun N_ASET(array: String, index: String, value: String) = "$array.data[$index] = $value;"
+	private fun N_ASET_T(type: AstType, array: String, index: String, value: String) = N_ASET(array, index, value)
+
+	private fun N_is(a: String, b: String) = "N.is($a, $b)"
 
 	//private fun N_i(str:String) = "N.i($str)"
 	//private fun N_i2z(str:String) = "N.i2z($str)"
 	//private fun N_i2b(str:String) = "N.i2b($str)"
 	//private fun N_i2c(str:String) = "N.i2c($str)"
 	//private fun N_i2s(str:String) = "N.i2s($str)"
-	private fun N_i2j(str:String) = "N.i2j($str)"
+	private fun N_i2j(str: String) = "N.i2j($str)"
 
-	private fun N_i(str:String) = "(($str)|0)"
-	private fun N_i2z(str:String) = "(($str)!=0)"
-	private fun N_i2b(str:String) = "(($str)<<24>>24)"
-	private fun N_i2c(str:String) = "(($str)&0xFFFF)"
-	private fun N_i2s(str:String) = "(($str)<<16>>16)"
+	private fun N_i(str: String) = "(($str)|0)"
+	private fun N_i2z(str: String) = "(($str)!=0)"
+	private fun N_i2b(str: String) = "(($str)<<24>>24)"
+	private fun N_i2c(str: String) = "(($str)&0xFFFF)"
+	private fun N_i2s(str: String) = "(($str)<<16>>16)"
 
 	//private fun N_i2d(str:String) = "N.i2d($str)"
-	private fun N_i2d(str:String) = "+($str)"
+	private fun N_i2d(str: String) = "+($str)"
 
-	private fun N_z2i(str:String) = "N.z2i($str)"
-	private fun N_i2i(str:String) = N_i(str)
-	private fun N_d2d(str:String) = "+($str)"
-	private fun N_l2i(str:String) = "N.l2i($str)"
-	private fun N_l2l(str:String) = "N.l2l($str)"
-	private fun N_l2d(str:String) = "N.l2d($str)"
+	private fun N_z2i(str: String) = "N.z2i($str)"
+	private fun N_i2i(str: String) = N_i(str)
+	private fun N_d2d(str: String) = "+($str)"
+	private fun N_l2i(str: String) = "N.l2i($str)"
+	private fun N_l2l(str: String) = "N.l2l($str)"
+	private fun N_l2d(str: String) = "N.l2d($str)"
 
 	fun genExpr2(e: AstExpr): String {
 		return when (e) {
@@ -542,11 +549,7 @@ class GenJsGen(
 				"(${e.array.genNotNull()}).length"
 			}
 			is AstExpr.ARRAY_ACCESS -> {
-				val get = when (e.array.type.elementType) {
-					AstType.BOOL -> "getBool"
-					else -> "get"
-				}
-				"${e.array.genNotNull()}.$get(${e.index.genExpr()})"
+				N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
 			}
 			is AstExpr.CAST -> {
 				refs.add(e.from)
