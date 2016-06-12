@@ -30,15 +30,15 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		true
 		true
 		false
-	""")
+	""", target = HaxeTarget)
 
 	@Test fun methodBodyTest() = testNativeClass<MethodBodyTest>("""
 		INT:777
-	""")
+	""", target = HaxeTarget)
 
 	@Test fun classMembersTest() = testNativeClass<ClassMembersTest>("""
 		mult:246
-	""")
+	""", target = HaxeTarget)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<HaxeNativeCallTest>("""
 		STATIC:851975
@@ -48,7 +48,7 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		INPUT:16909060
 		&lt;hello&gt;"&amp;"&lt;/hello&gt;
 		&lt;hello&gt;&quot;&amp;&quot;&lt;/hello&gt;
-	""")
+	""", target = HaxeTarget)
 
 	@Test fun jtranscSystemTest() = testNativeClass<JTranscSystemTest>("""
 		true
@@ -59,18 +59,18 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		false
 		false
 		flush
-	""")
+	""", target = HaxeTarget)
 
 	@Test fun UseMinitemplatesTest() = testNativeClass<UseMinitemplatesTest>("""
 		methodToExecute1:1
 		Class1.method1
 		Class1.method2
-	""", minimize = false)
+	""", minimize = false, target = HaxeTarget)
 
 	@Test fun AssertionTests() = testNativeClass<AssertionTests>("""
 		Error !(10 < 10)
 		ok
-	""", minimize = false, debug = true)
+	""", minimize = false, debug = true, target = JsTarget)
 
 	@Test fun JTranscInternalNamesHaxe() = testNativeClass<JTranscInternalNames>("""
 		jtransc.jtransc.JTranscInternalNames_

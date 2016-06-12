@@ -18,6 +18,7 @@ public class JTranscReflection {
 		return new ClasspathScanner().getAllClasses();
 	}
 
+	@HaxeMethodBody(target = "js", value = "return N.str(p0._internalName.replace('_', '_$').replace('.', '_'););")
 	@HaxeMethodBody("return N.str(p0._internalName);")
 	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Class<?> clazz) {

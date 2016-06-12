@@ -211,3 +211,27 @@ N.fillSecureRandomBytes = function(array) {
 
 	for (var n = 0; n < array.length; n++) array.set(n, buf[n]);
 };
+
+N.boxVoid = function(value) { return null; }
+N.boxBool = function(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+N.boxByte = function(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+N.boxShort = function(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+N.boxChar = function(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+N.boxInt = function(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+N.boxLong = function(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
+//N.boxWrapped = function(value) { return JtranscWrapped.wrap(value); }
+//N.boxByteArray = function(value) { return HaxeArrayByte.fromBytes(value); }
+
+N.box = function(v) {
+	if ((v|0) == v) return N.boxInt(v);
+	if (+(v) == v) return N.boxFloat(v);
+	if (v instanceof Int64) return N.boxLong(v);
+	if (typeof v == 'string') return N.str(v);
+	if ((v == null) || N.is(v, java_lang_Object)) return v;
+	return null;
+};
+
+

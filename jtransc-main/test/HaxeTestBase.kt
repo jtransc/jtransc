@@ -40,8 +40,8 @@ open class HaxeTestBase {
 		const val RELOOPER = true
 		const val ANALYZER = false
 		const val DEBUG = false
-		//val DEFAULT_TARGET = JsTarget
-		val DEFAULT_TARGET = HaxeTarget
+		val DEFAULT_TARGET = JsTarget
+		//val DEFAULT_TARGET = HaxeTarget
 	}
 
 	init {

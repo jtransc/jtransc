@@ -21,8 +21,8 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		return T::class.java.name
 	}
 
-	fun getJsFieldName(field: AstField): String = getJsFieldName(field.ref)
-	fun getJsFieldName(field: AstFieldRef): String = "_" + field.name
+	fun getJsFieldName(field: AstField): String = "_" + field.uniqueName
+	fun getJsFieldName(field: AstFieldRef): String = getJsFieldName(program[field])
 
 	fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)

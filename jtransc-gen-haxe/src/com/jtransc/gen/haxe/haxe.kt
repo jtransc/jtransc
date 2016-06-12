@@ -202,9 +202,22 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		}
 	}
 
+	// @TODO: Common with JS
+	private fun getOrReplaceVar(name:String):String {
+		val out = if (name.startsWith("#")) {
+			params[name.substring(1)].toString()
+		} else {
+			name
+		}
+		return out
+	}
+
 	private fun evalReference(type: String, desc: String): String {
-		val dataParts = desc.split(':')
-		val clazz = names.program[dataParts[0].fqname]!!
+		val dataParts = desc.split(':').map { getOrReplaceVar(it) }
+		val desc2 = dataParts.joinToString(":")
+		if (!names.program.contains(dataParts[0].fqname)) invalidOp("Can't find $desc2")
+		val clazz = names.program[dataParts[0].fqname] ?: invalidOp("Can't find $desc2")
+
 		return when (type.toUpperCase()) {
 			"SINIT" -> {
 				names.getHaxeClassStaticInit(clazz.ref, "template sinit")

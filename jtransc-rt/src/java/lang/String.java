@@ -21,13 +21,13 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
 import com.jtransc.internal.IntJTranscStrings;
+import com.jtransc.text.JTranscRegex;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 @HaxeAddMembers({
 	"public var _str:String = '';",
@@ -385,15 +385,15 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	// REGULAR EXPRESIONS
 
 	public String replaceFirst(String regex, String replacement) {
-		return Pattern.compile(regex).matcher(this).replaceFirst(replacement);
+		return JTranscRegex.Pattern.compile(regex).matcher(this).replaceFirst(replacement);
 	}
 
 	public String replaceAll(String regex, String replacement) {
-		return Pattern.compile(regex).matcher(this).replaceAll(replacement);
+		return JTranscRegex.Pattern.compile(regex).matcher(this).replaceAll(replacement);
 	}
 
 	public String[] split(String regex, int limit) {
-		return Pattern.compile(regex).split(this, limit);
+		return JTranscRegex.Pattern.compile(regex).split(this, limit);
 	}
 
 	//native public String replaceFirst(String regex, String replacement);

@@ -45,13 +45,13 @@ R.__initClass = function(clazzClazz) {
 
 	// Array
 	if (clazzName.startsWith('[')) {
-		clazzInfo._internalName = clazzName;
+		clazzClazz._internalName = clazzName;
 
 		return true;
 	} else {
 		var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
 
-    	clazzInfo._internalName = clazzInfo.internalName;
+    	clazzClazz._internalName = clazzInfo.internalName;
 
 		if (!clazzInfo.__initClassOnce) {
 			clazzInfo.__initClassOnce = true;

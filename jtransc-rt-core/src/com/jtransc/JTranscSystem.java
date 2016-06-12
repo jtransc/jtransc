@@ -102,6 +102,18 @@ public class JTranscSystem {
 	}
 
 	@JTranscInline
+	@HaxeMethodBody("return true;")
+	public static boolean isHaxe() {
+		return false;
+	}
+
+	@JTranscInline
+	@JTranscMethodBody(target = "js", value = "return true;")
+	public static boolean isPureJs() {
+		return false;
+	}
+
+	@JTranscInline
 	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")

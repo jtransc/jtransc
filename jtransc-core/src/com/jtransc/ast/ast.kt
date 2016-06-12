@@ -20,10 +20,12 @@ import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ds.Allocator
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.unexpected
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
@@ -242,6 +244,24 @@ class AstProgram(
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
+class UniqueNames {
+	private val names = hashMapOf<String, Int>()
+
+	fun alloc(name:String):String{
+		var id = 0
+		var tryName = name
+		while (true) {
+			if (tryName !in names) {
+				names[tryName] = 0
+				return tryName
+			} else {
+				tryName = name + id++
+			}
+		}
+		//unexpected("unreachable")
+	}
+}
+
 class AstClass(
 	val source: String,
 	val program: AstProgram,
@@ -251,6 +271,8 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	override val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData(), AstAnnotated {
+	val uniqueNames = UniqueNames()
+
 	override val annotationsList = AstAnnotationList(annotations)
 	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
@@ -517,6 +539,7 @@ class AstField(
 	val genericSignature: String?,
 	val constantValue: Any? = null
 ) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
 	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
