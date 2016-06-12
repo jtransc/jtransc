@@ -414,6 +414,31 @@ class GenJsGen(
 		}
 	}
 
+	private fun N_is(a:String, b:String) = "N.is($a, $b)"
+
+	//private fun N_i(str:String) = "N.i($str)"
+	//private fun N_i2z(str:String) = "N.i2z($str)"
+	//private fun N_i2b(str:String) = "N.i2b($str)"
+	//private fun N_i2c(str:String) = "N.i2c($str)"
+	//private fun N_i2s(str:String) = "N.i2s($str)"
+	private fun N_i2j(str:String) = "N.i2j($str)"
+
+	private fun N_i(str:String) = "(($str)|0)"
+	private fun N_i2z(str:String) = "(($str)!=0)"
+	private fun N_i2b(str:String) = "(($str)<<24>>24)"
+	private fun N_i2c(str:String) = "(($str)&0xFFFF)"
+	private fun N_i2s(str:String) = "(($str)<<16>>16)"
+
+	//private fun N_i2d(str:String) = "N.i2d($str)"
+	private fun N_i2d(str:String) = "+($str)"
+
+	private fun N_z2i(str:String) = "N.z2i($str)"
+	private fun N_i2i(str:String) = N_i(str)
+	private fun N_d2d(str:String) = "+($str)"
+	private fun N_l2i(str:String) = "N.l2i($str)"
+	private fun N_l2l(str:String) = "N.l2l($str)"
+	private fun N_l2d(str:String) = "N.l2d($str)"
+
 	fun genExpr2(e: AstExpr): String {
 		return when (e) {
 			is AstExpr.THIS -> "this"
@@ -432,10 +457,10 @@ class GenJsGen(
 				val resultType = e.type
 				val expr = "(${e.op.symbol}(" + e.right.genExpr() + "))"
 				when (resultType) {
-					AstType.INT -> "N.i($expr)"
-					AstType.CHAR -> "N.i2c($expr)"
-					AstType.SHORT -> "N.i2s($expr)"
-					AstType.BYTE -> "N.i2b($expr)"
+					AstType.INT -> N_i(expr)
+					AstType.CHAR -> N_i2c(expr)
+					AstType.SHORT -> N_i2s(expr)
+					AstType.BYTE -> N_i2b(expr)
 					else -> expr
 				}
 			}
@@ -458,10 +483,10 @@ class GenJsGen(
 					}
 				}
 				when (resultType) {
-					AstType.INT -> "N.i($binexpr)"
-					AstType.CHAR -> "N.i2c($binexpr)"
-					AstType.SHORT -> "N.i2s($binexpr)"
-					AstType.BYTE -> "N.i2b($binexpr)"
+					AstType.INT -> N_i(binexpr)
+					AstType.CHAR -> N_i2c(binexpr)
+					AstType.SHORT -> N_i2s(binexpr)
+					AstType.BYTE -> N_i2b(binexpr)
 					else -> binexpr
 				}
 			}
@@ -487,7 +512,10 @@ class GenJsGen(
 
 				val base = when (e2) {
 					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
-					is AstExpr.CALL_SUPER -> "this._super"
+					is AstExpr.CALL_SUPER -> {
+						val superMethod = refMethodClass.get(method.withoutClass) ?: invalidOp("Can't find super for method : $method")
+						names.getJsClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
+					}
 					is AstExpr.CALL_INSTANCE -> "${e2.obj.genNotNull()}"
 					else -> invalidOp("Unexpected")
 				}
@@ -532,7 +560,7 @@ class GenJsGen(
 			}
 			is AstExpr.INSTANCE_OF -> {
 				refs.add(e.checkType)
-				"N.is(${e.expr.genExpr()}, ${e.checkType.haxeTypeCast})"
+				N_is(e.expr.genExpr(), e.checkType.haxeTypeCast.toString())
 			}
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)
@@ -641,40 +669,43 @@ class GenJsGen(
 
 		return when (from) {
 			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				val e2 = if (from == AstType.BOOL) "N.z2i($e)" else "$e"
+				val e2 = if (from == AstType.BOOL) N_z2i(e) else "$e"
 
 				when (to) {
-					is AstType.BOOL -> "N.i2z($e2)"
-					is AstType.BYTE -> "N.i2b($e2)"
-					is AstType.CHAR -> "N.i2c($e2)"
-					is AstType.SHORT -> "N.i2s($e2)"
-					is AstType.INT -> "($e2)"
-					is AstType.LONG -> "N.i2j($e2)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "($e2)"
+					is AstType.BOOL -> N_i2z(e2)
+					is AstType.BYTE -> N_i2b(e2)
+					is AstType.CHAR -> N_i2c(e2)
+					is AstType.SHORT -> N_i2s(e2)
+					is AstType.INT -> N_i2i(e2)
+					is AstType.LONG -> N_i2j(e2)
+					is AstType.FLOAT -> N_i2d(e2)
+					is AstType.DOUBLE -> N_i2d(e2)
 					else -> unhandled()
 				}
 			}
 			is AstType.DOUBLE, is AstType.FLOAT -> {
 				when (to) {
-					is AstType.BOOL -> "N.i2z($e)"
-					is AstType.BYTE -> "N.i2b($e)"
-					is AstType.CHAR -> "N.i2c($e)"
-					is AstType.SHORT -> "N.i2s($e)"
-					is AstType.INT -> "N.i2i($e)"
-					is AstType.LONG -> "N.i2j($e)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "($e)"
+					is AstType.BOOL -> N_i2z(e)
+					is AstType.BYTE -> N_i2b(e)
+					is AstType.CHAR -> N_i2c(e)
+					is AstType.SHORT -> N_i2s(e)
+					is AstType.INT -> N_i2i(e)
+					is AstType.LONG -> N_i2j(e)
+					is AstType.FLOAT -> N_d2d(e)
+					is AstType.DOUBLE -> N_d2d(e)
 					else -> unhandled()
 				}
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.BOOL -> "N.i2z(N.l2i($e))"
-					is AstType.BYTE -> "N.i2b(N.l2i($e))"
-					is AstType.CHAR -> "N.i2c(N.l2i($e))"
-					is AstType.SHORT -> "N.i2s(N.l2i($e))"
-					is AstType.INT -> "N.l2i($e)"
-					is AstType.LONG -> "($e)"
-					is AstType.FLOAT, is AstType.DOUBLE -> "N.l2d($e)"
+					is AstType.BOOL -> N_i2z(N_l2i(e))
+					is AstType.BYTE -> N_i2b(N_l2i(e))
+					is AstType.CHAR -> N_i2c(N_l2i(e))
+					is AstType.SHORT -> N_i2s(N_l2i(e))
+					is AstType.INT -> N_l2i(e)
+					is AstType.LONG -> N_l2l(e)
+					is AstType.FLOAT -> N_l2d(e)
+					is AstType.DOUBLE -> N_l2d(e)
 					else -> unhandled()
 				}
 			}
@@ -811,7 +842,6 @@ class GenJsGen(
 				} else {
 					line("this.$registerMethodName($commonArgs, function (${margs.joinToString(", ")}) {".trim())
 					indent {
-						line("'use strict';")
 						line(actualBody)
 					}
 					line("});")
@@ -828,7 +858,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() { 'use strict';"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)

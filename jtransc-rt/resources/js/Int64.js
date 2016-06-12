@@ -1,5 +1,3 @@
-var _global = (typeof window !== "undefined") ? window : global;
-
 var M2P32_DBL = Math.pow(2, 32);
 
 var Int32 = function(value) {

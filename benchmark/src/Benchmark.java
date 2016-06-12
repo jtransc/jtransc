@@ -1,36 +1,43 @@
 import com.jtransc.simd.MutableFloat32x4;
 
 public class Benchmark {
+	interface Task {
+		int run();
+	}
+
 	static public void main(String[] args) {
 		System.out.println("Benchmarking:");
 
-		benchmark("plain loops", new Runnable() {
+		benchmark("plain loops", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				int m = 0;
 				for (int n = 0; n < 10000000; n++) {
 					m += n;
 				}
+				return m;
 			}
 		});
 
-		benchmark("call static", new Runnable() {
+		benchmark("call static", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				int m = 0;
 				for (int n = 0; n < 10000000; n++) {
 					m += calc(m, n);
 				}
+				return m;
 			}
 		});
 
-		benchmark("call instance", new Runnable() {
+		benchmark("call instance", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				int m = 0;
 				for (int n = 0; n < 10000000; n++) {
 					m += calc(m, n);
 				}
+				return m;
 			}
 
 			private int calc(int a, int b) {
@@ -38,40 +45,44 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("write int[]", new Runnable() {
+		benchmark("write int[]", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				int[] array = new int[10000000];
 				for (int n = 0; n < 10000000; n++) {
 					array[n] = n * 1000;
 				}
+				return (int) array[7];
 			}
 		});
 
-		benchmark("write float[]", new Runnable() {
+		benchmark("write float[]", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				float[] array = new float[10000000];
 				for (int n = 0; n < 10000000; n++) {
 					array[n] = n * 1000;
 				}
+				return (int) array[7];
 			}
 		});
 
-		benchmark("simd", new Runnable() {
+		benchmark("simd", new Task() {
 			@Override
-			public void run() {
+			public int run() {
 				MutableFloat32x4 a = new MutableFloat32x4();
 				MutableFloat32x4 b = new MutableFloat32x4(2f, 3f, 4f, 5f);
 
 				for (int n = 0; n < 10000000; n++) {
 					a.setToAdd(b, b);
 				}
+
+				return (int)a.getX();
 			}
 		});
 	}
 
-	static private void benchmark(String name, Runnable run) {
+	static private void benchmark(String name, Task run) {
 		System.out.print(name + "...");
 
 		long t1 = System.currentTimeMillis();

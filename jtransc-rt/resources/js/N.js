@@ -1,3 +1,4 @@
+// N : Native
 var onNodeJs = typeof window == "undefined";
 
 var N = function() {

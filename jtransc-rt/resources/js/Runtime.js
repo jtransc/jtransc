@@ -1,10 +1,9 @@
-var _global = (typeof window !== "undefined") ? window : global;
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p) && d[p] === undefined) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+function $extend(from, fields) {
+	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
+	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
+	return proto;
+}
 
 var __TRACE = false;
 //var __TRACE = true;
@@ -18,9 +17,10 @@ if (__TRACE) console.log("global:" + _global);
 _global.$JS$__lastId = 0;
 
 _global.jtranscClasses = {};
+_global.jtranscTypeContext = {};
 
 function __buildStrings() {
-	for (id in SS) S[id] = N.str(SS[id]);
+	for (var id in SS) S[id] = N.str(SS[id]);
 }
 
 var ProgramContext = function() {
@@ -37,12 +37,22 @@ var TypeContext = function (name, flags, parent, interfaces) {
 	//this.clazz.prototype.name = name;
 	this.parent = parent;
 	this.interfaces = interfaces;
-	this.clazz.$$JS_TYPE_CONTEXT$$ = this;
-	this.clazz.prototype.$$JS_TYPE_CONTEXT$$ = this;
+	//this.clazz.$$JS_TYPE_CONTEXT$$ = this;
+	//this.clazz.prototype.$$JS_TYPE_CONTEXT$$ = this;
 	this.fields = [];
 	this.methods = [];
 	this.constructors = [];
 	this.annotations = [];
+	this.initialized = false;
+
+	this.staticMethodsBody = {};
+	this.instanceMethodsBody = {};
+
+	this.staticInit = null;
+	this.instanceInit = null;
+
+	_global.jtranscClasses[name] = this.clazz;
+	_global.jtranscTypeContext[name] = this;
 };
 
 var MethodContext = function (name, flags) {
@@ -77,16 +87,19 @@ TypeContext.prototype.completeTypeFirst = function() {
 		inits[index] += 'this["' + field.id + '"] = ' + valueStr + ";\n";
 	}
 
-	this.clazz.$staticInit = new Function(inits[1]);
-	this.clazz.prototype.$instanceInit = new Function(inits[0]);
+	this.staticInit = new Function(inits[1]);
+	this.instanceInit = new Function(inits[0]);
+
+	this.staticMethodsBody['$staticInit'] = this.staticInit;
+	this.instanceMethodsBody['$instanceInit'] = this.instanceInit;
 };
 
 ProgramContext.prototype.registerType = function(name, flags, parent, interfaces, callback) {
 	//console.log("Register class: " + name);
 
 	var context = new TypeContext(name, flags, parent, interfaces);
-	_global[name.replace(/\./g, '_')] = context.clazz;
-	_global.jtranscClasses[name] = context.clazz;
+
+	//_global[name.replace(/\./g, '_')] = context.clazz;
 	context.clazz.SI = function() {
 		context.clazz.SI = EMPTY_FUNCTION;
 		context.clazz.$staticInit();
@@ -98,6 +111,7 @@ ProgramContext.prototype.registerType = function(name, flags, parent, interfaces
 	callback.apply(context, []);
 	this.types[name] = context;
 	context.completeTypeFirst();
+
 	return context.clazz;
 };
 
@@ -107,7 +121,8 @@ ProgramContext.prototype.registerMainClass = function(name) {
 
 TypeContext.prototype._getScopeFromFlags = function(flags) {
 	// static
-	return (flags & 0x00000008) ? this.clazz : this.clazz.prototype;
+	//return (flags & 0x00000008) ? this.clazz : this.clazz.prototype;
+	return (flags & 0x00000008) ? this.staticMethodsBody : this.instanceMethodsBody;
 };
 
 TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, flags, callback) {
@@ -145,7 +160,6 @@ TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flag
 
 TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value) {
 	if (id == null) id = '_' + name;
-	this._getScopeFromFlags(flags)[name] = value;
 	this.fields.push({
 		id : id,
 		name : name,
@@ -155,12 +169,11 @@ TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flag
 		value: value,
 		static : (flags & 0x00000008) != 0
 	});
-	//console.log("  - Register field: " + name);
 };
 
 ProgramContext.prototype.getType = function(clazzName) {
 	var clazz = _global.jtranscClasses[clazzName];
-	var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
+	var clazzInfo = _global.jtranscTypeContext[clazzName];
 
 	if (!clazzInfo.initialized) {
 		clazzInfo.initialized = true;
@@ -172,27 +185,35 @@ ProgramContext.prototype.getType = function(clazzName) {
 		// Normal classes
 		if (clazzInfo.parent != null) {
 			var parentClazz = this.getType(clazzInfo.parent);
-			var parentClazzInfo = parentClazz.$$JS_TYPE_CONTEXT$$;
+			var parentClazzInfo = _global.jtranscTypeContext[clazzInfo.parent];
 
-			//console.log(clazzName);
-			if (clazzName == "java.lang.AbstractStringBuilder") {
-				//console.log(Object.keys(parentClazz.prototype));
-			}
+			if (!parentClazz) throw 'No parentClazz: ' + clazzInfo.parent;
 
-			__extends(clazz.prototype, parentClazz.prototype);
-			clazz.prototype._super = parentClazz.prototype;
+			clazz.prototype = $extend(parentClazz.prototype, clazzInfo.instanceMethodsBody);
 
 			allInterfaces = allInterfaces.concat(parentClazzInfo.allInterfaces);
 			allAncestors = allAncestors.concat(parentClazzInfo.allAncestors);
 		}
-		// java.lang.Object
-		else if (clazzName == "java.lang.Object") {
-			//console.log('clazzName:' + clazzName);
-
-		}
-		// Interfaces
+		// Interfaces and java.lang.Object
 		else {
+			clazz.prototype = clazzInfo.instanceMethodsBody;
+
+			// java.lang.Object
+			if (clazzName == "java.lang.Object") {
+				//console.log('clazzName:' + clazzName);
+
+			} else {
+			}
 		}
+
+		for (var k in clazzInfo.staticMethodsBody) {
+			if (clazzInfo.staticMethodsBody.hasOwnProperty(k)) {
+				clazz[k] = clazzInfo.staticMethodsBody[k];
+			}
+		}
+
+		clazz.$$JS_TYPE_CONTEXT$$ = clazzInfo;
+		clazz.prototype.$$JS_TYPE_CONTEXT$$ = clazzInfo;
 
 		clazzInfo.allInterfaces = allInterfaces;
 		clazzInfo.allAncestors = allAncestors;
@@ -207,7 +228,7 @@ ProgramContext.prototype.getType = function(clazzName) {
 };
 
 ProgramContext.prototype.finishTypes = function() {
-	for (clazzName in _global.jtranscClasses) {
+	for (var clazzName in _global.jtranscClasses) {
 		this.getType(clazzName);
 	}
 

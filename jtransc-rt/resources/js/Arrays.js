@@ -35,6 +35,8 @@ function __createJavaArrayType(desc, type) {
 
 	__decorateArray(ARRAY);
 
+	ARRAY.prototype = $extend(JA_0.prototype, {});
+
 	ARRAY.prototype.get = function(index) {
     	return this.data[index];
     };
@@ -61,7 +63,7 @@ function __createJavaArrayType(desc, type) {
 		return N.resolveClass(this.desc);
 	};
 
-	__extends(ARRAY.prototype, JA_0);
+
 
 	return ARRAY;
 }
@@ -75,6 +77,8 @@ function __createGenericArrayType() {
 	};
 
 	__decorateArray(ARRAY);
+
+	ARRAY.prototype = $extend(JA_0.prototype, {});
 
 	ARRAY.fromArray = function(array, desc) {
 		var out = new JA_L(array.length, desc);
@@ -105,8 +109,6 @@ function __createGenericArrayType() {
 	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
 		return N.resolveClass(this.desc);
 	};
-
-	__extends(ARRAY.prototype, JA_0);
 
 	return ARRAY;
 }
