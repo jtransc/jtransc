@@ -156,6 +156,7 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 		"orientation" to settings.orientation.lowName,
 		"tempAssetsDir" to mergedAssetsDir.absolutePath, // @deprecated
 		"mergedAssetsDir" to mergedAssetsDir.absolutePath,
+		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive(),
 		"embedResources" to settings.embedResources,
 		"assets" to settings.assets,
 		"hasIcon" to !settings.icon.isNullOrEmpty(),

@@ -64,6 +64,12 @@ function __createJavaArrayType(desc, type) {
 		};
 	}
 
+	ARRAY.fromTypedArray = function(typedArray) {
+		var out = new ARRAY(typedArray.length);
+		out.data.set(typedArray);
+		return out;
+	};
+
 	ARRAY.prototype.get = function(index) { return this.data[index]; };
 	ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
 

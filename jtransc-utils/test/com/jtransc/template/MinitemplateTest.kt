@@ -71,6 +71,15 @@ class MinitemplateTest {
 		Assert.assertEquals("1,2,3", Minitemplate("{% set a = [1,2,3] %}{{ a|join(',') }}")(null))
 	}
 
+	@Test fun testAccessGetter() {
+		val success = "success!"
+		class Test1 {
+			val a: String get() = "$success"
+		}
+
+		Assert.assertEquals("$success", Minitemplate("{{ test.a }}")(mapOf("test" to Test1())))
+	}
+
 	@Test fun testCustomTag() {
 		class CustomNode(val text:String) : Minitemplate.BlockNode {
 			override fun eval(context: Minitemplate.Context) = Unit.apply { context.write("CUSTOM($text)") }

@@ -29,10 +29,17 @@ object Dynamic {
 
 	fun <T : Any> getField(instance: T?, name: String): Any? {
 		if (instance == null) return null
-		val field = instance.javaClass.declaredFields.find { it.name == name }
-		//val field = instance.javaClass.getField(name)
-		field?.isAccessible = true
-		return field?.get(instance)
+		val getter = instance.javaClass.getMethod("get${name.capitalize()}")
+		if (getter != null) {
+			getter.isAccessible = true
+			return getter.invoke(instance)
+		} else {
+			val field = instance.javaClass.declaredFields.find { it.name == name }
+
+			//val field = instance.javaClass.getField(name)
+			field?.isAccessible = true
+			return field?.get(instance)
+		}
 	}
 
 	fun toNumber(it: Any?): Double {

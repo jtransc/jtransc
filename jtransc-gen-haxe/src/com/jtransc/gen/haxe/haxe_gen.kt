@@ -425,6 +425,7 @@ class GenHaxeGen(
 			val bodyContent = body.stm.genStm()
 
 			for ((clazzRef, reasons) in mutableBody.referencedClasses) {
+				if (program[clazzRef.name].isNative) continue
 				line(names.getHaxeClassStaticInit(clazzRef, reasons.joinToString(", ")))
 			}
 			line(bodyContent)

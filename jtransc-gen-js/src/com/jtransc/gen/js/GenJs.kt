@@ -11,6 +11,7 @@ import com.jtransc.log.log
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.quote
 import com.jtransc.vfs.LocalVfs
+import com.jtransc.vfs.MergeVfs
 import com.jtransc.vfs.parent
 import java.io.File
 
@@ -32,6 +33,7 @@ data class JsProgramInfo(val entryPointClass: FqName, val entryPointFile: String
 
 val JsFeatures = setOf(SwitchesFeature)
 
+// @TODO: This is DUPLICATED in haxe and here!! move to a common place!!
 class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings) {
 	val params = hashMapOf(
 		//"srcFolder" to srcFolder.realpathOS,
@@ -56,6 +58,7 @@ class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val setting
 		//"mergedAssetsDir" to mergedAssetsDir.absolutePath,
 		"embedResources" to settings.embedResources,
 		"assets" to settings.assets,
+		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive(),
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
 		"icon" to settings.icon,
 		"libraries" to settings.libraries,
@@ -63,6 +66,7 @@ class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val setting
 	)
 
 	class ProgramRefNode(val ts: JsTemplateString, val type:String, val desc:String) : Minitemplate.BlockNode {
+
 		override fun eval(context: Minitemplate.Context) {
 			context.write(ts.evalReference(type, desc))
 		}
