@@ -598,13 +598,12 @@ class GenJsGen(
 			is AstExpr.METHOD_CLASS -> {
 				val methodInInterfaceRef = e.methodInInterfaceRef
 				val methodToConvertRef = e.methodToConvertRef
-				val interfaceName = methodInInterfaceRef.classRef.name
-
-				val interfaceLambdaFqname = interfaceName.haxeLambdaName
-				"new $interfaceLambdaFqname(" + Indenter.genString {
+				//val interfaceName = methodInInterfaceRef.classRef.name
+				val interfaceName = names.getJsClassFqNameForCalling(methodInInterfaceRef.classRef.name)
+				"R.createLambda($interfaceName, " + Indenter.genString {
 					//methodInInterfaceRef.type.args
 
-					val argNameTypes = methodInInterfaceRef.type.args.map { it.haxeNameAndType }.joinToString(", ")
+					val argNameTypes = methodInInterfaceRef.type.args.map { it.name }.joinToString(", ")
 
 					line("function($argNameTypes)") {
 						// @TODO: Static + non-static
@@ -975,7 +974,6 @@ class GenJsGen(
 
 	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 
-	val FqName.haxeLambdaName: String get() = names.getJsClassFqNameLambda(this)
 	val FqName.haxeClassFqName: String get() = names.getJsClassFqName(this)
 	val FqName.haxeClassFqNameInt: String get() = names.getJsClassFqNameInt(this)
 	val FqName.haxeFilePath: String get() = names.getJsFilePath(this)
@@ -984,8 +982,6 @@ class GenJsGen(
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getJsGeneratedSimpleClassName(this)
 
 	fun String.template(reason: String): String = jsTemplateString.gen(this, context, reason)
-
-	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
 	class MutableBody(val method: AstMethod) {
 		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()

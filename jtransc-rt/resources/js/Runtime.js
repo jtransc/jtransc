@@ -142,7 +142,11 @@ TypeContext.prototype._getScopeFromFlags = function(flags) {
 TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, flags, callback) {
 	if (id == null) id = name + desc;
 	var typeContext = this;
-	if (callback == null) callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
+	var hasBody = true;
+	if (callback == null) {
+		hasBody = false;
+		callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
+	}
 	this._getScopeFromFlags(flags)[id] = callback;
 	Object.defineProperty(callback, "name", { value: typeContext.name + "." + name });
 	this.methods.push({
@@ -151,6 +155,7 @@ TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, fla
 		desc : desc,
 		genericDesc : genericDesc,
 		flags: flags,
+		hasBody: hasBody,
 		static : (flags & 0x00000008) != 0
 	});
 };

@@ -17,6 +17,7 @@ function __createMethod(clazzClazz, info) {
 	var out = new java_lang_reflect_Method();
 	out["{% FIELD java.lang.reflect.Method:clazz %}"] = clazzClazz;
 	out["_internalName"] = info.id;
+	out["_hasBody"] = info.hasBody;
 	out["{% FIELD java.lang.reflect.Method:name %}"] = N.str(info.name);
 	out["{% FIELD java.lang.reflect.Method:signature %}"] = N.str(info.desc);
 	out["{% FIELD java.lang.reflect.Method:genericSignature %}"] = N.str(info.genericDesc);
@@ -138,4 +139,22 @@ R.newProxyInstance = function(ifc, invocationHandler) {
 	}
 	//throw 'WIP';
 	return new typeContext.proxyClass(invocationHandler);
+};
+
+R.createLambda = function(ifc, callback) {
+	var typeContext = ifc.$$JS_TYPE_CONTEXT$$;
+	var javaClass   = N.resolveClass(typeContext.name);
+	var functionalMethod = javaClass._methods.filter(function(method) { return !method._hasBody; })[0];
+
+	if (!functionalMethod) {
+		throw "R.createLambda, can't detect functional interface method in class " + ifc;
+	}
+
+	var obj = new ifc();
+
+	obj[functionalMethod._internalName] = function() {
+		return callback.apply(this, Array.from(arguments));
+	};
+
+	return obj;
 };

@@ -131,10 +131,6 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		}
 	}
 
-	fun getJsClassFqNameLambda(fqName: FqName): String {
-		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
 	fun getAnnotationProxyName(astType: AstType.REF): String {
 		return astType.fqname
 	}
