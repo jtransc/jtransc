@@ -119,7 +119,7 @@ class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val setting
 				names.getJsClassStaticInit(clazz.ref, "template sinit")
 			}
 			"CONSTRUCTOR" -> {
-				"new ${names.getJsClassFqNameForCalling(clazz.name)}().${names.getJsMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
+				"new ${names.getJsClassFqNameForCalling(clazz.name)}()[${names.getJsMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1]))).quote()}]"
 			}
 			"SMETHOD", "METHOD" -> {
 				val methodName = if (dataParts.size >= 3) {

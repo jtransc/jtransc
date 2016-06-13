@@ -287,8 +287,8 @@ N.wrap = function(value) {
 }
 
 N.throwRuntimeException = function(msg) {
-	//throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
-	throw msg;
+	throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	//throw msg;
 };
 
 N.boxWithType = function(clazz, value) {
