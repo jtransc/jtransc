@@ -19,12 +19,18 @@ package com.jtransc.internal;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.util.Formatter;
 import java.util.Locale;
 
 @JTranscInvisible
 public class IntJTranscStrings {
     @HaxeMethodBody("return HaxeNatives.str(HaxeNatives.formatBoxed(p1._str, p2.toArray()));")
-	native public static String format(Locale l, String format, Object... args);
+	public static String format(Locale l, String format, Object... args) {
+		StringBuilder sb = new StringBuilder();
+		Formatter formatter = new Formatter(sb);
+		formatter.format(l, format, args);
+		return sb.toString();
+	}
 
 	static public char[] getChars(String s, int offset, int len) {
 		char[] out = new char[len];

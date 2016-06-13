@@ -39,6 +39,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.getLength(p0._str);")
+		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(IO.getLength(N.istr(p0)));")
 		native public long getLength(String file);
 
 		@Override
@@ -52,6 +53,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.checkAccess(p0._str, p1);")
+		@JTranscMethodBody(target = "js", value = "return IO.checkAccess(N.istr(p0), p1);")
 		public native boolean checkAccess(String file, int access);
 
 		@Override
@@ -84,32 +86,42 @@ public class JTranscSyncIO {
 		"private var _stream = new HaxeIO.SyncStream();"
 	})
 	static private class JTranscIOSyncFile extends ImplStream {
+		@JTranscMethodBody(target = "js", value = "this._stream = new IO.Stream();")
+		public JTranscIOSyncFile() {
+		}
 
 		@HaxeMethodBody("_stream.syncioOpen(p0._str, p1);")
+		@JTranscMethodBody(target = "js", value = "this._stream.open(N.istr(p0), p1);")
 		native void open(String name, int mode) throws FileNotFoundException;
 
 		@HaxeMethodBody("_stream.syncioClose();")
+		@JTranscMethodBody(target = "js", value = "this._stream.close();")
 		public native void close() throws IOException;
 
 		@HaxeMethodBody("return _stream.syncioReadBytes(p0, p1, p2);")
+		@JTranscMethodBody(target = "js", value = "return this._stream.read(p0.data, p1, p2);")
 		public native int read(byte b[], int off, int len);
 
 		@HaxeMethodBody("return _stream.syncioWriteBytes(p0, p1, p2);")
+		@JTranscMethodBody(target = "js", value = "return this._stream.write(p0.data, p1, p2);")
 		public native int write(byte b[], int off, int len);
 
 		@HaxeMethodBody("return _stream.syncioPosition();")
+		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(this._stream.getPosition());")
 		public native long getPosition();
 
 		@HaxeMethodBody("_stream.syncioSetPosition(p0);")
+		@JTranscMethodBody(target = "js", value = "this._stream.setPosition(Int64.toFloat(p0));")
 		public native void setPosition(long pos);
 
 		@HaxeMethodBody("return _stream.syncioLength();")
+		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(this._stream.getLength());")
 		public native long getLength();
 
 		@HaxeMethodBody("_stream.syncioSetLength(p0);")
+		@JTranscMethodBody(target = "js", value = "this._stream.setLength(Int64.toFloat(p0));")
 		public native void setLength(long newLength);
 	}
-
 
 	static public class ByteStream extends ImplStream {
 		private int position;

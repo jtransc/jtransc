@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public final class Character implements java.io.Serializable, Comparable<Character> {
@@ -361,16 +362,20 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	native public static boolean isIdentifierIgnorable(int codePoint);
 
-	@HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
-	native public static char toLowerCase(char ch);
+	public static char toLowerCase(char ch) {
+		return (char)toLowerCase((int)ch);
+	}
+
+	public static char toUpperCase(char ch) {
+		return (char)toUpperCase((int)ch);
+	}
 
 	@HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
+	@JTranscMethodBody(target = "js", value = "return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
 	native public static int toLowerCase(int codePoint);
 
 	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
-	native public static char toUpperCase(char ch);
-
-	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
+	@JTranscMethodBody(target = "js", value = "return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	native public static int toUpperCase(int codePoint);
 
 	public static char toTitleCase(char ch) {

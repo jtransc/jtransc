@@ -67,7 +67,7 @@ Int64.make = function(high, low) {
 };
 Int64.ofInt = function(value) { return Int64.make(value >> 31, value | 0); };
 Int64.ofFloat = function(f) {
-	if (Math.isNaN(f) || !Math.isFinite(f)) throw "Number is NaN or Infinite";
+	if (isNaN(f) || !isFinite(f)) throw "Number is NaN or Infinite";
 	var noFractions = f - (f % 1);
 	// 2^53-1 and -2^53: these are parseable without loss of precision
 	if (noFractions > 9007199254740991) throw "Conversion overflow";

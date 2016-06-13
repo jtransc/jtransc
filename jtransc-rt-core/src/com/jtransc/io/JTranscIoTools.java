@@ -57,4 +57,12 @@ public class JTranscIoTools {
 	}
 
 	private static final int EOF = -1;
+
+	public static void closeQuietly(Closeable closeable) {
+		try {
+			closeable.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

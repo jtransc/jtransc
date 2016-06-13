@@ -173,4 +173,9 @@ public class System {
 	public static SecurityManager getSecurityManager() {
 		return null;
 	}
+
+	public static String lineSeparator() {
+		return JTranscSystem.lineSeparator();
+	}
+
 }

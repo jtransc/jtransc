@@ -65,14 +65,16 @@ public class JTranscZipTest {
 			new File(tmpdir)
 		}) {
 			System.out.println("file:" + normalizePath(file.getAbsolutePath()));
+			System.out.println("exists:" + file.exists());
 			System.out.println("isFile:" + file.isFile());
 			System.out.println("isDirectory:" + file.isDirectory());
 			System.out.println("canRead:" + file.canRead());
 			System.out.println("canWrite:" + file.canWrite());
-			//System.out.println("length:" + file.length());
+			System.out.println("length:" + (file.isFile() ? file.length() : 0));
 		}
 
 		RandomAccessFile r = new RandomAccessFile(tmpfile, "r");
+		System.out.println("read:");
 		System.out.println(r.readShort());
 		System.out.println(r.readInt());
 		r.close();

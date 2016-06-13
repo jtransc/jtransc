@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.util.Map;
@@ -49,6 +50,7 @@ public class Thread implements Runnable {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.getStackTrace(2);")
+	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);")
 	native private StackTraceElement[] _getStackTrace();
 
 	public static void yield() {
