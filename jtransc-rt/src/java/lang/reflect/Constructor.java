@@ -130,6 +130,7 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), HaxeArrayAny.toArrayOrEmpty(p0));\n" +
 		"return instance;"
 	)
+	@JTranscMethodBody(target = "js", value = "return R.newInstance(this, p0);")
 	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 
 	public boolean isVarArgs() {

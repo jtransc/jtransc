@@ -2,6 +2,7 @@ package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.*;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +28,9 @@ public class JTranscProcess extends Process {
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.wrap(new sys.io.Process(cmd, args));")
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));")
 	@HaxeMethodBody("return null;")
+	@JTranscMethodBody(target = "js", value = {
+		"return N.wrap(require('child_process').spawnSync(N.istr(p0), N.istrArray(p1), {cwd:N.istr(p2), env:N.imap(p3)}));"
+	})
 	private native JTranscWrapped create(String cmd, String[] args, String cwd, Map<String, String> env);
 
 	private InputStream stdout;
@@ -79,16 +83,21 @@ public class JTranscProcess extends Process {
 
 	@Override
 	@HaxeMethodBody(target = "sys", value = "return this.process.exitCode();")
-	@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:exitCode %};")
-	public native int exitValue();
+	//@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:exitCode %};")
+	public int exitValue() {
+		return this.exitCode;
+	}
 
 	@HaxeMethodBody(target = "sys", value = "return this.process.getPid();")
-	@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:pid %};")
-	public native int pid();
+	//@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:pid %};")
+	public int pid() {
+		return this.pid;
+	}
 
 	@Override
 	@HaxeMethodBody(target = "sys", value = "this.process.kill();")
 	@HaxeMethodBody("")
+	//@JTranscMethodBody(target = "js", value = "")
 	public native void destroy();
 }
 

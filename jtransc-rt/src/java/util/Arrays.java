@@ -17,6 +17,7 @@
 package java.util;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.internal.JTranscSorter;
 
@@ -43,18 +44,25 @@ public class Arrays {
 
 	native public static <T> int binarySearch(T[] a, int fromIndex, int toIndex, T key, Comparator<? super T> c);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(int[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2, Int64.compare);")
 	native public static void sort(long[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(short[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(char[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(byte[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(float[] a, int fromIndex, int toIndex);
 
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2);")
 	native public static void sort(double[] a, int fromIndex, int toIndex);
 
 	public static void sort(Object[] a, int fromIndex, int toIndex) {
@@ -74,6 +82,7 @@ public class Arrays {
 			"\tarray.set(start + n, slice[n]);\n" +
 			"}"
 	)
+	@JTranscMethodBody(target = "js", value = "N.sort(p0.data, p1, p2, p3);")
 	native public static <T> void sort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c);
 
 	native public static int deepHashCode(Object a[]);

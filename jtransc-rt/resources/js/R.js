@@ -4,33 +4,33 @@ var R = function() {
 
 function __createField(clazzClazz, info) {
 	var out = new java_lang_reflect_Field();
-	out.{% FIELD java.lang.reflect.Field:clazz %} = clazzClazz;
-	out._internalName = info.id;
-	out.{% FIELD java.lang.reflect.Field:name %} = N.str(info.name);
-	out.{% FIELD java.lang.reflect.Field:signature %} = N.str(info.desc);
-	out.{% FIELD java.lang.reflect.Field:genericSignature %} = N.str(info.genericDesc || info.desc);
-	out.{% FIELD java.lang.reflect.Field:modifiers %} = N.str(info.flags);
+	out["{% FIELD java.lang.reflect.Field:clazz %}"] = clazzClazz;
+	out["_internalName"] = info.id;
+	out["{% FIELD java.lang.reflect.Field:name %}"] = N.str(info.name);
+	out["{% FIELD java.lang.reflect.Field:signature %}"] = N.str(info.desc);
+	out["{% FIELD java.lang.reflect.Field:genericSignature %}"] = N.str(info.genericDesc || info.desc);
+	out["{% FIELD java.lang.reflect.Field:modifiers %}"] = N.str(info.flags);
 	return out;
 }
 
 function __createMethod(clazzClazz, info) {
 	var out = new java_lang_reflect_Method();
-	out.{% FIELD java.lang.reflect.Method:clazz %} = clazzClazz;
-	out._internalName = info.id;
-	out.{% FIELD java.lang.reflect.Method:name %} = N.str(info.name);
-	out.{% FIELD java.lang.reflect.Method:signature %} = N.str(info.desc);
-	out.{% FIELD java.lang.reflect.Method:genericSignature %} = N.str(info.genericDesc);
-	out.{% FIELD java.lang.reflect.Method:modifiers %} = N.str(info.flags);
+	out["{% FIELD java.lang.reflect.Method:clazz %}"] = clazzClazz;
+	out["_internalName"] = info.id;
+	out["{% FIELD java.lang.reflect.Method:name %}"] = N.str(info.name);
+	out["{% FIELD java.lang.reflect.Method:signature %}"] = N.str(info.desc);
+	out["{% FIELD java.lang.reflect.Method:genericSignature %}"] = N.str(info.genericDesc);
+	out["{% FIELD java.lang.reflect.Method:modifiers %}"] = N.str(info.flags);
 	return out;
 }
 
 function __createConstructor(clazzClazz, info) {
 	var out = new java_lang_reflect_Constructor();
-	out.{% FIELD java.lang.reflect.Constructor:clazz %} = clazzClazz;
-	out._internalName = info.id;
-	out.{% FIELD java.lang.reflect.Constructor:signature %} = N.str(info.desc);
-	out.{% FIELD java.lang.reflect.Constructor:genericSignature %} = N.str(info.genericDesc);
-	out.{% FIELD java.lang.reflect.Constructor:modifiers %} = N.str(info.flags);
+	out["{% FIELD java.lang.reflect.Constructor:clazz %}"] = clazzClazz;
+	out["_internalName"] = info.id;
+	out["{% FIELD java.lang.reflect.Constructor:signature %}"] = N.str(info.desc);
+	out["{% FIELD java.lang.reflect.Constructor:genericSignature %}"] = N.str(info.genericDesc);
+	out["{% FIELD java.lang.reflect.Constructor:modifiers %}"] = N.str(info.flags);
 	return out;
 }
 
@@ -100,6 +100,13 @@ R.setField = function(field, obj, value) {
 
 R.invokeMethod = function(method, obj, args) {
 	var obj2 = (obj == null) ? jtranscClasses[N.istr(method._clazz._name)] : obj;
-	obj2[method._internalName].apply(obj2, args.data);
-	//N.boxWithType();
+	var result = obj2[method._internalName].apply(obj2, args.data);
+	return N.boxWithType(result, method['{% METHOD java.lang.reflect.Method:getReturnType %}']());
+};
+
+R.newInstance = function(constructor, args) {
+	//console.log(constructor);
+	var clazz = constructor._clazz._jsClass;
+	var obj = new clazz();
+	return obj[constructor._internalName].apply(obj, args.data);
 };

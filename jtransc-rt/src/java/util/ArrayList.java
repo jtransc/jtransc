@@ -32,6 +32,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	}
 
 	public ArrayList(Collection<? extends E> c) {
+		this(0);
 		addAll(c);
 	}
 
@@ -82,6 +83,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	}
 
 	@HaxeMethodBody("p0._data = p1._data.slice(0);")
+	@JTranscMethodBody(target = "js", value = "p0._data = p1._data.slice(0);")
 	native static private void _copy(ArrayList<?> dst, ArrayList<?> src);
 
 	public boolean isEmpty() {

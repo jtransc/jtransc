@@ -127,6 +127,31 @@ N.strArray = function(strs) {
 	return out;
 };
 
+N.istrArray = function(strs) {
+	if (strs == null) return null;
+	return strs.data.map(function(s) { return N.istr(s); });
+};
+
+N.iteratorToArray = function(it) {
+	if (it == null) return null;
+	var out = [];
+	while (it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
+		out.push(it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+	}
+	return out;
+};
+
+N.imap = function(map) {
+	if (map == null) return null;
+	var obj = {};
+	N.iteratorToArray(map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()).forEach(function(item) {
+		var key = item["{% METHOD java.util.Map$Entry:getKey %}"]();
+		var value = item["{% METHOD java.util.Map$Entry:getValue %}"]();
+		obj[N.unbox(key)] = N.unbox(value);
+	});
+	return obj;
+};
+
 N.args = function() {
 	return [];
 };
@@ -223,16 +248,88 @@ N.boxLong = function(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/
 N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
 N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
-//N.boxWrapped = function(value) { return JtranscWrapped.wrap(value); }
+N.boxWrapped = function(value) { return N.wrap(value); }
 //N.boxByteArray = function(value) { return HaxeArrayByte.fromBytes(value); }
 
-N.box = function(v) {
-	if ((v|0) == v) return N.boxInt(v);
-	if (+(v) == v) return N.boxFloat(v);
-	if (v instanceof Int64) return N.boxLong(v);
-	if (typeof v == 'string') return N.str(v);
-	if ((v == null) || N.is(v, java_lang_Object)) return v;
-	return null;
+N.unboxVoid      = function(value) { return null; }
+N.unboxBool      = function(value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
+N.unboxByte      = function(value) { return value["{% FIELD java.lang.Byte:value:B %}"]; }
+N.unboxShort     = function(value) { return value["{% FIELD java.lang.Short:value:S %}"]; }
+N.unboxChar      = function(value) { return value["{% FIELD java.lang.Character:value:C %}"]; }
+N.unboxInt       = function(value) { return value["{% FIELD java.lang.Integer:value:I %}"]; }
+N.unboxLong      = function(value) { return value["{% FIELD java.lang.Long:value:J %}"]; }
+N.unboxFloat     = function(value) { return value["{% FIELD java.lang.Float:value:F %}"]; }
+N.unboxDouble    = function(value) { return value["{% FIELD java.lang.Double:value:D %}"]; }
+N.unboxString    = function(value) { return N.istr(value); }
+N.unboxWrapped   = function(value) { return value._wrapped; }
+//N.unboxByteArray = function(value) { return (value).getBytes(); }
+
+
+N.unbox = function(value) {
+	if (N.is(value, java_lang_Boolean)) return N.unboxBool(value);
+	if (N.is(value, java_lang_Byte)) return N.unboxByte(value);
+	if (N.is(value, java_lang_Short)) return N.unboxShort(value);
+	if (N.is(value, java_lang_Character)) return N.unboxChar(value);
+	if (N.is(value, java_lang_Integer)) return N.unboxInt(value);
+	if (N.is(value, java_lang_Long)) return N.unboxLong(value);
+	if (N.is(value, java_lang_Float)) return N.unboxFloat(value);
+	if (N.is(value, java_lang_Double)) return N.unboxDouble(value);
+	if (N.is(value, java_lang_String)) return N.unboxString(value);
+	if (N.is(value, java_lang_ArrayByte)) return N.unboxByteArray(value);
+	if (N.is(value, com_jtransc_JTranscWrapped)) return unboxWrapped(value);
+	throw 'Was not able to unbox "$value"';
+}
+
+N.wrap = function(value) {
+	var out = new com_jtransc_JTranscWrapped();
+	out._wrapped = value;
+	return out;
+}
+
+N.throwRuntimeException = function(msg) {
+	//throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	throw msg;
 };
 
+N.boxWithType = function(clazz, value) {
+	if (N.is(value, java_lang_Object)) return value;
+	var clazzName = clazz.{% FIELD java.lang.Class:name %}._str;
 
+	switch (clazzName) {
+		case 'boolean': return boxBool(value);
+		case 'byte': return boxByte(value);
+		case 'short': return boxShort(value);
+		case 'char': return boxChar(value);
+		case 'int': return boxInt(value);
+		case 'long': return boxLong(value);
+		case 'float': return boxFloat(value);
+		case 'double': return boxDouble(value);
+	}
+
+	throwRuntimeException("Don't know how to unbox " + clazzName + " with value '" + value + "'");
+};
+
+N.unboxArray = function(array) {
+	return array.map(function(it) { return N.unbox(it); });
+};
+
+N.box = function(v) {
+	if (v instanceof Int64) return N.boxLong(v);
+	if (typeof v == 'string') return N.str(v);
+	if ((v|0) == v) return N.boxInt(v);
+	if (+(v) == v) return N.boxFloat(v);
+	if ((v == null) || N.is(v, java_lang_Object)) return v;
+	return N.wrap(v);
+};
+
+N.sort = function(array, start, end, comparator) {
+	var slice = array.slice(start, end);
+	if (comparator === undefined) {
+		slice.sort();
+	} else {
+		slice.sort(function(a, b) {
+			return comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+		});
+	}
+	for (var n = 0; n < slice.length; n++) array[start + n] = slice[n];
+};

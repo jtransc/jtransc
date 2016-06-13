@@ -50,8 +50,18 @@ function __createJavaArrayType(desc, type) {
 		ARRAY.prototype.init = function() {
 			for (var n = 0; n < this.length; n++) this.set(n, Int64.zero);
 		};
+		ARRAY.prototype.clone = function() {
+			var out = new ARRAY(this.length);
+			for (var n = 0; n < this.length; n++) out.set(n, this.get(n));
+			return out;
+		};
 	} else {
 		ARRAY.prototype.init = function() { };
+		ARRAY.prototype.clone = function() {
+			var out = new ARRAY(this.length);
+			out.data.set(this.data);
+			return out;
+		};
 	}
 
 	ARRAY.prototype.get = function(index) { return this.data[index]; };
@@ -62,12 +72,6 @@ function __createJavaArrayType(desc, type) {
     	for (var n = 0; n < out.length; n++) out[n] = this.get(n);
     	return out;
     };
-
-    ARRAY.prototype.clone = function() {
-    	var out = new ARRAY(this.length);
-    	out.data.set(this.data);
-        return out;
-	};
 
 	ARRAY.prototype["clone()Ljava/lang/Object;"] = ARRAY.prototype.clone;
 
