@@ -218,7 +218,11 @@ N.arraycopy = function(src, srcPos, dest, destPos, length) {
 };
 
 N.isInstanceOfClass = function(obj, javaClass) {
-	return N.is(obj, jtranscClasses[N.istr(javaClass._name)]);
+	if (obj == null) return false;
+	if (javaClass == null) return false;
+	var clazz = jtranscClasses[N.istr(javaClass._name)];
+	if (clazz == null) return false;
+	return N.is(obj, clazz);
 };
 
 N.identityHashCode = function(p0) {

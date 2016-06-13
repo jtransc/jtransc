@@ -30,7 +30,7 @@ var ProgramContext = function() {
 
 var lastTypeId = 1;
 
-var TypeContext = function (internalName, name, flags, parent, interfaces) {
+var TypeContext = function (internalName, name, flags, parent, interfaces, annotations) {
 	this.id = lastTypeId++;
 	this.internalName = internalName;
 	this.initialized = false;
@@ -52,7 +52,7 @@ var TypeContext = function (internalName, name, flags, parent, interfaces) {
 	this.fields = [];
 	this.methods = [];
 	this.constructors = [];
-	this.annotations = [];
+	this.annotations = annotations || (function() { return []; });
 	this.initialized = false;
 	this.instanceOf = {};
 
@@ -107,11 +107,11 @@ TypeContext.prototype.completeTypeFirst = function() {
 	this.staticMethodsBody['$instanceInit'] = this.instanceInit;
 };
 
-ProgramContext.prototype.registerType = function(internalName, name, flags, parent, interfaces, callback) {
+ProgramContext.prototype.registerType = function(internalName, name, flags, parent, interfaces, annotations, callback) {
 	//console.log("Register class: " + name);
 	if (internalName == null) internalName = name.replace(/\./g, '_');
 
-	var context = new TypeContext(internalName, name, flags, parent, interfaces);
+	var context = new TypeContext(internalName, name, flags, parent, interfaces, annotations);
 
 	//_global[name.replace(/\./g, '_')] = context.clazz;
 	context.clazz.SI = function() {
@@ -139,7 +139,7 @@ TypeContext.prototype._getScopeFromFlags = function(flags) {
 	return (flags & 0x00000008) ? this.staticMethodsBody : this.instanceMethodsBody;
 };
 
-TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, flags, callback) {
+TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, flags, annotations, argumentAnnotations, callback) {
 	if (id == null) id = name + desc;
 	var typeContext = this;
 	var hasBody = true;
@@ -156,11 +156,13 @@ TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, fla
 		genericDesc : genericDesc,
 		flags: flags,
 		hasBody: hasBody,
-		static : (flags & 0x00000008) != 0
+		static : (flags & 0x00000008) != 0,
+		annotations: annotations,
+		argumentAnnotations: argumentAnnotations
 	});
 };
 
-TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flags, callback) {
+TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flags, annotations, argumentAnnotations, callback) {
 	var name = '<init>';
 	if (id == null) id = this.name + name + desc;
 	var typeContext = this;
@@ -173,11 +175,13 @@ TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flag
 		desc : desc,
 		genericDesc : genericDesc,
 		flags: flags,
-		static : (flags & 0x00000008) != 0
+		static : (flags & 0x00000008) != 0,
+		annotations: annotations,
+		argumentAnnotations: argumentAnnotations
 	});
 };
 
-TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value) {
+TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value, annotations) {
 	if (id == null) id = '_' + name;
 	this.fields.push({
 		id : id,
@@ -186,7 +190,8 @@ TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flag
 		genericDesc : genericDesc,
 		flags: flags,
 		value: value,
-		static : (flags & 0x00000008) != 0
+		static : (flags & 0x00000008) != 0,
+		annotations: annotations
 	});
 };
 
@@ -254,9 +259,20 @@ ProgramContext.prototype.getType = function(clazzName) {
 	return clazz;
 };
 
+ProgramContext.prototype.resolveAnnotations = function(clazzName) {
+	var clazz = _global.jtranscClasses[clazzName];
+	var clazzInfo = _global.jtranscTypeContext[clazzName];
+
+	//console.log(clazzInfo);
+};
+
 ProgramContext.prototype.finishTypes = function() {
 	for (var clazzName in _global.jtranscClasses) {
 		this.getType(clazzName);
+	}
+
+	for (var clazzName in _global.jtranscClasses) {
+		this.resolveAnnotations(clazzName);
 	}
 
 	__createJavaArrays();

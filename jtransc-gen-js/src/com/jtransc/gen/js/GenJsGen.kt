@@ -143,7 +143,6 @@ class GenJsGen(
 			line("});");
 		}
 
-
 		val out = Indenter.gen {
 			if (settings.debug) {
 				line("//# sourceMappingURL=program.haxe.js.map")
@@ -186,7 +185,6 @@ class GenJsGen(
 		return JsProgramInfo(entryPointClass, entryPointFilePath, source, sourceMap)
 	}
 
-
 	fun annotation(a: AstAnnotation): String {
 		fun escapeValue(it: Any?): String {
 			return when (it) {
@@ -205,7 +203,8 @@ class GenJsGen(
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 		val annotation = program.get3(a.type)
 		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
-		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
+		//return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
+		return "new ${names.getJsClassFqNameForCalling(a.type.name)}([$itStr])"
 	}
 
 	fun annotationInit(a: AstAnnotation): List<AstType.REF> {
@@ -227,8 +226,15 @@ class GenJsGen(
 		}
 	}
 
-	fun visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
-	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { visibleAnnotations(it) }.joinToString(", ") + "]"
+	fun _visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
+	fun _visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { _visibleAnnotations(it) }.joinToString(", ") + "]"
+
+	fun visibleAnnotations(annotations: List<AstAnnotation>): String {
+		return "function() { return " + _visibleAnnotations(annotations) + "; }"
+	}
+	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String {
+		return "function() { return " + _visibleAnnotationsList(annotations) + "; }"
+	}
 
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
@@ -783,7 +789,7 @@ class GenJsGen(
 			//val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 
 			//line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
-			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)});")
+			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)}, ${visibleAnnotations(field.annotations)});")
 		}
 
 		fun writeMethod(method: AstMethod): Indenter {
@@ -805,11 +811,20 @@ class GenJsGen(
 
 
 				fun renderBranch(actualBody:Indenter?) = Indenter.gen {
-					val registerMethodName = if (method.isInstanceInit) "registerConstructor" else "registerMethod"
-					val commonArgs = if (method.isInstanceInit) {
-						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
+					val isConstructor = method.isInstanceInit
+
+					val registerMethodName = if (isConstructor) {
+						"registerConstructor"
 					} else {
-						"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}"
+						"registerMethod"
+					}
+
+					val annotationsArgs = "${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)}"
+
+					val commonArgs = if (isConstructor) {
+						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
+					} else {
+						"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
 					}
 
 					if (actualBody == null) {
@@ -878,7 +893,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, function() {"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, ${visibleAnnotations(clazz.runtimeAnnotations)}, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)
@@ -929,6 +944,8 @@ class GenJsGen(
 
 		return classCodeIndenter
 	}
+
+
 
 	//val FqName.as3Fqname: String get() = this.fqname
 	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)

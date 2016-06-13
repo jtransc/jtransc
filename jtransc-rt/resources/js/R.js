@@ -60,10 +60,14 @@ R.__initClass = function(clazzClazz) {
 			//console.log('__initClass:' + clazzClazz._name);
 			//console.log(clazzInfo.fields);
 
+			//console.log(clazzInfo.annotations);
+
 			clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(clazzClazz, info); });
 			clazzClazz._methods = clazzInfo.methods.map(function(info) { return __createMethod(clazzClazz, info); });;
 			clazzClazz._constructors = clazzInfo.constructors.map(function(info) { return __createConstructor(clazzClazz, info); });
-			clazzClazz._annotations = clazzInfo.annotations.map(function(info) { return __createAnnotation(clazzClazz, info); });
+			//clazzClazz._annotations = clazzInfo.annotations().map(function(info) { return __createAnnotation(clazzClazz, info); });
+			clazzClazz._annotations = [];
+
 
 			clazzClazz._jsClass = clazz;
 			clazzClazz._interfaces = clazzInfo.interfaces;
