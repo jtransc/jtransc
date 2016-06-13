@@ -150,5 +150,6 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 	}
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');")
 	native public Annotation[][] getParameterAnnotations();
 }

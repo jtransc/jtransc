@@ -18,21 +18,28 @@ package com.jtransc.internal;
 
 import com.jtransc.annotation.JTranscInvisible;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 @JTranscInvisible
-public class JTranscAnnotationBase {
+abstract public class JTranscAnnotationBase {
 	@Override
 	public String toString() {
+		return toStaticString(this);
+
+	}
+
+	@SuppressWarnings("all")
+	static public String toStaticString(Object annotation) {
 		String out = "";
 		out += "@";
-		out += this.getClass().getName();
+		out += annotation.getClass().getName();
 		out += "(";
 		int n = 0;
-		for (Method method : this.getClass().getDeclaredMethods()) {
+		for (Method method : annotation.getClass().getDeclaredMethods()) {
 			if (n != 0) out += ", ";
 			try {
-				out += method.getName() + "=" + method.invoke(this);
+				out += method.getName() + "=" + method.invoke(annotation);
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}

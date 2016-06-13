@@ -221,7 +221,11 @@ ProgramContext.prototype.getType = function(clazzName) {
 		}
 		// Interfaces and java.lang.Object
 		else {
-			clazz.prototype = clazzInfo.instanceMethodsBody;
+			if (clazzName == "java.lang.Object") {
+				clazz.prototype = clazzInfo.instanceMethodsBody;
+			} else {
+				clazz.prototype = $extend(this.getType('java.lang.Object').prototype, clazzInfo.instanceMethodsBody);
+			}
 			clazz.$js$super = null;
 
 			// java.lang.Object

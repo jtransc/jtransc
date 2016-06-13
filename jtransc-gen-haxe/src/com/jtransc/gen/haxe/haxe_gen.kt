@@ -465,6 +465,11 @@ class GenHaxeGen(
 			is AstExpr.THIS -> "this"
 			is AstExpr.LITERAL -> {
 				val value = e.value
+				if (value is AstType) {
+					for (fqName in value.getRefClasses()) {
+						mutableBody.initClassRef(fqName, "class literal")
+					}
+				}
 				if (value is String) {
 					strings.getId(value)
 				} else {

@@ -895,8 +895,8 @@ public class MiscTest {
 	}
 
 	static private void systemPropertiesTest() {
-		System.out.println("java.runtime.name:" + System.getProperty("java.runtime.name"));
-		System.out.println("path.separator:" + System.getProperty("path.separator"));
+		System.out.println("java.runtime.name:" + (System.getProperty("java.runtime.name") != null));
+		System.out.println("path.separator:" + (System.getProperty("path.separator") != null));
 	}
 
 	static private void arrayListTest() {

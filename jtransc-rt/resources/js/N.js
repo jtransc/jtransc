@@ -296,18 +296,19 @@ N.throwRuntimeException = function(msg) {
 };
 
 N.boxWithType = function(clazz, value) {
-	if (N.is(value, java_lang_Object)) return value;
+	if (value instanceof java_lang_Object) return value;
+
 	var clazzName = clazz.{% FIELD java.lang.Class:name %}._str;
 
 	switch (clazzName) {
-		case 'boolean': return boxBool(value);
-		case 'byte': return boxByte(value);
-		case 'short': return boxShort(value);
-		case 'char': return boxChar(value);
-		case 'int': return boxInt(value);
-		case 'long': return boxLong(value);
-		case 'float': return boxFloat(value);
-		case 'double': return boxDouble(value);
+		case 'boolean': return N.boxBool(value);
+		case 'byte'   : return N.boxByte(value);
+		case 'short'  : return N.boxShort(value);
+		case 'char'   : return N.boxChar(value);
+		case 'int'    : return N.boxInt(value);
+		case 'long'   : return N.boxLong(value);
+		case 'float'  : return N.boxFloat(value);
+		case 'double' : return N.boxDouble(value);
 	}
 
 	throwRuntimeException("Don't know how to unbox " + clazzName + " with value '" + value + "'");

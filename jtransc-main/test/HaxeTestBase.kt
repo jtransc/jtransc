@@ -55,10 +55,11 @@ open class HaxeTestBase {
 		target: GenTargetDescriptor? = null,
 		debug:Boolean? = null,
 		log:Boolean? = null,
-		noinline transformer: (String) -> String = { it }
+		noinline transformer: (String) -> String = { it },
+		noinline transformerOut: (String) -> String = { it }
 	) {
 		com.jtransc.log.log.setTempLogger({ content, level -> if (log ?: DEBUG) println(content) }) {
-			testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, target = target, debug = debug)
+			testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, transformerOut = transformerOut, target = target, debug = debug)
 		}
 	}
 
@@ -69,10 +70,14 @@ open class HaxeTestBase {
 
 	val testClassesPath = File("target/test-classes").absolutePath
 
-	fun <T : Any> testClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null, transformer: (String) -> String) {
+	fun <T : Any> testClass(
+		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
+		transformer: (String) -> String,
+		transformerOut: (String) -> String
+	) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug)
+		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug))
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 

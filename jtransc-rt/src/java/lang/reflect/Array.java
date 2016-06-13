@@ -186,27 +186,35 @@ public final class Array {
 	}
 
     @HaxeMethodBody("cast(p0, HaxeArrayBool).setBool(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setBoolean(Object array, int index, boolean z) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayByte).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setByte(Object array, int index, byte b) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayChar).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setChar(Object array, int index, char c) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayShort).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setShort(Object array, int index, short s) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayInt).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setInt(Object array, int index, int i) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayLong).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setLong(Object array, int index, long l) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayFloat).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setFloat(Object array, int index, float f) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	@HaxeMethodBody("cast(p0, HaxeArrayDouble).set(p1, p2);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	native public static void setDouble(Object array, int index, double d) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	static private Type getArrayElementType(Class<?> clazz) {

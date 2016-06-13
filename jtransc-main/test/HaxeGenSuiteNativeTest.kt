@@ -30,7 +30,7 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		true
 		true
 		false
-	""", target = HaxeTarget)
+	""", target = HaxeTarget, minimize = false)
 
 	@Test fun methodBodyTest() = testNativeClass<MethodBodyTest>("""
 		INT:777

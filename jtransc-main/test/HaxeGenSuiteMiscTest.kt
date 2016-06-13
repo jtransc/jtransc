@@ -15,6 +15,7 @@
  */
 
 import com.jtransc.env.CI
+import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.log.log
 import javatest.lang.SystemTest
@@ -22,27 +23,20 @@ import javatest.misc.MiscTest
 import org.junit.Test
 
 class HaxeGenSuiteMiscTest : HaxeTestBase() {
-	@Test fun langSystemTest() = testClass<SystemTest>() { normalize2(it) }
+	@Test fun langSystemTest() = testClass<SystemTest>()
 
-	@Test fun miscTestJs() = testClass<MiscTest>(analyze = true, minimize = false, lang = "js") { normalize2(it) }
+	@Test fun miscTestHaxeJs() = testClass<MiscTest>(analyze = true, target = HaxeTarget, minimize = false, lang = "js")
 
 	@Test fun miscTestNativeJs() {
 		if (!CI.isOnCiSystem) {
 			testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false,
 				//log = true
 				log = null
-			) { normalize2(it, runtime = "jtransc-js") }
+			)
 		}
 	}
 
 	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
-
-	private fun normalize2(str: String, runtime: String = "jtransc-haxe"): String {
-		return str
-			.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:$runtime")
-			.replace("java.runtime.name:OpenJDK Runtime Environment", "java.runtime.name:$runtime")
-			.replace("path.separator:;", "path.separator::")
-	}
 
 	//@Test fun miscTestNeko() = testClass<MiscTest>(lang = "neko", minimize = false) {
 	//	it.replace("java.runtime.name:Java(TM) SE Runtime Environment", "java.runtime.name:jtransc-haxe")

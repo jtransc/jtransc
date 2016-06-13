@@ -22,6 +22,8 @@ function __createMethod(clazzClazz, info) {
 	out["{% FIELD java.lang.reflect.Method:signature %}"] = N.str(info.desc);
 	out["{% FIELD java.lang.reflect.Method:genericSignature %}"] = N.str(info.genericDesc);
 	out["{% FIELD java.lang.reflect.Method:modifiers %}"] = N.str(info.flags);
+	out["_annotations"] = info.annotations();
+	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : [];
 	return out;
 }
 
@@ -32,11 +34,8 @@ function __createConstructor(clazzClazz, info) {
 	out["{% FIELD java.lang.reflect.Constructor:signature %}"] = N.str(info.desc);
 	out["{% FIELD java.lang.reflect.Constructor:genericSignature %}"] = N.str(info.genericDesc);
 	out["{% FIELD java.lang.reflect.Constructor:modifiers %}"] = N.str(info.flags);
-	return out;
-}
-
-function __createAnnotation(clazzClazz, info) {
-	var out = new java_lang_annotation_Annotation();
+	out["_annotations"] = info.annotations ? info.annotations() : [];
+	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : [];
 	return out;
 }
 
@@ -65,9 +64,7 @@ R.__initClass = function(clazzClazz) {
 			clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(clazzClazz, info); });
 			clazzClazz._methods = clazzInfo.methods.map(function(info) { return __createMethod(clazzClazz, info); });;
 			clazzClazz._constructors = clazzInfo.constructors.map(function(info) { return __createConstructor(clazzClazz, info); });
-			//clazzClazz._annotations = clazzInfo.annotations().map(function(info) { return __createAnnotation(clazzClazz, info); });
-			clazzClazz._annotations = [];
-
+			clazzClazz._annotations = clazzInfo.annotations();
 
 			clazzClazz._jsClass = clazz;
 			clazzClazz._interfaces = clazzInfo.interfaces;
@@ -106,11 +103,16 @@ R.setField = function(field, obj, value) {
 R.invokeMethod = function(method, obj, args) {
 	var obj2 = (obj == null) ? jtranscClasses[N.istr(method._clazz._name)] : obj;
 	var result = obj2[method._internalName].apply(obj2, args.data);
-	return N.boxWithType(result, method['{% METHOD java.lang.reflect.Method:getReturnType %}']());
+	//console.log('RESULT::::::::: ' + result);
+	//console.log('RESULT::::::::: ' + method['{% METHOD java.lang.reflect.Method:getReturnType %}']());
+	return N.boxWithType(method['{% METHOD java.lang.reflect.Method:getReturnType %}'](), result);
 };
 
 R.newInstance = function(constructor, args) {
 	//console.log(constructor);
+	if (args == null) args = [];
+	if (constructor == null) throw 'Invalid R.newInstance : constructor == null';
+
 	var clazz = constructor._clazz._jsClass;
 	var obj = new clazz();
 	return obj[constructor._internalName].apply(obj, args.data);
@@ -160,5 +162,21 @@ R.createLambda = function(ifc, callback) {
 		return callback.apply(this, Array.from(arguments));
 	};
 
+	return obj;
+};
+
+R.createAnnotation = function(ifc, values) {
+	var obj = new ifc();
+	var typeContext = ifc.$$JS_TYPE_CONTEXT$$;
+	var methods = typeContext.methods;
+	methods.forEach(function(method, n) {
+		var value = values[n];
+		//console.log(method + " : " + n + " : " + values[n]);
+		obj[method.id] = function() { return value; };
+	});
+	obj['{% METHOD java.lang.Object:toString %}'] = function() {
+		return {% SMETHOD com.jtransc.internal.JTranscAnnotationBase:toStaticString %}(this);
+	};
+	//console.log(obj);
 	return obj;
 };

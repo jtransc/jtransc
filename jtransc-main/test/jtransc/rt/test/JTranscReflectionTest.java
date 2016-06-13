@@ -3,20 +3,19 @@ package jtransc.rt.test;
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
-		assignableTest();
-		invokeTest();
 		annotationTest();
+		assignableTest();
+		annotationTypesTest();
+		invokeTest();
 		fieldTest();
 		arrayTest();
 		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
 		nullArgs();
-		annotationTypesTest();
 	}
 
 	static public char getC() {
@@ -24,14 +23,27 @@ public class JTranscReflectionTest {
 	}
 
 	static private void invokeTest() throws Throwable {
+		System.out.println("invokeTest:");
 		System.out.println(JTranscReflectionTest.class.getDeclaredMethod("getC").invoke(null).getClass());
 	}
 
 	static private void annotationTypesTest() {
+		System.out.println("annotationTypesTest:");
+		Annotation[] declaredAnnotations = TestAnnotationTypesClass.class.getDeclaredAnnotations();
+		System.out.println(declaredAnnotations.length);
+		System.out.println(declaredAnnotations[0] != null);
+		System.out.println(TestAnnotationTypes.class.isAssignableFrom(Annotation.class));
+		System.out.println(Annotation.class.isAssignableFrom(TestAnnotationTypes.class));
+		System.out.println(declaredAnnotations[0] instanceof Annotation);
+		System.out.println(declaredAnnotations[0] instanceof TestAnnotationTypes);
+		System.out.println("-");
+		//System.out.println(((TestAnnotationTypes)declaredAnnotations[0]).b());
+		//JTranscConsole.dump(declaredAnnotations[0]);
+
 		TestAnnotationTypes a = TestAnnotationTypesClass.class.getAnnotation(TestAnnotationTypes.class);
 		System.out.println(a.b());
 		System.out.println(a.c());
-		System.out.println((int)a.c());
+		System.out.println((int) a.c());
 		System.out.println(a.d());
 		System.out.println(a.f());
 		System.out.println(a.i());
@@ -45,16 +57,20 @@ public class JTranscReflectionTest {
 	}
 
 	static private void nullArgs() throws Throwable {
+		System.out.println("nullArgs:");
 		Constructor<MyDemoItem> constructor = MyDemoItem.class.getConstructor((Class[]) null);
 		MyDemoItem myDemoItem = constructor.newInstance((Object[]) null);
 		System.out.println(myDemoItem.a);
 	}
 
 	static private void annotationsInConstructorTest() {
+		System.out.println("annotationsInConstructorTest:");
 		Annotation[][] parameterAnnotations = Test.class.getConstructors()[0].getParameterAnnotations();
 		for (Annotation[] parameterAnnotation : parameterAnnotations) {
-			System.out.println("::");
+			System.out.println(":: " + parameterAnnotation.length);
+			//JTranscConsole.dump(parameterAnnotation);
 			for (Annotation annotation : parameterAnnotation) {
+				System.out.println(":: " + (annotation != null));
 				System.out.println(":: " + annotation.toString());
 			}
 		}
@@ -70,6 +86,7 @@ public class JTranscReflectionTest {
 	}
 
 	static public void arrayTest() {
+		System.out.println("arrayTest:");
 		int[] items = (int[]) Array.newInstance(Integer.TYPE, 10);
 		for (int n = 0; n < 10; n++) items[n] = n * 10;
 		System.out.println(items.length);
@@ -84,12 +101,15 @@ public class JTranscReflectionTest {
 	}
 
 	static public void assignableTest() {
+		System.out.println("assignableTest:");
 		Class[] classes = {A.class, B.class, I.class};
 		A.aCount = 0;
 		B.bCount = 0;
 		for (Class a : classes) {
 			for (Class b : classes) {
 				System.out.print(a.isAssignableFrom(b));
+				System.out.print(",");
+				System.out.print(b.isAssignableFrom(a));
 				System.out.print(",");
 			}
 			System.out.println();
@@ -99,6 +119,7 @@ public class JTranscReflectionTest {
 	}
 
 	static public void annotationTest() {
+		System.out.println("annotationTest:");
 		Singleton test1 = Test1.class.getAnnotation(Singleton.class);
 		Singleton test2 = Test2.class.getAnnotation(Singleton.class);
 		System.out.println(test1.declare());
@@ -112,6 +133,22 @@ public class JTranscReflectionTest {
 		//System.out.println(test1);
 		//System.out.println(test2);
 
+		{
+			InjectStore[] enumValues = InjectStore.values();
+			System.out.println(enumValues.length);
+			for (InjectStore enumValue : enumValues) {
+				System.out.println(enumValue.name());
+			}
+		}
+		{
+			//EnumDemo[] enumValues = EnumDemo.values();
+			//System.out.println(enumValues.length);
+			//for (EnumDemo enumValue : enumValues) {
+			//	System.out.println(enumValue.name());
+			//}
+		}
+
+		System.out.println(Enum.valueOf(EnumDemo.class, "BB").msg);
 		System.out.println(InjectStore.valueOf(EnumDemo.class, "BB").msg);
 
 		try {
@@ -125,14 +162,15 @@ public class JTranscReflectionTest {
 
 
 	static private void fieldTest() {
+		System.out.println("fieldTest:");
 		Class<FieldTestClass> clazz = FieldTestClass.class;
 		FieldTestClass instance = new FieldTestClass();
 		try {
 			System.out.println(clazz.getField("_byte").getClass());
 			System.out.println(clazz.getField("_byte").getDeclaringClass());
 			System.out.println(clazz.getField("_byte").getType());
-			clazz.getField("_byte").set(instance, (byte)7);
-			clazz.getField("_Byte").set(instance, (byte)7);
+			clazz.getField("_byte").set(instance, (byte) 7);
+			clazz.getField("_Byte").set(instance, (byte) 7);
 			clazz.getField("_int").set(instance, 7);
 			clazz.getField("_Integer").set(instance, 7);
 
@@ -173,8 +211,13 @@ public class JTranscReflectionTest {
 		}
 	}
 
-	@Singleton static public class Test1 {}
-	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.REQUEST, b = "BB") static public class Test2 {}
+	@Singleton
+	static public class Test1 {
+	}
+
+	@Singleton(declare = InjectStore.DECLARE, store = InjectStore.REQUEST, b = "BB")
+	static public class Test2 {
+	}
 }
 
 class A extends B {
@@ -232,6 +275,7 @@ class ATest1<A, B> {
 			return new ATest3<>();
 		}
 	}
+
 	public ATest2<B> new2() {
 		return new ATest2<>();
 	}
@@ -245,6 +289,7 @@ class ATest1<A, B> {
 	InjectStore store() default InjectStore.DECLARE;
 
 	String a() default "a";
+
 	String b() default "b";
 }
 
@@ -267,11 +312,13 @@ enum EnumDemo {
 class TestDeprecatedExample {
 	@TestDeprecated(replaceWith = @TestReplaceWith(value = "test", imports = {"a"}))
 	public void demo() {
+		System.out.println("new TestDeprecatedExample().demo():");
 	}
 }
 
 @interface TestReplaceWith {
 	String value();
+
 	String[] imports() default {};
 }
 
@@ -292,11 +339,17 @@ class TestDeprecatedExample {
 @Retention(RetentionPolicy.RUNTIME)
 @interface TestAnnotationTypes {
 	boolean z();
+
 	byte b();
+
 	short s();
+
 	char c();
+
 	int i();
+
 	float f();
+
 	double d();
 }
 

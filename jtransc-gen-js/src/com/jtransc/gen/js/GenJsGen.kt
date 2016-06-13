@@ -191,8 +191,8 @@ class GenJsGen(
 				null -> "null"
 				is AstAnnotation -> annotation(it)
 				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
-				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
+				is AstFieldRef -> names.getJsClassFqNameForCalling(it.containingTypeRef.name) + "[" + it.haxeName.quote() + "]"
+				is AstFieldWithoutTypeRef -> names.getJsClassFqNameForCalling(program[it.containingClass].ref.name) + "[" + program[it].haxeName.quote() + "]"
 				is String -> "N.boxString(${it.quote()})"
 				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
@@ -202,9 +202,11 @@ class GenJsGen(
 		}
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 		val annotation = program.get3(a.type)
-		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
+		val itStr = annotation.methods.map {
+			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
+		}.joinToString(", ")
 		//return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
-		return "new ${names.getJsClassFqNameForCalling(a.type.name)}([$itStr])"
+		return "R.createAnnotation(${names.getJsClassFqNameForCalling(a.type.name)}, [$itStr])"
 	}
 
 	fun annotationInit(a: AstAnnotation): List<AstType.REF> {
@@ -230,10 +232,10 @@ class GenJsGen(
 	fun _visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { _visibleAnnotations(it) }.joinToString(", ") + "]"
 
 	fun visibleAnnotations(annotations: List<AstAnnotation>): String {
-		return "function() { return " + _visibleAnnotations(annotations) + "; }"
+		return "function() { ${annotationsInit(annotations)} return " + _visibleAnnotations(annotations) + "; }"
 	}
 	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String {
-		return "function() { return " + _visibleAnnotationsList(annotations) + "; }"
+		return "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
 	}
 
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
@@ -462,6 +464,15 @@ class GenJsGen(
 			is AstExpr.THIS -> "this"
 			is AstExpr.LITERAL -> {
 				val value = e.value
+
+				// @TODO: Move this outside, iterating the AST an external tool should be able to detect before which things
+				// @TODO: must be initialized.
+				if (value is AstType) {
+					for (fqName in value.getRefClasses()) {
+						mutableBody.initClassRef(fqName, "class literal")
+					}
+				}
+
 				if (value is String) {
 					"S[" + names.allocString(value) + "]"
 				} else {

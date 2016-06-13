@@ -18,6 +18,9 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
 	static public void log(Object v) { System.out.println(v); }
 
+	@JTranscMethodBody(target = "js", value = "console.log(p0);")
+	static public void dump(Object v) { System.out.println(v); }
+
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
 	static public void log(boolean v) { System.out.println(v); }
@@ -38,7 +41,7 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
 	static public void log(int v) { System.out.println(v); }
 
-	@HaxeMethodBody("_log(p0);")
+	@HaxeMethodBody("_log('Int64(' + p0.high + ',' + p0.low + ')');")
 	@JTranscMethodBody(target = "js", value = "console.log('Int64(' + p0.high + ',' + p0.low + ')');")
 	static public void log(long v) { System.out.println("Int64(" + (int)(v >> 32) + "," + (int)(v >> 0) + ")"); }
 

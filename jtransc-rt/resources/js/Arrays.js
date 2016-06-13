@@ -152,4 +152,33 @@ function __createJavaArrays() {
 		}
 		return out;
 	};
+
+	 JA_L.create = function(size, desc) {
+		switch (desc) {
+			case "[Z": return new JA_Z(size);
+			case "[B": return new JA_B(size);
+			case "[C": return new JA_C(size);
+			case "[S": return new JA_S(size);
+			case "[I": return new JA_I(size);
+			case "[J": return new JA_J(size);
+			case "[F": return new JA_F(size);
+			case "[D": return new JA_D(size);
+			default: return new JA_L(size, desc);
+		}
+	};
+
+	JA_L.fromArray1 = function(items, desc) {
+		if (items == null) return null;
+		var out = JA_L.create(items.length, desc);
+		for (var n = 0; n < items.length; n++) out.set(n, items[n]);
+		return out;
+	}
+
+	JA_L.fromArray2 = function(items, desc) {
+		if (items == null) return null;
+		var out = new JA_L(items.length, desc);
+		for (var n = 0; n < items.length; n++) out.set(n, JA_L.fromArray1(items[n], desc.substr(1)));
+		return out;
+	};
+
 }
