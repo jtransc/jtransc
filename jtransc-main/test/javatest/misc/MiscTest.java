@@ -7,6 +7,7 @@ import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
 import javatest.lang.BasicTypesTest;
+import jtransc.bug.JTranscRegression3Test;
 import jtransc.jtransc.FastMemoryTest;
 import jtransc.rt.test.JTranscReflectionTest;
 
@@ -157,6 +158,8 @@ public class MiscTest {
 		testRegex();
 
 		JTranscReflectionTest.main(new String[0]);
+
+		JTranscRegression3Test.main(new String[0]);
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
@@ -337,6 +340,8 @@ public class MiscTest {
 		JTranscConsole.log(o.s);
 		JTranscConsole.log(o.c);
 		JTranscConsole.log(o.i);
+		JTranscConsole.log(o.i2);
+		JTranscConsole.log(o.i3);
 		System.out.println(o.j);
 		System.out.println(o.f);
 		System.out.println(o.d);
@@ -356,7 +361,7 @@ public class MiscTest {
 		JTranscConsole.log(DefaultValuesClassStatic.obj);
 	}
 
-	static private class DefaultValuesClass {
+	static private class DefaultValuesClass extends DefaultValuesClassParent {
 		public boolean z;
 		public byte b;
 		public short s;
@@ -366,6 +371,11 @@ public class MiscTest {
 		public float f;
 		public double d;
 		public Object obj;
+	}
+
+	static private class DefaultValuesClassParent {
+		public int i2 = 10;
+		public int i3;
 	}
 
 	static private class DefaultValuesClassStatic {
@@ -1097,8 +1107,39 @@ public class MiscTest {
 		//System.out.println("charset array length:" + data.array().length);
 		byte[] message = Arrays.copyOf(data.array(), data.limit());
 		System.out.println("charset message length:" + message.length);
-
 	}
+
+	static public class JTranscRegression3Test {
+		char a = 10;
+
+		static public void main(String[] args) {
+			new jtransc.bug.JTranscRegression3Test().main2(args);
+		}
+
+		public void main2(String[] args) {
+			JTranscRegression3Test.A a = new JTranscRegression3Test.A();
+			a.test();
+			System.out.println(this.a);
+			System.out.println(a.a);
+			System.out.println(a.getA());
+		}
+
+		class A extends JTranscRegression3Test.B {
+			public String a = "one";
+			public void test() {
+				JTranscRegression3Test.this.a = 'A';
+			}
+		}
+
+		class B {
+			public int a = 1;
+			public int getA() { return a; }
+			public void test() {
+				JTranscRegression3Test.this.a = 'B';
+			}
+		}
+	}
+
 }
 
 @SuppressWarnings("all")

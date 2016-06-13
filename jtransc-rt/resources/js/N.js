@@ -119,6 +119,7 @@ N.strLit = function(str) {
 };
 
 N.strArray = function(strs) {
+	if (strs == null) return null;
 	var out = new JA_L(strs.length, '[Ljava/lang/String;');
 	for (var n = 0; n < strs.length; n++) {
 		out.set(n, N.str(strs[n]));

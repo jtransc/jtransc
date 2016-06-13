@@ -1,6 +1,7 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
+import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.MinimizedNames
@@ -43,11 +44,6 @@ val HaxeSpecial = setOf(
 )
 
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
-
-inline fun <T1, T2> MutableMap<T1, T2>.getOrPut2(key: T1, generator: () -> T2): T2 {
-	if (key !in this) this[key] = generator()
-	return this[key]!!
-}
 
 class HaxeNames(
 	val program: AstResolver,

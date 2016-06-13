@@ -36,7 +36,13 @@ var TypeContext = function (internalName, name, flags, parent, interfaces) {
 	this.initialized = false;
 	this.name = name;
 	this.flags = flags;
-	this.clazz = function() { this.$instanceInit(); };
+	var clazz = function() {
+		if (clazz.$js$super) {
+			clazz.$js$super.call(this);
+		}
+		clazz.$instanceInit.call(this);
+	};
+	this.clazz = clazz;
 	Object.defineProperty(this.clazz.prototype, "name", { value: name });
 	//this.clazz.prototype.name = name;
 	this.parent = parent;
@@ -98,7 +104,7 @@ TypeContext.prototype.completeTypeFirst = function() {
 	this.instanceInit = new Function(inits[0]);
 
 	this.staticMethodsBody['$staticInit'] = this.staticInit;
-	this.instanceMethodsBody['$instanceInit'] = this.instanceInit;
+	this.staticMethodsBody['$instanceInit'] = this.instanceInit;
 };
 
 ProgramContext.prototype.registerType = function(internalName, name, flags, parent, interfaces, callback) {
@@ -198,6 +204,7 @@ ProgramContext.prototype.getType = function(clazzName) {
 			if (!parentClazz) throw 'No parentClazz: ' + clazzInfo.parent;
 
 			clazz.prototype = $extend(parentClazz.prototype, clazzInfo.instanceMethodsBody);
+			clazz.$js$super = parentClazz;
 
 			allInterfaces = allInterfaces.concat(parentClazzInfo.allInterfaces);
 			allAncestors = allAncestors.concat(parentClazzInfo.allAncestors);
@@ -205,6 +212,7 @@ ProgramContext.prototype.getType = function(clazzName) {
 		// Interfaces and java.lang.Object
 		else {
 			clazz.prototype = clazzInfo.instanceMethodsBody;
+			clazz.$js$super = null;
 
 			// java.lang.Object
 			if (clazzName == "java.lang.Object") {

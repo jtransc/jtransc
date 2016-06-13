@@ -1,9 +1,16 @@
 package com.jtransc.gen.js
 
 import com.jtransc.ast.*
+import com.jtransc.ds.getOrPut2
+import com.jtransc.error.unexpected
 import com.jtransc.text.Indenter
 import com.jtransc.text.escape
 import com.jtransc.text.quote
+
+
+val JsKeywordsWithToStringAndHashCode = setOf(
+	"name", "constructor", "prototype", "__proto__"
+)
 
 class JsNames(val program: AstProgram, val minimize: Boolean) {
 	private var lastStringId = 0;
@@ -21,7 +28,37 @@ class JsNames(val program: AstProgram, val minimize: Boolean) {
 		return T::class.java.name
 	}
 
-	fun getJsFieldName(field: AstField): String = "_" + field.uniqueName
+	private val fieldNames = hashMapOf<Any?, String>()
+	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
+
+	fun getJsFieldName(field: AstField): String {
+		//"_" + field.uniqueName
+
+		val fieldRef = field.ref
+		val keyToUse = field.ref
+
+		return fieldNames.getOrPut2(keyToUse) {
+			if (fieldRef !in cachedFieldNames) {
+				val fieldName = field.name.replace('$', '_')
+				//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+				var name = "_$fieldName"
+
+				val clazz = program[fieldRef]?.containingClass
+				val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
+				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getJsFieldName(it.ref) }.toHashSet()
+				val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field.ref)
+
+				// JTranscBugInnerMethodsWithSameName.kt
+				for (f2 in fieldsColliding) {
+					while (name in names) name += "_"
+					cachedFieldNames[f2] = name
+					names += name
+				}
+				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+			}
+			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+		}
+	}
 	fun getJsFieldName(field: AstFieldRef): String = getJsFieldName(program[field])
 
 	fun escapeConstant(value: Any?, type: AstType): String {

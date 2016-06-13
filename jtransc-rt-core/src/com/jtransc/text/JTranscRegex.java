@@ -1,11 +1,11 @@
 package com.jtransc.text;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.util.ArrayList;
-import java.util.regex.MatchResult;
 
 // Small footprint regular expressions used by String, not requiring full Pattern/Matcher
 public class JTranscRegex {
@@ -62,7 +62,12 @@ public class JTranscRegex {
 			ArrayList<String> matchList = new ArrayList<String>();
 			Matcher m = matcher(input);
 
+			//int count = 1000;
 			while (m.find()) {
+				//System.out.println(m.start() + ":" + m.end());
+				//if (count-- <= 0) {
+				//	throw new RuntimeException("error!");
+				//}
 				if (!matchLimited || matchList.size() < limit - 1) {
 					if (index == 0 && index == m.start() && m.start() == m.end()) continue;
 					String match = input.subSequence(index, m.start()).toString();
@@ -136,32 +141,27 @@ public class JTranscRegex {
 			"\t}\n" +
 			"\treturn this._matches;\n" +
 			"}"
-		//public static final int UNIX_LINES = 0x01;
-		//public static final int CASE_INSENSITIVE = 0x02;
-		//public static final int COMMENTS = 0x04;
-		//public static final int MULTILINE = 0x08;
-		//public static final int LITERAL = 0x10;
-		//public static final int DOTALL = 0x20;
-		//public static final int UNICODE_CASE = 0x40;
-		//public static final int CANON_EQ = 0x80;
-		//public static final int UNICODE_CHARACTER_CLASS = 0x100;
-		//i case insensitive matching
-		//g global replace or split, see below
-		//m multiline matching, ^ and $ represent the beginning and end of a line
-		//s the dot . will also match newlines (Neko, C++, PHP, Flash and Java targets only)
-		//u use UTF-8 matching (Neko and C++ targets only)
 	})
 	static public final class Matcher {
 		private Pattern parent;
 		private String pattern;
 		private int flags;
+		private String flagsString;
 		private String text;
+		private String subtext;
+		private int matchStart = 0;
+		private int matchEnd = 0;
+		//private String[] groups = null;
 
 		Matcher(Pattern parent, CharSequence text) {
 			this.parent = parent;
 			this.pattern = parent.pattern();
 			this.flags = parent.flags();
 			this.text = text.toString();
+			this.subtext = this.text;
+			flagsString = "";
+			if ((flags & 0x02) != 0) flagsString += "i";
+			if ((flags & 0x08) != 0) flagsString += "m";
 			_init();
 		}
 
@@ -179,6 +179,10 @@ public class JTranscRegex {
 			"this._ereg = new EReg(pattern._str, opts);\n" +
 			"this._matches = (new EReg('^' + pattern._str + '$', opts)).match(text._str);"
 		)
+		@JTranscMethodBody(target = "js", value = {
+			"this._ereg = new RegExp(N.istr(this._pattern), N.istr(this._flagsString + 'g'));",
+
+		})
 		private void _init() {
 		}
 
@@ -187,7 +191,9 @@ public class JTranscRegex {
 		}
 
 		@HaxeMethodBody("return this._matchPos;")
-		native public int start();
+		public int start() {
+			return this.matchStart;
+		}
 
 		public int start(int group) {
 			if (group == 0) return start();
@@ -196,7 +202,9 @@ public class JTranscRegex {
 		}
 
 		@HaxeMethodBody("return this._matchPos + this._matchLen;")
-		native public int end();
+		public int end() {
+			return this.matchEnd;
+		}
 
 		public int end(int group) {
 			if (group == 0) return end();
@@ -205,26 +213,58 @@ public class JTranscRegex {
 		}
 
 		@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(0));")
-		native public String group();
+		public String group() {
+			return group(0);
+		}
 
 		@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(p0));")
+		@JTranscMethodBody(target = "js", value = "return N.str(this._groups[p0]);")
 		native public String group(int group);
 
 		@HaxeMethodBody("return this._matches;")
+		@JTranscMethodBody(target = "js", value = "return (new RegExp('^' + N.istr(this._pattern) + '$', opts)).test(N.istr(this._text));")
 		native public boolean matches();
 
 		@HaxeMethodBody("return _find();")
-		native public boolean find();
+		public boolean find() {
+			return _find();
+		}
 
 		@HaxeMethodBody("this._offset = p0; return _find();")
-		native public boolean find(int start);
+		public boolean find(int start) {
+			this.subtext = text.substring(start);
+			return _find();
+		}
+
+		@JTranscMethodBody(target = "js", value = {
+			"this._groups = this._ereg.exec(N.istr(this._subtext));",
+			"this._matchStart = (this._groups) ? this._groups.index : -1;",
+			"this._matchEnd   = this._ereg.lastIndex;",
+			"return this._groups != null;",
+		})
+		native private boolean _find();
 
 		@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
+		@JTranscMethodBody(target = "js", value = "return N.str(new RegExp(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
 		native public String replaceAll(String replacement);
 
 		@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts).replace(this._text, p0._str));")
+		@JTranscMethodBody(target = "js", value = "return N.str(new RegExp(this._pattern, this._opts).replace(this._text, p0._str));")
 		native public String replaceFirst(String replacement);
-
 	}
+	//public static final int UNIX_LINES = 0x01;
+	//public static final int CASE_INSENSITIVE = 0x02;
+	//public static final int COMMENTS = 0x04;
+	//public static final int MULTILINE = 0x08;
+	//public static final int LITERAL = 0x10;
+	//public static final int DOTALL = 0x20;
+	//public static final int UNICODE_CASE = 0x40;
+	//public static final int CANON_EQ = 0x80;
+	//public static final int UNICODE_CHARACTER_CLASS = 0x100;
+	//i case insensitive matching
+	//g global replace or split, see below
+	//m multiline matching, ^ and $ represent the beginning and end of a line
+	//s the dot . will also match newlines (Neko, C++, PHP, Flash and Java targets only)
+	//u use UTF-8 matching (Neko and C++ targets only)
 }
 

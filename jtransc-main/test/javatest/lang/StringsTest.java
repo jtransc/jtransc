@@ -1,5 +1,7 @@
 package javatest.lang;
 
+import com.jtransc.text.JTranscRegex;
+
 import java.util.Arrays;
 
 public class StringsTest {
