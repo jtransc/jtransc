@@ -5,6 +5,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -29,6 +30,12 @@ public class JTranscReflection {
 	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Method method) {
 		return method.getName();
+	}
+
+	@HaxeMethodBody("return N.str(p0._internalName);")
+	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
+	static public String getInternalName(Field field) {
+		return field.getName();
 	}
 
 	static private class ClasspathScanner {

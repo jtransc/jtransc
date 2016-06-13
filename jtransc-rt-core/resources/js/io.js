@@ -69,6 +69,8 @@ IO.Stream.prototype.close = function() {
 };
 
 IO.Stream.prototype.read = function(data, offset, length) {
+	if (offset < 0 || offset >= this.length) return -1;
+	if (length == 0) return 0;
 	var buffer = new Buffer(length);
 	var readed = fs.readSync(this.fd, buffer, offset, length, this.position);
 	if (readed > 0) this.position += readed;
