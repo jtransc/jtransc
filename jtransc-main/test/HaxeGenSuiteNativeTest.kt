@@ -73,7 +73,7 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 	""", minimize = false, debug = true, target = JsTarget)
 
 	@Test fun JTranscInternalNamesHaxe() = testNativeClass<JTranscInternalNames>("""
-		jtransc.jtransc.JTranscInternalNames_
+		jtransc_jtransc_JTranscInternalNames_$
 		main__Ljava_lang_String__V
 	""", minimize = false, debug = true, target = HaxeTarget)
 
@@ -81,7 +81,4 @@ class HaxeGenSuiteNativeTest : HaxeTestBase() {
 		jtransc_jtransc_JTranscInternalNames
 		main([Ljava/lang/String;)V
 	""", minimize = false, debug = true, target = JsTarget)
-
-
 }
-
