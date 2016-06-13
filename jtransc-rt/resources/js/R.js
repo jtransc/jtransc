@@ -110,3 +110,32 @@ R.newInstance = function(constructor, args) {
 	var obj = new clazz();
 	return obj[constructor._internalName].apply(obj, args.data);
 };
+
+R.newProxyInstance = function(ifc, invocationHandler) {
+	var javaClass   = N.resolveClass(N.istr(ifc._name));
+	var typeContext = jtranscTypeContext[N.istr(ifc._name)];
+
+	if (!typeContext.proxyClass) {
+		typeContext.proxyClass = function(__invocationHandler) {
+			this.__invocationHandler = __invocationHandler;
+		};
+
+		typeContext.proxyClass.prototype = $extend(typeContext.clazz.prototype, {});
+
+		javaClass._methods.forEach(function(method) {
+			typeContext.proxyClass.prototype[method._internalName] = function() {
+				return N.box(invocationHandler["{% METHOD java.lang.reflect.InvocationHandler:invoke %}"].call(
+					invocationHandler,
+					this,
+					method,
+					N.boxArray(Array.from(arguments))
+				));
+			};
+			//console.log(it.id);
+		});
+		//console.log(typeContext.methods);
+		//console.log(typeContext._methods);
+	}
+	//throw 'WIP';
+	return new typeContext.proxyClass(invocationHandler);
+};

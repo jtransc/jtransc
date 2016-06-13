@@ -5,8 +5,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class ProxyTest {
+	// @TODO: Check that boxing works fine!
+
 	static public void main(String[] args) throws Throwable {
-		A a = (A)Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{A.class}, new InvocationHandler() {
+		final A a = (A)Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{A.class}, new InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 				System.out.println(proxy != null);

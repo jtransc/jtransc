@@ -313,7 +313,12 @@ N.unboxArray = function(array) {
 	return array.map(function(it) { return N.unbox(it); });
 };
 
+N.boxArray = function(array) {
+	return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
+};
+
 N.box = function(v) {
+	if (v instanceof java_lang_Object) return v; // already boxed!
 	if (v instanceof Int64) return N.boxLong(v);
 	if (typeof v == 'string') return N.str(v);
 	if ((v|0) == v) return N.boxInt(v);
