@@ -28,8 +28,8 @@
 		<relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>jtransc-gen-haxe</artifactId>
-    <name>jtransc gen haxe</name>
+    <artifactId>jtransc-gen-common</artifactId>
+    <name>jtransc gen common</name>
 
     <dependencies>
 		<dependency>
@@ -60,11 +60,6 @@
             <artifactId>jtransc-core</artifactId>
             <version>${jtransc.version}</version>
         </dependency>
-		<dependency>
-			<groupId>com.jtransc</groupId>
-			<artifactId>jtransc-gen-common</artifactId>
-			<version>${jtransc.version}</version>
-		</dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-all</artifactId>

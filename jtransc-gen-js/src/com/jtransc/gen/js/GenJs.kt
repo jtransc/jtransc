@@ -6,12 +6,15 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.common.CommonProgramInfo
+import com.jtransc.gen.common.ProgramTemplate
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.quote
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
+import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.parent
 import java.io.File
 
@@ -26,124 +29,21 @@ object GenJs : GenTarget {
 	}
 }
 
-data class JsProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val source: String, val sourceMap: String?) {
+data class JsProgramInfo(
+	override val entryPointClass: FqName,
+	override val entryPointFile: String,
+	val source: String,
+	val sourceMap: String?
+	//override val vfs: SyncVfsFile
+) : CommonProgramInfo {
 	//fun getEntryPointFq(program: AstProgram) = getHaxeClassFqName(program, entryPointClass)
 }
 
 
 val JsFeatures = setOf(SwitchesFeature)
 
-// @TODO: This is DUPLICATED in haxe and here!! move to a common place!!
-class JsTemplateString(val names: JsNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings) {
-	val params = hashMapOf(
-		//"srcFolder" to srcFolder.realpathOS,
-		//"buildFolder" to srcFolder.parent.realpathOS,
-		//"haxeExtraFlags" to program.haxeExtraFlags(settings),
-		//"haxeExtraDefines" to program.haxeExtraDefines(settings),
-		//"actualSubtarget" to actualSubtarget,
-		//"outputFile" to outputFile2.absolutePath,
-		"release" to tinfo.settings.release,
-		"debug" to !tinfo.settings.release,
-		"releasetype" to if (tinfo.settings.release) "release" else "debug",
-		"settings" to settings,
-		"title" to settings.title,
-		"name" to settings.name,
-		"package" to settings.package_,
-		"version" to settings.version,
-		"company" to settings.company,
-		"initialWidth" to settings.initialWidth,
-		"initialHeight" to settings.initialHeight,
-		"orientation" to settings.orientation.lowName,
-		//"tempAssetsDir" to mergedAssetsDir.absolutePath, // @deprecated
-		//"mergedAssetsDir" to mergedAssetsDir.absolutePath,
-		"embedResources" to settings.embedResources,
-		"assets" to settings.assets,
-		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive(),
-		"hasIcon" to !settings.icon.isNullOrEmpty(),
-		"icon" to settings.icon,
-		"libraries" to settings.libraries,
-		"extra" to settings.extra
-	)
+class JsTemplateString(names: JsNames, tinfo: GenTargetInfo, settings: AstBuildSettings) : ProgramTemplate(names, tinfo, settings) {
 
-	class ProgramRefNode(val ts: JsTemplateString, val type:String, val desc:String) : Minitemplate.BlockNode {
-
-		override fun eval(context: Minitemplate.Context) {
-			context.write(ts.evalReference(type, desc))
-		}
-	}
-
-	val miniConfig = Minitemplate.Config(
-		extraTags = listOf(
-			Minitemplate.Tag(
-				":programref:", setOf(), null,
-				aliases = listOf(
-					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
-					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
-				)
-			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
-			//, Minitemplate.Tag("copyfile", setOf(), null) {
-			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
-			//}
-		),
-		extraFilters = listOf(
-		)
-	)
-
-	fun gen(template: String, context: AstGenContext, type: String): String {
-		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");
-		return Minitemplate(template, miniConfig).invoke(params)
-	}
-
-	fun setExtraData(mapOf: Map<String, String>) {
-		this.params.putAll(mapOf)
-		//throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	fun setProgramInfo(info: JsProgramInfo) {
-		//throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-		params["entryPointFile"] = info.entryPointFile
-		params["entryPointClass"] = names.getJsClassFqName(info.entryPointClass)
-	}
-
-	private fun getOrReplaceVar(name:String):String {
-		val out = if (name.startsWith("#")) {
-			params[name.substring(1)].toString()
-		} else {
-			name
-		}
-		return out
-	}
-
-	private fun evalReference(type: String, desc: String): String {
-		val dataParts = desc.split(':').map { getOrReplaceVar(it) }
-		val desc2 = dataParts.joinToString(":")
-		val clazz = names.program[dataParts[0].fqname]
-		return when (type.toUpperCase()) {
-			"SINIT" -> {
-				names.getJsClassStaticInit(clazz.ref, "template sinit")
-			}
-			"CONSTRUCTOR" -> {
-				"new ${names.getJsClassFqNameForCalling(clazz.name)}()[${names.getJsMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1]))).quote()}]"
-			}
-			"SMETHOD", "METHOD" -> {
-				val methodName = if (dataParts.size >= 3) {
-					names.getJsMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
-				} else {
-					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
-					if (methods.isEmpty()) invalidOp("Can't find method $desc2")
-					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
-					names.getJsMethodName(methods.first())
-				}
-				if (type == "SMETHOD") names.getJsClassFqNameForCalling(clazz.name) + "[" + methodName.quote() + "]" else methodName
-			}
-			"SFIELD", "FIELD" -> {
-				val fieldName = names.getJsFieldName(clazz.fieldsByName[dataParts[1]] ?: invalidOp("Can't find field $desc"))
-				if (type == "SFIELD") names.getJsClassFqNameForCalling(clazz.name) + "[" + fieldName.quote() + "]" else fieldName
-			}
-			"CLASS" -> names.getJsClassFqNameForCalling(clazz.name)
-			else -> invalidOp("Unknown type!")
-		}
-	}
 }
 
 val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")

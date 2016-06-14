@@ -5,6 +5,7 @@ import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.MinimizedNames
+import com.jtransc.gen.common.CommonNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 
@@ -46,9 +47,33 @@ val HaxeSpecial = setOf(
 val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
 
 class HaxeNames(
-	val program: AstResolver,
+	override val program: AstResolver,
 	val minimize: Boolean = false
-) {
+) : CommonNames {
+	override fun buildConstructor(method: AstMethod): String {
+		return "new ${getHaxeClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
+	}
+
+	override fun buildStaticInit(clazz: AstClass): String {
+		return getHaxeClassStaticInit(clazz.ref, "template sinit")
+	}
+
+	override fun buildMethod(method: AstMethod, static: Boolean): String {
+		val clazz = getHaxeClassFqName(method.containingClass.name)
+		val name = getHaxeMethodName(method)
+		return if (static) "$clazz.$name" else "$name"
+	}
+
+	override fun buildField(field: AstField, static: Boolean): String {
+		val clazz = getHaxeClassFqName(field.containingClass.name)
+		val name = getHaxeFieldName(field)
+		return if (static) "$clazz.$name" else "$name"
+	}
+
+	override fun buildTemplateClass(clazz: FqName): String = getHaxeClassFqName(clazz)
+
+	override fun buildTemplateClass(clazz: AstClass): String = getHaxeClassFqName(clazz.name)
+
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	//val ENABLED_MINIFY = false

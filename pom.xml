@@ -78,6 +78,7 @@
         <module>jtransc-rt</module>
         <module>jtransc-utils</module>
         <module>jtransc-core</module>
+		<module>jtransc-gen-common</module>
         <module>jtransc-gen-haxe</module>
 		<module>jtransc-gen-js</module>
         <module>jtransc-main</module>

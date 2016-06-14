@@ -15,6 +15,7 @@ public class BasicTypesTest {
 		integerTests();
 		longTests();
 		swapTests();
+		checkNanInf();
 	}
 
 	private static void swapTests() {
@@ -330,5 +331,30 @@ public class BasicTypesTest {
 
 		//System.out.println(Float.toHexString(12345.125f));
 		//System.out.println(Double.toHexString(12345.125f));
+	}
+
+	static private void checkNanInf() {
+		System.out.println("checkNanInf:");
+		float[] floats = new float[] { 0, 6f, -Float.NaN, Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY };
+		double[] doubles = new double[] { 0, 6.35, -Float.NaN, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+
+		for (float v : floats) {
+			System.out.print(v);
+			System.out.print(":");
+			System.out.print(Float.isNaN(v));
+			System.out.print(Float.isFinite(v));
+			System.out.print(Float.isInfinite(v));
+			System.out.print(",");
+		}
+		System.out.println();
+		for (double v : doubles) {
+			System.out.print(v);
+			System.out.print(":");
+			System.out.print(Double.isNaN(v));
+			System.out.print(Double.isFinite(v));
+			System.out.print(Double.isInfinite(v));
+			System.out.print(",");
+		}
+		System.out.println();
 	}
 }

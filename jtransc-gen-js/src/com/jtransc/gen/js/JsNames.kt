@@ -2,7 +2,9 @@ package com.jtransc.gen.js
 
 import com.jtransc.ast.*
 import com.jtransc.ds.getOrPut2
+import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
+import com.jtransc.gen.common.CommonNames
 import com.jtransc.text.Indenter
 import com.jtransc.text.escape
 import com.jtransc.text.quote
@@ -12,7 +14,40 @@ val JsKeywordsWithToStringAndHashCode = setOf(
 	"name", "constructor", "prototype", "__proto__"
 )
 
-class JsNames(val program: AstProgram, val minimize: Boolean) {
+class JsNames(
+	override val program: AstProgram,
+	val minimize: Boolean
+) : CommonNames {
+	override fun buildTemplateClass(clazz: FqName): String {
+		return getJsClassFqNameForCalling(clazz)
+	}
+
+	override fun buildTemplateClass(clazz: AstClass): String {
+		return getJsClassFqNameForCalling(clazz.name)
+	}
+
+	override fun buildField(field: AstField, static: Boolean): String {
+		val clazz = getJsClassFqNameForCalling(field.containingClass.name)
+		val fieldName = getJsFieldName(field)
+		return if (static) "$clazz[${fieldName.quote()}]" else fieldName
+	}
+
+	override fun buildMethod(method: AstMethod, static: Boolean): String {
+		val clazz = getJsClassFqNameForCalling(method.containingClass.name)
+		val name = getJsMethodName(method)
+		return if (static) "$clazz[${name.quote()}]" else name
+	}
+
+	override fun buildStaticInit(clazz: AstClass): String {
+		return getJsClassStaticInit(clazz.ref, "template sinit")
+	}
+
+	override fun buildConstructor(method: AstMethod): String {
+		val clazz = getJsClassFqNameForCalling(method.containingClass.name)
+		val methodName = getJsMethodName(method)
+		return "new $clazz()[${methodName.quote()}]"
+	}
+
 	private var lastStringId = 0;
 	val allocatedStrings = hashMapOf<String, Int>()
 

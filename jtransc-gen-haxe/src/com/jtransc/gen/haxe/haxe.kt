@@ -28,6 +28,8 @@ import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.common.CommonProgramInfo
+import com.jtransc.gen.common.ProgramTemplate
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
@@ -128,43 +130,16 @@ val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}
 val cmpvfs: SyncVfsFile by lazy { HaxeCompiler.ensureHaxeCompilerVfs() }
 
 // @TODO: Make this generic!
-class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val settings: AstBuildSettings, val actualSubtarget: HaxeAddSubtarget) {
-	val program = tinfo.program
-	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-	val mergedAssetsDir = tinfo.mergedAssetsFolder
-	val tempdir = tinfo.targetDirectory
+class HaxeTemplateString(
+	names: HaxeNames,
+	tinfo: GenTargetInfo,
+	settings: AstBuildSettings,
+	val actualSubtarget: HaxeAddSubtarget
+)
+: ProgramTemplate(names, tinfo, settings)
+{
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
-
-	val params = hashMapOf(
-		"srcFolder" to srcFolder.realpathOS,
-		"buildFolder" to srcFolder.parent.realpathOS,
-		"haxeExtraFlags" to program.haxeExtraFlags(settings),
-		"haxeExtraDefines" to program.haxeExtraDefines(settings),
-		"actualSubtarget" to actualSubtarget,
-		"outputFile" to outputFile2.absolutePath,
-		"release" to tinfo.settings.release,
-		"debug" to !tinfo.settings.release,
-		"releasetype" to if (tinfo.settings.release) "release" else "debug",
-		"settings" to settings,
-		"title" to settings.title,
-		"name" to settings.name,
-		"package" to settings.package_,
-		"version" to settings.version,
-		"company" to settings.company,
-		"initialWidth" to settings.initialWidth,
-		"initialHeight" to settings.initialHeight,
-		"orientation" to settings.orientation.lowName,
-		"tempAssetsDir" to mergedAssetsDir.absolutePath, // @deprecated
-		"mergedAssetsDir" to mergedAssetsDir.absolutePath,
-		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive(),
-		"embedResources" to settings.embedResources,
-		"assets" to settings.assets,
-		"hasIcon" to !settings.icon.isNullOrEmpty(),
-		"icon" to settings.icon,
-		"libraries" to settings.libraries,
-		"extra" to settings.extra
-	)
-
+	val mergedAssetsDir = tinfo.mergedAssetsFolder
 
 	init {
 		HaxeCompiler.ensureHaxeSubtarget(actualSubtarget.name)
@@ -190,92 +165,14 @@ class HaxeTemplateString(val names: HaxeNames, val tinfo: GenTargetInfo, val set
 				{% end %}
 			""").invoke(params)
 		}
+		params["actualSubtarget"] = actualSubtarget
+		params["tempAssetsDir"] = mergedAssetsDir.absolutePath // @deprecated
+		params["mergedAssetsDir"] = mergedAssetsDir.absolutePath
+		params["srcFolder"] = srcFolder.realpathOS
+		params["buildFolder"] = srcFolder.parent.realpathOS
+		params["haxeExtraFlags"] = program.haxeExtraFlags(settings)
+		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
 	}
-
-	fun setProgramInfo(info: GenHaxe.ProgramInfo) {
-		params["entryPointFile"] = info.entryPointFile
-		params["entryPointClass"] = names.getHaxeClassFqName(info.entryPointClass)
-	}
-
-	fun setExtraData(map: Map<String, Any?>) {
-		for ((key, value) in map) {
-			this.params[key] = value
-		}
-	}
-
-	// @TODO: Common with JS
-	private fun getOrReplaceVar(name:String):String {
-		val out = if (name.startsWith("#")) {
-			params[name.substring(1)].toString()
-		} else {
-			name
-		}
-		return out
-	}
-
-	private fun evalReference(type: String, desc: String): String {
-		val dataParts = desc.split(':').map { getOrReplaceVar(it) }
-		val desc2 = dataParts.joinToString(":")
-		if (!names.program.contains(dataParts[0].fqname)) invalidOp("Can't find $desc2")
-		val clazz = names.program[dataParts[0].fqname] ?: invalidOp("Can't find $desc2")
-
-		return when (type.toUpperCase()) {
-			"SINIT" -> {
-				names.getHaxeClassStaticInit(clazz.ref, "template sinit")
-			}
-			"CONSTRUCTOR" -> {
-				"new ${names.getHaxeClassFqName(clazz.name)}().${names.getHaxeMethodName(AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1])))}"
-			}
-			"SMETHOD", "METHOD" -> {
-				val methodName = if (dataParts.size >= 3) {
-					names.getHaxeMethodName(AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2])))
-				} else {
-					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
-					if (methods.isEmpty()) invalidOp("Can't find method $desc")
-					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
-					names.getHaxeMethodName(methods.first())
-				}
-				if (type == "SMETHOD") names.getHaxeClassFqName(clazz.name) + "." + methodName else methodName
-			}
-			"SFIELD", "FIELD" -> {
-				val fieldName = names.getHaxeFieldName(clazz.fieldsByName[dataParts[1]]!!)
-				if (type == "SFIELD") names.getHaxeClassFqName(clazz.name) + "." + fieldName else fieldName
-			}
-			"CLASS" -> names.getHaxeClassFqName(clazz.name)
-			else -> invalidOp("Unknown type!")
-		}
-	}
-
-	class ProgramRefNode(val ts: HaxeTemplateString, val type:String, val desc:String) : Minitemplate.BlockNode {
-		override fun eval(context: Minitemplate.Context) {
-			context.write(ts.evalReference(type, desc))
-		}
-	}
-
-	//class CopyFileNode(val ts: HaxeTemplateString, val type:String, val expr:Minitemplate.ExprNode) : Minitemplate.BlockNode {
-	//	override fun eval(context: Minitemplate.Context) {
-	//		val filetocopy = expr.eval(context)
-	//	}
-	//}
-
-	val miniConfig = Minitemplate.Config(
-		extraTags = listOf(
-			Minitemplate.Tag(
-				":programref:", setOf(), null,
-				aliases = listOf(
-					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
-					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
-				)
-			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
-			//, Minitemplate.Tag("copyfile", setOf(), null) {
-			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
-			//}
-		),
-		extraFilters = listOf(
-		)
-	)
-
-	fun gen(template: String): String = Minitemplate(template, miniConfig).invoke(params)
 }
 
 class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor() {
@@ -420,7 +317,7 @@ object GenHaxe : GenTarget {
 		return HaxeGenTargetProcessor(tinfo, settings)
 	}
 
-	data class ProgramInfo(val entryPointClass: FqName, val entryPointFile: String, val vfs: SyncVfsFile) {
+	data class ProgramInfo(override val entryPointClass: FqName, override val entryPointFile: String, val vfs: SyncVfsFile) : CommonProgramInfo {
 		//fun getEntryPointFq(program: AstProgram) = getHaxeClassFqName(program, entryPointClass)
 	}
 }

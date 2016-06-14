@@ -61,6 +61,11 @@
 			<version>${jtransc.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.jtransc</groupId>
+			<artifactId>jtransc-gen-common</artifactId>
+			<version>${jtransc.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-all</artifactId>
 			<version>5.0.4</version>
