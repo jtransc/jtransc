@@ -6,7 +6,7 @@ import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.error.invalidOp
-import com.jtransc.gradle.JTranscExtension
+import com.jtransc.gradle.JTranscGradleExtension
 import com.jtransc.gradle.get
 import com.jtransc.gradle.getIfExists
 import com.jtransc.log.log
@@ -14,7 +14,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.SourceSetContainer
 import java.io.File
 
-open class AbstractJTranscTask : DefaultTask() {
+open class AbstractJTranscGradleTask : DefaultTask() {
 	var target: String? = null
 	var outputFile: String? = null
 	var mainClassName: String? = null
@@ -41,7 +41,7 @@ open class AbstractJTranscTask : DefaultTask() {
 	var title: String? = null
 
 	open protected fun prepare(): AllBuild {
-		val extension = project.getIfExists<JTranscExtension>(JTranscExtension.NAME)!!
+		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
 		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
 		val buildDir = project.buildDir
 		val dependencies = project.dependencies!!

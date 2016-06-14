@@ -1,11 +1,11 @@
 package com.jtransc.gradle
 
-import com.jtransc.gradle.tasks.AbstractJTranscTask
-import com.jtransc.gradle.tasks.JTranscDistTask
-import com.jtransc.gradle.tasks.JTranscRunTask
+import com.jtransc.gradle.tasks.AbstractJTranscGradleTask
+import com.jtransc.gradle.tasks.JTranscGradleDistTask
+import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import org.gradle.api.Project
 
-open class JTranscExtension(val project: Project) {
+open class JTranscGradleExtension(val project: Project) {
 	companion object {
 		@JvmStatic val NAME = "jtransc"
 
@@ -18,14 +18,14 @@ open class JTranscExtension(val project: Project) {
 		}
 
 		fun addBuildTargetExtra(project: Project, name: String, target: String?, outputFile: String?, minimizeNames: Boolean) {
-			JTranscExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, debug = false, minimizeNames = minimizeNames)
-			JTranscExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, debug = false, minimizeNames = minimizeNames)
-			JTranscExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, debug = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, debug = false, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, debug = false, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, debug = true, minimizeNames = minimizeNames)
 		}
 
 		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, debug: Boolean, minimizeNames: Boolean) {
 			val justBuild = !run
-			val clazz = if (run) JTranscRunTask::class.java else JTranscDistTask::class.java
+			val clazz = if (run) JTranscGradleRunTask::class.java else JTranscGradleDistTask::class.java
 			val group = if (run) "application" else "distribution"
 			val verb = (if (run) "Runs" else "Packages")
 			// https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.util.Map, java.lang.String)
@@ -34,7 +34,7 @@ open class JTranscExtension(val project: Project) {
 				"group" to group,
 				"description" to "$verb the application as $name; target=$target, debug=$debug, outputFile=$outputFile",
 				"overwrite" to true
-			), name, JTranscPlugin.LambdaClosure({ it: AbstractJTranscTask ->
+			), name, JTranscGradlePlugin.LambdaClosure({ it: AbstractJTranscGradleTask ->
 				it.target = target
 				it.outputFile = outputFile
 				it.minimizedNames = justBuild && minimizeNames
@@ -94,11 +94,11 @@ open class JTranscExtension(val project: Project) {
 	*/
 	@Suppress("unused")
 	fun customTarget(name: String, target: String, extension: String) {
-		JTranscExtension.addBuildTarget(project, name, target, "program.$extension")
+		JTranscGradleExtension.addBuildTarget(project, name, target, "program.$extension")
 	}
 
 	@Suppress("unused")
 	fun customTargetMinimized(name: String, target: String, extension: String) {
-		JTranscExtension.addBuildTargetMinimized(project, name, target, "program.$extension")
+		JTranscGradleExtension.addBuildTargetMinimized(project, name, target, "program.$extension")
 	}
 }

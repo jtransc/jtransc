@@ -1,8 +1,8 @@
 package com.jtransc.gradle
 
 import com.jtransc.JTranscVersion
-import com.jtransc.gradle.tasks.JTranscDistTask
-import com.jtransc.gradle.tasks.JTranscRunTask
+import com.jtransc.gradle.tasks.JTranscGradleDistTask
+import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import groovy.lang.Closure
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -12,7 +12,7 @@ import org.gradle.api.Project
  * - https://docs.gradle.org/current/userguide/java_plugin.html
  * - https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/JavaPlugin.java
  */
-open class JTranscPlugin : Plugin<Project> {
+open class JTranscGradlePlugin : Plugin<Project> {
 	companion object {
 		val jtranscVersion = JTranscVersion.getVersion()
 
@@ -23,21 +23,21 @@ open class JTranscPlugin : Plugin<Project> {
 	override fun apply(project: Project) {
 		project.logger.info("JTranscPlugin.apply")
 
-		project.extensions.create(JTranscExtension.NAME, JTranscExtension::class.java, project)
+		project.extensions.create(JTranscGradleExtension.NAME, JTranscGradleExtension::class.java, project)
 
-		project.logger.info(JTranscDistTask.name)
-		project.logger.info(JTranscRunTask.name)
+		project.logger.info(JTranscGradleDistTask.name)
+		project.logger.info(JTranscGradleRunTask.name)
 
 		//project.setProperty(JTranscDistTask::class.java.simpleName, JTranscDistTask::class.java)
 		//project.setProperty(JTransRunTask::class.java.simpleName, JTransRunTask::class.java)
 
 		fun addBuildTarget(name: String, target: String?, outputFile: String?, minimizeNames: Boolean = false) {
-			JTranscExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
 		}
 
-		JTranscExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, minimizeNames = false)
-		JTranscExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, minimizeNames = false)
-		JTranscExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, minimizeNames = false)
 
 		// @DEFAULT JS is Haxe
 		addBuildTarget("js", "haxe:js", "program.js", minimizeNames = true)

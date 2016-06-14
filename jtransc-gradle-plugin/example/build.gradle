@@ -82,16 +82,16 @@ jtransc {
 // - jtransc:distJtransc (must specify target and outputFile options)
 // - jtransc:runJtransc (must specify target and outputFile options)
 
-import com.jtransc.gradle.tasks.JTranscDistTask
-import com.jtransc.gradle.tasks.JTranscRunTask
+import com.jtransc.gradle.tasks.JTranscGradleDistTask
+import com.jtransc.gradle.tasks.JTranscGradleRunTask
 
-task distWindows(type: JTranscDistTask) {
+task distWindows(type: JTranscGradleDistTask) {
 	target = "haxe:cpp"
 	outputFile = "program.exe"
 	minimizedNames = false
 }
 
-task runWindows(type: JTranscRunTask) {
+task runWindows(type: JTranscGradleRunTask) {
 	target = "haxe:cpp"
 	//outputFile = "program.exe"
 	minimizedNames = false
