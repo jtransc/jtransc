@@ -402,7 +402,7 @@ fun RootUrlVfs(): SyncVfsFile = _UrlVfs().root()
 fun UrlVfs(url: String): SyncVfsFile = _UrlVfs().root().jailAccess(url)
 fun UrlVfs(url: URL): SyncVfsFile = _UrlVfs().root().jailAccess(url.toExternalForm())
 fun RootLocalVfs(): SyncVfsFile = _LocalVfs().root()
-fun MergeVfs(nodes: List<SyncVfsFile>) = MergedSyncVfs(nodes).root()
+fun MergeVfs(nodes: List<SyncVfsFile>) = if (nodes.isNotEmpty()) MergedSyncVfs(nodes).root() else MemoryVfs()
 fun MergedLocalAndJars(paths: List<String>) = MergeVfs(LocalAndJars(paths))
 fun LocalAndJars(paths: List<String>): List<SyncVfsFile> {
 	return paths.map { if (it.endsWith(".jar")) ZipVfs(it) else LocalVfs(File(it)) }

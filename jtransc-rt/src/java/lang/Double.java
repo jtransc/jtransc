@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.text.JTranscStringTools;
 
 public final class Double extends Number implements Comparable<Double> {
 	public static final double POSITIVE_INFINITY = 1.0 / 0.0;
@@ -34,23 +35,8 @@ public final class Double extends Number implements Comparable<Double> {
 
 	public static final Class<Double> TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
-	@HaxeMethodBody("return HaxeNatives.str('' + p0);")
-	@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
-	native private static String _toString(double d);
-
 	public static String toString(double d) {
-		String out = _toString(d);
-		boolean hasSymbols = false;
-		for (int n = 0; n < out.length(); n++) {
-			char c = out.charAt(n);
-			if (!Character.isDigit(c) && c != '-') {
-				hasSymbols = true;
-				break;
-			}
-		}
-		if (out.indexOf("e+") >= 0) out = out.replace("e+", "E");
-		if (out.indexOf("e-") >= 0) out = out.replace("e-", "E-");
-		return hasSymbols ? out : (out + ".0");
+		return JTranscStringTools.toString(d);
 	}
 
 	native public static String toHexString(double d);
@@ -79,7 +65,7 @@ public final class Double extends Number implements Comparable<Double> {
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {
-		return !_isFinite(v);
+		return !isNaN(v) && !_isFinite(v);
 	}
 
 	public static boolean isFinite(double d) {

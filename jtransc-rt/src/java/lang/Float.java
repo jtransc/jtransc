@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.text.JTranscStringTools;
 
 public final class Float extends Number implements Comparable<Float> {
 	public static final float POSITIVE_INFINITY = 1.0f / 0.0f;
@@ -37,8 +38,8 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
 	native public static float parseFloat(String value) throws NumberFormatException;
 
-	public static String toString(float value) {
-		return Double.toString((double) value);
+	public static String toString(float v) {
+		return JTranscStringTools.toString(v);
 	}
 
 	// @TODO: CHECK!
@@ -64,11 +65,11 @@ public final class Float extends Number implements Comparable<Float> {
 	native private static boolean _isFinite(float v);
 
 	public static boolean isInfinite(float v) {
-		return _isFinite(v);
+		return !isNaN(v) && !_isFinite(v);
 	}
 
 	public static boolean isFinite(float d) {
-		return !_isFinite(d);
+		return _isFinite(d);
 	}
 
 	private final float value;
