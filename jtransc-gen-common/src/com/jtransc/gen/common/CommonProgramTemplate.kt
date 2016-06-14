@@ -9,17 +9,21 @@ import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
 import java.io.File
 
-open class ProgramTemplate(
+open class CommonProgramTemplate(
 	val names: CommonNames,
 	val tinfo: GenTargetInfo,
-	val settings: AstBuildSettings
+	val settings: AstBuildSettings,
+    val folders: CommonGenFolders,
+    val outputFile2: File
 ) {
 	val program = tinfo.program
-	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
+	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
 	val tempdir = tinfo.targetDirectory
 
 	val params = hashMapOf(
+		"outputFolder" to outputFile2.parent,
 		"outputFile" to outputFile2.absolutePath,
+		"outputFileBase" to outputFile2.name,
 		"release" to tinfo.settings.release,
 		"debug" to !tinfo.settings.release,
 		"releasetype" to if (tinfo.settings.release) "release" else "debug",
@@ -38,7 +42,8 @@ open class ProgramTemplate(
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
 		"icon" to settings.icon,
 		"libraries" to settings.libraries,
-		"extra" to settings.extra
+		"extra" to settings.extra,
+		"folders" to folders
 	)
 
 
@@ -93,7 +98,7 @@ open class ProgramTemplate(
 		}
 	}
 
-	class ProgramRefNode(val ts: ProgramTemplate, val type: String, val desc: String) : Minitemplate.BlockNode {
+	class ProgramRefNode(val ts: CommonProgramTemplate, val type: String, val desc: String) : Minitemplate.BlockNode {
 		override fun eval(context: Minitemplate.Context) {
 			context.write(ts.evalReference(type, desc))
 		}

@@ -33,7 +33,7 @@ import org.junit.Assert
 import java.io.File
 import java.lang.management.ManagementFactory
 
-open class HaxeTestBase {
+open class JTranscTestBase {
 	companion object {
 		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true

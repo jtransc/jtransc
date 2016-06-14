@@ -18,18 +18,19 @@ package com.jtransc.gen.haxe
 
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.*
-import com.jtransc.ast.*
+import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstFeatures
+import com.jtransc.ast.AstProgram
+import com.jtransc.ast.FqName
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ds.split
-import com.jtransc.error.InvalidOperationException
-import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.common.CommonGenFolders
 import com.jtransc.gen.common.CommonProgramInfo
-import com.jtransc.gen.common.ProgramTemplate
+import com.jtransc.gen.common.CommonProgramTemplate
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
@@ -37,8 +38,6 @@ import com.jtransc.template.Minitemplate
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.*
 import java.io.File
-import java.lang.management.ManagementFactory
-import java.lang.reflect.Proxy
 
 object HaxeTarget : GenTargetDescriptor() {
 	override val name = "haxe"
@@ -48,7 +47,7 @@ object HaxeTarget : GenTargetDescriptor() {
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override fun getGenerator() = GenHaxe
-	override fun getTargetByExtension(ext:String): String? = when (ext) {
+	override fun getTargetByExtension(ext: String): String? = when (ext) {
 		"js" -> "haxe:js"
 		"php" -> "haxe:php"
 		"exe" -> "haxe:cpp"
@@ -134,10 +133,11 @@ class HaxeTemplateString(
 	names: HaxeNames,
 	tinfo: GenTargetInfo,
 	settings: AstBuildSettings,
-	val actualSubtarget: HaxeAddSubtarget
+	val actualSubtarget: HaxeAddSubtarget,
+	folders: CommonGenFolders,
+	outputFile2: File
 )
-: ProgramTemplate(names, tinfo, settings)
-{
+: CommonProgramTemplate(names, tinfo, settings, folders, outputFile2) {
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
 	val mergedAssetsDir = tinfo.mergedAssetsFolder
 
@@ -203,7 +203,8 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	val mergedAssetsFolder = tinfo.mergedAssetsFolder
 	val mergedAssetsVfs = LocalVfs(mergedAssetsFolder)
 	val names = HaxeNames(program, minimize = settings.minimizeNames)
-	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget)
+	val folders = CommonGenFolders(settings.assets.map { LocalVfs(it) })
+	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget, folders, outputFile2)
 
 	override fun buildSource() {
 		gen = GenHaxeGen(
@@ -302,7 +303,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 
 		log.info("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
-			ProcessUtils.run(parentDir, runner, arguments, redirect = redirect)
+			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
 		}
 	}
 }

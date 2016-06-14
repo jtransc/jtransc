@@ -22,6 +22,7 @@ import com.jtransc.ast.AstProgram
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
+import java.io.File
 
 data class GenTargetInfo(
 	val program: AstProgram,
@@ -29,7 +30,9 @@ data class GenTargetInfo(
 	val settings: AstBuildSettings,
 	val subtarget: String,
 	val targetDirectory: String
-)
+) {
+	val outputFileBaseName by lazy { File(outputFile).name }
+}
 
 interface GenTarget {
 	val runningAvailable: Boolean

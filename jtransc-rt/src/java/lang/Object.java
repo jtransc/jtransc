@@ -17,7 +17,6 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscAddFile;
-import com.jtransc.annotation.JTranscAddMembersList;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;

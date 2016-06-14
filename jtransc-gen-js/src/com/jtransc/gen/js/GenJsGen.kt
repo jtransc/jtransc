@@ -8,11 +8,14 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
 import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetInfo
+import com.jtransc.gen.common.CommonGenFolders
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
+import com.jtransc.vfs.SyncVfsFile
+import java.io.File
 import java.util.*
 
 class GenJsGen(
@@ -22,7 +25,8 @@ class GenJsGen(
 	val settings: AstBuildSettings,
 	val tinfo: GenTargetInfo,
 	val names: JsNames,
-	val jsTemplateString: JsTemplateString
+	val jsTemplateString: JsTemplateString,
+    val folders: CommonGenFolders
 ) {
 	val refs = References()
 	val context = AstGenContext()
@@ -44,9 +48,6 @@ class GenJsGen(
 		if (this.annotationsList.contains<JTranscInvisible>()) return false
 		return true
 	}
-
-	fun AstField.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
-	fun AstMethod.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
 
 	fun AstExpr.genNotNull(): String {
 		return if (this is AstExpr.THIS) {
@@ -74,21 +75,32 @@ class GenJsGen(
 		it.getAllDescendantAnnotations()
 	}.map { it.type }.distinct().map { program[it.name] }.toSet()
 
-	internal fun _write(): JsProgramInfo {
+	internal fun _write(output: SyncVfsFile): JsProgramInfo {
+		val resourcesVfs = program.resourcesVfs
 		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" } }.sortedBy { it.priority }
 
-		data class CopyFile(val prepend: String?, val append: String?)
+		data class ConcatFile(val prepend: String?, val append: String?)
+		class CopyFile(val content: ByteArray, val dst: String)
 
-		val copyFilesTrans = copyFiles.map {
-			val prependAppend = if (it.prependAppend.isNotEmpty()) (program.resourcesVfs[it.prependAppend].readString() + "\n") else null
+		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
+			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
 			val prependAppendParts = prependAppend?.split("/* ## BODY ## */")
 
-			val prepend = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[0] else if (it.prepend.isNotEmpty()) (program.resourcesVfs[it.prepend].readString() + "\n") else null
-			val append = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[1] else if (it.append.isNotEmpty()) (program.resourcesVfs[it.append].readString() + "\n") else null
+			val prepend = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[0] else if (it.prepend.isNotEmpty()) (resourcesVfs[it.prepend].readString() + "\n") else null
+			val append = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[1] else if (it.append.isNotEmpty()) (resourcesVfs[it.append].readString() + "\n") else null
 
 			fun process(str: String?): String? = if (it.process) str?.template("includeFile") else str
 
-			CopyFile(process(prepend), process(append))
+			ConcatFile(process(prepend), process(append))
+		}
+
+		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {
+			val file = resourcesVfs[it.src]
+			if (it.process) {
+				CopyFile(file.readString().template("copyfile").toByteArray(), it.dst)
+			} else {
+				CopyFile(file.read(), it.dst)
+			}
 		}
 
 		val classesIndenter = arrayListOf<Indenter>()
@@ -148,7 +160,7 @@ class GenJsGen(
 				line("//# sourceMappingURL=program.haxe.js.map")
 			}
 
-			for (f in copyFilesTrans) if (f.prepend != null) line(f.prepend)
+			for (f in concatFilesTrans) if (f.prepend != null) line(f.prepend)
 
 			line(strs.toString())
 
@@ -156,7 +168,7 @@ class GenJsGen(
 
 			line(jsTemplateString.gen(customMain ?: plainMain, context, "customMain"))
 
-			for (f in copyFilesTrans.reversed()) if (f.append != null) line(f.append)
+			for (f in concatFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
 
 		val sources = Allocator<String>()
@@ -180,9 +192,22 @@ class GenJsGen(
 		} else {
 			null
 		}
-		//val sourceMap = "[not implemented SourceMap]";
 
-		return JsProgramInfo(entryPointClass, entryPointFilePath, source, sourceMap)
+		// Generate source
+
+		output[tinfo.outputFileBaseName] = source
+		if (sourceMap != null) {
+			output[tinfo.outputFileBaseName + ".map"] = sourceMap
+		}
+
+		// Copy assets
+		folders.copyAssetsTo(output)
+
+		for (file in copyFilesTrans) {
+			output[file.dst].write(file.content)
+		}
+
+		return JsProgramInfo(entryPointClass, entryPointFilePath, output[tinfo.outputFile])
 	}
 
 	fun annotation(a: AstAnnotation): String {
@@ -245,39 +270,6 @@ class GenJsGen(
 			}
 		}
 	}
-
-	//fun dumpClassInfo(clazz: AstClass) = Indenter.genString {
-	//	line("static public var HAXE_CLASS_NAME = ${clazz.name.fqname.quote()};")
-	//	line("static public function HAXE_CLASS_INIT(c:$JAVA_LANG_CLASS = null):$JAVA_LANG_CLASS") {
-	//		line("if (c == null) c = new $JAVA_LANG_CLASS();")
-	//		line("c.$JAVA_LANG_CLASS_name = N.strLit(HAXE_CLASS_NAME);")
-	//		//line("info(c, \"${clazz.name.haxeGeneratedFqName}\", " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + annotations(clazz.runtimeAnnotations) + ");")
-	//		line(annotationsInit(clazz.runtimeAnnotations))
-	//		val proxyClassName = if (clazz.isInterface) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_Proxy" else "null"
-	//		val ffiClassName = if (clazz.hasFFI) clazz.name.haxeGeneratedFqName.fqname + "." + clazz.name.haxeGeneratedSimpleClassName + "_FFI" else "null"
-	//		line("R.i(c, ${clazz.name.haxeGeneratedFqName}, $proxyClassName, $ffiClassName, " + (clazz.extending?.fqname?.quote() ?: "null") + ", [" + clazz.implementing.map { "\"${it.fqname}\"" }.joinToString(", ") + "], ${clazz.modifiers}, " + visibleAnnotations(clazz.runtimeAnnotations) + ");")
-	//		if (clazz.isVisible()) {
-	//			for ((slot, field) in clazz.fields.withIndex()) {
-	//				val internalName = field.haxeName
-	//				if (field.isVisible()) {
-	//					line("R.f(c, ${internalName.quote()}, $slot, \"${field.name}\", \"${field.descriptor}\", ${field.modifiers}, ${field.genericSignature.quote()}, ${visibleAnnotations(field.annotations)});");
-	//				}
-	//			}
-	//			for ((slot, method) in clazz.methods.withIndex()) {
-	//				val internalName = method.haxeName
-	//				if (method.isVisible()) {
-	//					if (method.name == "<init>") {
-	//						line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
-	//					} else if (method.name == "<clinit>") {
-	//					} else {
-	//						line("R.m(c, ${method.id}, ${internalName.quote()}, $slot, \"${method.name}\", ${method.modifiers}, ${method.desc.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
-	//					}
-	//				}
-	//			}
-	//		}
-	//		line("return c;")
-	//	}
-	//}
 
 	fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm

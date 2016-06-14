@@ -22,7 +22,7 @@ import jtransc.jtransc.*
 import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
-class HaxeGenSuiteNativeTest : HaxeTestBase() {
+class JTranscGenSuiteNativeTest : JTranscTestBase() {
 	@Test fun customBuild() = testNativeClass<CustomBuildTest>("""
 		true
 		true

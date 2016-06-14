@@ -1,21 +1,25 @@
 package com.jtransc.gen.js
 
-import com.jtransc.ast.*
+import com.jtransc.annotation.JTranscRegisterCommand
+import com.jtransc.annotation.JTranscRegisterCommandList
+import com.jtransc.annotation.JTranscRunCommandList
+import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstFeatures
+import com.jtransc.ast.FqName
 import com.jtransc.ast.feature.SwitchesFeature
-import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
+import com.jtransc.gen.common.CommonGenCliCommands
+import com.jtransc.gen.common.CommonGenFolders
 import com.jtransc.gen.common.CommonProgramInfo
-import com.jtransc.gen.common.ProgramTemplate
+import com.jtransc.gen.common.CommonProgramTemplate
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
-import com.jtransc.template.Minitemplate
-import com.jtransc.text.quote
+import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
-import com.jtransc.vfs.MergeVfs
+import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.parent
 import java.io.File
 
 object GenJs : GenTarget {
@@ -32,8 +36,7 @@ object GenJs : GenTarget {
 data class JsProgramInfo(
 	override val entryPointClass: FqName,
 	override val entryPointFile: String,
-	val source: String,
-	val sourceMap: String?
+    val javascriptOutput: SyncVfsFile
 	//override val vfs: SyncVfsFile
 ) : CommonProgramInfo {
 	//fun getEntryPointFq(program: AstProgram) = getHaxeClassFqName(program, entryPointClass)
@@ -42,24 +45,20 @@ data class JsProgramInfo(
 
 val JsFeatures = setOf(SwitchesFeature)
 
-class JsTemplateString(names: JsNames, tinfo: GenTargetInfo, settings: AstBuildSettings) : ProgramTemplate(names, tinfo, settings) {
+class JsTemplateString(names: JsNames, tinfo: GenTargetInfo, settings: AstBuildSettings, folders: CommonGenFolders, outputFile2: File) : CommonProgramTemplate(names, tinfo, settings, folders, outputFile2) {
 
 }
 
-val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/merged-assets")
-//val GenTargetInfo.mergedAssetsFolder: File get() = File("${this.targetDirectory}/program.js")
-
 class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSettings) : GenTargetProcessor() {
-	val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-	//val tempdir = System.getProperty("java.io.tmpdir")
-	val tempdir = tinfo.targetDirectory
 	var info: JsProgramInfo? = null
 	lateinit var gen: GenJsGen
 	val program = tinfo.program
-	val mergedAssetsFolder = tinfo.mergedAssetsFolder
-	val mergedAssetsVfs = LocalVfs(mergedAssetsFolder)
 	val names = JsNames(program, minimize = settings.minimizeNames)
-	val jsTemplateString = JsTemplateString(names, tinfo, settings)
+	val targetFolder = LocalVfsEnsureDirs(File(tinfo.targetDirectory + "/jtransc-js"))
+	val folders = CommonGenFolders(settings.assets.map { LocalVfs(it) })
+	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
+	val outputFile2 = targetFolder[tinfo.outputFileBaseName].realfile
+	val jsTemplateString = JsTemplateString(names, tinfo, settings, folders, outputFile2)
 
 	override fun buildSource() {
 		gen = GenJsGen(
@@ -69,9 +68,10 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 			featureSet = JsFeatures,
 			settings = settings,
 			names = names,
-			jsTemplateString = jsTemplateString
+			jsTemplateString = jsTemplateString,
+			folders = folders
 		)
-		info = gen._write()
+		info = gen._write(targetFolder)
 		jsTemplateString.setProgramInfo(info!!)
 	}
 
@@ -86,16 +86,19 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 	}
 
 	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		//val folder= LocalVfs(File(tinfo.targetDirectory))
-		val outputFile = LocalVfs(File(File(tinfo.outputFile).absolutePath))
-		val outputFileMap = LocalVfs(File(File(tinfo.outputFile).absolutePath + ".map"))
-		outputFile.write(info!!.source)
-		if (info!!.sourceMap != null) outputFileMap.write(info!!.sourceMap!!)
+		val info = info!!
+		val outputFile = info.javascriptOutput
+
 		log.info("Generated javascript at..." + outputFile.realpathOS)
-		//println("Generated javascript at..." + outputFile.realpathOS)
 
 		if (run) {
-			val result = NodeJs.run(outputFile.realpathOS, listOf(), passthru = redirect)
+			val result = CommonGenCliCommands.runProgramCmd(
+				program,
+				target = "js",
+				default = listOf("node", "{{ outputFile }}"),
+				template = jsTemplateString,
+				options = ExecOptions(passthru = redirect)
+			)
 			return ProcessResult2(result)
 		} else {
 			return ProcessResult2(0)

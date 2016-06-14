@@ -153,7 +153,8 @@ N.imap = function(map) {
 };
 
 N.args = function() {
-	return [];
+
+	return onNodeJs ? process.argv.slice(2) : [];
 };
 
 N.byteArrayToString = N.intArrayToString = N.charArrayToString = function(array, offset, length, encoding) {

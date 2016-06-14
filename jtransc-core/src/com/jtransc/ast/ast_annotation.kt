@@ -1,8 +1,5 @@
 package com.jtransc.ast
 
-import com.jtransc.annotation.JTranscAddMembers
-import com.jtransc.annotation.JTranscAddMembersList
-import com.jtransc.error.noImpl
 import java.lang.reflect.Proxy
 import kotlin.reflect.KProperty1
 

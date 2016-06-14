@@ -39,8 +39,8 @@ open class JTranscGradlePlugin : Plugin<Project> {
 		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, minimizeNames = false)
 		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, minimizeNames = false)
 
-		// @DEFAULT JS is Haxe
-		addBuildTarget("js", "haxe:js", "program.js", minimizeNames = true)
+		// @DEFAULT JS is PlainJs
+		addBuildTarget("js", "js", "program.js", minimizeNames = true)
 
 		addBuildTarget("plainJs", "js", "program.js", minimizeNames = true)
 		addBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true)

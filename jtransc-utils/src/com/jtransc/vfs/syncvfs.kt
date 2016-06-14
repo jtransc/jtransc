@@ -79,6 +79,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun removeIfExists(): Unit = if (exists) remove() else {
 	}
 
+	fun exec(cmdAndArgs: List<String>, options: ExecOptions = ExecOptions()): ProcessResult = vfs.exec(path, cmdAndArgs.first(), cmdAndArgs.drop(1), options)
 	fun exec(cmd: String, args: List<String>, options: ExecOptions): ProcessResult = vfs.exec(path, cmd, args, options)
 	fun exec(cmd: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args, ExecOptions(passthru = false, env = env))
 	fun exec(cmd: String, vararg args: String, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args.toList(), ExecOptions(passthru = false, env = env))
@@ -87,7 +88,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	val name: String get() = path.substringAfterLast('/')
 	val realpath: String get() = jailCombinePath(vfs.absolutePath, path)
 	val realpathOS: String get() = if (OS.isWindows) realpath.replace('/', '\\') else realpath
-	val realfile: File get() = File(realpath)
+	val realfile: File get() = File(realpathOS)
 	fun listdir(): Iterable<SyncVfsStat> = vfs.listdir(path)
 	fun listdirRecursive(): Iterable<SyncVfsStat> = listdirRecursive({ true })
 	fun listdirRecursive(filter: (stat: SyncVfsStat) -> Boolean): Iterable<SyncVfsStat> {
@@ -199,7 +200,14 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	}
 }
 
-data class ExecOptions(val passthru: Boolean = false, val filter: ((line: String) -> Boolean)? = null, val env: Map<String, String> = mapOf())
+data class ExecOptions(
+	val passthru: Boolean = false,
+	val filter: ((line: String) -> Boolean)? = null,
+	val env: Map<String, String> = mapOf(),
+    val sysexec: Boolean = false
+) {
+	val redirect: Boolean get() = passthru
+}
 
 open class SyncVfs {
 	final fun root() = SyncVfsFile(this, "")

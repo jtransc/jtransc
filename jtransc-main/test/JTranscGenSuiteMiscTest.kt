@@ -22,7 +22,7 @@ import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import org.junit.Test
 
-class HaxeGenSuiteMiscTest : HaxeTestBase() {
+class JTranscGenSuiteMiscTest : JTranscTestBase() {
 	@Test fun langSystemTest() = testClass<SystemTest>()
 
 	@Test fun miscTestHaxeJs() = testClass<MiscTest>(analyze = true, target = HaxeTarget, minimize = false, lang = "js")

@@ -20,7 +20,7 @@ import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import org.junit.Test
 
-class HaxeGenJava8Test : HaxeTestBase() {
+class JTranscGenJava8Test : JTranscTestBase() {
 	@Test fun java8Test() = testClass<Java8Test>(minimize = false, target = JsTarget, log = null)
 	@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>(minimize = false)
 	@Test fun clinitNotStaticTest() = testClass<JTranscClinitNotStatic>(minimize = false)

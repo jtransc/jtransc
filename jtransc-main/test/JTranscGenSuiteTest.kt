@@ -28,7 +28,7 @@ import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
 import org.junit.Test
 
-class HaxeGenSuiteTest : HaxeTestBase() {
+class JTranscGenSuiteTest : JTranscTestBase() {
 	@Test fun langStringsTest() = testClass<StringsTest>()
 
 	@Test fun multidimensionalArrayTest() = testClass<MultidimensionalArrayTest>(minimize = false)
