@@ -121,3 +121,7 @@ if (!Array.prototype.map) {
     return A;
   };
 }
+
+Map.prototype.remove = Map.prototype.remove || function(key) {
+	this.delete(key);
+};
