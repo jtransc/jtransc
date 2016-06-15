@@ -750,9 +750,10 @@ class CharacterClass extends Term implements UnicodeConstants {
         throw new PatternSyntaxException("wrong class name: " + new String(data, i, out - i));
     }
 
-    static String stringValue0(IntBitSet arr) {
+    private static StringBuilder b0 = new StringBuilder(100), b2 = new StringBuilder(100);
 
-        StringBuilder b = new StringBuilder();
+    static String stringValue0(IntBitSet arr) {
+        b0.setLength(0);
         int c = 0;
 
         for (; ; ) {
@@ -762,18 +763,18 @@ class CharacterClass extends Term implements UnicodeConstants {
             int first = c;
 
             c = arr.nextClearBit(c);
-            if (c < 0 || c > 0xff) break;
+            if (c <= 0 || c > 0xff) break;
 
             int last = c - 1;
-            if (last == first) b.append(stringValue(last));
+            if (last == first) b0.append(stringValue(last));
             else {
-                b.append(stringValue(first));
-                b.append('-');
-                b.append(stringValue(last));
+                b0.append(stringValue(first));
+                b0.append('-');
+                b0.append(stringValue(last));
             }
             if (c > 0xff) break;
         }
-        return b.toString();
+        return b0.toString();
     }
    
    /* Mmm.. what is it? 
@@ -791,7 +792,7 @@ class CharacterClass extends Term implements UnicodeConstants {
    */
 
     static String stringValue2(IntBitSet[] arr) {
-        StringBuilder b = new StringBuilder();
+        b2.setLength(0);
         int c = 0;
         loop:
         for (; ; ) {
@@ -809,50 +810,37 @@ class CharacterClass extends Term implements UnicodeConstants {
                 c++;
             }
             int last = c - 1;
-            if (last == first) b.append(stringValue(last));
+            if (last == first) b2.append(stringValue(last));
             else {
-                b.append(stringValue(first));
-                b.append('-');
-                b.append(stringValue(last));
+                b2.append(stringValue(first));
+                b2.append('-');
+                b2.append(stringValue(last));
             }
             if (c > 0xffff) break;
         }
-        return b.toString();
+        return b2.toString();
     }
 
     static String stringValue(int c) {
-        StringBuilder b = new StringBuilder(5);
         if (c < 32) {
             switch (c) {
                 case '\r':
-                    b.append("\\r");
-                    break;
+                    return "\\r";
                 case '\n':
-                    b.append("\\n");
-                    break;
+                    return "\\n";
                 case '\t':
-                    b.append("\\t");
-                    break;
+                    return "\\t";
                 case '\f':
-                    b.append("\\f");
-                    break;
+                    return "\\f";
                 default:
-                    b.append('(');
-                    b.append(c);
-                    b.append(')');
+                    return "\\x" + c;
             }
-        } else if (c < 256) {
-            b.append((char) c);
-        } else {
-            b.append('\\');
-            b.append('x');
-            b.append(Integer.toHexString(c));
         }
-        return b.toString();
+        return String.valueOf((char)c);
     }
 
     static int toHexDigit(char d) throws PatternSyntaxException {
-        int val = 0;
+        int val;
         if (d >= '0' && d <= '9') val = d - '0';
         else if (d >= 'a' && d <= 'f') val = 10 + d - 'a';
         else if (d >= 'A' && d <= 'F') val = 10 + d - 'A';
