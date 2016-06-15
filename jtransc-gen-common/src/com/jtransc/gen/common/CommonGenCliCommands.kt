@@ -17,14 +17,12 @@ import java.io.File
 //@JTranscRegisterCommand(target = "js", name = "electron", check = { "electron", "--version"}, getFolderCmd = "npm list -g", install = "npm -g install electron-prebuilt")
 //@JTranscRunCommand(target = "js", value = *arrayOf("@js/template/runelectron.cmd"))
 object CommonGenCliCommands {
-	val pathSeparator by lazy { System.getProperty("path.separator") }
-	val fileSeparator by lazy { System.getProperty("file.separator") }
 	fun expand(cmd: List<String>) {
 	}
 
 	fun getPaths(): List<String> {
-		val env = System.getenv("path")
-		return env.split(pathSeparator)
+		val env = System.getenv("PATH") ?: ":"
+		return env.split(ProcessUtils.pathSeparator)
 	}
 
 	fun getAllCustomCommandsForTarget(program: AstProgram, target: String): Map<String, JTranscRegisterCommand> {

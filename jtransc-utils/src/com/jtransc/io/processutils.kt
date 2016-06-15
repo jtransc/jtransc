@@ -86,8 +86,8 @@ object ProcessUtils {
 		override fun onCompleted(exitValue: Int) = Unit
 	}
 
-	val pathSeparator by lazy { System.getProperty("path.separator") }
-	val fileSeparator by lazy { System.getProperty("file.separator") }
+	val pathSeparator by lazy { System.getProperty("path.separator") ?: ":" }
+	val fileSeparator by lazy { System.getProperty("file.separator") ?: "/" }
 
 	fun getPaths(): List<String> {
 		val env = System.getenv("PATH") ?: ""
