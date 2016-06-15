@@ -77,11 +77,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_fields, '[Ljava.lang.reflect.Field;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._fields, '[Ljava.lang.reflect.Field;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._fields, '[Ljava.lang.reflect.Field;');")
 	native public Field[] getDeclaredFields() throws SecurityException;
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._methods, '[Ljava.lang.reflect.Method;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._methods, '[Ljava.lang.reflect.Method;');")
 	native public Method[] getDeclaredMethods() throws SecurityException;
 
 	public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
@@ -90,11 +90,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._constructors, '[Ljava.lang.reflect.Constructor;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._constructors, '[Ljava.lang.reflect.Constructor;');")
 	native private Constructor<?>[] _getDeclaredConstructors() throws SecurityException;
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._annotations, '[Ljava.lang.Annotation;');")
 	native public Annotation[] getDeclaredAnnotations();
 
 	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
@@ -113,7 +113,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@HaxeMethodBody("return HaxeNatives.strArray(_interfaces);")
-	@JTranscMethodBody(target = "js", value = "return N.strArray(this._interfaces);")
+	@JTranscMethodBody(target = "js", value = "return N.strArrayOrEmpty(this._interfaces);")
 	native private String[] getInterfaceNames();
 
 	@HaxeMethodBody("return _modifiers;")

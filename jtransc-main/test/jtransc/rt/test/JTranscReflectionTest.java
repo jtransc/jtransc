@@ -16,6 +16,14 @@ public class JTranscReflectionTest {
 		annotationsInConstructorTest();
 		new TestDeprecatedExample().demo();
 		nullArgs();
+		getInterfacesTest();
+	}
+
+	static private void getInterfacesTest() {
+		System.out.println("getInterfacesTest:");
+		System.out.println(float.class.getSuperclass() != null);
+		System.out.println(float.class.getInterfaces().length);
+		System.out.println(float.class.getAnnotations().length);
 	}
 
 	static public char getC() {

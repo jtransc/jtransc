@@ -194,14 +194,19 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	//public static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
 	public static final Comparator<String> CASE_INSENSITIVE_ORDER = null;
 
-	@HaxeMethodBody("var a = this._str.toLowerCase(); var b = p0._str.toLowerCase(); return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
-	native public int compareToIgnoreCase(String str);
+	public int compareToIgnoreCase(String str) {
+		return this.toLowerCase().compareTo(str.toLowerCase());
+	}
 
 	@HaxeMethodBody("return this._str.substr(p0, p3) == p1._str.substr(p2, p3);")
-	native public boolean regionMatches(int toffset, String other, int ooffset, int len);
+	public boolean regionMatches(int toffset, String other, int ooffset, int len) {
+		return this.substring(toffset, toffset + len).equals(other.substring(ooffset, ooffset + len));
+	}
 
 	@HaxeMethodBody("return this._str.substr(p0, p3).toLowerCase() == p1._str.substr(p2, p3).toLowerCase();")
-	native private boolean regionMatchesIgnoreCase(int toffset, String other, int ooffset, int len);
+	private boolean regionMatchesIgnoreCase(int toffset, String other, int ooffset, int len) {
+		return this.toLowerCase().substring(toffset, toffset + len).equals(other.toLowerCase().substring(ooffset, ooffset + len));
+	}
 
 	public boolean regionMatches(boolean ignoreCase, int toffset, String other, int ooffset, int len) {
 		if (ignoreCase) {

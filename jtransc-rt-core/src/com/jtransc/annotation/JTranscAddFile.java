@@ -21,4 +21,6 @@ public @interface JTranscAddFile {
 	String src() default "";
 
 	String dst() default "";
+
+	boolean isAsset() default false;
 }

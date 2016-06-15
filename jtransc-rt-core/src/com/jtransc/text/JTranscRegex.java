@@ -167,9 +167,9 @@ public class JTranscRegex {
 
 		@HaxeMethodBody("" +
 			"var opts = '';\n" +
-			"var flags = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:flags:I %};\n" +
-			"var pattern = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:pattern:Ljava/lang/String; %};\n" +
-			"var text = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text:Ljava/lang/String; %};\n" +
+			"var flags = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:flags %};\n" +
+			"var pattern = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:pattern %};\n" +
+			"var text = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text %};\n" +
 			"if ((flags & 0x02) != 0) opts += 'i';\n" +
 			"if ((flags & 0x08) != 0) opts += 'm';\n" +
 			//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
@@ -181,7 +181,11 @@ public class JTranscRegex {
 		)
 		@JTranscMethodBody(target = "js", value = {
 			"this._ereg = new RegExp(N.istr(this._pattern), N.istr(this._flagsString + 'g'));",
-
+			"var flags = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:flags %};",
+			"var opts = '';",
+			"if ((flags & 0x02) != 0) opts += 'i';",
+			"if ((flags & 0x08) != 0) opts += 'm';",
+			"this._opts = opts;",
 		})
 		private void _init() {
 		}
@@ -244,13 +248,23 @@ public class JTranscRegex {
 		})
 		native private boolean _find();
 
-		@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
-		@JTranscMethodBody(target = "js", value = "return N.str(new RegExp(this._pattern, this._opts + 'g').replace(this._text, p0._str));")
-		native public String replaceAll(String replacement);
+		public String replaceAll(String replacement) {
+			return replaceFirstAll(replacement, true);
+		}
 
-		@HaxeMethodBody("return N.str(new EReg(this._pattern, this._opts).replace(this._text, p0._str));")
-		@JTranscMethodBody(target = "js", value = "return N.str(new RegExp(this._pattern, this._opts).replace(this._text, p0._str));")
-		native public String replaceFirst(String replacement);
+		public String replaceFirst(String replacement) {
+			return replaceFirstAll(replacement, false);
+		}
+
+		@HaxeMethodBody("return N.str(new EReg(this._pattern, p1 ? (this._opts + 'g') : (this._opts)).replace(this._text, p0._str));")
+		@JTranscMethodBody(target = "js", value = {
+			"var opts = p1 ? (this._opts + 'g') : (this._opts);",
+			"var text = N.istr(this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text %});",
+			"var pattern = N.istr(this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:pattern %});",
+			"return N.str(text.replace(new RegExp(pattern, opts), N.istr(p0)));"
+		})
+		native private String replaceFirstAll(String replacement, boolean all);
+
 	}
 	//public static final int UNIX_LINES = 0x01;
 	//public static final int CASE_INSENSITIVE = 0x02;

@@ -77,10 +77,27 @@ class GenJsGen(
 
 	internal fun _write(output: SyncVfsFile): JsProgramInfo {
 		val resourcesVfs = program.resourcesVfs
-		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" } }.sortedBy { it.priority }
+		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" || it.target == "all" } }.sortedBy { it.priority }
 
 		data class ConcatFile(val prepend: String?, val append: String?)
-		class CopyFile(val content: ByteArray, val dst: String)
+		class CopyFile(val content: ByteArray, val dst: String, val isAsset: Boolean)
+
+		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {
+			val file = resourcesVfs[it.src]
+			if (it.process) {
+				CopyFile(file.readString().template("copyfile").toByteArray(), it.dst, it.isAsset)
+			} else {
+				CopyFile(file.read(), it.dst, it.isAsset)
+			}
+		}
+
+		// Copy assets
+		folders.copyAssetsTo(output)
+		for (file in copyFilesTrans) {
+			output[file.dst].ensureParentDir().write(file.content)
+		}
+
+		jsTemplateString.params["assetFiles"] = (jsTemplateString.params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
 
 		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
 			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
@@ -92,15 +109,6 @@ class GenJsGen(
 			fun process(str: String?): String? = if (it.process) str?.template("includeFile") else str
 
 			ConcatFile(process(prepend), process(append))
-		}
-
-		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {
-			val file = resourcesVfs[it.src]
-			if (it.process) {
-				CopyFile(file.readString().template("copyfile").toByteArray(), it.dst)
-			} else {
-				CopyFile(file.read(), it.dst)
-			}
 		}
 
 		val classesIndenter = arrayListOf<Indenter>()
@@ -198,13 +206,6 @@ class GenJsGen(
 		output[tinfo.outputFileBaseName] = source
 		if (sourceMap != null) {
 			output[tinfo.outputFileBaseName + ".map"] = sourceMap
-		}
-
-		// Copy assets
-		folders.copyAssetsTo(output)
-
-		for (file in copyFilesTrans) {
-			output[file.dst].write(file.content)
 		}
 
 		return JsProgramInfo(entryPointClass, entryPointFilePath, output[tinfo.outputFile])

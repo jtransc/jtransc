@@ -90,7 +90,7 @@ object ProcessUtils {
 	val fileSeparator by lazy { System.getProperty("file.separator") }
 
 	fun getPaths(): List<String> {
-		val env = System.getenv("path")
+		val env = System.getenv("PATH") ?: ""
 		return env.split(pathSeparator)
 	}
 

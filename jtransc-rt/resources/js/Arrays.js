@@ -103,9 +103,14 @@ function __createGenericArrayType() {
 	ARRAY.prototype = $extend(JA_0.prototype, {});
 
 	ARRAY.fromArray = function(array, desc) {
+		if (array == null) return null;
 		var out = new JA_L(array.length, desc);
 		for (var n = 0; n < out.length; n++) out.set(n, array[n]);
 		return out;
+	};
+
+	ARRAY.fromArrayOrEmpty = function(array, desc) {
+		return ARRAY.fromArray(array ? array : [], desc);
 	};
 
 	ARRAY.prototype.get = function(index) {

@@ -127,6 +127,11 @@ N.strArray = function(strs) {
 	return out;
 };
 
+N.strArrayOrEmpty = function(strs) {
+	var out = N.strArray(strs);
+	return out ? out : [];
+};
+
 N.istrArray = function(strs) {
 	if (strs == null) return null;
 	return strs.data.map(function(s) { return N.istr(s); });

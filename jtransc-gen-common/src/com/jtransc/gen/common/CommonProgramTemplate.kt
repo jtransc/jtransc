@@ -36,7 +36,7 @@ open class CommonProgramTemplate(
 		"initialWidth" to settings.initialWidth,
 		"initialHeight" to settings.initialHeight,
 		"orientation" to settings.orientation.lowName,
-		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive(),
+		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive().filter { it.isFile }.map { it.file },
 		"embedResources" to settings.embedResources,
 		"assets" to settings.assets,
 		"hasIcon" to !settings.icon.isNullOrEmpty(),
