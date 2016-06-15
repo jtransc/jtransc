@@ -17,9 +17,12 @@
 package java.lang;
 
 public final class Boolean implements java.io.Serializable, Comparable<Boolean> {
+	@SuppressWarnings("all")
 	public static final Boolean TRUE = new Boolean(true);
+	@SuppressWarnings("all")
 	public static final Boolean FALSE = new Boolean(false);
 
+	@SuppressWarnings("all")
 	public static final Class<Boolean> TYPE = (Class<Boolean>) Class.getPrimitiveClass("boolean");
 
 	private boolean value;
@@ -32,10 +35,12 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		this.value = parseBoolean(value);
 	}
 
+	@SuppressWarnings("all")
 	public static boolean parseBoolean(String value) {
 		return (value != null) && (value.compareToIgnoreCase("true") == 0);
 	}
 
+	@SuppressWarnings("all")
 	public boolean booleanValue() {
 		return value;
 	}
@@ -66,6 +71,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 	}
 
 	@Override
+	@SuppressWarnings("all")
 	public boolean equals(Object that) {
 		if (this == that) return true;
 		if (that == null) return false;
@@ -73,10 +79,12 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return value == ((Boolean) that).value;
 	}
 
+	@SuppressWarnings("all")
 	public static boolean getBoolean(String name) {
 		return parseBoolean(System.getProperty(name));
 	}
 
+	@SuppressWarnings("all")
 	public int compareTo(Boolean that) {
 		return (that != null) ? compare(this.value, that.value) : compare(this.value, false);
 	}
@@ -85,14 +93,17 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return (l == r) ? 0 : ((!l) ? -1 : +1);
 	}
 
+	@SuppressWarnings("all")
 	public static boolean logicalAnd(boolean l, boolean r) {
 		return l & r;
 	}
 
+	@SuppressWarnings("all")
 	public static boolean logicalOr(boolean l, boolean r) {
 		return l | r;
 	}
 
+	@SuppressWarnings("all")
 	public static boolean logicalXor(boolean l, boolean r) {
 		return l ^ r;
 	}

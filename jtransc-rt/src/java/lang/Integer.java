@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.internal.JTranscCType;
 
@@ -261,76 +262,65 @@ public final class Integer extends Number implements Comparable<Integer> {
 	public static final int SIZE = 32;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
-	public static int highestOneBit(int value) {
-		value |= (value >> 1);
-		value |= (value >> 2);
-		value |= (value >> 4);
-		value |= (value >> 8);
-		value |= (value >> 16);
-		return value - (value >>> 1);
+	public static int highestOneBit(int i) {
+		// Hacker's Delight, Figure 3-1
+		i |= (i >> 1);
+		i |= (i >> 2);
+		i |= (i >> 4);
+		i |= (i >> 8);
+		i |= (i >> 16);
+		return i - (i >>> 1);
 	}
 
-	public static int lowestOneBit(int value) {
-		return value & -value;
+	public static int lowestOneBit(int i) {
+		return i & -i;
 	}
 
-	public static int numberOfLeadingZeros(int value) {
-		if (value == 0) return 32;
+	@JTranscMethodBody(target = "js", value = "return Math.clz32(p0);")
+	public static int numberOfLeadingZeros(int i) {
+		// Hacker's Delight, Figure 5-6
+		if (i <= 0) {
+			return (~i >> 26) & 32;
+		}
 		int n = 1;
-		if (value >>> 16 == 0) {
-			n += 16;
-			value <<= 16;
+		if (i >> 16 == 0) {
+			n +=  16;
+			i <<= 16;
 		}
-		if (value >>> 24 == 0) {
-			n += 8;
-			value <<= 8;
+		if (i >> 24 == 0) {
+			n +=  8;
+			i <<= 8;
 		}
-		if (value >>> 28 == 0) {
-			n += 4;
-			value <<= 4;
+		if (i >> 28 == 0) {
+			n +=  4;
+			i <<= 4;
 		}
-		if (value >>> 30 == 0) {
-			n += 2;
-			value <<= 2;
+		if (i >> 30 == 0) {
+			n +=  2;
+			i <<= 2;
 		}
-		n -= value >>> 31;
-		return n;
+		return n - (i >>> 31);
 	}
 
-	public static int numberOfTrailingZeros(int value) {
-		int y;
-		if (value == 0) return 32;
-		int n = 31;
-		y = value << 16;
-		if (y != 0) {
-			n = n - 16;
-			value = y;
-		}
-		y = value << 8;
-		if (y != 0) {
-			n = n - 8;
-			value = y;
-		}
-		y = value << 4;
-		if (y != 0) {
-			n = n - 4;
-			value = y;
-		}
-		y = value << 2;
-		if (y != 0) {
-			n = n - 2;
-			value = y;
-		}
-		return n - ((value << 1) >>> 31);
+	public static int numberOfTrailingZeros(int i) {
+		return NTZ_TABLE[((i & -i) * 0x0450FBAF) >>> 26];
 	}
 
-	public static int bitCount(int value) {
-		value = value - ((value >>> 1) & 0x55555555);
-		value = (value & 0x33333333) + ((value >>> 2) & 0x33333333);
-		value = (value + (value >>> 4)) & 0x0f0f0f0f;
-		value = value + (value >>> 8);
-		value = value + (value >>> 16);
-		return value & 0x3f;
+	private static final byte[] NTZ_TABLE = {
+		32,  0,  1, 12,  2,  6, -1, 13,   3, -1,  7, -1, -1, -1, -1, 14,
+		10,  4, -1, -1,  8, -1, -1, 25,  -1, -1, -1, -1, -1, 21, 27, 15,
+		31, 11,  5, -1, -1, -1, -1, -1,   9, -1, -1, 24, -1, -1, 20, 26,
+		30, -1, -1, -1, -1, 23, -1, 19,  29, -1, 22, 18, 28, 17, 16, -1
+	};
+
+	public static int bitCount(int i) {
+		// Hacker's Delight, Figure 5-2
+		i -= (i >> 1) & 0x55555555;
+		i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+		i = ((i >> 4) + i) & 0x0F0F0F0F;
+		i += i >> 8;
+		i += i >> 16;
+		return i & 0x0000003F;
 	}
 
 	public static int rotateLeft(int value, int distance) {
@@ -341,12 +331,14 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return (value >>> distance) | (value << -distance);
 	}
 
-	public static int reverse(int value) {
-		value = (value & 0x55555555) << 1 | (value >>> 1) & 0x55555555;
-		value = (value & 0x33333333) << 2 | (value >>> 2) & 0x33333333;
-		value = (value & 0x0f0f0f0f) << 4 | (value >>> 4) & 0x0f0f0f0f;
-		value = (value << 24) | ((value & 0xff00) << 8) | ((value >>> 8) & 0xff00) | (value >>> 24);
-		return value;
+	public static int reverse(int i) {
+		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
+		// http://graphics.stanford.edu/~seander/bithacks.html
+		i =    ((i >>>  1) & 0x55555555) | ((i & 0x55555555) <<  1);
+		i =    ((i >>>  2) & 0x33333333) | ((i & 0x33333333) <<  2);
+		i =    ((i >>>  4) & 0x0F0F0F0F) | ((i & 0x0F0F0F0F) <<  4);
+		i =    ((i >>>  8) & 0x00FF00FF) | ((i & 0x00FF00FF) <<  8);
+		return ((i >>> 16)             ) | ((i             ) << 16);
 	}
 
 	public static int signum(int value) {

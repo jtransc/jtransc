@@ -19,7 +19,6 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 
 public class IndexOutOfBoundsException extends RuntimeException {
-
 	public IndexOutOfBoundsException() {
 		JTranscSystem.debugger();
 	}

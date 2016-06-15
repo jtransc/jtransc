@@ -225,6 +225,7 @@ public final class Long extends Number implements Comparable<Long> {
 	public static final int BYTES = SIZE / Byte.SIZE;
 
 	public static long highestOneBit(long v) {
+		// Hacker's Delight, Figure 3-1
 		v |= (v >> 1);
 		v |= (v >> 2);
 		v |= (v >> 4);
@@ -234,78 +235,62 @@ public final class Long extends Number implements Comparable<Long> {
 		return v - (v >>> 1);
 	}
 
+
 	public static long lowestOneBit(long v) {
 		return v & -v;
 	}
 
 	public static int numberOfLeadingZeros(long v) {
-		if (v == 0) return 64;
+		// After Hacker's Delight, Figure 5-6
+		if (v < 0) {
+			return 0;
+		}
+		if (v == 0) {
+			return 64;
+		}
+		// On a 64-bit VM, the two previous tests should probably be replaced by
+		// if (v <= 0) return ((int) (~v >> 57)) & 64;
+
 		int n = 1;
-		int x = (int) (v >>> 32);
-		if (x == 0) {
-			n += 32;
-			x = (int) v;
+		int i = (int) (v >>> 32);
+		if (i == 0) {
+			n +=  32;
+			i = (int) v;
 		}
-		if (x >>> 16 == 0) {
-			n += 16;
-			x <<= 16;
+		if (i >>> 16 == 0) {
+			n +=  16;
+			i <<= 16;
 		}
-		if (x >>> 24 == 0) {
-			n += 8;
-			x <<= 8;
+		if (i >>> 24 == 0) {
+			n +=  8;
+			i <<= 8;
 		}
-		if (x >>> 28 == 0) {
-			n += 4;
-			x <<= 4;
+		if (i >>> 28 == 0) {
+			n +=  4;
+			i <<= 4;
 		}
-		if (x >>> 30 == 0) {
-			n += 2;
-			x <<= 2;
+		if (i >>> 30 == 0) {
+			n +=  2;
+			i <<= 2;
 		}
-		n -= x >>> 31;
-		return n;
+		return n - (i >>> 31);
 	}
 
-	public static int numberOfTrailingZeros(long value) {
-		int x, y;
-		if (value == 0) return 64;
-		int n = 63;
-		y = (int) value;
-		if (y != 0) {
-			n = n - 32;
-			x = y;
-		} else x = (int) (value >>> 32);
-		y = x << 16;
-		if (y != 0) {
-			n = n - 16;
-			x = y;
-		}
-		y = x << 8;
-		if (y != 0) {
-			n = n - 8;
-			x = y;
-		}
-		y = x << 4;
-		if (y != 0) {
-			n = n - 4;
-			x = y;
-		}
-		y = x << 2;
-		if (y != 0) {
-			n = n - 2;
-			x = y;
-		}
-		return n - ((x << 1) >>> 31);
+	public static int numberOfTrailingZeros(long v) {
+		int low = (int) v;
+		return low !=0 ? Integer.numberOfTrailingZeros(low)
+			: 32 + Integer.numberOfTrailingZeros((int) (v >>> 32));
 	}
 
 	public static int bitCount(long v) {
-		v = v - ((v >>> 1) & 0x5555555555555555L);
+		// Combines techniques from several sources
+		v -=  (v >>> 1) & 0x5555555555555555L;
 		v = (v & 0x3333333333333333L) + ((v >>> 2) & 0x3333333333333333L);
-		v = (v + (v >>> 4)) & 0x0f0f0f0f0f0f0f0fL;
-		v = v + (v >>> 8);
-		v = v + (v >>> 16);
-		v = v + (v >>> 32);
-		return (int) v & 0x7f;
+		int i =  ((int)(v >>> 32)) + (int) v;
+		i = (i & 0x0F0F0F0F) + ((i >>> 4) & 0x0F0F0F0F);
+		i += i >>> 8;
+		i += i >>> 16;
+		return i  & 0x0000007F;
 	}
 
 	public static long rotateLeft(long value, int distance) {
@@ -317,12 +302,14 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	public static long reverse(long v) {
-		v = (v & 0x5555555555555555L) << 1 | (v >>> 1) & 0x5555555555555555L;
-		v = (v & 0x3333333333333333L) << 2 | (v >>> 2) & 0x3333333333333333L;
-		v = (v & 0x0f0f0f0f0f0f0f0fL) << 4 | (v >>> 4) & 0x0f0f0f0f0f0f0f0fL;
-		v = (v & 0x00ff00ff00ff00ffL) << 8 | (v >>> 8) & 0x00ff00ff00ff00ffL;
-		v = (v << 48) | ((v & 0xffff0000L) << 16) | ((v >>> 16) & 0xffff0000L) | (v >>> 48);
-		return v;
+		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
+		// http://graphics.stanford.edu/~seander/bithacks.html
+		v = ((v >>> 1) & 0x5555555555555555L) | ((v & 0x5555555555555555L) << 1);
+		v = ((v >>> 2) & 0x3333333333333333L) | ((v & 0x3333333333333333L) << 2);
+		v = ((v >>> 4) & 0x0F0F0F0F0F0F0F0FL) | ((v & 0x0F0F0F0F0F0F0F0FL) << 4);
+		v = ((v >>> 8) & 0x00FF00FF00FF00FFL) | ((v & 0x00FF00FF00FF00FFL) << 8);
+		v = ((v >>>16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) <<16);
+		return ((v >>>32)                   ) | ((v                      ) <<32);
 	}
 
 	public static int signum(long v) {
@@ -330,8 +317,11 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	public static long reverseBytes(long v) {
-		v = (v & 0x00ff00ff00ff00ffL) << 8 | (v >>> 8) & 0x00ff00ff00ff00ffL;
-		return (v << 48) | ((v & 0xffff0000L) << 16) | ((v >>> 16) & 0xffff0000L) | (v >>> 48);
+		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
+		// http://graphics.stanford.edu/~seander/bithacks.html
+		v = ((v >>> 8) & 0x00FF00FF00FF00FFL) | ((v & 0x00FF00FF00FF00FFL) << 8);
+		v = ((v >>>16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) <<16);
+		return ((v >>>32)                   ) | ((v                      ) <<32);
 	}
 
 	public static long sum(long l, long r) {
