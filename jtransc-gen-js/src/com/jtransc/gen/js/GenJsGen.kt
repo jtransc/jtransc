@@ -264,6 +264,13 @@ class GenJsGen(
 		return "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
 	}
 
+	fun visibleAnnotationsOrNull(annotations: List<AstAnnotation>): String {
+		return if (annotations.isNotEmpty()) visibleAnnotations(annotations) else "null"
+	}
+	fun visibleAnnotationsListOrNull(annotations: List<List<AstAnnotation>>): String {
+		return if (annotations.isNotEmpty()) visibleAnnotationsList(annotations) else "null"
+	}
+
 	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
 		return Indenter.gen {
 			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
@@ -794,7 +801,7 @@ class GenJsGen(
 			//val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 
 			//line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
-			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)}, ${visibleAnnotations(field.annotations)});")
+			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)}, ${visibleAnnotationsOrNull(field.annotations)});")
 		}
 
 		fun writeMethod(method: AstMethod): Indenter {
@@ -824,7 +831,7 @@ class GenJsGen(
 						"registerMethod"
 					}
 
-					val annotationsArgs = "${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)}"
+					val annotationsArgs = "${visibleAnnotationsOrNull(method.annotations)}, ${visibleAnnotationsListOrNull(method.parameterAnnotations)}"
 
 					val commonArgs = if (isConstructor) {
 						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
@@ -898,7 +905,7 @@ class GenJsGen(
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, ${visibleAnnotations(clazz.runtimeAnnotations)}, function() {"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, ${visibleAnnotationsOrNull(clazz.runtimeAnnotations)}, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)

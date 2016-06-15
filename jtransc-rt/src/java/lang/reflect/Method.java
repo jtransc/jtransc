@@ -16,79 +16,32 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.annotation.Annotation;
 
 @JTranscKeep
-@HaxeAddMembers({
-	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Method:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
-})
-public final class Method extends AccessibleObject implements Member, GenericDeclaration {
-	@JTranscKeep
-	private int id;
-
-	@JTranscKeep
-	private Class<?> clazz;
-
-	@JTranscKeep
-	private int slot;
-
-	// This is guaranteed to be interned by the VM in the 1.4
-	// reflection implementation
-	@JTranscKeep
-	private String name;
+public final class Method extends MethodConstructor implements Member, GenericDeclaration {
 
 	@JTranscKeep
 	private Class<?> returnType;
 
-	@JTranscKeep
-	private Class<?>[] parameterTypes;
-
-	@JTranscKeep
-	private Class<?>[] exceptionTypes;
-
-	@JTranscKeep
-	private int modifiers;
-
-	// Generics and annotations support
-	@JTranscKeep
-	private transient String signature;
-
-	@JTranscKeep
-	private transient String genericSignature;
-
-	// generic info repository; lazily initialized
-	//private transient MethodRepository genericInfo;
-	@JTranscKeep
-	private byte[] annotations;
-
-	@JTranscKeep
-	private byte[] parameterAnnotations;
-
-	@JTranscKeep
-	private byte[] annotationDefault;
-	//private volatile MethodAccessor methodAccessor;
-
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
-	native public Annotation[] getDeclaredAnnotations();
-
-	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	native public Annotation[][] getParameterAnnotations();
-
-	private Method() {
+	@Override
+	protected boolean isConstructor() {
+		return false;
 	}
 
-	public Class<?> getDeclaringClass() {
-		return clazz;
+	public Annotation[] getDeclaredAnnotations() {
+		return super.getDeclaredAnnotations();
+	}
+
+	public Annotation[][] getParameterAnnotations() {
+		return super.getParameterAnnotations();
+	}
+
+	private Method() {
 	}
 
 	public String getName() {
@@ -100,29 +53,6 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 	}
 
 	native public TypeVariable<Method>[] getTypeParameters();
-
-	@JTranscInvisible
-	private MethodTypeImpl methodType;
-	@JTranscInvisible
-	private MethodTypeImpl genericMethodType;
-
-	@JTranscInvisible
-	private MethodTypeImpl methodType() {
-		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
-		return methodType;
-	}
-
-	@JTranscInvisible
-	private MethodTypeImpl genericMethodType() {
-		if (genericMethodType == null) {
-			if (genericSignature != null) {
-				genericMethodType = _InternalUtils.parseMethodType(genericSignature, null);
-			} else {
-				genericMethodType = methodType();
-			}
-		}
-		return genericMethodType;
-	}
 
 	public Class<?> getReturnType() {
 		return (Class<?>) methodType().rettype;
@@ -156,23 +86,6 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 		return getDeclaringClass().getName().hashCode() ^ getName().hashCode();
 	}
 
-	public String toString() {
-		int mod = getModifiers();
-		String out = "";
-		if (mod != 0) out += Modifier.toString(mod) + " ";
-		out += _InternalUtils.getTypeName(getReturnType()) + " ";
-		out += _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName();
-		out += "(";
-		boolean first = true;
-		for (Class<?> param : getParameterTypes()) {
-			if (!first) out += ",";
-			out += _InternalUtils.getTypeName(param);
-			first = false;
-		}
-		out += ")";
-		return out;
-	}
-
 	native public String toGenericString();
 
 	@HaxeMethodBody("" +
@@ -184,14 +97,6 @@ public final class Method extends AccessibleObject implements Member, GenericDec
 
 	public boolean isBridge() {
 		return (getModifiers() & Modifier.BRIDGE) != 0;
-	}
-
-	public boolean isVarArgs() {
-		return (getModifiers() & Modifier.VARARGS) != 0;
-	}
-
-	public boolean isSynthetic() {
-		return (getModifiers() & Modifier.SYNTHETIC) != 0;
 	}
 
 	native public Object getDefaultValue();

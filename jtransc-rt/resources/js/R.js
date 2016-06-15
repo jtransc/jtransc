@@ -22,8 +22,8 @@ function __createMethod(clazzClazz, info) {
 	out["{% FIELD java.lang.reflect.Method:signature %}"] = N.str(info.desc);
 	out["{% FIELD java.lang.reflect.Method:genericSignature %}"] = N.str(info.genericDesc);
 	out["{% FIELD java.lang.reflect.Method:modifiers %}"] = N.str(info.flags);
-	out["_annotations"] = info.annotations();
-	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : [];
+	out["_annotations"] = info.annotations ? info.annotations() : null;
+	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : null;
 	return out;
 }
 
@@ -35,7 +35,7 @@ function __createConstructor(clazzClazz, info) {
 	out["{% FIELD java.lang.reflect.Constructor:genericSignature %}"] = N.str(info.genericDesc);
 	out["{% FIELD java.lang.reflect.Constructor:modifiers %}"] = N.str(info.flags);
 	out["_annotations"] = info.annotations ? info.annotations() : [];
-	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : [];
+	out["_parameterAnnotations"] = info.argumentAnnotations ? info.argumentAnnotations() : null;
 	return out;
 }
 
@@ -64,7 +64,7 @@ R.__initClass = function(clazzClazz) {
 			clazzClazz._fields = clazzInfo.fields.map(function(info) { return __createField(clazzClazz, info); });
 			clazzClazz._methods = clazzInfo.methods.map(function(info) { return __createMethod(clazzClazz, info); });;
 			clazzClazz._constructors = clazzInfo.constructors.map(function(info) { return __createConstructor(clazzClazz, info); });
-			clazzClazz._annotations = clazzInfo.annotations();
+			clazzClazz._annotations = clazzInfo.annotations ? clazzInfo.annotations() : null;
 
 			clazzClazz._jsClass = clazz;
 			clazzClazz._interfaces = clazzInfo.interfaces;

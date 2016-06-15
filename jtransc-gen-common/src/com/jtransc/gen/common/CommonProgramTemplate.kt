@@ -86,13 +86,16 @@ open class CommonProgramTemplate(
 					program[AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2]))]!!
 				} else {
 					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
-					if (methods.isEmpty()) invalidOp("Can't find method $desc")
+					if (methods.isEmpty()) invalidOp("Can't find method $desc2")
 					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
 					methods.first()
 				}
 				names.buildMethod(method, static = (type == "SMETHOD"))
 			}
-			"SFIELD", "FIELD" -> names.buildField(clazz.fieldsByName[dataParts[1]]!!, static = (type == "SFIELD"))
+			"SFIELD", "FIELD" -> {
+				val field = clazz.locateField(dataParts[1]) ?: invalidOp("Can't find field $desc2")
+				names.buildField(field, static = (type == "SFIELD"))
+			}
 			"CLASS" -> names.buildTemplateClass(clazz)
 			else -> invalidOp("Unknown type!")
 		}

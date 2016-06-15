@@ -289,6 +289,8 @@ class AstClass(
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
+	fun locateField(name:String): AstField? = fieldsByName[name] ?: parentClass?.locateField(name)
+
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
 	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
 

@@ -3,6 +3,8 @@ package jtransc.rt.test;
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class JTranscReflectionTest {
@@ -17,6 +19,54 @@ public class JTranscReflectionTest {
 		new TestDeprecatedExample().demo();
 		nullArgs();
 		getInterfacesTest();
+		testEmptyAnnotations();
+	}
+
+	static private void testEmptyAnnotations() {
+		System.out.println("annotationsInConstructorTest2:");
+		dumpClass(TestEmptyAnnotationsClass.class);
+		dumpClass(Test.class);
+	}
+
+	static private void dumpAnnotations(String prefix, Annotation[] annotations) {
+		for (Annotation annotation : annotations) {
+			System.out.println(prefix + ": " + annotation);
+		}
+	}
+
+	static private void dumpAnnotations(String prefix, Annotation[][] annotationsList) {
+		for (Annotation[] annotations : annotationsList) {
+			dumpAnnotations(prefix + ".Annotation", annotations);
+		}
+	}
+
+	static private void dumpClass(Class<?> clazz) {
+		System.out.println("Dumping class..." + clazz);
+		dumpAnnotations("Class.Annotation", clazz.getDeclaredAnnotations());
+		for (Field field : clazz.getDeclaredFields()) {
+			System.out.println("Field: " + field);
+			dumpAnnotations("Field.Annotation", field.getDeclaredAnnotations());
+		}
+		for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+			System.out.println("Constructor: " + constructor);
+			dumpAnnotations("Constructor.Annotation", constructor.getDeclaredAnnotations());
+			dumpAnnotations("Constructor.Annotation", constructor.getParameterAnnotations());
+		}
+		for (Method method : clazz.getDeclaredMethods()) {
+			System.out.println("Method: " + method);
+			dumpAnnotations("Method.Annotation", method.getDeclaredAnnotations());
+			dumpAnnotations("Method.Annotation", method.getParameterAnnotations());
+		}
+	}
+
+	static class TestEmptyAnnotationsClass {
+		public int a;
+
+		public TestEmptyAnnotationsClass(int z) {
+		}
+
+		public void methodWithoutAnnotations(String a, int b) {
+		}
 	}
 
 	static private void getInterfacesTest() {

@@ -58,7 +58,16 @@ public class AccessibleObject implements AnnotatedElement {
 		return this.getDeclaredAnnotations(); // @TODO: Fix me!
 	}
 
+	public Annotation[] getDeclaredAnnotations() {
+		Annotation[] out = _getDeclaredAnnotations();
+		if (out != null) {
+			return out;
+		} else {
+			return new Annotation[0];
+		}
+	}
+
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
-	native public Annotation[] getDeclaredAnnotations();
+	native private Annotation[] _getDeclaredAnnotations();
 }

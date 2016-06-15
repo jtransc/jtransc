@@ -16,85 +16,26 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.annotation.Annotation;
 
-@HaxeAddMembers({
-	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Constructor:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
-})
-public final class Constructor<T> extends AccessibleObject implements Member, GenericDeclaration {
-	@JTranscKeep
-	private Class<T> clazz;
-
-	@JTranscKeep
-	private int slot;
-
-	@JTranscKeep
-	private Class<?>[] parameterTypes;
-
-	@JTranscKeep
-	private Class<?>[] exceptionTypes;
-
-	@JTranscKeep
-	private int modifiers;
-
-	// Generics and annotations support
-	@JTranscKeep
-	private transient String signature;
-
-	@JTranscKeep
-	private transient String genericSignature;
-	// generic info repository; lazily initialized
-
-	@JTranscKeep
-	private byte[] annotations;
-
-	@JTranscKeep
-	private byte[] parameterAnnotations;
-
+public final class Constructor<T> extends MethodConstructor implements Member, GenericDeclaration {
 	public Class<T> getDeclaringClass() {
-		return clazz;
+		return (Class<T>) clazz;
 	}
 
 	public String getName() {
 		return getDeclaringClass().getName();
 	}
 
-	public int getModifiers() {
-		return modifiers;
+	@Override
+	protected boolean isConstructor() {
+		return true;
 	}
 
 	native public TypeVariable<Constructor<T>>[] getTypeParameters();
-
-	@JTranscInvisible
-	private MethodTypeImpl methodType;
-	@JTranscInvisible
-	private MethodTypeImpl genericMethodType;
-
-	@JTranscInvisible
-	private MethodTypeImpl methodType() {
-		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
-		return methodType;
-	}
-
-	@JTranscInvisible
-	private MethodTypeImpl genericMethodType() {
-		if (genericMethodType == null) {
-			if (genericSignature != null) {
-				genericMethodType = _InternalUtils.parseMethodType(genericSignature, null);
-			} else {
-				genericMethodType = methodType();
-			}
-		}
-		return genericMethodType;
-	}
 
 	public Class<?>[] getParameterTypes() {
 		return (Class<?>[]) methodType().args;
@@ -120,26 +61,7 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 		return getDeclaringClass().getName().hashCode();
 	}
 
-	native public String toString();
-
 	native public String toGenericString();
-
-	@HaxeMethodBody(
-		"//trace('dynamic newInstance : ' + this._internalName);\n" +
-		"var instance = HaxeNatives.newInstance(this.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);\n" +
-		"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), HaxeArrayAny.toArrayOrEmpty(p0));\n" +
-		"return instance;"
-	)
-	@JTranscMethodBody(target = "js", value = "return R.newInstance(this, p0);")
-	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;
-
-	public boolean isVarArgs() {
-		return (getModifiers() & Modifier.VARARGS) != 0;
-	}
-
-	public boolean isSynthetic() {
-		return (getModifiers() & Modifier.SYNTHETIC) != 0;
-	}
 
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		return super.getAnnotation(annotationClass);
@@ -149,7 +71,18 @@ public final class Constructor<T> extends AccessibleObject implements Member, Ge
 		return super.getDeclaredAnnotations();
 	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	native public Annotation[][] getParameterAnnotations();
+	public Annotation[][] getParameterAnnotations() {
+		return super.getParameterAnnotations();
+	}
+
+	@HaxeMethodBody(
+		"//trace('dynamic newInstance : ' + this._internalName);\n" +
+			"var instance = HaxeNatives.newInstance(this.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);\n" +
+			"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), HaxeArrayAny.toArrayOrEmpty(p0));\n" +
+			"return instance;"
+	)
+	@JTranscMethodBody(target = "js", value = {
+		"return R.newInstance(this, p0);"
+	})
+	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 }

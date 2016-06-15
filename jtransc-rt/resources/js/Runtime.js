@@ -28,6 +28,7 @@ var ProgramContext = function() {
 	this.mainClass = null;
 };
 
+
 var lastTypeId = 1;
 
 var TypeContext = function (internalName, name, flags, parent, interfaces, annotations) {
@@ -52,7 +53,7 @@ var TypeContext = function (internalName, name, flags, parent, interfaces, annot
 	this.fields = [];
 	this.methods = [];
 	this.constructors = [];
-	this.annotations = annotations || (function() { return []; });
+	this.annotations = annotations;
 	this.initialized = false;
 	this.instanceOf = {};
 
