@@ -24,10 +24,10 @@ before_script:
 script:
 - mvn install --settings settings.xml
 - pushd jtransc-main-run/example
-- "./run && node program.js"
+- "./run"
 - popd
 - pushd jtransc-main-run/example-gradle
-- gradle runPlainJs && node build/program.js
+- gradle runPlainJs && node build/jtransc-js/program.js
 - popd
 cache:
   directories:
