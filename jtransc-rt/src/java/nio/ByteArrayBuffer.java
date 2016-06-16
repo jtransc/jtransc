@@ -308,14 +308,15 @@ final class ByteArrayBuffer extends ByteBuffer {
 		return this;
 	}
 
+	/*
 	private byte[] temp = new byte[8];
 
-	private void _put(byte b) {
-		backingArray[arrayOffset + position++] = b;
+	private void _put(int offset, byte b) {
+		backingArray[arrayOffset + position + offset] = b;
 	}
 
-	private void _putTemp(byte[] bb, int count) {
-		for (int n = 0; n < count; n++) _put(bb[n]);
+	private void _putTemp(int offset, byte[] bb, int count) {
+		for (int n = 0; n < count; n++) _put(offset + n, bb[n]);
 	}
 
 	private boolean isLittleEndian() {
@@ -345,6 +346,7 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(char[] src, int srcOffset, int charCount) {
 		checkPutBounds(SizeOf.CHAR, src.length, srcOffset, charCount);
 		for (int n = 0; n < charCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempShort((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.CHAR);
 		}
@@ -353,6 +355,7 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(double[] src, int srcOffset, int doubleCount) {
 		checkPutBounds(SizeOf.DOUBLE, src.length, srcOffset, doubleCount);
 		for (int n = 0; n < doubleCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempDouble((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.DOUBLE);
 		}
@@ -361,6 +364,7 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(float[] src, int srcOffset, int floatCount) {
 		checkPutBounds(SizeOf.FLOAT, src.length, srcOffset, floatCount);
 		for (int n = 0; n < floatCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempFloat((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.FLOAT);
 		}
@@ -369,6 +373,7 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(int[] src, int srcOffset, int intCount) {
 		checkPutBounds(SizeOf.INT, src.length, srcOffset, intCount);
 		for (int n = 0; n < intCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempInt((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.INT);
 		}
@@ -377,6 +382,7 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(long[] src, int srcOffset, int longCount) {
 		checkPutBounds(SizeOf.LONG, src.length, srcOffset, longCount);
 		for (int n = 0; n < longCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempLong((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.LONG);
 		}
@@ -385,10 +391,12 @@ final class ByteArrayBuffer extends ByteBuffer {
 	final void put(short[] src, int srcOffset, int shortCount) {
 		checkPutBounds(SizeOf.SHORT, src.length, srcOffset, shortCount);
 		for (int n = 0; n < shortCount; n++) {
+			// @TODO: BAD! shouldn't update position!
 			_tempShort((short)src[srcOffset + n]);
 			_putTemp(temp, SizeOf.SHORT);
 		}
 	}
+	*/
 
 	@Override
 	public ByteBuffer putChar(int index, char value) {

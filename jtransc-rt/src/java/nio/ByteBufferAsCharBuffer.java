@@ -151,14 +151,14 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
         return this;
     }
 
-    @Override
-    public CharBuffer put(char[] src, int srcOffset, int charCount) {
-        byteBuffer.limit(limit * SizeOf.CHAR);
-        byteBuffer.position(position * SizeOf.CHAR);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, charCount);
-        this.position += charCount;
-        return this;
-    }
+    //@Override
+    //public CharBuffer put(char[] src, int srcOffset, int charCount) {
+    //    byteBuffer.limit(limit * SizeOf.CHAR);
+    //    byteBuffer.position(position * SizeOf.CHAR);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, charCount);
+    //    this.position += charCount;
+    //    return this;
+    //}
 
     @Override
     public CharBuffer slice() {

@@ -50,6 +50,7 @@ final public class FastMemory {
 	}
 
 	private FastMemory(byte[] data) {
+		if (data.length % 8 != 0) throw new RuntimeException("ByteArray must be multiple of 8!");
 		_initWithBytes(data);
 		_createViews();
 	}

@@ -151,14 +151,14 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         return this;
     }
 
-    @Override
-    public IntBuffer put(int[] src, int srcOffset, int intCount) {
-        byteBuffer.limit(limit * SizeOf.INT);
-        byteBuffer.position(position * SizeOf.INT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, intCount);
-        this.position += intCount;
-        return this;
-    }
+    //@Override
+    //public IntBuffer put(int[] src, int srcOffset, int intCount) {
+    //    byteBuffer.limit(limit * SizeOf.INT);
+    //    byteBuffer.position(position * SizeOf.INT);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, intCount);
+    //    this.position += intCount;
+    //    return this;
+    //}
 
     @Override
     public IntBuffer slice() {

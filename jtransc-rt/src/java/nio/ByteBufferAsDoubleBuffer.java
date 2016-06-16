@@ -151,14 +151,14 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
         return this;
     }
 
-    @Override
-    public DoubleBuffer put(double[] src, int srcOffset, int doubleCount) {
-        byteBuffer.limit(limit * SizeOf.DOUBLE);
-        byteBuffer.position(position * SizeOf.DOUBLE);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, doubleCount);
-        this.position += doubleCount;
-        return this;
-    }
+    //@Override
+    //public DoubleBuffer put(double[] src, int srcOffset, int doubleCount) {
+    //    byteBuffer.limit(limit * SizeOf.DOUBLE);
+    //    byteBuffer.position(position * SizeOf.DOUBLE);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, doubleCount);
+    //    this.position += doubleCount;
+    //    return this;
+    //}
 
     @Override
     public DoubleBuffer slice() {

@@ -151,14 +151,14 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
         return this;
     }
 
-    @Override
-    public LongBuffer put(long[] src, int srcOffset, int longCount) {
-        byteBuffer.limit(limit * SizeOf.LONG);
-        byteBuffer.position(position * SizeOf.LONG);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, longCount);
-        this.position += longCount;
-        return this;
-    }
+    //@Override
+    //public LongBuffer put(long[] src, int srcOffset, int longCount) {
+    //    byteBuffer.limit(limit * SizeOf.LONG);
+    //    byteBuffer.position(position * SizeOf.LONG);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, longCount);
+    //    this.position += longCount;
+    //    return this;
+    //}
 
     @Override
     public LongBuffer slice() {

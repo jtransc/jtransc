@@ -150,14 +150,14 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
         return this;
     }
 
-    @Override
-    public ShortBuffer put(short[] src, int srcOffset, int shortCount) {
-        byteBuffer.limit(limit * SizeOf.SHORT);
-        byteBuffer.position(position * SizeOf.SHORT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, shortCount);
-        this.position += shortCount;
-        return this;
-    }
+    //@Override
+    //public ShortBuffer put(short[] src, int srcOffset, int shortCount) {
+    //    byteBuffer.limit(limit * SizeOf.SHORT);
+    //    byteBuffer.position(position * SizeOf.SHORT);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, shortCount);
+    //    this.position += shortCount;
+    //    return this;
+    //}
 
     @Override
     public ShortBuffer slice() {

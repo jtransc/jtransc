@@ -150,14 +150,14 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
         return this;
     }
 
-    @Override
-    public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
-        this.position += floatCount;
-        return this;
-    }
+    //@Override
+    //public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
+    //    byteBuffer.limit(limit * SizeOf.FLOAT);
+    //    byteBuffer.position(position * SizeOf.FLOAT);
+    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
+    //    this.position += floatCount;
+    //    return this;
+    //}
 
     @Override
     public FloatBuffer slice() {
