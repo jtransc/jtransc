@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import com.jtransc.FastStringMap;
+import com.jtransc.ds.FastStringMap;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;

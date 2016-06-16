@@ -44,17 +44,37 @@ final public class FastMemory {
 	@HaxeRemoveField
 	private ByteBuffer data;
 
+	private FastMemory(int size) {
+		_initWithSize(size);
+		_createViews();
+	}
+
+	private FastMemory(byte[] data) {
+		_initWithBytes(data);
+		_createViews();
+	}
+
+	@HaxeMethodBody("this._length = p0.length; this._data = p0.getBytes();")
+	@JTranscMethodBody(target = "js", value = "this._length = p0.length; this.buffer = p0.data.buffer;")
+	private void _initWithBytes(byte[] data) {
+		this.length = data.length;
+		this.data = ByteBuffer.wrap(data).order(ByteOrder.nativeOrder());
+	}
+
+	@HaxeMethodBody("this._length = p0; this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);")
+	@JTranscMethodBody(target = "js", value = "this._length = p0; this.buffer = new ArrayBuffer((this._length + 7) & ~7);")
+	private void _initWithSize(int size) {
+		this.length = size;
+		this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
+	}
+
 	@HaxeMethodBody("" +
-		"this._length = p0;\n" +
-		"this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);\n" +
 		"this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
 		"this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
 		"this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
 		"this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
 	)
 	@JTranscMethodBody(target = "js", value = {
-		"this._length = p0;",
-		"this.buffer = new ArrayBuffer((this._length + 7) & ~7);",
 		"this.view   = new DataView(this.buffer);",
 		"this.s8     = new Int8Array(this.buffer);",
 		"this.u8     = new Uint8Array(this.buffer);",
@@ -64,9 +84,15 @@ final public class FastMemory {
 		"this.f32    = new Float32Array(this.buffer);",
 		"this.f64    = new Float64Array(this.buffer);",
 	})
-	public FastMemory(int size) {
-		this.length = size;
-		this.data = ByteBuffer.allocateDirect((size + 7) & ~7).order(ByteOrder.nativeOrder());
+	private void _createViews() {
+	}
+
+	static public FastMemory alloc(int size) {
+		return new FastMemory(size);
+	}
+
+	static public FastMemory wrap(byte[] bytes) {
+		return new FastMemory(bytes);
 	}
 
 	@JTranscInline

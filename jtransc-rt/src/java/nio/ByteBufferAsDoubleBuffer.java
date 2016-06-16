@@ -19,7 +19,7 @@ package java.nio;
 import libcore.io.SizeOf;
 
 /**
- * This class wraps a byte buffer to be a float buffer.
+ * This class wraps a byte buffer to be a double buffer.
  * <p>
  * Implementation notice:
  * <ul>
@@ -29,27 +29,28 @@ import libcore.io.SizeOf;
  * The adapter extends Buffer, thus has its own position and limit.</li>
  * </ul>
  * </p>
+ *
  */
-final class ByteBufferAsFloatBuffer extends FloatBuffer {
+final class ByteBufferAsDoubleBuffer extends DoubleBuffer {
 
     private final ByteBuffer byteBuffer;
 
-    static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
+    static DoubleBuffer asDoubleBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsFloatBuffer(slice);
+        return new ByteBufferAsDoubleBuffer(slice);
     }
 
-    ByteBufferAsFloatBuffer(ByteBuffer byteBuffer) {
-        super(byteBuffer.capacity() / SizeOf.FLOAT);
+    private ByteBufferAsDoubleBuffer(ByteBuffer byteBuffer) {
+        super(byteBuffer.capacity() / SizeOf.DOUBLE);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override
-    public FloatBuffer asReadOnlyBuffer() {
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(byteBuffer.asReadOnlyBuffer());
+    public DoubleBuffer asReadOnlyBuffer() {
+        ByteBufferAsDoubleBuffer buf = new ByteBufferAsDoubleBuffer(byteBuffer.asReadOnlyBuffer());
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -58,12 +59,12 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer compact() {
+    public DoubleBuffer compact() {
         if (byteBuffer.isReadOnly()) {
             throw new ReadOnlyBufferException();
         }
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+        byteBuffer.limit(limit * SizeOf.DOUBLE);
+        byteBuffer.position(position * SizeOf.DOUBLE);
         byteBuffer.compact();
         byteBuffer.clear();
         position = limit - position;
@@ -73,9 +74,9 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer duplicate() {
+    public DoubleBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(bb);
+        ByteBufferAsDoubleBuffer buf = new ByteBufferAsDoubleBuffer(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -83,25 +84,25 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public float get() {
+    public double get() {
         if (position == limit) {
             throw new BufferUnderflowException();
         }
-        return byteBuffer.getFloat(position++ * SizeOf.FLOAT);
+        return byteBuffer.getDouble(position++ * SizeOf.DOUBLE);
     }
 
     @Override
-    public float get(int index) {
+    public double get(int index) {
         checkIndex(index);
-        return byteBuffer.getFloat(index * SizeOf.FLOAT);
+        return byteBuffer.getDouble(index * SizeOf.DOUBLE);
     }
 
     @Override
-    public FloatBuffer get(float[] dst, int dstOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, floatCount);
-        this.position += floatCount;
+    public DoubleBuffer get(double[] dst, int dstOffset, int doubleCount) {
+        byteBuffer.limit(limit * SizeOf.DOUBLE);
+        byteBuffer.position(position * SizeOf.DOUBLE);
+        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, doubleCount);
+        this.position += doubleCount;
         return this;
     }
 
@@ -120,7 +121,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
         return byteBuffer.order();
     }
 
-    @Override float[] protectedArray() {
+    @Override double[] protectedArray() {
         throw new UnsupportedOperationException();
     }
 
@@ -133,36 +134,36 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer put(float c) {
+    public DoubleBuffer put(double c) {
         if (position == limit) {
             throw new BufferOverflowException();
         }
-        byteBuffer.putFloat(position++ * SizeOf.FLOAT, c);
+        byteBuffer.putDouble(position++ * SizeOf.DOUBLE, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(int index, float c) {
+    public DoubleBuffer put(int index, double c) {
         checkIndex(index);
-        byteBuffer.putFloat(index * SizeOf.FLOAT, c);
+        byteBuffer.putDouble(index * SizeOf.DOUBLE, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
-        this.position += floatCount;
+    public DoubleBuffer put(double[] src, int srcOffset, int doubleCount) {
+        byteBuffer.limit(limit * SizeOf.DOUBLE);
+        byteBuffer.position(position * SizeOf.DOUBLE);
+        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, doubleCount);
+        this.position += doubleCount;
         return this;
     }
 
     @Override
-    public FloatBuffer slice() {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+    public DoubleBuffer slice() {
+        byteBuffer.limit(limit * SizeOf.DOUBLE);
+        byteBuffer.position(position * SizeOf.DOUBLE);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        FloatBuffer result = new ByteBufferAsFloatBuffer(bb);
+        DoubleBuffer result = new ByteBufferAsDoubleBuffer(bb);
         byteBuffer.clear();
         return result;
     }

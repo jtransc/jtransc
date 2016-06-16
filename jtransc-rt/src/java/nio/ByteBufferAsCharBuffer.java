@@ -19,7 +19,7 @@ package java.nio;
 import libcore.io.SizeOf;
 
 /**
- * This class wraps a byte buffer to be a float buffer.
+ * This class wraps a byte buffer to be a char buffer.
  * <p>
  * Implementation notice:
  * <ul>
@@ -29,27 +29,28 @@ import libcore.io.SizeOf;
  * The adapter extends Buffer, thus has its own position and limit.</li>
  * </ul>
  * </p>
+ *
  */
-final class ByteBufferAsFloatBuffer extends FloatBuffer {
+final class ByteBufferAsCharBuffer extends CharBuffer {
 
     private final ByteBuffer byteBuffer;
 
-    static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
+    static CharBuffer asCharBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsFloatBuffer(slice);
+        return new ByteBufferAsCharBuffer(slice);
     }
 
-    ByteBufferAsFloatBuffer(ByteBuffer byteBuffer) {
-        super(byteBuffer.capacity() / SizeOf.FLOAT);
+    private ByteBufferAsCharBuffer(ByteBuffer byteBuffer) {
+        super(byteBuffer.capacity() / SizeOf.CHAR);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override
-    public FloatBuffer asReadOnlyBuffer() {
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(byteBuffer.asReadOnlyBuffer());
+    public CharBuffer asReadOnlyBuffer() {
+        ByteBufferAsCharBuffer buf = new ByteBufferAsCharBuffer(byteBuffer.asReadOnlyBuffer());
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -58,12 +59,12 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer compact() {
+    public CharBuffer compact() {
         if (byteBuffer.isReadOnly()) {
             throw new ReadOnlyBufferException();
         }
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+        byteBuffer.limit(limit * SizeOf.CHAR);
+        byteBuffer.position(position * SizeOf.CHAR);
         byteBuffer.compact();
         byteBuffer.clear();
         position = limit - position;
@@ -73,9 +74,9 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer duplicate() {
+    public CharBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(bb);
+        ByteBufferAsCharBuffer buf = new ByteBufferAsCharBuffer(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -83,25 +84,25 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public float get() {
+    public char get() {
         if (position == limit) {
             throw new BufferUnderflowException();
         }
-        return byteBuffer.getFloat(position++ * SizeOf.FLOAT);
+        return byteBuffer.getChar(position++ * SizeOf.CHAR);
     }
 
     @Override
-    public float get(int index) {
+    public char get(int index) {
         checkIndex(index);
-        return byteBuffer.getFloat(index * SizeOf.FLOAT);
+        return byteBuffer.getChar(index * SizeOf.CHAR);
     }
 
     @Override
-    public FloatBuffer get(float[] dst, int dstOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, floatCount);
-        this.position += floatCount;
+    public CharBuffer get(char[] dst, int dstOffset, int charCount) {
+        byteBuffer.limit(limit * SizeOf.CHAR);
+        byteBuffer.position(position * SizeOf.CHAR);
+        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, charCount);
+        this.position += charCount;
         return this;
     }
 
@@ -120,7 +121,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
         return byteBuffer.order();
     }
 
-    @Override float[] protectedArray() {
+    @Override char[] protectedArray() {
         throw new UnsupportedOperationException();
     }
 
@@ -133,38 +134,45 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer put(float c) {
+    public CharBuffer put(char c) {
         if (position == limit) {
             throw new BufferOverflowException();
         }
-        byteBuffer.putFloat(position++ * SizeOf.FLOAT, c);
+        byteBuffer.putChar(position++ * SizeOf.CHAR, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(int index, float c) {
+    public CharBuffer put(int index, char c) {
         checkIndex(index);
-        byteBuffer.putFloat(index * SizeOf.FLOAT, c);
+        byteBuffer.putChar(index * SizeOf.CHAR, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
-        this.position += floatCount;
+    public CharBuffer put(char[] src, int srcOffset, int charCount) {
+        byteBuffer.limit(limit * SizeOf.CHAR);
+        byteBuffer.position(position * SizeOf.CHAR);
+        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, charCount);
+        this.position += charCount;
         return this;
     }
 
     @Override
-    public FloatBuffer slice() {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+    public CharBuffer slice() {
+        byteBuffer.limit(limit * SizeOf.CHAR);
+        byteBuffer.position(position * SizeOf.CHAR);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        FloatBuffer result = new ByteBufferAsFloatBuffer(bb);
+        CharBuffer result = new ByteBufferAsCharBuffer(bb);
         byteBuffer.clear();
         return result;
     }
 
+    @Override public CharBuffer subSequence(int start, int end) {
+        checkStartEndRemaining(start, end);
+        CharBuffer result = duplicate();
+        result.limit(position + end);
+        result.position(position + start);
+        return result;
+    }
 }

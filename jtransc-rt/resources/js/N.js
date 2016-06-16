@@ -26,10 +26,14 @@ var __reints = (function() {
 			intArray[0] = v.low;
 			intArray[1] = v.high;
 			return doubleArray[0];
+		},
+		isLittleEndian: function() {
+           return new Int16Array(new Uint8Array([1,0]).buffer)[0] == 1;
 		}
     };
 })();
 
+N.isLittleEndian = __reints.isLittleEndian();
 N.intBitsToFloat = __reints.intBitsToFloat;
 N.floatToIntBits = __reints.floatToIntBits;
 N.doubleToLongBits = __reints.doubleToLongBits;

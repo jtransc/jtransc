@@ -19,7 +19,7 @@ package java.nio;
 import libcore.io.SizeOf;
 
 /**
- * This class wraps a byte buffer to be a float buffer.
+ * This class wraps a byte buffer to be a long buffer.
  * <p>
  * Implementation notice:
  * <ul>
@@ -29,27 +29,28 @@ import libcore.io.SizeOf;
  * The adapter extends Buffer, thus has its own position and limit.</li>
  * </ul>
  * </p>
+ *
  */
-final class ByteBufferAsFloatBuffer extends FloatBuffer {
+final class ByteBufferAsLongBuffer extends LongBuffer {
 
     private final ByteBuffer byteBuffer;
 
-    static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
+    static LongBuffer asLongBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsFloatBuffer(slice);
+        return new ByteBufferAsLongBuffer(slice);
     }
 
-    ByteBufferAsFloatBuffer(ByteBuffer byteBuffer) {
-        super(byteBuffer.capacity() / SizeOf.FLOAT);
+    private ByteBufferAsLongBuffer(ByteBuffer byteBuffer) {
+        super(byteBuffer.capacity() / SizeOf.LONG);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override
-    public FloatBuffer asReadOnlyBuffer() {
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(byteBuffer.asReadOnlyBuffer());
+    public LongBuffer asReadOnlyBuffer() {
+        ByteBufferAsLongBuffer buf = new ByteBufferAsLongBuffer(byteBuffer.asReadOnlyBuffer());
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -58,12 +59,12 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer compact() {
+    public LongBuffer compact() {
         if (byteBuffer.isReadOnly()) {
             throw new ReadOnlyBufferException();
         }
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+        byteBuffer.limit(limit * SizeOf.LONG);
+        byteBuffer.position(position * SizeOf.LONG);
         byteBuffer.compact();
         byteBuffer.clear();
         position = limit - position;
@@ -73,9 +74,9 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer duplicate() {
+    public LongBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsFloatBuffer buf = new ByteBufferAsFloatBuffer(bb);
+        ByteBufferAsLongBuffer buf = new ByteBufferAsLongBuffer(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -83,25 +84,25 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public float get() {
+    public long get() {
         if (position == limit) {
             throw new BufferUnderflowException();
         }
-        return byteBuffer.getFloat(position++ * SizeOf.FLOAT);
+        return byteBuffer.getLong(position++ * SizeOf.LONG);
     }
 
     @Override
-    public float get(int index) {
+    public long get(int index) {
         checkIndex(index);
-        return byteBuffer.getFloat(index * SizeOf.FLOAT);
+        return byteBuffer.getLong(index * SizeOf.LONG);
     }
 
     @Override
-    public FloatBuffer get(float[] dst, int dstOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, floatCount);
-        this.position += floatCount;
+    public LongBuffer get(long[] dst, int dstOffset, int longCount) {
+        byteBuffer.limit(limit * SizeOf.LONG);
+        byteBuffer.position(position * SizeOf.LONG);
+		((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, longCount);
+        this.position += longCount;
         return this;
     }
 
@@ -120,7 +121,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
         return byteBuffer.order();
     }
 
-    @Override float[] protectedArray() {
+    @Override long[] protectedArray() {
         throw new UnsupportedOperationException();
     }
 
@@ -133,36 +134,36 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
     }
 
     @Override
-    public FloatBuffer put(float c) {
+    public LongBuffer put(long c) {
         if (position == limit) {
             throw new BufferOverflowException();
         }
-        byteBuffer.putFloat(position++ * SizeOf.FLOAT, c);
+        byteBuffer.putLong(position++ * SizeOf.LONG, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(int index, float c) {
+    public LongBuffer put(int index, long c) {
         checkIndex(index);
-        byteBuffer.putFloat(index * SizeOf.FLOAT, c);
+        byteBuffer.putLong(index * SizeOf.LONG, c);
         return this;
     }
 
     @Override
-    public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
-        this.position += floatCount;
+    public LongBuffer put(long[] src, int srcOffset, int longCount) {
+        byteBuffer.limit(limit * SizeOf.LONG);
+        byteBuffer.position(position * SizeOf.LONG);
+        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, longCount);
+        this.position += longCount;
         return this;
     }
 
     @Override
-    public FloatBuffer slice() {
-        byteBuffer.limit(limit * SizeOf.FLOAT);
-        byteBuffer.position(position * SizeOf.FLOAT);
+    public LongBuffer slice() {
+        byteBuffer.limit(limit * SizeOf.LONG);
+        byteBuffer.position(position * SizeOf.LONG);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        FloatBuffer result = new ByteBufferAsFloatBuffer(bb);
+        LongBuffer result = new ByteBufferAsLongBuffer(bb);
         byteBuffer.clear();
         return result;
     }

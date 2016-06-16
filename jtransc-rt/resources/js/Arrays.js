@@ -30,12 +30,14 @@ function __createJavaArrayBaseType() {
 	return ARRAY;
 }
 
-function __createJavaArrayType(desc, type) {
-	var ARRAY = function(size) {
+function __createJavaArrayType(desc, type, elementBytesSize) {
+	var ARRAY;
+	ARRAY = function(size) {
 		this.$JS$ID$ = $JS$__lastId++;
 		this.$JS$CLASS_ID$ = ARRAY.$$JS_TYPE_CONTEXT$$.id;
 		this.desc = desc;
-		this.data = new type(size);
+		this.memorySize = size * elementBytesSize;
+		this.data = new type((((this.memorySize + 7) & ~7) / elementBytesSize)|0);
 		this.length = size;
 		this.init();
 
@@ -142,14 +144,14 @@ function __createGenericArrayType() {
 
 function __createJavaArrays() {
 	JA_0 = __createJavaArrayBaseType();
-	JA_Z = __createJavaArrayType('[Z', Int8Array);    // Bool Array
-	JA_B = __createJavaArrayType('[B', Int8Array);    // Byte Array
-	JA_C = __createJavaArrayType('[C', Uint16Array);  // Character Array
-	JA_S = __createJavaArrayType('[S', Int16Array);   // Short Array
-	JA_I = __createJavaArrayType('[I', Int32Array);   // Int Array
+	JA_Z = __createJavaArrayType('[Z', Int8Array, 1);    // Bool Array
+	JA_B = __createJavaArrayType('[B', Int8Array, 1);    // Byte Array
+	JA_C = __createJavaArrayType('[C', Uint16Array, 2);  // Character Array
+	JA_S = __createJavaArrayType('[S', Int16Array, 2);   // Short Array
+	JA_I = __createJavaArrayType('[I', Int32Array, 4);   // Int Array
 	JA_J = __createJavaArrayType('[J', Array);        // Long Array
-	JA_F = __createJavaArrayType('[F', Float32Array); // Float Array
-	JA_D = __createJavaArrayType('[D', Float64Array); // Double Array
+	JA_F = __createJavaArrayType('[F', Float32Array, 4); // Float Array
+	JA_D = __createJavaArrayType('[D', Float64Array, 8); // Double Array
 
 	JA_L =__createGenericArrayType(); // Generic Array
 

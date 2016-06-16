@@ -14,11 +14,12 @@ public class FastMemoryTest {
 		testViews();
 		testRawMem();
 		testBits();
+		testWrap();
 	}
 
 	private static void testFastMemory() {
 		JTranscConsole.log("testFastMemory:");
-		FastMemory mem = new FastMemory(1024);
+		FastMemory mem = FastMemory.alloc(1024);
 		mem.setInt8(0, (byte) 255);
 		mem.setInt8(1, (byte) 255);
 		mem.setInt8(2, (byte) 255);
@@ -28,7 +29,7 @@ public class FastMemoryTest {
 
 	private static void testMem() {
 		JTranscConsole.log("testMem:");
-		FastMemory mem = new FastMemory(1024);
+		FastMemory mem = FastMemory.alloc(1024);
 		mem.setInt8(0, (byte) 255);
 		mem.setInt8(1, (byte) 255);
 		mem.setInt8(2, (byte) 255);
@@ -50,7 +51,7 @@ public class FastMemoryTest {
 
 	private static void testViews() {
 		JTranscConsole.log("testViews:");
-		FastMemory mem = new FastMemory(1024);
+		FastMemory mem = FastMemory.alloc(1024);
 		FastMemory4Int ints = new FastMemory4Int(mem);
 		FastMemory4Float floats = new FastMemory4Float(mem);
 		floats.set(0, 1f);
@@ -63,7 +64,7 @@ public class FastMemoryTest {
 
 	private static void testRawMem() {
 		System.out.println("testRawMem:");
-		Mem.select(new FastMemory(1024));
+		Mem.select(FastMemory.alloc(1024));
 		Mem.si32(0, 0x12345670);
 		System.out.println(Mem.li8(0));
 		System.out.println(Mem.li8(1));
@@ -92,5 +93,16 @@ public class FastMemoryTest {
 		System.out.println(BytesRead.u16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
 		System.out.println(BytesRead.s16b(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
 		System.out.println(BytesRead.s16l(new byte[]{(byte) 0xF1, (byte) 0x32}, 0));
+	}
+
+	private static void testWrap() {
+		System.out.println("testWrap:");
+		byte[] data = {1,2,3,4};
+		FastMemory mem = FastMemory.wrap(data);
+		System.out.println(mem.getInt32(0));
+		System.out.println(mem.getInt8(1));
+		mem.setInt8(0, 4);;
+		System.out.println(mem.getInt32(0));
+		for (int n = 0; n < data.length; n++) System.out.println(data[n]);
 	}
 }

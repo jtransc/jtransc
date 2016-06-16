@@ -43,20 +43,22 @@ public class JTranscCrypto {
 	}
 
 	static public byte[] md5(byte[] data) {
-		try {
-			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			return md5.digest(data);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("");
-		}
+		//try {
+		//	MessageDigest md5 = MessageDigest.getInstance("MD5");
+		//	return md5.digest(data);
+		//} catch (NoSuchAlgorithmException e) {
+		//	throw new RuntimeException("");
+		//}
+		throw new RuntimeException("Not implemented md5 yet!");
 	}
 
 	static public byte[] sha1(byte[] data) {
-		try {
-			MessageDigest sha1 = MessageDigest.getInstance("SHA1");
-			return sha1.digest(data);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("");
-		}
+		//try {
+		//	MessageDigest sha1 = MessageDigest.getInstance("SHA1");
+		//	return sha1.digest(data);
+		//} catch (NoSuchAlgorithmException e) {
+		//	throw new RuntimeException("");
+		//}
+		throw new RuntimeException("Not implemented sha1 yet!");
 	}
 }

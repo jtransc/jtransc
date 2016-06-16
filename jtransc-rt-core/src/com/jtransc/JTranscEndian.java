@@ -22,7 +22,7 @@ public class JTranscEndian {
 
 	static private void calculateOnce() {
 		if (calculated) return;
-		FastMemory m = new FastMemory(4);
+		FastMemory m = FastMemory.alloc(4);
 		m.setAlignedInt32(0, 0);
 		m.setAlignedInt8(0, (byte) 1);
 		_le = m.getAlignedInt32(0) == 1;

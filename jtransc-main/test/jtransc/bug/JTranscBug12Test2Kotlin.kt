@@ -1,6 +1,6 @@
 package jtransc.bug;
 
-import com.jtransc.kotlin.JTranscKotlinReflectStripper
+import com.jtransc.experimental.kotlin.JTranscKotlinReflectStripper
 import java.util.*
 
 object JTranscBug12Test2Kotlin {

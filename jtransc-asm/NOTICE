@@ -1,0 +1,9 @@
+   =========================================================================
+   ==  NOTICE file corresponding to the section 4 d of                    ==
+   ==  the Apache License, Version 2.0,                                   ==
+   ==  in this case for the JTransc Runtime Library.                      ==
+   =========================================================================
+
+JTransc ASM Fork (jtransc-asm) includes the ASM Java bytecode manipulation framework which
+is copyright 2000-2011 INRIA, France Telecom and released under the 3-clause BSD license.
+http://asm.ow2.org/

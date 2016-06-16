@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Carlos Ballesteros Velasco
+ * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package com.jtransc.internal;
+package libcore.io;
 
-public class Intrinsics {
-	native static public int sx16(int value);
+// From libcore
+public final class SizeOf {
+	public static final int CHAR = 2;
+	public static final int DOUBLE = 8;
+	public static final int FLOAT = 4;
+	public static final int INT = 4;
+	public static final int LONG = 8;
+	public static final int SHORT = 2;
 
-	native static public int sx8(int value);
-	//native static public int
+	private SizeOf() {
+	}
 }

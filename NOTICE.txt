@@ -4,11 +4,14 @@
    ==  in this case for the JTransc Runtime Library.                      ==
    =========================================================================
 
+JTransc ASM Fork (jtransc-asm) includes the ASM Java bytecode manipulation framework which
+is copyright 2000-2011 INRIA, France Telecom and released under the 3-clause BSD license.
+http://asm.ow2.org/
+
 JTransc Runtime Library (jtransc-rt, jtransc-rt-core)
 Copyright (C) 2015-2016 Carlos Ballesteros Velasco
 For license information see the LICENSE file which accompanies this
 NOTICE file.
-
 This notice is based on the one offered by RoboVM:
 https://github.com/robovm/robovm/blob/master/rt/NOTICE.txt
 
@@ -69,6 +72,9 @@ The JTransc Runtime Library includes the OkHttp library which is copyright 2014
 Square, Inc. and released under the Apache License 2.0.
 http://square.github.io/okhttp/
 
+The JTransc Runtime Library includes the JZlib library zlib in pure Java(TM) by ymnk@jcraft.com, JCraft,Inc.
+https://github.com/ymnk/jzlib
+
 The JTransc Runtime Library includes the Regexodus library, that is a modified fork of Jregex:
 This is a modified fork of JRegex, by Sergey A. Samokhodkin, meant to improve compatibility with
 Android and GWT. This builds off Ed Ropple's work to make JRegex Maven-friendly. This fork started
@@ -78,3 +84,11 @@ CharCharMap and CharArrayList are derived from FastUtil).
 https://github.com/tommyettinger/RegExodus
 http://jregex.sourceforge.net/
 https://github.com/vigna/fastutil
+
+JTransc project uses Kotlin programming language: Kotlin Compiler
+Copyright 2010-2015 JetBrains s.r.o and respective authors and developers
+https://github.com/JetBrains/kotlin/blob/master/license/
+
+JTransc project uses JUnit as testing framework:
+Copyright © 2002-2016 JUnit.
+http://junit.org/junit4/license.html

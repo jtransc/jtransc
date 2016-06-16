@@ -1,97 +1,170 @@
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package java.nio;
 
-class ByteBufferAsShortBuffer extends ShortBuffer {
-	private final boolean bigEndian;
-	protected final ByteBuffer bb;
-	protected final int offset;
+import libcore.io.SizeOf;
 
-	ByteBufferAsShortBuffer(ByteBuffer bb) {
-		super(-1, 0, bb.remaining() >> 1, bb.remaining() >> 1);
-		this.bb = bb;
-		this.bigEndian = true;
+/**
+ * This class wraps a byte buffer to be a short buffer.
+ * <p>
+ * Implementation notice:
+ * <ul>
+ * <li>After a byte buffer instance is wrapped, it becomes privately owned by
+ * the adapter. It must NOT be accessed outside the adapter any more.</li>
+ * <li>The byte buffer's position and limit are NOT linked with the adapter.
+ * The adapter extends Buffer, thus has its own position and limit.</li>
+ * </ul>
+ * </p>
+ */
+final class ByteBufferAsShortBuffer extends ShortBuffer {
 
-		int cap = this.capacity();
-		this.limit(cap);
-		int pos = this.position();
-		assert (pos <= cap);
-		offset = pos;
+    private final ByteBuffer byteBuffer;
 
-	}
+    static ShortBuffer asShortBuffer(ByteBuffer byteBuffer) {
+        ByteBuffer slice = byteBuffer.slice();
+        slice.order(byteBuffer.order());
+        return new ByteBufferAsShortBuffer(slice);
+    }
 
-	ByteBufferAsShortBuffer(boolean bigEndian, ByteBuffer bb, int mark, int pos, int lim, int cap, int off) {
-		super(mark, pos, lim, cap);
-		this.bigEndian = bigEndian;
-		this.bb = bb;
-		offset = off;
-	}
+    private ByteBufferAsShortBuffer(ByteBuffer byteBuffer) {
+        super(byteBuffer.capacity() / SizeOf.SHORT);
+        this.byteBuffer = byteBuffer;
+        this.byteBuffer.clear();
+        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
+    }
 
-	public ShortBuffer slice() {
-		int pos = this.position();
-		int lim = this.limit();
-		assert (pos <= lim);
-		int rem = (pos <= lim ? lim - pos : 0);
-		int off = (pos << 1) + offset;
-		assert (off >= 0);
-		return new ByteBufferAsShortBuffer(bigEndian, bb, -1, 0, rem, rem, off);
-	}
+    @Override
+    public ShortBuffer asReadOnlyBuffer() {
+        ByteBufferAsShortBuffer buf = new ByteBufferAsShortBuffer(byteBuffer.asReadOnlyBuffer());
+        buf.limit = limit;
+        buf.position = position;
+        buf.mark = mark;
+        buf.byteBuffer.order = byteBuffer.order;
+        return buf;
+    }
 
-	public ShortBuffer duplicate() {
-		return new ByteBufferAsShortBuffer(bigEndian, bb, this.markValue(), this.position(), this.limit(), this.capacity(), offset);
-	}
+    @Override
+    public ShortBuffer compact() {
+        if (byteBuffer.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        }
+        byteBuffer.limit(limit * SizeOf.SHORT);
+        byteBuffer.position(position * SizeOf.SHORT);
+        byteBuffer.compact();
+        byteBuffer.clear();
+        position = limit - position;
+        limit = capacity;
+        mark = UNSET_MARK;
+        return this;
+    }
 
-	public ShortBuffer asReadOnlyBuffer() {
-		return this;
-	}
+    @Override
+    public ShortBuffer duplicate() {
+        ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
+        ByteBufferAsShortBuffer buf = new ByteBufferAsShortBuffer(bb);
+        buf.limit = limit;
+        buf.position = position;
+        buf.mark = mark;
+        return buf;
+    }
 
-	protected int ix(int i) {
-		return (i << 1) + offset;
-	}
+    @Override
+    public short get() {
+        if (position == limit) {
+            throw new BufferUnderflowException();
+        }
+        return byteBuffer.getShort(position++ * SizeOf.SHORT);
+    }
 
-	public short get() {
-		return Bits.getShort(bb, ix(nextGetIndex()), bigEndian);
-	}
+    @Override
+    public short get(int index) {
+        checkIndex(index);
+        return byteBuffer.getShort(index * SizeOf.SHORT);
+    }
 
-	public short get(int i) {
-		return Bits.getShort(bb, ix(checkIndex(i)), bigEndian);
-	}
+    @Override
+    public ShortBuffer get(short[] dst, int dstOffset, int shortCount) {
+        byteBuffer.limit(limit * SizeOf.SHORT);
+        byteBuffer.position(position * SizeOf.SHORT);
+        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, shortCount);
+        this.position += shortCount;
+        return this;
+    }
 
-	public ShortBuffer put(short x) {
-		Bits.putShort(bb, ix(nextPutIndex()), x, bigEndian);
-		return this;
-	}
+    @Override
+    public boolean isDirect() {
+        return byteBuffer.isDirect();
+    }
 
-	public ShortBuffer put(int i, short x) {
-		Bits.putShort(bb, ix(checkIndex(i)), x, bigEndian);
-		return this;
-	}
+    @Override
+    public boolean isReadOnly() {
+        return byteBuffer.isReadOnly();
+    }
 
-	public ShortBuffer compact() {
-		int pos = position();
-		int lim = limit();
-		assert (pos <= lim);
-		int rem = (pos <= lim ? lim - pos : 0);
-		ByteBuffer db = bb.duplicate();
-		db.limit(ix(lim));
-		db.position(ix(0));
-		ByteBuffer sb = db.slice();
-		sb.position(pos << 1);
-		sb.compact();
-		position(rem);
-		limit(capacity());
-		discardMark();
-		return this;
-	}
+    @Override
+    public ByteOrder order() {
+        return byteBuffer.order();
+    }
 
-	public boolean isDirect() {
-		return bb.isDirect();
-	}
+    @Override short[] protectedArray() {
+        throw new UnsupportedOperationException();
+    }
 
-	public boolean isReadOnly() {
-		return false;
-	}
+    @Override int protectedArrayOffset() {
+        throw new UnsupportedOperationException();
+    }
 
-	public ByteOrder order() {
-		return bigEndian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
-	}
+    @Override boolean protectedHasArray() {
+        return false;
+    }
+
+    @Override
+    public ShortBuffer put(short c) {
+        if (position == limit) {
+            throw new BufferOverflowException();
+        }
+        byteBuffer.putShort(position++ * SizeOf.SHORT, c);
+        return this;
+    }
+
+    @Override
+    public ShortBuffer put(int index, short c) {
+        checkIndex(index);
+        byteBuffer.putShort(index * SizeOf.SHORT, c);
+        return this;
+    }
+
+    @Override
+    public ShortBuffer put(short[] src, int srcOffset, int shortCount) {
+        byteBuffer.limit(limit * SizeOf.SHORT);
+        byteBuffer.position(position * SizeOf.SHORT);
+        ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, shortCount);
+        this.position += shortCount;
+        return this;
+    }
+
+    @Override
+    public ShortBuffer slice() {
+        byteBuffer.limit(limit * SizeOf.SHORT);
+        byteBuffer.position(position * SizeOf.SHORT);
+        ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
+        ShortBuffer result = new ByteBufferAsShortBuffer(bb);
+        byteBuffer.clear();
+        return result;
+    }
+
 }

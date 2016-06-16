@@ -18,9 +18,11 @@ package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @JTranscInvisible
+@SuppressWarnings({"PointlessBitwiseExpression", "PointlessArithmeticExpression", "WeakerAccess", "unused"})
 public class JTranscBits {
 	static public int unsignedMod(int value, int mod) {
 		return ((value % mod) + mod) % mod;
@@ -133,48 +135,6 @@ public class JTranscBits {
 		return makeShort(bytes[0], bytes[1]);
 	}
 
-	static public void i2bLittle4(int value, byte[] out, int offset) {
-		if (offset < 0 || out.length - offset < 4) {
-			throw new ArrayIndexOutOfBoundsException();
-		}
-		out[offset + 0] = (byte) (value >> 0);
-		out[offset + 1] = (byte) (value >> 8);
-		out[offset + 2] = (byte) (value >> 16);
-		out[offset + 3] = (byte) (value >> 24);
-	}
-
-	static public void b2iLittle64(byte[] var0, int var1, int[] var2) {
-		if (var1 >= 0 && var0.length - var1 >= 64 && var2.length >= 16) {
-			b2iLittle(var0, var1, var2, 0, 64);
-		} else {
-			throw new ArrayIndexOutOfBoundsException();
-		}
-	}
-
-	static public void b2iLittle(byte[] var0, int var1, int[] var2, int var3, int var4) {
-		if (var1 >= 0 && var0.length - var1 >= var4 && var3 >= 0 && var2.length - var3 >= var4 / 4) {
-			for (var4 += var1; var1 < var4; var1 += 4) {
-				var2[var3++] = var0[var1] & 255 | (var0[var1 + 1] & 255) << 8 | (var0[var1 + 2] & 255) << 16 | var0[var1 + 3] << 24;
-			}
-		} else {
-			throw new ArrayIndexOutOfBoundsException();
-		}
-	}
-
-	static public void i2bLittle(int[] var0, int var1, byte[] var2, int var3, int var4) {
-		if (var1 >= 0 && var0.length - var1 >= var4 / 4 && var3 >= 0 && var2.length - var3 >= var4) {
-			int var5;
-			for (var4 += var3; var3 < var4; var2[var3++] = (byte) (var5 >> 24)) {
-				var5 = var0[var1++];
-				var2[var3++] = (byte) var5;
-				var2[var3++] = (byte) (var5 >> 8);
-				var2[var3++] = (byte) (var5 >> 16);
-			}
-		} else {
-			throw new ArrayIndexOutOfBoundsException();
-		}
-	}
-
 	public static void writeShort(byte[] out, short value) {
 		out[0] = (byte) ((value >>> 8) & 0xFF);
 		out[1] = (byte) ((value >>> 0) & 0xFF);
@@ -203,6 +163,7 @@ public class JTranscBits {
 		return (out >= 0) ? out : Integer.MAX_VALUE;
 	}
 
+	@JTranscMethodBody(target = "js", value = "return N.isLittleEndian;")
 	public static boolean isLittleEndian() {
 		// @TODO: Check!
 		return true;
