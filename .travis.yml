@@ -1,17 +1,16 @@
-os:
-- linux
-- osx
 language: java
 node_js:
 - '4'
-jdk:
-- oraclejdk8
+#jdk:
+#- oraclejdk8
 before_install:
-- sudo apt-get update -qq
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then jdk_switcher use oraclejdk8; fi
+- if [ "$TRAVIS_OS_NAME" == 'osx']; then "wget --no-cookies --no-check-certificate --header \"Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jdk-8u66-macosx-x64.dmg" && hdiutil mount jdk-8u66-macosx-x64.dmg && sudo installer -pkg /Volumes/JDK\ 8\ Update\ 66/JDK\ 8\ Update\ 66.pkg -target LocalSystem; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get update -qq; fi
 install:
-- sudo add-apt-repository ppa:ondrej/php -y
-- sudo apt-get -y update
-- sudo apt-get -y install php5.6 php5.6-mbstring
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo add-apt-repository ppa:ondrej/php -y; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get -y update; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get -y install php5.6 php5.6-mbstring; fi
 - mvn clean --settings settings.xml
 - nvm install 4 || true
 - nvm use 4 || true
@@ -48,3 +47,10 @@ notifications:
     on_success: never
     on_failure: always
     on_start: never
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+      osx_image: xcode7.2
