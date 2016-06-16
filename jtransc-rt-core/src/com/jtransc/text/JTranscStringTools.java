@@ -2,10 +2,10 @@ package com.jtransc.text;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.text.internal.IntegralToString;
 import com.jtransc.text.internal.RealToString;
 
 public class JTranscStringTools {
-
 	public static String toString(float v) {
 		return RealToString.getInstance().floatToString(v);
 		//return toString((double) v);
