@@ -20,6 +20,7 @@ import com.jtransc.AllBuild
 import com.jtransc.AllBuildTargets
 import com.jtransc.BuildBackend
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -172,6 +173,7 @@ class JTranscMojo : AbstractMojo() {
 
 		log.info("Building targets... " + allTargets.joinToString(", "));
 		//var errorCount = 0
+		val types = AstTypes()
 		for (target in allTargets) {
 			val targetParts = target.split(':')
 			val targetActual = targetParts.getOrNull(0) ?: "js"
@@ -181,14 +183,15 @@ class JTranscMojo : AbstractMojo() {
 			val beforeBuild = System.currentTimeMillis()
 			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
 			val allBuild: AllBuild = AllBuild(
-				AllBuildTargets,
-				targetActual,
-				dependencyJarPaths,
-				mainClass,
-				File(finalOutputDirectory!!, outputActual).absolutePath,
-				subtargetActual,
-				settings,
-				targetDirectory
+				AllBuildTargets = AllBuildTargets,
+				target = targetActual,
+				classPaths = dependencyJarPaths,
+				entryPoint = mainClass,
+				output = File(finalOutputDirectory!!, outputActual).absolutePath,
+				subtarget = subtargetActual,
+				settings = settings,
+				types = types,
+				targetDirectory = targetDirectory
 			)
 			val buildResult = allBuild.buildWithoutRunning()
 			val afterBuild = System.currentTimeMillis()
