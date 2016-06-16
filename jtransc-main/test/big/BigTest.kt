@@ -1,5 +1,7 @@
 package big
 
+import android.AndroidArgsTest
+import android.AndroidTest8019
 import javatest.KotlinCollections
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -69,5 +71,9 @@ object BigTest {
 		JTranscZipTest.main(args)
 		ProxyTest.main(args)
 		WrappedTest.main(args)
+
+		// Android
+		AndroidArgsTest.main(args)
+		//AndroidTest8019.main(args)
 	}
 }

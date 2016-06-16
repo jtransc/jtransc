@@ -74,10 +74,6 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		return genericMethodType().args;
 	}
 
-	public Class<?>[] getExceptionTypes() {
-		return exceptionTypes.clone();
-	}
-
 	native public Type[] getGenericExceptionTypes();
 
 	native public boolean equals(Object obj);

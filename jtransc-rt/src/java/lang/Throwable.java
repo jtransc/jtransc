@@ -22,6 +22,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Throwable implements Serializable {
 	//private String detailMessage;
@@ -139,7 +140,17 @@ public class Throwable implements Serializable {
 
 	//native int getStackTraceDepth();
 	//native StackTraceElement getStackTraceElement(int index);
-	native public final synchronized void addSuppressed(Throwable exception);
 
-	native public final synchronized Throwable[] getSuppressed();
+	private ArrayList<Throwable> supressed;
+
+	public final synchronized void addSuppressed(Throwable exception) {
+		if (supressed == null) supressed = new ArrayList<>();
+		supressed.add(exception);
+	}
+
+	public final synchronized Throwable[] getSuppressed() {
+		return (supressed != null) ? supressed.toArray(EMPTY_ARRAY) : EMPTY_ARRAY;
+	}
+
+	static private Throwable[] EMPTY_ARRAY = new Throwable[0];
 }

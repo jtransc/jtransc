@@ -37,7 +37,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	protected Class<?>[] parameterTypes;
 
 	@JTranscKeep
-	protected Class<?>[] exceptionTypes;
+	protected Class<?>[] exceptionTypes = new Class[0];
 
 	@JTranscKeep
 	protected int modifiers;
@@ -72,6 +72,10 @@ abstract public class MethodConstructor extends AccessibleObject {
 	protected MethodTypeImpl methodType() {
 		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
 		return methodType;
+	}
+
+	public Class<?>[] getExceptionTypes() {
+		return exceptionTypes.clone();
 	}
 
 	@JTranscInvisible

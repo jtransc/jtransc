@@ -3,7 +3,7 @@ var R = function() {
 };
 
 function __createField(clazzClazz, info) {
-	var out = new java_lang_reflect_Field();
+	var out = {% CONSTRUCTOR java.lang.reflect.Field:()V %}();
 	out["{% FIELD java.lang.reflect.Field:clazz %}"] = clazzClazz;
 	out["_internalName"] = info.id;
 	out["{% FIELD java.lang.reflect.Field:name %}"] = N.str(info.name);
@@ -14,7 +14,8 @@ function __createField(clazzClazz, info) {
 }
 
 function __createMethod(clazzClazz, info) {
-	var out = new java_lang_reflect_Method();
+	var out = {% CONSTRUCTOR java.lang.reflect.Method:()V %}();
+
 	out["{% FIELD java.lang.reflect.Method:clazz %}"] = clazzClazz;
 	out["_internalName"] = info.id;
 	out["_hasBody"] = info.hasBody;
@@ -28,7 +29,7 @@ function __createMethod(clazzClazz, info) {
 }
 
 function __createConstructor(clazzClazz, info) {
-	var out = new java_lang_reflect_Constructor();
+	var out = {% CONSTRUCTOR java.lang.reflect.Constructor:()V %}();
 	out["{% FIELD java.lang.reflect.Constructor:clazz %}"] = clazzClazz;
 	out["_internalName"] = info.id;
 	out["{% FIELD java.lang.reflect.Constructor:signature %}"] = N.str(info.desc);

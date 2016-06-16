@@ -443,22 +443,29 @@ class GenJsGen(
 	//private fun N_i2b(str:String) = "N.i2b($str)"
 	//private fun N_i2c(str:String) = "N.i2c($str)"
 	//private fun N_i2s(str:String) = "N.i2s($str)"
-	private fun N_i2j(str: String) = "N.i2j($str)"
+	private fun N_z2i(str: String) = "N.z2i($str)"
 
 	private fun N_i(str: String) = "(($str)|0)"
 	private fun N_i2z(str: String) = "(($str)!=0)"
 	private fun N_i2b(str: String) = "(($str)<<24>>24)"
 	private fun N_i2c(str: String) = "(($str)&0xFFFF)"
 	private fun N_i2s(str: String) = "(($str)<<16>>16)"
+	private fun N_i2i(str: String) = N_i(str)
+	private fun N_i2j(str: String) = "N.i2j($str)"
 
 	//private fun N_i2d(str:String) = "N.i2d($str)"
+	private fun N_i2f(str: String) = "Math.fround(+($str))"
 	private fun N_i2d(str: String) = "+($str)"
 
-	private fun N_z2i(str: String) = "N.z2i($str)"
-	private fun N_i2i(str: String) = N_i(str)
+	private fun N_f2f(str: String) = "Math.fround($str)"
+
+	private fun N_d2f(str: String) = "Math.fround(+($str))"
 	private fun N_d2d(str: String) = "+($str)"
+
+
 	private fun N_l2i(str: String) = "N.l2i($str)"
 	private fun N_l2l(str: String) = "N.l2l($str)"
+	private fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
 	private fun N_l2d(str: String) = "N.l2d($str)"
 
 	fun genExpr2(e: AstExpr): String {
@@ -526,6 +533,7 @@ class GenJsGen(
 					AstType.CHAR -> N_i2c(binexpr)
 					AstType.SHORT -> N_i2s(binexpr)
 					AstType.BYTE -> N_i2b(binexpr)
+					AstType.FLOAT -> N_f2f(binexpr)
 					else -> binexpr
 				}
 			}
@@ -712,7 +720,7 @@ class GenJsGen(
 					is AstType.SHORT -> N_i2s(e2)
 					is AstType.INT -> N_i2i(e2)
 					is AstType.LONG -> N_i2j(e2)
-					is AstType.FLOAT -> N_i2d(e2)
+					is AstType.FLOAT -> N_i2f(e2)
 					is AstType.DOUBLE -> N_i2d(e2)
 					else -> unhandled()
 				}
@@ -725,7 +733,7 @@ class GenJsGen(
 					is AstType.SHORT -> N_i2s(e)
 					is AstType.INT -> N_i2i(e)
 					is AstType.LONG -> N_i2j(e)
-					is AstType.FLOAT -> N_d2d(e)
+					is AstType.FLOAT -> N_d2f(e)
 					is AstType.DOUBLE -> N_d2d(e)
 					else -> unhandled()
 				}
@@ -738,7 +746,7 @@ class GenJsGen(
 					is AstType.SHORT -> N_i2s(N_l2i(e))
 					is AstType.INT -> N_l2i(e)
 					is AstType.LONG -> N_l2l(e)
-					is AstType.FLOAT -> N_l2d(e)
+					is AstType.FLOAT -> N_l2f(e)
 					is AstType.DOUBLE -> N_l2d(e)
 					else -> unhandled()
 				}

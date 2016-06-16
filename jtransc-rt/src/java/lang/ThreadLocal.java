@@ -8,6 +8,7 @@ public class ThreadLocal<T> {
 	}
 
 	public ThreadLocal() {
+		value = initialValue();
 	}
 
 	public T get() {
