@@ -16,7 +16,9 @@
 
 package java.nio;
 
-import libcore.io.SizeOf;
+import java.nio.internal.SizeOf;
+
+import java.nio.internal.ByteBufferAs;
 
 /**
  * This class wraps a byte buffer to be a float buffer.
@@ -30,9 +32,9 @@ import libcore.io.SizeOf;
  * </ul>
  * </p>
  */
-final class ByteBufferAsFloatBuffer extends FloatBuffer {
+final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 
-    private final ByteBuffer byteBuffer;
+    final ByteBuffer byteBuffer;
 
     static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -167,4 +169,8 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer {
         return result;
     }
 
+	@Override
+	public ByteBuffer getByteBuffer() {
+		return byteBuffer;
+	}
 }

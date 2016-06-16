@@ -16,6 +16,9 @@
 
 package java.nio;
 
+import java.nio.internal.BufferInternalUtils;
+import java.nio.internal.MemoryBlock;
+
 /**
  * A buffer is a list of elements of a specific primitive type.
  * <p>
@@ -45,6 +48,10 @@ package java.nio;
  * synchronization issues.
  */
 public abstract class Buffer {
+	static {
+		BufferInternalUtils.reference();
+	}
+
     /**
      * <code>UNSET_MARK</code> means the mark has not been set.
      */

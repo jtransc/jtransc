@@ -71,8 +71,9 @@ open class CommonProgramTemplate(
 	private fun evalReference(type: String, desc: String): String {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it) }
 		val desc2 = dataParts.joinToString(":")
-		if (!names.program.contains(dataParts[0].fqname)) invalidOp("Can't find $desc2")
-		val clazz = names.program[dataParts[0].fqname] ?: invalidOp("Can't find $desc2")
+		val classFqname = dataParts[0].fqname
+		if (!names.program.contains(classFqname)) invalidOp("evalReference: Can't find class $classFqname (I)")
+		val clazz = names.program[classFqname] ?: invalidOp("evalReference: Can't find class $classFqname (II)")
 
 		return when (type.toUpperCase()) {
 			"SINIT" -> {
@@ -87,18 +88,18 @@ open class CommonProgramTemplate(
 					program[AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))]!!
 				} else {
 					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
-					if (methods.isEmpty()) invalidOp("Can't find method $desc2")
-					if (methods.size > 1) invalidOp("Several signatures, please specify signature")
+					if (methods.isEmpty()) invalidOp("evalReference: Can't find method $desc2")
+					if (methods.size > 1) invalidOp("evalReference: Several signatures, please specify signature")
 					methods.first()
 				}
 				names.buildMethod(method, static = (type == "SMETHOD"))
 			}
 			"SFIELD", "FIELD" -> {
-				val field = clazz.locateField(dataParts[1]) ?: invalidOp("Can't find field $desc2")
+				val field = clazz.locateField(dataParts[1]) ?: invalidOp("evalReference: Can't find field $desc2")
 				names.buildField(field, static = (type == "SFIELD"))
 			}
 			"CLASS" -> names.buildTemplateClass(clazz)
-			else -> invalidOp("Unknown type!")
+			else -> invalidOp("evalReference: Unknown type!")
 		}
 	}
 

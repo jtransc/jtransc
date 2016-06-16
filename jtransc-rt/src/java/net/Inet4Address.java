@@ -16,7 +16,7 @@
 
 package java.net;
 
-import libcore.io.Memory;
+import java.nio.internal.Memory;
 
 import java.io.ObjectStreamException;
 import java.nio.ByteOrder;

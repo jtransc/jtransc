@@ -16,7 +16,9 @@
 
 package java.nio;
 
-import libcore.io.SizeOf;
+import java.nio.internal.SizeOf;
+
+import java.nio.internal.ByteBufferAs;
 
 /**
  * This class wraps a byte buffer to be a char buffer.
@@ -31,9 +33,9 @@ import libcore.io.SizeOf;
  * </p>
  *
  */
-final class ByteBufferAsCharBuffer extends CharBuffer {
+final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
 
-    private final ByteBuffer byteBuffer;
+    final ByteBuffer byteBuffer;
 
     static CharBuffer asCharBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -175,4 +177,9 @@ final class ByteBufferAsCharBuffer extends CharBuffer {
         result.position(position + start);
         return result;
     }
+
+	@Override
+	public ByteBuffer getByteBuffer() {
+		return byteBuffer;
+	}
 }

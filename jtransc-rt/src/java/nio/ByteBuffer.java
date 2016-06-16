@@ -18,9 +18,8 @@
 package java.nio;
 
 import com.jtransc.JTranscArrays;
-import libcore.io.Memory;
 
-import java.util.Arrays;
+import java.nio.internal.MemoryBlock;
 
 /**
  * A buffer for bytes.

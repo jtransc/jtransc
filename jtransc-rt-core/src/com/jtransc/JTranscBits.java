@@ -135,27 +135,114 @@ public class JTranscBits {
 		return makeShort(bytes[0], bytes[1]);
 	}
 
+	public static void writeShortBE(byte[] out, int offset, short value) {
+		out[offset + 0] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 1] = (byte) ((value >>> 0) & 0xFF);
+	}
+
+	public static void writeIntBE(byte[] out, int offset, int value) {
+		out[offset + 0] = (byte) ((value >>> 24) & 0xFF);
+		out[offset + 1] = (byte) ((value >>> 16) & 0xFF);
+		out[offset + 2] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 3] = (byte) ((value >>> 0) & 0xFF);
+	}
+
+	public static void writeLongBE(byte[] out, int offset, long value) {
+		int h = (int)(value >> 32);
+		int l = (int)(value >> 0);
+		out[offset + 0] = (byte) (h >>> 24);
+		out[offset + 1] = (byte) (h >>> 16);
+		out[offset + 2] = (byte) (h >>> 8);
+		out[offset + 3] = (byte) (h >>> 0);
+		out[offset + 4] = (byte) (l >>> 24);
+		out[offset + 5] = (byte) (l >>> 16);
+		out[offset + 6] = (byte) (l >>> 8);
+		out[offset + 7] = (byte) (l >>> 0);
+	}
+
+	public static void writeShortLE(byte[] out, int offset, short value) {
+		out[offset + 1] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 0] = (byte) ((value >>> 0) & 0xFF);
+	}
+
+	public static void writeIntLE(byte[] out, int offset, int value) {
+		out[offset + 3] = (byte) ((value >>> 24) & 0xFF);
+		out[offset + 2] = (byte) ((value >>> 16) & 0xFF);
+		out[offset + 1] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 0] = (byte) ((value >>> 0) & 0xFF);
+	}
+
+	public static void writeLongLE(byte[] out, int offset, long value) {
+		int h = (int)(value >> 32);
+		int l = (int)(value >> 0);
+		out[offset + 7] = (byte) (h >>> 24);
+		out[offset + 6] = (byte) (h >>> 16);
+		out[offset + 5] = (byte) (h >>> 8);
+		out[offset + 4] = (byte) (h >>> 0);
+		out[offset + 3] = (byte) (l >>> 24);
+		out[offset + 2] = (byte) (l >>> 16);
+		out[offset + 1] = (byte) (l >>> 8);
+		out[offset + 0] = (byte) (l >>> 0);
+	}
+
+	public static void writeShortBE(byte[] out, short value) {
+		writeShortBE(out, 0, value);
+	}
+
+	public static void writeIntBE(byte[] out, int value) {
+		writeIntBE(out, 0, value);
+	}
+
+	public static void writeLongBE(byte[] out, long value) {
+		writeLongBE(out, 0, value);
+	}
+
+	public static void writeShortLE(byte[] out, short value) {
+		writeShortLE(out, 0, value);
+	}
+
+	public static void writeIntLE(byte[] out, int value) {
+		writeIntLE(out, 0, value);
+	}
+
+	public static void writeLongLE(byte[] out, long value) {
+		writeLongLE(out, 0, value);
+	}
+
 	public static void writeShort(byte[] out, short value) {
-		out[0] = (byte) ((value >>> 8) & 0xFF);
-		out[1] = (byte) ((value >>> 0) & 0xFF);
+		writeShortBE(out, value);
 	}
 
 	public static void writeInt(byte[] out, int value) {
-		out[0] = (byte) ((value >>> 24) & 0xFF);
-		out[1] = (byte) ((value >>> 16) & 0xFF);
-		out[2] = (byte) ((value >>> 8) & 0xFF);
-		out[3] = (byte) ((value >>> 0) & 0xFF);
+		writeIntBE(out, value);
 	}
 
-	public static void writeLong(byte[] out, long v) {
-		out[0] = (byte) (v >>> 56);
-		out[1] = (byte) (v >>> 48);
-		out[2] = (byte) (v >>> 40);
-		out[3] = (byte) (v >>> 32);
-		out[4] = (byte) (v >>> 24);
-		out[5] = (byte) (v >>> 16);
-		out[6] = (byte) (v >>> 8);
-		out[7] = (byte) (v >>> 0);
+	public static void writeLong(byte[] out, long value) {
+		writeLongBE(out, value);
+	}
+
+	public static void writeShort(byte[] out, int offset, short value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeShortLE(out, offset, value);
+		} else {
+			writeShortBE(out, offset, value);
+		}
+	}
+
+	public static void writeInt(byte[] out, int offset, int value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeIntLE(out, offset, value);
+		} else {
+			writeIntBE(out, offset, value);
+		}
+	}
+
+	public static void writeLong(byte[] out, int offset, long value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeLongLE(out, offset, value);
+		} else {
+			writeLongBE(out, offset, value);
+		}
 	}
 
 	public static int addUint(int base, int offset) {

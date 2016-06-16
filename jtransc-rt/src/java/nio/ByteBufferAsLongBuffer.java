@@ -16,7 +16,9 @@
 
 package java.nio;
 
-import libcore.io.SizeOf;
+import java.nio.internal.SizeOf;
+
+import java.nio.internal.ByteBufferAs;
 
 /**
  * This class wraps a byte buffer to be a long buffer.
@@ -31,9 +33,9 @@ import libcore.io.SizeOf;
  * </p>
  *
  */
-final class ByteBufferAsLongBuffer extends LongBuffer {
+final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
 
-    private final ByteBuffer byteBuffer;
+    final ByteBuffer byteBuffer;
 
     static LongBuffer asLongBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -168,4 +170,8 @@ final class ByteBufferAsLongBuffer extends LongBuffer {
         return result;
     }
 
+	@Override
+	public ByteBuffer getByteBuffer() {
+		return byteBuffer;
+	}
 }

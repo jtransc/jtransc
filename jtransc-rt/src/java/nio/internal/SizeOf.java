@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package libcore.io;
+package java.nio.internal;
 
 // From libcore
 public final class SizeOf {

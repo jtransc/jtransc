@@ -16,7 +16,9 @@
 
 package java.nio;
 
-import libcore.io.SizeOf;
+import java.nio.internal.SizeOf;
+
+import java.nio.internal.ByteBufferAs;
 
 /**
  * This class wraps a byte buffer to be a int buffer.
@@ -31,9 +33,9 @@ import libcore.io.SizeOf;
  * </p>
  *
  */
-final class ByteBufferAsIntBuffer extends IntBuffer {
+final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
-    private final ByteBuffer byteBuffer;
+    final ByteBuffer byteBuffer;
 
     static IntBuffer asIntBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -168,4 +170,8 @@ final class ByteBufferAsIntBuffer extends IntBuffer {
         return result;
     }
 
+	@Override
+	public ByteBuffer getByteBuffer() {
+		return byteBuffer;
+	}
 }

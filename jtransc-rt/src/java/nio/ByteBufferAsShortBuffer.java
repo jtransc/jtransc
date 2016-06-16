@@ -16,7 +16,9 @@
 
 package java.nio;
 
-import libcore.io.SizeOf;
+import java.nio.internal.SizeOf;
+
+import java.nio.internal.ByteBufferAs;
 
 /**
  * This class wraps a byte buffer to be a short buffer.
@@ -30,9 +32,9 @@ import libcore.io.SizeOf;
  * </ul>
  * </p>
  */
-final class ByteBufferAsShortBuffer extends ShortBuffer {
+final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 
-    private final ByteBuffer byteBuffer;
+    final ByteBuffer byteBuffer;
 
     static ShortBuffer asShortBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -167,4 +169,8 @@ final class ByteBufferAsShortBuffer extends ShortBuffer {
         return result;
     }
 
+	@Override
+	public ByteBuffer getByteBuffer() {
+		return byteBuffer;
+	}
 }

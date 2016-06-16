@@ -1,4 +1,4 @@
-package java.nio;
+package java.nio.internal;
 
 public class MemoryBlock {
 }
