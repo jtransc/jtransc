@@ -1,13 +1,24 @@
 package jtransc.rt.test;
 
+import com.jtransc.io.JTranscConsole;
+
 public class MathTest {
 	static public void main(String[] args) {
+		dumpIntBounds();
 		zeros();
 		cbrt();
 		rint();
 		nanInf();
 	}
 
+	static private void dumpIntBounds() {
+		System.out.println("dumpIntBounds:");
+		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE));
+		JTranscConsole.log((long)Integer.MIN_VALUE);
+		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE, 7));
+		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE, 2));
+		JTranscConsole.log(String.format("%d", Integer.MIN_VALUE));
+	}
 
 	static private void zeros() {
 		System.out.println("zeros:");

@@ -37,12 +37,13 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
-	static private char[] temp = new char[16];
+	static private char[] temp = new char[32 + 1];
 
-	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
+	//@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	public static String toString(int i, int radix) {
+		if (radix < 2) throw new RuntimeException("Invalid radix");
 		if (i == 0) return "0";
-		if (i == MIN_VALUE) return "-2147483648";
+		//if (i == MIN_VALUE) return "-2147483648";
 		boolean negative = (i < 0);
 		if (i < 0) i = -i;
 		int tempPos = temp.length;

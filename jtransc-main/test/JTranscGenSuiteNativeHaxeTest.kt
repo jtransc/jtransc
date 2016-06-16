@@ -22,7 +22,7 @@ import jtransc.jtransc.*
 import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
-class JTranscGenSuiteNativeTest : JTranscTestBase() {
+class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
 	@Test fun customBuild() = testNativeClass<CustomBuildTest>("""
 		true
 		true
@@ -66,11 +66,6 @@ class JTranscGenSuiteNativeTest : JTranscTestBase() {
 		Class1.method1
 		Class1.method2
 	""", minimize = false, target = HaxeTarget)
-
-	@Test fun AssertionTests() = testNativeClass<AssertionTests>("""
-		Error !(10 < 10)
-		ok
-	""", minimize = false, debug = true, target = JsTarget)
 
 	@Test fun JTranscInternalNamesHaxe() = testNativeClass<JTranscInternalNames>("""
 		jtransc_jtransc_JTranscInternalNames_$

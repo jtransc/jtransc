@@ -29,4 +29,10 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		hello
 		world
 	""", target = JsTarget, minimize = false)
+
+
+	@Test fun AssertionTests() = testNativeClass<AssertionTests>("""
+		Error !(10 < 10)
+		ok
+	""", minimize = false, debug = true, target = JsTarget)
 }

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
+import big.BigTest
+import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
-import jtransc.bug.JTranscClinitNotStatic
-import jtransc.java8.DefaultMethodsTest
-import jtransc.java8.Java8Test
 import org.junit.Test
 
-class JTranscGenJava8Test : JTranscTestBase() {
-	// Moved to BigTest
-
-	//@Test fun java8Test() = testClass<Java8Test>(minimize = false, target = JsTarget, log = null)
-	//@Test fun defaultMethodsTest() = testClass<DefaultMethodsTest>(minimize = false)
-	//@Test fun clinitNotStaticTest() = testClass<JTranscClinitNotStatic>(minimize = false)
+class JTranscPerTargetBigTest : JTranscTestBase() {
+	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget, log = null)
+	//@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget, lang = "js", log = null)
+	@Test fun testHaxeJsMinimized() = testClass<BigTest>(minimize = true, target = HaxeTarget, lang = "js", log = null)
 }
 

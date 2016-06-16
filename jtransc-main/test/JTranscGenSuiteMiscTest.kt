@@ -23,18 +23,20 @@ import javatest.misc.MiscTest
 import org.junit.Test
 
 class JTranscGenSuiteMiscTest : JTranscTestBase() {
-	@Test fun langSystemTest() = testClass<SystemTest>()
+	// Moved to BigTest
 
-	@Test fun miscTestHaxeJs() = testClass<MiscTest>(analyze = true, target = HaxeTarget, minimize = false, lang = "js")
-
-	@Test fun miscTestNativeJs() {
-		if (!CI.isOnCiSystem) {
-			testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false,
-				//log = true
-				log = null
-			)
-		}
-	}
+	//@Test fun langSystemTest() = testClass<SystemTest>()
+//
+	//@Test fun miscTestHaxeJs() = testClass<MiscTest>(analyze = true, target = HaxeTarget, minimize = false, lang = "js")
+//
+	//@Test fun miscTestNativeJs() {
+	//	if (!CI.isOnCiSystem) {
+	//		testClass<MiscTest>(lang = "js", target = JsTarget, analyze = true, minimize = false, debug = false,
+	//			//log = true
+	//			log = null
+	//		)
+	//	}
+	//}
 
 	//@Test fun miscTestPhp() = testClass<MiscTest>(lang = "php", minimize = false) { normalize2(it) }
 
