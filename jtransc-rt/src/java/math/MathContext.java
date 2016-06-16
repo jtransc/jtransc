@@ -16,85 +16,229 @@
 
 package java.math;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.io.StreamCorruptedException;
 
 public final class MathContext implements Serializable {
-	private static final int DEFAULT_DIGITS = 9;
-	private static final RoundingMode DEFAULT_ROUNDINGMODE = RoundingMode.HALF_UP;
-	private static final int MIN_DIGITS = 0;
-	public static final MathContext UNLIMITED = new MathContext(0, RoundingMode.HALF_UP);
-	public static final MathContext DECIMAL32 = new MathContext(7, RoundingMode.HALF_EVEN);
-	public static final MathContext DECIMAL64 = new MathContext(16, RoundingMode.HALF_EVEN);
+	//private static final long serialVersionUID = 5579720004786848255L;
+
+	/**
+	 * A {@code MathContext} which corresponds to the <a href="http://en.wikipedia.org/wiki/IEEE_754-1985">IEEE 754</a> quadruple
+	 * decimal precision format: 34 digit precision and
+	 * {@link RoundingMode#HALF_EVEN} rounding.
+	 */
 	public static final MathContext DECIMAL128 = new MathContext(34, RoundingMode.HALF_EVEN);
-	final int precision;
-	final RoundingMode roundingMode;
 
-	public MathContext(int setPrecision) {
-		this(setPrecision, DEFAULT_ROUNDINGMODE);
+	/**
+	 * A {@code MathContext} which corresponds to the <a href="http://en.wikipedia.org/wiki/IEEE_754-1985">IEEE 754</a> single decimal
+	 * precision format: 7 digit precision and {@link RoundingMode#HALF_EVEN}
+	 * rounding.
+	 */
+	public static final MathContext DECIMAL32 = new MathContext(7, RoundingMode.HALF_EVEN);
+
+	/**
+	 * A {@code MathContext} which corresponds to the <a href="http://en.wikipedia.org/wiki/IEEE_754-1985">IEEE 754</a> double decimal
+	 * precision format: 16 digit precision and {@link RoundingMode#HALF_EVEN}
+	 * rounding.
+	 */
+	public static final MathContext DECIMAL64 = new MathContext(16, RoundingMode.HALF_EVEN);
+
+	/**
+	 * A {@code MathContext} for unlimited precision with
+	 * {@link RoundingMode#HALF_UP} rounding.
+	 */
+	public static final MathContext UNLIMITED = new MathContext(0, RoundingMode.HALF_UP);
+
+	/**
+	 * The number of digits to be used for an operation; results are rounded to
+	 * this precision.
+	 */
+	private final int precision;
+
+	/**
+	 * A {@code RoundingMode} object which specifies the algorithm to be used
+	 * for rounding.
+	 */
+	private final RoundingMode roundingMode;
+
+	/**
+	 * Constructs a new {@code MathContext} with the specified precision and
+	 * with the rounding mode {@link RoundingMode#HALF_UP HALF_UP}. If the
+	 * precision passed is zero, then this implies that the computations have to
+	 * be performed exact, the rounding mode in this case is irrelevant.
+	 *
+	 * @param precision
+	 *            the precision for the new {@code MathContext}.
+	 * @throws IllegalArgumentException
+	 *             if {@code precision < 0}.
+	 */
+	public MathContext(int precision) {
+		this(precision, RoundingMode.HALF_UP);
 	}
 
-	public MathContext(int setPrecision, RoundingMode setRoundingMode) {
-		if (setPrecision < MIN_DIGITS) throw new IllegalArgumentException("Digits < 0");
-		if (setRoundingMode == null) throw new NullPointerException("null RoundingMode");
-		precision = setPrecision;
-		roundingMode = setRoundingMode;
+	/**
+	 * Constructs a new {@code MathContext} with the specified precision and
+	 * with the specified rounding mode. If the precision passed is zero, then
+	 * this implies that the computations have to be performed exact, the
+	 * rounding mode in this case is irrelevant.
+	 *
+	 * @param precision
+	 *            the precision for the new {@code MathContext}.
+	 * @param roundingMode
+	 *            the rounding mode for the new {@code MathContext}.
+	 * @throws IllegalArgumentException
+	 *             if {@code precision < 0}.
+	 * @throws NullPointerException
+	 *             if {@code roundingMode} is {@code null}.
+	 */
+	public MathContext(int precision, RoundingMode roundingMode) {
+		this.precision = precision;
+		this.roundingMode = roundingMode;
+		checkValid();
 	}
 
-	public MathContext(String val) {
-		boolean bad = false;
-		int setPrecision;
-		if (val == null) throw new NullPointerException("null String");
+	/**
+	 * Constructs a new {@code MathContext} from a string. The string has to
+	 * specify the precision and the rounding mode to be used and has to follow
+	 * the following syntax: "precision=&lt;precision&gt; roundingMode=&lt;roundingMode&gt;"
+	 * This is the same form as the one returned by the {@link #toString}
+	 * method.
+	 *
+	 * @throws IllegalArgumentException
+	 *             if the string is not in the correct format or if the
+	 *             precision specified is < 0.
+	 */
+	public MathContext(String s) {
+		int precisionLength = "precision=".length();
+		int roundingModeLength = "roundingMode=".length();
+
+		int spaceIndex;
+		if (!s.startsWith("precision=") || (spaceIndex = s.indexOf(' ', precisionLength)) == -1) {
+			throw invalidMathContext("Missing precision", s);
+		}
+		String precisionString = s.substring(precisionLength, spaceIndex);
 		try {
-			if (!val.startsWith("precision=")) throw new RuntimeException();
-			int fence = val.indexOf(' ');
-			int off = 10;
-			setPrecision = Integer.parseInt(val.substring(10, fence));
-			if (!val.startsWith("roundingMode=", fence + 1)) throw new RuntimeException();
-			off = fence + 1 + 13;
-			String str = val.substring(off, val.length());
-			roundingMode = RoundingMode.valueOf(str);
-		} catch (RuntimeException re) {
-			throw new IllegalArgumentException("bad string format");
+			this.precision = Integer.parseInt(precisionString);
+		} catch (NumberFormatException nfe) {
+			throw invalidMathContext("Bad precision", s);
 		}
 
-		if (setPrecision < MIN_DIGITS) throw new IllegalArgumentException("Digits < 0");
-		precision = setPrecision;
+		int roundingModeStart = spaceIndex + 1;
+		if (!s.regionMatches(roundingModeStart, "roundingMode=", 0, roundingModeLength)) {
+			throw invalidMathContext("Missing rounding mode", s);
+		}
+		roundingModeStart += roundingModeLength;
+		this.roundingMode = RoundingMode.valueOf(s.substring(roundingModeStart));
+
+		checkValid();
 	}
 
+	private IllegalArgumentException invalidMathContext(String reason, String s) {
+		throw new IllegalArgumentException(reason + ": " + s);
+	}
+
+	private void checkValid() {
+		if (precision < 0) {
+			throw new IllegalArgumentException("Negative precision: " + precision);
+		}
+		if (roundingMode == null) {
+			throw new NullPointerException("roundingMode == null");
+		}
+	}
+
+	/**
+	 * Returns the precision. The precision is the number of digits used for an
+	 * operation. Results are rounded to this precision. The precision is
+	 * guaranteed to be non negative. If the precision is zero, then the
+	 * computations have to be performed exact, results are not rounded in this
+	 * case.
+	 *
+	 * @return the precision.
+	 */
 	public int getPrecision() {
 		return precision;
 	}
 
+	/**
+	 * Returns the rounding mode. The rounding mode is the strategy to be used
+	 * to round results.
+	 * <p>
+	 * The rounding mode is one of
+	 * {@link RoundingMode#UP},
+	 * {@link RoundingMode#DOWN},
+	 * {@link RoundingMode#CEILING},
+	 * {@link RoundingMode#FLOOR},
+	 * {@link RoundingMode#HALF_UP},
+	 * {@link RoundingMode#HALF_DOWN},
+	 * {@link RoundingMode#HALF_EVEN}, or
+	 * {@link RoundingMode#UNNECESSARY}.
+	 *
+	 * @return the rounding mode.
+	 */
 	public RoundingMode getRoundingMode() {
 		return roundingMode;
 	}
 
+	/**
+	 * Returns true if x is a {@code MathContext} with the same precision
+	 * setting and the same rounding mode as this {@code MathContext} instance.
+	 *
+	 * @param x
+	 *            object to be compared.
+	 * @return {@code true} if this {@code MathContext} instance is equal to the
+	 *         {@code x} argument; {@code false} otherwise.
+	 */
+	@Override
 	public boolean equals(Object x) {
-		MathContext mc;
-		if (!(x instanceof MathContext)) return false;
-		mc = (MathContext) x;
-		return mc.precision == this.precision && mc.roundingMode == this.roundingMode;
+		return ((x instanceof MathContext)
+			&& (((MathContext) x).getPrecision() == precision) && (((MathContext) x)
+			.getRoundingMode() == roundingMode));
 	}
 
+	/**
+	 * Returns the hash code for this {@code MathContext} instance.
+	 *
+	 * @return the hash code for this {@code MathContext}.
+	 */
+	@Override
 	public int hashCode() {
-		return this.precision + roundingMode.hashCode() * 59;
+		// Make place for the necessary bits to represent 8 rounding modes
+		return ((precision << 3) | roundingMode.ordinal());
 	}
 
+	/**
+	 * Returns the string representation for this {@code MathContext} instance.
+	 * The string has the form
+	 * {@code
+	 * "precision=<precision> roundingMode=<roundingMode>"
+	 * } where {@code <precision>} is an integer describing the number
+	 * of digits used for operations and {@code <roundingMode>} is the
+	 * string representation of the rounding mode.
+	 *
+	 * @return a string representation for this {@code MathContext} instance
+	 */
+	@Override
 	public String toString() {
-		return "precision=" + precision + " " + "roundingMode=" + roundingMode.toString();
+		return "precision=" + precision + " roundingMode=" + roundingMode;
 	}
 
-	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-		s.defaultReadObject();
-
-		if (precision < MIN_DIGITS) {
-			String message = "MathContext: invalid digits in stream";
-			throw new java.io.StreamCorruptedException(message);
-		}
-		if (roundingMode == null) {
-			String message = "MathContext: null roundingMode in stream";
-			throw new java.io.StreamCorruptedException(message);
-		}
-	}
-
+	/**
+	 * Makes checks upon deserialization of a {@code MathContext} instance.
+	 * Checks whether {@code precision >= 0} and {@code roundingMode != null}
+	 *
+	 * @throws StreamCorruptedException
+	 *             if {@code precision < 0}
+	 * @throws StreamCorruptedException
+	 *             if {@code roundingMode == null}
+	 */
+	//private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+	//	s.defaultReadObject();
+	//	try {
+	//		checkValid();
+	//	} catch (Exception ex) {
+	//		throw new StreamCorruptedException(ex.getMessage());
+	//	}
+	//}
 }
