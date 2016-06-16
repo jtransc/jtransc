@@ -144,7 +144,8 @@ class AstGenContext {
 class AstProgram(
 	val entrypoint: FqName,
 	val resourcesVfs: SyncVfsFile,
-	val generator: AstClassGenerator
+	val generator: AstClassGenerator,
+    val types: AstTypes
 ) : IUserData by UserData(), AstResolver, LocateRightClass {
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
@@ -539,8 +540,9 @@ class AstField(
 	val descriptor: String,
 	annotations: List<AstAnnotation>,
 	val genericSignature: String?,
-	val constantValue: Any? = null
-) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+	val constantValue: Any? = null,
+    val types: AstTypes
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
 	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
 	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
@@ -560,9 +562,10 @@ class AstMethod(
 	val modifiers: AstModifiers,
 	val generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
-	val parameterAnnotations: List<List<AstAnnotation>> = listOf()
+	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
+	val types: AstTypes
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, type, if (genericSignature != null) AstType.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
 	val isNative: Boolean = modifiers.isNative
 
 	val body: AstBody? by lazy { generateBody() }

@@ -12,6 +12,7 @@ import com.jtransc.vfs.ZipVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeMethodBody
 import com.jtransc.ast.AstAnnotationList
+import com.jtransc.ast.AstTypes
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.AnnotationNode
@@ -19,6 +20,8 @@ import com.jtransc.org.objectweb.asm.tree.ClassNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
 
 class JTranscRtReport {
+	val types = AstTypes()
+
 	companion object {
 		@JvmStatic fun main(args: Array<String>) {
 			JTranscRtReport().report()
@@ -59,7 +62,7 @@ class JTranscRtReport {
 				println("${clazz.name} (native without body):")
 				for (method in nativeMethodsWithoutBody.filter {
 					if (it.invisibleAnnotations != null) {
-						!AstAnnotationList(it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst() }).contains<HaxeMethodBody>()
+						!AstAnnotationList(it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
 					} else {
 						true
 					}

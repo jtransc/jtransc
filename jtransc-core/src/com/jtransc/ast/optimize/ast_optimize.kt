@@ -8,6 +8,7 @@ import com.jtransc.log.log
 //const val DEBUG = true
 
 class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
+	val types: AstTypes = flags.types
 	private var stm: AstStm? = null
 
 	override fun visit(stm: AstStm?) {
@@ -251,9 +252,9 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			if (literalValue is Int) {
 				val box = expr.box
 				when (castTo) {
-					AstType.BOOL -> box.value = AstExpr.LITERAL(literalValue.toBool())
-					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte())
-					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort())
+					AstType.BOOL -> box.value = AstExpr.LITERAL(literalValue.toBool(), types)
+					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte(), types)
+					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort(), types)
 				//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
 				}
 				AstAnnotateExpressions.visitExprWithStm(stm, box)
@@ -283,7 +284,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			local.local.writes.remove(strue)
 			local.local.writes.remove(sfalse)
 
-			val newset = AstStm.SET_LOCAL(local, AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value))
+			val newset = AstStm.SET_LOCAL(local, AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value, types))
 			stm.box.value = newset
 			local.local.writes.add(newset)
 		}

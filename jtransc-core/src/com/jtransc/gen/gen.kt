@@ -19,6 +19,7 @@ package com.jtransc.gen
 import com.jtransc.AllBuild
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.AstTypes
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
@@ -31,6 +32,7 @@ data class GenTargetInfo(
 	val subtarget: String,
 	val targetDirectory: String
 ) {
+	val types: AstTypes = program.types
 	val outputFileBaseName by lazy { File(outputFile).name }
 }
 

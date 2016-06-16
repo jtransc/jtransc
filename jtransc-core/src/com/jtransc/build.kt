@@ -54,11 +54,24 @@ class AllBuild(
 	val output: String,
 	val subtarget: String,
 	val settings: AstBuildSettings,
-	val targetDirectory: String = System.getProperty("java.io.tmpdir")
+	val targetDirectory: String = System.getProperty("java.io.tmpdir"),
+    val types: AstTypes
 ) {
-	constructor(AllBuildTargets: List<GenTargetDescriptor>, target: String, classPaths: List<String>, entryPoint: String, output: String, subtarget: String, settings: AstBuildSettings, targetDirectory: String = System.getProperty("java.io.tmpdir")) : this(
-		AllBuildTargets.locateTargetByName(target).descriptor,
-		classPaths, entryPoint, output, subtarget, settings, targetDirectory
+	constructor(
+		AllBuildTargets: List<GenTargetDescriptor>, target: String,
+		classPaths: List<String>, entryPoint: String, output: String,
+		subtarget: String, settings: AstBuildSettings,
+		types:AstTypes,
+		targetDirectory: String = System.getProperty("java.io.tmpdir")
+	) : this(
+		target = AllBuildTargets.locateTargetByName(target).descriptor,
+		classPaths = classPaths,
+		entryPoint = entryPoint,
+		output = output,
+		subtarget = subtarget,
+		settings = settings,
+		types = types,
+		targetDirectory = targetDirectory
 	)
 
 	val tempdir = System.getProperty("java.io.tmpdir")
@@ -124,7 +137,7 @@ class AllBuild(
 		var program = measureProcess("Generating AST") {
 			createProgramAst(
 				generator = when (settings.backend) {
-					BuildBackend.ASM -> AsmToAst()
+					BuildBackend.ASM -> AsmToAst(types)
 					else -> invalidOp("Unsupported backend")
 				},
 				classNames = initialClasses,
@@ -143,7 +156,8 @@ class AllBuild(
 			mainClass = mainClass,
 			classPaths = classPaths,
 			output = outputPath,
-			generator = generator
+			generator = generator,
+			types = types
 		))
 	}
 
@@ -152,7 +166,8 @@ class AllBuild(
 		val program = AstProgram(
 			entrypoint = FqName(projectContext.mainClass),
 			resourcesVfs = MergedLocalAndJars(projectContext.classPaths),
-			generator = generator
+			generator = generator,
+			types = types
 		)
 
 		// Preprocesses classes
@@ -225,6 +240,7 @@ class AllBuild(
 		genericSignature = methodType.mangle(),
 		defaultTag = null,
 		bodyRef = bodyRef,
-		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility)
+		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility),
+		types = types
 	)
 }

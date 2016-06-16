@@ -13,13 +13,13 @@ import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
 import java.util.*
 
-val Handle.ast: AstMethodRef get() = AstMethodRef(FqName.fromInternal(this.owner), this.name, AstType.demangleMethod(this.desc))
+fun Handle.ast(types: AstTypes): AstMethodRef = AstMethodRef(FqName.fromInternal(this.owner), this.name, types.demangleMethod(this.desc))
 
 //const val DEBUG = true
 const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
-fun Asm2Ast(clazz: AstType.REF, method: MethodNode, source:String = "unknown.java"): AstBody {
+fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:String = "unknown.java"): AstBody {
 	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
@@ -50,7 +50,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, source:String = "unknown.jav
 		referencedLabels += i.end
 	}
 
-	val basicBlocks = BasicBlocks(clazz, method, DEBUG, source)
+	val basicBlocks = BasicBlocks(clazz, method, DEBUG, source, types)
 	val locals = basicBlocks.locals
 	val labels = basicBlocks.labels
 	labels.referencedLabelsAsm = referencedLabels
@@ -62,7 +62,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, source:String = "unknown.jav
 		labels.referencedHandlers += b.handler
 	}
 
-	val prefix = createFunctionPrefix(clazz, method, locals)
+	val prefix = createFunctionPrefix(clazz, method, locals, types)
 	basicBlocks.queue(method.instructions.first, prefix.output)
 
 	for (b in tryCatchBlocks) {
@@ -84,10 +84,10 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, source:String = "unknown.jav
 				start = labels.label(it.start),
 				end = labels.label(it.end),
 				handler = labels.label(it.handler),
-				exception = if (it.type != null) AstType.REF_INT2(it.type) else AstType.OBJECT
+				exception = if (it.type != null) types.REF_INT2(it.type) else AstType.OBJECT
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT))
+		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types)
 	).optimize()
 }
 
@@ -109,7 +109,8 @@ class BasicBlocks(
 	private val clazz: AstType.REF,
 	private val method: MethodNode,
 	private val DEBUG: Boolean,
-	private val source: String
+	private val source: String,
+	private val types: AstTypes
 ) {
 	val locals = Locals()
 	val labels = Labels()
@@ -117,7 +118,7 @@ class BasicBlocks(
 
 	fun queue(entry: AbstractInsnNode, input: BasicBlock.Input) {
 		if (entry in blocks) return
-		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG, source).call(entry, input)
+		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG, source, types).call(entry, input)
 		blocks[bb.entry] = bb
 		for (item in bb.outgoingAll) queue(item, bb.output)
 	}
@@ -127,11 +128,11 @@ class BasicBlocks(
 	}
 }
 
-fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals): FunctionPrefix {
+fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals, types: AstTypes): FunctionPrefix {
 	//val localsOutput = arrayListOf<AstExpr.LocalExpr>()
 	val localsOutput = hashMapOf<Locals.ID, AstLocal>()
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
-	val methodType = AstType.demangleMethod(method.desc)
+	val methodType = types.demangleMethod(method.desc)
 
 	var stms = ArrayList<AstStm>()
 	var idx = 0
@@ -240,7 +241,8 @@ private class BasicBlockBuilder(
 	val locals: Locals,
 	val labels: Labels,
 	val DEBUG: Boolean,
-	val source:String
+	val source:String,
+    val types: AstTypes
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -248,7 +250,7 @@ private class BasicBlockBuilder(
 	}
 
 	//val list = method.instructions
-	val methodType = AstType.demangleMethod(method.desc)
+	val methodType = types.demangleMethod(method.desc)
 	val stms = ArrayList<AstStm>()
 	val stack = Stack<AstExpr>()
 	var lastLine = -1
@@ -321,7 +323,7 @@ private class BasicBlockBuilder(
 
 	fun handleField(i: FieldInsnNode) {
 		//val isStatic = (i.opcode == Opcodes.GETSTATIC) || (i.opcode == Opcodes.PUTSTATIC)
-		val ref = fix(AstFieldRef(AstType.REF_INT2(i.owner).fqname.fqname, i.name, com.jtransc.ast.AstType.demangle(i.desc)))
+		val ref = fix(AstFieldRef(types.REF_INT2(i.owner).fqname.fqname, i.name, types.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> {
 				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_STATIC_ACCESS(ref), ref.type))
@@ -411,11 +413,11 @@ private class BasicBlockBuilder(
 				//stmAdd(AstStm.NOP)
 				Unit
 			}
-			Opcodes.ACONST_NULL -> stackPush(AstExpr.LITERAL(null))
-			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush(AstExpr.LITERAL((op - Opcodes.ICONST_0).toInt()))
-			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
-			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
-			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
+			Opcodes.ACONST_NULL -> stackPush(AstExpr.LITERAL(null, types))
+			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush(AstExpr.LITERAL((op - Opcodes.ICONST_0).toInt(), types))
+			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong(), types))
+			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat(), types))
+			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble(), types))
 			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(PTYPES[op - Opcodes.IALOAD])
 			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(PTYPES[op - Opcodes.IASTORE])
 			Opcodes.POP -> {
@@ -521,14 +523,14 @@ private class BasicBlockBuilder(
 	fun handleMultiArray(i: MultiANewArrayInsnNode) {
 		when (i.opcode) {
 			Opcodes.MULTIANEWARRAY -> {
-				stackPush(AstExpr.NEW_ARRAY(AstType.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }.reversed()))
+				stackPush(AstExpr.NEW_ARRAY(types.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }.reversed()))
 			}
 			else -> invalidOp("$i")
 		}
 	}
 
 	fun handleType(i: TypeInsnNode) {
-		val type = AstType.REF_INT(i.desc)
+		val type = types.REF_INT(i.desc)
 		when (i.opcode) {
 			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
@@ -573,16 +575,16 @@ private class BasicBlockBuilder(
 	fun handleLdc(i: LdcInsnNode) {
 		val cst = i.cst
 		when (cst) {
-			is Int, is Float, is Long, is Double, is String -> stackPush(AstExpr.LITERAL(cst))
-			is Type -> stackPush(AstExpr.LITERAL(AstType.REF_INT(cst.internalName)))
+			is Int, is Float, is Long, is Double, is String -> stackPush(AstExpr.LITERAL(cst, types))
+			is Type -> stackPush(AstExpr.LITERAL(types.REF_INT(cst.internalName), types))
 			else -> invalidOp
 		}
 	}
 
 	fun handleInt(i: IntInsnNode) {
 		when (i.opcode) {
-			Opcodes.BIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toByte()))
-			Opcodes.SIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toShort()))
+			Opcodes.BIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toByte(), types))
+			Opcodes.SIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toShort(), types))
 			Opcodes.NEWARRAY -> {
 				val type = when (i.operand) {
 					Opcodes.T_BOOLEAN -> AstType.BOOL
@@ -595,16 +597,16 @@ private class BasicBlockBuilder(
 					Opcodes.T_LONG -> AstType.LONG
 					else -> invalidOp
 				}
-				stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type, 1), listOf(stackPop())))
+				stackPush(AstExpr.NEW_ARRAY(types.ARRAY(type, 1), listOf(stackPop())))
 			}
 			else -> invalidOp
 		}
 	}
 
 	fun handleMethod(i: MethodInsnNode) {
-		val type = AstType.REF_INT(i.owner)
+		val type = types.REF_INT(i.owner)
 		val clazz = if (type is AstType.REF) type else AstType.OBJECT
-		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, AstType.demangleMethod(i.desc)))
+		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
 		val args = methodRef.type.args.reversed().map { fastcast(stackPop(), it.type) }.reversed()
@@ -633,20 +635,20 @@ private class BasicBlockBuilder(
 
 	fun handleInvokeDynamic(i: InvokeDynamicInsnNode) {
 		stackPush(AstExprUtils.INVOKE_DYNAMIC(
-			AstMethodWithoutClassRef(i.name, AstType.demangleMethod(i.desc)),
-			i.bsm.ast,
+			AstMethodWithoutClassRef(i.name, types.demangleMethod(i.desc)),
+			i.bsm.ast(types),
 			i.bsmArgs.map {
 				when (it) {
 					is com.jtransc.org.objectweb.asm.Type -> when (it.sort) {
-						Type.METHOD -> AstExpr.LITERAL(AstType.demangleMethod(it.descriptor))
+						Type.METHOD -> AstExpr.LITERAL(types.demangleMethod(it.descriptor), types)
 						else -> noImpl("${it.sort} : ${it}")
 					}
 					is Handle -> {
 						val kind = AstMethodHandle.Kind.fromId(it.tag)
-						val type = AstType.demangleMethod(it.desc)
-						AstExpr.LITERAL(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind))
+						val type = types.demangleMethod(it.desc)
+						AstExpr.LITERAL(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind), types)
 					}
-					else -> AstExpr.LITERAL(it)
+					else -> AstExpr.LITERAL(it, types)
 				}
 			}
 		))
@@ -654,7 +656,7 @@ private class BasicBlockBuilder(
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = locals.local(AstType.INT, i.`var`)
-		stmSet(local, AstExprUtils.localRef(local) + AstExpr.LITERAL(i.incr))
+		stmSet(local, AstExprUtils.localRef(local) + AstExpr.LITERAL(i.incr, types))
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
@@ -761,11 +763,11 @@ private class BasicBlockBuilder(
 				is JumpInsnNode -> {
 					when (op) {
 						in Opcodes.IFEQ..Opcodes.IFLE -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0,types)), labels.label(i.label))
 							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null,types)), labels.label(i.label))
 							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {

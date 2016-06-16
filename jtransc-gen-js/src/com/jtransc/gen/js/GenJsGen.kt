@@ -26,7 +26,8 @@ class GenJsGen(
 	val tinfo: GenTargetInfo,
 	val names: JsNames,
 	val jsTemplateString: JsTemplateString,
-    val folders: CommonGenFolders
+    val folders: CommonGenFolders,
+    val types: AstTypes
 ) {
 	val refs = References()
 	val context = AstGenContext()
@@ -59,7 +60,7 @@ class GenJsGen(
 	}
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
-	fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings).genBody()
+	fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
@@ -897,7 +898,7 @@ class GenJsGen(
 		}
 
 		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
-		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(CLASS) }).haxeName
+		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).haxeName
 		// java.lang.annotation.Annotation
 		//abstract fun annotationType():Class<out Annotation>
 

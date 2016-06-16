@@ -15,12 +15,14 @@
  */
 
 import com.jtransc.ast.AstType
+import com.jtransc.ast.AstTypes
 import com.jtransc.ast.mangle
 import org.junit.Assert
 import org.junit.Test
 
 class MangleTest {
-	private fun testMangle(info:String) = Assert.assertEquals(info, AstType.demangle(info).mangle())
+	val types = AstTypes()
+	private fun testMangle(info:String) = Assert.assertEquals(info, types.demangle(info).mangle())
 
 	@Test
 	fun testName() {

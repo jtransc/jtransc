@@ -19,6 +19,7 @@ import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
 import com.jtransc.KotlinVersion
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.haxe.HaxeTarget
@@ -136,8 +137,11 @@ open class JTranscTestBase {
 					//projectRoot["jtransc-rt-full/target/classes"].realpathOS,
 					projectRoot["jtransc-rt-core/target/classes"].realpathOS
 				)
-			)
+			),
+			types = types.get()
 		).buildAndRunCapturingOutput().process.outerr
 	}
+
+	val types = ThreadLocal.withInitial { AstTypes() }
 }
 

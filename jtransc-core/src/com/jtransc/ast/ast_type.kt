@@ -126,60 +126,173 @@ interface AstType {
 	}
 
 	companion object {
-		val STRING = REF("java.lang.String")
-		val OBJECT = REF("java.lang.Object")
-		val CLASS = REF("java.lang.Class")
+		val STRING = AstType.REF("java.lang.String")
+		val OBJECT = AstType.REF("java.lang.Object")
+		val CLASS = AstType.REF("java.lang.Class")
+	}
+}
 
-		fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) ARRAY(element) else ARRAY(ARRAY(element), count - 1)
+class AstTypes {
+	private val AstTypeDemangleCache = hashMapOf<String, AstType>()
 
-		fun REF_INT(internalName: String): AstType {
-			if (internalName.startsWith("[")) {
-				return demangle(internalName)
-			} else {
-				return REF_INT2(internalName)
-			}
-		}
+	fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) AstType.ARRAY(element) else ARRAY(AstType.ARRAY(element), count - 1)
 
-		fun REF_INT2(internalName: String): AstType.REF {
-			return REF(internalName.replace('/', '.'))
-		}
-
-		fun demangle(desc: String): AstType {
-			if (desc !in AstTypeDemangleCache) {
-				AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
-			}
-			return AstTypeDemangleCache[desc]!!
-		}
-
-		fun demangleMethod(text: String): AstType.METHOD {
-			return AstType.demangle(text) as AstType.METHOD
-		}
-
-		fun fromConstant(value: Any?): AstType = when (value) {
-			null -> NULL
-			is Boolean -> BOOL
-			is Byte -> BYTE
-			is Char -> CHAR
-			is Short -> SHORT
-			is Int -> INT
-			is Long -> LONG
-			is Float -> FLOAT
-			is Double -> DOUBLE
-			is String -> STRING
-			is AstType.ARRAY -> CLASS
-			is AstType.REF -> CLASS
-			is AstType.METHOD -> CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
-			is AstMethodHandle -> CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
-			else -> invalidOp("Literal type: ${value.javaClass} : $value")
-		}
-
-		fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
-
-		fun unify(a: AstType, b: AstType): AstType {
-			// @TODO: implement unification
-			return a
+	fun REF_INT(internalName: String): AstType {
+		if (internalName.startsWith("[")) {
+			return demangle(internalName)
+		} else {
+			return REF_INT2(internalName)
 		}
 	}
+
+	fun REF_INT2(internalName: String): AstType.REF {
+		return AstType.REF(internalName.replace('/', '.'))
+	}
+
+	fun demangle(desc: String): AstType {
+		if (desc !in AstTypeDemangleCache) {
+			AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
+		}
+		return AstTypeDemangleCache[desc]!!
+	}
+
+	fun demangleMethod(text: String): AstType.METHOD {
+		return demangle(text) as AstType.METHOD
+	}
+
+	fun fromConstant(value: Any?): AstType = when (value) {
+		null -> AstType.NULL
+		is Boolean -> AstType.BOOL
+		is Byte -> AstType.BYTE
+		is Char -> AstType.CHAR
+		is Short -> AstType.SHORT
+		is Int -> AstType.INT
+		is Long -> AstType.LONG
+		is Float -> AstType.FLOAT
+		is Double -> AstType.DOUBLE
+		is String -> AstType.STRING
+		is AstType.ARRAY -> AstType.CLASS
+		is AstType.REF -> AstType.CLASS
+		is AstType.METHOD -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
+		is AstMethodHandle -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
+		else -> invalidOp("Literal type: ${value.javaClass} : $value")
+	}
+
+	fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
+
+	fun unify(a: AstType, b: AstType): AstType {
+		// @TODO: implement unification
+		return a
+	}
+
+	// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
+	fun readOne(reader: StrReader): AstType {
+		if (reader.eof) return AstType.UNKNOWN
+		val typech = reader.readch()
+		return when (typech) {
+			'V' -> AstType.VOID
+			'Z' -> AstType.BOOL
+			'B' -> AstType.BYTE
+			'C' -> AstType.CHAR
+			'S' -> AstType.SHORT
+			'D' -> AstType.DOUBLE
+			'F' -> AstType.FLOAT
+			'I' -> AstType.INT
+			'J' -> AstType.LONG
+			'[' -> AstType.ARRAY(readOne(reader))
+			'*' -> AstType.GENERIC_STAR
+			'-' -> AstType.GENERIC_LOWER_BOUND(readOne(reader))
+			'+' -> AstType.GENERIC_UPPER_BOUND(readOne(reader))
+			'T' -> {
+				val id = reader.readUntil(T_DELIMITER, including = false, readDelimiter = true)
+				AstType.TYPE_PARAMETER(id)
+			}
+			'L' -> {
+				val base = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
+				val delim = reader.readch()
+				val ref = AstType.REF(base.replace('/', '.'))
+				when (delim) {
+					';' -> ref
+					'<' -> {
+						var index = 0
+						val suffixes = arrayListOf<AstType.GENERIC_SUFFIX>();
+						mainGenerics@while (reader.hasMore) {
+							val id = if (reader.peekch() == '.') {
+								reader.readch()
+								val id = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
+								val ch = reader.readch()
+								when (ch) {
+									'<' -> id
+									';' -> {
+										suffixes += AstType.GENERIC_SUFFIX(id, null)
+										break@mainGenerics
+									}
+									else -> invalidOp("Expected > or ; but found $ch on reader $reader")
+								}
+							} else {
+								null
+							}
+							val generic = arrayListOf<AstType>()
+							mainGeneric@while (reader.hasMore) {
+								val ch = reader.peekch()
+								if (ch == '>') {
+									reader.expect(">")
+									when (reader.peekch()) {
+										'.' -> break@mainGeneric
+										';' -> break@mainGeneric
+									}
+
+									break
+								} else {
+									generic.add(readOne(reader))
+								}
+							}
+							index++
+							suffixes += AstType.GENERIC_SUFFIX(id, generic)
+							if (reader.peekch() == ';') {
+								reader.expect(";")
+								break
+							}
+						}
+						AstType.GENERIC(ref, suffixes, true)
+					}
+					else -> throw InvalidOperationException()
+				}
+			}
+		// PARAMETRIZED TYPE
+			'<' -> {
+				val types = arrayListOf<Pair<String, AstType>>()
+				while (reader.peekch() != '>') {
+					val id = reader.readUntil(TYPE_DELIMITER, including = false, readDelimiter = false)
+					reader.expect(":")
+					if (reader.peekch() == ':') {
+						reader.readch()
+					}
+					types += Pair(id, this.readOne(reader))
+				}
+				reader.expect(">")
+				val item = this.readOne(reader)
+				if (item is AstType.METHOD) {
+					AstType.METHOD(item.ret, item.argTypes, types)
+				} else {
+					AstType.GENERIC_DESCRIPTOR(item, types)
+				}
+			}
+			'(' -> {
+				val args = arrayListOf<AstType>()
+				while (reader.peekch() != ')') {
+					args.add(readOne(reader))
+				}
+				assert(reader.readch() == ')')
+				val ret = readOne(reader)
+				AstType.METHOD(ret, args)
+			}
+			else -> {
+				throw NotImplementedError("Not implemented type '$typech' @ $reader")
+			}
+		}
+	}
+
 }
 
 fun _castLiteral(value: Int, to: AstType): Any {
@@ -345,120 +458,12 @@ object AstTypeBuilder {
 fun <T : AstType> AstTypeBuild(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 
 
-val AstTypeDemangleCache = hashMapOf<String, AstType>()
 
 val REF_DELIMITER = setOf(';', '<')
 val REF_DELIMITER2 = setOf(';', '<', '.')
 val T_DELIMITER = setOf(';')
 val TYPE_DELIMITER = setOf(':', '>')
 
-// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
-fun AstType.Companion.readOne(reader: StrReader): AstType {
-	if (reader.eof) return AstType.UNKNOWN
-	val typech = reader.readch()
-	return when (typech) {
-		'V' -> AstType.VOID
-		'Z' -> AstType.BOOL
-		'B' -> AstType.BYTE
-		'C' -> AstType.CHAR
-		'S' -> AstType.SHORT
-		'D' -> AstType.DOUBLE
-		'F' -> AstType.FLOAT
-		'I' -> AstType.INT
-		'J' -> AstType.LONG
-		'[' -> AstType.ARRAY(AstType.readOne(reader))
-		'*' -> AstType.GENERIC_STAR
-		'-' -> AstType.GENERIC_LOWER_BOUND(AstType.readOne(reader))
-		'+' -> AstType.GENERIC_UPPER_BOUND(AstType.readOne(reader))
-		'T' -> {
-			val id = reader.readUntil(T_DELIMITER, including = false, readDelimiter = true)
-			AstType.TYPE_PARAMETER(id)
-		}
-		'L' -> {
-			val base = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
-			val delim = reader.readch()
-			val ref = AstType.REF(base.replace('/', '.'))
-			when (delim) {
-				';' -> ref
-				'<' -> {
-					var index = 0
-					val suffixes = arrayListOf<AstType.GENERIC_SUFFIX>();
-					mainGenerics@while (reader.hasMore) {
-						val id = if (reader.peekch() == '.') {
-							reader.readch()
-							val id = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
-							val ch = reader.readch()
-							when (ch) {
-								'<' -> id
-								';' -> {
-									suffixes += AstType.GENERIC_SUFFIX(id, null)
-									break@mainGenerics
-								}
-								else -> invalidOp("Expected > or ; but found $ch on reader $reader")
-							}
-						} else {
-							null
-						}
-						val generic = arrayListOf<AstType>()
-						mainGeneric@while (reader.hasMore) {
-							val ch = reader.peekch()
-							if (ch == '>') {
-								reader.expect(">")
-								when (reader.peekch()) {
-									'.' -> break@mainGeneric
-									';' -> break@mainGeneric
-								}
-
-								break
-							} else {
-								generic.add(readOne(reader))
-							}
-						}
-						index++
-						suffixes += AstType.GENERIC_SUFFIX(id, generic)
-						if (reader.peekch() == ';') {
-							reader.expect(";")
-							break
-						}
-					}
-					AstType.GENERIC(ref, suffixes, true)
-				}
-				else -> throw InvalidOperationException()
-			}
-		}
-	// PARAMETRIZED TYPE
-		'<' -> {
-			val types = arrayListOf<Pair<String, AstType>>()
-			while (reader.peekch() != '>') {
-				val id = reader.readUntil(TYPE_DELIMITER, including = false, readDelimiter = false)
-				reader.expect(":")
-				if (reader.peekch() == ':') {
-					reader.readch()
-				}
-				types += Pair(id, this.readOne(reader))
-			}
-			reader.expect(">")
-			val item = this.readOne(reader)
-			if (item is AstType.METHOD) {
-				AstType.METHOD(item.ret, item.argTypes, types)
-			} else {
-				AstType.GENERIC_DESCRIPTOR(item, types)
-			}
-		}
-		'(' -> {
-			val args = arrayListOf<AstType>()
-			while (reader.peekch() != ')') {
-				args.add(AstType.readOne(reader))
-			}
-			assert(reader.readch() == ')')
-			val ret = AstType.readOne(reader)
-			AstType.METHOD(ret, args)
-		}
-		else -> {
-			throw NotImplementedError("Not implemented type '$typech' @ $reader")
-		}
-	}
-}
 
 val AstType.elementType: AstType get() = when (this) {
 	is AstType.ARRAY -> this.element

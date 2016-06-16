@@ -15,8 +15,8 @@ import com.jtransc.org.objectweb.asm.tree.MethodNode
 import com.jtransc.types.Asm2Ast
 import java.util.*
 
-fun AnnotationNode.toAst(): AstAnnotation {
-	val ref = AstType.demangle(this.desc) as AstType.REF
+fun AnnotationNode.toAst(types:AstTypes): AstAnnotation {
+	val ref = types.demangle(this.desc) as AstType.REF
 	return AstAnnotation(ref, this.values.createPairs().map { Pair(it.first as String, it.second as String) }.toMap(), true)
 }
 
@@ -27,23 +27,23 @@ fun ClassNode.getInterfaces() = this.interfaces.cast<String>()
 fun ClassNode.getMethods() = this.methods.cast<MethodNode>()
 fun ClassNode.getFields() = this.fields.cast<FieldNode>()
 
-private fun getAnnotations(visibleAnnotations: List<AnnotationNode>?, invisibleAnnotations: List<AnnotationNode>?): List<AstAnnotation> {
-	val visible = Concat(visibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = true) }.filterBlackList()
-	val invisible = Concat(invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = false) }.filterBlackList()
+private fun getAnnotations(visibleAnnotations: List<AnnotationNode>?, invisibleAnnotations: List<AnnotationNode>?, types: AstTypes): List<AstAnnotation> {
+	val visible = Concat(visibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = true, types = types) }.filterBlackList()
+	val invisible = Concat(invisibleAnnotations).filterNotNull().filterIsInstance<AnnotationNode>().map { AstAnnotationBuilder(it, visible = false, types = types) }.filterBlackList()
 	return visible + invisible
 }
 
-fun ClassNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
-fun MethodNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
-fun FieldNode.getAnnotations() = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations)
+fun ClassNode.getAnnotations(types: AstTypes) = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations, types)
+fun MethodNode.getAnnotations(types: AstTypes) = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations, types)
+fun FieldNode.getAnnotations(types: AstTypes) = getAnnotations(this.visibleAnnotations, this.invisibleAnnotations, types)
 
-fun MethodNode.getParameterAnnotations(): List<List<AstAnnotation>> {
-	val type = AstType.demangleMethod(this.desc)
+fun MethodNode.getParameterAnnotations(types:AstTypes): List<List<AstAnnotation>> {
+	val type = types.demangleMethod(this.desc)
 
 	return this.visibleParameterAnnotations?.toList()
 		?.map {
 			it?.filterNotNull()?.filterIsInstance<AnnotationNode>()
-				?.map { AstAnnotationBuilder(it, visible = true) }
+				?.map { AstAnnotationBuilder(it, visible = true, types = types) }
 				?.filterBlackList()
 				?: listOf()
 		}
@@ -59,9 +59,9 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 	AstVisibility.PRIVATE
 }
 
-fun MethodNode.astRef(clazz: AstType.REF) = AstMethodRef(clazz.name, this.name, AstType.demangleMethod(this.desc))
+fun MethodNode.astRef(clazz: AstType.REF, types:AstTypes) = AstMethodRef(clazz.name, this.name, types.demangleMethod(this.desc))
 
-class AsmToAst : AstClassGenerator {
+class AsmToAst(val types: AstTypes) : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
 		val cr = ClassReader(program.getClassBytes(fqname))
 		val classNode = ClassNode()
@@ -77,7 +77,7 @@ class AsmToAst : AstClassGenerator {
 			program = program,
 			name = FqName.fromInternal(classNode.name),
 			modifiers = AstModifiers(classNode.access),
-			annotations = classNode.getAnnotations(),
+			annotations = classNode.getAnnotations(types),
 			extending = if (classNode.hasSuperclass() && !classNode.isInterface()) FqName.fromInternal(classNode.superName) else null,
 			implementing = classNode.getInterfaces().map { FqName.fromInternal(it) }
 		)
@@ -92,22 +92,23 @@ class AsmToAst : AstClassGenerator {
 
 	fun generateMethod(containingClass: AstClass, method: MethodNode, id: Int): AstMethod {
 		val mods = AstModifiers(method.access)
-		val methodRef = method.astRef(containingClass.ref)
+		val methodRef = method.astRef(containingClass.ref, types)
 		return AstMethod(
 			id = id,
 			containingClass = containingClass,
-			annotations = method.getAnnotations(),
-			parameterAnnotations = method.getParameterAnnotations(),
+			annotations = method.getAnnotations(types),
+			parameterAnnotations = method.getParameterAnnotations(types),
 			name = method.name,
 			type = methodRef.type,
 			signature = methodRef.type.mangle(),
 			genericSignature = method.signature,
-			defaultTag = AstAnnotationValue(method.annotationDefault, visible = true),
+			defaultTag = AstAnnotationValue(method.annotationDefault, visible = true, types = types),
 			modifiers = mods,
+			types = types,
 			generateBody = {
 				if (mods.isConcrete) {
 					try {
-						Asm2Ast(containingClass.ref, method, containingClass.source)
+						Asm2Ast(containingClass.ref, method, types, containingClass.source)
 					} catch (e: Throwable) {
 						println("Error trying to generate ${containingClass.name}::${method.name} ${method.desc}")
 						e.printStackTrace()
@@ -126,31 +127,32 @@ class AsmToAst : AstClassGenerator {
 			id = id,
 			containingClass = containingClass,
 			name = field.name,
-			annotations = field.getAnnotations(),
-			type = AstType.demangle(field.desc),
+			annotations = field.getAnnotations(types),
+			type = types.demangle(field.desc),
 			descriptor = field.desc,
 			genericSignature = field.signature,
 			modifiers = mods,
-			constantValue = field.value
+			constantValue = field.value,
+			types = types
 		)
 	}
 }
 
-fun AstAnnotationValue(value: Any?, visible:Boolean): Any? {
+fun AstAnnotationValue(value: Any?, visible:Boolean, types: AstTypes): Any? {
 	if (value == null) return null
 	val clazz = value.javaClass
 	if (clazz.isArray && clazz.componentType == java.lang.String::class.java) {
 		val array = value as Array<String>
-		return AstFieldWithoutTypeRef((AstType.demangle(array[0]) as AstType.REF).name, array[1])
+		return AstFieldWithoutTypeRef((types.demangle(array[0]) as AstType.REF).name, array[1])
 	}
 	if (value is ArrayList<*>) {
-		return value.map { AstAnnotationValue(it, visible) }
+		return value.map { AstAnnotationValue(it, visible, types) }
 	}
 	if (clazz.isArray) {
-		return ReflectedArray(value).toList().map { AstAnnotationValue(it, visible) }
+		return ReflectedArray(value).toList().map { AstAnnotationValue(it, visible, types) }
 	}
 	if (value is AnnotationNode) {
-		val type = AstType.demangle(value.desc) as AstType.REF
+		val type = types.demangle(value.desc) as AstType.REF
 		val fields = hashMapOf<String, Any?>()
 		if (value.values != null) {
 			val values = value.values
@@ -158,7 +160,7 @@ fun AstAnnotationValue(value: Any?, visible:Boolean): Any? {
 			while (n < values.size) {
 				val name = values[n++] as String
 				val value = values[n++]
-				fields[name] = AstAnnotationValue(value, visible)
+				fields[name] = AstAnnotationValue(value, visible, types)
 			}
 			//println(node.values)
 			//println(node.values)
@@ -168,7 +170,7 @@ fun AstAnnotationValue(value: Any?, visible:Boolean): Any? {
 	return value
 }
 
-fun AstAnnotationBuilder(node: AnnotationNode, visible:Boolean): AstAnnotation {
-	return AstAnnotationValue(node, visible) as AstAnnotation
+fun AstAnnotationBuilder(node: AnnotationNode, visible:Boolean, types: AstTypes): AstAnnotation {
+	return AstAnnotationValue(node, visible, types) as AstAnnotation
 }
 

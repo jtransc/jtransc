@@ -38,6 +38,7 @@ class GenHaxeGen(
 	val names: HaxeNames,
 	val haxeTemplateString: HaxeTemplateString
 ) {
+	val types = program.types
 	val refs = References()
 	val context = AstGenContext()
 	lateinit var mutableBody: MutableBody
@@ -55,10 +56,10 @@ class GenHaxeGen(
 	val JAVA_LANG_STRING = names.haxeName<java.lang.String>()
 	val invocationHandlerHaxeName = names.haxeName<java.lang.reflect.InvocationHandler>()
 	val methodHaxeName = names.haxeName<java.lang.reflect.Method>()
-	val invokeHaxeName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", AstType.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).haxeName
-	val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", AstType.build { METHOD(STRING) }).haxeName
-	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", AstType.build { METHOD(INT) }).haxeName
-	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", AstType.build { METHOD(CLASS) }).haxeName
+	val invokeHaxeName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", types.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).haxeName
+	val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", types.build { METHOD(STRING) }).haxeName
+	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", types.build { METHOD(INT) }).haxeName
+	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", types.build { METHOD(CLASS) }).haxeName
 
 	val invisibleExternalList = program.allAnnotations
 		.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull()
@@ -85,9 +86,9 @@ class GenHaxeGen(
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(): Indenter {
 		return if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-			features.apply(this, (featureSet + setOf(GotosFeature)), settings).genBody()
+			features.apply(this, (featureSet + setOf(GotosFeature)), settings, types).genBody()
 		} else {
-			features.apply(this, featureSet, settings).genBody()
+			features.apply(this, featureSet, settings, types).genBody()
 		}
 	}
 
@@ -123,7 +124,7 @@ class GenHaxeGen(
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
-		val mainMethod = program[mainClassFq].getMethod("main", AstType.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.haxeName
+		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.haxeName
 		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		val entryPointFilePath = entryPointClass.haxeFilePath
 		val entryPointFqName = entryPointClass.haxeGeneratedFqName
@@ -899,7 +900,7 @@ class GenHaxeGen(
 
 
 		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
-		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(CLASS) }).haxeName
+		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).haxeName
 		// java.lang.annotation.Annotation
 		//abstract fun annotationType():Class<out Annotation>
 

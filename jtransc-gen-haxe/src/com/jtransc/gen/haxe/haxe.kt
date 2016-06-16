@@ -18,10 +18,7 @@ package com.jtransc.gen.haxe
 
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.*
-import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstFeatures
-import com.jtransc.ast.AstProgram
-import com.jtransc.ast.FqName
+import com.jtransc.ast.*
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ds.split
 import com.jtransc.gen.GenTarget
@@ -135,9 +132,10 @@ class HaxeTemplateString(
 	settings: AstBuildSettings,
 	val actualSubtarget: HaxeAddSubtarget,
 	folders: CommonGenFolders,
-	outputFile2: File
+	outputFile2: File,
+    types: AstTypes
 )
-: CommonProgramTemplate(names, tinfo, settings, folders, outputFile2) {
+: CommonProgramTemplate(names, tinfo, settings, folders, outputFile2, types) {
 	val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
 	val mergedAssetsDir = tinfo.mergedAssetsFolder
 
@@ -204,7 +202,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	val mergedAssetsVfs = LocalVfs(mergedAssetsFolder)
 	val names = HaxeNames(program, minimize = settings.minimizeNames)
 	val folders = CommonGenFolders(settings.assets.map { LocalVfs(it) })
-	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget, folders, outputFile2)
+	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget, folders, outputFile2, tinfo.types)
 
 	override fun buildSource() {
 		gen = GenHaxeGen(

@@ -1,6 +1,7 @@
 package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import java.io.File
 
 fun AllBuildSimple(
@@ -9,7 +10,8 @@ fun AllBuildSimple(
 	settings: AstBuildSettings,
 	target: String = "haxe:js",
 	output: String? = null,
-	targetDirectory:String = System.getProperty("java.io.tmpdir")
+	targetDirectory:String = System.getProperty("java.io.tmpdir"),
+    types: AstTypes
 ): AllBuild {
 	val targetParts = target.split(":")
 	val targetName = targetParts.getOrElse(0) { "haxe" }
@@ -29,6 +31,7 @@ fun AllBuildSimple(
 		output = if (File(actualOutput).isAbsolute) actualOutput else File(targetDirectory, actualOutput).absolutePath,
 		subtarget = subtargetName,
 		settings = settings,
-		targetDirectory = targetDirectory
+		targetDirectory = targetDirectory,
+		types = types
 	)
 }

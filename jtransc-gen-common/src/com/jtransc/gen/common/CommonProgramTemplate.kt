@@ -14,7 +14,8 @@ open class CommonProgramTemplate(
 	val tinfo: GenTargetInfo,
 	val settings: AstBuildSettings,
     val folders: CommonGenFolders,
-    val outputFile2: File
+    val outputFile2: File,
+    val types: AstTypes
 ) {
 	val program = tinfo.program
 	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
@@ -78,12 +79,12 @@ open class CommonProgramTemplate(
 				names.buildStaticInit(clazz);
 			}
 			"CONSTRUCTOR" -> {
-				val method = program[AstMethodRef(clazz.name, "<init>", AstType.demangleMethod(dataParts[1]))]!!
+				val method = program[AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))]!!
 				names.buildConstructor(method)
 			}
 			"SMETHOD", "METHOD" -> {
 				val method = if (dataParts.size >= 3) {
-					program[AstMethodRef(clazz.name, dataParts[1], AstType.demangleMethod(dataParts[2]))]!!
+					program[AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))]!!
 				} else {
 					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
 					if (methods.isEmpty()) invalidOp("Can't find method $desc2")

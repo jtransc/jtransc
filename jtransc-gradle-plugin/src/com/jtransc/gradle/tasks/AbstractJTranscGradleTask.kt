@@ -5,6 +5,7 @@ import com.jtransc.AllBuildSimple
 import com.jtransc.BuildBackend
 import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import com.jtransc.error.invalidOp
 import com.jtransc.gradle.JTranscGradleExtension
 import com.jtransc.gradle.get
@@ -39,6 +40,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var version: String? = null
 	var productName: String? = null
 	var title: String? = null
+
+	val types: AstTypes = AstTypes()
 
 	open protected fun prepare(): AllBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
@@ -109,7 +112,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			target = target ?: extension.target ?: "haxe:js",
 			output = outputFile ?: extension.output,
 			settings = settings,
-			targetDirectory = buildDir.absolutePath
+			targetDirectory = buildDir.absolutePath,
+			types = types
 		)
 	}
 }

@@ -11,7 +11,7 @@ data class AstBody(
 	val flags: AstBodyFlags
 )
 
-data class AstBodyFlags(val strictfp: Boolean)
+data class AstBodyFlags(val strictfp: Boolean, val types: AstTypes)
 
 enum class AstBinop(val symbol: String, val str: String) {
 	ADD("+", "add"), SUB("-", "sub"), MUL("*", "mul"), DIV("/", "div"), REM("%", "rem"),
@@ -218,7 +218,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	//}
 
 	companion object {
-		fun build(build: AstBuilder.() -> AstStm): AstStm = AstBuilder().build()
+		fun build(types: AstTypes, build: AstBuilder.() -> AstStm): AstStm = AstBuilder(types).build()
 	}
 }
 
@@ -300,8 +300,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 	*/
 
-	class LITERAL(override val value: Any?) : LiteralExpr() {
-		override val type = AstType.fromConstant(value)
+	class LITERAL(override val value: Any?, val types: AstTypes) : LiteralExpr() {
+		override val type = types.fromConstant(value)
 	}
 
 	class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr() {
@@ -416,11 +416,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
 
 	companion object {
-		fun build(build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder().build()
+		fun build(types: AstTypes, build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder(types).build()
 	}
 
-	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr) : AstExpr() {
-		override val type: AstType = AstType.unify(etrue.type, efalse.type)
+	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr, val types: AstTypes) : AstExpr() {
+		override val type: AstType = types.unify(etrue.type, efalse.type)
 	}
 }
 
@@ -549,7 +549,7 @@ object AstExprUtils {
 operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
 
-class AstBuilder {
+class AstBuilder(val types: AstTypes) {
 	val BOOL = AstType.BOOL
 	val BYTE = AstType.BYTE
 	val SHORT = AstType.SHORT
@@ -564,7 +564,7 @@ class AstBuilder {
 
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
-	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 
 	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
@@ -577,12 +577,12 @@ class AstBuilder {
 	//fun FqName.get(name:String):AstExpr.STATIC_FIELD_ACCESS = AstExpr.STATIC_FIELD_ACCESS(AstFieldRef())
 }
 
-fun AstBuild(build: AstBuilder.() -> AstExpr): AstExpr {
-	return AstBuilder().build()
+fun AstBuild(types:AstTypes, build: AstBuilder.() -> AstExpr): AstExpr {
+	return AstBuilder(types).build()
 }
 
-fun AstBuildStm(build: AstBuilder.() -> AstStm): AstStm {
-	return AstBuilder().build()
+fun AstBuildStm(types:AstTypes, build: AstBuilder.() -> AstStm): AstStm {
+	return AstBuilder(types).build()
 }
 
 fun AstExpr.builder() {
@@ -610,5 +610,4 @@ class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val
 }
 
 val Iterable<AstStm>.stms: AstStm get() = AstStm.STMS(this.toList())
-val Any?.lit: AstExpr get() = AstExpr.LITERAL(this)
 fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)

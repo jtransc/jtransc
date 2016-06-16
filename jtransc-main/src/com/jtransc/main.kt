@@ -17,6 +17,7 @@
 package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import com.jtransc.gen.GenTargetSubDescriptor
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -155,7 +156,8 @@ object JTranscMain {
 				output = config.output,
 				subtarget = config.target.sub,
 				targetDirectory = config.targetDirectory,
-				settings = config.settings
+				settings = config.settings,
+				types = AstTypes()
 			)
 			val result = build.buildAndRun(captureRunOutput = false, run = config.run)
 			System.exit(result.process.exitValue)

@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscRegisterCommandList
 import com.jtransc.annotation.JTranscRunCommandList
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstFeatures
+import com.jtransc.ast.AstTypes
 import com.jtransc.ast.FqName
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.gen.GenTarget
@@ -45,7 +46,11 @@ data class JsProgramInfo(
 
 val JsFeatures = setOf(SwitchesFeature)
 
-class JsTemplateString(names: JsNames, tinfo: GenTargetInfo, settings: AstBuildSettings, folders: CommonGenFolders, outputFile2: File) : CommonProgramTemplate(names, tinfo, settings, folders, outputFile2) {
+class JsTemplateString(
+	names: JsNames, tinfo: GenTargetInfo, settings: AstBuildSettings, folders: CommonGenFolders, outputFile2: File, types: AstTypes
+) : CommonProgramTemplate(
+	names, tinfo, settings, folders, outputFile2, types
+) {
 
 }
 
@@ -58,7 +63,7 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 	val folders = CommonGenFolders(settings.assets.map { LocalVfs(it) })
 	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
 	val outputFile2 = targetFolder[tinfo.outputFileBaseName].realfile
-	val jsTemplateString = JsTemplateString(names, tinfo, settings, folders, outputFile2)
+	val jsTemplateString = JsTemplateString(names, tinfo, settings, folders, outputFile2, tinfo.types)
 
 	override fun buildSource() {
 		gen = GenJsGen(
@@ -69,7 +74,8 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 			settings = settings,
 			names = names,
 			jsTemplateString = jsTemplateString,
-			folders = folders
+			folders = folders,
+			types = tinfo.types
 		)
 		info = gen._write(targetFolder)
 		jsTemplateString.setProgramInfo(info!!)
