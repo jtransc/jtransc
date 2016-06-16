@@ -4,10 +4,13 @@
    ==  in this case for the JTransc Runtime Library.                      ==
    =========================================================================
 
-JTransc Runtime Library
-Copyright (C) 2012-2014 JTransc AB
-For license information see the LICENSE.txt file which accompanies this
-NOTICE.txt file.
+JTransc Runtime Library (jtransc-rt, jtransc-rt-core)
+Copyright (C) 2015-2016 Carlos Ballesteros Velasco
+For license information see the LICENSE file which accompanies this
+NOTICE file.
+
+This notice is based on the one offered by RoboVM:
+https://github.com/robovm/robovm/blob/master/rt/NOTICE.txt
 
 The JTransc Runtime Library includes software developed as part of the dalvik
 module of The Android Open Source Project which is copyright 2005-2012, The

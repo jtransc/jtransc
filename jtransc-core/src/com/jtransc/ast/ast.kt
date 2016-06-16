@@ -61,7 +61,6 @@ data class AstBuildSettings(
 	val extra: Map<String?, String?> = mapOf(),
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
 		"com.jtransc:jtransc-rt:$jtranscVersion",
-		//"com.jtransc:jtransc-rt-full:$jtranscVersion",
 		"com.jtransc:jtransc-rt-core:$jtranscVersion"
 	)
 ) {

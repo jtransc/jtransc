@@ -53,7 +53,6 @@ open class JTranscGradlePlugin : Plugin<Project> {
 		project.configurations.create("jtranscRuntime")
 		project.configurations.create("jtransc")
 		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt:$jtranscVersion")
-		//project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt-full:$jtranscVersion")
 		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt-core:$jtranscVersion")
 
 		//project.
