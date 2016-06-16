@@ -255,10 +255,6 @@ class HaxeNatives {
 
     static public inline function cast2<T, S> (value:T, c:Class<S>):S return N.c(value, c);
 
-    static public function formatBoxed(fmt:String, args:Array<Dynamic>):String {
-        return HaxeFormat.format(fmt, args.map(function(v) { return unbox(v); }).array());
-    }
-
 	static public function box(value:Dynamic):JavaObject {
 		if (Std.is(value, Int)) return boxInt(cast value);
 		if (Std.is(value, Float)) return boxFloat(cast value);

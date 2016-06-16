@@ -155,6 +155,7 @@ function __createJavaArrays() {
 
 	JA_L.createMultiSure = function(sizes, desc) {
 		if (!desc.startsWith('[')) return null;
+		if (sizes.length == 1) return JA_L.create(sizes[0], desc);
 		var out = new JA_L(sizes[0], desc);
 		var sizes2 = sizes.slice(1);
 		var desc2 = desc.substr(1);

@@ -39,7 +39,8 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	static private char[] temp = new char[32 + 1];
 
-	//@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
+	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
+	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
 	public static String toString(int i, int radix) {
 		if (radix < 2) throw new RuntimeException("Invalid radix");
 		if (i == 0) return "0";

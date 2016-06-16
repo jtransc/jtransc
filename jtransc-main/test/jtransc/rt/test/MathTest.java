@@ -14,7 +14,9 @@ public class MathTest {
 	static private void dumpIntBounds() {
 		System.out.println("dumpIntBounds:");
 		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE));
+		JTranscConsole.log(String.valueOf(Integer.MIN_VALUE));
 		JTranscConsole.log((long)Integer.MIN_VALUE);
+		JTranscConsole.log(((Integer)Integer.MIN_VALUE).toString());
 		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE, 7));
 		JTranscConsole.log(Integer.toString(Integer.MIN_VALUE, 2));
 		JTranscConsole.log(String.format("%d", Integer.MIN_VALUE));

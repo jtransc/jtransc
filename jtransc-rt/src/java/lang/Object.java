@@ -40,7 +40,6 @@ import java.lang.reflect.Field;
 	"HaxeDynamicLoad.hx",
 	"HaxeFfiLibrary.hx",
 	"HaxeIO.hx",
-	"HaxeFormat.hx",
 	"HaxeNativeWrapper.hx",
 	"Float32.hx", "Float64.hx",
 	"HaxeArrayBase.hx", "HaxeArrayBool.hx", "HaxeArrayByte.hx", "HaxeArrayShort.hx", "HaxeArrayChar.hx", "HaxeArrayInt.hx", "HaxeArrayFloat.hx", "HaxeArrayDouble.hx", "HaxeArrayLong.hx", "HaxeArrayAny.hx",

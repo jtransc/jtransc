@@ -9,6 +9,7 @@ public class MultidimensionalArrayTest {
 		test3();
 		test4();
 		test5();
+		test6();
 	}
 
 	static private void test1() {
@@ -69,6 +70,17 @@ public class MultidimensionalArrayTest {
 				out += ints[x][y];
 			}
 			JTranscConsole.log(out);
+		}
+	}
+
+	static private void test6() {
+		int width = 2, height = 3;
+		int[][] ints = new int[width][height];
+		ints[0][1] = 1;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				JTranscConsole.log(ints[x][y]);
+			}
 		}
 	}
 }
