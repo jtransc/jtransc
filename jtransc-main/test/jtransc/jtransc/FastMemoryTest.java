@@ -97,7 +97,7 @@ public class FastMemoryTest {
 
 	private static void testWrap() {
 		System.out.println("testWrap:");
-		byte[] data = {1,2,3,4};
+		byte[] data = {1,2,3,4,5,6,7,8};
 		FastMemory mem = FastMemory.wrap(data);
 		System.out.println(mem.getInt32(0));
 		System.out.println(mem.getInt8(1));
