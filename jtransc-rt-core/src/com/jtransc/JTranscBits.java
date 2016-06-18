@@ -73,7 +73,6 @@ public class JTranscBits {
 		return makeInt(bytes[offset + 0], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
 	}
 
-
 	public static byte long7(long x) {
 		return (byte) (x >> 56);
 	}
@@ -105,7 +104,6 @@ public class JTranscBits {
 	public static byte long0(long x) {
 		return (byte) (x >> 0);
 	}
-
 
 	@JTranscInline
 	public static byte int3(int x) {
@@ -148,8 +146,8 @@ public class JTranscBits {
 	}
 
 	public static void writeLongBE(byte[] out, int offset, long value) {
-		int h = (int)(value >> 32);
-		int l = (int)(value >> 0);
+		int h = (int) (value >> 32);
+		int l = (int) (value >> 0);
 		out[offset + 0] = (byte) (h >>> 24);
 		out[offset + 1] = (byte) (h >>> 16);
 		out[offset + 2] = (byte) (h >>> 8);
@@ -173,8 +171,8 @@ public class JTranscBits {
 	}
 
 	public static void writeLongLE(byte[] out, int offset, long value) {
-		int h = (int)(value >> 32);
-		int l = (int)(value >> 0);
+		int h = (int) (value >> 32);
+		int l = (int) (value >> 0);
 		out[offset + 7] = (byte) (h >>> 24);
 		out[offset + 6] = (byte) (h >>> 16);
 		out[offset + 5] = (byte) (h >>> 8);
@@ -327,14 +325,75 @@ public class JTranscBits {
 		return data;
 	}
 
+	static public short readInt16BE(byte[] data, int offset) {
+		return (short) (
+			((data[offset + 0] & 0xFF) << 8) |
+				((data[offset + 1] & 0xFF) << 0)
+		);
+	}
+
+	static public int readInt32BE(byte[] data, int offset) {
+		return (
+			((data[offset + 0] & 0xFF) << 24) |
+				((data[offset + 1] & 0xFF) << 16) |
+				((data[offset + 2] & 0xFF) << 8) |
+				((data[offset + 3] & 0xFF) << 0)
+		);
+	}
+
+	static public long readInt64BE(byte[] data, int offset) {
+		return (
+			((long)(data[offset + 0] & 0xFF) << 56) |
+				((long)(data[offset + 1] & 0xFF) << 48) |
+				((long)(data[offset + 2] & 0xFF) << 42) |
+				((long)(data[offset + 3] & 0xFF) << 32) |
+				((long)(data[offset + 4] & 0xFF) << 24) |
+				((long)(data[offset + 5] & 0xFF) << 16) |
+				((long)(data[offset + 6] & 0xFF) << 8) |
+				((long)(data[offset + 7] & 0xFF) << 0)
+		);
+	}
+
 	static public short readInt16BE(byte[] data) {
-		return (short) ((data[0] << 8) | (data[1] & 0xFF));
+		return readInt16BE(data, 0);
 	}
 
 	static public int readInt32BE(byte[] data) {
-		return (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + (data[3] << 0);
+		return readInt32BE(data, 0);
 	}
 
+	static public long readInt64BE(byte[] data) {
+		return readInt64BE(data, 0);
+	}
+
+	static public short readInt16LE(byte[] data, int offset) {
+		return (short) (
+			((data[offset + 1] & 0xFF) << 8) |
+				((data[offset + 0] & 0xFF) << 0)
+		);
+	}
+
+	static public int readInt32LE(byte[] data, int offset) {
+		return (
+			((data[offset + 3] & 0xFF) << 24) |
+				((data[offset + 2] & 0xFF) << 16) |
+				((data[offset + 1] & 0xFF) << 8) |
+				((data[offset + 0] & 0xFF) << 0)
+		);
+	}
+
+	static public long readInt64LE(byte[] data, int offset) {
+		return (
+			((long)(data[offset + 7] & 0xFF) << 56) |
+				((long)(data[offset + 6] & 0xFF) << 48) |
+				((long)(data[offset + 5] & 0xFF) << 42) |
+				((long)(data[offset + 4] & 0xFF) << 32) |
+				((long)(data[offset + 3] & 0xFF) << 24) |
+				((long)(data[offset + 2] & 0xFF) << 16) |
+				((long)(data[offset + 1] & 0xFF) << 8) |
+				((long)(data[offset + 0] & 0xFF) << 0)
+		);
+	}
 	public static int clamp(int v, int min, int max) {
 		if (v < min) return min;
 		if (v > max) return max;

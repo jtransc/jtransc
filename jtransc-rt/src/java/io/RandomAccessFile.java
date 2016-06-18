@@ -19,6 +19,8 @@ package java.io;
 import com.jtransc.JTranscBits;
 import com.jtransc.io.JTranscSyncIO;
 
+import java.nio.charset.StandardCharsets;
+
 public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	private FileDescriptor fd;
 	//private FileChannel channel = null;
@@ -255,6 +257,6 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public final void writeUTF(String str) throws IOException {
-		DataOutputStream.writeUTF(str, this);
+		write(str.getBytes(StandardCharsets.UTF_8));
 	}
 }

@@ -12,9 +12,9 @@ public abstract class Permission implements Guard, java.io.Serializable {
 
 	public abstract boolean implies(Permission permission);
 
-	public abstract boolean equals(Object obj);
+	//public abstract boolean equals(Object obj);
 
-	public abstract int hashCode();
+	//public abstract int hashCode();
 
 	public final String getName() {
 		return name;

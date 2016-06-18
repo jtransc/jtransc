@@ -65,4 +65,27 @@ public class JTranscIoTools {
 			e.printStackTrace();
 		}
 	}
+
+	public static long skipByReading(InputStream in, long byteCount) throws IOException {
+		byte[] buffer = new byte[4096];
+		long skipped = 0;
+		while (skipped < byteCount) {
+			int toRead = (int) Math.min(byteCount - skipped, buffer.length);
+			int read = in.read(buffer, 0, toRead);
+			if (read == -1) break;
+			skipped += read;
+			if (read < toRead) break;
+		}
+		return skipped;
+	}
+
+	public static void readFully(InputStream in, byte[] out, int offset, int length) throws IOException {
+		int left = length;
+		while (left > 0) {
+			int readed = in.read(out, offset, left);
+			if (readed < 0) throw new IOException();
+			offset += readed;
+			left -= readed;
+		}
+	}
 }

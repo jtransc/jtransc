@@ -5,7 +5,6 @@ import com.intellij.execution.ExecutionResult
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.process.ColoredProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.DefaultProgramRunner
@@ -31,9 +30,10 @@ import com.intellij.xdebugger.impl.XSourcePositionImpl
 import com.jtransc.AllBuild
 import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
+import com.jtransc.ast.AstTypes
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.debugger.v8.NodeJS
-import com.jtransc.gen.haxe.HaxeGenDescriptor
+import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.io.ProcessUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -88,7 +88,7 @@ class JTranscDebuggerRunner : DefaultProgramRunner() {
 
 		BuildJTranscRunningState(env, {
 			val build = AllBuild(
-				HaxeGenDescriptor,
+				HaxeTarget,
 				classPaths = module.getAllClassRootsWithoutSdk().map { it.canonicalPath }.filterNotNull(),
 				entryPoint = profile.MAIN_CLASS_NAME,
 				output = outputFile,
@@ -96,7 +96,8 @@ class JTranscDebuggerRunner : DefaultProgramRunner() {
 				subtarget = "js",
 				settings = AstBuildSettings(
 					jtranscVersion = JTranscVersion.getVersion()
-				)
+				),
+				types = AstTypes()
 			)
 			val result = build.buildWithoutRunning()
 			println(result)
@@ -121,6 +122,7 @@ class JTranscDebuggerRunner : DefaultProgramRunner() {
 	override fun execute(environment: ExecutionEnvironment, callback: ProgramRunner.Callback?, state: RunProfileState) {
 		super.execute(environment, callback, state)
 	}
+
 }
 
 class TaskProcessHandler(action: () -> Unit) : ProcessHandler() {
@@ -185,6 +187,7 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	val process = this
 	val project = session.project
 	var debugger: JTranscDebugger? = null
+
 	init {
 		NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
 			override fun onStarted() {
@@ -267,7 +270,6 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 		//this.expectOK(debugger.Command.BreakNow);
 		debugger?.pause()
 	}
-
 
 
 	override fun runToPosition(p0: XSourcePosition) {

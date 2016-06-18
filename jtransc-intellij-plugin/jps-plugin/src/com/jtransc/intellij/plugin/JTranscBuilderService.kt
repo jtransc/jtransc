@@ -3,7 +3,8 @@ package com.jtransc.intellij.plugin
 import com.jtransc.AllBuild
 import com.jtransc.JTranscVersion
 import com.jtransc.ast.AstBuildSettings
-import com.jtransc.gen.haxe.HaxeGenDescriptor
+import com.jtransc.ast.AstTypes
+import com.jtransc.gen.haxe.HaxeTarget
 import org.jetbrains.jps.ModuleChunk
 import org.jetbrains.jps.builders.DirtyFilesHolder
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor
@@ -15,8 +16,6 @@ import org.jetbrains.jps.model.library.JpsOrderRootType
 import org.jetbrains.jps.model.module.JpsLibraryDependency
 import org.jetbrains.jps.model.module.JpsModule
 import org.jetbrains.jps.model.module.JpsModuleDependency
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType
-import java.io.File
 import java.util.*
 
 class JTranscBuilderService : BuilderService() {
@@ -46,7 +45,7 @@ class JTranscBuilderService : BuilderService() {
 				}
 //
 				val build = AllBuild(
-					HaxeGenDescriptor,
+					HaxeTarget,
 					classPaths = classPaths,
 					entryPoint = "Test",
 					output = "C:/temp/output.js",
@@ -54,7 +53,8 @@ class JTranscBuilderService : BuilderService() {
 					subtarget = "js",
 					settings = AstBuildSettings(
 						jtranscVersion = JTranscVersion.getVersion()
-					)
+					),
+					types = AstTypes()
 				)
 				val result = build.buildWithoutRunning()
 				println(result)
@@ -95,7 +95,7 @@ class JTranscBuilderService : BuilderService() {
 					val module = dep.module
 					if (module != null) out.addAll(getClassPaths(module, visited))
 				}
-				is JpsLibraryDependency ->{
+				is JpsLibraryDependency -> {
 					val library = dep.library
 					if (library != null) {
 						for (root in library.getRoots(JpsOrderRootType.COMPILED)) {

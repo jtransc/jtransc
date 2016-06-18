@@ -5,6 +5,9 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import java.util.Arrays;
 
 public class JTranscArrays {
+	public static final byte[] EMPTY_BYTE = new byte[0];
+	public static final Class<?>[] EMPTY_CLASS = new Class<?>[0];
+
 	@HaxeMethodBody("return HaxeArrayByte.fromBytes(p0.getBytes());")
 	static public byte[] copyReinterpret(int[] data) {
 		byte[] out = new byte[data.length * 4];
@@ -104,4 +107,5 @@ public class JTranscArrays {
 			throw new ArrayIndexOutOfBoundsException("length=" + arrayLength + "; regionStart=" + offset + "; regionLength=" + count);
 		}
 	}
+
 }

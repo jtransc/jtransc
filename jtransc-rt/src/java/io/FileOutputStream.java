@@ -52,15 +52,7 @@ public class FileOutputStream extends OutputStream {
 	}
 
 	public FileOutputStream(FileDescriptor fdObj) {
-	    /*
-	    if (fdObj == null) throw new NullPointerException();
-        this.fd = fdObj;
-        this.append = false;
-        this.path = null;
-	    */
 		throw new RuntimeException("Not implemented");
-
-		//fd.attach(this);
 	}
 
 	public void write(int b) throws IOException {
@@ -84,22 +76,5 @@ public class FileOutputStream extends OutputStream {
 	public final FileDescriptor getFD() throws IOException {
 		if (fd != null) return fd;
 		throw new IOException();
-	}
-
-	//private FileChannel channel;
-	//public FileChannel getChannel() {
-	//    synchronized (this) {
-	//        if (channel == null) channel = FileChannelImpl.open(fd, path, false, true, append, this);
-	//        return channel;
-	//    }
-	//}
-
-	protected void finalize() throws IOException {
-		if (fd == null) return;
-		if (fd == FileDescriptor.out || fd == FileDescriptor.err) {
-			flush();
-		} else {
-			close();
-		}
 	}
 }

@@ -26,8 +26,12 @@
         <module name="jtransc-buildjar-maven-plugin" />
         <module name="jtransc-core" />
         <module name="jtransc-debugger" />
+        <module name="jtransc-gen-common" />
         <module name="jtransc-gen-haxe" />
+        <module name="jtransc-gen-js" />
+        <module name="jtransc-gradle-plugin" />
         <module name="jtransc-main" />
+        <module name="jtransc-main-run" />
         <module name="jtransc-maven-plugin" />
         <module name="jtransc-rt" />
         <module name="jtransc-rt-core" />
@@ -40,8 +44,12 @@
       <module name="jtransc-buildjar-maven-plugin" target="1.8" />
       <module name="jtransc-core" target="1.8" />
       <module name="jtransc-debugger" target="1.8" />
+      <module name="jtransc-gen-common" target="1.8" />
       <module name="jtransc-gen-haxe" target="1.8" />
+      <module name="jtransc-gen-js" target="1.8" />
+      <module name="jtransc-gradle-plugin" target="1.8" />
       <module name="jtransc-main" target="1.8" />
+      <module name="jtransc-main-run" target="1.8" />
       <module name="jtransc-maven-plugin" target="1.8" />
       <module name="jtransc-rt" target="1.8" />
       <module name="jtransc-rt-core" target="1.8" />
@@ -55,8 +63,12 @@
     <file url="file://$PROJECT_DIR$/../jtransc-buildjar-maven-plugin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-core" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-debugger" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jtransc-gen-common" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-gen-haxe" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jtransc-gen-js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jtransc-gradle-plugin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-main" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jtransc-main-run" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-maven-plugin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-rt" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../jtransc-rt-core" charset="UTF-8" />
@@ -235,13 +247,16 @@
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-core/jtransc-core.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-core/jtransc-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-debugger/jtransc-debugger.iml" filepath="$PROJECT_DIR$/../jtransc-debugger/jtransc-debugger.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-debugger/jtransc-debugger.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-debugger/jtransc-debugger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jtransc-gen-common/jtransc-gen-common.iml" filepath="$PROJECT_DIR$/../jtransc-gen-common/jtransc-gen-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-gen-haxe/jtransc-gen-haxe.iml" filepath="$PROJECT_DIR$/../jtransc-gen-haxe/jtransc-gen-haxe.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-gen-haxe/jtransc-gen-haxe.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-gen-haxe/jtransc-gen-haxe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jtransc-gen-js/jtransc-gen-js.iml" filepath="$PROJECT_DIR$/../jtransc-gen-js/jtransc-gen-js.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jtransc-gradle-plugin/jtransc-gradle-plugin.iml" filepath="$PROJECT_DIR$/../jtransc-gradle-plugin/jtransc-gradle-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/jtransc-intellij-plugin.iml" filepath="$PROJECT_DIR$/jtransc-intellij-plugin.iml" />
-      <module fileurl="file://$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" filepath="$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" filepath="$PROJECT_DIR$/jps-plugin/jtransc-jps-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-main/jtransc-main.iml" filepath="$PROJECT_DIR$/../jtransc-main/jtransc-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-main/jtransc-main.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-main/jtransc-main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../jtransc-main-run/jtransc-main-run.iml" filepath="$PROJECT_DIR$/../jtransc-main-run/jtransc-main-run.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-maven-plugin/jtransc-maven-plugin.iml" filepath="$PROJECT_DIR$/../jtransc-maven-plugin/jtransc-maven-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc/jtransc-maven-plugin/jtransc-maven-plugin.iml" filepath="$PROJECT_DIR$/../jtransc/jtransc-maven-plugin/jtransc-maven-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../jtransc-rt/jtransc-rt.iml" filepath="$PROJECT_DIR$/../jtransc-rt/jtransc-rt.iml" />
@@ -283,39 +298,6 @@
         <root url="jar://$MAVEN_REPOSITORY$/classworlds/classworlds/1.1-alpha-2/classworlds-1.1-alpha-2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.6.0">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-annotations/2.6.0/jackson-annotations-2.6.0.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-annotations/2.6.0/jackson-annotations-2.6.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-annotations/2.6.0/jackson-annotations-2.6.0-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: com.fasterxml.jackson.core:jackson-core:2.6.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-core/2.6.1/jackson-core-2.6.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-core/2.6.1/jackson-core-2.6.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-core/2.6.1/jackson-core-2.6.1-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: com.fasterxml.jackson.core:jackson-databind:2.6.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.6.1/jackson-databind-2.6.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.6.1/jackson-databind-2.6.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.6.1/jackson-databind-2.6.1-sources.jar!/" />
-      </SOURCES>
-    </library>
     <library name="Maven: com.google.guava:guava:18.0">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/18.0/guava-18.0.jar!/" />
@@ -336,94 +318,6 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/com/google/inject/guice/4.0/guice-4.0-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: com.googlecode.json-simple:json-simple:1.1.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-buffer:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.0.33.Final/netty-buffer-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.0.33.Final/netty-buffer-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-buffer/4.0.33.Final/netty-buffer-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-codec-http:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec-http/4.0.33.Final/netty-codec-http-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec-http/4.0.33.Final/netty-codec-http-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec-http/4.0.33.Final/netty-codec-http-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-codec:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.0.33.Final/netty-codec-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.0.33.Final/netty-codec-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-codec/4.0.33.Final/netty-codec-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-common:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.0.33.Final/netty-common-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.0.33.Final/netty-common-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-common/4.0.33.Final/netty-common-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-handler:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-handler/4.0.33.Final/netty-handler-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-handler/4.0.33.Final/netty-handler-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-handler/4.0.33.Final/netty-handler-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.netty:netty-transport:4.0.33.Final">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.0.33.Final/netty-transport-4.0.33.Final.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.0.33.Final/netty-transport-4.0.33.Final-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-transport/4.0.33.Final/netty-transport-4.0.33.Final-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: io.vertx:vertx-core:3.2.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/vertx/vertx-core/3.2.1/vertx-core-3.2.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/io/vertx/vertx-core/3.2.1/vertx-core-3.2.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/io/vertx/vertx-core/3.2.1/vertx-core-3.2.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: javax.annotation:jsr250-api:1.0">
@@ -789,15 +683,15 @@
         <root url="jar://$MAVEN_REPOSITORY$/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.1-2">
+    <library name="Maven: org.jetbrains.kotlin:gradle-api:2.2">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-reflect/1.0.1-2/kotlin-reflect-1.0.1-2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-api/2.2/gradle-api-2.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-reflect/1.0.1-2/kotlin-reflect-1.0.1-2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-api/2.2/gradle-api-2.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-reflect/1.0.1-2/kotlin-reflect-1.0.1-2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-api/2.2/gradle-api-2.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.1-2">
@@ -811,6 +705,17 @@
         <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-runtime/1.0.1-2/kotlin-runtime-1.0.1-2-sources.jar!/" />
       </SOURCES>
     </library>
+    <library name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.2-1">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-runtime/1.0.2-1/kotlin-runtime-1.0.2-1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-runtime/1.0.2-1/kotlin-runtime-1.0.2-1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-runtime/1.0.2-1/kotlin-runtime-1.0.2-1-sources.jar!/" />
+      </SOURCES>
+    </library>
     <library name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.1-2">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.0.1-2/kotlin-stdlib-1.0.1-2.jar!/" />
@@ -820,6 +725,17 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.0.1-2/kotlin-stdlib-1.0.1-2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.2-1">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.0.2-1/kotlin-stdlib-1.0.2-1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.0.2-1/kotlin-stdlib-1.0.2-1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.0.2-1/kotlin-stdlib-1.0.2-1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.ow2.asm:asm-all:5.0.4">
