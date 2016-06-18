@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
-import jtransc.annotation.ClassMembersTest
-import jtransc.annotation.MethodBodyTest
-import jtransc.jtransc.*
-import jtransc.jtransc.js.CustomJsRunTest
-import jtransc.rt.test.AssertionTests
+import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 
 class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
-	@Test fun customRun() = testNativeClass<CustomJsRunTest>("""
+	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
 		2
 		hello
 		world
-	""", target = JsTarget, minimize = false)
-
-
-	@Test fun AssertionTests() = testNativeClass<AssertionTests>("""
+		jtransc_jtransc_JTranscInternalNames
+		main([Ljava/lang/String;)V
 		Error !(10 < 10)
 		ok
-	""", minimize = false, debug = true, target = JsTarget)
+	""", target = JsTarget, minimize = false)
 }

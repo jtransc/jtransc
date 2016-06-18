@@ -1,12 +1,14 @@
 package jtransc.jtransc;
 
 import com.jtransc.annotation.JTranscNativeClass;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 
+@HaxeAddMembers({"static public var mynativeField:Int = 123;" })
 public class HaxeNativeCallTest {
 	static public void main(String[] args) {
 		byte[] bytes = new byte[]{1, 2, 3};
@@ -31,6 +33,7 @@ public class HaxeNativeCallTest {
 
 		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>"));
 		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>", true));
+		System.out.println("mult:" + mult(7));
 	}
 
 	static private HaxeAdler32 adler;
@@ -62,4 +65,7 @@ public class HaxeNativeCallTest {
 
 		native static public HaxeAdler32 read(InputStream i);
 	}
+
+	@HaxeMethodBody("return mynativeField * p0;")
+	static public native int mult(int p0);
 }

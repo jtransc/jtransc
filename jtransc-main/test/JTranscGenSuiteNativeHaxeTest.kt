@@ -19,28 +19,18 @@ import com.jtransc.gen.js.JsTarget
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.jtransc.*
+import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
 class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
-	@Test fun customBuild() = testNativeClass<CustomBuildTest>("""
+	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
 		true
 		false
 		true
 		true
 		false
-	""", target = HaxeTarget, minimize = false)
-
-	@Test fun methodBodyTest() = testNativeClass<MethodBodyTest>("""
-		INT:777
-	""", target = HaxeTarget)
-
-	@Test fun classMembersTest() = testNativeClass<ClassMembersTest>("""
-		mult:246
-	""", target = HaxeTarget)
-
-	@Test fun haxeNativeCallTest() = testNativeClass<HaxeNativeCallTest>("""
 		STATIC:851975
 		INSTANCE:851975
 		MAP:851975
@@ -48,9 +38,9 @@ class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
 		INPUT:16909060
 		&lt;hello&gt;"&amp;"&lt;/hello&gt;
 		&lt;hello&gt;&quot;&amp;&quot;&lt;/hello&gt;
-	""", target = HaxeTarget)
-
-	@Test fun jtranscSystemTest() = testNativeClass<JTranscSystemTest>("""
+		mult:861
+		mult:246
+		INT:777
 		true
 		true
 		false
@@ -59,21 +49,10 @@ class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
 		false
 		false
 		flush
-	""", target = HaxeTarget)
-
-	@Test fun UseMinitemplatesTest() = testNativeClass<UseMinitemplatesTest>("""
 		methodToExecute1:1
 		Class1.method1
 		Class1.method2
-	""", minimize = false, target = HaxeTarget)
-
-	@Test fun JTranscInternalNamesHaxe() = testNativeClass<JTranscInternalNames>("""
 		jtransc_jtransc_JTranscInternalNames_$
 		main__Ljava_lang_String__V
-	""", minimize = false, debug = true, target = HaxeTarget)
-
-	@Test fun JTranscInternalNamesJs() = testNativeClass<JTranscInternalNames>("""
-		jtransc_jtransc_JTranscInternalNames
-		main([Ljava/lang/String;)V
-	""", minimize = false, debug = true, target = JsTarget)
+	""", target = HaxeTarget, minimize = false)
 }
