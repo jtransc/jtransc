@@ -23,36 +23,36 @@ import java.io.Serializable;
  * Unicode code point (defined by {@link Character#isValidCodePoint(int)}) is
  * passed as a parameter to a Formatter.
  *
- * @see java.lang.RuntimeException
+ * @see RuntimeException
  */
 public class IllegalFormatCodePointException extends IllegalFormatException
-	implements Serializable {
-	private static final long serialVersionUID = 19080630L;
+        implements Serializable {
+    private static final long serialVersionUID = 19080630L;
 
-	private final int c;
+    private final int c;
 
-	/**
-	 * Constructs a new {@code IllegalFormatCodePointException} which is
-	 * specified by the invalid Unicode code point.
-	 *
-	 * @param c
-	 *           the invalid Unicode code point.
-	 */
-	public IllegalFormatCodePointException(int c) {
-		this.c = c;
-	}
+    /**
+     * Constructs a new {@code IllegalFormatCodePointException} which is
+     * specified by the invalid Unicode code point.
+     *
+     * @param c
+     *           the invalid Unicode code point.
+     */
+    public IllegalFormatCodePointException(int c) {
+        this.c = c;
+    }
 
-	/**
-	 * Returns the invalid Unicode code point.
-	 *
-	 * @return the invalid Unicode code point.
-	 */
-	public int getCodePoint() {
-		return c;
-	}
+    /**
+     * Returns the invalid Unicode code point.
+     *
+     * @return the invalid Unicode code point.
+     */
+    public int getCodePoint() {
+        return c;
+    }
 
-	@Override
-	public String getMessage() {
-		return Integer.toHexString(c);
-	}
+    @Override
+    public String getMessage() {
+        return Integer.toHexString(c);
+    }
 }

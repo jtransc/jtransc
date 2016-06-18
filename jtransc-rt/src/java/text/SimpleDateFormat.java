@@ -9,11 +9,11 @@ public class SimpleDateFormat extends DateFormat {
 	private final DateFormatSymbols formatSymbols;
 
 	public SimpleDateFormat() {
-		this("", Locale.getDefault(Locale.Category.FORMAT));
+		this("", Locale.getDefault());
 	}
 
 	public SimpleDateFormat(String pattern) {
-		this(pattern, Locale.getDefault(Locale.Category.FORMAT));
+		this(pattern, Locale.getDefault());
 	}
 
 	public SimpleDateFormat(String pattern, Locale locale) {

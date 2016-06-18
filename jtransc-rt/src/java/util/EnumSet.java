@@ -1,11 +1,11 @@
-/*
- * Copyright 2016 Carlos Ballesteros Velasco
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,277 +13,331 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package java.util;
 
-public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E> implements Cloneable, java.io.Serializable {
-	final Class<E> elementType;
-	final Enum<?>[] universe;
+import java.io.Serializable;
 
-	private static Enum<?>[] ZERO_LENGTH_ENUM_ARRAY = new Enum<?>[0];
+/**
+ * An EnumSet is a specialized Set to be used with enums as keys.
+ */
+public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
+        implements Cloneable, Serializable {
+    private static final long serialVersionUID = 1009687484059888093L;
 
-	EnumSet(Class<E> elementType, Enum<?>[] universe) {
-		this.elementType = elementType;
-		this.universe = universe;
-	}
+    final Class<E> elementClass;
 
-	public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
-		Enum<?>[] universe = getUniverse(elementType);
-		if (universe == null) throw new ClassCastException(elementType + " not an enum");
+    EnumSet(Class<E> cls) {
+        elementClass = cls;
+    }
 
-		return new RegularEnumSet<E>(elementType, universe);
-	}
+    /**
+     * Creates an empty enum set. The permitted elements are of type
+     * Class&lt;E&gt;.
+     *
+     * @param elementType
+     *            the class object for the elements contained.
+     * @return an empty enum set, with permitted elements of type {@code
+     *         elementType}.
+     * @throws ClassCastException
+     *             if the specified element type is not and enum type.
+     */
+    public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
+        if (!elementType.isEnum()) {
+            throw new ClassCastException(elementType.getClass().getName() + " is not an Enum");
+        }
+        E[] enums = elementType.getEnumConstants();
+        if (enums.length <= 64) {
+            return new MiniEnumSet<E>(elementType, enums);
+        }
+        return new HugeEnumSet<E>(elementType, enums);
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> allOf(Class<E> elementType) {
-		EnumSet<E> result = noneOf(elementType);
-		result.addAll();
-		return result;
-	}
+    /**
+     * Creates an enum set filled with all the enum elements of the specified
+     * {@code elementType}.
+     *
+     * @param elementType
+     *            the class object for the elements contained.
+     * @return an enum set with elements solely from the specified element type.
+     * @throws ClassCastException
+     *             if the specified element type is not and enum type.
+     */
+    public static <E extends Enum<E>> EnumSet<E> allOf(Class<E> elementType) {
+        EnumSet<E> set = noneOf(elementType);
+        set.complement();
+        return set;
+    }
 
-	abstract void addAll();
+    /**
+     * Creates an enum set. All the contained elements are of type
+     * Class&lt;E&gt;, and the contained elements are the same as those
+     * contained in {@code s}.
+     *
+     * @param s
+     *            the enum set from which to copy.
+     * @return an enum set with all the elements from the specified enum set.
+     * @throws ClassCastException
+     *             if the specified element type is not and enum type.
+     */
+    public static <E extends Enum<E>> EnumSet<E> copyOf(EnumSet<E> s) {
+        EnumSet<E> set = EnumSet.noneOf(s.elementClass);
+        set.addAll(s);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> copyOf(EnumSet<E> s) {
-		return s.clone();
-	}
+    /**
+     * Creates an enum set. The contained elements are the same as those
+     * contained in collection {@code c}. If c is an enum set, invoking this
+     * method is the same as invoking {@link #copyOf(EnumSet)}.
+     *
+     * @param c
+     *            the collection from which to copy. if it is not an enum set,
+     *            it must not be empty.
+     * @return an enum set with all the elements from the specified collection.
+     * @throws IllegalArgumentException
+     *             if c is not an enum set and contains no elements at all.
+     * @throws NullPointerException
+     *             if {@code c} is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> copyOf(Collection<E> c) {
+        if (c instanceof EnumSet) {
+            return copyOf((EnumSet<E>) c);
+        }
+        if (c.isEmpty()) {
+            throw new IllegalArgumentException("empty collection");
+        }
+        Iterator<E> iterator = c.iterator();
+        E element = iterator.next();
+        EnumSet<E> set = EnumSet.noneOf(element.getDeclaringClass());
+        set.add(element);
+        while (iterator.hasNext()) {
+            set.add(iterator.next());
+        }
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> copyOf(Collection<E> c) {
-		if (c instanceof EnumSet) return ((EnumSet<E>) c).clone();
-		if (c.isEmpty()) throw new IllegalArgumentException("Collection is empty");
-		Iterator<E> i = c.iterator();
-		E first = i.next();
-		EnumSet<E> result = EnumSet.of(first);
-		while (i.hasNext()) result.add(i.next());
-		return result;
-	}
+    /**
+     * Creates an enum set. All the contained elements complement those from the
+     * specified enum set.
+     *
+     * @param s
+     *            the specified enum set.
+     * @return an enum set with all the elements complementary to those from the
+     *         specified enum set.
+     * @throws NullPointerException
+     *             if {@code s} is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> complementOf(EnumSet<E> s) {
+        EnumSet<E> set = EnumSet.noneOf(s.elementClass);
+        set.addAll(s);
+        set.complement();
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> complementOf(EnumSet<E> s) {
-		EnumSet<E> result = copyOf(s);
-		result.complement();
-		return result;
-	}
+    abstract void complement();
 
-	public static <E extends Enum<E>> EnumSet<E> of(E e) {
-		EnumSet<E> result = noneOf(e.getDeclaringClass());
-		result.add(e);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified element. There are
+     * six overloadings of the method. They accept from one to five elements
+     * respectively. The sixth one receives an arbitrary number of elements, and
+     * runs slower than those that only receive a fixed number of elements.
+     *
+     * @param e
+     *            the element to be initially contained.
+     * @return an enum set containing the specified element.
+     * @throws NullPointerException
+     *             if {@code e} is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> of(E e) {
+        EnumSet<E> set = EnumSet.noneOf(e.getDeclaringClass());
+        set.add(e);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2) {
-		EnumSet<E> result = noneOf(e1.getDeclaringClass());
-		result.add(e1);
-		result.add(e2);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified elements. There are
+     * six overloadings of the method. They accept from one to five elements
+     * respectively. The sixth one receives an arbitrary number of elements, and
+     * runs slower than those that only receive a fixed number of elements.
+     *
+     * @param e1
+     *            the initially contained element.
+     * @param e2
+     *            another initially contained element.
+     * @return an enum set containing the specified elements.
+     * @throws NullPointerException
+     *             if any of the specified elements is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2) {
+        EnumSet<E> set = of(e1);
+        set.add(e2);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3) {
-		EnumSet<E> result = noneOf(e1.getDeclaringClass());
-		result.add(e1);
-		result.add(e2);
-		result.add(e3);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified elements. There are
+     * six overloadings of the method. They accept from one to five elements
+     * respectively. The sixth one receives an arbitrary number of elements, and
+     * runs slower than those that only receive a fixed number of elements.
+     *
+     * @param e1
+     *            the initially contained element.
+     * @param e2
+     *            another initially contained element.
+     * @param e3
+     *            another initially contained element.
+     * @return an enum set containing the specified elements.
+     * @throws NullPointerException
+     *             if any of the specified elements is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3) {
+        EnumSet<E> set = of(e1, e2);
+        set.add(e3);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4) {
-		EnumSet<E> result = noneOf(e1.getDeclaringClass());
-		result.add(e1);
-		result.add(e2);
-		result.add(e3);
-		result.add(e4);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified elements. There are
+     * six overloadings of the method. They accept from one to five elements
+     * respectively. The sixth one receives an arbitrary number of elements, and
+     * runs slower than those that only receive a fixed number of elements.
+     *
+     * @param e1
+     *            the initially contained element.
+     * @param e2
+     *            another initially contained element.
+     * @param e3
+     *            another initially contained element.
+     * @param e4
+     *            another initially contained element.
+     * @return an enum set containing the specified elements.
+     * @throws NullPointerException
+     *             if any of the specified elements is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4) {
+        EnumSet<E> set = of(e1, e2, e3);
+        set.add(e4);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4, E e5) {
-		EnumSet<E> result = noneOf(e1.getDeclaringClass());
-		result.add(e1);
-		result.add(e2);
-		result.add(e3);
-		result.add(e4);
-		result.add(e5);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified elements. There are
+     * six overloadings of the method. They accept from one to five elements
+     * respectively. The sixth one receives an arbitrary number of elements, and
+     * runs slower than those that only receive a fixed number of elements.
+     *
+     * @param e1
+     *            the initially contained element.
+     * @param e2
+     *            another initially contained element.
+     * @param e3
+     *            another initially contained element.
+     * @param e4
+     *            another initially contained element.
+     * @param e5
+     *            another initially contained element.
+     * @return an enum set containing the specified elements.
+     * @throws NullPointerException
+     *             if any of the specified elements is {@code null}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4, E e5) {
+        EnumSet<E> set = of(e1, e2, e3, e4);
+        set.add(e5);
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> of(E first, E... rest) {
-		EnumSet<E> result = noneOf(first.getDeclaringClass());
-		result.add(first);
-		for (E e : rest)
-			result.add(e);
-		return result;
-	}
+    /**
+     * Creates a new enum set, containing only the specified elements. It can
+     * receive an arbitrary number of elements, and runs slower than those only
+     * receiving a fixed number of elements.
+     *
+     * @param start
+     *            the first initially contained element.
+     * @param others
+     *            the other initially contained elements.
+     * @return an enum set containing the specified elements.
+     * @throws NullPointerException
+     *             if any of the specified elements is {@code null}.
+     */
+    @SafeVarargs
+    public static <E extends Enum<E>> EnumSet<E> of(E start, E... others) {
+        EnumSet<E> set = of(start);
+        for (E e : others) {
+            set.add(e);
+        }
+        return set;
+    }
 
-	public static <E extends Enum<E>> EnumSet<E> range(E from, E to) {
-		if (from.compareTo(to) > 0) throw new IllegalArgumentException(from + " > " + to);
-		EnumSet<E> result = noneOf(from.getDeclaringClass());
-		result.addRange(from, to);
-		return result;
-	}
+    /**
+     * Creates an enum set containing all the elements within the range defined
+     * by {@code start} and {@code end} (inclusive). All the elements must be in
+     * order.
+     *
+     * @param start
+     *            the element used to define the beginning of the range.
+     * @param end
+     *            the element used to define the end of the range.
+     * @return an enum set with elements in the range from start to end.
+     * @throws NullPointerException
+     *             if any one of {@code start} or {@code end} is {@code null}.
+     * @throws IllegalArgumentException
+     *             if {@code start} is behind {@code end}.
+     */
+    public static <E extends Enum<E>> EnumSet<E> range(E start, E end) {
+        if (start.compareTo(end) > 0) {
+            throw new IllegalArgumentException("start is behind end");
+        }
+        EnumSet<E> set = EnumSet.noneOf(start.getDeclaringClass());
+        set.setRange(start, end);
+        return set;
+    }
 
-	abstract void addRange(E from, E to);
+    abstract void setRange(E start, E end);
 
-	@SuppressWarnings("unchecked")
-	public EnumSet<E> clone() {
-		try {
-			return (EnumSet<E>) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new AssertionError(e);
-		}
-	}
+    /**
+     * Creates a new enum set with the same elements as those contained in this
+     * enum set.
+     *
+     * @return a new enum set with the same elements as those contained in this
+     *         enum set.
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public EnumSet<E> clone() {
+        try {
+            return (EnumSet<E>) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(e);
+        }
+    }
 
-	abstract void complement();
+    boolean isValidType(Class<?> cls) {
+        return cls == elementClass || cls.getSuperclass() == elementClass;
+    }
 
-	final void typeCheck(E e) {
-		Class<?> eClass = e.getClass();
-		if (eClass != elementType && eClass.getSuperclass() != elementType) {
-			throw new ClassCastException(eClass + " != " + elementType);
-		}
-	}
+    private static class SerializationProxy<E extends Enum<E>> implements
+            Serializable {
 
-	private static <E extends Enum<E>> E[] getUniverse(Class<E> elementType) {
-		return elementType.getEnumConstants();
-	}
-}
+        private static final long serialVersionUID = 362491234563181265L;
 
-class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
-	private long elements = 0L;
+        private Class<E> elementType;
 
-	RegularEnumSet(Class<E> elementType, Enum<?>[] universe) {
-		super(elementType, universe);
-	}
+        private E[] elements;
 
-	void addRange(E from, E to) {
-		elements = (-1L >>> (from.ordinal() - to.ordinal() - 1)) << from.ordinal();
-	}
+        private Object readResolve() {
+            EnumSet<E> set = EnumSet.noneOf(elementType);
+            for (E e : elements) {
+                set.add(e);
+            }
+            return set;
+        }
+    }
 
-	void addAll() {
-		if (universe.length != 0) elements = -1L >>> -universe.length;
-	}
-
-	void complement() {
-		if (universe.length == 0) return;
-		elements = ~elements;
-		elements &= -1L >>> -universe.length;
-	}
-
-	public Iterator<E> iterator() {
-		return new EnumSetIterator<E>();
-	}
-
-	private class EnumSetIterator<E extends Enum<E>> implements Iterator<E> {
-		long unseen;
-		long lastReturned = 0;
-
-		EnumSetIterator() {
-			unseen = elements;
-		}
-
-		public boolean hasNext() {
-			return unseen != 0;
-		}
-
-		@SuppressWarnings("unchecked")
-		public E next() {
-			if (unseen == 0) throw new NoSuchElementException();
-			lastReturned = unseen & -unseen;
-			unseen -= lastReturned;
-			return (E) universe[Long.numberOfTrailingZeros(lastReturned)];
-		}
-
-		public void remove() {
-			if (lastReturned == 0) throw new IllegalStateException();
-			elements &= ~lastReturned;
-			lastReturned = 0;
-		}
-	}
-
-	public int size() {
-		return Long.bitCount(elements);
-	}
-
-	public boolean isEmpty() {
-		return elements == 0;
-	}
-
-	public boolean contains(Object e) {
-		if (e == null) return false;
-		Class<?> eClass = e.getClass();
-		if (eClass != elementType && eClass.getSuperclass() != elementType) return false;
-		return (elements & (1L << ((Enum<?>) e).ordinal())) != 0;
-	}
-
-	public boolean add(E e) {
-		typeCheck(e);
-
-		long oldElements = elements;
-		elements |= (1L << e.ordinal());
-		return elements != oldElements;
-	}
-
-	public boolean remove(Object e) {
-		if (e == null) return false;
-		Class<?> eClass = e.getClass();
-		if (eClass != elementType && eClass.getSuperclass() != elementType) return false;
-		long oldElements = elements;
-		elements &= ~(1L << ((Enum<?>) e).ordinal());
-		return elements != oldElements;
-	}
-
-	public boolean containsAll(Collection<?> c) {
-		if (!(c instanceof RegularEnumSet)) return super.containsAll(c);
-
-		RegularEnumSet<?> es = (RegularEnumSet<?>) c;
-		if (es.elementType != elementType) return es.isEmpty();
-
-		return (es.elements & ~elements) == 0;
-	}
-
-	public boolean addAll(Collection<? extends E> c) {
-		if (!(c instanceof RegularEnumSet)) return super.addAll(c);
-
-		RegularEnumSet<?> es = (RegularEnumSet<?>) c;
-		if (es.elementType != elementType) {
-			if (es.isEmpty()) {
-				return false;
-			} else {
-				throw new ClassCastException(es.elementType + " != " + elementType);
-			}
-		}
-
-		long oldElements = elements;
-		elements |= es.elements;
-		return elements != oldElements;
-	}
-
-	public boolean removeAll(Collection<?> c) {
-		if (!(c instanceof RegularEnumSet)) return super.removeAll(c);
-		RegularEnumSet<?> es = (RegularEnumSet<?>) c;
-		if (es.elementType != elementType) return false;
-		long oldElements = elements;
-		elements &= ~es.elements;
-		return elements != oldElements;
-	}
-
-	public boolean retainAll(Collection<?> c) {
-		if (!(c instanceof RegularEnumSet)) return super.retainAll(c);
-
-		RegularEnumSet<?> es = (RegularEnumSet<?>) c;
-		if (es.elementType != elementType) {
-			boolean changed = (elements != 0);
-			elements = 0;
-			return changed;
-		}
-
-		long oldElements = elements;
-		elements &= es.elements;
-		return elements != oldElements;
-	}
-
-	public void clear() {
-		elements = 0;
-	}
-
-	public boolean equals(Object o) {
-		if (!(o instanceof RegularEnumSet)) return super.equals(o);
-		RegularEnumSet<?> es = (RegularEnumSet<?>) o;
-		if (es.elementType != elementType) return elements == 0 && es.elements == 0;
-		return es.elements == elements;
-	}
+    @SuppressWarnings("unchecked")
+    Object writeReplace() {
+        SerializationProxy proxy = new SerializationProxy();
+        proxy.elements = toArray(new Enum[0]);
+        proxy.elementType = elementClass;
+        return proxy;
+    }
 }

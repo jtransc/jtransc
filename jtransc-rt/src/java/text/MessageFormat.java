@@ -4,7 +4,7 @@ import java.util.Locale;
 
 public class MessageFormat extends Format {
     public MessageFormat(String pattern) {
-        this.locale = Locale.getDefault(Locale.Category.FORMAT);
+        this.locale = Locale.getDefault();
         applyPattern(pattern);
     }
 

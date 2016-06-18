@@ -122,6 +122,6 @@ public class Object {
 	public final void wait() {
 	}
 
-	protected void finalize() throws IOException {
+	protected void finalize() throws Throwable {
 	}
 }

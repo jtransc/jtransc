@@ -1,11 +1,11 @@
-/*
- * Copyright 2016 Carlos Ballesteros Velasco
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,19 +16,43 @@
 
 package java.util;
 
+/**
+ * The unchecked exception will be thrown out if there are duplicate flags given
+ * out in the format specifier.
+ *
+ * @see RuntimeException
+ */
 public class DuplicateFormatFlagsException extends IllegalFormatException {
-	private String flags;
 
-	public DuplicateFormatFlagsException(String f) {
-		Objects.requireNonNull(f);
-		this.flags = f;
-	}
+    private static final long serialVersionUID = 18890531L;
 
-	public String getFlags() {
-		return flags;
-	}
+    private final String flags;
 
-	public String getMessage() {
-		return String.format("Flags = '%s'", flags);
-	}
+    /**
+     * Constructs a new {@code DuplicateFormatFlagsException} with the flags
+     * containing duplicates.
+     *
+     * @param f
+     *           the format flags that contain a duplicate flag.
+     */
+    public DuplicateFormatFlagsException(String f) {
+        if (f == null) {
+            throw new NullPointerException("f == null");
+        }
+        flags = f;
+    }
+
+    /**
+     * Returns the format flags that contain a duplicate flag.
+     *
+     * @return the format flags that contain a duplicate flag.
+     */
+    public String getFlags() {
+        return flags;
+    }
+
+    @Override
+    public String getMessage() {
+        return flags;
+    }
 }

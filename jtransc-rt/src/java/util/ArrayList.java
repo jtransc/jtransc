@@ -19,7 +19,6 @@ package java.util;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.internal.GenericListIterator;
 
 @HaxeAddMembers("var _data:Array<Dynamic> = [];")
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
@@ -225,14 +224,14 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return r != w;
 	}
 
-	public ListIterator<E> listIterator(int index) {
-		if (index < 0 || index > size()) throw new IndexOutOfBoundsException("Index: " + index);
-		return new GenericListIterator(this, index);
-	}
-
-	public ListIterator<E> listIterator() {
-		return listIterator(0);
-	}
+	//public ListIterator<E> listIterator(int index) {
+	//	if (index < 0 || index > size()) throw new IndexOutOfBoundsException("Index: " + index);
+	//	return new GenericListIterator(this, index);
+	//}
+//
+	//public ListIterator<E> listIterator() {
+	//	return listIterator(0);
+	//}
 
 	public Iterator<E> iterator() {
 		return listIterator();

@@ -1,170 +1,225 @@
 /*
- * Copyright 2016 Carlos Ballesteros Velasco
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package java.util;
 
+/**
+ * Breaks a string into tokens; new code should probably use {@link String#split}.
+ *
+ * <blockquote>
+ * <pre>
+ * // Legacy code:
+ * StringTokenizer st = new StringTokenizer("a:b:c", ":");
+ * while (st.hasMoreTokens()) {
+ *     System.err.println(st.nextToken());
+ * }
+ *
+ * // New code:
+ * for (String token : "a:b:c".split(":")) {
+ *     System.err.println(token);
+ * }
+ * </pre>
+ * </blockquote>
+ *
+ * @since 1.0
+ */
 public class StringTokenizer implements Enumeration<Object> {
-	private int currentPosition;
-	private int newPosition;
-	private int maxPosition;
-	private String str;
-	private String delimiters;
-	private boolean retDelims;
-	private boolean delimsChanged;
-	private int maxDelimCodePoint;
-	private boolean hasSurrogates = false;
-	private int[] delimiterCodePoints;
 
-	private void setMaxDelimCodePoint() {
-		if (delimiters == null) {
-			maxDelimCodePoint = 0;
-			return;
-		}
+    private String string;
 
-		int m = 0;
-		int c;
-		int count = 0;
-		for (int i = 0; i < delimiters.length(); i += Character.charCount(c)) {
-			c = delimiters.charAt(i);
-			if (c >= Character.MIN_HIGH_SURROGATE && c <= Character.MAX_LOW_SURROGATE) {
-				c = delimiters.codePointAt(i);
-				hasSurrogates = true;
-			}
-			if (m < c) m = c;
-			count++;
-		}
-		maxDelimCodePoint = m;
+    private String delimiters;
 
-		if (hasSurrogates) {
-			delimiterCodePoints = new int[count];
-			for (int i = 0, j = 0; i < count; i++, j += Character.charCount(c)) {
-				c = delimiters.codePointAt(j);
-				delimiterCodePoints[i] = c;
-			}
-		}
-	}
+    private boolean returnDelimiters;
 
-	public StringTokenizer(String str, String delim, boolean returnDelims) {
-		currentPosition = 0;
-		newPosition = -1;
-		delimsChanged = false;
-		this.str = str;
-		maxPosition = str.length();
-		delimiters = delim;
-		retDelims = returnDelims;
-		setMaxDelimCodePoint();
-	}
+    private int position;
 
-	public StringTokenizer(String str, String delim) {
-		this(str, delim, false);
-	}
+    /**
+     * Constructs a new {@code StringTokenizer} for the parameter string using
+     * whitespace as the delimiter. The {@code returnDelimiters} flag is set to
+     * {@code false}.
+     *
+     * @param string
+     *            the string to be tokenized.
+     */
+    public StringTokenizer(String string) {
+        this(string, " \t\n\r\f", false);
+    }
 
-	public StringTokenizer(String str) {
-		this(str, " \t\n\r\f", false);
-	}
+    /**
+     * Constructs a new {@code StringTokenizer} for the parameter string using
+     * the specified delimiters. The {@code returnDelimiters} flag is set to
+     * {@code false}. If {@code delimiters} is {@code null}, this constructor
+     * doesn't throw an {@code Exception}, but later calls to some methods might
+     * throw a {@code NullPointerException}.
+     *
+     * @param string
+     *            the string to be tokenized.
+     * @param delimiters
+     *            the delimiters to use.
+     */
+    public StringTokenizer(String string, String delimiters) {
+        this(string, delimiters, false);
+    }
 
-	private int skipDelimiters(int startPos) {
-		if (delimiters == null) throw new NullPointerException();
+    /**
+     * Constructs a new {@code StringTokenizer} for the parameter string using
+     * the specified delimiters, returning the delimiters as tokens if the
+     * parameter {@code returnDelimiters} is {@code true}. If {@code delimiters}
+     * is null this constructor doesn't throw an {@code Exception}, but later
+     * calls to some methods might throw a {@code NullPointerException}.
+     *
+     * @param string
+     *            the string to be tokenized.
+     * @param delimiters
+     *            the delimiters to use.
+     * @param returnDelimiters
+     *            {@code true} to return each delimiter as a token.
+     */
+    public StringTokenizer(String string, String delimiters,
+            boolean returnDelimiters) {
+        if (string == null) {
+            throw new NullPointerException("string == null");
+        }
+        this.string = string;
+        this.delimiters = delimiters;
+        this.returnDelimiters = returnDelimiters;
+        this.position = 0;
+    }
 
-		int position = startPos;
-		while (!retDelims && position < maxPosition) {
-			if (!hasSurrogates) {
-				char c = str.charAt(position);
-				if ((c > maxDelimCodePoint) || (delimiters.indexOf(c) < 0)) break;
-				position++;
-			} else {
-				int c = str.codePointAt(position);
-				if ((c > maxDelimCodePoint) || !isDelimiter(c)) break;
-				position += Character.charCount(c);
-			}
-		}
-		return position;
-	}
+    /**
+     * Returns the number of unprocessed tokens remaining in the string.
+     *
+     * @return number of tokens that can be retreived before an {@code
+     *         Exception} will result from a call to {@code nextToken()}.
+     */
+    public int countTokens() {
+        int count = 0;
+        boolean inToken = false;
+        for (int i = position, length = string.length(); i < length; i++) {
+            if (delimiters.indexOf(string.charAt(i), 0) >= 0) {
+                if (returnDelimiters)
+                    count++;
+                if (inToken) {
+                    count++;
+                    inToken = false;
+                }
+            } else {
+                inToken = true;
+            }
+        }
+        if (inToken)
+            count++;
+        return count;
+    }
 
-	private int scanToken(int startPos) {
-		int position = startPos;
-		while (position < maxPosition) {
-			if (!hasSurrogates) {
-				char c = str.charAt(position);
-				if ((c <= maxDelimCodePoint) && (delimiters.indexOf(c) >= 0)) break;
-				position++;
-			} else {
-				int c = str.codePointAt(position);
-				if ((c <= maxDelimCodePoint) && isDelimiter(c)) break;
-				position += Character.charCount(c);
-			}
-		}
-		if (retDelims && (startPos == position)) {
-			if (!hasSurrogates) {
-				char c = str.charAt(position);
-				if ((c <= maxDelimCodePoint) && (delimiters.indexOf(c) >= 0)) position++;
-			} else {
-				int c = str.codePointAt(position);
-				if ((c <= maxDelimCodePoint) && isDelimiter(c)) position += Character.charCount(c);
-			}
-		}
-		return position;
-	}
+    /**
+     * Returns {@code true} if unprocessed tokens remain. This method is
+     * implemented in order to satisfy the {@code Enumeration} interface.
+     *
+     * @return {@code true} if unprocessed tokens remain.
+     */
+    public boolean hasMoreElements() {
+        return hasMoreTokens();
+    }
 
-	private boolean isDelimiter(int codePoint) {
-		for (int i = 0; i < delimiterCodePoints.length; i++) {
-			if (delimiterCodePoints[i] == codePoint) return true;
-		}
-		return false;
-	}
+    /**
+     * Returns {@code true} if unprocessed tokens remain.
+     *
+     * @return {@code true} if unprocessed tokens remain.
+     */
+    public boolean hasMoreTokens() {
+        if (delimiters == null) {
+            throw new NullPointerException("delimiters == null");
+        }
+        int length = string.length();
+        if (position < length) {
+            if (returnDelimiters)
+                return true; // there is at least one character and even if
+            // it is a delimiter it is a token
 
-	public boolean hasMoreTokens() {
-		newPosition = skipDelimiters(currentPosition);
-		return (newPosition < maxPosition);
-	}
+            // otherwise find a character which is not a delimiter
+            for (int i = position; i < length; i++)
+                if (delimiters.indexOf(string.charAt(i), 0) == -1)
+                    return true;
+        }
+        return false;
+    }
 
-	public String nextToken() {
-		currentPosition = (newPosition >= 0 && !delimsChanged) ? newPosition : skipDelimiters(currentPosition);
-		delimsChanged = false;
-		newPosition = -1;
-		if (currentPosition >= maxPosition) throw new NoSuchElementException();
-		int start = currentPosition;
-		currentPosition = scanToken(currentPosition);
-		return str.substring(start, currentPosition);
-	}
+    /**
+     * Returns the next token in the string as an {@code Object}. This method is
+     * implemented in order to satisfy the {@code Enumeration} interface.
+     *
+     * @return next token in the string as an {@code Object}
+     * @throws NoSuchElementException
+     *                if no tokens remain.
+     */
+    public Object nextElement() {
+        return nextToken();
+    }
 
-	public String nextToken(String delim) {
-		delimiters = delim;
-		delimsChanged = true;
-		setMaxDelimCodePoint();
-		return nextToken();
-	}
+    /**
+     * Returns the next token in the string as a {@code String}.
+     *
+     * @return next token in the string as a {@code String}.
+     * @throws NoSuchElementException
+     *                if no tokens remain.
+     */
+    public String nextToken() {
+        if (delimiters == null) {
+            throw new NullPointerException("delimiters == null");
+        }
+        int i = position;
+        int length = string.length();
 
-	public boolean hasMoreElements() {
-		return hasMoreTokens();
-	}
+        if (i < length) {
+            if (returnDelimiters) {
+                if (delimiters.indexOf(string.charAt(position), 0) >= 0)
+                    return String.valueOf(string.charAt(position++));
+                for (position++; position < length; position++)
+                    if (delimiters.indexOf(string.charAt(position), 0) >= 0)
+                        return string.substring(i, position);
+                return string.substring(i);
+            }
 
-	public Object nextElement() {
-		return nextToken();
-	}
+            while (i < length && delimiters.indexOf(string.charAt(i), 0) >= 0)
+                i++;
+            position = i;
+            if (i < length) {
+                for (position++; position < length; position++)
+                    if (delimiters.indexOf(string.charAt(position), 0) >= 0)
+                        return string.substring(i, position);
+                return string.substring(i);
+            }
+        }
+        throw new NoSuchElementException();
+    }
 
-	public int countTokens() {
-		int count = 0;
-		int currpos = currentPosition;
-		while (currpos < maxPosition) {
-			currpos = skipDelimiters(currpos);
-			if (currpos >= maxPosition) break;
-			currpos = scanToken(currpos);
-			count++;
-		}
-		return count;
-	}
+    /**
+     * Returns the next token in the string as a {@code String}. The delimiters
+     * used are changed to the specified delimiters.
+     *
+     * @param delims
+     *            the new delimiters to use.
+     * @return next token in the string as a {@code String}.
+     * @throws NoSuchElementException
+     *                if no tokens remain.
+     */
+    public String nextToken(String delims) {
+        this.delimiters = delims;
+        return nextToken();
+    }
 }

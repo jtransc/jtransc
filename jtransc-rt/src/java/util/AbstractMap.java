@@ -1,325 +1,506 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package java.util;
 
+import java.io.Serializable;
+
+/**
+ * A base class for {@code Map} implementations.
+ *
+ * <p>Subclasses that permit new mappings to be added must override {@link
+ * #put}.
+ *
+ * <p>The default implementations of many methods are inefficient for large
+ * maps. For example in the default implementation, each call to {@link #get}
+ * performs a linear iteration of the entry set. Subclasses should override such
+ * methods to improve their performance.
+ *
+ * @since 1.2
+ */
 public abstract class AbstractMap<K, V> implements Map<K, V> {
-	protected AbstractMap() {
-	}
+    // Lazily-initialized key set (for implementing {@link #keySet}).
+    Set<K> keySet;
 
-	public int size() {
-		return entrySet().size();
-	}
+    // Lazily-initialized values collection (for implementing {@link #values}).
+    Collection<V> valuesCollection;
 
-	public boolean isEmpty() {
-		return size() == 0;
-	}
+    /**
+     * An immutable key-value mapping. Despite the name, this class is non-final
+     * and its subclasses may be mutable.
+     *
+     * @since 1.6
+     */
+    public static class SimpleImmutableEntry<K, V>
+            implements Entry<K, V>, Serializable {
+        private static final long serialVersionUID = 7138329143949025153L;
 
-	public boolean containsValue(Object value) {
-		Iterator<Entry<K, V>> i = entrySet().iterator();
-		if (value == null) {
-			while (i.hasNext()) {
-				Entry<K, V> e = i.next();
-				if (e.getValue() == null)
-					return true;
-			}
-		} else {
-			while (i.hasNext()) {
-				Entry<K, V> e = i.next();
-				if (value.equals(e.getValue()))
-					return true;
-			}
-		}
-		return false;
-	}
+        private final K key;
+        private final V value;
 
-	public boolean containsKey(Object key) {
-		Iterator<Map.Entry<K, V>> i = entrySet().iterator();
-		while (i.hasNext()) {
-			Entry<K, V> e = i.next();
-			if (Objects.equals(key, e.getKey())) return true;
-		}
-		return false;
-	}
+        public SimpleImmutableEntry(K theKey, V theValue) {
+            key = theKey;
+            value = theValue;
+        }
 
-	public V get(Object key) {
-		Iterator<Entry<K, V>> i = entrySet().iterator();
-		while (i.hasNext()) {
-			Entry<K, V> e = i.next();
-			if (Objects.equals(key, e.getKey())) return e.getValue();
-		}
-		return null;
-	}
+        /**
+         * Constructs an instance with the key and value of {@code copyFrom}.
+         */
+        public SimpleImmutableEntry(Entry<? extends K, ? extends V> copyFrom) {
+            key = copyFrom.getKey();
+            value = copyFrom.getValue();
+        }
 
+        public K getKey() {
+            return key;
+        }
 
-	public V put(K key, V value) {
-		throw new UnsupportedOperationException();
-	}
+        public V getValue() {
+            return value;
+        }
 
-	public V remove(Object key) {
-		Iterator<Entry<K, V>> i = entrySet().iterator();
-		Entry<K, V> correctEntry = null;
-		while (correctEntry == null && i.hasNext()) {
-			Entry<K, V> e = i.next();
-			if (Objects.equals(key, e.getKey())) correctEntry = e;
-		}
+        /**
+         * This base implementation throws {@code UnsupportedOperationException}
+         * always.
+         */
+        public V setValue(V object) {
+            throw new UnsupportedOperationException();
+        }
 
-		V oldValue = null;
-		if (correctEntry != null) {
-			oldValue = correctEntry.getValue();
-			i.remove();
-		}
-		return oldValue;
-	}
+        @Override public boolean equals(Object object) {
+            if (this == object) {
+                return true;
+            }
+            if (object instanceof Entry) {
+                Entry<?, ?> entry = (Entry<?, ?>) object;
+                return (key == null ? entry.getKey() == null : key.equals(entry
+                        .getKey()))
+                        && (value == null ? entry.getValue() == null : value
+                                .equals(entry.getValue()));
+            }
+            return false;
+        }
 
-	public void putAll(Map<? extends K, ? extends V> m) {
-		for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
-			put(e.getKey(), e.getValue());
-	}
+        @Override public int hashCode() {
+            return (key == null ? 0 : key.hashCode())
+                    ^ (value == null ? 0 : value.hashCode());
+        }
 
-	public void clear() {
-		entrySet().clear();
-	}
+        @Override public String toString() {
+            return key + "=" + value;
+        }
+    }
 
+    /**
+     * A key-value mapping with mutable values.
+     *
+     * @since 1.6
+     */
+    public static class SimpleEntry<K, V>
+            implements Entry<K, V>, Serializable {
+        private static final long serialVersionUID = -8499721149061103585L;
 
-	transient volatile Set<K> keySet = null;
-	transient volatile Collection<V> values = null;
+        private final K key;
+        private V value;
 
-	public Set<K> keySet() {
-		if (keySet == null) {
-			keySet = new AbstractSet<K>() {
-				public Iterator<K> iterator() {
-					return new Iterator<K>() {
-						private Iterator<Entry<K, V>> i = entrySet().iterator();
+        public SimpleEntry(K theKey, V theValue) {
+            key = theKey;
+            value = theValue;
+        }
 
-						public boolean hasNext() {
-							return i.hasNext();
-						}
+        /**
+         * Constructs an instance with the key and value of {@code copyFrom}.
+         */
+        public SimpleEntry(Entry<? extends K, ? extends V> copyFrom) {
+            key = copyFrom.getKey();
+            value = copyFrom.getValue();
+        }
 
-						public K next() {
-							return i.next().getKey();
-						}
+        public K getKey() {
+            return key;
+        }
 
-						public void remove() {
-							i.remove();
-						}
-					};
-				}
+        public V getValue() {
+            return value;
+        }
 
-				public int size() {
-					return AbstractMap.this.size();
-				}
+        public V setValue(V object) {
+            V result = value;
+            value = object;
+            return result;
+        }
 
-				public boolean isEmpty() {
-					return AbstractMap.this.isEmpty();
-				}
+        @Override public boolean equals(Object object) {
+            if (this == object) {
+                return true;
+            }
+            if (object instanceof Entry) {
+                Entry<?, ?> entry = (Entry<?, ?>) object;
+                return (key == null ? entry.getKey() == null : key.equals(entry
+                        .getKey()))
+                        && (value == null ? entry.getValue() == null : value
+                                .equals(entry.getValue()));
+            }
+            return false;
+        }
 
-				public void clear() {
-					AbstractMap.this.clear();
-				}
+        @Override public int hashCode() {
+            return (key == null ? 0 : key.hashCode())
+                    ^ (value == null ? 0 : value.hashCode());
+        }
 
-				public boolean contains(Object k) {
-					return AbstractMap.this.containsKey(k);
-				}
-			};
-		}
-		return keySet;
-	}
+        @Override public String toString() {
+            return key + "=" + value;
+        }
+    }
 
-	public Collection<V> values() {
-		if (values == null) {
-			values = new AbstractCollection<V>() {
-				public Iterator<V> iterator() {
-					return new Iterator<V>() {
-						private Iterator<Entry<K, V>> i = entrySet().iterator();
+    protected AbstractMap() {
+    }
 
-						public boolean hasNext() {
-							return i.hasNext();
-						}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation calls {@code entrySet().clear()}.
+     */
+    public void clear() {
+        entrySet().clear();
+    }
 
-						public V next() {
-							return i.next().getValue();
-						}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates its key set, looking for a key that
+     * {@code key} equals.
+     */
+    public boolean containsKey(Object key) {
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        if (key != null) {
+            while (it.hasNext()) {
+                if (key.equals(it.next().getKey())) {
+                    return true;
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                if (it.next().getKey() == null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-						public void remove() {
-							i.remove();
-						}
-					};
-				}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates its entry set, looking for an entry with
+     * a value that {@code value} equals.
+     */
+    public boolean containsValue(Object value) {
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        if (value != null) {
+            while (it.hasNext()) {
+                if (value.equals(it.next().getValue())) {
+                    return true;
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                if (it.next().getValue() == null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-				public int size() {
-					return AbstractMap.this.size();
-				}
+    public abstract Set<Entry<K, V>> entrySet();
 
-				public boolean isEmpty() {
-					return AbstractMap.this.isEmpty();
-				}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation first checks the structure of {@code object}. If
+     * it is not a map or of a different size, this returns false. Otherwise it
+     * iterates its own entry set, looking up each entry's key in {@code
+     * object}. If any value does not equal the other map's value for the same
+     * key, this returns false. Otherwise it returns true.
+     */
+    @Override public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) object;
+            if (size() != map.size()) {
+                return false;
+            }
 
-				public void clear() {
-					AbstractMap.this.clear();
-				}
+            try {
+                for (Entry<K, V> entry : entrySet()) {
+                    K key = entry.getKey();
+                    V mine = entry.getValue();
+                    Object theirs = map.get(key);
+                    if (mine == null) {
+                        if (theirs != null || !map.containsKey(key)) {
+                            return false;
+                        }
+                    } else if (!mine.equals(theirs)) {
+                        return false;
+                    }
+                }
+            } catch (NullPointerException ignored) {
+                return false;
+            } catch (ClassCastException ignored) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
 
-				public boolean contains(Object v) {
-					return AbstractMap.this.containsValue(v);
-				}
-			};
-		}
-		return values;
-	}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates its entry set, looking for an entry with
+     * a key that {@code key} equals.
+     */
+    public V get(Object key) {
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        if (key != null) {
+            while (it.hasNext()) {
+                Entry<K, V> entry = it.next();
+                if (key.equals(entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                Entry<K, V> entry = it.next();
+                if (entry.getKey() == null) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
 
-	public abstract Set<Entry<K, V>> entrySet();
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates its entry set, summing the hashcodes of
+     * its entries.
+     */
+    @Override public int hashCode() {
+        int result = 0;
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        while (it.hasNext()) {
+            result += it.next().hashCode();
+        }
+        return result;
+    }
 
-	public boolean equals(Object o) {
-		if (o == this) return true;
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation compares {@code size()} to 0.
+     */
+    public boolean isEmpty() {
+        return size() == 0;
+    }
 
-		if (!(o instanceof Map)) return false;
-		Map<K, V> m = (Map<K, V>) o;
-		if (m.size() != size()) return false;
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation returns a view that calls through this to map. Its
+     * iterator transforms this map's entry set iterator to return keys.
+     */
+    public Set<K> keySet() {
+        if (keySet == null) {
+            keySet = new AbstractSet<K>() {
+                @Override public boolean contains(Object object) {
+                    return containsKey(object);
+                }
 
-		try {
-			Iterator<Entry<K, V>> i = entrySet().iterator();
-			while (i.hasNext()) {
-				Entry<K, V> e = i.next();
-				K key = e.getKey();
-				V value = e.getValue();
-				if (value == null) {
-					if (!(m.get(key) == null && m.containsKey(key)))
-						return false;
-				} else {
-					if (!value.equals(m.get(key)))
-						return false;
-				}
-			}
-		} catch (ClassCastException unused) {
-			return false;
-		} catch (NullPointerException unused) {
-			return false;
-		}
+                @Override public int size() {
+                    return AbstractMap.this.size();
+                }
 
-		return true;
-	}
+                @Override public Iterator<K> iterator() {
+                    return new Iterator<K>() {
+                        Iterator<Entry<K, V>> setIterator = entrySet().iterator();
 
-	public int hashCode() {
-		int h = 0;
-		Iterator<Entry<K, V>> i = entrySet().iterator();
-		while (i.hasNext()) h += i.next().hashCode();
-		return h;
-	}
+                        public boolean hasNext() {
+                            return setIterator.hasNext();
+                        }
 
-	public String toString() {
-		Iterator<Entry<K, V>> i = entrySet().iterator();
-		if (!i.hasNext())
-			return "{}";
+                        public K next() {
+                            return setIterator.next().getKey();
+                        }
 
-		StringBuilder sb = new StringBuilder();
-		sb.append('{');
-		for (; ; ) {
-			Entry<K, V> e = i.next();
-			K key = e.getKey();
-			V value = e.getValue();
-			sb.append(key == this ? "(this Map)" : key);
-			sb.append('=');
-			sb.append(value == this ? "(this Map)" : value);
-			if (!i.hasNext())
-				return sb.append('}').toString();
-			sb.append(',').append(' ');
-		}
-	}
+                        public void remove() {
+                            setIterator.remove();
+                        }
+                    };
+                }
+            };
+        }
+        return keySet;
+    }
 
-	protected Object clone() throws CloneNotSupportedException {
-		AbstractMap<K, V> result = (AbstractMap<K, V>) super.clone();
-		result.keySet = null;
-		result.values = null;
-		return result;
-	}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This base implementation throws {@code UnsupportedOperationException}.
+     */
+    public V put(K key, V value) {
+        throw new UnsupportedOperationException();
+    }
 
-	private static boolean eq(Object o1, Object o2) {
-		return o1 == null ? o2 == null : o1.equals(o2);
-	}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates through {@code map}'s entry set, calling
+     * {@code put()} for each.
+     */
+    public void putAll(Map<? extends K, ? extends V> map) {
+        for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
 
-	public static class SimpleEntry<K, V>
-		implements Entry<K, V>, java.io.Serializable {
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation iterates its entry set, removing the entry with
+     * a key that {@code key} equals.
+     */
+    public V remove(Object key) {
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        if (key != null) {
+            while (it.hasNext()) {
+                Entry<K, V> entry = it.next();
+                if (key.equals(entry.getKey())) {
+                    it.remove();
+                    return entry.getValue();
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                Entry<K, V> entry = it.next();
+                if (entry.getKey() == null) {
+                    it.remove();
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
 
-		private final K key;
-		private V value;
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation returns its entry set's size.
+     */
+    public int size() {
+        return entrySet().size();
+    }
 
-		public SimpleEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation composes a string by iterating its entry set. If
+     * this map contains itself as a key or a value, the string "(this Map)"
+     * will appear in its place.
+     */
+    @Override public String toString() {
+        if (isEmpty()) {
+            return "{}";
+        }
 
-		public SimpleEntry(Entry<? extends K, ? extends V> entry) {
-			this.key = entry.getKey();
-			this.value = entry.getValue();
-		}
+        StringBuilder buffer = new StringBuilder(size() * 28);
+        buffer.append('{');
+        Iterator<Entry<K, V>> it = entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<K, V> entry = it.next();
+            Object key = entry.getKey();
+            if (key != this) {
+                buffer.append(key);
+            } else {
+                buffer.append("(this Map)");
+            }
+            buffer.append('=');
+            Object value = entry.getValue();
+            if (value != this) {
+                buffer.append(value);
+            } else {
+                buffer.append("(this Map)");
+            }
+            if (it.hasNext()) {
+                buffer.append(", ");
+            }
+        }
+        buffer.append('}');
+        return buffer.toString();
+    }
 
-		public K getKey() {
-			return key;
-		}
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This implementation returns a view that calls through this to map. Its
+     * iterator transforms this map's entry set iterator to return values.
+     */
+    public Collection<V> values() {
+        if (valuesCollection == null) {
+            valuesCollection = new AbstractCollection<V>() {
+                @Override public int size() {
+                    return AbstractMap.this.size();
+                }
 
-		public V getValue() {
-			return value;
-		}
+                @Override public boolean contains(Object object) {
+                    return containsValue(object);
+                }
 
-		public V setValue(V value) {
-			V oldValue = this.value;
-			this.value = value;
-			return oldValue;
-		}
+                @Override public Iterator<V> iterator() {
+                    return new Iterator<V>() {
+                        Iterator<Entry<K, V>> setIterator = entrySet().iterator();
 
-		public boolean equals(Object o) {
-			if (!(o instanceof Map.Entry)) return false;
-			Map.Entry e = (Map.Entry) o;
-			return eq(key, e.getKey()) && eq(value, e.getValue());
-		}
+                        public boolean hasNext() {
+                            return setIterator.hasNext();
+                        }
 
-		public int hashCode() {
-			return (key == null ? 0 : key.hashCode()) ^ (value == null ? 0 : value.hashCode());
-		}
+                        public V next() {
+                            return setIterator.next().getValue();
+                        }
 
-		public String toString() {
-			return key + "=" + value;
-		}
-	}
+                        public void remove() {
+                            setIterator.remove();
+                        }
+                    };
+                }
+            };
+        }
+        return valuesCollection;
+    }
 
-	public static class SimpleImmutableEntry<K, V>
-		implements Entry<K, V>, java.io.Serializable {
-
-		private final K key;
-		private final V value;
-
-		public SimpleImmutableEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public SimpleImmutableEntry(Entry<? extends K, ? extends V> entry) {
-			this.key = entry.getKey();
-			this.value = entry.getValue();
-		}
-
-		public K getKey() {
-			return key;
-		}
-
-		public V getValue() {
-			return value;
-		}
-
-		public V setValue(V value) {
-			throw new UnsupportedOperationException();
-		}
-
-		public boolean equals(Object o) {
-			if (!(o instanceof Map.Entry)) return false;
-			Map.Entry e = (Map.Entry) o;
-			return eq(key, e.getKey()) && eq(value, e.getValue());
-		}
-
-		public int hashCode() {
-			return (key == null ? 0 : key.hashCode()) ^
-				(value == null ? 0 : value.hashCode());
-		}
-
-		public String toString() {
-			return key + "=" + value;
-		}
-	}
+    @SuppressWarnings("unchecked")
+    @Override protected Object clone() throws CloneNotSupportedException {
+        AbstractMap<K, V> result = (AbstractMap<K, V>) super.clone();
+        result.keySet = null;
+        result.valuesCollection = null;
+        return result;
+    }
 }

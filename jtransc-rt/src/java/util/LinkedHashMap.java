@@ -1,185 +1,395 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements. See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package java.util;
 
-public class LinkedHashMap<K, V> extends HashMap<K, V> implements Map<K, V> {
-	private transient Entry<K, V> header;
+/**
+ * LinkedHashMap is an implementation of {@link Map} that guarantees iteration order.
+ * All optional operations are supported.
+ *
+ * <p>All elements are permitted as keys or values, including null.
+ *
+ * <p>Entries are kept in a doubly-linked list. The iteration order is, by default, the
+ * order in which keys were inserted. Reinserting an already-present key doesn't change the
+ * order. If the three argument constructor is used, and {@code accessOrder} is specified as
+ * {@code true}, the iteration will be in the order that entries were accessed.
+ * The access order is affected by {@code put}, {@code get}, and {@code putAll} operations,
+ * but not by operations on the collection views.
+ *
+ * <p>Note: the implementation of {@code LinkedHashMap} is not synchronized.
+ * If one thread of several threads accessing an instance modifies the map
+ * structurally, access to the map needs to be synchronized. For
+ * insertion-ordered instances a structural modification is an operation that
+ * removes or adds an entry. Access-ordered instances also are structurally
+ * modified by {@code put}, {@code get}, and {@code putAll} since these methods
+ * change the order of the entries. Changes in the value of an entry are not structural changes.
+ *
+ * <p>The {@code Iterator} created by calling the {@code iterator} method
+ * may throw a {@code ConcurrentModificationException} if the map is structurally
+ * changed while an iterator is used to iterate over the elements. Only the
+ * {@code remove} method that is provided by the iterator allows for removal of
+ * elements during iteration. It is not possible to guarantee that this
+ * mechanism works in all cases of unsynchronized concurrent modification. It
+ * should only be used for debugging purposes.
+ */
+public class LinkedHashMap<K, V> extends HashMap<K, V> {
 
-	private final boolean accessOrder;
+    /**
+     * A dummy entry in the circular linked list of entries in the map.
+     * The first real entry is header.nxt, and the last is header.prv.
+     * If the map is empty, header.nxt == header && header.prv == header.
+     */
+    transient LinkedEntry<K, V> header;
 
-	public LinkedHashMap(int initialCapacity, float loadFactor) {
-		super(initialCapacity, loadFactor);
-		accessOrder = false;
-	}
+    /**
+     * True if access ordered, false if insertion ordered.
+     */
+    private final boolean accessOrder;
 
-	public LinkedHashMap(int initialCapacity) {
-		super(initialCapacity);
-		accessOrder = false;
-	}
+    /**
+     * Constructs a new empty {@code LinkedHashMap} instance.
+     */
+    public LinkedHashMap() {
+        init();
+        accessOrder = false;
+    }
 
-	public LinkedHashMap() {
-		super();
-		accessOrder = false;
-	}
+    /**
+     * Constructs a new {@code LinkedHashMap} instance with the specified
+     * capacity.
+     *
+     * @param initialCapacity
+     *            the initial capacity of this map.
+     * @exception IllegalArgumentException
+     *                when the capacity is less than zero.
+     */
+    public LinkedHashMap(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+    }
 
-	public LinkedHashMap(Map<? extends K, ? extends V> m) {
-		super(m);
-		accessOrder = false;
-	}
+    /**
+     * Constructs a new {@code LinkedHashMap} instance with the specified
+     * capacity and load factor.
+     *
+     * @param initialCapacity
+     *            the initial capacity of this map.
+     * @param loadFactor
+     *            the initial load factor.
+     * @throws IllegalArgumentException
+     *             when the capacity is less than zero or the load factor is
+     *             less or equal to zero.
+     */
+    public LinkedHashMap(int initialCapacity, float loadFactor) {
+        this(initialCapacity, loadFactor, false);
+    }
 
-	public LinkedHashMap(int initialCapacity, float loadFactor, boolean accessOrder) {
-		super(initialCapacity, loadFactor);
-		this.accessOrder = accessOrder;
-	}
+    /**
+     * Constructs a new {@code LinkedHashMap} instance with the specified
+     * capacity, load factor and a flag specifying the ordering behavior.
+     *
+     * @param initialCapacity
+     *            the initial capacity of this hash map.
+     * @param loadFactor
+     *            the initial load factor.
+     * @param accessOrder
+     *            {@code true} if the ordering should be done based on the last
+     *            access (from least-recently accessed to most-recently
+     *            accessed), and {@code false} if the ordering should be the
+     *            order in which the entries were inserted.
+     * @throws IllegalArgumentException
+     *             when the capacity is less than zero or the load factor is
+     *             less or equal to zero.
+     */
+    public LinkedHashMap(
+            int initialCapacity, float loadFactor, boolean accessOrder) {
+        super(initialCapacity, loadFactor);
+        init();
+        this.accessOrder = accessOrder;
+    }
 
-	void init() {
-		header = new Entry<>(-1, null, null, null);
-		header.before = header.after = header;
-	}
+    /**
+     * Constructs a new {@code LinkedHashMap} instance containing the mappings
+     * from the specified map. The order of the elements is preserved.
+     *
+     * @param map
+     *            the mappings to add.
+     */
+    public LinkedHashMap(Map<? extends K, ? extends V> map) {
+        this(capacityForInitSize(map.size()));
+        constructorPutAll(map);
+    }
 
-	void transfer(HashMap.Entry[] newTable) {
-		int newCapacity = newTable.length;
-		for (Entry<K, V> e = header.after; e != header; e = e.after) {
-			int index = indexFor(e.hash, newCapacity);
-			e.next = newTable[index];
-			newTable[index] = e;
-		}
-	}
+    @Override void init() {
+        header = new LinkedEntry<K, V>();
+    }
 
+    /**
+     * LinkedEntry adds nxt/prv double-links to plain HashMapEntry.
+     */
+    static class LinkedEntry<K, V> extends HashMapEntry<K, V> {
+        LinkedEntry<K, V> nxt;
+        LinkedEntry<K, V> prv;
 
-	public boolean containsValue(Object value) {
-		for (Entry e = header.after; e != header; e = e.after) {
-			if (Objects.equals(value, e.value)) return true;
-		}
-		return false;
-	}
+        /** Create the header entry */
+        LinkedEntry() {
+            super(null, null, 0, null);
+            nxt = prv = this;
+        }
 
-	public V get(Object key) {
-		Entry<K, V> e = (Entry<K, V>) getEntry(key);
-		if (e == null) return null;
-		e.recordAccess(this);
-		return e.value;
-	}
+        /** Create a normal entry */
+        LinkedEntry(K key, V value, int hash, HashMapEntry<K, V> next,
+                    LinkedEntry<K, V> nxt, LinkedEntry<K, V> prv) {
+            super(key, value, hash, next);
+            this.nxt = nxt;
+            this.prv = prv;
+        }
+    }
 
-	public void clear() {
-		super.clear();
-		header.before = header.after = header;
-	}
+    /**
+     * Returns the eldest entry in the map, or {@code null} if the map is empty.
+     * @hide
+     */
+    public Map.Entry<K, V> eldest() {
+        LinkedEntry<K, V> eldest = header.nxt;
+        return eldest != header ? eldest : null;
+    }
 
-	private static class Entry<K, V> extends HashMap.Entry<K, V> {
-		Entry<K, V> before, after;
+    /**
+     * Evicts eldest entry if instructed, creates a new entry and links it in
+     * as head of linked list. This method should call constructorNewEntry
+     * (instead of duplicating code) if the performance of your VM permits.
+     *
+     * <p>It may seem strange that this method is tasked with adding the entry
+     * to the hash table (which is properly the province of our superclass).
+     * The alternative of passing the "next" link in to this method and
+     * returning the newly created element does not work! If we remove an
+     * (eldest) entry that happens to be the first entry in the same bucket
+     * as the newly created entry, the "next" link would become invalid, and
+     * the resulting hash table corrupt.
+     */
+    @Override void addNewEntry(K key, V value, int hash, int index) {
+        LinkedEntry<K, V> header = this.header;
 
-		Entry(int hash, K key, V value, HashMap.Entry<K, V> next) {
-			super(hash, key, value, next);
-		}
+        // Remove eldest entry if instructed to do so.
+        LinkedEntry<K, V> eldest = header.nxt;
+        if (eldest != header && removeEldestEntry(eldest)) {
+            remove(eldest.key);
+        }
 
-		private void remove() {
-			before.after = after;
-			after.before = before;
-		}
+        // Create new entry, link it on to list, and put it into table
+        LinkedEntry<K, V> oldTail = header.prv;
+        LinkedEntry<K, V> newTail = new LinkedEntry<K,V>(
+                key, value, hash, table[index], header, oldTail);
+        table[index] = oldTail.nxt = header.prv = newTail;
+    }
 
-		private void addBefore(Entry<K, V> existingEntry) {
-			after = existingEntry;
-			before = existingEntry.before;
-			before.after = this;
-			after.before = this;
-		}
+    @Override void addNewEntryForNullKey(V value) {
+        LinkedEntry<K, V> header = this.header;
 
-		void recordAccess(HashMap<K, V> m) {
-			LinkedHashMap<K, V> lm = (LinkedHashMap<K, V>) m;
-			if (lm.accessOrder) {
-				lm.modCount++;
-				remove();
-				addBefore(lm.header);
-			}
-		}
+        // Remove eldest entry if instructed to do so.
+        LinkedEntry<K, V> eldest = header.nxt;
+        if (eldest != header && removeEldestEntry(eldest)) {
+            remove(eldest.key);
+        }
 
-		void recordRemoval(HashMap<K, V> m) {
-			remove();
-		}
-	}
+        // Create new entry, link it on to list, and put it into table
+        LinkedEntry<K, V> oldTail = header.prv;
+        LinkedEntry<K, V> newTail = new LinkedEntry<K,V>(
+                null, value, 0, null, header, oldTail);
+        entryForNullKey = oldTail.nxt = header.prv = newTail;
+    }
 
-	private abstract class LinkedHashIterator<T> implements Iterator<T> {
-		Entry<K, V> nextEntry = header.after;
-		Entry<K, V> lastReturned = null;
+    /**
+     * As above, but without eviction.
+     */
+    @Override HashMapEntry<K, V> constructorNewEntry(
+            K key, V value, int hash, HashMapEntry<K, V> next) {
+        LinkedEntry<K, V> header = this.header;
+        LinkedEntry<K, V> oldTail = header.prv;
+        LinkedEntry<K, V> newTail
+                = new LinkedEntry<K,V>(key, value, hash, next, header, oldTail);
+        return oldTail.nxt = header.prv = newTail;
+    }
 
-		int expectedModCount = modCount;
+    /**
+     * Returns the value of the mapping with the specified key.
+     *
+     * @param key
+     *            the key.
+     * @return the value of the mapping with the specified key, or {@code null}
+     *         if no mapping for the specified key is found.
+     */
+    @Override public V get(Object key) {
+        /*
+         * This method is overridden to eliminate the need for a polymorphic
+         * invocation in superclass at the expense of code duplication.
+         */
+        if (key == null) {
+            HashMapEntry<K, V> e = entryForNullKey;
+            if (e == null)
+                return null;
+            if (accessOrder)
+                makeTail((LinkedEntry<K, V>) e);
+            return e.value;
+        }
 
-		public boolean hasNext() {
-			return nextEntry != header;
-		}
+        // Replace with Collections.secondaryHash when the VM is fast enough (http://b/8290590).
+        int hash = secondaryHash(key);
+        HashMapEntry<K, V>[] tab = table;
+        for (HashMapEntry<K, V> e = tab[hash & (tab.length - 1)];
+                e != null; e = e.next) {
+            K eKey = e.key;
+            if (eKey == key || (e.hash == hash && key.equals(eKey))) {
+                if (accessOrder)
+                    makeTail((LinkedEntry<K, V>) e);
+                return e.value;
+            }
+        }
+        return null;
+    }
 
-		public void remove() {
-			if (lastReturned == null)
-				throw new IllegalStateException();
-			if (modCount != expectedModCount)
-				throw new ConcurrentModificationException();
+    /**
+     * Relinks the given entry to the tail of the list. Under access ordering,
+     * this method is invoked whenever the value of a  pre-existing entry is
+     * read by Map.get or modified by Map.put.
+     */
+    private void makeTail(LinkedEntry<K, V> e) {
+        // Unlink e
+        e.prv.nxt = e.nxt;
+        e.nxt.prv = e.prv;
 
-			LinkedHashMap.this.remove(lastReturned.key);
-			lastReturned = null;
-			expectedModCount = modCount;
-		}
+        // Relink e as tail
+        LinkedEntry<K, V> header = this.header;
+        LinkedEntry<K, V> oldTail = header.prv;
+        e.nxt = header;
+        e.prv = oldTail;
+        oldTail.nxt = header.prv = e;
+        modCount++;
+    }
 
-		Entry<K, V> nextEntry() {
-			if (modCount != expectedModCount)
-				throw new ConcurrentModificationException();
-			if (nextEntry == header)
-				throw new NoSuchElementException();
+    @Override void preModify(HashMapEntry<K, V> e) {
+        if (accessOrder) {
+            makeTail((LinkedEntry<K, V>) e);
+        }
+    }
 
-			Entry<K, V> e = lastReturned = nextEntry;
-			nextEntry = e.after;
-			return e;
-		}
-	}
+    @Override void postRemove(HashMapEntry<K, V> e) {
+        LinkedEntry<K, V> le = (LinkedEntry<K, V>) e;
+        le.prv.nxt = le.nxt;
+        le.nxt.prv = le.prv;
+        le.nxt = le.prv = null; // Help the GC (for performance)
+    }
 
-	private class KeyIterator extends LinkedHashIterator<K> {
-		public K next() {
-			return nextEntry().getKey();
-		}
-	}
+    /**
+     * This override is done for LinkedHashMap performance: iteration is cheaper
+     * via LinkedHashMap nxt links.
+     */
+    @Override public boolean containsValue(Object value) {
+        if (value == null) {
+            for (LinkedEntry<K, V> header = this.header, e = header.nxt;
+                    e != header; e = e.nxt) {
+                if (e.value == null) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
-	private class ValueIterator extends LinkedHashIterator<V> {
-		public V next() {
-			return nextEntry().value;
-		}
-	}
+        // value is non-null
+        for (LinkedEntry<K, V> header = this.header, e = header.nxt;
+                e != header; e = e.nxt) {
+            if (value.equals(e.value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private class EntryIterator extends LinkedHashIterator<Map.Entry<K, V>> {
-		public Map.Entry<K, V> next() {
-			return nextEntry();
-		}
-	}
+    public void clear() {
+        super.clear();
 
-	Iterator<K> newKeyIterator() {
-		return new KeyIterator();
-	}
+        // Clear all links to help GC
+        LinkedEntry<K, V> header = this.header;
+        for (LinkedEntry<K, V> e = header.nxt; e != header; ) {
+            LinkedEntry<K, V> nxt = e.nxt;
+            e.nxt = e.prv = null;
+            e = nxt;
+        }
 
-	Iterator<V> newValueIterator() {
-		return new ValueIterator();
-	}
+        header.nxt = header.prv = header;
+    }
 
-	Iterator<Map.Entry<K, V>> newEntryIterator() {
-		return new EntryIterator();
-	}
+    private abstract class LinkedHashIterator<T> implements Iterator<T> {
+        LinkedEntry<K, V> next = header.nxt;
+        LinkedEntry<K, V> lastReturned = null;
+        int expectedModCount = modCount;
 
-	void addEntry(int hash, K key, V value, int bucketIndex) {
-		createEntry(hash, key, value, bucketIndex);
+        public final boolean hasNext() {
+            return next != header;
+        }
 
-		Entry<K, V> eldest = header.after;
-		if (removeEldestEntry(eldest)) {
-			removeEntryForKey(eldest.key);
-		} else {
-			if (size >= threshold) resize(2 * table.length);
-		}
-	}
+        final LinkedEntry<K, V> nextEntry() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            LinkedEntry<K, V> e = next;
+            if (e == header)
+                throw new NoSuchElementException();
+            next = e.nxt;
+            return lastReturned = e;
+        }
 
-	void createEntry(int hash, K key, V value, int bucketIndex) {
-		HashMap.Entry<K, V> old = table[bucketIndex];
-		Entry<K, V> e = new Entry<>(hash, key, value, old);
-		table[bucketIndex] = e;
-		e.addBefore(header);
-		size++;
-	}
+        public final void remove() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            if (lastReturned == null)
+                throw new IllegalStateException();
+            LinkedHashMap.this.remove(lastReturned.key);
+            lastReturned = null;
+            expectedModCount = modCount;
+        }
+    }
 
-	protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-		return false;
-	}
+    private final class KeyIterator extends LinkedHashIterator<K> {
+        public final K next() { return nextEntry().key; }
+    }
+
+    private final class ValueIterator extends LinkedHashIterator<V> {
+        public final V next() { return nextEntry().value; }
+    }
+
+    private final class EntryIterator
+            extends LinkedHashIterator<Map.Entry<K, V>> {
+        public final Map.Entry<K, V> next() { return nextEntry(); }
+    }
+
+    // Override view iterator methods to generate correct iteration order
+    @Override Iterator<K> newKeyIterator() {
+        return new KeyIterator();
+    }
+    @Override Iterator<V> newValueIterator() {
+        return new ValueIterator();
+    }
+    @Override Iterator<Map.Entry<K, V>> newEntryIterator() {
+        return new EntryIterator();
+    }
+
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        return false;
+    }
+
+    private static final long serialVersionUID = 3801124242820219131L;
 }

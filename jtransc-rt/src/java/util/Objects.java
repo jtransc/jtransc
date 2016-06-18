@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Carlos Ballesteros Velasco
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,60 +16,110 @@
 
 package java.util;
 
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-
+/**
+ * Utility methods for objects.
+ * @since 1.7
+ */
 public final class Objects {
-	private Objects() {
-		throw new AssertionError("No java.util.Objects instances for you!");
-	}
+  private Objects() {}
 
-	@HaxeMethodBody("return (p0 == p1) || (p0 != null && p0.{% METHOD java.lang.Object:equals:(Ljava.lang.Object;)Z %}(p1));")
-	public static boolean equals(Object a, Object b) {
-		return (a == b) || (a != null && a.equals(b));
-	}
+  /**
+   * Returns 0 if {@code a == b}, or {@code c.compare(a, b)} otherwise.
+   * That is, this makes {@code c} null-safe.
+   */
+  public static <T> int compare(T a, T b, Comparator<? super T> c) {
+    if (a == b) {
+      return 0;
+    }
+    return c.compare(a, b);
+  }
 
-	public static boolean deepEquals(Object a, Object b) {
-		if (a == b) return true;
-		if (a == null || b == null) return false;
-		return Arrays.deepEquals0(a, b);
-	}
+  /**
+   * Returns true if both arguments are null,
+   * the result of {@link Arrays#equals} if both arguments are primitive arrays,
+   * the result of {@link Arrays#deepEquals} if both arguments are arrays of reference types,
+   * and the result of {@link #equals} otherwise.
+   */
+  public static boolean deepEquals(Object a, Object b) {
+    if (a == null || b == null) {
+      return a == b;
+    } else if (a instanceof Object[] && b instanceof Object[]) {
+      return Arrays.deepEquals((Object[]) a, (Object[]) b);
+    } else if (a instanceof boolean[] && b instanceof boolean[]) {
+      return Arrays.equals((boolean[]) a, (boolean[]) b);
+    } else if (a instanceof byte[] && b instanceof byte[]) {
+      return Arrays.equals((byte[]) a, (byte[]) b);
+    } else if (a instanceof char[] && b instanceof char[]) {
+      return Arrays.equals((char[]) a, (char[]) b);
+    } else if (a instanceof double[] && b instanceof double[]) {
+      return Arrays.equals((double[]) a, (double[]) b);
+    } else if (a instanceof float[] && b instanceof float[]) {
+      return Arrays.equals((float[]) a, (float[]) b);
+    } else if (a instanceof int[] && b instanceof int[]) {
+      return Arrays.equals((int[]) a, (int[]) b);
+    } else if (a instanceof long[] && b instanceof long[]) {
+      return Arrays.equals((long[]) a, (long[]) b);
+    } else if (a instanceof short[] && b instanceof short[]) {
+      return Arrays.equals((short[]) a, (short[]) b);
+    }
+    return a.equals(b);
+  }
 
-	@HaxeMethodBody("return (p0 != null) ? p0.{% METHOD java.lang.Object:hashCode:()I %}() : 0;")
-	public static int hashCode(Object o) {
-		return o != null ? o.hashCode() : 0;
-	}
+  /**
+   * Null-safe equivalent of {@code a.equals(b)}.
+   */
+  public static boolean equals(Object a, Object b) {
+    return (a == null) ? (b == null) : a.equals(b);
+  }
 
-	public static int hash(Object... values) {
-		return Arrays.hashCode(values);
-	}
+  /**
+   * Convenience wrapper for {@link Arrays#hashCode}, adding varargs.
+   * This can be used to compute a hash code for an object's fields as follows:
+   * {@code Objects.hash(a, b, c)}.
+   */
+  public static int hash(Object... values) {
+    return Arrays.hashCode(values);
+  }
 
-	public static String toString(Object o) {
-		return toString(o, "null");
-	}
+  /**
+   * Returns 0 for null or {@code o.hashCode()}.
+   */
+  public static int hashCode(Object o) {
+    return (o == null) ? 0 : o.hashCode();
+  }
 
-	public static String toString(Object o, String nullDefault) {
-		return (o != null) ? o.toString() : nullDefault;
-	}
+  /**
+   * Returns {@code o} if non-null, or throws {@code NullPointerException}.
+   */
+  public static <T> T requireNonNull(T o) {
+    if (o == null) {
+      throw new NullPointerException();
+    }
+    return o;
+  }
 
-	public static <T> int compare(T a, T b, Comparator<? super T> c) {
-		return (a == b) ? 0 : c.compare(a, b);
-	}
+  /**
+   * Returns {@code o} if non-null, or throws {@code NullPointerException}
+   * with the given detail message.
+   */
+  public static <T> T requireNonNull(T o, String message) {
+    if (o == null) {
+      throw new NullPointerException(message);
+    }
+    return o;
+  }
 
-	public static <T> T requireNonNull(T obj) {
-		if (obj == null) throw new NullPointerException();
-		return obj;
-	}
+  /**
+   * Returns "null" for null or {@code o.toString()}.
+   */
+  public static String toString(Object o) {
+    return (o == null) ? "null" : o.toString();
+  }
 
-	public static <T> T requireNonNull(T obj, String message) {
-		if (obj == null) throw new NullPointerException(message);
-		return obj;
-	}
-
-	public static boolean isNull(Object obj) {
-		return obj == null;
-	}
-
-	public static boolean nonNull(Object var0) {
-		return var0 != null;
-	}
+  /**
+   * Returns {@code nullString} for null or {@code o.toString()}.
+   */
+  public static String toString(Object o, String nullString) {
+    return (o == null) ? nullString : o.toString();
+  }
 }

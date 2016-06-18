@@ -1,11 +1,11 @@
-/*
- * Copyright 2016 Carlos Ballesteros Velasco
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,22 @@
 
 package java.util;
 
-public class FormatterClosedException extends IllegalStateException {
-	public FormatterClosedException() {
-	}
+import java.io.Serializable;
+
+/**
+ * A {@code FormatterClosedException} will be thrown if the formatter has been
+ * closed.
+ *
+ * @see RuntimeException
+ */
+public class FormatterClosedException extends IllegalStateException implements
+        Serializable {
+    private static final long serialVersionUID = 18111216L;
+
+    /**
+     * Constructs a new {@code FormatterClosedException} with the stack trace
+     * filled in.
+     */
+    public FormatterClosedException() {
+    }
 }

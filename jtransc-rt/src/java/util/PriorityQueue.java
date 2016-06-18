@@ -1,377 +1,412 @@
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package java.util;
 
-public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serializable {
-	private static final int DEFAULT_INITIAL_CAPACITY = 11;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-	transient Object[] queue;
+/**
+ * A PriorityQueue holds elements on a priority heap, which orders the elements
+ * according to their natural order or according to the comparator specified at
+ * construction time. If the queue uses natural ordering, only elements that are
+ * comparable are permitted to be inserted into the queue.
+ * <p>
+ * The least element of the specified ordering is the first retrieved with
+ * {@link #poll()} and the greatest element is the last.
+ * <p>
+ * A PriorityQueue is not synchronized. If multiple threads will have to access
+ * it concurrently, use the {@link java.util.concurrent.PriorityBlockingQueue}.
+ */
+public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable {
 
-	private int size = 0;
+    private static final long serialVersionUID = -7720805057305804111L;
 
-	private final Comparator<? super E> comparator;
+    private static final int DEFAULT_CAPACITY = 11;
 
-	transient int modCount = 0;
+    private static final double DEFAULT_INIT_CAPACITY_RATIO = 1.1;
 
-	public PriorityQueue() {
-		this(DEFAULT_INITIAL_CAPACITY, null);
-	}
+    private static final int DEFAULT_CAPACITY_RATIO = 2;
 
-	public PriorityQueue(int initialCapacity) {
-		this(initialCapacity, null);
-	}
+    private int size;
 
-	public PriorityQueue(Comparator<? super E> comparator) {
-		this(DEFAULT_INITIAL_CAPACITY, comparator);
-	}
+    private Comparator<? super E> comparator;
 
-	public PriorityQueue(int initialCapacity,
-						 Comparator<? super E> comparator) {
+    private transient E[] elements;
 
-		if (initialCapacity < 1)
-			throw new IllegalArgumentException();
-		this.queue = new Object[initialCapacity];
-		this.comparator = comparator;
-	}
+    /**
+     * Constructs a priority queue with an initial capacity of 11 and natural
+     * ordering.
+     */
+    public PriorityQueue() {
+        this(DEFAULT_CAPACITY);
+    }
 
-	@SuppressWarnings("unchecked")
-	public PriorityQueue(Collection<? extends E> c) {
-		if (c instanceof SortedSet<?>) {
-			SortedSet<? extends E> ss = (SortedSet<? extends E>) c;
-			this.comparator = (Comparator<? super E>) ss.comparator();
-			initElementsFromCollection(ss);
-		} else if (c instanceof PriorityQueue<?>) {
-			PriorityQueue<? extends E> pq = (PriorityQueue<? extends E>) c;
-			this.comparator = (Comparator<? super E>) pq.comparator();
-			initFromPriorityQueue(pq);
-		} else {
-			this.comparator = null;
-			initFromCollection(c);
-		}
-	}
+    /**
+     * Constructs a priority queue with the specified capacity and natural
+     * ordering.
+     *
+     * @param initialCapacity
+     *            the specified capacity.
+     * @throws IllegalArgumentException
+     *             if the initialCapacity is less than 1.
+     */
+    public PriorityQueue(int initialCapacity) {
+        this(initialCapacity, null);
+    }
 
-	@SuppressWarnings("unchecked")
-	public PriorityQueue(PriorityQueue<? extends E> c) {
-		this.comparator = (Comparator<? super E>) c.comparator();
-		initFromPriorityQueue(c);
-	}
+    /**
+     * Constructs a priority queue with the specified capacity and comparator.
+     *
+     * @param initialCapacity
+     *            the specified capacity.
+     * @param comparator
+     *            the specified comparator. If it is null, the natural ordering
+     *            will be used.
+     * @throws IllegalArgumentException
+     *             if the initialCapacity is less than 1.
+     */
+    public PriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
+        if (initialCapacity < 1) {
+            throw new IllegalArgumentException("initialCapacity < 1: " + initialCapacity);
+        }
+        elements = newElementArray(initialCapacity);
+        this.comparator = comparator;
+    }
 
-	@SuppressWarnings("unchecked")
-	public PriorityQueue(SortedSet<? extends E> c) {
-		this.comparator = (Comparator<? super E>) c.comparator();
-		initElementsFromCollection(c);
-	}
+    /**
+     * Constructs a priority queue that contains the elements of a collection.
+     * The constructed priority queue has the initial capacity of 110% of the
+     * size of the collection. The queue uses natural ordering to order its
+     * elements.
+     *
+     * @param c
+     *            the collection whose elements will be added to the priority
+     *            queue to be constructed.
+     * @throws ClassCastException
+     *             if any of the elements in the collection are not comparable.
+     * @throws NullPointerException
+     *             if any of the elements in the collection are null.
+     */
+    public PriorityQueue(Collection<? extends E> c) {
+        if (c instanceof PriorityQueue) {
+            getFromPriorityQueue((PriorityQueue<? extends E>) c);
+        } else if (c instanceof SortedSet) {
+            getFromSortedSet((SortedSet<? extends E>) c);
+        } else {
+            initSize(c);
+            addAll(c);
+        }
+    }
 
-	private void initFromPriorityQueue(PriorityQueue<? extends E> c) {
-		if (c.getClass() == PriorityQueue.class) {
-			this.queue = c.toArray();
-			this.size = c.size();
-		} else {
-			initFromCollection(c);
-		}
-	}
+    /**
+     * Constructs a priority queue that contains the elements of another
+     * priority queue. The constructed priority queue has the initial capacity
+     * of 110% of the specified one. Both priority queues have the same
+     * comparator.
+     *
+     * @param c
+     *            the priority queue whose elements will be added to the
+     *            priority queue to be constructed.
+     */
+    public PriorityQueue(PriorityQueue<? extends E> c) {
+        getFromPriorityQueue(c);
+    }
 
-	private void initElementsFromCollection(Collection<? extends E> c) {
-		Object[] a = c.toArray();
+    /**
+     * Constructs a priority queue that contains the elements of a sorted set.
+     * The constructed priority queue has the initial capacity of 110% of the
+     * size of the sorted set. The priority queue will have the same comparator
+     * as the sorted set.
+     *
+     * @param c
+     *            the sorted set whose elements will be added to the priority
+     *            queue to be constructed.
+     */
+    public PriorityQueue(SortedSet<? extends E> c) {
+        getFromSortedSet(c);
+    }
 
-		if (a.getClass() != Object[].class)
-			a = Arrays.copyOf(a, a.length, Object[].class);
-		int len = a.length;
-		if (len == 1 || this.comparator != null)
-			for (int i = 0; i < len; i++)
-				if (a[i] == null)
-					throw new NullPointerException();
-		this.queue = a;
-		this.size = a.length;
-	}
+    /**
+     * Gets the iterator of the priority queue, which will not return elements
+     * in any specified ordering.
+     *
+     * @return the iterator of the priority queue.
+     */
+    @Override
+    public Iterator<E> iterator() {
+        return new PriorityIterator();
+    }
 
-	private void initFromCollection(Collection<? extends E> c) {
-		initElementsFromCollection(c);
-		heapify();
-	}
+    /**
+     * Gets the size of the priority queue. If the size of the queue is greater
+     * than the Integer.MAX, then it returns Integer.MAX.
+     *
+     * @return the size of the priority queue.
+     */
+    @Override
+    public int size() {
+        return size;
+    }
 
-	private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+    /**
+     * Removes all the elements of the priority queue.
+     */
+    @Override
+    public void clear() {
+        Arrays.fill(elements, null);
+        size = 0;
+    }
 
-	private void grow(int minCapacity) {
-		int oldCapacity = queue.length;
+    /**
+     * Inserts the element to the priority queue.
+     *
+     * @param o
+     *            the element to add to the priority queue.
+     * @return always true
+     * @throws ClassCastException
+     *             if the element cannot be compared with the elements in the
+     *             priority queue using the ordering of the priority queue.
+     * @throws NullPointerException
+     *             if {@code o} is {@code null}.
+     */
+    public boolean offer(E o) {
+        if (o == null) {
+            throw new NullPointerException("o == null");
+        }
+        growToSize(size + 1);
+        elements[size] = o;
+        siftUp(size++);
+        return true;
+    }
 
-		int newCapacity = oldCapacity + ((oldCapacity < 64) ?
-				(oldCapacity + 2) :
-				(oldCapacity >> 1));
+    /**
+     * Gets and removes the head of the queue.
+     *
+     * @return the head of the queue or null if the queue is empty.
+     */
+    public E poll() {
+        if (isEmpty()) {
+            return null;
+        }
+        E result = elements[0];
+        removeAt(0);
+        return result;
+    }
 
-		if (newCapacity - MAX_ARRAY_SIZE > 0)
-			newCapacity = hugeCapacity(minCapacity);
-		queue = Arrays.copyOf(queue, newCapacity);
-	}
+    /**
+     * Gets but does not remove the head of the queue.
+     *
+     * @return the head of the queue or null if the queue is empty.
+     */
+    public E peek() {
+        if (isEmpty()) {
+            return null;
+        }
+        return elements[0];
+    }
 
-	private static int hugeCapacity(int minCapacity) {
-		if (minCapacity < 0)
-			throw new OutOfMemoryError();
-		return (minCapacity > MAX_ARRAY_SIZE) ?
-				Integer.MAX_VALUE :
-				MAX_ARRAY_SIZE;
-	}
+    /**
+     * Gets the comparator of the priority queue.
+     *
+     * @return the comparator of the priority queue or null if the natural
+     *         ordering is used.
+     */
+    public Comparator<? super E> comparator() {
+        return comparator;
+    }
 
-	public boolean add(E e) {
-		return offer(e);
-	}
+    /**
+     * Removes the specified object from the priority queue.
+     *
+     * @param o
+     *            the object to be removed.
+     * @return true if the object was in the priority queue, false if the object
+     *         was not in the priority queue.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean remove(Object o) {
+        if (o == null) {
+            return false;
+        }
+        for (int targetIndex = 0; targetIndex < size; targetIndex++) {
+            if (o.equals(elements[targetIndex])) {
+                removeAt(targetIndex);
+                return true;
+            }
+        }
+        return false;
+    }
 
-	public boolean offer(E e) {
-		if (e == null)
-			throw new NullPointerException();
-		modCount++;
-		int i = size;
-		if (i >= queue.length)
-			grow(i + 1);
-		size = i + 1;
-		if (i == 0)
-			queue[0] = e;
-		else
-			siftUp(i, e);
-		return true;
-	}
+    /**
+     * Adds the specified object to the priority queue.
+     *
+     * @param o
+     *            the object to be added.
+     * @return always true.
+     * @throws ClassCastException
+     *             if the element cannot be compared with the elements in the
+     *             priority queue using the ordering of the priority queue.
+     * @throws NullPointerException
+     *             if {@code o} is {@code null}.
+     */
+    @Override
+    public boolean add(E o) {
+        return offer(o);
+    }
 
-	@SuppressWarnings("unchecked")
-	public E peek() {
-		return (size == 0) ? null : (E) queue[0];
-	}
+    private class PriorityIterator implements Iterator<E> {
 
-	private int indexOf(Object o) {
-		if (o != null) {
-			for (int i = 0; i < size; i++)
-				if (o.equals(queue[i]))
-					return i;
-		}
-		return -1;
-	}
+        private int currentIndex = -1;
 
-	public boolean remove(Object o) {
-		int i = indexOf(o);
-		if (i == -1)
-			return false;
-		else {
-			removeAt(i);
-			return true;
-		}
-	}
+        private boolean allowRemove = false;
 
-	boolean removeEq(Object o) {
-		for (int i = 0; i < size; i++) {
-			if (o == queue[i]) {
-				removeAt(i);
-				return true;
-			}
-		}
-		return false;
-	}
+        public boolean hasNext() {
+            return currentIndex < size - 1;
+        }
 
-	public boolean contains(Object o) {
-		return indexOf(o) != -1;
-	}
+        public E next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            allowRemove = true;
+            return elements[++currentIndex];
+        }
 
-	public Object[] toArray() {
-		return Arrays.copyOf(queue, size);
-	}
+        public void remove() {
+            if (!allowRemove) {
+                throw new IllegalStateException();
+            }
+            allowRemove = false;
+            removeAt(currentIndex--);
+        }
+    }
 
-	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] a) {
-		final int size = this.size;
-		if (a.length < size)
+    @SuppressWarnings("unchecked")
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        in.defaultReadObject();
+        int capacity = in.readInt();
+        elements = newElementArray(capacity);
+        for (int i = 0; i < size; i++) {
+            elements[i] = (E) in.readObject();
+        }
+    }
 
-			return (T[]) Arrays.copyOf(queue, size, a.getClass());
-		System.arraycopy(queue, 0, a, 0, size);
-		if (a.length > size)
-			a[size] = null;
-		return a;
-	}
+    @SuppressWarnings("unchecked")
+    private E[] newElementArray(int capacity) {
+        return (E[]) new Object[capacity];
+    }
 
-	public Iterator<E> iterator() {
-		return new Itr();
-	}
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(elements.length);
+        for (int i = 0; i < size; i++) {
+            out.writeObject(elements[i]);
+        }
+    }
 
-	private final class Itr implements Iterator<E> {
+    @SuppressWarnings("unchecked")
+    private void getFromPriorityQueue(PriorityQueue<? extends E> c) {
+        initSize(c);
+        comparator = (Comparator<? super E>) c.comparator();
+        System.arraycopy(c.elements, 0, elements, 0, c.size());
+        size = c.size();
+    }
 
-		private int cursor = 0;
+    @SuppressWarnings("unchecked")
+    private void getFromSortedSet(SortedSet<? extends E> c) {
+        initSize(c);
+        comparator = (Comparator<? super E>) c.comparator();
+        Iterator<? extends E> iter = c.iterator();
+        while (iter.hasNext()) {
+            elements[size++] = iter.next();
+        }
+    }
 
-		private int lastRet = -1;
+    private void removeAt(int index) {
+        size--;
+        E moved = elements[size];
+        elements[index] = moved;
+        siftDown(index);
+        elements[size] = null;
+        if (moved == elements[index]) {
+            siftUp(index);
+        }
+    }
 
-		private ArrayDeque<E> forgetMeNot = null;
+    private int compare(E o1, E o2) {
+        if (comparator != null) {
+            return comparator.compare(o1, o2);
+        }
+        return ((Comparable<? super E>) o1).compareTo(o2);
+    }
 
-		private E lastRetElt = null;
+    private void siftUp(int childIndex) {
+        E target = elements[childIndex];
+        int parentIndex;
+        while (childIndex > 0) {
+            parentIndex = (childIndex - 1) / 2;
+            E parent = elements[parentIndex];
+            if (compare(parent, target) <= 0) {
+                break;
+            }
+            elements[childIndex] = parent;
+            childIndex = parentIndex;
+        }
+        elements[childIndex] = target;
+    }
 
-		private int expectedModCount = modCount;
+    private void siftDown(int rootIndex) {
+        E target = elements[rootIndex];
+        int childIndex;
+        while ((childIndex = rootIndex * 2 + 1) < size) {
+            if (childIndex + 1 < size
+                    && compare(elements[childIndex + 1], elements[childIndex]) < 0) {
+                childIndex++;
+            }
+            if (compare(target, elements[childIndex]) <= 0) {
+                break;
+            }
+            elements[rootIndex] = elements[childIndex];
+            rootIndex = childIndex;
+        }
+        elements[rootIndex] = target;
+    }
 
-		public boolean hasNext() {
-			return cursor < size ||
-					(forgetMeNot != null && !forgetMeNot.isEmpty());
-		}
+    private void initSize(Collection<? extends E> c) {
+        if (c == null) {
+            throw new NullPointerException("c == null");
+        }
+        if (c.isEmpty()) {
+            elements = newElementArray(1);
+        } else {
+            int capacity = (int) Math.ceil(c.size()
+                    * DEFAULT_INIT_CAPACITY_RATIO);
+            elements = newElementArray(capacity);
+        }
+    }
 
-		@SuppressWarnings("unchecked")
-		public E next() {
-			if (expectedModCount != modCount)
-				throw new ConcurrentModificationException();
-			if (cursor < size)
-				return (E) queue[lastRet = cursor++];
-			if (forgetMeNot != null) {
-				lastRet = -1;
-				lastRetElt = forgetMeNot.poll();
-				if (lastRetElt != null)
-					return lastRetElt;
-			}
-			throw new NoSuchElementException();
-		}
-
-		public void remove() {
-			if (expectedModCount != modCount)
-				throw new ConcurrentModificationException();
-			if (lastRet != -1) {
-				E moved = PriorityQueue.this.removeAt(lastRet);
-				lastRet = -1;
-				if (moved == null)
-					cursor--;
-				else {
-					if (forgetMeNot == null)
-						forgetMeNot = new ArrayDeque<>();
-					forgetMeNot.add(moved);
-				}
-			} else if (lastRetElt != null) {
-				PriorityQueue.this.removeEq(lastRetElt);
-				lastRetElt = null;
-			} else {
-				throw new IllegalStateException();
-			}
-			expectedModCount = modCount;
-		}
-	}
-
-	public int size() {
-		return size;
-	}
-
-	public void clear() {
-		modCount++;
-		for (int i = 0; i < size; i++)
-			queue[i] = null;
-		size = 0;
-	}
-
-	@SuppressWarnings("unchecked")
-	public E poll() {
-		if (size == 0)
-			return null;
-		int s = --size;
-		modCount++;
-		E result = (E) queue[0];
-		E x = (E) queue[s];
-		queue[s] = null;
-		if (s != 0)
-			siftDown(0, x);
-		return result;
-	}
-
-	@SuppressWarnings("unchecked")
-	private E removeAt(int i) {
-
-		modCount++;
-		int s = --size;
-		if (s == i)
-			queue[i] = null;
-		else {
-			E moved = (E) queue[s];
-			queue[s] = null;
-			siftDown(i, moved);
-			if (queue[i] == moved) {
-				siftUp(i, moved);
-				if (queue[i] != moved)
-					return moved;
-			}
-		}
-		return null;
-	}
-
-	private void siftUp(int k, E x) {
-		if (comparator != null)
-			siftUpUsingComparator(k, x);
-		else
-			siftUpComparable(k, x);
-	}
-
-	@SuppressWarnings("unchecked")
-	private void siftUpComparable(int k, E x) {
-		Comparable<? super E> key = (Comparable<? super E>) x;
-		while (k > 0) {
-			int parent = (k - 1) >>> 1;
-			Object e = queue[parent];
-			if (key.compareTo((E) e) >= 0)
-				break;
-			queue[k] = e;
-			k = parent;
-		}
-		queue[k] = key;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void siftUpUsingComparator(int k, E x) {
-		while (k > 0) {
-			int parent = (k - 1) >>> 1;
-			Object e = queue[parent];
-			if (comparator.compare(x, (E) e) >= 0)
-				break;
-			queue[k] = e;
-			k = parent;
-		}
-		queue[k] = x;
-	}
-
-	private void siftDown(int k, E x) {
-		if (comparator != null)
-			siftDownUsingComparator(k, x);
-		else
-			siftDownComparable(k, x);
-	}
-
-	@SuppressWarnings("unchecked")
-	private void siftDownComparable(int k, E x) {
-		Comparable<? super E> key = (Comparable<? super E>) x;
-		int half = size >>> 1;
-		while (k < half) {
-			int child = (k << 1) + 1;
-			Object c = queue[child];
-			int right = child + 1;
-			if (right < size &&
-					((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
-				c = queue[child = right];
-			if (key.compareTo((E) c) <= 0)
-				break;
-			queue[k] = c;
-			k = child;
-		}
-		queue[k] = key;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void siftDownUsingComparator(int k, E x) {
-		int half = size >>> 1;
-		while (k < half) {
-			int child = (k << 1) + 1;
-			Object c = queue[child];
-			int right = child + 1;
-			if (right < size &&
-					comparator.compare((E) c, (E) queue[right]) > 0)
-				c = queue[child = right];
-			if (comparator.compare(x, (E) c) <= 0)
-				break;
-			queue[k] = c;
-			k = child;
-		}
-		queue[k] = x;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void heapify() {
-		for (int i = (size >>> 1) - 1; i >= 0; i--)
-			siftDown(i, (E) queue[i]);
-	}
-
-	public Comparator<? super E> comparator() {
-		return comparator;
-	}
+    private void growToSize(int size) {
+        if (size > elements.length) {
+            E[] newElements = newElementArray(size * DEFAULT_CAPACITY_RATIO);
+            System.arraycopy(elements, 0, newElements, 0, elements.length);
+            elements = newElements;
+        }
+    }
 }
