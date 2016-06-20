@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.ByteOrder;
 import java.nio.charset.ModifiedUtf8;
-import java.nio.internal.Memory;
+import libcore.io.Memory;
 import java.nio.internal.SizeOf;
 import java.util.List;
 

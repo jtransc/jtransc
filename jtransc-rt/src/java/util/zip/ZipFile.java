@@ -1,11 +1,12 @@
 /*
- * Copyright 2016 Carlos Ballesteros Velasco
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,285 +17,400 @@
 
 package java.util.zip;
 
+import com.jtransc.compression.JTranscInflater;
 import com.jtransc.compression.JTranscZlib;
+import com.jtransc.io.ra.RAFile;
+import com.jtransc.io.ra.RASlice;
+import com.jtransc.io.ra.RAStream;
+import com.jtransc.text.internal.IntegralToString;
+import libcore.io.BufferIterator;
+import libcore.io.HeapBufferIterator;
 
 import java.io.*;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
-public class ZipFile implements Closeable {
-	public static final int OPEN_READ = 0x1;
-	public static final int OPEN_DELETE = 0x4;
+/**
+ * This class provides random read access to a zip file. You pay more to read
+ * the zip file's central directory up front (from the constructor), but if you're using
+ * {@link #getEntry} to look up multiple files by name, you get the benefit of this index.
+ * <p>
+ * <p>If you only want to iterate through all the files (using {@link #entries()}, you should
+ * consider {@link ZipInputStream}, which provides stream-like read access to a zip file and
+ * has a lower up-front cost because you don't pay to build an in-memory index.
+ * <p>
+ * <p>If you want to create a zip file, use {@link ZipOutputStream}. There is no API for updating
+ * an existing zip file.
+ */
+public class ZipFile implements Closeable, ZipConstants {
+	/**
+	 * General Purpose Bit Flags, Bit 0.
+	 * If set, indicates that the file is encrypted.
+	 */
+	static final int GPBF_ENCRYPTED_FLAG = 1 << 0;
 
-	private File file;
-	private int mode;
-	private Charset charset;
+	/**
+	 * General Purpose Bit Flags, Bit 3.
+	 * If this bit is set, the fields crc-32, compressed
+	 * size and uncompressed size are set to zero in the
+	 * local header.  The correct values are put in the
+	 * data descriptor immediately following the compressed
+	 * data.  (Note: PKZIP version 2.04g for DOS only
+	 * recognizes this bit for method 8 compression, newer
+	 * versions of PKZIP recognize this bit for any
+	 * compression method.)
+	 */
+	static final int GPBF_DATA_DESCRIPTOR_FLAG = 1 << 3;
 
+	/**
+	 * General Purpose Bit Flags, Bit 11.
+	 * Language encoding flag (EFS).  If this bit is set,
+	 * the filename and comment fields for this file
+	 * must be encoded using UTF-8.
+	 */
+	static final int GPBF_UTF8_FLAG = 1 << 11;
+
+	/**
+	 * Supported General Purpose Bit Flags Mask.
+	 * Bit mask of bits not supported.
+	 * Note: The only bit that we will enforce at this time
+	 * is the encrypted bit. Although other bits are not supported,
+	 * we must not enforce them as this could break some legitimate
+	 * use cases (See http://b/8617715).
+	 */
+	static final int GPBF_UNSUPPORTED_MASK = GPBF_ENCRYPTED_FLAG;
+
+	/**
+	 * Open zip file for reading.
+	 */
+	public static final int OPEN_READ = 1;
+
+	/**
+	 * Delete zip file when closed.
+	 */
+	public static final int OPEN_DELETE = 4;
+
+	private final String filename;
+
+	private File fileToDeleteOnClose;
+
+	private RAStream ras;
+
+	private final LinkedHashMap<String, ZipEntry> entries = new LinkedHashMap<String, ZipEntry>();
+
+	private String comment;
+
+	/**
+	 * Constructs a new {@code ZipFile} allowing read access to the contents of the given file.
+	 *
+	 * @throws ZipException if a zip error occurs.
+	 * @throws IOException  if an {@code IOException} occurs.
+	 */
+	public ZipFile(File file) throws ZipException, IOException {
+		this(file, OPEN_READ);
+	}
+
+	/**
+	 * Constructs a new {@code ZipFile} allowing read access to the contents of the given file.
+	 *
+	 * @throws IOException if an IOException occurs.
+	 */
 	public ZipFile(String name) throws IOException {
 		this(new File(name), OPEN_READ);
 	}
 
+	/**
+	 * Constructs a new {@code ZipFile} allowing access to the given file.
+	 * The {@code mode} must be either {@code OPEN_READ} or {@code OPEN_READ|OPEN_DELETE}.
+	 * <p>
+	 * <p>If the {@code OPEN_DELETE} flag is supplied, the file will be deleted at or before the
+	 * time that the {@code ZipFile} is closed (the contents will remain accessible until
+	 * this {@code ZipFile} is closed); it also calls {@code File.deleteOnExit}.
+	 *
+	 * @throws IOException if an {@code IOException} occurs.
+	 */
 	public ZipFile(File file, int mode) throws IOException {
-		this(file, mode, Charset.forName("UTF-8"));
-	}
-
-	public ZipFile(File file) throws IOException {
-		this(file, OPEN_READ);
-	}
-
-	public ZipFile(String name, Charset charset) throws IOException {
-		this(new File(name), OPEN_READ, charset);
-	}
-
-	public ZipFile(File file, Charset charset) throws IOException {
-		this(file, OPEN_READ, charset);
-	}
-
-	private RandomAccessFile dis;
-
-	public ZipFile(File file, int mode, Charset charset) throws IOException {
-		this.file = file;
-		this.mode = mode;
-		this.charset = charset;
-		this.dis = new RandomAccessFile(file, "r");
-		openZip(file);
-	}
-
-	private boolean hasMore() throws IOException {
-		return dis.getFilePointer() < dis.length();
-	}
-
-	private short readShort() throws IOException {
-		return Short.reverseBytes(dis.readShort());
-	}
-
-	private int readUnsignedShort() throws IOException {
-		return Short.reverseBytes(dis.readShort()) & 0xFFFF;
-	}
-
-	private int readInt() throws IOException {
-		return Integer.reverseBytes(dis.readInt());
-	}
-
-	private byte[] readBytes(int count) throws IOException {
-		byte[] out = new byte[count];
-		dis.read(out);
-		return out;
-	}
-
-	private String readString(int count) throws IOException {
-		if (count == 0) return null;
-		return new String(readBytes(count), "UTF-8");
-	}
-
-	private String comment = null;
-	private ArrayList<ZipEntry> entries = new ArrayList<>();
-	private HashMap<String, ZipEntry> entriesByName = new HashMap<>();
-	private HashMap<String, ZipExtra> extrasByName = new HashMap<>();
-
-	@SuppressWarnings("deprecation")
-	private static long dosToJavaTime(int dtime) {
-		return new Date(
-			(((dtime >>> 25) & 0x7f) + 80),
-			(((dtime >>> 21) & 0x0f) - 1),
-			((dtime >>> 16) & 0x1f),
-			((dtime >>> 11) & 0x1f),
-			((dtime >>> 5) & 0x3f),
-			((dtime << 1) & 0x3e)
-		).getTime();
-	}
-
-	private class ZipExtra {
-		long offset;
-	}
-
-	private boolean readUntil32bit(int expectedValue) throws IOException {
-		expectedValue = Integer.reverseBytes(expectedValue); // Reverse since we are building big endians!
-		int value = 0;
-		while (hasMore()) {
-			value <<= 8;
-			value |= dis.readUnsignedByte() & 0xFF;
-			if (value == expectedValue) return true;
+		filename = file.getPath();
+		if (mode != OPEN_READ && mode != (OPEN_READ | OPEN_DELETE)) {
+			throw new IllegalArgumentException("Bad mode: " + mode);
 		}
-		return false;
+
+		if ((mode & OPEN_DELETE) != 0) {
+			fileToDeleteOnClose = file;
+			fileToDeleteOnClose.deleteOnExit();
+		} else {
+			fileToDeleteOnClose = null;
+		}
+
+		ras = new RAFile(file);
+
+		readCentralDir();
 	}
 
-	//@HaxeMethodBody("haxe.zip.Reader.readZip();")
-	@SuppressWarnings("unused")
-	private void openZip(File file) throws IOException {
-		int chunkCount = 0;
-		String defaultEncoding = "utf-8";
-		while (hasMore()) {
-			int MAGIC = readUnsignedShort();
-			if (MAGIC != 0x4b50)
-				throw new RuntimeException(String.format("Not a ZIP file (%s). Magic found: %04X at offset %d, chunks:%d", file.getAbsolutePath(), MAGIC, dis.getFilePointer(), chunkCount));
-			chunkCount++;
+	@Override
+	protected void finalize() throws IOException {
+		try {
 
-			switch (readUnsignedShort()) {
-				case 0x0201: // Central directory file header
-				{
-					int version = readUnsignedShort();
-					int minVer = readUnsignedShort();
-					int flags = readUnsignedShort();
-					int compressionMethod = readUnsignedShort();
-					int lastModDateTime = readInt();
-					int crc32 = readInt();
-					int compressedSize = readInt();
-					int uncompressedSize = readInt();
-					int fileNameLength = readUnsignedShort();
-					int extraLength = readUnsignedShort();
-					int fileCommentLength = readUnsignedShort();
-					int diskStart = readUnsignedShort();
-					int internalAttributes = readUnsignedShort();
-					int externalAttributes = readInt();
-					int relativeOffsetOfLocalFileHeader = readInt();
-					String fileName = readString(fileNameLength);
-					byte[] extraBytes = readBytes(extraLength);
-					String fileComment = readString(extraLength);
-
-					//System.out.println("AA:" + relativeOffsetOfLocalFileHeader);
-
-					ZipEntry entry = new ZipEntry();
-					entry.name = fileName;
-					entry.csize = compressedSize;
-					entry.size = uncompressedSize;
-					entry.crc = crc32;
-					entry.extra = extraBytes;
-					entry.method = compressionMethod;
-					entry.flag = flags;
-					entry.comment = fileComment;
-
-					entries.add(entry);
-					entriesByName.put(entry.getName(), entry);
-				}
-				break;
-				case 0x0403: // Local file header
-				{
-					int minVer = readUnsignedShort();
-					int flags = readUnsignedShort();
-					int compressionMethod = readUnsignedShort();
-					int lastModTime = readUnsignedShort();
-					int lastModDate = readUnsignedShort();
-					int crc32 = readInt();
-					int compressedSize = readInt();
-					int uncompressedSize = readInt();
-					int fileNameLength = readUnsignedShort();
-					int extraLength = readUnsignedShort();
-					String fileName = readString(fileNameLength);
-					byte[] extraBytes = readBytes(extraLength);
-
-					if (compressedSize == 0 && (flags & FLAG_DescriptorUsedMask) != 0) {
-						// 8.5.3
-						if (!readUntil32bit(0x08074b50)) {
-							// new byte[] { 0x50, 0x4b, 0x07, 0x08 }
-							throw new IOException("Can't find descriptor");
-						}
-						crc32 = readInt();
-						compressedSize = readInt();
-						uncompressedSize = readInt();
-					}
-
-					long dataPos = dis.getFilePointer();
-					dis.skipBytes(compressedSize);
-
-					ZipExtra extra = new ZipExtra();
-					extra.offset = dataPos;
-					extrasByName.put(fileName, extra);
-				}
-				break;
-				case 0x0605: // End of central directory record (EOCD)
-				{
-					int numberOfThisDisk = readUnsignedShort();
-					int diskCentralDirectory = readUnsignedShort();
-					int centralDirectoryRecordCount = readUnsignedShort();
-					int totalNumberOfCentralDirectoryRecords = readUnsignedShort();
-					int sizeOfCentralDirectoryBytes = readInt();
-					int offsetOfStartOfCentralDirectoryRelativeToStartOfArchive = readInt();
-					int commentLength = readUnsignedShort();
-					byte[] comment = readBytes(commentLength);
-					this.comment = (commentLength > 0) ? new String(comment, "UTF-8") : null;
-				}
-				break;
-				case 0x0807: // Data descriptor
-				{
-					int crc32 = readInt();
-					int compressedSize = readInt();
-					int uncompressedSize = readInt();
-				}
-				break;
+		} finally {
+			try {
+				super.finalize();
+			} catch (Throwable t) {
+				throw new AssertionError(t);
 			}
 		}
 	}
 
+	/**
+	 * Closes this zip file. This method is idempotent. This method may cause I/O if the
+	 * zip file needs to be deleted.
+	 *
+	 * @throws IOException if an IOException occurs.
+	 */
+	public void close() throws IOException {
+
+		RAStream localRaf = ras;
+		if (localRaf != null) { // Only close initialized instances
+			synchronized (localRaf) {
+				ras = null;
+				localRaf.close();
+			}
+			if (fileToDeleteOnClose != null) {
+				fileToDeleteOnClose.delete();
+				fileToDeleteOnClose = null;
+			}
+		}
+	}
+
+	private void checkNotClosed() {
+		if (ras == null) {
+			throw new IllegalStateException("Zip file closed");
+		}
+	}
+
+	/**
+	 * Returns an enumeration of the entries. The entries are listed in the
+	 * order in which they appear in the zip file.
+	 * <p>
+	 * <p>If you only need to iterate over the entries in a zip file, and don't
+	 * need random-access entry lookup by name, you should probably use {@link ZipInputStream}
+	 * instead, to avoid paying to construct the in-memory index.
+	 *
+	 * @throws IllegalStateException if this zip file has been closed.
+	 */
+	public Enumeration<? extends ZipEntry> entries() {
+		checkNotClosed();
+		final Iterator<ZipEntry> iterator = entries.values().iterator();
+
+		return new Enumeration<ZipEntry>() {
+			public boolean hasMoreElements() {
+				checkNotClosed();
+				return iterator.hasNext();
+			}
+
+			public ZipEntry nextElement() {
+				checkNotClosed();
+				return iterator.next();
+			}
+		};
+	}
+
+	/**
+	 * Returns this file's comment, or null if it doesn't have one.
+	 * See {@link ZipOutputStream#setComment}.
+	 *
+	 * @throws IllegalStateException if this zip file has been closed.
+	 * @since 1.7
+	 */
 	public String getComment() {
+		checkNotClosed();
 		return comment;
 	}
 
-	public ZipEntry getEntry(String name) {
-		return entriesByName.get(name);
-	}
-
-	private byte[] getCompressedBytes(ZipEntry entry) throws IOException {
-		// @TODO: Create slice stream!
-		ZipExtra extra = extrasByName.get(entry.getName());
-		byte[] compressedData = new byte[(int) entry.csize];
-
-		dis.seek(extra.offset);
-		dis.read(compressedData);
-		return compressedData;
-	}
-
-	private InputStream getCompressedInputStream(ZipEntry entry) throws IOException {
-		return new ByteArrayInputStream(getCompressedBytes(entry));
-	}
-
-	static private final int METHOD_STORED = 0;
-	static private final int METHOD_DEFLATED = 8;
-
-	public InputStream getInputStream(ZipEntry entry) throws IOException {
-		switch (entry.method) {
-			case METHOD_STORED: // stored
-				return getCompressedInputStream(entry);
-			case METHOD_DEFLATED: // deflated
-				return new ByteArrayInputStream(JTranscZlib.inflate(getCompressedBytes(entry), (int) entry.size));
+	/**
+	 * Returns the zip entry with the given name, or null if there is no such entry.
+	 *
+	 * @throws IllegalStateException if this zip file has been closed.
+	 */
+	public ZipEntry getEntry(String entryName) {
+		checkNotClosed();
+		if (entryName == null) {
+			throw new NullPointerException("entryName == null");
 		}
-		throw new RuntimeException("Not supported method " + entry.method + "!");
+
+		ZipEntry ze = entries.get(entryName);
+		if (ze == null) {
+			ze = entries.get(entryName + "/");
+		}
+		return ze;
 	}
 
+	/**
+	 * Returns an input stream on the data of the specified {@code ZipEntry}.
+	 *
+	 * @param entry the ZipEntry.
+	 * @return an input stream of the data contained in the {@code ZipEntry}.
+	 * @throws IOException           if an {@code IOException} occurs.
+	 * @throws IllegalStateException if this zip file has been closed.
+	 */
+	public InputStream getInputStream(ZipEntry entry) throws IOException {
+		// Make sure this ZipEntry is in this Zip file.  We run it through the name lookup.
+		entry = getEntry(entry.getName());
+		if (entry == null) {
+			return null;
+		}
+
+		// Create an InputStream at the right part of the file.
+		RASlice is = ras.sliceAvailable(entry.localHeaderRelOffset);
+		// We don't know the entry data's start position. All we have is the
+		// position of the entry's local header.
+		// http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+
+
+		final int localMagic = is.readS32_LE();
+		if (localMagic != LOCSIG) {
+			throwZipException("Local File Header", localMagic);
+		}
+
+		is.skip(2);
+
+		// At position 6 we find the General Purpose Bit Flag.
+		int gpbf = is.readU16_LE();
+		if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
+			throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
+		}
+
+		// Offset 26 has the file name length, and offset 28 has the extra field length.
+		// These lengths can differ from the ones in the central header.
+		is.skip(18);
+		int fileNameLength = is.readU16_LE();
+		int extraFieldLength = is.readU16_LE();
+		is.close();
+
+		// Skip the variable-size file name and extra field data.
+		is.skip(fileNameLength + extraFieldLength);
+
+		RASlice data = is.readSlice(entry.compressedSize);
+
+		if (entry.compressionMethod == ZipEntry.STORED) {
+			//return data.createInputStream();
+			return new ByteArrayInputStream(data.getAllBytes());
+		} else {
+			return new ByteArrayInputStream(JTranscZlib.inflate(data.getAllBytes(), (int) entry.size));
+		}
+	}
+
+	/**
+	 * Gets the file name of this {@code ZipFile}.
+	 *
+	 * @return the file name of this {@code ZipFile}.
+	 */
 	public String getName() {
-		return file.getAbsolutePath();
+		return filename;
 	}
 
-	public Enumeration<? extends ZipEntry> entries() {
-		return new Vector<>(entries).elements();
-	}
-
+	/**
+	 * Returns the number of {@code ZipEntries} in this {@code ZipFile}.
+	 *
+	 * @return the number of entries in this file.
+	 * @throws IllegalStateException if this zip file has been closed.
+	 */
 	public int size() {
+		checkNotClosed();
 		return entries.size();
 	}
 
-	public void close() throws IOException {
-		dis.close();
+	/**
+	 * Find the central directory and read the contents.
+	 * <p>
+	 * <p>The central directory can be followed by a variable-length comment
+	 * field, so we have to scan through it backwards.  The comment is at
+	 * most 64K, plus we have 18 bytes for the end-of-central-dir stuff
+	 * itself, plus apparently sometimes people throw random junk on the end
+	 * just for the fun of it.
+	 * <p>
+	 * <p>This is all a little wobbly.  If the wrong value ends up in the EOCD
+	 * area, we're hosed. This appears to be the way that everybody handles
+	 * it though, so we're in good company if this fails.
+	 */
+	private void readCentralDir() throws IOException {
+		// Scan back, looking for the End Of Central Directory field. If the zip file doesn't
+		// have an overall comment (unrelated to any per-entry comments), we'll hit the EOCD
+		// on the first try.
+		// No need to synchronize raf here -- we only do this when we first open the zip file.
+		long scanOffset = ras.length() - ENDHDR;
+		if (scanOffset < 0) {
+			throw new ZipException("File too short to be a zip file: " + ras.length());
+		}
+
+		ras.setPosition(0);
+		final int headerMagic = ras.readS32_LE();
+		if (headerMagic != LOCSIG) {
+			throw new ZipException("Not a zip archive");
+		}
+
+		long stopOffset = scanOffset - 65536;
+		if (stopOffset < 0) {
+			stopOffset = 0;
+		}
+
+		while (true) {
+			ras.setPosition(scanOffset);
+			if (ras.readS32_LE() == ENDSIG) {
+				break;
+			}
+
+			scanOffset--;
+			if (scanOffset < stopOffset) {
+				throw new ZipException("End Of Central Directory signature not found");
+			}
+		}
+
+		// Read the End Of Central Directory. ENDHDR includes the signature bytes,
+		// which we've already read.
+		byte[] eocd = ras.readBytes(ENDHDR - 4);
+
+		// Pull out the information we need.
+		BufferIterator it = HeapBufferIterator.iterator(eocd, 0, eocd.length, ByteOrder.LITTLE_ENDIAN);
+		int diskNumber = it.readShort() & 0xffff;
+		int diskWithCentralDir = it.readShort() & 0xffff;
+		int numEntries = it.readShort() & 0xffff;
+		int totalNumEntries = it.readShort() & 0xffff;
+		long centralDirSize = ((long) it.readInt()) & 0xffffffffL;
+		long centralDirOffset = ((long) it.readInt()) & 0xffffffffL;
+		int commentLength = it.readShort() & 0xffff;
+
+		if (numEntries != totalNumEntries || diskNumber != 0 || diskWithCentralDir != 0) {
+			throw new ZipException("Spanned archives not supported");
+		}
+
+		if (commentLength > 0) {
+			byte[] commentBytes = ras.readBytes(commentLength);
+			comment = new String(commentBytes, 0, commentBytes.length, StandardCharsets.UTF_8);
+		}
+
+		// Seek to the first CDE and read all entries.
+		// We have to do this now (from the constructor) rather than lazily because the
+		// public API doesn't allow us to throw IOException except from the constructor
+		// or from getInputStream.
+		RASlice slice = ras.slice(centralDirOffset, centralDirOffset + centralDirSize);
+		byte[] hdrBuf = new byte[CENHDR]; // Reuse the same buffer for each entry.
+		for (int i = 0; i < numEntries; ++i) {
+			ZipEntry newEntry = new ZipEntry(hdrBuf, slice.createInputStream());
+			if (newEntry.localHeaderRelOffset >= centralDirOffset) {
+				throw new ZipException("Local file header offset is after central directory");
+			}
+			String entryName = newEntry.getName();
+			if (entries.put(entryName, newEntry) != null) {
+				throw new ZipException("Duplicate entry name: " + entryName);
+			}
+		}
 	}
 
-	protected void finalize() throws IOException {
-		close();
+	static void throwZipException(String msg, int magic) throws ZipException {
+		final String hexString = IntegralToString.intToHexString(magic, true, 8);
+		throw new ZipException(msg + " signature not found; was " + hexString);
 	}
-
-	static private final int FLAG_Encrypted = 0x0001; //Bit 0: If set, indicates that the file is encrypted.
-	static private final int FLAG_CompressionFlagBit1 = 0x0002;
-	static private final int FLAG_CompressionFlagBit2 = 0x0004;
-	static private final int FLAG_DescriptorUsedMask = 0x0008;
-	static private final int FLAG_Reserved1 = 0x0010;
-	static private final int FLAG_Reserved2 = 0x0020;
-	static private final int FLAG_StrongEncrypted = 0x0040; //Bit 6: Strong encryption
-	static private final int FLAG_CurrentlyUnused1 = 0x0080;
-	static private final int FLAG_CurrentlyUnused2 = 0x0100;
-	static private final int FLAG_CurrentlyUnused3 = 0x0200;
-	static private final int FLAG_CurrentlyUnused4 = 0x0400;
-	static private final int FLAG_Utf8 = 0x0800; // Bit 11: filename and comment encoded using UTF-8
-	static private final int FLAG_ReservedPKWARE1 = 0x1000;
-	static private final int FLAG_CDEncrypted = 0x2000; // Bit 13: Used when encrypting the Central Directory to indicate selected data values in the Local Header are masked to hide their actual values.
-	static private final int FLAG_ReservedPKWARE2 = 0x4000;
-	static private final int FLAG_ReservedPKWARE3 = 0x8000;
 }

@@ -1,4 +1,4 @@
-package java.nio.internal;
+package libcore.io;
 
 import com.jtransc.JTranscBits;
 
@@ -64,7 +64,22 @@ public class Memory {
 		JTranscBits.writeShort(dst, offset, value, order == ByteOrder.LITTLE_ENDIAN);
 	}
 
-	//public static void unsafeBulkGet(Object dst, int dstOffset, int byteCount, byte[] src, int srcOffset, int sizeofElements, boolean swap) {
-	//	throw new RuntimeException("Not implemented");
-	//}
+	public static void unsafeBulkGet(Object dst, int dstOffset, int byteCount, byte[] src, int srcOffset, int sizeofElements, boolean swap) {
+		if (dst instanceof int[]) {
+			unsafeBulkGet((int[])dst, dstOffset, byteCount, src, srcOffset, sizeofElements, swap);
+		} else {
+			throw new RuntimeException("Unhandled unsafeBulkGet dst: " + dst);
+		}
+	}
+
+	static private ByteOrder NATIVE = ByteOrder.nativeOrder();
+	static private ByteOrder SWAPPED = (NATIVE == ByteOrder.LITTLE_ENDIAN) ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
+
+	public static void unsafeBulkGet(int[] dst, int dstOffset, int byteCount, byte[] src, int srcOffset, int sizeofElements, boolean swap) {
+		int elementCount = byteCount / 4;
+		ByteOrder order = swap ? SWAPPED : NATIVE;
+		for (int n = 0; n < elementCount; n++) {
+			dst[dstOffset + n] = peekInt(src, srcOffset + n * sizeofElements, order);
+		}
+	}
 }

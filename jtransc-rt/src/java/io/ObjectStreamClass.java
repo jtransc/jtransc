@@ -22,7 +22,7 @@ import com.jtransc.JTranscArrays;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.*;
 import java.nio.ByteOrder;
-import java.nio.internal.Memory;
+import libcore.io.Memory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;

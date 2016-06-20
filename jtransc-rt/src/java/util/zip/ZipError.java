@@ -17,34 +17,17 @@
 
 package java.util.zip;
 
-import java.io.IOException;
-
 /**
- * This runtime exception is thrown by {@code ZipFile} and {@code
- * ZipInputStream} when the file or stream is not a valid zip file.
- *
- * @see ZipFile
- * @see ZipInputStream
+ * Thrown when an unrecoverable zip error has occurred.
+ * @since 1.6
  */
-public class ZipException extends IOException {
-
-    private static final long serialVersionUID = 8000196834066748623L;
-
-    /**
-     * Constructs a new {@code ZipException} instance.
-     */
-    public ZipException() {
-    }
+public class ZipError extends InternalError {
+    private static final long serialVersionUID = 853973422266861979L;
 
     /**
-     * Constructs a new {@code ZipException} instance with the specified
-     * message.
-     *
-     * @param detailMessage
-     *            the detail message for the exception.
+     * Constructs a ZipError with the given detail message.
      */
-    public ZipException(String detailMessage) {
-        super(detailMessage);
+    public ZipError(String s) {
+        super(s);
     }
-
 }

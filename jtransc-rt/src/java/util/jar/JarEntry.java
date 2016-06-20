@@ -1,104 +1,141 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package java.util.jar;
 
 import java.io.IOException;
 import java.security.CodeSigner;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 
 /**
- * This class is used to represent a JAR file entry.
+ * Represents a single file in a JAR archive together with the manifest
+ * attributes and digital signatures associated with it.
+ *
+ * @see JarFile
+ * @see JarInputStream
  */
-public
-class JarEntry extends ZipEntry {
-	Attributes attr;
-	Certificate[] certs;
-	CodeSigner[] signers;
+public class JarEntry extends ZipEntry {
+	private Attributes attributes;
+
+	JarFile parentJar;
+
+	CodeSigner signers[];
+
+	// Cached factory used to build CertPath-s in <code>getCodeSigners()</code>.
+
+	private boolean isFactoryChecked = false;
 
 	/**
-	 * Creates a new <code>JarEntry</code> for the specified JAR file
-	 * entry name.
+	 * Creates a new {@code JarEntry} named name.
 	 *
-	 * @param name the JAR file entry name
-	 * @exception NullPointerException if the entry name is <code>null</code>
-	 * @exception IllegalArgumentException if the entry name is longer than
-	 *            0xFFFF bytes.
+	 * @param name The name of the new {@code JarEntry}.
 	 */
 	public JarEntry(String name) {
 		super(name);
 	}
 
 	/**
-	 * Creates a new <code>JarEntry</code> with fields taken from the
-	 * specified <code>ZipEntry</code> object.
-	 * @param ze the <code>ZipEntry</code> object to create the
-	 *           <code>JarEntry</code> from
+	 * Creates a new {@code JarEntry} using the values obtained from entry.
+	 *
+	 * @param entry The ZipEntry to obtain values from.
 	 */
-	public JarEntry(ZipEntry ze) {
-		super(ze);
+	public JarEntry(ZipEntry entry) {
+		super(entry);
 	}
 
 	/**
-	 * Creates a new <code>JarEntry</code> with fields taken from the
-	 * specified <code>JarEntry</code> object.
+	 * Returns the {@code Attributes} object associated with this entry or
+	 * {@code null} if none exists.
 	 *
-	 * @param je the <code>JarEntry</code> to copy
-	 */
-	public JarEntry(JarEntry je) {
-		this((ZipEntry)je);
-		this.attr = je.attr;
-		this.certs = je.certs;
-		this.signers = je.signers;
-	}
-
-	/**
-	 * Returns the <code>Manifest</code> <code>Attributes</code> for this
-	 * entry, or <code>null</code> if none.
-	 *
-	 * @return the <code>Manifest</code> <code>Attributes</code> for this
-	 * entry, or <code>null</code> if none
-	 * @throws IOException  if an I/O error has occurred
+	 * @return the {@code Attributes} for this entry.
+	 * @throws IOException If an error occurs obtaining the {@code Attributes}.
+	 * @see Attributes
 	 */
 	public Attributes getAttributes() throws IOException {
-		return attr;
+		if (attributes != null || parentJar == null) {
+			return attributes;
+		}
+		Manifest manifest = parentJar.getManifest();
+		if (manifest == null) {
+			return null;
+		}
+		return attributes = manifest.getAttributes(getName());
 	}
 
 	/**
-	 * Returns the <code>Certificate</code> objects for this entry, or
-	 * <code>null</code> if none. This method can only be called once
-	 * the <code>JarEntry</code> has been completely verified by reading
-	 * from the entry input stream until the end of the stream has been
-	 * reached. Otherwise, this method will return <code>null</code>.
+	 * Returns an array of {@code Certificate} Objects associated with this
+	 * entry or {@code null} if none exists. Make sure that the everything is
+	 * read from the input stream before calling this method, or else the method
+	 * returns {@code null}.
 	 *
-	 * <p>The returned certificate array comprises all the signer certificates
-	 * that were used to verify this entry. Each signer certificate is
-	 * followed by its supporting certificate chain (which may be empty).
-	 * Each signer certificate and its supporting certificate chain are ordered
-	 * bottom-to-top (i.e., with the signer certificate first and the (root)
-	 * certificate authority last).
-	 *
-	 * @return the <code>Certificate</code> objects for this entry, or
-	 * <code>null</code> if none.
+	 * @return the certificate for this entry.
+	 * @see java.security.cert.Certificate
 	 */
 	public Certificate[] getCertificates() {
-		return certs == null ? null : certs.clone();
+		return new Certificate[0];
+	}
+
+	void setAttributes(Attributes attrib) {
+		attributes = attrib;
 	}
 
 	/**
-	 * Returns the <code>CodeSigner</code> objects for this entry, or
-	 * <code>null</code> if none. This method can only be called once
-	 * the <code>JarEntry</code> has been completely verified by reading
-	 * from the entry input stream until the end of the stream has been
-	 * reached. Otherwise, this method will return <code>null</code>.
+	 * Create a new {@code JarEntry} using the values obtained from the
+	 * argument.
 	 *
-	 * <p>The returned array comprises all the code signers that have signed
-	 * this entry.
+	 * @param je The {@code JarEntry} to obtain values from.
+	 */
+	public JarEntry(JarEntry je) {
+		super(je);
+		parentJar = je.parentJar;
+		attributes = je.attributes;
+		signers = je.signers;
+	}
+
+	/**
+	 * Returns the code signers for the digital signatures associated with the
+	 * JAR file. If there is no such code signer, it returns {@code null}. Make
+	 * sure that the everything is read from the input stream before calling
+	 * this method, or else the method returns {@code null}.
 	 *
-	 * @return the <code>CodeSigner</code> objects for this entry, or
-	 * <code>null</code> if none.
-	 *
-	 * @since 1.5
+	 * @return the code signers for the JAR entry.
+	 * @see CodeSigner
 	 */
 	public CodeSigner[] getCodeSigners() {
-		return signers == null ? null : signers.clone();
+		if (signers == null) {
+			signers = getCodeSigners(getCertificates());
+		}
+		if (signers == null) {
+			return null;
+		}
+
+		CodeSigner[] tmp = new CodeSigner[signers.length];
+		System.arraycopy(signers, 0, tmp, 0, tmp.length);
+		return tmp;
+	}
+
+	private CodeSigner[] getCodeSigners(Certificate[] certs) {
+		return new CodeSigner[0];
+
+	}
+
+	private void addCodeSigner(ArrayList<CodeSigner> asigners, List<Certificate> list) {
 	}
 }

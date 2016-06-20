@@ -15,36 +15,16 @@
  * limitations under the License.
  */
 
-package java.util.zip;
+package java.util.jar;
 
-import java.io.IOException;
+import java.util.zip.ZipException;
 
-/**
- * This runtime exception is thrown by {@code ZipFile} and {@code
- * ZipInputStream} when the file or stream is not a valid zip file.
- *
- * @see ZipFile
- * @see ZipInputStream
- */
-public class ZipException extends IOException {
+public class JarException extends ZipException {
 
-    private static final long serialVersionUID = 8000196834066748623L;
+	public JarException() {
+	}
 
-    /**
-     * Constructs a new {@code ZipException} instance.
-     */
-    public ZipException() {
-    }
-
-    /**
-     * Constructs a new {@code ZipException} instance with the specified
-     * message.
-     *
-     * @param detailMessage
-     *            the detail message for the exception.
-     */
-    public ZipException(String detailMessage) {
-        super(detailMessage);
-    }
-
+	public JarException(String detailMessage) {
+		super(detailMessage);
+	}
 }

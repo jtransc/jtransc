@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.ByteOrder;
-import java.nio.internal.Memory;
+import libcore.io.Memory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

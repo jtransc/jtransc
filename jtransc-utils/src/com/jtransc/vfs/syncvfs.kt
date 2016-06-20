@@ -532,6 +532,7 @@ fun <T : Any> IUserData.getCached(key: UserKey<T>, builder: () -> T): T {
 	return this[key]!!
 }
 
+@Suppress("UNCHECKED_CAST")
 class UserData : IUserData {
 	private val dict = hashMapOf<Any, Any>()
 

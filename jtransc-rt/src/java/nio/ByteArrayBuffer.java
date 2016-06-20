@@ -17,8 +17,7 @@
 
 package java.nio;
 
-import com.jtransc.JTranscBits;
-import java.nio.internal.Memory;
+import libcore.io.Memory;
 import java.nio.internal.SizeOf;
 
 /**

@@ -32,7 +32,7 @@ public class System {
 	static public final InputStream in = new InputStream() {
 		@Override
 		public int read() throws IOException {
-			throw new Error("Not implemented!");
+			throw new Error("Not implemented System.in.read()!");
 		}
 	};
 	static public final PrintStream out = new JTranscConsolePrintStream(false);
