@@ -19,6 +19,7 @@ allprojects { project ->
 
 	def version = "${jtranscVersion}"
 
+	project.ext.kotlin_version =  '1.0.2-1'
 	project.ext.group = "com.jtransc"
 	project.ext.jtranscVersion = "$version"
 
