@@ -1,5 +1,12 @@
 apply from: '../include.gradle'
 
+repositories {
+	mavenCentral()
+	maven {
+		url "http://repository.jetbrains.com/all"
+	}
+}
+
 dependencies {
 	compile project(':jtransc-main')
 	provided "org.jetbrains.kotlin:gradle-api:2.2"
