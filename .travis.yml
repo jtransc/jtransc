@@ -39,7 +39,7 @@ before_script:
 - php --version || true
 - gradle --version
 script:
-- gradle -Psigning.keyId=0x0000000000 -Psigning.password=passrod -Psigning.secretKeyRingFile=secring.pgp -PsonatypeUsername=dummy -PsonatypePassword=dummy build
+- gradle build
 - pushd jtransc-main-run/example
 - "./run"
 - popd

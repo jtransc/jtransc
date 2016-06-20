@@ -1,2 +1,3 @@
 #mvn clean release:perform
-mvn clean deploy -Dgpg.passphrase=$1 -DperformRelease=true -Dmaven.javadoc.skip=true
+#mvn clean deploy -Dgpg.passphrase=$1 -DperformRelease=true -Dmaven.javadoc.skip=true
+gradle uploadArchives
