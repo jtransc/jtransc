@@ -39,7 +39,7 @@ before_script:
 - php --version || true
 - gradle --version
 script:
-- gradle build
+- gradle -s -i install
 - pushd jtransc-main-run/example
 - "./run"
 - popd
