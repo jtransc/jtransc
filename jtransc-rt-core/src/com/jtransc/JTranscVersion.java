@@ -4,7 +4,7 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscVersion {
-	static private final String version = "0.2.8";
+	static private final String version = "0.3.0";
 
 	static public String getVersion() {
 		return version;
