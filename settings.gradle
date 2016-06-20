@@ -9,7 +9,7 @@ include (
 	'jtransc-gradle-plugin',
 	////'jtransc-intellij-plugin',
 	'jtransc-main',
-	'jtransc-main-run',
+	//'jtransc-main-run',
 	'jtransc-maven-plugin',
 	'jtransc-rt',
 	'jtransc-rt-core',

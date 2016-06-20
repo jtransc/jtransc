@@ -24,7 +24,6 @@ install:
 - sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get -y update
 - sudo apt-get -y install php5.6 php5.6-mbstring
-- mvn clean --settings settings.xml
 - nvm install 4 || true
 - nvm use 4 || true
 
@@ -39,7 +38,7 @@ before_script:
 - node --version || true
 - php --version || true
 script:
-- mvn install --settings settings.xml
+- gradle build
 - pushd jtransc-main-run/example
 - "./run"
 - popd
