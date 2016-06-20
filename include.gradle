@@ -33,35 +33,34 @@ sourceSets {
 	test.resources.srcDirs = [ 'testresources' ]
 }
 
-task javadoc2(type: Javadoc) {
-	failOnError = false
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc2) {
-	classifier = 'javadoc'
-	from 'build/docs/javadoc'
-}
-
-task sourcesJar(type: Jar) {
-	from sourceSets.main.allSource
-	classifier = 'sources'
-}
-
 dependencies {
 	testCompile 'junit:junit:4.12'
 }
 
-artifacts {
-	archives jar
-	archives javadocJar
-	archives sourcesJar
-}
-
-signing {
-	sign configurations.archives
-}
-
 if (System.getenv("CI") == null) {
+	task javadoc2(type: Javadoc) {
+		failOnError = false
+	}
+
+	task javadocJar(type: Jar, dependsOn: javadoc2) {
+		classifier = 'javadoc'
+		from 'build/docs/javadoc'
+	}
+
+	task sourcesJar(type: Jar) {
+		from sourceSets.main.allSource
+		classifier = 'sources'
+	}
+
+	artifacts {
+		archives jar
+		archives javadocJar
+		archives sourcesJar
+	}
+
+	signing {
+		sign configurations.archives
+	}
 
 	uploadArchives {
 		repositories {
