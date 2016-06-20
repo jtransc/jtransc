@@ -50,6 +50,10 @@ R.__initClass = function(clazzClazz) {
 
 		return true;
 	} else {
+		if (clazz === undefined) {
+			return false;
+		}
+
 		var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
 
     	clazzClazz._internalName = clazzInfo.internalName;

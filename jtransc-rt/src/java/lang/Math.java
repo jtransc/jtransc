@@ -254,6 +254,7 @@ public final class Math {
 	native public static double tanh(double x);
 
 	@HaxeMethodBody("return Math.sqrt((p0 * p0) + (p1 * p1));")
+	@JTranscMethodBody(target = "js", value = "return Math.hypot(p0, p1);")
 	native public static double hypot(double x, double y);
 
 	native public static double expm1(double x);

@@ -20,6 +20,15 @@ public class JTranscReflectionTest {
 		nullArgs();
 		getInterfacesTest();
 		testEmptyAnnotations();
+		checkClassNotFound();
+	}
+
+	static private void checkClassNotFound() {
+		try {
+			System.out.println(Class.forName("com.unexistant.UnexistantClass"));
+		} catch (ClassNotFoundException e) {
+			System.out.println("Can't find class");
+		}
 	}
 
 	static private void testEmptyAnnotations() {

@@ -10,6 +10,14 @@ public class MathTest {
 		rint();
 		nanInf();
 		copySign();
+		mathTest();
+	}
+
+	static private void mathTest() {
+		System.out.println("mathTest:");
+		System.out.println((int)(Math.hypot(3, 7) * 1000));
+		System.out.println((int)(Math.cos(33) * 1000));
+		System.out.println((int)(Math.sin(33) * 1000));
 	}
 
 	static private void dumpIntBounds() {
