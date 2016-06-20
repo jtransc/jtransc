@@ -39,17 +39,17 @@ before_script:
 - php --version || true
 - gradle --version
 script:
-- gradle -s -i install
+- gradle -s -i check install
 - pushd jtransc-main-run/example
 - "./run"
 - popd
 - pushd jtransc-main-run/example-gradle
 - gradle runPlainJs && node build/jtransc-js/program.js
 - popd
-#cache:
-#  directories:
-#  - "$HOME/.m2"
-#  - "$HOME/.gradle"
+cache:
+  directories:
+  - "$HOME/.m2"
+  - "$HOME/.gradle"
 notifications:
   irc:
     channels:
