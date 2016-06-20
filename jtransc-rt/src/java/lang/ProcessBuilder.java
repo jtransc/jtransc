@@ -17,44 +17,37 @@
 package java.lang;
 
 import com.jtransc.io.JTranscProcess;
+import com.jtransc.lang.JTranscObjects;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class ProcessBuilder {
 	private List<String> command;
 	private File directory;
 	private Map<String, String> environment;
 	private boolean redirectErrorStream;
-	private Redirect[] redirects;
-
-	public ProcessBuilder(List<String> command) {
-		if (command == null)
-			throw new NullPointerException();
-		this.command = command;
-	}
+	private Redirect stdin = Redirect.PIPE;
+	private Redirect stdout = Redirect.PIPE;
+	private Redirect stderr = Redirect.PIPE;
 
 	public ProcessBuilder(String... command) {
-		this.command = new ArrayList<String>(command.length);
-		for (String arg : command)
-			this.command.add(arg);
+		command(command);
+	}
+
+	public ProcessBuilder(List<String> command) {
+		command(command);
 	}
 
 	public ProcessBuilder command(List<String> command) {
-		if (command == null) throw new NullPointerException();
 		this.command = command;
 		return this;
 	}
 
 	public ProcessBuilder command(String... command) {
-		this.command = new ArrayList<String>(command.length);
-		for (String arg : command) this.command.add(arg);
+		this.command = new ArrayList<>(Arrays.asList(command));
 		return this;
 	}
 
@@ -63,26 +56,19 @@ public final class ProcessBuilder {
 	}
 
 	public Map<String, String> environment() {
-		if (environment == null)
-			environment = ProcessEnvironment.environment();
-
-		assert environment != null;
-
+		if (environment == null) environment = new HashMap<>();
 		return environment;
 	}
 
 	ProcessBuilder environment(String[] envp) {
-		assert environment == null;
-		if (envp != null) {
-			environment = ProcessEnvironment.emptyEnvironment(envp.length);
-			assert environment != null;
+		environment = new HashMap<>(envp.length);
 
-			for (String envstring : envp) {
-				if (envstring.indexOf((int) '\u0000') != -1)
-					envstring = envstring.replaceFirst("\u0000.*", "");
-
-				int eqlsign = envstring.indexOf('=', ProcessEnvironment.MIN_NAME_LENGTH);
-				if (eqlsign != -1) environment.put(envstring.substring(0, eqlsign), envstring.substring(eqlsign + 1));
+		for (String envstring : envp) {
+			int eqlsign = envstring.indexOf('=', 1);
+			if (eqlsign >= 0) {
+				String key = envstring.substring(0, eqlsign);
+				String value = envstring.substring(eqlsign + 1);
+				environment.put(key, value);
 			}
 		}
 		return this;
@@ -97,32 +83,76 @@ public final class ProcessBuilder {
 		return this;
 	}
 
-	static class NullInputStream extends InputStream {
-		static final NullInputStream INSTANCE = new NullInputStream();
+	public ProcessBuilder redirectInput(Redirect source) {
+		stdin = source;
+		return this;
+	}
 
-		private NullInputStream() {
-		}
+	public ProcessBuilder redirectOutput(Redirect destination) {
+		stdout = destination;
+		return this;
+	}
 
-		public int read() {
-			return -1;
-		}
+	public ProcessBuilder redirectError(Redirect destination) {
+		stderr = destination;
+		return this;
+	}
 
-		public int available() {
-			return 0;
+	public ProcessBuilder redirectInput(File file) {
+		return redirectInput(Redirect.from(file));
+	}
+
+	public ProcessBuilder redirectOutput(File file) {
+		return redirectOutput(Redirect.to(file));
+	}
+
+	public ProcessBuilder redirectError(File file) {
+		return redirectError(Redirect.to(file));
+	}
+
+	public Redirect redirectInput() {
+		return stdin;
+	}
+
+	public Redirect redirectOutput() {
+		return stdout;
+	}
+
+	public Redirect redirectError() {
+		return stderr;
+	}
+
+	public ProcessBuilder inheritIO() {
+		stdin = stdout = stderr = Redirect.INHERIT;
+		return this;
+	}
+
+	public boolean redirectErrorStream() {
+		return redirectErrorStream;
+	}
+
+	public ProcessBuilder redirectErrorStream(boolean redirectErrorStream) {
+		this.redirectErrorStream = redirectErrorStream;
+		return this;
+	}
+
+	public Process start() throws IOException {
+		try {
+
+			return new JTranscProcess().start(
+				command,
+				environment,
+				JTranscObjects.toStringOrNull(directory),
+				stdin, stdout, stderr,
+				redirectErrorStream
+			);
+		} catch (Throwable cause) {
+			throw new IOException("Problem executing process", cause);
 		}
 	}
 
-	static class NullOutputStream extends OutputStream {
-		static final NullOutputStream INSTANCE = new NullOutputStream();
 
-		private NullOutputStream() {
-		}
-
-		public void write(int b) throws IOException {
-			throw new IOException("Stream closed");
-		}
-	}
-
+	@SuppressWarnings({"EqualsWhichDoesntCheckParameterClass", "WeakerAccess"})
 	public static abstract class Redirect {
 		public enum Type {PIPE, INHERIT, READ, WRITE, APPEND}
 
@@ -152,79 +182,20 @@ public final class ProcessBuilder {
 			return null;
 		}
 
-		boolean append() {
-			throw new UnsupportedOperationException();
-		}
-
 		public static Redirect from(final File file) {
-			if (file == null)
-				throw new NullPointerException();
-			return new Redirect() {
-				public Type type() {
-					return Type.READ;
-				}
-
-				public File file() {
-					return file;
-				}
-
-				public String toString() {
-					return "redirect to read from file \"" + file + "\"";
-				}
-			};
+			return new RedirectImpl(Type.READ, file);
 		}
 
 		public static Redirect to(final File file) {
-			if (file == null)
-				throw new NullPointerException();
-			return new Redirect() {
-				public Type type() {
-					return Type.WRITE;
-				}
-
-				public File file() {
-					return file;
-				}
-
-				public String toString() {
-					return "redirect to write to file \"" + file + "\"";
-				}
-
-				boolean append() {
-					return false;
-				}
-			};
+			return new RedirectImpl(Type.WRITE, file);
 		}
 
 		public static Redirect appendTo(final File file) {
-			if (file == null)
-				throw new NullPointerException();
-			return new Redirect() {
-				public Type type() {
-					return Type.APPEND;
-				}
-
-				public File file() {
-					return file;
-				}
-
-				public String toString() {
-					return "redirect to append to file \"" + file + "\"";
-				}
-
-				boolean append() {
-					return true;
-				}
-			};
+			return new RedirectImpl(Type.APPEND, file);
 		}
 
-		public boolean equals(Object obj) {
-			if (obj == this) return true;
-			if (!(obj instanceof Redirect)) return false;
-			Redirect r = (Redirect) obj;
-			if (r.type() != this.type()) return false;
-			assert this.file() != null;
-			return this.file().equals(r.file());
+		public boolean equals(Object that) {
+			return JTranscObjects.equalsShape(this, that) && (((Redirect) that).type() == this.type()) && Objects.equals(this.file(), ((Redirect) that).file());
 		}
 
 		public int hashCode() {
@@ -236,101 +207,29 @@ public final class ProcessBuilder {
 			}
 		}
 
-		private Redirect() {
+		@Override
+		public String toString() {
+			return type() + " : " + file();
 		}
 	}
 
-	private Redirect[] redirects() {
-		if (redirects == null)
-			redirects = new Redirect[]{Redirect.PIPE, Redirect.PIPE, Redirect.PIPE};
-		return redirects;
-	}
+	static private class RedirectImpl extends Redirect {
+		Type type;
+		File file;
 
-	public ProcessBuilder redirectInput(Redirect source) {
-		if (source.type() == Redirect.Type.WRITE || source.type() == Redirect.Type.APPEND) {
-			throw new IllegalArgumentException("Redirect invalid for reading: " + source);
-		}
-		redirects()[0] = source;
-		return this;
-	}
-
-	public ProcessBuilder redirectOutput(Redirect destination) {
-		if (destination.type() == Redirect.Type.READ)
-			throw new IllegalArgumentException(
-				"Redirect invalid for writing: " + destination);
-		redirects()[1] = destination;
-		return this;
-	}
-
-	public ProcessBuilder redirectError(Redirect destination) {
-		if (destination.type() == Redirect.Type.READ)
-			throw new IllegalArgumentException("Redirect invalid for writing: " + destination);
-		redirects()[2] = destination;
-		return this;
-	}
-
-	public ProcessBuilder redirectInput(File file) {
-		return redirectInput(Redirect.from(file));
-	}
-
-	public ProcessBuilder redirectOutput(File file) {
-		return redirectOutput(Redirect.to(file));
-	}
-
-	public ProcessBuilder redirectError(File file) {
-		return redirectError(Redirect.to(file));
-	}
-
-	public Redirect redirectInput() {
-		return (redirects == null) ? Redirect.PIPE : redirects[0];
-	}
-
-	public Redirect redirectOutput() {
-		return (redirects == null) ? Redirect.PIPE : redirects[1];
-	}
-
-	public Redirect redirectError() {
-		return (redirects == null) ? Redirect.PIPE : redirects[2];
-	}
-
-	public ProcessBuilder inheritIO() {
-		Arrays.fill(redirects(), Redirect.INHERIT);
-		return this;
-	}
-
-	public boolean redirectErrorStream() {
-		return redirectErrorStream;
-	}
-
-	public ProcessBuilder redirectErrorStream(boolean redirectErrorStream) {
-		this.redirectErrorStream = redirectErrorStream;
-		return this;
-	}
-
-	public Process start() throws IOException {
-		String[] cmdarray = command.toArray(new String[command.size()]);
-		cmdarray = cmdarray.clone();
-
-		for (String arg : cmdarray) {
-			if (arg == null) throw new NullPointerException();
-		}
-		// Throws IndexOutOfBoundsException if command is empty
-		String prog = cmdarray[0];
-
-		String dir = directory == null ? null : directory.toString();
-
-		for (int i = 1; i < cmdarray.length; i++) {
-			if (cmdarray[i].indexOf('\u0000') >= 0) {
-				throw new IOException("invalid null character in command");
-			}
+		RedirectImpl(Type type, File file) {
+			this.type = type;
+			this.file = file;
 		}
 
-		try {
-			return new JTranscProcess().start(cmdarray, environment, dir, redirects, redirectErrorStream);
-		} catch (Exception e) {
-			String exceptionInfo = ": " + e.getMessage();
-			Throwable cause = e;
-			throw new IOException("Cannot run program \"" + prog + "\"" + (dir == null ? "" : " (in directory \"" + dir + "\")") + exceptionInfo, cause);
+		@Override
+		public Type type() {
+			return type;
+		}
+
+		@Override
+		public File file() {
+			return file;
 		}
 	}
 }

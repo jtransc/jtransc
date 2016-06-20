@@ -17,11 +17,6 @@
 
 package java.lang;
 
-/**
- * Thrown when an assertion has failed.
- *
- * @since 1.4
- */
 public class AssertionError extends Error {
 	public AssertionError() {
 	}

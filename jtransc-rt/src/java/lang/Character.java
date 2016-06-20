@@ -20,6 +20,7 @@ import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+@SuppressWarnings({"unchecked", "WeakerAccess", "UnnecessaryBoxing", "PointlessArithmeticExpression"})
 public final class Character implements java.io.Serializable, Comparable<Character> {
 	public static final int MIN_RADIX = 2;
 	public static final int MAX_RADIX = 36;
@@ -57,7 +58,6 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public static final byte OTHER_SYMBOL = 28;
 	public static final byte INITIAL_QUOTE_PUNCTUATION = 29;
 	public static final byte FINAL_QUOTE_PUNCTUATION = 30;
-	static final int ERROR = 0xFFFFFFFF;
 	public static final byte DIRECTIONALITY_UNDEFINED = -1;
 	public static final byte DIRECTIONALITY_LEFT_TO_RIGHT = 0;
 	public static final byte DIRECTIONALITY_RIGHT_TO_LEFT = 1;
@@ -113,8 +113,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	}
 
 	public boolean equals(Object that) {
-		if (!(that instanceof Character)) return false;
-		return this.value == ((Character) that).value;
+		return that instanceof Character && this.value == ((Character) that).value;
 	}
 
 	public String toString() {
@@ -226,73 +225,6 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public static boolean isDigit(char ch) {
 		return (ch >= '0') && (ch <= '9');
 	}
-
-	/*
-		boolean prevHas = false;
-        int start = 0;
-        int end = 0;
-        for (int n = 0; n < 10000000; n++) {
-            if (Character.isDigit(n)) {
-                end = n;
-                if (!prevHas) start = n;
-                prevHas = true;
-            } else {
-                if (prevHas) {
-                    prevHas = false;
-                    if (start == end) {
-                        System.out.println(start + " // " + new String(new int[] { start }, 0, 1));
-                    } else {
-                        System.out.println(start + ":" + end + " // " + new String(new int[] { start }, 0, 1) + "-" + new String(new int[] { end }, 0, 1));
-
-                    }
-                }
-            }
-        }
-
-        48:57 // 0-9
-		1632:1641 // ٠-٩
-		1776:1785 // ۰-۹
-		1984:1993 // ߀-߉
-		2406:2415 // ०-९
-		2534:2543 // ০-৯
-		2662:2671 // ੦-੯
-		2790:2799 // ૦-૯
-		2918:2927 // ୦-୯
-		3046:3055 // ௦-௯
-		3174:3183 // ౦-౯
-		3302:3311 // ೦-೯
-		3430:3439 // ൦-൯
-		3664:3673 // ๐-๙
-		3792:3801 // ໐-໙
-		3872:3881 // ༠-༩
-		4160:4169 // ၀-၉
-		4240:4249 // ႐-႙
-		6112:6121 // ០-៩
-		6160:6169 // ᠐-᠙
-		6470:6479 // ᥆-᥏
-		6608:6617 // ᧐-᧙
-		6784:6793 // ᪀-᪉
-		6800:6809 // ᪐-᪙
-		6992:7001 // ᭐-᭙
-		7088:7097 // ᮰-᮹
-		7232:7241 // ᱀-᱉
-		7248:7257 // ᱐-᱙
-		42528:42537 // ꘠-꘩
-		43216:43225 // ꣐-꣙
-		43264:43273 // ꤀-꤉
-		43472:43481 // ꧐-꧙
-		43600:43609 // ꩐-꩙
-		44016:44025 // ꯰-꯹
-		65296:65305 // ０-９
-		66720:66729 // 𐒠-𐒩
-		69734:69743 // 𑁦-𑁯
-		69872:69881 // 𑃰-𑃹
-		69942:69951 // 𑄶-𑄿
-		70096:70105 // 𑇐-𑇙
-		71360:71369 // 𑛀-𑛉
-		120782:120831 // 𝟎-𝟿
-
-	 */
 
 	public static boolean isDigit(int codePoint) {
 		return isDigit((char) codePoint);
@@ -538,11 +470,11 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	}
 
 	public static final class UnicodeBlock extends Subset {
-		public static final UnicodeBlock forName(String name) {
+		public static UnicodeBlock forName(String name) {
 			return new UnicodeBlock();
 		}
 
-		public static final UnicodeBlock of(int codePoint) {
+		public static UnicodeBlock of(int codePoint) {
 			return new UnicodeBlock();
 		}
 	}
@@ -550,11 +482,11 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public enum UnicodeScript {
 		COMMON;
 
-		public static final UnicodeScript forName(String name) {
+		public static UnicodeScript forName(String name) {
 			return COMMON;
 		}
 
-		public static final UnicodeScript of(int codePoint) {
+		public static UnicodeScript of(int codePoint) {
 			return COMMON;
 		}
 	}

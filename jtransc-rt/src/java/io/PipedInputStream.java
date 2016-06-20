@@ -79,7 +79,8 @@ public class PipedInputStream extends InputStream {
 	 * stream must be connected to a {@link PipedOutputStream} before data may
 	 * be read from it.
 	 */
-	public PipedInputStream() {}
+	public PipedInputStream() {
+	}
 
 	/**
 	 * Constructs a new {@code PipedInputStream} connected to the
@@ -213,23 +214,23 @@ public class PipedInputStream extends InputStream {
 		 * "Pipe broken" will be thrown in receive()
 		 */
 		lastReader = Thread.currentThread();
-		//try {
-		int attempts = 3;
-		while (in == -1) {
-			// Are we at end of stream?
-			if (isClosed) {
-				return -1;
+		try {
+			int attempts = 3;
+			while (in == -1) {
+				// Are we at end of stream?
+				if (isClosed) {
+					return -1;
+				}
+				if ((attempts-- <= 0) && lastWriter != null && !lastWriter.isAlive()) {
+					throw new IOException("Pipe broken");
+				}
+				// Notify callers of receive()
+				notifyAll();
+				wait(1000);
 			}
-			if ((attempts-- <= 0) && lastWriter != null && !lastWriter.isAlive()) {
-				throw new IOException("Pipe broken");
-			}
-			// Notify callers of receive()
-			notifyAll();
-			wait(1000);
+		} catch (InterruptedException e) {
+			throwInterruptedIoException();
 		}
-		//} catch (InterruptedException e) {
-		//    throwInterruptedIoException();
-		//}
 
 		int result = buffer[out++] & 0xff;
 		if (out == buffer.length) {
@@ -288,23 +289,23 @@ public class PipedInputStream extends InputStream {
          * "Pipe broken" will be thrown in receive()
          */
 		lastReader = Thread.currentThread();
-		//try {
-		int attempts = 3;
-		while (in == -1) {
-			// Are we at end of stream?
-			if (isClosed) {
-				return -1;
+		try {
+			int attempts = 3;
+			while (in == -1) {
+				// Are we at end of stream?
+				if (isClosed) {
+					return -1;
+				}
+				if ((attempts-- <= 0) && lastWriter != null && !lastWriter.isAlive()) {
+					throw new IOException("Pipe broken");
+				}
+				// Notify callers of receive()
+				notifyAll();
+				wait(1000);
 			}
-			if ((attempts-- <= 0) && lastWriter != null && !lastWriter.isAlive()) {
-				throw new IOException("Pipe broken");
-			}
-			// Notify callers of receive()
-			notifyAll();
-			wait(1000);
+		} catch (InterruptedException e) {
+			throwInterruptedIoException();
 		}
-		//} catch (InterruptedException e) {
-		//    throwInterruptedIoException();
-		//}
 
 		int totalCopied = 0;
 
@@ -366,22 +367,22 @@ public class PipedInputStream extends InputStream {
 		}
 
         /*
-         * Set the last thread to be writing on this PipedInputStream. If
+		 * Set the last thread to be writing on this PipedInputStream. If
          * lastWriter dies while someone is waiting to read an IOException of
          * "Pipe broken" will be thrown in read()
          */
 		lastWriter = Thread.currentThread();
-		//try {
-		while (buffer != null && out == in) {
-			if (lastReader != null && !lastReader.isAlive()) {
-				throw new IOException("Pipe broken");
+		try {
+			while (buffer != null && out == in) {
+				if (lastReader != null && !lastReader.isAlive()) {
+					throw new IOException("Pipe broken");
+				}
+				notifyAll();
+				wait(1000);
 			}
-			notifyAll();
-			wait(1000);
+		} catch (InterruptedException e) {
+			throwInterruptedIoException();
 		}
-		//} catch (InterruptedException e) {
-		//    throwInterruptedIoException();
-		//}
 		if (buffer == null) {
 			throw new IOException("Pipe is closed");
 		}

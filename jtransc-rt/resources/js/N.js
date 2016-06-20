@@ -342,6 +342,10 @@ N.box = function(v) {
 	return N.wrap(v);
 };
 
+N.isNegativeZero = function(x) {
+	return x === 0 && 1 / x === -Infinity;
+};
+
 N.sort = function(array, start, end, comparator) {
 	var slice = array.slice(start, end);
 	if (comparator === undefined) {

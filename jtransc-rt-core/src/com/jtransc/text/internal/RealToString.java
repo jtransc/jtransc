@@ -17,6 +17,9 @@
 
 package com.jtransc.text.internal;
 
+import com.jtransc.lang.DoubleInfo;
+import com.jtransc.lang.FloatInfo;
+
 final public class RealToString {
 	private static final ThreadLocal<RealToString> INSTANCE = new ThreadLocal<RealToString>() {
 		@Override protected RealToString initialValue() {

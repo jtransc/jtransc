@@ -19,6 +19,8 @@ package java.lang;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.lang.DoubleInfo;
+import com.jtransc.lang.FloatInfo;
 
 public final class Math {
 	private Math() {
@@ -258,9 +260,19 @@ public final class Math {
 
 	native public static double log1p(double x);
 
-	native public static double copySign(double magnitude, double sign);
+	public static double copySign(double magnitude, double sign) {
+		long magnitudeBits = Double.doubleToRawLongBits(magnitude);
+		long signBits = Double.doubleToRawLongBits(sign);
+		magnitudeBits = (magnitudeBits & ~DoubleInfo.SIGN_MASK) | (signBits & DoubleInfo.SIGN_MASK);
+		return Double.longBitsToDouble(magnitudeBits);
+	}
 
-	native public static float copySign(float magnitude, float sign);
+	public static float copySign(float magnitude, float sign) {
+		int magnitudeBits = Float.floatToRawIntBits(magnitude);
+		int signBits = Float.floatToRawIntBits(sign);
+		magnitudeBits = (magnitudeBits & ~FloatInfo.SIGN_MASK) | (signBits & FloatInfo.SIGN_MASK);
+		return Float.intBitsToFloat(magnitudeBits);
+	}
 
 	native public static int getExponent(float f);
 

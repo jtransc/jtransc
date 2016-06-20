@@ -21,6 +21,7 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.text.JTranscStringTools;
 
+@SuppressWarnings({"NumericOverflow", "unchecked", "UnnecessaryBoxing", "ConstantConditions", "UnnecessaryUnboxing", "unused"})
 public final class Double extends Number implements Comparable<Double> {
 	public static final double POSITIVE_INFINITY = 1.0 / 0.0;
 	public static final double NEGATIVE_INFINITY = -1.0 / 0.0;
@@ -41,10 +42,8 @@ public final class Double extends Number implements Comparable<Double> {
 
 	native public static String toHexString(double d);
 
-	// @TODO: Cache -1.0, 0.0 and 1.0
 	public static Double valueOf(String s) {
-		double v = parseDouble(s);
-		return new Double(v);
+		return valueOf(parseDouble(s));
 	}
 
 	@JTranscKeep

@@ -1,4 +1,4 @@
-package com.jtransc.text.internal;
+package com.jtransc.lang;
 
 public class DoubleInfo {
 	static public final int EXPONENT_BIAS = 1023;

@@ -1,4 +1,4 @@
-package com.jtransc.text.internal;
+package com.jtransc.lang;
 
 public class FloatInfo {
 	static public final int EXPONENT_BIAS = 127;

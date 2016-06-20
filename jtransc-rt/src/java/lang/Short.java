@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+@SuppressWarnings({"UnnecessaryUnboxing", "unchecked", "WeakerAccess", "unused", "UnnecessaryBoxing"})
 public final class Short extends Number implements Comparable<Short> {
 	public static final int SIZE = 16;
 	public static final int BYTES = SIZE / Byte.SIZE;
@@ -111,8 +112,7 @@ public final class Short extends Number implements Comparable<Short> {
 	}
 
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Short)) return false;
-		return value == ((Short) obj).shortValue();
+		return obj instanceof Short && value == ((Short) obj).shortValue();
 	}
 
 	public int compareTo(Short anotherShort) {

@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 
+@SuppressWarnings({"unchecked", "UnnecessaryBoxing", "WeakerAccess", "UnnecessaryUnboxing", "PointlessArithmeticExpression"})
 public final class Byte extends Number implements Comparable<Byte> {
 	public static final byte MIN_VALUE = -128;
 	public static final byte MAX_VALUE = 127;
@@ -27,7 +28,7 @@ public final class Byte extends Number implements Comparable<Byte> {
 		return Integer.toString((int) value, 10);
 	}
 
-	static final Byte cache[] = new Byte[256];
+	private static final Byte cache[] = new Byte[256];
 
 	@JTranscKeep
 	public static Byte valueOf(byte value) {
@@ -110,8 +111,7 @@ public final class Byte extends Number implements Comparable<Byte> {
 	}
 
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Byte)) return false;
-		return value == ((Byte) obj).byteValue();
+		return obj instanceof Byte && value == ((Byte) obj).byteValue();
 	}
 
 	public int compareTo(Byte that) {
@@ -130,6 +130,7 @@ public final class Byte extends Number implements Comparable<Byte> {
 		return ((long) value) & 0xffL;
 	}
 
+	// Bits
 	public static final int SIZE = 8;
 	public static final int BYTES = SIZE / Byte.SIZE;
 }

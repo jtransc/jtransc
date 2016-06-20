@@ -18,6 +18,7 @@ package java.lang;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public final class StackTraceElement implements java.io.Serializable {
 	private String declaringClass;
 	private String methodName;
@@ -75,5 +76,4 @@ public final class StackTraceElement implements java.io.Serializable {
 		result = 31 * result + lineNumber;
 		return result;
 	}
-
 }

@@ -1,23 +1,26 @@
 package java.lang.ref;
 
 public class SoftReference<T> extends Reference<T> {
-	static private long clock;
+	private long time;
 
-	private long timestamp;
+	static private long getTime() {
+		return System.currentTimeMillis();
+	}
 
 	public SoftReference(T referent) {
 		super(referent);
-		this.timestamp = clock;
+		this.time = getTime();
 	}
 
 	public SoftReference(T referent, ReferenceQueue<? super T> q) {
 		super(referent, q);
-		this.timestamp = clock;
+		this.time = getTime();
 	}
 
 	public T get() {
 		T o = super.get();
-		if (o != null && this.timestamp != clock) this.timestamp = clock;
+		long current = getTime();
+		if (o != null && this.time != current) this.time = current;
 		return o;
 	}
 }

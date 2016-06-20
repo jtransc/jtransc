@@ -24,7 +24,6 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 
 @HaxeAddMembers({
@@ -113,13 +112,13 @@ public class Object {
 	public final void notifyAll() {
 	}
 
-	public final void wait(long timeout) {
+	public final void wait(long timeout) throws InterruptedException {
 	}
 
-	public final void wait(long timeout, int nanos) {
+	public final void wait(long timeout, int nanos) throws InterruptedException {
 	}
 
-	public final void wait() {
+	public final void wait() throws InterruptedException {
 	}
 
 	protected void finalize() throws Throwable {

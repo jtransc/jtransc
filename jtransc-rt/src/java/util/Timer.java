@@ -210,10 +210,10 @@ public class Timer {
                             return;
                         }
                         // no tasks scheduled -- sleep until any task appear
-                        //try {
+                        try {
                             this.wait();
-                        //} catch (InterruptedException ignored) {
-                        //}
+                        } catch (InterruptedException ignored) {
+                        }
                         continue;
                     }
 
@@ -234,10 +234,10 @@ public class Timer {
 
                     if (timeToSleep > 0) {
                         // sleep!
-                        //try {
+                        try {
                             this.wait(timeToSleep);
-                        //} catch (InterruptedException ignored) {
-                        //}
+                        } catch (InterruptedException ignored) {
+                        }
                         continue;
                     }
 

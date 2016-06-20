@@ -18,6 +18,7 @@
 package java.io;
 
 import com.jtransc.JTranscArrays;
+import com.jtransc.io.JTranscIoTools;
 
 /**
  * Receives information on a communications pipe. When two threads want to pass
@@ -79,7 +80,8 @@ public class PipedReader extends Reader {
 	 * must be connected to a {@code PipedWriter} before data may be read from
 	 * it.
 	 */
-	public PipedReader() {}
+	public PipedReader() {
+	}
 
 	/**
 	 * Constructs a new {@code PipedReader} connected to the {@link PipedWriter}
@@ -228,24 +230,24 @@ public class PipedReader extends Reader {
 		 * of "Pipe broken" will be thrown in receive()
 		 */
 		lastReader = Thread.currentThread();
-		//try {
-		boolean first = true;
-		while (in == -1) {
-			// Are we at end of stream?
-			if (isClosed) {
-				return -1;
+		try {
+			boolean first = true;
+			while (in == -1) {
+				// Are we at end of stream?
+				if (isClosed) {
+					return -1;
+				}
+				if (!first && lastWriter != null && !lastWriter.isAlive()) {
+					throw new IOException("Pipe broken");
+				}
+				first = false;
+				// Notify callers of receive()
+				notifyAll();
+				wait(1000);
 			}
-			if (!first && lastWriter != null && !lastWriter.isAlive()) {
-				throw new IOException("Pipe broken");
-			}
-			first = false;
-			// Notify callers of receive()
-			notifyAll();
-			wait(1000);
+		} catch (InterruptedException e) {
+			throw new InterruptedIOException();
 		}
-		//} catch (InterruptedException e) {
-		//    IoUtils.throwInterruptedIoException();
-		//}
 
 		int copyLength = 0;
 		/* Copy chars from out to end of buffer first */
@@ -264,7 +266,7 @@ public class PipedReader extends Reader {
 		}
 
         /*
-         * Did the read fully succeed in the previous copy or is the buffer
+		 * Did the read fully succeed in the previous copy or is the buffer
          * empty?
          */
 		if (copyLength == count || in == -1) {
@@ -272,7 +274,7 @@ public class PipedReader extends Reader {
 		}
 
 		int charsCopied = copyLength;
-        /* Copy bytes from 0 to the number of available bytes */
+		/* Copy bytes from 0 to the number of available bytes */
 		copyLength = in - out > count - copyLength ? count - copyLength : in - out;
 		System.arraycopy(this.buffer, out, buffer, offset + charsCopied, copyLength);
 		out += copyLength;
@@ -326,23 +328,23 @@ public class PipedReader extends Reader {
 		if (lastReader != null && !lastReader.isAlive()) {
 			throw new IOException("Pipe broken");
 		}
-        /*
+		/*
         * Set the last thread to be writing on this PipedWriter. If
         * lastWriter dies while someone is waiting to read an IOException
         * of "Pipe broken" will be thrown in read()
         */
 		lastWriter = Thread.currentThread();
-		//try {
-		while (buffer != null && out == in) {
-			notifyAll();
-			wait(1000);
-			if (lastReader != null && !lastReader.isAlive()) {
-				throw new IOException("Pipe broken");
+		try {
+			while (buffer != null && out == in) {
+				notifyAll();
+				wait(1000);
+				if (lastReader != null && !lastReader.isAlive()) {
+					throw new IOException("Pipe broken");
+				}
 			}
+		} catch (InterruptedException e) {
+			throw new InterruptedIOException();
 		}
-		//} catch (InterruptedException e) {
-		//    IoUtils.throwInterruptedIoException();
-		//}
 		if (buffer == null) {
 			throw new IOException("Pipe is closed");
 		}
@@ -380,17 +382,17 @@ public class PipedReader extends Reader {
 		 */
 		lastWriter = Thread.currentThread();
 		while (count > 0) {
-			//try {
-			while (buffer != null && out == in) {
-				notifyAll();
-				wait(1000);
-				if (lastReader != null && !lastReader.isAlive()) {
-					throw new IOException("Pipe broken");
+			try {
+				while (buffer != null && out == in) {
+					notifyAll();
+					wait(1000);
+					if (lastReader != null && !lastReader.isAlive()) {
+						throw new IOException("Pipe broken");
+					}
 				}
+			} catch (InterruptedException e) {
+				throw new InterruptedIOException();
 			}
-			//} catch (InterruptedException e) {
-			//    IoUtils.throwInterruptedIoException();
-			//}
 			if (buffer == null) {
 				throw new IOException("Pipe is closed");
 			}

@@ -9,6 +9,7 @@ public class MathTest {
 		cbrt();
 		rint();
 		nanInf();
+		copySign();
 	}
 
 	static private void dumpIntBounds() {
@@ -83,5 +84,18 @@ public class MathTest {
 			System.out.print(",");
 		}
 		System.out.println();
+	}
+
+	static private void copySign() {
+		System.out.println("copySign:");
+		double[] doubles = new double[] { 0, -128, 6, Double.NaN, -Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
+
+		for (double a : doubles) {
+			for (double b : doubles) {
+				System.out.print(Math.copySign(a, b));
+				System.out.print(",");
+			}
+			System.out.println();
+		}
 	}
 }

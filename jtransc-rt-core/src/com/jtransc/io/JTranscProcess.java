@@ -4,15 +4,18 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.*;
+import com.jtransc.util.JTranscCollections;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@SuppressWarnings("ConstantConditions")
 @HaxeAddMembers({
 	"#if sys public var process: sys.io.Process; #end"
 })
@@ -43,8 +46,8 @@ public class JTranscProcess extends Process {
 	private int exitCode;
 	private int pid;
 
-	public Process start(String[] cmdarray, Map<String, String> environment, String dir, ProcessBuilder.Redirect[] redirects, boolean redirectErrorStream) {
-		this.processWrapped = create(cmdarray[0], Arrays.copyOfRange(cmdarray, 1, cmdarray.length), dir, environment);
+	public Process start(List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+		this.processWrapped = create(cmds.get(0), JTranscCollections.sliceArray(cmds, 1, new String[cmds.size() - 1]), dir, environment);
 		if (JTranscSystem.isJs()) {
 			stdoutString = Objects.toString(this.processWrapped.get("stdout"));
 			stderrString = Objects.toString(this.processWrapped.get("stderr"));

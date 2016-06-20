@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscMethodBody;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,16 +25,19 @@ import java.io.OutputStream;
 import java.util.StringTokenizer;
 
 public class Runtime {
-	private static Runtime currentRuntime = new Runtime();
+	private static Runtime current = new Runtime();
 
 	public static Runtime getRuntime() {
-		return currentRuntime;
+		return current;
 	}
 
+	//@JTranscMethodBody(target = "js", value = "this.os = require('os');")
 	private Runtime() {
 	}
 
-	native public void exit(int status);
+	public void exit(int status) {
+		System.exit(status);
+	}
 
 	native public void addShutdownHook(Thread hook);
 

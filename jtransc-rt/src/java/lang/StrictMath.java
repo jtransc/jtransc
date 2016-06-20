@@ -17,10 +17,10 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.util.Random;
 
+@SuppressWarnings({"WeakerAccess", "NumericOverflow", "unused"})
 public final class StrictMath {
 	private StrictMath() {
 	}
@@ -44,25 +44,31 @@ public final class StrictMath {
 	public static final double PI = 3.14159265358979323846;
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.sin(p0);")
-	native public static double sin(double a);
+	public static double sin(double a) {
+		return Math.sin(a);
+	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.cos(p0);")
-	native public static double cos(double a);
+	public static double cos(double a) {
+		return Math.cos(a);
+	}
 
+	@JTranscInline
 	public static double tan(double a) {
 		return Math.tan(a);
 	}
 
+	@JTranscInline
 	public static double asin(double a) {
 		return Math.asin(a);
 	}
 
+	@JTranscInline
 	public static double acos(double a) {
 		return Math.acos(a);
 	}
 
+	@JTranscInline
 	public static double atan(double a) {
 		return Math.atan(a);
 	}

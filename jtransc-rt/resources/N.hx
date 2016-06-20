@@ -23,6 +23,10 @@ class N {
     static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
     static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
 
+    static public function isNegativeZero(x:Float) {
+    	return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
+    }
+
 	static public inline function c<T, S> (value:T, c:Class<S>):S {
 		return cast value;
 		//return (value != null) ? cast value : null;
