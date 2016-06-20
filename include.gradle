@@ -30,6 +30,7 @@ sourceSets {
 	main.kotlin.srcDirs = [ 'src' ]
 	main.resources.srcDirs = [ 'resources' ]
 	test.java.srcDirs = [ 'test' ]
+	test.kotlin.srcDirs = [ 'test' ]
 	test.resources.srcDirs = [ 'testresources' ]
 }
 
