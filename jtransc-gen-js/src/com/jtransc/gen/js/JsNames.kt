@@ -2,22 +2,21 @@ package com.jtransc.gen.js
 
 import com.jtransc.ast.*
 import com.jtransc.ds.getOrPut2
-import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.common.CommonNames
-import com.jtransc.text.Indenter
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 
-
-val JsKeywordsWithToStringAndHashCode = setOf(
-	"name", "constructor", "prototype", "__proto__"
-)
-
 class JsNames(
-	override val program: AstProgram,
+	program: AstResolver,
 	val minimize: Boolean
-) : CommonNames {
+) : CommonNames(program) {
+	companion object {
+		val JsKeywordsWithToStringAndHashCode = setOf(
+			"name", "constructor", "prototype", "__proto__"
+		)
+	}
+
 	override fun buildTemplateClass(clazz: FqName): String {
 		return getJsClassFqNameForCalling(clazz)
 	}
@@ -27,9 +26,7 @@ class JsNames(
 	}
 
 	override fun buildField(field: AstField, static: Boolean): String {
-		val clazz = getJsClassFqNameForCalling(field.containingClass.name)
-		val fieldName = getJsFieldName(field)
-		return if (static) "$clazz[${fieldName.quote()}]" else fieldName
+		return if (static) getStaticFieldText(field.ref) else getJsFieldName(field)
 	}
 
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
@@ -51,7 +48,7 @@ class JsNames(
 	private var lastStringId = 0;
 	val allocatedStrings = hashMapOf<String, Int>()
 
-	fun allocString(str:String):Int {
+	fun allocString(str: String): Int {
 		return allocatedStrings.getOrPut(str) {
 			val id = lastStringId++
 			allocatedStrings[str] = id
@@ -59,9 +56,7 @@ class JsNames(
 		}
 	}
 
-	inline fun <reified T : Any> jsName(): String {
-		return T::class.java.name
-	}
+	inline fun <reified T : Any> jsName(): String = T::class.java.name
 
 	private val fieldNames = hashMapOf<Any?, String>()
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
@@ -94,7 +89,8 @@ class JsNames(
 			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
 		}
 	}
-	fun getJsFieldName(field: AstFieldRef): String = getJsFieldName(program[field])
+
+	fun getJsFieldName(field: AstFieldRef): String = getJsFieldName(program[field]!!)
 
 	fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)
@@ -107,7 +103,6 @@ class JsNames(
 	}
 
 	val JsArrayAny = "JA_L"
-	val JsArrayBase = "JA_0"
 
 	fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
@@ -166,21 +161,9 @@ class JsNames(
 		}
 	}
 
-	fun getAnnotationProxyName(astType: AstType.REF): String {
-		return astType.fqname
-	}
-
 	fun getJsClassStaticInit(clazzRef: AstType.REF, joinToString: String): String {
 		//return "throw 'Not implemented getJsClassStaticInit';"
 		return getJsClassFqNameForCalling(clazzRef.name) + ".SI();"
-	}
-
-	fun getFullAnnotationProxyName(type: AstType.REF): String {
-		return type.fqname
-	}
-
-	fun getJsClassStaticClassInit(ref: AstType.REF): String {
-		return ref.fqname
 	}
 
 	fun getJsClassFqName(fqName: FqName): String {

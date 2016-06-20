@@ -15,7 +15,6 @@ import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.vfs.SyncVfsFile
-import java.io.File
 import java.util.*
 
 class GenJsGen(
@@ -26,8 +25,8 @@ class GenJsGen(
 	val tinfo: GenTargetInfo,
 	val names: JsNames,
 	val jsTemplateString: JsTemplateString,
-    val folders: CommonGenFolders,
-    val types: AstTypes
+	val folders: CommonGenFolders,
+	val types: AstTypes
 ) {
 	val refs = References()
 	val context = AstGenContext()
@@ -50,15 +49,7 @@ class GenJsGen(
 		return true
 	}
 
-	fun AstExpr.genNotNull(): String {
-		return if (this is AstExpr.THIS) {
-			genExpr2(this)
-		} else {
-			genExpr2(this)
-			//"HaxeNatives.checkNotNull(${gen2(this)})"
-		}
-	}
-
+	fun AstExpr.genNotNull(): String = genExpr2(this)
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
 
@@ -123,19 +114,14 @@ class GenJsGen(
 		}
 
 		val mainClassFq = program.entrypoint
-		val mainClass = mainClassFq.haxeClassFqName
-		//val mainMethod = program[mainClassFq].getMethod("main", AstType.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.haxeName
+		val mainClass = mainClassFq.jsClassFqName
+		//val mainMethod = program[mainClassFq].getMethod("main", AstType.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.jsName
 		val mainMethod = "main"
 		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
-		val entryPointFilePath = entryPointClass.haxeFilePath
-		val entryPointFqName = entryPointClass.haxeGeneratedFqName
-		val entryPointSimpleName = entryPointClass.haxeGeneratedSimpleClassName
+		val entryPointFilePath = entryPointClass.jsFilePath
+		val entryPointFqName = entryPointClass.jsGeneratedFqName
+		val entryPointSimpleName = entryPointClass.jsGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
-
-		fun inits() = Indenter.gen {
-			line("haxe.CallStack.callStack();")
-			line(names.getJsClassStaticInit(program[mainClassFq].ref, "program main"))
-		}
 
 		val customMain = program.allAnnotationsList.getTypedList(JTranscCustomMainList::value).firstOrNull { it.target == "js" }?.value
 
@@ -150,8 +136,7 @@ class GenJsGen(
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
 			"mainClass2" to mainClassFq.fqname,
-			"mainMethod" to mainMethod,
-			"inits" to inits().toString()
+			"mainMethod" to mainMethod
 		))
 
 		val strs = Indenter.gen {
@@ -166,7 +151,7 @@ class GenJsGen(
 
 		val out = Indenter.gen {
 			if (settings.debug) {
-				line("//# sourceMappingURL=program.haxe.js.map")
+				line("//# sourceMappingURL=program.js.map")
 			}
 
 			for (f in concatFilesTrans) if (f.prepend != null) line(f.prepend)
@@ -218,13 +203,13 @@ class GenJsGen(
 				null -> "null"
 				is AstAnnotation -> annotation(it)
 				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> names.getJsClassFqNameForCalling(it.containingTypeRef.name) + "[" + it.haxeName.quote() + "]"
-				is AstFieldWithoutTypeRef -> names.getJsClassFqNameForCalling(program[it.containingClass].ref.name) + "[" + program[it].haxeName.quote() + "]"
+				is AstFieldRef -> names.getStaticFieldText(it)
+				is AstFieldWithoutTypeRef -> names.getStaticFieldText(program[it].ref)
 				is String -> "N.boxString(${it.quote()})"
 				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
 				is com.jtransc.org.objectweb.asm.Type -> "N.resolveClass(" + it.descriptor.quote() + ")"
-				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
+				else -> invalidOp("GenJsGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
 		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
@@ -261,6 +246,7 @@ class GenJsGen(
 	fun visibleAnnotations(annotations: List<AstAnnotation>): String {
 		return "function() { ${annotationsInit(annotations)} return " + _visibleAnnotations(annotations) + "; }"
 	}
+
 	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String {
 		return "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
 	}
@@ -268,6 +254,7 @@ class GenJsGen(
 	fun visibleAnnotationsOrNull(annotations: List<AstAnnotation>): String {
 		return if (annotations.isNotEmpty()) visibleAnnotations(annotations) else "null"
 	}
+
 	fun visibleAnnotationsListOrNull(annotations: List<List<AstAnnotation>>): String {
 		return if (annotations.isNotEmpty()) visibleAnnotationsList(annotations) else "null"
 	}
@@ -303,7 +290,7 @@ class GenJsGen(
 					line("return ${stm.retval.genExpr()};")
 				}
 				is AstStm.SET_LOCAL -> {
-					val localName = stm.local.haxeName
+					val localName = stm.local.jsName
 					val expr = stm.expr.genExpr()
 					if (localName != expr) {
 						// Avoid: Assigning a value to itself
@@ -315,14 +302,14 @@ class GenJsGen(
 					//val mapping = mappings.getClassMapping(newClazz)
 					refs.add(stm.target)
 					val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
-					val className = stm.target.haxeTypeNew
-					val localHaxeName = stm.local.haxeName
+					val className = stm.target.jsTypeNew
+					val jsLocalName = stm.local.jsName
 
 					if (newClazz.nativeName != null) {
-						line("$localHaxeName = new $className($commaArgs);")
+						line("$jsLocalName = new $className($commaArgs);")
 					} else {
-						line("$localHaxeName = new $className();")
-						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
+						line("$jsLocalName = new $className();")
+						line("$jsLocalName.${stm.method.jsName}($commaArgs);")
 					}
 				}
 				is AstStm.SET_ARRAY -> {
@@ -331,7 +318,7 @@ class GenJsGen(
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
 					mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
-					val left = fixField(stm.field).haxeStaticText
+					val left = fixField(stm.field).jsStaticText
 					val right = stm.expr.genExpr()
 					if (left != right) {
 						// Avoid: Assigning a value to itself
@@ -339,7 +326,7 @@ class GenJsGen(
 					}
 				}
 				is AstStm.SET_FIELD_INSTANCE -> {
-					val left = "${stm.left.genExpr()}.${fixField(stm.field).haxeName}"
+					val left = "${stm.left.genExpr()}.${fixField(stm.field).jsName}"
 					val right = stm.expr.genExpr()
 					if (left != right) {
 						// Avoid: Assigning a value to itself
@@ -398,7 +385,7 @@ class GenJsGen(
 		return Indenter.gen {
 			for (local in body.locals) {
 				refs.add(local.type)
-				line("var ${local.haxeName} = ${local.type.haxeDefaultString};")
+				line("var ${local.jsName} = ${local.type.jsDefaultString};")
 			}
 			if (body.traps.isNotEmpty()) {
 				line("var J__exception__ = null;")
@@ -455,6 +442,7 @@ class GenJsGen(
 
 	//private fun N_i2d(str:String) = "N.i2d($str)"
 	private fun N_i2f(str: String) = "Math.fround(+($str))"
+
 	private fun N_i2d(str: String) = "+($str)"
 
 	private fun N_f2f(str: String) = "Math.fround($str)"
@@ -490,7 +478,7 @@ class GenJsGen(
 			}
 			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
-			is AstExpr.LOCAL -> "${e.local.haxeName}"
+			is AstExpr.LOCAL -> "${e.local.jsName}"
 			is AstExpr.UNOP -> {
 				val resultType = e.type
 				val opName = e.op.str
@@ -554,11 +542,11 @@ class GenJsGen(
 				val isNativeCall = refMethodClass.isNative
 
 				val commaArgs = args.map {
-					if (isNativeCall) convertToHaxe(it) else it.genExpr()
+					if (isNativeCall) convertToJs(it) else it.genExpr()
 				}.joinToString(", ")
 
 				val base = when (e2) {
-					is AstExpr.CALL_STATIC -> "${clazz.haxeTypeNew}"
+					is AstExpr.CALL_STATIC -> "${clazz.jsTypeNew}"
 					is AstExpr.CALL_SUPER -> {
 						val superMethod = refMethodClass.get(method.withoutClass) ?: invalidOp("Can't find super for method : $method")
 						names.getJsClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
@@ -572,17 +560,17 @@ class GenJsGen(
 					else -> "("
 				}
 
-				val result = "$base${refMethod.haxeNameAccess}$base2$commaArgs)"
+				val result = "$base${refMethod.jsNameAccess}$base2$commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
 			is AstExpr.FIELD_INSTANCE_ACCESS -> {
-				"${e.expr.genNotNull()}${fixField(e.field).haxeNameAccess}"
+				"${e.expr.genNotNull()}${fixField(e.field).jsNameAccess}"
 			}
 			is AstExpr.FIELD_STATIC_ACCESS -> {
 				refs.add(e.clazzName)
 				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
 
-				"${fixField(e.field).haxeStaticText}"
+				"${fixField(e.field).jsStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> {
 				val type = e.array.type
@@ -598,12 +586,12 @@ class GenJsGen(
 			}
 			is AstExpr.NEW -> {
 				refs.add(e.target)
-				val className = e.target.haxeTypeNew
+				val className = e.target.jsTypeNew
 				"new $className()"
 			}
 			is AstExpr.INSTANCE_OF -> {
 				refs.add(e.checkType)
-				N_is(e.expr.genExpr(), e.checkType.haxeTypeCast.toString())
+				N_is(e.expr.genExpr(), e.checkType.jsTypeCast.toString())
 			}
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)
@@ -613,7 +601,7 @@ class GenJsGen(
 						if (e.type.elementType !is AstType.Primitive) {
 							"new ${names.JsArrayAny}(${e.counts[0].genExpr()}, \"$desc\")"
 						} else {
-							"new ${e.type.haxeTypeNew}(${e.counts[0].genExpr()})"
+							"new ${e.type.jsTypeNew}(${e.counts[0].genExpr()})"
 						}
 					}
 					else -> {
@@ -633,10 +621,6 @@ class GenJsGen(
 					val argNameTypes = methodInInterfaceRef.type.args.map { it.name }.joinToString(", ")
 
 					line("function($argNameTypes)") {
-						// @TODO: Static + non-static
-						//val methodToCallClassName = methodToConvertRef.classRef.name.haxeClassFqName
-						//val methodToCallName = methodToConvertRef.haxeName
-
 						val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
 
 						line("return " + genExpr2(AstExpr.CAST(AstExpr.CALL_STATIC(
@@ -654,33 +638,27 @@ class GenJsGen(
 		}
 	}
 
-	fun convertToHaxe(expr: AstExpr.Box): String {
-		return convertToHaxe(expr.type, expr.genExpr())
+	fun convertToJs(expr: AstExpr.Box): String {
+		return convertToJs(expr.type, expr.genExpr())
 	}
 
 	fun convertToJava(expr: AstExpr.Box): String {
 		return convertToJava(expr.type, expr.genExpr())
 	}
 
-	fun convertToHaxe(type: AstType, text: String): String {
-		return return convertToFromHaxe(type, text, toHaxe = true)
+	fun convertToJs(type: AstType, text: String): String {
+		return return convertToFromJs(type, text, toJs = true)
 	}
 
 	fun convertToJava(type: AstType, text: String): String {
-		return return convertToFromHaxe(type, text, toHaxe = false)
+		return return convertToFromJs(type, text, toJs = false)
 	}
 
-	fun convertToFromHaxe(type: AstType, text: String, toHaxe: Boolean): String {
+	fun convertToFromJs(type: AstType, text: String, toJs: Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toHaxe) "N.unbox($text)" else "N.box($text)")
+			return (if (toJs) "N.unbox($text)" else "N.box($text)")
 		}
 
-		//if (type is AstType.REF) {
-		//	val conversion = program[type.name].annotationsList.getTyped<HaxeNativeConversion>()
-		//	if (conversion != null) {
-		//		return (if (toHaxe) conversion.toHaxe else conversion.toJava).replace("@self", text)
-		//	}
-		//}
 		return text
 	}
 
@@ -754,7 +732,6 @@ class GenJsGen(
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
 					FUNCTION_REF -> "(N.getFunction($e))"
-				//else -> "N.c($e, ${to.haxeTypeCast})"
 					else -> "$e"
 				}
 			}
@@ -783,7 +760,7 @@ class GenJsGen(
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
 		//val isNormalClass = (clazz.classType == AstClassType.CLASS)
 		//val classType = if (isInterface) "interface" else "class"
-		val simpleClassName = clazz.name.haxeGeneratedSimpleClassName
+		val simpleClassName = clazz.name.jsGeneratedSimpleClassName
 		//val implementingString = getInterfaceList("implements")
 		//val isInterfaceWithStaticMembers = isInterface && clazz.fields.any { it.isStatic }
 		//val isInterfaceWithStaticFields = clazz.name.withSimpleName(clazz.name.simpleName + "\$StaticMembers")
@@ -793,23 +770,14 @@ class GenJsGen(
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 		//val interfaceClassName = clazz.name.append("_Fields");
 
-		var output = arrayListOf<Pair<String, String>>()
-
 		fun writeField(field: AstField): Indenter = Indenter.gen {
-			//val static = if (field.isStatic) "static " else ""
-			//val visibility = if (isInterface) " " else field.visibility.haxe
 			val fieldType = field.type
 			refs.add(fieldType)
-			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
+			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.jsDefault
 
 			val defaultFieldName = field.name
-			val fieldName = if (field.haxeName == defaultFieldName) null else field.haxeName
+			val fieldName = if (field.jsName == defaultFieldName) null else field.jsName
 
-			//if (field.name == "this\$0") println("field: $field : fieldRef: ${field.ref} : $fieldName")
-
-			//val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
-
-			//line("$keep$static$visibility var $fieldName:${fieldType.haxeTypeTag} = ${names.escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
 			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.descriptor.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstant(defaultValue, fieldType)}, ${visibleAnnotationsOrNull(field.annotations)});")
 		}
 
@@ -820,7 +788,7 @@ class GenJsGen(
 				val margs = method.methodType.args.map { it.name }
 
 				val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
-				val methodName = if (method.haxeName == defaultMethodName) null else method.haxeName
+				val methodName = if (method.jsName == defaultMethodName) null else method.jsName
 
 				val rbody = if (method.body != null) {
 					method.body
@@ -831,7 +799,7 @@ class GenJsGen(
 				}
 
 
-				fun renderBranch(actualBody:Indenter?) = Indenter.gen {
+				fun renderBranch(actualBody: Indenter?) = Indenter.gen {
 					val isConstructor = method.isInstanceInit
 
 					val registerMethodName = if (isConstructor) {
@@ -867,10 +835,8 @@ class GenJsGen(
 
 						// @TODO: Do not hardcode this!
 						if (javaBody == null && nativeBodies.isEmpty()) {
-							//line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							line(renderBranch(null))
 						} else {
-							//line(method.getHaxeNativeBody(javaBody).toString().template("nativeMethod"))
 							if (nativeBodies.isNotEmpty()) {
 								val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody ?: Indenter.EMPTY
 								val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
@@ -894,7 +860,7 @@ class GenJsGen(
 						}
 					} catch (e: Throwable) {
 						log.printStackTrace(e)
-						log.warn("WARNING haxe_gen.writeMethod:" + e.message)
+						log.warn("WARNING GenJsGen.writeMethod:" + e.message)
 
 						line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
 						line(renderBranch(null))
@@ -905,81 +871,35 @@ class GenJsGen(
 			}
 		}
 
-		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
-		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).haxeName
-		// java.lang.annotation.Annotation
-		//abstract fun annotationType():Class<out Annotation>
-
 		val classCodeIndenter = Indenter.gen {
 			if (isAbstract) line("// ABSTRACT")
 
-			val interfaces = "[" + clazz.implementing.map { it.haxeClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.haxeClassFqName?.quote()}, $interfaces, ${visibleAnnotationsOrNull(clazz.runtimeAnnotations)}, function() {"
+			val interfaces = "[" + clazz.implementing.map { it.jsClassFqName.quote() }.joinToString(", ") + "]"
+			val declarationHead = "var " + names.getJsClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.jsClassFqName?.quote()}, $interfaces, ${visibleAnnotationsOrNull(clazz.runtimeAnnotations)}, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)
 			indent {
 				val nativeMembers = clazz.annotationsList.getTypedList(JTranscAddMembersList::value)
 
-				for (member in nativeMembers.filter { it.target == "js" }.flatMap { it.value.toList() }) {
-					line(member)
-				}
-
-				for (field in clazz.fields) {
-					line(writeField(field))
-				}
-
-				for (method in clazz.methods) {
-					line(writeMethod(method))
-				}
-
-				// @TODO: Check! Check Haxe too!
-				//if (!isInterface) {
-				//	//println(clazz.fqname + " -> " + program.getAllInterfaces(clazz))
-				//	val isFunctionType = program.isImplementing(clazz, JTranscFunction::class.java.name)
-				//
-				//	if (isFunctionType) {
-				//		val executeFirst = clazz.methodsByName["execute"]!!.first()
-				//		line("public const _execute:Function = ${executeFirst.ref.haxeName};")
-				//	}
-				//}
-
-				/*
-				if (isNormalClass) {
-					val override = if (isRootObject) " " else "override "
-					line("$override public function toString():String { return HaxeNatives.toNativeString(this.toString__Ljava_lang_String_()); }")
-				}
-				*/
-				if (isRootObject) {
-					//line("public function toString():String { return HaxeNatives.toNativeString(this.$toStringHaxeName()); }")
-					//line("public function hashCode():Int { return this.$hashCodeHaxeName(); }")
-				}
-
-				//line(dumpClassInfo(clazz))
+				for (member in nativeMembers.filter { it.target == "js" }.flatMap { it.value.toList() }) line(member)
+				for (field in clazz.fields) line(writeField(field))
+				for (method in clazz.methods) line(writeMethod(method))
 			}
 
 			line(declarationTail)
 		}
 
-		val lineMappings = hashMapOf<Int, Int>()
-
 		return classCodeIndenter
 	}
 
 
-
-	//val FqName.as3Fqname: String get() = this.fqname
-	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
-
 	enum class TypeKind { TYPETAG, NEW, CAST }
 
-	val AstVisibility.haxe: String get() = "public"
-
-	val AstType.haxeTypeTag: FqName get() = names.getJsType(this, TypeKind.TYPETAG)
-	val AstType.haxeTypeNew: FqName get() = names.getJsType(this, TypeKind.NEW)
-	val AstType.haxeTypeCast: FqName get() = names.getJsType(this, TypeKind.CAST)
-	val AstType.haxeDefault: Any? get() = names.getJsDefault(this)
-	val AstType.haxeDefaultString: String get() = names.escapeConstant(names.getJsDefault(this), this)
+	val AstType.jsTypeNew: FqName get() = names.getJsType(this, TypeKind.NEW)
+	val AstType.jsTypeCast: FqName get() = names.getJsType(this, TypeKind.CAST)
+	val AstType.jsDefault: Any? get() = names.getJsDefault(this)
+	val AstType.jsDefaultString: String get() = names.escapeConstant(names.getJsDefault(this), this)
 
 	fun AstType.box(arg: String): String {
 		return when (this) {
@@ -995,29 +915,24 @@ class GenJsGen(
 		}
 	}
 
-	val AstLocal.haxeName: String get() = this.name.replace('$', '_')
-	val AstExpr.LocalExpr.haxeName: String get() = this.name.replace('$', '_')
+	val AstLocal.jsName: String get() = this.name.replace('$', '_')
+	val AstExpr.LocalExpr.jsName: String get() = this.name.replace('$', '_')
 
-	val AstField.haxeName: String get() = names.getJsFieldName(this)
-	val AstFieldRef.haxeName: String get() = names.getJsFieldName(this)
-	val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
+	val AstField.jsName: String get() = names.getJsFieldName(this)
+	val AstFieldRef.jsName: String get() = names.getJsFieldName(this)
+	val AstFieldRef.jsStaticText: String get() = names.getStaticFieldText(this)
 
-	val AstFieldRef.haxeNameAccess: String get() = "[" + names.getJsFieldName(this).quote() + "]"
+	val AstFieldRef.jsNameAccess: String get() = "[" + names.getJsFieldName(this).quote() + "]"
 
-	val AstMethod.haxeName: String get() = names.getJsMethodName(this)
-	val AstMethodRef.haxeName: String get() = names.getJsMethodName(this)
+	val AstMethod.jsName: String get() = names.getJsMethodName(this)
+	val AstMethodRef.jsName: String get() = names.getJsMethodName(this)
 
-	val AstMethod.haxeNameAccess: String get() = "[" + names.getJsMethodName(this).quote() + "]"
-	val AstMethodRef.haxeNameAccess: String get() = "[" + names.getJsMethodName(this).quote() + "]"
+	val AstMethod.jsNameAccess: String get() = "[" + names.getJsMethodName(this).quote() + "]"
 
-	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
-
-	val FqName.haxeClassFqName: String get() = names.getJsClassFqName(this)
-	val FqName.haxeClassFqNameInt: String get() = names.getJsClassFqNameInt(this)
-	val FqName.haxeFilePath: String get() = names.getJsFilePath(this)
-	val FqName.haxeGeneratedFqPackage: String get() = names.getJsGeneratedFqPackage(this)
-	val FqName.haxeGeneratedFqName: FqName get() = names.getJsGeneratedFqName(this)
-	val FqName.haxeGeneratedSimpleClassName: String get() = names.getJsGeneratedSimpleClassName(this)
+	val FqName.jsClassFqName: String get() = names.getJsClassFqName(this)
+	val FqName.jsFilePath: String get() = names.getJsFilePath(this)
+	val FqName.jsGeneratedFqName: FqName get() = names.getJsGeneratedFqName(this)
+	val FqName.jsGeneratedSimpleClassName: String get() = names.getJsGeneratedSimpleClassName(this)
 
 	fun String.template(reason: String): String = jsTemplateString.gen(this, context, reason)
 

@@ -2,18 +2,16 @@ package com.jtransc.gen.common
 
 import com.jtransc.ast.*
 
-interface CommonNames {
-	val program: AstResolver
+abstract class CommonNames(val program: AstResolver) {
+	abstract fun buildTemplateClass(clazz: FqName): String
 
-	fun buildTemplateClass(clazz: FqName): String
+	abstract fun buildTemplateClass(clazz: AstClass): String
 
-	fun buildTemplateClass(clazz: AstClass): String
+	abstract fun buildField(field: AstField, static: Boolean): String
 
-	fun buildField(field: AstField, static: Boolean): String
+	abstract fun buildMethod(method: AstMethod, static: Boolean): String
 
-	fun buildMethod(method: AstMethod, static: Boolean): String
+	abstract fun buildStaticInit(clazz: AstClass): String
 
-	fun buildStaticInit(clazz: AstClass): String
-
-	fun buildConstructor(method: AstMethod): String
+	abstract fun buildConstructor(method: AstMethod): String
 }

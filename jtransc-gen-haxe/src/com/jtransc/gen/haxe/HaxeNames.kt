@@ -9,47 +9,49 @@ import com.jtransc.gen.common.CommonNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 
-val HaxeKeywords = setOf(
-	"haxe",
-	"Dynamic",
-	"Void",
-	"java",
-	"package",
-	"import",
-	"class", "interface", "extends", "implements",
-	"internal", "private", "protected", "final",
-	"function", "var", "const",
-	"if", "else",
-	"switch", "case", "default",
-	"do", "while", "for", "each", "in",
-	"try", "catch", "finally",
-	"break", "continue",
-	"int", "uint", "void",
-	"goto"
-)
-
-val HaxeSpecial = setOf(
-	"hx",
-	"z", // used for package
-	"N", // used for HaxeNatives
-	"NN", // used for HaxeNatives without references to other classes
-	"R", // used for reflect
-	"SI", // STATIC INIT
-	"SII", // STATIC INIT INITIALIZED
-	"HAXE_CLASS_INIT", // Information about the class
-	"HAXE_CLASS_NAME", // Information about the class
-	"HaxeNatives", // used for HaxeNatives
-	"unix",
-	"OVERFLOW", // iphone sdk
-	"UNDERFLOW" // iphone sdk
-)
-
-val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
-
 class HaxeNames(
-	override val program: AstResolver,
+	program: AstResolver,
 	val minimize: Boolean = false
-) : CommonNames {
+) : CommonNames(program) {
+	companion object {
+		val HaxeKeywords = setOf(
+			"haxe",
+			"Dynamic",
+			"Void",
+			"java",
+			"package",
+			"import",
+			"class", "interface", "extends", "implements",
+			"internal", "private", "protected", "final",
+			"function", "var", "const",
+			"if", "else",
+			"switch", "case", "default",
+			"do", "while", "for", "each", "in",
+			"try", "catch", "finally",
+			"break", "continue",
+			"int", "uint", "void",
+			"goto"
+		)
+
+		val HaxeSpecial = setOf(
+			"hx",
+			"z", // used for package
+			"N", // used for HaxeNatives
+			"NN", // used for HaxeNatives without references to other classes
+			"R", // used for reflect
+			"SI", // STATIC INIT
+			"SII", // STATIC INIT INITIALIZED
+			"HAXE_CLASS_INIT", // Information about the class
+			"HAXE_CLASS_NAME", // Information about the class
+			"HaxeNatives", // used for HaxeNatives
+			"unix",
+			"OVERFLOW", // iphone sdk
+			"UNDERFLOW" // iphone sdk
+		)
+
+		val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
+	}
+
 	override fun buildConstructor(method: AstMethod): String {
 		return "new ${getHaxeClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
 	}
