@@ -24,10 +24,22 @@ function __createJavaArrayBaseType() {
 
 	__decorateArray(ARRAY);
 
-	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
+	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
 		return N.resolveClass(this.desc);
 	};
 	return ARRAY;
+}
+
+function __addArrayJavaMethods(ARRAY) {
+	ARRAY.prototype['{% METHOD java.lang.Object:clone %}'] = ARRAY.prototype.clone;
+
+	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
+		return N.resolveClass(this.desc);
+	};
+
+	ARRAY.prototype['{% METHOD java.lang.Object:toString %}'] = function() {
+		return N.str('ARRAY(' + this.desc + ')');
+	};
 }
 
 function __createJavaArrayType(desc, type, elementBytesSize) {
@@ -81,11 +93,7 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
     	return out;
     };
 
-	ARRAY.prototype["clone()Ljava/lang/Object;"] = ARRAY.prototype.clone;
-
-	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
-		return N.resolveClass(this.desc);
-	};
+	__addArrayJavaMethods(ARRAY);
 
 	return ARRAY;
 }
@@ -133,11 +141,7 @@ function __createGenericArrayType() {
 		return this.data;
 	};
 
-	ARRAY.prototype["clone()Ljava/lang/Object;"] = ARRAY.prototype.clone;
-
-	ARRAY.prototype["getClass()Ljava/lang/Class;"] = function() {
-		return N.resolveClass(this.desc);
-	};
+	__addArrayJavaMethods(ARRAY);
 
 	return ARRAY;
 }

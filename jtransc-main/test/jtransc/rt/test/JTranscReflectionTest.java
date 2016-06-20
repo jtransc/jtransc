@@ -21,6 +21,7 @@ public class JTranscReflectionTest {
 		getInterfacesTest();
 		testEmptyAnnotations();
 		checkClassNotFound();
+		toStringArray();
 	}
 
 	static private void checkClassNotFound() {
@@ -165,6 +166,20 @@ public class JTranscReflectionTest {
 		for (int n = 0; n < 10; n++) System.out.println(items[n] + 10);
 
 		System.out.println((new String[0]).getClass().getComponentType());
+	}
+
+	static public void toStringArray() {
+		System.out.println("toStringArray:");
+		System.out.println(new boolean[0].toString() != null);
+		System.out.println(new byte[0].toString() != null);
+		System.out.println(new char[0].toString() != null);
+		System.out.println(new short[0].toString() != null);
+		System.out.println(new int[0].toString() != null);
+		System.out.println(new long[0].toString() != null);
+		System.out.println(new float[0].toString() != null);
+		System.out.println(new double[0].toString() != null);
+		System.out.println(new String[0].toString() != null);
+		System.out.println(new Class[0].toString() != null);
 	}
 
 	static public void assignableTest() {
