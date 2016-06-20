@@ -1,9 +1,16 @@
 package java.net.internal;
 
+import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 public class HttpHandler extends URLStreamHandler {
+	@Override
+	public URLConnection openConnection(URL url) throws IOException {
+		return openConnection(url, null);
+	}
+
 	//protected void parseURL(URL url, String spec, int start, int end) {
 	//	//if (this != url.streamHandler) {
 	//	//	throw new SecurityException("Only a URL's stream handler is permitted to mutate it");

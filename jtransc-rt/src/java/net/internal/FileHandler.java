@@ -19,6 +19,7 @@ package java.net.internal;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 /**
@@ -37,9 +38,9 @@ public class FileHandler extends URLStreamHandler {
 	 *
 	 */
 	//@Override
-	//public URLConnection openConnection(URL url) throws IOException {
-	//	return openConnection(url, null);
-	//}
+	public URLConnection openConnection(URL url) throws IOException {
+		return openConnection(url, null);
+	}
 
 	/**
 	 * The behavior of this method is the same as openConnection(URL).

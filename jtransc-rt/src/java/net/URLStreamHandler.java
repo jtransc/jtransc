@@ -30,7 +30,7 @@ public abstract class URLStreamHandler {
 	 * @return the opened URLConnection to the specified resource.
 	 * @throws IOException if an I/O error occurs during opening the connection.
 	 */
-	//protected abstract URLConnection openConnection(URL u) throws IOException;
+	protected abstract URLConnection openConnection(URL u) throws IOException;
 
 	/**
 	 * Establishes a new connection to the resource specified by the URL {@code
@@ -45,9 +45,9 @@ public abstract class URLStreamHandler {
 	 *                                       wrong.
 	 * @throws UnsupportedOperationException if the protocol handler doesn't support this method.
 	 */
-	//protected URLConnection openConnection(URL u, Proxy proxy) throws IOException {
-	//	throw new UnsupportedOperationException();
-	//}
+	protected URLConnection openConnection(URL u, Proxy proxy) throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * Parses the clear text URL in {@code str} into a URL object. URL strings

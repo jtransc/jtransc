@@ -439,33 +439,33 @@ public final class URL implements Serializable {
 	 * default this returns an {@code InputStream}, or null if the content type
 	 * of the response is unknown.
 	 */
-	//public final Object getContent() throws IOException {
-	//	return openConnection().getContent();
-	//}
+	public final Object getContent() throws IOException {
+		return openConnection().getContent();
+	}
 
 	/**
 	 * Equivalent to {@code openConnection().getContent(types)}.
 	 */
 	@SuppressWarnings("unchecked") // Param not generic in spec
-	//public final Object getContent(Class[] types) throws IOException {
-	//	return openConnection().getContent(types);
-	//}
+	public final Object getContent(Class[] types) throws IOException {
+		return openConnection().getContent(types);
+	}
 
 	/**
 	 * Equivalent to {@code openConnection().getInputStream(types)}.
 	 */
-	//public final InputStream openStream() throws IOException {
-	//	return openConnection().getInputStream();
-	//}
+	public final InputStream openStream() throws IOException {
+		return openConnection().getInputStream();
+	}
 
 	/**
 	 * Returns a new connection to the resource referred to by this URL.
 	 *
 	 * @throws IOException if an error occurs while opening the connection.
 	 */
-	//public URLConnection openConnection() throws IOException {
-	//	return streamHandler.openConnection(this);
-	//}
+	public URLConnection openConnection() throws IOException {
+		return streamHandler.openConnection(this);
+	}
 
 	/**
 	 * Returns a new connection to the resource referred to by this URL.
@@ -477,12 +477,12 @@ public final class URL implements Serializable {
 	 * @throws UnsupportedOperationException if the protocol handler does not
 	 *     support opening connections through proxies.
 	 */
-	//public URLConnection openConnection(Proxy proxy) throws IOException {
-	//	if (proxy == null) {
-	//		throw new IllegalArgumentException("proxy == null");
-	//	}
-	//	return streamHandler.openConnection(this, proxy);
-	//}
+	public URLConnection openConnection(Proxy proxy) throws IOException {
+		if (proxy == null) {
+			throw new IllegalArgumentException("proxy == null");
+		}
+		return streamHandler.openConnection(this, proxy);
+	}
 
 	/**
 	 * Returns the URI equivalent to this URL.
