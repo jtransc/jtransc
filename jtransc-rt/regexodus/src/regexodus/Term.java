@@ -244,15 +244,15 @@ public class Term implements REFlags, Serializable {
         Term first = term.next;
 
         // Optimisation:
-        //Term optimized = first;
-        //Optimizer opt = Optimizer.find(first);
-        //if (opt != null) optimized = opt.makeFirst(first);
+        Term optimized = first;
+        Optimizer opt = Optimizer.find(first);
+        if (opt != null) optimized = opt.makeFirst(first);
 
         for (TermIterator i : iterators) {
             i.optimize();
         }
 
-        //re.root = optimized;
+        re.root = optimized;
         re.root = first;
         re.root0 = first;
         re.memregs = vars[MEMREG_COUNT];
@@ -484,19 +484,21 @@ public class Term implements REFlags, Serializable {
                                 while (Category.Z.contains(cp) || Category.Po.contains(cp)) {
                                     p++;
                                     if (p == end) throw new PatternSyntaxException("'group_id' expected");
-                                    switch (cp)
-                                    {
-                                        case '@': mi = !mi;
+                                    switch (cp) {
+                                        case '@':
+                                            mi = !mi;
                                             break;
-                                        case '/': mr = !mr;
+                                        case '/':
+                                            mr = !mr;
                                             break;
-                                        case ':': mb = !mb;
+                                        case ':':
+                                            mb = !mb;
                                             break;
                                     }
                                     cp = data[p];
                                 }
                                 BackReference br = new BackReference(-1, mi || (flags[0] & IGNORE_CASE) > 0, mr, mb);
-                                i = parseGroupId(data, p, end, br, gmap);
+                                i = parseGroupId(data, p, end, br, gmap, '}');
                                 current = append(br);
                                 continue;
                             } else {
@@ -506,7 +508,33 @@ public class Term implements REFlags, Serializable {
                                 continue;
                             }
                         }
-
+                    case '\\':
+                        if (i + 4 < end && data[i + 1] == 'k' && data[i + 2] == '<') { //'\k<name>' - backreference
+                            int p = i + 3;
+                            if (p == end) throw new PatternSyntaxException("'group_id' expected");
+                            char cp = data[p];
+                            boolean mi = false, mb = false, mr = false;
+                            while (Category.Z.contains(cp) || Category.Po.contains(cp)) {
+                                p++;
+                                if (p == end) throw new PatternSyntaxException("'group_id' expected");
+                                switch (cp) {
+                                    case '@':
+                                        mi = !mi;
+                                        break;
+                                    case '/':
+                                        mr = !mr;
+                                        break;
+                                    case ':':
+                                        mb = !mb;
+                                        break;
+                                }
+                                cp = data[p];
+                            }
+                            BackReference br = new BackReference(-1, mi || (flags[0] & IGNORE_CASE) > 0, mr, mb);
+                            i = parseGroupId(data, p, end, br, gmap, '>');
+                            current = append(br);
+                            continue;
+                        }
                     case ' ':
                     case '\t':
                     case '\r':
@@ -570,7 +598,7 @@ public class Term implements REFlags, Serializable {
     }*/
 
 
-    private static int parseGroupId(char[] data, int i, int end, Term term, HashMap<String, Integer> gmap) throws PatternSyntaxException {
+    private static int parseGroupId(char[] data, int i, int end, Term term, HashMap<String, Integer> gmap, char closer) throws PatternSyntaxException {
         int id;
         int nstart = i;
         if (Character.isDigit(data[i])) {
@@ -591,16 +619,17 @@ public class Term implements REFlags, Serializable {
         }
         while (Category.Z.contains(data[i])) {
             i++;
-            if (i == end) throw new PatternSyntaxException("'}' expected");
+            if (i == end) throw new PatternSyntaxException("'" + closer + "' expected");
         }
 
         int c = data[i++];
 
-        if (c != '}') throw new PatternSyntaxException("'}' expected");
+        if (c != closer) throw new PatternSyntaxException("'" + closer + "' expected");
 
         term.memreg = id;
         return i;
     }
+
 
     Term append(Term term) throws PatternSyntaxException {
         //Term prev=this.prev;
@@ -1821,6 +1850,7 @@ class Pretokenizer implements Serializable {
         int end = this.end;
         char[] data = this.data;
         boolean esc = false;
+        char ender = '}';
         for (int i = tOffset; i < end; i++) {
             char c = data[i];
             if (esc) {
@@ -1881,7 +1911,26 @@ class Pretokenizer implements Serializable {
                                         skip = 4; // "(?<!"
                                         break;
                                     default:
-                                        throw new PatternSyntaxException("invalid character after '(?<' : " + c1);
+                                        int p = i + 3;
+                                        skip = 4; //'(?<' + '>'
+                                        int nstart, nend;
+                                        nstart = p;
+                                        if(Category.N.contains(c1))
+                                            throw new PatternSyntaxException("number at the start of a named group");
+                                        while (Category.IdentifierPart.contains(c1)) {
+                                            c1 = data[++p];
+                                            skip++;
+                                            if (p == end) throw new PatternSyntaxException("malformed named group");
+                                        }
+                                        nend = p;
+                                        if (c1 != '>')
+                                            throw new PatternSyntaxException("'>' expected at " + (p - i) + " in " + new String(data, i, end - i));
+
+                                        this.groupName = new String(data, nstart, nend - nstart);
+                                        this.groupDeclared = true;
+                                        ttype = NAMED_GROUP;
+                                        break;
+                                        //throw new PatternSyntaxException("invalid character after '(?<' : " + c1);
                                 }
                                 break;
                             case '>':

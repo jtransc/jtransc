@@ -97,13 +97,7 @@ public class Object {
 
 	@JTranscKeep
 	public String toString() {
-		Class<?> clazz = getClass();
-		String hashCode = Integer.toHexString(this.hashCode());
-		if (clazz != null) {
-			return clazz.getName() + "@" + hashCode;
-		} else {
-			return "null@" + hashCode;
-		}
+		return getClass().getName() + "@" + Integer.toHexString(this.hashCode());
 	}
 
 	public final void notify() {
@@ -116,9 +110,11 @@ public class Object {
 	}
 
 	public final void wait(long timeout, int nanos) throws InterruptedException {
+		wait(timeout);
 	}
 
 	public final void wait() throws InterruptedException {
+		wait(0);
 	}
 
 	protected void finalize() throws Throwable {

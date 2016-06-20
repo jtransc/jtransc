@@ -16,6 +16,9 @@
 
 package java.text;
 
+import com.jtransc.lang.JTranscObjects;
+
+@SuppressWarnings({"WeakerAccess", "EqualsWhichDoesntCheckParameterClass"})
 public class ParsePosition {
 	int index = 0;
 	int errorIndex = -1;
@@ -41,8 +44,7 @@ public class ParsePosition {
 	}
 
 	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (!(obj instanceof ParsePosition)) return false;
+		if (!JTranscObjects.equalsShape(this, obj)) return false;
 		ParsePosition that = (ParsePosition) obj;
 		return (index == that.index && errorIndex == that.errorIndex);
 	}

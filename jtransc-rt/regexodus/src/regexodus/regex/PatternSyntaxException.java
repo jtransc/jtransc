@@ -27,71 +27,13 @@
  * @version 1.2_01
  */
 
-package regexodus;
+package regexodus.regex;
 
-public interface MatchResult extends regexodus.regex.MatchResult{
-    int MATCH = 0;
-    int PREFIX = -1;
-    int SUFFIX = -2;
-    int TARGET = -3;
-
-    Pattern pattern();
-
-    int groupCount();
-
-    boolean isCaptured();
-
-    boolean isCaptured(int groupId);
-
-    boolean isCaptured(String groupName);
-
-    String group();
-
-    String group(int group);
-
-    boolean getGroup(int group, StringBuilder sb, int modes);
-
-    boolean getGroup(int group, TextBuffer tb, int modes);
-
-    boolean getGroup(int group, StringBuilder sb);
-
-    boolean getGroup(int group, TextBuffer tb);
-
-    String group(String name);
-
-    boolean getGroup(String name, StringBuilder sb, int modes);
-
-    boolean getGroup(String name, TextBuffer tb, int modes);
-
-    boolean getGroup(String name, StringBuilder sb);
-
-    boolean getGroup(String name, TextBuffer tb);
-
-    String prefix();
-
-    String suffix();
-
-    String target();
-
-    int targetStart();
-
-    int targetEnd();
-
-    char[] targetChars();
-
-    int start();
-
-    int end();
-
-    int length();
-
-    int start(int group);
-
-    int end(int group);
-
-    int length(int group);
-
-    char charAt(int i);
-
-    char charAt(int i, int groupNo);
+/**
+ * Is thrown when Pattern constructor's argument doesn't conform the regular expression syntax.
+ */
+public class PatternSyntaxException extends IllegalArgumentException {
+    public PatternSyntaxException(String s) {
+        super(s);
+    }
 }

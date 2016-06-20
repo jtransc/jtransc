@@ -68,6 +68,14 @@ public final class Matcher implements MatchResult {
 		return reset();
 	}
 
+	public int start(String name) {
+		return matcher.start(name);
+	}
+
+	public int end(String name) {
+		return matcher.end(name);
+	}
+
 	public int start() {
 		return matcher.start();
 	}
@@ -204,18 +212,4 @@ public final class Matcher implements MatchResult {
 	public boolean requireEnd() {
 		throw new UnsupportedOperationException("Not implemented");
 	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////
-
-	// @TODO: Implement this!
-	public int start(String name) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	// @TODO: Implement this!
-	public int end(String name) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
 }

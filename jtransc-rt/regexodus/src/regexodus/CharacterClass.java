@@ -496,7 +496,7 @@ class CharacterClass extends Term implements UnicodeConstants {
 
                         case 'u':
                             if (i >= out - 4) throw new PatternSyntaxException("incomplete escape sequence \\uXXXX");
-                            c = (char) ((toHexDigit(c) << 12)
+                            c = (char) ((toHexDigit(data[i++]) << 12)
                                     + (toHexDigit(data[i++]) << 8)
                                     + (toHexDigit(data[i++]) << 4)
                                     + toHexDigit(data[i++]));

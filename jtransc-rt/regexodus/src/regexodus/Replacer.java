@@ -157,6 +157,7 @@ public class Replacer implements Serializable {
         return tb.toString();
     }
 
+    @GwtIncompatible
     public String replace(Reader text, int length) throws IOException {
         TextBuffer tb = wrap(new StringBuilder(length >= 0 ? length : 0));
         replace(pattern.matcher(text, length), substitution, tb);
@@ -204,6 +205,7 @@ public class Replacer implements Serializable {
         return replace(res, groupName, wrap(sb));
     }
 
+    @GwtIncompatible
     public int replace(Reader text, int length, StringBuilder sb) throws IOException {
         return replace(text, length, wrap(sb));
     }
@@ -232,6 +234,7 @@ public class Replacer implements Serializable {
         return replace(pattern.matcher(res, groupName), substitution, dest);
     }
 
+    @GwtIncompatible
     private int replace(Reader text, int length, TextBuffer dest) throws IOException {
         return replace(pattern.matcher(text, length), substitution, dest);
     }
@@ -310,6 +313,7 @@ public class Replacer implements Serializable {
         return c > 0;
     }
 
+    @GwtIncompatible
     private static int replace(Matcher m, Substitution substitution, Writer out) throws IOException {
         try {
             return replace(m, substitution, wrap(out));
@@ -318,22 +322,27 @@ public class Replacer implements Serializable {
         }
     }
 
+    @GwtIncompatible
     public void replace(CharSequence text, Writer out) throws IOException {
         replace(pattern.matcher(text), substitution, out);
     }
 
+    @GwtIncompatible
     public void replace(char[] chars, int off, int len, Writer out) throws IOException {
         replace(pattern.matcher(chars, off, len), substitution, out);
     }
 
+    @GwtIncompatible
     public void replace(MatchResult res, int group, Writer out) throws IOException {
         replace(pattern.matcher(res, group), substitution, out);
     }
 
+    @GwtIncompatible
     public void replace(MatchResult res, String groupName, Writer out) throws IOException {
         replace(pattern.matcher(res, groupName), substitution, out);
     }
 
+    @GwtIncompatible
     public void replace(Reader in, int length, Writer out) throws IOException {
         replace(pattern.matcher(in, length), substitution, out);
     }
@@ -514,6 +523,7 @@ public class Replacer implements Serializable {
         }
     }
 
+    @GwtIncompatible
     private static TextBuffer wrap(final Writer writer) {
         return new TextBuffer() {
             public void append(char c) {

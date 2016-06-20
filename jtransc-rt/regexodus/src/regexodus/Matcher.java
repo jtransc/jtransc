@@ -331,6 +331,7 @@ public class Matcher implements MatchResult, Serializable {
      * @see Matcher#setTarget(java.lang.CharSequence, int, int)
      * @see Matcher#setTarget(char[], int, int)
      */
+    @GwtIncompatible
     public void setTarget(Reader in, int len) throws IOException {
         if (len < 0) {
             setAll(in);
@@ -352,6 +353,7 @@ public class Matcher implements MatchResult, Serializable {
         setTarget(mychars, 0, count, shared);
     }
 
+    @GwtIncompatible
     public void setAll(Reader in) throws IOException {
         char[] mychars = data;
         int free;
@@ -388,10 +390,11 @@ public class Matcher implements MatchResult, Serializable {
         char[] data = this.data;
         if ((end - start) >= (tLen / 3)) {
             //it makes sense to make a cache
-            cache = src = new String(data, tOffset, tLen);
+            cache = new String(data);
+            src = new String(data, tOffset, tLen);
             cacheOffset = tOffset;
             cacheLength = tLen;
-            return src.toString().substring(start - tOffset, end - tOffset);
+            return src.toString(); //.toString().substring(start - tOffset, end - tOffset);
         }
         return new String(data, start, end - start);
     }
@@ -705,6 +708,18 @@ public class Matcher implements MatchResult, Serializable {
         return end;
     }
 
+    /**
+     */
+    public int dataStart() {
+        return 0;
+    }
+
+    /**
+     */
+    public int dataEnd() {
+        return data.length;
+    }
+
     public char charAt(int i) {
         int in = this.wOffset;
         int out = this.wEnd;
@@ -793,7 +808,7 @@ public class Matcher implements MatchResult, Serializable {
      *         The index of a capturing group in this matcher's pattern
      *
      * @return  The (possibly empty) subsequence captured by the group
-     *          during the previous match, or <tt>null</tt> if the group
+     *          during the previous match, or <tt>""</tt> if the group
      *          failed to match part of the input
      */
     public String group(int group) {
@@ -1061,6 +1076,38 @@ public class Matcher implements MatchResult, Serializable {
     }
 
     /**
+     * Returns the start index of the subsequence captured by the given
+     * named-capturing group during the previous match operation.
+     *
+     * @param name The name of a named capturing group in this matcher's pattern
+     * @return The index of the first character captured by the group,
+     * or <tt>-1</tt> if the match was successful but the group
+     * itself did not match anything
+     */
+    @Override
+    public int start(String name) {
+        Integer id = re.groupId(name);
+        if (id == null) throw new IllegalArgumentException("<" + name + "> isn't defined");
+        return start(id);
+    }
+
+    /**
+     * Returns the offset after the last character of the subsequence captured
+     * by the given named-capturing group during the previous match operation.
+     *
+     * @param name The name of a named capturing group in this matcher's pattern
+     * @return The offset after the last character captured by the group,
+     * or <tt>-1</tt> if the match was successful
+     * but the group itself did not match anything
+     */
+    @Override
+    public int end(String name) {
+        Integer id = re.groupId(name);
+        if (id == null) throw new IllegalArgumentException("<" + name + "> isn't defined");
+        return end(id);
+    }
+
+    /**
      * Returns the offset after the last character of the subsequence
      * captured by the given group during this match.
      * <br>
@@ -1139,99 +1186,100 @@ public class Matcher implements MatchResult, Serializable {
             for (; ; ) {
                 int memreg, cntreg;
                 char c;
-                switch (term.type) {
-                    case Term.FIND: {
-                        int jump = find(data, i + term.distance, end, term.target); //don't eat the last match
-                        if (jump < 0) break main; //return false
-                        i += jump;
-                        wOffset = i; //force window to move
-                        if (term.eat) {
-                            if (i == end) break;
-                            i++;
+                if(term != null) {
+                    switch (term.type) {
+                        case Term.FIND: {
+                            int jump = find(data, i + term.distance, end, term.target); //don't eat the last match
+                            if (jump < 0) break main; //return false
+                            i += jump;
+                            wOffset = i; //force window to move
+                            if (term.eat) {
+                                if (i == end) break;
+                                i++;
+                            }
+                            term = term.next;
+                            continue matchHere;
                         }
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.FINDREG: {
-                        MemReg mr = memregs[term.target.memreg];
-                        int sampleOff = mr.in;
-                        int sampleLen = mr.out - sampleOff;
-                        //if(sampleOff<0 || sampleLen<0) throw new Error("backreference used before definition: \\"+term.memreg);
+                        case Term.FINDREG: {
+                            MemReg mr = memregs[term.target.memreg];
+                            int sampleOff = mr.in;
+                            int sampleLen = mr.out - sampleOff;
+                            //if(sampleOff<0 || sampleLen<0) throw new Error("backreference used before definition: \\"+term.memreg);
                   /*@since 1.2*/
-                        if (sampleOff < 0 || sampleLen < 0) {
-                            break;
-                        } else if (sampleLen == 0) {
-                            term = term.next;
-                            continue matchHere;
-                        }
-                        int jump = findReg(data, i + term.distance, sampleOff, sampleLen, term.target, end); //don't eat the last match
-                        if (jump < 0) break main; //return false
-                        i += jump;
-                        wOffset = i; //force window to move
-                        if (term.eat) {
-                            i += sampleLen;
-                            if (i > end) break;
-                        }
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.VOID:
-                        term = term.next;
-                        continue matchHere;
-
-                    case Term.CHAR:
-                        //can only be 1-char-wide
-                        //  \/
-                        if (i >= end || (re.caseless ? Category.caseFold(data[i]) : data[i]) != term.c)
-                            break;
-                        i++;
-                        term = term.next;
-                        continue matchHere;
-
-                    case Term.ANY_CHAR:
-                        //can only be 1-char-wide
-                        //  \/
-                        if (i >= end) break;
-                        i++;
-                        term = term.next;
-                        continue matchHere;
-
-                    case Term.ANY_CHAR_NE:
-                        //can only be 1-char-wide
-                        //  \/
-                        if (i >= end || (c = data[i]) == '\r' || c == '\n') break;
-                        i++;
-                        term = term.next;
-                        continue matchHere;
-
-                    case Term.END:
-                        if (i >= end) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        }
-                        break;
-
-                    case Term.END_EOL:  //perl's $
-                        if (i >= end) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        } else {
-                            boolean matches =
-                                    i >= end |
-                                            ((i + 1) == end && data[i] == '\n') |
-                                            ((i + 2) == end && data[i] == '\r' && data[i + 1] == '\n');
-
-                            if (matches) {
+                            if (sampleOff < 0 || sampleLen < 0) {
+                                break;
+                            } else if (sampleLen == 0) {
                                 term = term.next;
                                 continue matchHere;
-                            } else break;
-                        }
-
-                    case Term.LINE_END:
-                        if (i >= end) {  //meets
+                            }
+                            int jump = findReg(data, i + term.distance, sampleOff, sampleLen, term.target, end); //don't eat the last match
+                            if (jump < 0) break main; //return false
+                            i += jump;
+                            wOffset = i; //force window to move
+                            if (term.eat) {
+                                i += sampleLen;
+                                if (i > end) break;
+                            }
                             term = term.next;
                             continue matchHere;
-                        } else {
+                        }
+                        case Term.VOID:
+                            term = term.next;
+                            continue matchHere;
+
+                        case Term.CHAR:
+                            //can only be 1-char-wide
+                            //  \/
+                            if (i >= end || (re.caseless ? Category.caseFold(data[i]) : data[i]) != term.c)
+                                break;
+                            i++;
+                            term = term.next;
+                            continue matchHere;
+
+                        case Term.ANY_CHAR:
+                            //can only be 1-char-wide
+                            //  \/
+                            if (i >= end) break;
+                            i++;
+                            term = term.next;
+                            continue matchHere;
+
+                        case Term.ANY_CHAR_NE:
+                            //can only be 1-char-wide
+                            //  \/
+                            if (i >= end || (c = data[i]) == '\r' || c == '\n') break;
+                            i++;
+                            term = term.next;
+                            continue matchHere;
+
+                        case Term.END:
+                            if (i >= end) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            }
+                            break;
+
+                        case Term.END_EOL:  //perl's $
+                            if (i >= end) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            } else {
+                                boolean matches =
+                                        i >= end |
+                                                ((i + 1) == end && data[i] == '\n') |
+                                                ((i + 2) == end && data[i] == '\r' && data[i + 1] == '\n');
+
+                                if (matches) {
+                                    term = term.next;
+                                    continue matchHere;
+                                } else break;
+                            }
+
+                        case Term.LINE_END:
+                            if (i >= end) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            } else {
                      /*
                      if(((c=data[i])=='\r' || c=='\n') &&
                            (c=data[i-1])!='\r' && c!='\n'){
@@ -1239,58 +1287,58 @@ public class Matcher implements MatchResult, Serializable {
                         continue matchHere;
                      }
                      */
-                            //5 aug 2001
-                            if ((c = data[i]) == '\n' ||
-                                    c == '\u0085' ||
-                                    c == '\u2028' ||
-                                    c == '\u2029' ||
-                                    (i < data.length - 1 && data[i+1] == '\n' && c == '\r') ||
-                                    c == '\r') {
+                                //5 aug 2001
+                                if ((c = data[i]) == '\n' ||
+                                        c == '\u0085' ||
+                                        c == '\u2028' ||
+                                        c == '\u2029' ||
+                                        (i < data.length - 1 && data[i + 1] == '\n' && c == '\r') ||
+                                        c == '\r') {
+                                    term = term.next;
+                                    continue matchHere;
+                                }
+                            }
+                            break;
+
+                        case Term.START: //Perl's "^"
+                            if (i == offset) {  //meets
                                 term = term.next;
                                 continue matchHere;
                             }
-                        }
-                        break;
+                            //break;
 
-                    case Term.START: //Perl's "^"
-                        if (i == offset) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        }
-                        //break;
+                            //changed on 27-04-2002
+                            //due to a side effect: if ALLOW_INCOMPLETE is enabled,
+                            //the anchorStart moves up to the end and succeeds
+                            //(see comments at the last lines of matchHere, ~line 1830)
+                            //Solution: if there are some entries on the stack ("^a|b$"),
+                            //try them; otherwise it's a final 'no'
+                            //if(top!=null) break;
+                            //else break main;
 
-                        //changed on 27-04-2002
-                        //due to a side effect: if ALLOW_INCOMPLETE is enabled,
-                        //the anchorStart moves up to the end and succeeds
-                        //(see comments at the last lines of matchHere, ~line 1830)
-                        //Solution: if there are some entries on the stack ("^a|b$"),
-                        //try them; otherwise it's a final 'no'
-                        //if(top!=null) break;
-                        //else break main;
+                            //changed on 25-05-2002
+                            //rationale: if the term is startAnchor,
+                            //it's the root term by definition,
+                            //so if it doesn't match, the entire pattern
+                            //couldn't match too;
+                            //otherwise we could have the following problem:
+                            //"c|^a" against "abc" finds only "a"
+                            if (top != null) break;
+                            if (term != startAnchor) break;
+                            else break main;
 
-                        //changed on 25-05-2002
-                        //rationale: if the term is startAnchor,
-                        //it's the root term by definition,
-                        //so if it doesn't match, the entire pattern
-                        //couldn't match too;
-                        //otherwise we could have the following problem:
-                        //"c|^a" against "abc" finds only "a"
-                        if (top != null) break;
-                        if (term != startAnchor) break;
-                        else break main;
+                        case Term.LAST_MATCH_END:
+                            if (i == wEnd) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            }
+                            break main; //return false
 
-                    case Term.LAST_MATCH_END:
-                        if (i == wEnd) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        }
-                        break main; //return false
-
-                    case Term.LINE_START:
-                        if (i == offset) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        } else if (i < end) {
+                        case Term.LINE_START:
+                            if (i == offset) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            } else if (i < end) {
                      /*
                      if(((c=data[i-1])=='\r' || c=='\n') &&
                            (c=data[i])!='\r' && c!='\n'){
@@ -1298,162 +1346,162 @@ public class Matcher implements MatchResult, Serializable {
                         continue matchHere;
                      }
                      */
-                            //5 aug 2001
-                            //if((c=data[i-1])=='\r' || c=='\n'){ ??
-                            if ((c = data[i - 1]) == '\n' ||
-                                    c == '\u0085' ||
-                                    c == '\u2028' ||
-                                    c == '\u2029' ||
-                                    (data[i] == '\n' && c == '\r') ||
-                                    c == '\r') {
+                                //5 aug 2001
+                                //if((c=data[i-1])=='\r' || c=='\n'){ ??
+                                if ((c = data[i - 1]) == '\n' ||
+                                        c == '\u0085' ||
+                                        c == '\u2028' ||
+                                        c == '\u2029' ||
+                                        (data[i] == '\n' && c == '\r') ||
+                                        c == '\r') {
+                                    term = term.next;
+                                    continue matchHere;
+                                }
+                            }
+                            break;
+
+                        case Term.BITSET: {
+                            //can only be 1-char-wide
+                            //  \/
+                            if (i >= end) break;
+                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                            if (!(c <= 255 && term.bitset.get(c)) ^ term.inverse) break;
+                            i++;
+                            term = term.next;
+                            continue matchHere;
+                        }
+                        case Term.BITSET2: {
+                            //can only be 1-char-wide
+                            //  \/
+                            if (i >= end) break;
+                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                            IntBitSet arr = term.bitset2[c >> 8];
+                            if (arr == null || !arr.get(c & 255) ^ term.inverse) break;
+                            i++;
+                            term = term.next;
+                            continue matchHere;
+                        }
+                        case Term.BOUNDARY: {
+                            boolean ch1Meets = false, ch2Meets = false;
+                            IntBitSet bitset = term.bitset;
+                            test1:
+                            {
+                                int j = i - 1;
+                                //if(j<offset || j>=end) break test1;
+                                if (j < offset) break test1;
+                                c = re.caseless ? Category.caseFold(data[j]) : data[j];
+                                ch1Meets = (c < 256 && bitset.get(c));
+                            }
+                            test2:
+                            {
+                                //if(i<offset || i>=end) break test2;
+                                if (i >= end) break test2;
+                                c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                                ch2Meets = (c < 256 && bitset.get(c));
+                            }
+                            if (ch1Meets ^ ch2Meets ^ term.inverse) {  //meets
+                                term = term.next;
+                                continue matchHere;
+                            } else break;
+                        }
+                        case Term.UBOUNDARY: {
+                            boolean ch1Meets = false, ch2Meets = false;
+                            IntBitSet[] bitset2 = term.bitset2;
+                            test1:
+                            {
+                                int j = i - 1;
+                                //if(j<offset || j>=end) break test1;
+                                if (j < offset) break test1;
+                                c = re.caseless ? Category.caseFold(data[j]) : data[j];
+                                IntBitSet bits = bitset2[c >> 8];
+                                ch1Meets = bits != null && bits.get(c & 0xff);
+                            }
+                            test2:
+                            {
+                                //if(i<offset || i>=end) break test2;
+                                if (i >= end) break test2;
+                                c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                                IntBitSet bits = bitset2[c >> 8];
+                                ch2Meets = bits != null && bits.get(c & 0xff);
+                            }
+                            if (ch1Meets ^ ch2Meets ^ term.inverse) {  //is boundary ^ inv
+                                term = term.next;
+                                continue matchHere;
+                            } else break;
+                        }
+                        case Term.DIRECTION: {
+                            boolean ch1Meets = false, ch2Meets = false;
+                            IntBitSet bitset = term.bitset;
+                            boolean inv = term.inverse;
+                            int j = i - 1;
+                            //if(j>=offset && j<end){
+                            if (j >= offset) {
+                                c = re.caseless ? Category.caseFold(data[j]) : data[j];
+                                ch1Meets = c < 256 && bitset.get(c);
+                            }
+                            if (ch1Meets ^ inv) break;
+
+                            //if(i>=offset && i<end){
+                            if (i < end) {
+                                c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                                ch2Meets = c < 256 && bitset.get(c);
+                            }
+                            if (!ch2Meets ^ inv) break;
+
+
+                            term = term.next;
+                            continue matchHere;
+                        }
+                        case Term.UDIRECTION: {
+                            boolean ch1Meets = false, ch2Meets = false;
+                            IntBitSet[] bitset2 = term.bitset2;
+                            boolean inv = term.inverse;
+                            int j = i - 1;
+
+                            //if(j>=offset && j<end){
+                            if (j >= offset) {
+                                c = re.caseless ? Category.caseFold(data[j]) : data[j];
+                                IntBitSet bits = bitset2[c >> 8];
+                                ch1Meets = bits != null && bits.get(c & 0xff);
+                            }
+                            if (ch1Meets ^ inv) break;
+
+                            //if(i>=offset && i<end){
+                            if (i < end) {
+                                c = re.caseless ? Category.caseFold(data[i]) : data[i];
+                                IntBitSet bits = bitset2[c >> 8];
+                                ch2Meets = bits != null && bits.get(c & 0xff);
+                            }
+                            if (!ch2Meets ^ inv) break;
+
+                            term = term.next;
+                            continue matchHere;
+                        }
+                        case Term.REG:
+                        case Term.REG_I: {
+                            if (term.memreg >= memregs.length)
+                                break;
+                            MemReg mr = memregs[term.memreg];
+                            int sampleOffset = mr.in;
+                            int sampleOutside = mr.out;
+                            int rLen;
+                            if (sampleOffset < 0 || (rLen = sampleOutside - sampleOffset) < 0) {
+                                break;
+                            } else if (rLen == 0) {
                                 term = term.next;
                                 continue matchHere;
                             }
-                        }
-                        break;
 
-                    case Term.BITSET: {
-                        //can only be 1-char-wide
-                        //  \/
-                        if (i >= end) break;
-                        c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                        if (!(c <= 255 && term.bitset.get(c)) ^ term.inverse) break;
-                        i++;
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.BITSET2: {
-                        //can only be 1-char-wide
-                        //  \/
-                        if (i >= end) break;
-                        c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                        IntBitSet arr = term.bitset2[c >> 8];
-                        if (arr == null || !arr.get(c & 255) ^ term.inverse) break;
-                        i++;
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.BOUNDARY: {
-                        boolean ch1Meets = false, ch2Meets = false;
-                        IntBitSet bitset = term.bitset;
-                        test1:
-                        {
-                            int j = i - 1;
-                            //if(j<offset || j>=end) break test1;
-                            if (j < offset) break test1;
-                            c = re.caseless ? Category.caseFold(data[j]) : data[j];
-                            ch1Meets = (c < 256 && bitset.get(c));
-                        }
-                        test2:
-                        {
-                            //if(i<offset || i>=end) break test2;
-                            if (i >= end) break test2;
-                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                            ch2Meets = (c < 256 && bitset.get(c));
-                        }
-                        if (ch1Meets ^ ch2Meets ^ term.inverse) {  //meets
-                            term = term.next;
-                            continue matchHere;
-                        } else break;
-                    }
-                    case Term.UBOUNDARY: {
-                        boolean ch1Meets = false, ch2Meets = false;
-                        IntBitSet[] bitset2 = term.bitset2;
-                        test1:
-                        {
-                            int j = i - 1;
-                            //if(j<offset || j>=end) break test1;
-                            if (j < offset) break test1;
-                            c = re.caseless ? Category.caseFold(data[j]) : data[j];
-                            IntBitSet bits = bitset2[c >> 8];
-                            ch1Meets = bits != null && bits.get(c & 0xff);
-                        }
-                        test2:
-                        {
-                            //if(i<offset || i>=end) break test2;
-                            if (i >= end) break test2;
-                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                            IntBitSet bits = bitset2[c >> 8];
-                            ch2Meets = bits != null && bits.get(c & 0xff);
-                        }
-                        if (ch1Meets ^ ch2Meets ^ term.inverse) {  //is boundary ^ inv
-                            term = term.next;
-                            continue matchHere;
-                        } else break;
-                    }
-                    case Term.DIRECTION: {
-                        boolean ch1Meets = false, ch2Meets = false;
-                        IntBitSet bitset = term.bitset;
-                        boolean inv = term.inverse;
-                        int j = i - 1;
-                        //if(j>=offset && j<end){
-                        if (j >= offset) {
-                            c = re.caseless ? Category.caseFold(data[j]) : data[j];
-                            ch1Meets = c < 256 && bitset.get(c);
-                        }
-                        if (ch1Meets ^ inv) break;
+                            // don't prevent us from reaching the 'end'
+                            if ((i + rLen) > end) break;
 
-                        //if(i>=offset && i<end){
-                        if (i < end) {
-                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                            ch2Meets = c < 256 && bitset.get(c);
-                        }
-                        if (!ch2Meets ^ inv) break;
-
-
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.UDIRECTION: {
-                        boolean ch1Meets = false, ch2Meets = false;
-                        IntBitSet[] bitset2 = term.bitset2;
-                        boolean inv = term.inverse;
-                        int j = i - 1;
-
-                        //if(j>=offset && j<end){
-                        if (j >= offset) {
-                            c = re.caseless ? Category.caseFold(data[j]) : data[j];
-                            IntBitSet bits = bitset2[c >> 8];
-                            ch1Meets = bits != null && bits.get(c & 0xff);
-                        }
-                        if (ch1Meets ^ inv) break;
-
-                        //if(i>=offset && i<end){
-                        if (i < end) {
-                            c = re.caseless ? Category.caseFold(data[i]) : data[i];
-                            IntBitSet bits = bitset2[c >> 8];
-                            ch2Meets = bits != null && bits.get(c & 0xff);
-                        }
-                        if (!ch2Meets ^ inv) break;
-
-                        term = term.next;
-                        continue matchHere;
-                    }
-                    case Term.REG:
-                    case Term.REG_I: {
-                        if(term.memreg >= memregs.length)
+                            if (compareRegions(data, sampleOffset, i, rLen, end, term)) {
+                                i += rLen;
+                                term = term.next;
+                                continue matchHere;
+                            }
                             break;
-                        MemReg mr = memregs[term.memreg];
-                        int sampleOffset = mr.in;
-                        int sampleOutside = mr.out;
-                        int rLen;
-                        if (sampleOffset < 0 || (rLen = sampleOutside - sampleOffset) < 0) {
-                            break;
-                        } else if (rLen == 0) {
-                            term = term.next;
-                            continue matchHere;
                         }
-
-                        // don't prevent us from reaching the 'end'
-                        if ((i + rLen) > end) break;
-
-                        if (compareRegions(data, sampleOffset, i, rLen, end, term)) {
-                            i += rLen;
-                            term = term.next;
-                            continue matchHere;
-                        }
-                        break;
-                    }
                     /*case Term.REG_I: {
                         MemReg mr = memregs[term.memreg];
                         int sampleOffset = mr.in;
@@ -1476,201 +1524,18 @@ public class Matcher implements MatchResult, Serializable {
                         }
                         break;
                     }*/
-                    case Term.REPEAT_0_INF: {
-                        //i+=(cnt=repeat(data,i,end,term.target));
-                        if ((cnt = repeat(data, i, end, term.target)) <= 0) {
-                            term = term.next;
-                            continue;
-                        }
-                        i += cnt;
-
-                        //branch out the backtracker (that is term.failNext, see Term.make*())
-                        actual.cnt = cnt;
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.REPEAT_MIN_INF: {
-                        cnt = repeat(data, i, end, term.target);
-                        if (cnt < term.minCount) break;
-                        i += cnt;
-
-                        //branch out the backtracker (that is term.failNext, see Term.make*())
-                        actual.cnt = cnt;
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.REPEAT_MIN_MAX: {
-                        int out2 = i + term.maxCount;
-                        cnt = repeat(data, i, end < out2 ? end : out2, term.target);
-                        if (cnt < term.minCount) break;
-                        i += cnt;
-
-                        //branch out the backtracker (that is term.failNext, see Term.make*())
-                        actual.cnt = cnt;
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.REPEAT_REG_MIN_INF: {
-                        MemReg mr = memregs[term.memreg];
-                        int sampleOffset = mr.in;
-                        int sampleOutside = mr.out;
-                  /*@since 1.2*/
-                        int bitset;
-                        if (sampleOffset < 0 || (bitset = sampleOutside - sampleOffset) < 0) {
-                            break;
-                        } else if (bitset == 0) {
-                            term = term.next;
-                            continue matchHere;
-                        }
-
-                        cnt = 0;
-
-                        while (compareRegions(data, i, sampleOffset, bitset, end, term)) {
-                            cnt++;
-                            i += bitset;
-                        }
-
-                        if (cnt < term.minCount) break;
-
-                        actual.cnt = cnt;
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual.regLen = bitset;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.REPEAT_REG_MIN_MAX: {
-                        MemReg mr = memregs[term.memreg];
-                        int sampleOffset = mr.in;
-                        int sampleOutside = mr.out;
-                  /*@since 1.2*/
-                        int bitset;
-                        if (sampleOffset < 0 || (bitset = sampleOutside - sampleOffset) < 0) {
-                            break;
-                        } else if (bitset == 0) {
-                            term = term.next;
-                            continue matchHere;
-                        }
-
-                        cnt = 0;
-                        int countBack = term.maxCount;
-                        while (countBack > 0 && compareRegions(data, i, sampleOffset, bitset, end, term)) {
-                            cnt++;
-                            i += bitset;
-                            countBack--;
-                        }
-
-                        if (cnt < term.minCount) break;
-
-                        actual.cnt = cnt;
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual.regLen = bitset;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.BACKTRACK_0:
-                        cnt = actual.cnt;
-                        if (cnt > 0) {
-                            cnt--;
-                            i--;
-                            actual.cnt = cnt;
-                            actual.index = i;
-                            actual.term = term;
-                            actual = (top = actual).on;
-                            if (actual == null) {
-                                actual = new SearchEntry();
-                                top.on = actual;
-                                actual.sub = top;
-                            }
-                            term = term.next;
-                            continue;
-                        } else break;
-
-                    case Term.BACKTRACK_MIN:
-                        cnt = actual.cnt;
-                        if (cnt > term.minCount) {
-                            cnt--;
-                            i--;
-                            actual.cnt = cnt;
-                            actual.index = i;
-                            actual.term = term;
-                            actual = (top = actual).on;
-                            if (actual == null) {
-                                actual = new SearchEntry();
-                                top.on = actual;
-                                actual.sub = top;
-                            }
-                            term = term.next;
-                            continue;
-                        } else break;
-
-                    case Term.BACKTRACK_FIND_MIN: {
-                        cnt = actual.cnt;
-                        int minCnt;
-                        if (cnt > (minCnt = term.minCount)) {
-                            int start = i + term.distance;
-                            if (start > end) {
-                                int exceed = start - end;
-                                cnt -= exceed;
-                                if (cnt <= minCnt) break;
-                                i -= exceed;
-                            }
-                            int back = findBack(data, i + term.distance, cnt - minCnt, term.target);
-                            if (back < 0) break;
-
-                            //cnt-=back;
-                            //i-=back;
-                            if ((cnt -= back) <= minCnt) {
-                                i -= back;
-                                if (term.eat) i++;
+                        case Term.REPEAT_0_INF: {
+                            //i+=(cnt=repeat(data,i,end,term.target));
+                            if ((cnt = repeat(data, i, end, term.target)) <= 0) {
                                 term = term.next;
                                 continue;
                             }
-                            i -= back;
+                            i += cnt;
 
+                            //branch out the backtracker (that is term.failNext, see Term.make*())
                             actual.cnt = cnt;
+                            actual.term = term.failNext;
                             actual.index = i;
-
-                            if (term.eat) i++;
-
-                            actual.term = term;
                             actual = (top = actual).on;
                             if (actual == null) {
                                 actual = new SearchEntry();
@@ -1679,28 +1544,118 @@ public class Matcher implements MatchResult, Serializable {
                             }
                             term = term.next;
                             continue;
-                        } else break;
-                    }
+                        }
+                        case Term.REPEAT_MIN_INF: {
+                            cnt = repeat(data, i, end, term.target);
+                            if (cnt < term.minCount) break;
+                            i += cnt;
 
-                    case Term.BACKTRACK_FINDREG_MIN: {
-                        cnt = actual.cnt;
-                        int minCnt;
-                        if (cnt > (minCnt = term.minCount)) {
-                            int start = i + term.distance;
-                            if (start > end) {
-                                int exceed = start - end;
-                                cnt -= exceed;
-                                if (cnt <= minCnt) break;
-                                i -= exceed;
+                            //branch out the backtracker (that is term.failNext, see Term.make*())
+                            actual.cnt = cnt;
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
                             }
-                            MemReg mr = memregs[term.target.memreg];
-                            int sampleOff = mr.in;
-                            int sampleLen = mr.out - sampleOff;
-                     /*@since 1.2*/
-                            int back;
-                            if (sampleOff < 0 || sampleLen < 0) {
-                                //the group is not def., as in the case of '(\w+)\1'
-                                //treat as usual BACKTRACK_MIN
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.REPEAT_MIN_MAX: {
+                            int out2 = i + term.maxCount;
+                            cnt = repeat(data, i, end < out2 ? end : out2, term.target);
+                            if (cnt < term.minCount) break;
+                            i += cnt;
+
+                            //branch out the backtracker (that is term.failNext, see Term.make*())
+                            actual.cnt = cnt;
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.REPEAT_REG_MIN_INF: {
+                            MemReg mr = memregs[term.memreg];
+                            int sampleOffset = mr.in;
+                            int sampleOutside = mr.out;
+                  /*@since 1.2*/
+                            int bitset;
+                            if (sampleOffset < 0 || (bitset = sampleOutside - sampleOffset) < 0) {
+                                break;
+                            } else if (bitset == 0) {
+                                term = term.next;
+                                continue matchHere;
+                            }
+
+                            cnt = 0;
+
+                            while (compareRegions(data, i, sampleOffset, bitset, end, term)) {
+                                cnt++;
+                                i += bitset;
+                            }
+
+                            if (cnt < term.minCount) break;
+
+                            actual.cnt = cnt;
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual.regLen = bitset;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.REPEAT_REG_MIN_MAX: {
+                            MemReg mr = memregs[term.memreg];
+                            int sampleOffset = mr.in;
+                            int sampleOutside = mr.out;
+                  /*@since 1.2*/
+                            int bitset;
+                            if (sampleOffset < 0 || (bitset = sampleOutside - sampleOffset) < 0) {
+                                break;
+                            } else if (bitset == 0) {
+                                term = term.next;
+                                continue matchHere;
+                            }
+
+                            cnt = 0;
+                            int countBack = term.maxCount;
+                            while (countBack > 0 && compareRegions(data, i, sampleOffset, bitset, end, term)) {
+                                cnt++;
+                                i += bitset;
+                                countBack--;
+                            }
+
+                            if (cnt < term.minCount) break;
+
+                            actual.cnt = cnt;
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual.regLen = bitset;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.BACKTRACK_0:
+                            cnt = actual.cnt;
+                            if (cnt > 0) {
                                 cnt--;
                                 i--;
                                 actual.cnt = cnt;
@@ -1714,20 +1669,217 @@ public class Matcher implements MatchResult, Serializable {
                                 }
                                 term = term.next;
                                 continue;
-                            } else if (sampleLen == 0) {
-                                back = -1;
-                            } else {
-                                back = findBackReg(data, i + term.distance, sampleOff, sampleLen, cnt - minCnt, term.target, end);
+                            } else break;
+
+                        case Term.BACKTRACK_MIN:
+                            cnt = actual.cnt;
+                            if (cnt > term.minCount) {
+                                cnt--;
+                                i--;
+                                actual.cnt = cnt;
+                                actual.index = i;
+                                actual.term = term;
+                                actual = (top = actual).on;
+                                if (actual == null) {
+                                    actual = new SearchEntry();
+                                    top.on = actual;
+                                    actual.sub = top;
+                                }
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        case Term.BACKTRACK_FIND_MIN: {
+                            cnt = actual.cnt;
+                            int minCnt;
+                            if (cnt > (minCnt = term.minCount)) {
+                                int start = i + term.distance;
+                                if (start > end) {
+                                    int exceed = start - end;
+                                    cnt -= exceed;
+                                    if (cnt <= minCnt) break;
+                                    i -= exceed;
+                                }
+                                int back = findBack(data, i + term.distance, cnt - minCnt, term.target);
                                 if (back < 0) break;
+
+                                //cnt-=back;
+                                //i-=back;
+                                if ((cnt -= back) <= minCnt) {
+                                    i -= back;
+                                    if (term.eat) i++;
+                                    term = term.next;
+                                    continue;
+                                }
+                                i -= back;
+
+                                actual.cnt = cnt;
+                                actual.index = i;
+
+                                if (term.eat) i++;
+
+                                actual.term = term;
+                                actual = (top = actual).on;
+                                if (actual == null) {
+                                    actual = new SearchEntry();
+                                    top.on = actual;
+                                    actual.sub = top;
+                                }
+                                term = term.next;
+                                continue;
+                            } else break;
+                        }
+
+                        case Term.BACKTRACK_FINDREG_MIN: {
+                            cnt = actual.cnt;
+                            int minCnt;
+                            if (cnt > (minCnt = term.minCount)) {
+                                int start = i + term.distance;
+                                if (start > end) {
+                                    int exceed = start - end;
+                                    cnt -= exceed;
+                                    if (cnt <= minCnt) break;
+                                    i -= exceed;
+                                }
+                                MemReg mr = memregs[term.target.memreg];
+                                int sampleOff = mr.in;
+                                int sampleLen = mr.out - sampleOff;
+                     /*@since 1.2*/
+                                int back;
+                                if (sampleOff < 0 || sampleLen < 0) {
+                                    //the group is not def., as in the case of '(\w+)\1'
+                                    //treat as usual BACKTRACK_MIN
+                                    cnt--;
+                                    i--;
+                                    actual.cnt = cnt;
+                                    actual.index = i;
+                                    actual.term = term;
+                                    actual = (top = actual).on;
+                                    if (actual == null) {
+                                        actual = new SearchEntry();
+                                        top.on = actual;
+                                        actual.sub = top;
+                                    }
+                                    term = term.next;
+                                    continue;
+                                } else if (sampleLen == 0) {
+                                    back = -1;
+                                } else {
+                                    back = findBackReg(data, i + term.distance, sampleOff, sampleLen, cnt - minCnt, term.target, end);
+                                    if (back < 0) break;
+                                }
+                                cnt -= back;
+                                i -= back;
+                                actual.cnt = cnt;
+                                actual.index = i;
+
+                                if (term.eat) i += sampleLen;
+
+                                actual.term = term;
+                                actual = (top = actual).on;
+                                if (actual == null) {
+                                    actual = new SearchEntry();
+                                    top.on = actual;
+                                    actual.sub = top;
+                                }
+                                term = term.next;
+                                continue;
+                            } else break;
+                        }
+
+                        case Term.BACKTRACK_REG_MIN:
+                            cnt = actual.cnt;
+                            if (cnt > term.minCount) {
+                                regLen = actual.regLen;
+                                cnt--;
+                                i -= regLen;
+                                actual.cnt = cnt;
+                                actual.index = i;
+                                actual.term = term;
+                                //actual.regLen=regLen;
+                                actual = (top = actual).on;
+                                if (actual == null) {
+                                    actual = new SearchEntry();
+                                    top.on = actual;
+                                    actual.sub = top;
+                                }
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        case Term.GROUP_IN: {
+                            memreg = term.memreg;
+                            //memreg=0 is a regex itself; we don't need to handle it
+                            //because regex bounds already are in wOffset and wEnd
+                            if (memreg > 0) {
+                                memregs[memreg].tmp = i; //assume
                             }
-                            cnt -= back;
-                            i -= back;
-                            actual.cnt = cnt;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.GROUP_OUT:
+                            memreg = term.memreg;
+                            //see above
+                            if (memreg > 0) {
+                                MemReg mr = memregs[memreg];
+                                SearchEntry.saveMemregState((top != null) ? top : defaultEntry, memreg, mr);
+                                mr.in = mr.tmp; //commit
+                                mr.out = i;
+                            }
+                            term = term.next;
+                            continue;
+
+                        case Term.PLOOKBEHIND_IN: {
+                            int tmp = i - term.distance;
+                            if (tmp < offset) break;
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.index = i;
+                            i = tmp;
+                            le.actual = actual;
+                            le.top = top;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.INDEPENDENT_IN:
+                        case Term.PLOOKAHEAD_IN: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.index = i;
+                            le.actual = actual;
+                            le.top = top;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.LOOKBEHIND_CONDITION_OUT:
+                        case Term.LOOKAHEAD_CONDITION_OUT:
+                        case Term.PLOOKAHEAD_OUT:
+                        case Term.PLOOKBEHIND_OUT: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            i = le.index;
+                            actual = le.actual;
+                            top = le.top;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.INDEPENDENT_OUT: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            actual = le.actual;
+                            top = le.top;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.NLOOKBEHIND_IN: {
+                            int tmp = i - term.distance;
+                            if (tmp < offset) {
+                                term = term.failNext;
+                                continue;
+                            }
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.actual = actual;
+                            le.top = top;
+
+                            actual.term = term.failNext;
                             actual.index = i;
-
-                            if (term.eat) i += sampleLen;
-
-                            actual.term = term;
+                            i = tmp;
                             actual = (top = actual).on;
                             if (actual == null) {
                                 actual = new SearchEntry();
@@ -1736,19 +1888,92 @@ public class Matcher implements MatchResult, Serializable {
                             }
                             term = term.next;
                             continue;
-                        } else break;
-                    }
+                        }
+                        case Term.NLOOKAHEAD_IN: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.actual = actual;
+                            le.top = top;
 
-                    case Term.BACKTRACK_REG_MIN:
-                        cnt = actual.cnt;
-                        if (cnt > term.minCount) {
-                            regLen = actual.regLen;
-                            cnt--;
-                            i -= regLen;
-                            actual.cnt = cnt;
+                            actual.term = term.failNext;
                             actual.index = i;
-                            actual.term = term;
-                            //actual.regLen=regLen;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.NLOOKBEHIND_OUT:
+                        case Term.NLOOKAHEAD_OUT: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            actual = le.actual;
+                            top = le.top;
+                            break;
+                        }
+                        case Term.LOOKBEHIND_CONDITION_IN: {
+                            int tmp = i - term.distance;
+                            if (tmp < offset) {
+                                term = term.failNext;
+                                continue;
+                            }
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.index = i;
+                            le.actual = actual;
+                            le.top = top;
+
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+
+                            i = tmp;
+
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.LOOKAHEAD_CONDITION_IN: {
+                            LAEntry le = lookaheads[term.lookaheadId];
+                            le.index = i;
+                            le.actual = actual;
+                            le.top = top;
+
+                            actual.term = term.failNext;
+                            actual.index = i;
+                            actual = (top = actual).on;
+                            if (actual == null) {
+                                actual = new SearchEntry();
+                                top.on = actual;
+                                actual.sub = top;
+                            }
+
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.MEMREG_CONDITION: {
+                            MemReg mr = memregs[term.memreg];
+                            int sampleOffset = mr.in;
+                            int sampleOutside = mr.out;
+                            if (sampleOffset >= 0 && sampleOutside >= 0 && sampleOutside >= sampleOffset) {
+                                term = term.next;
+                            } else {
+                                term = term.failNext;
+                            }
+                            continue;
+                        }
+                        case Term.BRANCH_STORE_CNT_AUX1:
+                            actual.regLen = regLen;
+                        case Term.BRANCH_STORE_CNT:
+                            actual.cnt = cnt;
+                        case Term.BRANCH:
+                            actual.term = term.failNext;
+                            actual.index = i;
                             actual = (top = actual).on;
                             if (actual == null) {
                                 actual = new SearchEntry();
@@ -1757,242 +1982,73 @@ public class Matcher implements MatchResult, Serializable {
                             }
                             term = term.next;
                             continue;
-                        } else break;
 
-                    case Term.GROUP_IN: {
-                        memreg = term.memreg;
-                        //memreg=0 is a regex itself; we don't need to handle it
-                        //because regex bounds already are in wOffset and wEnd
-                        if (memreg > 0) {
-                            memregs[memreg].tmp = i; //assume
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.GROUP_OUT:
-                        memreg = term.memreg;
-                        //see above
-                        if (memreg > 0) {
-                            MemReg mr = memregs[memreg];
-                            SearchEntry.saveMemregState((top != null) ? top : defaultEntry, memreg, mr);
-                            mr.in = mr.tmp; //commit
-                            mr.out = i;
-                        }
-                        term = term.next;
-                        continue;
+                        case Term.SUCCESS:
+                            if (!matchEnd || i == end) {
+                                this.wOffset = memregs[0].in = wOffset;
+                                this.wEnd = memregs[0].out = i;
+                                this.top = top;
+                                return true;
+                            } else break;
 
-                    case Term.PLOOKBEHIND_IN: {
-                        int tmp = i - term.distance;
-                        if (tmp < offset) break;
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.index = i;
-                        i = tmp;
-                        le.actual = actual;
-                        le.top = top;
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.INDEPENDENT_IN:
-                    case Term.PLOOKAHEAD_IN: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.index = i;
-                        le.actual = actual;
-                        le.top = top;
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.LOOKBEHIND_CONDITION_OUT:
-                    case Term.LOOKAHEAD_CONDITION_OUT:
-                    case Term.PLOOKAHEAD_OUT:
-                    case Term.PLOOKBEHIND_OUT: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        i = le.index;
-                        actual = le.actual;
-                        top = le.top;
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.INDEPENDENT_OUT: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        actual = le.actual;
-                        top = le.top;
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.NLOOKBEHIND_IN: {
-                        int tmp = i - term.distance;
-                        if (tmp < offset) {
-                            term = term.failNext;
-                            continue;
-                        }
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.actual = actual;
-                        le.top = top;
-
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        i = tmp;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.NLOOKAHEAD_IN: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.actual = actual;
-                        le.top = top;
-
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.NLOOKBEHIND_OUT:
-                    case Term.NLOOKAHEAD_OUT: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        actual = le.actual;
-                        top = le.top;
-                        break;
-                    }
-                    case Term.LOOKBEHIND_CONDITION_IN: {
-                        int tmp = i - term.distance;
-                        if (tmp < offset) {
-                            term = term.failNext;
-                            continue;
-                        }
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.index = i;
-                        le.actual = actual;
-                        le.top = top;
-
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-
-                        i = tmp;
-
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.LOOKAHEAD_CONDITION_IN: {
-                        LAEntry le = lookaheads[term.lookaheadId];
-                        le.index = i;
-                        le.actual = actual;
-                        le.top = top;
-
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-
-                        term = term.next;
-                        continue;
-                    }
-                    case Term.MEMREG_CONDITION: {
-                        MemReg mr = memregs[term.memreg];
-                        int sampleOffset = mr.in;
-                        int sampleOutside = mr.out;
-                        if (sampleOffset >= 0 && sampleOutside >= 0 && sampleOutside >= sampleOffset) {
-                            term = term.next;
-                        } else {
-                            term = term.failNext;
-                        }
-                        continue;
-                    }
-                    case Term.BRANCH_STORE_CNT_AUX1:
-                        actual.regLen = regLen;
-                    case Term.BRANCH_STORE_CNT:
-                        actual.cnt = cnt;
-                    case Term.BRANCH:
-                        actual.term = term.failNext;
-                        actual.index = i;
-                        actual = (top = actual).on;
-                        if (actual == null) {
-                            actual = new SearchEntry();
-                            top.on = actual;
-                            actual.sub = top;
-                        }
-                        term = term.next;
-                        continue;
-
-                    case Term.SUCCESS:
-                        if (!matchEnd || i == end) {
-                            this.wOffset = memregs[0].in = wOffset;
-                            this.wEnd = memregs[0].out = i;
-                            this.top = top;
-                            return true;
-                        } else break;
-
-                    case Term.CNT_SET_0:
-                        cnt = 0;
-                        term = term.next;
-                        continue;
-
-                    case Term.CNT_INC:
-                        cnt++;
-                        term = term.next;
-                        continue;
-
-                    case Term.CNT_GT_EQ:
-                        if (cnt >= term.maxCount) {
+                        case Term.CNT_SET_0:
+                            cnt = 0;
                             term = term.next;
                             continue;
-                        } else break;
 
-                    case Term.READ_CNT_LT:
-                        cnt = actual.cnt;
-                        if (cnt < term.maxCount) {
+                        case Term.CNT_INC:
+                            cnt++;
                             term = term.next;
                             continue;
-                        } else break;
 
-                    case Term.CRSTORE_CRINC: {
-                        int cntvalue = counters[cntreg = term.cntreg];
-                        SearchEntry.saveCntState((top != null) ? top : defaultEntry, cntreg, cntvalue);
-                        counters[cntreg] = ++cntvalue;
-                        term = term.next;
-                        continue;
+                        case Term.CNT_GT_EQ:
+                            if (cnt >= term.maxCount) {
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        case Term.READ_CNT_LT:
+                            cnt = actual.cnt;
+                            if (cnt < term.maxCount) {
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        case Term.CRSTORE_CRINC: {
+                            int cntvalue = counters[cntreg = term.cntreg];
+                            SearchEntry.saveCntState((top != null) ? top : defaultEntry, cntreg, cntvalue);
+                            counters[cntreg] = ++cntvalue;
+                            term = term.next;
+                            continue;
+                        }
+                        case Term.CR_SET_0:
+                            counters[term.cntreg] = 0;
+
+                            term = term.next;
+                            continue;
+
+                        case Term.CR_LT:
+                            if (counters[term.cntreg] < term.maxCount) {
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        case Term.CR_GT_EQ:
+                            if (counters[term.cntreg] >= term.maxCount) {
+                                term = term.next;
+                                continue;
+                            } else break;
+
+                        default:
+                            throw new Error("unknown term type: " + term.type);
                     }
-                    case Term.CR_SET_0:
-                        counters[term.cntreg] = 0;
-
-                        term = term.next;
-                        continue;
-
-                    case Term.CR_LT:
-                        if (counters[term.cntreg] < term.maxCount) {
-                            term = term.next;
-                            continue;
-                        } else break;
-
-                    case Term.CR_GT_EQ:
-                        if (counters[term.cntreg] >= term.maxCount) {
-                            term = term.next;
-                            continue;
-                        } else break;
-
-                    default:
-                        throw new Error("unknown term type: " + term.type);
+                }
+                else
+                {
+                    this.wOffset = memregs[0].in = wOffset;
+                    this.wEnd = memregs[0].out = i;
+                    this.top = top;
+                    return true;
                 }
 
                 if (allowIncomplete && i == end) {
@@ -2001,6 +2057,12 @@ public class Matcher implements MatchResult, Serializable {
                     //27-04-2002: just as expected,
                     //the side effect was found (and POSSIBLY fixed);
                     //see the case Term.START
+
+                    //newly added June-18-2016
+                    this.wOffset = memregs[0].in = wOffset;
+                    this.wEnd = memregs[0].out = i;
+                    this.top = top;
+
                     return true;
                 }
                 if (top == null) {

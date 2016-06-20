@@ -73,6 +73,7 @@ public class RETokenizer implements Iterator<String> {
         this(pattern.matcher(chars, off, len), false);
     }
 
+    @GwtIncompatible
     public RETokenizer(Pattern pattern, Reader r, int len) throws IOException {
         this(pattern.matcher(r, len), false);
     }

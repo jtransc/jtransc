@@ -517,6 +517,7 @@ public class Pattern implements Serializable, REFlags {
      * @param length the length to read from a stream; if <code>len</code> is <code>-1</code>, the whole stream is read in.
      * @throws IOException indicates an IO problem
      */
+    @GwtIncompatible
     public Matcher matcher(Reader text, int length) throws IOException {
         Matcher m = new Matcher(this);
         m.setTarget(text, length);
@@ -590,6 +591,7 @@ public class Pattern implements Serializable, REFlags {
      * @see RETokenizer
      * @see RETokenizer#RETokenizer(regexodus.Pattern, java.io.Reader, int)
      */
+    @GwtIncompatible
     public RETokenizer tokenizer(Reader in, int length) throws IOException {
         return new RETokenizer(this, in, length);
     }
