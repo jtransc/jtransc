@@ -250,6 +250,11 @@ public final class Locale implements Cloneable, Serializable {
         defaultLocale = new Locale(language, region, variant);
     }
 
+	public static Locale forLanguageTag(String languageTag) {
+		//@TODO
+		return ENGLISH;
+	}
+
     private transient String countryCode;
     private transient String languageCode;
     private transient String variantCode;
@@ -355,7 +360,8 @@ public final class Locale implements Cloneable, Serializable {
      */
     public static Locale[] getAvailableLocales() {
         //return ICU.getAvailableLocales();
-		return new Locale[] { new Locale("en", "US") };
+		//@TODO
+		return new Locale[] { ENGLISH };
     }
 
     /**
