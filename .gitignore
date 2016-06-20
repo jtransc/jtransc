@@ -4,6 +4,8 @@
 *.jar
 *.versionsBackup
 *.java-e
+/target/
+/build/
 /.idea/
 /libs/
 /out/

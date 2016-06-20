@@ -61,45 +61,48 @@ signing {
 	sign configurations.archives
 }
 
-uploadArchives {
-	repositories {
-		mavenDeployer {
-			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+if (System.getenv("CI") == null) {
 
-			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-				authentication(userName: sonatypeUsername, password: sonatypePassword)
-			}
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-			pom.project {
-				name "${project.name}"
-				packaging 'jar'
-				description 'JVM AOT compiler currently generating JavaScript, Haxe, with initial focus on Kotlin and games.'
-				url 'https://github.com/jtransc/jtransc/'
-				inceptionYear '2015'
-
-				scm {
-					url 'scm:git@github.com:jtransc/jtransc.git'
-					connection 'scm:git@github.com:jtransc/jtransc.git'
-					developerConnection 'scm:git@github.com:jtransc/jtransc.git'
+				repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+					authentication(userName: sonatypeUsername, password: sonatypePassword)
 				}
 
-				licenses {
-					license {
-						name 'The Apache Software License, Version 2.0'
-						url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-						distribution 'repo'
+				pom.project {
+					name "${project.name}"
+					packaging 'jar'
+					description 'JVM AOT compiler currently generating JavaScript, Haxe, with initial focus on Kotlin and games.'
+					url 'https://github.com/jtransc/jtransc/'
+					inceptionYear '2015'
+
+					scm {
+						url 'scm:git@github.com:jtransc/jtransc.git'
+						connection 'scm:git@github.com:jtransc/jtransc.git'
+						developerConnection 'scm:git@github.com:jtransc/jtransc.git'
 					}
-				}
 
-				developers {
-					developer {
-						id 'soywiz'
-						name 'Carlos Ballesteros Velasco'
+					licenses {
+						license {
+							name 'The Apache Software License, Version 2.0'
+							url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+							distribution 'repo'
+						}
+					}
+
+					developers {
+						developer {
+							id 'soywiz'
+							name 'Carlos Ballesteros Velasco'
+						}
 					}
 				}
 			}
 		}
 	}
-}
 
 //println("uploadArchives!: ${project.name}")
+}
