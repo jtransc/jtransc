@@ -1,9 +1,14 @@
 package jtransc.rt.test;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.io.JTranscConsole;
 
 public class MathTest {
 	static public void main(String[] args) {
+		if (JTranscSystem.usingJTransc()) {
+			throw new RuntimeException("testing that travis fails!");
+		}
+
 		dumpIntBounds();
 		zeros();
 		cbrt();
