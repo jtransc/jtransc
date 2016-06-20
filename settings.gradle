@@ -1,0 +1,17 @@
+include (
+	'jtransc-asm',
+	'jtransc-buildjar-maven-plugin',
+	'jtransc-core',
+	'jtransc-debugger',
+	'jtransc-gen-common',
+	'jtransc-gen-haxe',
+	'jtransc-gen-js',
+	'jtransc-gradle-plugin',
+	////'jtransc-intellij-plugin',
+	'jtransc-main',
+	'jtransc-main-run',
+	'jtransc-maven-plugin',
+	'jtransc-rt',
+	'jtransc-rt-core',
+	'jtransc-utils',
+)

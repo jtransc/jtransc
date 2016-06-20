@@ -1,0 +1,15 @@
+apply from: '../include.gradle'
+
+dependencies {
+	compile project(':jtransc-utils')
+	compile project(':jtransc-asm')
+
+	compile 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.4'
+	compile 'org.apache.maven:maven-core:3.3.9'
+	compile 'org.codehaus.plexus:plexus-archiver:2.1.1'
+	compile 'org.apache.maven.shared:maven-artifact-resolver:1.0'
+	compile 'org.eclipse.aether:aether-api:1.1.0'
+	compile 'org.eclipse.aether:aether-util:1.1.0'
+	compile 'org.apache.maven:maven-compat:3.0'
+}
+

@@ -1,0 +1,9 @@
+apply from: '../include.gradle'
+
+sourceSets {
+	main.java.srcDirs = ['src', 'regexodus/src']
+}
+
+dependencies {
+	compile project(':jtransc-rt-core')
+}

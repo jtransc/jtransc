@@ -1,0 +1,41 @@
+// http://jedicoder.blogspot.com.es/2011/11/automated-gradle-project-deployment-to.html
+
+buildscript {
+	ext.kotlin_version = '1.0.2-1'
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+	}
+}
+
+
+
+allprojects { project ->
+	//task hello << {task ->
+	//	println "I'm $task.project.name: ${task.project.ext.jtranscVersion}"
+	//}
+
+	def version = "${jtranscVersion}"
+
+	project.ext.group = "com.jtransc"
+	project.ext.jtranscVersion = "$version"
+
+	//apply from: '../include.gradle'
+}
+
+//subprojects {
+//	hello << {println "- I depend on water"}
+//}
+//
+//project(':jtransc-media-core').hello.doLast {
+//	println "- I'm the largest animal that has ever lived on this planet."
+//}
+
+//project(':jtransc-media-lime') {
+//	dependencies {
+//		compile project(':jtransc-media-core')
+//	}
+//}
+

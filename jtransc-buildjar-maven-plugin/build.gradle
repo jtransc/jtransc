@@ -1,0 +1,8 @@
+apply from: '../include.gradle'
+
+dependencies {
+	compile project(':jtransc-core')
+	compile project(':jtransc-gen-haxe')
+
+	compile "org.apache.maven:maven-plugin-api:3.3.9"
+}

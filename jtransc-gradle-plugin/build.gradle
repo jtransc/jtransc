@@ -1,0 +1,6 @@
+apply from: '../include.gradle'
+
+dependencies {
+	compile project(':jtransc-main')
+	provided "org.jetbrains.kotlin:gradle-api:2.2"
+}
