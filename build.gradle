@@ -10,7 +10,10 @@ buildscript {
 	}
 }
 
-
+//tasks.withType(Test) {
+//	scanForTestClasses = false
+//	include "**/*Test.class" // whatever Ant pattern matches your test class files
+//}
 
 allprojects { project ->
 	//task hello << {task ->
@@ -40,3 +43,120 @@ allprojects { project ->
 //	}
 //}
 
+
+/*
+project(':jtransc-main').tasks.test.doLast {
+	dependsOn ':jtransc-rt:test'
+	println "- I'm the largest animal that has ever lived on this planet."
+}
+*/
+
+
+
+/**
+ * This is how you attach the listener in your root projects build.gradle
+ */
+
+
+//class SubProjectOrderListener implements org.gradle.api.ProjectEvaluationListener {
+//	private static final Logger LOG = Logging.getLogger(SubProjectOrderListener.class);
+//
+//
+//	void  afterEvaluate(Project project, ProjectState state) {
+//		if(project.getSubprojects().isEmpty()) {
+//			return;
+//		}
+//		LOG.lifecycle("Order tasks for sub projects of project " + project.name + " per sub project definition in settings.gradle");
+//
+//
+//		File settingsFile = new File(project.getProjectDir(), "settings.gradle");
+//		if(settingsFile.exists() == false) {
+//			LOG.error("No settings.gradle found in project directory " + project.getProjectDir());
+//			return;
+//		}
+//
+//
+//		/*
+//         * Determine ordered list of sub projects according to the entries in file setting.gradle
+//         */
+//		List<String> orderedSubProjects = new ArrayList<String>();
+//		BufferedReader br = new BufferedReader(new FileReader(settingsFile));
+//		try {
+//			String line;
+//			while ((line = br.readLine()) != null) {
+//				if(line.startsWith("include")) {
+//					String[] splitLine = line.substring("include".length()).split(",");
+//					LOG.debug("Found ordered sub projects list");
+//					for(String tmp : splitLine) {
+//						int b = tmp.indexOf("\"")+1;
+//						int e = tmp.indexOf("\"",b);
+//						String subProject = tmp.substring(b, e);
+//						if(subProject.contains(':')) {
+//							throw new RuntimeException("No sub sub projects supported");
+//						}
+//						LOG.debug(subProject);
+//						orderedSubProjects.add(subProject);
+//					}
+//					break;
+//				}
+//			}
+//		}
+//		finally {
+//			br.close();
+//		}
+//
+//
+//		if(orderedSubProjects.isEmpty()) {
+//			LOG.error("No sub projects included in settings.gradle");
+//			return;
+//		}
+//
+//
+//		Map<String, Set<Task>> name2Task = new HashMap<String, Set<Task>>();
+//		LOG.debug("Found tasks:");
+//		for(Set<Task> tasks: project.getAllTasks(true).values()) {
+//			for(Task task : tasks) {
+//				String taskName = task.getName();
+//				LOG.debug(task.getProject().getName() + ":" + task.getName());
+//				if(!name2Task.containsKey(taskName)) {
+//					name2Task.put(taskName, new HashSet<Task>());
+//				}
+//				name2Task.get(taskName).add(task);
+//			}
+//		}
+//
+//
+//		/*
+//         * Visit all tasks and set mustRunAfter according to sub project ordering
+//         */
+//		for(Set<Task> tasksWithSameName : name2Task.values()) {
+//
+//			for(Task task : tasksWithSameName) {
+//				int pos = orderedSubProjects.indexOf(task.getProject().getName());
+//				Set<Task> tasksToRunBefore = task.getMustRunAfter().getDependencies(task);
+//
+//				String taskLogName = task.getProject().getName() + ":" + task.getName();
+//				LOG.info("Process task " + taskLogName);
+//
+//				for(Task runBeforeTask : tasksWithSameName) {
+//					int runBeforePos = orderedSubProjects.indexOf(runBeforeTask.getProject().getName());
+//
+//
+//					if(runBeforePos < pos) {
+//						tasksToRunBefore.add(runBeforeTask);
+//
+//						String runBeforeLogName = runBeforeTask.getProject().getName() + ":" + runBeforeTask.getName();
+//						LOG.info("   added  " + runBeforeLogName);
+//					}
+//
+//					task.setMustRunAfter(tasksToRunBefore);
+//				}
+//			}
+//		}
+//	}
+//
+//	void  beforeEvaluate(Project project) {
+//	}
+//}
+//
+//gradle.addProjectEvaluationListener(new SubProjectOrderListener())

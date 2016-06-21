@@ -1,5 +1,8 @@
 apply from: '../include.gradle'
 
+evaluationDependsOn(':jtransc-rt')
+
+
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
 	compile "org.jetbrains.kotlin:kotlin-runtime:${project.ext.kotlin_version}"
@@ -10,4 +13,10 @@ dependencies {
 	compile project(':jtransc-gen-common')
 	compile project(':jtransc-gen-haxe')
 	compile project(':jtransc-gen-js')
+
+	//runtime project(':jtransc-rt')
 }
+
+
+project(':jtransc-main').compileKotlin.dependsOn(project(':jtransc-rt').test)
+//task.dependsOn(others)

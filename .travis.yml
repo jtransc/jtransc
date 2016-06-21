@@ -40,6 +40,7 @@ before_script:
 - ./gradlew --version
 script:
 - ./gradlew -s -i check install
+#- ./gradlew check install
 - pushd jtransc-main-run/example
 - "./run"
 - popd

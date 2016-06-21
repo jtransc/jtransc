@@ -1,4 +1,8 @@
 include (
+	// First build runtime
+	'jtransc-rt',
+	'jtransc-rt-core',
+
 	'jtransc-asm',
 	'jtransc-buildjar-maven-plugin',
 	'jtransc-core',
@@ -11,7 +15,5 @@ include (
 	'jtransc-main',
 	//'jtransc-main-run',
 	'jtransc-maven-plugin',
-	'jtransc-rt',
-	'jtransc-rt-core',
 	'jtransc-utils',
 )

@@ -135,7 +135,11 @@ open class JTranscTestBase {
 				analyzer = analyze ?: ANALYZER,
 				rtAndRtCore = listOf(
 					projectRoot["jtransc-rt/target/classes"].realpathOS,
-					projectRoot["jtransc-rt-core/target/classes"].realpathOS
+					projectRoot["jtransc-rt/build/classes/main"].realpathOS,
+					projectRoot["jtransc-rt/build/resources/main"].realpathOS,
+					projectRoot["jtransc-rt-core/target/classes"].realpathOS,
+					projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
+					projectRoot["jtransc-rt-core/build/resources/main"].realpathOS
 				)
 			),
 			types = types.get()
