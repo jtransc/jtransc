@@ -16,6 +16,16 @@
 
 package com.jtransc.maven
 
+import java.io.File
+
+object MavenGradleLocalRepository {
+	@JvmStatic fun locateJars(vararg ids:String) = ids.flatMap {
+		GradleLocalRepository.locateJars(it) + MavenLocalRepository.locateJars(it)
+	}.filter {
+		File(it).exists()
+	}
+}
+
 object MavenLocalRepository {
 	@JvmStatic fun locateJars(vararg ids:String) = ids.flatMap { locateJars(it) }
 	@JvmStatic fun locateJars(ids:List<String>) = ids.flatMap { locateJars(it) }
@@ -31,3 +41,25 @@ object MavenLocalRepository {
 		return listOf("$userDir/.m2/repository/$groupPath/$artifactId/$version/$artifactId-$version.jar")
 	}
 }
+
+object GradleLocalRepository {
+	@JvmStatic fun locateJars(vararg ids:String) = ids.flatMap { locateJars(it) }
+	@JvmStatic fun locateJars(ids:List<String>) = ids.flatMap { locateJars(it) }
+
+	@JvmStatic fun locateJars(id:String):List<String> {
+		val parts = id.split(":")
+		return locateJarsWithParts(parts[0], parts[1], parts[2])
+	}
+
+	@JvmStatic fun locateJarsWithParts(groupId:String, artifactId:String, version:String):List<String> {
+		val userDir = System.getProperty("user.home");
+
+		val base = "$userDir/.gradle/caches/modules-2/files-2.1/$groupId/$artifactId/$version/"
+
+		return File(base).list().map { File("$base/$it/$artifactId-$version.jar") }.filter {
+			//println(it)
+			it.exists()
+		}.map { it.absolutePath }
+	}
+}
+

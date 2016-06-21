@@ -25,6 +25,7 @@ import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.log.log
+import com.jtransc.maven.MavenGradleLocalRepository
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
 import com.jtransc.vfs.SyncVfsFile
@@ -65,8 +66,8 @@ open class JTranscTestBase {
 	}
 
 	val kotlinPaths = listOf<String>() + listOf(
-		MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
-		, MavenLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
+		MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
+		, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
 	).flatMap { it }
 
 	val testClassesPath = File("target/test-classes").absolutePath
