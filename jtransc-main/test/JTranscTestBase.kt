@@ -72,6 +72,7 @@ open class JTranscTestBase {
 
 	val testClassesPaths = listOf(
 		File("build/classes/test").absolutePath,
+		File("build/resources/test").absolutePath,
 		//File("build/kotlin-classes/test").absolutePath,
 		File("target/test-classes").absolutePath
 	)

@@ -15,6 +15,7 @@ public class JTranscSystem {
 
 	@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
 	@HaxeMethodBody("var start = N.getTime(); while (N.getTime() - start < p0) { }") // BUSY WAIT!
+
 	@JTranscMethodBody(target = "js", value = "var start = N.getTime(); while (N.getTime() - start < p0) { }")
 	static public void sleep(double ms) {
 		try {
