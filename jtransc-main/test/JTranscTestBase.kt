@@ -70,7 +70,11 @@ open class JTranscTestBase {
 		, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
 	).flatMap { it }
 
-	val testClassesPath = File("target/test-classes").absolutePath
+	val testClassesPaths = listOf(
+		File("build/classes/test").absolutePath,
+		//File("build/kotlin-classes/test").absolutePath,
+		File("target/test-classes").absolutePath
+	)
 
 	fun <T : Any> testClass(
 		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
@@ -121,7 +125,7 @@ open class JTranscTestBase {
 
 		return AllBuild(
 			target = target ?: DEFAULT_TARGET,
-			classPaths = listOf(testClassesPath) + kotlinPaths,
+			classPaths = testClassesPaths + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",
 			//output = "program.haxe.cpp", subtarget = "cpp",
