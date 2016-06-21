@@ -20,7 +20,7 @@
 	<parent>
 		<groupId>com.jtransc</groupId>
 		<artifactId>jtransc</artifactId>
-		<version>0.2.0</version>
+		<!--jtransc--><version>0.3.1</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -60,7 +60,7 @@
                 <artifactId>jtransc-maven-plugin</artifactId>
                 <version>${jtransc.version}</version>
                 <configuration>
-                    <target>haxe:js:program.js</target>
+                    <target>js:js:program.js</target>
                     <mainClass>example.Test</mainClass>
                     <release>true</release>
                 </configuration>
