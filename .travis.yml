@@ -49,7 +49,7 @@ script:
 - popd
 - pushd jtransc-maven-plugin/example
 - mvn package
-- node target/program.js
+- node target/jtransc-js/program.js
 - popd
 cache:
   directories:

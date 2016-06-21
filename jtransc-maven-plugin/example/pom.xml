@@ -17,13 +17,8 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.jtransc</groupId>
-		<artifactId>jtransc</artifactId>
-		<!--jtransc--><version>0.3.1</version>
-		<relativePath>../../pom.xml</relativePath>
-	</parent>
-
+	<groupId>com.jtransc</groupId>
+	<version>0.0.1-SNAPSHOT</version>
 	<artifactId>jtransc-maven-plugin-example</artifactId>
     <!--
     <packaging>maven-plugin</packaging>
@@ -34,7 +29,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>${kotlin.version}</version>
+            <version>1.0.2-1</version>
         </dependency>
 
 		<!--
@@ -48,7 +43,7 @@
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
-            <version>${jtransc.version}</version>
+			<!--jtransc--><version>0.3.1</version>
         </dependency>
     </dependencies>
 
@@ -58,7 +53,7 @@
             <plugin>
                 <groupId>com.jtransc</groupId>
                 <artifactId>jtransc-maven-plugin</artifactId>
-                <version>${jtransc.version}</version>
+				<!--jtransc--><version>0.3.1</version>
                 <configuration>
                     <target>js:js:program.js</target>
                     <mainClass>example.Test</mainClass>
