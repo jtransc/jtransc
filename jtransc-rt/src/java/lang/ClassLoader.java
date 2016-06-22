@@ -20,8 +20,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Vector;
 
 public abstract class ClassLoader {
 	private ClassLoader parent;
@@ -48,11 +52,17 @@ public abstract class ClassLoader {
 		return Class.forName(name);
 	}
 
-	native protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException;
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		return loadClass(name);
+	}
 
-	native protected Object getClassLoadingLock(String className);
+	protected Object getClassLoadingLock(String className) {
+		return this;
+	}
 
-	native protected Class<?> findClass(String name) throws ClassNotFoundException;
+	protected Class<?> findClass(String name) throws ClassNotFoundException {
+		return loadClass(name);
+	}
 
 	@Deprecated
 	native protected final Class<?> defineClass(byte[] b, int off, int len) throws ClassFormatError;
@@ -63,15 +73,33 @@ public abstract class ClassLoader {
 	//native protected final Class<?> defineClass(String name, java.nio.ByteBuffer b, ProtectionDomain protectionDomain) throws ClassFormatError;
 	native protected final void resolveClass(Class<?> c);
 
-	native protected final Class<?> findSystemClass(String name) throws ClassNotFoundException;
+	protected final Class<?> findSystemClass(String name) throws ClassNotFoundException {
+		return loadClass(name);
+	}
 
-	native protected final Class<?> findLoadedClass(String name);
+	protected final Class<?> findLoadedClass(String name) {
+		try {
+			return loadClass(name);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
-	native protected final void setSigners(Class<?> c, Object[] signers);
+	protected final void setSigners(Class<?> c, Object[] signers) {
+	}
 
-	native public URL getResource(String name);
+	public URL getResource(String name) {
+		try {
+			return new URL("file:///" + name);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-	native public Enumeration<URL> getResources(String name) throws IOException;
+	public Enumeration<URL> getResources(String name) throws IOException {
+		return new Vector<>(Arrays.asList(getResource(name))).elements();
+	}
 
 	native protected URL findResource(String name);
 

@@ -307,9 +307,13 @@ public class JTranscSyncIO {
 
 	// @TODO: Remove this!
 	static public JTranscIOSyncFile open(String name, int mode) throws FileNotFoundException {
-		JTranscIOSyncFile out = new JTranscIOSyncFile();
-		out.open(name, mode);
-		return out;
+		try {
+			JTranscIOSyncFile out = new JTranscIOSyncFile();
+			out.open(name, mode);
+			return out;
+		} catch (Throwable t) {
+			throw new FileNotFoundException(t.getMessage());
+		}
 	}
 
 }

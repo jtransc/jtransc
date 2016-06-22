@@ -20,6 +20,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Thread implements Runnable {
@@ -160,19 +161,36 @@ public class Thread implements Runnable {
 		}
 	}
 
-	native public ClassLoader getContextClassLoader();
+	private ClassLoader classLoader = null;
 
-	native public void setContextClassLoader(ClassLoader cl);
+	public ClassLoader getContextClassLoader() {
+		if (this.classLoader == null) {
+			this.classLoader = _ClassInternalUtils.getSystemClassLoader();
+		}
+		return this.classLoader;
+	}
 
-	public static native boolean holdsLock(Object obj);
+	public void setContextClassLoader(ClassLoader cl) {
+		this.classLoader = cl;
+	}
 
-	native public static Map<Thread, StackTraceElement[]> getAllStackTraces();
+	public static boolean holdsLock(Object obj) {
+		return false;
+	}
 
-	native public long getId();
+	public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
+		return new HashMap<>();
+	}
+
+	public long getId() {
+		return 0;
+	}
 
 	public enum State {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED}
 
-	native public State getState();
+	public State getState() {
+		return State.RUNNABLE;
+	}
 
 	public interface UncaughtExceptionHandler {
 		void uncaughtException(Thread t, Throwable e);

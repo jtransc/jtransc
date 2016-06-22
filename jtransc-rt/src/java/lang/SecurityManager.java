@@ -1,159 +1,152 @@
 /*
- * Copyright 2016 Carlos Ballesteros Velasco
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package java.lang;
 
+import java.io.FileDescriptor;
+import java.net.InetAddress;
+import java.security.Permission;
+
+/**
+ * Legacy security code; do not use.
+ *
+ * <p>Security managers do <strong>not</strong> provide a
+ * secure environment for executing untrusted code. Untrusted code cannot be
+ * safely isolated within the Dalvik VM.
+ */
 public class SecurityManager {
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
 	@Deprecated
 	protected boolean inCheck;
 
-	@Deprecated
-	public boolean getInCheck() {
-		return true;
+	public SecurityManager() { }
+
+	public void checkAccept(String host, int port) { }
+
+	public void checkAccess(Thread thread) { }
+
+	public void checkAccess(ThreadGroup group) { }
+
+	public void checkConnect(String host, int port) { }
+
+	public void checkConnect(String host, int port, Object context) { }
+
+	public void checkCreateClassLoader() { }
+
+	public void checkDelete(String file) { }
+
+	public void checkExec(String cmd) { }
+
+	public void checkExit(int status) { }
+
+	public void checkLink(String libName) { }
+
+	public void checkListen(int port) { }
+
+	public void checkMemberAccess(Class<?> cls, int type) { }
+
+	public void checkMulticast(InetAddress maddr) { }
+
+	/**
+	 * @deprecated use {@link #checkMulticast(java.net.InetAddress)} instead.
+	 */
+	@Deprecated public void checkMulticast(InetAddress maddr, byte ttl) { }
+
+	public void checkPackageAccess(String packageName) { }
+
+	public void checkPackageDefinition(String packageName) { }
+
+	public void checkPropertiesAccess() { }
+
+	public void checkPropertyAccess(String key) { }
+
+	public void checkRead(FileDescriptor fd) { }
+
+	public void checkRead(String file) { }
+
+	public void checkRead(String file, Object context) { }
+
+	public void checkSecurityAccess(String target) { }
+
+	public void checkSetFactory() { }
+
+	public boolean checkTopLevelWindow(Object window) { return true; }
+
+	public void checkSystemClipboardAccess() { }
+
+	public void checkAwtEventQueueAccess() { }
+
+	public void checkPrintJobAccess() { }
+
+	public void checkWrite(FileDescriptor fd) { }
+
+	public void checkWrite(String file) { }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated public boolean getInCheck() { return inCheck; }
+
+	protected Class[] getClassContext() { return null; }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected ClassLoader currentClassLoader() { return null; }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected int classLoaderDepth() {
+		return -1;
 	}
 
-	public SecurityManager() {
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected Class<?> currentLoadedClass() { return null; }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected int classDepth(String name) { return -1; }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected boolean inClass(String name) { return false; }
+
+	/**
+	 * @deprecated Use {@link #checkPermission} instead.
+	 */
+	@Deprecated protected boolean inClassLoader() { return false; }
+
+	/**
+	 * Returns the current thread's thread group.
+	 */
+	public ThreadGroup getThreadGroup() {
+		return Thread.currentThread().getThreadGroup();
 	}
 
-	protected native Class[] getClassContext();
+	public Object getSecurityContext() { return null; }
 
-	@Deprecated
-	protected ClassLoader currentClassLoader() {
-		return null;
-	}
+	public void checkPermission(Permission permission) { }
 
-	@Deprecated
-	protected Class<?> currentLoadedClass() {
-		return null;
-	}
-
-	@Deprecated
-	protected native int classDepth(String name);
-
-	@Deprecated
-	protected int classLoaderDepth() {
-		return 0;
-	}
-
-	@Deprecated
-	protected boolean inClass(String name) {
-		return true;
-	}
-
-	@Deprecated
-	protected boolean inClassLoader() {
-		return true;
-	}
-
-	public Object getSecurityContext() {
-		return null;
-	}
-
-	//public void checkPermission(Permission perm) { }
-	//public void checkPermission(Permission perm, Object context) {}
-	public void checkCreateClassLoader() {
-	}
-
-	public void checkAccess(Thread t) {
-	}
-
-	public void checkAccess(ThreadGroup g) {
-	}
-
-	public void checkExit(int status) {
-
-	}
-
-	public void checkExec(String cmd) {
-	}
-
-	public void checkLink(String lib) {
-	}
-
-	//public void checkRead(FileDescriptor fd) {}
-
-	public void checkRead(String file) {
-	}
-
-	public void checkRead(String file, Object context) {
-	}
-
-	//public void checkWrite(FileDescriptor fd) {}
-
-	public void checkWrite(String file) {
-	}
-
-	public void checkDelete(String file) {
-	}
-
-	public void checkConnect(String host, int port) {
-	}
-
-	public void checkConnect(String host, int port, Object context) {
-	}
-
-	public void checkListen(int port) {
-	}
-
-	public void checkAccept(String host, int port) {
-	}
-
-	//public void checkMulticast(InetAddress maddr) {}
-	//@Deprecated public void checkMulticast(InetAddress maddr, byte ttl) {}
-
-	public void checkPropertiesAccess() {
-	}
-
-	public void checkPropertyAccess(String key) {
-	}
-
-	@Deprecated
-	public boolean checkTopLevelWindow(Object window) {
-		return true;
-	}
-
-	public void checkPrintJobAccess() {
-
-	}
-
-	@Deprecated
-	public void checkSystemClipboardAccess() {
-	}
-
-	@Deprecated
-	public void checkAwtEventQueueAccess() {
-	}
-
-	public void checkPackageAccess(String pkg) {
-	}
-
-	public void checkPackageDefinition(String pkg) {
-	}
-
-	public void checkSetFactory() {
-
-	}
-
-	@Deprecated
-	public void checkMemberAccess(Class<?> clazz, int which) {
-	}
-
-	public void checkSecurityAccess(String target) {
-
-	}
-
-	public ThreadGroup getThreadGroup() { return Thread.currentThread().getThreadGroup(); }
+	public void checkPermission(Permission permission, Object context) { }
 }

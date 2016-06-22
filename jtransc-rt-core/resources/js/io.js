@@ -2,17 +2,19 @@ var nodeJs = typeof process != 'undefined';
 
 var fs = nodeJs ? require('fs') : null;
 
-var BA_EXISTS    = 0x01;
-var BA_REGULAR   = 0x02;
-var BA_DIRECTORY = 0x04;
-var BA_HIDDEN    = 0x08;
+var BA_EXISTS      = 0x01;
+var BA_REGULAR     = 0x02;
+var BA_DIRECTORY   = 0x04;
+var BA_HIDDEN      = 0x08;
+
 var ACCESS_EXECUTE = 0x01;
 var ACCESS_WRITE   = 0x02;
 var ACCESS_READ    = 0x04;
+
 var O_RDONLY = 1;
-var O_RDWR = 2;
-var O_SYNC = 4;
-var O_DSYNC = 8;
+var O_RDWR   = 2;
+var O_SYNC   = 4;
+var O_DSYNC  = 8;
 
 var IO = function() {
 };
@@ -55,13 +57,17 @@ IO.Stream = function() {
 };
 
 IO.Stream.prototype.open = function(path, flags) {
-	var flagsStr = '';
-	if ((flags & O_RDONLY) != 0) flagsStr += 'r';
-	if ((flags & O_RDWR) != 0) flagsStr += 'w';
-	this.fd = fs.openSync(path, flagsStr); // @TODO: convert flags!!!
-	var stat = fs.fstatSync(this.fd);
-	this.position = 0;
-	this.length = stat.size;
+	try {
+		var flagsStr = '';
+		if ((flags & O_RDONLY) != 0) flagsStr += 'r';
+		if ((flags & O_RDWR) != 0) flagsStr += 'w';
+		this.fd = fs.openSync(path, flagsStr); // @TODO: convert flags!!!
+		var stat = fs.fstatSync(this.fd);
+		this.position = 0;
+		this.length = stat.size;
+	} catch (e) {
+		N.throwRuntimeException('' + e);
+	}
 };
 
 IO.Stream.prototype.close = function() {

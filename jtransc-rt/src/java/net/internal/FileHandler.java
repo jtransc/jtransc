@@ -17,10 +17,11 @@
 
 package java.net.internal;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
+import java.io.InputStream;
+import java.net.*;
 
 /**
  * This is the handler that is responsible for reading files from the file
@@ -59,21 +60,24 @@ public class FileHandler extends URLStreamHandler {
 	 * @throws UnsupportedOperationException
 	 *             if the protocol handler doesn't support this method.
 	 */
-	//@Override
-	//public URLConnection openConnection(URL url, Proxy proxy) throws IOException {
-	//	if (url == null) {
-	//		throw new IllegalArgumentException("url == null");
-	//	}
-//
-	//	String host = url.getHost();
-	//	if (host == null || host.isEmpty() || host.equalsIgnoreCase("localhost")) {
-	//		return new FileURLConnection(url);
-	//	}
-//
-	//	// If a hostname is specified try to get the resource using FTP
-	//	URL ftpURL = new URL("ftp", host, url.getFile());
-	//	return (proxy == null) ? ftpURL.openConnection() : ftpURL.openConnection(proxy);
-	//}
+	@Override
+	public URLConnection openConnection(URL url, Proxy proxy) throws IOException {
+		return new URLConnection(url) {
+			@Override
+			public void connect() throws IOException {
+			}
+
+			@Override
+			public InputStream getInputStream() throws IOException {
+				try {
+					return new FileInputStream(new File(url.toURI()));
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+					throw new IOException(e);
+				}
+			}
+		};
+	}
 
 	/**
 	 * Parse the <code>string</code>str into <code>URL</code> u which
