@@ -153,6 +153,7 @@ class SyncStream {
 	static private inline var O_DSYNC = 8;
 
 	public function syncioOpen(path:String, flags:Int):Void {
+		if (fs == null) HaxeNatives.throwRuntimeException("Can't open");
 		//trace('syncioOpen:$path:$flags');
 		this.position = 0;
 		try {
@@ -184,6 +185,7 @@ class SyncStream {
 	}
 
 	public function syncioReadBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
+		if (fs == null) return -1;
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
@@ -201,6 +203,7 @@ class SyncStream {
 	}
 
 	public function syncioWriteBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
+		if (fs == null) return -1;
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js
@@ -218,6 +221,7 @@ class SyncStream {
 	}
 
 	public function syncioClose():Void {
+		if (fs == null) return;
 		//trace('syncioClose');
 		#if js
 			fs.closeSync(fd);
@@ -243,6 +247,7 @@ class SyncStream {
 	}
 
 	public function syncioSetLength(length:Int64):Int64 {
+		if (fs == null) return -1;
 		this.length = HaxeNatives.longToFloat(length);
 		#if js
 			fd.setLength(HaxeNatives.longToFloat(length));

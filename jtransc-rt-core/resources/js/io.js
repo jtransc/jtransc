@@ -22,11 +22,13 @@ var IO = function() {
 IO.getCwd = function() { return (nodeJs) ? process.cwd() : '/assets'; };
 
 IO.getLength = function(path) {
+	if (!fs) return 0;
 	var stat = fs.lstatSync(path);
 	return stat.size;
 };
 
 IO.getBooleanAttributes = function(path) {
+	if (!fs) return 0;
 	var out = 0;
 	try {
 		var stat = fs.lstatSync(path);
@@ -39,6 +41,7 @@ IO.getBooleanAttributes = function(path) {
 };
 
 IO.checkAccess = function(path, flags) {
+	if (!fs) return false;
 	try {
 		var mode = 0;
 		if ((flags & ACCESS_EXECUTE) != 0) mode |= fs.X_OK;
@@ -57,6 +60,7 @@ IO.Stream = function() {
 };
 
 IO.Stream.prototype.open = function(path, flags) {
+	if (!fs) N.throwRuntimeException("Can't open");
 	try {
 		var flagsStr = '';
 		if ((flags & O_RDONLY) != 0) flagsStr += 'r';
@@ -71,10 +75,12 @@ IO.Stream.prototype.open = function(path, flags) {
 };
 
 IO.Stream.prototype.close = function() {
+	if (!fs) return;
 	fs.closeSync(this.fd);
 };
 
 IO.Stream.prototype.read = function(data, offset, length) {
+	if (!fs) return -1;
 	if (offset < 0 || offset >= this.length) return -1;
 	if (length == 0) return 0;
 	var buffer = new Buffer(length);
@@ -85,6 +91,7 @@ IO.Stream.prototype.read = function(data, offset, length) {
 };
 
 IO.Stream.prototype.write = function(data, offset, length) {
+	if (!fs) return -1;
 	var written = fs.writeSync(this.fd, new Buffer(data), offset, length, this.position);
 	if (written > 0) this.position += written;
 	return written;

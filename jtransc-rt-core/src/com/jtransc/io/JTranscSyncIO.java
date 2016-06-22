@@ -315,5 +315,4 @@ public class JTranscSyncIO {
 			throw new FileNotFoundException(t.getMessage());
 		}
 	}
-
 }
