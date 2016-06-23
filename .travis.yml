@@ -20,24 +20,34 @@ before_install:
 - jdk_switcher use oraclejdk8
 - sudo apt-key update
 - sudo apt-get update -qq
+
 install:
 - sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get -y update
 - sudo apt-get -y install php5.6 php5.6-mbstring
+- curl -s -S -O http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-linux64.tar.gz
+- tar xzf haxe-3.2.1-linux64.tar.gz
 - nvm install 4 || true
 - nvm use 4 || true
 
 
 before_script:
+- export HAXE_STD_PATH=$PWD/haxe-3.2.1/std
+- export HAXEPATH=$PWD/haxe-3.2.1
+- export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
+- ls -la $PWD/haxe-3.2.1
 - which java || true
 - java -version || true
+- which haxe || true
+- haxe -version || true
 - which nvm || true
 - nvm --version || true
 - which node || true
 - node --version || true
 - php --version || true
 - ./gradlew --version
+
 script:
 - ./gradlew -s -i check install
 #- ./gradlew check install

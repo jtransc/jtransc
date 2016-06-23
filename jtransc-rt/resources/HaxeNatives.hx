@@ -105,7 +105,11 @@ class HaxeNatives {
     static public function double(value:Float64):JavaDouble return boxDouble(value);
 
     static public function strArray(strs:Array<String>):HaxeArrayAny {
-        return HaxeArrayAny.fromArray(strs.map(function(s) { return str(s); }).array(), "[Ljava.lang.String;");
+        var out = new HaxeArrayAny(strs.length, "[Ljava.lang.String;");
+        for (n in 0 ... strs.length) {
+			out.set(n, str(strs[n]));
+        }
+        return out;
     }
 
     static public function byteArrayToString(chars:HaxeArrayByte, start:Int = 0, count:Int = -1, charset:String = "UTF-8"):String {

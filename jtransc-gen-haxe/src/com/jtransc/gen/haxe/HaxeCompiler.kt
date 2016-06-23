@@ -1,13 +1,26 @@
 package com.jtransc.gen.haxe
 
-import com.jtransc.JTranscSystem
-import com.jtransc.env.CI
-import com.jtransc.error.invalidOp
-import com.jtransc.log.log
-import com.jtransc.vfs.*
+import com.jtransc.io.ProcessUtils
+import com.jtransc.vfs.LocalVfs
+import com.jtransc.vfs.SyncVfsFile
 import java.io.File
-import java.net.URL
+import java.io.FileNotFoundException
 
+object HaxeCompiler {
+	fun ensureHaxeSubtarget(subtarget: String) {
+	}
+
+	fun ensureHaxeCompilerVfs(): SyncVfsFile {
+		val haxePath = ProcessUtils.locateCommand("haxe") ?: throw FileNotFoundException("Can't find haxe command")
+		return LocalVfs(File(haxePath).parentFile)
+	}
+
+	fun getExtraEnvs(): Map<String, String> {
+		return mapOf()
+	}
+}
+
+/*
 object HaxeCompiler {
 	val HAXE_VERSION = "3.3.0-rc.1"
 	val NEKO_VERSION = "2.1.0"
@@ -180,3 +193,4 @@ object HaxeCompiler {
 		}
 	}
 }
+*/

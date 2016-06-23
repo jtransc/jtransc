@@ -10,6 +10,8 @@ class HaxeArrayShort extends HaxeArrayBase {
         this.desc = "[S";
     }
 
+    public function getTypedArray() return data;
+
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
         var out = new HaxeArrayShort(items.length);

@@ -12,6 +12,8 @@ class HaxeArrayByte extends HaxeArrayBase {
         this.desc = "[B";
     }
 
+    public function getTypedArray() return data;
+
     public function getBytes():Bytes {
     	#if js
     	return Bytes.ofData(data.getData().buffer);

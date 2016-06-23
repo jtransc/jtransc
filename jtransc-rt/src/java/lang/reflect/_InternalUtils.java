@@ -68,7 +68,16 @@ class _InternalUtils {
 			case 'J':
 				return Long.TYPE;
 			case '[':
-				return new ArrayType(parseType(sr, owner));
+				int start = sr.offset - 1;
+				Type type = parseType(sr, owner);
+				int end = sr.offset;
+				if (type instanceof Class<?>) {
+					//System.out.println("AAAAAAAAAAAA");
+					return Class_forName0(sr.str.substring(start, end));
+				} else {
+					//System.out.println("BBBBBBBBBBBB");
+					return new ArrayType(type);
+				}
 			case 'L':
 				int startOffset = sr.offset;
 				boolean generic = false;

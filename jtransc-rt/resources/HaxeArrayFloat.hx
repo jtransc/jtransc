@@ -19,6 +19,16 @@ class HaxeArrayFloat extends HaxeArrayBase {
         this.desc = "[F";
     }
 
+    public function getTypedArray() {
+        #if flash
+        var out = new Float32Array(this.length);
+        for (n in 0 ... this.length) out[n] = this.get(n);
+        return out;
+        #else
+        return data;
+        #end
+    }
+
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
         var out = new HaxeArrayFloat(items.length);

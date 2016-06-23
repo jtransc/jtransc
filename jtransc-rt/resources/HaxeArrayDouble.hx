@@ -10,6 +10,8 @@ class HaxeArrayDouble extends HaxeArrayBase {
         this.desc = "[D";
     }
 
+    public function getTypedArray() return data;
+
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
         var out = new HaxeArrayDouble(items.length);

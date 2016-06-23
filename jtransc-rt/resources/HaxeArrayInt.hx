@@ -20,6 +20,16 @@ class HaxeArrayInt extends HaxeArrayBase {
         this.desc = "[I";
     }
 
+    public function getTypedArray() {
+        #if flash
+        var out = new Int32Array(this.length);
+        for (n in 0 ... this.length) out[n] = this.get(n);
+        return out;
+        #else
+        return data;
+        #end
+    }
+
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
         var out = new HaxeArrayInt(items.length);

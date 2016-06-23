@@ -153,11 +153,11 @@ class SyncStream {
 	static private inline var O_DSYNC = 8;
 
 	public function syncioOpen(path:String, flags:Int):Void {
-		if (fs == null) HaxeNatives.throwRuntimeException("Can't open");
 		//trace('syncioOpen:$path:$flags');
 		this.position = 0;
 		try {
 			#if js
+				if (fs == null) HaxeNatives.throwRuntimeException("Can't open");
 				var flagsStr = '';
 				if ((flags & O_RDONLY) != 0) flagsStr += 'r';
 				if ((flags & O_RDWR) != 0) flagsStr += 'w';
@@ -185,10 +185,10 @@ class SyncStream {
 	}
 
 	public function syncioReadBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
-		if (fs == null) return -1;
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
+			if (fs == null) return -1;
 			var readed = fs.readSync(fd, createBuffer(data.getBytesData()), offset, length, this.position);
 			this.position += readed;
 			return Std.int(readed);
@@ -203,10 +203,10 @@ class SyncStream {
 	}
 
 	public function syncioWriteBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
-		if (fs == null) return -1;
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js
+			if (fs == null) return -1;
 			var written = fs.writeSync(fd, createBuffer(data.getBytesData()), offset, length, this.position);
 			this.position += written;
 			return Std.int(written);
@@ -221,9 +221,9 @@ class SyncStream {
 	}
 
 	public function syncioClose():Void {
-		if (fs == null) return;
 		//trace('syncioClose');
 		#if js
+			if (fs == null) return;
 			fs.closeSync(fd);
 		#elseif sys
 			if (input != null) { input.close(); input = null; }
@@ -247,9 +247,9 @@ class SyncStream {
 	}
 
 	public function syncioSetLength(length:Int64):Int64 {
-		if (fs == null) return -1;
 		this.length = HaxeNatives.longToFloat(length);
 		#if js
+			if (fs == null) return -1;
 			fd.setLength(HaxeNatives.longToFloat(length));
 		#elseif sys
 			throw 'Not implemented syncioSetLength';

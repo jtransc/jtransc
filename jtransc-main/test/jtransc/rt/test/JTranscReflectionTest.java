@@ -9,6 +9,7 @@ import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
+		testArrayType();
 		annotationTest();
 		assignableTest();
 		annotationTypesTest();
@@ -22,6 +23,18 @@ public class JTranscReflectionTest {
 		testEmptyAnnotations();
 		checkClassNotFound();
 		toStringArray();
+	}
+
+	native static public byte[] testArrayTypeMethod();
+
+	static private void testArrayType() {
+		System.out.println("testArrayType:");
+		try {
+			System.out.println(JTranscReflectionTest.class.getMethod("testArrayTypeMethod").getReturnType().isArray());
+			//System.out.println(JTranscReflectionTest.class.getMethod("testArrayTypeMethod"));
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
 	}
 
 	static private void checkClassNotFound() {
