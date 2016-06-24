@@ -61,16 +61,20 @@ class HaxeNatives {
     }
 
     static public function toNativeStrArray(strs:HaxeArrayAny):Array<String> {
-        return [for (s in strs.toArray()) toNativeString(cast s)];
+        var list = strs.toArray();
+        return [for (s in 0 ... list.length) toNativeString(cast list[s])];
     }
 
     static public function toNativeUnboxedArray(strs:HaxeArrayAny):Array<Dynamic> {
-        return [for (s in strs.toArray()) unbox(cast s)];
+        var list = strs.toArray();
+        return [for (s in 0 ... list.length) unbox(cast list[s])];
     }
 
     static public function hashMap(obj:Dynamic):{% CLASS java.util.HashMap %} {
 	    var out = new {% CLASS java.util.HashMap %}().{% METHOD java.util.HashMap:<init>:()V %}();
-	    for (key in Reflect.fields(obj)) {
+	    var fields = Reflect.fields(obj);
+	    for (n in 0 ... fields.length) {
+	        var key = fields[n];
 	    	var value = Reflect.field(obj, key);
 	    	out.{% METHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
 	    }
@@ -80,7 +84,9 @@ class HaxeNatives {
     static public function mapToObject(map:{% CLASS java.util.Map %}):Dynamic {
 	    if (map == null) return null;
     	var obj = {};
-    	for (item in iteratorToArray(map.{% METHOD java.util.Map:entrySet %}().{% METHOD java.util.Set:iterator %}())) {
+    	var array = iteratorToArray(map.{% METHOD java.util.Map:entrySet %}().{% METHOD java.util.Set:iterator %}());
+    	for (n in 0 ... array.length) {
+	    	var item = array[n];
 			var key:JavaObject = item.{% METHOD java.util.Map$Entry:getKey %}();
 			var value:JavaObject = item.{% METHOD java.util.Map$Entry:getValue %}();
 			Reflect.setField(obj, unbox(key), unbox(value));
@@ -410,8 +416,9 @@ class HaxeNatives {
 
 	static public function getStackTrace(skip:Int):HaxeArrayAny {
 		var out = [];
-		for (stack in CallStack.callStack()) {
-			out.push(convertStackItem(stack));
+		var callStack = CallStack.callStack();
+		for (n in 0 ... callStack.length) {
+			out.push(convertStackItem(callStack[n]));
 		}
 		return HaxeArrayAny.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
 	}

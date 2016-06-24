@@ -40,6 +40,31 @@ class N {
 		#end
 	}
 
+	static public function arrayInsert(array: Array<Dynamic>, index:Int, value: Dynamic): Void {
+		#if flash
+			var arr: Dynamic = array;
+			arr.splice(index, 0, value);
+		#else
+			array.insert(index, value);
+		#end
+	}
+
+	static public function arrayIterator(arr: Array<Dynamic>) : Iterator<Dynamic> {
+		#if flash
+		var cur = 0;
+		return {
+			hasNext : function() {
+				return cur < arr.length;
+			},
+			next : function() {
+				return arr[cur++];
+			}
+		}
+		#else
+		return arr.iterator();
+		#end
+	}
+
 	static public function signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
 	static public function i2z(v:Int):Bool return v != 0;
 	static public function i2b(v:Int):Int return (v << _shift(8)) >> _shift(8);

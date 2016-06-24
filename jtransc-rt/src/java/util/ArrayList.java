@@ -61,7 +61,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	@JTranscMethodBody(target = "js", value = "this._data.push(p0);")
 	native private void _add(E element);
 
-	@HaxeMethodBody("_data.insert(p0, p1);")
+	@HaxeMethodBody("N.arrayInsert(_data, p0, p1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 0, p1);")
 	native private void _insert(int index, E element);
 
