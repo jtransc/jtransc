@@ -292,9 +292,10 @@ class HaxeNatives {
 
 	static public function boxWithType(clazz:JavaClass, value:Dynamic):JavaObject {
 		if (Std.is(value, JavaObject)) return cast value;
-		var clazzName:String = clazz.{% FIELD java.lang.Class:name %}._str;
+		var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
 
 		switch (clazzName) {
+			case 'void': return boxVoid(cast value);
 			case 'boolean': return boxBool(cast value);
 			case 'byte': return boxByte(cast value);
 			case 'short': return boxShort(cast value);
@@ -305,8 +306,26 @@ class HaxeNatives {
 			case 'double': return boxDouble(cast value);
 		}
 
-		throwRuntimeException("Don't know how to unbox " + clazzName + " with value '" + value + "'");
+		throwRuntimeException("Don't know how to box '" + clazzName + "' with value '" + value + "'");
 	}
+
+	static public function unboxWithTypeWhenRequired(clazz:JavaClass, value:Dynamic):Dynamic {
+    	var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
+
+    	switch (clazzName) {
+    		case 'void'   : return null;
+    		case 'boolean': return unboxBool(value);
+    		case 'byte'   : return unboxByte(value);
+    		case 'short'  : return unboxShort(value);
+    		case 'char'   : return unboxChar(value);
+    		case 'int'    : return unboxInt(value);
+    		case 'long'   : return unboxLong(value);
+    		case 'float'  : return unboxFloat(value);
+    		case 'double' : return unboxDouble(value);
+    	}
+
+    	return value;
+    };
 
 	static public function boxVoid(value:Dynamic):JavaVoid { return null; }
 	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.{% METHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }

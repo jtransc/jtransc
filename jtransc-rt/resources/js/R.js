@@ -107,7 +107,17 @@ R.setField = function(field, obj, value) {
 
 R.invokeMethod = function(method, obj, args) {
 	var obj2 = (obj == null) ? jtranscClasses[N.istr(method._clazz._name)] : obj;
-	var result = obj2[method._internalName].apply(obj2, args.data);
+
+	var parameters = method['{% METHOD java.lang.reflect.Method:getParameterTypes %}']().toArray();
+
+	var argsUnboxed = args.data.map(function(v, index) {
+		// Unbox with type! When required!
+		return N.unboxWithTypeWhenRequired(parameters[index], v);
+	});
+
+	//console.log(argsUnboxed);
+
+	var result = obj2[method._internalName].apply(obj2, argsUnboxed);
 	//console.log('RESULT::::::::: ' + result);
 	//console.log('RESULT::::::::: ' + method['{% METHOD java.lang.reflect.Method:getReturnType %}']());
 	return N.boxWithType(method['{% METHOD java.lang.reflect.Method:getReturnType %}'](), result);

@@ -9,6 +9,7 @@ import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
+		testInvokeMethod();
 		testArrayType();
 		annotationTest();
 		assignableTest();
@@ -25,6 +26,27 @@ public class JTranscReflectionTest {
 		toStringArray();
 	}
 
+	static private void testInvokeMethod() {
+		try {
+			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod2", Integer.TYPE, Boolean.TYPE).invoke(null, 7, true));
+			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod3", Integer.TYPE, Boolean.TYPE, Double.TYPE).invoke(null, 7, false, 0.5));
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+	}
+
+	@SuppressWarnings("unused")
+	static public void testInvokeMethod2(int a, boolean b) {
+		System.out.println("testInvokeMethodInt2:" + a + ":" + b);
+	}
+
+	@SuppressWarnings("unused")
+	static public int testInvokeMethod3(int a, boolean b, double c) {
+		System.out.println("testInvokeMethodInt3:" + a + ":" + b + ":" + c);
+		return 8;
+	}
+
+	@SuppressWarnings("unused")
 	native static public byte[] testArrayTypeMethod();
 
 	static private void testArrayType() {

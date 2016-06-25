@@ -84,10 +84,7 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 
 	native public String toGenericString();
 
-	@HaxeMethodBody("" +
-		"var obj:Dynamic = _getObjectOrClass(p0);\n" +
-		"return HaxeNatives.boxWithType(this.{% METHOD java.lang.reflect.Method:getReturnType %}(), Reflect.callMethod(obj, Reflect.field(obj, this._internalName), p1.toArray()));\n"
-	)
+	@HaxeMethodBody("return R.invokeMethod(this, p0, p1);")
 	@JTranscMethodBody(target = "js", value = "return R.invokeMethod(this, p0, p1);")
 	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 

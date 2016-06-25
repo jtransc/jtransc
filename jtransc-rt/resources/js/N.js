@@ -308,9 +308,10 @@ N.throwRuntimeException = function(msg) {
 N.boxWithType = function(clazz, value) {
 	if (value instanceof java_lang_Object) return value;
 
-	var clazzName = clazz.{% FIELD java.lang.Class:name %}._str;
+	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
 
 	switch (clazzName) {
+		case 'void'   : return N.boxVoid();
 		case 'boolean': return N.boxBool(value);
 		case 'byte'   : return N.boxByte(value);
 		case 'short'  : return N.boxShort(value);
@@ -321,7 +322,26 @@ N.boxWithType = function(clazz, value) {
 		case 'double' : return N.boxDouble(value);
 	}
 
-	throwRuntimeException("Don't know how to unbox " + clazzName + " with value '" + value + "'");
+	N.throwRuntimeException("Don't know how to unbox class 0" + clazzName + "' with value '" + value + "'");
+};
+
+N.unboxWithTypeWhenRequired = function(clazz, value) {
+	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
+
+	switch (clazzName) {
+		case 'void'   :
+		case 'boolean':
+		case 'byte'   :
+		case 'short'  :
+		case 'char'   :
+		case 'int'    :
+		case 'long'   :
+		case 'float'  :
+		case 'double' :
+			return N.unbox(value);
+	}
+
+	return value;
 };
 
 N.unboxArray = function(array) {

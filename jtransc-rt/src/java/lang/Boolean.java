@@ -23,7 +23,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 
 	public static final Class<Boolean> TYPE = (Class<Boolean>) Class.getPrimitiveClass("boolean");
 
-	private boolean value;
+	private final boolean value;
 
 	public Boolean(boolean value) {
 		this.value = value;

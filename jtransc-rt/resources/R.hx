@@ -110,4 +110,16 @@ class R {
 		var methodSignature:String = (method != null) ? method.{% FIELD java.lang.reflect.Method:signature %}._str : "unknown";
 		return 'Native or abstract: $className.$methodName ($methodId) :: $methodSignature';
 	}
+
+	static public function invokeMethod(method:{% CLASS java.lang.reflect.Method %}, obj:Dynamic, args:HaxeArrayAny) {
+		var obj2:Dynamic = (obj == null) ? method.{% FIELD java.lang.reflect.MethodConstructor:clazz %}._hxClass : obj;
+		var parameters = method.{% METHOD java.lang.reflect.Method:getParameterTypes %}().toArray();
+		var argsBoxed = args.toArray();
+		var argsUnboxed = [];
+		for (n in 0 ... parameters.length) {
+			argsUnboxed.push(HaxeNatives.unboxWithTypeWhenRequired(parameters[n], argsBoxed[n]));
+		}
+		var result = Reflect.callMethod(obj2, Reflect.field(obj2, method._internalName), argsUnboxed);
+		return HaxeNatives.boxWithType(method.{% METHOD java.lang.reflect.Method:getReturnType %}(), result);
+	}
 }
