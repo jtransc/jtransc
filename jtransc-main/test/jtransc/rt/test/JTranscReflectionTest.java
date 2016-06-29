@@ -1,14 +1,12 @@
 package jtransc.rt.test;
 
 import java.lang.annotation.*;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
+		testInvokeConstructor();
 		testInvokeMethod();
 		testArrayType();
 		annotationTest();
@@ -24,6 +22,30 @@ public class JTranscReflectionTest {
 		testEmptyAnnotations();
 		checkClassNotFound();
 		toStringArray();
+	}
+
+	static private void testInvokeConstructor() {
+		System.out.println("testInvokeConstructor:");
+		try {
+			ConstructorTest instance = ConstructorTest.class.getConstructor(Long.TYPE, Long.class, Double.TYPE).newInstance(1L, 2L, 3.3);
+			System.out.println(instance.a);
+			System.out.println(instance.b);
+			System.out.println(instance.c);
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+	}
+
+	static private class ConstructorTest {
+		public long a = 3L;
+		public Long b = 4L;
+		public double c = 10.0;
+
+		public ConstructorTest(long a, Long b, double c) {
+			this.a = a;
+			this.b = b;
+			this.c = c;
+		}
 	}
 
 	static private void testInvokeMethod() {

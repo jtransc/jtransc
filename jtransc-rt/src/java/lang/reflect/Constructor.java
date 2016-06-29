@@ -75,14 +75,7 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 		return super.getParameterAnnotations();
 	}
 
-	@HaxeMethodBody(
-		"//trace('dynamic newInstance : ' + this._internalName);\n" +
-			"var instance = HaxeNatives.newInstance(this.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);\n" +
-			"Reflect.callMethod(instance, Reflect.field(instance, this._internalName), HaxeArrayAny.toArrayOrEmpty(p0));\n" +
-			"return instance;"
-	)
-	@JTranscMethodBody(target = "js", value = {
-		"return R.newInstance(this, p0);"
-	})
+	@HaxeMethodBody("return R.newInstance(this, p0);")
+	@JTranscMethodBody(target = "js", value = "return R.newInstance(this, p0);")
 	native public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException;
 }

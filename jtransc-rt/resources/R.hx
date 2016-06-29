@@ -122,4 +122,17 @@ class R {
 		var result = Reflect.callMethod(obj2, Reflect.field(obj2, method._internalName), argsUnboxed);
 		return HaxeNatives.boxWithType(method.{% METHOD java.lang.reflect.Method:getReturnType %}(), result);
 	}
+
+	static public function newInstance(method:{% CLASS java.lang.reflect.Constructor %}, args:HaxeArrayAny) {
+		var parameters = method.{% METHOD java.lang.reflect.Method:getParameterTypes %}().toArray();
+		var argsBoxed = (args != null) ? args.toArray() : [];
+		var argsUnboxed = [];
+		for (n in 0 ... parameters.length) {
+			argsUnboxed.push(HaxeNatives.unboxWithTypeWhenRequired(parameters[n], argsBoxed[n]));
+		}
+
+        var instance = HaxeNatives.newInstance(method.{% FIELD java.lang.reflect.Constructor:clazz %}._internalName);
+        Reflect.callMethod(instance, Reflect.field(instance, method._internalName), argsUnboxed);
+        return instance;
+	}
 }

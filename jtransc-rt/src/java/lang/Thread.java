@@ -69,7 +69,10 @@ public class Thread implements Runnable {
 	public Thread() {
 	}
 
+	private Runnable target;
+
 	public Thread(Runnable target) {
+		this.target = target;
 	}
 
 	//Thread(Runnable target, AccessControlContext acc) {
@@ -85,18 +88,28 @@ public class Thread implements Runnable {
 	}
 
 	public Thread(Runnable target, String name) {
+		this.target = target;
 	}
 
 	public Thread(ThreadGroup group, Runnable target, String name) {
+		this.target = target;
 	}
 
 	public Thread(ThreadGroup group, Runnable target, String name, long stackSize) {
+		this.target = target;
 	}
 
-	native public synchronized void start();
+	public synchronized void start() {
+		if (this.target != null) {
+			this.target.run();
+		} else {
+			this.run();
+		}
+	}
 
 	@Override
-	native public void run();
+	public void run() {
+	}
 
 	@Deprecated
 	native public final void stop();

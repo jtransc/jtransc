@@ -125,12 +125,20 @@ R.invokeMethod = function(method, obj, args) {
 
 R.newInstance = function(constructor, args) {
 	//console.log(constructor);
-	if (args == null) args = [];
+	var argsArray = (args != null) ? args.data : [];
 	if (constructor == null) throw 'Invalid R.newInstance : constructor == null';
+
+	var parameters = constructor['{% METHOD java.lang.reflect.Constructor:getParameterTypes %}']().toArray();
+
+	var argsUnboxed = argsArray.map(function(v, index) {
+		// Unbox with type! When required!
+		return N.unboxWithTypeWhenRequired(parameters[index], v);
+	});
 
 	var clazz = constructor._clazz._jsClass;
 	var obj = new clazz();
-	return obj[constructor._internalName].apply(obj, args.data);
+	obj[constructor._internalName].apply(obj, argsUnboxed);
+	return obj;
 };
 
 R.newProxyInstance = function(ifc, invocationHandler) {
