@@ -3,6 +3,7 @@ package big
 import android.AndroidArgsTest
 import android.AndroidTest8019
 import javatest.KotlinCollections
+import javatest.StrangeNamesTest
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
@@ -75,5 +76,8 @@ object BigTest {
 		// Android
 		AndroidArgsTest.main(args)
 		//AndroidTest8019.main(args)
+
+		// Kotlin
+		StrangeNamesTest.main(args)
 	}
 }

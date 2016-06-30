@@ -326,7 +326,7 @@ class GenJsGen(
 					}
 				}
 				is AstStm.SET_FIELD_INSTANCE -> {
-					val left = "${stm.left.genExpr()}.${fixField(stm.field).jsName}"
+					val left = "${stm.left.genExpr()}${fixField(stm.field).jsNameAccess}"
 					val right = stm.expr.genExpr()
 					if (left != right) {
 						// Avoid: Assigning a value to itself
