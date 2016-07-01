@@ -23,12 +23,15 @@ object StrangeNamesTest {
 
 	object StaticTest {
 		@JvmStatic var `strange,field` = 10
+		@JvmStatic var `strange=field` = 10
 
 		@JvmStatic fun test() {
 			println("StaticTest:")
+			println(this.`strange=field`)
 			println(this.`strange,field`)
 			this.`strange,field` = 7
 			println(this.`strange,field`)
+			this.`strange,field` = 10 // restore
 		}
 	}
 
