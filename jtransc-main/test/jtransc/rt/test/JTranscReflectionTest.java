@@ -2,6 +2,7 @@ package jtransc.rt.test;
 
 import java.lang.annotation.*;
 import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class JTranscReflectionTest {
@@ -52,6 +53,10 @@ public class JTranscReflectionTest {
 		try {
 			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod2", Integer.TYPE, Boolean.TYPE).invoke(null, 7, true));
 			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod3", Integer.TYPE, Boolean.TYPE, Double.TYPE).invoke(null, 7, false, 0.5));
+			System.out.println(Arrays.toString((short[])JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod4", Object.class, byte[].class, Object.class).invoke(
+				null,  "hello world", new byte[] {1,2,3,4}, new long[] {Long.MIN_VALUE, Long.MAX_VALUE}
+			)));
+
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -63,9 +68,15 @@ public class JTranscReflectionTest {
 	}
 
 	@SuppressWarnings("unused")
-	static public int testInvokeMethod3(int a, boolean b, double c) {
+	static public long testInvokeMethod3(int a, boolean b, double c) {
 		System.out.println("testInvokeMethodInt3:" + a + ":" + b + ":" + c);
-		return 8;
+		return Long.MAX_VALUE;
+	}
+
+	@SuppressWarnings("unused")
+	static public short[] testInvokeMethod4(Object a, byte[] data, Object data2) {
+		System.out.println("testInvokeMethod4:" + a + ":" + Arrays.toString(data) + ":" + Arrays.toString((long[])data2));
+		return new short[] { 3, 4, 5, 6};
 	}
 
 	@SuppressWarnings("unused")

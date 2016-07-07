@@ -322,7 +322,7 @@ N.boxWithType = function(clazz, value) {
 		case 'double' : return N.boxDouble(value);
 	}
 
-	N.throwRuntimeException("Don't know how to unbox class 0" + clazzName + "' with value '" + value + "'");
+	N.throwRuntimeException("Don't know how to unbox class '" + clazzName + "' with value '" + value + "'");
 };
 
 N.unboxWithTypeWhenRequired = function(clazz, value) {

@@ -24,6 +24,8 @@ function __createJavaArrayBaseType() {
 
 	__decorateArray(ARRAY);
 
+	ARRAY.prototype = $extend(java_lang_Object.prototype, {});
+
 	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
 		return N.resolveClass(this.desc);
 	};
