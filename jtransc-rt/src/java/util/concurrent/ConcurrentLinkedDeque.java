@@ -6,6 +6,8 @@
 
 package java.util.concurrent;
 
+import libcore.ConcurrentTools;
+
 import java.util.*;
 
 // BEGIN android-note
@@ -268,46 +270,64 @@ public class ConcurrentLinkedDeque<E>
          * only be seen after publication via casNext or casPrev.
          */
         Node(E item) {
-            UNSAFE.putObject(this, itemOffset, item);
+			this.item = item;
+            //UNSAFE.putObject(this, itemOffset, item);
         }
 
         boolean casItem(E cmp, E val) {
-            return UNSAFE.compareAndSwapObject(this, itemOffset, cmp, val);
+			if (ConcurrentTools.cmp(this.item, cmp)) {
+				this.item = val;
+				return true;
+			} else {
+				return false;
+			}
         }
 
         void lazySetNext(Node<E> val) {
-            UNSAFE.putOrderedObject(this, nextOffset, val);
+			this.next = val;
+            //UNSAFE.putOrderedObject(this, nextOffset, val);
         }
 
         boolean casNext(Node<E> cmp, Node<E> val) {
-            return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
+            //return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
+			if (ConcurrentTools.cmp(this.next, cmp)) {
+				this.next = val;
+				return true;
+			} else {
+				return false;
+			}
         }
 
         void lazySetPrev(Node<E> val) {
-            UNSAFE.putOrderedObject(this, prevOffset, val);
+            //UNSAFE.putOrderedObject(this, prevOffset, val);
+			this.prev = val;
         }
 
         boolean casPrev(Node<E> cmp, Node<E> val) {
-            return UNSAFE.compareAndSwapObject(this, prevOffset, cmp, val);
-        }
+            //return UNSAFE.compareAndSwapObject(this, prevOffset, cmp, val);
+			if (ConcurrentTools.cmp(this.prev, cmp)) {
+				this.prev = val;
+				return true;
+			} else {
+				return false;
+			}
+
+		}
 
         // Unsafe mechanics
 
-        private static final sun.misc.Unsafe UNSAFE;
-        private static final long prevOffset;
-        private static final long itemOffset;
-        private static final long nextOffset;
+        //private static final sun.misc.Unsafe UNSAFE;
+        //private static final long prevOffset;
+        //private static final long itemOffset;
+        //private static final long nextOffset;
 
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                //UNSAFE = sun.misc.Unsafe.getUnsafe();
                 Class<?> k = Node.class;
-                prevOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("prev"));
-                itemOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("item"));
-                nextOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("next"));
+                //prevOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("prev"));
+                //itemOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("item"));
+                //nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("next"));
             } catch (Exception e) {
                 throw new Error(e);
             }
@@ -1400,32 +1420,40 @@ public class ConcurrentLinkedDeque<E>
     }
 
     private boolean casHead(Node<E> cmp, Node<E> val) {
-        return UNSAFE.compareAndSwapObject(this, headOffset, cmp, val);
+		if (ConcurrentTools.cmp(this.head, cmp)) {
+			this.head = val;
+			return true;
+		} else {
+			return false;
+		}
     }
 
     private boolean casTail(Node<E> cmp, Node<E> val) {
-        return UNSAFE.compareAndSwapObject(this, tailOffset, cmp, val);
-    }
+		if (ConcurrentTools.cmp(this.tail, cmp)) {
+			this.tail = val;
+			return true;
+		} else {
+			return false;
+		}
+	}
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe UNSAFE;
-    private static final long headOffset;
-    private static final long tailOffset;
+    //private static final sun.misc.Unsafe UNSAFE;
+    //private static final long headOffset;
+    //private static final long tailOffset;
     static {
         PREV_TERMINATOR = new Node<Object>();
         PREV_TERMINATOR.next = PREV_TERMINATOR;
         NEXT_TERMINATOR = new Node<Object>();
         NEXT_TERMINATOR.prev = NEXT_TERMINATOR;
-        try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
-            Class<?> k = ConcurrentLinkedDeque.class;
-            headOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("head"));
-            tailOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("tail"));
-        } catch (Exception e) {
-            throw new Error(e);
-        }
+    //    try {
+    //        UNSAFE = sun.misc.Unsafe.getUnsafe();
+    //        Class<?> k = ConcurrentLinkedDeque.class;
+    //        headOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("head"));
+    //        tailOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("tail"));
+    //    } catch (Exception e) {
+    //        throw new Error(e);
+    //    }
     }
 }

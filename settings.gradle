@@ -9,6 +9,7 @@ include (
 	'jtransc-debugger',
 	'jtransc-gen-common',
 	'jtransc-gen-haxe',
+	'jtransc-gen-cpp',
 	'jtransc-gen-js',
 	'jtransc-gradle-plugin',
 	////'jtransc-intellij-plugin',
