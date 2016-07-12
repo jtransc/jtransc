@@ -292,10 +292,14 @@ public final class Math {
 	native public static float nextDown(float f);
 
 	//@HaxeMethodBody("return Math.scalab(p0, p1);")
-	native public static double scalb(double d, int scaleFactor);
+	public static double scalb(double d, int scaleFactor) {
+		return d * Math.pow(2, scaleFactor);
+	}
 
 	//@HaxeMethodBody("return Math.scalab(p0, p1);")
-	native public static float scalb(float f, int scaleFactor);
+	public static float scalb(float f, int scaleFactor) {
+		return (float)(f * Math.pow(2, scaleFactor));
+	}
 
 	//body("addExact", "*", "return p0 + p1;") // @TODO: Not like this! Check Overflows!
 	//body("subtractExact", "*", "return p0 - p1;") // @TODO: Not like this! Check Overflows!

@@ -28,8 +28,14 @@ var ProgramContext = function() {
 	this.mainClass = null;
 };
 
-
 var lastTypeId = 1;
+
+function setFunctionName(callback, name) {
+	try {
+		Object.defineProperty(callback, "name", { value: name });
+	} catch (e) {
+	}
+}
 
 var TypeContext = function (internalName, name, flags, parent, interfaces, annotations) {
 	this.id = lastTypeId++;
@@ -44,7 +50,7 @@ var TypeContext = function (internalName, name, flags, parent, interfaces, annot
 		clazz.$instanceInit.call(this);
 	};
 	this.clazz = clazz;
-	Object.defineProperty(this.clazz.prototype, "name", { value: name });
+	setFunctionName(this.clazz.prototype, name);
 	//this.clazz.prototype.name = name;
 	this.parent = parent;
 	this.interfaces = interfaces;
@@ -149,7 +155,7 @@ TypeContext.prototype.registerMethod = function(id, name, desc, genericDesc, fla
 		callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
 	}
 	this._getScopeFromFlags(flags)[id] = callback;
-	Object.defineProperty(callback, "name", { value: typeContext.name + "." + name });
+	setFunctionName(callback, typeContext.name + "." + name);
 	this.methods.push({
 		id : id,
 		name : name,
@@ -169,7 +175,7 @@ TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flag
 	var typeContext = this;
 	if (callback == null) callback = function() { throw 'Method without body ' + typeContext.name + "." + name + " : " + id; };
 	this._getScopeFromFlags(flags)[id] = callback;
-	Object.defineProperty(callback, "name", { value: typeContext.name + "." + name });
+	setFunctionName(callback, typeContext.name + "." + name);
 	this.constructors.push({
 		id : id,
 		name : name,
