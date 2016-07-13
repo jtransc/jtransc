@@ -55,6 +55,11 @@ class HaxeArrayDouble extends HaxeArrayBase {
     static public function copy(from:HaxeArrayDouble, to:HaxeArrayDouble, fromPos:Int, toPos:Int, length:Int) {
 		var _from:Float64Array = from.data;
 		var _to:Float64Array = to.data;
-        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
+    	if (from == to && toPos > fromPos) {
+			var n = length;
+			while (--n >= 0) _to[toPos + n] = _from[fromPos + n];
+    	} else {
+	        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
+		}
     }
 }

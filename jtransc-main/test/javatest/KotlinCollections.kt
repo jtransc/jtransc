@@ -16,32 +16,50 @@
 
 package javatest
 
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.util.*
 
-/**
- * Created by mike on 5/11/15.
- */
 object KotlinCollections {
+	@JvmStatic fun main(args: Array<String>) {
+		println(mapOf("a" to 1, "b" to 2).map { it.key }.get(0))
+		println(arrayOf(1, 2, 3, 4, 5).map { it * 2 })
 
-    @JvmStatic fun main(args: Array<String>) {
-        println(mapOf("a" to 1, "b" to 2).map { it.key }.get(0))
-        println(arrayOf(1,2,3,4,5).map { it * 2 })
+		paramOrderSimple(Reader())
 
-	    paramOrderSimple(Reader())
+		for (textFieldInfo in paramOrderComplex(Reader(), 11)) {
+			println(textFieldInfo)
+		}
 
-	    for (textFieldInfo in paramOrderComplex(Reader(), 11)) {
-		    println(textFieldInfo)
-	    }
-    }
+		sortTest()
+	}
 
-	@JvmStatic fun paramOrderSimple(r:Reader) {
+	@JvmStatic fun sortTest() {
+		val list = arrayListOf(1, 7, 3, 5, 2, 4, 0)
+		println("KotlinCollections.sortTest:")
+		println(list)
+		println(list.sortedBy { it })
+		println(list.sortedBy { -it })
+		println(list.sortedBy { if (it % 2 != 0) 0 else it })
+
+		println(".intarray:")
+		val array = list.toIntArray()
+		println(Arrays.toString(array))
+		Arrays.sort(array)
+		println(Arrays.toString(array))
+
+		println(".array<Integer>:")
+		val array2 = list.toTypedArray()
+		println(Arrays.toString(array2))
+		Arrays.sort(array2)
+		println(Arrays.toString(array2))
+	}
+
+	@JvmStatic fun paramOrderSimple(r: Reader) {
 		println(TripleInt(r.i8(), r.i16(), PairInt(r.i32(), r.i32())))
 	}
 
-	@JvmStatic fun paramOrderComplex(r:Reader, version:Int): List<TextFieldInfo> {
+	@JvmStatic fun paramOrderComplex(r: Reader, version: Int): List<TextFieldInfo> {
 		var multiline = false
-		fun setMultiline(value: Boolean):Boolean {
+		fun setMultiline(value: Boolean): Boolean {
 			multiline = value
 			return value
 		}
@@ -71,8 +89,8 @@ object KotlinCollections {
 	}
 }
 
-data class PairInt(val a:Int, val b:Int)
-data class TripleInt(val a:Int, val b:Int, val c:PairInt)
+data class PairInt(val a: Int, val b: Int)
+data class TripleInt(val a: Int, val b: Int, val c: PairInt)
 
 inline fun xrange(stop: Int): IntRange = (0..(stop - 1))
 

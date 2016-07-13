@@ -9,6 +9,8 @@ import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
+import javatest.sort.ComparableTimSortTest
+import javatest.utils.CopyTest
 import javatest.utils.DateTest
 import jtransc.ProcessTest
 import jtransc.WrappedTest
@@ -30,6 +32,7 @@ object BigTest {
 		// Misc tests
 		SystemTest.main(args)
 		MiscTest.main(args)
+		CopyTest.main(args)
 
 		// Suite tests
 		StringsTest.main(args)
@@ -79,5 +82,6 @@ object BigTest {
 
 		// Kotlin
 		StrangeNamesTest.main(args)
+		ComparableTimSortTest.main(args)
 	}
 }

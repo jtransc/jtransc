@@ -55,7 +55,12 @@ class HaxeArrayAny extends HaxeArrayBase {
     public override function clone() return fromArray(this.data.toArray(), this.desc);
 
     static public function copy(from:HaxeArrayAny, to:HaxeArrayAny, fromPos:Int, toPos:Int, length:Int) {
-        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
+    	if (from == to && toPos > fromPos) {
+			var n = length;
+			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
+    	} else {
+        	for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
+		}
     }
 
     static public function create(size:Int, desc:String):HaxeArrayBase {

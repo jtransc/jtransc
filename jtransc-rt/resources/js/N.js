@@ -222,8 +222,10 @@ N.getStackTrace = function(count) {
 };
 
 N.arraycopy = function(src, srcPos, dest, destPos, length) {
-	for (var n = 0; n < length; n++) {
-		dest.set(destPos + n, src.get(srcPos + n));
+	if (src == dest && (destPos > srcPos)) {
+		for (var n = length - 1; n >= 0; n--) dest.set(destPos + n, src.get(srcPos + n));
+	} else {
+		for (var n = 0; n < length; n++) dest.set(destPos + n, src.get(srcPos + n));
 	}
 };
 

@@ -41,6 +41,11 @@ class HaxeArrayChar extends HaxeArrayBase {
     }
 
     static public function copy(from:HaxeArrayChar, to:HaxeArrayChar, fromPos:Int, toPos:Int, length:Int) {
-        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
+    	if (from == to && toPos > fromPos) {
+			var n = length;
+			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
+    	} else {
+	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
+		}
     }
 }
