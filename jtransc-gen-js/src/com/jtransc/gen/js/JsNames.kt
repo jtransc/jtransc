@@ -78,15 +78,9 @@ class JsNames(
 	}
 
 	override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref]!!)
-
-	override fun getNativeName(local: LocalParamRef): String {
-		return super.getNativeName(local)
-	}
-
-	override fun getNativeName(clazz: FqName): String {
-		return getJsClassFqNameForCalling(clazz)
-	}
-
+	override fun getNativeName(method: MethodRef): String = getJsMethodName(method.ref)
+	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
+	override fun getNativeName(clazz: FqName): String = getJsClassFqNameForCalling(clazz)
 	override fun buildAccessName(name: String): String = "[" + name.quote() + "]"
 
 	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)

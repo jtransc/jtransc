@@ -156,4 +156,30 @@ class N {
 	}
 
 	static public function resolveClass(name:String):{% CLASS java.lang.Class %} return HaxeNatives.resolveClass(name);
+
+	static public function boxVoid(value:Dynamic):{% CLASS java.lang.Void %} return HaxeNatives.boxVoid(value);
+	static public function boxBool(value:Bool):{% CLASS java.lang.Boolean %} return HaxeNatives.boxBool(value);
+	static public function boxByte(value:Int):{% CLASS java.lang.Byte %} return HaxeNatives.boxByte(value);
+	static public function boxShort(value:Int):{% CLASS java.lang.Short %} return HaxeNatives.boxShort(value);
+	static public function boxChar(value:Int):{% CLASS java.lang.Character %} return HaxeNatives.boxChar(value);
+	static public function boxInt(value:Int):{% CLASS java.lang.Integer %} return HaxeNatives.boxInt(value);
+	static public function boxLong(value:Int64):{% CLASS java.lang.Long %} return HaxeNatives.boxLong(value);
+	static public function boxFloat(value:Float32):{% CLASS java.lang.Float %} return HaxeNatives.boxFloat(value);
+	static public function boxDouble(value:Float64):{% CLASS java.lang.Double %} return HaxeNatives.boxDouble(value);
+	static public function boxString(value:String):{% CLASS java.lang.String %} return HaxeNatives.boxString(value);
+	static public function boxWrapped(value:Dynamic):{% CLASS com.jtransc.JTranscWrapped %} return HaxeNatives.boxWrapped(value);
+	static public function boxByteArray(value:Bytes):HaxeArrayByte return HaxeNatives.boxByteArray(value);
+
+	static public function unboxVoid(value:{% CLASS java.lang.Object %}):Void return HaxeNatives.unboxVoid(value);
+	static public function unboxBool(value:{% CLASS java.lang.Object %}):Bool return HaxeNatives.unboxBool(value);
+	static public function unboxByte(value:{% CLASS java.lang.Object %}):Int return HaxeNatives.unboxByte(value);
+	static public function unboxShort(value:{% CLASS java.lang.Object %}):Int return HaxeNatives.unboxShort(value);
+	static public function unboxChar(value:{% CLASS java.lang.Object %}):Int return HaxeNatives.unboxChar(value);
+	static public function unboxInt(value:{% CLASS java.lang.Object %}):Int return HaxeNatives.unboxInt(value);
+	static public function unboxLong(value:{% CLASS java.lang.Object %}):Int64 return HaxeNatives.unboxLong(value);
+	static public function unboxFloat(value:{% CLASS java.lang.Object %}):Float32 return HaxeNatives.unboxFloat(value);
+	static public function unboxDouble(value:{% CLASS java.lang.Object %}):Float64 return HaxeNatives.unboxDouble(value);
+	static public function unboxString(value:{% CLASS java.lang.Object %}):String return HaxeNatives.unboxString(value);
+	static public function unboxWrapped(value:{% CLASS java.lang.Object %}):Dynamic return HaxeNatives.unboxWrapped(value);
+	static public function unboxByteArray(value:{% CLASS java.lang.Object %}):Bytes return HaxeNatives.unboxByteArray(value);
 }

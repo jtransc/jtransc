@@ -443,6 +443,42 @@ open class CommonGenGen(val input: Input) {
 
 	open protected fun N_AGET_T(elementType: AstType, array: String, index: String) = "($array[$index])"
 	open protected fun N_ASET_T(elementType: AstType, array: String, index: String, value: String) = "$array[$index] = $value;"
+	fun N_box(type: AstType.Primitive, e: String) = when (type) {
+		AstType.VOID    -> N_boxVoid(e)
+		AstType.BOOL    -> N_boxBool(e)
+		AstType.BYTE    -> N_boxByte(e)
+		AstType.CHAR    -> N_boxChar(e)
+		AstType.SHORT   -> N_boxShort(e)
+		AstType.INT     -> N_boxInt(e)
+		AstType.LONG    -> N_boxLong(e)
+		AstType.FLOAT   -> N_boxFloat(e)
+		AstType.DOUBLE  -> N_boxDouble(e)
+		else -> invalidOp("Don't know how to box $type")
+	}
+	fun N_unbox(type: AstType.Primitive, e: String) = when (type) {
+		AstType.VOID -> N_unboxVoid(e)
+		AstType.BOOL -> N_unboxBool(e)
+		AstType.BYTE -> N_unboxByte(e)
+		AstType.CHAR -> N_unboxChar(e)
+		AstType.SHORT -> N_unboxShort(e)
+		AstType.INT -> N_unboxInt(e)
+		AstType.LONG -> N_unboxLong(e)
+		AstType.FLOAT -> N_unboxFloat(e)
+		AstType.DOUBLE -> N_unboxDouble(e)
+		else -> invalidOp("Don't know how to unbox $type")
+	}
+
+	open protected fun N_boxVoid(e: String) = "N.boxVoid($e)"
+	open protected fun N_boxBool(e: String) = "N.boxBool($e)"
+	open protected fun N_boxByte(e: String) = "N.boxByte($e)"
+	open protected fun N_boxShort(e: String) = "N.boxShort($e)"
+	open protected fun N_boxChar(e: String) = "N.boxChar($e)"
+	open protected fun N_boxInt(e: String) = "N.boxInt($e)"
+	open protected fun N_boxLong(e: String) = "N.boxLong($e)"
+	open protected fun N_boxFloat(e: String) = "N.boxFloat($e)"
+	open protected fun N_boxDouble(e: String) = "N.boxDouble($e)"
+
+	open protected fun N_unboxVoid(e: String) = "N.unboxVoid($e)"
 	open protected fun N_unboxBool(e: String) = "N.unboxBool($e)"
 	open protected fun N_unboxByte(e: String) = "N.unboxByte($e)"
 	open protected fun N_unboxShort(e: String) = "N.unboxShort($e)"
@@ -451,6 +487,7 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_unboxLong(e: String) = "N.unboxLong($e)"
 	open protected fun N_unboxFloat(e: String) = "N.unboxFloat($e)"
 	open protected fun N_unboxDouble(e: String) = "N.unboxDouble($e)"
+
 	open protected fun N_is(a: String, b: String) = "N.is($a, $b)"
 	open protected fun N_z2i(str: String) = "N.z2i($str)"
 	open protected fun N_i(str: String) = "(($str)|0)"
@@ -513,8 +550,10 @@ open class CommonGenGen(val input: Input) {
 	val AstType.nativeTypeNew: FqName get() = cnames.getNativeType(this, TypeKind.NEW)
 	val AstType.nativeTypeCast: FqName get() = cnames.getNativeType(this, TypeKind.CAST)
 
+	val FieldRef.jsName: String get() = cnames.getNativeName(this)
 	val LocalParamRef.nativeName: String get() = cnames.getNativeName(this)
 	val AstType.nativeDefault: Any? get() = cnames.getDefault(this)
 	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(cnames.getDefault(this), this)
 	val FieldRef.nativeStaticText: String get() = cnames.buildStaticField(this)
+	val MethodRef.targetName: String get() = cnames.getNativeName(this)
 }

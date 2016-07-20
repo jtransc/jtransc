@@ -33,10 +33,10 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	val JAVA_LANG_STRING = names.haxeName<java.lang.String>()
 	val invocationHandlerHaxeName = names.haxeName<java.lang.reflect.InvocationHandler>()
 	val methodHaxeName = names.haxeName<java.lang.reflect.Method>()
-	val invokeHaxeName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", types.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).haxeName
-	val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", types.build { METHOD(STRING) }).haxeName
-	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", types.build { METHOD(INT) }).haxeName
-	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", types.build { METHOD(CLASS) }).haxeName
+	val invokeHaxeName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", types.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).targetName
+	val toStringHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", types.build { METHOD(STRING) }).targetName
+	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", types.build { METHOD(INT) }).targetName
+	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", types.build { METHOD(CLASS) }).targetName
 
 	override fun genBody2WithFeatures(body: AstBody): Indenter {
 		return if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
@@ -64,7 +64,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
-		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.haxeName
+		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
 		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		val entryPointFilePath = entryPointClass.haxeFilePath
 		val entryPointFqName = entryPointClass.haxeGeneratedFqName
@@ -198,7 +198,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 					}
 				}
 				for ((slot, method) in clazz.methods.withIndex()) {
-					val internalName = method.haxeName
+					val internalName = method.targetName
 					if (method.isVisible()) {
 						if (method.name == "<init>") {
 							line("R.c(c, ${internalName.quote()}, $slot, ${method.modifiers}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${visibleAnnotations(method.annotations)}, ${visibleAnnotationsList(method.parameterAnnotations)});");
@@ -245,7 +245,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("$localHaxeName = new $className($commaArgs);")
 					} else {
 						line("$localHaxeName = new $className();")
-						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
+						line("$localHaxeName.${stm.method.targetName}($commaArgs);")
 					}
 				}
 				is AstStm.SWITCH -> {
@@ -389,7 +389,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 					else -> throw InvalidOperationException("Unexpected")
 				}
 
-				val result = "$base.${refMethod.haxeName}($commaArgs)"
+				val result = "$base.${refMethod.targetName}($commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
 			is AstExpr.FIELD_INSTANCE_ACCESS -> {
@@ -487,14 +487,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 		return text
 	}
 
-	override fun N_unboxBool(e: String) = "HaxeNatives.unboxBool($e)"
-	override fun N_unboxByte(e: String) = "HaxeNatives.unboxByte($e)"
-	override fun N_unboxShort(e: String) = "HaxeNatives.unboxShort($e)"
-	override fun N_unboxChar(e: String) = "HaxeNatives.unboxChar($e)"
-	override fun N_unboxInt(e: String) = "HaxeNatives.unboxInt($e)"
-	override fun N_unboxLong(e: String) = "HaxeNatives.unboxLong($e)"
-	override fun N_unboxFloat(e: String) = "HaxeNatives.unboxFloat($e)"
-	override fun N_unboxDouble(e: String) = "HaxeNatives.unboxDouble($e)"
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
@@ -609,7 +601,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"$static $visibility $inline $override function ${method.haxeName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.haxeTypeTag}".trim()
+					"$static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.haxeTypeTag}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					//null
@@ -669,7 +661,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 				}
 
 				if (clazz.hasStaticInit) {
-					val methodName = clazz.staticInitMethod!!.haxeName
+					val methodName = clazz.staticInitMethod!!.targetName
 					line("$methodName();")
 				}
 			}
@@ -677,7 +669,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 
 		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
-		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).haxeName
+		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).targetName
 		// java.lang.annotation.Annotation
 		//abstract fun annotationType():Class<out Annotation>
 
@@ -783,7 +775,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("public function $annotationTypeHaxeName():$JAVA_LANG_CLASS { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						line("override public function $getClassHaxeName():$JAVA_LANG_CLASS { return HaxeNatives.resolveClass(${clazz.fqname.quote()}); }")
 						for ((index, m) in clazz.methods.withIndex()) {
-							line("public function ${m.haxeName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
+							line("public function ${m.targetName}():${m.methodType.ret.haxeTypeTag} { return this._data[$index]; }")
 						}
 					}
 				}
@@ -852,7 +844,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						}
 
 						for (method in methods) {
-							val methodName = method.ref.haxeName
+							val methodName = method.ref.targetName
 							val methodType = method.methodType
 							val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 							val rettype = methodType.ret.haxeTypeTag
@@ -893,7 +885,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 							println("NULL methodRef: $methodRef")
 							continue
 						}
-						val mainMethodName = mainMethod.ref.haxeName
+						val mainMethodName = mainMethod.ref.targetName
 						val methodType = mainMethod.methodType
 						val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 						val rettype = methodType.ret.haxeTypeTag
@@ -911,7 +903,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 				if (methodsWithoutBody.size == 1 && clazz.implementing.size == 0) {
 					// @TODO: Probably it should allow interfaces extending!
 					val mainMethod = methodsWithoutBody.first()
-					val mainMethodName = mainMethod.ref.haxeName
+					val mainMethodName = mainMethod.ref.targetName
 					val methodType = mainMethod.methodType
 					val margs = methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 					val rettype = methodType.ret.haxeTypeTag
@@ -924,7 +916,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						val methodInObject = javaLangObjectClass[mainMethod.ref.withoutClass]
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { $returnOrEmpty ___func__($margNames); }")
 						for (dmethod in clazz.methods.filter { it.body != null }) {
-							val dmethodName = dmethod.ref.haxeName
+							val dmethodName = dmethod.ref.targetName
 							val dmethodArgs = dmethod.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }.joinToString(", ")
 							val dmethodRettype = dmethod.methodType.ret.haxeTypeTag
 							line("${methodInObject.nullMap("override", "")} public function $dmethodName($dmethodArgs):$dmethodRettype") {
@@ -965,14 +957,14 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	fun AstType.box(arg: String): String {
 		return when (this) {
-			is AstType.Primitive -> "HaxeNatives.box${this.shortName.capitalize()}($arg)"
+			is AstType.Primitive -> N_box(this, arg)
 			else -> "cast($arg)";
 		}
 	}
 
 	fun AstType.unbox(arg: String): String {
 		return when (this) {
-			is AstType.Primitive -> "HaxeNatives.unbox${this.shortName.capitalize()}($arg)"
+			is AstType.Primitive -> N_unbox(this, arg)
 			else -> "cast($arg)";
 		}
 	}
@@ -981,8 +973,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)
 	//val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
 
-	val AstMethod.haxeName: String get() = names.getHaxeMethodName(this)
-	val AstMethodRef.haxeName: String get() = names.getHaxeMethodName(this)
 
 	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 

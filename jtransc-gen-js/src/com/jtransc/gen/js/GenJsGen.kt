@@ -226,7 +226,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						line("$jsLocalName = new $className($commaArgs);")
 					} else {
 						line("$jsLocalName = new $className();")
-						line("$jsLocalName.${stm.method.jsName}($commaArgs);")
+						line("$jsLocalName.${stm.method.targetName}($commaArgs);")
 					}
 				}
 
@@ -276,14 +276,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	override fun N_AGET_T(elementType: AstType, array: String, index: String) = "($array.data[$index])"
 	override fun N_ASET_T(elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
 
-	override fun N_unboxBool(e: String) = "N.unboxBool($e)"
-	override fun N_unboxByte(e: String) = "N.unboxByte($e)"
-	override fun N_unboxShort(e: String) = "N.unboxShort($e)"
-	override fun N_unboxChar(e: String) = "N.unboxChar($e)"
-	override fun N_unboxInt(e: String) = "N.unboxInt($e)"
-	override fun N_unboxLong(e: String) = "N.unboxLong($e)"
-	override fun N_unboxFloat(e: String) = "N.unboxFloat($e)"
-	override fun N_unboxDouble(e: String) = "N.unboxDouble($e)"
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
@@ -503,7 +495,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				val margs = method.methodType.args.map { it.name }
 
 				val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
-				val methodName = if (method.jsName == defaultMethodName) null else method.jsName
+				val methodName = if (method.targetName == defaultMethodName) null else method.targetName
 
 				val rbody = if (method.body != null) {
 					method.body
@@ -608,10 +600,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		return classCodeIndenter
 	}
 
-	val FieldRef.jsName: String get() = names.getNativeName(this)
-
-	val MethodRef.jsName: String get() = names.getJsMethodName(this)
-	val MethodRef.jsNameAccess: String get() = "[" + this.jsName.quote() + "]"
+	val MethodRef.jsNameAccess: String get() = "[" + this.targetName.quote() + "]"
 
 	val FqName.jsClassFqName: String get() = names.getJsClassFqName(this)
 	val FqName.jsFilePath: String get() = names.getJsFilePath(this)

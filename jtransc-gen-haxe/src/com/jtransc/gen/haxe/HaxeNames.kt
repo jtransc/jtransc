@@ -65,6 +65,7 @@ class HaxeNames(
 
 	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
 	override fun getNativeName(field: FieldRef): String = getHaxeFieldName(field)
+	override fun getNativeName(method: MethodRef): String = getHaxeMethodName(method.ref)
 	override fun getNativeName(clazz: FqName): String = getHaxeClassFqName(clazz)
 	override fun getNativeNameForFields(clazz: FqName): String = getHaxeClassFqNameInt(clazz)
 
@@ -83,7 +84,7 @@ class HaxeNames(
 	private var minClassLastId: Int = 0
 	private var minMemberLastId: Int = 0
 	private val classNames = hashMapOf<FqName, FqName>()
-	private val methodNmaes = hashMapOf<Any?, String>()
+	private val methodNames = hashMapOf<Any?, String>()
 	private val fieldNames = hashMapOf<Any?, String>()
 
 	val minClassPrefix = "z."
@@ -111,7 +112,7 @@ class HaxeNames(
 			// No cache
 			realmethod.nativeName ?: method.name
 		} else {
-			methodNmaes.getOrPut2(objectToCache) {
+			methodNames.getOrPut2(objectToCache) {
 				if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
 					allocMemberName()
 				} else {
@@ -185,23 +186,25 @@ class HaxeNames(
 		//	println("-")
 		//}
 
+		val normalizedFieldName = normalizeName(field.name)
+
 		return if (realclass.isNative) {
 			// No cache
-			realfield?.nativeName ?: normalizeName(field.name)
+			realfield?.nativeName ?: normalizedFieldName
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
 				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
 					allocMemberName()
 				} else {
 					if (field !in cachedFieldNames) {
-						val fieldName = normalizeName(field.name)
+						val fieldName = normalizedFieldName
 						var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
 						val clazz = program[field]?.containingClass
 						val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
 						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
 						val fieldsColliding = clazz?.fields?.filter {
-							(it.ref == field) || (normalizeName(it.name) == normalizeName(field.name))
+							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
 						}?.map { it.ref } ?: listOf(field)
 
 						// JTranscBugInnerMethodsWithSameName.kt

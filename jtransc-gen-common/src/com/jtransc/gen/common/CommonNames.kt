@@ -44,6 +44,7 @@ abstract class CommonNames(val program: AstResolver) {
 
 	open fun getNativeName(local: LocalParamRef): String = normalizeName(local.name)
 	open fun getNativeName(field: FieldRef): String = normalizeName(field.ref.name)
+	open fun getNativeName(method: MethodRef): String = normalizeName(method.ref.name)
 	open fun getNativeName(clazz: FqName): String = clazz.fqname
 	open fun getNativeNameForMethods(clazz: FqName): String = getNativeName(clazz)
 	open fun getNativeNameForFields(clazz: FqName): String = getNativeName(clazz)
