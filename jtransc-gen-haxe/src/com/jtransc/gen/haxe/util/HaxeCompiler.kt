@@ -1,4 +1,4 @@
-package com.jtransc.gen.haxe
+package com.jtransc.gen.haxe.util
 
 import com.jtransc.io.ProcessUtils
 import com.jtransc.vfs.LocalVfs

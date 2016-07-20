@@ -19,8 +19,8 @@ package com.jtransc.tools
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.gen.haxe.HaxeCompiler
-import com.jtransc.gen.haxe.HaxeLib
+import com.jtransc.gen.haxe.util.HaxeCompiler
+import com.jtransc.gen.haxe.util.HaxeLib
 import com.jtransc.io.createZipFile
 import com.jtransc.text.Indenter
 import com.jtransc.text.toUcFirst

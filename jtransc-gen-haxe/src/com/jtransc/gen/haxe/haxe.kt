@@ -29,6 +29,8 @@ import com.jtransc.gen.common.CommonGenFolders
 import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.gen.common.CommonProgramInfo
 import com.jtransc.gen.common.CommonProgramTemplate
+import com.jtransc.gen.haxe.util.HaxeCompiler
+import com.jtransc.gen.haxe.util.HaxeLib
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log

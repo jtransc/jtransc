@@ -1,5 +1,6 @@
 package com.jtransc.gen.haxe
 
+import com.jtransc.gen.haxe.util.HaxeCompiler
 import org.junit.Test
 
 class CompilerTest {

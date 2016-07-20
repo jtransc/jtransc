@@ -24,10 +24,12 @@ import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.SyncVfsFile
 import java.util.*
 
-//const val ENABLE_HXCPP_GOTO_HACK = true
-const val ENABLE_HXCPP_GOTO_HACK = false
-
 class GenHaxeGen(input: Input) : CommonGenGen(input) {
+	companion object {
+		//const val ENABLE_HXCPP_GOTO_HACK = true
+		const val ENABLE_HXCPP_GOTO_HACK = false
+	}
+
 	val names = cnames as HaxeNames
 	val JAVA_LANG_OBJECT = names.haxeName<java.lang.Object>()
 	val JAVA_LANG_CLASS = names.haxeName<java.lang.Class<*>>()

@@ -1,5 +1,6 @@
-package com.jtransc.gen.haxe
+package com.jtransc.gen.haxe.util
 
+import com.jtransc.gen.haxe.util.HaxeCompiler
 import com.jtransc.text.toUcFirst
 import com.jtransc.vfs.LocalVfs
 
