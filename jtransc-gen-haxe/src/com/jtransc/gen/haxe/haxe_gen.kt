@@ -1,8 +1,6 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.JTranscFunction
-import com.jtransc.annotation.JTranscInvisible
-import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
@@ -13,12 +11,13 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImplWarn
 import com.jtransc.ffi.StdCall
 import com.jtransc.gen.GenTargetInfo
+import com.jtransc.gen.common.CommonGenGen
+import com.jtransc.gen.common.CommonProgramTemplate
 import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
-import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.util.sortDependenciesSimple
@@ -28,28 +27,8 @@ import java.util.*
 //const val ENABLE_HXCPP_GOTO_HACK = true
 const val ENABLE_HXCPP_GOTO_HACK = false
 
-class GenHaxeGen(
-	val program: AstProgram,
-	val features: AstFeatures,
-	val srcFolder: SyncVfsFile,
-	val featureSet: Set<AstFeature>,
-	val settings: AstBuildSettings,
-	val tinfo: GenTargetInfo,
-	val names: HaxeNames,
-	val haxeTemplateString: HaxeTemplateString
-) {
-	val types = program.types
-	val refs = References()
-	val context = AstGenContext()
-	lateinit var mutableBody: MutableBody
-	lateinit var stm: AstStm
-
-	fun AstStm.genStm(): Indenter = genStm2(this)
-	fun AstStm.Box.genStm(): Indenter = genStm2(this.value)
-	fun AstExpr.genExpr(): String = genExpr2(this)
-	fun AstExpr.Box.genExpr(): String = genExpr2(this.value)
-	fun AstExpr.Box.genNotNull(): String = this.value.genNotNull()
-
+class GenHaxeGen(input: Input) : CommonGenGen(input) {
+	val names = cnames as HaxeNames
 	val JAVA_LANG_OBJECT = names.haxeName<java.lang.Object>()
 	val JAVA_LANG_CLASS = names.haxeName<java.lang.Class<*>>()
 	val JAVA_LANG_CLASS_name = names.getHaxeFieldName(java.lang.Class::class.java, "name")
@@ -61,50 +40,13 @@ class GenHaxeGen(
 	val hashCodeHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", types.build { METHOD(INT) }).haxeName
 	val getClassHaxeName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", types.build { METHOD(CLASS) }).haxeName
 
-	val invisibleExternalList = program.allAnnotations
-		.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull()
-		.flatMap { it.classes.toList() }
-
-	fun AstClass.isVisible(): Boolean {
-		if (this.fqname in invisibleExternalList) return false
-		if (this.annotationsList.contains<JTranscInvisible>()) return false
-		return true
-	}
-
-	fun AstField.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
-	fun AstMethod.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
-
-	fun AstExpr.genNotNull(): String {
-		return if (this is AstExpr.THIS) {
-			genExpr2(this)
-		} else {
-			genExpr2(this)
-			//"HaxeNatives.checkNotNull(${gen2(this)})"
-		}
-	}
-
-	fun AstBody.genBody(): Indenter = genBody2(this)
-	fun AstBody.genBodyWithFeatures(): Indenter {
+	override fun genBody2WithFeatures(body: AstBody): Indenter {
 		return if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-			features.apply(this, (featureSet + setOf(GotosFeature)), settings, types).genBody()
+			features.apply(body, (featureSet + setOf(GotosFeature)), settings, types).genBody()
 		} else {
-			features.apply(this, featureSet, settings, types).genBody()
+			features.apply(body, featureSet, settings, types).genBody()
 		}
 	}
-
-	// @TODO: Remove this from here, so new targets don't have to do this too!
-	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
-	fun fixField(field: AstFieldRef): AstFieldRef {
-		return program[field].ref
-	}
-
-	fun fixMethod(method: AstMethodRef): AstMethodRef {
-		return program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
-	}
-
-	val allAnnotationTypes = program.allAnnotations.flatMap {
-		it.getAllDescendantAnnotations()
-	}.map { it.type }.distinct().map { program[it.name] }.toSet()
 
 	internal fun _write(): GenHaxe.ProgramInfo {
 		val vfs = srcFolder
@@ -120,7 +62,7 @@ class GenHaxeGen(
 		val copyFilesTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf() }
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
-		for (file in copyFilesTemplate) vfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
+		for (file in copyFilesTemplate) vfs[file] = templateString.gen(program.resourcesVfs[file].readString())
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
@@ -157,7 +99,7 @@ class GenHaxeGen(
 
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
-		haxeTemplateString.setExtraData(mapOf(
+		templateString.setExtraData(mapOf(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
@@ -165,7 +107,7 @@ class GenHaxeGen(
 			"mainMethod" to mainMethod,
 			"inits" to inits().toString()
 		))
-		vfs[entryPointFilePath] = haxeTemplateString.gen(customMain ?: plainMain)
+		vfs[entryPointFilePath] = templateString.gen(customMain ?: plainMain)
 
 		vfs["HaxeReflectionInfo.hx"] = Indenter.genString {
 			line("class HaxeReflectionInfo") {
@@ -273,14 +215,14 @@ class GenHaxeGen(
 		}
 	}
 
-	fun genStm2(stm: AstStm): Indenter {
+	override fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm
 		val program = program
 		//val clazz = context.clazz
 		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
-				// c++ goto hack
+			// c++ goto hack
 				is AstStm.STM_LABEL -> line("untyped __cpp__('${stm.label.name}:');")
 				is AstStm.GOTO -> line("untyped __cpp__('goto ${stm.label.name};');")
 				is AstStm.IF_GOTO -> line("if (${stm.cond.genExpr()}) { untyped __cpp__('goto ${stm.label.name};'); }")
@@ -292,21 +234,8 @@ class GenHaxeGen(
 						line("default: untyped __cpp__('goto ${stm.default.name};');");
 					}
 				}
-				// plain
-				is AstStm.NOP -> Unit
-				is AstStm.IF -> {
-					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
-				}
-				is AstStm.IF_ELSE -> {
-					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
-					line("else") { line(stm.sfalse.genStm()) }
-				}
-				is AstStm.RETURN_VOID -> {
-					if (context.method.methodVoidReturnThis) line("return this;") else line("return;")
-				}
-				is AstStm.RETURN -> {
-					line("return ${stm.retval.genExpr()};")
-				}
+			// plain
+
 				is AstStm.SET_LOCAL -> {
 					val localName = stm.local.haxeName
 					val expr = stm.expr.genExpr()
@@ -398,39 +327,15 @@ class GenHaxeGen(
 					mark(stm)
 					line("// ${stm.line}")
 				}
-				else -> throw RuntimeException("Unhandled statement $stm")
+				else -> line(super.genStm2(stm))
 			}
 		}
 	}
 
-	fun genBody2(body: AstBody): Indenter {
-		val method = context.method
-		this.mutableBody = MutableBody(method)
-
-		return Indenter.gen {
-			for (local in body.locals) {
-				refs.add(local.type)
-				line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefaultString};")
-			}
-			if (body.traps.isNotEmpty()) {
-				line("var J__exception__:Dynamic = null;")
-			}
-			for (field in method.dependencies.fields2.filter { it.isStatic }) {
-				val clazz = field.containingClass
-				if (clazz.isInterface) {
-
-				} else {
-				}
-			}
-
-			val bodyContent = body.stm.genStm()
-
-			for ((clazzRef, reasons) in mutableBody.referencedClasses) {
-				if (program[clazzRef.name].isNative) continue
-				line(names.getHaxeClassStaticInit(clazzRef, reasons.joinToString(", ")))
-			}
-			line(bodyContent)
-		}
+	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefaultString};") }
+	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
+	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
+		line(names.getHaxeClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
 	class Strings {
@@ -462,23 +367,11 @@ class GenHaxeGen(
 
 	private var strings = Strings()
 
-	fun genExpr2(e: AstExpr): String {
+	override fun genThis(e: AstExpr.THIS): String = "this"
+	override fun genLiteralString(v: String): String = strings.getId(v)
+
+	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.THIS -> "this"
-			is AstExpr.LITERAL -> {
-				val value = e.value
-				if (value is AstType) {
-					for (fqName in value.getRefClasses()) {
-						mutableBody.initClassRef(fqName, "class literal")
-					}
-				}
-				if (value is String) {
-					strings.getId(value)
-				} else {
-					names.escapeConstant(value)
-				}
-			}
-			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.haxeName}"
 			is AstExpr.UNOP -> {
@@ -494,8 +387,8 @@ class GenHaxeGen(
 			}
 			is AstExpr.BINOP -> {
 				val resultType = e.type
-				var l = e.left.genExpr()
-				var r = e.right.genExpr()
+				val l = e.left.genExpr()
+				val r = e.right.genExpr()
 				val opSymbol = e.op.symbol
 				val opName = e.op.str
 
@@ -631,27 +524,16 @@ class GenHaxeGen(
 
 			}
 		//is AstExpr.REF -> genExpr2(e.expr)
-			else -> throw NotImplementedError("Unhandled expression $this")
+			else -> super.genExpr2(e)
 		}
 	}
 
-	fun convertToHaxe(expr: AstExpr.Box): String {
-		return convertToHaxe(expr.type, expr.genExpr())
-	}
+	fun convertToHaxe(expr: AstExpr.Box): String = convertToHaxe(expr.type, expr.genExpr())
+	fun convertToJava(expr: AstExpr.Box): String = convertToJava(expr.type, expr.genExpr())
+	fun convertToHaxe(type: AstType, text: String): String = convertToFromHaxe(type, text, toHaxe = true)
+	fun convertToJava(type: AstType, text: String): String = convertToFromHaxe(type, text, toHaxe = false)
 
-	fun convertToJava(expr: AstExpr.Box): String {
-		return convertToJava(expr.type, expr.genExpr())
-	}
-
-	fun convertToHaxe(type: AstType, text: String): String {
-		return return convertToFromHaxe(type, text, toHaxe = true)
-	}
-
-	fun convertToJava(type: AstType, text: String): String {
-		return return convertToFromHaxe(type, text, toHaxe = false)
-	}
-
-	fun convertToFromHaxe(type: AstType, text: String, toHaxe:Boolean): String {
+	fun convertToFromHaxe(type: AstType, text: String, toHaxe: Boolean): String {
 		if (type is AstType.ARRAY) {
 			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getHaxeType(type, TypeKind.CAST)})")
 		}
@@ -1202,8 +1084,7 @@ class GenHaxeGen(
 		}
 	}
 
-	val AstLocal.haxeName: String get() = this.name.replace('$', '_')
-	val AstExpr.LocalExpr.haxeName: String get() = this.name.replace('$', '_')
+	val LocalRef.haxeName: String get() = cnames.getNativeName(this)
 
 	val AstField.haxeName: String get() = names.getHaxeFieldName(this)
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)
@@ -1221,32 +1102,6 @@ class GenHaxeGen(
 	val FqName.haxeGeneratedFqPackage: String get() = names.getHaxeGeneratedFqPackage(this)
 	val FqName.haxeGeneratedFqName: FqName get() = names.getHaxeGeneratedFqName(this)
 	val FqName.haxeGeneratedSimpleClassName: String get() = names.getHaxeGeneratedSimpleClassName(this)
-
-	fun String.template(): String = haxeTemplateString.gen(this)
-
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.haxeTypeTag
 
-	class MutableBody(val method: AstMethod) {
-		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
-		fun initClassRef(classRef: AstType.REF, reason:String) {
-			referencedClasses.putIfAbsent(classRef, arrayListOf())
-			referencedClasses[classRef]!! += reason
-		}
-	}
-
-	class References {
-		var _usedDependencies = hashSetOf<AstType.REF>()
-		fun add(type: AstType?) {
-			when (type) {
-				null -> Unit
-				is AstType.METHOD -> {
-					for (arg in type.argTypes) add(arg)
-					add(type.ret)
-				}
-				is AstType.REF -> _usedDependencies.add(type)
-				is AstType.ARRAY -> add(type.elementType)
-				else -> Unit
-			}
-		}
-	}
 }

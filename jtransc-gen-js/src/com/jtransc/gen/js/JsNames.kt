@@ -92,7 +92,7 @@ class JsNames(
 
 	fun getJsFieldName(field: AstFieldRef): String = getJsFieldName(program[field]!!)
 
-	fun escapeConstant(value: Any?, type: AstType): String {
+	override fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)
 		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
 	}
@@ -104,7 +104,7 @@ class JsNames(
 
 	val JsArrayAny = "JA_L"
 
-	fun escapeConstant(value: Any?): String = when (value) {
+	override fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
 		is String -> "\"" + value.escape() + "\""

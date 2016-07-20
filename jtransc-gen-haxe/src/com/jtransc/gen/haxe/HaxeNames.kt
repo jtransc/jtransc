@@ -186,14 +186,14 @@ class HaxeNames(
 
 		return if (realclass.isNative) {
 			// No cache
-			realfield?.nativeName ?: field.name
+			realfield?.nativeName ?: normalizeName(field.name)
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
 				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
 					allocMemberName()
 				} else {
 					if (field !in cachedFieldNames) {
-						val fieldName = field.name.replace('$', '_')
+						val fieldName = normalizeName(field.name)
 						var name = if (fieldName in HaxeKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 
 						val clazz = program[field]?.containingClass
@@ -288,12 +288,12 @@ class HaxeNames(
 	val HaxeArrayAny = "JA_L"
 	val HaxeArrayBase = "JA_0"
 
-	fun escapeConstant(value: Any?, type: AstType): String {
+	override fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)
 		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
 	}
 
-	fun escapeConstant(value: Any?): String = when (value) {
+	override fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
 		is String -> "N.strLit(\"" + value.escape() + "\")"

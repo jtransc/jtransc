@@ -38,7 +38,11 @@ enum class AstUnop(val symbol: String, val str: String) {
 	}
 }
 
-data class AstLocal(val index: Int, val name: String, val type: AstType) {
+interface LocalRef {
+	val name: String
+}
+
+data class AstLocal(val index: Int, override val name: String, val type: AstType) : LocalRef {
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
 	val writes = arrayListOf<AstStm.SET_LOCAL>()
@@ -251,8 +255,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	abstract class LValueExpr : AstExpr() {
 	}
 
-	abstract class LocalExpr : LValueExpr() {
-		abstract val name: String
+	abstract class LocalExpr : LValueExpr(), LocalRef {
+		override abstract val name: String
 	}
 
 	// Reference

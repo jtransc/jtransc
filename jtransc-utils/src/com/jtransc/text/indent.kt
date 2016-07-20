@@ -16,7 +16,9 @@
 
 package com.jtransc.text
 
-class Indenter : ToString {
+import java.util.*
+
+class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Action>()) : ToString {
 	interface Action {
 		data class Marker(val data: Any) : Action
 
@@ -29,7 +31,6 @@ class Indenter : ToString {
 		object Unindent : Action
 	}
 
-	private val actions = arrayListOf<Action>()
 
 	val noIndentEmptyLines = true
 
@@ -38,11 +39,13 @@ class Indenter : ToString {
 
 		val EMPTY = Indenter.gen {  }
 
-		fun gen(init: Indenter.() -> Unit): Indenter {
+		inline fun gen(init: Indenter.() -> Unit): Indenter {
 			val indenter = Indenter()
 			indenter.init()
 			return indenter
 		}
+
+		fun line(str: String): Indenter = Indenter(arrayListOf(Action.Line(str)))
 
 		fun replaceString(templateString: String, replacements: Map<String, String>): String {
 			val pattern = Regex("\\$(\\w+)")

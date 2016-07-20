@@ -9,6 +9,7 @@ import com.jtransc.error.noImplWarn
 import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.common.CommonGenFolders
+import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
@@ -17,55 +18,8 @@ import com.jtransc.text.quote
 import com.jtransc.vfs.SyncVfsFile
 import java.util.*
 
-class GenJsGen(
-	val program: AstProgram,
-	val features: AstFeatures,
-	val featureSet: Set<AstFeature>,
-	val settings: AstBuildSettings,
-	val tinfo: GenTargetInfo,
-	val names: JsNames,
-	val jsTemplateString: JsTemplateString,
-	val folders: CommonGenFolders,
-	val types: AstTypes
-) {
-	val refs = References()
-	val context = AstGenContext()
-	lateinit var mutableBody: MutableBody
-	lateinit var stm: AstStm
-
-	fun AstStm.genStm(): Indenter = genStm2(this)
-	fun AstStm.Box.genStm(): Indenter = genStm2(this.value)
-	fun AstExpr.genExpr(): String = genExpr2(this)
-	fun AstExpr.Box.genExpr(): String = genExpr2(this.value)
-	fun AstExpr.Box.genNotNull(): String = this.value.genNotNull()
-
-	val invisibleExternalList = program.allAnnotations
-		.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull()
-		.flatMap { it.classes.toList() }
-
-	fun AstClass.isVisible(): Boolean {
-		if (this.fqname in invisibleExternalList) return false
-		if (this.annotationsList.contains<JTranscInvisible>()) return false
-		return true
-	}
-
-	fun AstExpr.genNotNull(): String = genExpr2(this)
-	fun AstBody.genBody(): Indenter = genBody2(this)
-	fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
-
-	// @TODO: Remove this from here, so new targets don't have to do this too!
-	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
-	fun fixField(field: AstFieldRef): AstFieldRef {
-		return program[field].ref
-	}
-
-	fun fixMethod(method: AstMethodRef): AstMethodRef {
-		return program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
-	}
-
-	val allAnnotationTypes = program.allAnnotations.flatMap {
-		it.getAllDescendantAnnotations()
-	}.map { it.type }.distinct().map { program[it.name] }.toSet()
+class GenJsGen(input: Input) : CommonGenGen(input) {
+	val names = cnames as JsNames
 
 	internal fun _write(output: SyncVfsFile): JsProgramInfo {
 		val resourcesVfs = program.resourcesVfs
@@ -89,7 +43,7 @@ class GenJsGen(
 			output[file.dst].ensureParentDir().write(file.content)
 		}
 
-		jsTemplateString.params["assetFiles"] = (jsTemplateString.params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
+		templateString.params["assetFiles"] = (templateString.params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
 
 		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
 			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
@@ -131,7 +85,7 @@ class GenJsGen(
 
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
-		jsTemplateString.setExtraData(mapOf(
+		templateString.setExtraData(mapOf(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
@@ -160,7 +114,7 @@ class GenJsGen(
 
 			for (indent in classesIndenter) line(indent)
 
-			line(jsTemplateString.gen(customMain ?: plainMain, context, "customMain"))
+			line(templateString.gen(customMain ?: plainMain, context, "customMain"))
 
 			for (f in concatFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
@@ -267,28 +221,10 @@ class GenJsGen(
 		}
 	}
 
-	fun genStm2(stm: AstStm): Indenter {
+	override fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm
-		val program = program
-		//val clazz = context.clazz
-		val mutableBody = mutableBody
 		return Indenter.gen {
 			when (stm) {
-			// plain
-				is AstStm.NOP -> Unit
-				is AstStm.IF -> {
-					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
-				}
-				is AstStm.IF_ELSE -> {
-					line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
-					line("else") { line(stm.sfalse.genStm()) }
-				}
-				is AstStm.RETURN_VOID -> {
-					if (context.method.methodVoidReturnThis) line("return this;") else line("return;")
-				}
-				is AstStm.RETURN -> {
-					line("return ${stm.retval.genExpr()};")
-				}
 				is AstStm.SET_LOCAL -> {
 					val localName = stm.local.jsName
 					val expr = stm.expr.genExpr()
@@ -373,39 +309,15 @@ class GenJsGen(
 				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
 				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
 				is AstStm.LINE -> mark(stm)
-				else -> throw RuntimeException("Unhandled statement $stm")
+				else -> line(super.genStm2(stm))
 			}
 		}
 	}
 
-	fun genBody2(body: AstBody): Indenter {
-		val method = context.method
-		this.mutableBody = MutableBody(method)
-
-		return Indenter.gen {
-			for (local in body.locals) {
-				refs.add(local.type)
-				line("var ${local.jsName} = ${local.type.jsDefaultString};")
-			}
-			if (body.traps.isNotEmpty()) {
-				line("var J__exception__ = null;")
-			}
-			for (field in method.dependencies.fields2.filter { it.isStatic }) {
-				val clazz = field.containingClass
-				if (clazz.isInterface) {
-
-				} else {
-				}
-			}
-
-			val bodyContent = body.stm.genStm()
-
-			for ((clazzRef, reasons) in mutableBody.referencedClasses) {
-				if (program[clazzRef.name].isNative) continue
-				line(names.getJsClassStaticInit(clazzRef, reasons.joinToString(", ")))
-			}
-			line(bodyContent)
-		}
+	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.jsName} = ${local.type.jsDefaultString};") }
+	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
+	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
+		line(names.getJsClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
 	private fun N_AGET(array: String, index: String) = "($array.data[$index])"
@@ -456,27 +368,10 @@ class GenJsGen(
 	private fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
 	private fun N_l2d(str: String) = "N.l2d($str)"
 
-	fun genExpr2(e: AstExpr): String {
+	override fun genLiteralString(v: String): String = "S[" + names.allocString(v) + "]"
+
+	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.THIS -> "this"
-			is AstExpr.LITERAL -> {
-				val value = e.value
-
-				// @TODO: Move this outside, iterating the AST an external tool should be able to detect before which things
-				// @TODO: must be initialized.
-				if (value is AstType) {
-					for (fqName in value.getRefClasses()) {
-						mutableBody.initClassRef(fqName, "class literal")
-					}
-				}
-
-				if (value is String) {
-					"S[" + names.allocString(value) + "]"
-				} else {
-					names.escapeConstant(value)
-				}
-			}
-			is AstExpr.TERNARY -> "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
 			is AstExpr.PARAM -> "${e.argument.name}"
 			is AstExpr.LOCAL -> "${e.local.jsName}"
 			is AstExpr.UNOP -> {
@@ -497,8 +392,8 @@ class GenJsGen(
 			}
 			is AstExpr.BINOP -> {
 				val resultType = e.type
-				var l = e.left.genExpr()
-				var r = e.right.genExpr()
+				val l = e.left.genExpr()
+				val r = e.right.genExpr()
 				val opSymbol = e.op.symbol
 				val opName = e.op.str
 
@@ -633,26 +528,14 @@ class GenJsGen(
 				} + ")"
 
 			}
-		//is AstExpr.REF -> genExpr2(e.expr)
-			else -> throw NotImplementedError("Unhandled expression $this")
+			else -> super.genExpr2(e)
 		}
 	}
 
-	fun convertToJs(expr: AstExpr.Box): String {
-		return convertToJs(expr.type, expr.genExpr())
-	}
-
-	fun convertToJava(expr: AstExpr.Box): String {
-		return convertToJava(expr.type, expr.genExpr())
-	}
-
-	fun convertToJs(type: AstType, text: String): String {
-		return return convertToFromJs(type, text, toJs = true)
-	}
-
-	fun convertToJava(type: AstType, text: String): String {
-		return return convertToFromJs(type, text, toJs = false)
-	}
+	fun convertToJs(expr: AstExpr.Box): String = convertToJs(expr.type, expr.genExpr())
+	fun convertToJava(expr: AstExpr.Box): String = convertToJava(expr.type, expr.genExpr())
+	fun convertToJs(type: AstType, text: String): String = convertToFromJs(type, text, toJs = true)
+	fun convertToJava(type: AstType, text: String): String = convertToFromJs(type, text, toJs = false)
 
 	fun convertToFromJs(type: AstType, text: String, toJs: Boolean): String {
 		if (type is AstType.ARRAY) {
@@ -915,8 +798,7 @@ class GenJsGen(
 		}
 	}
 
-	val AstLocal.jsName: String get() = this.name.replace('$', '_')
-	val AstExpr.LocalExpr.jsName: String get() = this.name.replace('$', '_')
+	val LocalRef.jsName: String get() = cnames.getNativeName(this)
 
 	val AstField.jsName: String get() = names.getJsFieldName(this)
 	val AstFieldRef.jsName: String get() = names.getJsFieldName(this)
@@ -934,29 +816,6 @@ class GenJsGen(
 	val FqName.jsGeneratedFqName: FqName get() = names.getJsGeneratedFqName(this)
 	val FqName.jsGeneratedSimpleClassName: String get() = names.getJsGeneratedSimpleClassName(this)
 
-	fun String.template(reason: String): String = jsTemplateString.gen(this, context, reason)
+	fun String.template(reason: String): String = templateString.gen(this, context, reason)
 
-	class MutableBody(val method: AstMethod) {
-		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
-		fun initClassRef(classRef: AstType.REF, reason: String) {
-			referencedClasses.putIfAbsent(classRef, arrayListOf())
-			referencedClasses[classRef]!! += reason
-		}
-	}
-
-	class References {
-		var _usedDependencies = hashSetOf<AstType.REF>()
-		fun add(type: AstType?) {
-			when (type) {
-				null -> Unit
-				is AstType.METHOD -> {
-					for (arg in type.argTypes) add(arg)
-					add(type.ret)
-				}
-				is AstType.REF -> _usedDependencies.add(type)
-				is AstType.ARRAY -> add(type.elementType)
-				else -> Unit
-			}
-		}
-	}
 }

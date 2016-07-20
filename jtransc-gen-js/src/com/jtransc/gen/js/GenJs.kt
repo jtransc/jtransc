@@ -11,10 +11,7 @@ import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.gen.GenTarget
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
-import com.jtransc.gen.common.CommonGenCliCommands
-import com.jtransc.gen.common.CommonGenFolders
-import com.jtransc.gen.common.CommonProgramInfo
-import com.jtransc.gen.common.CommonProgramTemplate
+import com.jtransc.gen.common.*
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.vfs.ExecOptions
@@ -66,17 +63,17 @@ class JsGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSetti
 	val jsTemplateString = JsTemplateString(names, tinfo, settings, folders, outputFile2, tinfo.types)
 
 	override fun buildSource() {
-		gen = GenJsGen(
+		gen = GenJsGen(CommonGenGen.Input(
 			tinfo = tinfo,
 			program = program,
 			features = AstFeatures(),
 			featureSet = JsFeatures,
 			settings = settings,
 			names = names,
-			jsTemplateString = jsTemplateString,
+			templateString = jsTemplateString,
 			folders = folders,
-			types = tinfo.types
-		)
+			srcFolder = targetFolder
+		))
 		info = gen._write(targetFolder)
 		jsTemplateString.setProgramInfo(info!!)
 	}

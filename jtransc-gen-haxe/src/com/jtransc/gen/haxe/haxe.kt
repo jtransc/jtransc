@@ -26,6 +26,7 @@ import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.gen.common.CommonGenFolders
+import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.gen.common.CommonProgramInfo
 import com.jtransc.gen.common.CommonProgramTemplate
 import com.jtransc.io.ProcessResult2
@@ -205,7 +206,7 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 	val haxeTemplateString = HaxeTemplateString(names, tinfo, settings, actualSubtarget, folders, outputFile2, tinfo.types)
 
 	override fun buildSource() {
-		gen = GenHaxeGen(
+		gen = GenHaxeGen(CommonGenGen.Input(
 			tinfo = tinfo,
 			program = program,
 			features = AstFeatures(),
@@ -213,8 +214,9 @@ class HaxeGenTargetProcessor(val tinfo: GenTargetInfo, val settings: AstBuildSet
 			featureSet = HaxeFeatures,
 			settings = settings,
 			names = names,
-			haxeTemplateString = haxeTemplateString
-		)
+			templateString = haxeTemplateString,
+			folders = folders
+		))
 		info = gen._write()
 		haxeTemplateString.setProgramInfo(info!!)
 	}
