@@ -5,6 +5,7 @@ import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.MinimizedNames
+import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.gen.common.CommonNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
@@ -143,7 +144,7 @@ class HaxeNames(
 	}
 
 	fun getHaxeFunctionalType(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, GenHaxeGen.TypeKind.TYPETAG) }.joinToString(" -> ")
+		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, CommonGenGen.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
 	fun getHaxeDefault(type: AstType): Any? = type.getNull()
@@ -259,7 +260,7 @@ class HaxeNames(
 		return getHaxeClassFqName(classRef.name) + ".AnnotationProxy_${getHaxeGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
 	}
 
-	fun getHaxeType(type: AstType, typeKind: GenHaxeGen.TypeKind): FqName {
+	fun getHaxeType(type: AstType, typeKind: CommonGenGen.TypeKind): FqName {
 		return FqName(when (type) {
 			is AstType.NULL -> "Dynamic"
 			is AstType.VOID -> "Void"

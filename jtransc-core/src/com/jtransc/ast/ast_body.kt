@@ -38,9 +38,12 @@ enum class AstUnop(val symbol: String, val str: String) {
 	}
 }
 
-interface LocalRef {
+interface Named {
 	val name: String
 }
+
+interface LocalRef : Named
+interface ArgumentRef : Named
 
 data class AstLocal(val index: Int, override val name: String, val type: AstType) : LocalRef {
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"

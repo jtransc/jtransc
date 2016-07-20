@@ -3,6 +3,7 @@ package com.jtransc.gen.js
 import com.jtransc.ast.*
 import com.jtransc.ds.getOrPut2
 import com.jtransc.error.unexpected
+import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.gen.common.CommonNames
 import com.jtransc.text.escape
 import com.jtransc.text.quote
@@ -118,7 +119,7 @@ class JsNames(
 		else -> throw NotImplementedError("Literal of type $value")
 	}
 
-	fun getJsType(type: AstType, typeKind: GenJsGen.TypeKind): FqName {
+	fun getJsType(type: AstType, typeKind: CommonGenGen.TypeKind): FqName {
 		return FqName(when (type) {
 			is AstType.NULL -> "Dynamic"
 			is AstType.VOID -> "Void"

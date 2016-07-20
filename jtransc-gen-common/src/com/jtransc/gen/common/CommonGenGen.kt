@@ -39,7 +39,7 @@ open class CommonGenGen(val input: Input) {
 	val context = AstGenContext()
 	val refs = References()
 
-	fun String.template(): String = templateString.gen(this)
+	fun String.template(type: String = "template"): String = templateString.gen(this, context, type)
 
 	lateinit var mutableBody: MutableBody
 	lateinit var stm: AstStm
@@ -119,7 +119,7 @@ open class CommonGenGen(val input: Input) {
 		}
 	}
 
-	val LocalRef.nativeName: String get() = cnames.getNativeName(this)
+	val Named.nativeName: String get() = cnames.getNativeName(this)
 	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(this.getNull(), this)
 
 	open fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
@@ -133,37 +133,143 @@ open class CommonGenGen(val input: Input) {
 		this.stm = stm
 		return when (stm) {
 			is AstStm.NOP -> genStmNop(stm)
+			is AstStm.WHILE -> genStmWhile(stm)
 			is AstStm.IF -> genStmIf(stm)
 			is AstStm.IF_ELSE -> genStmIfElse(stm)
-			is AstStm.RETURN_VOID -> genReturnVoid(stm)
-			is AstStm.RETURN -> genReturn(stm)
+			is AstStm.RETURN_VOID -> genStmReturnVoid(stm)
+			is AstStm.RETURN -> genStmReturnValue(stm)
+			is AstStm.STM_EXPR -> genStmExpr(stm)
+			is AstStm.STMS -> genStmStms(stm)
+			is AstStm.THROW -> genStmThrow(stm)
+			is AstStm.RETHROW -> genStmRethrow(stm)
+			is AstStm.MONITOR_ENTER -> genStmMonitorEnter(stm)
+			is AstStm.MONITOR_EXIT -> genStmMonitorExit(stm)
+			is AstStm.TRY_CATCH -> genStmTryCatch(stm)
+			is AstStm.SET_LOCAL -> genStmSetLocal(stm)
+			is AstStm.LINE -> genStmLine(stm)
+			is AstStm.SET_ARRAY -> genStmSetArray(stm)
+			is AstStm.STM_LABEL -> genStmLabel(stm)
+			is AstStm.BREAK -> genStmBreak(stm)
+			is AstStm.CONTINUE -> genStmContinue(stm)
 			else -> noImpl("Statement $stm")
 		}
 	}
 
+	open fun genStmContinue(stm: AstStm.CONTINUE) = Indenter.single("continue;")
+	open fun genStmBreak(stm: AstStm.BREAK) = Indenter.single("break;")
+	open fun genStmLabel(stm: AstStm.STM_LABEL) = Indenter.single("${stm.label.name}:;")
+
 	open fun genExpr2(e: AstExpr): String = when (e) {
-		is AstExpr.THIS -> genThis(e)
-		is AstExpr.TERNARY -> genTernary(e)
-		is AstExpr.LITERAL -> genLiteral(e)
-		is AstExpr.CAST -> genCast(e)
+		is AstExpr.THIS -> genExprThis(e)
+		is AstExpr.TERNARY -> genExprTernary(e)
+		is AstExpr.LITERAL -> genExprLiteral(e)
+		is AstExpr.CAST -> genExprCast(e)
+		is AstExpr.PARAM -> genExprParam(e)
+		is AstExpr.LOCAL -> genExprLocal(e)
+		is AstExpr.UNOP -> genExprUnop(e)
 		else -> noImpl("Expression $e")
 	}
 
-	protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter.gen(init)
+	private fun genExprUnop(e: AstExpr.UNOP): String {
+		val resultType = e.type
+		val es = e.right.genExpr()
+		return when (resultType) {
+			AstType.BOOL -> {
+				when (e.op) {
+					AstUnop.NOT -> N_znot(es)
+					else -> invalidOp("${e.op} for bool")
+				}
+			}
+			AstType.LONG -> {
+				when (e.op) {
+					AstUnop.NEG -> N_lneg(es)
+					AstUnop.INV -> N_linv(es)
+					else -> invalidOp("${e.op} for longs")
+				}
+			}
+			AstType.BYTE, AstType.SHORT, AstType.CHAR, AstType.INT -> {
+				val expr = when (e.op) {
+					AstUnop.NEG -> N_ineg(es)
+					AstUnop.INV -> N_iinv(es)
+					else -> invalidOp("${e.op} for $resultType")
+				}
+				when (resultType) {
+					AstType.INT -> N_i(expr)
+					AstType.CHAR -> N_i2c(expr)
+					AstType.SHORT -> N_i2s(expr)
+					AstType.BYTE -> N_i2b(expr)
+					else -> expr
+				}
+			}
+			AstType.FLOAT -> {
+				when (e.op) {
+					AstUnop.NEG -> N_fneg(es)
+					else -> invalidOp("${e.op} for float")
+				}
+			}
+			AstType.DOUBLE -> {
+				when (e.op) {
+					AstUnop.NEG -> N_dneg(es)
+					else -> invalidOp("${e.op} for double")
+				}
+			}
+			else -> invalidOp("Invalid type")
+		}
+	}
 
-	open fun genReturnVoid(stm: AstStm.RETURN_VOID) = Indenter.line(if (context.method.methodVoidReturnThis) "return this;" else "return;")
-	open fun genReturn(stm: AstStm.RETURN) = Indenter.line("return ${stm.retval.genExpr()};")
+	inline protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter.gen(init)
+
+	open fun genStmSetArray(stm: AstStm.SET_ARRAY) = Indenter.single(N_ASET_T(stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
+
+	open fun genExprParam(e: AstExpr.PARAM) = e.argument.nativeName
+	open fun genExprLocal(e: AstExpr.LOCAL) = e.local.nativeName
+
+	open fun genStmLine(stm: AstStm.LINE) = indent {
+		mark(stm)
+		line("// ${stm.line}")
+	}
+
+	open fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
+		line("try") {
+			line(stm.trystm.genStm())
+		}
+		line("catch (J__i__exception__)") {
+			line("J__exception__ = J__i__exception__;")
+			line(stm.catch.genStm())
+		}
+	}
+	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
+	open fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("// MONITOR_EXIT") }
+	open fun genStmThrow(stm: AstStm.THROW) = indent { line("throw ${stm.value.genExpr()};") }
+	open fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
+	open fun genStmStms(stm: AstStm.STMS) = indent { for (s in stm.stms) line(s.genStm()) }
+	open fun genStmExpr(stm: AstStm.STM_EXPR) = Indenter.single("${stm.expr.genExpr()};")
+	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID) = Indenter.single(if (context.method.methodVoidReturnThis) "return this;" else "return;")
+	open fun genStmReturnValue(stm: AstStm.RETURN) = Indenter.single("return ${stm.retval.genExpr()};")
+	open fun genStmWhile(stm: AstStm.WHILE) = indent {
+		line("while (${stm.cond.genExpr()})") {
+			line(stm.iter.genStm())
+		}
+	}
 	open fun genStmIf(stm: AstStm.IF) = indent { line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) } }
 	open fun genStmIfElse(stm: AstStm.IF_ELSE) = indent {
 		line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
 		line("else") { line(stm.sfalse.genStm()) }
 	}
+	open fun genStmSetLocal(stm: AstStm.SET_LOCAL) = indent {
+		val localName = stm.local.nativeName
+		val expr = stm.expr.genExpr()
+		if (localName != expr) {
+			// Avoid: Assigning a value to itself
+			line("$localName = $expr;")
+		}
+	}
 
 	open fun genStmNop(stm: AstStm.NOP) = Indenter.EMPTY
 
-	open fun genTernary(e: AstExpr.TERNARY): String = "((${e.cond.genExpr()}) ? (${e.etrue.genExpr()}) : (${e.efalse.genExpr()}))"
-	open fun genThis(e: AstExpr.THIS): String = "this"
-	open fun genLiteral(e: AstExpr.LITERAL): String {
+	open fun genExprTernary(e: AstExpr.TERNARY): String = "((${e.cond.genExpr()}) ? (${e.etrue.genExpr()}) : (${e.efalse.genExpr()}))"
+	open fun genExprThis(e: AstExpr.THIS): String = "this"
+	open fun genExprLiteral(e: AstExpr.LITERAL): String {
 		val value = e.value
 
 		return when (value) {
@@ -208,9 +314,9 @@ open class CommonGenGen(val input: Input) {
 		}
 	}
 
-	open fun genCast(e: AstExpr.CAST): String = genCast(e.expr.genExpr(), e.from, e.to)
+	open fun genExprCast(e: AstExpr.CAST): String = genExprCast(e.expr.genExpr(), e.from, e.to)
 
-	open fun genCast(e: String, from: AstType, to: AstType): String {
+	open fun genExprCast(e: String, from: AstType, to: AstType): String {
 		refs.add(from)
 		refs.add(to)
 
@@ -219,17 +325,17 @@ open class CommonGenGen(val input: Input) {
 		if (from !is AstType.Primitive && to is AstType.Primitive) {
 			return when (from) {
 			// @TODO: Check!
-				AstType.BOOL.CLASSTYPE -> genCast(N_unboxBool(e), AstType.BOOL, to)
-				AstType.BYTE.CLASSTYPE -> genCast(N_unboxByte(e), AstType.BYTE, to)
-				AstType.SHORT.CLASSTYPE -> genCast(N_unboxShort(e), AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE -> genCast(N_unboxChar(e), AstType.CHAR, to)
-				AstType.INT.CLASSTYPE -> genCast(N_unboxInt(e), AstType.INT, to)
-				AstType.LONG.CLASSTYPE -> genCast(N_unboxLong(e), AstType.LONG, to)
-				AstType.FLOAT.CLASSTYPE -> genCast(N_unboxFloat(e), AstType.FLOAT, to)
-				AstType.DOUBLE.CLASSTYPE -> genCast(N_unboxDouble(e), AstType.DOUBLE, to)
+				AstType.BOOL.CLASSTYPE -> genExprCast(N_unboxBool(e), AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE -> genExprCast(N_unboxByte(e), AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE -> genExprCast(N_unboxShort(e), AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE -> genExprCast(N_unboxChar(e), AstType.CHAR, to)
+				AstType.INT.CLASSTYPE -> genExprCast(N_unboxInt(e), AstType.INT, to)
+				AstType.LONG.CLASSTYPE -> genExprCast(N_unboxLong(e), AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE -> genExprCast(N_unboxFloat(e), AstType.FLOAT, to)
+				AstType.DOUBLE.CLASSTYPE -> genExprCast(N_unboxDouble(e), AstType.DOUBLE, to)
 			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			//else -> noImpl("Unhandled conversion $e : $from -> $to")
-				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+				else -> genExprCast(genExprCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			}
 		}
 
@@ -306,6 +412,7 @@ open class CommonGenGen(val input: Input) {
 
 	val FUNCTION_REF = AstType.REF(com.jtransc.JTranscFunction::class.java.name)
 
+	open protected fun N_ASET_T(type: AstType, array: String, index: String, value: String) = "$array[$index] = $value;"
 	open protected fun N_unboxBool(e: String) = "N.unboxBool($e)"
 	open protected fun N_unboxByte(e: String) = "N.unboxByte($e)"
 	open protected fun N_unboxShort(e: String) = "N.unboxShort($e)"
@@ -337,6 +444,13 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_l2d(str: String) = "N.l2d($str)"
 	open protected fun N_getFunction(str: String) = "N.getFunction($str)"
 	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"
+	open protected fun N_lneg(str: String) = "-($str)"
+	open protected fun N_ineg(str: String) = "-($str)"
+	open protected fun N_fneg(str: String) = "-($str)"
+	open protected fun N_dneg(str: String) = "-($str)"
+	open protected fun N_iinv(str: String) = "~($str)"
+	open protected fun N_linv(str: String) = "~($str)"
+	open protected fun N_znot(str: String) = "!($str)"
 
 	class References {
 		var _usedDependencies = hashSetOf<AstType.REF>()
@@ -353,4 +467,16 @@ open class CommonGenGen(val input: Input) {
 			}
 		}
 	}
+
+	fun AstMethod.getNativeBodies(target: String): Map<String, Indenter> {
+		val bodies = this.annotationsList.getTypedList(com.jtransc.annotation.JTranscMethodBodyList::value).filter { it.target == target }
+
+		return bodies.associate { body ->
+			body.cond to Indenter.gen {
+				for (line in body.value.toList()) line(line.template("nativeBody"))
+			}
+		}
+	}
+
+	enum class TypeKind { TYPETAG, NEW, CAST }
 }

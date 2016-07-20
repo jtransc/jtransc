@@ -374,7 +374,7 @@ fun AstType.getNull(): Any? = when(this) {
 //	else -> noImpl("Not supported type $this")
 //}
 
-data class AstArgument(val index: Int, val type: AstType, val name: String = "p$index", val optional: Boolean = false) {
+data class AstArgument(val index: Int, val type: AstType, override val name: String = "p$index", val optional: Boolean = false) : ArgumentRef {
 	override fun toString() = "$type $name"
 }
 

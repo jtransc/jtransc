@@ -1,14 +1,13 @@
 package com.jtransc.gen.js
 
-import com.jtransc.JTranscFunction
-import com.jtransc.annotation.*
+import com.jtransc.annotation.JTranscAddFileList
+import com.jtransc.annotation.JTranscAddMembersList
+import com.jtransc.annotation.JTranscCustomMainList
+import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ds.Allocator
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImplWarn
 import com.jtransc.error.unexpected
-import com.jtransc.gen.GenTargetInfo
-import com.jtransc.gen.common.CommonGenFolders
 import com.jtransc.gen.common.CommonGenGen
 import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
@@ -20,6 +19,12 @@ import java.util.*
 
 class GenJsGen(input: Input) : CommonGenGen(input) {
 	val names = cnames as JsNames
+
+	// @TODO: Kotlin IDE: Refactoring imports doesn't take into account: JTranscAddFileList::value so this is a workaround for this
+	val _JTranscAddFileListClass = JTranscAddFileList::class.java
+	val _JTranscCustomMainList = JTranscCustomMainList::class.java
+	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java
+	val _JTranscAddMembersList = JTranscAddMembersList::class.java
 
 	internal fun _write(output: SyncVfsFile): JsProgramInfo {
 		val resourcesVfs = program.resourcesVfs
@@ -225,21 +230,13 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		this.stm = stm
 		return Indenter.gen {
 			when (stm) {
-				is AstStm.SET_LOCAL -> {
-					val localName = stm.local.jsName
-					val expr = stm.expr.genExpr()
-					if (localName != expr) {
-						// Avoid: Assigning a value to itself
-						line("$localName = $expr;")
-					}
-				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]
 					//val mapping = mappings.getClassMapping(newClazz)
 					refs.add(stm.target)
 					val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
 					val className = stm.target.jsTypeNew
-					val jsLocalName = stm.local.jsName
+					val jsLocalName = stm.local.nativeName
 
 					if (newClazz.nativeName != null) {
 						line("$jsLocalName = new $className($commaArgs);")
@@ -247,9 +244,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						line("$jsLocalName = new $className();")
 						line("$jsLocalName.${stm.method.jsName}($commaArgs);")
 					}
-				}
-				is AstStm.SET_ARRAY -> {
-					line(N_ASET_T(stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
@@ -269,16 +263,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						line("$left = $right;")
 					}
 				}
-				is AstStm.STM_EXPR -> line("${stm.expr.genExpr()};")
-				is AstStm.STMS -> for (s in stm.stms) line(s.genStm())
-				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
-				is AstStm.BREAK -> line("break;")
-				is AstStm.CONTINUE -> line("continue;")
-				is AstStm.WHILE -> {
-					line("while (${stm.cond.genExpr()})") {
-						line(stm.iter.genStm())
-					}
-				}
+
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -295,26 +280,28 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						}
 					}
 				}
-				is AstStm.TRY_CATCH -> {
-					line("try") {
-						line(stm.trystm.genStm())
-					}
-					line("catch (J__i__exception__)") {
-						line("J__exception__ = J__i__exception__;")
-						line(stm.catch.genStm())
-					}
-				}
-				is AstStm.THROW -> line("throw ${stm.value.genExpr()};")
-				is AstStm.RETHROW -> line("""throw J__i__exception__;""")
-				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
-				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
-				is AstStm.LINE -> mark(stm)
 				else -> line(super.genStm2(stm))
 			}
 		}
 	}
 
-	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.jsName} = ${local.type.jsDefaultString};") }
+	override fun genStmLine(stm: AstStm.LINE) = indent {
+		mark(stm)
+	}
+
+	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
+		line("try") {
+			line(stm.trystm.genStm())
+		}
+		line("catch (J__i__exception__)") {
+			line("J__exception__ = J__i__exception__;")
+			line(stm.catch.genStm())
+		}
+	}
+
+	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""HaxeNatives.rethrow(J__i__exception__);""") }
+
+	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.jsDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(names.getJsClassStaticInit(clazzRef, reasons.joinToString(", ")))
@@ -328,8 +315,8 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	//	else -> N_AGET(array, index)
 	//}
 
-	private fun N_ASET(array: String, index: String, value: String) = "$array.data[$index] = $value;"
-	private fun N_ASET_T(type: AstType, array: String, index: String, value: String) = N_ASET(array, index, value)
+
+	override fun N_ASET_T(type: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
 
 	override fun N_unboxBool(e: String) = "N.unboxBool($e)"
 	override fun N_unboxByte(e: String) = "N.unboxByte($e)"
@@ -362,29 +349,19 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	override fun N_l2d(str: String) = "N.l2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
+	override fun N_lneg(str: String) = "N.lneg($str)"
+	override fun N_linv(str: String) = "N.linv($str)"
+	override fun N_ineg(str: String) = "-($str)"
+	override fun N_iinv(str: String) = "~($str)"
+	override fun N_fneg(str: String) = "-($str)"
+	override fun N_dneg(str: String) = "-($str)"
+	override fun N_znot(str: String) = "!($str)"
 
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(v) + "]"
 
 	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.PARAM -> "${e.argument.name}"
-			is AstExpr.LOCAL -> "${e.local.jsName}"
-			is AstExpr.UNOP -> {
-				val resultType = e.type
-				val opName = e.op.str
-				val expr = if (resultType == AstType.LONG) {
-					"N.l$opName(" + e.right.genExpr() + ")"
-				} else {
-					"(${e.op.symbol}(" + e.right.genExpr() + "))"
-				}
-				when (resultType) {
-					AstType.INT -> N_i(expr)
-					AstType.CHAR -> N_i2c(expr)
-					AstType.SHORT -> N_i2s(expr)
-					AstType.BYTE -> N_i2b(expr)
-					else -> expr
-				}
-			}
+
 			is AstExpr.BINOP -> {
 				val resultType = e.type
 				val l = e.left.genExpr()
@@ -535,17 +512,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		return text
 	}
 
-
-
-	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> {
-		val bodies = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { it.target == "js" }
-
-		return bodies.associate { body ->
-			body.cond to Indenter.gen {
-				for (line in body.value.toList()) line(line.template("nativeBody"))
-			}
-		}
-	}
+	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> = this.getNativeBodies(target = "js")
 
 	fun writeClass(clazz: AstClass): Indenter {
 		context.clazz = clazz
@@ -689,28 +656,11 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	}
 
 
-	enum class TypeKind { TYPETAG, NEW, CAST }
 
 	val AstType.jsTypeNew: FqName get() = names.getJsType(this, TypeKind.NEW)
 	val AstType.jsTypeCast: FqName get() = names.getJsType(this, TypeKind.CAST)
 	val AstType.jsDefault: Any? get() = names.getJsDefault(this)
 	val AstType.jsDefaultString: String get() = names.escapeConstant(names.getJsDefault(this), this)
-
-	fun AstType.box(arg: String): String {
-		return when (this) {
-			is AstType.Primitive -> "N.box${this.shortName.capitalize()}($arg)"
-			else -> "cast($arg)";
-		}
-	}
-
-	fun AstType.unbox(arg: String): String {
-		return when (this) {
-			is AstType.Primitive -> "N.unbox${this.shortName.capitalize()}($arg)"
-			else -> "cast($arg)";
-		}
-	}
-
-	val LocalRef.jsName: String get() = cnames.getNativeName(this)
 
 	val AstField.jsName: String get() = names.getJsFieldName(this)
 	val AstFieldRef.jsName: String get() = names.getJsFieldName(this)
@@ -727,7 +677,4 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	val FqName.jsFilePath: String get() = names.getJsFilePath(this)
 	val FqName.jsGeneratedFqName: FqName get() = names.getJsGeneratedFqName(this)
 	val FqName.jsGeneratedSimpleClassName: String get() = names.getJsGeneratedSimpleClassName(this)
-
-	fun String.template(reason: String): String = templateString.gen(this, context, reason)
-
 }

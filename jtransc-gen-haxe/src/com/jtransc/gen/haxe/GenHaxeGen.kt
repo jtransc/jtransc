@@ -1,6 +1,5 @@
 package com.jtransc.gen.haxe
 
-import com.jtransc.JTranscFunction
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
@@ -8,11 +7,8 @@ import com.jtransc.ast.feature.GotosFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImplWarn
 import com.jtransc.ffi.StdCall
-import com.jtransc.gen.GenTargetInfo
 import com.jtransc.gen.common.CommonGenGen
-import com.jtransc.gen.common.CommonProgramTemplate
 import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.lang.nullMap
 import com.jtransc.lang.toBetterString
@@ -237,22 +233,13 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 					}
 				}
 			// plain
-
-				is AstStm.SET_LOCAL -> {
-					val localName = stm.local.haxeName
-					val expr = stm.expr.genExpr()
-					if (localName != expr) {
-						// Avoid: Assigning a value to itself
-						line("$localName = $expr;")
-					}
-				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					val newClazz = program[stm.target.name]
 					//val mapping = mappings.getClassMapping(newClazz)
 					refs.add(stm.target)
 					val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
 					val className = stm.target.haxeTypeNew
-					val localHaxeName = stm.local.haxeName
+					val localHaxeName = stm.local.nativeName
 
 					if (newClazz.nativeName != null) {
 						line("$localHaxeName = new $className($commaArgs);")
@@ -260,13 +247,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("$localHaxeName = new $className();")
 						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
-				}
-				is AstStm.SET_ARRAY -> {
-					val set = when (stm.array.type.elementType) {
-						AstType.BOOL -> "setBool"
-						else -> "set"
-					}
-					line("${stm.array.genNotNull()}.$set(${stm.index.genExpr()}, ${stm.expr.genExpr()});")
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					refs.add(stm.clazz)
@@ -286,16 +266,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("$left = $right;")
 					}
 				}
-				is AstStm.STM_EXPR -> line("${stm.expr.genExpr()};")
-				is AstStm.STMS -> for (s in stm.stms) line(s.genStm())
-				is AstStm.STM_LABEL -> line("${stm.label.name}:;")
-				is AstStm.BREAK -> line("break;")
-				is AstStm.CONTINUE -> line("continue;")
-				is AstStm.WHILE -> {
-					line("while (${stm.cond.genExpr()})") {
-						line(stm.iter.genStm())
-					}
-				}
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -312,29 +282,32 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						}
 					}
 				}
-				is AstStm.TRY_CATCH -> {
-					line("try") {
-						line(stm.trystm.genStm())
-					}
-					line("catch (J__i__exception__: Dynamic)") {
-						line("J__exception__ = J__i__exception__;")
-						line(stm.catch.genStm())
-					}
-				}
-				is AstStm.THROW -> line("throw ${stm.value.genExpr()};")
-				is AstStm.RETHROW -> line("""HaxeNatives.rethrow(J__i__exception__);""")
-				is AstStm.MONITOR_ENTER -> line("// MONITOR_ENTER")
-				is AstStm.MONITOR_EXIT -> line("// MONITOR_EXIT")
-				is AstStm.LINE -> {
-					mark(stm)
-					line("// ${stm.line}")
-				}
 				else -> line(super.genStm2(stm))
 			}
 		}
 	}
 
-	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.haxeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefaultString};") }
+	override fun N_ASET_T(type: AstType, array: String, index: String, value: String): String {
+		val set = when (type) {
+			AstType.BOOL -> "setBool"
+			else -> "set"
+		}
+		return "$array.$set($index, $value);"
+	}
+
+	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
+		line("try") {
+			line(stm.trystm.genStm())
+		}
+		line("catch (J__i__exception__: Dynamic)") {
+			line("J__exception__ = J__i__exception__;")
+			line(stm.catch.genStm())
+		}
+	}
+
+	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
+
+	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName}: ${local.type.haxeTypeTag} = ${local.type.haxeDefaultString};") }
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(names.getHaxeClassStaticInit(clazzRef, reasons.joinToString(", ")))
@@ -369,24 +342,11 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	private var strings = Strings()
 
-	override fun genThis(e: AstExpr.THIS): String = "this"
+	override fun genExprThis(e: AstExpr.THIS): String = "this"
 	override fun genLiteralString(v: String): String = strings.getId(v)
 
 	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.PARAM -> "${e.argument.name}"
-			is AstExpr.LOCAL -> "${e.local.haxeName}"
-			is AstExpr.UNOP -> {
-				val resultType = e.type
-				val expr = "(${e.op.symbol}(" + e.right.genExpr() + "))"
-				when (resultType) {
-					AstType.INT -> "N.i($expr)"
-					AstType.CHAR -> "N.i2c($expr)"
-					AstType.SHORT -> "N.i2s($expr)"
-					AstType.BYTE -> "N.i2b($expr)"
-					else -> expr
-				}
-			}
 			is AstExpr.BINOP -> {
 				val resultType = e.type
 				val l = e.left.genExpr()
@@ -555,7 +515,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	override fun N_unboxDouble(e: String) = "HaxeNatives.unboxDouble($e)"
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
-	override fun N_i(str: String) = "($str)"
+	override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i2z(str: String) = "(($str)!=0)"
 	override fun N_i2b(str: String) = "N.i2b($str)"
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
@@ -576,6 +536,13 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	override fun N_l2d(str: String) = "HaxeNatives.longToFloat($str)"
 	override fun N_getFunction(str: String) = "HaxeNatives.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.haxeTypeCast})"
+	override fun N_lneg(str: String) = "-($str)"
+	override fun N_ineg(str: String) = "-($str)"
+	override fun N_fneg(str: String) = "-($str)"
+	override fun N_dneg(str: String) = "-($str)"
+	override fun N_linv(str: String) = "~($str)"
+	override fun N_iinv(str: String) = "~($str)"
+	override fun N_znot(str: String) = "!($str)"
 
 	// @TODO: Use this.annotationsList.getTypedList
 	private fun AstMethod.getHaxeNativeBodyList(): List<HaxeMethodBody> {
@@ -1012,8 +979,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	//val FqName.as3Fqname: String get() = this.fqname
 	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
 
-	enum class TypeKind { TYPETAG, NEW, CAST }
-
 	val AstVisibility.haxe: String get() = "public"
 
 	val AstType.haxeTypeTag: FqName get() = names.getHaxeType(this, TypeKind.TYPETAG)
@@ -1036,8 +1001,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 			else -> "cast($arg)";
 		}
 	}
-
-	val LocalRef.haxeName: String get() = cnames.getNativeName(this)
 
 	val AstField.haxeName: String get() = names.getHaxeFieldName(this)
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)

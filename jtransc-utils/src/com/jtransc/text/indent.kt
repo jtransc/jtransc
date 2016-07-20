@@ -45,7 +45,7 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 			return indenter
 		}
 
-		fun line(str: String): Indenter = Indenter(arrayListOf(Action.Line(str)))
+		fun single(str: String): Indenter = Indenter(arrayListOf(Action.Line(str)))
 
 		fun replaceString(templateString: String, replacements: Map<String, String>): String {
 			val pattern = Regex("\\$(\\w+)")

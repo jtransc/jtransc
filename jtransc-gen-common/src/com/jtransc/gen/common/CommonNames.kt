@@ -25,5 +25,5 @@ abstract class CommonNames(val program: AstResolver) {
 		return String(chars)
 	}
 
-	open fun getNativeName(local: LocalRef): String = normalizeName(local.name)
+	open fun getNativeName(local: Named): String = normalizeName(local.name)
 }
