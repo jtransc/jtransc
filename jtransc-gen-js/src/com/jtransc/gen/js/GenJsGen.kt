@@ -162,8 +162,8 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				null -> "null"
 				is AstAnnotation -> annotation(it)
 				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> names.getStaticFieldText(it)
-				is AstFieldWithoutTypeRef -> names.getStaticFieldText(program[it].ref)
+				is AstFieldRef -> names.buildStaticField(it)
+				is AstFieldWithoutTypeRef -> names.buildStaticField(program[it].ref)
 				is String -> "N.boxString(${it.quote()})"
 				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
@@ -235,7 +235,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 					//val mapping = mappings.getClassMapping(newClazz)
 					refs.add(stm.target)
 					val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
-					val className = stm.target.jsTypeNew
+					val className = stm.target.nativeTypeNew
 					val jsLocalName = stm.local.nativeName
 
 					if (newClazz.nativeName != null) {
@@ -255,15 +255,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						line("$left /*${stm.field.name}*/ = $right;")
 					}
 				}
-				is AstStm.SET_FIELD_INSTANCE -> {
-					val left = "${stm.left.genExpr()}${fixField(stm.field).jsNameAccess}"
-					val right = stm.expr.genExpr()
-					if (left != right) {
-						// Avoid: Assigning a value to itself
-						line("$left = $right;")
-					}
-				}
-
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -413,7 +404,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				}.joinToString(", ")
 
 				val base = when (e2) {
-					is AstExpr.CALL_STATIC -> "${clazz.jsTypeNew}"
+					is AstExpr.CALL_STATIC -> "${clazz.nativeTypeNew}"
 					is AstExpr.CALL_SUPER -> {
 						val superMethod = refMethodClass.get(method.withoutClass) ?: invalidOp("Can't find super for method : $method")
 						names.getJsClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
@@ -430,9 +421,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				val result = "$base${refMethod.jsNameAccess}$base2$commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
-			is AstExpr.FIELD_INSTANCE_ACCESS -> {
-				"${e.expr.genNotNull()}${fixField(e.field).jsNameAccess}"
-			}
 			is AstExpr.FIELD_STATIC_ACCESS -> {
 				refs.add(e.clazzName)
 				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
@@ -448,12 +436,12 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 			}
 			is AstExpr.NEW -> {
 				refs.add(e.target)
-				val className = e.target.jsTypeNew
+				val className = e.target.nativeTypeNew
 				"new $className()"
 			}
 			is AstExpr.INSTANCE_OF -> {
 				refs.add(e.checkType)
-				N_is(e.expr.genExpr(), e.checkType.jsTypeCast.toString())
+				N_is(e.expr.genExpr(), e.checkType.nativeTypeCast.toString())
 			}
 			is AstExpr.NEW_ARRAY -> {
 				refs.add(e.type.elementType)
@@ -461,13 +449,13 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				when (e.counts.size) {
 					1 -> {
 						if (e.type.elementType !is AstType.Primitive) {
-							"new ${names.JsArrayAny}(${e.counts[0].genExpr()}, \"$desc\")"
+							"new ${names.ObjectArrayType}(${e.counts[0].genExpr()}, \"$desc\")"
 						} else {
-							"new ${e.type.jsTypeNew}(${e.counts[0].genExpr()})"
+							"new ${e.type.nativeTypeNew}(${e.counts[0].genExpr()})"
 						}
 					}
 					else -> {
-						"${names.JsArrayAny}.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
+						"${names.ObjectArrayType}.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
 					}
 				}
 			}
@@ -656,22 +644,14 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	}
 
 
-
-	val AstType.jsTypeNew: FqName get() = names.getJsType(this, TypeKind.NEW)
-	val AstType.jsTypeCast: FqName get() = names.getJsType(this, TypeKind.CAST)
 	val AstType.jsDefault: Any? get() = names.getJsDefault(this)
 	val AstType.jsDefaultString: String get() = names.escapeConstant(names.getJsDefault(this), this)
 
-	val AstField.jsName: String get() = names.getJsFieldName(this)
-	val AstFieldRef.jsName: String get() = names.getJsFieldName(this)
-	val AstFieldRef.jsStaticText: String get() = names.getStaticFieldText(this)
+	val FieldRef.jsName: String get() = names.getNativeName(this)
+	val FieldRef.jsStaticText: String get() = names.buildStaticField(this)
 
-	val AstFieldRef.jsNameAccess: String get() = "[" + names.getJsFieldName(this).quote() + "]"
-
-	val AstMethod.jsName: String get() = names.getJsMethodName(this)
-	val AstMethodRef.jsName: String get() = names.getJsMethodName(this)
-
-	val AstMethod.jsNameAccess: String get() = "[" + names.getJsMethodName(this).quote() + "]"
+	val MethodRef.jsName: String get() = names.getJsMethodName(this)
+	val MethodRef.jsNameAccess: String get() = "[" + this.jsName.quote() + "]"
 
 	val FqName.jsClassFqName: String get() = names.getJsClassFqName(this)
 	val FqName.jsFilePath: String get() = names.getJsFilePath(this)

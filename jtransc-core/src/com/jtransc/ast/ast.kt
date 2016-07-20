@@ -530,6 +530,14 @@ open class AstMember(
 	}
 }
 
+interface MethodRef {
+	val ref: AstMethodRef
+}
+
+interface FieldRef {
+	val ref: AstFieldRef
+}
+
 class AstField(
 	id: Int,
 	containingClass: AstClass,
@@ -541,13 +549,14 @@ class AstField(
 	val genericSignature: String?,
 	val constantValue: Any? = null,
     val types: AstTypes
-) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations), FieldRef {
 	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
-	val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
+	override val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
 	val hasConstantValue = constantValue != null
 }
+
 
 class AstMethod(
 	containingClass: AstClass,
@@ -564,7 +573,7 @@ class AstMethod(
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
 	val types: AstTypes
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations) {
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
 	val isNative: Boolean = modifiers.isNative
 
 	val body: AstBody? by lazy { generateBody() }
@@ -573,7 +582,7 @@ class AstMethod(
 	val methodType: AstType.METHOD = type
 	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD
 	val desc = methodType.desc
-	val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
+	override val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }
 
 	val getterField: String? by lazy { annotationsList.getTyped<JTranscGetter>()?.value }

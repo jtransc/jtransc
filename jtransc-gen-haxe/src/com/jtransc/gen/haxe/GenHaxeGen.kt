@@ -258,14 +258,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("$left /*${stm.field.name}*/ = $right;")
 					}
 				}
-				is AstStm.SET_FIELD_INSTANCE -> {
-					val left = "${stm.left.genExpr()}.${fixField(stm.field).haxeName}"
-					val right = stm.expr.genExpr()
-					if (left != right) {
-						// Avoid: Assigning a value to itself
-						line("$left = $right;")
-					}
-				}
+
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -493,7 +486,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	fun convertToFromHaxe(type: AstType, text: String, toHaxe: Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getHaxeType(type, TypeKind.CAST)})")
+			return (if (toHaxe) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getNativeType(type, TypeKind.CAST)})")
 		}
 
 		if (type is AstType.REF) {
@@ -536,13 +529,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	override fun N_l2d(str: String) = "HaxeNatives.longToFloat($str)"
 	override fun N_getFunction(str: String) = "HaxeNatives.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.haxeTypeCast})"
-	override fun N_lneg(str: String) = "-($str)"
-	override fun N_ineg(str: String) = "-($str)"
-	override fun N_fneg(str: String) = "-($str)"
-	override fun N_dneg(str: String) = "-($str)"
-	override fun N_linv(str: String) = "~($str)"
-	override fun N_iinv(str: String) = "~($str)"
-	override fun N_znot(str: String) = "!($str)"
 
 	// @TODO: Use this.annotationsList.getTypedList
 	private fun AstMethod.getHaxeNativeBodyList(): List<HaxeMethodBody> {
@@ -981,9 +967,9 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	val AstVisibility.haxe: String get() = "public"
 
-	val AstType.haxeTypeTag: FqName get() = names.getHaxeType(this, TypeKind.TYPETAG)
-	val AstType.haxeTypeNew: FqName get() = names.getHaxeType(this, TypeKind.NEW)
-	val AstType.haxeTypeCast: FqName get() = names.getHaxeType(this, TypeKind.CAST)
+	val AstType.haxeTypeTag: FqName get() = names.getNativeType(this, TypeKind.TYPETAG)
+	val AstType.haxeTypeNew: FqName get() = names.getNativeType(this, TypeKind.NEW)
+	val AstType.haxeTypeCast: FqName get() = names.getNativeType(this, TypeKind.CAST)
 	val AstType.haxeDefault: Any? get() = names.getHaxeDefault(this)
 	val AstType.haxeDefaultString: String get() = names.escapeConstant(names.getHaxeDefault(this), this)
 	val AstType.METHOD.functionalType: String get() = names.getHaxeFunctionalType(this)

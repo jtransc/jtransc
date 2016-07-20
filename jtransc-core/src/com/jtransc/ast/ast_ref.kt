@@ -23,7 +23,8 @@ inline fun <reified T: Any> Class<T>.ast(): AstType {
 	}
 }
 
-data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef {
+data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef, FieldRef {
+	override val ref = this
 	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type
 	val containingTypeRef = AstType.REF(containingClass)
@@ -31,7 +32,8 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
 }
 
-data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef {
+data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef, MethodRef {
+	override val ref = this
 	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }
 	val containingClassType: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type

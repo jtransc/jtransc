@@ -67,10 +67,17 @@ class HaxeNames(
 		return if (static) "$clazz.$name" else "$name"
 	}
 
-	override fun buildField(field: AstField, static: Boolean): String {
-		val clazz = getHaxeClassFqName(field.containingClass.name)
-		val name = getHaxeFieldName(field)
-		return if (static) "$clazz.$name" else "$name"
+	override fun getNativeName(local: LocalParamRef): String {
+		return super.getNativeName(local)
+	}
+
+	override fun getNativeName(field: FieldRef): String {
+		return getHaxeFieldName(field)
+	}
+
+	override fun getNativeName(clazz: FqName): String {
+		//return getHaxeClassFqName(field.containingClass.name)
+		return getHaxeClassFqName(clazz)
 	}
 
 	override fun buildTemplateClass(clazz: FqName): String = getHaxeClassFqName(clazz)
@@ -144,7 +151,7 @@ class HaxeNames(
 	}
 
 	fun getHaxeFunctionalType(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getHaxeType(it, CommonGenGen.TypeKind.TYPETAG) }.joinToString(" -> ")
+		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenGen.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
 	fun getHaxeDefault(type: AstType): Any? = type.getNull()
@@ -177,6 +184,8 @@ class HaxeNames(
 	fun getHaxeFieldName(clazz: Class<*>, name:String): String {
 		return getHaxeFieldName(program[clazz.name.fqname]!!.fieldsByName[name]!!)
 	}
+
+	fun getHaxeFieldName(field: FieldRef): String = getHaxeFieldName(field.ref)
 
 	fun getHaxeFieldName(field: AstFieldRef): String {
 		val realfield = program[field]
@@ -260,34 +269,26 @@ class HaxeNames(
 		return getHaxeClassFqName(classRef.name) + ".AnnotationProxy_${getHaxeGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
 	}
 
-	fun getHaxeType(type: AstType, typeKind: CommonGenGen.TypeKind): FqName {
-		return FqName(when (type) {
-			is AstType.NULL -> "Dynamic"
-			is AstType.VOID -> "Void"
-			is AstType.BOOL -> "Bool"
-			is AstType.GENERIC -> getHaxeType(type.type, typeKind).fqname
-			is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> "Int"
-			is AstType.FLOAT -> "Float32"
-			is AstType.DOUBLE -> "Float64"
-			is AstType.LONG -> "haxe.Int64"
-			is AstType.REF -> program[type.name]?.nativeName ?: getHaxeClassFqName(type.name)
-			is AstType.ARRAY -> when (type.element) {
-				is AstType.BOOL -> "JA_Z"
-				is AstType.BYTE -> "JA_B"
-				is AstType.CHAR -> "JA_C"
-				is AstType.SHORT -> "JA_S"
-				is AstType.INT -> "JA_I"
-				is AstType.LONG -> "JA_J"
-				is AstType.FLOAT -> "JA_F"
-				is AstType.DOUBLE -> "JA_D"
-				else -> HaxeArrayAny
-			}
-			else -> throw RuntimeException("Not supported haxe type $type, $typeKind")
-		})
-	}
+	override val NullType = FqName("Dynamic")
+	override val VoidType = FqName("Void")
+	override val BoolType = FqName("Bool")
+	override val IntType = FqName("Int")
+	override val FloatType = FqName("Float32")
+	override val DoubleType = FqName("Float64")
+	override val LongType = FqName("haxe.Int64")
+	override val BaseArrayType = FqName("JA_0")
+	override val BoolArrayType = FqName("JA_Z")
+	override val ByteArrayType = FqName("JA_B")
+	override val CharArrayType = FqName("JA_C")
+	override val ShortArrayType = FqName("JA_S")
+	override val IntArrayType = FqName("JA_I")
+	override val LongArrayType = FqName("JA_J")
+	override val FloatArrayType = FqName("JA_F")
+	override val DoubleArrayType = FqName("JA_D")
+	override val ObjectArrayType = FqName("JA_L")
 
-	val HaxeArrayAny = "JA_L"
-	val HaxeArrayBase = "JA_0"
+	val HaxeArrayAny = ObjectArrayType
+	val HaxeArrayBase = BaseArrayType
 
 	override fun escapeConstant(value: Any?, type: AstType): String {
 		val result = escapeConstant(value)

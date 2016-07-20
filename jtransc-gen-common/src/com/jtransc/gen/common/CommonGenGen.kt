@@ -1,6 +1,5 @@
 package com.jtransc.gen.common
 
-import com.jtransc.JTranscFunction
 import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.ast.*
@@ -119,7 +118,7 @@ open class CommonGenGen(val input: Input) {
 		}
 	}
 
-	val Named.nativeName: String get() = cnames.getNativeName(this)
+	val LocalParamRef.nativeName: String get() = cnames.getNativeName(this)
 	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(this.getNull(), this)
 
 	open fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
@@ -151,7 +150,17 @@ open class CommonGenGen(val input: Input) {
 			is AstStm.STM_LABEL -> genStmLabel(stm)
 			is AstStm.BREAK -> genStmBreak(stm)
 			is AstStm.CONTINUE -> genStmContinue(stm)
+			is AstStm.SET_FIELD_INSTANCE -> genStmSetFieldInstance(stm)
 			else -> noImpl("Statement $stm")
+		}
+	}
+
+	private fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter = indent {
+		val left = cnames.buildInstanceField(stm.left.genExpr(), fixField(stm.field))
+		val right = stm.expr.genExpr()
+		if (left != right) {
+			// Avoid: Assigning a value to itself
+			line("$left = $right;")
 		}
 	}
 
@@ -167,7 +176,12 @@ open class CommonGenGen(val input: Input) {
 		is AstExpr.PARAM -> genExprParam(e)
 		is AstExpr.LOCAL -> genExprLocal(e)
 		is AstExpr.UNOP -> genExprUnop(e)
+		is AstExpr.FIELD_INSTANCE_ACCESS -> genExprFieldInstanceAccess(e)
 		else -> noImpl("Expression $e")
+	}
+
+	open fun genExprFieldInstanceAccess(e: AstExpr.FIELD_INSTANCE_ACCESS): String {
+		return cnames.buildInstanceField(e.expr.genNotNull(), fixField(e.field))
 	}
 
 	private fun genExprUnop(e: AstExpr.UNOP): String {
@@ -238,6 +252,7 @@ open class CommonGenGen(val input: Input) {
 			line(stm.catch.genStm())
 		}
 	}
+
 	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
 	open fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("// MONITOR_EXIT") }
 	open fun genStmThrow(stm: AstStm.THROW) = indent { line("throw ${stm.value.genExpr()};") }
@@ -251,11 +266,13 @@ open class CommonGenGen(val input: Input) {
 			line(stm.iter.genStm())
 		}
 	}
+
 	open fun genStmIf(stm: AstStm.IF) = indent { line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) } }
 	open fun genStmIfElse(stm: AstStm.IF_ELSE) = indent {
 		line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
 		line("else") { line(stm.sfalse.genStm()) }
 	}
+
 	open fun genStmSetLocal(stm: AstStm.SET_LOCAL) = indent {
 		val localName = stm.local.nativeName
 		val expr = stm.expr.genExpr()
@@ -479,4 +496,7 @@ open class CommonGenGen(val input: Input) {
 	}
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
+
+	val AstType.nativeTypeNew: FqName get() = cnames.getNativeType(this, TypeKind.NEW)
+	val AstType.nativeTypeCast: FqName get() = cnames.getNativeType(this, TypeKind.CAST)
 }

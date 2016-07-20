@@ -48,7 +48,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 					}
 				}
 			}
-			AstBinop.LT, AstBinop.LE, AstBinop.EQ, AstBinop.NE, AstBinop.GT, AstBinop.GE -> {
+			AstBinop.LT, AstBinop.LE, AstBinop.GT, AstBinop.GE -> {
 				if (!flags.strictfp && (left is AstExpr.BINOP) && (right is AstExpr.LITERAL)) {
 					when (left.op) {
 						AstBinop.CMPG, AstBinop.CMPL, AstBinop.CMP -> {
@@ -62,9 +62,11 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 								log.warn("WARNING: Unhandled float comparison (because compareValue != 0)! op = ${expr.op} :: compareValue = $compareValue")
 							}
 						}
+						else -> Unit
 					}
 				}
 			}
+			else -> Unit
 		}
 	}
 
@@ -106,12 +108,12 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		body.locals = body.locals.filter { it.isUsed }
 	}
 
-	override fun visit(stms: AstStm.STMS) {
-		super.visit(stms)
+	override fun visit(stm: AstStm.STMS) {
+		super.visit(stm)
 
-		for (n in 1 until stms.stms.size) {
-			val abox = stms.stms[n - 1]
-			val bbox = stms.stms[n - 0]
+		for (n in 1 until stm.stms.size) {
+			val abox = stm.stms[n - 1]
+			val bbox = stm.stms[n - 0]
 			val a = abox.value
 			val b = bbox.value
 			//println("${a.javaClass}")
@@ -151,10 +153,10 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			}
 		}
 
-		val finalStms = stms.stms.filter { it.value !is AstStm.NOP }
+		val finalStms = stm.stms.filter { it.value !is AstStm.NOP }
 
 		if (finalStms.size == 1) {
-			stms.box.value = finalStms.first().value
+			stm.box.value = finalStms.first().value
 		}
 	}
 
@@ -164,7 +166,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			val right = expr.right.value
 			when (right) {
 				is AstExpr.BINOP -> {
-					var newop = when (right.op) {
+					val newop = when (right.op) {
 						AstBinop.NE -> AstBinop.EQ
 						AstBinop.EQ -> AstBinop.NE
 						AstBinop.LT -> AstBinop.GE
@@ -250,14 +252,14 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		if (child is AstExpr.LITERAL) {
 			val literalValue = child.value
 			if (literalValue is Int) {
-				val box = expr.box
+				val box2 = expr.box
 				when (castTo) {
-					AstType.BOOL -> box.value = AstExpr.LITERAL(literalValue.toBool(), types)
-					AstType.BYTE -> box.value = AstExpr.LITERAL(literalValue.toByte(), types)
-					AstType.SHORT -> box.value = AstExpr.LITERAL(literalValue.toShort(), types)
+					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool(), types)
+					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte(), types)
+					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort(), types)
 				//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
 				}
-				AstAnnotateExpressions.visitExprWithStm(stm, box)
+				AstAnnotateExpressions.visitExprWithStm(stm, box2)
 				return
 			}
 		}
