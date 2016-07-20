@@ -331,42 +331,37 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	private fun N_ASET(array: String, index: String, value: String) = "$array.data[$index] = $value;"
 	private fun N_ASET_T(type: AstType, array: String, index: String, value: String) = N_ASET(array, index, value)
 
-	//typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined"
-	//private fun N_is(a: String, b: String) = "((typeof (($b).\$instanceOf[$a.\$JS\$CLASS_ID$])) !== 'undefined')"
-	private fun N_is(a: String, b: String) = "N.is($a, $b)"
-	//private fun N_is(a: String, b: String) = "$a instanceof $b"
-	//private fun N_is(a: String, b: String) = "$a != null"
-
-	//private fun N_i(str:String) = "N.i($str)"
-	//private fun N_i2z(str:String) = "N.i2z($str)"
-	//private fun N_i2b(str:String) = "N.i2b($str)"
-	//private fun N_i2c(str:String) = "N.i2c($str)"
-	//private fun N_i2s(str:String) = "N.i2s($str)"
-	private fun N_z2i(str: String) = "N.z2i($str)"
-
-	private fun N_i(str: String) = "(($str)|0)"
-	private fun N_i2z(str: String) = "(($str)!=0)"
-	private fun N_i2b(str: String) = "(($str)<<24>>24)"
-	private fun N_i2c(str: String) = "(($str)&0xFFFF)"
-	private fun N_i2s(str: String) = "(($str)<<16>>16)"
-	private fun N_i2i(str: String) = N_i(str)
-	private fun N_i2j(str: String) = "N.i2j($str)"
-
-	//private fun N_i2d(str:String) = "N.i2d($str)"
-	private fun N_i2f(str: String) = "Math.fround(+($str))"
-
-	private fun N_i2d(str: String) = "+($str)"
-
-	private fun N_f2f(str: String) = "Math.fround($str)"
-
-	private fun N_d2f(str: String) = "Math.fround(+($str))"
-	private fun N_d2d(str: String) = "+($str)"
-
-
-	private fun N_l2i(str: String) = "N.l2i($str)"
-	private fun N_l2l(str: String) = "N.l2l($str)"
-	private fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
-	private fun N_l2d(str: String) = "N.l2d($str)"
+	override fun N_unboxBool(e: String) = "N.unboxBool($e)"
+	override fun N_unboxByte(e: String) = "N.unboxByte($e)"
+	override fun N_unboxShort(e: String) = "N.unboxShort($e)"
+	override fun N_unboxChar(e: String) = "N.unboxChar($e)"
+	override fun N_unboxInt(e: String) = "N.unboxInt($e)"
+	override fun N_unboxLong(e: String) = "N.unboxLong($e)"
+	override fun N_unboxFloat(e: String) = "N.unboxFloat($e)"
+	override fun N_unboxDouble(e: String) = "N.unboxDouble($e)"
+	override fun N_is(a: String, b: String) = "N.is($a, $b)"
+	override fun N_z2i(str: String) = "N.z2i($str)"
+	override fun N_i(str: String) = "(($str)|0)"
+	override fun N_i2z(str: String) = "(($str)!=0)"
+	override fun N_i2b(str: String) = "(($str)<<24>>24)"
+	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
+	override fun N_i2s(str: String) = "(($str)<<16>>16)"
+	override fun N_f2i(str: String) = "(($str)|0)"
+	override fun N_i2i(str: String) = N_i(str)
+	override fun N_i2j(str: String) = "N.i2j($str)"
+	override fun N_i2f(str: String) = "Math.fround(+($str))"
+	override fun N_i2d(str: String) = "+($str)"
+	override fun N_f2f(str: String) = "Math.fround($str)"
+	override fun N_f2d(str: String) = "($str)"
+	override fun N_d2f(str: String) = "Math.fround(+($str))"
+	override fun N_d2i(str: String) = "(($str)|0)"
+	override fun N_d2d(str: String) = "+($str)"
+	override fun N_l2i(str: String) = "N.l2i($str)"
+	override fun N_l2l(str: String) = "N.l2l($str)"
+	override fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
+	override fun N_l2d(str: String) = "N.l2d($str)"
+	override fun N_getFunction(str: String) = "N.getFunction($str)"
+	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(v) + "]"
 
@@ -474,11 +469,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 			is AstExpr.ARRAY_ACCESS -> {
 				N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
 			}
-			is AstExpr.CAST -> {
-				refs.add(e.from)
-				refs.add(e.to)
-				genCast(e.expr.genExpr(), e.from, e.to)
-			}
 			is AstExpr.NEW -> {
 				refs.add(e.target)
 				val className = e.target.jsTypeNew
@@ -545,85 +535,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		return text
 	}
 
-	fun genCast(e: String, from: AstType, to: AstType): String {
-		if (from == to) return e
 
-		if (from !is AstType.Primitive && to is AstType.Primitive) {
-			return when (from) {
-			// @TODO: Check!
-				AstType.BOOL.CLASSTYPE -> genCast("N.unboxBool($e)", AstType.BOOL, to)
-				AstType.BYTE.CLASSTYPE -> genCast("N.unboxByte($e)", AstType.BYTE, to)
-				AstType.SHORT.CLASSTYPE -> genCast("N.unboxShort($e)", AstType.SHORT, to)
-				AstType.CHAR.CLASSTYPE -> genCast("N.unboxChar($e)", AstType.CHAR, to)
-				AstType.INT.CLASSTYPE -> genCast("N.unboxInt($e)", AstType.INT, to)
-				AstType.LONG.CLASSTYPE -> genCast("N.unboxLong($e)", AstType.LONG, to)
-				AstType.FLOAT.CLASSTYPE -> genCast("N.unboxFloat($e)", AstType.FLOAT, to)
-				AstType.DOUBLE.CLASSTYPE -> genCast("N.unboxDouble($e)", AstType.DOUBLE, to)
-			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
-			//else -> noImpl("Unhandled conversion $e : $from -> $to")
-				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
-			}
-		}
-
-		fun unhandled(): String {
-			noImplWarn("Unhandled conversion ($from -> $to) at $context")
-			return "($e)"
-		}
-
-		return when (from) {
-			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
-				val e2 = if (from == AstType.BOOL) N_z2i(e) else "$e"
-
-				when (to) {
-					is AstType.BOOL -> N_i2z(e2)
-					is AstType.BYTE -> N_i2b(e2)
-					is AstType.CHAR -> N_i2c(e2)
-					is AstType.SHORT -> N_i2s(e2)
-					is AstType.INT -> N_i2i(e2)
-					is AstType.LONG -> N_i2j(e2)
-					is AstType.FLOAT -> N_i2f(e2)
-					is AstType.DOUBLE -> N_i2d(e2)
-					else -> unhandled()
-				}
-			}
-			is AstType.DOUBLE, is AstType.FLOAT -> {
-				when (to) {
-					is AstType.BOOL -> N_i2z(e)
-					is AstType.BYTE -> N_i2b(e)
-					is AstType.CHAR -> N_i2c(e)
-					is AstType.SHORT -> N_i2s(e)
-					is AstType.INT -> N_i2i(e)
-					is AstType.LONG -> N_i2j(e)
-					is AstType.FLOAT -> N_d2f(e)
-					is AstType.DOUBLE -> N_d2d(e)
-					else -> unhandled()
-				}
-			}
-			is AstType.LONG -> {
-				when (to) {
-					is AstType.BOOL -> N_i2z(N_l2i(e))
-					is AstType.BYTE -> N_i2b(N_l2i(e))
-					is AstType.CHAR -> N_i2c(N_l2i(e))
-					is AstType.SHORT -> N_i2s(N_l2i(e))
-					is AstType.INT -> N_l2i(e)
-					is AstType.LONG -> N_l2l(e)
-					is AstType.FLOAT -> N_l2f(e)
-					is AstType.DOUBLE -> N_l2d(e)
-					else -> unhandled()
-				}
-			}
-			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
-				when (to) {
-					FUNCTION_REF -> "(N.getFunction($e))"
-					else -> "$e"
-				}
-			}
-			is AstType.NULL -> "$e"
-			else -> unhandled()
-		}
-	}
-
-	val FUNCTION_REF = AstType.REF(JTranscFunction::class.java.name)
 
 	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> {
 		val bodies = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { it.target == "js" }

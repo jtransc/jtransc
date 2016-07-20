@@ -1,10 +1,12 @@
 package com.jtransc.gen.common
 
+import com.jtransc.JTranscFunction
 import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.error.noImplWarn
 import com.jtransc.gen.GenTargetInfo
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.SyncVfsFile
@@ -143,6 +145,7 @@ open class CommonGenGen(val input: Input) {
 		is AstExpr.THIS -> genThis(e)
 		is AstExpr.TERNARY -> genTernary(e)
 		is AstExpr.LITERAL -> genLiteral(e)
+		is AstExpr.CAST -> genCast(e)
 		else -> noImpl("Expression $e")
 	}
 
@@ -158,7 +161,7 @@ open class CommonGenGen(val input: Input) {
 
 	open fun genStmNop(stm: AstStm.NOP) = Indenter.EMPTY
 
-	open fun genTernary(e: AstExpr.TERNARY): String = "((" + e.cond.genExpr() + ") ? (" + e.etrue.genExpr() + ") : (" + e.efalse.genExpr() + "))"
+	open fun genTernary(e: AstExpr.TERNARY): String = "((${e.cond.genExpr()}) ? (${e.etrue.genExpr()}) : (${e.efalse.genExpr()}))"
 	open fun genThis(e: AstExpr.THIS): String = "this"
 	open fun genLiteral(e: AstExpr.LITERAL): String {
 		val value = e.value
@@ -205,6 +208,135 @@ open class CommonGenGen(val input: Input) {
 		}
 	}
 
+	open fun genCast(e: AstExpr.CAST): String = genCast(e.expr.genExpr(), e.from, e.to)
+
+	open fun genCast(e: String, from: AstType, to: AstType): String {
+		refs.add(from)
+		refs.add(to)
+
+		if (from == to) return e
+
+		if (from !is AstType.Primitive && to is AstType.Primitive) {
+			return when (from) {
+			// @TODO: Check!
+				AstType.BOOL.CLASSTYPE -> genCast(N_unboxBool(e), AstType.BOOL, to)
+				AstType.BYTE.CLASSTYPE -> genCast(N_unboxByte(e), AstType.BYTE, to)
+				AstType.SHORT.CLASSTYPE -> genCast(N_unboxShort(e), AstType.SHORT, to)
+				AstType.CHAR.CLASSTYPE -> genCast(N_unboxChar(e), AstType.CHAR, to)
+				AstType.INT.CLASSTYPE -> genCast(N_unboxInt(e), AstType.INT, to)
+				AstType.LONG.CLASSTYPE -> genCast(N_unboxLong(e), AstType.LONG, to)
+				AstType.FLOAT.CLASSTYPE -> genCast(N_unboxFloat(e), AstType.FLOAT, to)
+				AstType.DOUBLE.CLASSTYPE -> genCast(N_unboxDouble(e), AstType.DOUBLE, to)
+			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+			//else -> noImpl("Unhandled conversion $e : $from -> $to")
+				else -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+			}
+		}
+
+		fun unhandled(): String {
+			noImplWarn("Unhandled conversion ($from -> $to) at $context")
+			return "($e)"
+		}
+
+		return when (from) {
+			is AstType.BOOL, is AstType.INT, is AstType.CHAR, is AstType.SHORT, is AstType.BYTE -> {
+				val e2 = if (from == AstType.BOOL) N_z2i(e) else "$e"
+
+				when (to) {
+					is AstType.BOOL -> N_i2z(e2)
+					is AstType.BYTE -> N_i2b(e2)
+					is AstType.CHAR -> N_i2c(e2)
+					is AstType.SHORT -> N_i2s(e2)
+					is AstType.INT -> N_i2i(e2)
+					is AstType.LONG -> N_i2j(e2)
+					is AstType.FLOAT -> N_i2f(e2)
+					is AstType.DOUBLE -> N_i2d(e2)
+					else -> unhandled()
+				}
+			}
+			is AstType.FLOAT -> {
+				when (to) {
+					is AstType.BOOL -> N_i2z(N_f2i(e))
+					is AstType.BYTE -> N_i2b(N_f2i(e))
+					is AstType.CHAR -> N_i2c(N_f2i(e))
+					is AstType.SHORT -> N_i2s(N_f2i(e))
+					is AstType.INT -> N_i2i(N_f2i(e))
+					is AstType.LONG -> N_i2j(N_f2i(e))
+					is AstType.FLOAT -> N_f2f(e)
+					is AstType.DOUBLE -> N_f2d(e)
+					else -> unhandled()
+				}
+			}
+			is AstType.DOUBLE -> {
+				when (to) {
+					is AstType.BOOL -> N_i2z(N_d2i(e))
+					is AstType.BYTE -> N_i2b(N_d2i(e))
+					is AstType.CHAR -> N_i2c(N_d2i(e))
+					is AstType.SHORT -> N_i2s(N_d2i(e))
+					is AstType.INT -> N_i2i(N_d2i(e))
+					is AstType.LONG -> N_i2j(N_d2i(e))
+					is AstType.FLOAT -> N_d2f(e)
+					is AstType.DOUBLE -> N_d2d(e)
+					else -> unhandled()
+				}
+			}
+			is AstType.LONG -> {
+				when (to) {
+					is AstType.BOOL -> N_i2z(N_l2i(e))
+					is AstType.BYTE -> N_i2b(N_l2i(e))
+					is AstType.CHAR -> N_i2c(N_l2i(e))
+					is AstType.SHORT -> N_i2s(N_l2i(e))
+					is AstType.INT -> N_l2i(e)
+					is AstType.LONG -> N_l2l(e)
+					is AstType.FLOAT -> N_l2f(e)
+					is AstType.DOUBLE -> N_l2d(e)
+					else -> unhandled()
+				}
+			}
+			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
+				when (to) {
+					FUNCTION_REF -> N_getFunction(e)
+					else -> N_c(e, from, to)
+				}
+			}
+			is AstType.NULL -> "$e"
+			else -> unhandled()
+		}
+	}
+
+	val FUNCTION_REF = AstType.REF(com.jtransc.JTranscFunction::class.java.name)
+
+	open protected fun N_unboxBool(e: String) = "N.unboxBool($e)"
+	open protected fun N_unboxByte(e: String) = "N.unboxByte($e)"
+	open protected fun N_unboxShort(e: String) = "N.unboxShort($e)"
+	open protected fun N_unboxChar(e: String) = "N.unboxChar($e)"
+	open protected fun N_unboxInt(e: String) = "N.unboxInt($e)"
+	open protected fun N_unboxLong(e: String) = "N.unboxLong($e)"
+	open protected fun N_unboxFloat(e: String) = "N.unboxFloat($e)"
+	open protected fun N_unboxDouble(e: String) = "N.unboxDouble($e)"
+	open protected fun N_is(a: String, b: String) = "N.is($a, $b)"
+	open protected fun N_z2i(str: String) = "N.z2i($str)"
+	open protected fun N_i(str: String) = "(($str)|0)"
+	open protected fun N_i2z(str: String) = "(($str)!=0)"
+	open protected fun N_i2b(str: String) = "(($str)<<24>>24)"
+	open protected fun N_i2c(str: String) = "(($str)&0xFFFF)"
+	open protected fun N_i2s(str: String) = "(($str)<<16>>16)"
+	open protected fun N_f2i(str: String) = "(($str)|0)"
+	open protected fun N_i2i(str: String) = N_i(str)
+	open protected fun N_i2j(str: String) = "N.i2j($str)"
+	open protected fun N_i2f(str: String) = "(($str))"
+	open protected fun N_i2d(str: String) = "($str)"
+	open protected fun N_f2f(str: String) = "($str)"
+	open protected fun N_f2d(str: String) = "($str)"
+	open protected fun N_d2f(str: String) = "(($str))"
+	open protected fun N_d2d(str: String) = "($str)"
+	open protected fun N_d2i(str: String) = "(($str)|0)"
+	open protected fun N_l2i(str: String) = "N.l2i($str)"
+	open protected fun N_l2l(str: String) = "N.l2l($str)"
+	open protected fun N_l2f(str: String) = "(N.l2d($str))"
+	open protected fun N_l2d(str: String) = "N.l2d($str)"
+	open protected fun N_getFunction(str: String) = "N.getFunction($str)"
+	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 
 	class References {
 		var _usedDependencies = hashSetOf<AstType.REF>()
