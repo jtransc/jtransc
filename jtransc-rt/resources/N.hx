@@ -19,6 +19,8 @@ class N {
         return strLitCache[str];
     }
 
+    static public function strLitEscape(str:String):{% CLASS java.lang.String %} return strLit(str);
+
     static public function str(str:String):{% CLASS java.lang.String %} return (str != null) ? {% CLASS java.lang.String %}.make(str) : null;
     static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
     static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
@@ -152,4 +154,6 @@ class N {
 		#else return Date.now().getTime();
 		#end
 	}
+
+	static public function resolveClass(name:String):{% CLASS java.lang.Class %} return HaxeNatives.resolveClass(name);
 }

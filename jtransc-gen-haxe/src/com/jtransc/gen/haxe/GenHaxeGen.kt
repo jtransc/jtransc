@@ -248,17 +248,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 						line("$localHaxeName.${stm.method.haxeName}($commaArgs);")
 					}
 				}
-				is AstStm.SET_FIELD_STATIC -> {
-					refs.add(stm.clazz)
-					mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
-					val left = fixField(stm.field).haxeStaticText
-					val right = stm.expr.genExpr()
-					if (left != right) {
-						// Avoid: Assigning a value to itself
-						line("$left /*${stm.field.name}*/ = $right;")
-					}
-				}
-
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -280,8 +269,16 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 		}
 	}
 
-	override fun N_ASET_T(type: AstType, array: String, index: String, value: String): String {
-		val set = when (type) {
+	override fun N_AGET_T(elementType: AstType, array: String, index: String): String {
+		val get = when (elementType) {
+			AstType.BOOL -> "getBool"
+			else -> "get"
+		}
+		return "$array.$get($index)"
+	}
+
+	override fun N_ASET_T(elementType: AstType, array: String, index: String, value: String): String {
+		val set = when (elementType) {
 			AstType.BOOL -> "setBool"
 			else -> "set"
 		}
@@ -402,7 +399,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 				refs.add(e.clazzName)
 				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
 
-				"${fixField(e.field).haxeStaticText}"
+				"${fixField(e.field).nativeStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> {
 				val type = e.array.type
@@ -412,14 +409,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 					"cast(${e.array.genNotNull()}, ${names.HaxeArrayBase}).length"
 				}
 			}
-			is AstExpr.ARRAY_ACCESS -> {
-				val get = when (e.array.type.elementType) {
-					AstType.BOOL -> "getBool"
-					else -> "get"
-				}
-				"${e.array.genNotNull()}.$get(${e.index.genExpr()})"
-			}
-
 			is AstExpr.NEW -> {
 				refs.add(e.target)
 				val className = e.target.haxeTypeNew
@@ -616,7 +605,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 				val visibility = if (isInterface) " " else method.visibility.haxe
 				refs.add(method.methodType)
 				val margs = method.methodType.args.map { it.name + ":" + it.type.haxeTypeTag }
-				var override = if (method.haxeIsOverriding) "override " else ""
+				val override = if (method.haxeIsOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
@@ -990,7 +979,7 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	val AstField.haxeName: String get() = names.getHaxeFieldName(this)
 	val AstFieldRef.haxeName: String get() = names.getHaxeFieldName(this)
-	val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
+	//val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
 
 	val AstMethod.haxeName: String get() = names.getHaxeMethodName(this)
 	val AstMethodRef.haxeName: String get() = names.getHaxeMethodName(this)

@@ -87,27 +87,6 @@ class JsNames(
 		return getJsClassFqNameForCalling(clazz)
 	}
 
-	override fun escapeConstant(value: Any?, type: AstType): String {
-		val result = escapeConstant(value)
-		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
-	}
-
-	override fun escapeConstant(value: Any?): String = when (value) {
-		null -> "null"
-		is Boolean -> if (value) "true" else "false"
-		is String -> "\"" + value.escape() + "\""
-		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
-		is Float -> escapeConstant(value.toDouble())
-		is Double -> if (value.isInfinite()) if (value < 0) "-Infinity" else "Infinity" else if (value.isNaN()) "NaN" else "$value"
-		is Int -> "$value"
-		is Number -> "${value.toInt()}"
-		is Char -> "${value.toInt()}"
-		is AstType.REF, is AstType.ARRAY -> "N.resolveClass(${(value as AstType).mangle().quote()})"
-		else -> throw NotImplementedError("Literal of type $value")
-	}
-
-	fun getJsDefault(type: AstType): Any? = type.getNull()
-
 	override fun buildAccessName(name: String): String = "[" + name.quote() + "]"
 
 	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)

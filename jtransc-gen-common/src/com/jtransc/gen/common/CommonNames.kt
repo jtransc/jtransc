@@ -1,7 +1,9 @@
 package com.jtransc.gen.common
 
 import com.jtransc.ast.*
+import com.jtransc.text.escape
 import com.jtransc.text.isLetterDigitOrUnderscore
+import com.jtransc.text.quote
 
 abstract class CommonNames(val program: AstResolver) {
 	abstract fun buildTemplateClass(clazz: FqName): String
@@ -13,11 +15,9 @@ abstract class CommonNames(val program: AstResolver) {
 	abstract fun buildMethod(method: AstMethod, static: Boolean): String
 	abstract fun buildStaticInit(clazz: AstClass): String
 	abstract fun buildConstructor(method: AstMethod): String
-	abstract fun escapeConstant(value: Any?): String
-	abstract fun escapeConstant(value: Any?, type: AstType): String
 
 	open fun buildInstanceField(expr: String, field: AstField): String = expr + buildAccessName(field)
-	open fun buildStaticField(field: AstField): String = getNativeName(field.ref.containingTypeRef.name) + buildAccessName(field)
+	open fun buildStaticField(field: AstField): String = getNativeNameForFields(field.ref.containingTypeRef.name) + buildAccessName(field)
 
 	fun buildStaticField(field: FieldRef): String = buildStaticField(program[field.ref]!!)
 	fun buildInstanceField(expr: String, field: FieldRef): String = buildInstanceField(expr, program[field.ref]!!)
@@ -25,21 +25,28 @@ abstract class CommonNames(val program: AstResolver) {
 	open fun buildAccessName(field: AstField): String = buildAccessName(getNativeName(field))
 	open fun buildAccessName(name: String): String = ".$name"
 
+	val normalizeNameCache = hashMapOf<String, String>()
+
 	fun normalizeName(name: String): String {
 		if (name.isNullOrEmpty()) return ""
-		val chars = name.toCharArray()
-		for (i in chars.indices) {
-			var c = chars[i]
-			if (!c.isLetterDigitOrUnderscore() || c == '$') c = '_'
-			chars[i] = c
+		if (name !in normalizeNameCache) {
+			val chars = name.toCharArray()
+			for (i in chars.indices) {
+				var c = chars[i]
+				if (!c.isLetterDigitOrUnderscore() || c == '$') c = '_'
+				chars[i] = c
+			}
+			if (chars[0].isDigit()) chars[0] = '_'
+			normalizeNameCache[name] = String(chars)
 		}
-		if (chars[0].isDigit()) chars[0] = '_'
-		return String(chars)
+		return normalizeNameCache[name]!!
 	}
 
 	open fun getNativeName(local: LocalParamRef): String = normalizeName(local.name)
 	open fun getNativeName(field: FieldRef): String = normalizeName(field.ref.name)
 	open fun getNativeName(clazz: FqName): String = clazz.fqname
+	open fun getNativeNameForMethods(clazz: FqName): String = getNativeName(clazz)
+	open fun getNativeNameForFields(clazz: FqName): String = getNativeName(clazz)
 
 	open val NullType = FqName("Dynamic")
 	open val VoidType = FqName("Void")
@@ -58,6 +65,8 @@ abstract class CommonNames(val program: AstResolver) {
 	open val FloatArrayType = FqName("JA_F")
 	open val DoubleArrayType = FqName("JA_D")
 	open val ObjectArrayType = FqName("JA_L")
+
+	open fun getDefault(type: AstType): Any? = type.getNull()
 
 	open fun getNativeType(type: AstType, typeKind: CommonGenGen.TypeKind): FqName {
 		return when (type) {
@@ -84,4 +93,31 @@ abstract class CommonNames(val program: AstResolver) {
 			else -> throw RuntimeException("Not supported native type $type, $typeKind")
 		}
 	}
+
+	open fun escapeConstant(value: Any?, type: AstType): String {
+		val result = escapeConstant(value)
+		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
+	}
+
+	open fun escapeConstant(value: Any?): String = when (value) {
+		null -> "null"
+		is Boolean -> if (value) "true" else "false"
+		is String -> "N.strLitEscape(\"" + value.escape() + "\")"
+		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
+		is Float -> escapeConstant(value.toDouble())
+		is Double -> if (value.isInfinite()) if (value < 0) NegativeInfinityString else PositiveInfinityString else if (value.isNaN()) NanString else "$value"
+		is Int -> when (value) {
+			Int.MIN_VALUE -> "N.MIN_INT32"
+			else -> "$value"
+		}
+		is Number -> "${value.toInt()}"
+		is Char -> "${value.toInt()}"
+		is AstType.REF -> "N.resolveClass(${value.mangle().quote()})"
+		is AstType.ARRAY -> "N.resolveClass(${value.mangle().quote()})"
+		else -> throw NotImplementedError("Literal of type $value")
+	}
+
+	open val NegativeInfinityString = "-Infinity"
+	open val PositiveInfinityString = "Infinity"
+	open val NanString = "NaN"
 }

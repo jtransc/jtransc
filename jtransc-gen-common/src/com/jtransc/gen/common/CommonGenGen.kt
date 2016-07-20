@@ -64,6 +64,8 @@ open class CommonGenGen(val input: Input) {
 		return true
 	}
 
+	fun getFilesToCopy(target: String) = program.classes.flatMap { it.annotationsList.getTypedList(com.jtransc.annotation.JTranscAddFileList::value).filter { it.target == target || it.target == "all" } }.sortedBy { it.priority }
+
 	fun AstExpr.genNotNull(): String = genExpr2(this)
 	//fun AstBody.genBody(): Indenter = genBody2(this)
 	//fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
@@ -118,9 +120,6 @@ open class CommonGenGen(val input: Input) {
 		}
 	}
 
-	val LocalParamRef.nativeName: String get() = cnames.getNativeName(this)
-	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(this.getNull(), this)
-
 	open fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
 	open fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
@@ -151,6 +150,16 @@ open class CommonGenGen(val input: Input) {
 			is AstStm.BREAK -> genStmBreak(stm)
 			is AstStm.CONTINUE -> genStmContinue(stm)
 			is AstStm.SET_FIELD_INSTANCE -> genStmSetFieldInstance(stm)
+			is AstStm.SET_FIELD_STATIC -> indent {
+				refs.add(stm.clazz)
+				mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
+				val left = fixField(stm.field).nativeStaticText
+				val right = stm.expr.genExpr()
+				if (left != right) {
+					// Avoid: Assigning a value to itself
+					line("$left /*${stm.field.name}*/ = $right;")
+				}
+			}
 			else -> noImpl("Statement $stm")
 		}
 	}
@@ -177,8 +186,11 @@ open class CommonGenGen(val input: Input) {
 		is AstExpr.LOCAL -> genExprLocal(e)
 		is AstExpr.UNOP -> genExprUnop(e)
 		is AstExpr.FIELD_INSTANCE_ACCESS -> genExprFieldInstanceAccess(e)
+		is AstExpr.ARRAY_ACCESS -> genExprArrayAccess(e)
 		else -> noImpl("Expression $e")
 	}
+
+	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
 
 	open fun genExprFieldInstanceAccess(e: AstExpr.FIELD_INSTANCE_ACCESS): String {
 		return cnames.buildInstanceField(e.expr.genNotNull(), fixField(e.field))
@@ -429,7 +441,8 @@ open class CommonGenGen(val input: Input) {
 
 	val FUNCTION_REF = AstType.REF(com.jtransc.JTranscFunction::class.java.name)
 
-	open protected fun N_ASET_T(type: AstType, array: String, index: String, value: String) = "$array[$index] = $value;"
+	open protected fun N_AGET_T(elementType: AstType, array: String, index: String) = "($array[$index])"
+	open protected fun N_ASET_T(elementType: AstType, array: String, index: String, value: String) = "$array[$index] = $value;"
 	open protected fun N_unboxBool(e: String) = "N.unboxBool($e)"
 	open protected fun N_unboxByte(e: String) = "N.unboxByte($e)"
 	open protected fun N_unboxShort(e: String) = "N.unboxShort($e)"
@@ -499,4 +512,9 @@ open class CommonGenGen(val input: Input) {
 
 	val AstType.nativeTypeNew: FqName get() = cnames.getNativeType(this, TypeKind.NEW)
 	val AstType.nativeTypeCast: FqName get() = cnames.getNativeType(this, TypeKind.CAST)
+
+	val LocalParamRef.nativeName: String get() = cnames.getNativeName(this)
+	val AstType.nativeDefault: Any? get() = cnames.getDefault(this)
+	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(cnames.getDefault(this), this)
+	val FieldRef.nativeStaticText: String get() = cnames.buildStaticField(this)
 }

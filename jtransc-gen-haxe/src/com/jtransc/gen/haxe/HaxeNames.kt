@@ -53,13 +53,9 @@ class HaxeNames(
 		val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
 	}
 
-	override fun buildConstructor(method: AstMethod): String {
-		return "new ${getHaxeClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
-	}
+	override fun buildConstructor(method: AstMethod): String = "new ${getHaxeClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
 
-	override fun buildStaticInit(clazz: AstClass): String {
-		return getHaxeClassStaticInit(clazz.ref, "template sinit")
-	}
+	override fun buildStaticInit(clazz: AstClass): String = getHaxeClassStaticInit(clazz.ref, "template sinit")
 
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getHaxeClassFqName(method.containingClass.name)
@@ -67,23 +63,13 @@ class HaxeNames(
 		return if (static) "$clazz.$name" else "$name"
 	}
 
-	override fun getNativeName(local: LocalParamRef): String {
-		return super.getNativeName(local)
-	}
-
-	override fun getNativeName(field: FieldRef): String {
-		return getHaxeFieldName(field)
-	}
-
-	override fun getNativeName(clazz: FqName): String {
-		//return getHaxeClassFqName(field.containingClass.name)
-		return getHaxeClassFqName(clazz)
-	}
+	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
+	override fun getNativeName(field: FieldRef): String = getHaxeFieldName(field)
+	override fun getNativeName(clazz: FqName): String = getHaxeClassFqName(clazz)
+	override fun getNativeNameForFields(clazz: FqName): String = getHaxeClassFqNameInt(clazz)
 
 	override fun buildTemplateClass(clazz: FqName): String = getHaxeClassFqName(clazz)
-
 	override fun buildTemplateClass(clazz: AstClass): String = getHaxeClassFqName(clazz.name)
-
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	//val ENABLED_MINIFY = false
@@ -181,7 +167,7 @@ class HaxeNames(
 		return clazz?.nativeName ?: getHaxeGeneratedFqName(name).fqname
 	}
 
-	fun getHaxeFieldName(clazz: Class<*>, name:String): String {
+	fun getHaxeFieldName(clazz: Class<*>, name: String): String {
 		return getHaxeFieldName(program[clazz.name.fqname]!!.fieldsByName[name]!!)
 	}
 
@@ -193,6 +179,11 @@ class HaxeNames(
 		//val keyToUse = if (realfield.keepName) field else field.name
 		//val keyToUse = if (ENABLED_MINIFY_FIELDS) field else field.name
 		val keyToUse = field
+
+		//if (field.name == "static,strange,field" || field.name == "static,strange=field") {
+		//	println("strange! : ${field.name}")
+		//	println("-")
+		//}
 
 		return if (realclass.isNative) {
 			// No cache
@@ -209,7 +200,9 @@ class HaxeNames(
 						val clazz = program[field]?.containingClass
 						val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
 						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getHaxeFieldName(it.ref) }.toHashSet()
-						val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field)
+						val fieldsColliding = clazz?.fields?.filter {
+							(it.ref == field) || (normalizeName(it.name) == normalizeName(field.name))
+						}?.map { it.ref } ?: listOf(field)
 
 						// JTranscBugInnerMethodsWithSameName.kt
 						for (f2 in fieldsColliding) {
@@ -225,15 +218,8 @@ class HaxeNames(
 		}
 	}
 
-	fun getHaxeFieldName(field: AstField): String {
-		//field.annotations.contains<JTranscKeepName>()
-		return getHaxeFieldName(field.ref)
-	}
+	fun getHaxeFieldName(field: AstField) = getHaxeFieldName(field.ref)
 
-	fun getStaticFieldText(field: AstFieldRef): String {
-		val prefix = getHaxeClassFqNameInt(field.classRef.name)
-		return "$prefix.${getHaxeFieldName(field)}"
-	}
 
 	fun getHaxeClassFqNameInt(name: FqName): String {
 		val clazz = program[name]
@@ -290,29 +276,7 @@ class HaxeNames(
 	val HaxeArrayAny = ObjectArrayType
 	val HaxeArrayBase = BaseArrayType
 
-	override fun escapeConstant(value: Any?, type: AstType): String {
-		val result = escapeConstant(value)
-		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
-	}
-
-	override fun escapeConstant(value: Any?): String = when (value) {
-		null -> "null"
-		is Boolean -> if (value) "true" else "false"
-		is String -> "N.strLit(\"" + value.escape() + "\")"
-		is Long -> "N.lnew(${((value ushr 32) and 0xFFFFFFFF).toInt()}, ${((value ushr 0) and 0xFFFFFFFF).toInt()})"
-		is Float -> escapeConstant(value.toDouble())
-		is Double -> if (value.isInfinite()) if (value < 0) "Math.NEGATIVE_INFINITY" else "Math.POSITIVE_INFINITY" else if (value.isNaN()) "Math.NaN" else "$value"
-		is Int -> {
-			if (value == Int.MIN_VALUE) {
-				"N.MIN_INT32"
-			} else {
-				"$value"
-			}
-		}
-		is Number -> "${value.toInt()}"
-		is Char -> "${value.toInt()}"
-		is AstType.REF -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
-		is AstType.ARRAY -> "HaxeNatives.resolveClass(${value.mangle().quote()})"
-		else -> throw NotImplementedError("Literal of type $value")
-	}
+	override val NegativeInfinityString = "Math.NEGATIVE_INFINITY"
+	override val PositiveInfinityString = "Math.POSITIVE_INFINITY"
+	override val NanString = "Math.NaN"
 }

@@ -33,6 +33,8 @@ var __reints = (function() {
     };
 })();
 
+N.MIN_INT32 = -2147483648;
+
 N.isLittleEndian = __reints.isLittleEndian();
 N.intBitsToFloat = __reints.intBitsToFloat;
 N.floatToIntBits = __reints.floatToIntBits;
@@ -120,6 +122,11 @@ N.str = function(str) {
 N.strLit = function(str) {
 	// Check cache!
 	return N.str(str);
+};
+
+N.strLitEscape = function(str) {
+	// Check cache!
+	return str;
 };
 
 N.strArray = function(strs) {

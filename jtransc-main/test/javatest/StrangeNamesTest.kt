@@ -11,27 +11,27 @@ object StrangeNamesTest {
 	}
 
 	class InstanceTest {
-		var `strange,field` = 10
+		var `strange,field,instance` = 10
 
 		fun test() {
 			println("InstanceTest:")
-			println(this.`strange,field`)
-			this.`strange,field` = 7
-			println(this.`strange,field`)
+			println(this.`strange,field,instance`)
+			this.`strange,field,instance` = 7
+			println(this.`strange,field,instance`)
 		}
 	}
 
 	object StaticTest {
-		@JvmStatic var `strange,field` = 10
-		@JvmStatic var `strange=field` = 10
+		@JvmStatic var `static,strange,field` = 10
+		@JvmStatic var `static,strange=field` = 10
 
 		@JvmStatic fun test() {
 			println("StaticTest:")
-			println(this.`strange=field`)
-			println(this.`strange,field`)
-			this.`strange,field` = 7
-			println(this.`strange,field`)
-			this.`strange,field` = 10 // restore
+			println(this.`static,strange=field`)
+			println(this.`static,strange,field`)
+			this.`static,strange,field` = 7
+			println(this.`static,strange,field`)
+			this.`static,strange,field` = 10 // restore
 		}
 	}
 

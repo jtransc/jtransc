@@ -48,23 +48,11 @@ class CppNames(
 	program: AstResolver,
 	val minimize: Boolean
 ) : CommonNames(program) {
-	override fun escapeConstant(value: Any?, type: AstType): String {
-		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun escapeConstant(value: Any?): String {
-		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
 	override fun buildTemplateClass(clazz: FqName): String {
 		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
 	override fun buildTemplateClass(clazz: AstClass): String {
-		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun buildField(field: AstField, static: Boolean): String {
 		throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 

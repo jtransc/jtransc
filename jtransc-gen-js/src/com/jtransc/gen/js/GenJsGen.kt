@@ -1,6 +1,5 @@
 package com.jtransc.gen.js
 
-import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscCustomMainList
 import com.jtransc.annotation.JTranscMethodBodyList
@@ -21,14 +20,13 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	val names = cnames as JsNames
 
 	// @TODO: Kotlin IDE: Refactoring imports doesn't take into account: JTranscAddFileList::value so this is a workaround for this
-	val _JTranscAddFileListClass = JTranscAddFileList::class.java
 	val _JTranscCustomMainList = JTranscCustomMainList::class.java
 	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java
 	val _JTranscAddMembersList = JTranscAddMembersList::class.java
 
 	internal fun _write(output: SyncVfsFile): JsProgramInfo {
 		val resourcesVfs = program.resourcesVfs
-		val copyFiles = program.classes.flatMap { it.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "js" || it.target == "all" } }.sortedBy { it.priority }
+		val copyFiles = getFilesToCopy("js")
 
 		data class ConcatFile(val prepend: String?, val append: String?)
 		class CopyFile(val content: ByteArray, val dst: String, val isAsset: Boolean)
@@ -201,28 +199,14 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 
 	fun _visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
 	fun _visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { _visibleAnnotations(it) }.joinToString(", ") + "]"
+	fun visibleAnnotations(annotations: List<AstAnnotation>): String = "function() { ${annotationsInit(annotations)} return " + _visibleAnnotations(annotations) + "; }"
+	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
+	fun visibleAnnotationsOrNull(annotations: List<AstAnnotation>): String = if (annotations.isNotEmpty()) visibleAnnotations(annotations) else "null"
+	fun visibleAnnotationsListOrNull(annotations: List<List<AstAnnotation>>): String = if (annotations.isNotEmpty()) visibleAnnotationsList(annotations) else "null"
 
-	fun visibleAnnotations(annotations: List<AstAnnotation>): String {
-		return "function() { ${annotationsInit(annotations)} return " + _visibleAnnotations(annotations) + "; }"
-	}
-
-	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String {
-		return "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
-	}
-
-	fun visibleAnnotationsOrNull(annotations: List<AstAnnotation>): String {
-		return if (annotations.isNotEmpty()) visibleAnnotations(annotations) else "null"
-	}
-
-	fun visibleAnnotationsListOrNull(annotations: List<List<AstAnnotation>>): String {
-		return if (annotations.isNotEmpty()) visibleAnnotationsList(annotations) else "null"
-	}
-
-	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
-		return Indenter.gen {
-			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-				line(names.getJsClassStaticInit(i, "annotationsInit"))
-			}
+	fun annotationsInit(annotations: List<AstAnnotation>): Indenter = Indenter.gen {
+		for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
+			line(names.getJsClassStaticInit(i, "annotationsInit"))
 		}
 	}
 
@@ -245,16 +229,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 						line("$jsLocalName.${stm.method.jsName}($commaArgs);")
 					}
 				}
-				is AstStm.SET_FIELD_STATIC -> {
-					refs.add(stm.clazz)
-					mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
-					val left = fixField(stm.field).jsStaticText
-					val right = stm.expr.genExpr()
-					if (left != right) {
-						// Avoid: Assigning a value to itself
-						line("$left /*${stm.field.name}*/ = $right;")
-					}
-				}
+
 				is AstStm.SWITCH -> {
 					line("switch (${stm.subject.genExpr()})") {
 						for (case in stm.cases) {
@@ -292,22 +267,14 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 
 	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""HaxeNatives.rethrow(J__i__exception__);""") }
 
-	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.jsDefaultString};") }
+	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(names.getJsClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
-	private fun N_AGET(array: String, index: String) = "($array.data[$index])"
-	private fun N_AGET_T(type: AstType, array: String, index: String) = N_AGET(array, index)
-	//private fun N_AGET_BOOL(array:String, index:String) = "(${N_AGET(array, index)}!=0)"
-	//private fun N_AGET_T(type: AstType, array:String, index:String) = when (type) {
-	//	AstType.BOOL -> N_AGET_BOOL(array, index)
-	//	else -> N_AGET(array, index)
-	//}
-
-
-	override fun N_ASET_T(type: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
+	override fun N_AGET_T(elementType: AstType, array: String, index: String) = "($array.data[$index])"
+	override fun N_ASET_T(elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
 
 	override fun N_unboxBool(e: String) = "N.unboxBool($e)"
 	override fun N_unboxByte(e: String) = "N.unboxByte($e)"
@@ -425,15 +392,13 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				refs.add(e.clazzName)
 				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
 
-				"${fixField(e.field).jsStaticText}"
+				"${fixField(e.field).nativeStaticText}"
 			}
 			is AstExpr.ARRAY_LENGTH -> {
 				val type = e.array.type
 				"(${e.array.genNotNull()}).length"
 			}
-			is AstExpr.ARRAY_ACCESS -> {
-				N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
-			}
+
 			is AstExpr.NEW -> {
 				refs.add(e.target)
 				val className = e.target.nativeTypeNew
@@ -523,7 +488,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		fun writeField(field: AstField): Indenter = Indenter.gen {
 			val fieldType = field.type
 			refs.add(fieldType)
-			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.jsDefault
+			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
 
 			val defaultFieldName = field.name
 			val fieldName = if (field.jsName == defaultFieldName) null else field.jsName
@@ -643,12 +608,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 		return classCodeIndenter
 	}
 
-
-	val AstType.jsDefault: Any? get() = names.getJsDefault(this)
-	val AstType.jsDefaultString: String get() = names.escapeConstant(names.getJsDefault(this), this)
-
 	val FieldRef.jsName: String get() = names.getNativeName(this)
-	val FieldRef.jsStaticText: String get() = names.buildStaticField(this)
 
 	val MethodRef.jsName: String get() = names.getJsMethodName(this)
 	val MethodRef.jsNameAccess: String get() = "[" + this.jsName.quote() + "]"
