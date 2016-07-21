@@ -307,14 +307,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	override fun N_dneg(str: String) = "-($str)"
 	override fun N_znot(str: String) = "!($str)"
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
-	override fun N_obj_eq(l: String, r: String): String {
-		return super.N_obj_eq(l, r)
-	}
-
-	override fun N_obj_ne(l: String, r: String): String {
-		return super.N_obj_ne(l, r)
-	}
-
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(v) + "]"
 
 	override fun genExpr2(e: AstExpr): String {
@@ -357,43 +349,6 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 				val result = "$base${refMethod.jsNameAccess}$base2$commaArgs)"
 				if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 			}
-			is AstExpr.FIELD_STATIC_ACCESS -> {
-				refs.add(e.clazzName)
-				mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
-
-				"${fixField(e.field).nativeStaticText}"
-			}
-			is AstExpr.ARRAY_LENGTH -> {
-				val type = e.array.type
-				"(${e.array.genNotNull()}).length"
-			}
-
-			is AstExpr.NEW -> {
-				refs.add(e.target)
-				val className = e.target.nativeTypeNew
-				"new $className()"
-			}
-			is AstExpr.INSTANCE_OF -> {
-				refs.add(e.checkType)
-				N_is(e.expr.genExpr(), e.checkType.nativeTypeCast.toString())
-			}
-			is AstExpr.NEW_ARRAY -> {
-				refs.add(e.type.elementType)
-				val desc = e.type.mangle().replace('/', '.') // Internal to normal name!?
-				when (e.counts.size) {
-					1 -> {
-						if (e.type.elementType !is AstType.Primitive) {
-							"new ${names.ObjectArrayType}(${e.counts[0].genExpr()}, \"$desc\")"
-						} else {
-							"new ${e.type.nativeTypeNew}(${e.counts[0].genExpr()})"
-						}
-					}
-					else -> {
-						"${names.ObjectArrayType}.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
-					}
-				}
-			}
-			is AstExpr.CAUGHT_EXCEPTION -> "J__exception__"
 			is AstExpr.METHOD_CLASS -> {
 				val methodInInterfaceRef = e.methodInInterfaceRef
 				val methodToConvertRef = e.methodToConvertRef

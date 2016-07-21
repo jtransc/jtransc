@@ -161,7 +161,6 @@ class HaxeNames(
 	fun getHaxeGeneratedFqPackage(name: FqName): String = _getHaxeFqName(name).packagePath
 	fun getHaxeGeneratedFqName(name: FqName): FqName = _getHaxeFqName(name)
 	fun getHaxeGeneratedSimpleClassName(name: FqName): String = _getHaxeFqName(name).simpleName
-	inline fun <reified T : Any> haxeName(): String = getHaxeClassFqName(T::class.java.name.fqname)
 
 	fun getHaxeClassFqName(name: FqName): String {
 		val clazz = if (name in program) program[name] else null
@@ -275,9 +274,6 @@ class HaxeNames(
 	override val FloatArrayType = FqName("JA_F")
 	override val DoubleArrayType = FqName("JA_D")
 	override val ObjectArrayType = FqName("JA_L")
-
-	val HaxeArrayAny = ObjectArrayType
-	val HaxeArrayBase = BaseArrayType
 
 	override val NegativeInfinityString = "Math.NEGATIVE_INFINITY"
 	override val PositiveInfinityString = "Math.POSITIVE_INFINITY"

@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.text.escape
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
+import kotlin.reflect.KMutableProperty1
 
 abstract class CommonNames(val program: AstResolver) {
 	abstract fun buildTemplateClass(clazz: FqName): String
@@ -46,6 +47,16 @@ abstract class CommonNames(val program: AstResolver) {
 	open fun getNativeName(field: FieldRef): String = normalizeName(field.ref.name)
 	open fun getNativeName(method: MethodRef): String = normalizeName(method.ref.name)
 	open fun getNativeName(clazz: FqName): String = clazz.fqname
+	inline fun <reified T : Any> nativeName(): String = getNativeName(T::class.java.name.fqname)
+
+	fun getNativeFieldName(clazz: Class<*>, name: String): String {
+		return getNativeName(program[clazz.name.fqname]!!.fieldsByName[name]!!)
+	}
+
+	inline fun <reified T : Any, R> getNativeFieldName(prop: KMutableProperty1<T, R>): String {
+		return getNativeFieldName(T::class.java, prop.name)
+	}
+
 	open fun getNativeNameForMethods(clazz: FqName): String = getNativeName(clazz)
 	open fun getNativeNameForFields(clazz: FqName): String = getNativeName(clazz)
 

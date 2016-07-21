@@ -38,6 +38,18 @@ open class CommonGenGen(val input: Input) {
 	val context = AstGenContext()
 	val refs = References()
 
+	val JAVA_LANG_OBJECT = cnames.nativeName<java.lang.Object>()
+	val JAVA_LANG_CLASS = cnames.nativeName<java.lang.Class<*>>()
+	val JAVA_LANG_CLASS_name = cnames.getNativeFieldName(java.lang.Class::class.java, "name")
+	val JAVA_LANG_STRING = cnames.nativeName<java.lang.String>()
+
+	val invocationHandlerTargetName = cnames.nativeName<java.lang.reflect.InvocationHandler>()
+	val methodTargetName = cnames.nativeName<java.lang.reflect.Method>()
+	val invokeTargetName = AstMethodRef(java.lang.reflect.InvocationHandler::class.java.name.fqname, "invoke", types.build { METHOD(OBJECT, OBJECT, METHOD, ARRAY(OBJECT)) }).targetName
+	val toStringTargetName = AstMethodRef(java.lang.Object::class.java.name.fqname, "toString", types.build { METHOD(STRING) }).targetName
+	val hashCodeTargetName = AstMethodRef(java.lang.Object::class.java.name.fqname, "hashCode", types.build { METHOD(INT) }).targetName
+	val getClassTargetName = AstMethodRef(java.lang.Object::class.java.name.fqname, "getClass", types.build { METHOD(CLASS) }).targetName
+
 	fun String.template(type: String = "template"): String = templateString.gen(this, context, type)
 
 	lateinit var mutableBody: MutableBody
@@ -130,6 +142,10 @@ open class CommonGenGen(val input: Input) {
 	open fun genStm2(stm: AstStm): Indenter {
 		this.stm = stm
 		return when (stm) {
+			is AstStm.STM_LABEL -> genStmLabel(stm)
+			is AstStm.GOTO -> genStmGoto(stm)
+			is AstStm.IF_GOTO -> genStmIfGoto(stm)
+			is AstStm.SWITCH_GOTO -> genStmSwitchGoto(stm)
 			is AstStm.NOP -> genStmNop(stm)
 			is AstStm.WHILE -> genStmWhile(stm)
 			is AstStm.IF -> genStmIf(stm)
@@ -146,25 +162,38 @@ open class CommonGenGen(val input: Input) {
 			is AstStm.SET_LOCAL -> genStmSetLocal(stm)
 			is AstStm.LINE -> genStmLine(stm)
 			is AstStm.SET_ARRAY -> genStmSetArray(stm)
-			is AstStm.STM_LABEL -> genStmLabel(stm)
 			is AstStm.BREAK -> genStmBreak(stm)
 			is AstStm.CONTINUE -> genStmContinue(stm)
 			is AstStm.SET_FIELD_INSTANCE -> genStmSetFieldInstance(stm)
-			is AstStm.SET_FIELD_STATIC -> indent {
-				refs.add(stm.clazz)
-				mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
-				val left = fixField(stm.field).nativeStaticText
-				val right = stm.expr.genExpr()
-				if (left != right) {
-					// Avoid: Assigning a value to itself
-					line("$left /*${stm.field.name}*/ = $right;")
-				}
-			}
+			is AstStm.SET_FIELD_STATIC -> genStmSetFieldStatic(stm)
 			else -> noImpl("Statement $stm")
 		}
 	}
 
-	private fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter = indent {
+	open fun genStmSetFieldStatic(stm: AstStm.SET_FIELD_STATIC): Indenter = indent {
+		refs.add(stm.clazz)
+		mutableBody.initClassRef(fixField(stm.field).classRef, "SET_FIELD_STATIC")
+		val left = fixField(stm.field).nativeStaticText
+		val right = stm.expr.genExpr()
+		if (left != right) {
+			// Avoid: Assigning a value to itself
+			line("$left /*${stm.field.name}*/ = $right;")
+		}
+	}
+
+	open fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
+		line("switch (${stm.subject.genExpr()})") {
+			for ((value, label) in stm.cases) {
+				line("case $value: goto ${label.name};");
+			}
+			line("default: goto ${stm.default.name};");
+		}
+	}
+
+	open fun genStmIfGoto(stm: AstStm.IF_GOTO): Indenter = Indenter.single("if (${stm.cond.genExpr()}) goto ${stm.label.name};")
+	open fun genStmGoto(stm: AstStm.GOTO): Indenter = Indenter.single("goto ${stm.label.name};")
+
+	open fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter = indent {
 		val left = cnames.buildInstanceField(stm.left.genExpr(), fixField(stm.field))
 		val right = stm.expr.genExpr()
 		if (left != right) {
@@ -186,10 +215,51 @@ open class CommonGenGen(val input: Input) {
 		is AstExpr.LOCAL -> genExprLocal(e)
 		is AstExpr.UNOP -> genExprUnop(e)
 		is AstExpr.BINOP -> genExprBinop(e)
+		is AstExpr.FIELD_STATIC_ACCESS -> genExprFieldStaticAccess(e)
 		is AstExpr.FIELD_INSTANCE_ACCESS -> genExprFieldInstanceAccess(e)
 		is AstExpr.ARRAY_ACCESS -> genExprArrayAccess(e)
+		is AstExpr.CAUGHT_EXCEPTION -> genExprCaughtException(e)
+		is AstExpr.ARRAY_LENGTH -> genExprArrayLength(e)
+		is AstExpr.INSTANCE_OF -> genExprInstanceOf(e)
+		is AstExpr.NEW -> genExprNew(e)
+		is AstExpr.NEW_ARRAY -> genExprNewArray(e)
 		else -> noImpl("Expression $e")
 	}
+
+	open fun genExprNewArray(e: AstExpr.NEW_ARRAY): String {
+		refs.add(e.type.elementType)
+		val desc = e.type.mangle().replace('/', '.') // Internal to normal name!?
+		return when (e.counts.size) {
+			1 -> {
+				if (e.type.elementType !is AstType.Primitive) {
+					"new ${cnames.ObjectArrayType}(${e.counts[0].genExpr()}, \"$desc\")"
+				} else {
+					"new ${e.type.nativeTypeNew}(${e.counts[0].genExpr()})"
+				}
+			}
+			else -> {
+				"${cnames.ObjectArrayType}.createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
+			}
+		}
+	}
+
+	open fun genExprNew(e: AstExpr.NEW): String {
+		refs.add(e.target)
+		val className = e.target.nativeTypeNew
+		return "new $className()"
+	}
+
+	open fun genExprInstanceOf(e: AstExpr.INSTANCE_OF): String {
+		refs.add(e.checkType)
+		return N_is(e.expr.genExpr(), e.checkType.nativeTypeCast.toString())
+	}
+
+	open fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String {
+		return "(${e.array.genNotNull()}).length"
+	}
+
+	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
+
 
 	open fun genExprBinop(e: AstExpr.BINOP): String {
 		val resultType = e.type
@@ -309,6 +379,12 @@ open class CommonGenGen(val input: Input) {
 	}
 
 	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
+
+	open fun genExprFieldStaticAccess(e: AstExpr.FIELD_STATIC_ACCESS): String {
+		refs.add(e.clazzName)
+		mutableBody.initClassRef(fixField(e.field).classRef, "FIELD_STATIC_ACCESS")
+		return "${fixField(e.field).nativeStaticText}"
+	}
 
 	open fun genExprFieldInstanceAccess(e: AstExpr.FIELD_INSTANCE_ACCESS): String {
 		return cnames.buildInstanceField(e.expr.genNotNull(), fixField(e.field))
@@ -784,4 +860,9 @@ open class CommonGenGen(val input: Input) {
 	val AstType.nativeDefaultString: String get() = cnames.escapeConstant(cnames.getDefault(this), this)
 	val FieldRef.nativeStaticText: String get() = cnames.buildStaticField(this)
 	val MethodRef.targetName: String get() = cnames.getNativeName(this)
+
+	val AstType.targetTypeTag:  FqName get() = cnames.getNativeType(this, TypeKind.TYPETAG)
+	val AstType.targetTypeNew:  FqName get() = cnames.getNativeType(this, TypeKind.NEW)
+	val AstType.targetTypeCast: FqName get() = cnames.getNativeType(this, TypeKind.CAST)
+
 }
