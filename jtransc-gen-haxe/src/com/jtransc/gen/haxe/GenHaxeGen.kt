@@ -337,31 +337,6 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 
 	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-			is AstExpr.BINOP -> {
-				val resultType = e.type
-				val l = e.left.genExpr()
-				val r = e.right.genExpr()
-				val opSymbol = e.op.symbol
-				val opName = e.op.str
-
-				val binexpr = if (resultType == AstType.LONG) {
-					"N.l$opName($l, $r)"
-				} else if (resultType == AstType.INT && opSymbol in setOf("/", "*", "<<", ">>", ">>>")) {
-					"N.i$opName($l, $r)"
-				} else {
-					when (opSymbol) {
-						"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
-						else -> "($l $opSymbol $r)"
-					}
-				}
-				when (resultType) {
-					AstType.INT -> "N.i($binexpr)"
-					AstType.CHAR -> "N.i2c($binexpr)"
-					AstType.SHORT -> "N.i2s($binexpr)"
-					AstType.BYTE -> "N.i2b($binexpr)"
-					else -> binexpr
-				}
-			}
 			is AstExpr.CALL_BASE -> {
 				// Determine method to call!
 				val e2 = if (e.isSpecial && e is AstExpr.CALL_INSTANCE) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e
@@ -505,11 +480,19 @@ class GenHaxeGen(input: Input) : CommonGenGen(input) {
 	override fun N_d2d(str: String) = "($str)"
 	override fun N_d2i(str: String) = "Std.int($str)"
 	override fun N_l2i(str: String) = "(($str).low)"
-	override fun N_l2l(str: String) = "N.l2l($str)"
+	override fun N_l2l(str: String) = "($str)"
 	override fun N_l2f(str: String) = "HaxeNatives.longToFloat($str)"
 	override fun N_l2d(str: String) = "HaxeNatives.longToFloat($str)"
 	override fun N_getFunction(str: String) = "HaxeNatives.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.haxeTypeCast})"
+	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
+	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
+	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
+	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"
+	override fun N_iushr(l: String, r: String): String = "N.iushr($l, $r)"
+
+	override fun N_obj_eq(l: String, r: String): String = "N.eq($l, $r)"
+	override fun N_obj_ne(l: String, r: String): String = "N.ne($l, $r)"
 
 	// @TODO: Use this.annotationsList.getTypedList
 	private fun AstMethod.getHaxeNativeBodyList(): List<HaxeMethodBody> {

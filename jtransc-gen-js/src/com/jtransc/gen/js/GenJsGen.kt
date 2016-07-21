@@ -294,7 +294,7 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	override fun N_d2i(str: String) = "(($str)|0)"
 	override fun N_d2d(str: String) = "+($str)"
 	override fun N_l2i(str: String) = "N.l2i($str)"
-	override fun N_l2l(str: String) = "N.l2l($str)"
+	override fun N_l2l(str: String) = "($str)"
 	override fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
 	override fun N_l2d(str: String) = "N.l2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
@@ -306,42 +306,19 @@ class GenJsGen(input: Input) : CommonGenGen(input) {
 	override fun N_fneg(str: String) = "-($str)"
 	override fun N_dneg(str: String) = "-($str)"
 	override fun N_znot(str: String) = "!($str)"
+	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
+	override fun N_obj_eq(l: String, r: String): String {
+		return super.N_obj_eq(l, r)
+	}
+
+	override fun N_obj_ne(l: String, r: String): String {
+		return super.N_obj_ne(l, r)
+	}
 
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(v) + "]"
 
 	override fun genExpr2(e: AstExpr): String {
 		return when (e) {
-
-			is AstExpr.BINOP -> {
-				val resultType = e.type
-				val l = e.left.genExpr()
-				val r = e.right.genExpr()
-				val opSymbol = e.op.symbol
-				val opName = e.op.str
-
-				val binexpr = if (resultType == AstType.LONG) {
-					"N.l$opName($l, $r)"
-				} else if (resultType == AstType.INT && opSymbol in setOf("*")) {
-					when (opSymbol) {
-						"*" -> "Math.imul($l, $r)"
-						else -> unexpected(opSymbol)
-					}
-				} else {
-					when (opSymbol) {
-						"lcmp", "cmp", "cmpl", "cmpg" -> "N.$opName($l, $r)"
-					//"lcmp", "cmp", "cmpl", "cmpg", "==", "!=" -> "N.$opName($l, $r)"
-						else -> "($l $opSymbol $r)"
-					}
-				}
-				when (resultType) {
-					AstType.INT -> N_i(binexpr)
-					AstType.CHAR -> N_i2c(binexpr)
-					AstType.SHORT -> N_i2s(binexpr)
-					AstType.BYTE -> N_i2b(binexpr)
-					AstType.FLOAT -> N_f2f(binexpr)
-					else -> binexpr
-				}
-			}
 			is AstExpr.CALL_BASE -> {
 				// Determine method to call!
 				val e2 = if (e.isSpecial && e is AstExpr.CALL_INSTANCE) AstExprUtils.RESOLVE_SPECIAL(program, e, context) else e

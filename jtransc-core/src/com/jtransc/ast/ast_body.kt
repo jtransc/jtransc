@@ -19,7 +19,7 @@ enum class AstBinop(val symbol: String, val str: String) {
 	SHL("<<", "shl"), SHR(">>", "shr"), USHR(">>>", "ushr"),
 	BAND("&&", "band"), BOR("||", "bor"),
 	EQ("==", "eq"), NE("!=", "ne"), GE(">=", "ge"), LE("<=", "le"), LT("<", "lt"), GT(">", "gt"),
-	LCMP("lcmp", "lcmp"), CMP("cmp", "cmp"), CMPL("cmpl", "cmpl"), CMPG("cmpg", "cmpg");
+	LCMP("lcmp", "lcmp"), CMPL("cmpl", "cmpl"), CMPG("cmpg", "cmpg");
 
 	companion object {
 		val SHIFTS = setOf(SHL, SHR, USHR)

@@ -25,9 +25,11 @@ interface AstType {
 		override fun toString() = shortName
 	}
 
-	object UNKNOWN : AstType
+	interface Reference : AstType
 
-	object NULL : AstType
+	object UNKNOWN : Reference
+
+	object NULL : Reference
 
 	object VOID : Primitive("java.lang.Void", 'V', "void")
 
@@ -47,7 +49,7 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
 
-	data class REF(val name: FqName) : AstType, AstRef {
+	data class REF(val name: FqName) : Reference, AstRef {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -71,11 +73,11 @@ interface AstType {
 
 	//object NULL : REF("java.lang.Object")
 
-	data class ARRAY(val element: AstType) : AstType {
+	data class ARRAY(val element: AstType) : Reference {
 		override fun toString() = "$element[]"
 	}
 
-	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : AstType {
+	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 
 		val params0: List<AstType> get() = suffixes[0].params!!

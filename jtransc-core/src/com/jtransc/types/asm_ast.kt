@@ -507,7 +507,7 @@ private class BasicBlockBuilder(
 			Opcodes.I2C -> stackPush(fastcast(stackPop(), AstType.CHAR))
 			Opcodes.I2S -> stackPush(fastcast(stackPop(), AstType.SHORT))
 
-			Opcodes.LCMP -> pushBinop(AstType.LONG, AstBinop.LCMP)
+			Opcodes.LCMP -> pushBinop(AstType.INT, AstBinop.LCMP)
 			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
 			Opcodes.FCMPG -> pushBinop(AstType.FLOAT, AstBinop.CMPG)
 			Opcodes.DCMPL -> pushBinop(AstType.DOUBLE, AstBinop.CMPL)

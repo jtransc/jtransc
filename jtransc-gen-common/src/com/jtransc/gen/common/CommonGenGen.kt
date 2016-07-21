@@ -185,9 +185,127 @@ open class CommonGenGen(val input: Input) {
 		is AstExpr.PARAM -> genExprParam(e)
 		is AstExpr.LOCAL -> genExprLocal(e)
 		is AstExpr.UNOP -> genExprUnop(e)
+		is AstExpr.BINOP -> genExprBinop(e)
 		is AstExpr.FIELD_INSTANCE_ACCESS -> genExprFieldInstanceAccess(e)
 		is AstExpr.ARRAY_ACCESS -> genExprArrayAccess(e)
 		else -> noImpl("Expression $e")
+	}
+
+	open fun genExprBinop(e: AstExpr.BINOP): String {
+		val resultType = e.type
+		val leftType = e.left.type
+		val rightType = e.right.type
+		val l = e.left.genExpr()
+		val r = e.right.genExpr()
+		val op = e.op
+
+		//if (leftType != rightType) {
+		//	invalidOp("$leftType != $rightType")
+		//}
+
+		val commonType = leftType
+
+		fun invalid(): Nothing = invalidOp("leftType=$leftType, rightType=$rightType, op=$op, resultType=$resultType")
+
+		val result = when (commonType) {
+			AstType.BOOL -> when (op) {
+				AstBinop.BAND -> N_zand(l, r)
+				AstBinop.BOR -> N_zor(l, r)
+				AstBinop.EQ -> N_zeq(l, r)
+				AstBinop.NE -> N_zne(l, r)
+				else -> invalid()
+			}
+			AstType.LONG -> when (op) {
+				AstBinop.ADD -> N_ladd(l, r)
+				AstBinop.SUB -> N_lsub(l, r)
+				AstBinop.MUL -> N_lmul(l, r)
+				AstBinop.DIV -> N_ldiv(l, r)
+				AstBinop.REM -> N_lrem(l, r)
+				AstBinop.EQ -> N_leq(l, r)
+				AstBinop.NE -> N_lne(l, r)
+				AstBinop.GE -> N_lge(l, r)
+				AstBinop.LE -> N_lle(l, r)
+				AstBinop.LT -> N_llt(l, r)
+				AstBinop.GT -> N_lgt(l, r)
+				AstBinop.AND -> N_land(l, r)
+				AstBinop.OR -> N_lor(l, r)
+				AstBinop.XOR -> N_lxor(l, r)
+				AstBinop.SHL -> N_lshl(l, r)
+				AstBinop.SHR -> N_lshr(l, r)
+				AstBinop.USHR -> N_lushr(l, r)
+				AstBinop.LCMP -> N_lcmp(l, r) // long,long -> int
+				else -> invalid()
+			}
+			AstType.BYTE, AstType.CHAR, AstType.SHORT, AstType.INT -> when (op) {
+				AstBinop.ADD -> N_iadd(l, r)
+				AstBinop.SUB -> N_isub(l, r)
+				AstBinop.MUL -> N_imul(l, r)
+				AstBinop.DIV -> N_idiv(l, r)
+				AstBinop.REM -> N_irem(l, r)
+				AstBinop.EQ -> N_ieq(l, r)
+				AstBinop.NE -> N_ine(l, r)
+				AstBinop.GE -> N_ige(l, r)
+				AstBinop.LE -> N_ile(l, r)
+				AstBinop.LT -> N_ilt(l, r)
+				AstBinop.GT -> N_igt(l, r)
+				AstBinop.AND -> N_iand(l, r)
+				AstBinop.OR -> N_ior(l, r)
+				AstBinop.XOR -> N_ixor(l, r)
+				AstBinop.SHL -> N_ishl(l, r)
+				AstBinop.SHR -> N_ishr(l, r)
+				AstBinop.USHR -> N_iushr(l, r)
+				else -> invalid()
+			}
+			AstType.FLOAT -> when (op) {
+				AstBinop.ADD -> N_fadd(l, r)
+				AstBinop.SUB -> N_fsub(l, r)
+				AstBinop.MUL -> N_fmul(l, r)
+				AstBinop.DIV -> N_fdiv(l, r)
+				AstBinop.REM -> N_frem(l, r)
+				AstBinop.EQ -> N_feq(l, r)
+				AstBinop.NE -> N_fne(l, r)
+				AstBinop.GE -> N_fge(l, r)
+				AstBinop.LE -> N_fle(l, r)
+				AstBinop.LT -> N_flt(l, r)
+				AstBinop.GT -> N_fgt(l, r)
+				AstBinop.CMPL -> N_fcmpl(l, r)
+				AstBinop.CMPG -> N_fcmpg(l, r)
+				else -> invalid()
+			}
+			AstType.DOUBLE -> when (op) {
+				AstBinop.ADD -> N_dadd(l, r)
+				AstBinop.SUB -> N_dsub(l, r)
+				AstBinop.MUL -> N_dmul(l, r)
+				AstBinop.DIV -> N_ddiv(l, r)
+				AstBinop.REM -> N_drem(l, r)
+				AstBinop.EQ -> N_deq(l, r)
+				AstBinop.NE -> N_dne(l, r)
+				AstBinop.GE -> N_dge(l, r)
+				AstBinop.LE -> N_dle(l, r)
+				AstBinop.LT -> N_dlt(l, r)
+				AstBinop.GT -> N_dgt(l, r)
+				AstBinop.CMPL -> N_dcmpl(l, r)
+				AstBinop.CMPG -> N_dcmpg(l, r)
+				else -> invalid()
+			}
+			is AstType.Reference -> when (op) {
+				AstBinop.EQ -> N_obj_eq(l, r)
+				AstBinop.NE -> N_obj_ne(l, r)
+				else -> invalid()
+			}
+			else -> invalid()
+		}
+		return when (resultType) {
+			AstType.BOOL -> N_z2z(result)
+			AstType.BYTE -> N_i2b(result)
+			AstType.CHAR -> N_i2c(result)
+			AstType.SHORT -> N_i2s(result)
+			AstType.INT -> N_i(result)
+			AstType.LONG -> N_l2l(result)
+			AstType.FLOAT -> N_f2f(result)
+			AstType.DOUBLE -> N_d2d(result)
+			else -> invalid()
+		}
 	}
 
 	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
@@ -444,17 +562,18 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_AGET_T(elementType: AstType, array: String, index: String) = "($array[$index])"
 	open protected fun N_ASET_T(elementType: AstType, array: String, index: String, value: String) = "$array[$index] = $value;"
 	fun N_box(type: AstType.Primitive, e: String) = when (type) {
-		AstType.VOID    -> N_boxVoid(e)
-		AstType.BOOL    -> N_boxBool(e)
-		AstType.BYTE    -> N_boxByte(e)
-		AstType.CHAR    -> N_boxChar(e)
-		AstType.SHORT   -> N_boxShort(e)
-		AstType.INT     -> N_boxInt(e)
-		AstType.LONG    -> N_boxLong(e)
-		AstType.FLOAT   -> N_boxFloat(e)
-		AstType.DOUBLE  -> N_boxDouble(e)
+		AstType.VOID -> N_boxVoid(e)
+		AstType.BOOL -> N_boxBool(e)
+		AstType.BYTE -> N_boxByte(e)
+		AstType.CHAR -> N_boxChar(e)
+		AstType.SHORT -> N_boxShort(e)
+		AstType.INT -> N_boxInt(e)
+		AstType.LONG -> N_boxLong(e)
+		AstType.FLOAT -> N_boxFloat(e)
+		AstType.DOUBLE -> N_boxDouble(e)
 		else -> invalidOp("Don't know how to box $type")
 	}
+
 	fun N_unbox(type: AstType.Primitive, e: String) = when (type) {
 		AstType.VOID -> N_unboxVoid(e)
 		AstType.BOOL -> N_unboxBool(e)
@@ -489,6 +608,7 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_unboxDouble(e: String) = "N.unboxDouble($e)"
 
 	open protected fun N_is(a: String, b: String) = "N.is($a, $b)"
+	open protected fun N_z2z(str: String) = "($str)"
 	open protected fun N_z2i(str: String) = "N.z2i($str)"
 	open protected fun N_i(str: String) = "(($str)|0)"
 	open protected fun N_i2z(str: String) = "(($str)!=0)"
@@ -506,7 +626,7 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_d2d(str: String) = "($str)"
 	open protected fun N_d2i(str: String) = "(($str)|0)"
 	open protected fun N_l2i(str: String) = "N.l2i($str)"
-	open protected fun N_l2l(str: String) = "N.l2l($str)"
+	open protected fun N_l2l(str: String) = "($str)"
 	open protected fun N_l2f(str: String) = "(N.l2d($str))"
 	open protected fun N_l2d(str: String) = "N.l2d($str)"
 	open protected fun N_getFunction(str: String) = "N.getFunction($str)"
@@ -518,6 +638,114 @@ open class CommonGenGen(val input: Input) {
 	open protected fun N_iinv(str: String) = "~($str)"
 	open protected fun N_linv(str: String) = "~($str)"
 	open protected fun N_znot(str: String) = "!($str)"
+
+	open protected fun N_zand(l: String, r: String) = "($l && $r)"
+	open protected fun N_zor(l: String, r: String) = "($l || $r)"
+	open protected fun N_zeq(l: String, r: String) = N_c_eq(l, r)
+	open protected fun N_zne(l: String, r: String) = N_c_ne(l, r)
+
+	open protected fun N_c_add(l: String, r: String) = "($l + $r)"
+	open protected fun N_c_sub(l: String, r: String) = "($l - $r)"
+	open protected fun N_c_mul(l: String, r: String) = "($l * $r)"
+	open protected fun N_c_div(l: String, r: String) = "($l / $r)"
+	open protected fun N_c_rem(l: String, r: String) = "($l % $r)"
+	open protected fun N_c_eq(l: String, r: String) = "($l == $r)"
+	open protected fun N_c_ne(l: String, r: String) = "($l != $r)"
+	open protected fun N_c_ge(l: String, r: String) = "($l >= $r)"
+	open protected fun N_c_le(l: String, r: String) = "($l <= $r)"
+	open protected fun N_c_lt(l: String, r: String) = "($l < $r)"
+	open protected fun N_c_gt(l: String, r: String) = "($l > $r)"
+	open protected fun N_c_and(l: String, r: String) = "($l & $r)"
+	open protected fun N_c_or(l: String, r: String) = "($l | $r)"
+	open protected fun N_c_xor(l: String, r: String) = "($l ^ $r)"
+	open protected fun N_c_shl(l: String, r: String) = "($l << $r)"
+	open protected fun N_c_shr(l: String, r: String) = "($l >> $r)"
+	open protected fun N_c_ushr(l: String, r: String) = "($l >>> $r)"
+
+	open protected fun N_iadd(l: String, r: String) = N_c_add(l, r)
+	open protected fun N_isub(l: String, r: String) = N_c_sub(l, r)
+	open protected fun N_imul(l: String, r: String) = N_c_mul(l, r)
+	open protected fun N_idiv(l: String, r: String) = N_c_div(l, r)
+	open protected fun N_irem(l: String, r: String) = N_c_rem(l, r)
+	open protected fun N_ieq(l: String, r: String) = N_c_eq(l, r)
+	open protected fun N_ine(l: String, r: String) = N_c_ne(l, r)
+	open protected fun N_ige(l: String, r: String) = N_c_ge(l, r)
+	open protected fun N_ile(l: String, r: String) = N_c_le(l, r)
+	open protected fun N_ilt(l: String, r: String) = N_c_lt(l, r)
+	open protected fun N_igt(l: String, r: String) = N_c_gt(l, r)
+	open protected fun N_iand(l: String, r: String) = N_c_and(l, r)
+	open protected fun N_ior(l: String, r: String) = N_c_or(l, r)
+	open protected fun N_ixor(l: String, r: String) = N_c_xor(l, r)
+	open protected fun N_ishl(l: String, r: String) = N_c_shl(l, r)
+	open protected fun N_ishr(l: String, r: String) = N_c_shr(l, r)
+	open protected fun N_iushr(l: String, r: String) = N_c_ushr(l, r)
+
+	open protected fun N_ladd(l: String, r: String) = "N.ladd($l, $r)"
+	open protected fun N_lsub(l: String, r: String) = "N.lsub($l, $r)"
+	open protected fun N_lmul(l: String, r: String) = "N.lmul($l, $r)"
+	open protected fun N_ldiv(l: String, r: String) = "N.ldiv($l, $r)"
+	open protected fun N_lrem(l: String, r: String) = "N.lrem($l, $r)"
+	open protected fun N_leq(l: String, r: String) = "N.leq($l, $r)"
+	open protected fun N_lne(l: String, r: String) = "N.lne($l, $r)"
+	open protected fun N_lge(l: String, r: String) = "N.lge($l, $r)"
+	open protected fun N_lle(l: String, r: String) = "N.lle($l, $r)"
+	open protected fun N_llt(l: String, r: String) = "N.llt($l, $r)"
+	open protected fun N_lgt(l: String, r: String) = "N.lgt($l, $r)"
+	open protected fun N_land(l: String, r: String) = "N.land($l, $r)"
+	open protected fun N_lor(l: String, r: String) = "N.lor($l, $r)"
+	open protected fun N_lxor(l: String, r: String) = "N.lxor($l, $r)"
+	open protected fun N_lshl(l: String, r: String) = "N.lshl($l, $r)"
+	open protected fun N_lshr(l: String, r: String) = "N.lshr($l, $r)"
+	open protected fun N_lushr(l: String, r: String) = "N.lushr($l, $r)"
+	open protected fun N_lcmp(l: String, r: String) = "N.lcmp($l, $r)"
+
+	open protected fun N_fadd(l: String, r: String) = N_fd_add(l, r)
+	open protected fun N_fsub(l: String, r: String) = N_fd_sub(l, r)
+	open protected fun N_fmul(l: String, r: String) = N_fd_mul(l, r)
+	open protected fun N_fdiv(l: String, r: String) = N_fd_div(l, r)
+	open protected fun N_frem(l: String, r: String) = N_fd_rem(l, r)
+	open protected fun N_feq(l: String, r: String) = N_fd_eq(l, r)
+	open protected fun N_fne(l: String, r: String) = N_fd_ne(l, r)
+	open protected fun N_fge(l: String, r: String) = N_fd_ge(l, r)
+	open protected fun N_fle(l: String, r: String) = N_fd_le(l, r)
+	open protected fun N_flt(l: String, r: String) = N_fd_lt(l, r)
+	open protected fun N_fgt(l: String, r: String) = N_fd_gt(l, r)
+
+	open protected fun N_dadd(l: String, r: String) = N_fd_add(l, r)
+	open protected fun N_dsub(l: String, r: String) = N_fd_sub(l, r)
+	open protected fun N_dmul(l: String, r: String) = N_fd_mul(l, r)
+	open protected fun N_ddiv(l: String, r: String) = N_fd_div(l, r)
+	open protected fun N_drem(l: String, r: String) = N_fd_rem(l, r)
+	open protected fun N_deq(l: String, r: String) = N_fd_eq(l, r)
+	open protected fun N_dne(l: String, r: String) = N_fd_ne(l, r)
+	open protected fun N_dge(l: String, r: String) = N_fd_ge(l, r)
+	open protected fun N_dle(l: String, r: String) = N_fd_le(l, r)
+	open protected fun N_dlt(l: String, r: String) = N_fd_lt(l, r)
+	open protected fun N_dgt(l: String, r: String) = N_fd_gt(l, r)
+
+
+	open protected fun N_fcmpl(l: String, r: String) = N_fd_cmpl(l, r)
+	open protected fun N_fcmpg(l: String, r: String) = N_fd_cmpg(l, r)
+
+	open protected fun N_dcmpl(l: String, r: String) = N_fd_cmpl(l, r)
+	open protected fun N_dcmpg(l: String, r: String) = N_fd_cmpg(l, r)
+
+	open protected fun N_fd_add(l: String, r: String) = N_c_add(l, r)
+	open protected fun N_fd_sub(l: String, r: String) = N_c_sub(l, r)
+	open protected fun N_fd_mul(l: String, r: String) = N_c_mul(l, r)
+	open protected fun N_fd_div(l: String, r: String) = N_c_div(l, r)
+	open protected fun N_fd_rem(l: String, r: String) = N_c_rem(l, r)
+	open protected fun N_fd_eq(l: String, r: String) = N_c_eq(l, r)
+	open protected fun N_fd_ne(l: String, r: String) = N_c_ne(l, r)
+	open protected fun N_fd_ge(l: String, r: String) = N_c_ge(l, r)
+	open protected fun N_fd_le(l: String, r: String) = N_c_le(l, r)
+	open protected fun N_fd_lt(l: String, r: String) = N_c_lt(l, r)
+	open protected fun N_fd_gt(l: String, r: String) = N_c_gt(l, r)
+	open protected fun N_fd_cmpl(l: String, r: String) = "N.cmpl($l, $r)"
+	open protected fun N_fd_cmpg(l: String, r: String) = "N.cmpg($l, $r)"
+
+	open protected fun N_obj_eq(l: String, r: String) = N_c_eq(l, r)
+	open protected fun N_obj_ne(l: String, r: String) = N_c_ne(l, r)
 
 	class References {
 		var _usedDependencies = hashSetOf<AstType.REF>()

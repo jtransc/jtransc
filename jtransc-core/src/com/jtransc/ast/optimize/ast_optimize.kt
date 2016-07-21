@@ -51,7 +51,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			AstBinop.LT, AstBinop.LE, AstBinop.GT, AstBinop.GE -> {
 				if (!flags.strictfp && (left is AstExpr.BINOP) && (right is AstExpr.LITERAL)) {
 					when (left.op) {
-						AstBinop.CMPG, AstBinop.CMPL, AstBinop.CMP -> {
+						AstBinop.CMPG, AstBinop.CMPL -> {
 							val l = left.left
 							val r = left.right
 							val op = expr.op
