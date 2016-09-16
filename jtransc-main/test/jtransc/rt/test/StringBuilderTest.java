@@ -1,20 +1,26 @@
 package jtransc.rt.test;
 
+import com.jtransc.io.JTranscConsole;
+
 public class StringBuilderTest {
 	static public void main(String[] args) {
+		JTranscConsole.log("StringBuilderTest.main:");
 		StringBuilder sb = new StringBuilder("hello");
 		String nullString = getNullString();
 		sb.append(1.0);
 		sb.append(true);
 		sb.append(false);
 		sb.append(nullString);
+		System.out.println(sb);
 		sb.insert(1, true);
+		System.out.println(sb);
 		sb.delete(1, 3);
+		System.out.println(sb);
 		sb.append(true);
+		System.out.println(sb);
 		System.out.println(sb.indexOf("true"));
 		System.out.println(sb.lastIndexOf("true"));
 		System.out.println(sb.charAt(7));
-		System.out.println(sb);
 		System.out.println(nullString);
 		sb.replace(5, 5, "test");
 		sb.replace(5, 8, "test");

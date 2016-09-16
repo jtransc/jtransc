@@ -1,17 +1,15 @@
 package com.jtransc.gradle.tasks
 
-import com.jtransc.AllBuild
-import com.jtransc.AllBuildSimple
-import com.jtransc.BuildBackend
-import com.jtransc.JTranscVersion
-import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstTypes
+import com.jtransc.*
+import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.gradle.JTranscGradleExtension
 import com.jtransc.gradle.get
 import com.jtransc.gradle.getIfExists
+import com.jtransc.injector.Injector
 import com.jtransc.log.log
 import org.gradle.api.DefaultTask
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSetContainer
 import java.io.File
 
@@ -22,6 +20,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var minimizedNames: Boolean? = null
 	var relooper: Boolean? = null
 	var debug: Boolean? = null
+	var compile: Boolean? = null
+	var treeshaking: Boolean? = null
 	var analyzer: Boolean? = null
 	var orientation: String? = null
 	var icon: String? = null
@@ -43,7 +43,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 	val types: AstTypes = AstTypes()
 
-	open protected fun prepare(): AllBuild {
+	open protected fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
 		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
 		val buildDir = project.buildDir
@@ -74,13 +74,13 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		logger.info("output classesDir: $classesDir")
 		logger.info("sourceSet: $sourceSet")
 		logger.info("mainClassName: $mainClassName")
+
 		//println("mainSourceSet.output.asPath:" + mainSourceSet.)
 
 		val default = AstBuildSettings.DEFAULT
 
 		val settings = AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),
-			backend = BuildBackend.ASM,
 			title = title ?: extension.title ?: default.title,
 			name = productName ?: extension.name ?: default.name,
 			version = version ?: extension.version ?: default.version,
@@ -99,22 +99,47 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			icon = icon ?: extension.icon ?: default.icon,
 			orientation = AstBuildSettings.Orientation.fromString(orientation ?: extension.orientation ?: default.orientation.name),
 			relooper = relooper ?: extension.relooper ?: default.relooper,
-			minimizeNames = minimizedNames ?: extension.minimizeNames ?: default.minimizeNames,
 			analyzer = analyzer ?: extension.analyzer ?: default.analyzer,
 			extra = extra + extension.extra,
 			rtAndRtCore = runtimeConfiguration.files.map { it.absolutePath }
 		)
 
-		return AllBuildSimple(
+		val injector = Injector()
+		injector.mapInstance(BuildBackend.ASM)
+		injector.mapInstance(ConfigMinimizeNames(minimizedNames ?: extension.minimizeNames ?: false))
+		injector.mapInstance(ConfigCompile(compile ?: true))
+		injector.mapInstance(ConfigTreeShaking(treeshaking ?: extension.treeshaking ?: false))
+
+		injector.mapInstances(
+			ConfigClassPaths(
+				listOf(classesDir.absolutePath) +
+					jtranscConfiguration.files.map { it.absolutePath } +
+					compileConfiguration.files.map { it.absolutePath } +
+					mainSourceSet.resources.srcDirs.toList().map { it.absolutePath }
+
+			)
+		)
+
+		println(injector.get<ConfigClassPaths>())
+
+		val result = AllBuildSimple(
+			injector,
 			entryPoint = mainClassName,
-			classPaths = listOf(classesDir.absolutePath) + jtranscConfiguration.files.map { it.absolutePath } + compileConfiguration.files.map { it.absolutePath },
 			//AllBuildTargets = AllBuildTargets,
 			target = target ?: extension.target ?: "haxe:js",
 			output = outputFile ?: extension.output,
 			settings = settings,
-			targetDirectory = buildDir.absolutePath,
-			types = types
+			targetDirectory = buildDir.absolutePath
 		)
+
+		return result
+	}
+
+	fun afterBuild(build: JTranscBuild) {
+		val extra = project.extensions.findByType(ExtraPropertiesExtension::class.java)
+		extra.set("JTRANSC_LIBS", build.injector.get<ConfigLibraries>().libs)
+		//project.properties["JTRANSC_LIBS"] =
+		//project.setProperty("JTRANSC_LIBS", build.injector.get<ConfigLibraries>().libs)
 	}
 }
 

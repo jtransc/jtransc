@@ -35,18 +35,21 @@ open class JTranscGradlePlugin : Plugin<Project> {
 			JTranscGradleExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
 		}
 
-		JTranscGradleExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, minimizeNames = false)
-		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, minimizeNames = false)
-		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "gensrcJtransc", null, null, run = false, debug = true, compile = false, minimizeNames = false)
 
 		// @DEFAULT JS is PlainJs
 		addBuildTarget("js", "js", "program.js", minimizeNames = true)
+		addBuildTarget("cpp", "cpp", "program.cpp", minimizeNames = true)
 
 		addBuildTarget("plainJs", "js", "program.js", minimizeNames = true)
 		addBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true)
 
 		addBuildTarget("swf", "haxe:swf", "program.swf")
-		addBuildTarget("cpp", "haxe:cpp", "program.exe")
+		addBuildTarget("plainCpp", "cpp", "program.exe")
+		addBuildTarget("haxeCpp", "haxe:cpp", "program.exe")
 		addBuildTarget("neko", "haxe:neko", "program.n")
 		addBuildTarget("php", "haxe:php", "program.php")
 

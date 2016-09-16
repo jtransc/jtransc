@@ -5,6 +5,8 @@ import com.jtransc.ds.Concat
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
 import com.jtransc.ds.hasFlag
+import com.jtransc.error.invalidOp
+import com.jtransc.injector.Singleton
 import com.jtransc.lang.ReflectedArray
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
@@ -13,6 +15,7 @@ import com.jtransc.org.objectweb.asm.tree.ClassNode
 import com.jtransc.org.objectweb.asm.tree.FieldNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
 import com.jtransc.types.Asm2Ast
+import java.io.IOException
 import java.util.*
 
 fun AnnotationNode.toAst(types:AstTypes): AstAnnotation {
@@ -61,9 +64,14 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 
 fun MethodNode.astRef(clazz: AstType.REF, types:AstTypes) = AstMethodRef(clazz.name, this.name, types.demangleMethod(this.desc))
 
+@Singleton
 class AsmToAst(val types: AstTypes) : AstClassGenerator {
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
-		val cr = ClassReader(program.getClassBytes(fqname))
+		val cr = try {
+			ClassReader(program.getClassBytes(fqname))
+		} catch (e: IOException) {
+			invalidOp("Can't find class $fqname")
+		}
 		val classNode = ClassNode()
 		cr.accept(classNode, ClassReader.SKIP_FRAMES)
 
@@ -99,7 +107,7 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 			annotations = method.getAnnotations(types),
 			parameterAnnotations = method.getParameterAnnotations(types),
 			name = method.name,
-			type = methodRef.type,
+			methodType = methodRef.type,
 			signature = methodRef.type.mangle(),
 			genericSignature = method.signature,
 			defaultTag = AstAnnotationValue(method.annotationDefault, visible = true, types = types),
@@ -129,7 +137,7 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 			name = field.name,
 			annotations = field.getAnnotations(types),
 			type = types.demangle(field.desc),
-			descriptor = field.desc,
+			desc = field.desc,
 			genericSignature = field.signature,
 			modifiers = mods,
 			constantValue = field.value,

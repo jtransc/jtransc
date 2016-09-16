@@ -82,8 +82,10 @@ public class Throwable implements Serializable {
 		return this.cause;
 	}
 
+	//@JTranscMethodBody(target = "js", value = "return N.str('Object');")
 	public String toString() {
-		return getClass().getName() + ":" + message;
+		//return getClass().getName() + ":" + message;
+		return "Exception:" + message;
 	}
 
 	public void printStackTrace() {
@@ -127,7 +129,13 @@ public class Throwable implements Serializable {
 
 	@HaxeMethodBody("return HaxeNatives.getStackTrace(1);")
 	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(1);")
-	native private StackTraceElement[] getStackTraceInternal();
+	private StackTraceElement[] getStackTraceInternal() {
+		return new StackTraceElement[] {
+			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1),
+			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1),
+			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1)
+		};
+	}
 
 	//private native Throwable fillInStackTrace(int dummy);
 	public StackTraceElement[] getStackTrace() {

@@ -21,10 +21,12 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.internal.JTranscCType;
 
+@SuppressWarnings({"WeakerAccess", "unused", "NullableProblems"})
 public final class Integer extends Number implements Comparable<Integer> {
 	public static final int MIN_VALUE = 0x80000000;
 	public static final int MAX_VALUE = 0x7fffffff;
 
+	@SuppressWarnings("unchecked")
 	public static final Class<Integer> TYPE = (Class<Integer>) Class.getPrimitiveClass("int");
 
 	private int value;
@@ -41,6 +43,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
+	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
 	public static String toString(int i, int radix) {
 		if (radix < 2) throw new RuntimeException("Invalid radix");
 		if (i == 0) return "0";
@@ -56,6 +59,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return new String(temp, tempPos, temp.length - tempPos);
 	}
 
+	@JTranscMethodBody(target = "js", value = "return N.str((p0 >>> 0).toString(p1));")
 	public static String toUnsignedString(int i, int radix) {
 		if (i == 0) return "0";
 		StringBuilder out = new StringBuilder();
@@ -87,6 +91,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
+	//@JTranscMethodBody(target = "js", value = "return parseInt(p0, p1);")
 	public static int parseInt(String input, int radix) {
 		String s = input;
 		int result = 0;
@@ -116,7 +121,6 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return parseInt(s, 10);
 	}
 
-	// @TODO: CHECK!
 	public static int parseUnsignedInt(String s, int radix) {
 		return parseInt(s, radix);
 	}
@@ -126,7 +130,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	public static Integer valueOf(String s, int radix) {
-		return new Integer(parseInt(s, radix));
+		return parseInt(s, radix);
 	}
 
 	public static Integer valueOf(String s) {
@@ -139,11 +143,14 @@ public final class Integer extends Number implements Comparable<Integer> {
 	static private final int MAX = 128;
 	static private final int LENGTH = MAX - MIN;
 
+	@SuppressWarnings("UnnecessaryBoxing")
 	@JTranscKeep
 	public static Integer valueOf(int i) {
 		if (values == null) {
 			values = new Integer[LENGTH];
-			for (int n = MIN; n < MAX; n++) values[n - MIN] = new Integer(n);
+			for (int n = MIN; n < MAX; n++) {
+				values[n - MIN] = new Integer(n);
+			}
 		}
 		if (i >= MIN && i < MAX) {
 			return values[i - MIN];
@@ -190,11 +197,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	public boolean equals(Object obj) {
-		if (obj instanceof Integer) {
-			return ((Integer) obj).value == value;
-		} else {
-			return false;
-		}
+		return obj instanceof Integer && ((Integer) obj).value == value;
 	}
 
 	public static Integer getInteger(String nm) {
@@ -231,6 +234,8 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return Integer.compare(value, anotherInteger.value);
 	}
 
+	@JTranscMethodBody(target = "js", value = "return (p0 < p1) ? -1 : ((p0 > p1) ? 1 : 0);")
+	@JTranscMethodBody(target = "cpp", value = "return (p0 < p1) ? -1 : ((p0 > p1) ? 1 : 0);")
 	public static int compare(int l, int r) {
 		return (l < r) ? -1 : ((l > r) ? 1 : 0);
 	}
@@ -243,6 +248,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return ((long) value) & 0xffffffffL;
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return (int32_t)((uint32_t)p0 / (uint32_t)p1);")
 	public static int divideUnsigned(int dividend, int divisor) {
 		//return (int) (toUnsignedLong(dividend) / toUnsignedLong(divisor));
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? 0 : 1;
@@ -252,6 +258,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return (int32_t)((uint32_t)p0 % (uint32_t)p1);")
 	public static int remainderUnsigned(int dividend, int divisor) {
 		//return (int) (toUnsignedLong(dividend) % toUnsignedLong(divisor));
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? dividend : (dividend - divisor);
@@ -286,19 +293,19 @@ public final class Integer extends Number implements Comparable<Integer> {
 		}
 		int n = 1;
 		if (i >> 16 == 0) {
-			n +=  16;
+			n += 16;
 			i <<= 16;
 		}
 		if (i >> 24 == 0) {
-			n +=  8;
+			n += 8;
 			i <<= 8;
 		}
 		if (i >> 28 == 0) {
-			n +=  4;
+			n += 4;
 			i <<= 4;
 		}
 		if (i >> 30 == 0) {
-			n +=  2;
+			n += 2;
 			i <<= 2;
 		}
 		return n - (i >>> 31);
@@ -309,10 +316,10 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	private static final byte[] NTZ_TABLE = {
-		32,  0,  1, 12,  2,  6, -1, 13,   3, -1,  7, -1, -1, -1, -1, 14,
-		10,  4, -1, -1,  8, -1, -1, 25,  -1, -1, -1, -1, -1, 21, 27, 15,
-		31, 11,  5, -1, -1, -1, -1, -1,   9, -1, -1, 24, -1, -1, 20, 26,
-		30, -1, -1, -1, -1, 23, -1, 19,  29, -1, 22, 18, 28, 17, 16, -1
+		32, 0, 1, 12, 2, 6, -1, 13, 3, -1, 7, -1, -1, -1, -1, 14,
+		10, 4, -1, -1, 8, -1, -1, 25, -1, -1, -1, -1, -1, 21, 27, 15,
+		31, 11, 5, -1, -1, -1, -1, -1, 9, -1, -1, 24, -1, -1, 20, 26,
+		30, -1, -1, -1, -1, 23, -1, 19, 29, -1, 22, 18, 28, 17, 16, -1
 	};
 
 	public static int bitCount(int i) {
@@ -336,11 +343,11 @@ public final class Integer extends Number implements Comparable<Integer> {
 	public static int reverse(int i) {
 		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
 		// http://graphics.stanford.edu/~seander/bithacks.html
-		i =    ((i >>>  1) & 0x55555555) | ((i & 0x55555555) <<  1);
-		i =    ((i >>>  2) & 0x33333333) | ((i & 0x33333333) <<  2);
-		i =    ((i >>>  4) & 0x0F0F0F0F) | ((i & 0x0F0F0F0F) <<  4);
-		i =    ((i >>>  8) & 0x00FF00FF) | ((i & 0x00FF00FF) <<  8);
-		return ((i >>> 16)             ) | ((i             ) << 16);
+		i = ((i >>> 1) & 0x55555555) | ((i & 0x55555555) << 1);
+		i = ((i >>> 2) & 0x33333333) | ((i & 0x33333333) << 2);
+		i = ((i >>> 4) & 0x0F0F0F0F) | ((i & 0x0F0F0F0F) << 4);
+		i = ((i >>> 8) & 0x00FF00FF) | ((i & 0x00FF00FF) << 8);
+		return ((i >>> 16)) | ((i) << 16);
 	}
 
 	public static int signum(int value) {

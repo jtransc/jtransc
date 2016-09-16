@@ -85,6 +85,7 @@ public class JTranscCollectionsTest {
 	}
 
 	static private void testArrays() {
+		System.out.println("testArrays:");
 		//System.out.println(new int[] {1,2,3,4,5}.hashCode());
 		System.out.println(Arrays.hashCode(new int[] {1,2,3,4,5}));
 		//System.out.println(new int[] {1,2,3,4,5}.hashCode());
@@ -93,6 +94,7 @@ public class JTranscCollectionsTest {
 	}
 
 	static private void testShuffle() {
+		System.out.println("testShuffle:");
 		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6);
 		System.out.println(list);
 		Collections.shuffle(list, new Random(0L));

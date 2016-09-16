@@ -222,6 +222,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	native public static boolean isTitleCase(int codePoint);
 
+	@JTranscMethodBody(target = "js", value = "return p0 >= 48 && p0 <= 57;")
 	public static boolean isDigit(char ch) {
 		return (ch >= '0') && (ch <= '9');
 	}
@@ -304,11 +305,17 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	@HaxeMethodBody("return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
 	@JTranscMethodBody(target = "js", value = "return String.fromCharCode(p0).toLowerCase().charCodeAt(0);")
-	native public static int toLowerCase(int codePoint);
+	public static int toLowerCase(int codePoint) {
+		if (codePoint >= 'A' && codePoint < 'Z') return (codePoint - 'A') + 'a';
+		return codePoint;
+	}
 
 	@HaxeMethodBody("return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
 	@JTranscMethodBody(target = "js", value = "return String.fromCharCode(p0).toUpperCase().charCodeAt(0);")
-	native public static int toUpperCase(int codePoint);
+	public static int toUpperCase(int codePoint) {
+		if (codePoint >= 'a' && codePoint < 'z') return (codePoint - 'a') + 'A';
+		return codePoint;
+	}
 
 	public static char toTitleCase(char ch) {
 		// @TODO: Approximation

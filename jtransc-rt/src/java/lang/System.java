@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.JTranscSystemProperties;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
@@ -54,10 +55,12 @@ public class System {
 
 	@HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
+	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
 	@HaxeMethodBody("return (p0 != null) ? (p0.__ID__ | 0) : 0;")
 	@JTranscMethodBody(target = "js", value = "return N.identityHashCode(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return N::identityHashCode(p0);")
 	public static native int identityHashCode(Object x);
 
 	public static Properties getProperties() {
@@ -82,25 +85,30 @@ public class System {
 	static private Properties _props;
 
 	static private void _setProperty(String key, String value) {
+		_setProperty(key, value, "");
+	}
+
+	static private void _setProperty(String key, String value, String defaultValue) {
+		if (key == null) key = "";
+		if (value == null) value = defaultValue;
 		_props.put(key, value);
 	}
 
 	static private Properties getProps() {
 		if (_props == null) {
 			_props = new Properties();
-
-			_setProperty("os.arch", JTranscSystem.getArch());
-			_setProperty("os.name", JTranscSystem.getOS());
+			_setProperty("os.arch", JTranscSystem.getArch(), "unknown");
+			_setProperty("os.name", JTranscSystem.getOS(), "unknown");
 			_setProperty("os.version", "0.1");
-			_setProperty("java.runtime.name", JTranscSystem.getRuntimeName());
+			_setProperty("java.runtime.name", JTranscSystem.getRuntimeName(), "jtransc-unknown");
 			_setProperty("java.vm.version", "1.7.0");
 			_setProperty("java.runtime.version", "1.7.0");
-			_setProperty("file.separator", JTranscSystem.fileSeparator());
-			_setProperty("line.separator", JTranscSystem.lineSeparator());
-			_setProperty("path.separator", JTranscSystem.pathSeparator());
-			_setProperty("file.encoding", "UTF-8");
-			_setProperty("java.home", JTranscSystem.getJavaHome());
-			_setProperty("java.specification.name", JTranscSystem.getRuntimeName());
+			_setProperty("file.separator", JTranscSystem.fileSeparator(), "/");
+			_setProperty("line.separator", JTranscSystem.lineSeparator(), "\n");
+			_setProperty("path.separator", JTranscSystem.pathSeparator(), ":");
+			_setProperty("file.encoding", JTranscSystemProperties.fileEncoding());
+			_setProperty("java.home", JTranscSystem.getJavaHome(), "/");
+			_setProperty("java.specification.name", JTranscSystem.getRuntimeName(), "jtransc-unknown");
 			_setProperty("java.specification.vendor", "jtransc");
 			_setProperty("java.specification.version", "1.7");
 			_setProperty("java.vendor", "jtransc");
@@ -109,10 +117,13 @@ public class System {
 			_setProperty("java.vm.specification.name", "Jtransc/Haxe JVM emulator");
 			_setProperty("java.vm.specification.vendor", "jtransc-haxe");
 			_setProperty("java.vm.specification.version", "0.1");
-			_setProperty("java.io.tmpdir", getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp"));
-			_setProperty("user.home", getenvs(new String[]{"HOME"}, "/tmp"));
-			_setProperty("user.dir", getenvs(new String[]{"HOME"}, "/tmp"));
-			_setProperty("user.name", getenvs(new String[]{"USERNAME", "USER"}, "username"));
+			_setProperty("java.io.tmpdir", JTranscSystemProperties.tmpdir());
+			_setProperty("user.home", JTranscSystemProperties.userHome());
+			_setProperty("user.dir", JTranscSystemProperties.userDir());
+			_setProperty("user.name", JTranscSystemProperties.userName());
+			_setProperty("user.language", JTranscSystemProperties.userLanguage());
+			_setProperty("user.region", JTranscSystemProperties.userRegion());
+			_setProperty("user.variant", JTranscSystemProperties.userVariant());
 		}
 		return _props;
 	}
@@ -132,14 +143,12 @@ public class System {
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
 	@HaxeMethodBody("return HaxeNatives.str(null);")
 	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[p0] : null);")
-	native public static String getenv(String name);
-
-	private static String getenvs(String[] names, String defaultValue) {
-		for (String name : names) {
-			String out = getenv(name);
-			if (out != null) return out;
-		}
-		return defaultValue;
+	@JTranscMethodBody(target = "cpp", value = {
+		"auto str = N::istr3(p0);",
+		"return N::str(std::getenv(str.c_str()));"
+	})
+	public static String getenv(String name) {
+		return null;
 	}
 
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.hashMap(Sys.environment());")

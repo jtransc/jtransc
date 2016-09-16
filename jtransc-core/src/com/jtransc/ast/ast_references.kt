@@ -1,7 +1,13 @@
 package com.jtransc.ast
 
+import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.ast.template.CommonTagHandler
+import com.jtransc.template.Minitemplate
+
 object References {
-	fun get(clazz:AstClass) = clazz.getClassReferences()
+	private val bl = JTranscMethodBodyList::class.java
+
+	fun get(clazz: AstClass) = clazz.getClassReferences()
 
 	fun AstClass.getClassReferences(): List<AstType.REF> {
 		val me = AstType.REF(this.fqname)
@@ -23,7 +29,30 @@ object References {
 		val refs = this.body?.getClassReferences() ?: listOf()
 		val annotations = this.annotations.getClassReferences()
 		val parameterAnnotations = this.parameterAnnotations.flatMap { it }.getClassReferences()
-		return signatureRefs + refs + annotations + parameterAnnotations
+		val templateRefs = arrayListOf<AstType.REF>()
+		for (methodBody in this.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
+			val template = Minitemplate(methodBody.value.joinToString("\n"), Minitemplate.Config(
+				extraTags = listOf(
+					Minitemplate.Tag(
+						":programref:", setOf(), null,
+						aliases = listOf(
+							//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
+							"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
+						)
+					) {
+						//val tag = it.first().token.name
+						val desc = it.first().token.content
+						val ref = CommonTagHandler.getRefFqName(desc, hashMapOf())
+						templateRefs += ref.ref()
+						Minitemplate.BlockNode.TEXT("")
+					}
+				),
+				extraFilters = listOf(
+				)
+			))
+			template(hashMapOf<String, Any?>())
+		}
+		return signatureRefs + refs + annotations + parameterAnnotations + templateRefs
 	}
 
 	fun List<AstAnnotation>.getClassReferences(): List<AstType.REF> {

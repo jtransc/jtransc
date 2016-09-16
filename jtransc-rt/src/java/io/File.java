@@ -16,6 +16,8 @@
 
 package java.io;
 
+import com.jtransc.JTranscSystemProperties;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -371,7 +373,7 @@ public class File implements Serializable, Comparable<File> {
 		private TempDirectory() {
 		}
 
-		private static final File tmpdir = new File(System.getProperty("java.io.tmpdir"));
+		private static final File tmpdir = new File(JTranscSystemProperties.tmpdir());
 
 		static File location() {
 			return tmpdir;

@@ -5,7 +5,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 data class AstBody(
-	val stm: AstStm,
+	var stm: AstStm,
 	var locals: List<AstLocal>,
 	val traps: List<AstTrap>,
 	val flags: AstBodyFlags
@@ -125,6 +125,10 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val array = array.box
 		val index = index.box
 		val expr = expr.box
+	}
+
+	class SET_ARRAY_LITERALS(array: AstExpr, val startIndex: Int, val values: List<AstExpr.Box>) : AstStm() {
+		val array = array.box
 	}
 
 	class SET_FIELD_STATIC(val field: AstFieldRef, expr: AstExpr) : AstStm() {
@@ -420,7 +424,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
-	infix fun instanceof(that: AstType) = AstExpr.INSTANCE_OF(this, that)
+	infix fun instanceof(that: AstType.REF) = AstExpr.INSTANCE_OF(this, that)
 
 	companion object {
 		fun build(types: AstTypes, build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder(types).build()

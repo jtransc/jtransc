@@ -75,6 +75,10 @@ fun Char.isLetterDigitOrUnderscore():Boolean {
 	return this.isLetterOrDigit() || this == '_' || this == '$'
 }
 
+fun Char.isPrintable():Boolean {
+	return this.isLetterDigitOrUnderscore()
+}
+
 fun GenericTokenize(sr: Reader): List<String> {
 	val symbols = setOf(
 			"..."

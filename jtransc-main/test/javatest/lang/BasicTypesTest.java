@@ -16,6 +16,21 @@ public class BasicTypesTest {
 		longTests();
 		swapTests();
 		checkNanInf();
+		conversionTests();
+	}
+
+	private static void conversionTests(double v) {
+		//System.out.println("conversionTests:" + v + " : " + (long)v);
+		System.out.println("conversionTests:" + (long)v);
+	}
+
+	private static void conversionTests() {
+		conversionTests(0.0);
+		conversionTests(-1.0);
+		conversionTests(0.125);
+		conversionTests(1000.125);
+		conversionTests(-1000);
+		conversionTests(2195652608.0);
 	}
 
 	private static void swapTests() {

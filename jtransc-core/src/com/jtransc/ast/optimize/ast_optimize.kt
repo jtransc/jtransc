@@ -70,11 +70,20 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		}
 	}
 
+
+	override fun visit(expr: AstExpr.CALL_BASE) {
+		//println("CALL_BASE:$expr:${expr.method}")
+		super.visit(expr)
+	}
+
 	override fun visit(expr: AstExpr.CALL_STATIC) {
 		super.visit(expr)
 
 		if (expr.method in METHODS_TO_STRIP) {
+			//println("STRIP:${expr.method}")
 			expr.stm?.box?.value = AstStm.NOP("method to strip")
+		} else {
+			//println("NO_STRIP:${expr.method}")
 		}
 	}
 
@@ -106,6 +115,56 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 
 		// REMOVE UNUSED VARIABLES
 		body.locals = body.locals.filter { it.isUsed }
+
+		val unoptstms = (body.stm as AstStm.STMS).stms.map { it.value }
+		//if (unoptstms.any { it is AstStm.NOP }) {
+		//	println("done")
+		//}
+		val optstms = unoptstms.filter { it !is AstStm.NOP }
+		body.stm = AstStm.STMS(optstms)
+
+		//if (unoptstms.any { it is AstStm.NOP }) {
+		//	println("done")
+		//}
+
+		val stms = (body.stm as AstStm.STMS).stms
+		var n = 0
+		while (n < stms.size) {
+			val startStmIndex = n
+			val abox = stms[n++]
+			val a = abox.value
+			if ((a is AstStm.SET_ARRAY) && (a.index.value is AstExpr.LITERAL) && (a.array.value is AstExpr.CAST) && ((a.array.value as AstExpr.CAST).expr.value is AstExpr.LOCAL)) {
+				val exprs = arrayListOf<AstExpr.Box>()
+				val alocal = ((a.array.value as AstExpr.CAST).expr.value as AstExpr.LOCAL).local
+				val baseindex = (a.index.value as AstExpr.LITERAL).value as Int
+				var lastindex = baseindex
+				exprs += a.expr
+				while (n < stms.size) {
+					val bbox = stms[n++]
+					val b = bbox.value
+
+					if ((b is AstStm.SET_ARRAY) && (b.index.value is AstExpr.LITERAL) && (b.array.value is AstExpr.CAST) && ((b.array.value as AstExpr.CAST).expr.value is AstExpr.LOCAL)) {
+						val blocal = ((b.array.value as AstExpr.CAST).expr.value as AstExpr.LOCAL).local
+						val nextindex = (b.index.value as AstExpr.LITERAL).value as Int
+
+						if (alocal == blocal && nextindex == lastindex + 1) {
+							exprs += b.expr
+							//println("$baseindex, $lastindex, $nextindex")
+							lastindex = nextindex
+							continue
+						}
+					}
+					n--
+					break
+				}
+
+				if (baseindex != lastindex) {
+					for (m in startStmIndex until n) stms[m].value = AstStm.NOP("array_literals")
+					stms[startStmIndex].value = AstStm.SET_ARRAY_LITERALS(a.array.value, baseindex, exprs)
+					//println("ranged: $baseindex, $lastindex")
+				}
+			}
+		}
 	}
 
 	override fun visit(stm: AstStm.STMS) {
@@ -245,19 +304,27 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 				cast1.expr.value = cast2.expr.value
 				visit(box)
 			}
+			//if ((cast1.type is AstType.INT) && (cast2.type is AstType.SHORT)) {
+			//	cast1.expr.value = cast2.expr.value
+			//	visit(box)
+			//}
 			return
 		}
 
 		// CAST LITERAL
 		if (child is AstExpr.LITERAL) {
 			val literalValue = child.value
-			if (literalValue is Int) {
+			if (literalValue is Number) {
 				val box2 = expr.box
 				when (castTo) {
 					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool(), types)
 					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte(), types)
 					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort(), types)
-				//AstType.CHAR -> expr.box.value = AstExpr.LITERAL(literalValue.toChar())
+					AstType.CHAR -> box2.value = AstExpr.LITERAL(literalValue.toInt().toChar(), types)
+					AstType.INT -> box2.value = AstExpr.LITERAL(literalValue.toInt(), types)
+					AstType.LONG -> box2.value = AstExpr.LITERAL(literalValue.toLong(), types)
+					AstType.FLOAT -> box2.value = AstExpr.LITERAL(literalValue.toFloat(), types)
+					AstType.DOUBLE -> box2.value = AstExpr.LITERAL(literalValue.toDouble(), types)
 				}
 				AstAnnotateExpressions.visitExprWithStm(stm, box2)
 				return
@@ -293,6 +360,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 	}
 
 	override fun visit(stm: AstStm.STM_EXPR) {
+		super.visit(stm)
 		if (stm.expr.value.isPure()) {
 			stm.box.value = AstStm.NOP("pure stm")
 		}

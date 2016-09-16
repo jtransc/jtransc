@@ -10,8 +10,6 @@ public class JTranscCType {
 	}
 
 	static public boolean isDigit(char c) {
-		if (c >= '0' && c <= '9') return true;
-		if (c >= 'a' && c <= 'z') return true;
-		return c >= 'A' && c <= 'Z';
+		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 	}
 }

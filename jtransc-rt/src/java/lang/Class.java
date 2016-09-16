@@ -16,20 +16,22 @@
 
 package java.lang;
 
-import com.jtransc.ds.FastStringMap;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.ds.FastIdentitySet;
+import com.jtransc.ds.FastStringMap;
 
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Objects;
+import java.lang.AnnotatedElement;
 
 @HaxeAddMembers({
 	"public var _hxClass:Class<Dynamic> = null;",
@@ -61,10 +63,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@JTranscKeep
 	private String name;
 
-	@JTranscKeep
+	public int id;
+
 	private boolean primitive = false;
 
-	@JTranscKeep
+
 	@SuppressWarnings("unused")
 	private int modifiers;
 
@@ -78,11 +81,15 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_fields, '[Ljava.lang.reflect.Field;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._fields, '[Ljava.lang.reflect.Field;');")
-	native public Field[] getDeclaredFields() throws SecurityException;
+	public Field[] getDeclaredFields() throws SecurityException {
+		return JTranscCoreReflection.getDeclaredFields(this);
+	}
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._methods, '[Ljava.lang.reflect.Method;');")
-	native public Method[] getDeclaredMethods() throws SecurityException;
+	public Method[] getDeclaredMethods() throws SecurityException {
+		return JTranscCoreReflection.getDeclaredMethods(this);
+	}
 
 	public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
 		Constructor<?>[] constructors = _getDeclaredConstructors();
@@ -91,11 +98,15 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._constructors, '[Ljava.lang.reflect.Constructor;');")
-	native private Constructor<?>[] _getDeclaredConstructors() throws SecurityException;
+	private Constructor<?>[] _getDeclaredConstructors() throws SecurityException {
+		return JTranscCoreReflection.getDeclaredConstructors(this);
+	}
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._annotations, '[Ljava.lang.Annotation;');")
-	native public Annotation[] getDeclaredAnnotations();
+	public Annotation[] getDeclaredAnnotations() {
+		return JTranscCoreReflection.getDeclaredAnnotations();
+	}
 
 	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
 	public Class<? super T> getSuperclass() {
@@ -103,7 +114,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.str(this._superclass);")
-	native private String getSuperclassName();
+	private String getSuperclassName() {
+		return JTranscCoreReflection.getClassNameById(JTranscCoreReflection.getSuperclassId(JTranscCoreReflection.getClassId(this)));
+	}
 
 	public Class<?>[] getInterfaces() {
 		String[] names = getInterfaceNames();
@@ -114,7 +127,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	@HaxeMethodBody("return HaxeNatives.strArray(_interfaces);")
 	@JTranscMethodBody(target = "js", value = "return N.strArrayOrEmpty(this._interfaces);")
-	native private String[] getInterfaceNames();
+	private String[] getInterfaceNames() {
+		int[] ids = JTranscCoreReflection.getInterfaceIds(this.id);
+		String[] out = new String[ids.length];
+		for (int n = 0; n < ids.length; n++) out[n] = JTranscCoreReflection.getClassNameById(ids[n]);
+		return out;
+	}
 
 	@HaxeMethodBody("return _modifiers;")
 	public int getModifiers() {
@@ -145,7 +163,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	@HaxeMethodBody("return Std.is(p0, _hxClass);")
 	@JTranscMethodBody(target = "js", value = "return N.isInstanceOfClass(p0, this);")
-	public native boolean isInstance(Object obj);
+	public boolean isInstance(Object obj) {
+		if (obj == null) return false;
+		Class<?> objClass = obj.getClass();
+		return this.isAssignableFrom(objClass);
+	}
 
 	native public InputStream getResourceAsStream(String name);
 
@@ -184,40 +206,46 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	//native public java.security.ProtectionDomain getProtectionDomain();
 
 
-	@JTranscKeep
 	private Class() {
 	}
 
-	@JTranscKeep
+
 	Class(String name) throws ClassNotFoundException {
 		this.name = name;
 		this.primitive = false;
-		if (!_check()) throw new ClassNotFoundException("Can't find class " + name);
+		if (!_check()) throw new ClassNotFoundException("Can't find class '" + name + "'");
 	}
 
-	@JTranscKeep
+
 	Class(String name, boolean primitive) {
 		this.name = name;
 		this.primitive = primitive;
 	}
 
-	@JTranscKeep
+
 	@HaxeMethodBody("return R.__initClass(this);")
 	@JTranscMethodBody(target = "js", value = "return R.__initClass(this);")
-	native private boolean _check();
+	private boolean _check() {
+		JTranscCoreReflection.getClassNames();
+		if (JTranscCoreReflection.hasClassWithName(this.name)) {
+			this.id = JTranscCoreReflection.getClassIdWithName(this.name);
+			this.modifiers = JTranscCoreReflection.getModifiersWithId(this.id);
+		} else {
+			this.id = -1;
+		}
+		return isArray() || this.id >= 0;
+	}
 
-	@JTranscKeep
 	public String getName() {
 		return this.name;
 	}
 
-	@JTranscKeep
 	static Class<?> getPrimitiveClass(String name) {
 		return new Class<Object>(name, true);
 	}
 
 	public String toString() {
-		return (isInterface() ? "interface " : (isPrimitive() ? "" : "class ")) + getName();
+		return (isInterface() ? "interface " : (isPrimitive() ? "" : "class ")) + name;
 	}
 
 	native public String toGenericString();
@@ -233,8 +261,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
-	@JTranscKeep
 	public static Class<?> forName(String className) throws ClassNotFoundException {
+		//Objects.requireNonNull(className, "className");
+		if (className == null) return null;
 		if (className.length() == 1) {
 			switch (className.charAt(0)) {
 				case 'V':
@@ -274,25 +303,27 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return forName(name);
 	}
 
-	private HashSet<Class<?>> allRelatedClasses = null;
+	private FastIdentitySet<Class<?>> allRelatedClasses = null;
 
-	private HashSet<Class<?>> getAllRelatedClasses() {
+	private FastIdentitySet<Class<?>> getAllRelatedClasses() {
 		if (allRelatedClasses == null) {
-			allRelatedClasses = new HashSet<>();
+			allRelatedClasses = new FastIdentitySet<>();
 			allRelatedClasses.add(this);
 			for (Class<?> i : this.getInterfaces()) {
-				allRelatedClasses.addAll(i.getAllRelatedClasses());
+				//System.out.println("i:" + i);
+				if (i != null) allRelatedClasses.addAll(i.getAllRelatedClasses().toArray(new Class<?>[0]));
 			}
 			Class<? super T> superclass = this.getSuperclass();
+			//System.out.println("superclass:" + superclass);
 			if (superclass != null) {
-				allRelatedClasses.addAll(superclass.getAllRelatedClasses());
+				allRelatedClasses.addAll(superclass.getAllRelatedClasses().toArray(new Class<?>[0]));
 			}
 		}
 		return allRelatedClasses;
 	}
 
 	public boolean isAssignableFrom(Class<?> cls) {
-		return cls.getAllRelatedClasses().contains(this);
+		return cls.getAllRelatedClasses().has(this);
 	}
 
 	public boolean isInterface() {
@@ -477,16 +508,20 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
+		//JTranscConsole.log("BEGIN getDeclaredConstructor");
 		Class<?>[] parameterTypes2 = (parameterTypes != null) ? parameterTypes : new Class[0];
 		for (Constructor c : getDeclaredConstructors()) {
+			//JTranscConsole.log("A DECLARED CONSTRUCTOR: " + (c != null));
 			if (Arrays.equals(c.getParameterTypes(), parameterTypes2)) {
+				//JTranscConsole.log("END getDeclaredConstructor");
 				return c;
 			}
 		}
+		//JTranscConsole.log("END2 getDeclaredConstructor");
 		throw new NoSuchMethodException();
 	}
 
-	@JTranscKeep
+
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getDeclaredAnnotation(annotationClass) != null;
 	}
@@ -522,7 +557,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@Override
+	@JTranscMethodBody(target = "js", value = "return this == p0;")
+	//@JTranscMethodBody(target = "unknowntest", value = "{% CLASS java.other.invalid.UnknownClass %}")
 	public boolean equals(Object o) {
+		/*
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
@@ -530,7 +568,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 		if (isPrimitive() != aClass.isPrimitive()) return false;
 		return name != null ? name.equals(aClass.name) : aClass.name == null;
+		*/
 
+		return this == o;
 	}
 
 	@Override

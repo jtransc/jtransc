@@ -105,42 +105,6 @@ R.setField = function(field, obj, value) {
 	obj2[field._internalName] = value;
 };
 
-R.invokeMethod = function(method, obj, args) {
-	var obj2 = (obj == null) ? jtranscClasses[N.istr(method._clazz._name)] : obj;
-
-	var parameters = method['{% METHOD java.lang.reflect.Method:getParameterTypes %}']().toArray();
-
-	var argsUnboxed = args.data.map(function(v, index) {
-		// Unbox with type! When required!
-		return N.unboxWithTypeWhenRequired(parameters[index], v);
-	});
-
-	//console.log(argsUnboxed);
-
-	var result = obj2[method._internalName].apply(obj2, argsUnboxed);
-	//console.log('RESULT::::::::: ' + result);
-	//console.log('RESULT::::::::: ' + method['{% METHOD java.lang.reflect.Method:getReturnType %}']());
-	return N.boxWithType(method['{% METHOD java.lang.reflect.Method:getReturnType %}'](), result);
-};
-
-R.newInstance = function(constructor, args) {
-	//console.log(constructor);
-	var argsArray = (args != null) ? args.data : [];
-	if (constructor == null) throw 'Invalid R.newInstance : constructor == null';
-
-	var parameters = constructor['{% METHOD java.lang.reflect.Constructor:getParameterTypes %}']().toArray();
-
-	var argsUnboxed = argsArray.map(function(v, index) {
-		// Unbox with type! When required!
-		return N.unboxWithTypeWhenRequired(parameters[index], v);
-	});
-
-	var clazz = constructor._clazz._jsClass;
-	var obj = new clazz();
-	obj[constructor._internalName].apply(obj, argsUnboxed);
-	return obj;
-};
-
 R.newProxyInstance = function(ifc, invocationHandler) {
 	var javaClass   = N.resolveClass(N.istr(ifc._name));
 	var typeContext = jtranscTypeContext[N.istr(ifc._name)];
@@ -197,6 +161,7 @@ R.createAnnotation = function(ifc, values) {
 		//console.log(method + " : " + n + " : " + values[n]);
 		obj[method.id] = function() { return value; };
 	});
+	obj['{% METHOD java.lang.annotation.Annotation:annotationType %}'] = function() { return N.resolveClass(typeContext.name); };
 	obj['{% METHOD java.lang.Object:toString %}'] = function() {
 		return {% SMETHOD com.jtransc.internal.JTranscAnnotationBase:toStaticString %}(this);
 	};

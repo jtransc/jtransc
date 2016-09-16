@@ -222,5 +222,7 @@ public class StringBuilder extends AbstractStringBuilder implements java.io.Seri
 	@Override
 	@HaxeMethodBody("return HaxeNatives.str(this.getStr());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
-	native public String toString();
+	public String toString() {
+		return super.toString();
+	}
 }

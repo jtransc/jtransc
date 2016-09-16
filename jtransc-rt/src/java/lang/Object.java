@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscAddFile;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscReferenceClass;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
@@ -56,7 +57,6 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1007, process = true, prepend = "js/ArrayPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1006, process = true, prepend = "js/StringPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1005, process = true, prepend = "js/MathPolyfill.js")
-@JTranscAddFile(target = "js", priority = -1004, process = true, prepend = "js/Int64.js")
 @JTranscAddFile(target = "js", priority = -1003, process = true, prepend = "js/Arrays.js")
 @JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/N.js")
 @JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/R.js")
@@ -73,6 +73,7 @@ public class Object {
 
 	@HaxeMethodBody("return HaxeNatives.getClass(this);")
 	@JTranscMethodBody(target = "js", value = "return R.getClass(this);")
+	@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
 	native public final Class<?> getClass();
 
 	@JTranscKeep
@@ -81,6 +82,7 @@ public class Object {
 	}
 
 	@JTranscKeep
+	@JTranscMethodBody(target = "js", value = "return N.clone(this);")
 	protected Object clone() throws CloneNotSupportedException {
 		// @TODO: This is slow! We could override this at code gen knowing all the fields and with generated code to generate them.
 		try {
@@ -96,6 +98,7 @@ public class Object {
 	}
 
 	@JTranscKeep
+	//@JTranscMethodBody(target = "js", value = "return N.str('Object');")
 	public String toString() {
 		return getClass().getName() + "@" + Integer.toHexString(this.hashCode());
 	}

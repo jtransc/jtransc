@@ -16,14 +16,12 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.lang.annotation.Annotation;
 
-@JTranscKeep
 @HaxeAddMembers({
 	"public var _internalName = '';",
 	"public var _annotations = [];",
@@ -69,5 +67,7 @@ public class AccessibleObject implements AnnotatedElement {
 
 	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
-	native private Annotation[] _getDeclaredAnnotations();
+	private Annotation[] _getDeclaredAnnotations() {
+		return new Annotation[0];
+	}
 }

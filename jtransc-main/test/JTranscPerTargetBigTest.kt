@@ -15,16 +15,46 @@
  */
 
 import big.BigTest
+import big.HelloWorldKotlinTest
+import big.HelloWorldTest
+import com.jtransc.gen.cpp.CppTarget
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
-import javatest.sort.ComparableTimSortTest
-import javatest.utils.CopyTest
+import javatest.utils.KotlinInheritanceTest
 import org.junit.Test
 
 class JTranscPerTargetBigTest : JTranscTestBase() {
-	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget, log = null)
+	override val TREESHAKING = true
+	//override val TREESHAKING = false
+	//override val TREESHAKING_TRACE = true
+	override val TREESHAKING_TRACE = false
+
+	@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget, log = null, debug = true)
+
+	//@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget, log = null)
+	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget, log = true)
+
+	@Test fun testKotlinInheritanceTestCpp() = testClass<KotlinInheritanceTest>(minimize = false, target = CppTarget, log = null, debug = true)
+	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, target = JsTarget, log = true)
+
+
+	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget, log = true)
+	@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = true)
+	@Test fun testHelloWorldCppRelease() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = false)
+
+	@Test fun testHelloWorldKotlinTestJs() = testClass<HelloWorldKotlinTest>(minimize = false, target = JsTarget, log = true)
+	@Test fun testHelloWorldKotlinTestCpp() = testClass<HelloWorldKotlinTest>(minimize = false, target = CppTarget, log = true, debug = true)
+
+
+	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = false)
+
 	//@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget, lang = "js", log = null)
 	@Test fun testHaxeJsMinimized() = testClass<BigTest>(minimize = true, target = HaxeTarget, lang = "js", log = null)
 
 	//@Test fun testSmallPlainJs() = testClass<CopyTest>(minimize = false, target = JsTarget, log = null)
+
+	//@Test fun testSmallPlainCpp() = testClass<CopyTest>(minimize = false, target = CppTarget, log = null)
+	//@Test fun testWeakCpp() = testClass<WeakTest>(minimize = false, target = CppTarget, log = null)
+
+	//@Test fun testReflectionCpp() = testClass<JTranscReflectionTest>(minimize = false, target = CppTarget, log = null)
 }

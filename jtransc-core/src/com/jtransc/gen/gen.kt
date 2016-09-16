@@ -16,66 +16,20 @@
 
 package com.jtransc.gen
 
-import com.jtransc.AllBuild
-import com.jtransc.ast.AstBuildSettings
+import com.jtransc.JTranscBuild
+import com.jtransc.ConfigCaptureRunOutput
+import com.jtransc.ConfigLibraries
+import com.jtransc.ConfigRun
+import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.ast.AstProgram
-import com.jtransc.ast.AstTypes
+import com.jtransc.ast.ConfigCompile
+import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
-import java.io.File
+import com.jtransc.vfs.ProcessResult
 
-data class GenTargetInfo(
-	val program: AstProgram,
-	val outputFile: String,
-	val settings: AstBuildSettings,
-	val subtarget: String,
-	val targetDirectory: String
-) {
-	val types: AstTypes = program.types
-	val outputFileBaseName by lazy { File(outputFile).name }
-}
-
-interface GenTarget {
-	val runningAvailable: Boolean
-	fun getProcessor(tinfo: GenTargetInfo, settings: AstBuildSettings): GenTargetProcessor
-}
-
-fun GenTarget.build(
-	program: AstProgram,
-	outputFile: String,
-	settings: AstBuildSettings,
-	captureRunOutput: Boolean = true,
-	run: Boolean = false,
-	subtarget: String = "",
-	targetDirectory: String = "target"
-): AllBuild.Result {
-	val processor = log.logAndTime("Preparing processor") { this.getProcessor(GenTargetInfo(program, outputFile, settings, subtarget, targetDirectory), settings) }
-	log.logAndTime("Building source") { processor.buildSource() }
-
-	if (run) {
-		log("Compiling and running...")
-		val (compileTime, result) = measureTime { processor.compileAndRun(!captureRunOutput) }
-		if (result.success) {
-			log("Ok ($compileTime)")
-		} else {
-			log.error("ERROR ($compileTime) (${result.exitValue})")
-		}
-		return AllBuild.Result(result)
-	} else {
-		log("Compiling...")
-		val (compileTime, compileResult) = measureTime { processor.compile() }
-		if (compileResult.success) {
-			log("Ok ($compileTime)")
-		} else {
-			log.error("ERROR ($compileTime) ($compileResult)")
-		}
-
-		return AllBuild.Result(ProcessResult2(compileResult.exitValue))
-	}
-}
-
-abstract class GenTargetProcessor {
+abstract class GenTargetProcessor() {
 	abstract fun buildSource(): Unit
 	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
 		val compileResult = compile()
@@ -85,6 +39,7 @@ abstract class GenTargetProcessor {
 			this.run(redirect)
 		}
 	}
+
 	abstract fun compile(): ProcessResult2
 	abstract fun run(redirect: Boolean = true): ProcessResult2
 }
@@ -102,6 +57,50 @@ abstract class GenTargetDescriptor {
 	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()
-	abstract fun getGenerator(): GenTarget
-	open fun getTargetByExtension(ext:String): String? = null
+	abstract fun getProcessor(injector: Injector): GenTargetProcessor
+	open fun getTargetByExtension(ext: String): String? = null
+	abstract val runningAvailable: Boolean
+
+	fun build(injector: Injector): JTranscBuild.Result {
+		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput
+		val run = injector.get<ConfigRun>().run
+		val compile = injector.get<ConfigCompile>(default = { ConfigCompile(compile = true) }).compile
+		val processor = log.logAndTime("Preparing processor") {
+			//, settings
+			this.getProcessor(injector)
+		}
+		log.logAndTime("Building source") { processor.buildSource() }
+
+		JTranscAddLibrariesList::class.java
+
+		val program: AstProgram = injector.get()
+		val libraries = program.allAnnotationsList.getTypedList(JTranscAddLibrariesList::value).flatMap {
+			it.value.toList()
+		}
+		injector.mapInstance(ConfigLibraries(libraries.distinct()))
+
+		if (compile) {
+			if (run) {
+				log("Compiling and running...")
+				val (compileTime, result) = measureTime { processor.compileAndRun(!captureRunOutput) }
+				if (result.success) {
+					log("Ok ($compileTime)")
+				} else {
+					log.error("ERROR ($compileTime) (${result.exitValue})")
+				}
+				return JTranscBuild.Result(result)
+			} else {
+				log("Compiling...")
+				val (compileTime, compileResult) = measureTime { processor.compile() }
+				if (compileResult.success) {
+					log("Ok ($compileTime)")
+				} else {
+					log.error("ERROR ($compileTime) ($compileResult)")
+				}
+
+				return JTranscBuild.Result(ProcessResult2(compileResult.exitValue))
+			}
+		}
+		return JTranscBuild.Result(ProcessResult2(0))
+	}
 }

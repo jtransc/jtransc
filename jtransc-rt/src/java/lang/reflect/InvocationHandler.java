@@ -16,6 +16,9 @@
 
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscKeep;
+
+@JTranscKeep
 public interface InvocationHandler {
 	Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
 }

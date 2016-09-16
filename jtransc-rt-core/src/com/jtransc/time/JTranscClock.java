@@ -1,0 +1,58 @@
+package com.jtransc.time;
+
+import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+public class JTranscClock {
+	static public Impl impl = new Impl(null) {
+	};
+
+	static public class Impl {
+		public Impl parent;
+
+		public Impl(Impl parent) {
+			this.parent = parent;
+		}
+
+		@HaxeMethodBody("return N.getTime();")
+		@JTranscMethodBody(target = "js", value = "return N.getTime();")
+		@JTranscMethodBody(target = "cpp", value = "return N::getTime();")
+		public double fastTime() {
+			if (parent != null) {
+				return parent.fastTime();
+			}
+
+			if (JTranscSystem.isJTransc()) {
+				throw new RuntimeException("Not implemented JTranscSystem.fastTime()");
+			} else {
+				return System.currentTimeMillis();
+			}
+		}
+
+		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
+		public void sleep(double ms) {
+			if (parent != null) {
+				parent.sleep(ms);
+				return;
+			}
+			if (JTranscSystem.isJTransc()) {
+				double start = JTranscSystem.fastTime();
+				// Spinlock/Busywait!
+				while (true) {
+					double current = JTranscSystem.fastTime();
+					if ((current - start) >= ms) break;
+				}
+			} else {
+				_sleep(ms);
+			}
+		}
+
+		static private void _sleep(double ms) {
+			try {
+				Thread.sleep((long) ms);
+			} catch (Throwable t) {
+			}
+		}
+	}
+}

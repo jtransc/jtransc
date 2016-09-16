@@ -17,8 +17,6 @@
 
 package java.net.internal;
 
-import com.jtransc.text.internal.IntegralToString;
-
 import java.io.ByteArrayOutputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -216,6 +214,8 @@ public abstract class UriCodec {
 
 	private static void appendHex(StringBuilder sb, byte b) {
 		sb.append('%');
-		sb.append(IntegralToString.byteToHexString(b, true));
+		String hex = "0123456789ABCDEF";
+		sb.append(hex.charAt((b >> 4) & 0xF));
+		sb.append(hex.charAt((b >> 0) & 0xF));
 	}
 }

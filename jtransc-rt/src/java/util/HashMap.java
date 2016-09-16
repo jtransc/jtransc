@@ -970,6 +970,7 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
         }
     }
 
+    /*
     private static final long serialVersionUID = 362498820763181265L;
 
     private static final ObjectStreamField[] serialPersistentFields = {
@@ -1018,4 +1019,5 @@ public class HashMap<K, V> extends AbstractMap<K, V> implements Cloneable, Seria
             constructorPut(key, val);
         }
     }
+    */
 }

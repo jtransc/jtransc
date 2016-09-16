@@ -1,8 +1,10 @@
 package com.jtransc.io;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.lang.Int64;
 
 @HaxeAddMembers({"" +
 	"static public function _log(p0:Dynamic) {\n" +
@@ -16,37 +18,55 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->M_toString___Ljava_lang_String_() : N::str(std::wstring(L\"null\")));")
 	static public void log(Object v) { System.out.println(v); }
 
 	@JTranscMethodBody(target = "js", value = "console.log(p0);")
+	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->M_toString___Ljava_lang_String_() : N::str(std::wstring(L\"null\")));")
 	static public void dump(Object v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "puts(p0 ? \"true\" : \"false\");")
 	static public void log(boolean v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "printf(\"%d\\n\", (int32_t)p0);")
 	static public void log(byte v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "printf(\"%d\\n\", (int32_t)p0);")
 	static public void log(short v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(String.fromCharCode(p0));")
 	@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));")
+	@JTranscMethodBody(target = "cpp", value = "printf(\"%lc\\n\", (wchar_t)p0);")
 	static public void log(char v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "printf(\"%d\\n\", (int32_t)p0);")
 	static public void log(int v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log('Int64(' + p0.high + ',' + p0.low + ')');")
-	@JTranscMethodBody(target = "js", value = "console.log('Int64(' + p0.high + ',' + p0.low + ')');")
-	static public void log(long v) { System.out.println("Int64(" + (int)(v >> 32) + "," + (int)(v >> 0) + ")"); }
+	static public void log(long v) {
+		if (JTranscSystem.isEmulatedLong()) {
+			Int64 internal = Int64.getInternal(v);
+			logLong(internal.high, internal.low);
+		} else {
+			logLong((int)(v >> 32), (int)(v >> 0));
+		}
+	}
+
+	static public void logLong(int high, int low) {
+		System.out.println("Int64(" + high + "," + low + ")");
+	}
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
+	@JTranscMethodBody(target = "cpp", value = "printf(\"%f\\n\", p0);")
 	static public void log(float v) { System.out.println(v); }
 
 	@HaxeMethodBody("_log(p0);")

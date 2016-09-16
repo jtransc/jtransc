@@ -18,21 +18,17 @@ package com.jtransc.internal;
 
 import com.jtransc.annotation.JTranscInvisible;
 
-import java.util.Formatter;
 import java.util.Locale;
 
 @JTranscInvisible
 public class IntJTranscStrings {
 	public static String format(Locale l, String format, Object... args) {
-		StringBuilder sb = new StringBuilder();
-		Formatter formatter = new Formatter(sb);
-		formatter.format(l, format, args);
-		return sb.toString();
+		return String.format(l, format, args);
 	}
 
 	static public char[] getChars(String s, int offset, int len) {
 		char[] out = new char[len];
-		for (int n = 0; n < len; n++) out[n] = s.charAt(offset + n);
+		s.getChars(offset, len, out, 0);
 		return out;
 	}
 }

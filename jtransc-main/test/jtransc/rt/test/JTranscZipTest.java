@@ -51,9 +51,15 @@ public class JTranscZipTest {
 
 		System.out.println(hexData.length);
 
+		System.out.println("[1]");
 		String tmpdir = System.getProperty("java.io.tmpdir");
+		System.out.println("[2]");
+		System.out.println(tmpdir);
 		String tmpfile = tmpdir + "/jtransc.test.zip";
+		System.out.println("[3]");
+		System.out.println(tmpfile);
 		JTranscFiles.write(new File(tmpfile), hexData);
+		System.out.println("[4]");
 
 		System.out.println(normalizePath(new File(tmpfile).getParentFile().getAbsolutePath()));
 		//System.out.println(normalizePath(new File(tmpfile).getParentFile().getParent()));

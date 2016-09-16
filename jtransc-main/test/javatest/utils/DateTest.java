@@ -7,6 +7,7 @@ import java.util.Locale;
 
 public class DateTest {
 	public static void main(String[] args) throws Throwable {
+		System.out.println("DateTest.main:");
 		dateTest();
 	}
 

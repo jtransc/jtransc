@@ -23,12 +23,12 @@ import java.nio.internal.SizeOf;
 /**
  * ByteArrayBuffer implements byte[]-backed ByteBuffers.
  */
-final class ByteArrayBuffer extends ByteBuffer {
+public final class ByteArrayBuffer extends ByteBuffer {
 
 	/**
 	 * These fields are non-private for NioUtils.unsafeArray.
 	 */
-	final byte[] backingArray;
+	public final byte[] backingArray;
 	final int arrayOffset;
 
 	private final boolean isReadOnly;

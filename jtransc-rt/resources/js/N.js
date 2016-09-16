@@ -1,8 +1,15 @@
 // N : Native
 var onNodeJs = typeof window == "undefined";
 
+function Int64Ref(high, low) {
+	this.high = high;
+	this.low = low;
+}
+
 var N = function() {
 };
+
+N.lnewRef = function(high, low) { return new Int64Ref(high, low); };
 
 var __reints = (function() {
 	var buffer = new ArrayBuffer(8);
@@ -20,11 +27,11 @@ var __reints = (function() {
     	},
     	doubleToLongBits: function(v) {
     		doubleArray[0] = v;
-    		return Int64.make(intArray[1], intArray[0]);
+    		return {% SMETHOD com.jtransc.lang.Int64:make %}(intArray[1], intArray[0]);
     	},
 		longBitsToDouble: function(v) {
-			intArray[0] = v.low;
-			intArray[1] = v.high;
+			intArray[0] = N.llow(v);
+			intArray[1] = N.lhigh(v);
 			return doubleArray[0];
 		},
 		isLittleEndian: function() {
@@ -53,9 +60,12 @@ N.i2b = function(v) { return ((v << 24) >> 24); }
 N.i2s = function(v) { return ((v << 16) >> 16); }
 N.i2c = function(v) { return v & 0xFFFF; }
 N.i2i = function(v) { return v | 0; }
-N.i2j = function(v) { return Int64.ofInt(v); }
+N.i2j = function(v) { return {% SMETHOD com.jtransc.lang.Int64:ofInt %}(v); }
 N.i2f = function(v) { return +v; }
 N.i2d = function(v) { return +v; }
+
+N.f2j = function(v) { return {% SMETHOD com.jtransc.lang.Int64:ofFloat %}(v); }
+N.d2j = function(v) { return {% SMETHOD com.jtransc.lang.Int64:ofFloat %}(v); }
 
 
 ///////////////////////
@@ -71,27 +81,30 @@ N.irem = function(a, b) { return (a % b) | 0; };
 ///////////////////////
 // Long
 ///////////////////////
-N.lnew = function(high, low) { return Int64.make(high, low); };
-N.ladd = function(a, b) { return Int64.add(a, b); }
-N.lsub = function(a, b) { return Int64.sub(a, b); }
-N.lmul = function(a, b) { return Int64.mul(a, b); }
-N.ldiv = function(a, b) { return Int64.div(a, b); }
-N.lrem = function(a, b) { return Int64.rem(a, b); }
-N.llcmp = function(a, b) { return Int64.compare(a, b); } // Deprecated
-N.lcmp = function(a, b) { return Int64.compare(a, b); }
-N.lxor = function(a, b) { return Int64.xor(a, b); }
-N.land = function(a, b) { return Int64.and(a, b); }
-N.lor = function(a, b) { return Int64.or(a, b); }
-N.lshl = function(a, b) { return Int64.shl(a, b); }
-N.lshr = function(a, b) { return Int64.shr(a, b); }
-N.lushr = function(a, b) { return Int64.ushr(a, b); }
+N.lnew = function(high, low) { return {% SMETHOD com.jtransc.lang.Int64:make %}(high, low); };
+N.lnewFloat = function(float) { return {% SMETHOD com.jtransc.lang.Int64:ofFloat %}(float); };
+N.ltoFloat = function(v) { return {% SMETHOD com.jtransc.lang.Int64:toFloat %}(v); };
+N.llow = function(v) { return v['{% FIELD com.jtransc.lang.Int64:low %}']; }
+N.lhigh = function(v) { return v['{% FIELD com.jtransc.lang.Int64:high %}']; }
+N.ladd = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:add %}(a, b); }
+N.lsub = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:sub %}(a, b); }
+N.lmul = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:mul %}(a, b); }
+N.ldiv = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:div %}(a, b); }
+N.lrem = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:rem %}(a, b); }
+N.llcmp = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:compare %}(a, b); } // Deprecated
+N.lcmp = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:compare %}(a, b); }
+N.lxor = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:xor %}(a, b); }
+N.land = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:and %}(a, b); }
+N.lor = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:or %}(a, b); }
+N.lshl = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:shl %}(a, b); }
+N.lshr = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:shr %}(a, b); }
+N.lushr = function(a, b) { return {% SMETHOD com.jtransc.lang.Int64:ushr %}(a, b); }
 
-N.lneg = function(a) { return Int64.neg(a); }
-N.linv = function(a) { return Int64.not(a); }
-//N.lnot = function(a) { return Int64.not(a); }
+N.lneg = function(a) { return {% SMETHOD com.jtransc.lang.Int64:neg %}(a); }
+N.linv = function(a) { return {% SMETHOD com.jtransc.lang.Int64:not %}(a); }
 
-N.l2i = function(v) { return Int64.toInt(v); }
-N.l2d = function(v) { return Int64.toFloat(v); }
+N.l2i = function(v) { return {% SMETHOD com.jtransc.lang.Int64:toInt %}(v); }
+N.l2d = function(v) { return {% SMETHOD com.jtransc.lang.Int64:toFloat %}(v); }
 
 N.cmp  = function(a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 N.cmpl = function(a, b) { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
@@ -104,7 +117,7 @@ N.is = function(i, clazz) { return (i != null) ? (typeof clazz.$$instanceOf[i.$J
 
 N.istr = function(str) {
 	if (str == null) return null;
-	if (str instanceof java_lang_String) return str._str;
+	if (str instanceof {% CLASS java.lang.String %}) return str._str;
 	return '' + str;
 }
 
@@ -114,8 +127,8 @@ N.ichar = function(i) {
 
 N.str = function(str) {
 	if (str == null) return null;
-	if (str instanceof java_lang_String) return str;
-	var out = new java_lang_String();
+	if (str instanceof {% CLASS java.lang.String %}) return str;
+	var out = new {% CLASS java.lang.String %}();
 	out._str = '' + str;
 	return out;
 }
@@ -199,16 +212,7 @@ N.stringToCharArray = function(str) {
 	return out;
 };
 
-N.resolveClass = function(name) {
-	//var clazz = jtranscClasses[name];
-	//var clazzInfo = clazz.$$JS_TYPE_CONTEXT$$;
-	//if (!this.clazzInfo.clazzClass) {
-	//	this.clazzInfo.clazzClass = java_lang_Class["forName"]();
-	//}
-	////this.clazzClass = function() { };
-	//return this.clazzInfo.clazzClass;
-	return java_lang_Class["forName(Ljava/lang/String;)Ljava/lang/Class;"](N.str(name));
-};
+N.resolveClass = function(name) { return java_lang_Class["forName(Ljava/lang/String;)Ljava/lang/Class;"](N.str(name)); };
 
 N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
 	var out = new java_lang_StackTraceElement();
@@ -229,11 +233,53 @@ N.getStackTrace = function(count) {
 	return out;
 };
 
-N.arraycopy = function(src, srcPos, dest, destPos, length) {
-	if (src == dest && (destPos > srcPos)) {
-		for (var n = length - 1; n >= 0; n--) dest.set(destPos + n, src.get(srcPos + n));
+N._arraycopyArray = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	if (overlapping) {
+		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
 	} else {
-		for (var n = 0; n < length; n++) dest.set(destPos + n, src.get(srcPos + n));
+		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
+	}
+}
+
+N._arraycopyGeneric = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	if (overlapping) {
+		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
+	} else {
+		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
+	}
+}
+
+N._arraycopyTyped_B = function(srcData, srcPos, destData, destPos, length) {
+	destData.set(new Int8Array(srcData.buffer, srcPos * 1, length), destPos);
+}
+
+N._arraycopyTyped_S = function(srcData, srcPos, destData, destPos, length) {
+	destData.set(new Int16Array(srcData.buffer, srcPos * 1, length), destPos);
+}
+
+N._arraycopyTyped_I = function(srcData, srcPos, destData, destPos, length) {
+	destData.set(new Int32Array(srcData.buffer, srcPos * 4, length), destPos);
+}
+
+N.arraycopy = function(src, srcPos, dest, destPos, length) {
+	if (length < 0 || srcPos < 0 || destPos < 0 || srcPos + length > src.length || destPos + length > dest.length) {
+		N.throwRuntimeException('N.arraycopy out of bounds');
+	}
+
+	var srcData = src.data;
+	var destData = dest.data;
+	var overlapping = src == dest && (destPos > srcPos);
+
+	if (src instanceof JA_L) {
+		N._arraycopyArray(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_B) {
+		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length);
+	} else if (src instanceof JA_S) {
+		N._arraycopyTyped_S(srcData, srcPos, destData, destPos, length);
+	} else if (src instanceof JA_I) {
+		N._arraycopyTyped_I(srcData, srcPos, destData, destPos, length);
+	} else {
+		N._arraycopyGeneric(srcData, srcPos, destData, destPos, length, overlapping);
 	}
 };
 
@@ -310,8 +356,12 @@ N.wrap = function(value) {
 	return out;
 }
 
+N.createRuntimeException = function(msg) {
+	return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+};
+
 N.throwRuntimeException = function(msg) {
-	throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	throw N.createRuntimeException(msg);
 	//throw msg;
 };
 
@@ -363,12 +413,12 @@ N.boxArray = function(array) {
 };
 
 N.box = function(v) {
-	if (v instanceof java_lang_Object) return v; // already boxed!
-	if (v instanceof Int64) return N.boxLong(v);
+	if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
+	if (v instanceof {% CLASS com.jtransc.lang.Int64 %}) return N.boxLong(v);
 	if (typeof v == 'string') return N.str(v);
 	if ((v|0) == v) return N.boxInt(v);
 	if (+(v) == v) return N.boxFloat(v);
-	if ((v == null) || N.is(v, java_lang_Object)) return v;
+	if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
 	return N.wrap(v);
 };
 
@@ -386,4 +436,26 @@ N.sort = function(array, start, end, comparator) {
 		});
 	}
 	for (var n = 0; n < slice.length; n++) array[start + n] = slice[n];
+};
+
+N.getByteArray = function(v) {
+	if (v instanceof JA_B) return v;
+	if (v.buffer) v = v.buffer;
+	var out = new JA_B(v.byteLength);
+	out.data = new Int8Array(v);
+	return out;
+};
+
+N.clone = function(obj) {
+	if (obj == null) return null;
+
+	var temp = obj.constructor();
+
+	for (var key in obj) {
+		temp[key] = obj[key];
+	}
+
+	temp.$JS$ID$ = _global.$JS$__lastId++;
+
+	return temp;
 };

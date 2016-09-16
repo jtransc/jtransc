@@ -1,14 +1,19 @@
 package jtransc.rt.test;
 
+import com.jtransc.annotation.JTranscKeep;
+
 import java.lang.annotation.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
 		testInvokeConstructor();
-		testInvokeMethod();
+		testInvokeMethodStatic();
 		testArrayType();
 		annotationTest();
 		assignableTest();
@@ -23,6 +28,16 @@ public class JTranscReflectionTest {
 		testEmptyAnnotations();
 		checkClassNotFound();
 		toStringArray();
+		getAnnotationType();
+		classNewInstance();
+	}
+
+	private static void getAnnotationType() {
+		System.out.println("getAnnotationType:");
+		Annotation[] annotations = Test2.class.getAnnotations();
+		if (annotations.length >= 1) {
+			System.out.println(annotations[0].annotationType().getName());
+		}
 	}
 
 	static private void testInvokeConstructor() {
@@ -42,6 +57,7 @@ public class JTranscReflectionTest {
 		public Long b = 4L;
 		public double c = 10.0;
 
+		@JTranscKeep
 		public ConstructorTest(long a, Long b, double c) {
 			this.a = a;
 			this.b = b;
@@ -49,12 +65,18 @@ public class JTranscReflectionTest {
 		}
 	}
 
-	static private void testInvokeMethod() {
+	static private void testInvokeMethodStatic() {
 		try {
-			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod2", Integer.TYPE, Boolean.TYPE).invoke(null, 7, true));
-			System.out.println(JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod3", Integer.TYPE, Boolean.TYPE, Double.TYPE).invoke(null, 7, false, 0.5));
-			System.out.println(Arrays.toString((short[])JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod4", Object.class, byte[].class, Object.class).invoke(
-				null,  "hello world", new byte[] {1,2,3,4}, new long[] {Long.MIN_VALUE, Long.MAX_VALUE}
+			Method method2 = JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod2", Integer.TYPE, Boolean.TYPE);
+			System.out.println(method2);
+			System.out.println(method2.invoke(null, 7, true));
+			Method method3 = JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod3", Integer.TYPE, Boolean.TYPE, Double.TYPE);
+			System.out.println(method3);
+			System.out.println(method3.invoke(null, 7, false, 0.5));
+			Method method4 = JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod4", Object.class, byte[].class, Object.class);
+			//System.out.println(method4);
+			System.out.println(Arrays.toString((short[]) method4.invoke(
+				null, "hello world", new byte[]{1, 2, 3, 4}, new long[]{Long.MIN_VALUE, Long.MAX_VALUE}
 			)));
 
 		} catch (Throwable e) {
@@ -63,23 +85,27 @@ public class JTranscReflectionTest {
 	}
 
 	@SuppressWarnings("unused")
+	@JTranscKeep
 	static public void testInvokeMethod2(int a, boolean b) {
-		System.out.println("testInvokeMethodInt2:" + a + ":" + b);
+		System.out.println("testInvokeMethod2:" + a + ":" + b);
 	}
 
 	@SuppressWarnings("unused")
+	@JTranscKeep
 	static public long testInvokeMethod3(int a, boolean b, double c) {
 		System.out.println("testInvokeMethodInt3:" + a + ":" + b + ":" + c);
 		return Long.MAX_VALUE;
 	}
 
 	@SuppressWarnings("unused")
+	@JTranscKeep
 	static public short[] testInvokeMethod4(Object a, byte[] data, Object data2) {
-		System.out.println("testInvokeMethod4:" + a + ":" + Arrays.toString(data) + ":" + Arrays.toString((long[])data2));
-		return new short[] { 3, 4, 5, 6};
+		System.out.println("testInvokeMethod4:" + a + ":" + Arrays.toString(data) + ":" + Arrays.toString((long[]) data2));
+		return new short[]{3, 4, 5, 6};
 	}
 
 	@SuppressWarnings("unused")
+	@JTranscKeep
 	native static public byte[] testArrayTypeMethod();
 
 	static private void testArrayType() {
@@ -138,11 +164,14 @@ public class JTranscReflectionTest {
 	}
 
 	static class TestEmptyAnnotationsClass {
+		@JTranscKeep
 		public int a;
 
+		@JTranscKeep
 		public TestEmptyAnnotationsClass(int z) {
 		}
 
+		@JTranscKeep
 		public void methodWithoutAnnotations(String a, int b) {
 		}
 	}
@@ -154,37 +183,47 @@ public class JTranscReflectionTest {
 		System.out.println(float.class.getAnnotations().length);
 	}
 
+	@JTranscKeep
 	static public char getC() {
 		return 'C';
 	}
 
 	static private void invokeTest() throws Throwable {
 		System.out.println("invokeTest:");
+		System.out.println(JTranscReflectionTest.class.getDeclaredMethod("getC").invoke(null));
 		System.out.println(JTranscReflectionTest.class.getDeclaredMethod("getC").invoke(null).getClass());
 	}
 
 	static private void annotationTypesTest() {
 		System.out.println("annotationTypesTest:");
 		Annotation[] declaredAnnotations = TestAnnotationTypesClass.class.getDeclaredAnnotations();
-		System.out.println(declaredAnnotations.length);
-		System.out.println(declaredAnnotations[0] != null);
-		System.out.println(TestAnnotationTypes.class.isAssignableFrom(Annotation.class));
-		System.out.println(Annotation.class.isAssignableFrom(TestAnnotationTypes.class));
-		System.out.println(declaredAnnotations[0] instanceof Annotation);
-		System.out.println(declaredAnnotations[0] instanceof TestAnnotationTypes);
+		System.out.println(declaredAnnotations != null);
+		if (declaredAnnotations != null) {
+			System.out.println(declaredAnnotations.length);
+			if (declaredAnnotations.length >= 1) {
+				System.out.println(declaredAnnotations[0] != null);
+				System.out.println(TestAnnotationTypes.class.isAssignableFrom(Annotation.class));
+				System.out.println(Annotation.class.isAssignableFrom(TestAnnotationTypes.class));
+				System.out.println(declaredAnnotations[0] instanceof Annotation);
+				System.out.println(declaredAnnotations[0] instanceof TestAnnotationTypes);
+			}
+		}
 		System.out.println("-");
 		//System.out.println(((TestAnnotationTypes)declaredAnnotations[0]).b());
 		//JTranscConsole.dump(declaredAnnotations[0]);
 
 		TestAnnotationTypes a = TestAnnotationTypesClass.class.getAnnotation(TestAnnotationTypes.class);
-		System.out.println(a.b());
-		System.out.println(a.c());
-		System.out.println((int) a.c());
-		System.out.println(a.d());
-		System.out.println(a.f());
-		System.out.println(a.i());
-		System.out.println(a.s());
-		System.out.println(a.z());
+		System.out.println(a != null);
+		if (a != null) {
+			System.out.println(a.b());
+			System.out.println(a.c());
+			System.out.println((int) a.c());
+			System.out.println(a.d());
+			System.out.println(a.f());
+			System.out.println(a.i());
+			System.out.println(a.s());
+			System.out.println(a.z());
+		}
 	}
 
 	static private void classNewInstance() throws Throwable {
@@ -194,9 +233,13 @@ public class JTranscReflectionTest {
 
 	static private void nullArgs() throws Throwable {
 		System.out.println("nullArgs:");
+		System.out.println("[1]");
 		Constructor<MyDemoItem> constructor = MyDemoItem.class.getConstructor((Class[]) null);
+		System.out.println("[2]");
 		MyDemoItem myDemoItem = constructor.newInstance((Object[]) null);
+		System.out.println("[3]");
 		System.out.println(myDemoItem.a);
+		System.out.println("[4]");
 	}
 
 	static private void annotationsInConstructorTest() {
@@ -217,10 +260,12 @@ public class JTranscReflectionTest {
 	}
 
 	static class Test {
+		@JTranscKeep
 		public Test(int a, @TestAnnotation1(10) @TestAnnotation2(20) int b) {
 		}
 	}
 
+	// @TODO: Test all types!
 	static public void arrayTest() {
 		System.out.println("arrayTest:");
 		int[] items = (int[]) Array.newInstance(Integer.TYPE, 10);
@@ -272,14 +317,23 @@ public class JTranscReflectionTest {
 		System.out.println("annotationTest:");
 		Singleton test1 = Test1.class.getAnnotation(Singleton.class);
 		Singleton test2 = Test2.class.getAnnotation(Singleton.class);
-		System.out.println(test1.declare());
-		System.out.println(test1.store());
-		System.out.println(test1.a());
-		System.out.println(test1.b());
-		System.out.println(test2.declare());
-		System.out.println(test2.store());
-		System.out.println(test2.a());
-		System.out.println(test2.b());
+		System.out.println("[1]");
+		System.out.println(test1 != null);
+		if (test1 != null) {
+			System.out.println(test1.declare());
+			System.out.println(test1.store());
+			System.out.println(test1.a());
+			System.out.println(test1.b());
+		}
+		System.out.println("[2]");
+		System.out.println(test2 != null);
+		if (test2 != null) {
+			System.out.println(test2.declare());
+			System.out.println(test2.store());
+			System.out.println(test2.a());
+			System.out.println(test2.b());
+		}
+		System.out.println("[3]");
 		//System.out.println(test1);
 		//System.out.println(test2);
 
@@ -298,8 +352,12 @@ public class JTranscReflectionTest {
 			//}
 		}
 
+		System.out.println("[4]");
+
 		System.out.println(Enum.valueOf(EnumDemo.class, "BB").msg);
 		System.out.println(InjectStore.valueOf(EnumDemo.class, "BB").msg);
+
+		System.out.println("[5]");
 
 		try {
 			System.out.println(MyDemo.class.getField("items").getGenericType());
@@ -373,6 +431,7 @@ public class JTranscReflectionTest {
 class A extends B {
 	static public int aCount = 0;
 
+	@JTranscKeep
 	public A() {
 		aCount++;
 	}
@@ -381,12 +440,14 @@ class A extends B {
 class B implements I {
 	static public int bCount = 0;
 
+	@JTranscKeep
 	public B() {
 		bCount++;
 	}
 }
 
 class C extends B {
+	@JTranscKeep
 	public C(int a, int b, int c) {
 	}
 }
@@ -401,16 +462,19 @@ class FieldTestClass {
 	public int _int;
 	public Integer _Integer;
 	public double _double;
+	@JTranscKeep
 	public Double _Double;
 }
 
 class MyDemo {
+	@JTranscKeep
 	public List<MyDemoItem> items;
 }
 
 class MyDemoItem {
 	public int a = 3;
 
+	@JTranscKeep
 	public MyDemoItem() {
 	}
 }
@@ -450,6 +514,7 @@ enum InjectType {UNKNOWN, SINGLETON, PROTOTYPE}
 enum EnumDemo {
 	AA("mya"), BB("myb");
 
+	@JTranscKeep
 	static public String lol;
 
 	public final String msg;
@@ -478,28 +543,37 @@ class TestDeprecatedExample {
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface TestAnnotation1 {
+	@JTranscKeep
 	int value();
 }
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface TestAnnotation2 {
+	@JTranscKeep
 	int value();
 }
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface TestAnnotationTypes {
+	@JTranscKeep
 	boolean z();
 
+	@JTranscKeep
 	byte b();
 
+	@JTranscKeep
 	short s();
 
+	@JTranscKeep
 	char c();
 
+	@JTranscKeep
 	int i();
 
+	@JTranscKeep
 	float f();
 
+	@JTranscKeep
 	double d();
 }
 

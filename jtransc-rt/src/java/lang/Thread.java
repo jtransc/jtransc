@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.thread.JTranscThreading;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class Thread implements Runnable {
 
 	public StackTraceElement[] getStackTrace() {
 		StackTraceElement[] stackTrace = _getStackTrace();
-		if (stackTrace.length == 0) {
+		if ((stackTrace == null) || (stackTrace.length == 0)) {
 			return new StackTraceElement[]{
 				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
 				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
@@ -50,9 +51,13 @@ public class Thread implements Runnable {
 		}
 	}
 
+	static private final StackTraceElement[] ST_NULL = null;
+
 	@HaxeMethodBody("return HaxeNatives.getStackTrace(2);")
 	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);")
-	native private StackTraceElement[] _getStackTrace();
+	private StackTraceElement[] _getStackTrace() {
+		return ST_NULL;
+	}
 
 	public static void yield() {
 
@@ -69,6 +74,9 @@ public class Thread implements Runnable {
 	public Thread() {
 	}
 
+	public String name;
+	public long _data;
+	public boolean _isAlive;
 	private Runnable target;
 
 	public Thread(Runnable target) {
@@ -100,15 +108,14 @@ public class Thread implements Runnable {
 	}
 
 	public synchronized void start() {
-		if (this.target != null) {
-			this.target.run();
-		} else {
-			this.run();
-		}
+		JTranscThreading.impl.start(this);
 	}
 
 	@Override
 	public void run() {
+		if (this.target != null) {
+			this.target.run();
+		}
 	}
 
 	@Deprecated
@@ -126,7 +133,9 @@ public class Thread implements Runnable {
 	@Deprecated
 	native public void destroy();
 
-	native public final boolean isAlive();
+	public final boolean isAlive() {
+		return JTranscThreading.impl.isAlive(this);
+	}
 
 	@Deprecated
 	native public final void suspend();
@@ -138,9 +147,13 @@ public class Thread implements Runnable {
 
 	native public final int getPriority();
 
-	native public final synchronized void setName(String name);
+	public final synchronized void setName(String name) {
+		this.name = name;
+	}
 
-	native public final String getName();
+	public final String getName() {
+		return this.name;
+	}
 
 	native public final ThreadGroup getThreadGroup();
 

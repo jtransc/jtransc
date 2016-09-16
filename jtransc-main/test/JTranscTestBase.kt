@@ -14,37 +14,43 @@
  * limitations under the License.
  */
 
-import com.jtransc.AllBuild
-import com.jtransc.BuildBackend
-import com.jtransc.JTranscVersion
-import com.jtransc.KotlinVersion
+import com.jtransc.*
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
+import com.jtransc.ast.ConfigMinimizeNames
+import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
+import com.jtransc.injector.Injector
 import com.jtransc.log.log
 import com.jtransc.maven.MavenGradleLocalRepository
-import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.util.ClassUtils
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UnjailedLocalVfs
 import com.jtransc.vfs.parent
 import org.junit.Assert
 import java.io.File
-import java.lang.management.ManagementFactory
 
 open class JTranscTestBase {
+	open val TREESHAKING = true
+	open val TREESHAKING_TRACE = false
 	companion object {
 		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true
+		//const val TREESHAKING = false
 		const val RELOOPER = true
 		const val ANALYZER = false
-		const val DEBUG = false
+		const val DEBUG = true
 		val DEFAULT_TARGET = JsTarget
 		//val DEFAULT_TARGET = HaxeTarget
 	}
+
+	class Config<T>(
+		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
+		transformer: (String) -> String,
+		transformerOut: (String) -> String
+	)
 
 	init {
 		if (!DEBUG) log.logger = { content, level -> }
@@ -55,8 +61,8 @@ open class JTranscTestBase {
 		lang: String = "js",
 		analyze: Boolean? = null,
 		target: GenTargetDescriptor? = null,
-		debug:Boolean? = null,
-		log:Boolean? = null,
+		debug: Boolean? = null,
+		log: Boolean? = null,
 		noinline transformer: (String) -> String = { it },
 		noinline transformerOut: (String) -> String = { it }
 	) {
@@ -116,6 +122,7 @@ open class JTranscTestBase {
 		//target: GenTargetDescriptor = HaxeTarget
 		target: GenTargetDescriptor? = null
 	): String {
+		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
 		//val threadId = Thread.currentThread().id
@@ -124,9 +131,17 @@ open class JTranscTestBase {
 		val threadId = 0
 		val pid = 0
 
-		return AllBuild(
+		injector.mapInstances(
+			BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
+		)
+
+		injector.mapImpl<AstTypes, AstTypes>()
+		injector.mapInstance(ConfigMinimizeNames(minimize ?: MINIMIZE))
+		injector.mapInstance(ConfigTreeShaking(TREESHAKING, TREESHAKING_TRACE))
+
+		return JTranscBuild(
+			injector = injector,
 			target = target ?: DEFAULT_TARGET,
-			classPaths = testClassesPaths + kotlinPaths,
 			entryPoint = clazz.name,
 			output = "program.haxe.$lang", subtarget = "$lang",
 			//output = "program.haxe.cpp", subtarget = "cpp",
@@ -134,8 +149,6 @@ open class JTranscTestBase {
 			settings = AstBuildSettings(
 				jtranscVersion = JTranscVersion.getVersion(),
 				debug = debug ?: DEBUG,
-				backend = BACKEND,
-				minimizeNames = minimize ?: MINIMIZE,
 				relooper = RELOOPER,
 				analyzer = analyze ?: ANALYZER,
 				rtAndRtCore = listOf(
@@ -146,8 +159,7 @@ open class JTranscTestBase {
 					projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
 					projectRoot["jtransc-rt-core/build/resources/main"].realpathOS
 				)
-			),
-			types = types.get()
+			)
 		).buildAndRunCapturingOutput().process.outerr
 	}
 

@@ -29,6 +29,13 @@ function __createJavaArrayBaseType() {
 	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
 		return N.resolveClass(this.desc);
 	};
+
+	ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
+		var len = array.length;
+		for (var n = 0; n < len; n++) this.data[startIndex + n] = array[n];
+	};
+
+
 	return ARRAY;
 }
 
@@ -64,7 +71,8 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 
 	if (desc == '[J') {
 		ARRAY.prototype.init = function() {
-			for (var n = 0; n < this.length; n++) this.set(n, Int64.zero);
+			var zero = N.lnew(0, 0);
+			for (var n = 0; n < this.length; n++) this.set(n, zero);
 		};
 		ARRAY.prototype.clone = function() {
 			var out = new ARRAY(this.length);
@@ -86,8 +94,19 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 		return out;
 	};
 
+	ARRAY.wrapBuffer = function(arrayBuffer) {
+		var out = new ARRAY(0);
+		out.data = new type(arrayBuffer);
+		out.length = out.data.length;
+		return out;
+	};
+
 	ARRAY.prototype.get = function(index) { return this.data[index]; };
 	ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
+
+	ARRAY.prototype.getBuffer = function() {
+		return this.data.buffer;
+	};
 
 	ARRAY.prototype.toArray = function() {
     	var out = new Array(this.length);
@@ -113,6 +132,16 @@ function __createGenericArrayType() {
 	__decorateArray(ARRAY);
 
 	ARRAY.prototype = $extend(JA_0.prototype, {});
+
+	ARRAY.copyOfRange = function(jarray, start, end, desc) {
+		if (desc === undefined) desc = jarray.desc;
+		var size = end - start;
+		var out = new ARRAY(size, desc);
+		var outData = out.data;
+		var jarrayData = jarray.data;
+		for (var n = 0; n < size; n++) outData[n] = jarrayData[start + n];
+		return out;
+	};
 
 	ARRAY.fromArray = function(array, desc) {
 		if (array == null) return null;

@@ -16,11 +16,12 @@
 
 package com.jtransc.maven
 
-import com.jtransc.AllBuild
-import com.jtransc.AllBuildTargets
+import com.jtransc.AllBuildSimple
 import com.jtransc.BuildBackend
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
+import com.jtransc.ast.ConfigMinimizeNames
+import com.jtransc.injector.Injector
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -83,6 +84,7 @@ class JTranscMojo : AbstractMojo() {
 		val project = project!!
 		val remoteRepos = remoteRepos!!
 		val repoSystem = repoSystem!!
+		val injector = Injector()
 
 		val package_ = if (this.packagePath.isNullOrEmpty()) project.artifact.groupId else this.packagePath
 		val version = if (this.version.isNullOrEmpty()) project.artifact.version else this.version
@@ -148,12 +150,14 @@ class JTranscMojo : AbstractMojo() {
 			orientation = AstBuildSettings.Orientation.fromString(orientation),
 			resizable = resizable,
 			vsync = vsync,
-			backend = backend,
+			//backend = backend,
 			relooper = relooper,
-			minimizeNames = minimizeNames,
+			//minimizeNames = minimizeNames,
 			analyzer = analyzer,
 			extra = extra
 		)
+
+		injector.mapInstance(ConfigMinimizeNames(minimizeNames))
 		//project.version
 
 		log.info("KT: Transcompiling entry point '$mainClass':")
@@ -181,18 +185,26 @@ class JTranscMojo : AbstractMojo() {
 
 			val beforeBuild = System.currentTimeMillis()
 			log.info("Building... to '$targetActual':'$subtargetActual' ('$target') at '$outputActual' with dependencies:")
-			val allBuild: AllBuild = AllBuild(
-				AllBuildTargets = AllBuildTargets,
-				target = targetActual,
-				classPaths = dependencyJarPaths,
+			//val allBuild: AllBuild = AllBuild(
+			//	AllBuildTargets = AllBuildTargets,
+			//	target = targetActual,
+			//	classPaths = dependencyJarPaths,
+			//	entryPoint = mainClass,
+			//	output = File(finalOutputDirectory!!, outputActual).absolutePath,
+			//	subtarget = subtargetActual,
+			//	settings = settings,
+			//	types = types,
+			//	targetDirectory = targetDirectory
+			//)
+			val allBuildSimple = AllBuildSimple(
+				injector = injector,
 				entryPoint = mainClass,
-				output = File(finalOutputDirectory!!, outputActual).absolutePath,
-				subtarget = subtargetActual,
 				settings = settings,
-				types = types,
+				target = target,
+				output = File(finalOutputDirectory!!, outputActual).absolutePath,
 				targetDirectory = targetDirectory
 			)
-			val buildResult = allBuild.buildWithoutRunning()
+			val buildResult = allBuildSimple.buildWithoutRunning()
 			val afterBuild = System.currentTimeMillis()
 			if (buildResult.process.success) {
 				log.info("DONE building in " + (afterBuild - beforeBuild) + " ms")

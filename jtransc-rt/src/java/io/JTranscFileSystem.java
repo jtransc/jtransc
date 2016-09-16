@@ -16,15 +16,15 @@
 
 package java.io;
 
-import com.jtransc.JTranscSystem;
+import com.jtransc.JTranscSystemProperties;
 import com.jtransc.io.JTranscSyncIO;
 
 // @TODO: Move this to something JTransc can replace in jtransc-rt-core!
 class JTranscFileSystem extends FileSystem {
 
-	private final char slash = '/';
-	private final char colon = ':';
-	private final String javaHome = System.getProperty("java.home");
+	private final char slash = JTranscSystemProperties.fileSeparator().charAt(0);
+	private final char colon = JTranscSystemProperties.pathSeparator().charAt(0);
+	private final String javaHome = JTranscSystemProperties.javaHome();
 
 	public char getSeparator() {
 		return slash;
@@ -69,13 +69,12 @@ class JTranscFileSystem extends FileSystem {
 		return (pathname.charAt(0) == '/') ? 1 : 0;
 	}
 
+	public boolean isAbsolute(String path) {
+		return JTranscSyncIO.impl.isAbsolute(path);
+	}
+
 	public String resolve(String parent, String child) {
-		if (child.equals("")) return parent;
-		if (child.charAt(0) == '/') {
-			if (parent.equals("/")) return child;
-			return parent + child;
-		}
-		if (parent.equals("/")) return parent + child;
+		if (isAbsolute(child)) return child;
 		return parent + slash + child;
 	}
 
@@ -103,8 +102,8 @@ class JTranscFileSystem extends FileSystem {
 		return normalize2(resolve(normalize2(JTranscSyncIO.impl.getCwd()), f.getPath()));
 	}
 
-	private String normalize2(String i) {
-		return i.replace('/', slash).replace('\\', slash);
+	private String normalize2(String path) {
+		return JTranscSyncIO.impl.normalizePath(path);
 	}
 
 	public String canonicalize(String path) throws IOException {
@@ -136,7 +135,7 @@ class JTranscFileSystem extends FileSystem {
 	}
 
 	public int getBooleanAttributes0(File f) {
-		return JTranscSyncIO.impl.getBooleanAttributes(f.getAbsolutePath());
+		return JTranscSyncIO.impl.getBooleanAttributes(normalize2(f));
 	}
 
 	public int getBooleanAttributes(File f) {
@@ -147,47 +146,53 @@ class JTranscFileSystem extends FileSystem {
 	}
 
 	public boolean checkAccess(File f, int access) {
-		return JTranscSyncIO.impl.checkAccess(f.getAbsolutePath(), access);
+		return JTranscSyncIO.impl.checkAccess(normalize2(f), access);
 	}
 
 	public long getLastModifiedTime(File f) {
-		return JTranscSyncIO.impl.getLastModifiedTime(f.getAbsolutePath());
+		return JTranscSyncIO.impl.getLastModifiedTime(normalize2(f));
 	}
 
 	public long getLength(File f) {
-		return JTranscSyncIO.impl.getLength(f.getAbsolutePath());
+		//System.out.println(f.getPath());
+		//System.out.println(f.getAbsolutePath());
+		return JTranscSyncIO.impl.getLength(normalize2(f));
 	}
 
 	public boolean setPermission(File f, int access, boolean enable, boolean owneronly) {
-		return JTranscSyncIO.impl.setPermission(f.getAbsolutePath(), access, enable, owneronly);
+		return JTranscSyncIO.impl.setPermission(normalize2(f), access, enable, owneronly);
+	}
+
+	private String normalize2(File file) {
+		return normalize2(file.getAbsolutePath());
 	}
 
 	public boolean createFileExclusively(String path) throws IOException {
-		return JTranscSyncIO.impl.createFileExclusively(path);
+		return JTranscSyncIO.impl.createFileExclusively(normalize2(path));
 	}
 
 	public boolean delete(File f) {
-		return JTranscSyncIO.impl.delete(f.getAbsolutePath());
+		return JTranscSyncIO.impl.delete(normalize2(f));
 	}
 
 	public String[] list(File f) {
-		return JTranscSyncIO.impl.list(f.getAbsolutePath());
+		return JTranscSyncIO.impl.list(normalize2(f));
 	}
 
 	public boolean createDirectory(File f) {
-		return JTranscSyncIO.impl.createDirectory(f.getAbsolutePath());
+		return JTranscSyncIO.impl.createDirectory(normalize2(f));
 	}
 
 	public boolean rename(File f1, File f2) {
-		return JTranscSyncIO.impl.rename(f1.getAbsolutePath(), f2.getAbsolutePath());
+		return JTranscSyncIO.impl.rename(normalize2(f1), normalize2(f2));
 	}
 
 	public boolean setLastModifiedTime(File f, long time) {
-		return JTranscSyncIO.impl.setLastModifiedTime(f.getAbsolutePath(), time);
+		return JTranscSyncIO.impl.setLastModifiedTime(normalize2(f), time);
 	}
 
 	public boolean setReadOnly(File f) {
-		return JTranscSyncIO.impl.setReadOnly(f.getAbsolutePath());
+		return JTranscSyncIO.impl.setReadOnly(normalize2(f));
 	}
 
 	public File[] listRoots() {
@@ -196,9 +201,9 @@ class JTranscFileSystem extends FileSystem {
 
 	public long getSpace(File f, int t) {
 		switch (t) {
-			case FileSystem.SPACE_TOTAL: return JTranscSyncIO.impl.getTotalSpace(f.getAbsolutePath());
-			case FileSystem.SPACE_FREE: return JTranscSyncIO.impl.getFreeSpace(f.getAbsolutePath());
-			case FileSystem.SPACE_USABLE: return JTranscSyncIO.impl.getUsableSpace(f.getAbsolutePath());
+			case FileSystem.SPACE_TOTAL: return JTranscSyncIO.impl.getTotalSpace(normalize2(f));
+			case FileSystem.SPACE_FREE: return JTranscSyncIO.impl.getFreeSpace(normalize2(f));
+			case FileSystem.SPACE_USABLE: return JTranscSyncIO.impl.getUsableSpace(normalize2(f));
 		}
 		return 0L;
 	}

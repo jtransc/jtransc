@@ -1,10 +1,10 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 
@@ -19,47 +19,26 @@ import java.lang.annotation.Annotation;
 //	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
 //})
 abstract public class MethodConstructor extends AccessibleObject {
-	@JTranscKeep
+	protected int typeId;
 	protected int id;
-
-	@JTranscKeep
 	protected Class<?> clazz;
-
-	@JTranscKeep
 	protected int slot;
 
 	// This is guaranteed to be interned by the VM in the 1.4
 	// reflection implementation
-	@JTranscKeep
 	protected String name;
-
-	@JTranscKeep
 	protected Class<?>[] parameterTypes;
-
-	@JTranscKeep
 	protected Class<?>[] exceptionTypes = new Class[0];
-
-	@JTranscKeep
 	protected int modifiers;
 
 	// generic info repository; lazily initialized
 	//private transient MethodRepository genericInfo;
-	@JTranscKeep
 	protected byte[] annotations;
-
-	@JTranscKeep
 	protected byte[] parameterAnnotations;
-
-	@JTranscKeep
 	protected byte[] annotationDefault;
 	//private volatile MethodAccessor methodAccessor;
-
-
 	// Generics and annotations support
-	@JTranscKeep
 	protected transient String signature;
-
-	@JTranscKeep
 	protected transient String genericSignature;
 
 	@JTranscInvisible
@@ -70,7 +49,9 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	@JTranscInvisible
 	protected MethodTypeImpl methodType() {
+		//JTranscConsole.log("BEGIN methodType");
 		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
+		//JTranscConsole.log("methodType: " + (methodType != null));
 		return methodType;
 	}
 
@@ -103,7 +84,10 @@ abstract public class MethodConstructor extends AccessibleObject {
 	@JTranscMethodBody(target = "js", value = {
 		"return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');"
 	})
-	native private Annotation[][] _getParameterAnnotations();
+	private Annotation[][] _getParameterAnnotations() {
+		//int parameterCount = getParameterTypes().length;
+		return new Annotation[0][0];
+	}
 
 	public Class<?> getReturnType() {
 		return null;
@@ -138,6 +122,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
 	}
 
+	//@JTranscMethodBody(target = "js", value = "return N.str('MethodConstructor');")
 	public String toString() {
 		int mod = getModifiers();
 		String out = "";

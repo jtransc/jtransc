@@ -8,6 +8,7 @@ public class ProxyTest {
 	// @TODO: Check that boxing works fine!
 
 	static public void main(String[] args) throws Throwable {
+		System.out.println("ProxyTest.main:");
 		final A a = (A)Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{A.class}, new InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -18,8 +19,11 @@ public class ProxyTest {
 				return 10;
 			}
 		});
-		System.out.println(a.a(20));
-		System.out.println(a.b(30));
+		System.out.println(a != null);
+		if (a != null) {
+			System.out.println(a.a(20));
+			System.out.println(a.b(30));
+		}
 	}
 
 	interface A {
