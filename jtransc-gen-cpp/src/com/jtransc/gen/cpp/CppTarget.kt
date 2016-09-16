@@ -3,6 +3,7 @@ package com.jtransc.gen.cpp
 import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
+import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.annotation.JTranscAddLibrariesList
@@ -103,7 +104,7 @@ class CppGenTargetProcessor(
 		val cmdAndArgs = arrayListOf<String>()
 		cmdAndArgs += "clang++"
 		cmdAndArgs += "-std=c++0x"
-		cmdAndArgs += "-fms-compatibility-version=19.00"
+		if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 		if (debug) cmdAndArgs += "-g"
 		cmdAndArgs += if (debug) "-O0" else "-O3"
 		cmdAndArgs += "-fexceptions"

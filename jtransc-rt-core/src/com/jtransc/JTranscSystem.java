@@ -247,7 +247,6 @@ public class JTranscSystem {
 		return getOS().toLowerCase().startsWith("mac");
 	}
 
-
 	public static boolean isPosix() {
 		return !isWindows();
 	}
