@@ -400,7 +400,7 @@ int N::strCharAt(SOBJ obj, int n) {
 	return str->{% METHOD java.lang.String:charAt %}(n);
 }
 
-void N::log(std::string str) {
+void N::log(std::wstring str) {
 	std::wcout << str << L"\n";
 	fflush(stdout);
 }
