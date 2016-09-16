@@ -17,6 +17,8 @@
 
 package java.util;
 
+import com.jtransc.JTranscSystemProperties;
+
 import java.io.*;
 
 /**
@@ -121,8 +123,6 @@ import java.io.*;
  * HTTP headers.
  */
 public final class Locale implements Cloneable, Serializable {
-
-    private static final long serialVersionUID = 9149081749638150636L;
 
     /**
      * Locale constant for en_CA.
@@ -244,10 +244,11 @@ public final class Locale implements Cloneable, Serializable {
     private static Locale defaultLocale = US;
 
     static {
-        String language = System.getProperty("user.language", "en");
-        String region = System.getProperty("user.region", "US");
-        String variant = System.getProperty("user.variant", "");
+        String language = JTranscSystemProperties.userLanguage();
+        String region = JTranscSystemProperties.userRegion();
+        String variant = JTranscSystemProperties.userVariant();
         defaultLocale = new Locale(language, region, variant);
+		//defaultLocale = new Locale("en", "US", "");
     }
 
 	public static Locale forLanguageTag(String languageTag) {

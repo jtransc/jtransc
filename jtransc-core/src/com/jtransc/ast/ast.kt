@@ -16,24 +16,29 @@
 
 package com.jtransc.ast
 
-import com.jtransc.BuildBackend
+import com.jtransc.ConfigEntryPoint
+import com.jtransc.ConfigResourcesVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
-import com.jtransc.ds.Allocator
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
-import com.jtransc.error.unexpected
+import com.jtransc.injector.Singleton
 import com.jtransc.maven.MavenLocalRepository
+import com.jtransc.text.quote
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
-import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UserData
 import java.io.File
 import java.io.IOException
 import java.util.*
+
+data class ConfigCompile(val compile: Boolean = true)
+data class ConfigMinimizeNames(val minimizeNames: Boolean = false)
+data class ConfigTreeShaking(val treeShaking: Boolean = false, val trace: Boolean = false)
+//data class ConfigInitialSize(val width: Int = 1280, val height: Int = 720)
 
 data class AstBuildSettings(
 	var jtranscVersion: String = JTranscVersion.getVersion(),
@@ -54,9 +59,7 @@ data class AstBuildSettings(
 	var fullscreen: Boolean = false,
 	var icon: String? = null,
 	var orientation: AstBuildSettings.Orientation = AstBuildSettings.Orientation.AUTO,
-	val backend: BuildBackend = BuildBackend.ASM,
 	val relooper: Boolean = false,
-	val minimizeNames: Boolean = false,
 	val analyzer: Boolean = false,
 	val extra: Map<String?, String?> = mapOf(),
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
@@ -127,7 +130,15 @@ fun LocateRightClass.locateRightMethod(method: AstMethodRef): AstMethodRef {
 
 class AstGenContext {
 	lateinit var clazz: AstClass
-	lateinit var method: AstMethod
+	lateinit var _method: AstMethod
+	var positionString = ""
+	var method: AstMethod
+		set(value) {
+			_method = value
+			positionString = "L" + (clazz.fqname + "::" + _method.name).quote()
+		}
+		get() = _method
+	val useUnsafeArrays: Boolean get() = method.useUnsafeArrays
 
 	override fun toString() = try {
 		"${clazz.name}::${method.name}"
@@ -140,12 +151,15 @@ class AstGenContext {
 	}
 }
 
+@Singleton
 class AstProgram(
-	val entrypoint: FqName,
-	val resourcesVfs: SyncVfsFile,
-	val generator: AstClassGenerator,
-    val types: AstTypes
+	val configResourcesVfs: ConfigResourcesVfs,
+	val configEntrypoint: ConfigEntryPoint,
+	val types: AstTypes
+	//val injector: Injector
 ) : IUserData by UserData(), AstResolver, LocateRightClass {
+	val resourcesVfs = configResourcesVfs.resourcesVfs
+	val entrypoint = configEntrypoint.entrypoint
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -247,7 +261,7 @@ enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 class UniqueNames {
 	private val names = hashMapOf<String, Int>()
 
-	fun alloc(name:String):String{
+	fun alloc(name: String): String {
 		var id = 0
 		var tryName = name
 		while (true) {
@@ -280,6 +294,8 @@ class AstClass(
 	val visibility: AstVisibility = modifiers.visibility
 	val fields = arrayListOf<AstField>()
 	val methods = arrayListOf<AstMethod>()
+	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
+	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
@@ -289,15 +305,17 @@ class AstClass(
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
-	fun locateField(name:String): AstField? = fieldsByName[name] ?: parentClass?.locateField(name)
+	fun locateField(name: String): AstField? = fieldsByName[name] ?: parentClass?.locateField(name)
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
 	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
 
 	val parentClass: AstClass? by lazy { if (extending != null) program[extending] else null }
+
+	val parentClassList by lazy { listOf(parentClass).filterNotNull() }
 	//fun getParentClass(): AstClass? = if (extending != null) program[extending] else null
 
-	val allInterfaces: List<AstClass> by lazy {
+	val allDirectInterfaces: List<AstClass> by lazy {
 		val out = arrayListOf<AstClass>()
 		val sets = hashSetOf<AstClass>()
 		val queue: Queue<AstClass> = LinkedList<AstClass>()
@@ -315,8 +333,12 @@ class AstClass(
 		out.distinct()
 	}
 
+	val allInterfacesInAncestors: List<AstClass> by lazy {
+		(allDirectInterfaces + (parentClass?.allInterfacesInAncestors ?: listOf())).distinct()
+	}
+
 	val allMethodsToImplement: List<AstMethodWithoutClassRef> by lazy {
-		val allInterfacesIncludingThis = (if (isInterface) listOf(this) else listOf<AstClass>()) + this.allInterfaces
+		val allInterfacesIncludingThis = (if (isInterface) listOf(this) else listOf<AstClass>()) + this.allDirectInterfaces
 		allInterfacesIncludingThis.distinct().flatMap { it.methods }.filter { !it.isStatic }.distinct().map { it.ref.withoutClass }.distinct()
 	}
 
@@ -359,6 +381,7 @@ class AstClass(
 
 	fun getMethods(name: String): List<AstMethod> = methodsByName[name] ?: listOf()
 	fun getMethod(name: String, desc: String): AstMethod? = methodsByName[name]?.firstOrNull { it.desc == desc }
+	fun getMethod(nameDesc: AstMethodWithoutClassRef): AstMethod? = methodsByName[nameDesc.name]?.firstOrNull { it.desc == nameDesc.desc }
 
 	fun getMethodsInAncestorsAndInterfaces(name: String): List<AstMethod> {
 		val methods = hashMapOf<AstMethodWithoutClassRef, AstMethod>()
@@ -371,11 +394,21 @@ class AstClass(
 	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? {
 		var result = methodsByNameDesc[nameDesc]
 		if (result == null) {
-			result = parentClass?.getMethodInAncestorsAndInterfaces(nameDesc)
+			// @TODO: Check. This was calling 'getMethodInAncestorsAndInterfaces' before, but probably not wanted, since it is not described in the method name!
+			result = parentClass?.getMethodInAncestors(nameDesc)
 		}
 		methodsByNameDesc[nameDesc] = result
 		return result
 	}
+
+	/*
+	// Do not call it until type is fully completed!
+	val childrenClasses by lazy {
+		program.classes.filter { it.extending == this.name || this.name in it.implementing }
+	}
+
+	val descendantClasses by lazy { childrenClasses.flatMap { it.childrenClasses } }
+	*/
 
 	fun getMethodInAncestorsAndInterfaces(nameDesc: AstMethodWithoutClassRef): AstMethod? {
 		var result = methodsByNameDescInterfaces[nameDesc]
@@ -422,15 +455,15 @@ class AstClass(
 		for (i in implementing) out.add(AstType.REF(i))
 		for (f in fields) for (ref in f.type.getRefClasses()) out.add(ref)
 		for (m in methods) {
-			for (dep in m.dependencies.methods) {
+			for (dep in m.bodyDependencies.methods) {
 				out.add(dep.classRef)
 				out.add(dep)
 			}
-			for (dep in m.dependencies.fields) {
+			for (dep in m.bodyDependencies.fields) {
 				out.add(dep.classRef)
 				out.add(dep)
 			}
-			for (dep in m.dependencies.classes) {
+			for (dep in m.bodyDependencies.classes) {
 				out.add(dep)
 			}
 		}
@@ -453,7 +486,7 @@ class AstClass(
 	}
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
-	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allInterfaces }
+	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
 }
 
 val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
@@ -468,12 +501,12 @@ fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 		val implementing = it.implementing.map { classes[it.fqname]!! }
 		val ext = if (extending != null) classes[extending] else null
 		val ext2 = if (ext != null) listOf(ext) else listOf()
-		val ext3 = it.staticInitMethod?.dependencies?.allClasses?.map { classes[it.fqname]!! } ?: listOf()
+		val ext3 = it.staticInitMethod?.bodyDependencies?.allClasses?.map { classes[it.fqname]!! } ?: listOf()
 
 		fun checkMethodsRecursive(method: AstMethod, explored: MutableSet<AstMethod> = hashSetOf()): MutableSet<AstMethod> {
 			if (method !in explored) {
 				explored.add(method)
-				for (m in method.dependencies.methods) {
+				for (m in method.bodyDependencies.methods) {
 					checkMethodsRecursive(resolveMethodRef(m), explored)
 				}
 			}
@@ -481,7 +514,7 @@ fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 		}
 
 		val ext4 = if (it.staticInitMethod != null) {
-			checkMethodsRecursive(it.staticInitMethod!!).toList().flatMap { it.dependencies.allClasses }.map { classes[it.fqname]!! }
+			checkMethodsRecursive(it.staticInitMethod!!).toList().flatMap { it.bodyDependencies.allClasses }.map { classes[it.fqname]!! }
 		} else {
 			listOf()
 		}
@@ -539,22 +572,23 @@ interface FieldRef {
 }
 
 class AstField(
-	id: Int,
+	val id: Int,
 	containingClass: AstClass,
 	name: String,
 	type: AstType,
 	val modifiers: AstModifiers,
-	val descriptor: String,
+	val desc: String,
 	annotations: List<AstAnnotation>,
 	val genericSignature: String?,
 	val constantValue: Any? = null,
-    val types: AstTypes
+	val types: AstTypes
 ) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations), FieldRef {
 	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
 	override val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
 	val hasConstantValue = constantValue != null
+	val isWeak by lazy { annotationsList.contains<JTranscWeak>() }
 }
 
 
@@ -562,7 +596,7 @@ class AstMethod(
 	containingClass: AstClass,
 	val id: Int,
 	name: String,
-	type: AstType.METHOD,
+	methodType: AstType.METHOD,
 	annotations: List<AstAnnotation>,
 	val signature: String,
 	val genericSignature: String?,
@@ -573,30 +607,35 @@ class AstMethod(
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
 	val types: AstTypes
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangleMethod(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
+) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
 	val isNative: Boolean = modifiers.isNative
 
 	val body: AstBody? by lazy { generateBody() }
 	val hasBody: Boolean get() = body != null
 
-	val methodType: AstType.METHOD = type
+	val methodType: AstType.METHOD = methodType
 	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD
 	val desc = methodType.desc
 	override val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
-	val dependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body) }
+
+	val bodyDependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body, name) }
 
 	val getterField: String? by lazy { annotationsList.getTyped<JTranscGetter>()?.value }
 	val setterField: String? by lazy { annotationsList.getTyped<JTranscSetter>()?.value }
 	val nativeMethod: String? by lazy { annotationsList.getTyped<JTranscMethod>()?.value }
 	val isInline: Boolean by lazy { annotationsList.contains<JTranscInline>() }
+	val useUnsafeArrays: Boolean by lazy { annotationsList.contains<JTranscUnsafeFastArrays>() }
+
 
 	val isInstanceInit: Boolean get() = name == "<init>"
 	val isClassInit: Boolean get() = name == "<clinit>"
 	val isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
 	val methodVoidReturnThis: Boolean get() = isInstanceInit
 
+	val returnTypeWithThis: AstType get() = if (methodVoidReturnThis) containingClass.astType else this.methodType.ret
+
 	val isOverriding: Boolean by lazy { containingClass.ancestors.any { it[ref.withoutClass] != null } }
-	val isImplementing: Boolean by lazy { containingClass.allInterfaces.any { it.getMethod(this.name, this.desc) != null } }
+	val isImplementing: Boolean by lazy { containingClass.allDirectInterfaces.any { it.getMethod(this.name, this.desc) != null } }
 
 	override fun toString(): String = "AstMethod(${containingClass.fqname}:$name:$desc)"
 }

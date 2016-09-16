@@ -10,8 +10,10 @@ import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.misc.MiscTest
 import javatest.sort.ComparableTimSortTest
+import javatest.utils.Base64Test
 import javatest.utils.CopyTest
 import javatest.utils.DateTest
+import javatest.utils.KotlinInheritanceTest
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.bug.*
@@ -24,23 +26,19 @@ import jtransc.rt.test.*
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
-		// Java8 tests
-		Java8Test.main(args)
-		DefaultMethodsTest.main(args)
-		JTranscClinitNotStatic.main(args)
-
 		// Misc tests
-		SystemTest.main(args)
-		MiscTest.main(args)
-		CopyTest.main(args)
-
-		// Suite tests
 		StringsTest.main(args)
+		SystemTest.main(args)
+		CopyTest.main(args)
+		FastMemoryTest.main(args)
+		FastMemoryTest.main(args)
 		MultidimensionalArrayTest.main(args)
 		KotlinCollections.main(args)
-		FastMemoryTest.main(args)
-		FastMemoryTest.main(args)
+		//KotlinInheritanceTest.main(args)
 		SimdTest.main(args)
+		MiscTest.main(args)
+
+		// Suite tests
 		JTranscBugWithStaticInits.main(args)
 		JTranscCollectionsTest.main(args)
 		JTranscCloneTest.main(args)
@@ -83,5 +81,13 @@ object BigTest {
 		// Kotlin
 		StrangeNamesTest.main(args)
 		ComparableTimSortTest.main(args)
+
+		// Java8 tests
+		Java8Test.main(args)
+		DefaultMethodsTest.main(args)
+		JTranscClinitNotStatic.main(args)
+
+		// Misc
+		Base64Test.main(args);
 	}
 }

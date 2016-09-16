@@ -20,6 +20,9 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.lang.jtransc.JTranscStrings;
+import java.util.Arrays;
+
 @HaxeAddMembers({
 	"public var buffer:StringBuf = new StringBuf();",
 	"public var str2:String = null;",
@@ -29,66 +32,133 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 	"public function setStr(str:String) { this.str2 = str; buffer = new StringBuf(); buffer.add(str); return this; }",
 })
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
+	protected char[] buffer;
+	protected int length;
+
 	AbstractStringBuilder() {
 		this(0);
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._str = '';")
 	AbstractStringBuilder(int capacity) {
+		buffer = new char[capacity];
 	}
 
 	//@Override
 	@HaxeMethodBody("return this.buffer.length;")
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
-	native public int length();
+	public int length() {
+		return length;
+	}
 
 	@HaxeMethodBody("setStr(getStr());")
 	@JTranscMethodBody(target = "js", value = "")
-	native public void trimToSize();
+	public void trimToSize() {
+		this.buffer = Arrays.copyOf(buffer, length);
+	}
 
 	//@Override
 	@HaxeMethodBody("return this.getStr().charCodeAt(p0);")
 	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0);")
-	native public char charAt(int index);
+	public char charAt(int index) {
+		return buffer[index];
+	}
 
 	@HaxeMethodBody("return this.getStr().indexOf(p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str);")
-	native public int indexOf(String str);
+	public int indexOf(String str) {
+		return indexOf(str, 0);
+	}
 
 	@HaxeMethodBody("return this.getStr().indexOf(p0._str, p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str, p1);")
-	native public int indexOf(String str, int fromIndex);
+	public int indexOf(String str, int fromIndex) {
+		return JTranscStrings.indexOf(buffer, fromIndex, JTranscStrings.getData(str));
+	}
 
 	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(p0._str);")
-	native public int lastIndexOf(String str);
+	public int lastIndexOf(String str) {
+		return lastIndexOf(str, length);
+	}
 
 	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str, p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(p0._str, p1);")
-	native public int lastIndexOf(String str, int fromIndex);
+	public int lastIndexOf(String str, int fromIndex) {
+		return JTranscStrings.lastIndexOf(buffer, fromIndex, JTranscStrings.getData(str));
+	}
 
 	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
-	native public AbstractStringBuilder reverse();
+	public AbstractStringBuilder reverse() {
+		int len = length / 2;
+		for (int n = 0; n < len; n++) {
+			int m = length - n - 1;
+			char temp = this.buffer[n];
+			this.buffer[n] = this.buffer[m];
+			this.buffer[m] = temp;
+		}
+		return this;
+	}
 
 	@HaxeMethodBody("return this.add(HaxeNatives.toNativeString(p0));")
 	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
-	native public AbstractStringBuilder append(String str);
+	public AbstractStringBuilder append(String _str) {
+		String str = String.valueOf(_str);
+		//JTranscConsole.log("append.String:");
+		//JTranscConsole.log(str);
+		int strlen = str.length();
+		ensureCapacity(length + strlen);
+		System.arraycopy(JTranscStrings.getData(str), 0, buffer, length, strlen);
+		length += strlen;
+		return this;
+	}
+
+	//@Override
+	@HaxeMethodBody("return this.addChar(p0);")
+	@JTranscMethodBody(target = "js", value = "this._str += String.fromCharCode(p0); return this;")
+	public AbstractStringBuilder append(char v) {
+		//JTranscConsole.log("append.char:");
+		//JTranscConsole.log(v);
+		ensureCapacity(length + 1);
+		buffer[length++] = v;
+		return this;
+	}
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + this.getStr().substr(p1));")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
-	native public AbstractStringBuilder delete(int start, int end);
+	public AbstractStringBuilder delete(int start, int end) {
+		return replace(start, end, "");
+	}
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + p2._str + this.getStr().substr(p1));")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
-	native public AbstractStringBuilder replace(int start, int end, String str);
+	public AbstractStringBuilder replace(int start, int end, String str) {
+		//ensure(end);
+		int addLength = str.length();
+		int removeLength = end - start;
+
+		ensureCapacity(this.length - removeLength + addLength);
+
+		System.arraycopy(buffer, end, buffer, start + addLength, this.length - end);
+		System.arraycopy(JTranscStrings.getData(str), 0, buffer, start, addLength);
+		this.length = this.length - removeLength + addLength;
+		return this;
+	}
 
 	public int capacity() {
-		return length();
+		return buffer.length;
+	}
+
+	private char[] ensure(int minimumCapacity) {
+		if (minimumCapacity > buffer.length) {
+			buffer = Arrays.copyOf(buffer, Math.max(minimumCapacity, (buffer.length * 2) + 2));
+		}
+		return buffer;
 	}
 
 	public void ensureCapacity(int minimumCapacity) {
-
+		ensure(minimumCapacity);
 	}
 
 	public void setLength(int newLength) {
@@ -124,11 +194,6 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	public AbstractStringBuilder append(boolean v) {
 		return this.append(String.valueOf(v));
 	}
-
-	//@Override
-	@HaxeMethodBody("return this.addChar(p0);")
-	@JTranscMethodBody(target = "js", value = "this._str += String.fromCharCode(p0); return this;")
-	native public AbstractStringBuilder append(char v);
 
 	public AbstractStringBuilder append(int v) {
 		return this.append(String.valueOf(v));
@@ -243,5 +308,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	@Override
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
-	public abstract String toString();
+	public String toString() {
+		return new String(buffer, 0, length);
+	}
 }

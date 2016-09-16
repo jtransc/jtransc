@@ -3,25 +3,21 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.time.JTranscClock;
 
 public class JTranscSystem {
+	// Try to avoid static analysis notifying that is** functions are constants.
+	static private final boolean TRUE = true;
+	static private final boolean FALSE = false;
+
 	static double start = -1;
 
-	@HaxeMethodBody("return N.getTime();")
-	@JTranscMethodBody(target = "js", value = "return N.getTime();")
 	static public double fastTime() {
-		return System.currentTimeMillis();
+		return JTranscClock.impl.fastTime();
 	}
 
-	@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
-	@HaxeMethodBody("var start = N.getTime(); while (N.getTime() - start < p0) { }") // BUSY WAIT!
-
-	@JTranscMethodBody(target = "js", value = "var start = N.getTime(); while (N.getTime() - start < p0) { }")
 	static public void sleep(double ms) {
-		try {
-			Thread.sleep((long) ms);
-		} catch (Throwable t) {
-		}
+		JTranscClock.impl.sleep(ms);
 	}
 
 	static public double stamp() {
@@ -60,9 +56,15 @@ public class JTranscSystem {
 
 	@HaxeMethodBody("return true;")
 	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscMethodBody(target = "cpp", value = "return true;")
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
-		return false;
+		return FALSE;
+	}
+
+	// Alias for consistency
+	static public boolean isJTransc() {
+		return usingJTransc();
 	}
 
 	@JTranscInline
@@ -93,7 +95,7 @@ public class JTranscSystem {
 		if (!usingJTransc()) return "java";
 		if (isJs()) return "js";
 		if (isSwf()) return "swf";
-		if (isJava()) return "java";
+		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
 		if (isCpp()) return "cpp";
 		if (isNeko()) return "neko";
@@ -105,45 +107,50 @@ public class JTranscSystem {
 	@JTranscInline
 	@HaxeMethodBody("return true;")
 	public static boolean isHaxe() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isPureJs() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
+	@JTranscMethodBody(target = "cpp", value = "return true;")
 	public static boolean isSys() {
-		return true;
+		return TRUE;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "cpp", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
+	@JTranscMethodBody(target = "cpp", value = "return true;")
 	public static boolean isCpp() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "cs", value = "return true;")
 	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isCsharp() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "java", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
+	@JTranscMethodBody(target = "cpp", value = "return false;")
+	public static boolean isJvm() {
+		return TRUE;
+	}
+
 	public static boolean isJava() {
-		return true;
+		return isJvm();
 	}
 
 	@JTranscInline
@@ -151,7 +158,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isJs() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
@@ -159,7 +166,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isSwf() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
@@ -167,7 +174,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isNeko() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
@@ -175,7 +182,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPhp() {
-		return false;
+		return FALSE;
 	}
 
 	@JTranscInline
@@ -183,13 +190,14 @@ public class JTranscSystem {
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPython() {
-		return false;
+		return FALSE;
 	}
 
 	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.systemName());")
 	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
 	@HaxeMethodBody("return HaxeNatives.str('unknown');")
 	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}
@@ -205,9 +213,14 @@ public class JTranscSystem {
 	// http://lopica.sourceforge.net/os.html
 	@HaxeMethodBody("return HaxeNatives.str('x86');")
 	@JTranscMethodBody(target = "js", value = "return N.str('x86');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");")
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
-		return System.getProperty("os.arch");
+		if (isJvm()) {
+			return System.getProperty("os.arch");
+		} else {
+			return "unknown";
+		}
 	}
 
 	public static boolean isOs32() {
@@ -234,24 +247,6 @@ public class JTranscSystem {
 		return getOS().toLowerCase().startsWith("mac");
 	}
 
-	public static String fileSeparator() {
-		//return isWindows() ? "\\" : "/";
-		return "/";
-	}
-
-	public static String pathSeparator() {
-		//return isWindows() ? ";" : ":";
-		return ":";
-	}
-
-	public static String lineSeparator() {
-		//return isWindows() ? "\r\n" : "\n";
-		return "\n";
-	}
-
-	static public String getUserHome() {
-		return System.getProperty("user.home");
-	}
 
 	public static boolean isPosix() {
 		return !isWindows();
@@ -268,18 +263,43 @@ public class JTranscSystem {
 	@HaxeMethodBody(target = "debug", value = "return true;")
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isDebug() {
-		return false;
+		return FALSE;
 	}
 
 	@HaxeMethodBody("return N.str('jtransc-haxe');")
 	@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");")
 	public static String getRuntimeName() {
 		return "java";
 	}
 
 	@HaxeMethodBody("return N.str('/jtransc-haxe');")
 	@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");")
 	public static String getJavaHome() {
 		return System.getenv("java.home");
 	}
+
+	@JTranscMethodBody(target = "js", value = "return true;")
+	public static boolean isEmulatedLong() {
+		return FALSE;
+	}
+
+
+	public static String fileSeparator() {
+		return JTranscSystemProperties.fileSeparator();
+	}
+
+	public static String pathSeparator() {
+		return JTranscSystemProperties.pathSeparator();
+	}
+
+	public static String lineSeparator() {
+		return JTranscSystemProperties.lineSeparator();
+	}
+
+	static public String getUserHome() {
+		return JTranscSystemProperties.userHome();
+	}
+
 }

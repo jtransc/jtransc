@@ -210,6 +210,7 @@ public abstract class URLConnection {
 		}
 
 		// search through the package list for the right class for the Content Type
+		/*
 		String packageList = System.getProperty("java.content.handler.pkgs");
 		if (packageList != null) {
 			for (String packageName : packageList.split("\\|")) {
@@ -223,6 +224,7 @@ public abstract class URLConnection {
 				}
 			}
 		}
+		*/
 
 		if (cHandler == null) {
 			try {
@@ -255,6 +257,11 @@ public abstract class URLConnection {
 	public int getContentLength() {
 		return getHeaderFieldInt("Content-Length", -1);
 	}
+
+	public long getContentLengthLong() {
+		return getHeaderFieldLong("Content-Length", -1);
+	}
+
 
 	/**
 	 * Returns the MIME-type of the content specified by the response header field
@@ -477,6 +484,14 @@ public abstract class URLConnection {
 	public int getHeaderFieldInt(String field, int defaultValue) {
 		try {
 			return Integer.parseInt(getHeaderField(field));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
+	public long getHeaderFieldLong(String field, int defaultValue) {
+		try {
+			return Long.parseLong(getHeaderField(field));
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}

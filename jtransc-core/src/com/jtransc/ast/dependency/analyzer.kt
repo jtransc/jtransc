@@ -21,11 +21,11 @@ import com.jtransc.error.noImpl
 
 // @TODO: Use generic visitor!
 object AstDependencyAnalyzer {
-	@JvmStatic fun analyze(program: AstProgram, body: AstBody?): AstReferences {
-		return AstDependencyAnalyzerGen(program, body).references
+	@JvmStatic fun analyze(program: AstProgram, body: AstBody?, name: String? = null): AstReferences {
+		return AstDependencyAnalyzerGen(program, body, name).references
 	}
 
-	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?) {
+	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?, name: String? = null) {
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
@@ -73,6 +73,7 @@ object AstDependencyAnalyzer {
 					for (arg in expr.args) ana(arg)
 					methods.add(expr.method)
 					if (expr is AstExpr.CALL_INSTANCE) ana(expr.obj)
+					//if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
 				}
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
@@ -95,9 +96,12 @@ object AstDependencyAnalyzer {
 				is AstExpr.PARAM -> ana(expr.type)
 				is AstExpr.METHOD_CLASS -> {
 					ana(expr.type)
+					methods += expr.methodInInterfaceRef
+					methods += expr.methodToConvertRef
+					ana(expr.methodInInterfaceRef.allClassRefs)
 					ana(expr.methodToConvertRef.allClassRefs)
 				}
-				//is AstExpr.REF -> ana(expr.expr)
+			//is AstExpr.REF -> ana(expr.expr)
 				else -> noImpl("Not implemented $expr")
 			}
 		}
@@ -117,6 +121,10 @@ object AstDependencyAnalyzer {
 				is AstStm.SET_LOCAL -> ana(stm.expr)
 				is AstStm.SET_ARRAY -> {
 					ana(stm.expr); ana(stm.index)
+				}
+				is AstStm.SET_ARRAY_LITERALS -> {
+					ana(stm.array)
+					for (v in stm.values) ana(v)
 				}
 				is AstStm.SET_FIELD_INSTANCE -> {
 					fields.add(stm.field); ana(stm.left); ana(stm.expr)
@@ -171,9 +179,13 @@ object AstDependencyAnalyzer {
 				for (local in body.locals) ana(local.type)
 
 				ana(body.stm)
-			}
 
+				for (trap in body.traps) {
+					types.add(trap.exception.name)
+				}
+			}
 		}
+
 		val references = AstReferences(
 			program = program,
 			classes = types.map { AstType.REF(it) }.toSet(),

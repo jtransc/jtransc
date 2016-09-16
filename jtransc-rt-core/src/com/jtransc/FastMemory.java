@@ -96,6 +96,10 @@ final public class FastMemory {
 		return new FastMemory(bytes);
 	}
 
+	static public FastMemory wrap(ByteBuffer buffer) {
+		return new FastMemory(buffer.array());
+	}
+
 	@JTranscInline
 	@HaxeMethodBody("return this._length;")
 	@JTranscMethodBody(target = "js", value = "return this._length;")
@@ -318,7 +322,7 @@ final public class FastMemory {
 
 	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
 	static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
-		for (int n = 0; n < length; n++) to[toOffset + n] = (byte)from.getInt8(fromOffset + n);
+		for (int n = 0; n < length; n++) to[toOffset + n] = (byte) from.getInt8(fromOffset + n);
 	}
 
 	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")

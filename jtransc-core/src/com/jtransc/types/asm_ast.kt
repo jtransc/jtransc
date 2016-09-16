@@ -59,6 +59,8 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 		labels.ref(labels.label(b.start))
 		labels.ref(labels.label(b.end))
 		labels.ref(labels.label(b.handler))
+		labels.referencedHandlers += b.start
+		labels.referencedHandlers += b.end
 		labels.referencedHandlers += b.handler
 	}
 
@@ -76,8 +78,10 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 		basicBlocks.getBasicBlockForLabel(it)?.stms ?: listOf()
 	}
 
-	return AstBody(
-		AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels)),
+	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
+
+	val out = AstBody(
+		optimizedStms,
 		locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(
@@ -89,16 +93,16 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 		},
 		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types)
 	).optimize()
+
+	return out;
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {
 	return stms.filter {
-		if (it is AstStm.STM_LABEL) {
-			it.label in referencedLabels
-		} else if (it is AstStm.NOP) {
-			false
-		} else {
-			true
+		when (it) {
+			is AstStm.STM_LABEL -> it.label in referencedLabels
+			is AstStm.NOP -> false
+			else -> true
 		}
 	}
 }
@@ -535,7 +539,7 @@ private class BasicBlockBuilder(
 			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
-			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type))
+			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType))
 			else -> invalidOp("$i")
 		}
 	}

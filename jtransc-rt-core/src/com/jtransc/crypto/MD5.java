@@ -3,67 +3,81 @@ package com.jtransc.crypto;
 /**
  * @see "https://github.com/blueimp/JavaScript-MD5/blob/master/js/md5.js"
  */
+@SuppressWarnings("PointlessArithmeticExpression")
 final public class MD5 {
 	/*
 	* Add integers, wrapping at 2^32. This uses 16-bit operations internally
 	* to work around bugs in some JS interpreters.
 	*/
-	int safe_add (int x, int y) {
-		int lsw = (x & 0xFFFF) + (y & 0xFFFF);
-		int msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-		return (msw << 16) | (lsw & 0xFFFF);
+	private int safe_add(int x, int y) {
+		return x + y;
 	}
 
 	/*
-    * Bitwise rotate a 32-bit number to the left.
+	* Bitwise rotate a 32-bit number to the left.
     */
-	int bit_rol (int num, int cnt) {
+	private int bit_rol(int num, int cnt) {
 		return (num << cnt) | (num >>> (32 - cnt));
 	}
 
 	/*
     * These functions implement the four basic operations the algorithm uses.
     */
-	int md5_cmn (int q, int a, int b, int x, int s, int t) {
+	private int md5_cmn(int q, int a, int b, int x, int s, int t) {
 		return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
 	}
-	int md5_ff (int a, int b, int c, int d, int x, int s, int t) {
+
+	private int md5_ff(int a, int b, int c, int d, int x, int s, int t) {
 		return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
 	}
-	int md5_gg (int a, int b, int c, int d, int x, int s, int t) {
+
+	private int md5_gg(int a, int b, int c, int d, int x, int s, int t) {
 		return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
 	}
-	int md5_hh (int a, int b, int c, int d, int x, int s, int t) {
+
+	private int md5_hh(int a, int b, int c, int d, int x, int s, int t) {
 		return md5_cmn(b ^ c ^ d, a, b, x, s, t);
 	}
-	int md5_ii (int a, int b, int c, int d, int x, int s, int t) {
+
+	private int md5_ii(int a, int b, int c, int d, int x, int s, int t) {
 		return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
 	}
 
 	static public class State {
-		public int a = 1732584193;
-		public int b = -271733879;
-		public int c = -1732584194;
-		public int d = 271733878;
+		public int a;
+		public int b;
+		public int c;
+		public int d;
+
+		public State() {
+			reset();
+		}
+
+		public void reset() {
+			a = 1732584193;
+			b = -271733879;
+			c = -1732584194;
+			d = 271733878;
+		}
 	}
 
 	/*
     * Calculate the MD5 of an array of little-endian words, and a bit length.
     */
-	void binl_md5 (int[] x, int len, State inout) {
+	public void binl_md5(int[] x, int len, State inout) {
     /* append padding */
 		x[len >> 5] |= 0x80 << (len % 32);
 		x[(((len + 64) >>> 9) << 4) + 14] = len;
 
-		int  i;
-		int  olda;
-		int  oldb;
-		int  oldc;
-		int  oldd;
-		int  a = inout.a;
-		int  b = inout.b;
-		int  c = inout.c;
-		int  d = inout.d;
+		int i;
+		int olda;
+		int oldb;
+		int oldc;
+		int oldd;
+		int a = inout.a;
+		int b = inout.b;
+		int c = inout.c;
+		int d = inout.d;
 
 		for (i = 0; i < x.length; i += 16) {
 			olda = a;
@@ -71,7 +85,7 @@ final public class MD5 {
 			oldc = c;
 			oldd = d;
 
-			a = md5_ff(a, b, c, d, x[i], 7, -680876936);
+			a = md5_ff(a, b, c, d, x[i + 0], 7, -680876936);
 			d = md5_ff(d, a, b, c, x[i + 1], 12, -389564586);
 			c = md5_ff(c, d, a, b, x[i + 2], 17, 606105819);
 			b = md5_ff(b, c, d, a, x[i + 3], 22, -1044525330);
@@ -91,7 +105,7 @@ final public class MD5 {
 			a = md5_gg(a, b, c, d, x[i + 1], 5, -165796510);
 			d = md5_gg(d, a, b, c, x[i + 6], 9, -1069501632);
 			c = md5_gg(c, d, a, b, x[i + 11], 14, 643717713);
-			b = md5_gg(b, c, d, a, x[i], 20, -373897302);
+			b = md5_gg(b, c, d, a, x[i + 0], 20, -373897302);
 			a = md5_gg(a, b, c, d, x[i + 5], 5, -701558691);
 			d = md5_gg(d, a, b, c, x[i + 10], 9, 38016083);
 			c = md5_gg(c, d, a, b, x[i + 15], 14, -660478335);
@@ -114,7 +128,7 @@ final public class MD5 {
 			c = md5_hh(c, d, a, b, x[i + 7], 16, -155497632);
 			b = md5_hh(b, c, d, a, x[i + 10], 23, -1094730640);
 			a = md5_hh(a, b, c, d, x[i + 13], 4, 681279174);
-			d = md5_hh(d, a, b, c, x[i], 11, -358537222);
+			d = md5_hh(d, a, b, c, x[i + 0], 11, -358537222);
 			c = md5_hh(c, d, a, b, x[i + 3], 16, -722521979);
 			b = md5_hh(b, c, d, a, x[i + 6], 23, 76029189);
 			a = md5_hh(a, b, c, d, x[i + 9], 4, -640364487);
@@ -122,7 +136,7 @@ final public class MD5 {
 			c = md5_hh(c, d, a, b, x[i + 15], 16, 530742520);
 			b = md5_hh(b, c, d, a, x[i + 2], 23, -995338651);
 
-			a = md5_ii(a, b, c, d, x[i], 6, -198630844);
+			a = md5_ii(a, b, c, d, x[i + 0], 6, -198630844);
 			d = md5_ii(d, a, b, c, x[i + 7], 10, 1126891415);
 			c = md5_ii(c, d, a, b, x[i + 14], 15, -1416354905);
 			b = md5_ii(b, c, d, a, x[i + 5], 21, -57434055);
@@ -151,8 +165,8 @@ final public class MD5 {
 	}
 
 	///*
-    //* Convert an array of little-endian words to a string
-    //*/
+	//* Convert an array of little-endian words to a string
+	//*/
 	//function binl2rstr (input) {
 	//	var i
 	//	var output = ''
@@ -163,9 +177,9 @@ final public class MD5 {
 	//}
 //
 	///*
-    //* Convert a raw string to an array of little-endian words
-    //* Characters >255 have their high-byte silently ignored.
-    //*/
+	//* Convert a raw string to an array of little-endian words
+	//* Characters >255 have their high-byte silently ignored.
+	//*/
 	//function rstr2binl (input) {
 	//	var i
 	//	var output = []
@@ -180,15 +194,15 @@ final public class MD5 {
 	//}
 //
 	///*
-    //* Calculate the MD5 of a raw string
-    //*/
+	//* Calculate the MD5 of a raw string
+	//*/
 	//function rstr_md5 (s) {
 	//	return binl2rstr(binl_md5(rstr2binl(s), s.length * 8))
 	//}
 //
 	///*
-    //* Calculate the HMAC-MD5, of a key and some data (raw strings)
-    //*/
+	//* Calculate the HMAC-MD5, of a key and some data (raw strings)
+	//*/
 	//function rstr_hmac_md5 (key, data) {
 	//	var i
 	//	var bkey = rstr2binl(key)
@@ -208,8 +222,8 @@ final public class MD5 {
 	//}
 //
 	///*
-    //* Convert a raw string to a hex string
-    //*/
+	//* Convert a raw string to a hex string
+	//*/
 	//function rstr2hex (input) {
 	//	var hex_tab = '0123456789abcdef'
 	//	var output = ''
@@ -224,15 +238,15 @@ final public class MD5 {
 	//}
 //
 	///*
-    //* Encode a string as utf-8
-    //*/
+	//* Encode a string as utf-8
+	//*/
 	//function str2rstr_utf8 (input) {
 	//	return unescape(encodeURIComponent(input))
 	//}
 //
 	///*
-    //* Take string arguments and return either raw or hex encoded strings
-    //*/
+	//* Take string arguments and return either raw or hex encoded strings
+	//*/
 	//function raw_md5 (s) {
 	//	return rstr_md5(str2rstr_utf8(s))
 	//}

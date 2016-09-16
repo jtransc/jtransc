@@ -159,9 +159,7 @@ public abstract class InputStream extends Object implements Closeable {
                     return i == 0 ? -1 : i;
                 }
             } catch (IOException e) {
-                if (i != 0) {
-                    return i;
-                }
+                if (i != 0) return i;
                 throw e;
             }
             buffer[byteOffset + i] = (byte) c;

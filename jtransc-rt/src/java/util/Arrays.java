@@ -17,6 +17,8 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscMethodBody;
+
 import java.io.Serializable;
 import java.lang.reflect.Array;
 
@@ -2882,6 +2884,7 @@ public class Arrays {
      * @since 1.6
      */
     @SuppressWarnings("unchecked")
+	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2);")
     public static <T> T[] copyOfRange(T[] original, int start, int end) {
         int originalLength = original.length; // For exception priority compatibility.
         if (start > end) {
@@ -2914,6 +2917,7 @@ public class Arrays {
      * @since 1.6
      */
     @SuppressWarnings("unchecked")
+	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2, p3.name);")
     public static <T, U> T[] copyOfRange(U[] original, int start, int end, Class<? extends T[]> newType) {
         if (start > end) {
             throw new IllegalArgumentException();

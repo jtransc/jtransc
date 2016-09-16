@@ -25,63 +25,70 @@ public final class Array {
 
 	@HaxeMethodBody("return new HaxeArrayBool(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_Z(p0);")
-	native private static Object newBoolInstance(int length) throws NegativeArraySizeException;
+	private static boolean[] newBoolInstance(int length) throws NegativeArraySizeException {
+		return new boolean[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayByte(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_B(p0);")
-	native private static Object newByteInstance(int length) throws NegativeArraySizeException;
+	private static byte[] newByteInstance(int length) throws NegativeArraySizeException {
+		return new byte[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayChar(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_C(p0);")
-	native private static Object newCharInstance(int length) throws NegativeArraySizeException;
+	private static char[] newCharInstance(int length) throws NegativeArraySizeException {
+		return new char[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayShort(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_S(p0);")
-	native private static Object newShortInstance(int length) throws NegativeArraySizeException;
+	private static short[] newShortInstance(int length) throws NegativeArraySizeException {
+		return new short[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayInt(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_I(p0);")
-	native private static Object newIntInstance(int length) throws NegativeArraySizeException;
+	private static int[] newIntInstance(int length) throws NegativeArraySizeException {
+		return new int[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayLong(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_J(p0);")
-	native private static Object newLongInstance(int length) throws NegativeArraySizeException;
+	private static long[] newLongInstance(int length) throws NegativeArraySizeException {
+		return new long[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayFloat(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_F(p0);")
-	native private static Object newFloatInstance(int length) throws NegativeArraySizeException;
+	private static float[] newFloatInstance(int length) throws NegativeArraySizeException {
+		return new float[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayDouble(p0);")
 	@JTranscMethodBody(target = "js", value = "return new JA_D(p0);")
-	native private static Object newDoubleInstance(int length) throws NegativeArraySizeException;
+	private static Object newDoubleInstance(int length) throws NegativeArraySizeException {
+		return new double[length];
+	}
 
 	@HaxeMethodBody("return new HaxeArrayAny(p0, p1._str);")
 	@JTranscMethodBody(target = "js", value = "return new JA_L(p0, N.istr(p1));")
+	@JTranscMethodBody(target = "cpp", value = "return SOBJ(new JA_L(p0, N::istr(p1)));")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;
 
 	public static Object newInstance(Class<?> type, int length) throws NegativeArraySizeException {
-		if (type.isPrimitive()) {
-			if (type == Boolean.TYPE) {
-				return newBoolInstance(length);
-			} else if (type == Byte.TYPE) {
-				return newByteInstance(length);
-			} else if (type == Short.TYPE) {
-				return newShortInstance(length);
-			} else if (type == Character.TYPE) {
-				return newCharInstance(length);
-			} else if (type == Integer.TYPE) {
-				return newIntInstance(length);
-			} else if (type == Long.TYPE) {
-				return newLongInstance(length);
-			} else if (type == Float.TYPE) {
-				return newFloatInstance(length);
-			} else if (type == Double.TYPE) {
-				return newDoubleInstance(length);
-			} else if (type == Void.TYPE) {
-			}
-		} else {
-			return newObjectInstance(length, "[" + type.getName());
-		}
+		if (type == null) throw new NullPointerException("Array.newInstance");
+
+		if (!type.isPrimitive()) return newObjectInstance(length, "[" + type.getName());
+		if (type == Boolean.TYPE) return newBoolInstance(length);
+		if (type == Byte.TYPE) return newByteInstance(length);
+		if (type == Short.TYPE) return newShortInstance(length);
+		if (type == Character.TYPE) return newCharInstance(length);
+		if (type == Integer.TYPE) return newIntInstance(length);
+		if (type == Long.TYPE) return newLongInstance(length);
+		if (type == Float.TYPE) return newFloatInstance(length);
+		if (type == Double.TYPE) return newDoubleInstance(length);
+		if (type == Void.TYPE) throw new RuntimeException("Invalid Array of void type");
 		throw new RuntimeException("Invalid Array.newInstance with " + type);
 	}
 
@@ -95,71 +102,88 @@ public final class Array {
 
     @HaxeMethodBody("return cast(p0, HaxeArrayBase).length;")
 	@JTranscMethodBody(target = "js", value = "return p0.length;")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_0, p0)->length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayAny).getDynamic(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_L, p0)->get(p1);")
 	native private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
     public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 	    Type elementType = getArrayElementType(array.getClass());
-	    if (elementType == Boolean.TYPE) {
-		    return getBoolean(array, index);
-	    } else if (elementType == Byte.TYPE) {
-		    return getByte(array, index);
-	    } else if (elementType == Character.TYPE) {
-		    return getChar(array, index);
-	    } else if (elementType == Short.TYPE) {
-		    return getShort(array, index);
-	    } else if (elementType == Integer.TYPE) {
-		    return getInt(array, index);
-	    } else if (elementType == Long.TYPE) {
-		    return getLong(array, index);
-	    } else if (elementType == Float.TYPE) {
-		    return getFloat(array, index);
-	    } else if (elementType == Double.TYPE) {
-		    return getDouble(array, index);
-	    } else {
-		    return getInstance(array, index);
-	    }
+	    if (elementType == Boolean.TYPE) return getBoolean(array, index);
+	    if (elementType == Byte.TYPE) return getByte(array, index);
+	    if (elementType == Character.TYPE) return getChar(array, index);
+	    if (elementType == Short.TYPE) return getShort(array, index);
+	    if (elementType == Integer.TYPE) return getInt(array, index);
+	    if (elementType == Long.TYPE) return getLong(array, index);
+	    if (elementType == Float.TYPE) return getFloat(array, index);
+	    if (elementType == Double.TYPE) return getDouble(array, index);
+	    return getInstance(array, index);
     }
 
     @HaxeMethodBody("return cast(p0, HaxeArrayBool).getBool(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1) != 0;")
-	native public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_Z, p0)->get(p1);")
+	public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((boolean[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayByte).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_B, p0)->get(p1);")
+	public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((byte[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayChar).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static char getChar(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_C, p0)->get(p1);")
+	public static char getChar(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((char[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayShort).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static short getShort(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_S, p0)->get(p1);")
+	public static short getShort(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((short[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayInt).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static int getInt(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_I, p0)->get(p1);")
+	public static int getInt(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((int[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayLong).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static long getLong(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_J, p0)->get(p1);")
+	public static long getLong(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((long[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayFloat).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static float getFloat(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_F, p0)->get(p1);")
+	public static float getFloat(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((float[])array)[index];
+	}
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayDouble).get(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
-	native public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_D, p0)->get(p1);")
+	public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		return ((double[])array)[index];
+	}
 
 
 	@HaxeMethodBody("cast(p0, HaxeArrayAny).setDynamic(p1, p2);")
-	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
+	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_L, p0)->set(p1, p2);")
 	native private static void setInstance(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
@@ -187,35 +211,59 @@ public final class Array {
 
     @HaxeMethodBody("cast(p0, HaxeArrayBool).setBool(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setBoolean(Object array, int index, boolean z) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_Z, p0)->set(p1, p2);")
+	public static void setBoolean(Object array, int index, boolean v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((boolean[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayByte).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setByte(Object array, int index, byte b) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_B, p0)->set(p1, p2);")
+	public static void setByte(Object array, int index, byte v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((byte[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayChar).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setChar(Object array, int index, char c) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_C, p0)->set(p1, p2);")
+	public static void setChar(Object array, int index, char v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((char[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayShort).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setShort(Object array, int index, short s) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_S, p0)->set(p1, p2);")
+	public static void setShort(Object array, int index, short v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((short[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayInt).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setInt(Object array, int index, int i) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_I, p0)->set(p1, p2);")
+	public static void setInt(Object array, int index, int v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((int[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayLong).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setLong(Object array, int index, long l) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_J, p0)->set(p1, p2);")
+	public static void setLong(Object array, int index, long v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((long[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayFloat).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setFloat(Object array, int index, float f) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_F, p0)->set(p1, p2);")
+	public static void setFloat(Object array, int index, float v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((float[])array)[index] = v;
+	}
 
 	@HaxeMethodBody("cast(p0, HaxeArrayDouble).set(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
-	native public static void setDouble(Object array, int index, double d) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_D, p0)->set(p1, p2);")
+	public static void setDouble(Object array, int index, double v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+		((double[])array)[index] = v;
+	}
 
 	static private Type getArrayElementType(Class<?> clazz) {
 		String name = clazz.getName();

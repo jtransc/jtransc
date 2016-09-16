@@ -1,5 +1,7 @@
 package java.util;
 
+import com.jtransc.util.JTranscBase64;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -7,6 +9,12 @@ import java.nio.ByteBuffer;
 public class Base64 {
 	static private Base64.Decoder decoder;
 	static private Base64.Encoder encoder;
+
+	static private Base64.Decoder mimeDecoder;
+	static private Base64.Encoder mimeEncoder;
+
+	static private Base64.Decoder urlDecoder;
+	static private Base64.Encoder urlEncoder;
 
 	static public Base64.Decoder getDecoder() {
 		if (decoder == null) decoder = new Base64.Decoder();
@@ -18,24 +26,47 @@ public class Base64 {
 		return encoder;
 	}
 
-	native static public Base64.Decoder getMimeDecoder();
+	static public Base64.Decoder getMimeDecoder() {
+		if (mimeDecoder == null) mimeDecoder = new Base64.Decoder();
+		return mimeDecoder;
+	}
 
-	native static public Base64.Encoder getMimeEncoder();
+	static public Base64.Encoder getMimeEncoder() {
+		if (mimeEncoder == null) mimeEncoder = new Base64.Encoder();
+		return mimeEncoder;
+	}
 
-	native static public Base64.Encoder getMimeEncoder(int lineLength, byte[] lineSeparator);
+	static public Base64.Encoder getMimeEncoder(int lineLength, byte[] lineSeparator) {
+		return new Base64.Encoder();
+	}
 
-	native static public Base64.Decoder getUrlDecoder();
+	static public Base64.Decoder getUrlDecoder() {
+		if (urlDecoder == null) urlDecoder = new Base64.Decoder();
+		return urlDecoder;
+	}
 
-	native static public Base64.Encoder getUrlEncoder();
+	static public Base64.Encoder getUrlEncoder() {
+		if (urlEncoder == null) urlEncoder = new Base64.Encoder();
+		return urlEncoder;
+	}
+
 
 	static public class Decoder {
-		native public byte[] decode(byte[] src);
 
-		native public int decode(byte[] src, byte[] dst);
+		public byte[] decode(byte[] src) {
+			byte[] out = new byte[src.length];
+			return Arrays.copyOf(out, decode(src, out));
+		}
+
+		public int decode(byte[] src, byte[] dst) {
+			return JTranscBase64.decode(src, dst);
+		}
 
 		native public ByteBuffer decode(ByteBuffer buffer);
 
-		native public byte[] decode(String src);
+		public byte[] decode(String src) {
+			return decode(src.getBytes());
+		}
 
 		native public InputStream wrap(InputStream is);
 	}

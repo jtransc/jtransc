@@ -54,7 +54,7 @@ public class JTranscInflater {
 	}
 
 	public int getRemaining() {
-		System.out.println("getRemaining()=" + inf.getAvailIn());
+		//System.out.println("getRemaining()=" + inf.getAvailIn());
 		return inf.getAvailIn();
 	}
 

@@ -27,5 +27,7 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		main([Ljava/lang/String;)V
 		Error !(10 < 10)
 		ok
+		17
+		-333
 	""", target = JsTarget, minimize = false)
 }

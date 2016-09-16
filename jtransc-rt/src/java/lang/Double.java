@@ -53,14 +53,17 @@ public final class Double extends Number implements Comparable<Double> {
 
 	@HaxeMethodBody("return Std.parseFloat(p0._str);")
 	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
+	@JTranscMethodBody(target = "cpp", value = "char temp[256] = {0}; N::writeChars(p0, temp, sizeof(temp)); return ::atof(temp);")
 	native public static double parseDouble(String value);
 
 	@HaxeMethodBody("return Math.isNaN(p0);")
 	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	native public static boolean isNaN(double v);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
 	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {
@@ -132,14 +135,17 @@ public final class Double extends Number implements Comparable<Double> {
 
 	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	native public static long doubleToLongBits(double value);
 
 	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	native public static long doubleToRawLongBits(double value);
 
 	@HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.longBitsToDouble(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return *(double *)&p0;")
 	public static native double longBitsToDouble(long bits);
 
 	public int compareTo(Double that) {

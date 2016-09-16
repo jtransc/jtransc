@@ -235,42 +235,37 @@ public final class Long extends Number implements Comparable<Long> {
 		return v - (v >>> 1);
 	}
 
-
 	public static long lowestOneBit(long v) {
 		return v & -v;
 	}
 
 	public static int numberOfLeadingZeros(long v) {
 		// After Hacker's Delight, Figure 5-6
-		if (v < 0) {
-			return 0;
-		}
-		if (v == 0) {
-			return 64;
-		}
+		if (v < 0) return 0;
+		if (v == 0) return 64;
 		// On a 64-bit VM, the two previous tests should probably be replaced by
 		// if (v <= 0) return ((int) (~v >> 57)) & 64;
 
 		int n = 1;
 		int i = (int) (v >>> 32);
 		if (i == 0) {
-			n +=  32;
+			n += 32;
 			i = (int) v;
 		}
 		if (i >>> 16 == 0) {
-			n +=  16;
+			n += 16;
 			i <<= 16;
 		}
 		if (i >>> 24 == 0) {
-			n +=  8;
+			n += 8;
 			i <<= 8;
 		}
 		if (i >>> 28 == 0) {
-			n +=  4;
+			n += 4;
 			i <<= 4;
 		}
 		if (i >>> 30 == 0) {
-			n +=  2;
+			n += 2;
 			i <<= 2;
 		}
 		return n - (i >>> 31);
@@ -278,19 +273,18 @@ public final class Long extends Number implements Comparable<Long> {
 
 	public static int numberOfTrailingZeros(long v) {
 		int low = (int) v;
-		return low !=0 ? Integer.numberOfTrailingZeros(low)
-			: 32 + Integer.numberOfTrailingZeros((int) (v >>> 32));
+		return low != 0 ? Integer.numberOfTrailingZeros(low) : 32 + Integer.numberOfTrailingZeros((int) (v >>> 32));
 	}
 
 	public static int bitCount(long v) {
 		// Combines techniques from several sources
-		v -=  (v >>> 1) & 0x5555555555555555L;
+		v -= (v >>> 1) & 0x5555555555555555L;
 		v = (v & 0x3333333333333333L) + ((v >>> 2) & 0x3333333333333333L);
-		int i =  ((int)(v >>> 32)) + (int) v;
+		int i = ((int) (v >>> 32)) + (int) v;
 		i = (i & 0x0F0F0F0F) + ((i >>> 4) & 0x0F0F0F0F);
 		i += i >>> 8;
 		i += i >>> 16;
-		return i  & 0x0000007F;
+		return i & 0x0000007F;
 	}
 
 	public static long rotateLeft(long value, int distance) {
@@ -308,8 +302,8 @@ public final class Long extends Number implements Comparable<Long> {
 		v = ((v >>> 2) & 0x3333333333333333L) | ((v & 0x3333333333333333L) << 2);
 		v = ((v >>> 4) & 0x0F0F0F0F0F0F0F0FL) | ((v & 0x0F0F0F0F0F0F0F0FL) << 4);
 		v = ((v >>> 8) & 0x00FF00FF00FF00FFL) | ((v & 0x00FF00FF00FF00FFL) << 8);
-		v = ((v >>>16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) <<16);
-		return ((v >>>32)                   ) | ((v                      ) <<32);
+		v = ((v >>> 16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) << 16);
+		return ((v >>> 32)) | ((v) << 32);
 	}
 
 	public static int signum(long v) {
@@ -320,8 +314,8 @@ public final class Long extends Number implements Comparable<Long> {
 		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
 		// http://graphics.stanford.edu/~seander/bithacks.html
 		v = ((v >>> 8) & 0x00FF00FF00FF00FFL) | ((v & 0x00FF00FF00FF00FFL) << 8);
-		v = ((v >>>16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) <<16);
-		return ((v >>>32)                   ) | ((v                      ) <<32);
+		v = ((v >>> 16) & 0x0000FFFF0000FFFFL) | ((v & 0x0000FFFF0000FFFFL) << 16);
+		return ((v >>> 32)) | ((v) << 32);
 	}
 
 	public static long sum(long l, long r) {

@@ -1,5 +1,6 @@
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.util.Arrays;
@@ -20,6 +21,52 @@ public class JTranscArrays {
 		}
 		return out;
 	}
+
+	static public byte[] copyReinterpret(short[] data) {
+		byte[] out = new byte[data.length * 2];
+		int m = 0;
+		for (int value : data) {
+			out[m++] = JTranscBits.int0(value);
+			out[m++] = JTranscBits.int1(value);
+		}
+		return out;
+	}
+
+	static public int[] copyReinterpretInt_LE(byte[] data) {
+		int[] out = new int[data.length / 4];
+		int m = 0;
+		for (int n = 0; n < data.length; n += 4) {
+			out[m++] = JTranscBits.makeInt(data[n + 3], data[n + 2], data[n + 1], data[n + 0]);
+		}
+		return out;
+	}
+
+	static public short[] copyReinterpretShort_LE(byte[] data) {
+		short[] out = new short[data.length / 2];
+		int m = 0;
+		for (int n = 0; n < data.length; n += 2) {
+			out[m++] = JTranscBits.makeShort(data[n + 1], data[n + 0]);
+		}
+		return out;
+	}
+
+	@JTranscMethodBody(target = "js", value = "return JA_B.wrapBuffer(p0.getBuffer());")
+	native static public byte[] nativeReinterpretAsByte(Object data);
+
+	@JTranscMethodBody(target = "js", value = "return JA_S.wrapBuffer(p0.getBuffer());")
+	native static public short[] nativeReinterpretAsShort(Object data);
+
+	@JTranscMethodBody(target = "js", value = "return JA_C.wrapBuffer(p0.getBuffer());")
+	native static public char[] nativeReinterpretAsChar(Object data);
+
+	@JTranscMethodBody(target = "js", value = "return JA_I.wrapBuffer(p0.getBuffer());")
+	native static public int[] nativeReinterpretAsInt(Object data);
+
+	@JTranscMethodBody(target = "js", value = "return JA_F.wrapBuffer(p0.getBuffer());")
+	native static public float[] nativeReinterpretAsFloat(Object data);
+
+	@JTranscMethodBody(target = "js", value = "return JA_D.wrapBuffer(p0.getBuffer());")
+	native static public double[] nativeReinterpretAsDouble(Object data);
 
 	static public byte[] copyReinterpretReversed(int[] data) {
 		int[] temp = Arrays.copyOf(data, data.length);

@@ -1,10 +1,13 @@
 package jtransc.rt.test;
 
+import com.jtransc.annotation.JTranscKeep;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
 public class JTranscCloneTest {
 	static public void main(String[] args) throws CloneNotSupportedException {
+		System.out.println("JTranscCloneTest.main:");
 		MyClass mc = new MyClass();
 		mc.bb = true;
 		mc.b = -127;
@@ -16,6 +19,7 @@ public class JTranscCloneTest {
 		mc.d = 0.125;
 		mc.ref = new Object();
 		MyClass mc2 = (MyClass) mc.clone();
+		System.out.println("bb,b,c,s,i,l:");
 		System.out.println(mc2.bb);
 		System.out.println(mc2.b);
 		System.out.println(mc2.c);
@@ -24,6 +28,7 @@ public class JTranscCloneTest {
 		System.out.println(mc2.l);
 		//System.out.println(mc2.f);
 		//System.out.println(mc2.d);
+		System.out.println("bb,b,c,s,i,l,f,d,ref:");
 		System.out.println(mc.bb == mc2.bb);
 		System.out.println(mc.b == mc2.b);
 		System.out.println(mc.c == mc2.c);
@@ -33,6 +38,7 @@ public class JTranscCloneTest {
 		System.out.println(mc.f == mc2.f);
 		System.out.println(mc.d == mc2.d);
 		System.out.println(mc.ref == mc2.ref);
+		System.out.println("arrays clone");
 		System.out.println(Arrays.toString(new boolean[] { true, false }.clone()));
 		System.out.println(Arrays.toString(new byte[] { 1, 2, 3 }.clone()));
 		System.out.println(Arrays.toString(new char[] { 'a', 'b', 'c' }.clone()));
@@ -43,6 +49,7 @@ public class JTranscCloneTest {
 		System.out.println(Arrays.toString(new double[] { 1, 2, 3 }.clone()));
 	}
 
+	@JTranscKeep
 	static class MyClass implements Cloneable {
 		private boolean bb;
 		private byte b;

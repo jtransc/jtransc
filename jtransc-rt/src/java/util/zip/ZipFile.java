@@ -17,12 +17,10 @@
 
 package java.util.zip;
 
-import com.jtransc.compression.JTranscInflater;
 import com.jtransc.compression.JTranscZlib;
 import com.jtransc.io.ra.RAFile;
 import com.jtransc.io.ra.RASlice;
 import com.jtransc.io.ra.RAStream;
-import com.jtransc.text.internal.IntegralToString;
 import libcore.io.BufferIterator;
 import libcore.io.HeapBufferIterator;
 
@@ -410,7 +408,7 @@ public class ZipFile implements Closeable, ZipConstants {
 	}
 
 	static void throwZipException(String msg, int magic) throws ZipException {
-		final String hexString = IntegralToString.intToHexString(magic, true, 8);
-		throw new ZipException(msg + " signature not found; was " + hexString);
+		//final String hexString = IntegralToString.intToHexString(magic, true, 8);
+		throw new ZipException(msg + " signature not found; was " + magic);
 	}
 }

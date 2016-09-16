@@ -47,7 +47,7 @@ var TypeContext = function (internalName, name, flags, parent, interfaces, annot
 		if (clazz.$js$super) {
 			clazz.$js$super.call(this);
 		}
-		clazz.$instanceInit.call(this);
+		clazz.$instanceInit.call(this, N);
 	};
 	this.clazz = clazz;
 	setFunctionName(this.clazz.prototype, name);
@@ -96,8 +96,8 @@ TypeContext.prototype.completeTypeFirst = function() {
 		var valueStr;
 		var index = field.static ? 1 : 0;
 
-		if (value instanceof Int64) {
-			valueStr = 'Int64.make(' + value.high + ',' + value.low + ')';
+		if (value instanceof Int64Ref) {
+			valueStr = 'N.lnew(' + value.high + ',' + value.low + ')';
 		} else if (value instanceof String) {
 			valueStr = "N.strLit(" + (value).quote() + ")";
 		} else {
@@ -107,8 +107,8 @@ TypeContext.prototype.completeTypeFirst = function() {
 		inits[index] += 'this["' + field.id + '"] = ' + valueStr + ";\n";
 	}
 
-	this.staticInit = new Function(inits[1]);
-	this.instanceInit = new Function(inits[0]);
+	this.staticInit = new Function('N', inits[1]);
+	this.instanceInit = new Function('N', inits[0]);
 
 	this.staticMethodsBody['$staticInit'] = this.staticInit;
 	this.staticMethodsBody['$instanceInit'] = this.instanceInit;
@@ -123,7 +123,7 @@ ProgramContext.prototype.registerType = function(internalName, name, flags, pare
 	//_global[name.replace(/\./g, '_')] = context.clazz;
 	context.clazz.SI = function() {
 		context.clazz.SI = EMPTY_FUNCTION;
-		context.clazz.$staticInit();
+		context.clazz.$staticInit(N);
 		var clinit = context.clazz["<clinit>()V"];
 		if (clinit != null) {
 			clinit();
@@ -223,6 +223,15 @@ ProgramContext.prototype.getType = function(clazzName) {
 			clazz.prototype = $extend(parentClazz.prototype, clazzInfo.instanceMethodsBody);
 			clazz.$js$super = parentClazz;
 
+			for (var n = 0; n < clazzInfo.interfaces.length; n++) {
+				var int = clazzInfo.interfaces[n];
+				var intInfo = _global.jtranscTypeContext[int];
+				if (intInfo && intInfo.allInterfaces) {
+					allInterfaces = allInterfaces.concat(intInfo.allInterfaces);
+				}
+				//console.log('--------------------', intInfo.allInterfaces);
+			}
+
 			allInterfaces = allInterfaces.concat(parentClazzInfo.allInterfaces);
 			allAncestors = allAncestors.concat(parentClazzInfo.allAncestors);
 		}
@@ -256,6 +265,8 @@ ProgramContext.prototype.getType = function(clazzName) {
 		clazzInfo.allAncestors = allAncestors;
 		clazzInfo.allAncestorsAndInterfaces = allAncestors.concat(allInterfaces);
 
+		//console.log(clazzName, ":", clazzInfo.allAncestorsAndInterfaces);
+
 		for (var n = 0; n < clazzInfo.allAncestorsAndInterfaces.length; n++) {
 			var ancestorName = clazzInfo.allAncestorsAndInterfaces[n];
 			var ancestor = _global.jtranscTypeContext[ancestorName];
@@ -288,6 +299,8 @@ ProgramContext.prototype.finishTypes = function() {
 
 	__createJavaArrays();
 	__buildStrings();
+
+	{% SINIT com.jtransc.lang.Int64 %}
 };
 
 //ProgramContext.prototype.registerProgram = function(callback) {
@@ -304,6 +317,7 @@ ProgramContext.prototype.finishTypes = function() {
 
 ProgramContext.prototype.finish = function() {
 	this.finishTypes();
+	_global.jtranscClasses[this.mainClass]['SI']();
 	var mainMethod = _global.jtranscClasses[this.mainClass]["main([Ljava/lang/String;)V"];
 	mainMethod(N.strArray(N.args()));
 };

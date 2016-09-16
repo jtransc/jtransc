@@ -17,6 +17,7 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.text.MStringReader;
 
 import java.util.ArrayList;
 
@@ -110,7 +111,8 @@ class _InternalUtils {
 					//System.out.println("genericParamsStr: " + genericParamsStr);
 					Type[] paramTypes = parseTypes(genericParamsStr, owner);
 					for (Type pt : paramTypes) {
-						if (pt == null) throw new RuntimeException("Can't find one or more classes in '" + genericParamsStr + "'");
+						if (pt == null)
+							throw new RuntimeException("Can't find one or more classes in '" + genericParamsStr + "'");
 					}
 					return new ParameterizedTypeImpl(paramTypes, base, owner);
 				}
@@ -130,51 +132,6 @@ class _InternalUtils {
 			types.add(parseType(sr, owner));
 		}
 		return types.toArray(new Type[types.size()]);
-	}
-
-	@JTranscInvisible
-	static private class MStringReader {
-		public final String str;
-		public final int length;
-		public int offset;
-
-		public MStringReader(String str) {
-			this(str, 0);
-		}
-
-		public MStringReader(String str, int offset) {
-			this.str = str;
-			this.length = str.length();
-			this.offset = offset;
-		}
-
-		public boolean hasMore() {
-			return offset < length;
-		}
-
-		public char peek() {
-			if (!hasMore()) throw new Error("Can't read more");
-			return this.str.charAt(offset);
-		}
-
-		public void skip() {
-			skip(1);
-		}
-
-		public void skip(int count) {
-			offset += count;
-		}
-
-		public void expect(char c) {
-			if (read() != c) throw new Error("Expected " + c);
-		}
-
-		public char read() {
-			if (!hasMore()) throw new Error("Can't read more");
-			char out = peek();
-			skip();
-			return out;
-		}
 	}
 
 	static String getTypeName(Type type) {

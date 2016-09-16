@@ -11,35 +11,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public class JTranscCrypto {
-	@HaxeMethodBodyPre("" +
-		"var bytes = p0;\n" +
-		"var length = bytes.length;\n" +
-		"\n"
-	)
-	@HaxeMethodBody(target = "js", value = "" +
-		"try {\n" +
-		"  var _bytes = bytes.data;\n" +
-		"  untyped __js__(\"crypto.getRandomValues(_bytes);\");\n" +
-		"  return;\n" +
-		"} catch (e:Dynamic) {\n" +
-		"\n" +
-		"}\n"
-	)
-	@HaxeMethodBody("")
-	@HaxeMethodBodyPost("" +
-		"for (n in 0 ... length) {\n" +
-		"  bytes.set(n, Std.int(Math.random() * 255));\n" +
-		"}"
-	)
-	@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);")
-	@SuppressWarnings("all")
 	static public void fillSecureRandomBytes(byte[] data) {
-		if (!JTranscSystem.usingJTransc()) {
-			SecureRandom secureRandom = new SecureRandom();
-			secureRandom.nextBytes(data);
-		} else {
-			//for (int n = 0; n < data.length; n++) data[n] = (byte)(Math.random() * 255);
-		}
+		if (secureRandomProvider == null || data == null) throw new RuntimeException("fillSecureRandomBytes");
+		System.out.println("JTranscCrypto.fillSecureRandomBytes!");
+		secureRandomProvider.fillSecureRandomBytes(data);
 	}
 
 	static public byte[] md5(byte[] data) {
@@ -60,5 +35,45 @@ public class JTranscCrypto {
 		//	throw new RuntimeException("");
 		//}
 		throw new RuntimeException("Not implemented sha1 yet!");
+	}
+
+	// Allows to override the SecureRandom provider
+	static public SecureRandomProvider secureRandomProvider = new SecureRandomProvider() {
+
+	};
+
+	static public class SecureRandomProvider {
+		@HaxeMethodBodyPre("" +
+			"var bytes = p0;\n" +
+			"var length = bytes.length;\n" +
+			"\n"
+		)
+		@HaxeMethodBody(target = "js", value = "" +
+			"try {\n" +
+			"  var _bytes = bytes.data;\n" +
+			"  untyped __js__(\"crypto.getRandomValues(_bytes);\");\n" +
+			"  return;\n" +
+			"} catch (e:Dynamic) {\n" +
+			"\n" +
+			"}\n"
+		)
+		@HaxeMethodBody("")
+		@HaxeMethodBodyPost("" +
+			"for (n in 0 ... length) {\n" +
+			"  bytes.set(n, Std.int(Math.random() * 255));\n" +
+			"}"
+		)
+		@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);")
+		@SuppressWarnings("all")
+		public void fillSecureRandomBytes(byte[] data) {
+			if (!JTranscSystem.isJTransc()) {
+				SecureRandom secureRandom = new SecureRandom();
+				secureRandom.nextBytes(data);
+			} else {
+				System.err.println("[IMPORTANT WARNING] Using SecureRandom without properly setting JTranscCrypto.secureRandomProvider");
+				//throw new Run
+				//for (int n = 0; n < data.length; n++) data[n] = (byte)(Math.random() * 255);
+			}
+		}
 	}
 }

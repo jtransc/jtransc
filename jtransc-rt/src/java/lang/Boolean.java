@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscMethodBody;
+
 @SuppressWarnings({"UnnecessaryBoxing", "WeakerAccess", "unchecked", "SimplifiableIfStatement"})
 public final class Boolean implements java.io.Serializable, Comparable<Boolean> {
 	public static final Boolean TRUE = new Boolean(true);
@@ -82,6 +84,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return (that != null) ? compare(this.value, that.value) : compare(this.value, false);
 	}
 
+	@JTranscMethodBody(target = "js", value = "return (p0 == p1) ? 0 : ((!p0) ? -1 : +1);")
 	public static int compare(boolean l, boolean r) {
 		return (l == r) ? 0 : ((!l) ? -1 : +1);
 	}

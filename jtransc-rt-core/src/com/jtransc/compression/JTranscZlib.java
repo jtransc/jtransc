@@ -11,8 +11,12 @@ import java.io.ByteArrayOutputStream;
 import java.util.zip.Inflater;
 
 public class JTranscZlib {
+	@HaxeMethodBody(target = "sys", value = "" +
+		"return true;"
+	)
 	static private boolean hasNativeInflate() {
-		return JTranscSystem.usingJTransc() && JTranscSystem.isSys();
+		//return JTranscSystem.usingJTransc() && JTranscSystem.isSys();
+		return false;
 	}
 
 	@HaxeMethodBody(target = "sys", value = "" +

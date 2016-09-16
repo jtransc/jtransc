@@ -39,6 +39,7 @@ open class AstVisitor {
 			is AstStm.STM_EXPR -> visit(stm)
 			is AstStm.SET_LOCAL -> visit(stm)
 			is AstStm.SET_ARRAY -> visit(stm)
+			is AstStm.SET_ARRAY_LITERALS -> visit(stm)
 			is AstStm.SET_FIELD_STATIC -> visit(stm)
 			is AstStm.SET_FIELD_INSTANCE -> visit(stm)
 			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> visit(stm)
@@ -147,6 +148,11 @@ open class AstVisitor {
 		visit(stm.array)
 		visit(stm.index)
 		visit(stm.expr)
+	}
+
+	open fun visit(stm: AstStm.SET_ARRAY_LITERALS) {
+		visit(stm.array)
+		for (v in stm.values) visit(v)
 	}
 
 	open fun visit(stm: AstStm.SET_FIELD_STATIC) {

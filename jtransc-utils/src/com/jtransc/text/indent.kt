@@ -21,23 +21,18 @@ import java.util.*
 class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Action>()) : ToString {
 	interface Action {
 		data class Marker(val data: Any) : Action
-
 		data class Line(val str: String) : Action
-
 		data class LineDeferred(val callback: () -> Indenter) : Action
-
 		object Indent : Action
-
 		object Unindent : Action
 	}
-
 
 	val noIndentEmptyLines = true
 
 	companion object {
 		fun genString(init: Indenter.() -> Unit) = gen(init).toString()
 
-		val EMPTY = Indenter.gen {  }
+		val EMPTY = Indenter.gen { }
 
 		inline fun gen(init: Indenter.() -> Unit): Indenter {
 			val indenter = Indenter()
@@ -65,7 +60,7 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 					INDENTS.add(indent)
 				}
 			}
-			return INDENTS[index]
+			return if (index <= 0) "" else INDENTS[index]
 		}
 	}
 
@@ -85,16 +80,16 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 	}
 
 	fun line(str: String, callback: () -> Unit): Indenter {
-		line("$str {")
+		line(if (str.isEmpty()) "{" else "$str {")
 		indent(callback)
 		line("}")
 		return this
 	}
 
-	fun line(str: String, after: String, callback: () -> Unit): Indenter {
-		line("$str { $after")
+	fun line(str: String, after: String = "", after2:String = "", callback: () -> Unit): Indenter {
+		line(if (str.isEmpty()) "{ $after" else "$str { $after")
 		indent(callback)
-		line("}")
+		line("}$after2")
 		return this
 	}
 

@@ -15,6 +15,9 @@
  */
 package java.io;
 
+import com.jtransc.JTranscSystem;
+import com.jtransc.JTranscSystemProperties;
+
 import java.util.Formatter;
 
 public final class Console implements Flushable {
@@ -169,7 +172,7 @@ public final class Console implements Flushable {
 
 	private static class ConsoleReader extends BufferedReader {
 		public ConsoleReader(InputStream in) throws IOException {
-			super(new InputStreamReader(in, System.getProperty("file.encoding")), 256);
+			super(new InputStreamReader(in, JTranscSystemProperties.fileEncoding()), 256);
 			lock = CONSOLE_LOCK;
 		}
 

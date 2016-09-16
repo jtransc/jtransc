@@ -4,6 +4,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.injector.Singleton
 import com.jtransc.lang.*
 import com.jtransc.text.StrReader
 import com.jtransc.text.readUntil
@@ -134,6 +135,7 @@ interface AstType {
 	}
 }
 
+@Singleton
 class AstTypes {
 	private val AstTypeDemangleCache = hashMapOf<String, AstType>()
 

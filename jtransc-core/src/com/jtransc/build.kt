@@ -17,13 +17,13 @@
 package com.jtransc
 
 import com.jtransc.ast.*
+import com.jtransc.ast.treeshaking.TreeShaking
+import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
-import com.jtransc.gen.build
+import com.jtransc.injector.Injector
 import com.jtransc.input.AsmToAst
-import com.jtransc.input.BaseProjectContext
-import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
@@ -36,54 +36,43 @@ import java.io.File
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
 	val parts = target.split(":")
-	val target = this.firstOrNull { it.name == parts[0] } ?: throw Exception("Unknown target $target")
-	return if (parts.size >= 2) {
-		GenTargetSubDescriptor(target, parts[1])
-	} else {
-		GenTargetSubDescriptor(target, "default")
-	}
-}
-enum class BuildBackend {
-	ASM,
+	return GenTargetSubDescriptor(
+		descriptor = this.firstOrNull { it.name == parts[0] } ?: throw Exception("Unknown target $target"),
+		sub = parts.getOrElse(1) { "default" }
+	)
 }
 
-class AllBuild(
+enum class BuildBackend { ASM }
+data class ConfigSubtarget(val subtarget: String)
+data class ConfigTargetDirectory(val targetDirectory: String)
+data class ConfigCaptureRunOutput(val captureRunOutput: Boolean)
+data class ConfigRun(val run: Boolean)
+data class ConfigLibraries(val libs: List<String>)
+data class ConfigClassPaths(val classPaths: List<String>)
+data class ConfigEntryPoint(val entrypoint: FqName)
+data class ConfigMainClass(val mainClass: String)
+data class ConfigInitialClasses(val initialClasses: List<String>)
+data class ConfigResourcesVfs(val resourcesVfs: SyncVfsFile)
+
+data class ConfigOutputFile(val output: String) {
+	val outputFileBaseName by lazy { File(output).name }
+}
+
+data class ConfigOutputPath(val outputPath: SyncVfsFile)
+
+class JTranscBuild(
+	val injector: Injector,
 	val target: GenTargetDescriptor,
-	val classPaths: List<String>,
 	val entryPoint: String,
 	val output: String,
 	val subtarget: String,
 	val settings: AstBuildSettings,
-	val targetDirectory: String = System.getProperty("java.io.tmpdir"),
-    val types: AstTypes
+	val targetDirectory: String = System.getProperty("java.io.tmpdir")
 ) {
-	constructor(
-		AllBuildTargets: List<GenTargetDescriptor>, target: String,
-		classPaths: List<String>, entryPoint: String, output: String,
-		subtarget: String, settings: AstBuildSettings,
-		types:AstTypes,
-		targetDirectory: String = System.getProperty("java.io.tmpdir")
-	) : this(
-		target = AllBuildTargets.locateTargetByName(target).descriptor,
-		classPaths = classPaths,
-		entryPoint = entryPoint,
-		output = output,
-		subtarget = subtarget,
-		settings = settings,
-		types = types,
-		targetDirectory = targetDirectory
-	)
-
+	val types = injector.get<AstTypes>()
+	val configClassPaths = injector.get<ConfigClassPaths>()
+	val backend = injector.get<BuildBackend>()
 	val tempdir = System.getProperty("java.io.tmpdir")
-
-	val gen = target.getGenerator()
-	val runningAvailable: Boolean = gen.runningAvailable
-
-	/*
-	fun build(release: Boolean = false, run: Boolean = false): Boolean {
-		return _buildAndRun(release, redirect = true, run = run).success
-	}
-	*/
 
 	fun buildAndRunCapturingOutput() = _buildAndRun(captureRunOutput = true, run = true)
 	fun buildAndRunRedirecting() = _buildAndRun(captureRunOutput = false, run = true)
@@ -92,28 +81,14 @@ class AllBuild(
 
 	class Result(val process: ProcessResult2)
 
-	private fun locateRootPath(): String {
-		println(File("").absolutePath)
-		return File("").absolutePath
-	}
-
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
-		val jtranscVersion = settings.jtranscVersion
-
-		// Previously downloaded manually or with maven plugin!
-		//val rtAndRtCore = MavenLocalRepository.locateJars(
-		//	"com.jtransc:jtransc-rt:$jtranscVersion",
-		//	"com.jtransc:jtransc-rt-core:$jtranscVersion"
-		//)
-		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + classPaths).distinct()
+		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
 		for (cp in classPaths2) log("ClassPath: $cp")
 
 		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
-		@SuppressWarnings("all")
-		@Suppress("ALL")
-		var initialClasses = listOf(
+		val initialClasses: List<String> = listOf(
 			java.lang.Object::class.java.name,
 			java.lang.Void::class.java.name,
 			java.lang.Byte::class.java.name,
@@ -131,65 +106,78 @@ class AllBuild(
 			java.lang.reflect.InvocationHandler::class.java.name,
 			com.jtransc.internal.JTranscAnnotationBase::class.java.name,
 			com.jtransc.JTranscWrapped::class.java.name,
+			com.jtransc.lang.Int64::class.java.name,
 			entryPoint.fqname.fqname
 		)
 
-		var program = measureProcess("Generating AST") {
-			createProgramAst(
-				generator = when (settings.backend) {
-					BuildBackend.ASM -> AsmToAst(types)
-					else -> invalidOp("Unsupported backend")
-				},
-				classNames = initialClasses,
-				mainClass = entryPoint,
-				classPaths = classPaths2,
-				outputPath = LocalVfs(File("$tempdir/out_ast"))
-			)
-		}
-		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
-		return gen.build(program, outputFile = output, settings = settings, captureRunOutput = captureRunOutput, run = run, subtarget = subtarget, targetDirectory = targetDirectory)
-	}
-
-	fun createProgramAst(generator: AstClassGenerator, classNames: List<String>, mainClass: String, classPaths: List<String>, outputPath: SyncVfsFile): AstProgram {
-		return generateProgram(BaseProjectContext(
-			classNames = classNames,
-			mainClass = mainClass,
-			classPaths = classPaths,
-			output = outputPath,
-			generator = generator,
-			types = types
-		))
-	}
-
-	fun generateProgram(projectContext: BaseProjectContext): AstProgram {
-		val generator = projectContext.generator
-		val program = AstProgram(
-			entrypoint = FqName(projectContext.mainClass),
-			resourcesVfs = MergedLocalAndJars(projectContext.classPaths),
-			generator = generator,
-			types = types
+		injector.mapInstances(
+			ConfigClassPaths(classPaths2),
+			ConfigInitialClasses(initialClasses), settings,
+			ConfigSubtarget(subtarget),
+			ConfigTargetDirectory(targetDirectory),
+			ConfigOutputFile(output),
+			ConfigCaptureRunOutput(captureRunOutput),
+			ConfigRun(run),
+			ConfigOutputPath(LocalVfs(File("$tempdir/out_ast"))),
+			ConfigMainClass(entryPoint)
 		)
 
-		// Preprocesses classes
-		projectContext.classNames.forEach {
-			program.addReference(AstType.REF(it), AstType.REF(it))
+		when (backend) {
+			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst>()
+			else -> invalidOp("Unsupported backend")
 		}
+
+		val programBase = measureProcess("Generating AST") {
+			generateProgram()
+		}
+
+		val configTreeShaking = injector.get<ConfigTreeShaking>()
+		val program = if (configTreeShaking.treeShaking) {
+			TreeShaking(programBase, target.name, configTreeShaking.trace)
+		} else {
+			programBase
+		}
+
+		injector.mapInstance(program)
+		injector.mapInstance(program, AstResolver::class.java)
+
+		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
+		return target.build(injector)
+	}
+
+	fun generateProgram(): AstProgram {
+		val injector: Injector = injector.get()
+		val configClassNames: ConfigInitialClasses = injector.get()
+		val configMainClass: ConfigMainClass = injector.get()
+		val generator: AstClassGenerator = injector.get()
+		val classNames = configClassNames.initialClasses
+		val mainClass = configMainClass.mainClass
+
+		val classPaths: List<String> = injector.get<ConfigClassPaths>().classPaths
+
+		//println(classPaths)
+
+		injector.mapInstances(
+			ConfigEntryPoint(FqName(mainClass)),
+			ConfigResourcesVfs(MergedLocalAndJars(classPaths))
+		)
+		val program = injector.get<AstProgram>()
+
+		// Preprocesses classes
+		classNames.forEach { program.addReference(AstType.REF(it), AstType.REF(it)) }
 
 		log("Processing classes...")
 
 		val (elapsed) = measureTime {
 			while (program.hasClassToGenerate()) {
 				val className = program.readClassToGenerate()
-				//val nativeClassTag = clazz.clazz.getTag("libcore.NativeClass", "")
 
-				//print("Processing class: " + clazz.clazz.name + "...")
-
-				//print("  CLASS: $className...");
 				val time = measureTime {
-					val generatedClass = generator.generateClass(program, className.name)
-
-					for (ref in References.get(generatedClass)) {
-						program.addReference(ref, className)
+					try {
+						val generatedClass = generator.generateClass(program, className.name)
+						for (ref in References.get(generatedClass)) program.addReference(ref, className)
+					}catch (e: InvalidOperationException) {
+						System.err.println("ERROR! : " + e.message)
 					}
 				}
 
@@ -198,12 +186,10 @@ class AllBuild(
 
 			// Reference default methods
 			for (clazz in program.classes) {
-				for (method in clazz.allInterfaces.flatMap { it.methods }) {
+				for (method in clazz.allDirectInterfaces.flatMap { it.methods }) {
 					val methodRef = method.ref.withoutClass
-					if (method.hasBody && !method.isStatic && !method.isClassOrInstanceInit) {
-						if (clazz.getMethodInAncestors(methodRef) == null) {
-							clazz.add(generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
-						}
+					if (method.hasBody && !method.isStatic && !method.isClassOrInstanceInit && (clazz.getMethodInAncestors(methodRef) == null)) {
+						clazz.add(generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
 					}
 				}
 			}
@@ -212,10 +198,8 @@ class AllBuild(
 			// @TODO: Maybe we could generate those methods in haxe generator since the requirement for this
 			// @TODO: is target dependant
 			for (clazz in program.classes.filter { it.isAbstract }) {
-				for (method in clazz.allMethodsToImplement) {
-					if (clazz.getMethodInAncestors(method) == null) {
-						clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
-					}
+				for (method in clazz.allMethodsToImplement.filter { clazz.getMethodInAncestors(it) == null }) {
+					clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
 				}
 			}
 		}
@@ -234,7 +218,7 @@ class AllBuild(
 		id = -1,
 		annotations = listOf(),
 		name = name,
-		type = methodType,
+		methodType = methodType,
 		generateBody = { null },
 		signature = methodType.mangle(),
 		genericSignature = methodType.mangle(),

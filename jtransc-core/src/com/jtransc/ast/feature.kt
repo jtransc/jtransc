@@ -22,7 +22,11 @@ import com.jtransc.ast.feature.SimdFeature
 import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ast.transform.CombineNewInitTransform
 import com.jtransc.ast.transform.RemoveTransitiveLocalsTransform
+import com.jtransc.injector.Singleton
 
+data class ConfigFeatureSet(val featureSet: Set<AstFeature>)
+
+@Singleton
 class AstFeatures {
 	internal val AVAILABLE_FEATUES = arrayListOf<AstFeature>(
 		OptimizeFeature,

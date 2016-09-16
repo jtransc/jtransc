@@ -19,9 +19,29 @@ package java.util;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.time.JTranscTime;
 
 @HaxeAddMembers({ "var _date:Date;" })
 public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
+	private long _timestamp;
+	private boolean updated;
+	private int[] parts = new int[JTranscTime.PARTS];
+
+	private void setTimestamp(long timestamp) {
+		if (this._timestamp != timestamp) {
+			this._timestamp = timestamp;
+			this.updated = false;
+		}
+	}
+
+	private int[] getParts() {
+		if (!updated) {
+			updated = true;
+			JTranscTime.fillParts(_timestamp, parts);
+		}
+		return parts;
+	}
+
     @HaxeMethodBody("_date = Date.now();")
 	public Date() {
 		this(System.currentTimeMillis());
@@ -29,7 +49,8 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 
     @HaxeMethodBody("_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
 	@JTranscMethodBody(target = "js", value = "this._date = new Date(Int64.toFloat(p0));")
-	public Date(long date) {
+	public Date(long timestamp) {
+		this.setTimestamp(timestamp);
 	}
 
 	@Deprecated
@@ -48,90 +69,136 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	@HaxeMethodBody("_date = new Date(p0, p1, p2, p3, p4, p5);")
 	@JTranscMethodBody(target = "js", value = "this._date = new Date(p0, p1, p2, p3, p4, p5);")
 	public Date(int year, int month, int date, int hrs, int min, int sec) {
+		this(JTranscTime.make(1900 + year, month, date, hrs, min, sec, 0));
 	}
 
 	@Deprecated
 	@HaxeMethodBody("_date = Date.fromString(p0._str);")
 	@JTranscMethodBody(target = "js", value = "this._date = new Date(Date.parse(N.istr(p0)));")
 	public Date(String s) {
+		this(JTranscTime.parse(s));
 	}
 
-	native public Object clone();
+	public Object clone() {
+		return new Date(this._timestamp);
+	}
 
 	@Deprecated
-	@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(Date.UTC(p0, p1, p2, p3, p4, p5));")
-	native public static long UTC(int year, int month, int date, int hrs, int min, int sec);
+	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Date.UTC(p0, p1, p2, p3, p4, p5));")
+	public static long UTC(int year, int month, int date, int hrs, int min, int sec) {
+		return JTranscTime.make(1900 + year, month, date, hrs, min, sec, 0);
+	}
 
 	@Deprecated
     @HaxeMethodBody("return HaxeNatives.floatToLong(Date.fromString(p0._str).getTime());")
-	@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(Date.parse(N.istr(p0)));")
-	native public static long parse(String s);
+	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Date.parse(N.istr(p0)));")
+	public static long parse(String s) {
+		return JTranscTime.parse(s);
+	}
 
     @Deprecated
 	@HaxeMethodBody("return _date.getFullYear() - 1900;")
 	@JTranscMethodBody(target = "js", value = "return this._date.getYear();")
-	native public int getYear();
+	public int getYear() {
+		return getFullYear() - 1900;
+	}
+
+	private int getFullYear() {
+		return JTranscTime.getFullYear(getParts());
+	}
+
+	private int getMilliseconds() {
+		return 0;
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setYear(p0);")
-	native public void setYear(int year);
+	public void setYear(int year) {
+		this.setTimestamp(JTranscTime.make(1900 + year, getMonth(), getDate(), getHours(), getMinutes(), getSeconds(), getMilliseconds()));
+	}
 
 	@Deprecated
 	@HaxeMethodBody("return _date.getMonth();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getMonth();")
-	native public int getMonth();
+	public int getMonth() {
+		return JTranscTime.getMonth(getParts());
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setMonth(p0);")
-	native public void setMonth(int month);
+	public void setMonth(int month) {
+		this.setTimestamp(JTranscTime.make(getFullYear(), month, getDate(), getHours(), getMinutes(), getSeconds(), getMilliseconds()));
+	}
 
 	@Deprecated
     @HaxeMethodBody("return _date.getDate();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getDate();")
-    native public int getDate();
+    public int getDate() {
+		return JTranscTime.getMonthDay(getParts());
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setDate(p0);")
-	native public void setDate(int date);
+	public void setDate(int date) {
+		this.setTimestamp(JTranscTime.make(getFullYear(), getMonth(), date, getHours(), getMinutes(), getSeconds(), getMilliseconds()));
+	}
 
 	@Deprecated
 	@HaxeMethodBody("return _date.getDay();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getDay();")
-	native public int getDay();
+	public int getDay() {
+		return JTranscTime.getWeekDay(getParts());
+	}
 
 	@Deprecated
     @HaxeMethodBody("return _date.getHours();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getHours();")
-	native public int getHours();
+	public int getHours() {
+		return JTranscTime.getHours(getParts());
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setHours(p0);")
-	native public void setHours(int hours);
+	public void setHours(int hours) {
+		this.setTimestamp(JTranscTime.make(getFullYear(), getMonth(), getDate(), hours, getMinutes(), getSeconds(), getMilliseconds()));
+	}
 
 	@Deprecated
 	@HaxeMethodBody("return _date.getMinutes();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getMinutes();")
-	native public int getMinutes();
+	public int getMinutes() {
+		return JTranscTime.getMinutes(getParts());
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setMinutes(p0);")
-	native public void setMinutes(int minutes);
+	public void setMinutes(int minutes) {
+		this.setTimestamp(JTranscTime.make(getFullYear(), getMonth(), getDate(), getHours(), minutes, getSeconds(), getMilliseconds()));
+	}
 
 	@Deprecated
 	@HaxeMethodBody("return _date.getSeconds();")
 	@JTranscMethodBody(target = "js", value = "return this._date.getSeconds();")
-	native public int getSeconds();
+	public int getSeconds() {
+		return JTranscTime.getSeconds(getParts());
+	}
 
 	@Deprecated
 	@JTranscMethodBody(target = "js", value = "this._date.setSeconds(p0);")
-	native public void setSeconds(int seconds);
+	public void setSeconds(int seconds) {
+		this.setTimestamp(JTranscTime.make(getFullYear(), getMonth(), getDate(), getHours(), getMinutes(), seconds, getMilliseconds()));
+	}
 
     @HaxeMethodBody("return HaxeNatives.floatToLong(_date.getTime());")
-	@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(this._date.getTime());")
-	native public long getTime();
+	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(this._date.getTime());")
+	public long getTime() {
+		return this._timestamp;
+	}
 
 	@JTranscMethodBody(target = "js", value = "this._date.setTime(Int64.toFloat(p0));")
-	native public void setTime(long time);
+	public void setTime(long time) {
+		this.setTimestamp(time);
+	}
 
 	public boolean before(Date when) {
 		return getMillisOf(this) < getMillisOf(when);

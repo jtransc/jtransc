@@ -13,6 +13,7 @@ dependencies {
 	compile project(':jtransc-gen-common')
 	compile project(':jtransc-gen-haxe')
 	compile project(':jtransc-gen-js')
+	compile project(':jtransc-gen-cpp')
 	//runtime project(':jtransc-rt')
 }
 

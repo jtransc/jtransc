@@ -63,6 +63,30 @@ data class AstAnnotation(
 	}
 }
 
+fun AstAnnotation.getRefTypesFqName(): List<FqName> {
+	val out = hashSetOf<FqName>()
+	out += this.type.getRefTypesFqName()
+	for (e in this.elements.values) {
+		when (e) {
+			is AstAnnotation -> {
+				out += e.getRefTypesFqName()
+			}
+			is List<*> -> {
+				for (i in e) {
+					when (i) {
+						is AstAnnotation -> {
+							out += i.getRefTypesFqName()
+						}
+					}
+				}
+			}
+		}
+		//println("" + e + " : " + e?.javaClass)
+	}
+	return out.toList()
+}
+
+
 class AstAnnotationList(val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
 

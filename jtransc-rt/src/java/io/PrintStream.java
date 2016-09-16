@@ -46,7 +46,7 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
      */
     private boolean autoFlush;
 
-    private String encoding;
+    private String encoding = "UTF-8";
 
     /**
      * Constructs a new {@code PrintStream} with {@code out} as its target
@@ -428,6 +428,7 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
      * @see #write(int)
      */
     public synchronized void print(String str) {
+    	/*
         if (out == null) {
             setError();
             return;
@@ -446,7 +447,13 @@ public class PrintStream extends FilterOutputStream implements Appendable, Close
         } catch (IOException e) {
             setError();
         }
-    }
+        */
+		try {
+			write(str.getBytes(encoding));
+		} catch (IOException e) {
+			setError();
+		}
+	}
 
     /**
      * Prints the string representation of the boolean {@code b}.

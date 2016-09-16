@@ -21,6 +21,8 @@ import com.jtransc.lang.DoubleInfo;
 import com.jtransc.lang.FloatInfo;
 
 final public class RealToString {
+	public static long[] LONG_POWERS_OF_TEN;
+
 	private static final ThreadLocal<RealToString> INSTANCE = new ThreadLocal<RealToString>() {
 		@Override protected RealToString initialValue() {
 			return new RealToString();
@@ -211,7 +213,7 @@ final public class RealToString {
 			sb.append('0');
 		}
 		sb.append('E');
-		IntegralToString.appendInt(sb, exponent);
+		sb.append(Integer.toString(exponent));
 	}
 
 	private void freeFormat(StringBuilder sb, boolean positive) {
@@ -244,8 +246,31 @@ final public class RealToString {
 
 	private native void bigIntDigitGenerator(long f, int e, boolean isDenormalized, int p);
 
-	private void longDigitGenerator(long f, int e, boolean isDenormalized,
-									boolean mantissaIsZero, int p) {
+	private void longDigitGenerator(long f, int e, boolean isDenormalized, boolean mantissaIsZero, int p) {
+		if (LONG_POWERS_OF_TEN == null) {
+			LONG_POWERS_OF_TEN = new long[] {
+				1L,
+				10L,
+				100L,
+				1000L,
+				10000L,
+				100000L,
+				1000000L,
+				10000000L,
+				100000000L,
+				1000000000L,
+				10000000000L,
+				100000000000L,
+				1000000000000L,
+				10000000000000L,
+				100000000000000L,
+				1000000000000000L,
+				10000000000000000L,
+				100000000000000000L,
+				1000000000000000000L,
+			};
+		}
+
 		long R, S, M;
 		if (e >= 0) {
 			M = 1l << e;
@@ -270,9 +295,9 @@ final public class RealToString {
 		int k = (int) Math.ceil((e + p - 1) * invLogOfTenBaseTwo - 1e-10);
 
 		if (k > 0) {
-			S = S * MathUtils.LONG_POWERS_OF_TEN[k];
+			S = S * LONG_POWERS_OF_TEN[k];
 		} else if (k < 0) {
-			long scale = MathUtils.LONG_POWERS_OF_TEN[-k];
+			long scale = LONG_POWERS_OF_TEN[-k];
 			R = R * scale;
 			M = M == 1 ? scale : M * scale;
 		}

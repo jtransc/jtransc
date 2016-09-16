@@ -19,12 +19,13 @@ package com.jtransc
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
 import com.jtransc.gen.GenTargetSubDescriptor
+import com.jtransc.injector.Injector
 import java.io.File
-import java.lang.management.ManagementFactory
 import java.util.*
 
 object JTranscMain {
-	@JvmStatic fun main(args: Array<String>) {
+	@JvmStatic fun main(pargs: Array<String>) {
+		val injector = Injector()
 		// @TODO: allow a plugin system
 		val targets = AllBuildTargets
 		val jtranscVersion = JTranscVersion.getVersion()
@@ -148,16 +149,16 @@ object JTranscMain {
 		}
 
 		try {
-			val config = parseArgs(args.toList())
-			val build = AllBuild(
+			val config = parseArgs(pargs.toList())
+			injector.mapInstance(ConfigClassPaths(config.classPaths))
+			val build = JTranscBuild(
+				injector = injector,
 				target = config.target.descriptor,
-				classPaths = config.classPaths,
 				entryPoint = config.entryPoint,
 				output = config.output,
 				subtarget = config.target.sub,
 				targetDirectory = config.targetDirectory,
-				settings = config.settings,
-				types = AstTypes()
+				settings = config.settings
 			)
 			val result = build.buildAndRun(captureRunOutput = false, run = config.run)
 			System.exit(result.process.exitValue)

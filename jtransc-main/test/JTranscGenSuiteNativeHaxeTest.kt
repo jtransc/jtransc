@@ -15,7 +15,6 @@
  */
 
 import com.jtransc.gen.haxe.HaxeTarget
-import com.jtransc.gen.js.JsTarget
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
 import jtransc.jtransc.*

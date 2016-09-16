@@ -33,7 +33,9 @@ public class Proxy implements java.io.Serializable {
 
 	@HaxeMethodBody("return Type.createInstance(p0._hxProxyClass, [p1]);")
 	@JTranscMethodBody(target = "js", value = "return R.newProxyInstance(p0, p1);")
-	private native static Object newProxyInstance(Class<?> ifc, InvocationHandler h);
+	private static Object newProxyInstance(Class<?> ifc, InvocationHandler h) {
+		return null;
+	}
 
 	public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h) throws IllegalArgumentException {
 		if (interfaces.length != 1) throw new RuntimeException("JTransc just supports Proxies with 1 interface");
@@ -41,8 +43,12 @@ public class Proxy implements java.io.Serializable {
 	}
 
 	@HaxeMethodBody("return Reflect.hasField(p0, '__invocationHandler');")
-	native public static boolean isProxyClass(Class<?> cl);
+	public static boolean isProxyClass(Class<?> cl) {
+		return false;
+	}
 
 	@HaxeMethodBody("return Reflect.field(p0, '__invocationHandler');")
-	native public static InvocationHandler getInvocationHandler(Object proxy) throws IllegalArgumentException;
+	public static InvocationHandler getInvocationHandler(Object proxy) throws IllegalArgumentException {
+		return null;
+	}
 }

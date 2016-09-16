@@ -1,4 +1,4 @@
-apply from: '../include.gradle'
+apply from: '../includeNoKotlin.gradle'
 
 dependencies {
 }

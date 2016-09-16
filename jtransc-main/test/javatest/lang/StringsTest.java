@@ -1,5 +1,6 @@
 package javatest.lang;
 
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.text.JTranscRegex;
 
 import java.util.Arrays;
@@ -13,6 +14,8 @@ public class StringsTest {
 		extendedTest();
 		matchesTest();
 		replaceAllTest();
+		zeroTest();
+		formatTest();
 	}
 
 	private static void basicConcatTest() {
@@ -20,13 +23,13 @@ public class StringsTest {
 	}
 
 	private static void replaceAllTest() {
-		System.out.println("replaceAllTest:");
+		System.out.println("StringsTest.replaceAllTest:");
 		System.out.println("\\\\hello\\\\world".replaceAll("\\\\", "/"));
 		System.out.println("\\\\hello\\\\world".replaceFirst("\\\\", "/"));
 	}
 
 	private static void compareToIgnoreCaseTest() {
-		System.out.println("compareToIgnoreCaseTest:");
+		System.out.println("StringsTest.compareToIgnoreCaseTest:");
 		System.out.println("abcdef".compareToIgnoreCase("abcdef"));
 		System.out.println("abcdef".compareToIgnoreCase("ABCDEF"));
 		System.out.println("abcdef".compareToIgnoreCase("aBcDeF"));
@@ -36,7 +39,7 @@ public class StringsTest {
 	}
 
 	private static void regionMatchesTest() {
-		System.out.println("regionMatchesTest:");
+		System.out.println("StringsTest.regionMatchesTest:");
 		System.out.println("abcdef".regionMatches(1, "__bc_", 2, 2));
 		System.out.println("abcdef".regionMatches(1, "__bc_", 0, 2));
 		System.out.println("abcdef".regionMatches(0, "__bc_", 2, 2));
@@ -46,6 +49,7 @@ public class StringsTest {
 	}
 
 	private static void extendedTest() {
+		JTranscConsole.log("StringsTest.extendedTest:");
 		Comparable<String> a = "a";
 		System.out.println("a".equals("a"));
 		System.out.println("a".equals("b"));
@@ -82,11 +86,25 @@ public class StringsTest {
 	}
 
 	static public void matchesTest() {
+		JTranscConsole.log("StringsTest.matchesTest:");
 		System.out.println("hello".matches(".*el+.*"));
 		System.out.println("hello".matches("el+"));
 		System.out.println("hello".matches("ell"));
 		System.out.println("hello".matches(".*ell"));
 		System.out.println("hello".matches("elll"));
 		System.out.println("hello".matches(".*ell.*"));
+	}
+
+	static public void zeroTest() {
+		String a = "abcdefg\0A\0B\0C\0";
+		JTranscConsole.log("StringsTest.zeroTest:");
+		JTranscConsole.log(a.length());
+		for (int n = 0; n < a.length(); n++) JTranscConsole.log((int)a.charAt(n));
+	}
+
+	static public void formatTest() {
+		JTranscConsole.log("StringsTest.formatTest:");
+		JTranscConsole.log(String.format("%d", 10));
+		JTranscConsole.log(String.format("%08X", -1));
 	}
 }

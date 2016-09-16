@@ -16,10 +16,12 @@
 
 package javatest
 
+import com.jtransc.io.JTranscConsole
 import java.util.*
 
 object KotlinCollections {
 	@JvmStatic fun main(args: Array<String>) {
+		JTranscConsole.log("KotlinCollections.main:")
 		println(mapOf("a" to 1, "b" to 2).map { it.key }.get(0))
 		println(arrayOf(1, 2, 3, 4, 5).map { it * 2 })
 
@@ -54,6 +56,7 @@ object KotlinCollections {
 	}
 
 	@JvmStatic fun paramOrderSimple(r: Reader) {
+		//println("KotlinCollections.paramOrderSimple:")
 		println(TripleInt(r.i8(), r.i16(), PairInt(r.i32(), r.i32())))
 	}
 

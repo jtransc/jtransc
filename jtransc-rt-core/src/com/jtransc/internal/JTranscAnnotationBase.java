@@ -17,6 +17,7 @@
 package com.jtransc.internal;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscMethodBody;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -26,10 +27,10 @@ abstract public class JTranscAnnotationBase {
 	@Override
 	public String toString() {
 		return toStaticString(this);
-
 	}
 
 	@SuppressWarnings("all")
+	//@JTranscMethodBody(target = "js", value = "return N.str('JTranscAnnotationBase');")
 	static public String toStaticString(Object annotation) {
 		String out = "";
 		out += "@";

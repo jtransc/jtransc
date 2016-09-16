@@ -7,6 +7,7 @@ import com.jtransc.annotation.haxe.*;
 import com.jtransc.util.JTranscCollections;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -46,22 +47,39 @@ public class JTranscProcess extends Process {
 	private int exitCode;
 	private int pid;
 
-	public Process start(List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
-		this.processWrapped = create(cmds.get(0), JTranscCollections.sliceArray(cmds, 1, new String[cmds.size() - 1]), dir, environment);
-		if (JTranscSystem.isJs()) {
-			stdoutString = Objects.toString(this.processWrapped.get("stdout"));
-			stderrString = Objects.toString(this.processWrapped.get("stderr"));
-			this.stdout = new ByteArrayInputStream(stdoutString.getBytes(Charset.forName("utf-8")));
-			this.stderr = new ByteArrayInputStream(stderrString.getBytes(Charset.forName("utf-8")));
-			this.stderr = null;
-			this.exitCode = (Integer)this.processWrapped.get("status");
-			this.pid = (int) this.processWrapped.get("pid");
-		} else {
-			this.stdin = new JTranscHaxeOutputStream((JTranscWrapped) this.processWrapped.get("stdin"));
-			this.stdout = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.get("stdout"));
-			this.stderr = new JTranscHaxeInputStream((JTranscWrapped) this.processWrapped.get("stderr"));
+	static public class Creator {
+		public JTranscProcess start(JTranscProcess process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+			if (JTranscSystem.isCpp()) {
+				process.stdin = new ByteArrayOutputStream(0);
+				process.stdout = new ByteArrayInputStream(new byte[] { 'd', 'u', 'm', 'm', 'y' });
+				process.stderr = new ByteArrayInputStream(new byte[0]);
+				process.exitCode = -1;
+				process.pid = -1;
+				return process;
+			} else {
+				process.processWrapped = process.create(cmds.get(0), JTranscCollections.sliceArray(cmds, 1, new String[cmds.size() - 1]), dir, environment);
+				if (JTranscSystem.isJs()) {
+					process.stdoutString = Objects.toString(process.processWrapped.get("stdout"));
+					process.stderrString = Objects.toString(process.processWrapped.get("stderr"));
+					process.stdout = new ByteArrayInputStream(process.stdoutString.getBytes(Charset.forName("utf-8")));
+					process.stderr = new ByteArrayInputStream(process.stderrString.getBytes(Charset.forName("utf-8")));
+					process.stderr = null;
+					process.exitCode = (Integer) process.processWrapped.get("status");
+					process.pid = (int) process.processWrapped.get("pid");
+				} else {
+					process.stdin = new JTranscHaxeOutputStream((JTranscWrapped) process.processWrapped.get("stdin"));
+					process.stdout = new JTranscHaxeInputStream((JTranscWrapped) process.processWrapped.get("stdout"));
+					process.stderr = new JTranscHaxeInputStream((JTranscWrapped) process.processWrapped.get("stderr"));
+				}
+				return process;
+			}
 		}
-		return this;
+	}
+
+	static public Creator creator = new Creator();
+
+	public Process start(List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+		return creator.start(this, cmds, environment, dir, stdin, stdout, stderr, redirectErrorStream);
 	}
 
 	@Override

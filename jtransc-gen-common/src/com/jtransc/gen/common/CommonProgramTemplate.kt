@@ -1,33 +1,44 @@
 package com.jtransc.gen.common
 
+import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
-import com.jtransc.ds.toHashMap
+import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
-import com.jtransc.gen.GenTargetInfo
+import com.jtransc.injector.Injector
+import com.jtransc.injector.Singleton
 import com.jtransc.template.Minitemplate
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
+import com.jtransc.vfs.SyncVfsFile
 import java.io.File
+import java.util.*
 
-open class CommonProgramTemplate(
-	val names: CommonNames,
-	val tinfo: GenTargetInfo,
-	val settings: AstBuildSettings,
-    val folders: CommonGenFolders,
-    val outputFile2: File,
-    val types: AstTypes
-) {
-	val program = tinfo.program
+class ConfigOutputFile2(val file: File)
+class ConfigTargetFolder(val targetFolder: SyncVfsFile)
+class ConfigEntryPointFile(val entryPointFile: String)
+class ConfigEntryPointClass(val entryPointClass: FqName)
+
+@Singleton
+open class CommonProgramTemplate(val injector: Injector) {
+	val names: CommonNames = injector.get()
+	val program: AstProgram = injector.get()
+	val settings: AstBuildSettings = injector.get()
+	val folders: CommonGenFolders = injector.get()
+	val configOutputFile2: ConfigOutputFile2 = injector.get()
+	val types: AstTypes = injector.get()
+	val outputFile2 = configOutputFile2.file
+	val configTargetDirectory: ConfigTargetDirectory = injector.get()
+
 	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-	val tempdir = tinfo.targetDirectory
+	val tempdir = configTargetDirectory.targetDirectory
 
 	val params = hashMapOf(
 		"outputFolder" to outputFile2.parent,
 		"outputFile" to outputFile2.absolutePath,
 		"outputFileBase" to outputFile2.name,
-		"release" to tinfo.settings.release,
-		"debug" to !tinfo.settings.release,
-		"releasetype" to if (tinfo.settings.release) "release" else "debug",
+		"release" to settings.release,
+		"debug" to !settings.release,
+		"releasetype" to if (settings.release) "release" else "debug",
 		"settings" to settings,
 		"title" to settings.title,
 		"name" to settings.name,
@@ -47,10 +58,9 @@ open class CommonProgramTemplate(
 		"folders" to folders
 	)
 
-
-	fun setProgramInfo(info: CommonProgramInfo) {
-		params["entryPointFile"] = info.entryPointFile
-		params["entryPointClass"] = names.buildTemplateClass(info.entryPointClass)
+	fun setInfoAfterBuildingSource() {
+		params["entryPointFile"] = injector.get<ConfigEntryPointFile>().entryPointFile
+		params["entryPointClass"] = names.buildTemplateClass(injector.get<ConfigEntryPointClass>().entryPointClass)
 	}
 
 	fun setExtraData(map: Map<String, Any?>) {
@@ -69,37 +79,14 @@ open class CommonProgramTemplate(
 	}
 
 	private fun evalReference(type: String, desc: String): String {
-		val dataParts = desc.split(':').map { getOrReplaceVar(it) }
-		val desc2 = dataParts.joinToString(":")
-		val classFqname = dataParts[0].fqname
-		if (!names.program.contains(classFqname)) invalidOp("evalReference: Can't find class $classFqname (I)")
-		val clazz = names.program[classFqname] ?: invalidOp("evalReference: Can't find class $classFqname (II)")
-
-		return when (type.toUpperCase()) {
-			"SINIT" -> {
-				names.buildStaticInit(clazz);
-			}
-			"CONSTRUCTOR" -> {
-				val method = program[AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))]!!
-				names.buildConstructor(method)
-			}
-			"SMETHOD", "METHOD" -> {
-				val method = if (dataParts.size >= 3) {
-					program[AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))]!!
-				} else {
-					val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
-					if (methods.isEmpty()) invalidOp("evalReference: Can't find method $desc2")
-					if (methods.size > 1) invalidOp("evalReference: Several signatures, please specify signature")
-					methods.first()
-				}
-				names.buildMethod(method, static = (type == "SMETHOD"))
-			}
-			"SFIELD", "FIELD" -> {
-				val field = clazz.locateField(dataParts[1]) ?: invalidOp("evalReference: Can't find field $desc2")
-				names.buildField(field, static = (type == "SFIELD"))
-			}
-			"CLASS" -> names.buildTemplateClass(clazz)
-			else -> invalidOp("evalReference: Unknown type!")
+		val ref = CommonTagHandler.getRef(program, type, desc, params)
+		return when (ref) {
+			is CommonTagHandler.SINIT -> names.buildStaticInit(ref.method.containingClass);
+			is CommonTagHandler.CONSTRUCTOR -> names.buildConstructor(ref.method)
+			is CommonTagHandler.METHOD -> names.buildMethod(ref.method, static = ref.isStatic)
+			is CommonTagHandler.FIELD -> names.buildField(ref.field, static = ref.isStatic)
+			is CommonTagHandler.CLASS -> names.buildTemplateClass(ref.clazz)
+			else -> invalidOp("Unsupported result")
 		}
 	}
 
@@ -132,7 +119,11 @@ open class CommonProgramTemplate(
 		)
 	)
 
-	fun gen(template: String): String = Minitemplate(template, miniConfig).invoke(params)
+	fun gen(template: String): String = gen(template, extra = hashMapOf())
+
+	fun gen(template: String, extra: HashMap<String, Any?> = hashMapOf()): String = Minitemplate(template, miniConfig).invoke(HashMap(params + extra))
+
+	fun gen(template: String, process: Boolean): String = if (process) Minitemplate(template, miniConfig).invoke(params) else template
 
 	fun gen(template: String, context: AstGenContext, type: String): String {
 		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");

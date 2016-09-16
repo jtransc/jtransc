@@ -19,3 +19,7 @@ fun Boolean.toLong() = this.map(1, 0).toLong()
 fun Boolean.toFloat() = this.map(1, 0).toFloat()
 fun Boolean.toDouble() = this.map(1, 0).toDouble()
 
+fun Number.toBool() = (this.toInt() != 0)
+
+val Long.high:Int get() = ((this ushr 32) and 0xFFFFFFFF).toInt()
+val Long.low:Int get() = ((this ushr 0) and 0xFFFFFFFF).toInt()

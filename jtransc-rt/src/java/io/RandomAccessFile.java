@@ -38,31 +38,23 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 	}
 
 	public RandomAccessFile(File file, String mode) throws FileNotFoundException {
-		String name = (file != null ? file.getPath() : null);
-		int imode = -1;
-		if (mode.equals("r")) {
-			imode = JTranscSyncIO.O_RDONLY;
-		} else if (mode.startsWith("rw")) {
+		String name = (file != null ? file.getAbsolutePath() : null);
+		int imode = JTranscSyncIO.O_RDONLY;
+		rw = false;
+		if (mode.contains("w")) {
 			imode = JTranscSyncIO.O_RDWR;
 			rw = true;
-			if (mode.length() > 2) {
-				if (mode.equals("rws")) imode |= JTranscSyncIO.O_SYNC;
-				if (mode.equals("rwd")) imode |= JTranscSyncIO.O_DSYNC;
-			}
 		}
-		if (imode < 0) {
-			throw new IllegalArgumentException("Illegal mode \"" + mode + "\" must be one of " + "\"r\", \"rw\", \"rws\"," + " or \"rwd\"");
-		}
-		if (name == null) {
-			throw new NullPointerException();
-		}
-		if (file.isInvalid()) {
-			throw new FileNotFoundException("Invalid file path");
-		}
+		if (mode.contains("s")) imode |= JTranscSyncIO.O_SYNC;
+		if (mode.contains("d")) imode |= JTranscSyncIO.O_DSYNC;
+		if (imode < 0) throw new IllegalArgumentException("Illegal mode \"" + mode + "\" must be one of " + "\"r\", \"rw\", \"rws\"," + " or \"rwd\"");
+		if (name == null) throw new NullPointerException();
+		if (file.isInvalid()) throw new FileNotFoundException("Invalid file path");
 		fd = new FileDescriptor();
 		//fd.attach(this);
 		path = name;
-		jfd = JTranscSyncIO.open(name, imode);
+		//System.out.println("RandomAccessFile");
+		jfd = JTranscSyncIO.impl.open(name, imode);
 	}
 
 	public final FileDescriptor getFD() throws IOException {

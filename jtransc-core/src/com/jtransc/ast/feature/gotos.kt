@@ -169,12 +169,12 @@ object GotosFeature : AstFeature() {
 						stateStms = arrayListOf<AstStm>()
 					}
 
-					fun simulateGotoLabel(index: Int): AstStm = AstStm.STMS(
+					fun simulateGotoLabel(index: Int) = listOf(
 						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index, types)),
 						AstStm.CONTINUE()
 					)
 
-					fun simulateGotoLabel(label: AstLabel): AstStm = simulateGotoLabel(getStateFromLabel(label))
+					fun simulateGotoLabel(label: AstLabel) = simulateGotoLabel(getStateFromLabel(label))
 
 					for (ss in stms) {
 						val s = ss.value
@@ -183,7 +183,7 @@ object GotosFeature : AstFeature() {
 								val nextIndex = getStateFromLabel(s.label)
 								val lastStm = stateStms.lastOrNull()
 								if ((lastStm !is AstStm.CONTINUE) && (lastStm !is AstStm.BREAK) && (lastStm !is AstStm.RETURN)) {
-									stateStms.add(simulateGotoLabel(s.label))
+									stateStms.addAll(simulateGotoLabel(s.label))
 								}
 								flush()
 								stateIndex = nextIndex
@@ -192,19 +192,19 @@ object GotosFeature : AstFeature() {
 							is AstStm.IF_GOTO -> {
 								stateStms.add(AstStm.IF(
 									s.cond.value,
-									simulateGotoLabel(s.label)
+									AstStm.STMS(simulateGotoLabel(s.label))
 								))
 							}
 							is AstStm.GOTO -> {
-								stateStms.add(simulateGotoLabel(s.label))
+								stateStms.addAll(simulateGotoLabel(s.label))
 							}
 							is AstStm.SWITCH_GOTO -> {
 								//throw NotImplementedError("Must implement switch goto ")
 								stateStms.add(AstStm.SWITCH(
 									s.subject.value,
-									simulateGotoLabel(s.default),
+									AstStm.STMS(simulateGotoLabel(s.default)),
 									s.cases.map {
-										Pair(it.first, simulateGotoLabel(it.second))
+										Pair(it.first, AstStm.STMS(simulateGotoLabel(it.second)))
 									}
 								))
 							}
@@ -231,7 +231,7 @@ object GotosFeature : AstFeature() {
 
 							AstStm.IF(
 								(gotostate ge AstExpr.LITERAL(startState, types)) band (gotostate le AstExpr.LITERAL(endState, types)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								simulateGotoLabel(handlerState)
+								AstStm.STMS(simulateGotoLabel(handlerState))
 							)
 						}
 

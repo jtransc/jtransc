@@ -1,19 +1,21 @@
 package com.jtransc.io;
 
 import com.jtransc.annotation.JTranscAddFile;
+import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @JTranscAddFile(target = "js", priority = -2000, prepend = "js/io.js")
 public class JTranscSyncIO {
-	static public final int BA_EXISTS    = 0x01;
-	static public final int BA_REGULAR   = 0x02;
+	static public final int BA_EXISTS = 0x01;
+	static public final int BA_REGULAR = 0x02;
 	static public final int BA_DIRECTORY = 0x04;
-	static public final int BA_HIDDEN    = 0x08;
+	static public final int BA_HIDDEN = 0x08;
 
 	public static final int O_RDONLY = 1;
 	public static final int O_RDWR = 2;
@@ -39,8 +41,17 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.getLength(p0._str);")
-		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(IO.getLength(N.istr(p0)));")
-		native public long getLength(String file);
+		@JTranscMethodBody(target = "js", value = "return N.lnewFloat(IO.getLength(N.istr(p0)));")
+		@JTranscMethodBody(target = "cpp", value = {
+			"struct stat stat_buf;",
+			"char name[1024] = {0};",
+			"::strcpy(name, N::istr3(p0).c_str());",
+			"int rc = ::stat(name, &stat_buf);",
+			"return (rc == 0) ? stat_buf.st_size : -1;",
+		})
+		public long getLength(String file) {
+			return 0L;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.delete(p0._str);")
@@ -49,23 +60,73 @@ public class JTranscSyncIO {
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
 		@JTranscMethodBody(target = "js", value = "return IO.getBooleanAttributes(N.istr(p0));")
+		@JTranscMethodBody(target = "cpp", value = {
+			"struct stat stat_buf;",
+			"char name[1024] = {0};",
+			"::strcpy(name, N::istr3(p0).c_str());",
+			"int rc = ::stat(name, &stat_buf);",
+			"int res = 0;",
+			"if (rc < 0) return 0;",
+			"res |= 1;", // exists
+			"if (stat_buf.st_mode & _S_IFREG) res |= 2;", // regular
+			"if (stat_buf.st_mode & _S_IFDIR) res |= 4;", // directory
+			"return res;",
+		})
 		native public int getBooleanAttributes(String file);
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.checkAccess(p0._str, p1);")
 		@JTranscMethodBody(target = "js", value = "return IO.checkAccess(N.istr(p0), p1);")
+		@JTranscMethodBody(target = "cpp", value = {
+			"struct stat stat_buf;",
+			"char name[1024] = {0};",
+			"::strcpy(name, N::istr3(p0).c_str());",
+			"int rc = ::stat(name, &stat_buf);",
+			"int res = 0;",
+			"if (rc < 0) return 0;",
+			//"if (stat_buf.st_mode & _S_IXUSR) res |= 1;", // ACCESS_EXECUTE
+			//"if (stat_buf.st_mode & _S_IWUSR) res |= 2;", // ACCESS_WRITE
+			//"if (stat_buf.st_mode & _S_IRUSR) res |= 4;", // ACCESS_READ
+			"return 7;", // FAKE!
+		})
 		public native boolean checkAccess(String file, int access);
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.createDirectory(p0._str);")
+		@JTranscMethodBody(target = "cpp", value = "auto str = N::istr3(p0); return _mkdir(str.c_ptr()) != 0;")
 		public native boolean createDirectory(String file);
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.rename(p0._str, p1._str);")
+		@JTranscMethodBody(target = "cpp", value = {
+			"char name1[1024] = {0};",
+			"char name2[1024] = {0};",
+			"::strcpy(name1, N::istr3(p0).c_str());",
+			"::strcpy(name2, N::istr3(p1).c_str());",
+			"return _rename(name1, name2) != 0;"
+		})
 		public native boolean rename(String fileOld, String fileNew);
 
 		@Override
 		@HaxeMethodBody("return HaxeNatives.strArray(HaxeIO.SyncFS.list(p0._str));")
+		//@JTranscMethodBody(target = "cpp", cond = "_WIN32", value = { // Not implemented
+		//	"auto str = N::istr3(p0);",
+		//	"std::vector<std::string> out;",
+		//	"return N::strArray(out);"
+		//})
+		//@JTranscMethodBody(target = "cpp", value = {
+		//	"auto str = N::istr3(p0);",
+		//	"std::vector<std::string> out;",
+		//	"struct dirent *dir;",
+		//	"DIR *d = opendir(str);",
+		//	"if (d) {",
+		//	"	while ((dir = readdir(d)) != NULL) {",
+		//	"		out.push_back(std::string(dir->d_name));",
+		//	"	}",
+		//	"	closedir(d);",
+		//	"}",
+		//	"return N::strArray(out);"
+		//})
 		public native String[] list(String file);
 
 		@Override
@@ -73,54 +134,146 @@ public class JTranscSyncIO {
 		@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));")
 		@HaxeMethodBody("return HaxeNatives.str('');")
 		@JTranscMethodBody(target = "js", value = "return N.str(IO.getCwd());")
-		public native String getCwd();
+		public String getCwd() {
+			return cwd;
+		}
+
+		private String cwd = "/";
 
 		@Override
 		@HaxeMethodBody(target = "sys", value = "return Sys.setCwd(p0._str);")
 		@HaxeMethodBody(target = "js", value = "untyped __js__('process.chdir({0})', p0._str);")
 		@HaxeMethodBody("")
-		public native void setCwd(String path);
+		public void setCwd(String path) {
+			this.cwd = path;
+		}
+
+		@Override
+		public String normalizePath(String path) {
+			return super.normalizePath(path);
+		}
 	};
 
 	@HaxeAddMembers({
 		"private var _stream = new HaxeIO.SyncStream();"
 	})
+	@JTranscAddMembers(target = "cpp", value = {
+		"FILE* file;",
+	})
 	static private class JTranscIOSyncFile extends ImplStream {
-		@JTranscMethodBody(target = "js", value = "this._stream = new IO.Stream();")
+		int mode;
+
 		public JTranscIOSyncFile() {
+			init();
 		}
 
-		@HaxeMethodBody("_stream.syncioOpen(p0._str, p1);")
-		@JTranscMethodBody(target = "js", value = "this._stream.open(N.istr(p0), p1);")
-		native void open(String name, int mode) throws FileNotFoundException;
+		@JTranscMethodBody(target = "js", value = "this._stream = new IO.Stream();")
+		@JTranscMethodBody(target = "cpp", value = {
+			//"printf(\"JTranscIOSyncFile<init>\\n\");",
+			"this->file = NULL;"
+		})
+		private void init() {
+		}
+
+		public boolean isReadonly() {
+			return (mode & O_RDWR) == 0;
+		}
+
+		public void open(String name, int mode) throws FileNotFoundException {
+			this.mode = mode;
+			if (!_open(name, mode)) {
+				throw new FileNotFoundException(String.format("Can't open file %s with mode %d", name, mode));
+			}
+		}
+
+		public void close() throws IOException {
+			_close();
+		}
+
+		public int read(byte b[], int off, int len) {
+			return this._read(b, off, len);
+		}
+
+		public int write(byte b[], int off, int len) {
+			if (isReadonly()) return -1;
+			return this._write(b, off, len);
+		}
+
+		public long getPosition() {
+			return _getPosition();
+		}
+
+		public void setPosition(long pos) {
+			_setPosition(pos);
+		}
+
+		public long getLength() {
+			return _getLength();
+		}
+
+		public void setLength(long newLength) {
+			if (isReadonly()) return;
+			_setLength(newLength);
+		}
+
+		@HaxeMethodBody("_stream.syncioOpen(p0._str, p1); return true;")
+		@JTranscMethodBody(target = "js", value = "this._stream.open(N.istr(p0), p1); return true;")
+		@JTranscMethodBody(target = "cpp", value = {
+			//"printf(\"JTranscIOSyncFile.open\\n\");fflush(stdout);",
+			//"char temp[1024];",
+			"auto readonly = !(p1 & 2);",
+			"char name[1024] = {0};",
+			"::strcpy(name, N::istr3(p0).c_str());",
+			//"printf(\"%s\\n\", mode);",
+			//"printf(\"%s\\n\", str.c_str());",
+			//"printf(\"PREOPENING\\n\");fflush(stdout);",
+			//"sprintf(temp, \"%s\", str.c_str());",
+			"this->file = ::fopen(name, readonly ? \"rb\" : \"r+b\");",
+			"if (readonly && (this->file == NULL)) return false;",
+			"if (this->file == NULL) { this->file = ::fopen(name, \"w+b\"); if (this->file != NULL) fclose(this->file); }",
+			//"if (this->file == NULL) throw ",
+			"if (this->file != NULL) ::fseek(this->file, 0, SEEK_SET);",
+			//"printf(\"OPENED\\n\");fflush(stdout);",
+			"return (this->file != NULL);",
+		})
+		native private boolean _open(String name, int mode);
 
 		@HaxeMethodBody("_stream.syncioClose();")
 		@JTranscMethodBody(target = "js", value = "this._stream.close();")
-		public native void close() throws IOException;
+		@JTranscMethodBody(target = "cpp", value = "if (this->file != NULL) { ::fclose(this->file); } this->file = NULL;")
+		private native void _close() throws IOException;
 
 		@HaxeMethodBody("return _stream.syncioReadBytes(p0, p1, p2);")
 		@JTranscMethodBody(target = "js", value = "return this._stream.read(p0.data, p1, p2);")
-		public native int read(byte b[], int off, int len);
+		@JTranscMethodBody(target = "cpp", value = "return (this->file != NULL) ? ::fread(GET_OBJECT(JA_B, p0)->getOffsetPtr(p1), 1, p2, this->file) : (-1);")
+		private native int _read(byte b[], int off, int len);
 
 		@HaxeMethodBody("return _stream.syncioWriteBytes(p0, p1, p2);")
 		@JTranscMethodBody(target = "js", value = "return this._stream.write(p0.data, p1, p2);")
-		public native int write(byte b[], int off, int len);
+		@JTranscMethodBody(target = "cpp", value = "return (this->file != NULL) ? ::fwrite(GET_OBJECT(JA_B, p0)->getOffsetPtr(p1), 1, p2, this->file) : (-1);")
+		private native int _write(byte b[], int off, int len);
 
 		@HaxeMethodBody("return _stream.syncioPosition();")
-		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(this._stream.getPosition());")
-		public native long getPosition();
+		@JTranscMethodBody(target = "js", value = "return N.lnewFloat(this._stream.getPosition());")
+		@JTranscMethodBody(target = "cpp", value = "return (this->file != NULL) ? ::ftell(this->file) : 0;")
+		private native long _getPosition();
 
 		@HaxeMethodBody("_stream.syncioSetPosition(p0);")
-		@JTranscMethodBody(target = "js", value = "this._stream.setPosition(Int64.toFloat(p0));")
-		public native void setPosition(long pos);
+		@JTranscMethodBody(target = "js", value = "this._stream.setPosition(N.ltoFloat(p0));")
+		@JTranscMethodBody(target = "cpp", value = "if (this->file != NULL) ::fseek(this->file, p0, SEEK_SET);")
+		private native void _setPosition(long pos);
 
 		@HaxeMethodBody("return _stream.syncioLength();")
-		@JTranscMethodBody(target = "js", value = "return Int64.ofFloat(this._stream.getLength());")
-		public native long getLength();
+		@JTranscMethodBody(target = "js", value = "return N.lnewFloat(this._stream.getLength());")
+		@JTranscMethodBody(target = "cpp", value = {
+			"if (this->file != NULL) { auto prev = ::ftell(this->file); ::fseek(this->file, 0, SEEK_END); auto out = ::ftell(this->file); ::fseek(this->file, prev, SEEK_SET); return out; } return 0L;"
+		})
+		private native long _getLength();
 
 		@HaxeMethodBody("_stream.syncioSetLength(p0);")
-		@JTranscMethodBody(target = "js", value = "this._stream.setLength(Int64.toFloat(p0));")
-		public native void setLength(long newLength);
+		@JTranscMethodBody(target = "js", value = "this._stream.setLength(N.ltoFloat(p0));")
+		@JTranscMethodBody(target = "cpp", value = "if (this->file != NULL) ::ftruncate(this->file, p0);")
+		private native void _setLength(long newLength);
 	}
 
 	static public class ByteStream extends ImplStream {
@@ -182,18 +335,36 @@ public class JTranscSyncIO {
 			this.parent = parent;
 		}
 
-		public abstract ImplStream open(String path, int mode) throws FileNotFoundException;
+		public ImplStream open(String path, int mode) throws FileNotFoundException {
+			if (parent != null) {
+				return parent.open(path, mode);
+			} else {
+				throw new RuntimeException("Not implemented JTranscSyncIO.Impl.open()");
+			}
+		}
+
+		public String normalizePath(String path) {
+			if (parent != null) {
+				return parent.normalizePath(path);
+			} else {
+				return path.replace('\\', '/');
+			}
+		}
 
 		public long getLength(String path) {
-			try {
-				ImplStream stream = open(path, O_RDONLY);
+			if (parent != null) {
+				return parent.getLength(path);
+			} else {
 				try {
-					return stream.getLength();
-				} finally {
-					stream.close();
+					ImplStream stream = open(path, O_RDONLY);
+					try {
+						return stream.getLength();
+					} finally {
+						stream.close();
+					}
+				} catch (Throwable e) {
+					return 0L;
 				}
-			} catch (Throwable e) {
-				return 0L;
 			}
 		}
 
@@ -276,6 +447,14 @@ public class JTranscSyncIO {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setCwd");
 			parent.setCwd(path);
 		}
+
+		public boolean isAbsolute(String path) {
+			if (parent != null) {
+				return parent.isAbsolute(path);
+			} else {
+				return path.startsWith("/") || path.contains(":");
+			}
+		}
 	}
 
 	static public abstract class ImplStream {
@@ -303,16 +482,11 @@ public class JTranscSyncIO {
 		abstract public int write(byte[] data, int offset, int size);
 
 		abstract public void close() throws IOException;
-	}
 
-	// @TODO: Remove this!
-	static public JTranscIOSyncFile open(String name, int mode) throws FileNotFoundException {
-		try {
-			JTranscIOSyncFile out = new JTranscIOSyncFile();
-			out.open(name, mode);
+		public byte[] readBytes(int count) {
+			byte[] out = new byte[count];
+			read(out, 0, count);
 			return out;
-		} catch (Throwable t) {
-			throw new FileNotFoundException(t.getMessage());
 		}
 	}
 }

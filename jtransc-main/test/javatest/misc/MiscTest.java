@@ -1,5 +1,6 @@
 package javatest.misc;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.crypto.JTranscCrypto;
 import com.jtransc.ds.FastIntMap;
@@ -31,6 +32,7 @@ public class MiscTest {
 		testBootstrap1();
 		testBootstrap2();
 		testBootstrap3();
+		testBootstrap4();
 
 		//if (JTranscSystem.isJs()) {
 		//	JTranscSystem.debugger();
@@ -57,6 +59,19 @@ public class MiscTest {
 		JTranscConsole.log(m3);
 	}
 
+	static private void testBootstrap4() {
+		JTranscConsole.log("testBootstrap4:");
+		StringBuilder sb = new StringBuilder(100);
+		sb.append('[');
+		sb.append("Hello");
+		sb.append(',');
+		sb.append("World");
+		sb.append(',');
+		sb.append("Really Big String To See If This Is Working For Real Or It Is Not");
+		sb.append(']');
+		JTranscConsole.log(sb);
+	}
+
 	void main2(String[] args) throws Throwable {
 		JTranscConsole.log("STARTED");
 		JTranscConsole.log("args:");
@@ -66,7 +81,6 @@ public class MiscTest {
 		JTranscConsole.log(false);
 		testDefaultValues();
 		testDefaultValuesStatic();
-		systemPropertiesTest();
 		testShifts();
 		mapTest();
 		arrayListTest();
@@ -97,6 +111,7 @@ public class MiscTest {
 		testArithmetic();
 		//testBasicTypes();
 
+		testTime();
 		testCrypto();
 		testFastMaps();
 
@@ -161,18 +176,24 @@ public class MiscTest {
 
 		JTranscRegression3Test.main(new String[0]);
 
+		systemPropertiesTest();
+
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
 	}
 
 	private void testArithmetic() {
-		int[] ints = {0, 1, 0x7FFFFFFF, -1, 0x80000000, 0x12345678};
+		JTranscConsole.log("testArithmetic:");
+		int[] ints = {0, 1, Integer.MAX_VALUE, -1, Integer.MIN_VALUE, 0x12345678};
 		testNeg(ints);
 		testInv(ints);
 		testMult(ints);
 		testDiv(ints);
+		testMod(ints);
 
+		//JTranscSystem.debugger();
 		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678};
+
 		testPrintLong(longs);
 		testNegLong(longs);
 		testInvLong(longs);
@@ -219,13 +240,14 @@ public class MiscTest {
 	private void testDivLong(long[] v) {
 		JTranscConsole.log("testDivLong:");
 		for (int y = 0; y < v.length; y++) {
+			//JTranscConsole.log(":" + y);
 			for (int x = 0; x < v.length; x++) {
 				if (v[y] != 0) {
-					System.out.print(v[x] / v[y]);
-					System.out.print(",");
+					JTranscConsole.log(v[x] + "/" + v[y]);
+					JTranscConsole.log(v[x] / v[y]);
 				}
 			}
-			System.out.println();
+			//System.out.println();
 		}
 	}
 
@@ -241,15 +263,32 @@ public class MiscTest {
 	}
 
 	private void testDiv(int[] ints) {
-		JTranscConsole.log("testMult:");
+		JTranscConsole.log("testDiv:");
+		for (int y = 0; y < ints.length; y++) {
+			//JTranscConsole.log(ints[y]);
+			//JTranscConsole.log("-");
+			for (int x = 0; x < ints.length; x++) {
+				//JTranscConsole.log(ints[x]);
+				if (ints[y] != 0) {
+					JTranscConsole.log(ints[x] + "/" + ints[y]);
+					JTranscConsole.log(ints[x] / ints[y]);
+					//System.out.print(",");
+				}
+			}
+			//System.out.println();
+		}
+	}
+
+	private void testMod(int[] ints) {
+		JTranscConsole.log("testMod:");
 		for (int y = 0; y < ints.length; y++) {
 			for (int x = 0; x < ints.length; x++) {
 				if (ints[y] != 0) {
-					System.out.print(ints[x] / ints[y]);
-					System.out.print(",");
+					JTranscConsole.log(ints[x] + "%" + ints[y]);
+					JTranscConsole.log(ints[x] % ints[y]);
 				}
 			}
-			System.out.println();
+			//System.out.println();
 		}
 	}
 
@@ -297,13 +336,41 @@ public class MiscTest {
 		System.out.println("testFastMapsString:");
 	}
 
+	private void testTime() {
+		System.out.println("testTime:");
+		long start = System.currentTimeMillis();
+		try {
+			Thread.sleep(100L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		long end = System.currentTimeMillis();
+		System.out.println(start >= 1460000000000L);
+		System.out.println((end - start) >= (100 - 1));
+	}
+
 	private void testCrypto() {
 		System.out.println("testCrypto:");
+
+		//System.out.println("[1]");
+		if (JTranscSystem.isCpp()) {
+			JTranscCrypto.secureRandomProvider = new JTranscCrypto.SecureRandomProvider() {
+				@Override
+				public void fillSecureRandomBytes(byte[] data) {
+					//System.out.println("CPP.fillSecureRandomBytes!");
+					for (int n = 0; n < data.length; n++) data[n] = (byte)(Math.random() * 255);
+				}
+			};
+		}
+
+		System.out.println("[2]");
 		byte[] b1 = new byte[16];
 		byte[] b2 = new byte[16];
 		JTranscCrypto.fillSecureRandomBytes(b1);
 		JTranscCrypto.fillSecureRandomBytes(b2);
+		System.out.println("[3]");
 		System.out.println("Equals:" + Arrays.equals(b1, b2));
+		System.out.println("[4]");
 	}
 
 	static private void testStaticTest1() {
@@ -424,10 +491,24 @@ public class MiscTest {
 	}
 
 	static private void testShifts() {
+		JTranscConsole.log("testShifts:");
 		int[] values = {-111, -32, -31, -16, -1, 0, 1, 16, 31, 32, 111};
 		for (int v1 : values) {
 			for (int v2 : values) {
 				//System.out.printf("(%d, %d, %d):", v1 << v2, v1 >> v2, v1 >>> v2);
+				//JTranscConsole.log(v1 << v2);
+				//JTranscConsole.log(v1 >> v2);
+				//JTranscConsole.log(v1 >>> v2);
+//
+				//JTranscConsole.log("(");
+				//JTranscConsole.log(v1 << v2);
+				//JTranscConsole.log(",");
+				//JTranscConsole.log(v1 >> v2);
+				//JTranscConsole.log(",");
+				//JTranscConsole.log(v1 >>> v2);
+				//JTranscConsole.log("):");
+
+
 				System.out.print("(");
 				System.out.print(v1 << v2);
 				System.out.print(",");
@@ -895,6 +976,7 @@ public class MiscTest {
 	}
 
 	static private void systemPropertiesTest() {
+		System.out.println("systemPropertiesTest:");
 		System.out.println("java.runtime.name:" + (System.getProperty("java.runtime.name") != null));
 		System.out.println("path.separator:" + (System.getProperty("path.separator") != null));
 	}
@@ -970,6 +1052,8 @@ public class MiscTest {
 
 		System.out.println("INSTANCEOF[(intArray instanceof Object)]:" + (intArray instanceof Object));
 		System.out.println("INSTANCEOF[(intArray instanceof int[])]:" + (intArray instanceof int[]));
+		System.out.println("INSTANCEOF[(intArray instanceof A)]:" + ((Object)intArray instanceof A));
+		System.out.println("INSTANCEOF[(intArray instanceof IA)]:" + ((Object)intArray instanceof IA));
 	}
 
 	static private void inheritanceTest() {
@@ -1001,6 +1085,7 @@ public class MiscTest {
 		System.out.println("STRING[bug]:" + new String(new char[]{'(', ')', '[', 'L', 'j', 'a', 'v', 'a', '.', 'l', 'a', 'n', 'g', '.', 'r', 'e', 'f', 'l', 'e', 'c', 't', '.', 'F', 'i', 'e', 'l', 'd', ';'}, 4, 23));
 	}
 
+	static private int SFIELD = 20;
 	private int FIELD = 10;
 
 	static private void simpleReflection() {
@@ -1008,8 +1093,14 @@ public class MiscTest {
 	}
 
 	private void fieldReflection() throws NoSuchFieldException, IllegalAccessException {
+		SFIELD = 20;
+		Field sfield = MiscTest.class.getDeclaredField("SFIELD");
+		System.out.println("fieldReflection:static:20:");
+		System.out.println("::" + sfield.getName() + "," + sfield.get(null));
+
 		Field field = MiscTest.class.getDeclaredField("FIELD");
-		System.out.println("fieldReflection:10:" + field.getName() + "," + field.get(this));
+		System.out.println("fieldReflection:10:");
+		System.out.println("::" + field.getName() + "," + field.get(this));
 	}
 
 	private void accessInterfaceStaticFields() {
@@ -1045,7 +1136,9 @@ public class MiscTest {
 	}
 
 	private void testCloneArray() {
+		System.out.println("testCloneArray:");
 		byte[] bytes = new byte[]{1, 2, 3, 4};
+		System.out.println("bytes:" + bytes[0] + "," + bytes[1] + "," + bytes[2] + "," + bytes[3]);
 		byte[] clonedBytes = bytes.clone();
 		bytes[0] = -1;
 		clonedBytes[1] = -2;
@@ -1290,6 +1383,7 @@ class ClassImplementingMyInterface implements MyInterface {
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @SuppressWarnings("all")
 @interface ExampleAnnotation {
+	@JTranscKeep
 	String value();
 }
 
