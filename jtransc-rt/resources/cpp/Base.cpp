@@ -133,6 +133,7 @@ struct N { public:
 	inline static int32_t l2i(int64_t v);
 	inline static int64_t f2j(float v);
 	inline static int64_t d2j(double v);
+	static void log(std::wstring str);
 	static void log(SOBJ str);
 	static SOBJ str(char *str);
 	static SOBJ str(std::wstring str);
@@ -399,13 +400,13 @@ int N::strCharAt(SOBJ obj, int n) {
 	return str->{% METHOD java.lang.String:charAt %}(n);
 }
 
-void N::log(SOBJ obj) {
-	int len = N::strLen(obj);
-	for (int n = 0; n < len; n++) {
-		putwchar((wchar_t)N::strCharAt(obj, n));
-	}
-	putwchar('\n');
+void N::log(std::string str) {
+	std::wout << str << L"\n";
 	fflush(stdout);
+}
+
+void N::log(SOBJ obj) {
+	N::log(N::istr2(obj));
 }
 
 SOBJ N::dummyMethodClass() {
