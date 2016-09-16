@@ -93,7 +93,11 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.createDirectory(p0._str);")
-		@JTranscMethodBody(target = "cpp", value = "auto str = N::istr3(p0); return _mkdir(str.c_ptr()) != 0;")
+		@JTranscMethodBody(target = "cpp", value = {
+			"char name[1024] = {0};",
+			"::strcpy(name, N::istr3(p0).c_str());",
+			"return ::mkdir(name, 0777) != 0;"
+		})
 		public native boolean createDirectory(String file);
 
 		@Override
@@ -103,7 +107,7 @@ public class JTranscSyncIO {
 			"char name2[1024] = {0};",
 			"::strcpy(name1, N::istr3(p0).c_str());",
 			"::strcpy(name2, N::istr3(p1).c_str());",
-			"return _rename(name1, name2) != 0;"
+			"return ::rename(name1, name2) != 0;"
 		})
 		public native boolean rename(String fileOld, String fileNew);
 
@@ -272,8 +276,10 @@ public class JTranscSyncIO {
 
 		@HaxeMethodBody("_stream.syncioSetLength(p0);")
 		@JTranscMethodBody(target = "js", value = "this._stream.setLength(N.ltoFloat(p0));")
-		@JTranscMethodBody(target = "cpp", value = "if (this->file != NULL) ::ftruncate(this->file, p0);")
-		private native void _setLength(long newLength);
+		//@JTranscMethodBody(target = "cpp", value = "if (this->file != NULL) ::ftruncate(fileno(this->file), p0);")
+		private void _setLength(long newLength) {
+			throw new RuntimeException("Not implemented");
+		}
 	}
 
 	static public class ByteStream extends ImplStream {

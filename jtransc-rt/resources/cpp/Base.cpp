@@ -22,6 +22,7 @@ extern "C" {
 	#ifndef _WIN32
 		#include <sys/stat.h>
 		#include <sys/time.h>
+		#include <unistd.h>
 	#endif
 	#include <math.h>
 	#include <stdlib.h>
@@ -140,8 +141,6 @@ struct N { public:
 	static SOBJ strArray(std::vector<std::wstring> strs);
 	static SOBJ strArray(std::vector<std::string> strs);
 	static SOBJ strEmptyArray();
-	static wchar_t* istr(SOBJ obj);
-	//static const char* istr_charptr(SOBJ obj);
 	static std::wstring istr2(SOBJ obj);
 	static std::string istr3(SOBJ obj);
 	static SOBJ dummyMethodClass();
@@ -374,40 +373,21 @@ SOBJ N::strEmptyArray() {
 	return out.get()->sptr();
 }
 
-wchar_t* N::istr(SOBJ obj) {
-	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
-
-	//printf("N::istr!!\n");
-	return (wchar_t*)(((JA_C*)(str->{% FIELD java.lang.String:value %}.get()))->_data);
-}
-
 std::wstring N::istr2(SOBJ obj) {
-	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
-	auto ptr = (wchar_t*)(((JA_C*)(str->{% FIELD java.lang.String:value %}.get()))->_data);
-	return std::wstring(ptr, N::strLen(obj));
-}
-
-std::string N::istr3(SOBJ obj) {
-	//printf("istr3\n"); fflush(stdout);
-	//auto w = N::istr2(obj);
-	//printf("[1]\n"); fflush(stdout);
-	//std::string s(w.begin(), w.end());
-	//printf("[2]\n"); fflush(stdout);
-	//printf("STR'%s'\n", s.c_str()); fflush(stdout);
-
 	int len = N::strLen(obj);
-	std::string s;
-	s.reserve(len + 1);
-	for (int n = 0; n < len; n++) {
-		s.push_back(N::strCharAt(obj, n));
-	}
-	s.push_back(0);
+	std::wstring s;
+	s.reserve(len);
+	for (int n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
 	return s;
 }
 
-//const char* N::istr_charptr(SOBJ obj) {
-//	return N::istr3(obj).c_str();
-//}
+std::string N::istr3(SOBJ obj) {
+	int len = N::strLen(obj);
+	std::string s;
+	s.reserve(len);
+	for (int n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
+	return s;
+}
 
 int N::strLen(SOBJ obj) {
 	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
