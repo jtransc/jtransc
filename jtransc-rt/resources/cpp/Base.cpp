@@ -401,7 +401,7 @@ int N::strCharAt(SOBJ obj, int n) {
 }
 
 void N::log(std::string str) {
-	std::wout << str << L"\n";
+	std::wcout << str << L"\n";
 	fflush(stdout);
 }
 
