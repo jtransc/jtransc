@@ -75,7 +75,7 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 				pom.project {
 					name "${project.name}"
 					packaging 'jar'
-					description 'JVM AOT compiler currently generating JavaScript, Haxe, with initial focus on Kotlin and games.'
+					description 'JVM AOT compiler currently generating JavaScript, C++, Haxe, with initial focus on Kotlin and games.'
 					url 'https://github.com/jtransc/jtransc/'
 					inceptionYear '2015'
 

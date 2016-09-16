@@ -1,6 +1,6 @@
 #mvn clean release:perform
 #mvn clean deploy -Dgpg.passphrase=$1 -DperformRelease=true -Dmaven.javadoc.skip=true
-JTRANCS_DEPLOY=1 ./gradlew install uploadArchives
+JTRANCS_DEPLOY=1 ./gradlew install uploadArchives -xtest
 #~/.gradle/gradle.properties
 #signing.keyId=A5DOA652
 #signing.password=YourPublicKeyPassword
