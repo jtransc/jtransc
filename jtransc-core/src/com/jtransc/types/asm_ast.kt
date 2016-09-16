@@ -82,6 +82,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 
 	val out = AstBody(
 		optimizedStms,
+		types.demangleMethod(method.desc),
 		locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(

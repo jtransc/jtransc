@@ -120,7 +120,7 @@ object GotosFeature : AstFeature() {
 		}
 
 		try {
-			return AstBody(relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.locals, body.traps, body.flags)
+			return AstBody(relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.type, body.locals, body.traps, body.flags)
 		} catch (e: RelooperException) {
 			//println("RelooperException: ${e.message}")
 			return null
@@ -216,8 +216,20 @@ object GotosFeature : AstFeature() {
 
 					flush()
 
-					val plainWhile = AstStm.WHILE(AstExpr.LITERAL(true, types),
-						AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
+					fun extraReturn() = when (body.type.ret) {
+						is AstType.VOID -> AstStm.RETURN_VOID()
+						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0, types))
+						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L, types))
+						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f, types))
+						is AstType.DOUBLE -> AstStm.RETURN(AstExpr.LITERAL(0.0, types))
+						else -> AstStm.RETURN(AstExpr.LITERAL(null, types))
+					}
+
+					val plainWhile = AstStm.STMS(
+						AstStm.WHILE(AstExpr.LITERAL(true, types),
+							AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
+						),
+						extraReturn()
 					)
 
 					if (traps.isEmpty()) {
@@ -235,11 +247,14 @@ object GotosFeature : AstFeature() {
 							)
 						}
 
-						AstStm.WHILE(AstExpr.LITERAL(true, types),
-							AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
-								checkTraps.stms,
-								AstStm.RETHROW()
-							))
+						AstStm.STMS(
+							AstStm.WHILE(AstExpr.LITERAL(true, types),
+								AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
+									checkTraps.stms,
+									AstStm.RETHROW()
+								))
+							),
+							extraReturn()
 						)
 					}
 				}
@@ -253,7 +268,7 @@ object GotosFeature : AstFeature() {
 			locals.add(gotostate.local)
 		}
 
-		return AstBody(stm, locals, traps, body.flags)
+		return AstBody(stm, body.type, locals, traps, body.flags)
 	}
 
 }

@@ -24,8 +24,8 @@ import javatest.utils.KotlinInheritanceTest
 import org.junit.Test
 
 class JTranscPerTargetBigTest : JTranscTestBase() {
-	override val TREESHAKING = true
-	//override val TREESHAKING = false
+	//override val TREESHAKING = true
+	override val TREESHAKING = false
 	//override val TREESHAKING_TRACE = true
 	override val TREESHAKING_TRACE = false
 
@@ -48,7 +48,7 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = false)
 
-	//@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget, lang = "js", log = null)
+	@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget, lang = "js", log = null)
 	@Test fun testHaxeJsMinimized() = testClass<BigTest>(minimize = true, target = HaxeTarget, lang = "js", log = null)
 
 	//@Test fun testSmallPlainJs() = testClass<CopyTest>(minimize = false, target = JsTarget, log = null)

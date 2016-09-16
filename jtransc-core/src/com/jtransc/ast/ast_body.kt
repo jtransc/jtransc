@@ -6,6 +6,7 @@ import com.jtransc.error.noImpl
 
 data class AstBody(
 	var stm: AstStm,
+	var type: AstType.METHOD,
 	var locals: List<AstLocal>,
 	val traps: List<AstTrap>,
 	val flags: AstBodyFlags

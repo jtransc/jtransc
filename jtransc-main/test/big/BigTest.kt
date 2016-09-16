@@ -79,7 +79,7 @@ object BigTest {
 		//AndroidTest8019.main(args)
 
 		// Kotlin
-		StrangeNamesTest.main(args)
+		//StrangeNamesTest.main(args)
 		ComparableTimSortTest.main(args)
 
 		// Java8 tests

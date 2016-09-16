@@ -11,6 +11,7 @@ using Lambda;
 
 class N {
 	static public var MIN_INT32:Int32 = -2147483648;
+	static private var M2P32_DBL = Math.pow(2, 32);
 
 	static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
@@ -96,6 +97,14 @@ class N {
 	static public function int(v:Float):Int return f2i(v);
 
 	static public function z2i(v:Bool):Int return v ? 1 : 0;
+
+	inline static public function f2j(v:Float32):haxe.Int64 {
+		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+	}
+
+	inline static public function d2j(v:Float64):haxe.Int64 {
+		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+	}
 
 	static public function idiv(a:Int, b:Int):Int {
 		#if cpp

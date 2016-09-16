@@ -24,12 +24,12 @@ import java.lang.jtransc.JTranscStrings;
 import java.util.Arrays;
 
 @HaxeAddMembers({
-	"public var buffer:StringBuf = new StringBuf();",
+	"public var buffer2:StringBuf = new StringBuf();",
 	"public var str2:String = null;",
-	"public function add(str:String) { this.str2 = null; buffer.add(str); return this; }",
-	"public function addChar(c:Int) { this.str2 = null; buffer.add(String.fromCharCode(c)); return this; }",
-	"public function getStr() { if (this.str2 == null) this.str2 = buffer.toString(); return this.str2; }",
-	"public function setStr(str:String) { this.str2 = str; buffer = new StringBuf(); buffer.add(str); return this; }",
+	"public function add(str:String) { this.str2 = null; buffer2.add(str); return this; }",
+	"public function addChar(c:Int) { this.str2 = null; buffer2.add(String.fromCharCode(c)); return this; }",
+	"public function getStr() { if (this.str2 == null) this.str2 = buffer2.toString(); return this.str2; }",
+	"public function setStr(str:String) { this.str2 = str; buffer2 = new StringBuf(); buffer2.add(str); return this; }",
 })
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	protected char[] buffer;
@@ -45,7 +45,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	//@Override
-	@HaxeMethodBody("return this.buffer.length;")
+	@HaxeMethodBody("return this.buffer2.length;")
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
 	public int length() {
 		return length;
