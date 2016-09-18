@@ -404,6 +404,8 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 								line("""void set(int offset, $type v) { checkBounds(offset); fastSet(offset, v); };""")
 								line("""$type get(int offset) { checkBounds(offset); return fastGet(offset); }""")
 
+								line("""void fill(int from, int to, $type v) { checkBounds(from); checkBounds(to - 1); $type* data = ($type*)this->_data; for (int n = from; n < to; n++) data[n] = v; };""")
+
 								//line("void setArray(int start, std::vector<$type> arrays)") {
 								line("void setArray(int start, int size, const $type *arrays)") {
 									line("for (int n = 0; n < size; n++) this->set(start + n, arrays[n]);")

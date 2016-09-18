@@ -661,184 +661,75 @@ public class Arrays {
         }
     }
 
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code byte} array to fill.
-     * @param value
-     *            the {@code byte} element.
-     */
     public static void fill(byte[] array, byte value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
+		fill(array, 0, array.length, value);
     }
 
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code byte} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code byte} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
-    public static void fill(byte[] array, int start, int end, byte value) {
-        Arrays.checkStartAndEnd(array.length, start, end);
-        for (int i = start; i < end; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code short} array to fill.
-     * @param value
-     *            the {@code short} element.
-     */
     public static void fill(short[] array, short value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
+		fill(array, 0, array.length, value);
     }
 
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code short} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code short} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
-    public static void fill(short[] array, int start, int end, short value) {
-        Arrays.checkStartAndEnd(array.length, start, end);
-        for (int i = start; i < end; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code char} array to fill.
-     * @param value
-     *            the {@code char} element.
-     */
     public static void fill(char[] array, char value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
+		fill(array, 0, array.length, value);
     }
 
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code char} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code char} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
-    public static void fill(char[] array, int start, int end, char value) {
-        Arrays.checkStartAndEnd(array.length, start, end);
-        for (int i = start; i < end; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code int} array to fill.
-     * @param value
-     *            the {@code int} element.
-     */
     public static void fill(int[] array, int value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
+		fill(array, 0, array.length, value);
     }
 
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code int} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code int} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
-    public static void fill(int[] array, int start, int end, int value) {
-        Arrays.checkStartAndEnd(array.length, start, end);
-        for (int i = start; i < end; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code long} array to fill.
-     * @param value
-     *            the {@code long} element.
-     */
     public static void fill(long[] array, long value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
+		fill(array, 0, array.length, value);
     }
 
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code long} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code long} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
+    public static void fill(float[] array, float value) {
+		fill(array, 0, array.length, value);
+	}
+
+	public static void fill(double[] array, double value) {
+		fill(array, 0, array.length, value);
+	}
+
+	public static void fill(boolean[] array, boolean value) {
+		fill(array, 0, array.length, value);
+	}
+
+	public static void fill(Object[] array, Object value) {
+		fill(array, 0, array.length, value);
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_B, p0)->fill(p1, p2, p3);")
+	public static void fill(byte[] array, int start, int end, byte value) {
+		Arrays.checkStartAndEnd(array.length, start, end);
+		for (int i = start; i < end; i++) {
+			array[i] = value;
+		}
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_S, p0)->fill(p1, p2, p3);")
+	public static void fill(short[] array, int start, int end, short value) {
+		Arrays.checkStartAndEnd(array.length, start, end);
+		for (int i = start; i < end; i++) {
+			array[i] = value;
+		}
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_C, p0)->fill(p1, p2, p3);")
+	public static void fill(char[] array, int start, int end, char value) {
+		Arrays.checkStartAndEnd(array.length, start, end);
+		for (int i = start; i < end; i++) {
+			array[i] = value;
+		}
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_I, p0)->fill(p1, p2, p3);")
+	public static void fill(int[] array, int start, int end, int value) {
+		Arrays.checkStartAndEnd(array.length, start, end);
+		for (int i = start; i < end; i++) {
+			array[i] = value;
+		}
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_J, p0)->fill(p1, p2, p3);")
     public static void fill(long[] array, int start, int end, long value) {
         Arrays.checkStartAndEnd(array.length, start, end);
         for (int i = start; i < end; i++) {
@@ -846,36 +737,7 @@ public class Arrays {
         }
     }
 
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code float} array to fill.
-     * @param value
-     *            the {@code float} element.
-     */
-    public static void fill(float[] array, float value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code float} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code float} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_F, p0)->fill(p1, p2, p3);")
     public static void fill(float[] array, int start, int end, float value) {
         Arrays.checkStartAndEnd(array.length, start, end);
         for (int i = start; i < end; i++) {
@@ -883,36 +745,7 @@ public class Arrays {
         }
     }
 
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code double} array to fill.
-     * @param value
-     *            the {@code double} element.
-     */
-    public static void fill(double[] array, double value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code double} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code double} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_D, p0)->fill(p1, p2, p3);")
     public static void fill(double[] array, int start, int end, double value) {
         Arrays.checkStartAndEnd(array.length, start, end);
         for (int i = start; i < end; i++) {
@@ -920,36 +753,7 @@ public class Arrays {
         }
     }
 
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code boolean} array to fill.
-     * @param value
-     *            the {@code boolean} element.
-     */
-    public static void fill(boolean[] array, boolean value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code boolean} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code boolean} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_Z, p0)->fill(p1, p2, p3);")
     public static void fill(boolean[] array, int start, int end, boolean value) {
         Arrays.checkStartAndEnd(array.length, start, end);
         for (int i = start; i < end; i++) {
@@ -957,36 +761,7 @@ public class Arrays {
         }
     }
 
-    /**
-     * Fills the specified array with the specified element.
-     *
-     * @param array
-     *            the {@code Object} array to fill.
-     * @param value
-     *            the {@code Object} element.
-     */
-    public static void fill(Object[] array, Object value) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = value;
-        }
-    }
-
-    /**
-     * Fills the specified range in the array with the specified element.
-     *
-     * @param array
-     *            the {@code Object} array to fill.
-     * @param start
-     *            the first index to fill.
-     * @param end
-     *            the last + 1 index to fill.
-     * @param value
-     *            the {@code Object} element.
-     * @throws IllegalArgumentException
-     *                if {@code start > end}.
-     * @throws ArrayIndexOutOfBoundsException
-     *                if {@code start < 0} or {@code end > array.length}.
-     */
+	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_L, p0)->fill(p1, p2, p3);")
     public static void fill(Object[] array, int start, int end, Object value) {
         Arrays.checkStartAndEnd(array.length, start, end);
         for (int i = start; i < end; i++) {
@@ -1361,284 +1136,94 @@ public class Arrays {
      *         equal, {@code false} otherwise.
      */
     public static boolean equals(byte[] array1, byte[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code short} array.
-     * @param array2
-     *            the second {@code short} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     */
     public static boolean equals(short[] array1, short[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code char} array.
-     * @param array2
-     *            the second {@code char} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     */
     public static boolean equals(char[] array1, char[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code int} array.
-     * @param array2
-     *            the second {@code int} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     */
     public static boolean equals(int[] array1, int[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code long} array.
-     * @param array2
-     *            the second {@code long} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     */
     public static boolean equals(long[] array1, long[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays. The values are compared in the same manner as
-     * {@code Float.equals()}.
-     *
-     * @param array1
-     *            the first {@code float} array.
-     * @param array2
-     *            the second {@code float} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     * @see Float#equals(Object)
-     */
     public static boolean equals(float[] array1, float[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (Float.floatToIntBits(array1[i]) != Float
-                    .floatToIntBits(array2[i])) {
-                return false;
-            }
+            if (Float.floatToIntBits(array1[i]) != Float.floatToIntBits(array2[i])) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays. The values are compared in the same manner as
-     * {@code Double.equals()}.
-     *
-     * @param array1
-     *            the first {@code double} array.
-     * @param array2
-     *            the second {@code double} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     * @see Double#equals(Object)
-     */
     public static boolean equals(double[] array1, double[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (Double.doubleToLongBits(array1[i]) != Double
-                    .doubleToLongBits(array2[i])) {
-                return false;
-            }
+            if (Double.doubleToLongBits(array1[i]) != Double.doubleToLongBits(array2[i])) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code boolean} array.
-     * @param array2
-     *            the second {@code boolean} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal, {@code false} otherwise.
-     */
     public static boolean equals(boolean[] array1, boolean[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
-            if (array1[i] != array2[i]) {
-                return false;
-            }
+            if (array1[i] != array2[i]) return false;
         }
         return true;
     }
 
-    /**
-     * Compares the two arrays.
-     *
-     * @param array1
-     *            the first {@code Object} array.
-     * @param array2
-     *            the second {@code Object} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal according to {@code equals()}, {@code false} otherwise.
-     */
     public static boolean equals(Object[] array1, Object[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
             Object e1 = array1[i], e2 = array2[i];
-            if (!(e1 == null ? e2 == null : e1.equals(e2))) {
-                return false;
-            }
+            if (!(e1 == null ? e2 == null : e1.equals(e2))) return false;
         }
         return true;
     }
 
-    /**
-     * Returns {@code true} if the two given arrays are deeply equal to one another.
-     * Unlike the method {@code equals(Object[] array1, Object[] array2)}, this method
-     * is appropriate for use for nested arrays of arbitrary depth.
-     * <p>
-     * Two array references are considered deeply equal if they are both {@code null},
-     * or if they refer to arrays that have the same length and the elements at
-     * each index in the two arrays are equal.
-     * <p>
-     * Two {@code null} elements {@code element1} and {@code element2} are possibly deeply equal if any
-     * of the following conditions satisfied:
-     * <p>
-     * {@code element1} and {@code element2} are both arrays of object reference types, and
-     * {@code Arrays.deepEquals(element1, element2)} would return {@code true}.
-     * <p>
-     * {@code element1} and {@code element2} are arrays of the same primitive type, and the
-     * appropriate overloading of {@code Arrays.equals(element1, element2)} would return
-     * {@code true}.
-     * <p>
-     * {@code element1 == element2}
-     * <p>
-     * {@code element1.equals(element2)} would return {@code true}.
-     * <p>
-     * Note that this definition permits {@code null} elements at any depth.
-     * <p>
-     * If either of the given arrays contain themselves as elements, the
-     * behavior of this method is uncertain.
-     *
-     * @param array1
-     *            the first {@code Object} array.
-     * @param array2
-     *            the second {@code Object} array.
-     * @return {@code true} if both arrays are {@code null} or if the arrays have the
-     *         same length and the elements at each index in the two arrays are
-     *         equal according to {@code equals()}, {@code false} otherwise.
-     */
     public static boolean deepEquals(Object[] array1, Object[] array2) {
-        if (array1 == array2) {
-            return true;
-        }
-        if (array1 == null || array2 == null || array1.length != array2.length) {
-            return false;
-        }
+        if (array1 == array2) return true;
+        if (array1 == null || array2 == null || array1.length != array2.length) return false;
         for (int i = 0; i < array1.length; i++) {
             Object e1 = array1[i], e2 = array2[i];
 
-            if (!deepEqualsElements(e1, e2)) {
-                return false;
-            }
+            if (!deepEqualsElements(e1, e2)) return false;
         }
         return true;
     }
@@ -2432,219 +2017,48 @@ public class Arrays {
         return false;
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code false}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static boolean[] copyOf(boolean[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code (byte) 0}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static byte[] copyOf(byte[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code '\\u0000'}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static char[] copyOf(char[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0.0d}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static double[] copyOf(double[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0.0f}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static float[] copyOf(float[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static int[] copyOf(int[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0L}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static long[] copyOf(long[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code (short) 0}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static short[] copyOf(short[] original, int newLength) {
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code null}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static <T> T[] copyOf(T[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-    /**
-     * Copies {@code newLength} elements from {@code original} into a new array.
-     * If {@code newLength} is greater than {@code original.length}, the result is padded
-     * with the value {@code null}.
-     *
-     * @param original the original array
-     * @param newLength the length of the new array
-     * @param newType the class of the new array
-     * @return the new array
-     * @throws NegativeArraySizeException if {@code newLength < 0}
-     * @throws NullPointerException if {@code original == null}
-     * @throws ArrayStoreException if a value in {@code original} is incompatible with T
-     * @since 1.6
-     */
     public static <T, U> T[] copyOf(U[] original, int newLength, Class<? extends T[]> newType) {
-        // We use the null pointer check in copyOfRange for exception priority compatibility.
-        if (newLength < 0) {
-            throw new NegativeArraySizeException(Integer.toString(newLength));
-        }
         return copyOfRange(original, 0, newLength, newType);
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code false}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static boolean[] copyOfRange(boolean[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         boolean[] result = new boolean[resultLength];
@@ -2652,29 +2066,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code (byte) 0}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static byte[] copyOfRange(byte[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+        int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         byte[] result = new byte[resultLength];
@@ -2682,29 +2075,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code '\\u0000'}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static char[] copyOfRange(char[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         char[] result = new char[resultLength];
@@ -2712,29 +2084,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0.0d}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static double[] copyOfRange(double[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         double[] result = new double[resultLength];
@@ -2742,29 +2093,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0.0f}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static float[] copyOfRange(float[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         float[] result = new float[resultLength];
@@ -2772,29 +2102,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static int[] copyOfRange(int[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         int[] result = new int[resultLength];
@@ -2802,29 +2111,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code 0L}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static long[] copyOfRange(long[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         long[] result = new long[resultLength];
@@ -2832,29 +2120,8 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code (short) 0}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     public static short[] copyOfRange(short[] original, int start, int end) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         short[] result = new short[resultLength];
@@ -2862,27 +2129,10 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code null}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @since 1.6
-     */
     @SuppressWarnings("unchecked")
 	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2);")
     public static <T> T[] copyOfRange(T[] original, int start, int end) {
-        int originalLength = original.length; // For exception priority compatibility.
-        if (start > end) throw new IllegalArgumentException();
-        if (start < 0 || start > originalLength) throw new ArrayIndexOutOfBoundsException();
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         T[] result = (T[]) Array.newInstance(original.getClass().getComponentType(), resultLength);
@@ -2890,36 +2140,21 @@ public class Arrays {
         return result;
     }
 
-    /**
-     * Copies elements from {@code original} into a new array, from indexes start (inclusive) to
-     * end (exclusive). The original order of elements is preserved.
-     * If {@code end} is greater than {@code original.length}, the result is padded
-     * with the value {@code null}.
-     *
-     * @param original the original array
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
-     * @return the new array
-     * @throws ArrayIndexOutOfBoundsException if {@code start < 0 || start > original.length}
-     * @throws IllegalArgumentException if {@code start > end}
-     * @throws NullPointerException if {@code original == null}
-     * @throws ArrayStoreException if a value in {@code original} is incompatible with T
-     * @since 1.6
-     */
     @SuppressWarnings("unchecked")
 	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2, p3.name);")
     public static <T, U> T[] copyOfRange(U[] original, int start, int end, Class<? extends T[]> newType) {
-        if (start > end) {
-            throw new IllegalArgumentException();
-        }
-        int originalLength = original.length;
-        if (start < 0 || start > originalLength) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
+		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
         T[] result = (T[]) Array.newInstance(newType.getComponentType(), resultLength);
         System.arraycopy(original, start, result, 0, copyLength);
         return result;
     }
+
+	static private int checkRange(int start, int end, int originalLength) {
+		//if (end < 0) throw new NegativeArraySizeException(Integer.toString(end));
+		if (start > end) throw new IllegalArgumentException();
+		if (start < 0 || start > originalLength) throw new ArrayIndexOutOfBoundsException();
+		return originalLength;
+	}
 }
