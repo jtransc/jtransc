@@ -18,6 +18,7 @@
 package java.util;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.mem.FastMemByte;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;

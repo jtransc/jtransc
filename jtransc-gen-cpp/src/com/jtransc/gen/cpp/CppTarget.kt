@@ -360,7 +360,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 						}
 						line("};")
 						line("~JA_0() { ::free(_data); }")
-						line("void *getOffsetPtr(int offset) { return ((char *)_data) + offset * elementSize; }")
+						line("void *getOffsetPtr(int offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }")
 						line("static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len)") {
 							line("::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);")
 						}
