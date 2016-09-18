@@ -4,6 +4,7 @@ import com.jtransc.JTranscBits;
 import com.jtransc.io.SizeOf;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 abstract public class RAStream {
@@ -102,10 +103,29 @@ abstract public class RAStream {
 		return JTranscBits.readInt64BE(scratch, 0);
 	}
 
-	public byte[] readBytes(long count) {
-		byte[] out = new byte[(int)count];
+	public byte[] readBytes(int count) {
+		byte[] out = new byte[count];
 		int readed = read(out, 0, out.length);
 		return Arrays.copyOf(out, readed);
+	}
+
+	public byte[] readBytes(long count) {
+		return readBytes((int)count);
+	}
+
+	public String readStringz(int count, Charset charset) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		while (count > 0) {
+			int c = this.readS8_LE();
+			count--;
+			if (c <= 0) break;
+			out.write(c);
+		}
+
+		skip(count);
+
+		return new String(out.toByteArray(), charset);
 	}
 
 	public RASlice readSlice(long count) {
@@ -178,5 +198,9 @@ abstract public class RAStream {
 
 	public final long length() {
 		return getLength();
+	}
+
+	public boolean eof() {
+		return getAvailable() <= 0;
 	}
 }
