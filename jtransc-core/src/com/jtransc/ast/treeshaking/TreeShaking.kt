@@ -5,16 +5,29 @@ import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
+import com.jtransc.error.invalidOp
 import com.jtransc.template.Minitemplate
 import java.util.*
 
-class ClassTree(val program: AstProgram) {
+class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
 	val childrenList = hashMapOf<AstClass, ArrayList<AstClass>>()
 
-	fun getChildren(clazz: AstClass): ArrayList<AstClass> = childrenList.getOrPut(clazz) { arrayListOf() }
-	fun getDescendants(clazz: AstClass): List<AstClass> = getChildren(clazz) + getChildren(clazz).flatMap { getChildren(it) }
+	fun getChildren(clazz: AstClass): ArrayList<AstClass> {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [1]")
+		return childrenList.getOrPut(clazz) { arrayListOf() }
+	}
+	fun getDescendants(clazz: AstClass): List<AstClass> {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [2]")
+		return getChildren(clazz) + getChildren(clazz).flatMap { getChildren(it) }
+	}
+
+	fun getDescendantsAndAncestors(clazz: AstClass): List<AstClass> {
+		return getDescendants(clazz).flatMap { it.thisAncestorsAndInterfaces }
+	}
 
 	fun add(clazz: AstClass) {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [3]")
+		if (SHAKING_TRACE) println("  :: $clazz :: ${clazz.extending} :: ${clazz.implementing}")
 		if (clazz.extending != null) getChildren(program[clazz.extending]) += clazz
 		for (impl in clazz.implementing) getChildren(program[impl]) += clazz
 	}
@@ -36,7 +49,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 		val newprogram = AstProgram(program.configResourcesVfs, program.configEntrypoint, program.types)
 		val processed = hashSetOf<Any>()
 		val newclasses = hashMapOf<FqName, AstClass>()
-		val classtree = ClassTree(newprogram)
+		val classtree = ClassTree(SHAKING_TRACE, newprogram)
 
 		fun addTemplateReferences(template: String, templateReason: String) {
 			for (ref in GetTemplateReferences(oldprogram, template)) {
@@ -245,7 +258,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 		// @TODO: We should really include ancestors? Even when they are not referenced? For now, let's play it safe.
 		private fun checkTreeNewClass(newclazz: AstClass) {
 			// ancestors are known (descendants may not have been built completely)
-			val relatedClasses = listOf(newclazz) + newclazz.ancestors + newclazz.allInterfacesInAncestors + classtree.getDescendants(newclazz)
+			val relatedClasses = (listOf(newclazz) + newclazz.ancestors + newclazz.allInterfacesInAncestors + classtree.getDescendantsAndAncestors(newclazz)).distinct()
 
 			val methodRefs = arrayListOf<AstMethodWithoutClassRef>()
 
@@ -266,13 +279,32 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 		//
 		private fun checkTreeNewMethod(newmethod: AstMethod) {
 			val newclazz = newmethod.containingClass
-			val relatedClasses = listOf(newclazz) + newclazz.ancestors + newclazz.allInterfacesInAncestors + classtree.getDescendants(newclazz)
+			val relatedClasses = (newclazz.thisAncestorsAndInterfaces + classtree.getDescendantsAndAncestors(newclazz)).distinct()
 			//val relatedClasses = newclazz.ancestors + classtree.getDescendants(newclazz)
 			// ancestors are known (descendants may not have been built completely)
 
-			for (relatedClass in relatedClasses) {
-				val rmethod = oldprogram[relatedClass.name].getMethod(newmethod.name, newmethod.desc)
-				if (rmethod != null) addMethod(rmethod.ref, "checkTreeNewMethod $newmethod")
+			val methods = (relatedClasses).map { relatedClass ->
+				oldprogram[relatedClass.name].getMethod(newmethod.name, newmethod.desc)
+				//val rmethod = oldprogram[relatedClass.name].getMethod(newmethod.name, newmethod.desc)
+				//if (rmethod != null) addMethod(rmethod.ref, "checkTreeNewMethod $newmethod")
+			}.filterNotNull()
+
+			if (SHAKING_TRACE) {
+				for (rclass in relatedClasses) {
+					//println("  *-- $rclass")
+				}
+				for (rmethod in methods) {
+					val methodRef = rmethod.ref
+					if (methodRef !in processed) {
+						println("  <-- $rmethod")
+					} else {
+						//println("  :-- $rmethod")
+					}
+				}
+			}
+
+			for (rmethod in methods) {
+				addMethod(rmethod.ref, "checkTreeNewMethod $newmethod")
 			}
 		}
 	}

@@ -643,6 +643,8 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 			line("static const wchar_t *NAME;")
 			line("static const TYPE_INFO INFO;")
 
+			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
+			line("static ${clazz.cppName} *GET_npe(java_lang_Object *obj, const wchar_t *location);")
 			line("static SOBJ DYNAMIC_NEW(int index, std::vector<SOBJ> args);")
 			line("static SOBJ DYNAMIC_INVOKE(int index, SOBJ target, std::vector<SOBJ> args);")
 			line("static void *DYNAMIC_FIELD_PTR(int index, SOBJ target);")
@@ -654,6 +656,15 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 			//line("static int[] TABLE_INFO = ********************;")
 		}
 		line("};")
+
+		line("${clazz.cppName} *${clazz.cppName}::GET(java_lang_Object *obj)") {
+			line("return dynamic_cast<${clazz.cppName}*>(obj);")
+		}
+
+		line("${clazz.cppName} *${clazz.cppName}::GET_npe(java_lang_Object *obj, const wchar_t *location)") {
+			line("return dynamic_cast<${clazz.cppName}*>(obj);")
+		}
+
 		line("const wchar_t *${clazz.cppName}::NAME = L${clazz.fqname.quote()};")
 		line("const REFLECT_CONSTRUCTOR ${clazz.cppName}::CONSTRUCTORS[] = ", after2 = ";") {
 			for ((index, c) in clazz.constructors.withIndex()) {
@@ -662,7 +673,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		}
 		line("const REFLECT_METHOD ${clazz.cppName}::METHODS[] = ", after2 = ";") {
 			for ((index, c) in clazz.methodsWithoutConstructors.withIndex()) {
-				line("""{ .name = L${c.name.quote()}, .desc = L${c.desc.quote()}, .genericDesc = L"${c.genericSignature}", .flags =${c.modifiers.acc} },""")
+				line("""{ .name = L${c.name.quote()}, .desc = L${c.desc.quote()}, .genericDesc = L"${c.genericSignature}", .flags = ${c.modifiers.acc} },""")
 			}
 		}
 		line("const REFLECT_FIELD ${clazz.cppName}::FIELDS[] = ", after2 = ";") {
@@ -914,13 +925,19 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		}
 	}
 
+	private fun getPtr(clazz: AstClass, objStr: String): String {
+		//return "(dynamic_cast<${clazz.cppName}*>(($objStr).get()))"
+		return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+		//return "${clazz.cppName}::GET_npe(($objStr).get(), FUNCTION_NAME)"
+	}
+
 	override fun genExprCallBaseInstance(e2: AstExpr.CALL_INSTANCE, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		//return "((${refMethodClass.cppName}*)(${e2.obj.genNotNull()}.get()))$methodAccess(${args.joinToString(", ")})"
 		if (isThisOrThisWithCast(e2.obj.value)) {
 			return "this$methodAccess(${args.joinToString(", ")})"
 		} else {
 			val objStr = "${e2.obj.genNotNull()}"
-			return "(dynamic_cast<${refMethodClass.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))$methodAccess(${args.joinToString(", ")})"
+			return "${getPtr(refMethodClass, objStr)}$methodAccess(${args.joinToString(", ")})"
 		}
 	}
 
@@ -928,7 +945,6 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		//val base = names.getClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
 		//val argsString = (listOf("this") + args).joinToString(", ")
-
 		//return "(dynamic_cast<${refMethodClass.cppName}*>((${e2.obj.genNotNull()}).get()))$methodAccess(${args.joinToString(", ")})"
 
 		return "${refMethodClass.ref.cppName}::${superMethod.cppName}(${args.joinToString(", ")})"

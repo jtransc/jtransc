@@ -74,6 +74,7 @@ open class JTranscGradleExtension(val project: Project) {
 	var analyzer: Boolean? = null
 	var mainClassName: String? = null
 	var treeshaking: Boolean? = null
+	var treeshakingTrace: Boolean? = null
 
 	/*
 	Alias for:

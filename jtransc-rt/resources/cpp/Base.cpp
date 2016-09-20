@@ -113,11 +113,11 @@ typedef std::weak_ptr<java_lang_Object> WOBJ;
 #define GET_OBJECT(type, obj) (dynamic_cast<type*>(obj.get()))
 #define GET_OBJECT_NPE(type, obj) GET_OBJECT(type, N::ensureNpe(obj))
 
-//#ifdef DEBUG
+#ifdef DEBUG
 #define CHECK_NPE 1
-//#else
-//#define CHECK_NPE 0
-//#endif
+#else
+#define CHECK_NPE 0
+#endif
 
 {{ ARRAY_TYPES }}
 

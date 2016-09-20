@@ -22,6 +22,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var debug: Boolean? = null
 	var compile: Boolean? = null
 	var treeshaking: Boolean? = null
+	var treeshakingTrace: Boolean? = null
 	var analyzer: Boolean? = null
 	var orientation: String? = null
 	var icon: String? = null
@@ -108,7 +109,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		injector.mapInstance(BuildBackend.ASM)
 		injector.mapInstance(ConfigMinimizeNames(minimizedNames ?: extension.minimizeNames ?: false))
 		injector.mapInstance(ConfigCompile(compile ?: true))
-		injector.mapInstance(ConfigTreeShaking(treeshaking ?: extension.treeshaking ?: false))
+		injector.mapInstance(ConfigTreeShaking(
+			treeshaking ?: extension.treeshaking ?: false,
+			treeshakingTrace ?: extension.treeshakingTrace ?: false
+		))
 
 		injector.mapInstances(
 			ConfigClassPaths(

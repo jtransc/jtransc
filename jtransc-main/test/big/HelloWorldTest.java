@@ -5,9 +5,27 @@ import javatest.utils.Base64Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class HelloWorldTest {
 	static public void main(String[] args) {
+		ArrayList<Integer> items = new ArrayList<>();
+		items.add(10);
+		items.add(20);
+		items.add(30);
+		items.addAll(Arrays.asList(40, 50, 60));
+
+		for (Integer item : items) {
+			System.out.println(item);
+		}
+
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("hello", "world");
+		System.out.println(map.size());
+
+
 		Base64Test.main(args);
 		/*
 		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();
