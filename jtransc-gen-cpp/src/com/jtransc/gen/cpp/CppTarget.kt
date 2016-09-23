@@ -927,7 +927,11 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 
 	private fun getPtr(clazz: AstClass, objStr: String): String {
 		//return "(dynamic_cast<${clazz.cppName}*>(($objStr).get()))"
-		return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+		if (clazz.isInterface) {
+			return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+		} else {
+			return "(static_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+		}
 		//return "${clazz.cppName}::GET_npe(($objStr).get(), FUNCTION_NAME)"
 	}
 
