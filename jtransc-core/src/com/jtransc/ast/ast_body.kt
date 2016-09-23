@@ -574,9 +574,14 @@ class AstBuilder(val types: AstTypes) {
 	val CLASS = AstType.CLASS
 	val STRING = AstType.STRING
 
+	fun RETURN(): AstStm = AstStm.RETURN_VOID()
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
 	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+
+	val AstLocal.local: AstExpr.LOCAL get() = AstExpr.LOCAL(this)
+
+	fun stms(vararg stms: AstStm): AstStm.STMS = AstStm.STMS(*stms)
 
 	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)

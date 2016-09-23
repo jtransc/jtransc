@@ -285,6 +285,7 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	override val annotations: List<AstAnnotation> = listOf()
 ) : IUserData by UserData(), AstAnnotated {
+	var lastMethodId = 0
 	val uniqueNames = UniqueNames()
 
 	override val annotationsList = AstAnnotationList(annotations)

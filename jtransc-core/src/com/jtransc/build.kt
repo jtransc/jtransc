@@ -27,6 +27,7 @@ import com.jtransc.input.AsmToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
+import com.jtransc.meta.MetaReflection
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -136,6 +137,13 @@ class JTranscBuild(
 			TreeShaking(programBase, target.name, configTreeShaking.trace)
 		} else {
 			programBase
+		}
+
+		// @TODO: allow to add plugins from gradle
+		val plugins: List<Class<MetaReflection>> = listOf(MetaReflection::class.java)
+
+		for (plugin in plugins) {
+			plugin.newInstance().process(program)
 		}
 
 		injector.mapInstance(program)
