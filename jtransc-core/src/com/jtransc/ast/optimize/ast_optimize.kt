@@ -386,6 +386,8 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.NEW -> false
 	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
 	is AstExpr.NEW_ARRAY -> true
+	is AstExpr.INTARRAY_LITERAL -> true
+	is AstExpr.STRINGARRAY_LITERAL -> true
 	is AstExpr.PARAM -> true
 	is AstExpr.THIS -> true
 	else -> {

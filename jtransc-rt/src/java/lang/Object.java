@@ -24,6 +24,7 @@ import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import j.ProgramReflection;
 
 import java.lang.reflect.Field;
 
@@ -73,8 +74,10 @@ public class Object {
 
 	@HaxeMethodBody("return HaxeNatives.getClass(this);")
 	@JTranscMethodBody(target = "js", value = "return R.getClass(this);")
-	@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
-	native public final Class<?> getClass();
+	//@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
+	public final Class<?> getClass() {
+		return java.lang.jtransc.JTranscCoreReflection.getClassById(ProgramReflection.getClassId(this));
+	}
 
 	@JTranscKeep
 	public int hashCode() {

@@ -19,16 +19,7 @@ fun AstClass.createMethod(types: AstTypes, name: String, desc: AstType.METHOD, i
 		annotations = listOf(),
 		parameterAnnotations = listOf(),
 		modifiers = AstModifiers(AstModifiers.ACC_PUBLIC or if (isStatic) AstModifiers.ACC_STATIC else 0),
-		generateBody = {
-			val stm = AstBuilder(types).body()
-			val locals = hashSetOf<AstLocal>()
-			(object : AstVisitor() {
-				override fun visit(local: AstLocal) {
-					locals += local
-				}
-			}).visit(stm)
-			AstBody(stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
-		},
+		generateBody = { AstBody(types, AstBuilder(types).body(), desc) },
 		defaultTag = null,
 		signature = desc.mangle(),
 		genericSignature = null,

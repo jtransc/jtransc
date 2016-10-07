@@ -76,7 +76,10 @@ fun Char.isLetterDigitOrUnderscore():Boolean {
 }
 
 fun Char.isPrintable():Boolean {
-	return this.isLetterDigitOrUnderscore()
+	// @TODO: Make a proper table
+	// 0x20, 0x7e
+	return (this >= '\u0020' && this <= '\u007e') || (this >= '\u00a1' && this <= '\u00ff')
+	//return this.isLetterDigitOrUnderscore() || this == '.' || this == '/' || this == '\'' || this == '"' || this == '(' || this == ')' || this == '[' || this == ']' || this == '+' || this == '-' || this == '*' || this == '/'
 }
 
 fun GenericTokenize(sr: Reader): List<String> {

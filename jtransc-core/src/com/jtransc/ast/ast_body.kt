@@ -12,6 +12,16 @@ data class AstBody(
 	val flags: AstBodyFlags
 )
 
+fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD): AstBody {
+	val locals = hashSetOf<AstLocal>()
+	(object : AstVisitor() {
+		override fun visit(local: AstLocal) {
+			locals += local
+		}
+	}).visit(stm)
+	return AstBody(stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
+}
+
 data class AstBodyFlags(val strictfp: Boolean, val types: AstTypes)
 
 enum class AstBinop(val symbol: String, val str: String) {
@@ -404,13 +414,24 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = target
 	}
 
-	class NEW_WITH_CONSTRUCTOR(val target: AstType.REF, val method: AstMethodRef, args: List<AstExpr>) : AstExpr() {
+	class NEW_WITH_CONSTRUCTOR(val constructor: AstMethodRef, args: List<AstExpr>) : AstExpr() {
+		val target: AstType.REF = constructor.containingClassType
 		val args = args.map { it.box }
 		override val type = target
 	}
 
 	class NEW_ARRAY(val arrayType: AstType.ARRAY, counts: List<AstExpr>) : AstExpr() {
 		val counts = counts.map { it.box }
+		override val type = arrayType
+	}
+
+	class INTARRAY_LITERAL(val values: List<Int>) : AstExpr() {
+		val arrayType: AstType.ARRAY = AstType.ARRAY(AstType.INT)
+		override val type = arrayType
+	}
+
+	class STRINGARRAY_LITERAL(val values: List<String>) : AstExpr() {
+		val arrayType: AstType.ARRAY = AstType.ARRAY(AstType.STRING)
 		override val type = arrayType
 	}
 
@@ -574,14 +595,31 @@ class AstBuilder(val types: AstTypes) {
 	val CLASS = AstType.CLASS
 	val STRING = AstType.STRING
 
+	val NULL: AstExpr get() = AstExpr.LITERAL(null, types)
+
 	fun RETURN(): AstStm = AstStm.RETURN_VOID()
+	fun RETURN(value: AstExpr): AstStm = AstStm.RETURN(value)
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
-	val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 
-	val AstLocal.local: AstExpr.LOCAL get() = AstExpr.LOCAL(this)
+	val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+
+	val AstArgument.expr: AstExpr.PARAM get() = AstExpr.PARAM(this)
+
+	val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
 
 	fun stms(vararg stms: AstStm): AstStm.STMS = AstStm.STMS(*stms)
+	fun stms(stms: Iterable<AstStm>): AstStm.STMS = AstStm.STMS(stms.toList())
+
+	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
 
 	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
@@ -589,8 +627,8 @@ class AstBuilder(val types: AstTypes) {
 	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
 	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 	fun AstExpr.stm() = AstStm.STM_EXPR(this)
-	infix fun AstLocal.assignTo(that: AstExpr) = AstStm.SET_LOCAL(AstExpr.LOCAL(this), that)
-	infix fun AstExpr.LOCAL.assignTo(that: AstExpr) = AstStm.SET_LOCAL(this, that)
+	infix fun AstLocal.assignTo(that: AstExpr) = AstStmUtils.set(this, that)
+	infix fun AstExpr.LOCAL.assignTo(that: AstExpr) = AstStmUtils.set(this.local, that)
 	//fun FqName.get(name:String):AstExpr.STATIC_FIELD_ACCESS = AstExpr.STATIC_FIELD_ACCESS(AstFieldRef())
 }
 

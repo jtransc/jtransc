@@ -21,8 +21,8 @@ import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.ds.FastIdentitySet;
 import com.jtransc.ds.FastStringMap;
+import j.ClassInfo;
 
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -59,11 +59,15 @@ import java.lang.AnnotatedElement;
 		"}\n",
 	"public function locateMethodById(id:Int) { populateMethodsById(); return _methodsById.get(id); }",
 })
+@SuppressWarnings({"unchecked", "WeakerAccess", "unused", "TryWithIdenticalCatches", "SuspiciousToArrayCall"})
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
 	@JTranscKeep
 	private String name;
 
+	public ClassInfo info;
 	public int id;
+
+	public int[] related;
 
 	private boolean primitive = false;
 
@@ -136,7 +140,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	@HaxeMethodBody("return _modifiers;")
 	public int getModifiers() {
-		return modifiers;
+		// Remove ACC_SUPER?
+		return modifiers & ~0x20;
 	}
 
 	//@HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
@@ -164,9 +169,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@HaxeMethodBody("return Std.is(p0, _hxClass);")
 	@JTranscMethodBody(target = "js", value = "return N.isInstanceOfClass(p0, this);")
 	public boolean isInstance(Object obj) {
-		if (obj == null) return false;
-		Class<?> objClass = obj.getClass();
-		return this.isAssignableFrom(objClass);
+		return (obj != null) && this.isAssignableFrom(obj.getClass());
 	}
 
 	native public InputStream getResourceAsStream(String name);
@@ -205,17 +208,14 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	//native public java.security.ProtectionDomain getProtectionDomain();
 
-
 	private Class() {
 	}
-
 
 	Class(String name) throws ClassNotFoundException {
 		this.name = name;
 		this.primitive = false;
 		if (!_check()) throw new ClassNotFoundException("Can't find class '" + name + "'");
 	}
-
 
 	Class(String name, boolean primitive) {
 		this.name = name;
@@ -226,12 +226,15 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@HaxeMethodBody("return R.__initClass(this);")
 	@JTranscMethodBody(target = "js", value = "return R.__initClass(this);")
 	private boolean _check() {
-		JTranscCoreReflection.getClassNames();
-		if (JTranscCoreReflection.hasClassWithName(this.name)) {
-			this.id = JTranscCoreReflection.getClassIdWithName(this.name);
+		this.info = JTranscCoreReflection.getClassInfoWithName(this.name);
+		if (info != null) {
+			this.id = info.id;
+			this.related = info.related;
 			this.modifiers = JTranscCoreReflection.getModifiersWithId(this.id);
 		} else {
 			this.id = -1;
+			this.related = new int[0];
+			this.modifiers = 0;
 		}
 		return isArray() || this.id >= 0;
 	}
@@ -241,7 +244,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	static Class<?> getPrimitiveClass(String name) {
-		return new Class<Object>(name, true);
+		return new Class<>(name, true);
 	}
 
 	public String toString() {
@@ -250,9 +253,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public String toGenericString();
 
-	private static FastStringMap<Class<?>> _classCache = new FastStringMap<Class<?>>();
+	private static FastStringMap<Class<?>> _classCache = new FastStringMap<>();
 
-	static Class<?> forName0(String className) {
+	static public Class<?> forName0(String className) {
 		if (className == null) return null;
 		try {
 			return forName(className);
@@ -290,7 +293,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 			return forName(className.substring(1, className.length() - 1).replace('/', '.'));
 		}
 		if (!_classCache.has(className)) {
-			_classCache.set(className, new Class<Object>(className));
+			_classCache.set(className, new Class<>(className));
 		}
 		Class<?> result = _classCache.get(className);
 		if (result == null) {
@@ -303,27 +306,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return forName(name);
 	}
 
-	private FastIdentitySet<Class<?>> allRelatedClasses = null;
-
-	private FastIdentitySet<Class<?>> getAllRelatedClasses() {
-		if (allRelatedClasses == null) {
-			allRelatedClasses = new FastIdentitySet<>();
-			allRelatedClasses.add(this);
-			for (Class<?> i : this.getInterfaces()) {
-				//System.out.println("i:" + i);
-				if (i != null) allRelatedClasses.addAll(i.getAllRelatedClasses().toArray(new Class<?>[0]));
-			}
-			Class<? super T> superclass = this.getSuperclass();
-			//System.out.println("superclass:" + superclass);
-			if (superclass != null) {
-				allRelatedClasses.addAll(superclass.getAllRelatedClasses().toArray(new Class<?>[0]));
-			}
-		}
-		return allRelatedClasses;
-	}
-
 	public boolean isAssignableFrom(Class<?> cls) {
-		return cls.getAllRelatedClasses().has(this);
+		if (cls != null) {
+			int tid = this.id;
+			for (int cid : cls.related) if (cid == tid) return true;
+		}
+		return false;
 	}
 
 	public boolean isInterface() {
@@ -429,8 +417,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 			if (!isEnum()) return null;
 			try {
 				final Method valuesMethod = getMethod("values");
-				T[] temporaryConstants = (T[]) valuesMethod.invoke(null);
-				enumConstants = temporaryConstants;
+				enumConstants = (T[]) valuesMethod.invoke(null);
 			} catch (Exception ex) {
 				return null;
 			}
@@ -464,7 +451,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	public Field getField(String name) throws NoSuchFieldException, SecurityException {
 		if (_fieldsByName == null) {
-			_fieldsByName = new FastStringMap<Field>();
+			_fieldsByName = new FastStringMap<>();
 			for (Field f : this.getFields()) _fieldsByName.set(f.getName(), f);
 		}
 		return _fieldsByName.get(name);
@@ -472,7 +459,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	public Field getDeclaredField(String name) throws NoSuchFieldException, SecurityException {
 		if (_declaredFieldsByName == null) {
-			_declaredFieldsByName = new FastStringMap<Field>();
+			_declaredFieldsByName = new FastStringMap<>();
 			for (Field f : this.getDeclaredFields()) _declaredFieldsByName.set(f.getName(), f);
 		}
 		return _declaredFieldsByName.get(name);
@@ -534,7 +521,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
-		ArrayList<A> out = new ArrayList<A>();
+		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getAnnotations()) {
 			if (a.getClass() == annotationClass) out.add((A) a);
 		}
@@ -549,7 +536,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
-		ArrayList<A> out = new ArrayList<A>();
+		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getDeclaredAnnotations()) {
 			if (a.getClass() == annotationClass) out.add((A) a);
 		}

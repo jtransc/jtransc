@@ -51,6 +51,14 @@ object AstDependencyAnalyzer {
 					for (c in expr.counts) ana(c)
 					ana(expr.arrayType)
 				}
+				is AstExpr.INTARRAY_LITERAL -> {
+					//for (c in expr.values) ana(c)
+					ana(expr.arrayType)
+				}
+				is AstExpr.STRINGARRAY_LITERAL -> {
+					//for (c in expr.values) ana(c)
+					ana(expr.arrayType)
+				}
 				is AstExpr.ARRAY_ACCESS -> {
 					ana(expr.type)
 					ana(expr.array)

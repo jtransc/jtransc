@@ -1,11 +1,14 @@
 package javatest.lang;
 
+import com.jtransc.io.JTranscConsole;
+
 /**
  * Created by mike on 4/11/15.
  */
 public class SystemTest {
 
     public static void main(String[] args) throws Throwable {
+		JTranscConsole.log("SystemTest:");
         systemOutTest();
         systemPropertiesTest();
     }

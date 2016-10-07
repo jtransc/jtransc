@@ -18,10 +18,15 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import j.MemberInfo;
+import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
 
 public final class Method extends MethodConstructor implements Member, GenericDeclaration {
+	public Method(Class<?> containingClass, MemberInfo info) {
+		super(containingClass, info);
+	}
 
 	private Class<?> returnType;
 
@@ -38,8 +43,6 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		return super.getParameterAnnotations();
 	}
 
-	private Method() {
-	}
 
 	public String getName() {
 		return name;
@@ -97,16 +100,18 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		"return N.boxWithType(method['{% METHOD java.lang.reflect.Method:getReturnType %}'](), result);",
 		"return R.invokeMethod(this, p0, p1);",
 	})
-	@JTranscMethodBody(target = "cpp", value = {
-		//"printf(\"Method.invoke[1]\\n\");",
-		"auto table = TYPE_TABLE::TABLE[this->{% FIELD java.lang.reflect.Constructor:typeId %}];",
-		//"printf(\"Method.invoke[2]\\n\");",
-		"auto obj = p0;",
-		"std::vector<SOBJ> args = N::getVectorOrEmpty(p1);",
-		//"printf(\"Method.invoke[3]\\n\");",
-		"return table.dynamicInvoke ? table.dynamicInvoke(this->{% FIELD java.lang.reflect.Constructor:slot %}, obj, args) : SOBJ(NULL);"
-	})
-	native public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
+	//@JTranscMethodBody(target = "cpp", value = {
+	//	//"printf(\"Method.invoke[1]\\n\");",
+	//	"auto table = TYPE_TABLE::TABLE[this->{% FIELD java.lang.reflect.Constructor:typeId %}];",
+	//	//"printf(\"Method.invoke[2]\\n\");",
+	//	"auto obj = p0;",
+	//	"std::vector<SOBJ> args = N::getVectorOrEmpty(p1);",
+	//	//"printf(\"Method.invoke[3]\\n\");",
+	//	"return table.dynamicInvoke ? table.dynamicInvoke(this->{% FIELD java.lang.reflect.Constructor:slot %}, obj, args) : SOBJ(NULL);"
+	//})
+	public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		return ProgramReflection.dynamicInvoke(id, obj, args);
+	}
 
 	public boolean isBridge() {
 		return (getModifiers() & Modifier.BRIDGE) != 0;

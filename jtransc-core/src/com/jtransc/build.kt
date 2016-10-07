@@ -27,12 +27,13 @@ import com.jtransc.input.AsmToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
-import com.jtransc.meta.MetaReflection
+import com.jtransc.meta.MetaReflectionPlugin
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
+import j.ProgramReflection
 import java.io.File
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
@@ -108,6 +109,7 @@ class JTranscBuild(
 			com.jtransc.internal.JTranscAnnotationBase::class.java.name,
 			com.jtransc.JTranscWrapped::class.java.name,
 			com.jtransc.lang.Int64::class.java.name,
+			ProgramReflection::class.java.name,
 			entryPoint.fqname.fqname
 		)
 
@@ -140,7 +142,7 @@ class JTranscBuild(
 		}
 
 		// @TODO: allow to add plugins from gradle
-		val plugins: List<Class<MetaReflection>> = listOf(MetaReflection::class.java)
+		val plugins: List<Class<MetaReflectionPlugin>> = listOf(MetaReflectionPlugin::class.java)
 
 		for (plugin in plugins) {
 			plugin.newInstance().process(program)

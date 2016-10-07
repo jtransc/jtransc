@@ -65,7 +65,9 @@ abstract class CommonNames(
 	private val stringPoolGlobal = StringPool()
 	private val stringPoolPerClass = hashMapOf<FqName, StringPool>()
 
-	data class StringInPool(val id: Int, val str: String)
+	data class StringInPool(val id: Int, val str: String) {
+		val name = "STRINGLIT_$id"
+	}
 
 	fun getClassNameAllocator(clazz: FqName) = perClassNameAllocator.getOrPut(clazz) { PerClassNameAllocator() }
 

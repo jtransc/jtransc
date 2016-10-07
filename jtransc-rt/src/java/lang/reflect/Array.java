@@ -19,6 +19,7 @@ package java.lang.reflect;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class Array {
 	private Array() {
 	}
@@ -104,7 +105,6 @@ public final class Array {
 	@JTranscMethodBody(target = "js", value = "return p0.length;")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_0, p0)->length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
-
 
 	@HaxeMethodBody("return cast(p0, HaxeArrayAny).getDynamic(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")

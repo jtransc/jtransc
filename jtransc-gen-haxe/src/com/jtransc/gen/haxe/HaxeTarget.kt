@@ -572,6 +572,7 @@ class HaxeNames(
 @Singleton
 class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 	val subtarget = injector.get<ConfigSubtarget>().subtarget
+	override val defaultGenStmSwitchHasBreaks = false
 
 	companion object {
 		//const val ENABLE_HXCPP_GOTO_HACK = true

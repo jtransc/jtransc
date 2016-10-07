@@ -21,10 +21,12 @@ import com.jtransc.ConfigResourcesVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
+import com.jtransc.ast.optimize.AstOptimizer
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.text.quote
@@ -155,8 +157,8 @@ class AstGenContext {
 class AstProgram(
 	val configResourcesVfs: ConfigResourcesVfs,
 	val configEntrypoint: ConfigEntryPoint,
-	val types: AstTypes
-	//val injector: Injector
+	val types: AstTypes,
+	val injector: Injector
 ) : IUserData by UserData(), AstResolver, LocateRightClass {
 	val resourcesVfs = configResourcesVfs.resourcesVfs
 	val entrypoint = configEntrypoint.entrypoint
@@ -253,6 +255,21 @@ class AstProgram(
 	override fun locateRightClass(method: AstMethodRef): AstType.REF {
 		return method.classRef
 	}
+
+	////////////////////////////////
+	////////////////////////////////
+
+	var lastClassId = 1
+	val idsToClass = hashMapOf<Int, FqName>()
+	val classesToId = hashMapOf<FqName, Int>()
+	fun getClassId(fqname: FqName): Int {
+		if (fqname !in classesToId) {
+			val id = lastClassId++
+			classesToId[fqname] = id
+			idsToClass[id] = fqname
+		}
+		return classesToId[fqname]!!
+	}
 }
 
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
@@ -307,6 +324,12 @@ class AstClass(
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
 
 	fun locateField(name: String): AstField? = fieldsByName[name] ?: parentClass?.locateField(name)
+
+	fun getMethodWithoutOverrides(name: String): AstMethod? {
+		val out = methodsByName[name]
+		if (out != null && out.size != 1) invalidOp("Method '$name' in class '${this.name}' exists but has several overloads")
+		return out?.first()
+	}
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
 	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
@@ -374,7 +397,7 @@ class AstClass(
 
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
-	val fqname = name.fqname
+	val fqname: String = name.fqname
 
 	val classAndFieldAndMethodAnnotations by lazy {
 		annotations + methods.flatMap { it.annotations } + fields.flatMap { it.annotations }
@@ -451,7 +474,7 @@ class AstClass(
 	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
 
 	val allDependencies: Set<AstRef> by lazy {
-		var out = hashSetOf<AstRef>()
+		val out = hashSetOf<AstRef>()
 		if (extending != null) out.add(AstType.REF(extending))
 		for (i in implementing) out.add(AstType.REF(i))
 		for (f in fields) for (ref in f.type.getRefClasses()) out.add(ref)
@@ -485,6 +508,10 @@ class AstClass(
 			listOf(this) + program[extending].thisAndAncestors
 		}
 	}
+
+	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).distinct()
+
+	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { program.getClassId(it.name) }.filterNotNull() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
@@ -603,7 +630,7 @@ class AstMethod(
 	val genericSignature: String?,
 	val defaultTag: Any?,
 	val modifiers: AstModifiers,
-	val generateBody: () -> AstBody?,
+	var generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
 	val types: AstTypes
@@ -613,6 +640,22 @@ class AstMethod(
 
 	val body: AstBody? by lazy { generateBody() }
 	val hasBody: Boolean get() = body != null
+
+	fun replaceBody(stmGen: () -> AstStm) {
+		this.generateBody = { AstBody(types, stmGen(), methodType) }
+	}
+
+	fun replaceBodyOpt(stmGen: () -> AstStm) {
+		this.generateBody = {
+			val body = AstBody(types, stmGen(), methodType)
+			AstOptimizer(AstBodyFlags(false, types)).visit(body)
+			body
+		}
+	}
+
+	fun replaceBody(stm: AstStm) {
+		this.generateBody = { AstBody(types, stm, methodType) }
+	}
 
 	val methodType: AstType.METHOD = methodType
 	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD
@@ -645,7 +688,7 @@ val AstMethodRef.isInstanceInit: Boolean get() = name == "<init>"
 val AstMethodRef.isClassInit: Boolean get() = name == "<clinit>"
 val AstMethodRef.isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
 
-
+@Suppress("unused")
 data class AstModifiers(val acc: Int) {
 	companion object {
 		fun withFlags(vararg flags: Int): AstModifiers {

@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.io.JTranscConsole;
+import j.MemberInfo;
 
 import java.lang.annotation.Annotation;
 
@@ -46,6 +47,15 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	@JTranscInvisible
 	private MethodTypeImpl genericMethodType;
+
+	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
+		this.clazz = containingClass;
+		this.slot = info.id;
+		this.name = info.name;
+		this.signature = info.desc;
+		this.genericSignature = info.genericDesc;
+		this.modifiers = info.modifiers;
+	}
 
 	@JTranscInvisible
 	protected MethodTypeImpl methodType() {

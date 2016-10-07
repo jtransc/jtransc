@@ -1,16 +1,24 @@
 package big;
 
-import com.jtransc.io.JTranscSyncIO;
+import com.jtransc.annotation.JTranscKeep;
+import j.ClassInfo;
+import j.ProgramReflection;
 import javatest.utils.Base64Test;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
 public class HelloWorldTest {
-	static public void main(String[] args) {
+	//public HelloWorldTest() {
+	//}
+
+	static public void main(String[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, NoSuchFieldException, InstantiationException {
+		//for (ClassInfo item : ProgramReflection.getAllClasses()) System.out.println(item.name + " : " + item.modifiers);
+
+		//System.out.println("HelloWorldTest.class.getModifiers(): " + HelloWorldTest.class.getModifiers());
+
 		ArrayList<Integer> items = new ArrayList<>();
 		items.add(10);
 		items.add(20);
@@ -24,7 +32,6 @@ public class HelloWorldTest {
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("hello", "world");
 		System.out.println(map.size());
-
 
 		Base64Test.main(args);
 		/*
@@ -43,5 +50,24 @@ public class HelloWorldTest {
 		*/
 		//System.out.println(new File("c:/temp/2.bin").length());
 		//JTranscConsole.log("Hello World!");
+
+		//ProgramReflection.dynamicInvoke(0, null, null);
+		//System.out.println("HelloWorldTest.class.field[10]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
+		//HelloWorldTest.class.getDeclaredField("a").set(null, 20);
+		//System.out.println("HelloWorldTest.class.field[20]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
+		//System.out.println("HelloWorldTest.class.method: " + HelloWorldTest.class.getDeclaredMethod("hello").invoke(null));
+		//
+		//System.out.println(HelloWorldTest.class.getConstructor().newInstance().demo);
+		//System.out.println(HelloWorldTest.class.getConstructor().newInstance());
+		//System.out.println("####");
 	}
+
+	//public String demo = "demo";
+	//
+	//static public int a = 10;
+	//
+	//@JTranscKeep
+	//static public void hello() {
+	//	System.out.println("hello!");
+	//}
 }

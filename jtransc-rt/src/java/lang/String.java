@@ -62,7 +62,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("this.setStr(HaxeNatives.charArrayToString(p0, p1, p2));")
 	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, p1, p2);")
-	public String(char value[], int offset, int count) {
+	public String(char[] value, int offset, int count) {
 		//throw new RuntimeException("Native");
 		this.value = Arrays.copyOfRange(value, offset, offset + count);
 	}

@@ -12,12 +12,14 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
 import com.jtransc.injector.Injector
+import com.jtransc.lang.JA_I
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.SyncVfsFile
 import java.util.*
 
 class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 open class GenCommonGen(val injector: Injector) {
 	val configSrcFolder: ConfigSrcFolder = injector.get()
 	val srcFolder: SyncVfsFile = configSrcFolder.srcFolder
@@ -115,7 +117,10 @@ open class GenCommonGen(val injector: Injector) {
 		is AstExpr.ARRAY_LENGTH -> genExprArrayLength(e)
 		is AstExpr.INSTANCE_OF -> genExprInstanceOf(e)
 		is AstExpr.NEW -> genExprNew(e)
+		is AstExpr.NEW_WITH_CONSTRUCTOR -> genExprNewWithConstructor(e)
 		is AstExpr.NEW_ARRAY -> genExprNewArray(e)
+		is AstExpr.INTARRAY_LITERAL -> genExprIntArrayLit(e)
+		is AstExpr.STRINGARRAY_LITERAL -> genExprStringArrayLit(e)
 		is AstExpr.CALL_BASE -> genExprCallBase(e)
 		is AstExpr.METHOD_CLASS -> genExprMethodClass(e)
 		else -> noImpl("Expression $e")
@@ -257,6 +262,13 @@ open class GenCommonGen(val injector: Injector) {
 			for (local in body.locals) {
 				refs.add(local.type)
 			}
+
+			resetLocalsPrefix()
+			var info: Indenter? = null
+
+			linedeferred {
+				line(info!!)
+			}
 			line(genBodyLocals(body.locals))
 			if (body.traps.isNotEmpty()) {
 				line(genBodyTrapsPrefix())
@@ -267,6 +279,7 @@ open class GenCommonGen(val injector: Injector) {
 			//}
 
 			val bodyContent = body.stm.genStm()
+			info = genLocalsPrefix()
 
 			if (method.isClassOrInstanceInit) {
 				mutableBody.initClassRef(context.clazz.ref, "self")
@@ -296,6 +309,8 @@ open class GenCommonGen(val injector: Injector) {
 		}
 	}
 
+	open fun resetLocalsPrefix() = Unit
+	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(genBodyLocal(local)) }
 	open fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
 	open fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
@@ -362,7 +377,7 @@ open class GenCommonGen(val injector: Injector) {
 	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
 	}
 
-	//open var defaultGenStmSwitchHasBreaks = true
+	open val defaultGenStmSwitchHasBreaks = true
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
 		line("switch (${stm.subject.genExpr()})") {
 			for (case in stm.cases) {
@@ -371,14 +386,13 @@ open class GenCommonGen(val injector: Injector) {
 				line("case $value:")
 				indent {
 					line(caseStm.genStm())
+					if (defaultGenStmSwitchHasBreaks) line("break;")
 				}
-				//if (defaultGenStmSwitchHasBreaks) line("break;")
 			}
 			line("default:")
 			indent {
 				line(stm.default.genStm())
-				line("break;")
-				//if (defaultGenStmSwitchHasBreaks) line("break;")
+				if (defaultGenStmSwitchHasBreaks) line("break;")
 			}
 		}
 	}
@@ -390,6 +404,14 @@ open class GenCommonGen(val injector: Injector) {
 			1 -> createArraySingle(e, desc)
 			else -> createArrayMultisure(e, desc)
 		}
+	}
+
+	open fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
+		return "JA_I${staticAccessOperator}fromTypedArray([" + e.values.joinToString(",") + "])"
+	}
+
+	open fun genExprStringArrayLit(e: AstExpr.STRINGARRAY_LITERAL): String {
+		return "JA_J${staticAccessOperator}fromArray([" + e.values.joinToString(",") + "], \"Ljava/lang/String;\")"
 	}
 
 	open fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
@@ -408,6 +430,15 @@ open class GenCommonGen(val injector: Injector) {
 		refs.add(e.target)
 		val className = e.target.targetTypeNew
 		return "new $className()"
+	}
+
+	open fun genExprNewWithConstructor(e: AstExpr.NEW_WITH_CONSTRUCTOR): String {
+		return genExprCallBase(AstExpr.CALL_INSTANCE(
+			AstExpr.NEW(e.target),
+			e.constructor,
+			e.args.map { it.value },
+			isSpecial = true
+		))
 	}
 
 	open fun genExprInstanceOf(e: AstExpr.INSTANCE_OF): String {
@@ -722,7 +753,7 @@ open class GenCommonGen(val injector: Injector) {
 
 		if (from == to) return e
 
-		if (from !is AstType.Primitive && to is AstType.Primitive) {
+		if ((from !is AstType.Primitive) && (to is AstType.Primitive)) {
 			return when (from) {
 			// @TODO: Check!
 				AstType.BOOL.CLASSTYPE -> genExprCast(N_unboxBool(e), AstType.BOOL, to)
@@ -736,6 +767,20 @@ open class GenCommonGen(val injector: Injector) {
 			//AstType.OBJECT -> genCast(genCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
 			//else -> noImpl("Unhandled conversion $e : $from -> $to")
 				else -> genExprCast(genExprCast(e, from, to.CLASSTYPE), to.CLASSTYPE, to)
+			}
+		}
+
+		if ((from is AstType.Primitive) && (to !is AstType.Primitive)) {
+			return when (from) {
+				AstType.BOOL -> N_boxBool(e)
+				AstType.BYTE -> N_boxByte(e)
+				AstType.SHORT -> N_boxShort(e)
+				AstType.CHAR -> N_boxChar(e)
+				AstType.INT -> N_boxInt(e)
+				AstType.LONG -> N_boxLong(e)
+				AstType.FLOAT -> N_boxFloat(e)
+				AstType.DOUBLE -> N_boxDouble(e)
+				else -> invalidOp
 			}
 		}
 

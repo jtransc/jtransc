@@ -166,6 +166,7 @@ struct N { public:
 	static void log(std::wstring str);
 	static void log(SOBJ str);
 	static SOBJ str(char *str);
+	static SOBJ str(const wchar_t *str, int len);
 	static SOBJ str(std::wstring str);
 	static SOBJ str(std::string str);
 	static SOBJ strArray(int count, wchar_t **strs);
@@ -211,23 +212,11 @@ struct N { public:
 
 	static double getTime();
 	static void startup();
+
+	static void initStringPool();
 };
 
 {{ ARRAY_HEADERS }}
-
-struct STRINGLIT {
-	const wchar_t *ptr;
-	int len;
-	bool initialized;
-	SOBJ obj;
-	SOBJ get() {
-		if (!initialized) {
-			initialized = true;
-			obj = N::str(std::wstring(ptr, len));
-		}
-		return obj;
-	};
-};
 
 // Strings
 {{ STRINGS }}
@@ -354,12 +343,28 @@ int64_t N::d2j(double v) { return (int64_t)v; }
 //	return out.get()->sptr();
 //}
 
+SOBJ N::str(const wchar_t *str, int len) {
+	SOBJ out(new {% CLASS java.lang.String %}());
+	JA_C *array = new JA_C(len);
+	uint16_t *ptr = (uint16_t *)array->getStartPtr();
+	if (sizeof(wchar_t) == sizeof(uint16_t)) {
+		::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
+	} else {
+		for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
+	}
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
+	return out.get()->sptr();
+};
+
 SOBJ N::str(std::wstring str) {
 	int len = str.length();
 	SOBJ out(new {% CLASS java.lang.String %}());
-	std::shared_ptr<JA_C> array(new JA_C(len));
-	for (int n = 0; n < len; n++) array->set(n, (uint16_t)str[n]);
-	GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
+	JA_C *array = new JA_C(len);
+	uint16_t *ptr = (uint16_t *)array->getStartPtr();
+	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out.get()->sptr();
 };
 
@@ -373,9 +378,12 @@ SOBJ N::str(char *s) {
 	if (s == NULL) return SOBJ(NULL);
 	int len = strlen(s);
 	SOBJ out(new {% CLASS java.lang.String %}());
-	std::shared_ptr<JA_C> array(new JA_C(len));
-	for (int n = 0; n < len; n++) array->set(n, (uint16_t)s[n]);
-	GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
+	JA_C *array = new JA_C(len);
+	uint16_t *ptr = (uint16_t *)array->getStartPtr();
+	//::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
+	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out.get()->sptr();
 };
 
@@ -543,6 +551,8 @@ void N::startup() {
 	setvbuf(stderr, NULL, _IONBF, 0);
 	std::signal(SIGSEGV, SIGSEGV_handler);
 	std::signal(SIGFPE, SIGFPE_handler);
+
+	N::initStringPool();
 };
 
 // Type Table Footer

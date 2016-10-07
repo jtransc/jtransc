@@ -46,7 +46,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 	val main = program[program.entrypoint].getMethodSure("main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) }.desc)
 
 	class TreeShakingClass(val oldprogram: AstProgram, val target: String) {
-		val newprogram = AstProgram(program.configResourcesVfs, program.configEntrypoint, program.types)
+		val newprogram = AstProgram(program.configResourcesVfs, program.configEntrypoint, program.types, program.injector)
 		val processed = hashSetOf<Any>()
 		val newclasses = hashMapOf<FqName, AstClass>()
 		val classtree = ClassTree(SHAKING_TRACE, newprogram)
@@ -109,7 +109,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 				val newclazz = _addMiniBasicClass(fqname)
 
 				for (impl in oldclazz.implementing) addBasicClass(impl, reason = "implementing $fqname")
-				if (oldclazz.extending != null) addBasicClass(oldclazz.extending, reason = "extending $fqname") else null
+				if (oldclazz.extending != null) addBasicClass(oldclazz.extending, reason = "extending $fqname")
 
 				if (oldclazz.annotationsList.contains<JTranscKeep>()) {
 					addFullClass(fqname, reason = "$fqname+@JTranscKeep")

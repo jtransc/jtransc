@@ -428,6 +428,7 @@ data class FqName(val fqname: String) : Serializable {
 	fun append(s: String): FqName = FqName(this.fqname + s)
 }
 
+val Class<*>.fqname: FqName get() = FqName(this.name)
 val String.fqname: FqName get() = FqName(this)
 fun FqName.ref() = AstType.REF(this)
 
@@ -452,6 +453,7 @@ object AstTypeBuilder {
 	val DOUBLE = AstType.DOUBLE
 	fun REF(name: FqName) = AstType.REF(name)
 	fun ARRAY(element: AstType) = AstType.ARRAY(element)
+	fun ARRAY(element: AstClass) = AstType.ARRAY(element.ref)
 	//fun ARRAY(element: AstType, dimensions: Int = 1) = AstType.ARRAY(element, dimensions)
 	//fun GENERIC(type: AstType.REF, params: List<AstType>) = AstType.GENERIC(type, params)
 	fun METHOD(args: List<AstArgument>, ret: AstType) = AstType.METHOD(args, ret)

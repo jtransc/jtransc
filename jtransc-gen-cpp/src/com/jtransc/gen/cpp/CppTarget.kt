@@ -6,15 +6,14 @@ import com.jtransc.ConfigTargetDirectory
 import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
-import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.GotosFeature
 import com.jtransc.ast.feature.OptimizeFeature
 import com.jtransc.ast.feature.SimdFeature
 import com.jtransc.ast.feature.SwitchesFeature
-import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.gen.common.*
@@ -137,57 +136,14 @@ class CppGenTargetProcessor(
 @Singleton
 class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 	override val allowAssignItself = true
-	var lastClassId = 1
-	val idsToClass = hashMapOf<Int, FqName>()
-	val classesToId = hashMapOf<FqName, Int>()
-	fun getClassId(fqname: FqName): Int {
-		if (fqname !in classesToId) {
-			val id = lastClassId++
-			classesToId[fqname] = id
-			idsToClass[id] = fqname
-		}
-		return classesToId[fqname]!!
-	}
+	val lastClassId: Int get() = program.lastClassId
+	val idsToClass: HashMap<Int, FqName> get() = program.idsToClass
+	val classesToId: HashMap<FqName, Int> get() = program.classesToId
+	fun getClassId(fqname: FqName): Int = program.getClassId(fqname)
 
 	fun generateTypeTableHeader() = Indenter.gen {
-		line("struct REFLECT_CONSTRUCTOR", after2 = ";") {
-			line("const wchar_t *desc;")
-			line("const wchar_t *genericDesc;")
-			line("int flags;")
-		}
-
-		line("struct REFLECT_METHOD", after2 = ";") {
-			line("const wchar_t *name;")
-			line("const wchar_t *desc;")
-			line("const wchar_t *genericDesc;")
-			line("int flags;")
-		}
-
-		line("struct REFLECT_FIELD", after2 = ";") {
-			line("const wchar_t *name;")
-			line("const wchar_t *desc;")
-			line("const wchar_t *genericDesc;")
-			line("int flags;")
-		}
-
 		line("struct TYPE_INFO", after2 = ";") {
-			line("const int flags;")
 			line("const int *subtypes;")
-			line("const wchar_t *tname;")
-			line("const int constructorsSize;")
-			line("const REFLECT_CONSTRUCTOR* constructors;")
-			line("const int methodsSize;")
-			line("const REFLECT_METHOD* methods;")
-			line("const int fieldsSize;")
-			line("const REFLECT_FIELD* fields;")
-			line("SOBJ (*dynamicNew)(int, std::vector<SOBJ>);")
-			line("SOBJ (*dynamicInvoke)(int, SOBJ, std::vector<SOBJ>);")
-			line("void *(*dynamicFieldPtr)(int, SOBJ);")
-			//line("SOBJ (*dynamicGet)(int, SOBJ);")
-			//line("void (*dynamicSet)(int, SOBJ, SOBJ);")
-			line("const int superType;")
-			line("const int interfaceCount;")
-			line("const int *interfaces;")
 		}
 
 		line("struct TYPE_TABLE { static int count; static TYPE_INFO TABLE[$lastClassId]; };")
@@ -197,48 +153,31 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 
 	fun generateTypeTableFooter() = Indenter.gen {
 		for (clazz in ordereredClasses) {
-			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { classesToId[it.name] }.filterNotNull() + listOf(0)
+			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
 			line("const int ${clazz.cppName}::TABLE_INFO[] = { ${ids.joinToString(", ")} };")
 		}
 
 		for (clazz in ordereredClasses) {
 			val ids = (clazz.directInterfaces).distinct().map { classesToId[it.name] }.filterNotNull()
-			line("const int ${clazz.cppName}::INTERFACES_COUNT = ${ids.size};")
-			line("const int ${clazz.cppName}::INTERFACES[] = { ${ids.joinToString(", ")} };")
+			//line("const int ${clazz.cppName}::INTERFACES_COUNT = ${ids.size};")
+			//line("const int ${clazz.cppName}::INTERFACES[] = { ${ids.joinToString(", ")} };")
 		}
 
-		for (clazz in ordereredClasses) {
-			val superId = (if (clazz.parentClass != null) classesToId[clazz.parentClass!!.name] else null) ?: -1
-			line("const int ${clazz.cppName}::SUPER = $superId;")
-		}
-
+		//for (clazz in ordereredClasses) {
+		//	val superId = (if (clazz.parentClass != null) classesToId[clazz.parentClass!!.name] else null) ?: -1
+		//	line("const int ${clazz.cppName}::SUPER = $superId;")
+		//}
+//
 		line("int TYPE_TABLE::count = $lastClassId;")
 		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			for (n in 0 until lastClassId) {
 				val clazzName = idsToClass[n]
 				val clazz = if (clazzName != null) program[clazzName] else null
 				if (clazz != null) {
-					line("${clazz.cppName}::INFO,")
+					//line("${clazz.cppName}::INFO,")
+					line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
 				} else {
-					line("{")
-					indent {
-						line(".flags = 0,")
-						line(".subtypes = 0,")
-						line(".tname = 0,")
-						line(".constructorsSize = 0,")
-						line(".constructors = 0,")
-						line(".methodsSize = 0,")
-						line(".methods = 0,")
-						line(".fieldsSize = 0,")
-						line(".fields = 0,")
-						line(".dynamicNew = 0,")
-						line(".dynamicInvoke = 0,")
-						line(".dynamicFieldPtr = 0,")
-						line(".superType = 0,")
-						line(".interfaceCount = 0,")
-						line(".interfaces = 0,")
-					}
-					line("},")
+					line("{ .subtypes = 0 },")
 				}
 			}
 		}
@@ -271,6 +210,19 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		explore(roots)
 
 		out.toList()
+	}
+
+	var prefixTempId = 0
+	val bodyPrefixes = arrayListOf<String>()
+
+	override fun resetLocalsPrefix() {
+		prefixTempId = 0
+		bodyPrefixes.clear()
+	}
+
+	override fun genLocalsPrefix(): Indenter = indent {
+		line(super.genLocalsPrefix())
+		for (prefix in bodyPrefixes) line(prefix)
 	}
 
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("SOBJ J__exception__ = null;") }
@@ -393,6 +345,8 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 									line("""return SOBJ(out);""")
 								}
 
+								line("$name *getStartPtr() { return ($name *)_data; }")
+
 								if (CHECK_ARRAYS) {
 									line("""inline void fastSet(int offset, $type v) { checkBounds(offset); (($type*)(this->_data))[offset] = v; };""")
 									line("""inline $type fastGet(int offset) { checkBounds(offset); return (($type*)(this->_data))[offset]; }""")
@@ -401,21 +355,42 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 									line("""inline $type fastGet(int offset) { return (($type*)(this->_data))[offset]; }""")
 								}
 
+								line("""inline $name *init(int offset, $type v) { (($type*)(this->_data))[offset] = v; return this; };""")
+
 								line("""void set(int offset, $type v) { checkBounds(offset); fastSet(offset, v); };""")
 								line("""$type get(int offset) { checkBounds(offset); return fastGet(offset); }""")
 
 								line("""void fill(int from, int to, $type v) { checkBounds(from); checkBounds(to - 1); $type* data = ($type*)this->_data; for (int n = from; n < to; n++) data[n] = v; };""")
 
 								//line("void setArray(int start, std::vector<$type> arrays)") {
-								line("void setArray(int start, int size, const $type *arrays)") {
+								line("$name *setArray(int start, int size, const $type *arrays)") {
 									line("for (int n = 0; n < size; n++) this->set(start + n, arrays[n]);")
+									line("return this;")
 								}
 
 								line("static $name *fromVector($type *data, int count)", after2 = ";") {
-									line("auto out = new $name(count);")
-									line("out->setArray(0, count, (const $type *)data);")
-									line("return out;")
+									line("return (new $name(count))->setArray(0, count, (const $type *)data);")
 								}
+
+								line("static $name *fromArgValues() { return (new $name(0)); };")
+								line("static $name *fromArgValues($type a0) { return (new $name(1))->init(0, a0); };")
+								line("static $name *fromArgValues($type a0, $type a1) { return (new $name(2))->init(0, a0)->init(1, a1); };")
+								line("static $name *fromArgValues($type a0, $type a1, $type a2) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2); };")
+								line("static $name *fromArgValues($type a0, $type a1, $type a2, $type a3) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };")
+
+								/*
+								if (name == "JA_I") {
+									line("static $name *fromValues(int n_args, ...)", after2 = ";") {
+										line("va_list ap;")
+										line("va_start(ap, n_args);")
+										line("auto out = new $name(n_args);")
+										line("for (int n = 0; n < n_args; n++)") {
+											line("out->fastSet(n, va_arg(ap, int32_t));")
+										}
+										line("return out;")
+									}
+								}
+								*/
 
 								if (name == "JA_L") {
 									line("std::vector<SOBJ> getVector()") {
@@ -474,8 +449,16 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 
 		val STRINGS = Indenter.gen {
 			// {{ STRINGS }}
-			for (gs in names.getGlobalStrings()) {
-				line("""STRINGLIT   STRINGLIT_${gs.id} = { L${gs.str.uquote()}, ${gs.str.length}, false, 0 };""")
+			// STRINGLIT_
+
+			val globalStrings = names.getGlobalStrings()
+
+			line("static SOBJ ${globalStrings.map { it.name }.joinToString(", ")};")
+			line("void N::initStringPool()", after2 = ";") {
+				for (gs in globalStrings) {
+					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
+					//line("""${gs.name} = N::str(std::wstring(L${gs.str.uquote()}, ${gs.str.length}));""")
+				}
 			}
 		}
 
@@ -634,26 +617,9 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 
 			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { classesToId[it.name] }.filterNotNull() + listOf(0)
 			line("static const int TABLE_INFO[${ids.size}];")
-			line("static const int SUPER;")
-			line("static const int INTERFACES_COUNT;")
-			line("static const int INTERFACES[${ids.size}];")
-			line("static const REFLECT_CONSTRUCTOR CONSTRUCTORS[${clazz.constructors.size}];")
-			line("static const REFLECT_METHOD      METHODS[${clazz.methodsWithoutConstructors.size}];")
-			line("static const REFLECT_FIELD       FIELDS[${clazz.fields.size}];")
-			line("static const wchar_t *NAME;")
-			line("static const TYPE_INFO INFO;")
 
 			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
 			line("static ${clazz.cppName} *GET_npe(java_lang_Object *obj, const wchar_t *location);")
-			line("static SOBJ DYNAMIC_NEW(int index, std::vector<SOBJ> args);")
-			line("static SOBJ DYNAMIC_INVOKE(int index, SOBJ target, std::vector<SOBJ> args);")
-			line("static void *DYNAMIC_FIELD_PTR(int index, SOBJ target);")
-			//line("static SOBJ DYNAMIC_GET(int index, SOBJ target);")
-			//line("static void DYNAMIC_SET(int index, SOBJ target, SOBJ value);")
-
-			//line("static constexpr int DYNAMIC_INVOKE[${ids.size}] = { ${ids.joinToString(", ")} };")
-
-			//line("static int[] TABLE_INFO = ********************;")
 		}
 		line("};")
 
@@ -665,118 +631,6 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 			line("return dynamic_cast<${clazz.cppName}*>(obj);")
 		}
 
-		line("const wchar_t *${clazz.cppName}::NAME = L${clazz.fqname.quote()};")
-		line("const REFLECT_CONSTRUCTOR ${clazz.cppName}::CONSTRUCTORS[] = ", after2 = ";") {
-			for ((index, c) in clazz.constructors.withIndex()) {
-				line("""{ .desc = L"${c.desc}", .genericDesc = L"${c.genericSignature}", .flags = ${c.modifiers.acc} },""")
-			}
-		}
-		line("const REFLECT_METHOD ${clazz.cppName}::METHODS[] = ", after2 = ";") {
-			for ((index, c) in clazz.methodsWithoutConstructors.withIndex()) {
-				line("""{ .name = L${c.name.quote()}, .desc = L${c.desc.quote()}, .genericDesc = L"${c.genericSignature}", .flags = ${c.modifiers.acc} },""")
-			}
-		}
-		line("const REFLECT_FIELD ${clazz.cppName}::FIELDS[] = ", after2 = ";") {
-			for ((index, c) in clazz.fields.withIndex()) {
-				line("""{ .name = L${c.name.quote()}, .desc = L${c.desc.quote()}, .genericDesc = L"${c.genericSignature}", .flags = ${c.modifiers.acc} },""")
-			}
-		}
-		line("SOBJ ${clazz.cppName}::DYNAMIC_NEW(int index, std::vector<SOBJ> args)") {
-			if (clazz.constructors.isEmpty()) {
-				line("return SOBJ(NULL);")
-			} else {
-				line("SOBJ out = SOBJ(new ${clazz.cppName}());")
-				line("switch (index)") {
-					for ((index, c) in clazz.constructors.withIndex()) {
-						val args = c.methodType.args.map {
-							val extract = "args[${it.index}]"
-							val type = it.type
-							when (type) {
-								is AstType.Primitive -> N_unbox(type, extract)
-								else -> "$extract"
-							}
-						}.joinToString(", ")
-						line("""case $index: GET_OBJECT(${clazz.cppName}, out)->${c.cppName}($args); break;""")
-					}
-				}
-				line("return out;")
-			}
-		}
-		line("SOBJ ${clazz.cppName}::DYNAMIC_INVOKE(int index, SOBJ obj, std::vector<SOBJ> args)") {
-			if (clazz.methodsWithoutConstructors.isNotEmpty()) {
-				line(names.buildStaticInit(clazz))
-				line("switch (index)") {
-					// REFLECT_METHOD
-					for ((index, method) in clazz.methodsWithoutConstructors.withIndex()) {
-						val args = method.methodType.args.map { N_unbox(it.type, "args[${it.index}]") }.joinToString(", ")
-						val rettype = method.methodType.ret
-
-						val callUnboxed = if (method.isStatic) {
-							"${clazz.cppName}::${method.cppName}($args)"
-						} else {
-							"GET_OBJECT(${clazz.cppName}, obj)->${method.cppName}($args)"
-						}
-
-						val callBoxed = when (rettype) {
-							is AstType.VOID -> "$callUnboxed; return N::boxVoid();"
-							else -> "return " + N_box(rettype, callUnboxed) + ";"
-						}
-
-						//line("""case $index: printf("CALLING ${clazz.cppName}::${method.cppName}\n"); $callBoxed""")
-						line("""case $index: $callBoxed""")
-					}
-				}
-			}
-
-			line("return SOBJ(NULL);")
-		}
-
-		line("void *${clazz.cppName}::DYNAMIC_FIELD_PTR(int index, SOBJ obj)") {
-			if (clazz.fields.isNotEmpty()) {
-				line(names.buildStaticInit(clazz))
-				line("switch (index)") {
-					for ((index, field) in clazz.fields.withIndex()) {
-						if (field.isStatic) {
-							//line("""case $index: printf("DYNAMIC_FIELD_PTR:${clazz.cppName}::${field.cppName}\n"); return (void *)&(${clazz.cppName}::${field.cppName});""")
-							line("""case $index: return (void *)&(${clazz.cppName}::${field.cppName});""")
-						} else {
-							//line("""case $index: printf("DYNAMIC_FIELD_PTR:${clazz.cppName}::${field.cppName}\n"); return (void *)&(GET_OBJECT(${clazz.cppName}, obj)->${field.cppName});""")
-							line("""case $index: return (void *)&(GET_OBJECT(${clazz.cppName}, obj)->${field.cppName});""")
-						}
-					}
-				}
-			}
-			line("return NULL;")
-		}
-
-		//line("SOBJ ${clazz.cppName}::DYNAMIC_GET(int index, SOBJ target)") {
-		//	line("return SOBJ(NULL);")
-		//}
-//
-		//line("void ${clazz.cppName}::DYNAMIC_SET(int index, SOBJ target, SOBJ value)") {
-		//	//line("return SOBJ(NULL);")
-		//}
-
-		//line("const TYPE_INFO ${clazz.cppName}::INFO = { ${clazz.cppName}::TABLE_INFO, ${clazz.cppName}::NAME, ${clazz.constructors.size}, ${clazz.cppName}::CONSTRUCTORS, ${clazz.methodsWithoutConstructors.size}, ${clazz.cppName}::METHODS, ${clazz.cppName}::DYNAMIC_NEW, ${clazz.cppName}::DYNAMIC_INVOKE, ${clazz.cppName}::SUPER, ${clazz.cppName}::INTERFACES_COUNT, ${clazz.cppName}::INTERFACES };")
-		line("const TYPE_INFO ${clazz.cppName}::INFO = ", after2 = ";") {
-			line(".flags = ${clazz.modifiers.acc},")
-			line(".subtypes = ${clazz.cppName}::TABLE_INFO,")
-			line(".tname = ${clazz.cppName}::NAME,")
-			line(".constructorsSize = ${clazz.constructors.size},")
-			line(".constructors = ${clazz.cppName}::CONSTRUCTORS,")
-			line(".methodsSize = ${clazz.methodsWithoutConstructors.size},")
-			line(".methods = ${clazz.cppName}::METHODS,")
-			line(".fieldsSize = ${clazz.fields.size},")
-			line(".fields = ${clazz.cppName}::FIELDS,")
-			line(".dynamicNew = ${clazz.cppName}::DYNAMIC_NEW,")
-			line(".dynamicInvoke = ${clazz.cppName}::DYNAMIC_INVOKE,")
-			line(".dynamicFieldPtr = ${clazz.cppName}::DYNAMIC_FIELD_PTR,")
-			//line(".dynamicGet = ${clazz.cppName}::DYNAMIC_GET,")
-			//line(".dynamicSet = ${clazz.cppName}::DYNAMIC_SET,")
-			line(".superType = ${clazz.cppName}::SUPER,")
-			line(".interfaceCount = ${clazz.cppName}::INTERFACES_COUNT,")
-			line(".interfaces = ${clazz.cppName}::INTERFACES")
-		}
 	}
 
 	fun writeClassImpl(clazz: AstClass): Indenter = Indenter.gen {
@@ -1064,6 +918,31 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		return "$localName = (${stm.local.type.cppString})($exprStr);"
 	}
 
+	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
+		val ints = e.values.joinToString(",")
+		if (e.values.size <= 4) {
+			return "SOBJ(JA_I::fromArgValues($ints))"
+		} else {
+			val id = prefixTempId++
+			val tempname = "arraylit_$id"
+			bodyPrefixes += "int $tempname[] = {$ints};";
+			return "SOBJ(JA_I::fromVector($tempname, ${e.values.size}))"
+		}
+	}
+
+	override fun genExprStringArrayLit(e: AstExpr.STRINGARRAY_LITERAL): String {
+		//val ints = e.values.joinToString(",")
+		//if (e.values.size <= 4) {
+		//	return "SOBJ(JA_I::fromArgValues($ints))"
+		//} else {
+		//	val id = prefixTempId++
+		//	val tempname = "arraylit_$id"
+		//	bodyPrefixes += "int $tempname[] = {$ints};";
+		//	return "SOBJ(JA_I::fromVector($tempname, ${e.values.size}))"
+		//}
+		noImpl("C++ genExprStringArrayLit")
+	}
+
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
 			"SOBJ(new ${names.ObjectArrayType}(${e.counts[0].genExpr()}, L\"$desc\"))"
@@ -1189,7 +1068,7 @@ class CppNames(
 		AstType.LONG -> "int64_t"
 		AstType.FLOAT -> "float"
 		AstType.DOUBLE -> "double"
-		is AstType.REF, is AstType.ARRAY -> "SOBJ"
+		is AstType.Reference -> "SOBJ"
 	//is AstType.REF -> "std::shared_ptr<${getClassFqNameForCalling(type.name)}>"
 	//is AstType.ARRAY -> "std::shared_ptr<" + when (type.element) {
 	//	AstType.BOOL -> "JA_Z"
@@ -1222,7 +1101,7 @@ class CppNames(
 		is String -> {
 			val id = allocString(currentClass, value)
 			//N_func("str", "std::wstring(L" + value.quote() + ", " + value.length + ")")
-			"STRINGLIT_$id.get()"
+			"STRINGLIT_$id"
 		}
 		is AstType -> N_func("resolveClass", "L${value.mangle().uquote()}")
 		else -> super.escapeConstant(value)
