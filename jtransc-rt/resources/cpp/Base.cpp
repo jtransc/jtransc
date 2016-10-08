@@ -346,13 +346,14 @@ int64_t N::d2j(double v) { return (int64_t)v; }
 SOBJ N::str(const wchar_t *str, int len) {
 	SOBJ out(new {% CLASS java.lang.String %}());
 	JA_C *array = new JA_C(len);
+	SOBJ arrayobj = SOBJ(array);
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	if (sizeof(wchar_t) == sizeof(uint16_t)) {
 		::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	} else {
 		for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
 	}
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out.get()->sptr();
 };
@@ -361,9 +362,10 @@ SOBJ N::str(std::wstring str) {
 	int len = str.length();
 	SOBJ out(new {% CLASS java.lang.String %}());
 	JA_C *array = new JA_C(len);
+	SOBJ arrayobj = SOBJ(array);
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out.get()->sptr();
 };
@@ -379,10 +381,11 @@ SOBJ N::str(char *s) {
 	int len = strlen(s);
 	SOBJ out(new {% CLASS java.lang.String %}());
 	JA_C *array = new JA_C(len);
+	SOBJ arrayobj = SOBJ(array);
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	//::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = SOBJ(array);
+	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out.get()->sptr();
 };

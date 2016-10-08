@@ -63,7 +63,7 @@ class MetaReflectionPlugin : JTranscMetaPlugin {
 			AstBuilder(types).run {
 				val cases = arrayListOf<Pair<Int, AstStm>>()
 
-				for ((method, index) in methodsToId) {
+				for ((method, methodId) in methodsToId) {
 					val params = method.methodType.args.map {
 						cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
 					}
@@ -74,10 +74,16 @@ class MetaReflectionPlugin : JTranscMetaPlugin {
 						AstExpr.CALL_INSTANCE(obj.expr, method.ref, params)
 					}
 
-					cases += index to if (method.methodType.retVoid) {
-						stms(AstStm.STM_EXPR(callExprUncasted), AstStm.RETURN(NULL))
+					cases += methodId to if (method.methodType.retVoid) {
+						stms(
+							//LOGSTR("dynamicInvoke: $methodId".lit),
+							AstStm.STM_EXPR(callExprUncasted), AstStm.RETURN(NULL)
+						)
 					} else {
-						stms(AstStm.RETURN(AstExpr.CAST(callExprUncasted, OBJECT)))
+						stms(
+							//LOGSTR("dynamicInvoke: $methodId".lit),
+							AstStm.RETURN(AstExpr.CAST(callExprUncasted, OBJECT))
+						)
 					}
 				}
 

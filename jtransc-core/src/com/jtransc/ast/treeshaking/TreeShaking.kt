@@ -201,8 +201,8 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 			if (methodRef in processed) return
 			if (SHAKING_TRACE) println("methodRef: $methodRef. Reason: $reason")
 			processed += methodRef
-			val oldmethod = program[methodRef]!!
-			val oldclazz = program[methodRef]!!.containingClass
+			val oldmethod = program[methodRef] ?: invalidOp("Can't find $methodRef")
+			val oldclazz = program[methodRef]?.containingClass ?: invalidOp("Can't find $methodRef : containingClass")
 			val newclazz = addBasicClass(methodRef.containingClass, reason)
 			val newmethod = AstMethod(
 				containingClass = newclazz,

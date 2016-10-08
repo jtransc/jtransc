@@ -3,6 +3,7 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.io.JTranscConsole
 
 data class AstBody(
 	var stm: AstStm,
@@ -369,6 +370,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 
 	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
+		constructor(method: AstMethodRef, args: List<AstExpr>, isSpecial: Boolean = false) : this(method.classRef, method, args, isSpecial)
 		override val args = args.map { it.box }
 		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
@@ -620,6 +622,13 @@ class AstBuilder(val types: AstTypes) {
 	fun stms(stms: Iterable<AstStm>): AstStm.STMS = AstStm.STMS(stms.toList())
 
 	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
+
+	fun LOGSTR(expr: AstExpr): AstStm {
+		return AstStm.STM_EXPR(AstExpr.CALL_STATIC(
+			AstMethodRef(JTranscConsole::class.java.fqname, JTranscConsole::logString.name, AstType.METHOD(AstType.VOID, AstType.STRING)),
+			listOf(expr)
+		))
+	}
 
 	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)

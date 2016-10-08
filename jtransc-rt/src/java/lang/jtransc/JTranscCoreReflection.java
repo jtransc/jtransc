@@ -23,13 +23,19 @@ public class JTranscCoreReflection {
 	//	"return SOBJ(JA_I::fromVector((int32_t *)table.interfaces, (int32_t)table.interfaceCount));",
 	//})
 	static public <T> int[] getInterfaceIds(int classId) {
-		return _classInfos[classId].interfaces;
+		_ensure();
+		return checkClassId(classId) ? _classInfos[classId].interfaces : new int[0];
+	}
+
+	static private boolean checkClassId(int classId) {
+		_ensure();
+		return classId >= 1 && classId < _classInfos.length;
 	}
 
 	//@JTranscMethodBody(target = "cpp", value = "return TYPE_TABLE::TABLE[p0].superType;")
 	static public <T> int getSuperclassId(int classId) {
 		_ensure();
-		return _classInfos[classId].parent;
+		return checkClassId(classId) ? _classInfos[classId].parent : 0;
 	}
 
 
@@ -155,7 +161,7 @@ public class JTranscCoreReflection {
 	}
 
 	static public String getClassNameById(int id) {
-		if (id < 0) return null;
+		if (!checkClassId(id)) return null;
 		_ensure();
 		return _classInfos[id].name;
 	}

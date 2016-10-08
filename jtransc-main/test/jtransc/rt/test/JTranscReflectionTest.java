@@ -69,6 +69,7 @@ public class JTranscReflectionTest {
 		try {
 			Method method2 = JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod2", Integer.TYPE, Boolean.TYPE);
 			System.out.println(method2);
+			//System.out.println(method2.slot);
 			System.out.println(method2.invoke(null, 7, true));
 			Method method3 = JTranscReflectionTest.class.getDeclaredMethod("testInvokeMethod3", Integer.TYPE, Boolean.TYPE, Double.TYPE);
 			System.out.println(method3);

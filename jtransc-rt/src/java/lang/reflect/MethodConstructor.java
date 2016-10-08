@@ -50,6 +50,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
 		this.clazz = containingClass;
+		this.id = info.id;
 		this.slot = info.id;
 		this.name = info.name;
 		this.signature = info.desc;

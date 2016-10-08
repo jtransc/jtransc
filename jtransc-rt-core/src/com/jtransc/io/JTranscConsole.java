@@ -1,6 +1,7 @@
 package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -81,6 +82,9 @@ public class JTranscConsole {
 	static public void error(Object msg) {
 		System.err.println(msg);
 	}
+
+	@JTranscKeep
+	static public void logString(String v) { log(v); }
 
 	static public void logOrError(Object msg, boolean error) {
 		if (error) {
