@@ -925,7 +925,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		} else {
 			val id = prefixTempId++
 			val tempname = "arraylit_$id"
-			bodyPrefixes += "int $tempname[] = {$ints};";
+			bodyPrefixes += "int32_t $tempname[] = {$ints};";
 			return "SOBJ(JA_I::fromVector($tempname, ${e.values.size}))"
 		}
 	}

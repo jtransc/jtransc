@@ -6,7 +6,6 @@ import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
-import com.jtransc.template.Minitemplate
 import java.util.*
 
 class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
@@ -16,6 +15,7 @@ class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
 		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [1]")
 		return childrenList.getOrPut(clazz) { arrayListOf() }
 	}
+
 	fun getDescendants(clazz: AstClass): List<AstClass> {
 		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [2]")
 		return getChildren(clazz) + getChildren(clazz).flatMap { getChildren(it) }
@@ -91,7 +91,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 				newprogram.add(newclazz)
 
 				for (impl in oldclazz.implementing) _addMiniBasicClass(impl, reason = "implementing $fqname")
-				if (oldclazz.extending != null) _addMiniBasicClass(oldclazz.extending, reason = "extending $fqname") else null
+				if (oldclazz.extending != null) _addMiniBasicClass(oldclazz.extending, reason = "extending $fqname")
 
 				classtree.add(newclazz)
 			}
