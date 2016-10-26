@@ -366,6 +366,7 @@ N.throwRuntimeException = function(msg) {
 };
 
 N.boxWithType = function(clazz, value) {
+	if (value instanceof JA_0) return value;
 	if (value instanceof java_lang_Object) return value;
 
 	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
@@ -382,7 +383,8 @@ N.boxWithType = function(clazz, value) {
 		case 'double' : return N.boxDouble(value);
 	}
 
-	N.throwRuntimeException("Don't know how to unbox class '" + clazzName + "' with value '" + value + "'");
+	console.log("WARNING: Don't know how to unbox class '" + clazzName + "' with value '" + value + "'", value);
+	return value;
 };
 
 N.unboxWithTypeWhenRequired = function(clazz, value) {
