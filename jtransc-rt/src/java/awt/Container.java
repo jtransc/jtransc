@@ -16,4 +16,11 @@ public class Container extends Component {
 		children.add(comp);
 		return comp;
 	}
+
+	public void paintAll(Graphics g) {
+		paint(g);
+		for (Component child : children) {
+			child.paintAll(g);
+		}
+	}
 }

@@ -23,14 +23,25 @@ public class JTranscWidgets {
 	static public JTranscWidgets createDefaultJs() {
 		return new JTranscWidgets() {
 			@Override
+			public void setTimeout(int delay, Runnable step) {
+				Js.v_raw("setTimeout(function() { p1['{% METHOD java.lang.Runnable:run %}'](); }, p0);");
+			}
+
+			@Override
 			public Widget createComponent(String kind) {
 				return new Widget(lastId++, kind) {
 					@Override
 					protected void init() {
-						if (Objects.equals(kind, "button")) {
-							Js.v_raw("this.element = document.createElement('button');");
-						} else {
-							Js.v_raw("this.element = document.createElement('div');");
+						switch (kind) {
+							case "button":
+								Js.v_raw("this.element = document.createElement('button');");
+								break;
+							case "image":
+								Js.v_raw("this.element = document.createElement('canvas');");
+								break;
+							default:
+								Js.v_raw("this.element = document.createElement('div');");
+								break;
 						}
 						Js.v_raw("this.element.id = 'j' + this['{% FIELD com.jtransc.widgets.JTranscWidgets$Widget:id %}'];");
 						if (Objects.equals(kind, "frame")) {
@@ -66,6 +77,25 @@ public class JTranscWidgets {
 					}
 
 					@Override
+					public void setPixels(int[] rgba, int width, int height) {
+						Js.v_raw("var canvas = this.element;");
+						Js.v_raw("var width = p1;");
+						Js.v_raw("var height = p2;");
+						Js.v_raw("var size = width * height;");
+						Js.v_raw("canvas.width = width;");
+						Js.v_raw("canvas.height = height;");
+						Js.v_raw("canvas.style.width = '' + width + 'px';");
+						Js.v_raw("canvas.style.height = '' + height + 'px';");
+
+						Js.v_raw("var ctx = canvas.getContext('2d');");
+						Js.v_raw("var imageData = ctx.createImageData(width, height);");
+						Js.v_raw("for (var n = 0, m = 0; n < size; n++) { var rgba = p0.data[n]; imageData.data[m++] = (rgba >> 16) & 0xFF; imageData.data[m++] = (rgba >> 8) & 0xFF; imageData.data[m++] = (rgba >> 0) & 0xFF; imageData.data[m++] = (rgba >> 24) & 0xFF; }");
+						Js.v_raw("ctx.putImageData(imageData, 0, 0);");
+
+						//System.out.println("setPixels!!" + width + "," + height);
+					}
+
+					@Override
 					public void setVisible(boolean visible) {
 						Js.v_raw("this.element.style.visibility = p0 ? 'visible' : 'hidden';");
 					}
@@ -83,6 +113,10 @@ public class JTranscWidgets {
 
 	public Widget createComponent(String kind) {
 		return new Widget(lastId++, kind);
+	}
+
+	public void setTimeout(int delay, Runnable step) {
+		System.out.println("Not implemented setTimeout:" + delay);
 	}
 
 	static public interface EventListener {
@@ -119,6 +153,10 @@ public class JTranscWidgets {
 
 		public void setText(String text) {
 			System.out.println(this + ".setText('" + text + "')");
+		}
+
+		public void setPixels(int[] rgba, int width, int height) {
+			System.out.println(this + ".setPixels(" + width + ", " + height + ")");
 		}
 
 		public void setBounds(int x, int y, int width, int height) {

@@ -4,11 +4,21 @@ import com.jtransc.widgets.JTranscWidgets;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ImageObserver;
+import java.awt.image.RenderedImage;
+import java.awt.image.renderable.RenderableImage;
+import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
+import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess", "deprecation"})
 //public class Component implements ImageObserver, MenuContainer, Serializable {
-public class Component {
+public class Component implements ImageObserver {
 	protected JTranscWidgets.Widget widget;
 
 	public Component() {
@@ -31,7 +41,7 @@ public class Component {
 	}
 
 	protected JTranscWidgets.Widget createJTranscWidget() {
-		return JTranscWidgets.impl.createComponent("generic");
+		return JTranscWidgets.impl.createComponent("canvas");
 	}
 
 	/*
@@ -283,6 +293,7 @@ public class Component {
 		setBounds(r.x, r.y, r.width, r.height);
 	}
 
+*/
 	public int getX() {
 		return 0;
 	}
@@ -299,6 +310,7 @@ public class Component {
 		return 100;
 	}
 
+	/*
 	public Rectangle getBounds(Rectangle rv) {
 		if (rv == null) rv = new Rectangle();
 		rv.setBounds(getX(), getY(), getWidth(), getHeight());
@@ -426,6 +438,8 @@ public class Component {
 		return false;
 	}
 
+	*/
+
 	public void paint(Graphics g) {
 	}
 
@@ -434,7 +448,7 @@ public class Component {
 	}
 
 	public void paintAll(Graphics g) {
-
+		paint(g);
 	}
 
 	public void repaint() {
@@ -450,8 +464,12 @@ public class Component {
 	}
 
 	public void repaint(long tm, int x, int y, int width, int height) {
-
+		update(new Graphics2D() {
+		});
 	}
+
+	/*
+
 
 	public void print(Graphics g) {
 		paint(g);
@@ -465,10 +483,13 @@ public class Component {
 		print(g);
 	}
 
+	*/
+
 	public boolean imageUpdate(Image img, int infoflags, int x, int y, int w, int h) {
 		return false;
 	}
 
+	/*
 	public Image createImage(ImageProducer producer) {
 		return null;
 	}
