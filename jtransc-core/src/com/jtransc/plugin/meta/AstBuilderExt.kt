@@ -1,4 +1,4 @@
-package com.jtransc.meta
+package com.jtransc.plugin.meta
 
 import com.jtransc.ast.*
 

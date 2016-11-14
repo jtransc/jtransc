@@ -3,6 +3,7 @@ package com.jtransc.gen.common
 import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
+import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -127,6 +128,8 @@ open class CommonProgramTemplate(val injector: Injector) {
 
 	fun gen(template: String, context: AstGenContext, type: String): String {
 		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");
-		return Minitemplate(template, miniConfig).invoke(params)
+		context.rethrowWithContext {
+			return Minitemplate(template, miniConfig).invoke(params)
+		}
 	}
 }

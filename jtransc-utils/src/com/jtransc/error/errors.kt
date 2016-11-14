@@ -16,7 +16,7 @@
 
 package com.jtransc.error
 
-class InvalidOperationException(str: String = "Invalid Operation") : Exception(str)
+class InvalidOperationException(str: String = "Invalid Operation", cause: Throwable? = null) : Exception(str, cause)
 class OutOfBoundsException(index: Int = -1, str: String = "Out Of Bounds") : Exception(str)
 class KeyNotFoundException(str: String = "Key Not Found") : Exception(str)
 class NotImplementedException(str: String = "Not Implemented") : Exception(str)

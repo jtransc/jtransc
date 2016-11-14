@@ -28,7 +28,14 @@ import java.util.Set;
 import java.util.SortedMap;
 
 public abstract class Charset implements Comparable<Charset> {
-	native public static boolean isSupported(String charsetName);
+	public static boolean isSupported(String charsetName) {
+		try {
+			forName(charsetName);
+			return true;
+		} catch (UnsupportedCharsetException e) {
+			return false;
+		}
+	}
 
 	native public static SortedMap<String, Charset> availableCharsets();
 

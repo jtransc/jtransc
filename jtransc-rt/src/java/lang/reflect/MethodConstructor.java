@@ -9,16 +9,6 @@ import j.MemberInfo;
 
 import java.lang.annotation.Annotation;
 
-@HaxeAddMembers({
-	"public var _parameterAnnotations = [];",
-	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.MethodConstructor:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
-})
-//@HaxeAddMembers({
-//	"public var _parameterAnnotations = [];",
-//	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Method:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-//	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
-//})
 abstract public class MethodConstructor extends AccessibleObject {
 	protected int typeId;
 	protected int id;
@@ -91,10 +81,6 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return out;
 	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = {
-		"return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');"
-	})
 	private Annotation[][] _getParameterAnnotations() {
 		//int parameterCount = getParameterTypes().length;
 		return new Annotation[0][0];
@@ -104,9 +90,6 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return null;
 	}
 
-	//@HaxeMethodBody("return HaxeArrayAny.fromArray2(_parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	//@JTranscMethodBody(target = "js", value = "return JA_L.fromArray2(this._parameterAnnotations, '[[Ljava.lang.Annotation;');")
-	//native public Annotation[][] getParameterAnnotations();
 	public Class<?> getDeclaringClass() {
 		return clazz;
 	}
@@ -133,7 +116,6 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
 	}
 
-	//@JTranscMethodBody(target = "js", value = "return N.str('MethodConstructor');")
 	public String toString() {
 		int mod = getModifiers();
 		String out = "";

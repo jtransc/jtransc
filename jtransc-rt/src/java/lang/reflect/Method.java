@@ -16,8 +16,6 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -84,31 +82,6 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 
 	native public String toGenericString();
 
-	@HaxeMethodBody("return R.invokeMethod(this, p0, p1);")
-	@JTranscMethodBody(target = "js", value = {
-		"var method = this, obj = p0, args = p1;",
-		"var methodClass = method['{% FIELD java.lang.reflect.MethodConstructor:clazz %}'];",
-		"if (!methodClass) { console.log(method); throw 'Invalid reflect.Method'; }",
-		"var methodClassName = methodClass['{% FIELD java.lang.Class:name %}'];",
-		"if (!methodClassName) { console.log(method); throw 'Invalid reflect.Method'; }",
-		"var obj2 = (obj == null) ? jtranscClasses[N.istr(methodClassName)] : obj;",
-		"var parameters = method['{% METHOD java.lang.reflect.Method:getParameterTypes %}']().toArray();",
-		"var argsUnboxed = args.data.map(function(v, index) {",
-		"	return N.unboxWithTypeWhenRequired(parameters[index], v);",
-		"});",
-		"var result = obj2[method._internalName].apply(obj2, argsUnboxed);",
-		"return N.boxWithType(method['{% METHOD java.lang.reflect.Method:getReturnType %}'](), result);",
-		"return R.invokeMethod(this, p0, p1);",
-	})
-	//@JTranscMethodBody(target = "cpp", value = {
-	//	//"printf(\"Method.invoke[1]\\n\");",
-	//	"auto table = TYPE_TABLE::TABLE[this->{% FIELD java.lang.reflect.Constructor:typeId %}];",
-	//	//"printf(\"Method.invoke[2]\\n\");",
-	//	"auto obj = p0;",
-	//	"std::vector<SOBJ> args = N::getVectorOrEmpty(p1);",
-	//	//"printf(\"Method.invoke[3]\\n\");",
-	//	"return table.dynamicInvoke ? table.dynamicInvoke(this->{% FIELD java.lang.reflect.Constructor:slot %}, obj, args) : SOBJ(NULL);"
-	//})
 	public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		return ProgramReflection.dynamicInvoke(id, obj, args);
 	}

@@ -1,6 +1,8 @@
-package com.jtransc.meta
+package com.jtransc.plugin.meta
 
 import com.jtransc.ast.*
+import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.plugin.JTranscPluginAdaptor
 import j.ClassInfo
 import j.MemberInfo
 import j.ProgramReflection
@@ -8,11 +10,12 @@ import j.ProgramReflection
 /**
  * This class aims to create classes to perform reflection on available classes
  */
-class MetaReflectionPlugin : JTranscMetaPlugin {
-	override fun process(program: AstProgram) {
+class MetaReflectionJTranscPlugin : JTranscPluginAdaptor() {
+	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!
 		// Also methods are not updated in the case they do not exist!
 		if (ProgramReflection::class.java.fqname !in program) return
+		if (ClassInfo::class.java.fqname !in program) return
 
 		val types = program.types
 		val ProgramReflectionClass = program[ProgramReflection::class.java.fqname]

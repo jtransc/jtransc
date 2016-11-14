@@ -142,6 +142,14 @@ class AstGenContext {
 		get() = _method
 	val useUnsafeArrays: Boolean get() = method.useUnsafeArrays
 
+	inline fun <T> rethrowWithContext(callback: () -> T): T {
+		try {
+			return callback()
+		} catch (e: InvalidOperationException) {
+			throw InvalidOperationException("${e.message} with context $this", e)
+		}
+	}
+
 	override fun toString() = try {
 		"${clazz.name}::${method.name}"
 	} catch (e: Throwable) {
@@ -201,7 +209,7 @@ class AstProgram(
 			println("AstProgram. ClassFile: $classFile")
 			println("AstProgram. File exists: " + resourcesVfs[classFile].exists)
 
-			throw RuntimeException("AstProgram. Can't find class '$name'")
+			throw InvalidOperationException("AstProgram. Can't find class '$name'")
 		} else {
 			return result
 		}
@@ -617,6 +625,7 @@ class AstField(
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
 	val hasConstantValue = constantValue != null
 	val isWeak by lazy { annotationsList.contains<JTranscWeak>() }
+	override fun toString() = "AstField(" + ref.toString() + ")"
 }
 
 

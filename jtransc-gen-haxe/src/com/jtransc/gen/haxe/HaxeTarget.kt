@@ -601,7 +601,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 		val copyFilesTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf() }
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
-		for (file in copyFilesTemplate) vfs[file] = templateString.gen(program.resourcesVfs[file].readString())
+		for (file in copyFilesTemplate) vfs[file] = templateString.gen(program.resourcesVfs[file].readString(), context, "copyFilesTemplate")
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName

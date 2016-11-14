@@ -1,11 +1,13 @@
 package com.jtransc.ast.treeshaking
 
+import com.jtransc.annotation.JTranscAddFile
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
+import com.jtransc.plugin.JTranscPlugin
 import java.util.*
 
 class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
@@ -40,7 +42,7 @@ class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
 	}
 }
 
-fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram {
+fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
 	val SHAKING_TRACE = trace
 
 	val main = program[program.entrypoint].getMethodSure("main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) }.desc)
@@ -52,14 +54,25 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 		val classtree = ClassTree(SHAKING_TRACE, newprogram)
 
 		fun addTemplateReferences(template: String, templateReason: String) {
-			for (ref in GetTemplateReferences(oldprogram, template)) {
+			val refs = GetTemplateReferences(oldprogram, template)
+			val reason = "template $templateReason"
+			for (ref in refs) {
 				if (SHAKING_TRACE) println("TEMPLATEREF: $ref")
 				when (ref) {
-					is CommonTagHandler.CLASS -> addBasicClass(ref.clazz.name, reason = "template $templateReason")
-					is CommonTagHandler.SINIT -> addBasicClass(ref.method.containingClass.name, reason = "template $templateReason")
-					is CommonTagHandler.CONSTRUCTOR -> addMethod(ref.method.ref, reason = "template $templateReason")
-					is CommonTagHandler.FIELD -> addField(ref.field.ref, reason = "template $templateReason")
-					is CommonTagHandler.METHOD -> addMethod(ref.method.ref, reason = "template $templateReason")
+					is CommonTagHandler.CLASS -> addBasicClass(ref.clazz.name, reason = reason)
+					is CommonTagHandler.SINIT -> addBasicClass(ref.method.containingClass.name, reason = reason)
+					is CommonTagHandler.CONSTRUCTOR -> {
+						addBasicClass(ref.ref.classRef.name, reason = reason)
+						addMethod(ref.method.ref, reason = reason)
+					}
+					is CommonTagHandler.FIELD -> {
+						addBasicClass(ref.ref.classRef.name, reason = reason)
+						addField(ref.field.ref, reason = reason)
+					}
+					is CommonTagHandler.METHOD -> {
+						addBasicClass(ref.ref.classRef.name, reason = reason)
+						addMethod(ref.method.ref, reason = reason)
+					}
 				}
 			}
 		}
@@ -259,6 +272,28 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean): AstProgram
 		private fun checkTreeNewClass(newclazz: AstClass) {
 			// ancestors are known (descendants may not have been built completely)
 			val relatedClasses = (listOf(newclazz) + newclazz.ancestors + newclazz.allInterfacesInAncestors + classtree.getDescendantsAndAncestors(newclazz)).distinct()
+
+			val oldclazz = program[newclazz.name]
+
+			//println(oldclazz.annotationsList.list)
+
+			/*
+			println("----------")
+			println(newclazz.name)
+			println(oldclazz.annotationsList.getTypedList(com.jtransc.annotation.JTranscAddFileList::value))
+			println(oldclazz.annotationsList.getAllTyped<JTranscAddFileList>())
+			*/
+
+			for (addFile in oldclazz.annotationsList.getTargetAddFiles(target)) {
+				for (filePath in addFile.filesToProcess()) {
+					val filecontent = program.resourcesVfs[filePath].readString()
+					if (SHAKING_TRACE) println("PROCESSNG(TargetAddFile::${newclazz.name}): $filePath")
+					addTemplateReferences(filecontent, templateReason = "TargetAddFile : ${newclazz.name}")
+				}
+				//println(":" + addFile.prependAppend)
+				//println(":" + addFile.prepend)
+				//println(":" + addFile.append)
+			}
 
 			val methodRefs = arrayListOf<AstMethodWithoutClassRef>()
 

@@ -27,7 +27,8 @@ import com.jtransc.input.AsmToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
-import com.jtransc.meta.MetaReflectionPlugin
+import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.plugin.meta.MetaReflectionJTranscPlugin
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -35,6 +36,7 @@ import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
 import j.ProgramReflection
 import java.io.File
+import java.util.*
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
 	val parts = target.split(":")
@@ -84,6 +86,9 @@ class JTranscBuild(
 	class Result(val process: ProcessResult2)
 
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
+		// @TODO: allow to add plugins from gradle
+		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList()
+
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
@@ -134,18 +139,19 @@ class JTranscBuild(
 			generateProgram()
 		}
 
+		for (plugin in plugins) {
+			plugin.processBeforeTreeShaking(programBase)
+		}
+
 		val configTreeShaking = injector.get<ConfigTreeShaking>()
 		val program = if (configTreeShaking.treeShaking) {
-			TreeShaking(programBase, target.name, configTreeShaking.trace)
+			TreeShaking(programBase, target.name, configTreeShaking.trace, plugins)
 		} else {
 			programBase
 		}
 
-		// @TODO: allow to add plugins from gradle
-		val plugins: List<Class<MetaReflectionPlugin>> = listOf(MetaReflectionPlugin::class.java)
-
 		for (plugin in plugins) {
-			plugin.newInstance().process(program)
+			plugin.processAfterTreeShaking(program)
 		}
 
 		injector.mapInstance(program)

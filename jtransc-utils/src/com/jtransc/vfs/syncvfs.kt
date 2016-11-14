@@ -73,6 +73,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun <T> readSpecial(clazz: Class<T>): T = vfs.readSpecial(clazz, path)
 	fun write(data: ByteArray): Unit = vfs.write(path, data)
 	fun readString(encoding: Charset = Charsets.UTF_8): String = encoding.toString(vfs.read(path))
+	fun readLines(encoding: Charset = Charsets.UTF_8): List<String> = this.readString().lines()
 	val exists: Boolean get() = vfs.exists(path)
 	val isDirectory: Boolean get() = stat().isDirectory
 	fun remove(): Unit = vfs.remove(path)
@@ -376,6 +377,8 @@ private class AccessSyncVfs(val parent: SyncVfs, val path: String) : ProxySyncVf
 			mode = stat.mode
 		)
 	}
+
+	override fun toString(): String = "AccessSyncVfs($parent, $path)"
 }
 
 private class _LogSyncVfs(val parent: SyncVfs) : ProxySyncVfs() {
@@ -559,7 +562,7 @@ val SyncVfsFile.withoutExtension: SyncVfsFile get() = SyncVfsFile(vfs, Path.with
 fun SyncVfsFile.withExtension(ext: String): SyncVfsFile = SyncVfsFile(vfs, Path.withExtension(path, ext))
 fun SyncVfsFile.withBaseName(baseName: String): SyncVfsFile = parent.access(baseName)
 
-private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
+private class MergedSyncVfs(val nodes: List<SyncVfsFile>) : SyncVfs() {
 	init {
 		if (nodes.isEmpty()) throw InvalidArgumentException("Nodes can't be empty")
 	}
@@ -567,7 +570,7 @@ private class MergedSyncVfs(private val nodes: List<SyncVfsFile>) : SyncVfs() {
 	override val absolutePath: String = "#merged#"
 
 	//private val nodesSorted = nodes.reversed()
-	private val nodesSorted = nodes
+	val nodesSorted = nodes
 
 	private fun <T> op(path: String, act: String, action: (node: SyncVfsFile) -> T): T {
 		var lastError: Throwable? = null
@@ -699,5 +702,16 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 		} catch (e: Throwable) {
 			SyncVfsStat.notExists(SyncVfsFile(this, path))
 		}
+	}
+
+	override fun toString(): String = "ZipSyncVfs(${this.zip.name})"
+}
+
+fun SyncVfsFile.getUnmergedFiles(): List<SyncVfsFile> {
+	val vfs = this.vfs
+	if (vfs is MergedSyncVfs) {
+		return vfs.nodes.map { it[this.path] }
+	} else {
+		return listOf(this)
 	}
 }

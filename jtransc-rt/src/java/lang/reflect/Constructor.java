@@ -80,26 +80,6 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 		return super.getParameterAnnotations();
 	}
 
-	//@HaxeMethodBody("return R.newInstance(this, p0);")
-	//@JTranscMethodBody(target = "js", value = {
-	//	"var constructor = this, args = p0;",
-	//	"var argsArray = (args != null) ? args.data : [];",
-	//	"if (constructor == null) throw 'Invalid R.newInstance : constructor == null';",
-	//	"var parameters = constructor['{% METHOD java.lang.reflect.Constructor:getParameterTypes %}']().toArray();",
-	//	"var argsUnboxed = argsArray.map(function(v, index) {",
-	//	"	return N.unboxWithTypeWhenRequired(parameters[index], v);",
-	//	"});",
-	//	"var clazz = constructor['{% FIELD java.lang.reflect.Constructor:clazz %}']._jsClass;",
-	//	"var obj = new clazz();",
-	//	"obj[constructor._internalName].apply(obj, argsUnboxed);",
-	//	"return obj;",
-	//})
-	//@JTranscMethodBody(target = "cpp", value = {
-	//	"auto table = TYPE_TABLE::TABLE[this->{% FIELD java.lang.reflect.Constructor:typeId %}];",
-	//	"std::vector<SOBJ> args = N::getVectorOrEmpty(p0);",
-	//	"return table.dynamicNew ? table.dynamicNew(this->{% FIELD java.lang.reflect.Constructor:slot %}, args) : SOBJ(NULL);",
-	//	//"return TYPE_TABLE::TABLE[this->{% FIELD java.lang.reflect.Constructor:typeId %}].constructors[this->{% FIELD java.lang.reflect.Constructor:slot %}].call(p0);",
-	//})
 	public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		return (T) ProgramReflection.dynamicNew(this.slot, initargs);
 	}

@@ -19,7 +19,6 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastStringMap;
 import j.ClassInfo;
@@ -33,32 +32,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.lang.AnnotatedElement;
 
-@HaxeAddMembers({
-	"public var _hxClass:Class<Dynamic> = null;",
-	"public var _hxProxyClass:Class<Dynamic> = null;",
-	"public var _hxFfiClass:Class<Dynamic> = null;",
-	"public var _internalName = '';",
-	"public var _parent:String = null;",
-	"public var _interfaces:Array<String> = [];",
-	"public var _fields = [];",
-	"public var _modifiers = 0;",
-	"public var _methods:Array<{% CLASS java.lang.reflect.Method %}> = [];",
-	"public var _constructors = [];",
-	"public var _annotations = [];",
-	"public var _methodsById = null;",
-	"" +
-		"public function populateMethodsById() {\n" +
-		"  if (_methodsById != null) return;\n" +
-		"  _methodsById = new Map<Int, {% CLASS java.lang.reflect.Method %}>();\n" +
-		"  function populate(clazz:{% CLASS java.lang.Class %}) {\n" +
-		"    for (m in clazz._methods) _methodsById.set(m.{% FIELD java.lang.reflect.Method:id %}, m);\n" +
-		"    if (clazz._parent != null) populate(HaxeNatives.resolveClass(clazz._parent));\n" +
-		"    for (i in clazz._interfaces) populate(HaxeNatives.resolveClass(i));\n" +
-		"  }\n" +
-		"  populate(this);\n" +
-		"}\n",
-	"public function locateMethodById(id:Int) { populateMethodsById(); return _methodsById.get(id); }",
-})
 @SuppressWarnings({"unchecked", "WeakerAccess", "unused", "TryWithIdenticalCatches", "SuspiciousToArrayCall"})
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
 	@JTranscKeep
@@ -83,14 +56,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_fields, '[Ljava.lang.reflect.Field;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._fields, '[Ljava.lang.reflect.Field;');")
 	public Field[] getDeclaredFields() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredFields(this);
 	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_methods, '[Ljava.lang.reflect.Method;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._methods, '[Ljava.lang.reflect.Method;');")
 	public Method[] getDeclaredMethods() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredMethods(this);
 	}
@@ -100,24 +69,18 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return (constructors != null) ? constructors : new Constructor[0];
 	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_constructors, '[Ljava.lang.reflect.Constructor;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._constructors, '[Ljava.lang.reflect.Constructor;');")
 	private Constructor<?>[] _getDeclaredConstructors() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredConstructors(this);
 	}
 
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArrayOrEmpty(this._annotations, '[Ljava.lang.Annotation;');")
 	public Annotation[] getDeclaredAnnotations() {
 		return JTranscCoreReflection.getDeclaredAnnotations();
 	}
 
-	@HaxeMethodBody("return (_parent != null) ? HaxeNatives.resolveClass(_parent) : null;")
 	public Class<? super T> getSuperclass() {
 		return (Class<? super T>) forName0(getSuperclassName());
 	}
 
-	@JTranscMethodBody(target = "js", value = "return N.str(this._superclass);")
 	private String getSuperclassName() {
 		return JTranscCoreReflection.getClassNameById(JTranscCoreReflection.getSuperclassId(JTranscCoreReflection.getClassId(this)));
 	}
@@ -129,8 +92,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return out;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.strArray(_interfaces);")
-	@JTranscMethodBody(target = "js", value = "return N.strArrayOrEmpty(this._interfaces);")
 	private String[] getInterfaceNames() {
 		int[] ids = JTranscCoreReflection.getInterfaceIds(this.id);
 		String[] out = new String[ids.length];
@@ -138,14 +99,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return out;
 	}
 
-	@HaxeMethodBody("return _modifiers;")
 	public int getModifiers() {
 		// Remove ACC_SUPER?
 		return modifiers & ~0x20;
 	}
-
-	//@HaxeMethodBody("return HaxeNatives.newInstance(this._internalName);")
-	//native public T newInstance() throws InstantiationException, IllegalAccessException;
 
 	public T newInstance() throws InstantiationException, IllegalAccessException {
 		try {
@@ -166,8 +123,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public java.net.URL getResource(String name);
 
-	@HaxeMethodBody("return Std.is(p0, _hxClass);")
-	@JTranscMethodBody(target = "js", value = "return N.isInstanceOfClass(p0, this);")
 	public boolean isInstance(Object obj) {
 		return (obj != null) && this.isAssignableFrom(obj.getClass());
 	}
@@ -222,9 +177,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		this.primitive = primitive;
 	}
 
-
-	@HaxeMethodBody("return R.__initClass(this);")
-	@JTranscMethodBody(target = "js", value = "return R.__initClass(this);")
 	private boolean _check() {
 		this.info = JTranscCoreReflection.getClassInfoWithName(this.name);
 		if (info != null) {
@@ -309,7 +261,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	public boolean isAssignableFrom(Class<?> cls) {
 		if (cls != null) {
 			int tid = this.id;
-			for (int cid : cls.related) if (cid == tid) return true;
+			if (cls.related != null) {
+				for (int cid : cls.related) if (cid == tid) return true;
+			}
 		}
 		return false;
 	}
@@ -504,7 +458,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 				return c;
 			}
 		}
-		//JTranscConsole.log("END2 getDeclaredConstructor");
 		throw new NoSuchMethodException();
 	}
 
@@ -544,19 +497,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@Override
-	@JTranscMethodBody(target = "js", value = "return this == p0;")
-	//@JTranscMethodBody(target = "unknowntest", value = "{% CLASS java.other.invalid.UnknownClass %}")
 	public boolean equals(Object o) {
-		/*
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		Class<?> aClass = (Class<?>) o;
-
-		if (isPrimitive() != aClass.isPrimitive()) return false;
-		return name != null ? name.equals(aClass.name) : aClass.name == null;
-		*/
-
 		return this == o;
 	}
 

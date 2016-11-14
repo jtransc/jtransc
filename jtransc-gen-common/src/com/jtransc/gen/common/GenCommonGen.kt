@@ -8,6 +8,7 @@ import com.jtransc.ast.feature.GotosFeature
 import com.jtransc.ast.feature.OptimizeFeature
 import com.jtransc.ast.feature.SimdFeature
 import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
@@ -211,7 +212,7 @@ open class GenCommonGen(val injector: Injector) {
 		return true
 	}
 
-	fun getFilesToCopy(target: String) = program.classes.flatMap { it.annotationsList.getTypedList(com.jtransc.annotation.JTranscAddFileList::value).filter { it.target == target || it.target == "all" } }.sortedBy { it.priority }
+	fun getFilesToCopy(target: String) = program.classes.flatMap { it.annotationsList.getTargetAddFiles(target) }.sortedBy { it.priority }
 
 	fun AstExpr.genNotNull(): String = genExpr2(this)
 	//fun AstBody.genBody(): Indenter = genBody2(this)

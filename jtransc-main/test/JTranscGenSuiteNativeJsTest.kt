@@ -15,6 +15,7 @@
  */
 
 import com.jtransc.gen.js.JsTarget
+import javatest.awt.AWTTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 
@@ -27,7 +28,16 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		main([Ljava/lang/String;)V
 		Error !(10 < 10)
 		ok
-		17
+		17j
 		-333
 	""", target = JsTarget, minimize = false)
+
+	@Test fun testAwtJs() = testNativeClass<AWTTest>("""
+		JTranscWidgets.Component(0:frame).init()
+		JTranscWidgets.Component(1:container).init()
+		JTranscWidgets.Component(2:label).init()
+		JTranscWidgets.Component(2:label).setText('Hello World')
+		JTranscWidgets.Component(2:label).setParent(JTranscWidgets.Component(1:container))
+		JTranscWidgets.Component(0:frame).setVisible(true)
+	""", minimize = true, target = JsTarget)
 }

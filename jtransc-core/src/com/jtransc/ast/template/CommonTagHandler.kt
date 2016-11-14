@@ -1,6 +1,7 @@
 package com.jtransc.ast.template
 
 import com.jtransc.ast.*
+import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import java.util.*
 
@@ -16,9 +17,9 @@ object CommonTagHandler {
 
 	interface Result
 	data class SINIT(val method: AstMethod) : Result
-	data class CONSTRUCTOR(val method: AstMethod) : Result
-	data class METHOD(val method: AstMethod, val isStatic: Boolean) : Result
-	data class FIELD(val field: AstField, val isStatic: Boolean) : Result
+	data class CONSTRUCTOR(val ref: AstMethodRef, val method: AstMethod) : Result
+	data class METHOD(val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean) : Result
+	data class FIELD(val ref: AstFieldRef, val field: AstField, val isStatic: Boolean) : Result
 	data class CLASS(val clazz: AstClass) : Result
 
 	fun getRefFqName(desc: String, params: HashMap<String, Any?>): FqName {
@@ -31,7 +32,9 @@ object CommonTagHandler {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
 		val desc2 = dataParts.joinToString(":")
 		val classFqname = dataParts[0].replace('@', '$').fqname
-		if (!program.contains(classFqname)) invalidOp("evalReference: Can't find class $classFqname (I)")
+		if (!program.contains(classFqname)) {
+			invalidOp("evalReference: Can't find class '$classFqname' (I)")
+		}
 		val clazz = program[classFqname]
 		val types = program.types
 		val tag = type.toUpperCase()
@@ -39,23 +42,32 @@ object CommonTagHandler {
 		try {
 			return when (tag) {
 				"SINIT" -> SINIT(clazz.getMethod("<clinit>", "()V")!!)
-				"CONSTRUCTOR" -> CONSTRUCTOR(program[AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))]!!)
+				"CONSTRUCTOR" -> {
+					val ref = AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))
+					CONSTRUCTOR(ref, program[ref]!!)
+				}
 				"SMETHOD", "METHOD" -> {
-					METHOD(if (dataParts.size >= 3) {
-						program[AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))]!!
+					val isStatic = (tag == "SMETHOD")
+					if (dataParts.size >= 3) {
+						val ref = AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))
+						METHOD(ref, program[ref]!!, isStatic)
 					} else {
 						val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
 						if (methods.isEmpty()) invalidOp("evalReference: Can't find method $desc2")
 						if (methods.size > 1) invalidOp("evalReference: Several signatures, please specify signature")
-						methods.first()
-					}, isStatic = (tag == "SMETHOD"))
+						val method = methods.first()
+						METHOD(method.ref, method, isStatic)
+					}
 				}
-				"SFIELD", "FIELD" -> FIELD(clazz.locateField(dataParts[1]) ?: invalidOp("evalReference: Can't find field $desc2"), isStatic = (tag == "SFIELD"))
+				"SFIELD", "FIELD" -> {
+					val field = clazz.locateField(dataParts[1]) ?: invalidOp("evalReference: Can't find field $desc2")
+					FIELD(field.ref, field, isStatic = (tag == "SFIELD"))
+				}
 				"CLASS" -> CLASS(clazz)
 				else -> invalidOp("evalReference: Unknown type!")
 			}
 		} catch (e: Throwable) {
-			throw RuntimeException("Invalid: $type $desc", e)
+			throw InvalidOperationException("Invalid: $type $desc", e)
 		}
 	}
 }

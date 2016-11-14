@@ -1,7 +1,9 @@
 package java.awt;
 
-/**
- * Created by Carlos on 23/03/2016.
- */
-public class Window {
+public class Window extends Container {
+	public void pack() {
+	}
+
+	public void dispose() {
+	}
 }

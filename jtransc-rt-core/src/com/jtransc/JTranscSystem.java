@@ -3,8 +3,10 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.target.Js;
 import com.jtransc.time.JTranscClock;
 
+@SuppressWarnings("WeakerAccess")
 public class JTranscSystem {
 	// Try to avoid static analysis notifying that is** functions are constants.
 	static private final boolean TRUE = true;
@@ -159,6 +161,22 @@ public class JTranscSystem {
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isJs() {
 		return FALSE;
+	}
+
+	public static boolean isJsNode() {
+		if (isJs()) {
+			return Js.z_raw("(typeof module !== 'undefined' && module.exports) != false");
+		} else {
+			return FALSE;
+		}
+	}
+
+	public static boolean isJsBrowser() {
+		if (isJs()) {
+			return Js.z_raw("typeof window != \"undefined\"");
+		} else {
+			return FALSE;
+		}
 	}
 
 	@JTranscInline
