@@ -2,18 +2,17 @@ package java.awt;
 
 import com.jtransc.widgets.JTranscWidgets;
 
+import java.awt.dnd.DropTarget;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
+import java.awt.image.*;
 import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess", "deprecation"})
@@ -44,7 +43,6 @@ public class Component implements ImageObserver {
 		return JTranscWidgets.impl.createComponent("canvas");
 	}
 
-	/*
 	public static final float TOP_ALIGNMENT = 0.0f;
 	public static final float CENTER_ALIGNMENT = 0.5f;
 	public static final float BOTTOM_ALIGNMENT = 1.0f;
@@ -63,18 +61,35 @@ public class Component implements ImageObserver {
 		this.name = name;
 	}
 
+	Container parent;
+
 	public Container getParent() {
-		return null;
+		return parent;
 	}
 
-	public ComponentPeer getPeer() {
-		return null;
-	}
+	DropTarget dropTarget = null;
 
 	public synchronized void setDropTarget(DropTarget dt) {
+		dropTarget = dt;
 	}
 
 	public synchronized DropTarget getDropTarget() {
+		return dropTarget;
+	}
+
+	public Toolkit getToolkit() {
+		return null;
+	}
+
+	public boolean isValid() {
+		return true;
+	}
+
+	/*
+
+
+
+	public ComponentPeer getPeer() {
 		return null;
 	}
 
@@ -85,14 +100,8 @@ public class Component implements ImageObserver {
 	public final Object getTreeLock() {
 		return null;
 	}
+	*/
 
-	public Toolkit getToolkit() {
-		return null;
-	}
-
-	public boolean isValid() {
-		return true;
-	}
 
 	public boolean isDisplayable() {
 		return true;
@@ -110,7 +119,6 @@ public class Component implements ImageObserver {
 		return true;
 	}
 
-
 	public boolean isDoubleBuffered() {
 		return false;
 	}
@@ -118,7 +126,6 @@ public class Component implements ImageObserver {
 	public void enableInputMethods(boolean enable) {
 
 	}
-	*/
 
 	private boolean enabled = true;
 
@@ -169,51 +176,57 @@ public class Component implements ImageObserver {
 		setVisible(b);
 	}
 
-	/*
-	@Transient
+	Color foreground = Color.black;
+	Color background = Color.gray;
+
 	public Color getForeground() {
-		return Color.black;
+		return foreground;
 	}
 
 	public void setForeground(Color c) {
-
+		foreground = c;
 	}
 
 	public boolean isForegroundSet() {
 		return true;
 	}
 
-	@Transient
 	public Color getBackground() {
-		return Color.white;
+		return background;
 	}
 
 	public void setBackground(Color c) {
-
+		this.background = c;
 	}
 
 	public boolean isBackgroundSet() {
 		return true;
 	}
 
-	@Transient
+
+	Font font = null;
+
 	public Font getFont() {
-		return null;
+		return font;
 	}
 
 	public void setFont(Font f) {
+		this.font = f;
 	}
 
 	public boolean isFontSet() {
-		return true;
+		return font != null;
 	}
 
+	Locale locale = null;
+
 	public Locale getLocale() {
-		return Locale.getDefault();
+		if (locale == null) locale = Locale.getDefault();
+		return locale;
 	}
 
 	public void setLocale(Locale l) {
-
+		this.locale = l;
 	}
 
 	public ColorModel getColorModel() {
@@ -238,7 +251,7 @@ public class Component implements ImageObserver {
 	}
 
 	public void move(int x, int y) {
-
+		setLocation(x, y);
 	}
 
 	public void setLocation(Point p) {
@@ -249,7 +262,6 @@ public class Component implements ImageObserver {
 		return new Dimension(getWidth(), getHeight());
 	}
 
-	@Deprecated
 	public Dimension size() {
 		return getSize();
 	}
@@ -257,7 +269,6 @@ public class Component implements ImageObserver {
 	public void setSize(int width, int height) {
 	}
 
-	@Deprecated
 	public void resize(int width, int height) {
 		setSize(width, height);
 	}
@@ -266,7 +277,6 @@ public class Component implements ImageObserver {
 		resize(d);
 	}
 
-	@Deprecated
 	public void resize(Dimension d) {
 		setSize(d.width, d.height);
 	}
@@ -275,7 +285,6 @@ public class Component implements ImageObserver {
 		return getBounds(null);
 	}
 
-	@Deprecated
 	public Rectangle bounds() {
 		return getBounds(null);
 	}
@@ -284,16 +293,14 @@ public class Component implements ImageObserver {
 		reshape(x, y, width, height);
 	}
 
-	@Deprecated
 	public void reshape(int x, int y, int width, int height) {
-
 	}
 
 	public void setBounds(Rectangle r) {
 		setBounds(r.x, r.y, r.width, r.height);
 	}
 
-*/
+
 	public int getX() {
 		return 0;
 	}
@@ -310,7 +317,6 @@ public class Component implements ImageObserver {
 		return 100;
 	}
 
-	/*
 	public Rectangle getBounds(Rectangle rv) {
 		if (rv == null) rv = new Rectangle();
 		rv.setBounds(getX(), getY(), getWidth(), getHeight());
@@ -337,6 +343,7 @@ public class Component implements ImageObserver {
 		return true;
 	}
 
+	/*
 	public void setPreferredSize(Dimension preferredSize) {
 
 
@@ -399,11 +406,13 @@ public class Component implements ImageObserver {
 		return BaselineResizeBehavior.OTHER;
 	}
 
+	*/
+
+
 	public void doLayout() {
 		layout();
 	}
 
-	@Deprecated
 	public void layout() {
 	}
 
@@ -427,18 +436,19 @@ public class Component implements ImageObserver {
 		return null;
 	}
 
+	Cursor cursor = null;
+
 	public void setCursor(Cursor cursor) {
+		this.cursor = cursor;
 	}
 
 	public Cursor getCursor() {
-		return null;
+		return cursor;
 	}
 
 	public boolean isCursorSet() {
-		return false;
+		return cursor != null;
 	}
-
-	*/
 
 	public void paint(Graphics g) {
 	}

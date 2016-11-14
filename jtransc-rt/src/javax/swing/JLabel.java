@@ -22,7 +22,7 @@ public class JLabel extends JComponent {
 
 	class LabelText extends Component {
 		protected JTranscWidgets.Widget createJTranscWidget() {
-			return JTranscWidgets.impl.createComponent("image");
+			return JTranscWidgets.impl.createComponent("text");
 		}
 
 		public void setText(String text) {
@@ -59,9 +59,14 @@ public class JLabel extends JComponent {
 		if (icon == null) return;
 		int width = icon.getIconWidth();
 		int height = icon.getIconHeight();
-		BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		icon.paintIcon(this, bi.getGraphics(), 0, 0);
-		int[] rgb = bi.getRGB(0, 0, width, height, null, 0, width);
+		int[] rgb;
+		if (icon instanceof ImageIcon && ((ImageIcon) icon).getImage() instanceof BufferedImage) {
+			rgb = ((BufferedImage) ((ImageIcon) icon).getImage()).getRGB(0, 0, width, height, null, 0, width);
+		} else {
+			BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			icon.paintIcon(this, bi.getGraphics(), 0, 0);
+			rgb = bi.getRGB(0, 0, width, height, null, 0, width);
+		}
 		labelIcon.setPixels(rgb, width, height);
 	}
 

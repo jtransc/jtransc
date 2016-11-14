@@ -14,6 +14,7 @@ public class Container extends Component {
 	public Component add(Component comp) {
 		comp.widget.setParent(this.widget);
 		children.add(comp);
+		comp.parent = this;
 		return comp;
 	}
 
