@@ -8,6 +8,7 @@
     * [intelliJ plugin](/usage/intellij)
 * [<i class="fa fa-code-fork" aria-hidden="true"></i> Architecture](/architecture)
 * [<i class="fa fa-plug" aria-hidden="true"></i> Minitemplates](/minitemplates)
+* [<i class="fa fa-plug" aria-hidden="true"></i> Plugins](/plugins)
 * [<i class="fa fa-bookmark" aria-hidden="true"></i> jtransc-rt-core](/jtransc-rt-core)
     * [Annotations](/jtransc-rt-core/annotations)
     * [Optimized API](/jtransc-rt-core/optimized-api)
