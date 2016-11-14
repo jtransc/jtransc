@@ -2,6 +2,7 @@ package java.awt.event;
 
 import java.awt.*;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ComponentEvent extends AWTEvent {
 	public static final int COMPONENT_FIRST = 100;
 	public static final int COMPONENT_LAST = 103;

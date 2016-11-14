@@ -2,9 +2,8 @@ package java.awt.image;
 
 import java.awt.*;
 
+@SuppressWarnings({"WeakerAccess", "unused", "FieldCanBeLocal"})
 public class BufferedImage extends Image {
-	int imageType = TYPE_CUSTOM;
-
 	public static final int TYPE_CUSTOM = 0;
 	public static final int TYPE_INT_RGB = 1;
 	public static final int TYPE_INT_ARGB = 2;
@@ -21,23 +20,11 @@ public class BufferedImage extends Image {
 
 	public static final int TYPE_BYTE_INDEXED = 13;
 
-	private static final int DCM_RED_MASK = 0x00ff0000;
-	private static final int DCM_GREEN_MASK = 0x0000ff00;
-	private static final int DCM_BLUE_MASK = 0x000000ff;
-	private static final int DCM_ALPHA_MASK = 0xff000000;
-	private static final int DCM_565_RED_MASK = 0xf800;
-	private static final int DCM_565_GRN_MASK = 0x07E0;
-	private static final int DCM_565_BLU_MASK = 0x001F;
-	private static final int DCM_555_RED_MASK = 0x7C00;
-	private static final int DCM_555_GRN_MASK = 0x03E0;
-	private static final int DCM_555_BLU_MASK = 0x001F;
-	private static final int DCM_BGR_RED_MASK = 0x0000ff;
-	private static final int DCM_BGR_GRN_MASK = 0x00ff00;
-	private static final int DCM_BGR_BLU_MASK = 0xff0000;
-
-	int width;
-	int height;
-	int[] data;
+	private int imageType = TYPE_CUSTOM;
+	private int width;
+	private int height;
+	private int[] data;
+	private Graphics2D graphics;
 
 	public BufferedImage(int width, int height, int imageType) {
 		this.width = width;
@@ -103,6 +90,18 @@ public class BufferedImage extends Image {
 
 	@Override
 	public Graphics getGraphics() {
+		if (graphics == null) {
+			graphics = new Graphics2D() {
+				public boolean drawImage(Image img, int x, int y, ImageObserver observer) {
+					if (img instanceof BufferedImage) {
+						BufferedImage bi = (BufferedImage) img;
+						int[] rgb = bi.getRGB(0, 0, bi.getWidth(), bi.getHeight(), null, 0, bi.getWidth());
+						setRGB(x, y, bi.getWidth(), bi.getHeight(), rgb, 0, bi.getWidth());
+					}
+					return false;
+				}
+			};
+		}
 		return graphics;
 	}
 
@@ -110,15 +109,4 @@ public class BufferedImage extends Image {
 	public Object getProperty(String name, ImageObserver observer) {
 		return null;
 	}
-
-	Graphics2D graphics = new Graphics2D() {
-		public boolean drawImage(Image img, int x, int y, ImageObserver observer) {
-			if (img instanceof BufferedImage) {
-				BufferedImage bi = (BufferedImage) img;
-				int[] rgb = bi.getRGB(0, 0, bi.getWidth(), bi.getHeight(), null, 0, bi.getWidth());
-				setRGB(x, y, bi.getWidth(), bi.getHeight(), rgb, 0, bi.getWidth());
-			}
-			return false;
-		}
-	};
 }

@@ -2,22 +2,22 @@ package java.awt;
 
 import com.jtransc.widgets.JTranscWidgets;
 
+import javax.accessibility.AccessibleComponent;
+import javax.accessibility.AccessibleContext;
 import java.awt.dnd.DropTarget;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
+import java.awt.event.*;
+import java.awt.im.InputContext;
+import java.awt.im.InputMethodRequests;
 import java.awt.image.*;
-import java.awt.image.renderable.RenderableImage;
-import java.text.AttributedCharacterIterator;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
+import java.awt.peer.ComponentPeer;
+import java.beans.PropertyChangeListener;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.*;
 
 @SuppressWarnings({"unused", "WeakerAccess", "deprecation"})
-//public class Component implements ImageObserver, MenuContainer, Serializable {
-public class Component implements ImageObserver {
+public class Component implements ImageObserver, MenuContainer, Serializable {
 	protected JTranscWidgets.Widget widget;
 
 	public Component() {
@@ -85,10 +85,6 @@ public class Component implements ImageObserver {
 		return true;
 	}
 
-	/*
-
-
-
 	public ComponentPeer getPeer() {
 		return null;
 	}
@@ -98,10 +94,8 @@ public class Component implements ImageObserver {
 	}
 
 	public final Object getTreeLock() {
-		return null;
+		return this;
 	}
-	*/
-
 
 	public boolean isDisplayable() {
 		return true;
@@ -343,51 +337,52 @@ public class Component implements ImageObserver {
 		return true;
 	}
 
-	/*
+	private Dimension preferredSize;
+	private Dimension minimumSize;
+	private Dimension maximumSize;
+
 	public void setPreferredSize(Dimension preferredSize) {
-
-
+		this.preferredSize = preferredSize;
 	}
 
 	public boolean isPreferredSizeSet() {
-		return true;
+		return preferredSize != null;
 	}
 
 	public Dimension getPreferredSize() {
-		return new Dimension(getWidth(), getHeight());
+		return preferredSize;
 	}
 
-	@Deprecated
 	public Dimension preferredSize() {
 		return getPreferredSize();
 	}
 
 	public void setMinimumSize(Dimension minimumSize) {
+		this.minimumSize = minimumSize;
 	}
 
 	public boolean isMinimumSizeSet() {
-		return true;
+		return minimumSize != null;
 	}
 
 	public Dimension getMinimumSize() {
-		return new Dimension(getWidth(), getHeight());
+		return minimumSize;
 	}
 
-	@Deprecated
 	public Dimension minimumSize() {
 		return getMinimumSize();
 	}
 
 	public void setMaximumSize(Dimension maximumSize) {
-
+		this.maximumSize= maximumSize;
 	}
 
 	public boolean isMaximumSizeSet() {
-		return true;
+		return maximumSize != null;
 	}
 
 	public Dimension getMaximumSize() {
-		return new Dimension(getWidth(), getHeight());
+		return maximumSize;
 	}
 
 	public float getAlignmentX() {
@@ -405,8 +400,6 @@ public class Component implements ImageObserver {
 	public BaselineResizeBehavior getBaselineResizeBehavior() {
 		return BaselineResizeBehavior.OTHER;
 	}
-
-	*/
 
 
 	public void doLayout() {
@@ -478,9 +471,6 @@ public class Component implements ImageObserver {
 		});
 	}
 
-	/*
-
-
 	public void print(Graphics g) {
 		paint(g);
 	}
@@ -493,27 +483,25 @@ public class Component implements ImageObserver {
 		print(g);
 	}
 
-	*/
 
 	public boolean imageUpdate(Image img, int infoflags, int x, int y, int w, int h) {
 		return false;
 	}
 
-	/*
 	public Image createImage(ImageProducer producer) {
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public Image createImage(int width, int height) {
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public VolatileImage createVolatileImage(int width, int height) {
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public VolatileImage createVolatileImage(int width, int height, ImageCapabilities caps) throws AWTException {
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public boolean prepareImage(Image image, ImageObserver observer) {
@@ -681,7 +669,7 @@ public class Component implements ImageObserver {
 	}
 
 	public synchronized FocusListener[] getFocusListeners() {
-		return getListeners(FocusListener.class);
+		return new FocusListener[0];
 	}
 
 	public void addHierarchyListener(HierarchyListener l) {
@@ -693,7 +681,7 @@ public class Component implements ImageObserver {
 	}
 
 	public synchronized HierarchyListener[] getHierarchyListeners() {
-		return getListeners(HierarchyListener.class);
+		return new HierarchyListener[0];
 	}
 
 	public void addHierarchyBoundsListener(HierarchyBoundsListener l) {
@@ -705,7 +693,7 @@ public class Component implements ImageObserver {
 	}
 
 	public synchronized HierarchyBoundsListener[] getHierarchyBoundsListeners() {
-		return getListeners(HierarchyBoundsListener.class);
+		return new HierarchyBoundsListener[0];
 	}
 
 	public synchronized void addKeyListener(KeyListener l) {
@@ -717,9 +705,8 @@ public class Component implements ImageObserver {
 	}
 
 	public synchronized KeyListener[] getKeyListeners() {
-		return getListeners(KeyListener.class);
+		return new KeyListener[0];
 	}
-	*/
 
 	private ArrayList<MouseListener> mouseListeners;
 
@@ -729,13 +716,12 @@ public class Component implements ImageObserver {
 		mouseListeners.add(l);
 	}
 
-	/*
 	public synchronized void removeMouseListener(MouseListener l) {
 
 	}
 
 	public synchronized MouseListener[] getMouseListeners() {
-		return getListeners(MouseListener.class);
+		return new MouseListener[0];
 	}
 
 	public synchronized void addMouseMotionListener(MouseMotionListener l) {
@@ -757,7 +743,7 @@ public class Component implements ImageObserver {
 	}
 
 	public synchronized MouseWheelListener[] getMouseWheelListeners() {
-		return getListeners(MouseWheelListener.class);
+		return new MouseWheelListener[0];
 	}
 
 	public synchronized void addInputMethodListener(InputMethodListener l) {
@@ -812,7 +798,6 @@ public class Component implements ImageObserver {
 	protected void processKeyEvent(KeyEvent e) {
 
 	}
-	*/
 
 	protected void processMouseEvent(MouseEvent e) {
 		if (mouseListeners != null) {
@@ -826,7 +811,6 @@ public class Component implements ImageObserver {
 		}
 	}
 
-	/*
 	protected void processMouseMotionEvent(MouseEvent e) {
 
 	}
@@ -1101,9 +1085,6 @@ public class Component implements ImageObserver {
 		return null;
 	}
 
-	protected abstract class AccessibleAWTComponent extends AccessibleContext
-		implements Serializable, AccessibleComponent {
-
+	protected abstract class AccessibleAWTComponent extends AccessibleContext implements Serializable, AccessibleComponent {
 	}
-	*/
 }

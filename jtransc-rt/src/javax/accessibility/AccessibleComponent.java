@@ -1,4 +1,4 @@
-package javax;
+package javax.accessibility;
 
 import javax.accessibility.Accessible;
 import java.awt.*;
