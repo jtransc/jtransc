@@ -1,0 +1,7 @@
+.idea
+*.iws
+*.iml
+*.ipr
+_site
+.sass-cache
+.jekyll-metadata

@@ -6,7 +6,9 @@ import com.jtransc.plugin.JTranscPluginAdaptor
 import com.jtransc.vfs.getUnmergedFiles
 import java.util.*
 
-// Plugin that reference classes in META-INF/services folder for ServiceLoader to work
+/**
+ * Plugin that reference classes in META-INF/services folder for ServiceLoader to work
+ */
 class ServiceLoaderJTranscPlugin : JTranscPluginAdaptor() {
 	override fun processAfterTreeShaking(program: AstProgram) {
 		val resourcesVfs = program.resourcesVfs

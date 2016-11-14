@@ -245,8 +245,9 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 
 		val SHOW_SIZE_REPORT = true
 		if (SHOW_SIZE_REPORT) {
-			for ((clazz, text) in indenterPerClass.toList().map { it.first to it.second.toString() }.sortedBy { it.second.length })
-				println("CLASS SIZE: ${clazz.fqname} : ${text.length}")
+			for ((clazz, text) in indenterPerClass.toList().map { it.first to it.second.toString() }.sortedBy { it.second.length }) {
+				log.info("CLASS SIZE: ${clazz.fqname} : ${text.length}")
+			}
 		}
 
 		val mainClassFq = program.entrypoint
@@ -393,6 +394,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 			line("var $vars;")
 		}
 	}
+
 	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
@@ -539,8 +541,8 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 				fun renderBranches() = Indenter.gen {
 					try {
 						val nativeBodies = method.getJsNativeBodies()
-						var javaBodyCacheDone:Boolean = false
-						var javaBodyCache:Indenter? = null
+						var javaBodyCacheDone: Boolean = false
+						var javaBodyCache: Indenter? = null
 						fun javaBody(): Indenter? {
 							if (!javaBodyCacheDone) {
 								javaBodyCacheDone = true

@@ -88,10 +88,11 @@ class JTranscBuild(
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
 		// @TODO: allow to add plugins from gradle
 		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList()
+		val pluginNames = plugins.map { it.javaClass.simpleName }
 
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
-		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory")
+		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
 		for (cp in classPaths2) log("ClassPath: $cp")
 
 		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!

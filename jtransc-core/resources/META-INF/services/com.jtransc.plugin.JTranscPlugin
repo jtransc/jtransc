@@ -1,2 +1,3 @@
 com.jtransc.plugin.meta.MetaReflectionJTranscPlugin
 com.jtransc.plugin.service.ServiceLoaderJTranscPlugin
+com.jtransc.plugin.jna.JnaJTranscPlugin

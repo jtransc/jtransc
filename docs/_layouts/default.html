@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include head.html %}
+
+<body>
+
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/" style="padding:10px;">
+          <img alt="Brand" src="/i/logo-wide.svg" width="128" height="32" />
+        </a>
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+
+      </div>
+
+      <form class="collapse navbar-collapse navbar-form navbar-right" role="search" action="/search" style="padding-left:20px;">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" id="searchq" name="q" />
+        </div>
+        <button type="submit" class="btn btn-default">Search</button>
+      </form>
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="active"><a href="/"><i class="fa fa-book" aria-hidden="true"></i> Documentation</a></li>
+          <li><a href="http://blog.jtransc.com/" target="_blank"><i class="fa fa-wordpress" aria-hidden="true"></i> Blog</a></li>
+          <li><a href="http://github.com/jtransc/jtransc" target="_blank"><i class="fa fa-github" aria-hidden="true"></i> Github</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+          <div class="sidebar-nav" style="padding-top:16px;margin-top:50px;" >
+            {% capture my_include %}{% include toc.md %}{% endcapture %}
+            {{ my_include | markdownify }}
+          </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12" id="page-content2">
+                        <div id="page-content">
+                            <h1>{% if page.title_icon %}<i class="{{ page.title_icon }}" aria-hidden="true"></i> {% endif %}{{ page.title }} <a href="https://github.com/jtransc/docs.jtransc.com/blob/gh-pages/{{ page.path }}" style="color:#ddd;"><i class="fa fa fa-pencil" aria-hidden="true"></i></a></h1>
+                            {{ content }}
+                            <p>
+                                <a href="https://github.com/jtransc/docs.jtransc.com/blob/gh-pages/{{ page.path }}"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit this page ({{ page.path }})</a>
+                            </p>
+                        </div>
+
+                        <div id="disqus_thread" style="margin-top:80px;"></div>
+                        <!--
+                        <script type="text/javascript" id="disqus-script">
+                            var disqus_config = function () {
+                                this.page.url = '{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}';
+                                this.page.identifier = '{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}';
+                            };
+                            (function() {
+                                var d = document, s = d.createElement('script');
+                                s.src = '//jtransc.disqus.com/embed.js';
+                                s.setAttribute('data-timestamp', +new Date());
+                                (d.head || d.body).appendChild(s);
+                            })();
+                        </script>
+                        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+</body>
+
+</html>
