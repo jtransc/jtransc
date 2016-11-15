@@ -215,8 +215,7 @@ N.stringToCharArray = function(str) {
 N.resolveClass = function(name) { return java_lang_Class["forName(Ljava/lang/String;)Ljava/lang/Class;"](N.str(name)); };
 
 N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
-	var out = new java_lang_StackTraceElement();
-	out["java.lang.StackTraceElement<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V"](
+	var out = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
 		N.str(declaringClass),
 		N.str(methodName),
 		N.str(fileName),

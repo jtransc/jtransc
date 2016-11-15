@@ -1,5 +1,6 @@
 package com.jtransc.plugin.meta
 
+import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.plugin.JTranscPluginAdaptor
@@ -19,14 +20,14 @@ class MetaReflectionJTranscPlugin : JTranscPluginAdaptor() {
 
 		val types = program.types
 		val ProgramReflectionClass = program[ProgramReflection::class.java.fqname]
-		val oldClasses = program.classes.toList()
+		val oldClasses = program.classes.toList().filter { !it.annotationsList.contains<JTranscInvisible>() }
 		val CLASS_INFO = program[ClassInfo::class.java.fqname]
 		val CLASS_INFO_CREATE = CLASS_INFO.getMethodWithoutOverrides(ClassInfo::create.name)!!.ref
 
 		val classesToId = oldClasses.associate { it to program.getClassId(it.name) }
 		val constructorsToId = oldClasses.flatMap { it.constructors }.withIndex().associate { it.value to it.index }
-		val methodsToId = oldClasses.flatMap { it.methodsWithoutConstructors }.withIndex().associate { it.value to it.index }
-		val fieldsToId = oldClasses.flatMap { it.fields }.withIndex().associate { it.value to it.index }
+		val methodsToId = oldClasses.flatMap { it.methodsWithoutConstructors }.filter { !it.annotationsList.contains<JTranscInvisible>() }.withIndex().associate { it.value to it.index }
+		val fieldsToId = oldClasses.flatMap { it.fields }.filter { !it.annotationsList.contains<JTranscInvisible>() }.withIndex().associate { it.value to it.index }
 
 		fun getClassId(clazz: AstClass?): Int = classesToId[clazz] ?: -1
 		fun getConstructorId(constructor: AstMethod?): Int = constructorsToId[constructor] ?: -1
@@ -34,11 +35,11 @@ class MetaReflectionJTranscPlugin : JTranscPluginAdaptor() {
 		fun getFieldId(field: AstField?): Int = fieldsToId[field] ?: -1
 
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getAllClasses.name)?.replaceBodyOpt {
-			val out = AstLocal(0, "out", AstTypeBuild { ARRAY(CLASS_INFO) })
+			val out = AstLocal(0, "out", ARRAY(CLASS_INFO))
 			AstBuilder(types).run {
 				val stms = arrayListOf<AstStm>()
 
-				stms += out assignTo AstExpr.NEW_ARRAY(AstTypeBuild { ARRAY(CLASS_INFO) }, listOf((oldClasses.size + 1).lit))
+				stms += out assignTo AstExpr.NEW_ARRAY(ARRAY(CLASS_INFO), listOf((oldClasses.size + 1).lit))
 
 				for (oldClass in oldClasses) {
 					val index = getClassId(oldClass)

@@ -139,28 +139,30 @@ open class JTranscTestBase {
 		injector.mapInstance(ConfigMinimizeNames(minimize ?: MINIMIZE))
 		injector.mapInstance(ConfigTreeShaking(TREESHAKING, TREESHAKING_TRACE))
 
-		return JTranscBuild(
-			injector = injector,
-			target = target ?: DEFAULT_TARGET,
-			entryPoint = clazz.name,
-			output = "program.haxe.$lang", subtarget = "$lang",
-			//output = "program.haxe.cpp", subtarget = "cpp",
-			targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/${pid}_$threadId",
-			settings = AstBuildSettings(
-				jtranscVersion = JTranscVersion.getVersion(),
-				debug = debug ?: DEBUG,
-				relooper = RELOOPER,
-				analyzer = analyze ?: ANALYZER,
-				rtAndRtCore = listOf(
-					projectRoot["jtransc-rt/target/classes"].realpathOS,
-					projectRoot["jtransc-rt/build/classes/main"].realpathOS,
-					projectRoot["jtransc-rt/build/resources/main"].realpathOS,
-					projectRoot["jtransc-rt-core/target/classes"].realpathOS,
-					projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
-					projectRoot["jtransc-rt-core/build/resources/main"].realpathOS
+		return log.setTempLogger({ v, l -> }) {
+			JTranscBuild(
+				injector = injector,
+				target = target ?: DEFAULT_TARGET,
+				entryPoint = clazz.name,
+				output = "program.haxe.$lang", subtarget = "$lang",
+				//output = "program.haxe.cpp", subtarget = "cpp",
+				targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/${pid}_$threadId",
+				settings = AstBuildSettings(
+					jtranscVersion = JTranscVersion.getVersion(),
+					debug = debug ?: DEBUG,
+					relooper = RELOOPER,
+					analyzer = analyze ?: ANALYZER,
+					rtAndRtCore = listOf(
+						projectRoot["jtransc-rt/target/classes"].realpathOS,
+						projectRoot["jtransc-rt/build/classes/main"].realpathOS,
+						projectRoot["jtransc-rt/build/resources/main"].realpathOS,
+						projectRoot["jtransc-rt-core/target/classes"].realpathOS,
+						projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
+						projectRoot["jtransc-rt-core/build/resources/main"].realpathOS
+					)
 				)
-			)
-		).buildAndRunCapturingOutput().process.outerr
+			).buildAndRunCapturingOutput().process.outerr
+		}
 	}
 
 	val types = ThreadLocal.withInitial { AstTypes() }

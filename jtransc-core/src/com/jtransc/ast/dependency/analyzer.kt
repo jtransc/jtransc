@@ -109,6 +109,11 @@ object AstDependencyAnalyzer {
 					ana(expr.methodInInterfaceRef.allClassRefs)
 					ana(expr.methodToConvertRef.allClassRefs)
 				}
+				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
+					ana(expr.target)
+					ana(expr.type)
+					for (arg in expr.args) ana(arg)
+				}
 			//is AstExpr.REF -> ana(expr.expr)
 				else -> noImpl("Not implemented $expr")
 			}

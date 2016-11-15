@@ -14,26 +14,26 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class JTranscReflection {
-	@HaxeMethodBody("return HaxeNatives.strArray(R.getAllClasses());")
+	//@HaxeMethodBody("return HaxeNatives.strArray(R.getAllClasses());")
 	static public String[] getAllClasses() {
 		return new ClasspathScanner().getAllClasses();
 	}
 
-	@HaxeMethodBody(target = "js", value = "return N.str(StringTools.replace(StringTools.replace(p0._internalName, '_', '_$'), '.', '_'));")
-	@HaxeMethodBody("return N.str(p0._internalName);")
-	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
+	//@HaxeMethodBody(target = "js", value = "return N.str(StringTools.replace(StringTools.replace(p0._internalName, '_', '_$'), '.', '_'));")
+	//@HaxeMethodBody("return N.str(p0._internalName);")
+	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Class<?> clazz) {
 		return clazz.getName();
 	}
 
-	@HaxeMethodBody("return N.str(p0._internalName);")
-	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
+	//@HaxeMethodBody("return N.str(p0._internalName);")
+	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Method method) {
 		return method.getName();
 	}
 
-	@HaxeMethodBody("return N.str(p0._internalName);")
-	@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
+	//@HaxeMethodBody("return N.str(p0._internalName);")
+	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Field field) {
 		return field.getName();
 	}

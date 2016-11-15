@@ -458,7 +458,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 				return c;
 			}
 		}
-		throw new NoSuchMethodException();
+		throw new NoSuchMethodException("Can't find constructor");
 	}
 
 

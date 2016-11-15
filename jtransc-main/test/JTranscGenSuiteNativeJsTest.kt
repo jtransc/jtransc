@@ -21,6 +21,11 @@ import org.junit.Test
 
 class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
+		17
+		-333
+		Services:
+		TestServiceImpl1.test
+		/Services:
 		2
 		hello
 		world
@@ -28,16 +33,17 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		main([Ljava/lang/String;)V
 		Error !(10 < 10)
 		ok
-		17j
-		-333
 	""", target = JsTarget, minimize = false)
 
 	@Test fun testAwtJs() = testNativeClass<AWTTest>("""
 		JTranscWidgets.Component(0:frame).init()
-		JTranscWidgets.Component(1:container).init()
-		JTranscWidgets.Component(2:label).init()
-		JTranscWidgets.Component(2:label).setText('Hello World')
-		JTranscWidgets.Component(2:label).setParent(JTranscWidgets.Component(1:container))
+		JTranscWidgets.Component(1:label).init()
+		JTranscWidgets.Component(2:image).init()
+		JTranscWidgets.Component(3:text).init()
+		JTranscWidgets.Component(2:image).setParent(JTranscWidgets.Component(1:label))
+		JTranscWidgets.Component(3:text).setParent(JTranscWidgets.Component(1:label))
+		JTranscWidgets.Component(3:text).setText('Hello World')
+		JTranscWidgets.Component(1:label).setParent(JTranscWidgets.Component(0:frame))
 		JTranscWidgets.Component(0:frame).setVisible(true)
 	""", minimize = true, target = JsTarget)
 }

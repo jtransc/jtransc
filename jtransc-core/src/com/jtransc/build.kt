@@ -137,7 +137,7 @@ class JTranscBuild(
 		}
 
 		val programBase = measureProcess("Generating AST") {
-			generateProgram()
+			generateProgram(plugins)
 		}
 
 		for (plugin in plugins) {
@@ -162,7 +162,7 @@ class JTranscBuild(
 		return target.build(injector)
 	}
 
-	fun generateProgram(): AstProgram {
+	fun generateProgram(plugins: List<JTranscPlugin>): AstProgram {
 		val injector: Injector = injector.get()
 		val configClassNames: ConfigInitialClasses = injector.get()
 		val configMainClass: ConfigMainClass = injector.get()
@@ -186,8 +186,19 @@ class JTranscBuild(
 		log("Processing classes...")
 
 		val (elapsed) = measureTime {
-			while (program.hasClassToGenerate()) {
+			for (plugin in plugins) plugin.onStartBuilding(program)
+
+			while (true) {
+				if (!program.hasClassToGenerate()) {
+					for (plugin in plugins) plugin.onAfterAllClassDiscovered(program)
+
+					if (!program.hasClassToGenerate()) {
+						break;
+					}
+				}
 				val className = program.readClassToGenerate()
+
+				for (plugin in plugins) plugin.onAfterClassDiscovered(className, program)
 
 				val time = measureTime {
 					try {

@@ -7,11 +7,11 @@ object log {
 
 	var logger: (Any?, Level) -> Unit = { content, level -> println(content) }
 
-	fun setTempLogger(logger: (Any?, Level) -> Unit, callback: () -> Unit) {
+	inline fun <T> setTempLogger(noinline logger: (Any?, Level) -> Unit, callback: () -> T): T {
 		val oldLogger = this.logger
 		this.logger = logger
 		try {
-			callback()
+			return callback()
 		} finally {
 			this.logger = oldLogger
 		}

@@ -622,7 +622,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 		val methodName = method.name
 		return if (className == Js::class.java.name && methodName.endsWith("_raw")) {
 			val arg = e2.args[0].value
-			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]}")
+			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]} at $context")
 			val base = templateString.gen((arg.value as String))
 			when (methodName) {
 				"v_raw" -> "$base"

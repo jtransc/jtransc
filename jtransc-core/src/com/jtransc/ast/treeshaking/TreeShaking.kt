@@ -124,16 +124,16 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 				for (impl in oldclazz.implementing) addBasicClass(impl, reason = "implementing $fqname")
 				if (oldclazz.extending != null) addBasicClass(oldclazz.extending, reason = "extending $fqname")
 
-				if (oldclazz.annotationsList.contains<JTranscKeep>()) {
+				if (oldclazz.keep) {
 					addFullClass(fqname, reason = "$fqname+@JTranscKeep")
 				}
 
 				for (field in oldclazz.fields) {
-					if (field.annotationsList.contains<JTranscKeep>()) addField(field.ref, reason = "<field>@JTranscKeep")
+					if (field.keep) addField(field.ref, reason = "<field>@JTranscKeep")
 				}
 
 				for (method in oldclazz.methods) {
-					if (method.annotationsList.contains<JTranscKeep>()) addMethod(method.ref, reason = "<method>@JTranscKeep")
+					if (method.keep) addMethod(method.ref, reason = "<method>@JTranscKeep")
 				}
 
 				// Add static constructors

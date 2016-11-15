@@ -18,6 +18,7 @@ package java.util;
 
 import java.net.URL;
 
+@SuppressWarnings("unchecked")
 public final class ServiceLoader<S> implements Iterable<S> {
 	private final Class<S> service;
 	private final List<S> list;
@@ -25,13 +26,13 @@ public final class ServiceLoader<S> implements Iterable<S> {
 	private ServiceLoader(Class<S> service) {
 		Objects.requireNonNull(service);
 		this.service = service;
-		this.list = getInstances(service.getName());
+		this.list = (List<S>)Arrays.asList(getInstances(service.getName()));
 		reload();
 	}
 
-	private List<S> getInstances(String fqname) {
+	private Object[] getInstances(String fqname) {
 		// @NOTE: This method body will be replaced by com.jtransc.plugin.service.ServiceLoaderJTranscPlugin
-		return new ArrayList<>();
+		return new Object[0];
 	}
 
 	public void reload() {

@@ -135,6 +135,8 @@ interface AstType {
 	}
 }
 
+fun ARRAY(type: AstType) = AstType.ARRAY(type)
+
 @Singleton
 class AstTypes {
 	private val AstTypeDemangleCache = hashMapOf<String, AstType>()

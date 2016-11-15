@@ -584,7 +584,7 @@ object AstExprUtils {
 operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
 
-class AstBuilder(val types: AstTypes) {
+open class BuilderBase(val types: AstTypes) {
 	val BOOL = AstType.BOOL
 	val BYTE = AstType.BYTE
 	val SHORT = AstType.SHORT
@@ -597,31 +597,83 @@ class AstBuilder(val types: AstTypes) {
 	val CLASS = AstType.CLASS
 	val STRING = AstType.STRING
 
-	val NULL: AstExpr get() = AstExpr.LITERAL(null, types)
+	fun ARRAY(element: AstType) = AstType.ARRAY(element)
 
-	fun RETURN(): AstStm = AstStm.RETURN_VOID()
-	fun RETURN(value: AstExpr): AstStm = AstStm.RETURN(value)
-	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
-	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
+	fun NEW_ARRAY(element: AstType.ARRAY, size: AstExpr) = AstExpr.NEW_ARRAY(element, listOf(size))
+
+	val NULL: AstExpr get() = AstExpr.LITERAL(null, types)
 
 	val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val AstType.REF.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 	val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
 
+	val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
+	val AstLocal.expr: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
 	val AstArgument.expr: AstExpr.PARAM get() = AstExpr.PARAM(this)
 
-	val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
+	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
+	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
+	operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
+	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
+	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
+
+	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
+	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
+
+	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+
+	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
+	fun AstExpr.toType(toType: AstType): AstExpr = if (this.type == toType) this else AstExpr.CAST(this, toType)
+}
+
+class AstBuilder2(types: AstTypes) : BuilderBase(types) {
+	val stms = arrayListOf<AstStm>()
+
+	fun SET(local: AstLocal, expr: AstExpr) {
+		stms += AstStmUtils.set(local, expr)
+	}
+
+	fun SET_ARRAY(local: AstLocal, index: AstExpr, value: AstExpr) {
+		stms += AstStm.SET_ARRAY(local.local, index, value)
+	}
+
+	fun STM(expr: AstExpr) {
+		stms += AstStm.STM_EXPR(expr)
+	}
+
+	inline fun IF(cond: AstExpr, callback: AstBuilder2.() -> Unit) {
+		val body = AstBuilder2(types)
+		body.callback()
+		stms += AstStm.IF(cond, body.genstm())
+	}
+
+	fun RETURN() = Unit.apply { stms += AstStm.RETURN_VOID() }
+	fun RETURN(value: AstExpr) = Unit.apply { stms += AstStm.RETURN(value) }
+	fun RETURN(value: AstLocal) = Unit.apply { stms += AstStm.RETURN(value.expr) }
+
+	fun genstm(): AstStm = AstStm.STMS(stms)
+}
+
+@Deprecated("Use AstBuilder2 or AstMethod.replaceBodyOptBuild instead")
+class AstBuilder(types: AstTypes) : BuilderBase(types) {
+
+
+	fun RETURN(): AstStm = AstStm.RETURN_VOID()
+	fun RETURN(value: AstExpr): AstStm = AstStm.RETURN(value)
+
+
+
 
 	fun stms(vararg stms: AstStm): AstStm.STMS = AstStm.STMS(*stms)
 	fun stms(stms: Iterable<AstStm>): AstStm.STMS = AstStm.STMS(stms.toList())
 
-	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
 
 	fun LOGSTR(expr: AstExpr): AstStm {
 		return AstStm.STM_EXPR(AstExpr.CALL_STATIC(
@@ -630,11 +682,6 @@ class AstBuilder(val types: AstTypes) {
 		))
 	}
 
-	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
-	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
-	operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
-	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
-	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 	fun AstExpr.stm() = AstStm.STM_EXPR(this)
 	infix fun AstLocal.assignTo(that: AstExpr) = AstStmUtils.set(this, that)
 	infix fun AstExpr.LOCAL.assignTo(that: AstExpr) = AstStmUtils.set(this.local, that)

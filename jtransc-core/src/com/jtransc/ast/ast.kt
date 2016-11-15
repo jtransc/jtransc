@@ -301,6 +301,10 @@ class UniqueNames {
 	}
 }
 
+open class AstBaseElement() {
+	var extraKeep = false
+}
+
 class AstClass(
 	val source: String,
 	val program: AstProgram,
@@ -309,7 +313,9 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	override val annotations: List<AstAnnotation> = listOf()
-) : IUserData by UserData(), AstAnnotated {
+) : AstBaseElement(), IUserData by UserData(), AstAnnotated {
+	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
+
 	var lastMethodId = 0
 	val uniqueNames = UniqueNames()
 
@@ -590,9 +596,11 @@ open class AstMember(
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
 	override val annotations: List<AstAnnotation> = listOf()
-) : IUserData by UserData(), AstAnnotated {
+) : AstBaseElement(), IUserData by UserData(), AstAnnotated {
 	override val annotationsList = AstAnnotationList(annotations)
 	val program = containingClass.program
+
+	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
 
 	val nativeName: String? by lazy {
 		annotationsList.getTyped<JTranscNativeName>()?.value
@@ -647,23 +655,51 @@ class AstMethod(
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
 	val isNative: Boolean = modifiers.isNative
 
-	val body: AstBody? by lazy { generateBody() }
+	private var generatedBody: Boolean = false
+	private var generatedBodyBody: AstBody? = null
+
+	val body: AstBody? get() {
+		if (!generatedBody) {
+			generatedBody = true
+			generatedBodyBody = generateBody()
+		}
+		return generatedBodyBody
+	}
 	val hasBody: Boolean get() = body != null
 
 	fun replaceBody(stmGen: () -> AstStm) {
 		this.generateBody = { AstBody(types, stmGen(), methodType) }
+		calculatedBodyDependencies = null
+		generatedBody = false
 	}
 
+	@Deprecated("Use replaceBodyOptBuild instead")
 	fun replaceBodyOpt(stmGen: () -> AstStm) {
 		this.generateBody = {
 			val body = AstBody(types, stmGen(), methodType)
 			AstOptimizer(AstBodyFlags(false, types)).visit(body)
 			body
 		}
+		calculatedBodyDependencies = null
+		generatedBody = false
+	}
+
+	fun replaceBodyOptBuild(stmGen: AstBuilder2.() -> Unit) {
+		this.generateBody = {
+			val builder = AstBuilder2(types)
+			builder.stmGen()
+			val body = AstBody(types, builder.genstm(), methodType)
+			AstOptimizer(AstBodyFlags(false, types)).visit(body)
+			body
+		}
+		calculatedBodyDependencies = null
+		generatedBody = false
 	}
 
 	fun replaceBody(stm: AstStm) {
 		this.generateBody = { AstBody(types, stm, methodType) }
+		calculatedBodyDependencies = null
+		generatedBody = false
 	}
 
 	val methodType: AstType.METHOD = methodType
@@ -671,7 +707,13 @@ class AstMethod(
 	val desc = methodType.desc
 	override val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 
-	val bodyDependencies by lazy { AstDependencyAnalyzer.analyze(containingClass.program, body, name) }
+	var calculatedBodyDependencies: AstReferences? = null
+	val bodyDependencies: AstReferences get() {
+		if (calculatedBodyDependencies == null) {
+			calculatedBodyDependencies = AstDependencyAnalyzer.analyze(containingClass.program, body, name)
+		}
+		return calculatedBodyDependencies!!
+	}
 
 	val getterField: String? by lazy { annotationsList.getTyped<JTranscGetter>()?.value }
 	val setterField: String? by lazy { annotationsList.getTyped<JTranscSetter>()?.value }
@@ -775,3 +817,5 @@ data class AstModifiers(val acc: Int) {
 
 	override fun toString(): String = "$acc"
 }
+
+fun ARRAY(type: AstClass) = AstType.ARRAY(type.astType)
