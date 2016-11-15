@@ -79,7 +79,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 							RETURN(NULL)
 						} else {
 							//LOGSTR("dynamicInvoke: $methodId".lit),
-							AstStm.RETURN(AstExpr.CAST(callExprUncasted, OBJECT))
+							RETURN(callExprUncasted.cast(OBJECT))
 						}
 					}
 				}
@@ -102,7 +102,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 						val callExprUncasted = AstExpr.NEW_WITH_CONSTRUCTOR(constructor.ref, params)
 
-						AstStm.RETURN(AstExpr.CAST(callExprUncasted, OBJECT))
+						RETURN(callExprUncasted.cast(OBJECT))
 					}
 				}
 			}
@@ -123,10 +123,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				SWITCH(classIdArg.expr) {
 					for ((clazz, members) in list) {
 						val classId = getClassId(clazz)
-						CASE(classId) {
-							if (members.isEmpty()) {
-								RETURN(NULL)
-							} else {
+						if (members.isNotEmpty()) {
+							CASE(classId) {
 								SET(out, NEW_ARRAY(ARRAY(MemberInfoClass), members.size.lit))
 
 								for ((index, memberWithRef) in members.withIndex()) {
@@ -134,7 +132,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 									val member = memberWithRef.mi
 									// static public MemberInfo create(int id, String name, int modifiers, String desc, String genericDesc)
 
-									SET_ARRAY(out, index.lit,  MemberInfo_create(
+									SET_ARRAY(out, index.lit, MemberInfo_create(
 										member.id.lit,
 										AstExpr.LITERAL_REFNAME(ref, types),
 										member.name.lit,

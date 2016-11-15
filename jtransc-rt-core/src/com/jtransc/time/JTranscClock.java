@@ -30,6 +30,18 @@ public class JTranscClock {
 			}
 		}
 
+		//performance.now()
+		//process.hrtime()[1] / 1000000000.0
+		@JTranscMethodBody(target = "js", value = "return N.hrtime();")
+		public long nanoTime() {
+			if (JTranscSystem.isJTransc()) {
+				//return (long) hrtime();
+				return System.currentTimeMillis() * 1000000L;
+			} else {
+				return System.nanoTime();
+			}
+		}
+
 		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
 		public void sleep(double ms) {
 			if (parent != null) {

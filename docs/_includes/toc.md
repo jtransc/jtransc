@@ -30,4 +30,4 @@
 * [<i class="fa fa-graduation-cap" aria-hidden="true"></i> Tutorials](/tutorials)
 * [<i class="fa fa-smile-o" aria-hidden="true"></i> Contributing](/contributing)
 
-<a href="https://github.com/jtransc/docs.jtransc.com/blob/gh-pages/_includes/toc.md" style="color:#333;"><i class="fa fa-pencil" aria-hidden="true" style="color:#333;"></i> Edit Table of Contents</a>
+<a href="https://github.com/jtransc/jtransc/blob/master/docs/_includes/toc.md" style="color:#333;"><i class="fa fa-pencil" aria-hidden="true" style="color:#333;"></i> Edit Table of Contents</a>

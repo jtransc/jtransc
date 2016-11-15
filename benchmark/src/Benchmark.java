@@ -263,13 +263,13 @@ public class Benchmark {
 	static private void benchmark(String name, Task run) {
 		System.out.print(name + "...");
 
-		long t1 = System.currentTimeMillis();
+		long t1 = System.nanoTime();
 		for (int n = 0; n < 10; n++) run.run(); // warming up
-		long t2 = System.currentTimeMillis();
+		long t2 = System.nanoTime();
 		for (int n = 0; n < 10; n++) run.run();
-		long t3 = System.currentTimeMillis();
+		long t3 = System.nanoTime();
 		//System.out.println("( " + (t2 - t1) + " ) :: ( " + (t3 - t2) + " )");
-		System.out.println(t3 - t2);
+		System.out.println((double)(t3 - t2) / 1000000.0);
 	}
 
 	static public int calc(int a, int b) {

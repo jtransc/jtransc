@@ -31,8 +31,7 @@ public class Proxy implements java.io.Serializable {
 
 	native public static Class<?> getProxyClass(ClassLoader loader, Class<?>... interfaces) throws IllegalArgumentException;
 
-	//@HaxeMethodBody("return Type.createInstance(p0._hxProxyClass, [p1]);")
-	//@JTranscMethodBody(target = "js", value = "return R.newProxyInstance(p0, p1);")
+	// @NOTE: This class will be overwritten by the ProxyPlugin
 	private static Object newProxyInstance(Class<?> ifc, InvocationHandler h) {
 		return null;
 	}
@@ -42,13 +41,15 @@ public class Proxy implements java.io.Serializable {
 		return newProxyInstance(interfaces[0], h);
 	}
 
-	//@HaxeMethodBody("return Reflect.hasField(p0, '__invocationHandler');")
 	public static boolean isProxyClass(Class<?> cl) {
-		return false;
+		return Proxy.class.isAssignableFrom(cl);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(p0, '__invocationHandler');")
 	public static InvocationHandler getInvocationHandler(Object proxy) throws IllegalArgumentException {
-		return null;
+		try {
+			return ((Proxy) proxy).h;
+		} catch (NullPointerException e) {
+			throw new IllegalArgumentException();
+		}
 	}
 }

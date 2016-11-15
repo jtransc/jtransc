@@ -50,7 +50,7 @@ public class System {
 	}
 
 	public static long nanoTime() {
-		return currentTimeMillis() * 1000000L;
+		return JTranscSystem.nanoTime();
 	}
 
 	@HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")

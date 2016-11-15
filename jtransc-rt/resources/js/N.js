@@ -1,4 +1,5 @@
 // N : Native
+var onBrowser = typeof window != "undefined";
 var onNodeJs = typeof window == "undefined";
 
 function Int64Ref(high, low) {
@@ -112,6 +113,20 @@ N.cmpg = function(a, b) { return (isNaN(a) || isNaN(b)) ? 1 : N.cmp(a, b); }
 
 
 N.getTime = function() { return Date.now(); };
+N.hrtime = function() {
+	if (onBrowser) {
+		if (typeof performance != 'undefined') {
+			return N.lnewFloat(performance.now() * 1000000.0);
+		} else {
+			return N.lmul(N.lnewFloat(Date.now()), N.i2j(1000000));
+		}
+	} else if (onNodeJs) {
+		var hr = process.hrtime()
+		return N.ladd(N.lmul(N.i2j(hr[0]), N.i2j(1000000000)), N.i2j(hr[1]));
+	} else {
+		throw 'Unsupported high resolution time';
+	}
+};
 
 N.is = function(i, clazz) { return (i != null) ? (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined") : false; };
 

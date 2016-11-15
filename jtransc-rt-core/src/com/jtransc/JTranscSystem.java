@@ -18,6 +18,10 @@ public class JTranscSystem {
 		return JTranscClock.impl.fastTime();
 	}
 
+	static public long nanoTime() {
+		return JTranscClock.impl.nanoTime();
+	}
+
 	static public void sleep(double ms) {
 		JTranscClock.impl.sleep(ms);
 	}
