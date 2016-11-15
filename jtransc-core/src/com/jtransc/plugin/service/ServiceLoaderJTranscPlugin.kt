@@ -3,14 +3,14 @@ package com.jtransc.plugin.service
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.log.log
-import com.jtransc.plugin.JTranscPluginAdaptor
+import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.vfs.getUnmergedFiles
 import java.util.*
 
 /**
  * Plugin that reference classes in META-INF/services folder for ServiceLoader to work
  */
-class ServiceLoaderJTranscPlugin : JTranscPluginAdaptor() {
+class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 	var alreadyExecuted = false
 	val servicesToImpls = hashMapOf<String, List<String>>()
 	val referencedServices = arrayListOf<String>()

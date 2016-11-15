@@ -1,9 +1,9 @@
 package com.jtransc.plugin.jna
 
-import com.jtransc.plugin.JTranscPluginAdaptor
+import com.jtransc.plugin.JTranscPlugin
 
 /**
  * Plugin that detects JNA classes and do the proper
  */
-class JnaJTranscPlugin : JTranscPluginAdaptor() {
+class JnaJTranscPlugin : JTranscPlugin() {
 }

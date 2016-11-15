@@ -3,10 +3,20 @@ package com.jtransc.plugin
 import com.jtransc.ast.AstProgram
 import com.jtransc.ast.AstType
 
-interface JTranscPlugin {
-	fun onStartBuilding(program: AstProgram): Unit
-	fun onAfterAllClassDiscovered(program: AstProgram): Unit
-	fun onAfterClassDiscovered(clazz: AstType.REF, program: AstProgram): Unit
-	fun processAfterTreeShaking(program: AstProgram): Unit
-	fun processBeforeTreeShaking(programBase: AstProgram): Unit
+abstract class JTranscPlugin {
+	open fun onStartBuilding(program: AstProgram): Unit {
+
+	}
+	open fun onAfterAllClassDiscovered(program: AstProgram): Unit {
+
+	}
+	open fun onAfterClassDiscovered(clazz: AstType.REF, program: AstProgram): Unit {
+
+	}
+	open fun processAfterTreeShaking(program: AstProgram): Unit {
+
+	}
+	open fun processBeforeTreeShaking(programBase: AstProgram): Unit {
+
+	}
 }

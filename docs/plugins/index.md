@@ -8,8 +8,7 @@ Since version 0.4.1, JTransc supports a plugin system using the plain Java's Ser
 You must add to your JAR this file:
 `META-INF.services/com.jtransc.plugin.JTranscPlugin`
 
-With the fqname of your implementation. That class should extend `com.jtransc.plugin.JTranscPluginAdaptor` for
-so it continue working when more methods are added to the plugin interface.
+With the fqname of your implementation. That class should extend the abstract class `com.jtransc.plugin.JTranscPlugin`.
 
 You can see some examples of plugins to discover the API at that moment:
 

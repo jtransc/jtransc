@@ -3,7 +3,6 @@ package com.jtransc.plugin.meta
 import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
-import com.jtransc.plugin.JTranscPluginAdaptor
 import j.ClassInfo
 import j.MemberInfo
 import j.ProgramReflection
@@ -11,7 +10,7 @@ import j.ProgramReflection
 /**
  * This class aims to create classes to perform reflection on available classes
  */
-class MetaReflectionJTranscPlugin : JTranscPluginAdaptor() {
+class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!
 		// Also methods are not updated in the case they do not exist!
