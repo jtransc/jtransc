@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.io.JTranscConsole
 
 data class AstBody(
 	var stm: AstStm,
@@ -239,10 +238,28 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	//
 	//class NOT_IMPLEMENTED() : AstStm() {
 	//}
+}
 
-	companion object {
-		fun build(types: AstTypes, build: AstBuilder.() -> AstStm): AstStm = AstBuilder(types).build()
+fun AstStm.lastStm(): AstStm {
+	if (this is AstStm.STMS) return this.stms.lastOrNull()?.value?.lastStm() ?: this
+	return this
+}
+
+fun AstStm.expand(): List<AstStm> {
+	return when (this) {
+		is AstStm.STMS -> this.stms.flatMap { it.value.expand() }
+		else -> listOf(this)
 	}
+}
+
+fun AstStm?.isBreakingFlow() = when (this) {
+	null -> false
+	is AstStm.BREAK -> true
+	is AstStm.CONTINUE -> true
+	is AstStm.GOTO -> true
+	is AstStm.RETURN -> true
+	is AstStm.RETURN_VOID -> true
+	else -> false
 }
 
 abstract class AstExpr : AstElement, Cloneable<AstExpr> {
@@ -327,6 +344,10 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = types.fromConstant(value)
 	}
 
+	class LITERAL_REFNAME(override val value: Any?, val types: AstTypes) : LiteralExpr() {
+		override val type = AstType.STRING
+	}
+
 	class CAUGHT_EXCEPTION(override val type: AstType = AstType.OBJECT) : AstExpr() {
 
 	}
@@ -371,6 +392,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 
 	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
 		constructor(method: AstMethodRef, args: List<AstExpr>, isSpecial: Boolean = false) : this(method.classRef, method, args, isSpecial)
+
 		override val args = args.map { it.box }
 		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
@@ -449,10 +471,6 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType.REF) = AstExpr.INSTANCE_OF(this, that)
-
-	companion object {
-		fun build(types: AstTypes, build: AstBuilder.() -> AstExpr): AstExpr = AstBuilder(types).build()
-	}
 
 	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr, val types: AstTypes) : AstExpr() {
 		override val type: AstType = types.unify(etrue.type, efalse.type)
@@ -628,10 +646,26 @@ open class BuilderBase(val types: AstTypes) {
 	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
 
 	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 
 	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
 	fun AstExpr.toType(toType: AstType): AstExpr = if (this.type == toType) this else AstExpr.CAST(this, toType)
 }
+
+class AstSwitchBuilder(types: AstTypes) : BuilderBase(types) {
+	var default: AstStm = AstStm.STMS()
+	val cases = arrayListOf<Pair<Int, AstStm>>()
+
+	inline fun CASE(subject: Int, callback: AstBuilder2.() -> Unit) {
+		cases += subject to AstBuilder2(types).apply { this.callback() }.genstm()
+	}
+
+	inline fun DEFAULT(callback: AstBuilder2.() -> Unit) {
+		default = AstBuilder2(types).apply { this.callback() }.genstm()
+	}
+}
+
+inline fun <T> AstTypes.build2(callback: AstBuilder2.() -> T) = AstBuilder2(this).run { callback() }
 
 class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 	val stms = arrayListOf<AstStm>()
@@ -640,8 +674,16 @@ class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 		stms += AstStmUtils.set(local, expr)
 	}
 
+	fun SET(local: AstExpr.LOCAL, expr: AstExpr) {
+		stms += AstStmUtils.set(local.local, expr)
+	}
+
 	fun SET_ARRAY(local: AstLocal, index: AstExpr, value: AstExpr) {
 		stms += AstStm.SET_ARRAY(local.local, index, value)
+	}
+
+	fun STM(stm: AstStm) {
+		stms += stm
 	}
 
 	fun STM(expr: AstExpr) {
@@ -654,50 +696,28 @@ class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 		stms += AstStm.IF(cond, body.genstm())
 	}
 
+	inline fun FOR(local: AstLocal, start: Int, until: Int, callback: AstBuilder2.() -> Unit) {
+		val forStartLabel = AstLabel("forStartLabel")
+		val forEndLabel = AstLabel("forEndLabel")
+		SET(local, start.lit)
+		stms += AstStm.STM_LABEL(forStartLabel)
+		stms += AstStm.IF_GOTO(forEndLabel, local.expr ge until.lit)
+		stms += AstBuilder2(types).apply { callback() }.genstm()
+		SET(local, local.expr + 1.lit)
+		stms += AstStm.GOTO(forStartLabel)
+		stms += AstStm.STM_LABEL(forEndLabel)
+	}
+
+	inline fun SWITCH(subject: AstExpr, callback: AstSwitchBuilder.() -> Unit) {
+		val cases = AstSwitchBuilder(types).apply { this.callback() }
+		stms += AstStm.SWITCH(subject, cases.default, cases.cases)
+	}
+
 	fun RETURN() = Unit.apply { stms += AstStm.RETURN_VOID() }
 	fun RETURN(value: AstExpr) = Unit.apply { stms += AstStm.RETURN(value) }
 	fun RETURN(value: AstLocal) = Unit.apply { stms += AstStm.RETURN(value.expr) }
 
 	fun genstm(): AstStm = AstStm.STMS(stms)
-}
-
-@Deprecated("Use AstBuilder2 or AstMethod.replaceBodyOptBuild instead")
-class AstBuilder(types: AstTypes) : BuilderBase(types) {
-
-
-	fun RETURN(): AstStm = AstStm.RETURN_VOID()
-	fun RETURN(value: AstExpr): AstStm = AstStm.RETURN(value)
-
-
-
-
-	fun stms(vararg stms: AstStm): AstStm.STMS = AstStm.STMS(*stms)
-	fun stms(stms: Iterable<AstStm>): AstStm.STMS = AstStm.STMS(stms.toList())
-
-
-	fun LOGSTR(expr: AstExpr): AstStm {
-		return AstStm.STM_EXPR(AstExpr.CALL_STATIC(
-			AstMethodRef(JTranscConsole::class.java.fqname, JTranscConsole::logString.name, AstType.METHOD(AstType.VOID, AstType.STRING)),
-			listOf(expr)
-		))
-	}
-
-	fun AstExpr.stm() = AstStm.STM_EXPR(this)
-	infix fun AstLocal.assignTo(that: AstExpr) = AstStmUtils.set(this, that)
-	infix fun AstExpr.LOCAL.assignTo(that: AstExpr) = AstStmUtils.set(this.local, that)
-	//fun FqName.get(name:String):AstExpr.STATIC_FIELD_ACCESS = AstExpr.STATIC_FIELD_ACCESS(AstFieldRef())
-}
-
-fun AstBuild(types:AstTypes, build: AstBuilder.() -> AstExpr): AstExpr {
-	return AstBuilder(types).build()
-}
-
-fun AstBuildStm(types:AstTypes, build: AstBuilder.() -> AstStm): AstStm {
-	return AstBuilder(types).build()
-}
-
-fun AstExpr.builder() {
-
 }
 
 class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val kind: Kind) {

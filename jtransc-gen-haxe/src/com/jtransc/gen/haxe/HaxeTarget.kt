@@ -12,6 +12,7 @@ import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
+import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.ffi.StdCall
@@ -40,7 +41,7 @@ import java.util.*
 //data class ConfigHaxeVfs(val vfs: SyncVfsFile)
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)
 
-object HaxeTarget : GenTargetDescriptor() {
+class HaxeTarget() : GenTargetDescriptor() {
 	override val name = "haxe"
 	override val longName = "Haxe"
 	override val sourceExtension = "hx"
@@ -593,7 +594,11 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 			if (clazz.implCode != null) {
 				vfs[clazz.name.haxeFilePath] = clazz.implCode!!
 			} else {
-				writeClass(clazz, vfs)
+				//try {
+					writeClass(clazz, vfs)
+				//} catch (e: InvalidOperationException) {
+				//	invalidOp("${e.message} while generating $context", e)
+				//}
 			}
 		}
 
@@ -942,8 +947,6 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 		//val interfaceClassName = clazz.name.append("_Fields");
 
-		var output = arrayListOf<Pair<String, String>>()
-
 		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter.gen {
 			val static = if (field.isStatic) "static " else ""
 			val visibility = if (isInterface) " " else field.visibility.haxe
@@ -1033,7 +1036,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 
 
 		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", AstType.build { METHOD(java.lang.annotation.Annotation::class.java.ast()) }).haxeName
-		val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).targetName
+		//val annotationTypeHaxeName = AstMethodRef(java.lang.annotation.Annotation::class.java.name.fqname, "annotationType", types.build { METHOD(CLASS) }).targetName
 		// java.lang.annotation.Annotation
 		//abstract fun annotationType():Class<out Annotation>
 
@@ -1128,7 +1131,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 					line(dumpClassInfo(clazz))
 				}
 
-
+				/*
 				if (clazz in allAnnotationTypes) {
 					line("// annotation type: ${clazz.name}")
 
@@ -1262,6 +1265,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { return " + methodType.ret.unbox("this._invoke($methodId, [$margBoxedNames]") + ");  }")
 					}
 				}
+				*/
 
 				val methodsWithoutBody = clazz.methods.filter { it.body == null }
 				if (methodsWithoutBody.size == 1 && clazz.implementing.size == 0) {

@@ -2,6 +2,7 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscVisible;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.io.JTranscConsole;
@@ -32,6 +33,9 @@ abstract public class MethodConstructor extends AccessibleObject {
 	protected transient String signature;
 	protected transient String genericSignature;
 
+	@JTranscVisible
+	public MemberInfo info;
+
 	@JTranscInvisible
 	private MethodTypeImpl methodType;
 
@@ -40,6 +44,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
 		this.clazz = containingClass;
+		this.info = info;
 		this.id = info.id;
 		this.slot = info.id;
 		this.name = info.name;

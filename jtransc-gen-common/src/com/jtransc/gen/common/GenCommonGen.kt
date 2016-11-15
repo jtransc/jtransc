@@ -106,6 +106,7 @@ open class GenCommonGen(val injector: Injector) {
 		is AstExpr.THIS -> genExprThis(e)
 		is AstExpr.TERNARY -> genExprTernary(e)
 		is AstExpr.LITERAL -> genExprLiteral(e)
+		is AstExpr.LITERAL_REFNAME -> genExprLiteralRefName(e)
 		is AstExpr.CAST -> genExprCast(e)
 		is AstExpr.PARAM -> genExprParam(e)
 		is AstExpr.LOCAL -> genExprLocal(e)
@@ -199,8 +200,8 @@ open class GenCommonGen(val injector: Injector) {
 
 	fun AstExpr.Box.genNotNull(): String = this.value.genNotNull()
 
-	fun AstField.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
-	fun AstMethod.isVisible(): Boolean = !this.annotationsList.contains<JTranscInvisible>()
+	fun AstField.isVisible(): Boolean = !this.invisible
+	fun AstMethod.isVisible(): Boolean = !this.invisible
 
 	val invisibleExternalList = program.allAnnotations
 		.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull()
@@ -208,7 +209,7 @@ open class GenCommonGen(val injector: Injector) {
 
 	fun AstClass.isVisible(): Boolean {
 		if (this.fqname in invisibleExternalList) return false
-		if (this.annotationsList.contains<JTranscInvisible>()) return false
+		if (this.invisible) return false
 		return true
 	}
 
@@ -387,13 +388,13 @@ open class GenCommonGen(val injector: Injector) {
 				line("case $value:")
 				indent {
 					line(caseStm.genStm())
-					if (defaultGenStmSwitchHasBreaks) line("break;")
+					if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
 				}
 			}
 			line("default:")
 			indent {
 				line(stm.default.genStm())
-				if (defaultGenStmSwitchHasBreaks) line("break;")
+				if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
 			}
 		}
 	}
@@ -718,6 +719,15 @@ open class GenCommonGen(val injector: Injector) {
 			is Double -> genLiteralDouble(value)
 			else -> invalidOp("Unsupported value $value")
 		}
+	}
+	open fun genExprLiteralRefName(e: AstExpr.LITERAL_REFNAME): String {
+		val value = e.value
+		return genLiteralString(when (value) {
+			is AstType.REF -> value.targetTypeNew.fqname
+			is AstMethodRef -> value.targetName
+			is AstFieldRef -> value.targetName2
+			else -> invalidOp("Unknown AstExpr.LITERAL_REFNAME value type : ${value?.javaClass} : $value")
+		})
 	}
 
 	open fun genLiteralType(v: AstType): String {
@@ -1093,7 +1103,7 @@ open class GenCommonGen(val injector: Injector) {
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
 
-	val FieldRef.jsName: String get() = names.getNativeName(this)
+	val FieldRef.targetName2: String get() = names.getNativeName(this)
 	val LocalParamRef.nativeName: String get() = names.getNativeName(this)
 	val AstType.nativeDefault: Any? get() = names.getDefault(this)
 	val AstType.nativeDefaultString: String get() = names.escapeConstant(names.getDefault(this), this)

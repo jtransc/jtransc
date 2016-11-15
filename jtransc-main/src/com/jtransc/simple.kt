@@ -3,6 +3,7 @@ package com.jtransc
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
 import com.jtransc.injector.Injector
+import com.jtransc.log.log
 import java.io.File
 
 fun AllBuildSimple(
@@ -20,6 +21,8 @@ fun AllBuildSimple(
 	val actualOutput = output ?: "program.$subtargetName"
 
 	//println("actualOutput:$actualOutput")
+
+	log.info("JTransc targets exposed as services: $AllBuildTargets")
 
 	return JTranscBuild(
 		injector = injector,

@@ -1,5 +1,6 @@
 package com.jtransc.ast
 
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 open class AstVisitor {
@@ -71,6 +72,7 @@ open class AstVisitor {
 			is AstExpr.THIS -> visit(expr)
 			//is AstExpr.CLASS_CONSTANT -> visit(expr)
 			is AstExpr.LITERAL -> visit(expr)
+			is AstExpr.LITERAL_REFNAME -> visit(expr)
 			is AstExpr.METHOD_CLASS -> visit(expr)
 			is AstExpr.LOCAL -> visit(expr)
 			is AstExpr.PARAM -> visit(expr)
@@ -268,6 +270,15 @@ open class AstVisitor {
 	open fun visit(expr: AstExpr.LITERAL) {
 		if (expr.value is AstType) {
 			visit(expr.value)
+		}
+	}
+
+	open fun visit(expr: AstExpr.LITERAL_REFNAME) {
+		when (expr.value) {
+			is AstType -> visit(expr.value)
+			is AstMethodRef -> visit(expr.value)
+			is AstFieldRef -> visit(expr.value)
+			else -> invalidOp("Unknown AstExpr.LITERAL_REFNAME value type : ${expr.value?.javaClass} : ${expr.value}")
 		}
 	}
 

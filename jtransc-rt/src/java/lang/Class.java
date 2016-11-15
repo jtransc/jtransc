@@ -17,8 +17,10 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscVisible;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastStringMap;
 import j.ClassInfo;
@@ -37,6 +39,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	@JTranscKeep
 	private String name;
 
+	@JTranscVisible
 	public ClassInfo info;
 	public int id;
 

@@ -1,9 +1,6 @@
 package com.jtransc.graph
 
-import com.jtransc.ast.AstExpr
-import com.jtransc.ast.AstStm
-import com.jtransc.ast.AstTypes
-import com.jtransc.ast.local
+import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
 import com.jtransc.types.dump
 import org.junit.Assert
@@ -11,8 +8,9 @@ import org.junit.Test
 
 class RelooperTest {
 	val relooper = Relooper()
+	val types = AstTypes()
 
-	private fun stmt(name:String) = AstStm.build(AstTypes()) { INT.local(name) assignTo 1.lit }
+	private fun stmt(name:String) = types.build2 { SET(INT.local(name), 1.lit) }
 
 	/*
 	@Test fun testIf() {

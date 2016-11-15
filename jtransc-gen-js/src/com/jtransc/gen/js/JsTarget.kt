@@ -30,7 +30,7 @@ import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 import java.util.*
 
-object JsTarget : GenTargetDescriptor() {
+class JsTarget() : GenTargetDescriptor() {
 	override val name = "js"
 	override val longName = "Javascript"
 	override val sourceExtension = "js"
@@ -493,7 +493,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
 
 			val defaultFieldName = field.name
-			val fieldName = if (field.jsName == defaultFieldName) null else field.jsName
+			val fieldName = if (field.targetName2 == defaultFieldName) null else field.targetName2
 
 			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.desc.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstantRef(defaultValue, fieldType)}, ${visibleAnnotationsOrNull(field.annotations)});")
 		}

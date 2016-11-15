@@ -9,7 +9,7 @@ fun AstProgram.createClass(name: FqName, parent: FqName, interfaces: List<FqName
 	return clazz
 }
 
-fun AstClass.createMethod(types: AstTypes, name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder.() -> AstStm = { AstStm.RETURN_VOID() }): AstMethod {
+fun AstClass.createMethod(types: AstTypes, name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder2.() -> Unit = { RETURN() }): AstMethod {
 	val clazz = this
 	val method = AstMethod(
 		containingClass = clazz,
@@ -19,7 +19,7 @@ fun AstClass.createMethod(types: AstTypes, name: String, desc: AstType.METHOD, i
 		annotations = listOf(),
 		parameterAnnotations = listOf(),
 		modifiers = AstModifiers(AstModifiers.ACC_PUBLIC or if (isStatic) AstModifiers.ACC_STATIC else 0),
-		generateBody = { AstBody(types, AstBuilder(types).body(), desc) },
+		generateBody = { AstBody(types, AstBuilder2(types).apply { body() }.genstm(), desc) },
 		defaultTag = null,
 		signature = desc.mangle(),
 		genericSignature = null,

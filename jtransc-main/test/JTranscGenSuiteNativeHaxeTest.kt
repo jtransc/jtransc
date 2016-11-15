@@ -53,5 +53,5 @@ class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
 		Class1.method2
 		jtransc_jtransc_JTranscInternalNames_$
 		main__Ljava_lang_String__V
-	""", target = HaxeTarget, minimize = false)
+	""", target = HaxeTarget(), minimize = false)
 }

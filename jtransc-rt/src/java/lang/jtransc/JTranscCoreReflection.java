@@ -23,19 +23,19 @@ public class JTranscCoreReflection {
 	//	"return SOBJ(JA_I::fromVector((int32_t *)table.interfaces, (int32_t)table.interfaceCount));",
 	//})
 	static public <T> int[] getInterfaceIds(int classId) {
-		_ensure();
-		return checkClassId(classId) ? _classInfos[classId].interfaces : new int[0];
+		ProgramReflection._ensure();
+		return checkClassId(classId) ? ProgramReflection._classInfos[classId].interfaces : new int[0];
 	}
 
 	static private boolean checkClassId(int classId) {
-		_ensure();
-		return classId >= 1 && classId < _classInfos.length;
+		ProgramReflection._ensure();
+		return classId >= 1 && classId < ProgramReflection._classInfos.length;
 	}
 
 	//@JTranscMethodBody(target = "cpp", value = "return TYPE_TABLE::TABLE[p0].superType;")
 	static public <T> int getSuperclassId(int classId) {
-		_ensure();
-		return checkClassId(classId) ? _classInfos[classId].parent : 0;
+		ProgramReflection._ensure();
+		return checkClassId(classId) ? ProgramReflection._classInfos[classId].parent : 0;
 	}
 
 
@@ -134,21 +134,7 @@ public class JTranscCoreReflection {
 		return out;
 	}
 
-	static private ClassInfo[] _classInfos;
-	static private String[] _classNames;
-	static private FastStringMap<ClassInfo> _classInfosByName;
 
-	static private void _ensure() {
-		if (_classInfos != null) return;
-		_classInfosByName = new FastStringMap<>();
-		_classInfos = ProgramReflection.getAllClasses();
-		_classNames = new String[_classInfos.length];
-		for (int n = 1; n < _classInfos.length; n++) {
-			ClassInfo info = _classInfos[n];
-			_classInfosByName.set(info.name, info);
-			_classNames[n] = info.name;
-		}
-	}
 
 	static public int getClassId(Class<?> clazz) {
 		//return getClassIdByName(clazz.getName());
@@ -156,24 +142,32 @@ public class JTranscCoreReflection {
 	}
 
 	static private int getClassIdByName(String name) {
-		_ensure();
-		return _classInfosByName.get(name).id;
+		ProgramReflection._ensure();
+		return ProgramReflection._classInfosByName.get(name).id;
 	}
 
 	static public String getClassNameById(int id) {
 		if (!checkClassId(id)) return null;
-		_ensure();
-		return _classInfos[id].name;
+		ProgramReflection._ensure();
+		return ProgramReflection._classInfos[id].name;
 	}
 
 	static public String[] getClassNames() {
-		_ensure();
-		return _classNames;
+		ProgramReflection._ensure();
+		return ProgramReflection._classNames;
 	}
 
 	static public Class<?> getClassById(int id) {
-		_ensure();
-		return Class.forName0(getClassNameById(id));
+		ProgramReflection._ensure();
+		return getClassByName(getClassNameById(id));
+	}
+
+	static public Class<?> getClassByName(String name) {
+		try {
+			return Class.forName(name);
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
 	}
 
 	static public String getClassName(Class<?> clazz) {
@@ -184,18 +178,16 @@ public class JTranscCoreReflection {
 	//}
 
 	static public boolean hasClassWithName(String name) {
-		_ensure();
-		return _classInfosByName.has(name);
+		return ProgramReflection.hasClassWithName(name);
 	}
 
 	static public int getClassIdWithName(String name) {
-		_ensure();
-		return hasClassWithName(name) ? _classInfosByName.get(name).id : -1;
+		ProgramReflection._ensure();
+		return hasClassWithName(name) ? ProgramReflection._classInfosByName.get(name).id : -1;
 	}
 
 	static public ClassInfo getClassInfoWithName(String name) {
-		_ensure();
-		return hasClassWithName(name) ? _classInfosByName.get(name) : null;
+		return ProgramReflection.getClassInfoWithName(name);
 	}
 
 	public static Annotation[] getDeclaredAnnotations() {
@@ -204,7 +196,7 @@ public class JTranscCoreReflection {
 
 	@JTranscInline
 	public static int getModifiersWithId(int classId) {
-		_ensure();
-		return _classInfos[classId].modifiers;
+		ProgramReflection._ensure();
+		return ProgramReflection._classInfos[classId].modifiers;
 	}
 }

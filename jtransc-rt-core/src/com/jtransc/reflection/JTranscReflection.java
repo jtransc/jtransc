@@ -1,7 +1,7 @@
 package com.jtransc.reflection;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import j.ClassInfo;
+import j.MemberInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,30 +13,75 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+@SuppressWarnings({"EmptyCatchBlock", "WeakerAccess"})
 public class JTranscReflection {
-	//@HaxeMethodBody("return HaxeNatives.strArray(R.getAllClasses());")
 	static public String[] getAllClasses() {
 		return new ClasspathScanner().getAllClasses();
 	}
 
-	//@HaxeMethodBody(target = "js", value = "return N.str(StringTools.replace(StringTools.replace(p0._internalName, '_', '_$'), '.', '_'));")
-	//@HaxeMethodBody("return N.str(p0._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
+	static private Field Class_info;
+	static private Field Method_info;
+	static private Field Field_info;
+
+	static {
+		Class_info = getFieldInAncestors(Class.class, "info");
+		Method_info = getFieldInAncestors(Method.class, "info");
+		Field_info = getFieldInAncestors(Field.class, "info");
+	}
+
+	static public Field getFieldInAncestors(Class<?> clazz, String name) {
+		if (clazz == null) return null;
+		try {
+			Field field = clazz.getDeclaredField(name);
+			if (field != null) return field;
+		} catch (NoSuchFieldException e) {
+		}
+		return getFieldInAncestors(clazz.getSuperclass(), name);
+	}
+
 	static public String getInternalName(Class<?> clazz) {
-		return clazz.getName();
+		try {
+			if (clazz != null && Class_info != null) {
+				ClassInfo info = (ClassInfo) Class_info.get(clazz);
+				if (info != null) return info.internalName;
+			}
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return (clazz != null) ? clazz.getName() : "<UNKNOWN>";
 	}
 
-	//@HaxeMethodBody("return N.str(p0._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Method method) {
-		return method.getName();
+		try {
+			if (method != null && Method_info != null) {
+				MemberInfo info = (MemberInfo) Method_info.get(method);
+				if (info != null) return info.internalName;
+				//return info.internalName;
+			}
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return (method != null) ? method.getName() : "<UNKNOWN>";
+
 	}
 
-	//@HaxeMethodBody("return N.str(p0._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return N.str(p0._internalName);")
 	static public String getInternalName(Field field) {
-		return field.getName();
+		try {
+			if (field != null && Field_info != null) {
+				MemberInfo info = (MemberInfo) Field_info.get(field);
+				if (info != null) return info.internalName;
+				//return info.internalName;
+			}
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return (field != null) ? field.getName() : "<UNKNOWN>";
 	}
+
+	static public String getInternalName(MemberInfo info, String name) {
+		return (info != null) ? info.internalName : null;
+	}
+
 
 	static private class ClasspathScanner {
 		private static final String CLASS_FILE_EXTENSION = ".class";

@@ -1,12 +1,39 @@
 package j;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.ds.FastStringMap;
 
 /**
  * MetaReflectionPlugin set those methods
  */
 @SuppressWarnings("unused")
 public class ProgramReflection {
+	static public ClassInfo[] _classInfos;
+	static public String[] _classNames;
+	static public FastStringMap<ClassInfo> _classInfosByName;
+
+	static public void _ensure() {
+		if (_classInfos != null) return;
+		_classInfosByName = new FastStringMap<>();
+		_classInfos = ProgramReflection.getAllClasses();
+		_classNames = new String[_classInfos.length];
+		for (int n = 1; n < _classInfos.length; n++) {
+			ClassInfo info = _classInfos[n];
+			_classInfosByName.set(info.name, info);
+			_classNames[n] = info.name;
+		}
+	}
+
+	static public boolean hasClassWithName(String name) {
+		ProgramReflection._ensure();
+		return ProgramReflection._classInfosByName.has(name);
+	}
+
+	static public ClassInfo getClassInfoWithName(String name) {
+		ProgramReflection._ensure();
+		return hasClassWithName(name) ? ProgramReflection._classInfosByName.get(name) : null;
+	}
+
 	// Class
 	static public ClassInfo[] getAllClasses() {
 		return new ClassInfo[0];
@@ -17,14 +44,17 @@ public class ProgramReflection {
 		return -1;
 	}
 
+	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getConstructors(int classId) {
 		return new MemberInfo[0];
 	}
 
+	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getMethods(int classId) {
 		return new MemberInfo[0];
 	}
 
+	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getFields(int classId) {
 		return new MemberInfo[0];
 	}

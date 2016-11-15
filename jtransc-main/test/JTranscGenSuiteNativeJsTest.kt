@@ -29,11 +29,13 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		2
 		hello
 		world
+		10
 		jtransc_jtransc_JTranscInternalNames
 		main([Ljava/lang/String;)V
+		___hello
 		Error !(10 < 10)
 		ok
-	""", target = JsTarget, minimize = false)
+	""", target = JsTarget(), minimize = false)
 
 	@Test fun testAwtJs() = testNativeClass<AWTTest>("""
 		JTranscWidgets.Component(0:frame).init()
@@ -45,5 +47,5 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		JTranscWidgets.Component(3:text).setText('Hello World')
 		JTranscWidgets.Component(1:label).setParent(JTranscWidgets.Component(0:frame))
 		JTranscWidgets.Component(0:frame).setVisible(true)
-	""", minimize = true, target = JsTarget)
+	""", minimize = true, target = JsTarget())
 }

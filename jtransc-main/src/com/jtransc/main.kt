@@ -52,6 +52,8 @@ object JTranscMain {
 			println("")
 			println("jtransc <list of class paths or jar files>")
 			println("")
+			println("Targets: ${AllBuildTargets}")
+			println("")
 			println("Performs an aot compilation that transform a java/kotlin compiled program (class and jar files)")
 			println("into an executable file ($executableTypes) file at the moment.")
 			println("")

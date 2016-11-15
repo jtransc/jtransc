@@ -103,4 +103,6 @@ abstract class GenTargetDescriptor {
 		}
 		return JTranscBuild.Result(ProcessResult2(0))
 	}
+
+	override fun toString(): String = this.javaClass.simpleName
 }

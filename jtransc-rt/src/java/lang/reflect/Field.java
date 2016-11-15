@@ -30,6 +30,7 @@ public final class Field extends AccessibleObject implements Member {
 	protected int typeId;
 	public Class<?> clazz;
 	public String name;
+	public MemberInfo info;
 	//private Class<?> type = null;
 	protected int modifiers;
 	public int slot;
@@ -44,6 +45,7 @@ public final class Field extends AccessibleObject implements Member {
 
 	public Field(Class<?> containingClass, MemberInfo info) {
 		this.clazz = containingClass;
+		this.info = info;
 		this.slot = info.id;
 		this.name = info.name;
 		this.signature = info.desc;

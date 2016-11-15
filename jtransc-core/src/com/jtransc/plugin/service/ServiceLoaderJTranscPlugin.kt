@@ -57,7 +57,7 @@ class ServiceLoaderJTranscPlugin : JTranscPluginAdaptor() {
 		val ServiceLoaderClass = program[ServiceLoader::class.java.fqname]
 		val objectsClass = program[Objects::class.java.fqname]
 		val ServiceLoader_getInstances = ServiceLoaderClass.getMethodWithoutOverrides("getInstances") ?: return
-		val Objects_equals = objectsClass.getMethodWithoutOverrides("equals") ?: return
+		val Objects_equals = objectsClass.getMethodWithoutOverrides(Objects::equals.name) ?: return
 		ServiceLoader_getInstances.replaceBodyOptBuild {
 			val nameArg = AstArgument(0, AstType.STRING)
 			val out = AstLocal(0, "out", ARRAY(OBJECT))

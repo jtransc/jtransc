@@ -42,7 +42,7 @@ open class JTranscTestBase {
 		const val RELOOPER = true
 		const val ANALYZER = false
 		const val DEBUG = true
-		val DEFAULT_TARGET = JsTarget
+		val DEFAULT_TARGET = JsTarget()
 		//val DEFAULT_TARGET = HaxeTarget
 	}
 

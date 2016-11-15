@@ -47,7 +47,7 @@ data class ConfigCppOutput(val cppOutput: SyncVfsFile)
 
 // @TODO: http://en.cppreference.com/w/cpp/language/eval_order
 // @TODO: Use std::array to ensure it is deleted
-object CppTarget : GenTargetDescriptor() {
+class CppTarget() : GenTargetDescriptor() {
 	override val name = "cpp"
 	override val longName = "cpp"
 	override val sourceExtension = "cpp"
@@ -581,7 +581,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 				val add = ""
 				val btype = field.type.cppString
 				val type = if (btype == "SOBJ" && field.isWeak) "WOBJ" else btype
-				line("$normalStatic$type ${field.jsName}$add;")
+				line("$normalStatic$type ${field.targetName2}$add;")
 			}
 
 			// constructor
@@ -590,7 +590,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 					line("this->__INSTANCE_CLASS_ID = ${getClassId(clazz.name)};")
 					for (field in clazz.fields.filter { !it.isStatic }) {
 						val cst = if (field.hasConstantValue) names.escapeConstant(field.constantValue) else "0"
-						line("this->${field.jsName} = $cst;")
+						line("this->${field.targetName2} = $cst;")
 					}
 				}
 			}

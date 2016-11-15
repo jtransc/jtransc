@@ -301,25 +301,31 @@ class UniqueNames {
 	}
 }
 
-open class AstBaseElement() {
+open class AstAnnotatedElement(
+	val program: AstProgram,
+	override val annotations: List<AstAnnotation>
+) : AstAnnotated {
 	var extraKeep = false
+	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
+	val visible: Boolean get() = annotationsList.contains<JTranscVisible>()
+	val invisible: Boolean get() = annotationsList.contains<JTranscInvisible>()
+	override val annotationsList = AstAnnotationList(annotations)
 }
+
+val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
 
 class AstClass(
 	val source: String,
-	val program: AstProgram,
+	program: AstProgram,
 	val name: FqName,
 	val modifiers: AstModifiers,
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
-	override val annotations: List<AstAnnotation> = listOf()
-) : AstBaseElement(), IUserData by UserData(), AstAnnotated {
-	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
-
+	annotations: List<AstAnnotation> = listOf()
+) : AstAnnotatedElement(program, annotations), IUserData by UserData() {
 	var lastMethodId = 0
 	val uniqueNames = UniqueNames()
 
-	override val annotationsList = AstAnnotationList(annotations)
 	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType
@@ -586,8 +592,6 @@ interface AstAnnotated {
 	val annotationsList: AstAnnotationList
 }
 
-val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
-
 open class AstMember(
 	val containingClass: AstClass,
 	val name: String,
@@ -595,12 +599,8 @@ open class AstMember(
 	val genericType: AstType,
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
-	override val annotations: List<AstAnnotation> = listOf()
-) : AstBaseElement(), IUserData by UserData(), AstAnnotated {
-	override val annotationsList = AstAnnotationList(annotations)
-	val program = containingClass.program
-
-	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
+	annotations: List<AstAnnotation> = listOf()
+) : AstAnnotatedElement(containingClass.program, annotations), IUserData by UserData() {
 
 	val nativeName: String? by lazy {
 		annotationsList.getTyped<JTranscNativeName>()?.value
@@ -673,7 +673,6 @@ class AstMethod(
 		generatedBody = false
 	}
 
-	@Deprecated("Use replaceBodyOptBuild instead")
 	fun replaceBodyOpt(stmGen: () -> AstStm) {
 		this.generateBody = {
 			val body = AstBody(types, stmGen(), methodType)
@@ -748,25 +747,25 @@ data class AstModifiers(val acc: Int) {
 			return AstModifiers(out)
 		}
 
-		const val ACC_PUBLIC = 0x0001; // class, field, method
-		const val ACC_PRIVATE = 0x0002; // class, field, method
-		const val ACC_PROTECTED = 0x0004; // class, field, method
-		const val ACC_STATIC = 0x0008; // field, method
-		const val ACC_FINAL = 0x0010; // class, field, method, parameter
-		const val ACC_SUPER = 0x0020; // class
-		const val ACC_SYNCHRONIZED = 0x0020; // method
-		const val ACC_VOLATILE = 0x0040; // field
-		const val ACC_BRIDGE = 0x0040; // method
-		const val ACC_VARARGS = 0x0080; // method
-		const val ACC_TRANSIENT = 0x0080; // field
-		const val ACC_NATIVE = 0x0100; // method
-		const val ACC_INTERFACE = 0x0200; // class
-		const val ACC_ABSTRACT = 0x0400; // class, method
-		const val ACC_STRICT = 0x0800; // method
-		const val ACC_SYNTHETIC = 0x1000; // class, field, method, parameter
-		const val ACC_ANNOTATION = 0x2000; // class
-		const val ACC_ENUM = 0x4000; // class(?) field inner
-		const val ACC_MANDATED = 0x8000; // parameter
+		const val ACC_PUBLIC = 0x0001          // class, field, method
+		const val ACC_PRIVATE = 0x0002         // class, field, method
+		const val ACC_PROTECTED = 0x0004       // class, field, method
+		const val ACC_STATIC = 0x0008          // field, method
+		const val ACC_FINAL = 0x0010           // class, field, method, parameter
+		const val ACC_SUPER = 0x0020           // class
+		const val ACC_SYNCHRONIZED = 0x0020    // method
+		const val ACC_VOLATILE = 0x0040        // field
+		const val ACC_BRIDGE = 0x0040          // method
+		const val ACC_VARARGS = 0x0080         // method
+		const val ACC_TRANSIENT = 0x0080       // field
+		const val ACC_NATIVE = 0x0100          // method
+		const val ACC_INTERFACE = 0x0200       // class
+		const val ACC_ABSTRACT = 0x0400        // class, method
+		const val ACC_STRICT = 0x0800          // method
+		const val ACC_SYNTHETIC = 0x1000       // class, field, method, parameter
+		const val ACC_ANNOTATION = 0x2000      // class
+		const val ACC_ENUM = 0x4000            // class(?) field inner
+		const val ACC_MANDATED = 0x8000        // parameter
 	}
 
 	val isPublic: Boolean get() = acc hasFlag ACC_PUBLIC

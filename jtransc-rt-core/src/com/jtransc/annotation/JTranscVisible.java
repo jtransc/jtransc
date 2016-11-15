@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
-package com.jtransc
+package com.jtransc.annotation;
 
-val KotlinVersion = "1.0.5-2"
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Avoid providing reflection information for this class
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.FIELD, ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.CONSTRUCTOR})
+public @interface JTranscVisible {
+}

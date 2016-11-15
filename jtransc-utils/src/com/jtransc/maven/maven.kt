@@ -56,7 +56,11 @@ object GradleLocalRepository {
 
 		val base = "$userDir/.gradle/caches/modules-2/files-2.1/$groupId/$artifactId/$version/"
 
-		return File(base).list().map { File("$base/$it/$artifactId-$version.jar") }.filter {
+		if (!File(base).exists()) {
+			System.err.println("Can't find '$base'")
+		}
+
+		return (File(base).list() ?: arrayOf()).map { File("$base/$it/$artifactId-$version.jar") }.filter {
 			//println(it)
 			it.exists()
 		}.map { it.absolutePath }
