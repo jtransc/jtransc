@@ -1,0 +1,4 @@
+com.jtransc.ast.feature.method.GotosFeature
+com.jtransc.ast.feature.method.OptimizeFeature
+com.jtransc.ast.feature.method.SimdFeature
+#com.jtransc.ast.feature.LambdaFeature

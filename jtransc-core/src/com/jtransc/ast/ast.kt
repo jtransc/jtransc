@@ -113,6 +113,8 @@ interface AstResolver {
 	operator fun contains(name: FqName): Boolean
 }
 
+operator fun AstResolver.get(ref: AstType.REF): AstClass? = this[ref.name]
+
 fun AstResolver.get3(ref: AstType.REF): AstClass = this[ref.name]!!
 
 interface LocateRightClass {
@@ -201,6 +203,7 @@ class AstProgram(
 
 	override operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
+
 	override operator fun get(name: FqName): AstClass {
 		val result = _classesByFqname[name.fqname]
 		if (result == null) {
@@ -219,6 +222,7 @@ class AstProgram(
 
 	fun add(clazz: AstClass) {
 		if (finished) invalidOp("Can't add more classes to a finished program")
+		clazz.classId = _classes.size
 		_classes.add(clazz)
 		_classesByFqname[clazz.fqname] = clazz
 	}
@@ -264,20 +268,7 @@ class AstProgram(
 		return method.classRef
 	}
 
-	////////////////////////////////
-	////////////////////////////////
-
-	var lastClassId = 1
-	val idsToClass = hashMapOf<Int, FqName>()
-	val classesToId = hashMapOf<FqName, Int>()
-	fun getClassId(fqname: FqName): Int {
-		if (fqname !in classesToId) {
-			val id = lastClassId++
-			classesToId[fqname] = id
-			idsToClass[id] = fqname
-		}
-		return classesToId[fqname]!!
-	}
+	val lastClassId: Int get() = classes.size
 }
 
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
@@ -305,11 +296,14 @@ open class AstAnnotatedElement(
 	val program: AstProgram,
 	override val annotations: List<AstAnnotation>
 ) : AstAnnotated {
-	var extraKeep = false
-	val keep: Boolean get() = extraKeep || annotationsList.contains<JTranscKeep>()
-	val visible: Boolean get() = annotationsList.contains<JTranscVisible>()
-	val invisible: Boolean get() = annotationsList.contains<JTranscInvisible>()
+	var extraKeep: Boolean? = null
+	var extraVisible: Boolean? = null
+	val keep: Boolean get() = extraKeep ?: annotationsList.contains<JTranscKeep>()
+	//val visible: Boolean get() = annotationsList.contains<JTranscVisible>() || !annotationsList.contains<JTranscInvisible>()
+	val visible: Boolean get() = extraVisible ?: !annotationsList.contains<JTranscInvisible>()
+	val invisible: Boolean get() = !visible
 	override val annotationsList = AstAnnotationList(annotations)
+	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 }
 
 val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
@@ -323,7 +317,10 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	annotations: List<AstAnnotation> = listOf()
 ) : AstAnnotatedElement(program, annotations), IUserData by UserData() {
+	var classId: Int = -1
+	val THIS: AstExpr get() = AstExpr.THIS(name)
 	var lastMethodId = 0
+	var lastFieldId = 0
 	val uniqueNames = UniqueNames()
 
 	val ref = AstType.REF(name)
@@ -340,8 +337,9 @@ class AstClass(
 	//val fieldsByName = hashMapOf<String, AstField>()
 	val fieldsByInfo = hashMapOf<AstFieldWithoutClassRef, AstField>()
 	val fieldsByName = hashMapOf<String, AstField>()
-	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 	val hasFFI = implementing.contains(FqName("com.sun.jna.Library"))
+
+	//val allImplementing: List<FqName> get() = parentClass?.all
 
 	fun locateField(name: String): AstField? = fieldsByName[name] ?: parentClass?.locateField(name)
 
@@ -376,6 +374,12 @@ class AstClass(
 		}
 		out.distinct()
 	}
+
+	fun extends(name: FqName) = thisAndAncestors.firstOrNull { it.name == name } != null
+
+	fun extendsOrImplements(name: FqName) = thisAncestorsAndInterfaces.firstOrNull { it.name == name } != null
+
+	fun implements(name: FqName) = allInterfacesInAncestors.firstOrNull { it.name == name } != null
 
 	val allInterfacesInAncestors: List<AstClass> by lazy {
 		(allDirectInterfaces + (parentClass?.allInterfacesInAncestors ?: listOf())).distinct()
@@ -531,7 +535,7 @@ class AstClass(
 
 	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).distinct()
 
-	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { program.getClassId(it.name) }.filterNotNull() + listOf(0)
+	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
@@ -683,10 +687,10 @@ class AstMethod(
 		generatedBody = false
 	}
 
-	fun replaceBodyOptBuild(stmGen: AstBuilder2.() -> Unit) {
+	fun replaceBodyOptBuild(stmGen: AstBuilder2.(args: List<AstArgument>) -> Unit) {
 		this.generateBody = {
 			val builder = AstBuilder2(types)
-			builder.stmGen()
+			builder.stmGen(methodType.args)
 			val body = AstBody(types, builder.genstm(), methodType)
 			AstOptimizer(AstBodyFlags(false, types)).visit(body)
 			body

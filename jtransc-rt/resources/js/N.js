@@ -128,7 +128,13 @@ N.hrtime = function() {
 	}
 };
 
-N.is = function(i, clazz) { return (i != null) ? (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined") : false; };
+// @TODO: optimize this again!
+N.is = function(i, clazz) {
+	if (i instanceof clazz) return true;
+	if (i == null) return false;
+	if (typeof i.$JS$CLASS_ID$ === 'undefined') return false;
+	return (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined");
+};
 
 N.istr = function(str) {
 	if (str == null) return null;

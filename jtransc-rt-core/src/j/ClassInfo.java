@@ -36,7 +36,7 @@ public class ClassInfo {
 	}
 
 	@JTranscKeep
-	@JTranscNativeName("create")
+	@JTranscNativeName("c")
 	static public ClassInfo create(int id, String internalName, String name, int modifiers, int parent, int[] interfaces, int[] related) {
 		return new ClassInfo(id, internalName, name, modifiers, parent, interfaces, related);
 	}

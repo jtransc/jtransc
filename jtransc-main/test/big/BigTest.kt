@@ -2,6 +2,8 @@ package big
 
 import android.AndroidArgsTest
 import android.AndroidTest8019
+import com.jtransc.annotation.JTranscInvisible
+import com.jtransc.annotation.JTranscMethodBody
 import javatest.KotlinCollections
 import javatest.StrangeNamesTest
 import javatest.lang.AtomicTest
@@ -82,12 +84,12 @@ object BigTest {
 		//StrangeNamesTest.main(args)
 		ComparableTimSortTest.main(args)
 
-		// Java8 tests
-		Java8Test.main(args)
-		DefaultMethodsTest.main(args)
-		JTranscClinitNotStatic.main(args)
-
 		// Misc
 		Base64Test.main(args);
+
+		// Java8 tests
+		JTranscClinitNotStatic.main(args)
+		DefaultMethodsTest.main(args)
+		Java8Test.main(args)
 	}
 }

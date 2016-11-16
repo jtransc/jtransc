@@ -7,6 +7,7 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.io.JTranscConsole;
 import j.MemberInfo;
+import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
 
@@ -33,8 +34,6 @@ abstract public class MethodConstructor extends AccessibleObject {
 	protected transient String signature;
 	protected transient String genericSignature;
 
-	@JTranscVisible
-	public MemberInfo info;
 
 	@JTranscInvisible
 	private MethodTypeImpl methodType;
@@ -43,14 +42,19 @@ abstract public class MethodConstructor extends AccessibleObject {
 	private MethodTypeImpl genericMethodType;
 
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
+		super(info);
 		this.clazz = containingClass;
-		this.info = info;
 		this.id = info.id;
 		this.slot = info.id;
 		this.name = info.name;
 		this.signature = info.desc;
 		this.genericSignature = info.genericDesc;
 		this.modifiers = info.modifiers;
+	}
+
+	public Annotation[] getDeclaredAnnotations() {
+		Annotation[] out = ProgramReflection.getMethodAnnotations(info.id);
+		return (out != null) ? out : new Annotation[0];
 	}
 
 	@JTranscInvisible
@@ -77,18 +81,16 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return genericMethodType;
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	public Annotation[][] getParameterAnnotations() {
-		Annotation[][] out = _getParameterAnnotations();
-		if (out == null) {
-			out = new Annotation[this.methodType().args.length][];
-			for (int n = 0; n < out.length; n++) out[n] = new Annotation[0];
+		int count = getParameterTypes().length;
+		Annotation[][] out = new Annotation[count][];
+		out = new Annotation[this.methodType().args.length][];
+		for (int n = 0; n < count; n++) {
+			Annotation[] annotations = ProgramReflection.getMethodArgumentAnnotations(info.id, n);
+			out[n] = (annotations != null) ? annotations : new Annotation[0];
 		}
 		return out;
-	}
-
-	private Annotation[][] _getParameterAnnotations() {
-		//int parameterCount = getParameterTypes().length;
-		return new Annotation[0][0];
 	}
 
 	public Class<?> getReturnType() {

@@ -35,8 +35,10 @@ public class JTranscReflectionTest {
 	private static void getAnnotationType() {
 		System.out.println("getAnnotationType:");
 		Annotation[] annotations = Test2.class.getAnnotations();
-		if (annotations.length >= 1) {
-			System.out.println(annotations[0].annotationType().getName());
+		if (annotations != null && annotations.length >= 1) {
+			if (annotations[0] != null && annotations[0].annotationType() != null) {
+				System.out.println(annotations[0].annotationType().getName());
+			}
 		}
 	}
 
@@ -228,6 +230,7 @@ public class JTranscReflectionTest {
 	}
 
 	static private void classNewInstance() throws Throwable {
+		System.out.println("classNewInstance:");
 		MyDemoItem instance = MyDemoItem.class.newInstance();
 		System.out.println(instance.a);
 	}
@@ -246,12 +249,16 @@ public class JTranscReflectionTest {
 	static private void annotationsInConstructorTest() {
 		System.out.println("annotationsInConstructorTest:");
 		Annotation[][] parameterAnnotations = Test.class.getConstructors()[0].getParameterAnnotations();
-		for (Annotation[] parameterAnnotation : parameterAnnotations) {
-			System.out.println(":: " + parameterAnnotation.length);
-			//JTranscConsole.dump(parameterAnnotation);
-			for (Annotation annotation : parameterAnnotation) {
-				System.out.println(":: " + (annotation != null));
-				System.out.println(":: " + annotation.toString());
+		if (parameterAnnotations != null) {
+			for (Annotation[] parameterAnnotation : parameterAnnotations) {
+				if (parameterAnnotation != null) {
+					System.out.println(":: " + parameterAnnotation.length);
+					//JTranscConsole.dump(parameterAnnotation);
+					for (Annotation annotation : parameterAnnotation) {
+						System.out.println(":: " + (annotation != null));
+						System.out.println(":: " + annotation.toString());
+					}
+				}
 			}
 		}
 

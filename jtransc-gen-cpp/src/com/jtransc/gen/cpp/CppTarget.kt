@@ -8,10 +8,10 @@ import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.GotosFeature
-import com.jtransc.ast.feature.OptimizeFeature
-import com.jtransc.ast.feature.SimdFeature
-import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ast.feature.method.GotosFeature
+import com.jtransc.ast.feature.method.OptimizeFeature
+import com.jtransc.ast.feature.method.SimdFeature
+import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
@@ -78,7 +78,7 @@ class CppTarget() : GenTargetDescriptor() {
 	}
 }
 
-val CppFeatures = setOf(SwitchesFeature, GotosFeature)
+val CppFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 
 @Singleton
 class CppGenTargetProcessor(
@@ -134,12 +134,10 @@ class CppGenTargetProcessor(
 }
 
 @Singleton
-class GenCppGen(injector: Injector) : GenCommonGen(injector) {
+class GenCppGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	override val allowAssignItself = true
-	val lastClassId: Int get() = program.lastClassId
-	val idsToClass: HashMap<Int, FqName> get() = program.idsToClass
-	val classesToId: HashMap<FqName, Int> get() = program.classesToId
-	fun getClassId(fqname: FqName): Int = program.getClassId(fqname)
+	val lastClassId = program.classes.size
+	fun getClassId(fqname: FqName): Int = program[fqname].classId
 
 	fun generateTypeTableHeader() = Indenter.gen {
 		line("struct TYPE_INFO", after2 = ";") {
@@ -158,7 +156,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		}
 
 		for (clazz in ordereredClasses) {
-			val ids = (clazz.directInterfaces).distinct().map { classesToId[it.name] }.filterNotNull()
+			val ids = (clazz.directInterfaces).distinct().map { it.classId }.filterNotNull()
 			//line("const int ${clazz.cppName}::INTERFACES_COUNT = ${ids.size};")
 			//line("const int ${clazz.cppName}::INTERFACES[] = { ${ids.joinToString(", ")} };")
 		}
@@ -171,14 +169,8 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		line("int TYPE_TABLE::count = $lastClassId;")
 		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			for (n in 0 until lastClassId) {
-				val clazzName = idsToClass[n]
-				val clazz = if (clazzName != null) program[clazzName] else null
-				if (clazz != null) {
-					//line("${clazz.cppName}::INFO,")
-					line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
-				} else {
-					line("{ .subtypes = 0 },")
-				}
+				val clazz = program.classes[n]
+				line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
 			}
 		}
 		//line("""REFLECT_CONSTRUCTOR testConstructor = { L"()V", 0, [](std::vector<SOBJ> args) { return SOBJ(new java_lang_Object()); } };""")
@@ -615,7 +607,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 			line("static bool SI_once;")
 			line("static void SI();")
 
-			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { classesToId[it.name] }.filterNotNull() + listOf(0)
+			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { it.classId }.filterNotNull() + listOf(0)
 			line("static const int TABLE_INFO[${ids.size}];")
 
 			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
@@ -678,14 +670,14 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		}
 	}
 
-	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature, SwitchesFeature, SimdFeature)
-	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature).toSet()
+	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
+	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java).toSet()
 
-	override fun genBody2WithFeatures(body: AstBody): Indenter {
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		if (body.traps.isNotEmpty()) {
-			return features.apply(body, FEATURE_FOR_FUNCTION_WITH_TRAPS, settings, types).genBody()
+			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITH_TRAPS, settings, types).genBody()
 		} else {
-			return features.apply(body, FEATURE_FOR_FUNCTION_WITHOUT_TRAPS, settings, types).genBody()
+			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITHOUT_TRAPS, settings, types).genBody()
 		}
 	}
 
@@ -712,7 +704,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 
 			fun genJavaBody() = Indenter.gen {
 				if (body != null) {
-					line(this@GenCppGen.genBody2WithFeatures(body))
+					line(this@GenCppGen.genBody2WithFeatures(method, body))
 				} else {
 					line("throw \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";");
 				}
@@ -841,7 +833,7 @@ class GenCppGen(injector: Injector) : GenCommonGen(injector) {
 		return super.genStmSetFieldInstance(stm)
 	}
 
-	override fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
+	override fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {
 		return "N::dummyMethodClass()"
 	}
 

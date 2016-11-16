@@ -77,7 +77,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Annotation[] getDeclaredAnnotations() {
-		return JTranscCoreReflection.getDeclaredAnnotations();
+		Annotation[] out = JTranscCoreReflection.getDeclaredAnnotations(this);
+		return (out != null) ? out : new Annotation[0];
 	}
 
 	public Class<? super T> getSuperclass() {
@@ -127,6 +128,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	native public java.net.URL getResource(String name);
 
 	public boolean isInstance(Object obj) {
+		//return !this.isPrimitive() && (obj != null) && this.isAssignableFrom(obj.getClass());
 		return (obj != null) && this.isAssignableFrom(obj.getClass());
 	}
 
@@ -172,12 +174,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	Class(String name) throws ClassNotFoundException {
 		this.name = name;
 		this.primitive = false;
-		if (!_check()) throw new ClassNotFoundException("Can't find class '" + name + "'");
+		if (!_check()) throw new ClassNotFoundException("Class constructor: Can't find class '" + name + "'");
 	}
 
 	Class(String name, boolean primitive) {
 		this.name = name;
 		this.primitive = primitive;
+		this.id = -1;
 	}
 
 	private boolean _check() {

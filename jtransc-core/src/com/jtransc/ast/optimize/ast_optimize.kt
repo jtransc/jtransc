@@ -7,6 +7,7 @@ import com.jtransc.log.log
 //const val DEBUG = false
 //const val DEBUG = true
 
+// @TODO: rewrite using method.transformInplace
 class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 	val types: AstTypes = flags.types
 	private var stm: AstStm? = null

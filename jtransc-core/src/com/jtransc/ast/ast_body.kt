@@ -22,7 +22,11 @@ fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD): AstBody {
 	return AstBody(stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
 }
 
-data class AstBodyFlags(val strictfp: Boolean, val types: AstTypes)
+data class AstBodyFlags(
+	val strictfp: Boolean,
+	val types: AstTypes,
+	val hasDynamicInvoke: Boolean = false
+)
 
 enum class AstBinop(val symbol: String, val str: String) {
 	ADD("+", "add"), SUB("-", "sub"), MUL("*", "mul"), DIV("/", "div"), REM("%", "rem"),
@@ -55,6 +59,15 @@ interface LocalParamRef {
 
 interface LocalRef : LocalParamRef
 interface ArgumentRef : LocalParamRef
+
+class TempAstLocalFactory {
+	var lastId = 0
+	fun create(type: AstType): AstLocal {
+		val out = AstLocal(lastId, "temp$lastId", type)
+		lastId++
+		return out
+	}
+}
 
 data class AstLocal(val index: Int, override val name: String, val type: AstType) : LocalRef {
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
@@ -238,6 +251,11 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	//
 	//class NOT_IMPLEMENTED() : AstStm() {
 	//}
+}
+
+fun AstStm.isSingleStm(): Boolean {
+	if (this is AstStm.STMS) return (this.stms.count() == 1) && this.stms.last().value.isSingleStm()
+	return true
 }
 
 fun AstStm.lastStm(): AstStm {
@@ -459,10 +477,17 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = arrayType
 	}
 
-	class METHOD_CLASS(
+	//class ARRAY_VALUES(elementType: AstType, val values: List<AstExpr>) : AstExpr() {
+	//	val arrayType: AstType.ARRAY = AstType.ARRAY(elementType)
+	//	override val type = arrayType
+	//}
+
+	class INVOKE_DYNAMIC_METHOD(
 		val methodInInterfaceRef: AstMethodRef,
-		val methodToConvertRef: AstMethodRef
+		val methodToConvertRef: AstMethodRef,
+	    var extraArgCount: Int
 	) : AstExpr() {
+		var startArgs = listOf<AstExpr>()
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
@@ -545,9 +570,12 @@ object AstExprUtils {
 			val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
 			val methodToConvertRef = methodHandle.methodRef
 
-			return AstExpr.METHOD_CLASS(
-				AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType),
-				methodToConvertRef
+			val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
+
+			return AstExpr.INVOKE_DYNAMIC_METHOD(
+				methodFromRef,
+				methodToConvertRef,
+				methodToConvertRef.type.argCount - methodFromRef.type.argCount
 			)
 		} else {
 			noImpl("Not supported DynamicInvoke yet!")
@@ -648,8 +676,14 @@ open class BuilderBase(val types: AstTypes) {
 	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 
+	operator fun AstMethod.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
+	operator fun AstMethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
+
 	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
 	fun AstExpr.toType(toType: AstType): AstExpr = if (this.type == toType) this else AstExpr.CAST(this, toType)
+
+	operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
+	operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)
 }
 
 class AstSwitchBuilder(types: AstTypes) : BuilderBase(types) {

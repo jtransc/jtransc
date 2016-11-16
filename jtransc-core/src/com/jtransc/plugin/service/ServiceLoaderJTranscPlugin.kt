@@ -33,7 +33,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		val servicesFolders = program.resourcesVfs["META-INF/services"].getUnmergedFiles().filter { it.exists && it.isDirectory }
 		for (serviceListFile in servicesFolders.flatMap { it.listdir() }) {
 			val serviceName = serviceListFile.name
-			val serviceImpls = serviceListFile.file.readString().trim().lines()
+			val serviceImpls = serviceListFile.file.readString().trim().lines().map { it.split('#').firstOrNull()?.trim() ?: "" }.filter { it.isNotEmpty() }
 			servicesToImpls[serviceName] = serviceImpls
 			log.info("Detected service: $serviceName with implementations $serviceImpls")
 		}

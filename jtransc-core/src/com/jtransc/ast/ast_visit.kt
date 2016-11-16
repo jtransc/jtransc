@@ -73,7 +73,7 @@ open class AstVisitor {
 			//is AstExpr.CLASS_CONSTANT -> visit(expr)
 			is AstExpr.LITERAL -> visit(expr)
 			is AstExpr.LITERAL_REFNAME -> visit(expr)
-			is AstExpr.METHOD_CLASS -> visit(expr)
+			is AstExpr.INVOKE_DYNAMIC_METHOD -> visit(expr)
 			is AstExpr.LOCAL -> visit(expr)
 			is AstExpr.PARAM -> visit(expr)
 			is AstExpr.CAUGHT_EXCEPTION -> visit(expr)
@@ -282,7 +282,7 @@ open class AstVisitor {
 		}
 	}
 
-	open fun visit(expr: AstExpr.METHOD_CLASS) {
+	open fun visit(expr: AstExpr.INVOKE_DYNAMIC_METHOD) {
 		visit(expr.methodInInterfaceRef)
 		visit(expr.methodToConvertRef)
 	}

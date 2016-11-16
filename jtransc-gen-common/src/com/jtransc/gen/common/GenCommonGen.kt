@@ -4,10 +4,10 @@ import com.jtransc.ConfigOutputFile
 import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.GotosFeature
-import com.jtransc.ast.feature.OptimizeFeature
-import com.jtransc.ast.feature.SimdFeature
-import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ast.feature.method.GotosFeature
+import com.jtransc.ast.feature.method.OptimizeFeature
+import com.jtransc.ast.feature.method.SimdFeature
+import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
@@ -20,14 +20,14 @@ import java.util.*
 
 class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
 open class GenCommonGen(val injector: Injector) {
 	val configSrcFolder: ConfigSrcFolder = injector.get()
 	val srcFolder: SyncVfsFile = configSrcFolder.srcFolder
 
-	val features: AstFeatures = injector.get()
+	val features: AstMethodFeatures = injector.get()
 	val configFeatureSet: ConfigFeatureSet = injector.get()
-	val featureSet: Set<AstFeature> = configFeatureSet.featureSet
+	val featureSet: Set<Class<out AstMethodFeature>> = configFeatureSet.featureSet
 
 	val program: AstProgram = injector.get()
 	val settings: AstBuildSettings = injector.get()
@@ -124,11 +124,12 @@ open class GenCommonGen(val injector: Injector) {
 		is AstExpr.INTARRAY_LITERAL -> genExprIntArrayLit(e)
 		is AstExpr.STRINGARRAY_LITERAL -> genExprStringArrayLit(e)
 		is AstExpr.CALL_BASE -> genExprCallBase(e)
-		is AstExpr.METHOD_CLASS -> genExprMethodClass(e)
+		is AstExpr.INVOKE_DYNAMIC_METHOD -> genExprMethodClass(e)
 		else -> noImpl("Expression $e")
 	}
 
-	open fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
+	open fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {
+		System.err.println("GenCommonGen.genExprMethodClass. Lambdas should be replaced by not including LambdaProgramFeature")
 		return "N::dummyMethodClass()"
 	}
 
@@ -220,14 +221,14 @@ open class GenCommonGen(val injector: Injector) {
 	//fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
-	fun AstBody.genBodyWithFeatures(): Indenter = genBody2WithFeatures(this)
+	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
 
 
-	open fun genBody2WithFeatures(body: AstBody): Indenter {
+	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		//return if (ENABLE_HXCPP_GOTO_HACK && (tinfo.subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
 		//	features.apply(body, (featureSet + setOf(GotosFeature)), settings, types).genBody()
 		//} else {
-		return features.apply(body, featureSet, settings, types).genBody()
+		return features.apply(method, body, featureSet, settings, types).genBody()
 		//}
 	}
 
@@ -385,10 +386,14 @@ open class GenCommonGen(val injector: Injector) {
 			for (case in stm.cases) {
 				val value = case.first
 				val caseStm = case.second
-				line("case $value:")
-				indent {
-					line(caseStm.genStm())
-					if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+				if (caseStm.value.isSingleStm() && caseStm.value.lastStm().isBreakingFlow()) {
+					line("case $value: " + caseStm.genStm().toString().trim())
+				} else {
+					line("case $value:")
+					indent {
+						line(caseStm.genStm())
+						if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+					}
 				}
 			}
 			line("default:")

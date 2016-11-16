@@ -73,9 +73,12 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 		basicBlocks.queue(b.handler, BasicBlock.Input(catchStack, prefix.output.locals))
 	}
 
+	var hasDynamicInvoke = false
 	val body2 = method.instructions.toArray().toList().flatMap {
 		//println(basicBlocks.getBasicBlockForLabel(it))
-		basicBlocks.getBasicBlockForLabel(it)?.stms ?: listOf()
+		val bb = basicBlocks.getBasicBlockForLabel(it)
+		if (bb != null && bb.hasInvokeDynamic) hasDynamicInvoke = true
+		bb?.stms ?: listOf()
 	}
 
 	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
@@ -92,7 +95,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 				exception = if (it.type != null) types.REF_INT2(it.type) else AstType.OBJECT
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types)
+		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = hasDynamicInvoke)
 	).optimize()
 
 	return out;
@@ -164,6 +167,7 @@ data class BasicBlock(
 	val entry: AbstractInsnNode,
 	val stms: List<AstStm>,
 	val next: AbstractInsnNode?,
+	val hasInvokeDynamic: Boolean,
 	val outgoing: List<AbstractInsnNode>
 ) {
 	val outgoingAll = (if (next != null) listOf(next) else listOf()) + outgoing
@@ -256,6 +260,7 @@ private class BasicBlockBuilder(
 
 	//val list = method.instructions
 	val methodType = types.demangleMethod(method.desc)
+	var hasInvokeDynamic = false
 	val stms = ArrayList<AstStm>()
 	val stack = Stack<AstExpr>()
 	var lastLine = -1
@@ -639,14 +644,15 @@ private class BasicBlockBuilder(
 	}
 
 	fun handleInvokeDynamic(i: InvokeDynamicInsnNode) {
-		stackPush(AstExprUtils.INVOKE_DYNAMIC(
+		hasInvokeDynamic = true
+		val dynamicResult = AstExprUtils.INVOKE_DYNAMIC(
 			AstMethodWithoutClassRef(i.name, types.demangleMethod(i.desc)),
 			i.bsm.ast(types),
 			i.bsmArgs.map {
 				when (it) {
 					is com.jtransc.org.objectweb.asm.Type -> when (it.sort) {
 						Type.METHOD -> AstExpr.LITERAL(types.demangleMethod(it.descriptor), types)
-						else -> noImpl("${it.sort} : ${it}")
+						else -> noImpl("${it.sort} : $it")
 					}
 					is Handle -> {
 						val kind = AstMethodHandle.Kind.fromId(it.tag)
@@ -656,7 +662,12 @@ private class BasicBlockBuilder(
 					else -> AstExpr.LITERAL(it, types)
 				}
 			}
-		))
+		)
+		if (dynamicResult is AstExpr.INVOKE_DYNAMIC_METHOD) {
+			// dynamicResult.startArgs = stackPopToLocalsCount(dynamicResult.extraArgCount).map { AstExpr.LOCAL(it) }.reversed()
+			dynamicResult.startArgs = (0 until dynamicResult.extraArgCount).map { stackPop() }.reversed()
+		}
+		stackPush(dynamicResult)
 	}
 
 	fun handleIinc(i: IincInsnNode) {
@@ -844,6 +855,7 @@ private class BasicBlockBuilder(
 
 		return BasicBlock(
 			input = input,
+			hasInvokeDynamic = hasInvokeDynamic,
 			output = BasicBlock.Input(
 				stack.clone() as Stack<AstExpr>,
 				locals.locals.clone() as Map<Locals.ID, AstLocal>

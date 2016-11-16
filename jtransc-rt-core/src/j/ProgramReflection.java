@@ -3,6 +3,8 @@ package j;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.ds.FastStringMap;
 
+import java.lang.annotation.Annotation;
+
 /**
  * MetaReflectionPlugin set those methods
  */
@@ -14,14 +16,29 @@ public class ProgramReflection {
 
 	static public void _ensure() {
 		if (_classInfos != null) return;
+		//System.out.println("ProgramReflection._ensure:");
+
+		//System.out.println("[0]");
 		_classInfosByName = new FastStringMap<>();
+		//System.out.println("[1]");
 		_classInfos = ProgramReflection.getAllClasses();
+		//System.out.println("[2]");
 		_classNames = new String[_classInfos.length];
-		for (int n = 1; n < _classInfos.length; n++) {
+		//System.out.println("[3]");
+		//System.out.println(_classInfos);
+		//System.out.println("ProgramReflection._ensure(len=" + _classInfos.length + "):");
+
+		for (int n = 0; n < _classInfos.length; n++) {
 			ClassInfo info = _classInfos[n];
-			_classInfosByName.set(info.name, info);
-			_classNames[n] = info.name;
+			//System.out.println("POS:" + n);
+			//System.out.println("" + n + " : " + (info != null));
+			if (info != null) {
+				//System.out.println("NAME:" + info.name);
+				_classInfosByName.set(info.name, info);
+				_classNames[n] = info.name;
+			}
 		}
+		//System.out.println("[4]");
 	}
 
 	static public boolean hasClassWithName(String name) {
@@ -75,6 +92,22 @@ public class ProgramReflection {
 	}
 
 	static public void dynamicSet(int fieldId, Object object, Object value) {
+	}
+
+	static public Annotation[] getClassAnnotations(int classId) {
+		return new Annotation[0];
+	}
+
+	static public Annotation[] getFieldAnnotations(int fieldId) {
+		return new Annotation[0];
+	}
+
+	static public Annotation[] getMethodAnnotations(int methodId) {
+		return new Annotation[0];
+	}
+
+	static public Annotation[] getMethodArgumentAnnotations(int methodId, int argIndex) {
+		return new Annotation[0];
 	}
 
 	//static public long dynamicFieldPtr(int fieldId, Object object) {

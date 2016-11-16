@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.jtransc.ast.feature
+package com.jtransc.ast.feature.method
 
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
 import com.jtransc.graph.Relooper
 import com.jtransc.graph.RelooperException
 
-object GotosFeature : AstFeature() {
-	override fun remove(body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
+class GotosFeature : AstMethodFeature() {
+	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
 		if (settings.relooper) {
 			try {
 				return removeRelooper(body, types) ?: removeMachineState(body, types)

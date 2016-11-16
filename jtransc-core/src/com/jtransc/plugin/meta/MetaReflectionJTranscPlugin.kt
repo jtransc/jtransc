@@ -19,47 +19,242 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 		val types = program.types
 		val ProgramReflectionClass = program[ProgramReflection::class.java.fqname]
-		val oldClasses = program.classes.toList().filter { !it.annotationsList.contains<JTranscInvisible>() }
+
+		val annotationFqname = "java.lang.annotation.Annotation".fqname
+		val classesForAnnotations = hashMapOf<AstType.REF, AstClass>()
+
+		fun getAnnotationProxyClass(annotationType: AstType.REF): AstClass {
+			return classesForAnnotations.getOrPut(annotationType) {
+				val annotationClass = program[annotationType]!!
+				val annotationMethods = annotationClass.methods
+
+				val members = annotationMethods.map { it.name to it.methodType.ret }
+				val proxyClassName = "${annotationType.fqname}\$Proxy\$Impl"
+
+				val clazz = program.createDataClass(proxyClassName.fqname, members, interfaces = listOf(annotationType.name, annotationFqname)) {
+					extraVisible = true
+					for (m in annotationMethods) {
+						createMethod(m.name, m.methodType) {
+							extraVisible = false
+							RETURN(THIS[locateField(m.name)!!])
+						}
+					}
+					createMethod("annotationType", AstType.METHOD(AstType.CLASS, listOf())) {
+						RETURN(AstExpr.LITERAL(annotationType, types))
+					}
+					createMethod("toString", AstType.METHOD(AstType.STRING, listOf())) {
+						RETURN(AstExpr.LITERAL("@${annotationType.fqname}", types))
+					}
+				}
+
+				//println("Created class: $proxyClassName : ${clazz.visible}")
+
+				clazz
+			}
+		}
+
+		//println("----------")
+
+		for (clazz in program.classes.toList().filter { it.extendsOrImplements(annotationFqname) }) {
+			//println("$clazz: ${clazz.extendsOrImplements(annotationFqname)}")
+			getAnnotationProxyClass(clazz.ref)
+		}
+
+		//println("----------")
+
+		//for (clazz in program.classes) println("CC: ${clazz.name} : ${clazz.visible}")
+
 		val CLASS_INFO = program[ClassInfo::class.java.fqname]
 		val CLASS_INFO_CREATE = CLASS_INFO.getMethodWithoutOverrides(ClassInfo::create.name)!!.ref
 
-		val classesToId = oldClasses.associate { it to program.getClassId(it.name) }
-		val constructorsToId = oldClasses.flatMap { it.constructors }.withIndex().associate { it.value to it.index }
-		val methodsToId = oldClasses.flatMap { it.methodsWithoutConstructors }.filter { !it.annotationsList.contains<JTranscInvisible>() }.withIndex().associate { it.value to it.index }
-		val fieldsToId = oldClasses.flatMap { it.fields }.filter { !it.annotationsList.contains<JTranscInvisible>() }.withIndex().associate { it.value to it.index }
+		val oldClasses = program.classes.toList().filter { it.visible }
 
-		fun getClassId(clazz: AstClass?): Int = classesToId[clazz] ?: -1
+		//for (clazz in oldClasses) println("OC: ${clazz.name}")
+
+		val constructorsToId = oldClasses.flatMap { it.constructors }.withIndex().associate { it.value to it.index }
+		val methodsToId = oldClasses.flatMap { it.methodsWithoutConstructors }.filter { it.visible }.withIndex().associate { it.value to it.index }
+		val fieldsToId = oldClasses.flatMap { it.fields }.filter { it.visible }.withIndex().associate { it.value to it.index }
 		fun getConstructorId(constructor: AstMethod?): Int = constructorsToId[constructor] ?: -1
 		fun getMethodId(method: AstMethod?): Int = methodsToId[method] ?: -1
 		fun getFieldId(field: AstField?): Int = fieldsToId[field] ?: -1
 
+		//val membersToId = oldClasses.flatMap { it.methods + it.fields }.filter { it.visible }.withIndex().associate { it.value to it.index }
+//
+		//val constructorsToId = membersToId.filterKeys { (it is AstMethod) && it.isInstanceInit }.mapKeys { it.key as AstMethod }
+		//val methodsToId = membersToId.filterKeys { (it is AstMethod) && !it.isInstanceInit }.mapKeys { it.key as AstMethod }
+		//val fieldsToId = membersToId.filterKeys { (it is AstField) }.mapKeys { it.key as AstField }
+//
+		//fun getId(constructor: AstMember?): Int = membersToId[constructor] ?: -1
+//
+		//fun getConstructorId(constructor: AstMethod?): Int = constructorsToId[constructor] ?: -1
+		//fun getMethodId(method: AstMethod?): Int = methodsToId[method] ?: -1
+		//fun getFieldId(field: AstField?): Int = fieldsToId[field] ?: -1
+
+
+		fun toAnnotationExpr(data: Any?, temps: TempAstLocalFactory, builder: AstBuilder2): AstExpr {
+			return builder.run {
+				when (data) {
+					null -> AstExpr.LITERAL(null, types)
+					is AstAnnotation -> {
+						val annotationProxy = getAnnotationProxyClass(data.type);
+						val annotationProxyConstructor = annotationProxy.constructors.first()
+						AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, data.elements.values.map { toAnnotationExpr(it, temps, builder) })
+					}
+					is AstFieldWithoutTypeRef -> toAnnotationExpr(program[data.containingClass].locateField(data.name)!!.ref, temps, builder)
+					is AstFieldRef -> AstExpr.FIELD_STATIC_ACCESS(data)
+					is Pair<*, *> -> toAnnotationExpr(data.second, temps, builder)
+					is List<*> -> {
+						val local = temps.create(ARRAY(OBJECT))
+						SET(local, NEW_ARRAY(local.type as AstType.ARRAY, data.size.lit))
+						for ((index, item) in data.withIndex()) {
+							SET_ARRAY(local, index.lit, toAnnotationExpr(item, temps, builder))
+						}
+						local.expr
+					}
+					is com.jtransc.org.objectweb.asm.Type -> {
+						AstExpr.LITERAL(AstType.REF(data.className.fqname), types)
+					}
+					else -> AstExpr.LITERAL(data, types)
+				}
+			}
+		}
+
+		val ANNOTATION_ARRAY = ARRAY(AstType.REF("java.lang.annotation.Annotation"))
+
+		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getClassAnnotations.name)?.replaceBodyOptBuild { args ->
+			val (classIdArg) = args
+
+			val temps = TempAstLocalFactory()
+			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
+
+			SWITCH(classIdArg.expr) {
+				for (clazz in oldClasses) {
+					val annotations = clazz.runtimeAnnotations
+					if (annotations.isNotEmpty() && "java.lang.annotation.Annotation".fqname !in clazz.implementing) {
+						CASE(clazz.classId) {
+							SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+							for ((index, annotation) in annotations.withIndex()) {
+								SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+							}
+							RETURN(outLocal)
+						}
+					}
+				}
+			}
+			RETURN(NULL)
+		}
+
+		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getFieldAnnotations.name)?.replaceBodyOptBuild { args ->
+			val (fieldIdArg) = args
+
+			val temps = TempAstLocalFactory()
+			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
+
+			SWITCH(fieldIdArg.expr) {
+				for (clazz in oldClasses) {
+					for (field in clazz.fields) {
+						val annotations = field.runtimeAnnotations
+						if (annotations.isNotEmpty()) {
+							CASE(getFieldId(field)) {
+								SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+								for ((index, annotation) in annotations.withIndex()) {
+									SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+								}
+								RETURN(outLocal)
+							}
+						}
+					}
+				}
+			}
+			RETURN(NULL)
+		}
+
+		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getMethodAnnotations.name)?.replaceBodyOptBuild { args ->
+			val (methodIdArg) = args
+
+			val temps = TempAstLocalFactory()
+			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
+
+			SWITCH(methodIdArg.expr) {
+				for (clazz in oldClasses) {
+					for (method in clazz.methods) {
+						val annotations = method.runtimeAnnotations
+						if (annotations.isNotEmpty()) {
+							CASE(getMethodId(method)) {
+								SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+								for ((index, annotation) in annotations.withIndex()) {
+									SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+								}
+								RETURN(outLocal)
+							}
+						}
+					}
+				}
+			}
+			RETURN(NULL)
+		}
+
+		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getMethodArgumentAnnotations.name)?.replaceBodyOptBuild { args ->
+			val (methodIdArg, argIndexArt) = args
+
+			val temps = TempAstLocalFactory()
+			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
+
+			SWITCH(methodIdArg.expr) {
+				for (clazz in oldClasses) {
+					for (method in clazz.methods) {
+						val allParameterAnnotations = method.parameterAnnotations.flatMap { it }
+						if (allParameterAnnotations.isNotEmpty()) {
+							CASE(getMethodId(method)) {
+
+								SWITCH(argIndexArt.expr) {
+									for (argIndex in 0 until method.methodType.argCount) {
+										val annotations = method.parameterAnnotations[argIndex]
+										if (annotations.isNotEmpty()) {
+											CASE(argIndex) {
+												SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+												for ((index, annotation) in annotations.withIndex()) {
+													SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+												}
+												RETURN(outLocal)
+											}
+										}
+									}
+								}
+								RETURN(NULL)
+							}
+						}
+					}
+				}
+			}
+			RETURN(NULL)
+		}
+
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getAllClasses.name)?.replaceBodyOptBuild {
 			val out = AstLocal(0, "out", ARRAY(CLASS_INFO))
 
-			SET(out, NEW_ARRAY(ARRAY(CLASS_INFO), (oldClasses.size + 1).lit))
+			SET(out, NEW_ARRAY(ARRAY(CLASS_INFO), program.lastClassId.lit))
 
 			for (oldClass in oldClasses) {
-				val index = getClassId(oldClass)
-
-				SET_ARRAY(out, index.lit, CLASS_INFO_CREATE(
-					index.lit,
+				val classId = oldClass.classId
+				//println("CLASS: ${oldClass.fqname}")
+				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
+					classId.lit,
 					AstExpr.LITERAL_REFNAME(oldClass.ref, types),
 					oldClass.fqname.lit,
 					oldClass.modifiers.acc.lit,
-					getClassId(oldClass.parentClass).lit,
-					AstExpr.INTARRAY_LITERAL(oldClass.directInterfaces.map { getClassId(it) }),
+					(oldClass.parentClass?.classId ?: -1).lit,
+					AstExpr.INTARRAY_LITERAL(oldClass.directInterfaces.map { it.classId }),
 					AstExpr.INTARRAY_LITERAL(oldClass.getAllRelatedTypesIdsWith0AtEnd())
 				))
 			}
 			RETURN(out.local)
-
 		}
+
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicInvoke.name)?.replaceBodyOptBuild {
-			val methodId = AstArgument(0, AstType.INT)
-			val obj = AstArgument(1, AstType.OBJECT)
-			val args = AstArgument(2, AstType.ARRAY(AstType.OBJECT))
+			val (methodId, obj, args) = it
 
 			SWITCH(methodId.expr) {
 				for ((method, methodId) in methodsToId) {
@@ -90,8 +285,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicNew.name)?.replaceBodyOptBuild {
-			val methodId = AstArgument(0, AstType.INT)
-			val args = AstArgument(1, AstType.ARRAY(AstType.OBJECT))
+			val (methodId, args) = it
 
 			SWITCH(methodId.expr) {
 				for ((constructor, index) in constructorsToId) {
@@ -110,6 +304,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			RETURN(NULL)
 		}
 
+		// Member information (constructors, methods and fields)
 		if (MemberInfo::class.java.fqname in program) {
 			val MemberInfoClass = program[MemberInfo::class.java.fqname]
 			val MemberInfo_create = MemberInfoClass.getMethodWithoutOverrides(MemberInfo::create.name)!!.ref
@@ -117,12 +312,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			data class MemberInfoWithRef(val ref: Any, val mi: MemberInfo)
 
-			fun AstBuilder2.genMemberList(list: Map<AstClass, List<MemberInfoWithRef>>) {
+			fun AstBuilder2.genMemberList(args: List<AstArgument>, list: Map<AstClass, List<MemberInfoWithRef>>) {
+				val (classIdArg) = args
+
 				val out = AstLocal(0, "out", ARRAY(MemberInfoClass))
-				val classIdArg = AstArgument(0, AstType.INT)
+
 				SWITCH(classIdArg.expr) {
 					for ((clazz, members) in list) {
-						val classId = getClassId(clazz)
+						val classId = clazz.classId
 						if (members.isNotEmpty()) {
 							CASE(classId) {
 								SET(out, NEW_ARRAY(ARRAY(MemberInfoClass), members.size.lit))
@@ -153,38 +350,38 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				RETURN(NULL)
 			}
 
+			// ProgramReflectionClass.getConstructors
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getConstructors.name)?.replaceBodyOptBuild {
-				genMemberList(classesToId.mapValues { clazzPair ->
-					val clazz = clazzPair.key
+				genMemberList(it, program.classes.map { clazz ->
 					//val classId = getClassId(clazz)
-					clazz.constructors.map {
+					clazz to clazz.constructors.map {
 						MemberInfoWithRef(it.ref, MemberInfo(getConstructorId(it), null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
-				})
+				}.toMap())
 			}
 
+			// ProgramReflectionClass.getMethods
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getMethods.name)?.replaceBodyOptBuild {
-				genMemberList(classesToId.mapValues { clazzPair ->
-					val clazz = clazzPair.key
+				genMemberList(it, program.classes.map { clazz ->
 					//val classId = getClassId(clazz)
-					clazz.methodsWithoutConstructors.map {
+					clazz to clazz.methodsWithoutConstructors.map {
 						MemberInfoWithRef(it.ref, MemberInfo(getMethodId(it), null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
-				})
+				}.toMap())
 			}
 
+			// ProgramReflectionClass.getFields
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getFields.name)?.replaceBodyOptBuild {
-				genMemberList(classesToId.mapValues { clazzPair ->
-					val clazz = clazzPair.key
-					clazz.fields.map {
+				genMemberList(it, program.classes.map { clazz ->
+					clazz to clazz.fields.map {
 						MemberInfoWithRef(it.ref, MemberInfo(getFieldId(it), null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
-				})
+				}.toMap())
 			}
 
+			// ProgramReflectionClass.dynamicGet
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicGet.name)?.replaceBodyOptBuild {
-				val fieldIdParam = AstArgument(0, AstType.INT)
-				val objParam = AstArgument(1, AstType.OBJECT)
+				val (fieldIdParam, objParam) = it
 
 				SWITCH(fieldIdParam.expr) {
 					for ((field, fieldId) in fieldsToId) {
@@ -203,10 +400,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				RETURN(NULL)
 			}
 
+			// ProgramReflectionClass.dynamicSet
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicSet.name)?.replaceBodyOptBuild {
-				val fieldIdParam = AstArgument(0, AstType.INT)
-				val objParam = AstArgument(1, AstType.OBJECT)
-				val valueParam = AstArgument(2, AstType.OBJECT)
+				val (fieldIdParam, objParam, valueParam) = it
 
 				SWITCH(fieldIdParam.expr) {
 					for ((field, fieldId) in fieldsToId) {

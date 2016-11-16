@@ -22,6 +22,8 @@ import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
 import javatest.awt.AWTTest
 import javatest.utils.KotlinInheritanceTest
+import jtransc.java8.Java8Test
+import jtransc.java8.Java8Test2
 import org.junit.Test
 
 class JTranscPerTargetBigTest : JTranscTestBase() {
@@ -32,11 +34,13 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 
 	@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 
-	//@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = null)
-	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = true)
+	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
 
 	@Test fun testKotlinInheritanceTestCpp() = testClass<KotlinInheritanceTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, target = JsTarget(), log = true)
+
+	@Test fun testJava8Js() = testClass<Java8Test>(minimize = false, target = JsTarget(), log = true)
+	@Test fun testJava8_2Js() = testClass<Java8Test2>(minimize = false, target = JsTarget(), log = true)
 
 	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = true)
 	@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = true)

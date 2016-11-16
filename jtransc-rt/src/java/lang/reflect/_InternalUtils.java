@@ -27,7 +27,7 @@ class _InternalUtils {
 		try {
 			return Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			System.err.println("Can't find class '" + className + "'");
+			System.err.println("Class_forName0: Can't find class '" + className + "'");
 			return null;
 		}
 	}

@@ -22,6 +22,7 @@ import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigRun
 import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.AstProgramFeature
 import com.jtransc.ast.ConfigCompile
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
@@ -54,6 +55,7 @@ abstract class GenTargetDescriptor {
 	abstract val longName: String
 	abstract val sourceExtension: String
 	abstract val outputExtension: String
+	open val programFeatures: Set<Class<out AstProgramFeature>> = setOf()
 	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()

@@ -1,11 +1,11 @@
 package jtransc.java8;
 
-import java.lang.invoke.MethodHandle;
 import java.util.function.Predicate;
 
 public class Java8Test {
 	static public void main(String[] args) {
 		//demo(i -> (i > 0));
+		myrunnerVoid(Java8Test::exampleVoid);
 		myrunnerBool(Java8Test::exampleBool);
 		myrunnerByte(Java8Test::exampleByte);
 		myrunnerShort(Java8Test::exampleShort);
@@ -16,39 +16,55 @@ public class Java8Test {
 		myrunnerFloat(Java8Test::exampleFloat);
 		myrunnerDouble(Java8Test::exampleDouble);
 		myrunnerInt(i -> i < 10);
+		Java8Test2.main(args);
 
 		//myrunnerDoubleDefaultNegate(Java8Test::exampleDouble);
 
 		//MethodHandle method = Java8Test::example1;
 	}
 
+	static public void exampleVoid() {
+		System.out.println("exampleVoid()");
+	}
+
 	static public boolean exampleBool(boolean b) {
 		return !b;
 	}
+
 	static public boolean exampleByte(byte b) {
 		return b > 0;
 	}
+
 	static public boolean exampleShort(short b) {
 		return b > 0;
 	}
+
 	static public boolean exampleChar(char b) {
 		return b > 0;
 	}
+
 	static public boolean exampleInt(int i) {
 		return i > 0;
 	}
+
 	static public boolean exampleLong(long i) {
 		return i > 0;
 	}
+
 	static public boolean exampleFloat(float i) {
 		return i > 0f;
 	}
+
 	static public boolean exampleDouble(double i) {
 		return i > 0.0;
 	}
 
 	static public boolean exampleIntClass(Integer i) {
 		return i > 0;
+	}
+
+	static public void myrunnerVoid(Runnable run) {
+		run.run();
 	}
 
 	static public void myrunnerBool(Predicate<Boolean> pred) {

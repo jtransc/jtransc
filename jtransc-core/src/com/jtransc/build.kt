@@ -28,7 +28,6 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.plugin.JTranscPlugin
-import com.jtransc.plugin.meta.MetaReflectionJTranscPlugin
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -112,7 +111,6 @@ class JTranscBuild(
 			java.lang.reflect.Constructor::class.java.name,
 			java.lang.annotation.Annotation::class.java.name,
 			java.lang.reflect.InvocationHandler::class.java.name,
-			com.jtransc.internal.JTranscAnnotationBase::class.java.name,
 			com.jtransc.JTranscWrapped::class.java.name,
 			com.jtransc.lang.Int64::class.java.name,
 			ProgramReflection::class.java.name,
@@ -157,6 +155,17 @@ class JTranscBuild(
 
 		injector.mapInstance(program)
 		injector.mapInstance(program, AstResolver::class.java)
+
+		val settings = injector.get<AstBuildSettings>()
+
+		val AllPluginFeatures = ServiceLoader.load(AstProgramFeature::class.java).toSet()
+		val AllPluginFeaturesMap = AllPluginFeatures.map { it.javaClass to it }.toMap()
+
+		val SupportedFeatureClasses = target.programFeatures
+		val MissingFeatureClasses = AllPluginFeatures.map { it.javaClass } - SupportedFeatureClasses
+
+		for (featureClass in MissingFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onMissing(program, settings, types)
+		for (featureClass in SupportedFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onSupported(program, settings, types)
 
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
 		return target.build(injector)
@@ -204,7 +213,7 @@ class JTranscBuild(
 					try {
 						val generatedClass = generator.generateClass(program, className.name)
 						for (ref in References.get(generatedClass)) program.addReference(ref, className)
-					}catch (e: InvalidOperationException) {
+					} catch (e: InvalidOperationException) {
 						System.err.println("ERROR! : " + e.message)
 					}
 				}

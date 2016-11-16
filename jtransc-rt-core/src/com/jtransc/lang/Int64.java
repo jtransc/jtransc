@@ -1,9 +1,11 @@
 package com.jtransc.lang;
 
+import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.internal.JTranscCType;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
+@JTranscInvisible
 public class Int64 {
 	static public final Int64 MAX_INT64 = new Int64(0x7FFFFFFF, 0xFFFFFFFF);
 	static public final Int64 MIN_INT64 = new Int64(0x80000000, 0x00000000);

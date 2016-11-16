@@ -20,6 +20,7 @@ import j.MemberInfo;
 import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
+import java.lang.jtransc.JTranscCoreReflection;
 
 @SuppressWarnings({"ConstantConditions", "unused", "StatementWithEmptyBody"})
 //@HaxeAddMembers({
@@ -30,7 +31,6 @@ public final class Field extends AccessibleObject implements Member {
 	protected int typeId;
 	public Class<?> clazz;
 	public String name;
-	public MemberInfo info;
 	//private Class<?> type = null;
 	protected int modifiers;
 	public int slot;
@@ -40,12 +40,13 @@ public final class Field extends AccessibleObject implements Member {
 	//private transient FieldRepository genericInfo;
 
 	public Annotation[] getDeclaredAnnotations() {
-		return super.getDeclaredAnnotations();
+		Annotation[]out = ProgramReflection.getFieldAnnotations(info.id);
+		return (out != null) ? out : new Annotation[0];
 	}
 
 	public Field(Class<?> containingClass, MemberInfo info) {
+		super(info);
 		this.clazz = containingClass;
-		this.info = info;
 		this.slot = info.id;
 		this.name = info.name;
 		this.signature = info.desc;

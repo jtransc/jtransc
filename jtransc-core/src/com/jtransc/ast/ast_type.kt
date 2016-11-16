@@ -359,6 +359,7 @@ fun Iterable<AstType>.toArguments(): List<AstArgument> {
 }
 
 fun AstType.getNull(): Any? = when(this) {
+	is AstType.VOID -> null
 	is AstType.BOOL -> false
 	is AstType.INT -> 0.toInt()
 	is AstType.SHORT -> 0.toShort()

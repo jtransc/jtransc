@@ -16,17 +16,19 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscVisible;
+import j.MemberInfo;
 
 import java.lang.annotation.Annotation;
 
-@HaxeAddMembers({
-	"public var _internalName = '';",
-	"public var _annotations = [];",
-})
-public class AccessibleObject implements AnnotatedElement {
+abstract public class AccessibleObject implements AnnotatedElement {
+	@JTranscVisible
+	public MemberInfo info;
+
+	AccessibleObject(MemberInfo info) {
+		this.info = info;
+	}
+
 	public static void setAccessible(AccessibleObject[] array, boolean flag) {
 		for (AccessibleObject o : array) o.setAccessible(flag);
 	}
@@ -56,18 +58,5 @@ public class AccessibleObject implements AnnotatedElement {
 		return this.getDeclaredAnnotations(); // @TODO: Fix me!
 	}
 
-	public Annotation[] getDeclaredAnnotations() {
-		Annotation[] out = _getDeclaredAnnotations();
-		if (out != null) {
-			return out;
-		} else {
-			return new Annotation[0];
-		}
-	}
-
-	@HaxeMethodBody("return HaxeArrayAny.fromArray(_annotations, '[Ljava.lang.Annotation;');")
-	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray(this._annotations, '[Ljava.lang.Annotation;');")
-	private Annotation[] _getDeclaredAnnotations() {
-		return new Annotation[0];
-	}
+	abstract public Annotation[] getDeclaredAnnotations();
 }

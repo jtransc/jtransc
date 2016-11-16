@@ -2,7 +2,7 @@ import com.jtransc.ast.AstBody;
 import com.jtransc.ast.AstBuildSettings;
 import com.jtransc.ast.AstType;
 import com.jtransc.ast.AstTypes;
-import com.jtransc.ast.feature.GotosFeature;
+import com.jtransc.ast.feature.method.GotosFeature;
 import com.jtransc.io.ClassutilsKt;
 import com.jtransc.types.Asm_astKt;
 import com.jtransc.types.Exp_dumpKt;

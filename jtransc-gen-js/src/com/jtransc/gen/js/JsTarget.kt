@@ -6,7 +6,7 @@ import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscCustomMainList
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.Allocator
 import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
@@ -61,7 +61,7 @@ class JsTarget() : GenTargetDescriptor() {
 
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
-val JsFeatures = setOf(SwitchesFeature)
+val JsFeatures = setOf(SwitchFeature::class.java)
 
 @Singleton
 class JsGenTargetProcessor(
@@ -187,7 +187,7 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 }
 
 @Singleton
-class GenJsGen(injector: Injector) : GenCommonGen(injector) {
+class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	// @TODO: Kotlin IDE: Refactoring imports doesn't take into account: JTranscAddFileList::value so this is a workaround for this
 	val _JTranscCustomMainList = JTranscCustomMainList::class.java
 	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java
@@ -316,62 +316,6 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
 	}
 
-	fun annotation(a: AstAnnotation): String {
-		fun escapeValue(it: Any?): String {
-			return when (it) {
-				null -> "null"
-				is AstAnnotation -> annotation(it)
-				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> names.buildStaticField(it)
-				is AstFieldWithoutTypeRef -> names.buildStaticField(program[it].ref)
-				is String -> "N.boxString(${it.quote()})"
-				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
-				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-				is com.jtransc.org.objectweb.asm.Type -> "N.resolveClass(" + it.descriptor.quote() + ")"
-				else -> invalidOp("GenJsGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
-			}
-		}
-		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-		val annotation = program.get3(a.type)
-		val itStr = annotation.methods.map {
-			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-		}.joinToString(", ")
-		//return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
-		return "R.createAnnotation(${names.getClassFqNameForCalling(a.type.name)}, [$itStr])"
-	}
-
-	fun annotationInit(a: AstAnnotation): List<AstType.REF> {
-		fun escapeValue(it: Any?): List<AstType.REF> {
-			return when (it) {
-				null -> listOf()
-				is AstAnnotation -> annotationInit(it)
-				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> listOf(it.containingTypeRef)
-				is AstFieldWithoutTypeRef -> listOf(it.containingClass.ref())
-				is List<*> -> it.flatMap { escapeValue(it) }
-				else -> listOf()
-			}
-		}
-		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-		val annotation = program.get3(a.type)
-		return annotation.methods.flatMap {
-			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-		}
-	}
-
-	fun _visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
-	fun _visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { _visibleAnnotations(it) }.joinToString(", ") + "]"
-	fun visibleAnnotations(annotations: List<AstAnnotation>): String = "function() { ${annotationsInit(annotations)} return " + _visibleAnnotations(annotations) + "; }"
-	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "function() { ${annotationsInit(annotations.flatMap { it })} return " + _visibleAnnotationsList(annotations) + "; }"
-	fun visibleAnnotationsOrNull(annotations: List<AstAnnotation>): String = if (annotations.isNotEmpty()) visibleAnnotations(annotations) else "null"
-	fun visibleAnnotationsListOrNull(annotations: List<List<AstAnnotation>>): String = if (annotations.isNotEmpty()) visibleAnnotationsList(annotations) else "null"
-
-	fun annotationsInit(annotations: List<AstAnnotation>): Indenter = Indenter.gen {
-		for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-			line(names.getClassStaticInit(i, "annotationsInit"))
-		}
-	}
-
 	override fun genStmLine(stm: AstStm.LINE) = indent {
 		mark(stm)
 	}
@@ -437,28 +381,28 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(context.clazz.name, v) + "]"
 
-	override fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
-		val methodInInterfaceRef = e.methodInInterfaceRef
-		val methodToConvertRef = e.methodToConvertRef
-		//val interfaceName = methodInInterfaceRef.classRef.name
-		val interfaceName = names.getClassFqNameForCalling(methodInInterfaceRef.classRef.name)
-		return "R.createLambda($interfaceName, " + Indenter.genString {
-			//methodInInterfaceRef.type.args
-
-			val argNameTypes = methodInInterfaceRef.type.args.map { it.name }.joinToString(", ")
-
-			line("function($argNameTypes)") {
-				val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
-
-				line("return " + genExpr2(AstExpr.CAST(AstExpr.CALL_STATIC(
-					methodToConvertRef.containingClassType,
-					methodToConvertRef,
-					args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
-				), methodInInterfaceRef.type.ret)) + ";"
-				)
-			}
-		} + ")"
-	}
+	//override fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
+	//	val methodInInterfaceRef = e.methodInInterfaceRef
+	//	val methodToConvertRef = e.methodToConvertRef
+	//	//val interfaceName = methodInInterfaceRef.classRef.name
+	//	val interfaceName = names.getClassFqNameForCalling(methodInInterfaceRef.classRef.name)
+	//	return "R.createLambda($interfaceName, " + Indenter.genString {
+	//		//methodInInterfaceRef.type.args
+	//
+	//		val argNameTypes = methodInInterfaceRef.type.args.map { it.name }.joinToString(", ")
+	//
+	//		line("function($argNameTypes)") {
+	//			val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
+	//
+	//			line("return " + genExpr2(AstExpr.CAST(AstExpr.CALL_STATIC(
+	//				methodToConvertRef.containingClassType,
+	//				methodToConvertRef,
+	//				args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
+	//			), methodInInterfaceRef.type.ret)) + ";"
+	//			)
+	//		}
+	//	} + ")"
+	//}
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
@@ -493,9 +437,9 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
 
 			val defaultFieldName = field.name
-			val fieldName = if (field.targetName2 == defaultFieldName) null else field.targetName2
+			val nativeFieldName = if (field.targetName2 == defaultFieldName) null else field.targetName2
 
-			line("this.registerField(${fieldName.quote()}, ${field.name.quote()}, ${field.desc.quote()}, ${field.genericSignature.quote()}, ${field.modifiers.acc}, ${names.escapeConstantRef(defaultValue, fieldType)}, ${visibleAnnotationsOrNull(field.annotations)});")
+			line("this.registerField(${nativeFieldName.quote()}, ${field.modifiers.acc}, ${names.escapeConstantRef(defaultValue, fieldType)});")
 		}
 
 		fun writeMethod(method: AstMethod): Indenter {
@@ -518,7 +462,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 				fun renderBranch(actualBody: Indenter?) = Indenter.gen {
 					val isConstructor = method.isInstanceInit
 					val registerMethodName = if (isConstructor) "registerConstructor" else "registerMethod"
-					val annotationsArgs = "${visibleAnnotationsOrNull(method.annotations)}, ${visibleAnnotationsListOrNull(method.parameterAnnotations)}"
+					val annotationsArgs = "null, null"
 
 					val commonArgs = if (isConstructor) {
 						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
@@ -546,7 +490,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 						fun javaBody(): Indenter? {
 							if (!javaBodyCacheDone) {
 								javaBodyCacheDone = true
-								javaBodyCache = rbody?.genBodyWithFeatures()
+								javaBodyCache = rbody?.genBodyWithFeatures(method)
 							}
 							return javaBodyCache
 						}
@@ -594,7 +538,7 @@ class GenJsGen(injector: Injector) : GenCommonGen(injector) {
 			if (isAbstract) line("// ABSTRACT")
 
 			val interfaces = "[" + clazz.implementing.map { it.targetClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, ${visibleAnnotationsOrNull(clazz.runtimeAnnotations)}, function() {"
+			val declarationHead = "var " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(${clazz.classId}, null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, null, function() {"
 			val declarationTail = "});"
 
 			line(declarationHead)

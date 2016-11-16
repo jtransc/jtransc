@@ -1,8 +1,6 @@
 package j;
 
-import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscVisible;
+import com.jtransc.annotation.*;
 
 @SuppressWarnings("unused")
 @JTranscKeep
@@ -31,11 +29,13 @@ public class MemberInfo {
 	}
 
 	@JTranscKeep
+	@JTranscNativeName("c")
 	static public MemberInfo create(int id, String internalName, String name, int modifiers, String desc, String genericDesc) {
 		return new MemberInfo(id, internalName, name, modifiers, desc, genericDesc);
 	}
 
 	@JTranscKeep
+	@JTranscNativeName("cl")
 	static public MemberInfo[] createList(int count, int[] ids, int[] modifiers, String[] internalNames, String[] names, String[] descs, String[] genericDescs) {
 		MemberInfo[] out = new MemberInfo[count];
 		for (int n = 0; n < count; n++) {

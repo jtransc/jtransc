@@ -7,8 +7,8 @@ import com.jtransc.JTranscVersion
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.GotosFeature
-import com.jtransc.ast.feature.SwitchesFeature
+import com.jtransc.ast.feature.method.GotosFeature
+import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
@@ -22,7 +22,6 @@ import com.jtransc.gen.MinimizedNames
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
-import com.jtransc.internal.JTranscAnnotationBase
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.lang.nullMap
@@ -95,8 +94,8 @@ class HaxeTarget() : GenTargetDescriptor() {
 	}
 }
 
-//val HaxeFeatures = setOf(GotosFeature, SwitchesFeature)
-val HaxeFeatures = setOf(SwitchesFeature)
+//val HaxeFeatures = setOf(GotosFeature::class.java, SwitchesFeature::class.java)
+val HaxeFeatures = setOf(SwitchFeature::class.java)
 
 private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
@@ -571,7 +570,7 @@ class HaxeNames(
 }
 
 @Singleton
-class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
+class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 	val subtarget = injector.get<ConfigSubtarget>().subtarget
 	override val defaultGenStmSwitchHasBreaks = false
 
@@ -580,11 +579,11 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 		const val ENABLE_HXCPP_GOTO_HACK = false
 	}
 
-	override fun genBody2WithFeatures(body: AstBody): Indenter {
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		return if (ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-			features.apply(body, (featureSet + setOf(GotosFeature)), settings, types).genBody()
+			features.apply(method, body, (featureSet + setOf(GotosFeature::class.java)), settings, types).genBody()
 		} else {
-			features.apply(body, featureSet, settings, types).genBody()
+			features.apply(method, body, featureSet, settings, types).genBody()
 		}
 	}
 
@@ -760,7 +759,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 		}
 	}
 
-	override fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
+	override fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {
 		val methodInInterfaceRef = e.methodInInterfaceRef
 		val methodToConvertRef = e.methodToConvertRef
 		val interfaceName = methodInInterfaceRef.classRef.name
@@ -996,7 +995,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
 							val javaBody = if (rbody != null) {
-								rbody.genBodyWithFeatures()
+								rbody.genBodyWithFeatures(method)
 							} else Indenter.gen {
 								line("throw R.n(HAXE_CLASS_NAME, ${method.id});")
 							}
@@ -1265,7 +1264,6 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 						line("${methodInObject.nullMap("override", "")} public function $mainMethodName($margs):$rettype { return " + methodType.ret.unbox("this._invoke($methodId, [$margBoxedNames]") + ");  }")
 					}
 				}
-				*/
 
 				val methodsWithoutBody = clazz.methods.filter { it.body == null }
 				if (methodsWithoutBody.size == 1 && clazz.implementing.size == 0) {
@@ -1288,11 +1286,12 @@ class GenHaxeGen(injector: Injector) : GenCommonGen(injector) {
 							val dmethodArgs = dmethod.methodType.args.map { it.name + ":" + it.type.targetTypeTag }.joinToString(", ")
 							val dmethodRettype = dmethod.methodType.ret.targetTypeTag
 							line("${methodInObject.nullMap("override", "")} public function $dmethodName($dmethodArgs):$dmethodRettype") {
-								line(dmethod.body!!.genBodyWithFeatures())
+								line(dmethod.body!!.genBodyWithFeatures(dmethod))
 							}
 						}
 					}
 				}
+				*/
 			}
 		}
 

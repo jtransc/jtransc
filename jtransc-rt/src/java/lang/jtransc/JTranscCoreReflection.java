@@ -29,7 +29,7 @@ public class JTranscCoreReflection {
 
 	static private boolean checkClassId(int classId) {
 		ProgramReflection._ensure();
-		return classId >= 1 && classId < ProgramReflection._classInfos.length;
+		return classId >= 0 && classId < ProgramReflection._classInfos.length;
 	}
 
 	//@JTranscMethodBody(target = "cpp", value = "return TYPE_TABLE::TABLE[p0].superType;")
@@ -190,8 +190,9 @@ public class JTranscCoreReflection {
 		return ProgramReflection.getClassInfoWithName(name);
 	}
 
-	public static Annotation[] getDeclaredAnnotations() {
-		return new Annotation[0];
+	public static Annotation[] getDeclaredAnnotations(Class<?> clazz) {
+		ProgramReflection._ensure();
+		return ProgramReflection.getClassAnnotations(getClassId(clazz));
 	}
 
 	@JTranscInline

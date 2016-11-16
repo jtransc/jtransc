@@ -28,8 +28,6 @@ var ProgramContext = function() {
 	this.mainClass = null;
 };
 
-var lastTypeId = 1;
-
 function setFunctionName(callback, name) {
 	try {
 		Object.defineProperty(callback, "name", { value: name });
@@ -37,8 +35,8 @@ function setFunctionName(callback, name) {
 	}
 }
 
-var TypeContext = function (internalName, name, flags, parent, interfaces, annotations) {
-	this.id = lastTypeId++;
+var TypeContext = function (id, internalName, name, flags, parent, interfaces, annotations) {
+	this.id = id;
 	this.internalName = internalName;
 	this.initialized = false;
 	this.name = name;
@@ -114,11 +112,11 @@ TypeContext.prototype.completeTypeFirst = function() {
 	this.staticMethodsBody['$instanceInit'] = this.instanceInit;
 };
 
-ProgramContext.prototype.registerType = function(internalName, name, flags, parent, interfaces, annotations, callback) {
+ProgramContext.prototype.registerType = function(id, internalName, name, flags, parent, interfaces, annotations, callback) {
 	//console.log("Register class: " + name);
 	if (internalName == null) internalName = name.replace(/\./g, '_');
 
-	var context = new TypeContext(internalName, name, flags, parent, interfaces, annotations);
+	var context = new TypeContext(id, internalName, name, flags, parent, interfaces, annotations);
 
 	//_global[name.replace(/\./g, '_')] = context.clazz;
 	context.clazz.SI = function() {
@@ -188,17 +186,17 @@ TypeContext.prototype.registerConstructor = function(id, desc, genericDesc, flag
 	});
 };
 
-TypeContext.prototype.registerField = function(id, name, desc, genericDesc, flags, value, annotations) {
+TypeContext.prototype.registerField = function(id, flags, value) {
 	if (id == null) id = '_' + name;
 	this.fields.push({
 		id : id,
-		name : name,
-		desc : desc,
-		genericDesc : genericDesc,
+		name : null,
+		desc : null,
+		genericDesc : null,
 		flags: flags,
 		value: value,
 		static : (flags & 0x00000008) != 0,
-		annotations: annotations
+		annotations: null
 	});
 };
 

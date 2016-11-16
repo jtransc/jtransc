@@ -16,62 +16,60 @@
 
 package com.jtransc.ast
 
-import com.jtransc.ast.feature.GotosFeature
-import com.jtransc.ast.feature.OptimizeFeature
-import com.jtransc.ast.feature.SimdFeature
-import com.jtransc.ast.feature.SwitchesFeature
 import com.jtransc.ast.transform.CombineNewInitTransform
 import com.jtransc.ast.transform.RemoveTransitiveLocalsTransform
 import com.jtransc.injector.Singleton
+import java.util.*
 
-data class ConfigFeatureSet(val featureSet: Set<AstFeature>)
+data class ConfigFeatureSet(val featureSet: Set<Class<out AstMethodFeature>>)
 
 @Singleton
-class AstFeatures {
-	internal val AVAILABLE_FEATUES = arrayListOf<AstFeature>(
-		OptimizeFeature,
-		GotosFeature,
-		SwitchesFeature,
-		SimdFeature
-	)
+class AstMethodFeatures {
+	internal val AVAILABLE_FEATUES = ServiceLoader.load(AstMethodFeature::class.java).toMutableList()
 
 	internal val TRANSFORMS = arrayListOf<AstTransform>(
 		CombineNewInitTransform,
 		RemoveTransitiveLocalsTransform
 	)
 
-	fun registerLast(feature: AstFeature): AstFeatures {
+	fun registerLast(feature: AstMethodFeature): AstMethodFeatures {
 		if (feature !in AVAILABLE_FEATUES) AVAILABLE_FEATUES.add(feature)
 		return this
 	}
 
-	fun registerBefore(feature: AstFeature, pivot: AstFeature): AstFeatures {
+	fun registerBefore(feature: AstMethodFeature, pivot: AstMethodFeature): AstMethodFeatures {
 		if (feature !in AVAILABLE_FEATUES) {
 			AVAILABLE_FEATUES.add(AVAILABLE_FEATUES.indexOf(pivot) - 1, feature)
 		}
 		return this
 	}
 
-	fun apply(body: AstBody, supportedFeatures: Set<AstFeature>, settings: AstBuildSettings, types: AstTypes): AstBody {
+	fun apply(method: AstMethod, body: AstBody, supportedFeatures: Set<Class<out AstMethodFeature>>, settings: AstBuildSettings, types: AstTypes): AstBody {
 		var out = body
 		for (transform in TRANSFORMS) {
 			out = transform(out)
 		}
 		for (feature in AVAILABLE_FEATUES) {
-			val included = (feature in supportedFeatures)
-			if (included) {
-				out = feature.add(out, settings, types)
+			if (feature.javaClass in supportedFeatures) {
+				out = feature.add(method, out, settings, types)
 			} else {
-				out = feature.remove(out, settings, types)
+				out = feature.remove(method, out, settings, types)
 			}
 		}
 		return out
 	}
 }
 
-open class AstFeature {
-	open fun remove(body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
-	open fun add(body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
+open class AstMethodFeature {
+	open val dependsOn = setOf<AstMethodFeature>()
+	open fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
+	open fun add(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
+}
+
+open class AstProgramFeature {
+	open val dependsOn = setOf<AstProgramFeature>()
+	open fun onMissing(program: AstProgram, settings: AstBuildSettings, types: AstTypes): Unit = Unit
+	open fun onSupported(program: AstProgram, settings: AstBuildSettings, types: AstTypes): Unit = Unit
 }
 
 open class AstTransform {
