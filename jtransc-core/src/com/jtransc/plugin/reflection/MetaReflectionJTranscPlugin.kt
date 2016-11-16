@@ -1,6 +1,5 @@
-package com.jtransc.plugin.meta
+package com.jtransc.plugin.reflection
 
-import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
 import j.ClassInfo
@@ -11,6 +10,8 @@ import j.ProgramReflection
  * This class aims to create classes to perform reflection on available classes
  */
 class MetaReflectionJTranscPlugin : JTranscPlugin() {
+	override val priority: Int = Int.MAX_VALUE
+
 	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!
 		// Also methods are not updated in the case they do not exist!
@@ -29,7 +30,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val annotationMethods = annotationClass.methods
 
 				val members = annotationMethods.map { it.name to it.methodType.ret }
-				val proxyClassName = "${annotationType.fqname}\$Proxy\$Impl"
+				val proxyClassName = "${annotationType.fqname}\$Impl"
 
 				val clazz = program.createDataClass(proxyClassName.fqname, members, interfaces = listOf(annotationType.name, annotationFqname)) {
 					extraVisible = true
@@ -55,8 +56,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 		//println("----------")
 
-		for (clazz in program.classes.toList().filter { it.extendsOrImplements(annotationFqname) }) {
+		for (clazz in program.classes.toList().filter { it.extendsOrImplements(annotationFqname) && !it.fqname.endsWith("\$Proxy") }) {
 			//println("$clazz: ${clazz.extendsOrImplements(annotationFqname)}")
+
 			getAnnotationProxyClass(clazz.ref)
 		}
 

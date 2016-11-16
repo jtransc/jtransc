@@ -13,9 +13,9 @@ public class ProxyTest {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 				System.out.println(proxy != null);
-				System.out.println(method.getName());
-				System.out.println(args.length);
-				System.out.println(args[0]);
+				System.out.println((method != null) ? method.getName() : "null");
+				System.out.println((args != null) ? args.length : "null");
+				System.out.println((args != null) ? args[0] : "null");
 				return 10;
 			}
 		});

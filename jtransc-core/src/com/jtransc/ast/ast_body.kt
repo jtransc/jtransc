@@ -702,6 +702,7 @@ class AstSwitchBuilder(types: AstTypes) : BuilderBase(types) {
 inline fun <T> AstTypes.build2(callback: AstBuilder2.() -> T) = AstBuilder2(this).run { callback() }
 
 class AstBuilder2(types: AstTypes) : BuilderBase(types) {
+	val temps = TempAstLocalFactory()
 	val stms = arrayListOf<AstStm>()
 
 	fun SET(local: AstLocal, expr: AstExpr) {
@@ -745,6 +746,19 @@ class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 	inline fun SWITCH(subject: AstExpr, callback: AstSwitchBuilder.() -> Unit) {
 		val cases = AstSwitchBuilder(types).apply { this.callback() }
 		stms += AstStm.SWITCH(subject, cases.default, cases.cases)
+	}
+
+	fun CREATE_ARRAY(arrayType: AstType.ARRAY, items: List<AstExpr>): AstExpr {
+		if (items.isEmpty()) {
+			return NEW_ARRAY(arrayType, 0.lit)
+		} else {
+			val temp = temps.create(arrayType)
+			SET(temp, NEW_ARRAY(arrayType, items.size.lit))
+			for ((index, item) in items.withIndex()) {
+				SET_ARRAY(temp, index.lit, item)
+			}
+			return temp.expr
+		}
 	}
 
 	fun RETURN() = Unit.apply { stms += AstStm.RETURN_VOID() }

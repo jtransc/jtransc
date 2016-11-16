@@ -61,13 +61,15 @@ class AstMethodFeatures {
 }
 
 open class AstMethodFeature {
-	open val dependsOn = setOf<AstMethodFeature>()
+	//open val dependsOn = setOf<AstMethodFeature>()
+	open val priority: Int = 0
 	open fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
 	open fun add(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody = body
 }
 
 open class AstProgramFeature {
-	open val dependsOn = setOf<AstProgramFeature>()
+	open val priority: Int = 0
+	//open val dependsOn = setOf<AstProgramFeature>()
 	open fun onMissing(program: AstProgram, settings: AstBuildSettings, types: AstTypes): Unit = Unit
 	open fun onSupported(program: AstProgram, settings: AstBuildSettings, types: AstTypes): Unit = Unit
 }

@@ -4,6 +4,8 @@ import com.jtransc.ast.AstProgram
 import com.jtransc.ast.AstType
 
 abstract class JTranscPlugin {
+	open val priority: Int = 0
+
 	open fun onStartBuilding(program: AstProgram): Unit {
 
 	}

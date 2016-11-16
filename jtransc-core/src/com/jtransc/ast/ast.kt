@@ -204,8 +204,12 @@ class AstProgram(
 	override operator fun contains(name: FqName) = name.fqname in _classesByFqname
 	//operator fun get(name: FqName) = classesByFqname[name.fqname] ?: throw RuntimeException("AstProgram. Can't find class '$name'")
 
+	fun getOrNull(name: FqName): AstClass? {
+		return _classesByFqname[name.fqname]
+	}
+
 	override operator fun get(name: FqName): AstClass {
-		val result = _classesByFqname[name.fqname]
+		val result = getOrNull(name)
 		if (result == null) {
 			val classFile = name.internalFqname + ".class"
 			println("AstProgram. Can't find class '$name'")

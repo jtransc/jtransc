@@ -86,7 +86,7 @@ class JTranscBuild(
 
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
 		// @TODO: allow to add plugins from gradle
-		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList()
+		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }
 		val pluginNames = plugins.map { it.javaClass.simpleName }
 
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()

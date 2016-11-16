@@ -1,10 +1,10 @@
 package com.jtransc.ast.feature.program
 
 import com.jtransc.ast.*
-import com.jtransc.plugin.meta.createClass
-import com.jtransc.plugin.meta.createConstructor
-import com.jtransc.plugin.meta.createField
-import com.jtransc.plugin.meta.createMethod
+import com.jtransc.plugin.reflection.createClass
+import com.jtransc.plugin.reflection.createConstructor
+import com.jtransc.plugin.reflection.createField
+import com.jtransc.plugin.reflection.createMethod
 
 class LambdaProgramFeature : AstProgramFeature() {
 	override fun onMissing(program: AstProgram, settings: AstBuildSettings, types: AstTypes) {

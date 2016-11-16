@@ -1,8 +1,8 @@
-package com.jtransc.plugin.meta
+package com.jtransc.plugin.reflection
 
 import com.jtransc.ast.*
 
-fun AstProgram.createClass(name: FqName, parent: FqName, interfaces: List<FqName> = listOf(), gen: AstClass.() -> Unit = { }): AstClass {
+fun AstProgram.createClass(name: FqName, parent: FqName = "java.lang.Object".fqname, interfaces: List<FqName> = listOf(), gen: AstClass.() -> Unit = { }): AstClass {
 	val program = this
 	val clazz = AstClass("source", program, name, AstModifiers.withFlags(AstModifiers.ACC_PUBLIC), parent, interfaces)
 	clazz.gen()
@@ -10,7 +10,7 @@ fun AstProgram.createClass(name: FqName, parent: FqName, interfaces: List<FqName
 	return clazz
 }
 
-fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder2.() -> Unit = { RETURN() }): AstMethod {
+fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
 	val clazz = this
 	val types: AstTypes = this.program.types
 	val method = AstMethod(
@@ -21,7 +21,7 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 		annotations = listOf(),
 		parameterAnnotations = listOf(),
 		modifiers = AstModifiers(AstModifiers.ACC_PUBLIC or if (isStatic) AstModifiers.ACC_STATIC else 0),
-		generateBody = { AstBody(types, AstBuilder2(types).apply { body() }.genstm(), desc) },
+		generateBody = { AstBody(types, AstBuilder2(types).apply { body(desc.args) }.genstm(), desc) },
 		defaultTag = null,
 		signature = desc.mangle(),
 		genericSignature = null,
@@ -31,7 +31,7 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 	return method
 }
 
-fun AstClass.createConstructor(desc: AstType.METHOD, body: AstBuilder2.() -> Unit = { RETURN() }): AstMethod {
+fun AstClass.createConstructor(desc: AstType.METHOD, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
 	return createMethod("<init>", desc, isStatic = false, body = body);
 }
 

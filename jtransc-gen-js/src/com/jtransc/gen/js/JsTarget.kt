@@ -381,29 +381,6 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
 	override fun genLiteralString(v: String): String = "S[" + names.allocString(context.clazz.name, v) + "]"
 
-	//override fun genExprMethodClass(e: AstExpr.METHOD_CLASS): String {
-	//	val methodInInterfaceRef = e.methodInInterfaceRef
-	//	val methodToConvertRef = e.methodToConvertRef
-	//	//val interfaceName = methodInInterfaceRef.classRef.name
-	//	val interfaceName = names.getClassFqNameForCalling(methodInInterfaceRef.classRef.name)
-	//	return "R.createLambda($interfaceName, " + Indenter.genString {
-	//		//methodInInterfaceRef.type.args
-	//
-	//		val argNameTypes = methodInInterfaceRef.type.args.map { it.name }.joinToString(", ")
-	//
-	//		line("function($argNameTypes)") {
-	//			val args = methodInInterfaceRef.type.args.map { AstLocal(-1, it.name, it.type) }
-	//
-	//			line("return " + genExpr2(AstExpr.CAST(AstExpr.CALL_STATIC(
-	//				methodToConvertRef.containingClassType,
-	//				methodToConvertRef,
-	//				args.zip(methodToConvertRef.type.args).map { AstExpr.CAST(AstExpr.LOCAL(it.first), it.second.type) }
-	//			), methodInInterfaceRef.type.ret)) + ";"
-	//			)
-	//		}
-	//	} + ")"
-	//}
-
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		val base = names.getClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
@@ -417,19 +394,12 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 		setCurrentClass(clazz)
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
-		//val isInterface = clazz.isInterface
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
-		//val isNormalClass = (clazz.classType == AstClassType.CLASS)
-		//val classType = if (isInterface) "interface" else "class"
 		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
-		//val implementingString = getInterfaceList("implements")
-		//val isInterfaceWithStaticMembers = isInterface && clazz.fields.any { it.isStatic }
-		//val isInterfaceWithStaticFields = clazz.name.withSimpleName(clazz.name.simpleName + "\$StaticMembers")
 		refs._usedDependencies.clear()
 
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
-		//val interfaceClassName = clazz.name.append("_Fields");
 
 		fun writeField(field: AstField): Indenter = Indenter.gen {
 			val fieldType = field.type
@@ -451,13 +421,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 				val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
 				val methodName = if (method.targetName == defaultMethodName) null else method.targetName
 
-				val rbody = if (method.body != null) {
-					method.body
-				} else if (method.bodyRef != null) {
-					program[method.bodyRef!!]?.body
-				} else {
-					null
-				}
+				val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
 				fun renderBranch(actualBody: Indenter?) = Indenter.gen {
 					val isConstructor = method.isInstanceInit
