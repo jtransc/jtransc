@@ -37,7 +37,7 @@ class AstExampleTest {
 				(clazz.sourceFile != null) ? clazz.sourceFile : (clazz.name + ".java")
 			);
 			System.out.println(Exp_dumpKt.dump(astBody));
-			System.out.println(Exp_dumpKt.dump(GotosFeature.INSTANCE.remove(astBody, new AstBuildSettings(), types)));
+			System.out.println(Exp_dumpKt.dump(new GotosFeature().remove(null, astBody, new AstBuildSettings(), types)));
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}
 	}

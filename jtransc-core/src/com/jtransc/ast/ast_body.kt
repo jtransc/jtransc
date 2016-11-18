@@ -671,7 +671,7 @@ open class BuilderBase(val types: AstTypes) {
 	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
-	fun AstExpr.cast(type: AstType) = AstExpr.CAST(this, type)
+	fun AstExpr.castTo(type: AstType) = AstExpr.CAST(this, type)
 
 	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
@@ -684,6 +684,13 @@ open class BuilderBase(val types: AstTypes) {
 
 	operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
 	operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)
+
+	operator fun AstExpr.get(method: AstMethod) = MethodWithRef(this, method.ref)
+	operator fun AstExpr.get(method: AstMethodRef) = MethodWithRef(this, method)
+}
+
+class MethodWithRef(val obj: AstExpr, val method: AstMethodRef) {
+	operator fun invoke(vararg args: AstExpr) = AstExpr.CALL_INSTANCE(obj, method, args.toList())
 }
 
 class AstSwitchBuilder(types: AstTypes) : BuilderBase(types) {

@@ -81,6 +81,6 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 	}
 
 	public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		return (T) ProgramReflection.dynamicNew(this.slot, initargs);
+		return (T) ProgramReflection.dynamicNew(this.clazz.id, this.slot, initargs);
 	}
 }

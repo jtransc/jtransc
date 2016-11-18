@@ -163,6 +163,8 @@ class AstGenContext {
 	}
 }
 
+val AstProgram.visibleClasses: List<AstClass> get() = classes.filter { it.visible }
+
 @Singleton
 class AstProgram(
 	val configResourcesVfs: ConfigResourcesVfs,

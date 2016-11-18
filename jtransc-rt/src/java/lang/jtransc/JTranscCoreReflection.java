@@ -35,7 +35,7 @@ public class JTranscCoreReflection {
 	//@JTranscMethodBody(target = "cpp", value = "return TYPE_TABLE::TABLE[p0].superType;")
 	static public <T> int getSuperclassId(int classId) {
 		ProgramReflection._ensure();
-		return checkClassId(classId) ? ProgramReflection._classInfos[classId].parent : 0;
+		return checkClassId(classId) ? ProgramReflection._classInfos[classId].parent : -1;
 	}
 
 

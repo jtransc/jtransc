@@ -53,7 +53,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	}
 
 	public Annotation[] getDeclaredAnnotations() {
-		Annotation[] out = ProgramReflection.getMethodAnnotations(info.id);
+		Annotation[] out = ProgramReflection.getMethodAnnotations(clazz.id, info.id);
 		return (out != null) ? out : new Annotation[0];
 	}
 
@@ -87,7 +87,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 		Annotation[][] out = new Annotation[count][];
 		out = new Annotation[this.methodType().args.length][];
 		for (int n = 0; n < count; n++) {
-			Annotation[] annotations = ProgramReflection.getMethodArgumentAnnotations(info.id, n);
+			Annotation[] annotations = ProgramReflection.getMethodArgumentAnnotations(clazz.id, info.id, n);
 			out[n] = (annotations != null) ? annotations : new Annotation[0];
 		}
 		return out;

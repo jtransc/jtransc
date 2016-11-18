@@ -83,7 +83,7 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 	native public String toGenericString();
 
 	public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		return ProgramReflection.dynamicInvoke(id, obj, args);
+		return ProgramReflection.dynamicInvoke(this.clazz.id, id, obj, args);
 	}
 
 	public boolean isBridge() {

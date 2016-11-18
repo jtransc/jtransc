@@ -35,6 +35,7 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 	@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 
 	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
+	//@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = true)
 
 	@Test fun testKotlinInheritanceTestCpp() = testClass<KotlinInheritanceTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, target = JsTarget(), log = true)

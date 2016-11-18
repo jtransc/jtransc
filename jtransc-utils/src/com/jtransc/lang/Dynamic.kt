@@ -99,6 +99,7 @@ object Dynamic {
 		}
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	fun setAny(instance: Any?, key:Any?, value: Any?): Any? {
 		return when (instance) {
 			null -> null
@@ -169,9 +170,9 @@ object Dynamic {
 			val result = Dynamic.createEmptyClass(resultClass)
 			for (field in result.javaClass.declaredFields) {
 				if (field.name in map) {
-					val value = map[field.name]
+					val v = map[field.name]
 					field.isAccessible = true
-					field.set(result, dynamicCast(value, field.type, field.genericType))
+					field.set(result, dynamicCast(v, field.type, field.genericType))
 				}
 			}
 			return result as T
@@ -261,7 +262,6 @@ object Dynamic {
 				}
 			}
 			"-"  -> toNumber(l) - toNumber(r)
-			"+"  -> toNumber(l) + toNumber(r)
 			"*"  -> toNumber(l) * toNumber(r)
 			"/"  -> toNumber(l) / toNumber(r)
 			"%"  -> toNumber(l) % toNumber(r)

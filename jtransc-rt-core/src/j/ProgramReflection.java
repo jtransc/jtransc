@@ -1,9 +1,11 @@
 package j;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 /**
  * MetaReflectionPlugin set those methods
@@ -13,32 +15,44 @@ public class ProgramReflection {
 	static public ClassInfo[] _classInfos;
 	static public String[] _classNames;
 	static public FastStringMap<ClassInfo> _classInfosByName;
+	static public FastIntMap<FastIntMap<MemberInfo>> _constructorsInfo;
+	static public FastIntMap<FastIntMap<MemberInfo>> _methodInfos;
+	static public FastIntMap<FastIntMap<MemberInfo>> _fieldsInfos;
 
+	@SuppressWarnings("ConstantConditions")
 	static public void _ensure() {
 		if (_classInfos != null) return;
-		//System.out.println("ProgramReflection._ensure:");
 
-		//System.out.println("[0]");
 		_classInfosByName = new FastStringMap<>();
-		//System.out.println("[1]");
 		_classInfos = ProgramReflection.getAllClasses();
-		//System.out.println("[2]");
 		_classNames = new String[_classInfos.length];
-		//System.out.println("[3]");
-		//System.out.println(_classInfos);
-		//System.out.println("ProgramReflection._ensure(len=" + _classInfos.length + "):");
 
-		for (int n = 0; n < _classInfos.length; n++) {
-			ClassInfo info = _classInfos[n];
-			//System.out.println("POS:" + n);
-			//System.out.println("" + n + " : " + (info != null));
-			if (info != null) {
-				//System.out.println("NAME:" + info.name);
-				_classInfosByName.set(info.name, info);
-				_classNames[n] = info.name;
-			}
+		_constructorsInfo = new FastIntMap<>();
+		_methodInfos = new FastIntMap<>();
+		_fieldsInfos = new FastIntMap<>();
+
+		for (ClassInfo info : _classInfos) {
+			if (info == null) continue;
+
+			FastIntMap<MemberInfo> ci = new FastIntMap<>();
+			FastIntMap<MemberInfo> mi = new FastIntMap<>();
+			FastIntMap<MemberInfo> fi = new FastIntMap<>();
+
+			_classInfosByName.set(info.name, info);
+			_classNames[info.id] = info.name;
+
+			_constructorsInfo.set(info.id, ci);
+			_methodInfos.set(info.id, mi);
+			_fieldsInfos.set(info.id, fi);
+
+			MemberInfo[] constructors = getConstructors(info.id);
+			MemberInfo[] methods = getMethods(info.id);
+			MemberInfo[] fields = getFields(info.id);
+			if (constructors != null) for (MemberInfo i : constructors) ci.set(i.id, i);
+			if (methods != null) for (MemberInfo i : methods) mi.set(i.id, i);
+			if (fields != null) for (MemberInfo i : fields) fi.set(i.id, i);
+
 		}
-		//System.out.println("[4]");
 	}
 
 	static public boolean hasClassWithName(String name) {
@@ -77,37 +91,59 @@ public class ProgramReflection {
 	}
 
 	// Constructor
-	static public Object dynamicNew(int constructorId, Object[] params) {
+	static public Object dynamicNew(int classId, int constructorId, Object[] params) {
 		return null;
 	}
 
 	// Method
-	static public Object dynamicInvoke(int methodId, Object object, Object[] params) {
+	static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
 		return null;
 	}
 
 	// Field
-	static public Object dynamicGet(int fieldId, Object object) {
+	static public Object dynamicGet(int classId, int fieldId, Object object) {
 		return null;
 	}
 
-	static public void dynamicSet(int fieldId, Object object, Object value) {
+	static public void dynamicSet(int classId, int fieldId, Object object, Object value) {
 	}
 
 	static public Annotation[] getClassAnnotations(int classId) {
 		return new Annotation[0];
 	}
 
-	static public Annotation[] getFieldAnnotations(int fieldId) {
+	static public Annotation[] getFieldAnnotations(int classId, int fieldId) {
 		return new Annotation[0];
 	}
 
-	static public Annotation[] getMethodAnnotations(int methodId) {
+	static public Annotation[] getMethodAnnotations(int classId, int methodId) {
 		return new Annotation[0];
 	}
 
-	static public Annotation[] getMethodArgumentAnnotations(int methodId, int argIndex) {
+	static public Annotation[] getMethodArgumentAnnotations(int classId, int methodId, int argIndex) {
 		return new Annotation[0];
+	}
+
+	static public MemberInfo getMethodInfo(int classId, int methodId) {
+		_ensure();
+		return _methodInfos.get(classId).get(methodId);
+	}
+
+	//native static public Class<?> getClassByInfo(ClassInfo info);
+
+	native static public Method getMethodByInfo(Class<?> clazz, MemberInfo info);
+
+	static public Class<?> getClassById(int classId) {
+		try {
+			return Class.forName(_classNames[classId]);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	static public Method getDirectMethod(int classId, int methodId) {
+		return getMethodByInfo(getClassById(classId), getMethodInfo(classId, methodId));
 	}
 
 	//static public long dynamicFieldPtr(int fieldId, Object object) {

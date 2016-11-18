@@ -130,6 +130,7 @@ interface AstType {
 
 	companion object {
 		val STRING = AstType.REF("java.lang.String")
+		val STRINGBUILDER = AstType.REF("java.lang.StringBuilder")
 		val OBJECT = AstType.REF("java.lang.Object")
 		val CLASS = AstType.REF("java.lang.Class")
 	}

@@ -40,7 +40,7 @@ public final class Field extends AccessibleObject implements Member {
 	//private transient FieldRepository genericInfo;
 
 	public Annotation[] getDeclaredAnnotations() {
-		Annotation[]out = ProgramReflection.getFieldAnnotations(info.id);
+		Annotation[]out = ProgramReflection.getFieldAnnotations(clazz.id, info.id);
 		return (out != null) ? out : new Annotation[0];
 	}
 
@@ -144,14 +144,14 @@ public final class Field extends AccessibleObject implements Member {
 	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
 	//@JTranscMethodBody(target = "cpp", value = "*(SOBJ *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	private void _setObject(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
-		ProgramReflection.dynamicSet(slot, obj, value);
+		ProgramReflection.dynamicSet(this.clazz.id, slot, obj, value);
 	}
 
 	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
 	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
 	//@JTranscMethodBody(target = "cpp", value = "return *(SOBJ *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException {
-		return ProgramReflection.dynamicGet(slot, obj);
+		return ProgramReflection.dynamicGet(this.clazz.id, slot, obj);
 	}
 
 	////////////////////////////////////////////////////////////
