@@ -41,7 +41,10 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						}
 					}
 					createMethod("annotationType", AstType.METHOD(AstType.CLASS, listOf())) {
-						RETURN(AstExpr.LITERAL(annotationType, types))
+						RETURN(annotationType.lit)
+					}
+					createMethod("getClass", AstType.METHOD(AstType.CLASS, listOf())) {
+						RETURN(annotationType.lit)
 					}
 					createMethod("toString", AstType.METHOD(AstType.STRING, listOf())) {
 						val appendObject = AstMethodRef(StringBuilder::class.java.fqname, "append", AstType.METHOD(AstType.STRINGBUILDER, listOf(AstType.OBJECT)))
@@ -121,9 +124,15 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				when (data) {
 					null -> AstExpr.LITERAL(null, types)
 					is AstAnnotation -> {
-						val annotationProxy = getAnnotationProxyClass(data.type);
+						val annotationType = program[data.type]
+						val annotationProxy = getAnnotationProxyClass(data.type)
 						val annotationProxyConstructor = annotationProxy.constructors.first()
-						AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, data.elements.values.map { toAnnotationExpr(it, temps, builder) })
+						val args = arrayListOf<Any?>()
+						for (m in annotationType!!.methods) {
+							val value = data.elements[m.name] ?: m.defaultTag
+							args += value
+						}
+						AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, args.map { toAnnotationExpr(it, temps, builder) })
 					}
 					is AstFieldWithoutTypeRef -> toAnnotationExpr(program[data.containingClass].locateField(data.name)!!.ref, temps, builder)
 					is AstFieldRef -> AstExpr.FIELD_STATIC_ACCESS(data)
@@ -177,17 +186,20 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			SWITCH(fieldIdArg.expr) {
 				for (clazz in visibleClasses) {
-					CASE(clazz.classId) {
-						SWITCH(fieldIdArg.expr) {
-							for (field in clazz.fields) {
-								val annotations = field.runtimeAnnotations
-								if (annotations.isNotEmpty()) {
-									CASE(field.id) {
-										SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
-										for ((index, annotation) in annotations.withIndex()) {
-											SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+					val fields = clazz.fields.filter { it.visible }
+					if (fields.flatMap { it.runtimeAnnotations }.isNotEmpty()) {
+						CASE(clazz.classId) {
+							SWITCH(fieldIdArg.expr) {
+								for (field in fields) {
+									val annotations = field.runtimeAnnotations
+									if (annotations.isNotEmpty()) {
+										CASE(field.id) {
+											SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+											for ((index, annotation) in annotations.withIndex()) {
+												SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+											}
+											RETURN(outLocal)
 										}
-										RETURN(outLocal)
 									}
 								}
 							}
@@ -206,17 +218,20 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			SWITCH(classIdArg.expr) {
 				for (clazz in visibleClasses) {
-					CASE(clazz.classId) {
-						SWITCH(methodIdArg.expr) {
-							for (method in clazz.methods) {
-								val annotations = method.runtimeAnnotations
-								if (annotations.isNotEmpty()) {
-									CASE(method.id) {
-										SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
-										for ((index, annotation) in annotations.withIndex()) {
-											SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+					val methods = clazz.methods
+					if (methods.flatMap { it.runtimeAnnotations }.isNotEmpty()) {
+						CASE(clazz.classId) {
+							SWITCH(methodIdArg.expr) {
+								for (method in methods) {
+									val annotations = method.runtimeAnnotations
+									if (annotations.isNotEmpty()) {
+										CASE(method.id) {
+											SET(outLocal, NEW_ARRAY(ANNOTATION_ARRAY, annotations.size.lit))
+											for ((index, annotation) in annotations.withIndex()) {
+												SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+											}
+											RETURN(outLocal)
 										}
-										RETURN(outLocal)
 									}
 								}
 							}
@@ -236,7 +251,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			SWITCH(classIdArg.expr) {
 				for (clazz in visibleClasses) {
 					val methods = clazz.methods.filter { it.visible }
-					if (methods.isNotEmpty()) {
+					if (methods.flatMap { it.parameterAnnotations.flatMap { it } }.isNotEmpty()) {
 						CASE(clazz.classId) {
 							SWITCH(methodIdArg.expr) {
 								for (method in methods) {
@@ -384,6 +399,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 								for ((index, memberWithRef) in members.withIndex()) {
 									val ref = memberWithRef.ref
 									val member = memberWithRef.mi
+
 									// static public MemberInfo create(int id, String name, int modifiers, String desc, String genericDesc)
 
 									SET_ARRAY(out, index.lit, MemberInfo_create(

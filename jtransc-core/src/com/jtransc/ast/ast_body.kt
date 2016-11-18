@@ -253,6 +253,11 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	//}
 }
 
+fun AstStm.isEmpty() = when (this) {
+	is AstStm.STMS -> this.stms.isEmpty()
+	else -> false
+}
+
 fun AstStm.isSingleStm(): Boolean {
 	if (this is AstStm.STMS) return (this.stms.count() == 1) && this.stms.last().value.isSingleStm()
 	return true

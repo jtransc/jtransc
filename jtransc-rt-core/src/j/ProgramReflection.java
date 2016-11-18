@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 /**
  * MetaReflectionPlugin set those methods
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ProgramReflection {
 	static public ClassInfo[] _classInfos;
 	static public String[] _classNames;

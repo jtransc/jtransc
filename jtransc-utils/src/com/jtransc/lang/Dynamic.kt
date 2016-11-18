@@ -72,6 +72,7 @@ object Dynamic {
 		}
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	fun toComparable(it: Any?): Comparable<Any?> {
 		return when (it) {
 			null -> 0 as Comparable<Any?>

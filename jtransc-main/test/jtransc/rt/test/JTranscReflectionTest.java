@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings({"WeakerAccess", "unchecked", "ImplicitArrayToString", "ConstantConditions"})
 public class JTranscReflectionTest {
 	static public void main(String[] args) throws Throwable {
 		testInvokeConstructor();
@@ -166,6 +167,7 @@ public class JTranscReflectionTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	static class TestEmptyAnnotationsClass {
 		@JTranscKeep
 		public int a;
@@ -267,6 +269,7 @@ public class JTranscReflectionTest {
 		System.out.println(C.class.getConstructors()[0].getParameterAnnotations().length);
 	}
 
+	@SuppressWarnings("UnusedParameters")
 	static class Test {
 		@JTranscKeep
 		public Test(int a, @TestAnnotation1(10) @TestAnnotation2(20) int b) {
@@ -436,6 +439,7 @@ public class JTranscReflectionTest {
 	}
 }
 
+@SuppressWarnings("WeakerAccess")
 class A extends B {
 	static public int aCount = 0;
 
@@ -445,6 +449,7 @@ class A extends B {
 	}
 }
 
+@SuppressWarnings("WeakerAccess")
 class B implements I {
 	static public int bCount = 0;
 
@@ -454,6 +459,7 @@ class B implements I {
 	}
 }
 
+@SuppressWarnings("UnusedParameters")
 class C extends B {
 	@JTranscKeep
 	public C(int a, int b, int c) {
@@ -464,6 +470,7 @@ interface I {
 
 }
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 class FieldTestClass {
 	public byte _byte;
 	public Byte _Byte;
@@ -474,6 +481,7 @@ class FieldTestClass {
 	public Double _Double;
 }
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 class MyDemo {
 	@JTranscKeep
 	public List<MyDemoItem> items;
@@ -487,7 +495,9 @@ class MyDemoItem {
 	}
 }
 
+@SuppressWarnings("ALL")
 class ATest1<A, B> {
+	@SuppressWarnings("TypeParameterHidesVisibleType")
 	class ATest2<C> {
 		class ATest3<D, E extends String> {
 
@@ -517,8 +527,12 @@ class ATest1<A, B> {
 
 enum InjectStore {DECLARE, REQUEST, NONE}
 
-enum InjectType {UNKNOWN, SINGLETON, PROTOTYPE}
+@SuppressWarnings({"WeakerAccess", "unused"})
+enum InjectType {
+	UNKNOWN, SINGLETON, PROTOTYPE
+}
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 enum EnumDemo {
 	AA("mya"), BB("myb");
 
@@ -539,12 +553,14 @@ class TestDeprecatedExample {
 	}
 }
 
+@SuppressWarnings("unused")
 @interface TestReplaceWith {
 	String value();
 
 	String[] imports() default {};
 }
 
+@SuppressWarnings("unused")
 @interface TestDeprecated {
 	TestReplaceWith replaceWith();
 }

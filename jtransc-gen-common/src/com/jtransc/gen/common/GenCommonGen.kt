@@ -334,7 +334,8 @@ open class GenCommonGen(val injector: Injector) {
 	}
 
 	open fun genStmSetFieldStaticActual(stm: AstStm.SET_FIELD_STATIC, left: String, field: AstFieldRef, right: String): Indenter = indent {
-		line("$left /*${stm.field.name}*/ = $right;")
+		//line("$left /*${stm.field.name}*/ = $right;")
+		line("$left = $right;")
 	}
 
 	open fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
@@ -396,10 +397,12 @@ open class GenCommonGen(val injector: Injector) {
 					}
 				}
 			}
-			line("default:")
-			indent {
-				line(stm.default.genStm())
-				if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+			if (!stm.default.value.isEmpty()) {
+				line("default:")
+				indent {
+					line(stm.default.genStm())
+					if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+				}
 			}
 		}
 	}
