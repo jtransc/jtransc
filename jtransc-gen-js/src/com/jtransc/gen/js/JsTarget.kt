@@ -31,6 +31,7 @@ import java.io.File
 import java.util.*
 
 class JsTarget() : GenTargetDescriptor() {
+	override val priority = 500
 	override val name = "js"
 	override val longName = "Javascript"
 	override val sourceExtension = "js"

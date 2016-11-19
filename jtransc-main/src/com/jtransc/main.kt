@@ -17,15 +17,16 @@
 package com.jtransc
 
 import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstTypes
+import com.jtransc.ast.ConfigMinimizeNames
+import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.injector.Injector
 import java.io.File
 import java.util.*
 
 object JTranscMain {
+	@Suppress("CanBeVal")
 	@JvmStatic fun main(pargs: Array<String>) {
-		val injector = Injector()
 		// @TODO: allow a plugin system
 		val targets = AllBuildTargets
 		val jtranscVersion = JTranscVersion.getVersion()
@@ -52,7 +53,7 @@ object JTranscMain {
 			println("")
 			println("jtransc <list of class paths or jar files>")
 			println("")
-			println("Targets: ${AllBuildTargets}")
+			println("Targets: $AllBuildTargets")
 			println("")
 			println("Performs an aot compilation that transform a java/kotlin compiled program (class and jar files)")
 			println("into an executable file ($executableTypes) file at the moment.")
@@ -94,6 +95,9 @@ object JTranscMain {
 			val settings: AstBuildSettings
 		)
 
+		var treeShaking = false
+		var trace = false
+
 		fun parseArgs(_args: List<String>): ProgramConfig {
 			val args: Queue<String> = ArrayDeque(_args)
 
@@ -133,11 +137,15 @@ object JTranscMain {
 			//println("args: $args")
 			//println("targetName: $targetName")
 
+			//println("targetName:" + targetName)
+
 			if (targetName == null && out != null) {
-				targetName = targets.locateTargetByOutExt(File(out).extension) ?: "haxe:js"
+				targetName = targets.locateTargetByOutExt(File(out).extension) ?: "js"
 			}
 
-			val target = targets.locateTargetByName(targetName ?: "haxe:js")
+			val target = targets.locateTargetByName(targetName ?: "js")
+
+			//println("targetName:" + targetName)
 
 			return ProgramConfig(
 				classPaths = classPaths.toList(),
@@ -152,7 +160,21 @@ object JTranscMain {
 
 		try {
 			val config = parseArgs(pargs.toList())
+			val injector = Injector()
+			injector.mapInstance(ConfigMinimizeNames(minimizeNames = false))
 			injector.mapInstance(ConfigClassPaths(config.classPaths))
+			injector.mapInstances(BuildBackend.ASM)
+			injector.mapInstances(ConfigTreeShaking(treeShaking = treeShaking, trace = trace))
+			val build = AllBuildSimple(
+				injector = injector,
+				entryPoint = config.entryPoint,
+				settings = config.settings,
+				target = config.target.fullName,
+				output = config.output,
+				targetDirectory = config.targetDirectory
+			)
+			val result = build.buildAndRun(captureRunOutput = false, run = config.run)
+			/*
 			val build = JTranscBuild(
 				injector = injector,
 				target = config.target.descriptor,
@@ -163,6 +185,7 @@ object JTranscMain {
 				settings = config.settings
 			)
 			val result = build.buildAndRun(captureRunOutput = false, run = config.run)
+			*/
 			System.exit(result.process.exitValue)
 		} catch (e: Throwable) {
 			e.printStackTrace(System.err)

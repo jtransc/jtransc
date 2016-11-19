@@ -41,6 +41,7 @@ import java.util.*
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)
 
 class HaxeTarget() : GenTargetDescriptor() {
+	override val priority = 1000
 	override val name = "haxe"
 	override val longName = "Haxe"
 	override val sourceExtension = "hx"

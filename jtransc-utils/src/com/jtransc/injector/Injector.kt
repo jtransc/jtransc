@@ -1,6 +1,7 @@
 package com.jtransc.injector
 
 import com.jtransc.error.invalidOp
+import java.lang.reflect.InvocationTargetException
 
 @Suppress("UNCHECKED_CAST")
 class Injector() {
@@ -26,7 +27,11 @@ class Injector() {
 
 	internal fun <T : Any> createInstance(clazz: Class<T>): T {
 		val c = clazz.constructors.firstOrNull() ?: invalidOp("No constructors for $clazz")
-		return c.newInstance(*(c.parameterTypes.map { this.getInstance(it) }).toTypedArray()) as T
+		try {
+			return c.newInstance(*(c.parameterTypes.map { this.getInstance(it) }).toTypedArray()) as T
+		} catch (e: InvocationTargetException) {
+			throw InvocationTargetException(e, "Can't construct class $clazz : $c")
+		}
 	}
 
 	private fun getAllAnnotations(clazz: Class<*>): List<Annotation> {

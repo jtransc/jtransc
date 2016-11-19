@@ -51,6 +51,7 @@ data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: 
 }
 
 abstract class GenTargetDescriptor {
+	open val priority: Int = 0
 	abstract val name: String
 	abstract val longName: String
 	abstract val sourceExtension: String
