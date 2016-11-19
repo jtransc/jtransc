@@ -1,5 +1,6 @@
 package com.jtransc.io
 
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
@@ -62,4 +63,16 @@ fun InputStream.readAvailableChunk(): ByteArray {
 	val out = ByteArray(this.available())
 	val readed = this.read(out, 0, out.size)
 	return out.sliceArray(0 until readed)
+}
+
+fun InputStream.readExactBytes(size: Int): ByteArray {
+	val out = ByteArray(size)
+	var offset = 0
+	var remaining = size
+	while (remaining > 0) {
+		val read = this.read(out, offset, remaining)
+		remaining -= read
+		offset += read
+	}
+	return out
 }

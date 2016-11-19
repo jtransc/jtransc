@@ -193,6 +193,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java
 	val _JTranscAddMembersList = JTranscAddMembersList::class.java
 
+	@Suppress("UNCHECKED_CAST")
 	internal fun _write(output: SyncVfsFile) {
 		val resourcesVfs = program.resourcesVfs
 		val copyFiles = getFilesToCopy("js")
@@ -393,7 +394,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	fun writeClass(clazz: AstClass): Indenter {
 		setCurrentClass(clazz)
 
-		val isRootObject = clazz.name.fqname == "java.lang.Object"
+		//val isRootObject = clazz.name.fqname == "java.lang.Object"
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
 		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
 		refs._usedDependencies.clear()
@@ -533,13 +534,13 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]} at $context")
 			val base = templateString.gen((arg.value as String))
 			when (methodName) {
-				"v_raw" -> "$base"
-				"o_raw" -> "$base"
+				"v_raw" -> base
+				"o_raw" -> base
 				"z_raw" -> "(!!($base))"
 				"i_raw" -> "(($base)|0)"
 				"d_raw" -> "(+($base))"
 				"s_raw" -> "N.str($base)"
-				else -> "$base"
+				else -> base
 			}
 		} else {
 			super.genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, args)

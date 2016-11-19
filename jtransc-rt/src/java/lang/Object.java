@@ -60,7 +60,6 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1005, process = true, prepend = "js/MathPolyfill.js")
 @JTranscAddFile(target = "js", priority = -1003, process = true, prepend = "js/Arrays.js")
 @JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/N.js")
-@JTranscAddFile(target = "js", priority = -1001, process = true, prepend = "js/R.js")
 @JTranscAddFile(target = "js", priority = -1000, process = true, prependAppend = "js/Runtime.js")
 public class Object {
 	@JTranscMethodBody(target = "js", value = "this.$JS$__id = $JS$__lastId++;")
@@ -73,7 +72,7 @@ public class Object {
 	}
 
 	@HaxeMethodBody("return HaxeNatives.getClass(this);")
-	@JTranscMethodBody(target = "js", value = "return R.getClass(this);")
+	@JTranscMethodBody(target = "js", value = "return N.getClass(this);")
 	//@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
 	public final Class<?> getClass() {
 		return java.lang.jtransc.JTranscCoreReflection.getClassById(ProgramReflection.getClassId(this));

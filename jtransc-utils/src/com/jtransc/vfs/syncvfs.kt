@@ -18,6 +18,7 @@ package com.jtransc.vfs
 
 import com.jtransc.env.OS
 import com.jtransc.error.*
+import com.jtransc.io.readExactBytes
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import com.jtransc.vfs.node.FileNode
@@ -625,7 +626,8 @@ private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
 
 	override fun read(path: String): ByteArray {
 		val entry = zip.getEntry(path) ?: throw FileNotFoundException(path)
-		return zip.getInputStream(entry).readBytes()
+		val inputStream = zip.getInputStream(entry)
+		return inputStream.readExactBytes(entry.size.toInt())
 	}
 
 	class Node(val zip: ZipSyncVfs, val name: String, val parent: Node? = null) {

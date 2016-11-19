@@ -22,11 +22,10 @@ import com.jtransc.error.noImpl
 import com.jtransc.gen.haxe.HaxeCompiler
 import com.jtransc.gen.haxe.HaxeLib
 import com.jtransc.io.createZipFile
-import com.jtransc.text.Indenter
-import com.jtransc.text.toUcFirst
-import com.jtransc.vfs.LocalVfs
 import com.jtransc.org.objectweb.asm.ClassWriter
 import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.text.Indenter
+import com.jtransc.vfs.LocalVfs
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -34,6 +33,7 @@ import org.w3c.dom.NodeList
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
+@Suppress("unused")
 object HaxeTools {
 	@JvmStatic fun main(args: Array<String>) {
 		val vfs = LocalVfs(File("."))
@@ -240,14 +240,14 @@ object HaxeTools {
 				for (member in type.members) {
 					if (member.name == "toString") continue
 
-					val ids = ids.child()
+					val cids = ids.child()
 					for (generic in member.generics) {
-						ids.transforms[FqName(member.name + "." + generic)] = FqName(generic)
+						cids.transforms[FqName(member.name + "." + generic)] = FqName(generic)
 					}
 					val modifiers = sortedSetOf<String>()
 					val name = member.name
 					val isConstructor = (member.name == "new")
-					val validName = ids.generateValidMemberName(
+					val validName = cids.generateValidMemberName(
 						if (isConstructor) validClassName.simpleName else member.name,
 						member.isStatic
 					)
@@ -277,7 +277,7 @@ object HaxeTools {
 					when (member) {
 						is HaxeField -> {
 							if (!isInterface) {
-								val typeString = ids.serializeValid(member.type)
+								val typeString = cids.serializeValid(member.type)
 								line("@jtransc.annotation.JTranscField(\"$name\")")
 								if (isEnum) {
 									// @:fakeEnum String
@@ -288,29 +288,29 @@ object HaxeTools {
 							}
 						}
 						is HaxeMethod -> {
-							val returnTypeString = if (isConstructor) "" else ids.serializeValid(member.type.ret)
+							val returnTypeString = if (isConstructor) "" else cids.serializeValid(member.type.ret)
 							if (isConstructor) {
 								if (member.args.isNotEmpty()) line("public $validName() { super(); }")
 							}
-							val modifiersStr = if (isConstructor) "public" else if (isInterface) "" else modifiersStr
+							val modifiersStr2 = if (isConstructor) "public" else if (isInterface) "" else modifiersStr
 							val endStr = if (isConstructor) "{ super(); }" else ";"
 
 							for (args in member.args.possibleSignatures()) {
 								if (isConstructor && args.isEmpty()) continue
-								val argsString = args.map { ids.serializeValid(it.type) + " " + ids.generateValidId(it.name) }.joinToString(", ")
+								val argsString = args.map { cids.serializeValid(it.type) + " " + cids.generateValidId(it.name) }.joinToString(", ")
 								if (!isConstructor) {
 									line("@jtransc.annotation.JTranscMethod(\"$name\")")
 								}
-								line("$modifiersStr $memberGenericString $returnTypeString $validName($argsString)$endStr")
+								line("$modifiersStr2 $memberGenericString $returnTypeString $validName($argsString)$endStr")
 							}
 						}
 						is HaxeEnumItem -> {
 							if (member.args.isEmpty()) {
 								line("static public ${validClassName.fqname} $validName;")
 							} else {
-								data class EnumEntry(val name:String, val type:AstType) {
-									val validName = ids.generateValidId(this.name)
-									val validType = ids.serializeValid(this.type)
+								data class EnumEntry(val name: String, val type: AstType) {
+									val validName = cids.generateValidId(this.name)
+									val validType = cids.serializeValid(this.type)
 								}
 
 								line("static public class $validName extends ${validClassName.fqname}") {
@@ -337,7 +337,7 @@ object HaxeTools {
 	}
 
 	fun List<AstArgument>.possibleSignatures(): List<List<AstArgument>> {
-		var options = arrayListOf(this)
+		val options = arrayListOf(this)
 		var currentOption = this
 		while (currentOption.isNotEmpty()) {
 			if (currentOption.lastOrNull()?.optional == true) {
@@ -350,8 +350,9 @@ object HaxeTools {
 		return options
 	}
 
+	@Suppress("UNUSED_VARIABLE")
 	fun generateClass(type: HaxeType): ByteArray {
-		val cw = ClassWriter(0);
+		val cw = ClassWriter(0)
 		var classAccess = 0
 		val isInterface = type.isInterface
 		classAccess += Opcodes.ACC_PUBLIC
@@ -435,12 +436,13 @@ object HaxeTools {
 			var linkType: AstType? = null
 			var members = listOf<HaxeMember>()
 
+			@Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UNUSED_VALUE")
 			fun parseType2(node: Element) {
 				val specials = node.elementChildren.filter { it.nodeName in SPECIAL_NAMES }
 				members = node.elementChildren.filter { it.nodeName !in SPECIAL_NAMES }.map { parseMember(it, typeType) }
 				var abstractThis: AstType = AstType.OBJECT
-				var abstractTo = arrayListOf<AstType>()
-				var abstractFrom = arrayListOf<AstType>()
+				val abstractTo = arrayListOf<AstType>()
+				val abstractFrom = arrayListOf<AstType>()
 
 				for (special in specials) {
 					when (special.tagName) {
@@ -518,7 +520,7 @@ object HaxeTools {
 			}
 		}
 
-		fun parseMember(member: Element, typeType:String): HaxeMember {
+		fun parseMember(member: Element, typeType: String): HaxeMember {
 			return when (typeType) {
 				"enum" -> parseEnumMember(member)
 				else -> parseNormalMember(member)
@@ -593,7 +595,7 @@ object HaxeTools {
 		val isExtern: Boolean,
 		val implements: List<FqName>,
 		val extends: List<FqName>,
-	    val linkType: AstType?
+		val linkType: AstType?
 	)
 
 	interface HaxeMember {
@@ -634,7 +636,7 @@ object HaxeTools {
 		override val isPublic: Boolean,
 		override val isStatic: Boolean,
 		override val type: AstType,
-	    val args: List<AstArgument>
+		val args: List<AstArgument>
 	) : HaxeMember
 
 	fun Node.dump() {

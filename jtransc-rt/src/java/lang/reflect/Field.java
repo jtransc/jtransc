@@ -23,10 +23,6 @@ import java.lang.annotation.Annotation;
 import java.lang.jtransc.JTranscCoreReflection;
 
 @SuppressWarnings({"ConstantConditions", "unused", "StatementWithEmptyBody"})
-//@HaxeAddMembers({
-//	"private function _getClass() { var clazz = this.{% FIELD java.lang.reflect.Field:clazz %}._hxClass; var SI = Reflect.field(clazz, 'SI'); if (SI != null) Reflect.callMethod(clazz, SI, []); return clazz; }",
-//	"private function _getObjectOrClass(obj:Dynamic):Dynamic { return (obj != null) ? obj : _getClass(); }",
-//})
 public final class Field extends AccessibleObject implements Member {
 	protected int typeId;
 	public Class<?> clazz;
@@ -140,16 +136,10 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(SOBJ *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	private void _setObject(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
 		ProgramReflection.dynamicSet(this.clazz.id, slot, obj, value);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(SOBJ *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public Object _getObject(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return ProgramReflection.dynamicGet(this.clazz.id, slot, obj);
 	}
@@ -157,58 +147,34 @@ public final class Field extends AccessibleObject implements Member {
 	////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(bool *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Boolean) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(int8_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public byte getByte(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Byte) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(int16_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public char getChar(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Character) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(int16_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public short getShort(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Short) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(int32_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public int getInt(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Integer) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public long getLong(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Long) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(float32_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public float getFloat(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Float) get(obj);
 	}
 
-	//@HaxeMethodBody("return Reflect.field(_getObjectOrClass(p0), this._internalName);")
-	//@JTranscMethodBody(target = "js", value = "return R.getField(this, p0);")
-	//@JTranscMethodBody(target = "cpp", value = "return *(float64_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0));")
 	public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Double) get(obj);
 	}
@@ -247,73 +213,34 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = {
-	//	"auto field = GET_OBJECT(java_lang_reflect_Field, p0);",
-	//	"auto obj = GET_OBJECT(java_lang_Object, p1);",
-	//	"auto clazz = GET_OBJECT(java_lang_Class, field->{% FIELD java.lang.reflect.Field:clazz %});",
-	//	"auto slot = field->{% FIELD java.lang.reflect.Field:slot %};",
-	//	"auto clazzId = clazz->{% FIELD java.lang.Class:id %};",
-	//	"auto out = TYPE_TABLE::TABLE[clazzId].dynamicFieldPtr(slot, p1);",
-	//	//"printf(\"Field::getFieldPtr:%p\\n\", (void*)out);",
-	//	"if (out == NULL) N::throwNpe();",
-	//	"return (int64_t)out;",
-	//})
-	//static private long getFieldPtr(Field field, Object obj) {
-	//	return ProgramReflection.dynamicFieldPtr(field.slot, obj);
-	//}
-
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(bool *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setBoolean(Object obj, boolean v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(int8_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setByte(Object obj, byte v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(int16_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setChar(Object obj, char v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(int16_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setShort(Object obj, short v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(int32_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setInt(Object obj, int v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(int64_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setLong(Object obj, long v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(float32_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setFloat(Object obj, float v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	//@HaxeMethodBody("Reflect.setField(_getObjectOrClass(p0), this._internalName, p1);")
-	//@JTranscMethodBody(target = "js", value = "R.setField(this, p0, p1);")
-	//@JTranscMethodBody(target = "cpp", value = "*(float64_t *)(this->{% METHOD java.lang.reflect.Field:getFieldPtr %}(this->sptr(), p0)) = p1;")
 	public void setDouble(Object obj, double v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
@@ -321,5 +248,4 @@ public final class Field extends AccessibleObject implements Member {
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		return super.getAnnotation(annotationClass);
 	}
-
 }

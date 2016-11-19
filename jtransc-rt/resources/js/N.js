@@ -235,6 +235,18 @@ N.stringToCharArray = function(str) {
 
 N.resolveClass = function(name) { return java_lang_Class["forName(Ljava/lang/String;)Ljava/lang/Class;"](N.str(name)); };
 
+N.getClass = function(obj) {
+	if (obj instanceof JA_0) {
+		return N.resolveClass(obj.desc);
+	}
+
+	var typeContext = obj.$$JS_TYPE_CONTEXT$$;
+	if (!typeContext.clazzClazz) {
+		typeContext.clazzClazz = N.resolveClass(typeContext.name);
+	}
+	return typeContext.clazzClazz;
+};
+
 N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
 	var out = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
 		N.str(declaringClass),
