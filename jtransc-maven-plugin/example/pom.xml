@@ -58,6 +58,8 @@
                     <target>js:js:program.js</target>
                     <mainClass>example.Test</mainClass>
                     <release>true</release>
+					<treeShaking>true</treeShaking>
+					<trace>true</trace>
                 </configuration>
                 <executions><execution><goals><goal>jtransc</goal></goals></execution></executions>
             </plugin>

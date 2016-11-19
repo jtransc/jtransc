@@ -12,12 +12,20 @@ class Injector() {
 	inline fun <reified T : Any> get(default: () -> T): T = if (T::class.java in maps) getInstance(T::class.java) else default()
 
 	fun <T : Any> getInstance(clazz: Class<T>): T {
-		if (clazz !in maps) mapImplementation(clazz, clazz)
+		if (clazz !in maps) {
+			val allAnnotations = getAllAnnotations(clazz)
+			val isSingleton = allAnnotations.filterIsInstance<Singleton?>().isNotEmpty()
+			val isPrototype = allAnnotations.filterIsInstance<Prototype?>().isNotEmpty()
+			if (!isSingleton && !isPrototype) {
+				invalidOp("Cannot automap '$clazz' not @Singleton or @Prototype")
+			}
+			mapImplementation(clazz, clazz)
+		}
 		return this.maps[clazz]!!() as T
 	}
 
 	internal fun <T : Any> createInstance(clazz: Class<T>): T {
-		val c = clazz.constructors.firstOrNull() ?: invalidOp("No constructors")
+		val c = clazz.constructors.firstOrNull() ?: invalidOp("No constructors for $clazz")
 		return c.newInstance(*(c.parameterTypes.map { this.getInstance(it) }).toTypedArray()) as T
 	}
 
@@ -30,7 +38,8 @@ class Injector() {
 	}
 
 	fun mapImplementation(classInterface: Class<*>, classImpl: Class<*>) {
-		val isSingleton = (getAllAnnotations(classImpl).filterIsInstance<Singleton?>().isNotEmpty())
+		val allAnnotations = getAllAnnotations(classImpl)
+		val isSingleton = allAnnotations.filterIsInstance<Singleton?>().isNotEmpty()
 		var cached: Any? = null
 
 		this.maps[classInterface] = {
@@ -52,3 +61,7 @@ class Injector() {
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 annotation class Singleton()
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class Prototype()

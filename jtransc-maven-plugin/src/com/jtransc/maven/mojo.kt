@@ -18,9 +18,11 @@ package com.jtransc.maven
 
 import com.jtransc.AllBuildSimple
 import com.jtransc.BuildBackend
+import com.jtransc.ConfigClassPaths
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
 import com.jtransc.ast.ConfigMinimizeNames
+import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.injector.Injector
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.AbstractMojo
@@ -72,6 +74,8 @@ class JTranscMojo : AbstractMojo() {
 	@Parameter(property = "relooper", defaultValue = "false") @JvmField var relooper: Boolean = false
 	@Parameter(property = "minimizeNames", defaultValue = "false") @JvmField var minimizeNames: Boolean = false
 	@Parameter(property = "analyzer", defaultValue = "false") @JvmField var analyzer: Boolean = false
+	@Parameter(property = "treeShaking", defaultValue = "false") @JvmField var treeShaking: Boolean = false
+	@Parameter(property = "trace", defaultValue = "false") @JvmField var trace: Boolean = false
 	@Parameter(property = "extra") @JvmField var extra = hashMapOf<String?, String?>()
 
 	// @TODO: Use <resources> instead?
@@ -157,7 +161,6 @@ class JTranscMojo : AbstractMojo() {
 			extra = extra
 		)
 
-		injector.mapInstance(ConfigMinimizeNames(minimizeNames))
 		//project.version
 
 		log.info("KT: Transcompiling entry point '$mainClass':")
@@ -171,6 +174,13 @@ class JTranscMojo : AbstractMojo() {
 		val projectOutputDir = project.build.outputDirectory
 		dependencyJarPaths.add(projectOutputDir)
 		log.info("    " + projectOutputDir)
+
+
+		injector.mapInstance(ConfigMinimizeNames(minimizeNames))
+		injector.mapInstances(ConfigClassPaths(dependencyJarPaths))
+		injector.mapInstances(BuildBackend.ASM)
+		injector.mapInstances(ConfigTreeShaking(treeShaking = treeShaking, trace = trace))
+
 
 		val finalOutputDirectory = File(project.build.outputDirectory).parentFile
 
