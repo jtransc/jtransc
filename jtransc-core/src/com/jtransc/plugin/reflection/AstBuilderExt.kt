@@ -15,7 +15,7 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 	val types: AstTypes = this.program.types
 	val method = AstMethod(
 		containingClass = clazz,
-		id = clazz.lastMethodId++,
+		id = clazz.program.lastMethodId++,
 		name = name,
 		methodType = desc,
 		annotations = listOf(),
@@ -39,7 +39,7 @@ fun AstClass.createField(name: String, type: AstType, isStatic: Boolean = false,
 	val clazz = this
 	val types: AstTypes = this.program.types
 	val field = AstField(
-		id = clazz.lastFieldId++,
+		id = clazz.program.lastFieldId++,
 		containingClass = clazz,
 		name = name,
 		type = type,

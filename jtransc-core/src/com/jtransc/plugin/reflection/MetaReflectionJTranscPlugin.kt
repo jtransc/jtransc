@@ -289,7 +289,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			SET(out, NEW_ARRAY(ARRAY(CLASS_INFO), program.lastClassId.lit))
 
-			for (oldClass in visibleClasses) {
+			for (oldClass in visibleClasses.sortedBy { it.classId }) {
 				val classId = oldClass.classId
 				//println("CLASS: ${oldClass.fqname}")
 				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
@@ -299,7 +299,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					oldClass.modifiers.acc.lit,
 					(oldClass.parentClass?.classId ?: -1).lit,
 					AstExpr.INTARRAY_LITERAL(oldClass.directInterfaces.map { it.classId }),
-					AstExpr.INTARRAY_LITERAL(oldClass.getAllRelatedTypesIdsWith0AtEnd())
+					AstExpr.INTARRAY_LITERAL(oldClass.getAllRelatedTypesIdsWithout0AtEnd())
 				))
 			}
 			RETURN(out.local)
@@ -310,34 +310,25 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicInvoke.name)?.replaceBodyOptBuild {
 			val (classId, methodId, obj, args) = it
 
-			SWITCH(classId.expr) {
-				for (clazz in visibleClasses) {
-					val methods = clazz.methodsWithoutConstructors.filter { it.visible }
-					if (methods.isNotEmpty()) {
-						CASE(clazz.classId) {
-							SWITCH(methodId.expr) {
-								for (method in methods) {
-									val params = method.methodType.args.map {
-										cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
-									}
+			SWITCH(methodId.expr) {
+				for (method in visibleClasses.flatMap { it.methodsWithoutConstructors.filter { it.visible } }.sortedBy { it.id }) {
+					val params = method.methodType.args.map {
+						cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
+					}
 
-									val callExprUncasted = if (method.isStatic) {
-										AstExpr.CALL_STATIC(method.containingClass.ref, method.ref, params)
-									} else {
-										AstExpr.CALL_INSTANCE(obj.expr, method.ref, params)
-									}
+					val callExprUncasted = if (method.isStatic) {
+						AstExpr.CALL_STATIC(method.containingClass.ref, method.ref, params)
+					} else {
+						AstExpr.CALL_INSTANCE(obj.expr, method.ref, params)
+					}
 
-									CASE(method.id) {
-										if (method.methodType.retVoid) {
-											STM(callExprUncasted)
-											RETURN(NULL)
-										} else {
-											//LOGSTR("dynamicInvoke: $methodId".lit),
-											RETURN(callExprUncasted.castTo(OBJECT))
-										}
-									}
-								}
-							}
+					CASE(method.id) {
+						if (method.methodType.retVoid) {
+							STM(callExprUncasted)
+							RETURN(NULL)
+						} else {
+							//LOGSTR("dynamicInvoke: $methodId".lit),
+							RETURN(callExprUncasted.castTo(OBJECT))
 						}
 					}
 				}
@@ -350,25 +341,16 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicNew.name)?.replaceBodyOptBuild {
 			val (classId, methodId, args) = it
 
-			SWITCH(classId.expr) {
-				for (clazz in visibleClasses) {
-					val constructors = clazz.constructors.filter { it.visible }
-					if (constructors.isNotEmpty()) {
-						CASE(clazz.classId) {
-							SWITCH(methodId.expr) {
-								for (constructor in constructors) {
-									CASE(constructor.id) {
-										val params = constructor.methodType.args.map {
-											cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
-										}
-
-										val callExprUncasted = AstExpr.NEW_WITH_CONSTRUCTOR(constructor.ref, params)
-
-										RETURN(callExprUncasted.castTo(OBJECT))
-									}
-								}
-							}
+			SWITCH(methodId.expr) {
+				for (constructor in visibleClasses.flatMap { it.constructors.filter { it.visible } }.sortedBy { it.id }) {
+					CASE(constructor.id) {
+						val params = constructor.methodType.args.map {
+							cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
 						}
+
+						val callExprUncasted = AstExpr.NEW_WITH_CONSTRUCTOR(constructor.ref, params)
+
+						RETURN(callExprUncasted.castTo(OBJECT))
 					}
 				}
 			}
@@ -456,25 +438,16 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicGet.name)?.replaceBodyOptBuild {
 				val (classId, fieldId, objParam) = it
 
-				SWITCH(classId.expr) {
-					for (clazz in visibleClasses) {
-						val fields = clazz.fields.filter { it.visible }
-						if (fields.isNotEmpty()) {
-							CASE(clazz.classId) {
-								SWITCH(fieldId.expr) {
-									for (field in clazz.fields.filter { it.visible }) {
-										val expr = if (field.isStatic) {
-											AstExpr.FIELD_STATIC_ACCESS(field.ref)
-										} else {
-											AstExpr.FIELD_INSTANCE_ACCESS(field.ref, objParam.expr)
-										}
+				SWITCH(fieldId.expr) {
+					for (field in visibleClasses.flatMap { it.fields.filter { it.visible } }.sortedBy { it.id }) {
+						val expr = if (field.isStatic) {
+							AstExpr.FIELD_STATIC_ACCESS(field.ref)
+						} else {
+							AstExpr.FIELD_INSTANCE_ACCESS(field.ref, objParam.expr)
+						}
 
-										CASE(field.id) {
-											RETURN(expr.castTo(OBJECT))
-										}
-									}
-								}
-							}
+						CASE(field.id) {
+							RETURN(expr.castTo(OBJECT))
 						}
 					}
 				}
@@ -486,24 +459,15 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicSet.name)?.replaceBodyOptBuild {
 				val (classIdParam, fieldIdParam, objParam, valueParam) = it
 
-				SWITCH(classIdParam.expr) {
-					for (clazz in program.visibleClasses) {
-						val fields = clazz.fields.filter { it.visible }
-						if (fields.isNotEmpty()) {
-							CASE(clazz.classId) {
-								SWITCH(fieldIdParam.expr) {
-									for (field in fields) {
-										val expr = AstExpr.CAST(valueParam.expr, field.type)
+				SWITCH(fieldIdParam.expr) {
+					for (field in program.visibleClasses.flatMap { it.fields.filter { it.visible } }.sortedBy { it.id }) {
+						val expr = AstExpr.CAST(valueParam.expr, field.type)
 
-										CASE(field.id) {
-											if (field.isStatic) {
-												STM(AstStm.SET_FIELD_STATIC(field.ref, expr))
-											} else {
-												STM(AstStm.SET_FIELD_INSTANCE(field.ref, objParam.expr, expr))
-											}
-										}
-									}
-								}
+						CASE(field.id) {
+							if (field.isStatic) {
+								STM(AstStm.SET_FIELD_STATIC(field.ref, expr))
+							} else {
+								STM(AstStm.SET_FIELD_INSTANCE(field.ref, objParam.expr, expr))
 							}
 						}
 					}

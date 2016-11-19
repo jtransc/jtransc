@@ -92,17 +92,17 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 		program.add(astClass)
 
 
-		classNode.getMethods().withIndex().forEach { astClass.add(generateMethod(astClass, it.value, it.index)) }
-		classNode.getFields().withIndex().forEach { astClass.add(generateField(astClass, it.value, it.index)) }
+		classNode.getMethods().withIndex().forEach { astClass.add(generateMethod(astClass, it.value)) }
+		classNode.getFields().withIndex().forEach { astClass.add(generateField(astClass, it.value)) }
 
 		return astClass
 	}
 
-	fun generateMethod(containingClass: AstClass, method: MethodNode, id: Int): AstMethod {
+	fun generateMethod(containingClass: AstClass, method: MethodNode): AstMethod {
 		val mods = AstModifiers(method.access)
 		val methodRef = method.astRef(containingClass.ref, types)
 		return AstMethod(
-			id = id,
+			id = containingClass.program.lastMethodId++,
 			containingClass = containingClass,
 			annotations = method.getAnnotations(types),
 			parameterAnnotations = method.getParameterAnnotations(types),
@@ -129,10 +129,10 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 		)
 	}
 
-	fun generateField(containingClass: AstClass, field: FieldNode, id: Int): AstField {
+	fun generateField(containingClass: AstClass, field: FieldNode): AstField {
 		val mods = AstModifiers(field.access)
 		return AstField(
-			id = id,
+			id = containingClass.program.lastFieldId++,
 			containingClass = containingClass,
 			name = field.name,
 			annotations = field.getAnnotations(types),

@@ -174,6 +174,9 @@ class AstProgram(
 ) : IUserData by UserData(), AstResolver, LocateRightClass {
 	val resourcesVfs = configResourcesVfs.resourcesVfs
 	val entrypoint = configEntrypoint.entrypoint
+	var lastClassId = 0
+	var lastMethodId = 0
+	var lastFieldId = 0
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -228,7 +231,6 @@ class AstProgram(
 
 	fun add(clazz: AstClass) {
 		if (finished) invalidOp("Can't add more classes to a finished program")
-		clazz.classId = _classes.size
 		_classes.add(clazz)
 		_classesByFqname[clazz.fqname] = clazz
 	}
@@ -273,8 +275,6 @@ class AstProgram(
 	override fun locateRightClass(method: AstMethodRef): AstType.REF {
 		return method.classRef
 	}
-
-	val lastClassId: Int get() = classes.size
 }
 
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
@@ -321,12 +321,12 @@ class AstClass(
 	val modifiers: AstModifiers,
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
-	annotations: List<AstAnnotation> = listOf()
+	annotations: List<AstAnnotation> = listOf(),
+	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, annotations), IUserData by UserData() {
-	var classId: Int = -1
 	val THIS: AstExpr get() = AstExpr.THIS(name)
-	var lastMethodId = 0
-	var lastFieldId = 0
+	//var lastMethodId = 0
+	//var lastFieldId = 0
 	val uniqueNames = UniqueNames()
 
 	val ref = AstType.REF(name)
@@ -544,6 +544,7 @@ class AstClass(
 
 	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).distinct()
 
+	fun getAllRelatedTypesIdsWithout0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull()
 	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }

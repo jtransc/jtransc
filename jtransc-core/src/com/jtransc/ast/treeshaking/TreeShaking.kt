@@ -48,7 +48,13 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 	val main = program[program.entrypoint].getMethodSure("main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) }.desc)
 
 	class TreeShakingClass(val oldprogram: AstProgram, val target: String) {
-		val newprogram = AstProgram(program.configResourcesVfs, program.configEntrypoint, program.types, program.injector)
+		val newprogram = AstProgram(
+			program.configResourcesVfs, program.configEntrypoint, program.types, program.injector
+		).apply {
+			this.lastClassId = oldprogram.lastClassId
+			this.lastFieldId = oldprogram.lastFieldId
+			this.lastMethodId = oldprogram.lastMethodId
+		}
 		val processed = hashSetOf<Any>()
 		val newclasses = hashMapOf<FqName, AstClass>()
 		val classtree = ClassTree(SHAKING_TRACE, newprogram)
@@ -96,7 +102,8 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 					modifiers = oldclazz.modifiers,
 					extending = oldclazz.extending,
 					implementing = oldclazz.implementing,
-					annotations = oldclazz.annotations
+					annotations = oldclazz.annotations,
+					classId = oldclazz.classId
 				)
 
 				newclasses[fqname] = newclazz
