@@ -71,6 +71,7 @@ public class ProgramReflection {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__INSTANCE_CLASS_ID;")
+	@JTranscMethodBody(target = "js", value = "return p0['_JS_$$CLASS_ID'];")
 	static public int getClassId(Object obj) {
 		return -1;
 	}
@@ -134,6 +135,7 @@ public class ProgramReflection {
 	native static public Method getMethodByInfo(Class<?> clazz, MemberInfo info);
 
 	static public Class<?> getClassById(int classId) {
+		ProgramReflection._ensure();
 		try {
 			return Class.forName(_classNames[classId]);
 		} catch (ClassNotFoundException e) {

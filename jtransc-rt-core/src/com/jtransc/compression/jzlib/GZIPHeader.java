@@ -34,11 +34,14 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.UnsupportedEncodingException;
 
 /**
  * @see "http://www.ietf.org/rfc/rfc1952.txt"
  */
+@JTranscInvisible
 public class GZIPHeader implements Cloneable {
 
   public static final byte OS_MSDOS = (byte) 0x00;

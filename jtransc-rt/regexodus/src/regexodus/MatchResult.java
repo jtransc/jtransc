@@ -29,6 +29,9 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 public interface MatchResult extends regexodus.regex.MatchResult{
     int MATCH = 0;
     int PREFIX = -1;

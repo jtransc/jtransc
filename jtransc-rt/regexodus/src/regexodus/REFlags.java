@@ -29,6 +29,9 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 public interface REFlags {
     /**
      * All the following options turned off, EXCEPT UNICODE. Unicode handling can be turned off with "-u" at the end

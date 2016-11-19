@@ -34,8 +34,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
-public 
-final class Deflate implements Cloneable {
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
+public final class Deflate implements Cloneable {
 
   static final private int MAX_MEM_LEVEL=9;
 

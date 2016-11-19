@@ -14,6 +14,8 @@
  */
 package regexodus.ds;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.util.Arrays;
 
 /**
@@ -24,6 +26,7 @@ import java.util.Arrays;
  * <br>Note that {@link #clear()} does not modify the hash table size. Rather, a family of {@linkplain #trim() trimming methods} lets you control the size of the table; this is particularly useful if
  * you reuse instances of this class.
  */
+@JTranscInvisible
 public class CharCharMap implements java.io.Serializable, Cloneable {
     private static final long serialVersionUID = 0L;
     private static final boolean ASSERTS = false;

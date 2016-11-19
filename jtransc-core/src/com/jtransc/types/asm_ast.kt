@@ -545,7 +545,7 @@ private class BasicBlockBuilder(
 			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
-			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType))
+			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType.Reference))
 			else -> invalidOp("$i")
 		}
 	}

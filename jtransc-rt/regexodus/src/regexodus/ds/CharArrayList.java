@@ -15,6 +15,8 @@
  */
 package regexodus.ds;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,6 +36,7 @@ import java.util.RandomAccess;
  *
  * @see java.util.ArrayList
  */
+@JTranscInvisible
 public class CharArrayList implements RandomAccess, Cloneable, java.io.Serializable, List<Character>, Comparable<List<? extends Character>> {
     private static final long serialVersionUID = -7046029254386353130L;
     /**

@@ -442,7 +442,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type: AstType = field.type
 	}
 
-	class INSTANCE_OF(expr: AstExpr, val checkType: AstType) : AstExpr() {
+	class INSTANCE_OF(expr: AstExpr, val checkType: AstType.Reference) : AstExpr() {
 		val expr = expr.box
 
 		override val type = AstType.BOOL

@@ -29,6 +29,7 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.ds.IntBitSet;
 
 import java.io.IOException;
@@ -69,6 +70,7 @@ import static regexodus.Replacer.wrap;
  * Matcher (and Pattern) objects are not thread-safe, so only one thread may use a matcher instance at a time.
  */
 
+@JTranscInvisible
 public class Matcher implements MatchResult, Serializable {
     private static final long serialVersionUID = -3628346657932720807L;
     /* Matching options*/
@@ -2552,6 +2554,7 @@ public class Matcher implements MatchResult, Serializable {
 
 }
 
+@JTranscInvisible
 class SearchEntry implements Serializable {
     private static final long serialVersionUID = -3628346657932720807L;
 
@@ -2693,6 +2696,7 @@ class SearchEntry implements Serializable {
     }
 }
 
+@JTranscInvisible
 class MemReg implements Serializable {
     private static final long serialVersionUID = -3628346657932720807L;
 
@@ -2741,6 +2745,7 @@ class MemReg implements Serializable {
     }
 }
 
+@JTranscInvisible
 class LAEntry implements Serializable {
     private static final long serialVersionUID = -3628346657932720807L;
     int index;

@@ -28,8 +28,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package com.jtransc.compression.jzlib;
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.*;
 
+@JTranscInvisible
 public class InflaterInputStream extends FilterInputStream {
   protected final Inflater inflater;
   protected byte[] buf;

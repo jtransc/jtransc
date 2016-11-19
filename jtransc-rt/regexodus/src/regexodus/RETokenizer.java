@@ -29,6 +29,8 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
@@ -56,6 +58,7 @@ import java.util.NoSuchElementException;
  * @see Pattern#tokenizer(java.lang.String)
  */
 
+@JTranscInvisible
 public class RETokenizer implements Iterator<String> {
     private Matcher matcher;
     private boolean checked;

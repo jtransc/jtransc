@@ -29,6 +29,8 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
@@ -65,6 +67,7 @@ import java.util.Map;
  * @see Replacer#Replacer(regexodus.Pattern, regexodus.Substitution)
  */
 
+@JTranscInvisible
 public class Replacer implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 

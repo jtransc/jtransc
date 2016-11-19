@@ -58,10 +58,10 @@ public class System {
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
-	@HaxeMethodBody("return (p0 != null) ? (p0.__ID__ | 0) : 0;")
-	@JTranscMethodBody(target = "js", value = "return N.identityHashCode(p0);")
-	@JTranscMethodBody(target = "cpp", value = "return N::identityHashCode(p0);")
-	public static native int identityHashCode(Object x);
+	//@JTranscMethodBody(target = "cpp", value = "return N::identityHashCode(p0);")
+	public static int identityHashCode(Object x) {
+		return (x != null) ? x.$$id : 0;
+	}
 
 	public static Properties getProperties() {
 		return getProps();
@@ -113,7 +113,7 @@ public class System {
 			_setProperty("java.specification.version", "1.7");
 			_setProperty("java.vendor", "jtransc");
 			_setProperty("java.vendor.url", "http://github.com/jtransc/jtransc");
-			_setProperty("java.vn.name", "haxe");
+			_setProperty("java.vm.name", "haxe");
 			_setProperty("java.vm.specification.name", "Jtransc/Haxe JVM emulator");
 			_setProperty("java.vm.specification.vendor", "jtransc-haxe");
 			_setProperty("java.vm.specification.version", "0.1");

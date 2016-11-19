@@ -940,7 +940,7 @@ open class GenCommonGen(val injector: Injector) {
 	open protected fun N_unboxFloat(e: String) = N_func("unboxFloat", "$e")
 	open protected fun N_unboxDouble(e: String) = N_func("unboxDouble", "$e")
 
-	open protected fun N_is(a: String, b: AstType) = N_is(a, b.targetTypeCast.toString())
+	open protected fun N_is(a: String, b: AstType.Reference) = N_is(a, b.targetTypeCast.toString())
 	open protected fun N_is(a: String, b: String) = N_func("is", "$a, $b")
 	open protected fun N_z2z(str: String) = "($str)"
 	open protected fun N_z2i(str: String) = N_func("z2i", "$str")
@@ -1110,6 +1110,9 @@ open class GenCommonGen(val injector: Injector) {
 	}
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
+
+	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
+	val AstField.escapedConstantValue: String get() = names.escapeConstantRef(this.constantValueOrNativeDefault, this.type)
 
 	val FieldRef.targetName2: String get() = names.getNativeName(this)
 	val LocalParamRef.nativeName: String get() = names.getNativeName(this)

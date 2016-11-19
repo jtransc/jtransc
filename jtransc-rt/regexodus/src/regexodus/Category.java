@@ -1,5 +1,6 @@
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.ds.CharArrayList;
 import regexodus.ds.CharCharMap;
 import regexodus.ds.IntBitSet;
@@ -13,6 +14,7 @@ import java.util.LinkedHashMap;
  * Also, the heavy amount of work that went into the Unicode DB for Node.JS (which the pre-processing stage for this
  * depends on) must be commended; that project is https://github.com/mathiasbynens/node-unicode-data
  */
+@JTranscInvisible
 public class Category {
     private final int[] d;
     private final String s;

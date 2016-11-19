@@ -881,7 +881,7 @@ class GenCppGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 		line("return (${context.method.returnTypeWithThis.cppString})${stm.retval.genExpr()};")
 	}
 
-	override fun N_is(a: String, b: AstType): String = when (b) {
+	override fun N_is(a: String, b: AstType.Reference): String = when (b) {
 		is AstType.REF -> N_func("is", "($a), ${getClassId(b.name)}")
 		is AstType.ARRAY -> N_func("isArray", "($a), L${b.mangle().quote()}")
 		else -> N_func("isUnknown", """$a, "Unsupported $b"""")

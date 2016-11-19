@@ -28,6 +28,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package com.jtransc.compression.jzlib;
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.*;
 
 /**
@@ -36,6 +38,7 @@ import java.io.*;
  * deprecated  use DeflaterOutputStream or InflaterInputStream
  */
 //@Deprecated
+@JTranscInvisible
 public class ZInputStream extends FilterInputStream {
 
   protected int flush=JZlib.Z_NO_FLUSH;

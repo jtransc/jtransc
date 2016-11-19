@@ -29,12 +29,14 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.ds.IntBitSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
+@JTranscInvisible
 class CharacterClass extends Term implements UnicodeConstants {
     private static final BlockSet DIGIT = new BlockSet();
     private static final BlockSet WORDCHAR = new BlockSet();

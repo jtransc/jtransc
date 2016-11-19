@@ -29,6 +29,9 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 public interface UnicodeConstants {
     int CATEGORY_COUNT = 32;
     int Cc = 15;//Character.CONTROL;

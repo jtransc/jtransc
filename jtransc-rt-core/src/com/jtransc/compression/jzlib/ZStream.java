@@ -34,12 +34,15 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 /**
  * ZStream
  *
  * deprecated  Not for public use in the future.
  */
 //@Deprecated
+@JTranscInvisible
 public class ZStream{
 
   static final private int MAX_WBITS=15;        // 32K LZ77 window

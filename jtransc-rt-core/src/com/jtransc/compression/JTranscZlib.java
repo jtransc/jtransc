@@ -2,6 +2,7 @@ package com.jtransc.compression;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscInline;
+import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.compression.jzlib.InflaterInputStream;
 import com.jtransc.io.JTranscIoTools;
@@ -10,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.zip.Inflater;
 
+@JTranscInvisible
 public class JTranscZlib {
 	@HaxeMethodBody(target = "sys", value = "" +
 		"return true;"

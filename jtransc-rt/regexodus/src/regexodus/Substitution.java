@@ -29,6 +29,9 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 public interface Substitution {
     /**
      */

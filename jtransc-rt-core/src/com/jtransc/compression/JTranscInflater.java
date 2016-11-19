@@ -1,10 +1,12 @@
 package com.jtransc.compression;
 
+import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.compression.jzlib.JZlib;
 
 import java.util.Objects;
 import java.util.zip.DataFormatException;
 
+@JTranscInvisible
 public class JTranscInflater {
 	private com.jtransc.compression.jzlib.Inflater inf;
 	private boolean needDict;

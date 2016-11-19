@@ -1,8 +1,11 @@
 package regexodus.regex;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 /**
  * Created by Tommy Ettinger on 6/7/2016.
  */
+@JTranscInvisible
 public interface MatchResult {
 
     /**

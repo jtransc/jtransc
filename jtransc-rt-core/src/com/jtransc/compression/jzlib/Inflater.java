@@ -34,6 +34,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 final public class Inflater extends ZStream{
 
   static final private int MAX_WBITS=15;        // 32K LZ77 window

@@ -337,6 +337,9 @@ class AstClass(
 	val methods = arrayListOf<AstMethod>()
 	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
 	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
+
+	val staticConstructor: AstMethod? get() = methods.firstOrNull { it.isClassInit }
+
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
 	val methodsByNameDesc = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
@@ -548,6 +551,13 @@ class AstClass(
 }
 
 val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
+
+fun List<AstClass>.sortedByExtending(): List<AstClass> {
+	val list = this
+	return list.dependencySorter(allowCycles = false) {
+		listOf(it.parentClass).filterNotNull() + it.directInterfaces
+	}
+}
 
 fun List<AstClass>.sortedByDependencies(): List<AstClass> {
 	val classes = this.associateBy { it.name.fqname }

@@ -47,7 +47,7 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = true)
 	//@Test fun testHelloWorldCppRelease() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = false)
 
-	//@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
 
 	//@Test fun testHelloWorldKotlinTestJs() = testClass<HelloWorldKotlinTest>(minimize = false, target = JsTarget(), log = true)
 	//@Test fun testHelloWorldKotlinTestCpp() = testClass<HelloWorldKotlinTest>(minimize = false, target = CppTarget(), log = true, debug = true)

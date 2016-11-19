@@ -34,6 +34,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 final class Tree{
   static final private int MAX_BITS=15;
   static final private int BL_CODES=19;

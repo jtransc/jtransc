@@ -29,11 +29,14 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 /**
  * Is thrown when Pattern constructor's argument doesn't conform the Perl5 regular expression syntax.
  * @see        regexodus.Pattern
  */
 
+@JTranscInvisible
 public class PatternSyntaxException extends IllegalArgumentException {
     public PatternSyntaxException(String s) {
         super(s);

@@ -1,11 +1,13 @@
 package regexodus.regex;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.PerlSubstitution;
 import regexodus.Replacer;
 
 /**
  * Created by Tommy Ettinger on 6/7/2016.
  */
+@JTranscInvisible
 public class Matcher implements MatchResult {
     private regexodus.Matcher matcher;
     private Pattern pattern;

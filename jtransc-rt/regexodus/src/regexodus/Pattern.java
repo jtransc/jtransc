@@ -29,6 +29,8 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
@@ -227,6 +229,7 @@ import java.util.HashMap;
  * @see MatchResult#suffix()
  */
 
+@JTranscInvisible
 public class Pattern implements Serializable, REFlags {
     private static final long serialVersionUID = -3628346657932720807L;
 

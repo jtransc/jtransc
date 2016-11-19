@@ -1,5 +1,7 @@
 package regexodus.ds;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.util.Arrays;
 
 /**
@@ -7,6 +9,7 @@ import java.util.Arrays;
  * sections instead of the normal 64-bit (again, for GWT reasons; 64-bit integer math is slower on GWT).
  * Created by Tommy Ettinger on 3/30/2016.
  */
+@JTranscInvisible
 public class IntBitSet {
     private int[] data;
     public IntBitSet() {

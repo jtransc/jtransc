@@ -9,6 +9,7 @@ import java.util.zip.DeflaterInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipFile;
 
+@SuppressWarnings("Convert2Lambda")
 public class Benchmark {
 	interface Task {
 		int run();
@@ -195,7 +196,21 @@ public class Benchmark {
 					a.setToMul44(a, b);
 				}
 
-				return (int)a.getSumAll();
+				return (int) a.getSumAll();
+			}
+        });
+
+
+		benchmark("StringBuilder", new Task() {
+			@Override
+			public int run() {
+				StringBuilder sb = new StringBuilder();
+				for (int n = 0; n < 100000; n++) {
+					sb.append("hello");
+					sb.append('w');
+					sb.append("orld");
+				}
+				return sb.toString().length();
 			}
 		});
 

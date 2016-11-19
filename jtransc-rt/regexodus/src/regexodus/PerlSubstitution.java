@@ -29,6 +29,8 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 import java.io.Serializable;
 
 /**
@@ -58,7 +60,7 @@ import java.io.Serializable;
  * @see        Pattern
  */
 
-
+@JTranscInvisible
 public class PerlSubstitution implements Substitution, Serializable {
     //private static Pattern refPtn,argsPtn;
     private static final long serialVersionUID = -1537346657932720807L;

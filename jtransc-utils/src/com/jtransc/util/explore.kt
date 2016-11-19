@@ -52,12 +52,16 @@ fun <T : Any?> recursiveExploration(initialItems: Set<T>, extra: ((item:T) -> It
 	return explored
 }
 
+fun <T> List<T>.dependencySorter(allowCycles:Boolean = false, getDependencies: (item:T) -> List<T>):List<T> {
+	return this.dependencySorterOld(allowCycles, getDependencies)
+}
+
 // @TODO: Optimize this
 // This could construct a tree with a root node all items depend on.
 // We should remove items that depend on root but also depends on other stuff.
 // Later we should iterate the tree from leafs to root. This should be order
 // of magnitudes faster with lots of items.
-fun <T> List<T>.dependencySorter(allowCycles:Boolean = false, getDependencies: (item:T) -> List<T>):List<T> {
+fun <T> List<T>.dependencySorterOld(allowCycles:Boolean = false, getDependencies: (item:T) -> List<T>):List<T> {
 	val all = this
 	val usages = LinkedHashMap<T, ArrayList<T>>()
 	val dependencies = LinkedHashMap<T, ArrayList<T>>()
@@ -91,6 +95,8 @@ fun <T> List<T>.dependencySorter(allowCycles:Boolean = false, getDependencies: (
 
 	return out.reversed()
 }
+
+
 
 fun <T> sortDependenciesSimple(entry:T, getDependencies: (item:T) -> List<T>):List<T> {
 	var out = arrayListOf<T>()

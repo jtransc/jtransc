@@ -28,3 +28,7 @@ repositories {
 dependencies {
 	compile "com.jtransc:jtransc-rt-core:$jtranscVersion"
 }
+
+jtransc {
+	//treeshaking = true
+}

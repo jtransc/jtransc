@@ -72,7 +72,11 @@ object BigTest {
 		JTranscRegression1Test.main(args)
 		JTranscRegression2Test.main(args)
 		JTranscRegression3Test.main(args)
+
+
 		JTranscZipTest.main(args)
+
+
 		ProxyTest.main(args)
 		WrappedTest.main(args)
 

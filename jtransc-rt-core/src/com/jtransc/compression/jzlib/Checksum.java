@@ -34,10 +34,17 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 interface Checksum {
-  void update(byte[] buf, int index, int len);
-  void reset();
-  void reset(long init);
-  long getValue();
-  Checksum copy();
+	void update(byte[] buf, int index, int len);
+
+	void reset();
+
+	void reset(long init);
+
+	long getValue();
+
+	Checksum copy();
 }

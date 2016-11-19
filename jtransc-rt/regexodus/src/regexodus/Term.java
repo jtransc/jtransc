@@ -29,6 +29,7 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.ds.IntBitSet;
 
 import java.io.Serializable;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+@JTranscInvisible
 public class Term implements REFlags, Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -1789,6 +1791,7 @@ public class Term implements REFlags, Serializable {
     }
 }
 
+@JTranscInvisible
 class Pretokenizer implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2053,6 +2056,7 @@ class Pretokenizer implements Serializable {
 
 }
 
+@JTranscInvisible
 class Branch extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2073,6 +2077,7 @@ class Branch extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class BackReference extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
     BackReference(int no, boolean icase, boolean reverse, boolean bracket) {
@@ -2084,6 +2089,7 @@ class BackReference extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class Group extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2106,6 +2112,7 @@ class Group extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class ConditionalExpr extends Group implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2235,6 +2242,7 @@ class ConditionalExpr extends Group implements Serializable {
     }
 }
 
+@JTranscInvisible
 class IndependentGroup extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2248,6 +2256,7 @@ class IndependentGroup extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class Lookahead extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2289,6 +2298,7 @@ class Lookahead extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class Lookbehind extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 
@@ -2378,6 +2388,7 @@ class Lookbehind extends Term implements Serializable {
     }
 }
 
+@JTranscInvisible
 class TermIterator extends Term implements Serializable {
     private static final long serialVersionUID = 2528136757932720807L;
 

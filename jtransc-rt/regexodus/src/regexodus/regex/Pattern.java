@@ -1,5 +1,6 @@
 package regexodus.regex;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.REFlags;
 
 import java.io.Serializable;
@@ -8,6 +9,8 @@ import java.util.ArrayList;
 /**
  * Created by Tommy Ettinger on 6/7/2016.
  */
+@SuppressWarnings("WeakerAccess")
+@JTranscInvisible
 public class Pattern implements Serializable {
     private static final long serialVersionUID = -3628346657932720807L;
 

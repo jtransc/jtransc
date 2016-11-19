@@ -17,11 +17,11 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.target.Js
 import com.jtransc.text.Indenter
+import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
@@ -63,6 +63,14 @@ class JsTarget() : GenTargetDescriptor() {
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
 val JsFeatures = setOf(SwitchFeature::class.java)
+
+fun hasSpecialChars(name: String): Boolean {
+	return !name.all { it.isLetterDigitOrUnderscore() }
+}
+
+fun accessStr(name: String): String {
+	return if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
+}
 
 @Singleton
 class JsGenTargetProcessor(
@@ -164,7 +172,7 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 	override fun getNativeName(method: MethodRef): String = getJsMethodName(method.ref)
 	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
 	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
-	override fun buildAccessName(name: String, static: Boolean): String = "[" + name.quote() + "]"
+	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
 	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
 
@@ -184,7 +192,7 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 	fun getJsGeneratedFqPackage(fqName: FqName): String = fqName.fqname
 	override fun getGeneratedFqName(name: FqName): FqName = name
 	override fun getGeneratedSimpleClassName(name: FqName): String = name.fqname
-	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = "[" + getNativeName(refMethod).quote() + "]"
+	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(getNativeName(refMethod))
 }
 
 @Singleton
@@ -235,11 +243,17 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 
 		val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
-		for (clazz in program.classes.filter { !it.isNative }) {
+		val sortedClasses = program.classes.filter { !it.isNative }.sortedByExtending()
+
+		for (clazz in sortedClasses) {
 			val indenter = if (clazz.implCode != null) {
 				Indenter.gen { line(clazz.implCode!!) }
 			} else {
-				writeClass(clazz)
+				//if (!clazz.isInterface) {
+					writeClass(clazz)
+				//} else {
+				//	Indenter.EMPTY
+				//}
 			}
 			indenterPerClass[clazz] = indenter
 			classesIndenter.add(indenter)
@@ -264,8 +278,6 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 
 		val customMain = program.allAnnotationsList.getTypedList(JTranscCustomMainList::value).firstOrNull { it.target == "js" }?.value
 
-		val plainMain = Indenter.genString { line("program.registerMainClass('{{ mainClass }}');") }
-
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
 		templateString.setExtraData(mapOf(
@@ -277,9 +289,10 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 		))
 
 		val strs = Indenter.gen {
-			line("program.registerStrings({")
-			indent { for (e in names.getGlobalStrings()) line("${e.id} : ${e.str.quote()},") }
-			line("});");
+			val strs = names.getGlobalStrings()
+			val maxId = strs.maxBy { it.id }?.id ?: 0
+			line("SS = new Array($maxId);")
+			for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
 		}
 
 		val out = Indenter.gen {
@@ -287,7 +300,18 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 			for (f in concatFilesTrans) if (f.prepend != null) line(f.prepend)
 			line(strs.toString())
 			for (indent in classesIndenter) line(indent)
-			line(templateString.gen(customMain ?: plainMain, context, "customMain"))
+			val mainClassClass = program[mainClassFq]
+
+			line("__createJavaArrays();")
+			line("__buildStrings();")
+			line(names.buildStaticInit(mainClassClass))
+			val mainMethod = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
+			val mainCall = names.buildMethod(mainMethod, static = true)
+			line("$mainCall(N.strArray(N.args()));")
+			//N.args
+			//names.
+			//mainClassFq
+			//line(templateString.gen(customMain ?: plainMain, context, "customMain"))
 			for (f in concatFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
 
@@ -350,13 +374,29 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
 
+	override fun N_is(a: String, b: AstType.Reference): String {
+		return when (b) {
+			is AstType.REF -> {
+				val clazz = program[b]!!
+				if (clazz.isInterface) {
+					"N.isClassId($a, ${clazz.classId})"
+				} else {
+					"($a instanceof ${b.targetTypeCast})"
+				}
+			}
+			else -> {
+				super.N_is(a, b)
+			}
+		}
+	}
+
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i2z(str: String) = "(($str)!=0)"
-	override fun N_i2b(str: String) = "(($str)<<24>>24)"
+	override fun N_i2b(str: String) = "(($str)<<24>>24)" // shifts uses 32-bit integers
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
-	override fun N_i2s(str: String) = "(($str)<<16>>16)"
+	override fun N_i2s(str: String) = "(($str)<<16>>16)" // shifts uses 32-bit integers
 	override fun N_f2i(str: String) = "(($str)|0)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.i2j($str)"
@@ -403,121 +443,134 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 
-		fun writeField(field: AstField): Indenter = Indenter.gen {
-			val fieldType = field.type
-			refs.add(fieldType)
-			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
-
-			val defaultFieldName = field.name
-			val nativeFieldName = if (field.targetName2 == defaultFieldName) null else field.targetName2
-
-			line("this.registerField(${nativeFieldName.quote()}, ${field.modifiers.acc}, ${names.escapeConstantRef(defaultValue, fieldType)});")
-		}
-
-		fun writeMethod(method: AstMethod): Indenter {
-			setCurrentMethod(method)
-			return Indenter.gen {
-				refs.add(method.methodType)
-				val margs = method.methodType.args.map { it.name }
-
-				val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
-				val methodName = if (method.targetName == defaultMethodName) null else method.targetName
-
-				val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
-
-				fun renderBranch(actualBody: Indenter?) = Indenter.gen {
-					val isConstructor = method.isInstanceInit
-					val registerMethodName = if (isConstructor) "registerConstructor" else "registerMethod"
-					val annotationsArgs = "null, null"
-
-					val commonArgs = if (isConstructor) {
-						"${methodName.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
-					} else {
-						"${methodName.quote()}, ${method.name.quote()}, ${method.signature.quote()}, ${method.genericSignature.quote()}, ${method.modifiers.acc}, $annotationsArgs"
-					}
-
-					if (actualBody == null) {
-						line("this.$registerMethodName($commonArgs, null)")
-					} else {
-						line("this.$registerMethodName($commonArgs, function (${margs.joinToString(", ")}) {".trim())
-						indent {
-							line(actualBody)
-							if (method.methodVoidReturnThis) line("return this;")
-						}
-						line("});")
-					}
-				}
-
-				fun renderBranches() = Indenter.gen {
-					try {
-						val nativeBodies = method.getJsNativeBodies()
-						var javaBodyCacheDone: Boolean = false
-						var javaBodyCache: Indenter? = null
-						fun javaBody(): Indenter? {
-							if (!javaBodyCacheDone) {
-								javaBodyCacheDone = true
-								javaBodyCache = rbody?.genBodyWithFeatures(method)
-							}
-							return javaBodyCache
-						}
-						//val javaBody by lazy {  }
-
-						// @TODO: Do not hardcode this!
-						if (nativeBodies.isEmpty() && javaBody() == null) {
-							line(renderBranch(null))
-						} else {
-							if (nativeBodies.isNotEmpty()) {
-								val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody() ?: Indenter.EMPTY
-								val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
-
-								if (options.size == 1) {
-									line(renderBranch(default))
-								} else {
-									for (opt in options.withIndex()) {
-										if (opt.index != options.size - 1) {
-											val iftype = if (opt.index == 0) "if" else "else if"
-											line("$iftype (${opt.value.first})") { line(renderBranch(opt.value.second)) }
-										} else {
-											line("else") { line(renderBranch(opt.value.second)) }
-										}
-									}
-								}
-								//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
-							} else {
-								line(renderBranch(javaBody()))
-							}
-						}
-					} catch (e: Throwable) {
-						log.printStackTrace(e)
-						log.warn("WARNING GenJsGen.writeMethod:" + e.message)
-
-						line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
-						line(renderBranch(null))
-					}
-				}
-
-				line(renderBranches())
-			}
-		}
-
 		val classCodeIndenter = Indenter.gen {
 			if (isAbstract) line("// ABSTRACT")
 
-			val interfaces = "[" + clazz.implementing.map { it.targetClassFqName.quote() }.joinToString(", ") + "]"
-			val declarationHead = "var " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(${clazz.classId}, null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, null, function() {"
-			val declarationTail = "});"
+			val classBase = names.getClassFqNameForCalling(clazz.name)
+			val memberBaseStatic = classBase
+			val memberBaseInstance = "$classBase.prototype"
+			fun getMemberBase(isStatic: Boolean) = if (isStatic) memberBaseStatic else memberBaseInstance
 
-			line(declarationHead)
-			indent {
-				val nativeMembers = clazz.annotationsList.getTypedList(JTranscAddMembersList::value)
+			//fun renderFields(fields: List<AstField>) {
+			//	for (field in fields) {
+			//		val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+			//		line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+			//	}
+			//}
 
-				for (member in nativeMembers.filter { it.target == "js" }.flatMap { it.value.toList() }) line(member)
-				for (field in clazz.fields) line(writeField(field))
-				for (method in clazz.methods.filter { it.isClassOrInstanceInit }) line(writeMethod(method))
-				for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
+			//val declarationHead = "func " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(${clazz.classId}, null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, null, function() {"
+			val parentClassBase = if (clazz.extending != null) names.getClassFqNameForCalling(clazz.extending!!) else "java_lang_Object_base";
+			line("function $classBase()") {
+				line("$parentClassBase.call(this);")
+				for (field in clazz.fields.filter { !it.isStatic }) {
+					val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+					line("this${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+				}
 			}
 
-			line(declarationTail)
+			line("$classBase.prototype = Object.create($parentClassBase.prototype);")
+			line("$classBase.prototype.constructor = $classBase;")
+
+			//line("$classBase.SI_INIT = false;")
+			line("$classBase.SI = function()", after2 = ";") {
+				if (clazz.staticConstructor != null) {
+					line("$classBase.SI = N.EMPTY_FUNCTION;")
+					line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+				}
+				for (field in clazz.fields.filter { it.isStatic }) {
+					val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+					line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+				}
+				if (clazz.staticConstructor != null) {
+					line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+				}
+			}
+
+			val relatedTypesIds = clazz.getAllRelatedTypes().map { it.classId }
+			line("$classBase.prototype.\$\$CLASS_ID = ${clazz.classId};")
+			line("$classBase.prototype.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
+
+			//renderFields(clazz.fields);
+
+			fun writeMethod(method: AstMethod): Indenter {
+				setCurrentMethod(method)
+				return Indenter.gen {
+					refs.add(method.methodType)
+					val margs = method.methodType.args.map { it.name }
+
+					//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
+					//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
+					val nativeMemberName = names.buildMethod(method, false)
+					val prefix = "${getMemberBase(method.isStatic)}${accessStr(nativeMemberName)}"
+
+					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
+
+					fun renderBranch(actualBody: Indenter?) = Indenter.gen {
+
+						if (actualBody != null) {
+							line("$prefix = function(${margs.joinToString(", ")})", after2 = ";") {
+								line(actualBody)
+								if (method.methodVoidReturnThis) line("return this;")
+							}
+						} else {
+							line("$prefix = N.methodWithoutBody;")
+						}
+					}
+
+					fun renderBranches() = Indenter.gen {
+						try {
+							val nativeBodies = method.getJsNativeBodies()
+							var javaBodyCacheDone: Boolean = false
+							var javaBodyCache: Indenter? = null
+							fun javaBody(): Indenter? {
+								if (!javaBodyCacheDone) {
+									javaBodyCacheDone = true
+									javaBodyCache = rbody?.genBodyWithFeatures(method)
+								}
+								return javaBodyCache
+							}
+							//val javaBody by lazy {  }
+
+							// @TODO: Do not hardcode this!
+							if (nativeBodies.isEmpty() && javaBody() == null) {
+								line(renderBranch(null))
+							} else {
+								if (nativeBodies.isNotEmpty()) {
+									val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody() ?: Indenter.EMPTY
+									val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
+
+									if (options.size == 1) {
+										line(renderBranch(default))
+									} else {
+										for (opt in options.withIndex()) {
+											if (opt.index != options.size - 1) {
+												val iftype = if (opt.index == 0) "if" else "else if"
+												line("$iftype (${opt.value.first})") { line(renderBranch(opt.value.second)) }
+											} else {
+												line("else") { line(renderBranch(opt.value.second)) }
+											}
+										}
+									}
+									//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
+								} else {
+									line(renderBranch(javaBody()))
+								}
+							}
+						} catch (e: Throwable) {
+							log.printStackTrace(e)
+							log.warn("WARNING GenJsGen.writeMethod:" + e.message)
+
+							line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
+							line(renderBranch(null))
+						}
+					}
+
+					line(renderBranches())
+				}
+			}
+
+			for (method in clazz.methods.filter { it.isClassOrInstanceInit }) line(writeMethod(method))
+			for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
 		}
 
 		return classCodeIndenter

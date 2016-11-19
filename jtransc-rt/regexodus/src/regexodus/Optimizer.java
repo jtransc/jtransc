@@ -29,6 +29,9 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 class Optimizer {
     private static final int THRESHOLD = 20;
 
@@ -114,6 +117,7 @@ class Optimizer {
     }
 }
 
+@JTranscInvisible
 class Find extends Term {
     Find(Term target, int distance, Term theFirst) {
         switch (target.type) {
@@ -142,6 +146,7 @@ class Find extends Term {
     }
 }
 
+@JTranscInvisible
 class FindBack extends Term {
     FindBack(Term target, int distance, int minCount, Term backtrack) {
         this.minCount = minCount;

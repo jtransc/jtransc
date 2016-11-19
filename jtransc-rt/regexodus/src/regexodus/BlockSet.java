@@ -29,10 +29,12 @@
 
 package regexodus;
 
+import com.jtransc.annotation.JTranscInvisible;
 import regexodus.ds.IntBitSet;
 
 import java.util.Arrays;
 
+@JTranscInvisible
 class BlockSet implements UnicodeConstants {
     /*
     private static final Block[][] categoryBits = new Block[CATEGORY_COUNT][BLOCK_COUNT];
@@ -369,6 +371,7 @@ class BlockSet implements UnicodeConstants {
    */
 }
 
+@JTranscInvisible
 class Block implements UnicodeConstants {
     private boolean isFull;
     //private boolean[] bits;

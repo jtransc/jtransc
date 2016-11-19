@@ -34,6 +34,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jtransc.compression.jzlib;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 final public class Adler32 implements Checksum {
 
   // largest prime smaller than 65536

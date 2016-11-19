@@ -29,9 +29,12 @@
 
 package regexodus.regex;
 
+import com.jtransc.annotation.JTranscInvisible;
+
 /**
  * Is thrown when Pattern constructor's argument doesn't conform the regular expression syntax.
  */
+@JTranscInvisible
 public class PatternSyntaxException extends IllegalArgumentException {
     public PatternSyntaxException(String s) {
         super(s);

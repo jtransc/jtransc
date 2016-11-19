@@ -47,7 +47,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	private boolean primitive = false;
 
-
 	@SuppressWarnings("unused")
 	private int modifiers;
 

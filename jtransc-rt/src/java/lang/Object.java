@@ -28,10 +28,6 @@ import j.ProgramReflection;
 
 import java.lang.reflect.Field;
 
-@HaxeAddMembers({
-	"static public var __LAST_ID__ = 0;",
-	"public var __ID__ = __LAST_ID__++;",
-})
 @HaxeAddFilesTemplate({
 	"N.hx",
 	//"hx/N.hx",
@@ -54,16 +50,13 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
-@JTranscAddFile(target = "js", priority = -999999999, process = true, prependAppend = "js/Wrapper.js")
-@JTranscAddFile(target = "js", priority = -1007, process = true, prepend = "js/ArrayPolyfill.js")
-@JTranscAddFile(target = "js", priority = -1006, process = true, prepend = "js/StringPolyfill.js")
-@JTranscAddFile(target = "js", priority = -1005, process = true, prepend = "js/MathPolyfill.js")
-@JTranscAddFile(target = "js", priority = -1003, process = true, prepend = "js/Arrays.js")
-@JTranscAddFile(target = "js", priority = -1002, process = true, prepend = "js/N.js")
-@JTranscAddFile(target = "js", priority = -1000, process = true, prependAppend = "js/Runtime.js")
+@JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
 public class Object {
-	@JTranscMethodBody(target = "js", value = "this.$JS$__id = $JS$__lastId++;")
+	static private int $$lastId = 0;
+	public int $$id;
+
 	public Object() {
+		$$id = $$lastId++;
 	}
 
 	@JTranscKeep
@@ -71,8 +64,14 @@ public class Object {
 		return (this == obj);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.getClass(this);")
-	@JTranscMethodBody(target = "js", value = "return N.getClass(this);")
+	//@HaxeMethodBody("return HaxeNatives.getClass(this);")
+	//@JTranscMethodBody(target = "js", value = "return (obj == null) ? null : ({% SMETHOD j.ProgramReflection:getClassById %}(obj.$$CLASS_ID));")
+	@JTranscMethodBody(target = "js", value = {
+		"var obj = this;",
+		"if (obj == null) return null;",
+		"if (obj instanceof JA_0) return N.resolveClass(obj.desc);",
+		"return {% SMETHOD j.ProgramReflection:getClassById %}(obj.$$CLASS_ID);",
+	})
 	//@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
 	public final Class<?> getClass() {
 		return java.lang.jtransc.JTranscCoreReflection.getClassById(ProgramReflection.getClassId(this));
