@@ -16,25 +16,46 @@
 
 package java.util.concurrent.atomic;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class AtomicReference<V> implements java.io.Serializable {
-	public AtomicReference(V initialValue) {
+	private V value = null;
 
+	public AtomicReference(V initialValue) {
+		this.value = initialValue;
 	}
 
 	public AtomicReference() {
 	}
 
-	native public final V get();
+	public final V get() {
+		return value;
+	}
 
-	native public final void set(V newValue);
+	public final void set(V newValue) {
+		this.value = newValue;
+	}
 
-	native public final void lazySet(V newValue);
+	public final void lazySet(V newValue) {
+		this.set(newValue);
+	}
 
-	native public final boolean compareAndSet(V expect, V update);
+	public final boolean compareAndSet(V expect, V update) {
+		if (this.value != expect) return false;
+		this.value = update;
+		return true;
+	}
 
-	native public final boolean weakCompareAndSet(V expect, V update);
+	public final boolean weakCompareAndSet(V expect, V update) {
+		return this.compareAndSet(expect, update);
+	}
 
-	native public final V getAndSet(V newValue);
+	public final V getAndSet(V newValue) {
+		V old = this.value;
+		this.value = newValue;
+		return old;
+	}
 
-	native public String toString();
+	public String toString() {
+		return "AtomicReference";
+	}
 }

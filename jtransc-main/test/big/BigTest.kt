@@ -32,6 +32,7 @@ object BigTest {
 		StringsTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
+		AtomicTest.main(args);
 		FastMemoryTest.main(args)
 		FastMemoryTest.main(args)
 		MultidimensionalArrayTest.main(args)

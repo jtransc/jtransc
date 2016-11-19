@@ -16,8 +16,64 @@
 
 package java.util.concurrent.atomic;
 
+import java.lang.reflect.Field;
+
+@SuppressWarnings({"WeakerAccess", "NullableProblems", "unchecked", "unused"})
 public abstract class AtomicReferenceFieldUpdater<T, V> {
-	native public static <U, W> AtomicReferenceFieldUpdater<U, W> newUpdater(Class<U> tclass, Class<W> vclass, String fieldName);
+	public static <U, W> AtomicReferenceFieldUpdater<U, W> newUpdater(Class<U> tclass, Class<W> vclass, String fieldName) {
+		final Field field;
+		try {
+			field = tclass.getField(fieldName);
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		}
+		return new AtomicReferenceFieldUpdater<U, W>() {
+			@Override
+			public boolean compareAndSet(U obj, W expect, W update) {
+				try {
+					if (field.get(obj) == expect) {
+						field.set(obj, update);
+						return true;
+					}
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+
+			@Override
+			public boolean weakCompareAndSet(U obj, W expect, W update) {
+				return this.compareAndSet(obj, expect, update);
+			}
+
+			@Override
+			public void set(U obj, W newValue) {
+				try {
+					field.set(obj, newValue);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void lazySet(U obj, W newValue) {
+				try {
+					field.set(obj, newValue);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public W get(U obj) {
+				try {
+					return (W) field.get(obj);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+	}
 
 	protected AtomicReferenceFieldUpdater() {
 	}

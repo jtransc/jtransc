@@ -19,9 +19,9 @@ public class AtomicBoolean implements java.io.Serializable {
 	}
 
 	public final boolean getAndSet(boolean newValue) {
-		boolean prev = get();
+		boolean old = get();
 		this.value = newValue;
-		return prev;
+		return old;
 	}
 
 	public final boolean compareAndSet(boolean expect, boolean update) {
