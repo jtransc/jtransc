@@ -52,16 +52,26 @@ class JTranscFileSystem extends FileSystem {
 	}
 
 	public String normalize(String pathname) {
-		int n = pathname.length();
-		char prevChar = 0;
-		for (int i = 0; i < n; i++) {
-			char c = pathname.charAt(i);
-			if ((prevChar == '/') && (c == '/'))
-				return normalize(pathname, n, i - 1);
-			prevChar = c;
+		int len = pathname.length();
+		StringBuilder out = new StringBuilder(len);
+
+		char p = '\0';
+		char c = '\0';
+		for (int n = 0; n < len; n++) {
+			c = pathname.charAt(n);
+			if (!isSlash(c) || !isSlash(p)) {
+				if ((n < len - 1) || (c != '/' && c != '\\')) {
+					out.append(isSlash(c) ? '/' : c);
+				}
+			}
+			p = c;
 		}
-		if (prevChar == '/') return normalize(pathname, n, n - 1);
-		return pathname;
+
+		return out.toString();
+	}
+
+	static private boolean isSlash(char c) {
+		return c == '/' || c == '\\';
 	}
 
 	public int prefixLength(String pathname) {

@@ -18,7 +18,13 @@ public class JTranscSystemProperties {
 	}
 
 	public static String tmpdir() {
-		return getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp");
+		String out = getenvs(new String[]{"TMPDIR", "TEMP", "TMP"}, "/tmp");
+		if (JTranscSystem.isWindows()) {
+			if (!out.endsWith("/") || !out.endsWith("\\")) {
+				out += "\\";
+			}
+		}
+		return out;
 	}
 
 	public static String getenvs(String[] names, String defaultValue) {
