@@ -9,6 +9,7 @@ public class DateTest {
 	public static void main(String[] args) throws Throwable {
 		System.out.println("DateTest.main:");
 		dateTest();
+		dateTest2();
 	}
 
 	private static void dateTest() {
@@ -29,7 +30,12 @@ public class DateTest {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-
 	}
 
+	private static void dateTest2() {
+		System.out.println("dateTest2:");
+		Date date = new Date(0L);
+		date.setTime(1L);
+		System.out.println(date.getTime());
+	}
 }

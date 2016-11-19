@@ -48,7 +48,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	}
 
     @HaxeMethodBody("_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
-	@JTranscMethodBody(target = "js", value = "this._date = new Date(Int64.toFloat(p0));")
+	@JTranscMethodBody(target = "js", value = "this._date = new Date(N.ltoFloat(p0));")
 	public Date(long timestamp) {
 		this.setTimestamp(timestamp);
 	}
@@ -195,7 +195,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 		return this._timestamp;
 	}
 
-	@JTranscMethodBody(target = "js", value = "this._date.setTime(Int64.toFloat(p0));")
+	@JTranscMethodBody(target = "js", value = "this._date.setTime(N.ltoFloat(p0));")
 	public void setTime(long time) {
 		this.setTimestamp(time);
 	}
