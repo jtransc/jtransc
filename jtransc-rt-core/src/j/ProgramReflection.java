@@ -27,28 +27,39 @@ public class ProgramReflection {
 		_classInfos = ProgramReflection.getAllClasses();
 		_classNames = new String[_classInfos.length];
 
+		for (ClassInfo info : _classInfos) {
+			if (info == null) continue;
+			_classInfosByName.set(info.name, info);
+			_classNames[info.id] = info.name;
+		}
+	}
 
-		//_constructorsInfo = new FastIntMap<>();
-		//_fieldsInfos = new FastIntMap<>();
-//
-		//for (ClassInfo info : _classInfos) {
-		//	if (info == null) continue;
-//
-		//	FastIntMap<MemberInfo> ci = new FastIntMap<>();
-		//	FastIntMap<MemberInfo> fi = new FastIntMap<>();
-//
-		//	_classInfosByName.set(info.name, info);
-		//	_classNames[info.id] = info.name;
-//
-		//	_constructorsInfo.set(info.id, ci);
-		//	_fieldsInfos.set(info.id, fi);
-//
-		//	MemberInfo[] constructors = getConstructors(info.id);
-		//	MemberInfo[] fields = getFields(info.id);
-		//	if (constructors != null) for (MemberInfo i : constructors) ci.set(i.id, i);
-		//	if (fields != null) for (MemberInfo i : fields) fi.set(i.id, i);
-//
-		//}
+	static public void _ensureConstructors() {
+		if (_constructorsInfo != null) return;
+		_ensure();
+
+		_constructorsInfo = new FastIntMap<>();
+		for (ClassInfo info : _classInfos) {
+			if (info == null) continue;
+			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			_constructorsInfo.set(info.id, map);
+			MemberInfo[] minfo = getConstructors(info.id);
+			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
+		}
+	}
+
+	static public void _ensureFields() {
+		if (_fieldsInfos != null) return;
+		_ensure();
+
+		_fieldsInfos = new FastIntMap<>();
+		for (ClassInfo info : _classInfos) {
+			if (info == null) continue;
+			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			_fieldsInfos.set(info.id, map);
+			MemberInfo[] minfo = getFields(info.id);
+			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
+		}
 	}
 
 	static public void _ensureMethods() {
@@ -58,10 +69,10 @@ public class ProgramReflection {
 		_methodInfos = new FastIntMap<>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
-			FastIntMap<MemberInfo> mi = new FastIntMap<>();
-			_methodInfos.set(info.id, mi);
-			MemberInfo[] methods = getMethods(info.id);
-			if (methods != null) for (MemberInfo i : methods) mi.set(i.id, i);
+			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			_methodInfos.set(info.id, map);
+			MemberInfo[] minfo = getMethods(info.id);
+			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
 		}
 	}
 
