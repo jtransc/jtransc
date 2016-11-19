@@ -622,9 +622,7 @@ open class AstMember(
 	annotations: List<AstAnnotation> = listOf()
 ) : AstAnnotatedElement(containingClass.program, annotations), IUserData by UserData() {
 
-	val nativeName: String? by lazy {
-		annotationsList.getTyped<JTranscNativeName>()?.value
-	}
+	val nativeName: String? by lazy { annotationsList.getTyped<JTranscNativeName>()?.value }
 }
 
 interface MethodRef {

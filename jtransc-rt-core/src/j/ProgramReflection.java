@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 /**
  * MetaReflectionPlugin set those methods
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "ConstantConditions"})
 public class ProgramReflection {
 	static public ClassInfo[] _classInfos;
 	static public String[] _classNames;
@@ -27,31 +27,41 @@ public class ProgramReflection {
 		_classInfos = ProgramReflection.getAllClasses();
 		_classNames = new String[_classInfos.length];
 
-		_constructorsInfo = new FastIntMap<>();
-		_methodInfos = new FastIntMap<>();
-		_fieldsInfos = new FastIntMap<>();
 
+		//_constructorsInfo = new FastIntMap<>();
+		//_fieldsInfos = new FastIntMap<>();
+//
+		//for (ClassInfo info : _classInfos) {
+		//	if (info == null) continue;
+//
+		//	FastIntMap<MemberInfo> ci = new FastIntMap<>();
+		//	FastIntMap<MemberInfo> fi = new FastIntMap<>();
+//
+		//	_classInfosByName.set(info.name, info);
+		//	_classNames[info.id] = info.name;
+//
+		//	_constructorsInfo.set(info.id, ci);
+		//	_fieldsInfos.set(info.id, fi);
+//
+		//	MemberInfo[] constructors = getConstructors(info.id);
+		//	MemberInfo[] fields = getFields(info.id);
+		//	if (constructors != null) for (MemberInfo i : constructors) ci.set(i.id, i);
+		//	if (fields != null) for (MemberInfo i : fields) fi.set(i.id, i);
+//
+		//}
+	}
+
+	static public void _ensureMethods() {
+		if (_methodInfos != null) return;
+		_ensure();
+
+		_methodInfos = new FastIntMap<>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
-
-			FastIntMap<MemberInfo> ci = new FastIntMap<>();
 			FastIntMap<MemberInfo> mi = new FastIntMap<>();
-			FastIntMap<MemberInfo> fi = new FastIntMap<>();
-
-			_classInfosByName.set(info.name, info);
-			_classNames[info.id] = info.name;
-
-			_constructorsInfo.set(info.id, ci);
 			_methodInfos.set(info.id, mi);
-			_fieldsInfos.set(info.id, fi);
-
-			MemberInfo[] constructors = getConstructors(info.id);
 			MemberInfo[] methods = getMethods(info.id);
-			MemberInfo[] fields = getFields(info.id);
-			if (constructors != null) for (MemberInfo i : constructors) ci.set(i.id, i);
 			if (methods != null) for (MemberInfo i : methods) mi.set(i.id, i);
-			if (fields != null) for (MemberInfo i : fields) fi.set(i.id, i);
-
 		}
 	}
 
@@ -126,7 +136,7 @@ public class ProgramReflection {
 	}
 
 	static public MemberInfo getMethodInfo(int classId, int methodId) {
-		_ensure();
+		_ensureMethods();
 		return _methodInfos.get(classId).get(methodId);
 	}
 

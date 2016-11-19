@@ -2,8 +2,10 @@ package jtransc.java8;
 
 import java.util.function.Predicate;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Java8Test {
 	static public void main(String[] args) {
+		System.out.println("Java8Test.main:");
 		//demo(i -> (i > 0));
 		myrunnerVoid(Java8Test::exampleVoid);
 		myrunnerBool(Java8Test::exampleBool);

@@ -46,6 +46,10 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 
 	val allClassRefs: List<AstType.REF> by lazy { type.getRefClasses() + classRef }
 
+	fun resolve(program: AstProgram): AstMethod {
+		return program[containingClass][this]
+	}
+
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 
 	override fun toString() = "AstMethodRef(${containingClass.fqname},$name,${type.desc})"

@@ -161,6 +161,8 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 		return out;
 	};
 
+	ARRAY.T = ARRAY.fromTypedArray;
+
 	ARRAY.wrapBuffer = function(arrayBuffer) {
 		var out = new ARRAY(0);
 		out.data = new type(arrayBuffer);
@@ -372,6 +374,9 @@ N.irem = function(a, b) { return (a % b) | 0; };
 ///////////////////////
 // Long
 ///////////////////////
+N.linit = function() {
+    {% SINIT com.jtransc.lang.Int64 %}
+};
 N.lnew = function(high, low) { return {% SMETHOD com.jtransc.lang.Int64:make %}(high, low); };
 N.lnewFloat = function(float) { return {% SMETHOD com.jtransc.lang.Int64:ofFloat %}(float); };
 N.ltoFloat = function(v) { return {% SMETHOD com.jtransc.lang.Int64:toFloat %}(v); };

@@ -417,7 +417,7 @@ open class GenCommonGen(val injector: Injector) {
 	}
 
 	open fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
-		return "JA_I${staticAccessOperator}fromTypedArray([" + e.values.joinToString(",") + "])"
+		return "JA_I${staticAccessOperator}T([" + e.values.joinToString(",") + "])"
 	}
 
 	open fun genExprStringArrayLit(e: AstExpr.STRINGARRAY_LITERAL): String {

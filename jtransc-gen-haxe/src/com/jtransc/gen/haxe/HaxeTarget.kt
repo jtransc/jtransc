@@ -372,7 +372,7 @@ class HaxeNames(
 
 	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
 	override fun getNativeName(field: FieldRef): String = getFieldName(field)
-	override fun getNativeName(method: MethodRef): String = getHaxeMethodName(method.ref)
+	override fun getNativeName(methodRef: MethodRef): String = getHaxeMethodName(methodRef.ref)
 	override fun getNativeName(clazz: FqName): String = getClassFqName(clazz)
 	override fun getNativeNameForFields(clazz: FqName): String = getClassFqNameInt(clazz)
 

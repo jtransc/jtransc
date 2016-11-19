@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+@SuppressWarnings("ConstantConditions")
 public class JTranscZipTest {
 	static public void main(String[] args) throws IOException {
 		testFs();

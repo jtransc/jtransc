@@ -1022,13 +1022,13 @@ class CppNames(
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassFqNameForCalling(clazz.name) + "::SI();"
 
-	override fun getNativeName(method: MethodRef): String {
-		return getClassNameAllocator(method.ref.containingClass).allocate(method.ref) {
-			val astMethod = program[method.ref]!!
+	override fun getNativeName(methodRef: MethodRef): String {
+		return getClassNameAllocator(methodRef.ref.containingClass).allocate(methodRef.ref) {
+			val astMethod = program[methodRef.ref]!!
 			val containingClass = astMethod.containingClass
 
 			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-			val prefix2 = if (containingClass.isInterface || method.ref.isClassOrInstanceInit) {
+			val prefix2 = if (containingClass.isInterface || methodRef.ref.isClassOrInstanceInit) {
 				getClassFqNameForCalling(containingClass.name) + "_"
 			} else {
 				""
@@ -1036,7 +1036,7 @@ class CppNames(
 
 			val suffix = "_" + normalizeName(astMethod.methodType.mangle())
 
-			"$prefix$prefix2" + super.getNativeName(method) + "$suffix"
+			"$prefix$prefix2" + super.getNativeName(methodRef) + "$suffix"
 		}
 	}
 

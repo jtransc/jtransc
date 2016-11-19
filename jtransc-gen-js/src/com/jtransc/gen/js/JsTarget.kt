@@ -169,18 +169,24 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 	}
 
 	override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref]!!)
-	override fun getNativeName(method: MethodRef): String = getJsMethodName(method.ref)
+	override fun getNativeName(methodRef: MethodRef): String = getJsMethodName(methodRef.ref)
 	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
 	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
 	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
 
-	fun getJsMethodName(method: AstMethodRef): String {
-		return if (method.isInstanceInit) {
-			"${method.classRef.fqname}${method.name}${method.desc}"
+	fun getJsMethodName(methodRef: AstMethodRef): String {
+		if (program is AstProgram) {
+			val method = methodRef.resolve(program)
+			if (method.nativeName != null) {
+				return method.nativeName!!
+			}
+		}
+		return if (methodRef.isInstanceInit) {
+			"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
 		} else {
-			"${method.name}${method.desc}"
+			"${methodRef.name}${methodRef.desc}"
 		}
 	}
 
@@ -304,6 +310,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 
 			line("__createJavaArrays();")
 			line("__buildStrings();")
+			line("N.linit();")
 			line(names.buildStaticInit(mainClassClass))
 			val mainMethod = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = names.buildMethod(mainMethod, static = true)

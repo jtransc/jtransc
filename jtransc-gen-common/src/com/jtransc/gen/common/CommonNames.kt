@@ -1,5 +1,6 @@
 package com.jtransc.gen.common
 
+import com.jtransc.annotation.JTranscNativeName
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
@@ -98,7 +99,7 @@ abstract class CommonNames(
 	open fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
 		val name = getNativeName(method)
-		return if (static) ("$clazz" + buildAccessName(name, static = true)) else name
+		return if (static) (clazz + buildAccessName(name, static = true)) else name
 	}
 
 	open fun buildStaticInit(clazz: AstClass): String {
@@ -145,7 +146,13 @@ abstract class CommonNames(
 
 	open fun getNativeName(local: LocalParamRef): String = normalizeName(local.name)
 	open fun getNativeName(field: FieldRef): String = normalizeName(field.ref.name)
-	open fun getNativeName(method: MethodRef): String = normalizeName(method.ref.name)
+	open fun getNativeName(methodRef: MethodRef): String {
+		//if (program is AstProgram) {
+		//	val method = methodRef.ref.resolve(program)
+		//	return normalizeName(method.nativeName ?: method.ref.name)
+		//}
+		return normalizeName(methodRef.ref.name)
+	}
 	open fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 
 	inline fun <reified T : Any> nativeName(): String = getNativeName(T::class.java.name.fqname)
