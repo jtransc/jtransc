@@ -479,18 +479,25 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 			line("$classBase.prototype.constructor = $classBase;")
 
 			//line("$classBase.SI_INIT = false;")
-			line("$classBase.SI = function()", after2 = ";") {
-				if (clazz.staticConstructor != null) {
+
+			val staticFields = clazz.fields.filter { it.isStatic }
+
+			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
+				line("$classBase.SI = function()", after2 = ";") {
 					line("$classBase.SI = N.EMPTY_FUNCTION;")
-					line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+					if (clazz.staticConstructor != null) {
+						line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+					}
+					for (field in staticFields) {
+						val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+					}
+					if (clazz.staticConstructor != null) {
+						line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+					}
 				}
-				for (field in clazz.fields.filter { it.isStatic }) {
-					val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
-					line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
-				}
-				if (clazz.staticConstructor != null) {
-					line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
-				}
+			} else {
+				line("$classBase.SI = N.EMPTY_FUNCTION;")
 			}
 
 			val relatedTypesIds = clazz.getAllRelatedTypes().map { it.classId }

@@ -13,6 +13,7 @@ public class FastMemoryTest {
 		testCopyReinterpret();
 		testViews();
 		testRawMem();
+		testRawMem();
 		testBits();
 		testWrap();
 	}
@@ -71,6 +72,12 @@ public class FastMemoryTest {
 		System.out.println(Mem.li8(2));
 		System.out.println(Mem.li8(3));
 		Mem.si8(0, (byte) 255);
+		System.out.println(Mem.li8(0) < 0);
+		testRawMem2();
+	}
+
+	private static void testRawMem2() {
+		Mem.si8(0, (byte) 128);
 		System.out.println(Mem.li8(0) < 0);
 	}
 
