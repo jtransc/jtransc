@@ -277,6 +277,8 @@ class AstProgram(
 	}
 }
 
+fun AstProgram.containsMethod(fqname: FqName, name: String) = this.getOrNull(fqname)?.getMethodWithoutOverrides(name) != null
+
 enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 

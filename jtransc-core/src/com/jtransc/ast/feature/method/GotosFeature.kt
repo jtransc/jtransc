@@ -21,6 +21,8 @@ import com.jtransc.ast.optimize.optimize
 import com.jtransc.graph.Relooper
 import com.jtransc.graph.RelooperException
 
+@Suppress("UNUSED_PARAMETER", "LoopToCallChain")
+// @TODO: Use AstBuilder to make it more readable
 class GotosFeature : AstMethodFeature() {
 	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
 		if (settings.relooper) {
@@ -38,25 +40,23 @@ class GotosFeature : AstMethodFeature() {
 	private fun removeRelooper(body: AstBody, types: AstTypes): AstBody? {
 		class BasicBlock(var index: Int) {
 			var node: Relooper.Node? = null
-			var visited = false
 			val stms = arrayListOf<AstStm>()
 			var next: BasicBlock? = null
 			var condExpr: AstExpr? = null
 			var ifNext: BasicBlock? = null
-			var switchNext: Map<Int, BasicBlock>? = null
 
 			//val targets by lazy { (listOf(next, ifNext) + (switchNext?.values ?: listOf())).filterNotNull() }
 
 			override fun toString(): String = "BasicBlock($index)"
 		}
 
-		val entryStm = body.stm
-		if (entryStm !is AstStm.STMS) return null // Not relooping single statements
+		val entryStm = body.stm as? AstStm.STMS ?: return null
+		// Not relooping single statements
 		if (body.traps.isNotEmpty()) return null // Not relooping functions with traps by the moment
 
 		val stms = entryStm.stms
 		val bblist = arrayListOf<BasicBlock>()
-		var bbs = hashMapOf<AstLabel, BasicBlock>()
+		val bbs = hashMapOf<AstLabel, BasicBlock>()
 		fun createBB(): BasicBlock {
 			val bb = BasicBlock(bblist.size)
 			bblist += bb
@@ -132,7 +132,7 @@ class GotosFeature : AstMethodFeature() {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
 		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
-		var locals = body.locals.toCollection(arrayListOf<AstLocal>())
+		val locals = body.locals.toCollection(arrayListOf<AstLocal>())
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
 
 		//val gotostate = AstLocal(-1, "_gotostate", AstType.INT)
@@ -159,13 +159,13 @@ class GotosFeature : AstMethodFeature() {
 				else {
 					hasLabels = true
 					val stms = stm.stms
-					var stateIndex = 0
+					var stateIndex2 = 0
 					var stateStms = arrayListOf<AstStm>()
 					val cases = arrayListOf<Pair<Int, AstStm>>()
 
 					fun flush() {
-						cases.add(Pair(stateIndex, AstStm.STMS(stateStms)))
-						stateIndex = -1
+						cases.add(Pair(stateIndex2, AstStm.STMS(stateStms)))
+						stateIndex2 = -1
 						stateStms = arrayListOf<AstStm>()
 					}
 
@@ -186,7 +186,7 @@ class GotosFeature : AstMethodFeature() {
 									stateStms.addAll(simulateGotoLabel(s.label))
 								}
 								flush()
-								stateIndex = nextIndex
+								stateIndex2 = nextIndex
 								stateStms = arrayListOf<AstStm>()
 							}
 							is AstStm.IF_GOTO -> {

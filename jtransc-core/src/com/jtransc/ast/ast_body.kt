@@ -141,7 +141,6 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	class SET_LOCAL(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
 		val expr = expr.box
-
 		override fun toString(): String = "SET_LOCAL($local = $expr)"
 	}
 
@@ -196,9 +195,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val value = value.box
 	}
 
-	class RETHROW() : AstStm() {
-
-	}
+	class RETHROW() : AstStm()
 
 	//data class TRY_CATCH(val trystm: AstStm, val catches: List<Pair<AstType, AstStm>>) : AstStm
 	class TRY_CATCH(trystm: AstStm, catch: AstStm) : AstStm() {
@@ -206,13 +203,8 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val catch = catch.box
 	}
 
-	class BREAK() : AstStm() {
-
-	}
-
-	class CONTINUE() : AstStm() {
-
-	}
+	class BREAK() : AstStm()
+	class CONTINUE() : AstStm()
 
 	// SwitchFeature
 	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<Int, AstStm>>) : AstStm() {
@@ -223,9 +215,7 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	// GotoFeature
 
-	class STM_LABEL(val label: AstLabel) : AstStm() {
-
-	}
+	class STM_LABEL(val label: AstLabel) : AstStm()
 
 	class SWITCH_GOTO(subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm() {
 		val subject = subject.box

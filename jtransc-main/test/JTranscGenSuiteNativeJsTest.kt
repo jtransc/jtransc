@@ -30,7 +30,7 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		hello
 		world
 		10
-		jtransc_jtransc_JTranscInternalNames
+		jtransc_jtransc_JTranscInternalNamesTest
 		main([Ljava/lang/String;)V
 		___hello
 		Error !(10 < 10)

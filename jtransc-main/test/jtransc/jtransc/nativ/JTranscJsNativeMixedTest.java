@@ -1,13 +1,11 @@
 package jtransc.jtransc.nativ;
 
 import com.jtransc.target.Js;
-import jtransc.jtransc.JTranscInternalNames;
+import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
 import jtransc.rt.test.AssertionTests;
 import testservice.ITestService;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.ServiceLoader;
 
 public class JTranscJsNativeMixedTest {
@@ -15,7 +13,7 @@ public class JTranscJsNativeMixedTest {
 		rawTest();
 		servicesTest();
 		CustomJsRunTest.main(args);
-		JTranscInternalNames.main(args);
+		JTranscInternalNamesTest.main(args);
 		AssertionTests.main(args);
 	}
 

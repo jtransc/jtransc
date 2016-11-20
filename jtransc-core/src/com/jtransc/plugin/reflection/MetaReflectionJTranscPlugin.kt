@@ -2,9 +2,11 @@ package com.jtransc.plugin.reflection
 
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.reflection.JTranscInternalNames
 import j.ClassInfo
 import j.MemberInfo
 import j.ProgramReflection
+import kotlin.reflect.KFunction1
 
 /**
  * This class aims to create classes to perform reflection on available classes
@@ -94,6 +96,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 		val CLASS_INFO = program[ClassInfo::class.java.fqname]
 		val CLASS_INFO_CREATE = CLASS_INFO.getMethodWithoutOverrides(ClassInfo::create.name)!!.ref
+
+		val genInternalClassNames = program.containsMethod(JTranscInternalNames::class.java.fqname, JTranscInternalNames::getInternalClassName.name)
+		val genInternalMemberNames = program.containsMethod(JTranscInternalNames::class.java.fqname, JTranscInternalNames::getInternalFieldName.name) || program.containsMethod(JTranscInternalNames::class.java.fqname, JTranscInternalNames::getInternalMethodName.name)
 
 		//for (clazz in oldClasses) println("OC: ${clazz.name}")
 
@@ -294,7 +299,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				//println("CLASS: ${oldClass.fqname}")
 				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
 					classId.lit,
-					AstExpr.LITERAL_REFNAME(oldClass.ref, types),
+					if (genInternalClassNames) AstExpr.LITERAL_REFNAME(oldClass.ref, types) else NULL,
 					oldClass.fqname.lit,
 					oldClass.modifiers.acc.lit,
 					(oldClass.parentClass?.classId ?: -1).lit,
@@ -386,7 +391,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 									SET_ARRAY(out, index.lit, MemberInfo_create(
 										member.id.lit,
-										AstExpr.LITERAL_REFNAME(ref, types),
+										if (genInternalMemberNames) AstExpr.LITERAL_REFNAME(ref, types) else NULL,
 										member.name.lit,
 										member.modifiers.lit,
 										member.desc.lit,
