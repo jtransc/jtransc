@@ -47,15 +47,15 @@ class StrReader(val str:String) {
 		return result
 	}
 	fun matchEReg(v: Regex): String? {
-		var result = v.find(this.str.substring(this.offset)) ?: return null
-		var m = result.groups[0]!!.value
+		val result = v.find(this.str.substring(this.offset)) ?: return null
+		val m = result.groups[0]!!.value
 		this.offset += m.length;
 		return m;
 	}
 	override fun toString() = "StrReader('$str')"
 
 	fun <T> readList(min: Int, readElement: (s:StrReader) -> T?): List<T> {
-		var out = arrayListOf<T>()
+		val out = arrayListOf<T>()
 		while (this.hasMore) {
 			out.add(readElement(this) ?: break)
 		}

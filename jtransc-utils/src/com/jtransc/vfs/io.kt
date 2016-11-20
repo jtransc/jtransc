@@ -16,19 +16,14 @@
 
 package com.jtransc.vfs
 
-import com.jtransc.JTranscSystem
 import com.jtransc.io.ProcessUtils
-import java.io.BufferedReader
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.io.InputStreamReader
 import java.net.URI
-import java.nio.ByteOrder
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 
 //fun String.toBuffer(encoding: Charset = UTF8): ByteBuffer = encoding.toBuffer(this)
@@ -98,20 +93,23 @@ val UTF8 = Charsets.UTF_8
 
 class StopExecException() : Exception()
 
+fun File.readFastBytes(): ByteArray = FileInputStream(this@readFastBytes).use { s ->
+	val out = ByteArray(this@readFastBytes.length().toInt())
+	var offset = 0
+	while (true) {
+		val read = s.read(out, offset, out.size - offset)
+		if (read <= 0) break
+		offset += read
+	}
+	out
+}
 
 object RawIo {
 	private var userDir = System.getProperty("user.dir")
 	//private var userDir = File(".").getCanonicalPath()
 
-	fun fileRead(path: String): ByteArray {
-		//println("RawIo.fileRead($path)")
-		return File(path).readBytes()
-	}
-
-	fun fileWrite(path: String, data: ByteArray): Unit {
-		//println("RawIo.fileWrite($path, ${data.length()} bytes)")
-		File(path).writeBytes(data)
-	}
+	fun fileRead(path: String): ByteArray = File(path).readFastBytes()
+	fun fileWrite(path: String, data: ByteArray): Unit = File(path).writeBytes(data)
 
 	fun listdir(path: String): Array<File> {
 		val file = File(path)
@@ -154,7 +152,7 @@ object RawIo {
 		File(path).mkdir()
 	}
 
-	private fun getNioPath(path:String):java.nio.file.Path = Paths.get(URI("file://$path"))
+	private fun getNioPath(path: String): java.nio.file.Path = Paths.get(URI("file://$path"))
 
 	fun chmod(path: String, mode: FileMode): Boolean {
 		try {

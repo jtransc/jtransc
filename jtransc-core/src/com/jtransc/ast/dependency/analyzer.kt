@@ -31,7 +31,7 @@ object AstDependencyAnalyzer {
 		val methods = hashSetOf<AstMethodRef>()
 
 		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
-		fun ana(types: List<AstType>) = types.map { ana(it) }
+		fun ana(types: List<AstType>) = types.forEach { ana(it) }
 
 		fun ana(expr: AstExpr.Box?) = ana(expr?.value)
 		fun ana(stm: AstStm.Box?) = ana(stm?.value)
