@@ -28,19 +28,11 @@ import j.ProgramReflection;
 
 import java.lang.reflect.Field;
 
-@HaxeAddFilesTemplate({
-	"N.hx",
-	//"hx/N.hx",
-	"R.hx",
-	"HaxePolyfills.hx",
-	"HaxeNatives.hx",
-	"HaxeDynamicLoad.hx",
-	"HaxeFfiLibrary.hx",
-	"HaxeIO.hx",
-	"HaxeNativeWrapper.hx",
-	"Float32.hx", "Float64.hx",
-	"HaxeArrayBase.hx", "HaxeArrayBool.hx", "HaxeArrayByte.hx", "HaxeArrayShort.hx", "HaxeArrayChar.hx", "HaxeArrayInt.hx", "HaxeArrayFloat.hx", "HaxeArrayDouble.hx", "HaxeArrayLong.hx", "HaxeArrayAny.hx",
-	"JA_0.hx", "JA_B.hx", "JA_C.hx", "JA_D.hx", "JA_F.hx", "JA_I.hx", "JA_J.hx", "JA_L.hx", "JA_S.hx", "JA_Z.hx"
+@SuppressWarnings({"WeakerAccess", "unused"})
+@HaxeAddFilesTemplate(base = "hx", value = {
+	"hx/N.hx", "hx/Float32.hx", "hx/Float64.hx",
+	"hx/JA_0.hx", "hx/JA_B.hx", "hx/JA_C.hx", "hx/JA_D.hx", "hx/JA_F.hx", "hx/JA_I.hx", "hx/JA_J.hx", "hx/JA_L.hx", "hx/JA_S.hx", "hx/JA_Z.hx",
+	"hx/HaxePolyfills.hx", "hx/HaxeDynamicLoad.hx", "hx/HaxeIO.hx", "hx/HaxeNativeWrapper.hx",
 })
 @HaxeAddSubtarget(name = "js", alias = {"default", "javascript"}, cmdSwitch = "-js", singleFile = true, interpreter = "node", extension = "js")
 @HaxeAddSubtarget(name = "cpp", alias = {"c", "c++"}, cmdSwitch = "-cpp", singleFile = true, interpreter = "", extension = "exe")

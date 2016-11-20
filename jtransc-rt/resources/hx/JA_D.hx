@@ -1,31 +1,32 @@
-import haxe.io.UInt16Array;
+import haxe.io.Float64Array;
 
-class HaxeArrayShort extends HaxeArrayBase {
-    public var data:UInt16Array = null;
+class JA_D extends JA_0 {
+    public var data:Float64Array = null;
 
     public function new(length:Int) {
         super();
-        this.data = new UInt16Array(length);
+        this.data = new Float64Array(length);
         this.length = length;
-        this.desc = "[S";
+        this.desc = "[D";
     }
 
     public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeArrayShort(items.length);
+        var out = new JA_D(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
-    inline public function get(index:Int):Int {
-        return N.i2s(this.data[checkBounds(index)]);
+    inline public function get(index:Int):Float {
+		checkBounds(index);
+        return this.data[index];
     }
 
-    inline public function set(index:Int, value:Int):Void {
+    inline public function set(index:Int, value:Float):Void {
 		checkBounds(index);
-        this.data[checkBounds(index)] = value;
+        this.data[index] = value;
     }
 
 	override public function getDynamic(index:Int):Dynamic {
@@ -46,17 +47,19 @@ class HaxeArrayShort extends HaxeArrayBase {
     }
 
     public override function clone() {
-        var out = new HaxeArrayShort(length);
+        var out = new JA_D(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeArrayShort, to:HaxeArrayShort, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:JA_D, to:JA_D, fromPos:Int, toPos:Int, length:Int) {
+		var _from:Float64Array = from.data;
+		var _to:Float64Array = to.data;
     	if (from == to && toPos > fromPos) {
 			var n = length;
-			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
+			while (--n >= 0) _to[toPos + n] = _from[fromPos + n];
     	} else {
-	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
-	    }
+	        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
+		}
     }
 }

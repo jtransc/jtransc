@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface HaxeAddFilesTemplate {
+	String base() default "";
     String[] value();
 }

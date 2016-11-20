@@ -50,6 +50,17 @@ data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: 
 	override fun toString(): String = "$fullName(.$ext)"
 }
 
+data class TargetName(val name: String) {
+	companion object {
+		fun matches(target:String, pattern: String): Boolean {
+			if (pattern == "all") return true
+			return pattern == target
+		}
+	}
+
+	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern)
+}
+
 abstract class GenTargetDescriptor {
 	open val priority: Int = 0
 	abstract val name: String

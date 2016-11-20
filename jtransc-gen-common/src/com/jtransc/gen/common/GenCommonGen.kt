@@ -388,7 +388,7 @@ open class GenCommonGen(val injector: Injector) {
 				val value = case.first
 				val caseStm = case.second
 				if (caseStm.value.isSingleStm()) {
-					if (caseStm.value.lastStm().isBreakingFlow()) {
+					if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) {
 						line("case $value: " + caseStm.genStm().toString().trim())
 					} else {
 						line("case $value: " + caseStm.genStm().toString().trim() + " break;")

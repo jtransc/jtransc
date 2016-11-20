@@ -1,6 +1,6 @@
 import haxe.io.UInt16Array;
 
-class HaxeArrayChar extends HaxeArrayBase {
+class JA_C extends JA_0 {
     public var data:UInt16Array = null;
 
     public function new(length:Int) {
@@ -14,7 +14,7 @@ class HaxeArrayChar extends HaxeArrayBase {
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeArrayChar(items.length);
+        var out = new JA_C(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
@@ -35,12 +35,12 @@ class HaxeArrayChar extends HaxeArrayBase {
     }
 
     public override function clone() {
-        var out = new HaxeArrayChar(length);
+        var out = new JA_C(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeArrayChar, to:HaxeArrayChar, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:JA_C, to:JA_C, fromPos:Int, toPos:Int, length:Int) {
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));

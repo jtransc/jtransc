@@ -1,1 +1,0 @@
-typedef JA_F = HaxeArrayFloat

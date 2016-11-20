@@ -1,4 +1,8 @@
-class HaxeArrayBase extends {% CLASS java.lang.Object %} {
+import haxe.io.UInt8Array;
+import haxe.io.Bytes;
+import haxe.io.BytesData;
+
+class JA_0 extends {% CLASS java.lang.Object %} {
     public var length:Int = 0;
 	public var desc:String;
 
@@ -38,8 +42,8 @@ class HaxeArrayBase extends {% CLASS java.lang.Object %} {
         //throw "HaxeArray.sort not implementeed";
     }
 
-    public function clone():HaxeArrayBase {
-        //return cast({% METHOD java.lang.Object:clone:()Ljava/lang/Object; %}(), HaxeArrayBase);
+    public function clone():JA_0 {
+        //return cast({% METHOD java.lang.Object:clone:()Ljava/lang/Object; %}(), JA_0);
         throw 'Must override';
     }
 

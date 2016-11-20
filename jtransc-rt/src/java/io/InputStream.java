@@ -22,7 +22,7 @@ import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
 import com.jtransc.io.JTranscIoTools;
 
-@HaxeAddFilesTemplate({ "JavaHaxeInput.hx" })
+@HaxeAddFilesTemplate(base = "hx", value = { "hx/JavaHaxeInput.hx" })
 @HaxeNativeConversion(
 	haxeType = "haxe.io.Input",
 	toHaxe = "new JavaHaxeInput.Haxe(@self)",

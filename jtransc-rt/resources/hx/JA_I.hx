@@ -2,7 +2,7 @@ import haxe.io.Int32Array;
 import haxe.io.Bytes;
 import haxe.ds.Vector;
 
-class HaxeArrayInt extends HaxeArrayBase {
+class JA_I extends JA_0 {
 	#if flash
 	public var data:Vector<Int> = null;
 	#else
@@ -32,9 +32,13 @@ class HaxeArrayInt extends HaxeArrayBase {
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeArrayInt(items.length);
+        var out = new JA_I(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
+    }
+
+    static public function T(items:Array<Dynamic>) {
+    	return fromArray(items);
     }
 
     public function getBytes() {
@@ -49,7 +53,7 @@ class HaxeArrayInt extends HaxeArrayBase {
 
     static public function fromBytes(bytes:Bytes) {
         if (bytes == null) return null;
-        var out = new HaxeArrayInt(0);
+        var out = new JA_I(0);
         out.length = Std.int(bytes.length / 4);
         for (n in 0 ... out.length) out.set(n, bytes.getInt32(n * 4));
         return out;
@@ -70,12 +74,12 @@ class HaxeArrayInt extends HaxeArrayBase {
     }
 
     public override function clone() {
-        var out = new HaxeArrayInt(length);
+        var out = new JA_I(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeArrayInt, to:HaxeArrayInt, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:JA_I, to:JA_I, fromPos:Int, toPos:Int, length:Int) {
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));

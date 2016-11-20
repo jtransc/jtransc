@@ -448,7 +448,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val expr = if (field.isStatic) {
 							AstExpr.FIELD_STATIC_ACCESS(field.ref)
 						} else {
-							AstExpr.FIELD_INSTANCE_ACCESS(field.ref, objParam.expr)
+							AstExpr.FIELD_INSTANCE_ACCESS(field.ref, objParam.expr.castTo(field.containingClass.astType))
 						}
 
 						CASE(field.id) {
@@ -472,7 +472,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 							if (field.isStatic) {
 								STM(AstStm.SET_FIELD_STATIC(field.ref, expr))
 							} else {
-								STM(AstStm.SET_FIELD_INSTANCE(field.ref, objParam.expr, expr))
+								STM(AstStm.SET_FIELD_INSTANCE(field.ref, objParam.expr.castTo(field.containingClass.astType), expr))
 							}
 						}
 					}

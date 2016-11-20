@@ -4,9 +4,11 @@ import com.jtransc.annotation.JTranscAddFile
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.annotation.haxe.HaxeAddFilesTemplate
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
+import com.jtransc.gen.TargetName
 import com.jtransc.plugin.JTranscPlugin
 import java.util.*
 
@@ -43,6 +45,7 @@ class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
 }
 
 fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
+	val targetName = TargetName(target)
 	val SHAKING_TRACE = trace
 
 	val main = program[program.entrypoint].getMethodSure("main", AstTypeBuild { METHOD(VOID, ARRAY(STRING)) }.desc)
@@ -123,6 +126,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 		fun addBasicClass(fqname: FqName, reason: String): AstClass {
 			if (fqname !in initializedClasses) {
 				initializedClasses += fqname
+
 				if (SHAKING_TRACE) println("addBasicClass: $fqname. Reason: $reason")
 
 				val oldclazz = program[fqname]
@@ -155,6 +159,19 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 				//}
 
 				JTranscAddFileList::class.java
+
+				//println(fqname)
+
+				if (targetName.matches("haxe")) {
+					val templateFiles = newclazz.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf()
+					if (templateFiles.isNotEmpty()) {
+						for (pf in templateFiles) {
+							val filecontent = program.resourcesVfs[pf].readString()
+							addTemplateReferences(filecontent, templateReason = "HaxeAddFilesTemplate: $pf")
+						}
+					}
+				}
+
 
 				//for (file in newclazz.annotationsList.getAllTyped<JTranscAddFile>()) {
 				for (file in newclazz.annotationsList.getTypedList(JTranscAddFileList::value)) {

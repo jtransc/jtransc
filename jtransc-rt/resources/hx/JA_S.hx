@@ -1,49 +1,31 @@
-import haxe.io.Float32Array;
-import haxe.ds.Vector;
+import haxe.io.UInt16Array;
 
-class HaxeArrayFloat extends HaxeArrayBase {
-	#if flash
-	public var data:Vector<Float32> = null;
-	#else
-	public var data:Float32Array = null;
-	#end
+class JA_S extends JA_0 {
+    public var data:UInt16Array = null;
 
     public function new(length:Int) {
         super();
-		#if flash
-		this.data = new Vector<Float32>(length);
-		#else
-		this.data = new Float32Array(length);
-		#end
+        this.data = new UInt16Array(length);
         this.length = length;
-        this.desc = "[F";
+        this.desc = "[S";
     }
 
-    public function getTypedArray() {
-        #if flash
-        var out = new Float32Array(this.length);
-        for (n in 0 ... this.length) out[n] = this.get(n);
-        return out;
-        #else
-        return data;
-        #end
-    }
+    public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
-        var out = new HaxeArrayFloat(items.length);
+        var out = new JA_S(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
-    inline public function get(index:Int):Float32 {
-		checkBounds(index);
-        return this.data[index];
+    inline public function get(index:Int):Int {
+        return N.i2s(this.data[checkBounds(index)]);
     }
 
-    inline public function set(index:Int, value:Float32):Void {
+    inline public function set(index:Int, value:Int):Void {
 		checkBounds(index);
-        this.data[index] = value;
+        this.data[checkBounds(index)] = value;
     }
 
 	override public function getDynamic(index:Int):Dynamic {
@@ -64,12 +46,12 @@ class HaxeArrayFloat extends HaxeArrayBase {
     }
 
     public override function clone() {
-        var out = new HaxeArrayFloat(length);
+        var out = new JA_S(length);
         copy(this, out, 0, 0, length);
         return out;
     }
 
-    static public function copy(from:HaxeArrayFloat, to:HaxeArrayFloat, fromPos:Int, toPos:Int, length:Int) {
+    static public function copy(from:JA_S, to:JA_S, fromPos:Int, toPos:Int, length:Int) {
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
