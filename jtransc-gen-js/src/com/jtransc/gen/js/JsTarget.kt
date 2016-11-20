@@ -467,9 +467,23 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 
 			//val declarationHead = "func " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(${clazz.classId}, null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, null, function() {"
 			val parentClassBase = if (clazz.extending != null) names.getClassFqNameForCalling(clazz.extending!!) else "java_lang_Object_base";
+
+			val staticFields = clazz.fields.filter { it.isStatic }
+			val instanceFields = clazz.fields.filter { !it.isStatic }
+			val allInstanceFields = (listOf(clazz) + clazz.parentClassList).flatMap { it.fields }.filter { !it.isStatic }
+
+			fun lateInitField(a: Any?) = (a is String)
+
+			val allInstanceFieldsThis = allInstanceFields.filter { lateInitField(it) }
+			val allInstanceFieldsProto = allInstanceFields.filter { !lateInitField(it) }
+
+			//val allInstanceFieldsThis = allInstanceFields
+			//val allInstanceFieldsProto = allInstanceFields
+			//val allInstanceFieldsProto = listOf<AstField>()
+
+
 			line("function $classBase()") {
-				line("$parentClassBase.call(this);")
-				for (field in clazz.fields.filter { !it.isStatic }) {
+				for (field in allInstanceFieldsThis) {
 					val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
 					line("this${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 				}
@@ -478,9 +492,13 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 			line("$classBase.prototype = Object.create($parentClassBase.prototype);")
 			line("$classBase.prototype.constructor = $classBase;")
 
+			for (field in allInstanceFieldsProto) {
+				val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+			}
+
 			//line("$classBase.SI_INIT = false;")
 
-			val staticFields = clazz.fields.filter { it.isStatic }
 
 			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
 				line("$classBase.SI = function()", after2 = ";") {

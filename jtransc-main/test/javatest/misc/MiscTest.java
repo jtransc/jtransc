@@ -203,6 +203,7 @@ public class MiscTest {
 		testDivLong(longs);
 	}
 
+	@SuppressWarnings("ForLoopReplaceableByForEach")
 	private void testPrintLong(long[] v) {
 		JTranscConsole.log("testPrintLong:");
 		for (int y = 0; y < v.length; y++) {
@@ -212,6 +213,7 @@ public class MiscTest {
 		System.out.println();
 	}
 
+	@SuppressWarnings("ForLoopReplaceableByForEach")
 	private void testNegLong(long[] v) {
 		JTranscConsole.log("testNegLong:");
 		for (int y = 0; y < v.length; y++) {

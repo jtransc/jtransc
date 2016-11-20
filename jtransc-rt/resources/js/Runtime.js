@@ -74,6 +74,9 @@ String.prototype.quote = String.prototype.quote || (function () { return JSON.st
 var onBrowser = typeof window != "undefined";
 var onNodeJs = typeof window == "undefined";
 
+(function(_global) { "use strict";
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 var Int32 = function(value) { this.value = value | 0; };
@@ -410,10 +413,7 @@ Int64.abs = function(a) {
 	return (Int64.sign(a) < 0) ? Int64.neg(a) : a;
 };
 
-
 ////////////////////////////////////////////////////////////////////////////
-
-(function(_global) { "use strict";
 
 var S = [];
 var SS = [];
