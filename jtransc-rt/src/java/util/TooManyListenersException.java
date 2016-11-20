@@ -24,9 +24,6 @@ package java.util;
  * listener. It is also thrown when the same listener is added more than once.
  */
 public class TooManyListenersException extends Exception {
-
-    private static final long serialVersionUID = 5074640544770687831L;
-
     /**
      * Constructs a new {@code TooManyListenersException} with the current stack
      * trace filled in.

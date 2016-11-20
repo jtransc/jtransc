@@ -41,7 +41,6 @@ public class ObjectStreamClass implements Serializable {
 
     // No need to compute the SUID for ObjectStreamClass, just use the value
     // below
-    private static final long serialVersionUID = -6120832682080437368L;
 
     // Name of the field that contains the SUID value (if present)
     private static final String UID_FIELD_NAME = "serialVersionUID";

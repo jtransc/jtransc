@@ -63,8 +63,6 @@ import java.io.Serializable;
 @JTranscInvisible
 public class PerlSubstitution implements Substitution, Serializable {
     //private static Pattern refPtn,argsPtn;
-    private static final long serialVersionUID = -1537346657932720807L;
-
     private static Pattern refPtn;
     private static int MODE_ID;
     private static int NAME_ID;

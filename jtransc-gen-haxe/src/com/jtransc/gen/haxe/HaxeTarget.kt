@@ -323,12 +323,11 @@ val HaxeKeywords = setOf(
 val HaxeSpecial = setOf(
 	"hx",
 	"z", // used for package
-	"N", // used for HaxeNatives
+	"N", // used for Haxe Natives
 	"SI", // STATIC INIT
 	"SII", // STATIC INIT INITIALIZED
 	"HAXE_CLASS_INIT", // Information about the class
 	"HAXE_CLASS_NAME", // Information about the class
-	"HaxeNatives", // used for HaxeNatives
 	"unix",
 	"OVERFLOW", // iphone sdk
 	"UNDERFLOW" // iphone sdk
@@ -508,7 +507,7 @@ class HaxeNames(
 		if (clazz?.nativeName != null) {
 			return ""
 		} else {
-			return "${getClassFqNameInt(classRef.name)}.SI() /* $reason */;"
+			return "${getClassFqNameInt(classRef.name)}.SI();"
 		}
 	}
 
@@ -576,10 +575,20 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 		}
 
 		val copyFilesRaw = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesRaw>()?.value?.toList() ?: listOf() }
-		val copyFilesTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesTemplate>()?.value?.toList() ?: listOf() }
+		val copyFilesTemplate = program.classes.flatMap {
+			val template = it.annotationsList.getTyped<HaxeAddFilesTemplate>()
+			if (template != null) {
+				val baseFile = File(template.base)
+				template.value.toList().map { it to File(it).relativeTo(baseFile).path }
+			} else {
+				listOf()
+			}
+		}
 
 		for (file in copyFilesRaw) vfs[file] = program.resourcesVfs[file]
-		for (file in copyFilesTemplate) vfs[file] = templateString.gen(program.resourcesVfs[file].readString(), context, "copyFilesTemplate")
+		for ((src, dst) in copyFilesTemplate) {
+			vfs[dst] = templateString.gen(program.resourcesVfs[src].readString(), context, "copyFilesTemplate")
+		}
 
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
@@ -609,7 +618,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 			line("class {{ entryPointSimpleName }}") {
 				line("@:unreflective static public function main()") {
 					line("{{ inits }}")
-					line("{{ mainClass }}.{{ mainMethod }}(HaxeNatives.strArray(HaxeNatives.args()));")
+					line("{{ mainClass }}.{{ mainMethod }}(N.strArray(N.args()));")
 				}
 			}
 		}
@@ -639,10 +648,10 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 				is Pair<*, *> -> escapeValue(it.second)
 				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
 				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
-				is String -> "HaxeNatives.boxString(${it.quote()})"
+				is String -> "N.boxString(${it.quote()})"
 				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> names.escapeConstant(it)
 				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-				is com.jtransc.org.objectweb.asm.Type -> "HaxeNatives.resolveClass(" + it.descriptor.quote() + ")"
+				is com.jtransc.org.objectweb.asm.Type -> "N.resolveClass(" + it.descriptor.quote() + ")"
 				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
@@ -733,7 +742,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 
 	override fun convertToFromTarget(type: AstType, text: String, toTarget: Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toTarget) "HaxeNatives.unbox($text)" else "cast(HaxeNatives.box($text), ${names.getNativeType(type, TypeKind.CAST)})")
+			return (if (toTarget) "N.unbox($text)" else "cast(N.box($text), ${names.getNativeType(type, TypeKind.CAST)})")
 		}
 
 		if (type is AstType.REF) {
@@ -757,7 +766,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 	override fun N_i2s(str: String) = "N.i2s($str)"
 	override fun N_f2i(str: String) = "Std.int($str)"
 	override fun N_i2i(str: String) = N_i(str)
-	override fun N_i2j(str: String) = "HaxeNatives.intToLong($str)"
+	override fun N_i2j(str: String) = "N.intToLong($str)"
 	override fun N_i2f(str: String) = "Math.fround(($str))"
 	override fun N_i2d(str: String) = "($str)"
 	override fun N_f2f(str: String) = "Math.fround($str)"
@@ -767,9 +776,9 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 	override fun N_d2i(str: String) = "Std.int($str)"
 	override fun N_l2i(str: String) = "(($str).low)"
 	override fun N_l2l(str: String) = "($str)"
-	override fun N_l2f(str: String) = "HaxeNatives.longToFloat($str)"
-	override fun N_l2d(str: String) = "HaxeNatives.longToFloat($str)"
-	override fun N_getFunction(str: String) = "HaxeNatives.getFunction($str)"
+	override fun N_l2f(str: String) = "N.longToFloat($str)"
+	override fun N_l2d(str: String) = "N.longToFloat($str)"
+	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.targetTypeCast})"
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
@@ -885,7 +894,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 					line(decl) {
 						try {
 							// @TODO: Do not hardcode this!
-							if (method.name == "throwParameterIsNullException") line("HaxeNatives.debugger();")
+							if (method.name == "throwParameterIsNullException") line("N.debugger();")
 							val javaBody = if (rbody != null) {
 								rbody.genBodyWithFeatures(method)
 							} else Indenter.gen {
@@ -897,7 +906,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 							//e.printStackTrace()
 							log.warn("WARNING haxe_gen.writeMethod:" + e.message)
 
-							line("HaxeNatives.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
+							line("N.debugger(); throw " + "Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message}".quote() + ";")
 						}
 					}
 				}
@@ -973,7 +982,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 				}
 
 				if (isRootObject) {
-					line("@:unreflective public function toString():String { return HaxeNatives.toNativeString(this.$toStringTargetName()); }")
+					line("@:unreflective public function toString():String { return N.toNativeString(this.$toStringTargetName()); }")
 					line("@:unreflective public function hashCode():Int { return this.$hashCodeTargetName(); }")
 				}
 

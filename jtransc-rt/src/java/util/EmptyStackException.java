@@ -25,9 +25,6 @@ package java.util;
  * @see RuntimeException
  */
 public class EmptyStackException extends RuntimeException {
-
-    private static final long serialVersionUID = 5084686378493302095L;
-
     /**
      * Constructs a new {@code EmptyStackException} with the stack trace filled
      * in.

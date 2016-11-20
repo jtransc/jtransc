@@ -37,9 +37,6 @@ import java.io.ObjectStreamField;
  * @see TimeZone
  */
 public class SimpleTimeZone extends TimeZone {
-
-    private static final long serialVersionUID = -403250971215465050L;
-
     private int rawOffset;
 
     private int startYear, startMonth, startDay, startDayOfWeek, startTime;

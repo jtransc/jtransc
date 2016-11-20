@@ -216,12 +216,12 @@ public class JTranscRegex {
 			throw new Error("No implemented Matcher.end(int group) with group != 0");
 		}
 
-		@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(0));")
+		@HaxeMethodBody("return N.str(this._ereg.matched(0));")
 		public String group() {
 			return group(0);
 		}
 
-		@HaxeMethodBody("return HaxeNatives.str(this._ereg.matched(p0));")
+		@HaxeMethodBody("return N.str(this._ereg.matched(p0));")
 		@JTranscMethodBody(target = "js", value = "return N.str(this._groups[p0]);")
 		native public String group(int group);
 

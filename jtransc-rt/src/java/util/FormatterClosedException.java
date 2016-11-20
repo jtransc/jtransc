@@ -24,10 +24,7 @@ import java.io.Serializable;
  *
  * @see RuntimeException
  */
-public class FormatterClosedException extends IllegalStateException implements
-        Serializable {
-    private static final long serialVersionUID = 18111216L;
-
+public class FormatterClosedException extends IllegalStateException implements Serializable {
     /**
      * Constructs a new {@code FormatterClosedException} with the stack trace
      * filled in.

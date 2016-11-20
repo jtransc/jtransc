@@ -295,21 +295,21 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return HaxeNatives.swap16((this._data.getUInt16(p0) << 16) >> 16);")
+	@HaxeMethodBody("return N.swap16((this._data.getUInt16(p0) << 16) >> 16);")
 	@JTranscMethodBody(target = "js", value = "return this.view.getUint16(p0, false);")
 	final public int getInt16_REV(int index) {
 		return Short.reverseBytes(data.getShort(index)) & 0xFFFF;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return HaxeNatives.swap32(this._data.getInt32(p0));")
+	@HaxeMethodBody("return N.swap32(this._data.getInt32(p0));")
 	@JTranscMethodBody(target = "js", value = "return this.view.getInt32(p0, false);")
 	final public int getInt32_REV(int index) {
 		return Integer.reverseBytes(data.getInt(index));
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return HaxeNatives.intBitsToFloat(HaxeNatives.swap32(this._data.getInt32(p0)));")
+	@HaxeMethodBody("return N.intBitsToFloat(N.swap32(this._data.getInt32(p0)));")
 	@JTranscMethodBody(target = "js", value = "return this.view.getFloat32(p0, false);")
 	final public float getFloat32_REV(int index) {
 		return Float.intBitsToFloat(Integer.reverseBytes(data.getInt(index)));

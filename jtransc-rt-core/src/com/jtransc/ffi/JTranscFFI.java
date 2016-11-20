@@ -30,7 +30,7 @@ public class JTranscFFI {
 
 	@HaxeMethodBody("" +
 		//"trace('loadCppLibrary[0]');\n" +
-		"var instance = HaxeNatives.newInstance(Type.getClassName(p1._hxFfiClass));\n" +
+		"var instance = N.newInstance(Type.getClassName(p1._hxFfiClass));\n" +
 		//"trace('loadCppLibrary[1]');\n" +
 		//"Reflect.callMethod(instance, Reflect.field(instance, '_ffi__load'), [p0._str]);\n" +
 		"cast(instance, HaxeFfiLibrary)._ffi__load(p0._str);\n" +
@@ -123,7 +123,7 @@ public class JTranscFFI {
 			"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
 			"var obj:Dynamic = {};\n" +
 			"for (item in p1.toArray()) {\n" +
-			"  Reflect.setField(obj, item.name, [HaxeNatives.toNativeString(item.retval), HaxeNatives.toNativeStrArray(item.args)]);\n" +
+			"  Reflect.setField(obj, item.name, [N.toNativeString(item.retval), N.toNativeStrArray(item.args)]);\n" +
 			"}\n" +
 			"this.lib = ffi.Library(p0._str, obj);\n"
 		)
@@ -132,9 +132,9 @@ public class JTranscFFI {
 		}
 
 		@HaxeMethodBody(target = "js", value = "" +
-			"var name = HaxeNatives.toNativeString(p0);\n" +
-			"var args = HaxeNatives.toNativeUnboxedArray(p1);\n" +
-			"return HaxeNatives.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
+			"var name = N.toNativeString(p0);\n" +
+			"var args = N.toNativeUnboxedArray(p1);\n" +
+			"return N.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
 		)
 		@HaxeMethodBody("return null;")
 		public native Object invoke(String name, Object... args);

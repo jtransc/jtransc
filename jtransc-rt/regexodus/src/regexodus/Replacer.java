@@ -69,8 +69,6 @@ import java.util.Map;
 
 @JTranscInvisible
 public class Replacer implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     private Pattern pattern;
     private Substitution substitution;
 
@@ -454,10 +452,7 @@ public class Replacer implements Serializable {
         return new StringBuilderBuffer(sb);
     }
 
-    public static class StringBuilderBuffer implements TextBuffer, Serializable
-    {
-        private static final long serialVersionUID = 2589054766833218313L;
-
+    public static class StringBuilderBuffer implements TextBuffer, Serializable {
         public StringBuilder sb;
 
         public StringBuilderBuffer() {
@@ -492,10 +487,7 @@ public class Replacer implements Serializable {
         return new StringBufferBuffer(sb);
     }
 
-    public static class StringBufferBuffer implements TextBuffer, Serializable
-    {
-        private static final long serialVersionUID = 2589054766833218313L;
-
+    public static class StringBufferBuffer implements TextBuffer, Serializable {
         public StringBuffer sb;
 
         public StringBufferBuffer() {

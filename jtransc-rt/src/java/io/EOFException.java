@@ -22,9 +22,6 @@ package java.io;
  * operation.
  */
 public class EOFException extends IOException {
-
-    private static final long serialVersionUID = 6433858223774886977L;
-
     /**
      * Constructs a new {@code EOFException} with its stack trace filled in.
      */

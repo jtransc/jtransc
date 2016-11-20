@@ -10,7 +10,7 @@ public class JTranscVersion {
 		return version;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str('haxe');")
+	@HaxeMethodBody("return N.str('haxe');")
 	@JTranscMethodBody(target = "js", value = "return N.str('js');")
 	static public String getRuntime() {
 		return "java";

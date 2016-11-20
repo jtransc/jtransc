@@ -100,11 +100,11 @@ public class JTranscConsole {
 /*
 new PrintStream(new OutputStream() {
 		@Override
-		@HaxeMethodBody("HaxeNatives.outputChar(p0);")
+		@HaxeMethodBody("N.outputChar(p0);")
 		native public void write(int b) throws IOException;
 	});new PrintStream(new OutputStream() {
 		@Override
-		@HaxeMethodBody("HaxeNatives.outputErrorChar(p0);")
+		@HaxeMethodBody("N.outputErrorChar(p0);")
 		native public void write(int b) throws IOException;
 	});
  */

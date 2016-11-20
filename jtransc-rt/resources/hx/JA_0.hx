@@ -8,7 +8,11 @@ class JA_0 extends {% CLASS java.lang.Object %} {
 
 	override public function {% METHOD java.lang.Object:toString:()Ljava/lang/String; %}() {
 		var className = Type.getClassName(Type.getClass(this));
-	    return HaxeNatives.str('$className($length, $desc)');
+	    return N.str('$className($length, $desc)');
+	}
+
+	override public function {% METHOD java.lang.Object:getClass:()Ljava/lang/Class; %}() {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(desc));
 	}
 
     public function toArray():Array<Dynamic> {

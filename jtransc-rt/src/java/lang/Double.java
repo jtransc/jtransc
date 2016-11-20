@@ -133,17 +133,17 @@ public final class Double extends Number implements Comparable<Double> {
 		return (obj instanceof Double) && (doubleToLongBits(((Float) obj).doubleValue()) == doubleToLongBits(this.doubleValue()));
 	}
 
-	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	@HaxeMethodBody("return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	native public static long doubleToLongBits(double value);
 
-	@HaxeMethodBody("return HaxeNatives.doubleToLongBits(p0);")
+	@HaxeMethodBody("return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	native public static long doubleToRawLongBits(double value);
 
-	@HaxeMethodBody("return HaxeNatives.longBitsToDouble(p0);")
+	@HaxeMethodBody("return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(double *)&p0;")
 	public static native double longBitsToDouble(long bits);

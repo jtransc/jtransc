@@ -5,13 +5,13 @@ class HaxeIO {
 
 class SyncFS {
 	#if js
-	static public var fs:Dynamic = HaxeNatives.isNode() ? untyped __js__("require('fs')") : null;
+	static public var fs:Dynamic = N.isNode() ? untyped __js__("require('fs')") : null;
 	#end
 
 	static public function getLength(path:String):Int64 {
 		#if js
 			var stat = fs.lstatSync(path);
-			return HaxeNatives.floatToLong(stat.size);
+			return N.floatToLong(stat.size);
 		#elseif sys
 			return sys.FileSystem.stat(path).size;
 		#else
@@ -135,7 +135,7 @@ class SyncStream {
 	#if js
 	private var fd:Dynamic;
 	public var fs:Dynamic = SyncFS.fs;
-	private function createBuffer(arg:Dynamic):Dynamic return HaxeNatives.isNode() ? untyped __js__("new Buffer(arg)") : null;
+	private function createBuffer(arg:Dynamic):Dynamic return N.isNode() ? untyped __js__("new Buffer(arg)") : null;
 	#end
 
 	#if sys
@@ -157,7 +157,7 @@ class SyncStream {
 		this.position = 0;
 		try {
 			#if js
-				if (fs == null) HaxeNatives.throwRuntimeException("Can't open");
+				if (fs == null) N.throwRuntimeException("Can't open");
 				var flagsStr = '';
 				if ((flags & O_RDONLY) != 0) flagsStr += 'r';
 				if ((flags & O_RDWR) != 0) flagsStr += 'w';
@@ -180,11 +180,11 @@ class SyncStream {
 				throw 'Not implemented syncioOpen';
 			#end
 		} catch (e:Dynamic) {
-			HaxeNatives.throwRuntimeException('$e');
+			N.throwRuntimeException('$e');
 		}
 	}
 
-	public function syncioReadBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
+	public function syncioReadBytes(data:JA_B, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioReadBytes:$fd:$length');
 		#if js
@@ -202,7 +202,7 @@ class SyncStream {
 		#end
 	}
 
-	public function syncioWriteBytes(data:HaxeArrayByte, offset:Int, length:Int):Int {
+	public function syncioWriteBytes(data:JA_B, offset:Int, length:Int):Int {
 		if (length == 0) return 0;
 		//trace('syncioWriteBytes:$fd:$length');
 		#if js
@@ -233,24 +233,19 @@ class SyncStream {
 		#end
 	}
 
-	public function syncioLength():Int64 {
-		return HaxeNatives.floatToLong(this.length);
-	}
-
-	public function syncioPosition():Int64 {
-		return HaxeNatives.floatToLong(this.position);
-	}
+	public function syncioLength():Int64 return N.floatToLong(this.length);
+	public function syncioPosition():Int64 return N.floatToLong(this.position);
 
 	public function syncioSetPosition(offset:Int64):Int64 {
-		this.position = HaxeNatives.longToFloat(offset);
+		this.position = N.longToFloat(offset);
 		return offset;
 	}
 
 	public function syncioSetLength(length:Int64):Int64 {
-		this.length = HaxeNatives.longToFloat(length);
+		this.length = N.longToFloat(length);
 		#if js
 			if (fs == null) return -1;
-			fd.setLength(HaxeNatives.longToFloat(length));
+			fd.setLength(N.longToFloat(length));
 		#elseif sys
 			throw 'Not implemented syncioSetLength';
 		#else

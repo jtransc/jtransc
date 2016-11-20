@@ -127,7 +127,7 @@ public class Throwable implements Serializable {
 		setStackTrace(getStackTraceInternal());
 	}
 
-	@HaxeMethodBody("return HaxeNatives.getStackTrace(1);")
+	@HaxeMethodBody("return N.getStackTrace(1);")
 	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(1);")
 	private StackTraceElement[] getStackTraceInternal() {
 		return new StackTraceElement[] {

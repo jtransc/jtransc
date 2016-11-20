@@ -36,11 +36,7 @@ import java.lang.reflect.Array;
  *
  * @param <E> The element type of this list.
  */
-public class Vector<E> extends AbstractList<E> implements List<E>,
-        RandomAccess, Cloneable, Serializable {
-
-    private static final long serialVersionUID = -2767605614048989439L;
-
+public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, Serializable {
     /**
      * The number of elements or the size of the vector.
      */

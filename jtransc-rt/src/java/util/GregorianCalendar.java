@@ -182,9 +182,6 @@ import java.io.ObjectOutputStream;
  * @see TimeZone
  */
 public class GregorianCalendar extends Calendar {
-
-	private static final long serialVersionUID = -8125100834729963327L;
-
 	/**
 	 * Value for the BC era.
 	 */

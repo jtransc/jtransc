@@ -123,7 +123,7 @@ public final class Short extends Number implements Comparable<Short> {
 		return x - y;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.swap16(p0);")
+	@HaxeMethodBody("return N.swap16(p0);")
 	public static short reverseBytes(short value) {
 		return (short) (((value & 0xFF00) >> 8) | ((value & 0xFF) << 8));
 	}

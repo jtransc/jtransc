@@ -23,9 +23,6 @@ package java.util;
  * past the end of an Enumeration or Iterator.
  */
 public class NoSuchElementException extends RuntimeException {
-
-    private static final long serialVersionUID = 6769829250639411880L;
-
     /**
      * Constructs a new {@code NoSuchElementException} with the current stack
      * trace filled in.

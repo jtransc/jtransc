@@ -27,8 +27,6 @@ import java.io.StreamCorruptedException;
  * precision for the numerical operations provided by class {@link BigDecimal}.
  */
 public final class MathContext implements Serializable {
-    private static final long serialVersionUID = 5579720004786848255L;
-
     /**
      * A {@code MathContext} which corresponds to the <a href="http://en.wikipedia.org/wiki/IEEE_754-1985">IEEE 754</a> quadruple
      * decimal precision format: 34 digit precision and

@@ -383,29 +383,31 @@ open class GenCommonGen(val injector: Injector) {
 
 	open val defaultGenStmSwitchHasBreaks = true
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
-		line("switch (${stm.subject.genExpr()})") {
-			for (case in stm.cases) {
-				val value = case.first
-				val caseStm = case.second
-				if (caseStm.value.isSingleStm()) {
-					if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) {
-						line("case $value: " + caseStm.genStm().toString().trim())
+		if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
+			line("switch (${stm.subject.genExpr()})") {
+				for (case in stm.cases) {
+					val value = case.first
+					val caseStm = case.second
+					if (caseStm.value.isSingleStm()) {
+						if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) {
+							line("case $value: " + caseStm.genStm().toString().trim())
+						} else {
+							line("case $value: " + caseStm.genStm().toString().trim() + " break;")
+						}
 					} else {
-						line("case $value: " + caseStm.genStm().toString().trim() + " break;")
-					}
-				} else {
-					line("case $value:")
-					indent {
-						line(caseStm.genStm())
-						if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+						line("case $value:")
+						indent {
+							line(caseStm.genStm())
+							if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+						}
 					}
 				}
-			}
-			if (!stm.default.value.isEmpty()) {
-				line("default:")
-				indent {
-					line(stm.default.genStm())
-					if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+				if (!stm.default.value.isEmpty()) {
+					line("default:")
+					indent {
+						line(stm.default.genStm())
+						if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+					}
 				}
 			}
 		}

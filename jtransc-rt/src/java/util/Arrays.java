@@ -32,8 +32,6 @@ public class Arrays {
     private static class ArrayList<E> extends AbstractList<E> implements
             List<E>, Serializable, RandomAccess {
 
-        private static final long serialVersionUID = -2764017481108945198L;
-
         private final E[] a;
 
         ArrayList(E[] storage) {
@@ -787,9 +785,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(boolean[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (boolean element : array) {
             // 1231, 1237 are hash code values for boolean value
@@ -815,9 +811,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(int[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (int element : array) {
             // the hash code value for integer value is integer value itself
@@ -843,9 +837,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(short[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (short element : array) {
             // the hash code value for short value is its integer value
@@ -871,9 +863,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(char[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (char element : array) {
             // the hash code value for char value is its integer value
@@ -899,9 +889,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(byte[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (byte element : array) {
             // the hash code value for byte value is its integer value
@@ -927,17 +915,14 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(long[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (long elementValue : array) {
             /*
              * the hash code value for long value is (int) (value ^ (value >>>
              * 32))
              */
-            hashCode = 31 * hashCode
-                    + (int) (elementValue ^ (elementValue >>> 32));
+            hashCode = 31 * hashCode + (int) (elementValue ^ (elementValue >>> 32));
         }
         return hashCode;
     }
@@ -959,9 +944,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(float[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (float element : array) {
             /*
@@ -990,9 +973,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(double[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
 
         for (double element : array) {
@@ -1027,19 +1008,10 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int hashCode(Object[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (Object element : array) {
-            int elementHashCode;
-
-            if (element == null) {
-                elementHashCode = 0;
-            } else {
-                elementHashCode = (element).hashCode();
-            }
-            hashCode = 31 * hashCode + elementHashCode;
+            hashCode = 31 * hashCode + ((element == null) ? 0 : (element).hashCode());
         }
         return hashCode;
     }
@@ -1072,9 +1044,7 @@ public class Arrays {
      * @return the hash code for {@code array}.
      */
     public static int deepHashCode(Object[] array) {
-        if (array == null) {
-            return 0;
-        }
+        if (array == null) return 0;
         int hashCode = 1;
         for (Object element : array) {
             int elementHashCode = deepHashCodeElement(element);
@@ -1085,43 +1055,17 @@ public class Arrays {
 
     private static int deepHashCodeElement(Object element) {
         Class<?> cl;
-        if (element == null) {
-            return 0;
-        }
-
+        if (element == null) return 0;
         cl = element.getClass().getComponentType();
-
-        if (cl == null) {
-            return element.hashCode();
-        }
-
-        /*
-         * element is an array
-         */
-        if (!cl.isPrimitive()) {
-            return deepHashCode((Object[]) element);
-        }
-        if (cl.equals(int.class)) {
-            return hashCode((int[]) element);
-        }
-        if (cl.equals(char.class)) {
-            return hashCode((char[]) element);
-        }
-        if (cl.equals(boolean.class)) {
-            return hashCode((boolean[]) element);
-        }
-        if (cl.equals(byte.class)) {
-            return hashCode((byte[]) element);
-        }
-        if (cl.equals(long.class)) {
-            return hashCode((long[]) element);
-        }
-        if (cl.equals(float.class)) {
-            return hashCode((float[]) element);
-        }
-        if (cl.equals(double.class)) {
-            return hashCode((double[]) element);
-        }
+        if (cl == null) return element.hashCode();
+        if (!cl.isPrimitive()) return deepHashCode((Object[]) element);
+        if (cl.equals(int.class)) return hashCode((int[]) element);
+        if (cl.equals(char.class)) return hashCode((char[]) element);
+        if (cl.equals(boolean.class)) return hashCode((boolean[]) element);
+        if (cl.equals(byte.class)) return hashCode((byte[]) element);
+        if (cl.equals(long.class)) return hashCode((long[]) element);
+        if (cl.equals(float.class)) return hashCode((float[]) element);
+        if (cl.equals(double.class)) return hashCode((double[]) element);
         return hashCode((short[]) element);
     }
 
@@ -1329,13 +1273,9 @@ public class Arrays {
      * @hide
      */
     public static void checkStartAndEnd(int len, int start, int end) {
-        if (start < 0 || end > len) {
-            throw new ArrayIndexOutOfBoundsException("start < 0 || end > len."
-                    + " start=" + start + ", end=" + end + ", len=" + len);
-        }
-        if (start > end) {
-            throw new IllegalArgumentException("start > end: " + start + " > " + end);
-        }
+        if (start < 0 || end > len)
+			throw new ArrayIndexOutOfBoundsException("start < 0 || end > len. start=" + start + ", end=" + end + ", len=" + len);
+        if (start > end) throw new IllegalArgumentException("start > end: " + start + " > " + end);
     }
 
     /**
@@ -1624,12 +1564,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(boolean[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
         sb.append('[');
         sb.append(array[0]);
@@ -1654,12 +1590,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(byte[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
         sb.append('[');
         sb.append(array[0]);
@@ -1684,12 +1616,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(char[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 3);
         sb.append('[');
         sb.append(array[0]);
@@ -1714,12 +1642,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(double[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
         sb.append('[');
         sb.append(array[0]);
@@ -1744,12 +1668,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(float[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
         sb.append('[');
         sb.append(array[0]);
@@ -1774,12 +1694,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(int[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
         sb.append('[');
         sb.append(array[0]);
@@ -1804,12 +1720,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(long[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
         sb.append('[');
         sb.append(array[0]);
@@ -1834,12 +1746,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(short[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
         sb.append('[');
         sb.append(array[0]);
@@ -1864,12 +1772,8 @@ public class Arrays {
      * @since 1.5
      */
     public static String toString(Object[] array) {
-        if (array == null) {
-            return "null";
-        }
-        if (array.length == 0) {
-            return "[]";
-        }
+        if (array == null) return "null";
+        if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
         sb.append('[');
         sb.append(array[0]);
@@ -1900,9 +1804,7 @@ public class Arrays {
      */
     public static String deepToString(Object[] array) {
         // Special case null to prevent NPE
-        if (array == null) {
-            return "null";
-        }
+        if (array == null) return "null";
         // delegate this to the recursive method
         StringBuilder buf = new StringBuilder(array.length * 9);
         deepToStringImpl(array, new Object[] { array }, buf);
@@ -1923,8 +1825,7 @@ public class Arrays {
      * @return the result.
      * @see #deepToString(Object[])
      */
-    private static void deepToStringImpl(Object[] array, Object[] origArrays,
-            StringBuilder sb) {
+    private static void deepToStringImpl(Object[] array, Object[] origArrays, StringBuilder sb) {
         if (array == null) {
             sb.append("null");
             return;

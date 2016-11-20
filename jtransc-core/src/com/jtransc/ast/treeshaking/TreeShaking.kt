@@ -1,8 +1,6 @@
 package com.jtransc.ast.treeshaking
 
-import com.jtransc.annotation.JTranscAddFile
 import com.jtransc.annotation.JTranscAddFileList
-import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate
 import com.jtransc.ast.*
@@ -105,8 +103,8 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 					modifiers = oldclazz.modifiers,
 					extending = oldclazz.extending,
 					implementing = oldclazz.implementing,
-					annotations = oldclazz.annotations,
-					classId = oldclazz.classId
+					annotations = oldclazz.annotations//,
+					//classId = oldclazz.classId
 				)
 
 				newclasses[fqname] = newclazz
@@ -207,7 +205,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 
 			val newfield = AstField(
 				containingClass = newclazz,
-				id = oldfield.id,
+				//id = oldfield.id,
 				name = oldfield.name,
 				type = oldfield.type,
 				annotations = oldfield.annotations,
@@ -243,7 +241,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 			val newclazz = addBasicClass(methodRef.containingClass, reason)
 			val newmethod = AstMethod(
 				containingClass = newclazz,
-				id = oldmethod.id,
+				//id = oldmethod.id,
 				name = oldmethod.name,
 				methodType = oldmethod.methodType,
 				annotations = oldmethod.annotations,

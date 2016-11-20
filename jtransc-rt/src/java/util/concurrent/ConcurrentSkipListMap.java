@@ -291,8 +291,6 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * Comparisons:  c
      */
 
-    private static final long serialVersionUID = -8627078645895051609L;
-
     /**
      * Generates the initial random seed for the cheaper per-instance
      * random number generators used in randomLevel.
@@ -2442,11 +2440,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *
      * @serial include
      */
-    static final class SubMap<K,V> extends AbstractMap<K,V>
-        implements ConcurrentNavigableMap<K,V>, Cloneable,
-                   java.io.Serializable {
-        private static final long serialVersionUID = -7647078645895051609L;
-
+    static final class SubMap<K,V> extends AbstractMap<K,V> implements ConcurrentNavigableMap<K,V>, Cloneable, java.io.Serializable {
         /** Underlying map */
         private final ConcurrentSkipListMap<K,V> m;
         /** lower bound key, or null if from start */

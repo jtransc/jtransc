@@ -65,10 +65,7 @@ import java.util.*;
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
  */
-public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
-        implements Queue<E>, java.io.Serializable {
-    private static final long serialVersionUID = 196745693267521676L;
-
+public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<E>, java.io.Serializable {
     /*
      * This is a modification of the Michael & Scott algorithm,
      * adapted for a garbage-collected environment, with support for

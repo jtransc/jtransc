@@ -281,9 +281,6 @@ import java.text.DateFormatSymbols;
  * @see TimeZone
  */
 public abstract class Calendar implements Serializable, Cloneable, Comparable<Calendar> {
-
-	private static final long serialVersionUID = -1807547505821590642L;
-
 	/**
 	 * True iff the values in {@code fields[]} correspond to {@code time}. Despite the name, this
 	 * is effectively "are the values in fields[] up-to-date?" --- {@code fields[]} may contain

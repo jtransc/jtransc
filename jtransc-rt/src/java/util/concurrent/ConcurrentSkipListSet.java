@@ -52,12 +52,7 @@ import java.util.*;
  * @param <E> the type of elements maintained by this set
  * @since 1.6
  */
-public class ConcurrentSkipListSet<E>
-    extends AbstractSet<E>
-    implements NavigableSet<E>, Cloneable, java.io.Serializable {
-
-    private static final long serialVersionUID = -2479143111061671589L;
-
+public class ConcurrentSkipListSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
     /**
      * The underlying map. Uses Boolean.TRUE as value for each
      * element.  This field is declared final for the sake of thread

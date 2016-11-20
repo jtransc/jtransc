@@ -32,9 +32,6 @@ import java.io.ObjectOutputStream;
  * {@code NotSerializableException}s.
  */
 public class InvalidPropertiesFormatException extends IOException {
-
-    private static final long serialVersionUID = 7763056076009360219L;
-
     /**
      * Constructs a new {@code InvalidPropertiesFormatException} with the
      * current stack trace and message filled in.

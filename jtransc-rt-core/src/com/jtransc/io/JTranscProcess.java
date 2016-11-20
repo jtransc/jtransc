@@ -24,13 +24,13 @@ public class JTranscProcess extends Process {
 	private JTranscWrapped processWrapped;
 
 	@HaxeMethodBodyPre("" +
-		"var cmd = HaxeNatives.toNativeString(p0);\n" +
-		"var args = HaxeNatives.toNativeStrArray(p1);\n" +
-		"var cwd = HaxeNatives.toNativeString(p2);\n" +
-		"var env = HaxeNatives.mapToObject(p3);\n"
+		"var cmd = N.toNativeString(p0);\n" +
+		"var args = N.toNativeStrArray(p1);\n" +
+		"var cwd = N.toNativeString(p2);\n" +
+		"var env = N.mapToObject(p3);\n"
 	)
-	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.wrap(new sys.io.Process(cmd, args));")
-	@HaxeMethodBody(target = "js", value = "return HaxeNatives.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));")
+	@HaxeMethodBody(target = "sys", value = "return N.wrap(new sys.io.Process(cmd, args));")
+	@HaxeMethodBody(target = "js", value = "return N.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));")
 	@HaxeMethodBody("return null;")
 	@JTranscMethodBody(target = "js", value = {
 		"return N.wrap(require('child_process').spawnSync(N.istr(p0), N.istrArray(p1), {cwd:N.istr(p2), env:N.imap(p3)}));"

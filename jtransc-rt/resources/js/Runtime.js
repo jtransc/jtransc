@@ -975,7 +975,6 @@ N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljav
 N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
 N.boxWrapped = function(value) { return N.wrap(value); }
-//N.boxByteArray = function(value) { return HaxeArrayByte.fromBytes(value); }
 
 N.unboxVoid      = function(value) { return null; }
 N.unboxBool      = function(value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
@@ -988,7 +987,6 @@ N.unboxFloat     = function(value) { return value["{% FIELD java.lang.Float:valu
 N.unboxDouble    = function(value) { return value["{% FIELD java.lang.Double:value:D %}"]; }
 N.unboxString    = function(value) { return N.istr(value); }
 N.unboxWrapped   = function(value) { return value._wrapped; }
-//N.unboxByteArray = function(value) { return (value).getBytes(); }
 
 
 N.unbox = function(value) {

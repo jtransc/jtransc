@@ -23,8 +23,8 @@ public class JTranscWrapped {
 		this.item = item;
 	}
 
-	//@HaxeMethodBody("return HaxeNatives.box(Reflect.field(this._wrapped, p0._str));")
-	@HaxeMethodBody("return HaxeNatives.box(Reflect.getProperty(this._wrapped, p0._str));")
+	//@HaxeMethodBody("return N.box(Reflect.field(this._wrapped, p0._str));")
+	@HaxeMethodBody("return N.box(Reflect.getProperty(this._wrapped, p0._str));")
 	@JTranscMethodBody(target = "js", value = "return N.box(this._wrapped[N.istr(p0)]);")
 	public Object get(String field) {
 		try {
@@ -36,7 +36,7 @@ public class JTranscWrapped {
 		}
 	}
 
-	@HaxeMethodBody("Reflect.setProperty(this._wrapped, p0._str, HaxeNatives.unbox(p1));")
+	@HaxeMethodBody("Reflect.setProperty(this._wrapped, p0._str, N.unbox(p1));")
 	@JTranscMethodBody(target = "js", value = "this._wrapped[N.istr(p0)] = N.unbox(p1);")
 	public void set(String field, Object value) {
 		try {
@@ -45,14 +45,14 @@ public class JTranscWrapped {
 		}
 	}
 
-	//@HaxeMethodBody("return HaxeNatives.box(Reflect.field(this._wrapped, p0._str));")
+	//@HaxeMethodBody("return N.box(Reflect.field(this._wrapped, p0._str));")
 	//public native Object access(String field);
 
-	@HaxeMethodBody("return HaxeNatives.box(Reflect.callMethod(_wrapped, Reflect.field(_wrapped, HaxeNatives.toNativeString(p0)), HaxeNatives.toNativeUnboxedArray(p1)));")
+	@HaxeMethodBody("return N.box(Reflect.callMethod(_wrapped, Reflect.field(_wrapped, N.toNativeString(p0)), N.toNativeUnboxedArray(p1)));")
 	@JTranscMethodBody(target = "js", value = "return N.box(this._wrapped[N.istr(p0)].apply(this._wrapped, N.unboxArray(p1.data)));")
 	public native Object invoke(String name, Object... args);
 
-	@HaxeMethodBody("return HaxeNatives.str('' + this._wrapped);")
+	@HaxeMethodBody("return N.str('' + this._wrapped);")
 	@JTranscMethodBody(target = "js", value = "return N.str('' + this._wrapped);")
 	public String toString() {
 		return Objects.toString(item);

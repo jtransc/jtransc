@@ -390,6 +390,4 @@ public class LinkedHashMap<K, V> extends HashMap<K, V> {
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return false;
     }
-
-    private static final long serialVersionUID = 3801124242820219131L;
 }

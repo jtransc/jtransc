@@ -354,7 +354,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return (value >> 31) | (-value >>> 31);
 	}
 
-	@HaxeMethodBody("return HaxeNatives.swap32(p0);")
+	@HaxeMethodBody("return N.swap32(p0);")
 	public static int reverseBytes(int value) {
 		return ((value >>> 24)) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000) | ((value << 24));
 	}

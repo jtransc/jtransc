@@ -9,7 +9,7 @@ public class JTranscArrays {
 	public static final byte[] EMPTY_BYTE = new byte[0];
 	public static final Class<?>[] EMPTY_CLASS = new Class<?>[0];
 
-	@HaxeMethodBody("return HaxeArrayByte.fromBytes(p0.getBytes());")
+	@HaxeMethodBody("return JA_B.fromBytes(p0.getBytes());")
 	static public byte[] copyReinterpret(int[] data) {
 		byte[] out = new byte[data.length * 4];
 		int m = 0;

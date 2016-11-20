@@ -72,7 +72,6 @@ import static regexodus.Replacer.wrap;
 
 @JTranscInvisible
 public class Matcher implements MatchResult, Serializable {
-    private static final long serialVersionUID = -3628346657932720807L;
     /* Matching options*/
     /**
      * The same effect as "^" without REFlags.MULTILINE.
@@ -2556,8 +2555,6 @@ public class Matcher implements MatchResult, Serializable {
 
 @JTranscInvisible
 class SearchEntry implements Serializable {
-    private static final long serialVersionUID = -3628346657932720807L;
-
     Term term;
     int index;
     int cnt;
@@ -2698,8 +2695,6 @@ class SearchEntry implements Serializable {
 
 @JTranscInvisible
 class MemReg implements Serializable {
-    private static final long serialVersionUID = -3628346657932720807L;
-
     private int index;
 
     int in = -1, out = -1;
@@ -2747,7 +2742,6 @@ class MemReg implements Serializable {
 
 @JTranscInvisible
 class LAEntry implements Serializable {
-    private static final long serialVersionUID = -3628346657932720807L;
     int index;
     SearchEntry top, actual;
 

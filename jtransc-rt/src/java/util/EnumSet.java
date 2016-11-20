@@ -20,10 +20,7 @@ import java.io.Serializable;
 /**
  * An EnumSet is a specialized Set to be used with enums as keys.
  */
-public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
-        implements Cloneable, Serializable {
-    private static final long serialVersionUID = 1009687484059888093L;
-
+public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E> implements Cloneable, Serializable {
     final Class<E> elementClass;
 
     EnumSet(Class<E> cls) {
@@ -315,11 +312,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
         return cls == elementClass || cls.getSuperclass() == elementClass;
     }
 
-    private static class SerializationProxy<E extends Enum<E>> implements
-            Serializable {
-
-        private static final long serialVersionUID = 362491234563181265L;
-
+    private static class SerializationProxy<E extends Enum<E>> implements Serializable {
         private Class<E> elementType;
 
         private E[] elements;

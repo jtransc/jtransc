@@ -27,9 +27,6 @@ package java.io;
  * @see OptionalDataException
  */
 public class StreamCorruptedException extends ObjectStreamException {
-
-    private static final long serialVersionUID = 8983558202217591746L;
-
     /**
      * Constructs a new {@code StreamCorruptedException} with its stack trace
      * filled in.

@@ -22,8 +22,6 @@ package java.util;
  * @since 1.6
  */
 public class ServiceConfigurationError extends Error {
-    private static final long serialVersionUID = 74132770414881L;
-
     /**
      * Constructs a new error with the given detail message.
      * @param message the detail message, or null

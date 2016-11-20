@@ -27,9 +27,6 @@ import java.io.Serializable;
  * @see EventListener
  */
 public class EventObject implements Serializable {
-
-    private static final long serialVersionUID = 5516075349620653480L;
-
     //@FindBugsSuppressWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
     protected transient Object source;
 

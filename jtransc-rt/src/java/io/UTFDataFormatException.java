@@ -24,10 +24,7 @@ package java.io;
  * @see DataInputStream#readUTF()
  */
 public class UTFDataFormatException extends IOException {
-
-    private static final long serialVersionUID = 420743449228280612L;
-
-    /**
+	/**
      * Constructs a new {@code UTFDataFormatException} with its stack trace
      * filled in.
      */

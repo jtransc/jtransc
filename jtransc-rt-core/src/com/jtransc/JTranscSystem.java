@@ -74,7 +74,7 @@ public class JTranscSystem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("HaxeNatives.debugger();")
+	@HaxeMethodBody("N.debugger();")
 	@JTranscMethodBody(target = "js", value = "debugger;")
 	static public void debugger() {
 		//System.out.println("debugger");
@@ -87,7 +87,7 @@ public class JTranscSystem {
 	 * @param trueCond
 	 */
 	@JTranscInline
-	@HaxeMethodBody("if (!p0) HaxeNatives.debugger();")
+	@HaxeMethodBody("if (!p0) N.debugger();")
 	@JTranscMethodBody(target = "js", value = "if (!p0) debugger;")
 	static public void assert2(boolean trueCond) {
 		if (!trueCond) {
@@ -215,9 +215,9 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.systemName());")
-	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
-	@HaxeMethodBody("return HaxeNatives.str('unknown');")
+	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.systemName());")
+	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
+	@HaxeMethodBody("return N.str('unknown');")
 	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");")
 	static private String getOSRaw() {
@@ -233,7 +233,7 @@ public class JTranscSystem {
 	}
 
 	// http://lopica.sourceforge.net/os.html
-	@HaxeMethodBody("return HaxeNatives.str('x86');")
+	@HaxeMethodBody("return N.str('x86');")
 	@JTranscMethodBody(target = "js", value = "return N.str('x86');")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");")
 	static public String getArch() {

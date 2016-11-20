@@ -41,9 +41,6 @@ import com.jtransc.org.objectweb.asm.Type;
  * @author Eric Bruneton
  */
 public class ConstantPool extends HashMap<Constant, Constant> {
-
-    private static final long serialVersionUID = 1L;
-
     private final Constant key1 = new Constant();
 
     private final Constant key2 = new Constant();

@@ -38,7 +38,6 @@ import java.util.RandomAccess;
  */
 @JTranscInvisible
 public class CharArrayList implements RandomAccess, Cloneable, java.io.Serializable, List<Character>, Comparable<List<? extends Character>> {
-    private static final long serialVersionUID = -7046029254386353130L;
     /**
      * The initial default capacity of an array list.
      */

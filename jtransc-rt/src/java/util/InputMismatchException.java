@@ -25,11 +25,7 @@ import java.io.Serializable;
  * @see Scanner
  * @see RuntimeException
  */
-public class InputMismatchException extends NoSuchElementException implements
-        Serializable {
-
-    private static final long serialVersionUID = 8811230760997066428L;
-
+public class InputMismatchException extends NoSuchElementException implements Serializable {
     /**
      * Constructs a new {@code InputMismatchException} with the current stack
      * trace filled in.

@@ -7,6 +7,6 @@ public class MethodBodyTest {
         System.out.println(mymethod(777));
     }
 
-    @HaxeMethodBody("return HaxeNatives.str('INT:$p0');")
+    @HaxeMethodBody("return N.str('INT:$p0');")
     static public native String mymethod(int arg);
 }

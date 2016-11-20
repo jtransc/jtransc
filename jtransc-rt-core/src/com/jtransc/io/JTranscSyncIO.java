@@ -112,7 +112,7 @@ public class JTranscSyncIO {
 		public native boolean rename(String fileOld, String fileNew);
 
 		@Override
-		@HaxeMethodBody("return HaxeNatives.strArray(HaxeIO.SyncFS.list(p0._str));")
+		@HaxeMethodBody("return N.strArray(HaxeIO.SyncFS.list(p0._str));")
 		//@JTranscMethodBody(target = "cpp", cond = "_WIN32", value = { // Not implemented
 		//	"auto str = N::istr3(p0);",
 		//	"std::vector<std::string> out;",
@@ -134,9 +134,9 @@ public class JTranscSyncIO {
 		public native String[] list(String file);
 
 		@Override
-		@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getCwd());")
-		@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__('HaxeNatives.isNode() ? process.cwd() : \"/assets\"'));")
-		@HaxeMethodBody("return HaxeNatives.str('');")
+		@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getCwd());")
+		@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('N.isNode() ? process.cwd() : \"/assets\"'));")
+		@HaxeMethodBody("return N.str('');")
 		@JTranscMethodBody(target = "js", value = "return N.str(IO.getCwd());")
 		public String getCwd() {
 			return cwd;

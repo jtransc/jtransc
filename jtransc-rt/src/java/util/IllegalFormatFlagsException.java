@@ -25,8 +25,6 @@ import java.io.Serializable;
  * @see RuntimeException
  */
 public class IllegalFormatFlagsException extends IllegalFormatException implements Serializable {
-    private static final long serialVersionUID = 790824L;
-
     private final String flags;
 
     /**

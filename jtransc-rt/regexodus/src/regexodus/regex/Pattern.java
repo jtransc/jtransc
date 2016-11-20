@@ -12,8 +12,6 @@ import java.util.ArrayList;
 @SuppressWarnings("WeakerAccess")
 @JTranscInvisible
 public class Pattern implements Serializable {
-    private static final long serialVersionUID = -3628346657932720807L;
-
     public regexodus.Pattern internal;
     private int flags;
 

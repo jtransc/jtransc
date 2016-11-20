@@ -231,8 +231,6 @@ import java.util.HashMap;
 
 @JTranscInvisible
 public class Pattern implements Serializable, REFlags {
-    private static final long serialVersionUID = -3628346657932720807L;
-
     String stringRepr;
 
     // tree entry

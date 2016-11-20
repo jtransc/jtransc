@@ -33,9 +33,6 @@ import java.io.Serializable;
  * it concurrently, use the {@link java.util.concurrent.PriorityBlockingQueue}.
  */
 public class PriorityQueue<E> extends AbstractQueue<E> implements Serializable {
-
-    private static final long serialVersionUID = -7720805057305804111L;
-
     private static final int DEFAULT_CAPACITY = 11;
 
     private static final double DEFAULT_INIT_CAPACITY_RATIO = 1.1;

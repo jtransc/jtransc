@@ -23,10 +23,7 @@ package java.util;
  * @see RuntimeException
  */
 public class UnknownFormatFlagsException extends IllegalFormatException {
-
-    private static final long serialVersionUID = 19370506L;
-
-    private final String flags;
+	private final String flags;
 
     /**
      * Constructs a new {@code UnknownFormatFlagsException} with the specified

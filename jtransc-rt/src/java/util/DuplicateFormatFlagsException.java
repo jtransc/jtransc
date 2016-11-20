@@ -23,9 +23,6 @@ package java.util;
  * @see RuntimeException
  */
 public class DuplicateFormatFlagsException extends IllegalFormatException {
-
-    private static final long serialVersionUID = 18890531L;
-
     private final String flags;
 
     /**

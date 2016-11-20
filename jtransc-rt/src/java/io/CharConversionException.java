@@ -21,9 +21,6 @@ package java.io;
  * The top level class for character conversion exceptions.
  */
 public class CharConversionException extends IOException {
-
-    private static final long serialVersionUID = -8680016352018427031L;
-
     /**
      * Constructs a new {@code CharConversionException} with its stack trace
      * filled in.

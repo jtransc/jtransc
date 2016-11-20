@@ -39,9 +39,6 @@ import java.security.SecureRandom;
  * @since 1.5
  */
 public final class UUID implements Serializable, Comparable<UUID> {
-
-	private static final long serialVersionUID = -4856846361193249489L;
-
 	private static SecureRandom rng;
 
 	private long mostSigBits;

@@ -102,7 +102,6 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 		val mods = AstModifiers(method.access)
 		val methodRef = method.astRef(containingClass.ref, types)
 		return AstMethod(
-			id = containingClass.program.lastMethodId++,
 			containingClass = containingClass,
 			annotations = method.getAnnotations(types),
 			parameterAnnotations = method.getParameterAnnotations(types),
@@ -132,7 +131,6 @@ class AsmToAst(val types: AstTypes) : AstClassGenerator {
 	fun generateField(containingClass: AstClass, field: FieldNode): AstField {
 		val mods = AstModifiers(field.access)
 		return AstField(
-			id = containingClass.program.lastFieldId++,
 			containingClass = containingClass,
 			name = field.name,
 			annotations = field.getAnnotations(types),

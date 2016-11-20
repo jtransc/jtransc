@@ -41,11 +41,13 @@ class LambdaProgramFeature : AstProgramFeature() {
 							val methodToCall = methodToConvertRef.ref
 
 							val argsFrom = methodInInterfaceRef.type.args
+							val argsStartTo = methodToConvertRef.type.argTypes.take(startArgs.size)
 							val argsTo = methodToConvertRef.type.argTypes.drop(startArgs.size)
 
+							val startArgsExpr = storedFieldExprs.zip(argsStartTo).map { it.first.castTo(it.second) }
 							val argsExpr = argsFrom.zip(argsTo).map { it.first.expr.castTo(it.second) }
 
-							val call = methodToCall(storedFieldExprs + argsExpr)
+							val call = methodToCall(startArgsExpr + argsExpr)
 							if (methodInInterfaceRef.type.retVoid) {
 								STM(call)
 							} else {

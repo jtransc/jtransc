@@ -53,18 +53,14 @@ class N {
 
     static public function strLitEscape(str:String):{% CLASS java.lang.String %} return strLit(str);
 
-    static public function str(str:String):{% CLASS java.lang.String %} return (str != null) ? {% CLASS java.lang.String %}.make(str) : null;
+	static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
     static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
     static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
 
-    static public function isNegativeZero(x:Float) {
-    	return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
-    }
+    static public function isNegativeZero(x:Float) return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
 
-	static public inline function c<T, S> (value:T, c:Class<S>):S {
-		return cast value;
-		//return (value != null) ? cast value : null;
-	}
+	static public inline function c<T, S> (value:T, c:Class<S>):S return cast value;
+	//static public inline function c<T, S> (value:T, c:Class<S>):S return (value != null) ? cast value : null;
 
 	static inline private function _shift(count:Int) {
 		#if php
@@ -85,17 +81,10 @@ class N {
 
 	static public function arrayIterator(arr: Array<Dynamic>) : Iterator<Dynamic> {
 		#if flash
-		var cur = 0;
-		return {
-			hasNext : function() {
-				return cur < arr.length;
-			},
-			next : function() {
-				return arr[cur++];
-			}
-		}
+			var cur = 0;
+			return { hasNext : function() { return cur < arr.length; }, next : function() { return arr[cur++]; } };
 		#else
-		return arr.iterator();
+			return arr.iterator();
 		#end
 	}
 
@@ -104,6 +93,19 @@ class N {
 	static public function i2b(v:Int):Int return (v << _shift(8)) >> _shift(8);
 	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
 	static public function i2c(v:Int):Int return v & 0xFFFF;
+
+	static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
+	static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
+
+	static public function toNativeStrArray(strs:JA_L):Array<String> {
+		var list = strs.toArray();
+		return [for (s in 0 ... list.length) toNativeString(cast list[s])];
+	}
+
+	static public function toNativeUnboxedArray(strs:JA_L):Array<Dynamic> {
+		var list = strs.toArray();
+		return [for (s in 0 ... list.length) unbox(cast list[s])];
+	}
 
 	#if js
 	inline static public function imul(a:Int32, b:Int32):Int32 return untyped __js__("Math.imul({0}, {1})", a, b);
@@ -126,6 +128,11 @@ class N {
 	}
 
 	static public function int(v:Float):Int return f2i(v);
+
+	//static public function int(value:Int):JavaInteger return boxInt(value);
+	//static public function long(value:Int64):JavaLong return boxLong(value);
+	//static public function float(value:Float32):JavaFloat return boxFloat(value);
+	//static public function double(value:Float64):JavaDouble return boxDouble(value);
 
 	static public function z2i(v:Bool):Int return v ? 1 : 0;
 
@@ -159,6 +166,8 @@ class N {
 	#end
 
 	// Long operators
+	static public function llow(a:Int64):Int return a.low;
+	static public function lhigh(a:Int64):Int return a.high;
 	static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
 	static public function ladd(a:Int64, b:Int64):Int64 return a + b;
 	static public function lsub(a:Int64, b:Int64):Int64 return a - b;
@@ -271,76 +280,6 @@ class N {
 		return JA_L.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	static public function wrap(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
-
-	static public function toNativeString(str:JavaString):String {
-		return (str != null) ? str._str : null;
-	}
-
-	static public function toNativeStrArray(strs:JA_L):Array<String> {
-		var list = strs.toArray();
-		return [for (s in 0 ... list.length) toNativeString(cast list[s])];
-	}
-
-	static public function toNativeUnboxedArray(strs:JA_L):Array<Dynamic> {
-		var list = strs.toArray();
-		return [for (s in 0 ... list.length) unbox(cast list[s])];
-	}
-
 	static public function hashMap(obj:Dynamic):{% CLASS java.util.HashMap %} {
 		var out = new {% CLASS java.util.HashMap %}().{% METHOD java.util.HashMap:<init>:()V %}();
 		var fields = Reflect.fields(obj);
@@ -375,17 +314,10 @@ class N {
 	}
 
 	// BOX alias
-	static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
-	static public function int(value:Int):JavaInteger return boxInt(value);
-	static public function long(value:Int64):JavaLong return boxLong(value);
-	static public function float(value:Float32):JavaFloat return boxFloat(value);
-	static public function double(value:Float64):JavaDouble return boxDouble(value);
 
 	static public function strArray(strs:Array<String>):JA_L {
 		var out = new JA_L(strs.length, "[Ljava.lang.String;");
-		for (n in 0 ... strs.length) {
-			out.set(n, str(strs[n]));
-		}
+		for (n in 0 ... strs.length) out.set(n, str(strs[n]));
 		return out;
 	}
 
@@ -393,7 +325,7 @@ class N {
 		if (count < 0) count = chars.length;
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
-		var out = new Utf8();
+		var out = new haxe.Utf8();
 		for (n in start ... end) out.addChar(chars.get(n));
 		return out.toString();
 	}
@@ -402,7 +334,7 @@ class N {
 		if (count < 0) count = chars.length;
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
-		var out = new Utf8();
+		var out = new haxe.Utf8();
 		for (n in start ... end) out.addChar((chars.get(n) & 0xFF) | ((hi & 0xFF) << 8));
 		return out.toString();
 	}
@@ -410,7 +342,7 @@ class N {
 	static public function charArrayToString(chars:JA_C, start:Int = 0, count:Int = 999999999):String {
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
-		var out = new Utf8();
+		var out = new haxe.Utf8();
 		for (n in start ... end) out.addChar(chars.get(n));
 		return out.toString();
 	}
@@ -418,7 +350,7 @@ class N {
 	static public function intArrayToString(chars:JA_I, start:Int = 0, count:Int = 999999999):String {
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
-		var out = new Utf8();
+		var out = new haxe.Utf8();
 		for (n in start ... end) out.addChar(chars.get(n));
 		return out.toString();
 	}
@@ -435,9 +367,9 @@ class N {
 		for (n in 0 ... str.length) out.set(n, str.charCodeAt(n));
 		return out;
 		#else
-		var out = new JA_C(Utf8.length(str));
+		var out = new JA_C(haxe.Utf8.length(str));
 		var n = 0;
-		Utf8.iter(str, function(c) { out.set(n++, c); });
+		haxe.Utf8.iter(str, function(c) { out.set(n++, c); });
 		return out;
 		#end
 	}
@@ -459,21 +391,20 @@ class N {
 		#end
 	}
 
-
-	static public function getClassDescriptor(object:JavaObject):String {
-		if (Std.is(object, JA_0)) return cast(object, JA_0).desc;
-		var haxeClass = Type.getClass(object);
-		if (haxeClass == null) trace('haxeClass == null');
-		var haxeClassName = Type.getClassName(haxeClass);
-		if (haxeClassName == null) trace('haxeClassName == null');
-		var javaClassName = R.internalClassNameToName(haxeClassName);
-		if (javaClassName == null) trace('javaClassName == null :: $haxeClassName');
-		return javaClassName;
-	}
-
-	static public function getClass(object:JavaObject):{% CLASS java.lang.Class %} {
-		return resolveClass(getClassDescriptor(object));
-	}
+	//static public function getClassDescriptor(object:JavaObject):String {
+	//	if (Std.is(object, JA_0)) return cast(object, JA_0).desc;
+	//	var haxeClass = Type.getClass(object);
+	//	if (haxeClass == null) trace('haxeClass == null');
+	//	var haxeClassName = Type.getClassName(haxeClass);
+	//	if (haxeClassName == null) trace('haxeClassName == null');
+	//	var javaClassName = R.internalClassNameToName(haxeClassName);
+	//	if (javaClassName == null) trace('javaClassName == null :: $haxeClassName');
+	//	return javaClassName;
+	//}
+	//
+	//static public function getClass(object:JavaObject):{% CLASS java.lang.Class %} {
+	//	return resolveClass(getClassDescriptor(object));
+	//}
 
 	static public function newInstance(javaInternalClassName:String) {
 		if (javaInternalClassName == null) trace('N.newInstance::javaInternalClassName == null');
@@ -664,10 +595,4 @@ class N {
 
 		return createStackItem(className, methodName, fileName, line);
 	}
-
-
-
-
-
-
 }

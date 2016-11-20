@@ -10,12 +10,15 @@ fun AstProgram.createClass(name: FqName, parent: FqName = "java.lang.Object".fqn
 	return clazz
 }
 
+fun AstClass.hasMethod(name: String, desc: AstType.METHOD): Boolean {
+	return this.getMethod(name, desc.desc) != null
+}
+
 fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
 	val clazz = this
 	val types: AstTypes = this.program.types
 	val method = AstMethod(
 		containingClass = clazz,
-		id = clazz.program.lastMethodId++,
 		name = name,
 		methodType = desc,
 		annotations = listOf(),
@@ -39,7 +42,6 @@ fun AstClass.createField(name: String, type: AstType, isStatic: Boolean = false,
 	val clazz = this
 	val types: AstTypes = this.program.types
 	val field = AstField(
-		id = clazz.program.lastFieldId++,
 		containingClass = clazz,
 		name = name,
 		type = type,

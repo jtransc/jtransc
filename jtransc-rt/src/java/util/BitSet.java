@@ -33,8 +33,6 @@ import java.nio.LongBuffer;
  * automatically if this size is exceeded.
  */
 public class BitSet implements Serializable, Cloneable {
-    private static final long serialVersionUID = 7997698588986878753L;
-
     private static final long ALL_ONES = ~0L;
 
     /**

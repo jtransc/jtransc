@@ -30,11 +30,7 @@ import java.io.Serializable;
  *
  * @since 1.2
  */
-public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>,
-        Cloneable, Serializable {
-
-    private static final long serialVersionUID = -2479143000061671589L;
-
+public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, Serializable {
     /** Keys are this set's elements. Values are always Boolean.TRUE */
     private transient NavigableMap<E, Object> backingMap;
 

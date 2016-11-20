@@ -137,17 +137,17 @@ public final class Float extends Number implements Comparable<Float> {
 		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
 
-	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+	@HaxeMethodBody("return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	native public static int floatToIntBits(float value);
 
-	@HaxeMethodBody("return HaxeNatives.floatToIntBits(p0);")
+	@HaxeMethodBody("return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	native public static int floatToRawIntBits(float value);
 
-	@HaxeMethodBody("return HaxeNatives.intBitsToFloat(p0);")
+	@HaxeMethodBody("return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(float *)&p0;")
 	native public static float intBitsToFloat(int bits);

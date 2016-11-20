@@ -21,9 +21,6 @@ package java.io;
  * Thrown when a file specified by a program cannot be found.
  */
 public class FileNotFoundException extends IOException {
-
-    private static final long serialVersionUID = -897856973823710492L;
-
     /**
      * Constructs a new {@code FileNotFoundException} with its stack trace
      * filled in.

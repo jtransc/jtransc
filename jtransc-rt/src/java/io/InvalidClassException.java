@@ -32,9 +32,6 @@ package java.io;
  * @see ObjectInputValidation#validateObject()
  */
 public class InvalidClassException extends ObjectStreamException {
-
-    private static final long serialVersionUID = -4333316296251054416L;
-
     /**
      * The fully qualified name of the class that caused the problem.
      */

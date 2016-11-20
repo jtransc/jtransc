@@ -62,7 +62,7 @@ public final class Long extends Number implements Comparable<Long> {
 		return toUnsignedString(i, 2);
 	}
 
-	//@HaxeMethodBody("return HaxeNatives.str('' + p0);")
+	//@HaxeMethodBody("return N.str('' + p0);")
 	public static String toString(long i) {
 		return toString(i, 10);
 	}

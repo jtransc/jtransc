@@ -24,9 +24,6 @@ package java.io;
  * @see ObjectInputValidation#validateObject()
  */
 public class InvalidObjectException extends ObjectStreamException {
-
-    private static final long serialVersionUID = 3233174318281839583L;
-
     /**
      * Constructs an {@code InvalidObjectException} with its stack trace and
      * detail message filled in.

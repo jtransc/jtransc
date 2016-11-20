@@ -24,8 +24,6 @@ import java.io.Serializable;
  * currency code such as "EUR" or "USD".
  */
 public final class Currency implements Serializable {
-	private static final long serialVersionUID = -158308464356906721L;
-
 	private static final HashMap<String, Currency> codesToCurrencies = new HashMap<String, Currency>();
 	private static final HashMap<Locale, Currency> localesToCurrencies = new HashMap<Locale, Currency>();
 

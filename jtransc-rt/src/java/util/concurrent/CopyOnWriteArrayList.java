@@ -48,9 +48,6 @@ import java.util.*;
  * {@link #addAllAbsent}).
  */
 public class CopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneable, Serializable {
-
-    private static final long serialVersionUID = 8673264195747942595L;
-
     /**
      * Holds the latest snapshot of the list's data. This field is volatile so
      * that data can be read without synchronization. As a consequence, all

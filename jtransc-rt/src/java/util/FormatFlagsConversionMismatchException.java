@@ -24,11 +24,7 @@ import java.io.Serializable;
  *
  * @see RuntimeException
  */
-public class FormatFlagsConversionMismatchException extends
-        IllegalFormatException implements Serializable {
-
-    private static final long serialVersionUID = 19120414L;
-
+public class FormatFlagsConversionMismatchException extends IllegalFormatException implements Serializable {
     private final String f;
 
     private final char c;

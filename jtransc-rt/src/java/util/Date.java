@@ -47,7 +47,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 		this(System.currentTimeMillis());
 	}
 
-    @HaxeMethodBody("_date = Date.fromTime(HaxeNatives.longToFloat(p0));")
+    @HaxeMethodBody("_date = Date.fromTime(N.longToFloat(p0));")
 	@JTranscMethodBody(target = "js", value = "this._date = new Date(N.ltoFloat(p0));")
 	public Date(long timestamp) {
 		this.setTimestamp(timestamp);
@@ -90,7 +90,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	}
 
 	@Deprecated
-    @HaxeMethodBody("return HaxeNatives.floatToLong(Date.fromString(p0._str).getTime());")
+    @HaxeMethodBody("return N.floatToLong(Date.fromString(p0._str).getTime());")
 	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Date.parse(N.istr(p0)));")
 	public static long parse(String s) {
 		return JTranscTime.parse(s);
@@ -189,7 +189,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 		this.setTimestamp(JTranscTime.make(getFullYear(), getMonth(), getDate(), getHours(), getMinutes(), seconds, getMilliseconds()));
 	}
 
-    @HaxeMethodBody("return HaxeNatives.floatToLong(_date.getTime());")
+    @HaxeMethodBody("return N.floatToLong(_date.getTime());")
 	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(this._date.getTime());")
 	public long getTime() {
 		return this._timestamp;
@@ -233,7 +233,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 		return sb;
 	}
 
-	@HaxeMethodBody("return HaxeNatives.str(_date.toString());")
+	@HaxeMethodBody("return N.str(_date.toString());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._date.toString());")
 	native public String toString();
 

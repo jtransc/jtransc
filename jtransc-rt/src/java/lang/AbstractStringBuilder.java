@@ -101,7 +101,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 		return this;
 	}
 
-	@HaxeMethodBody("return this.add(HaxeNatives.toNativeString(p0));")
+	@HaxeMethodBody("return this.add(N.toNativeString(p0));")
 	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
 	public AbstractStringBuilder append(String _str) {
 		String str = String.valueOf(_str);

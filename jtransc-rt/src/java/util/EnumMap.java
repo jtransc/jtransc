@@ -31,9 +31,6 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements
     // BEGIN android-changed
     // added implements Map<K, V> for apicheck
     // END android-changed
-
-    private static final long serialVersionUID = 458661240069192865L;
-
     private Class<K> keyType;
 
     transient Enum[] keys;

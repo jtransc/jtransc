@@ -23,9 +23,6 @@ package java.io;
  * is stored in a field of the exception.
  */
 public class InterruptedIOException extends IOException {
-
-    private static final long serialVersionUID = 4020568460727500567L;
-
     /**
      * The number of bytes transferred before the I/O interrupt occurred.
      */

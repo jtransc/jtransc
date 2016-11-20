@@ -667,6 +667,8 @@ open class BuilderBase(val types: AstTypes) {
 
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 	fun AstExpr.castTo(type: AstType) = AstExpr.CAST(this, type)
+	fun AstExpr.castTo(type: AstClass) = AstExpr.CAST(this, type.ref)
+	fun AstExpr.castTo(type: FqName) = AstExpr.CAST(this, AstType.REF(type))
 
 	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())

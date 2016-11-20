@@ -25,10 +25,7 @@ import java.io.Serializable;
  *
  * @see RuntimeException
  */
-public class IllegalFormatCodePointException extends IllegalFormatException
-        implements Serializable {
-    private static final long serialVersionUID = 19080630L;
-
+public class IllegalFormatCodePointException extends IllegalFormatException implements Serializable {
     private final int c;
 
     /**

@@ -313,7 +313,7 @@ public final class StringBuffer extends AbstractStringBuilder implements java.io
 	}
 
 	@Override
-	@HaxeMethodBody("return HaxeNatives.str(this.getStr());")
+	@HaxeMethodBody("return N.str(this.getStr());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
 	public String toString() {
 		return super.toString();

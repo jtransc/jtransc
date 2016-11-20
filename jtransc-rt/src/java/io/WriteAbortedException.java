@@ -28,9 +28,6 @@ package java.io;
  * @see ObjectInputStream#readObject()
  */
 public class WriteAbortedException extends ObjectStreamException {
-
-    private static final long serialVersionUID = -3326426625597282442L;
-
     /**
      * The exception that occured when writeObject() was attempting to serialize
      * the object.

@@ -463,7 +463,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public static final int SIZE = 16;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
-	@HaxeMethodBody("return HaxeNatives.swap16(p0) & 0xFFFF;")
+	@HaxeMethodBody("return N.swap16(p0) & 0xFFFF;")
 	public static char reverseBytes(char ch) {
 		return (char) (((ch & 0xFF00) >> 8) | (ch << 8));
 	}

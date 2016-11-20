@@ -27,9 +27,6 @@ package java.io;
  * @see ObjectInputStream#skipBytes(int)
  */
 public class OptionalDataException extends ObjectStreamException {
-
-    private static final long serialVersionUID = -8011121865681257820L;
-
     /**
      * {@code true} indicates that there is no more primitive data available.
      */

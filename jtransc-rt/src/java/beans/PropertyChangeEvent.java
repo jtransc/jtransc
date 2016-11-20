@@ -3,9 +3,6 @@ package java.beans;
 import java.util.EventObject;
 
 public class PropertyChangeEvent extends EventObject {
-
-	private static final long serialVersionUID = 7042693688939648123L;
-
 	String propertyName;
 
 	Object oldValue;

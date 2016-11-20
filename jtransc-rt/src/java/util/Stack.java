@@ -23,9 +23,6 @@ package java.util;
  * including null objects. There is no limit to the size of the stack.
  */
 public class Stack<E> extends Vector<E> {
-
-    private static final long serialVersionUID = 1224463164541339165L;
-
     /**
      * Constructs a stack with the default size of {@code Vector}.
      */

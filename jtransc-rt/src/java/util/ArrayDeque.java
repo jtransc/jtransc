@@ -800,11 +800,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Appease the serialization gods.
-     */
-    private static final long serialVersionUID = 2340985798034038923L;
-
-    /**
      * Serialize this deque.
      *
      * @serialData The current size (<tt>int</tt>) of the deque,

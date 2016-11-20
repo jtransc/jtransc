@@ -9,7 +9,7 @@ public class WrappedTest {
 		System.out.println(getWrapped().get("a"));
 	}
 
-	@HaxeMethodBody("return HaxeNatives.wrap({a : 10 });")
+	@HaxeMethodBody("return N.wrap({a : 10 });")
 	@JTranscMethodBody(target = "js", value = "return N.wrap({a : 10});")
 	static private JTranscWrapped getWrapped() {
 		return new JTranscWrapped(new Object() {

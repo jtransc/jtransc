@@ -40,11 +40,7 @@ import java.io.Serializable;
  *
  * @since 1.4
  */
-public class IdentityHashMap<K, V> extends AbstractMap<K, V> implements
-        Map<K, V>, Serializable, Cloneable {
-
-    private static final long serialVersionUID = 8188218128353913216L;
-
+public class IdentityHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Serializable, Cloneable {
     /*
      * The internal data structure to hold key value pairs This array holds keys
      * and values in an alternating fashion.

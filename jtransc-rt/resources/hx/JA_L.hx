@@ -1,3 +1,5 @@
+import haxe.ds.Vector;
+
 class JA_L extends JA_0 {
     public var data:Vector<Dynamic> = null;
 

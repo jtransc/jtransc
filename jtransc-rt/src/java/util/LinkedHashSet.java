@@ -32,11 +32,7 @@ import java.io.Serializable;
  *
  * @since 1.4
  */
-public class LinkedHashSet<E> extends HashSet<E> implements Set<E>, Cloneable,
-        Serializable {
-
-    private static final long serialVersionUID = -2851667679971038690L;
-
+public class LinkedHashSet<E> extends HashSet<E> implements Set<E>, Cloneable, Serializable {
     /**
      * Constructs a new empty instance of {@code LinkedHashSet}.
      */

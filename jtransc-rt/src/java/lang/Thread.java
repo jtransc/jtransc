@@ -53,7 +53,7 @@ public class Thread implements Runnable {
 
 	static private final StackTraceElement[] ST_NULL = null;
 
-	@HaxeMethodBody("return HaxeNatives.getStackTrace(2);")
+	@HaxeMethodBody("return N.getStackTrace(2);")
 	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);")
 	private StackTraceElement[] _getStackTrace() {
 		return ST_NULL;

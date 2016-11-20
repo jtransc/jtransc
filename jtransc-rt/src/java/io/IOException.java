@@ -24,9 +24,6 @@ package java.io;
  * {@link FileNotFoundException} or {@link EOFException}.
  */
 public class IOException extends Exception {
-
-    private static final long serialVersionUID = 7818375828146090155L;
-
     /**
      * Constructs a new {@code IOException} with its stack trace filled in.
      */

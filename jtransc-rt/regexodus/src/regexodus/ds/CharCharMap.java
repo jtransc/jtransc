@@ -28,7 +28,6 @@ import java.util.Arrays;
  */
 @JTranscInvisible
 public class CharCharMap implements java.io.Serializable, Cloneable {
-    private static final long serialVersionUID = 0L;
     private static final boolean ASSERTS = false;
     /**
      * The array of keys.

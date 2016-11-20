@@ -226,7 +226,7 @@ class JTranscBuild(
 				for (method in clazz.allDirectInterfaces.flatMap { it.methods }) {
 					val methodRef = method.ref.withoutClass
 					if (method.hasBody && !method.isStatic && !method.isClassOrInstanceInit && (clazz.getMethodInAncestors(methodRef) == null)) {
-						clazz.add(generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
+						clazz.add(program.generateDummyMethod(clazz, method.name, methodRef.type, false, AstVisibility.PUBLIC, method.ref))
 					}
 				}
 			}
@@ -236,7 +236,7 @@ class JTranscBuild(
 			// @TODO: is target dependant
 			for (clazz in program.classes.filter { it.isAbstract }) {
 				for (method in clazz.allMethodsToImplement.filter { clazz.getMethodInAncestors(it) == null }) {
-					clazz.add(generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
+					clazz.add(program.generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))
 				}
 			}
 		}
@@ -250,9 +250,8 @@ class JTranscBuild(
 		return program
 	}
 
-	fun generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility, bodyRef: AstMethodRef? = null) = AstMethod(
+	fun AstProgram.generateDummyMethod(containingClass: AstClass, name: String, methodType: AstType.METHOD, isStatic: Boolean, visibility: AstVisibility, bodyRef: AstMethodRef? = null) = AstMethod(
 		containingClass = containingClass,
-		id = -1,
 		annotations = listOf(),
 		name = name,
 		methodType = methodType,

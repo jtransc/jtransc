@@ -1659,8 +1659,6 @@ public class TreeMap<K, V> extends AbstractMap<K, V>
      * Serialization
      */
 
-    private static final long serialVersionUID = 919286545866124006L;
-
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.putFields().put("comparator", comparator());
         stream.writeFields();
@@ -1685,7 +1683,6 @@ public class TreeMap<K, V> extends AbstractMap<K, V>
     }
 
     static abstract class NavigableSubMap<K, V> extends AbstractMap<K, V> implements Serializable {
-        private static final long serialVersionUID = -2102997345730753016L;
         TreeMap<K, V> m;
         Object lo;
         Object hi;
@@ -1718,7 +1715,6 @@ public class TreeMap<K, V> extends AbstractMap<K, V>
     }
 
     static class DescendingSubMap<K, V> extends NavigableSubMap<K, V> {
-        private static final long serialVersionUID = 912986545866120460L;
         Comparator<K> reverseComparator;
         DescendingSubMap(TreeMap<K, V> delegate, K from, Bound fromBound, K to, Bound toBound) {
             super(delegate, from, fromBound, to, toBound);
@@ -1726,14 +1722,12 @@ public class TreeMap<K, V> extends AbstractMap<K, V>
     }
 
     static class AscendingSubMap<K, V> extends NavigableSubMap<K, V> {
-        private static final long serialVersionUID = 912986545866124060L;
         AscendingSubMap(TreeMap<K, V> delegate, K from, Bound fromBound, K to, Bound toBound) {
             super(delegate, from, fromBound, to, toBound);
         }
     }
 
     class SubMap extends AbstractMap<K, V> implements Serializable {
-        private static final long serialVersionUID = -6520786458950516097L;
         Object fromKey;
         Object toKey;
         boolean fromStart;

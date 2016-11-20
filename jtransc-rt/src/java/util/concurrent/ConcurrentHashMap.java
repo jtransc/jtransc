@@ -68,10 +68,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-public class ConcurrentHashMap<K, V> extends AbstractMap<K, V>
-        implements ConcurrentMap<K, V>, Serializable {
-    private static final long serialVersionUID = 7249069246763182397L;
-
+public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V>, Serializable {
     /*
      * The basic strategy is to subdivide the table among Segments,
      * each of which itself is a concurrently readable hash table.  To
@@ -276,8 +273,6 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V>
          * Also, scanAndLockForPut speculatively creates a fresh node
          * to use in put if no node is found.
          */
-
-        private static final long serialVersionUID = 2249069246763182397L;
 
         /**
          * The maximum number of times to tryLock in a prescan before

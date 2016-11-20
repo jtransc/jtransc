@@ -24,8 +24,6 @@ package java.util;
  * @see RuntimeException
  */
 public class MissingFormatArgumentException extends IllegalFormatException {
-    private static final long serialVersionUID = 19190115L;
-
     private final String s;
 
     /**

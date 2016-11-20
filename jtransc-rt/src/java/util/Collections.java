@@ -53,7 +53,6 @@ public class Collections {
     };
 
     private static final class CopiesList<E> extends AbstractList<E> implements Serializable {
-        private static final long serialVersionUID = 2739099268398711800L;
         private final int n;
         private final E element;
 
@@ -82,10 +81,7 @@ public class Collections {
     }
 
     @SuppressWarnings("unchecked")
-    private static final class EmptyList extends AbstractList
-            implements RandomAccess, Serializable {
-        private static final long serialVersionUID = 8842843931221139166L;
-
+    private static final class EmptyList extends AbstractList implements RandomAccess, Serializable {
         @Override public boolean contains(Object object) {
             return false;
         }
@@ -105,8 +101,6 @@ public class Collections {
 
     @SuppressWarnings("unchecked")
     private static final class EmptySet extends AbstractSet implements Serializable {
-        private static final long serialVersionUID = 1582296315990362920L;
-
         @Override public boolean contains(Object object) {
             return false;
         }
@@ -126,8 +120,6 @@ public class Collections {
 
     @SuppressWarnings("unchecked")
     private static final class EmptyMap extends AbstractMap implements Serializable {
-        private static final long serialVersionUID = 6428348081105594320L;
-
         @Override public boolean containsKey(Object key) {
             return false;
         }
@@ -181,8 +173,6 @@ public class Collections {
     private static final class ReverseComparator<T> implements Comparator<T>, Serializable {
         private static final ReverseComparator<Object> INSTANCE = new ReverseComparator<Object>();
 
-        private static final long serialVersionUID = 7207038068494060240L;
-
         @SuppressWarnings("unchecked")
         @Override public int compare(T o1, T o2) {
             Comparable<T> c2 = (Comparable<T>) o2;
@@ -195,7 +185,6 @@ public class Collections {
     }
 
     private static final class ReverseComparator2<T> implements Comparator<T>, Serializable {
-        private static final long serialVersionUID = 4374092139857L;
         private final Comparator<T> cmp;
 
         ReverseComparator2(Comparator<T> comparator) {
@@ -217,7 +206,6 @@ public class Collections {
     }
 
     private static final class SingletonSet<E> extends AbstractSet<E> implements Serializable {
-        private static final long serialVersionUID = 3193687207550431679L;
         final E element;
 
         SingletonSet(E object) {
@@ -256,8 +244,6 @@ public class Collections {
     }
 
     private static final class SingletonList<E> extends AbstractList<E> implements Serializable {
-        private static final long serialVersionUID = 3093736618740652951L;
-
         final E element;
 
         SingletonList(E object) {
@@ -280,10 +266,7 @@ public class Collections {
         }
     }
 
-    private static final class SingletonMap<K, V> extends AbstractMap<K, V>
-            implements Serializable {
-        private static final long serialVersionUID = -6979724477215052911L;
-
+    private static final class SingletonMap<K, V> extends AbstractMap<K, V> implements Serializable {
         final K k;
         final V v;
 
@@ -357,7 +340,6 @@ public class Collections {
     }
 
     static class SynchronizedCollection<E> implements Collection<E>, Serializable {
-        private static final long serialVersionUID = 3053995032091335093L;
         final Collection<E> c;
         final Object mutex;
 
@@ -462,10 +444,7 @@ public class Collections {
         }
     }
 
-    static class SynchronizedRandomAccessList<E> extends SynchronizedList<E>
-            implements RandomAccess {
-        private static final long serialVersionUID = 1530674583602358482L;
-
+    static class SynchronizedRandomAccessList<E> extends SynchronizedList<E> implements RandomAccess {
         SynchronizedRandomAccessList(List<E> l) {
             super(l);
         }
@@ -497,7 +476,6 @@ public class Collections {
     }
 
     static class SynchronizedList<E> extends SynchronizedCollection<E> implements List<E> {
-        private static final long serialVersionUID = -7754090372962971524L;
         final List<E> list;
 
         SynchronizedList(List<E> l) {
@@ -647,8 +625,6 @@ public class Collections {
     }
 
     static class SynchronizedMap<K, V> implements Map<K, V>, Serializable {
-        private static final long serialVersionUID = 1978198479659022715L;
-
         private final Map<K, V> m;
 
         final Object mutex;
@@ -761,8 +737,6 @@ public class Collections {
     }
 
     static class SynchronizedSet<E> extends SynchronizedCollection<E> implements Set<E> {
-        private static final long serialVersionUID = 487447009682186044L;
-
         SynchronizedSet(Set<E> set) {
             super(set);
         }
@@ -790,10 +764,7 @@ public class Collections {
         }
     }
 
-    static class SynchronizedSortedMap<K, V> extends SynchronizedMap<K, V>
-            implements SortedMap<K, V> {
-        private static final long serialVersionUID = -8798146769416483793L;
-
+    static class SynchronizedSortedMap<K, V> extends SynchronizedMap<K, V> implements SortedMap<K, V> {
         private final SortedMap<K, V> sm;
 
         SynchronizedSortedMap(SortedMap<K, V> map) {
@@ -853,8 +824,6 @@ public class Collections {
     }
 
     static class SynchronizedSortedSet<E> extends SynchronizedSet<E> implements SortedSet<E> {
-        private static final long serialVersionUID = 8695801310862127406L;
-
         private final SortedSet<E> ss;
 
         SynchronizedSortedSet(SortedSet<E> set) {
@@ -912,8 +881,6 @@ public class Collections {
     }
 
     private static class UnmodifiableCollection<E> implements Collection<E>, Serializable {
-        private static final long serialVersionUID = 1820017752578914078L;
-
         final Collection<E> c;
 
         UnmodifiableCollection(Collection<E> collection) {
@@ -991,10 +958,7 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableRandomAccessList<E> extends UnmodifiableList<E>
-            implements RandomAccess {
-        private static final long serialVersionUID = -2542308836966382001L;
-
+    private static class UnmodifiableRandomAccessList<E> extends UnmodifiableList<E> implements RandomAccess {
         UnmodifiableRandomAccessList(List<E> l) {
             super(l);
         }
@@ -1019,10 +983,7 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableList<E> extends UnmodifiableCollection<E>
-            implements List<E> {
-        private static final long serialVersionUID = -283967356065247728L;
-
+    private static class UnmodifiableList<E> extends UnmodifiableCollection<E> implements List<E> {
         final List<E> list;
 
         UnmodifiableList(List<E> l) {
@@ -1139,18 +1100,11 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableMap<K, V> implements Map<K, V>,
-            Serializable {
-        private static final long serialVersionUID = -1034234728574286014L;
-
+    private static class UnmodifiableMap<K, V> implements Map<K, V>, Serializable {
         private final Map<K, V> m;
 
-        private static class UnmodifiableEntrySet<K, V> extends
-                UnmodifiableSet<Entry<K, V>> {
-            private static final long serialVersionUID = 7854390611657943733L;
-
-            private static class UnmodifiableMapEntry<K, V> implements
-                    Entry<K, V> {
+        private static class UnmodifiableEntrySet<K, V> extends UnmodifiableSet<Entry<K, V>> {
+            private static class UnmodifiableMapEntry<K, V> implements Entry<K, V> {
                 Entry<K, V> mapEntry;
 
                 UnmodifiableMapEntry(Entry<K, V> entry) {
@@ -1297,10 +1251,7 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableSet<E> extends UnmodifiableCollection<E>
-            implements Set<E> {
-        private static final long serialVersionUID = -9215047833775013803L;
-
+    private static class UnmodifiableSet<E> extends UnmodifiableCollection<E> implements Set<E> {
         UnmodifiableSet(Set<E> set) {
             super(set);
         }
@@ -1314,10 +1265,7 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableSortedMap<K, V> extends
-            UnmodifiableMap<K, V> implements SortedMap<K, V> {
-        private static final long serialVersionUID = -8806743815996713206L;
-
+    private static class UnmodifiableSortedMap<K, V> extends UnmodifiableMap<K, V> implements SortedMap<K, V> {
         private final SortedMap<K, V> sm;
 
         UnmodifiableSortedMap(SortedMap<K, V> map) {
@@ -1350,10 +1298,7 @@ public class Collections {
         }
     }
 
-    private static class UnmodifiableSortedSet<E> extends UnmodifiableSet<E>
-            implements SortedSet<E> {
-        private static final long serialVersionUID = -4929149591599911165L;
-
+    private static class UnmodifiableSortedSet<E> extends UnmodifiableSet<E> implements SortedSet<E> {
         private final SortedSet<E> ss;
 
         UnmodifiableSortedSet(SortedSet<E> set) {
@@ -2649,8 +2594,6 @@ public class Collections {
     }
 
     private static class SetFromMap<E> extends AbstractSet<E> implements Serializable {
-        private static final long serialVersionUID = 2454657854757543876L;
-
         // Must be named as is, to pass serialization compatibility test.
         private final Map<E, Boolean> m;
 
@@ -2727,8 +2670,6 @@ public class Collections {
     }
 
     private static class AsLIFOQueue<E> extends AbstractQueue<E> implements Serializable {
-        private static final long serialVersionUID = 1802017725587941708L;
-
         // Must be named as is, to pass serialization compatibility test.
         private final Deque<E> q;
 
@@ -2814,9 +2755,6 @@ public class Collections {
      * A dynamically typesafe view of a Collection.
      */
     private static class CheckedCollection<E> implements Collection<E>, Serializable {
-
-        private static final long serialVersionUID = 1578914078182001775L;
-
         final Collection<E> c;
 
         final Class<E> type;
@@ -2960,9 +2898,6 @@ public class Collections {
      * Class represents a dynamically typesafe view of a List.
      */
     private static class CheckedList<E> extends CheckedCollection<E> implements List<E> {
-
-        private static final long serialVersionUID = 65247728283967356L;
-
         final List<E> l;
 
         public CheckedList(List<E> l, Class<E> type) {
@@ -3028,9 +2963,6 @@ public class Collections {
      * A dynamically typesafe view of a RandomAccessList.
      */
     private static class CheckedRandomAccessList<E> extends CheckedList<E> implements RandomAccess {
-
-        private static final long serialVersionUID = 1638200125423088369L;
-
         public CheckedRandomAccessList(List<E> l, Class<E> type) {
             super(l, type);
         }
@@ -3040,9 +2972,6 @@ public class Collections {
      * A dynamically typesafe view of a Set.
      */
     private static class CheckedSet<E> extends CheckedCollection<E> implements Set<E> {
-
-        private static final long serialVersionUID = 4694047833775013803L;
-
         public CheckedSet(Set<E> s, Class<E> type) {
             super(s, type);
         }
@@ -3054,16 +2983,12 @@ public class Collections {
         @Override public int hashCode() {
             return c.hashCode();
         }
-
     }
 
     /**
      * A dynamically typesafe view of a Map.
      */
     private static class CheckedMap<K, V> implements Map<K, V>, Serializable {
-
-        private static final long serialVersionUID = 5742860141034234728L;
-
         final Map<K, V> m;
         final Class<K> keyType;
         final Class<V> valueType;
@@ -3316,7 +3241,6 @@ public class Collections {
      * A dynamically typesafe view of a SortedSet.
      */
     private static class CheckedSortedSet<E> extends CheckedSet<E> implements SortedSet<E> {
-        private static final long serialVersionUID = 1599911165492914959L;
         private final SortedSet<E> ss;
 
         public CheckedSortedSet(SortedSet<E> s, Class<E> type) {
@@ -3353,9 +3277,7 @@ public class Collections {
     /**
      * A dynamically typesafe view of a SortedMap.
      */
-    private static class CheckedSortedMap<K, V> extends CheckedMap<K, V>
-            implements SortedMap<K, V> {
-        private static final long serialVersionUID = 1599671320688067438L;
+    private static class CheckedSortedMap<K, V> extends CheckedMap<K, V> implements SortedMap<K, V> {
         final SortedMap<K, V> sm;
 
         CheckedSortedMap(SortedMap<K, V> m, Class<K> keyType, Class<V> valueType) {

@@ -56,8 +56,6 @@ public class Object {
 		return (this == obj);
 	}
 
-	//@HaxeMethodBody("return HaxeNatives.getClass(this);")
-	//@JTranscMethodBody(target = "js", value = "return (obj == null) ? null : ({% SMETHOD j.ProgramReflection:getClassById %}(obj.$$CLASS_ID));")
 	@JTranscMethodBody(target = "js", value = {
 		"var obj = this;",
 		"if (obj == null) return null;",

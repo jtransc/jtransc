@@ -28,9 +28,6 @@ package java.io;
  * @see ObjectOutputStream#writeObject(Object)
  */
 public class NotSerializableException extends ObjectStreamException {
-
-    private static final long serialVersionUID = 2906642554793891381L;
-
     /**
      * Constructs a new {@code NotSerializableException} with its stack trace
      * filled in.

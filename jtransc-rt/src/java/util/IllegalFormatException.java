@@ -25,11 +25,7 @@ import java.io.Serializable;
  *
  * @see RuntimeException
  */
-public class IllegalFormatException extends IllegalArgumentException implements
-        Serializable {
-
-    private static final long serialVersionUID = 18830826L;
-
+public class IllegalFormatException extends IllegalArgumentException implements Serializable {
     // the constructor is not callable from outside from the package
     IllegalFormatException() {
         // do nothing

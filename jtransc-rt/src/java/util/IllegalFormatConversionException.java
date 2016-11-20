@@ -26,10 +26,7 @@ import java.io.Serializable;
  *
  * @since 1.5
  */
-public class IllegalFormatConversionException extends IllegalFormatException
-        implements Serializable {
-    private static final long serialVersionUID = 17000126L;
-
+public class IllegalFormatConversionException extends IllegalFormatException implements Serializable {
     private final char c;
 
     private final Class<?> arg;

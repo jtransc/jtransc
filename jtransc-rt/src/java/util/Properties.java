@@ -40,9 +40,6 @@ import java.nio.charset.UnsupportedCharsetException;
  * @see System#getProperties
  */
 public class Properties extends Hashtable<Object, Object> {
-
-    private static final long serialVersionUID = 4112578634029874840L;
-
     //private transient DocumentBuilder builder = null;
 
     private static final String PROP_DTD_NAME = "http://java.sun.com/dtd/properties.dtd";

@@ -31,9 +31,6 @@ package java.io;
  * </ul>
  */
 public class NotActiveException extends ObjectStreamException {
-
-    private static final long serialVersionUID = -3893467273049808895L;
-
     /**
      * Constructs a new {@code NotActiveException} with its stack trace filled
      * in.

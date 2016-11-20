@@ -214,8 +214,6 @@ public class ConcurrentLinkedDeque<E>
      * good as we can hope for.
      */
 
-    private static final long serialVersionUID = 876323262645176354L;
-
     /**
      * A node from which the first node on list (that is, the unique node p
      * with p.prev == null && p.next != p) can be reached in O(1) time.

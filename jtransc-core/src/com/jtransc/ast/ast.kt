@@ -163,8 +163,6 @@ class AstGenContext {
 	}
 }
 
-val AstProgram.visibleClasses: List<AstClass> get() = classes.filter { it.visible }
-
 @Singleton
 class AstProgram(
 	val configResourcesVfs: ConfigResourcesVfs,
@@ -641,8 +639,8 @@ interface FieldRef {
 }
 
 class AstField(
-	val id: Int,
 	containingClass: AstClass,
+	val id: Int = containingClass.program.lastFieldId++,
 	name: String,
 	type: AstType,
 	val modifiers: AstModifiers,
@@ -664,7 +662,7 @@ class AstField(
 
 class AstMethod(
 	containingClass: AstClass,
-	val id: Int,
+	val id: Int = containingClass.program.lastMethodId++,
 	name: String,
 	methodType: AstType.METHOD,
 	annotations: List<AstAnnotation>,
@@ -678,6 +676,12 @@ class AstMethod(
 	val types: AstTypes
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
+	init {
+		if (id < 0) {
+			println("Invalid method id: $id")
+		}
+	}
+
 	val isNative: Boolean = modifiers.isNative
 
 	private var generatedBody: Boolean = false

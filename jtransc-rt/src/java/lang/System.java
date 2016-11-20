@@ -54,7 +54,7 @@ public class System {
 		return JTranscSystem.nanoTime();
 	}
 
-	@HaxeMethodBody("HaxeNatives.arraycopy(p0, p1, p2, p3, p4);")
+	@HaxeMethodBody("N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
@@ -140,9 +140,9 @@ public class System {
 	}
 
 	@HaxeMethodBodyPre("var key = p0._str;")
-	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.str(Sys.getEnv(key));")
-	@HaxeMethodBody(target = "js", value = "return HaxeNatives.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
-	@HaxeMethodBody("return HaxeNatives.str(null);")
+	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getEnv(key));")
+	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
+	@HaxeMethodBody("return N.str(null);")
 	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[p0] : null);")
 	@JTranscMethodBody(target = "cpp", value = {
 		"auto str = N::istr3(p0);",
@@ -152,9 +152,9 @@ public class System {
 		return null;
 	}
 
-	@HaxeMethodBody(target = "sys", value = "return HaxeNatives.hashMap(Sys.environment());")
-	@HaxeMethodBody(target = "js", value = "return HaxeNatives.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
-	@HaxeMethodBody("return HaxeNatives.hashMap({});")
+	@HaxeMethodBody(target = "sys", value = "return N.hashMap(Sys.environment());")
+	@HaxeMethodBody(target = "js", value = "return N.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
+	@HaxeMethodBody("return N.hashMap({});")
 	native public static java.util.Map<String, String> getenv();
 
 	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")

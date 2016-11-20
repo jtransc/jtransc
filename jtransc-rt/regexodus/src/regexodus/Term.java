@@ -39,8 +39,6 @@ import java.util.HashMap;
 
 @JTranscInvisible
 public class Term implements REFlags, Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     //runtime Term types
     static final int CHAR = 0;
     static final int BITSET = 1;
@@ -1793,8 +1791,6 @@ public class Term implements REFlags, Serializable {
 
 @JTranscInvisible
 class Pretokenizer implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     private static final int START = 1;
     static final int END = 2;
     static final int PLAIN_GROUP = 3;
@@ -2058,8 +2054,6 @@ class Pretokenizer implements Serializable {
 
 @JTranscInvisible
 class Branch extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     Branch() {
         type = BRANCH;
     }
@@ -2079,7 +2073,6 @@ class Branch extends Term implements Serializable {
 
 @JTranscInvisible
 class BackReference extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
     BackReference(int no, boolean icase, boolean reverse, boolean bracket) {
         super(icase ? REG_I : REG);
         mode_reverse = reverse;
@@ -2091,8 +2084,6 @@ class BackReference extends Term implements Serializable {
 
 @JTranscInvisible
 class Group extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     Group() {
         this(0);
     }
@@ -2114,8 +2105,6 @@ class Group extends Term implements Serializable {
 
 @JTranscInvisible
 class ConditionalExpr extends Group implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     private Term node;
     private boolean newBranchStarted = false;
     private boolean linkAsBranch = true;
@@ -2244,8 +2233,6 @@ class ConditionalExpr extends Group implements Serializable {
 
 @JTranscInvisible
 class IndependentGroup extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     IndependentGroup(int id) {
         super(0);
         in = this;
@@ -2258,8 +2245,6 @@ class IndependentGroup extends Term implements Serializable {
 
 @JTranscInvisible
 class Lookahead extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     final boolean isPositive;
 
     Lookahead(int id, boolean isPositive) {
@@ -2300,8 +2285,6 @@ class Lookahead extends Term implements Serializable {
 
 @JTranscInvisible
 class Lookbehind extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     final boolean isPositive;
     private int prevDistance = -1;
 
@@ -2390,8 +2373,6 @@ class Lookbehind extends Term implements Serializable {
 
 @JTranscInvisible
 class TermIterator extends Term implements Serializable {
-    private static final long serialVersionUID = 2528136757932720807L;
-
     TermIterator(Term term, int min, int max, ArrayList<TermIterator> collection) throws PatternSyntaxException {
         collection.add(this);
         switch (term.type) {

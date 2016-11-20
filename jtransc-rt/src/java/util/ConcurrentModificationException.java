@@ -25,9 +25,6 @@ package java.util;
  * @see RuntimeException
  */
 public class ConcurrentModificationException extends RuntimeException {
-
-    private static final long serialVersionUID = -3666751008965953603L;
-
     /**
      * Constructs a new {@code ConcurrentModificationException} with the current
      * stack trace filled in.
