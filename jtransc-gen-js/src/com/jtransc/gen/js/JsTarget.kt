@@ -121,8 +121,8 @@ val JsKeywords = setOf(
 @Singleton
 class JsNames(
 	injector: Injector,
-	program: AstResolver
-) : CommonNames(injector, keywords = JsKeywords, program = program) {
+	program: AstProgram
+) : CommonNames(injector, keywords = JsKeywords + program.getExtraKeywords("js"), program = program) {
 	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
 
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)

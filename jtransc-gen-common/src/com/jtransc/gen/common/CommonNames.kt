@@ -18,8 +18,8 @@ abstract class CommonNames(
 	val program: AstResolver,
 	val keywords: Set<String> = setOf()
 ) {
-	val configMinimizeNames: ConfigMinimizeNames = injector.get()
-	val minimize: Boolean = configMinimizeNames.minimizeNames
+	val configMinimizeNames: ConfigMinimizeNames? = injector.getOrNull()
+	val minimize: Boolean = configMinimizeNames?.minimizeNames ?: false
 
 	private var minClassLastId: Int = 0
 	private var minMemberLastId: Int = 0

@@ -1,6 +1,7 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.ast.*
+import com.jtransc.injector.Injector
 import org.junit.Assert
 import org.junit.Test
 
@@ -10,7 +11,7 @@ class HaxeNamesTest {
 		override fun get(ref: AstFieldRef): AstField? = null
 		override fun get(name: FqName): AstClass? = null
 		override fun contains(name: FqName): Boolean = false
-	}, configMinimizeNames = ConfigMinimizeNames(false))
+	}, Injector())
 
 	@Test
 	fun testFqnames() {

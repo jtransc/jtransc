@@ -16,6 +16,7 @@
 
 import com.jtransc.gen.js.JsTarget
 import javatest.awt.AWTTest
+import jtransc.ExtraKeywordsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 
@@ -47,5 +48,17 @@ class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
 		JTranscWidgets.Component(3:text).setText('Hello World')
 		JTranscWidgets.Component(1:label).setParent(JTranscWidgets.Component(0:frame))
 		JTranscWidgets.Component(0:frame).setVisible(true)
+	""", minimize = true, target = JsTarget())
+
+	@Test fun extraKeywordsJs() = testNativeClass<ExtraKeywordsTest>("""
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
 	""", minimize = true, target = JsTarget())
 }

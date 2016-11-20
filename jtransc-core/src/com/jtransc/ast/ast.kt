@@ -180,6 +180,10 @@ class AstProgram(
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
+	fun getExtraKeywords(target: String) = classes
+		.map { it.annotationsList.getTyped<JTranscAddKeywords>() }.filterNotNull()
+		.filter { it.target == target }.flatMap { it.value.toList() }
+
 	val classes: List<AstClass> get() = _classes
 
 	private val classesToGenerate = LinkedList<AstType.REF>()

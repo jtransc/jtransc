@@ -10,15 +10,20 @@ class Injector() {
 	)
 
 	inline fun <reified T : Any> get(): T = getInstance(T::class.java)
+	inline fun <reified T : Any> getOrNull(): T? = getInstanceOrNull(T::class.java)
 	inline fun <reified T : Any> get(default: () -> T): T = if (T::class.java in maps) getInstance(T::class.java) else default()
 
 	fun <T : Any> getInstance(clazz: Class<T>): T {
+		return getInstanceOrNull(clazz) ?: invalidOp("Cannot automap '$clazz' not @Singleton or @Prototype")
+	}
+
+	fun <T : Any> getInstanceOrNull(clazz: Class<T>): T? {
 		if (clazz !in maps) {
 			val allAnnotations = getAllAnnotations(clazz)
 			val isSingleton = allAnnotations.filterIsInstance<Singleton?>().isNotEmpty()
 			val isPrototype = allAnnotations.filterIsInstance<Prototype?>().isNotEmpty()
 			if (!isSingleton && !isPrototype) {
-				invalidOp("Cannot automap '$clazz' not @Singleton or @Prototype")
+				return null
 			}
 			mapImplementation(clazz, clazz)
 		}
