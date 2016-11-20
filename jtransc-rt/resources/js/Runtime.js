@@ -430,7 +430,7 @@ function __createJavaArrayBaseType() {
 	var ARRAY = function() {
 	};
 
-	ARRAY.prototype = Object.create(java_lang_Object.prototype);
+	ARRAY.prototype = Object.create({% CLASS java.lang.Object %}.prototype);
 	ARRAY.prototype.constructor = ARRAY;
 
 	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {

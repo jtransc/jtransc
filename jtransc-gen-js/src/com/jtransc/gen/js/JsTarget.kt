@@ -114,10 +114,15 @@ class JsGenTargetProcessor(
 	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
 }
 
-@Singleton
-class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : CommonNames(program, keywords = setOf("name", "constructor", "prototype", "__proto__")) {
-	val minimize: Boolean = configMinimizeNames.minimizeNames
+val JsKeywords = setOf(
+	"name", "constructor", "prototype", "__proto__", "N", "S", "SS", "IO"
+)
 
+@Singleton
+class JsNames(
+	injector: Injector,
+	program: AstResolver
+) : CommonNames(injector, keywords = JsKeywords, program = program) {
 	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
 
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
@@ -137,6 +142,8 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 	}
 
 	private val fieldNames = hashMapOf<Any?, String>()
+	private val methodNames = hashMapOf<Any?, String>()
+	private val classNames = hashMapOf<Any?, String>()
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	fun getNativeName(field: AstField): String {
@@ -146,25 +153,29 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 		val keyToUse = field.ref
 
 		return fieldNames.getOrPut2(keyToUse) {
-			if (fieldRef !in cachedFieldNames) {
-				val fieldName = field.name.replace('$', '_')
-				//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
-				var name = "_$fieldName"
+			if (minimize) {
+				allocMemberName()
+			} else {
+				if (fieldRef !in cachedFieldNames) {
+					val fieldName = field.name.replace('$', '_')
+					//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+					var name = "_$fieldName"
 
-				val clazz = program[fieldRef]?.containingClass
-				val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
-				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getNativeName(it.ref) }.toHashSet()
-				val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field.ref)
+					val clazz = program[fieldRef]?.containingClass
+					val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
+					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getNativeName(it.ref) }.toHashSet()
+					val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field.ref)
 
-				// JTranscBugInnerMethodsWithSameName.kt
-				for (f2 in fieldsColliding) {
-					while (name in names) name += "_"
-					cachedFieldNames[f2] = name
-					names += name
+					// JTranscBugInnerMethodsWithSameName.kt
+					for (f2 in fieldsColliding) {
+						while (name in names) name += "_"
+						cachedFieldNames[f2] = name
+						names += name
+					}
+					cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
 				}
 				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
 			}
-			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
 		}
 	}
 
@@ -177,22 +188,39 @@ class JsNames(program: AstResolver, configMinimizeNames: ConfigMinimizeNames) : 
 	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
 
 	fun getJsMethodName(methodRef: AstMethodRef): String {
-		if (program is AstProgram) {
-			val method = methodRef.resolve(program)
-			if (method.nativeName != null) {
-				return method.nativeName!!
+		val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
+		return methodNames.getOrPut2(keyToUse) {
+			if (minimize) {
+				allocMemberName()
+			} else {
+				if (program is AstProgram) {
+					val method = methodRef.resolve(program)
+					if (method.nativeName != null) {
+						return method.nativeName!!
+					}
+				}
+				return if (methodRef.isInstanceInit) {
+					"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
+				} else {
+					"${methodRef.name}${methodRef.desc}"
+				}
 			}
-		}
-		return if (methodRef.isInstanceInit) {
-			"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
-		} else {
-			"${methodRef.name}${methodRef.desc}"
 		}
 	}
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = getClassFqNameForCalling(classRef.name) + ".SI();"
 	override fun getClassFqName(name: FqName): String = name.fqname
-	override fun getClassFqNameForCalling(fqName: FqName): String = fqName.fqname.replace('.', '_')
+	override fun getClassFqNameForCalling(fqName: FqName): String {
+		val keyToUse = fqName
+		return classNames.getOrPut2(keyToUse) {
+			if (minimize) {
+				allocClassName()
+			} else {
+				fqName.fqname.replace('.', '_')
+			}
+		}
+	}
+
 	fun getJsClassFqNameInt(fqName: FqName): String = fqName.simpleName
 	override fun getFilePath(name: FqName): String = name.simpleName
 	fun getJsGeneratedFqPackage(fqName: FqName): String = fqName.fqname
@@ -256,7 +284,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 				Indenter.gen { line(clazz.implCode!!) }
 			} else {
 				//if (!clazz.isInterface) {
-					writeClass(clazz)
+				writeClass(clazz)
 				//} else {
 				//	Indenter.EMPTY
 				//}
@@ -545,7 +573,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 								if (method.methodVoidReturnThis) line("return this;")
 							}
 						} else {
-							line("$prefix = function() { N.methodWithoutBody('$prefix') };")
+							line("$prefix = function() { N.methodWithoutBody('${clazz.name}.${method.name}') };")
 						}
 					}
 

@@ -1013,11 +1013,10 @@ val CppKeywords = setOf<String>()
 
 @Singleton
 class CppNames(
+	injector: Injector,
 	program: AstResolver,
-	val configMinimizeNames: ConfigMinimizeNames,
 	val types: AstTypes
-) : CommonNames(program, keywords = CppKeywords) {
-	val minimize = configMinimizeNames.minimizeNames
+) : CommonNames(injector, program, keywords = CppKeywords) {
 	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassFqNameForCalling(clazz.name) + "::SI();"

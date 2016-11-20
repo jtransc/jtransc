@@ -331,33 +331,29 @@ val HaxeKeywords = setOf(
 	"goto"
 )
 
+val HaxeSpecial = setOf(
+	"hx",
+	"z", // used for package
+	"N", // used for HaxeNatives
+	"NN", // used for HaxeNatives without references to other classes
+	"R", // used for reflect
+	"SI", // STATIC INIT
+	"SII", // STATIC INIT INITIALIZED
+	"HAXE_CLASS_INIT", // Information about the class
+	"HAXE_CLASS_NAME", // Information about the class
+	"HaxeNatives", // used for HaxeNatives
+	"unix",
+	"OVERFLOW", // iphone sdk
+	"UNDERFLOW" // iphone sdk
+)
+
+val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
+
 @Singleton
 class HaxeNames(
 	program: AstResolver,
-	configMinimizeNames: ConfigMinimizeNames
-) : CommonNames(program, keywords = HaxeKeywords) {
-	val minimize: Boolean = configMinimizeNames.minimizeNames
-
-	companion object {
-		val HaxeSpecial = setOf(
-			"hx",
-			"z", // used for package
-			"N", // used for HaxeNatives
-			"NN", // used for HaxeNatives without references to other classes
-			"R", // used for reflect
-			"SI", // STATIC INIT
-			"SII", // STATIC INIT INITIALIZED
-			"HAXE_CLASS_INIT", // Information about the class
-			"HAXE_CLASS_NAME", // Information about the class
-			"HaxeNatives", // used for HaxeNatives
-			"unix",
-			"OVERFLOW", // iphone sdk
-			"UNDERFLOW" // iphone sdk
-		)
-
-		val HaxeKeywordsWithToStringAndHashCode: Set<String> = HaxeKeywords + HaxeSpecial + setOf("toString", "hashCode")
-	}
-
+    injector: Injector
+) : CommonNames(injector, program, keywords = HaxeKeywordsWithToStringAndHashCode) {
 	override val stringPoolType: StringPoolType = StringPoolType.PER_CLASS
 
 	override fun buildConstructor(method: AstMethod): String = "new ${getClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
@@ -367,7 +363,7 @@ class HaxeNames(
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getClassFqName(method.containingClass.name)
 		val name = getHaxeMethodName(method)
-		return if (static) "$clazz.$name" else "$name"
+		return if (static) "$clazz.$name" else name
 	}
 
 	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
@@ -388,8 +384,6 @@ class HaxeNames(
 	//private val ENABLED_MINIFY_CLASSES = true
 	//private val ENABLED_MINIFY_MEMBERS = false
 
-	private var minClassLastId: Int = 0
-	private var minMemberLastId: Int = 0
 	private val classNames = hashMapOf<FqName, FqName>()
 	private val methodNames = hashMapOf<Any?, String>()
 	private val fieldNames = hashMapOf<Any?, String>()
@@ -397,15 +391,7 @@ class HaxeNames(
 	val minClassPrefix = "z."
 	//val minClassPrefix = ""
 
-	private fun <T> Set<T>.runUntilNotInSet(callback: () -> T): T {
-		while (true) {
-			val result = callback()
-			if (result !in this) return result
-		}
-	}
 
-	fun allocClassName(): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) }
-	fun allocMemberName(): String = HaxeKeywordsWithToStringAndHashCode.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) }
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
@@ -450,6 +436,7 @@ class HaxeNames(
 
 	override fun getDefault(type: AstType): Any? = type.getNull()
 
+	@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 	private fun _getHaxeFqName(name: FqName): FqName {
 		val realclass = if (name in program) program[name]!! else null
 		return classNames.getOrPut2(name) {
@@ -521,7 +508,7 @@ class HaxeNames(
 		val clazz = program[name]
 		val simpleName = getGeneratedSimpleClassName(name)
 		val suffix = if (clazz?.isInterface ?: false) ".${simpleName}_IFields" else ""
-		return getClassFqName(clazz?.name ?: name) + "$suffix"
+		return getClassFqName(clazz?.name ?: name) + suffix
 	}
 
 	override fun getClassFqNameLambda(name: FqName): String {

@@ -1,24 +1,42 @@
 package com.jtransc.gen.common
 
-import com.jtransc.annotation.JTranscNativeName
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.gen.MinimizedNames
+import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.lang.high
 import com.jtransc.lang.low
-import com.jtransc.text.escape
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import kotlin.reflect.KMutableProperty1
 
 @Singleton
 abstract class CommonNames(
+	val injector: Injector,
 	val program: AstResolver,
 	val keywords: Set<String> = setOf()
 ) {
+	val configMinimizeNames: ConfigMinimizeNames = injector.get()
+	val minimize: Boolean = configMinimizeNames.minimizeNames
+
+	private var minClassLastId: Int = 0
+	private var minMemberLastId: Int = 0
+
+	fun allocClassName(): String = keywords.runUntilNotInSet { MinimizedNames.getTypeNameById(minClassLastId++) }
+	fun allocMemberName(): String = keywords.runUntilNotInSet { MinimizedNames.getIdNameById(minMemberLastId++) }
+
+	private fun <T> Set<T>.runUntilNotInSet(callback: () -> T): T {
+		while (true) {
+			val result = callback()
+			if (result !in this) return result
+		}
+	}
+
 	lateinit var currentClass: FqName
 	lateinit var currentMethod: AstMethodRef
+
 	enum class StringPoolType { GLOBAL, PER_CLASS }
 
 	abstract val stringPoolType: StringPoolType
@@ -124,8 +142,8 @@ abstract class CommonNames(
 	fun buildStaticField(field: FieldRef): String = buildStaticField(program[field.ref]!!)
 	fun buildInstanceField(expr: String, field: FieldRef): String = buildInstanceField(expr, program[field.ref]!!)
 
-	open fun buildAccessName(field: AstField, static:Boolean): String = buildAccessName(getNativeName(field), static)
-	open fun buildAccessName(name: String, static:Boolean): String = ".$name"
+	open fun buildAccessName(field: AstField, static: Boolean): String = buildAccessName(getNativeName(field), static)
+	open fun buildAccessName(name: String, static: Boolean): String = ".$name"
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
@@ -153,6 +171,7 @@ abstract class CommonNames(
 		//}
 		return normalizeName(methodRef.ref.name)
 	}
+
 	open fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 
 	inline fun <reified T : Any> nativeName(): String = getNativeName(T::class.java.name.fqname)
@@ -231,7 +250,7 @@ abstract class CommonNames(
 	open val staticAccessOperator: String = "."
 	open val instanceAccessOperator: String = "."
 
-	open fun N_lnew(value:Long) = N_func("lnew", "${value.high}, ${value.low}")
+	open fun N_lnew(value: Long) = N_func("lnew", "${value.high}, ${value.low}")
 
 	open fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"

@@ -35,6 +35,7 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef, MethodRef {
 	override val ref = this
 	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }
+	val withoutClass: AstMethodWithoutClassRef by lazy { AstMethodWithoutClassRef(this.name, this.type) }
 	val containingClassType: AstType.REF by lazy { AstType.REF(containingClass) }
 	override val memberType: AstType = type
 	val fid: String get() = "${containingClass.fqname}:$name:$desc"
@@ -74,6 +75,5 @@ val AstMethodRef.withoutRetval: AstMethodRef get() {
 }
 
 val AstFieldRef.withoutClass: AstFieldWithoutClassRef get() = AstFieldWithoutClassRef(this.name, this.type)
-val AstMethodRef.withoutClass: AstMethodWithoutClassRef get() = AstMethodWithoutClassRef(this.name, this.type)
 fun AstMethodRef.withClass(other: AstType.REF) = AstMethodRef(other.name, this.name, this.type)
 fun AstMethodWithoutClassRef.withClass(containingClass: FqName): AstMethodRef = AstMethodRef(containingClass, this.name, this.type)
