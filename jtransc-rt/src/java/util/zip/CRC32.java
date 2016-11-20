@@ -34,6 +34,6 @@ public class CRC32 implements Checksum {
 	}
 
 	public long getValue() {
-		return impl.getValue();
+		return impl.getValue() & 0xFFFFFFFFL;
 	}
 }

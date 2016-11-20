@@ -31,7 +31,7 @@ public class Adler32 implements Checksum {
 	 * @return The checksum for this instance.
 	 */
 	public long getValue() {
-		return impl.getValue();
+		return impl.getValue() & 0xFFFFFFFFL;
 	}
 
 	/**

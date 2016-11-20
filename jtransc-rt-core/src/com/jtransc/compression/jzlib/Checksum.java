@@ -42,9 +42,9 @@ interface Checksum {
 
 	void reset();
 
-	void reset(long init);
+	void reset(int init);
 
-	long getValue();
+	int getValue();
 
 	Checksum copy();
 }

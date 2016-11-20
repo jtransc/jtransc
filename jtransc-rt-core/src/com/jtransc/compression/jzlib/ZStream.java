@@ -204,10 +204,10 @@ public class ZStream{
     if(dstate==null) return Z_STREAM_ERROR;
     return dstate.deflateParams(level, strategy);
   }
-  public int deflateSetDictionary (byte[] dictionary, int dictLength){
+  public int deflateSetDictionary (byte[] dictionary, int dictIndex, int dictLength){
     if(dstate == null)
       return Z_STREAM_ERROR;
-    return dstate.deflateSetDictionary(dictionary, dictLength);
+    return dstate.deflateSetDictionary(dictionary, dictIndex, dictLength);
   }
 
   // Flush as much pending output as possible. All deflate() output goes
@@ -264,7 +264,7 @@ public class ZStream{
     return len;
   }
 
-  public long getAdler(){
+  public int getAdler(){
     return adler.getValue();
   }
 

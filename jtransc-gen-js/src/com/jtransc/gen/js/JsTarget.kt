@@ -527,7 +527,7 @@ class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 								if (method.methodVoidReturnThis) line("return this;")
 							}
 						} else {
-							line("$prefix = N.methodWithoutBody;")
+							line("$prefix = function() { N.methodWithoutBody('$prefix') };")
 						}
 					}
 

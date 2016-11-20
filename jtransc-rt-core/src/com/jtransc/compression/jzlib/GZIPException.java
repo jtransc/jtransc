@@ -37,7 +37,7 @@ package com.jtransc.compression.jzlib;
 import com.jtransc.annotation.JTranscInvisible;
 
 @JTranscInvisible
-public class GZIPException extends java.io.IOException {
+public class GZIPException extends RuntimeException {
   public GZIPException() {
     super();
   }

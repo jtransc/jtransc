@@ -780,8 +780,8 @@ N.clone = function(obj) {
 	return temp;
 };
 
-N.methodWithoutBody = function() {
-	throw 'Method not implemented: native or abstract';
+N.methodWithoutBody = function(name) {
+	throw 'Method not implemented: native or abstract: ' + name;
 };
 
 N.EMPTY_FUNCTION = function() { }

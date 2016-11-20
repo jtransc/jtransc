@@ -157,10 +157,10 @@ final public class Deflater extends ZStream{
     if(dstate==null) return Z_STREAM_ERROR;
     return dstate.deflateParams(level, strategy);
   }
-  public int setDictionary (byte[] dictionary, int dictLength){
+  public int setDictionary (byte[] dictionary, int dictIndex, int dictLength){
     if(dstate == null)
       return Z_STREAM_ERROR;
-    return dstate.deflateSetDictionary(dictionary, dictLength);
+    return dstate.deflateSetDictionary(dictionary, dictIndex, dictLength);
   }
 
   public boolean finished(){

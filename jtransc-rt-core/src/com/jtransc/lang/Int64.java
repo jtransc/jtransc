@@ -253,20 +253,20 @@ public class Int64 {
 	}
 
 	static public Int64 mul(Int64 a, Int64 b) {
-		int al = a.low & 65535;
+		int al = a.low & 0xffff;
 		int ah = a.low >>> 16;
-		int bl = b.low & 65535;
+		int bl = b.low & 0xffff;
 		int bh = b.low >>> 16;
 		int p00 = al * bl;
 		int p10 = ah * bl;
 		int p01 = al * bh;
 		int p11 = ah * bh;
 		int low;
-		int high = (p11 + (p01 >>> 16)) + (p10 >>> 16);
-		p01 = p01 << 16;
+		int high = (p11 + (p01 >>> 0x10)) + (p10 >>> 0x10);
+		p01 = p01 << 0x10;
 		low = p00 + p01;
 		if (Integer.compareUnsigned(low, p01) < 0) high = high + 1;
-		p10 = p10 << 16;
+		p10 = p10 << 0x10;
 		low = low + p10;
 		if (Integer.compareUnsigned(low, p10) < 0) high = high + 1;
 		high = high + ((a.low * b.high) + (a.high * b.low));

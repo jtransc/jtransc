@@ -96,8 +96,8 @@ final class Inflate{
   int method;        // if FLAGS, method byte
 
   // if CHECK, check values to compare
-  long was = -1;           // computed check value
-  long need;               // stream check value
+  int was = -1;           // computed check value
+  int need;               // stream check value
 
   // if BAD, inflateSync's marker bytes count
   int marker;
@@ -297,7 +297,7 @@ final class Inflate{
         if(z.avail_in==0)return r;r=f;
 
         z.avail_in--; z.total_in++;
-        this.need=((z.next_in[z.next_in_index++]&0xff)<<24)&0xff000000L;
+        this.need=((z.next_in[z.next_in_index++]&0xff)<<24);
         this.mode=DICT3;
       case DICT3:
 
@@ -353,21 +353,21 @@ final class Inflate{
         if(z.avail_in==0)return r;r=f;
 
         z.avail_in--; z.total_in++;
-        this.need=((z.next_in[z.next_in_index++]&0xff)<<24)&0xff000000L;
+        this.need=((z.next_in[z.next_in_index++]&0xff)<<24);
         this.mode=CHECK3;
       case CHECK3:
 
         if(z.avail_in==0)return r;r=f;
 
         z.avail_in--; z.total_in++;
-        this.need+=((z.next_in[z.next_in_index++]&0xff)<<16)&0xff0000L;
+        this.need+=((z.next_in[z.next_in_index++]&0xff)<<16);
         this.mode = CHECK2;
       case CHECK2:
 
         if(z.avail_in==0)return r;r=f;
 
         z.avail_in--; z.total_in++;
-        this.need+=((z.next_in[z.next_in_index++]&0xff)<<8)&0xff00L;
+        this.need+=((z.next_in[z.next_in_index++]&0xff)<<8);
         this.mode = CHECK1;
       case CHECK1:
 
@@ -380,7 +380,7 @@ final class Inflate{
           this.need = ((this.need&0xff000000)>>24 | 
                           (this.need&0x00ff0000)>>8 | 
                           (this.need&0x0000ff00)<<8 | 
-                          (this.need&0x0000ffff)<<24)&0xffffffffL;
+                          (this.need&0x0000ffff)<<24);
         }
 
         if(((int)(this.was)) != ((int)(this.need))){
@@ -575,7 +575,7 @@ final class Inflate{
     int length = dictLength;
 
     if(this.mode==DICT0){
-      long adler_need=z.adler.getValue();
+      int adler_need=z.adler.getValue();
       z.adler.reset();
       z.adler.update(dictionary, 0, dictLength);
       if(z.adler.getValue()!=adler_need){

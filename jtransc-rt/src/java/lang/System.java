@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscSystemProperties;
+import com.jtransc.JTranscVersion;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
@@ -114,9 +115,9 @@ public class System {
 			_setProperty("java.vendor", "jtransc");
 			_setProperty("java.vendor.url", "http://github.com/jtransc/jtransc");
 			_setProperty("java.vm.name", "haxe");
-			_setProperty("java.vm.specification.name", "Jtransc/Haxe JVM emulator");
-			_setProperty("java.vm.specification.vendor", "jtransc-haxe");
-			_setProperty("java.vm.specification.version", "0.1");
+			_setProperty("java.vm.specification.name", "Jtransc JVM emulator");
+			_setProperty("java.vm.specification.vendor", "jtransc");
+			_setProperty("java.vm.specification.version", JTranscVersion.getVersion());
 			_setProperty("java.io.tmpdir", JTranscSystemProperties.tmpdir());
 			_setProperty("user.home", JTranscSystemProperties.userHome());
 			_setProperty("user.dir", JTranscSystemProperties.userDir());

@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 
 public class MiscTest {
@@ -99,6 +100,7 @@ public class MiscTest {
 		//testMd5();
 		//testSha1();
 		testCrc32();
+		testAdler32();
 		testCharset();
 		testArrays();
 		testNulls();
@@ -1187,6 +1189,17 @@ public class MiscTest {
 		System.out.println(crc32.getValue());
 		crc32.update(new byte[]{1, 2, 3, 4});
 		System.out.println(crc32.getValue());
+	}
+
+	private void testAdler32() {
+		Adler32 ad = new Adler32();
+		byte[] data = new byte[10000];
+		for (int n = 0; n < data.length; n++) data[n] = (byte) (n * n);
+		ad.reset();
+		ad.update(data, 0, 10000);
+		System.out.println(ad.getValue());
+		ad.update(data, 5000, 5000);
+		System.out.println(ad.getValue());
 	}
 
 	private void testCharset() {

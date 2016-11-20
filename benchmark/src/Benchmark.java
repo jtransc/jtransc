@@ -1,3 +1,4 @@
+import com.jtransc.compression.jzlib.*;
 import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableMatrixFloat32x4x4;
@@ -5,9 +6,9 @@ import com.jtransc.simd.MutableMatrixFloat32x4x4;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
-import java.util.zip.DeflaterInputStream;
-import java.util.zip.InflaterInputStream;
-import java.util.zip.ZipFile;
+import java.util.zip.*;
+import java.util.zip.CRC32;
+import java.util.zip.Deflater;
 
 @SuppressWarnings("Convert2Lambda")
 public class Benchmark {
@@ -22,6 +23,8 @@ public class Benchmark {
 	}
 
 	static public void main(String[] args) {
+		System.out.println("JTransc " + com.jtransc.JTranscVersion.getVersion() + " - " + com.jtransc.JTranscSystem.getRuntimeKind());
+		System.out.println("Java " + System.getProperty("java.version"));
 		System.out.println("Benchmarking:");
 
 		benchmark("plain loops", new Task() {
@@ -148,6 +151,19 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("long arithmetic", new Task() {
+			@Override
+			public int run() {
+				long a = 0;
+
+				for (int n = 0; n < 10000; n++) {
+					a = (17777L * (long)n) + a / 3;
+				}
+
+				return (int)a;
+			}
+		});
+
 		benchmark("simd mutable", new Task() {
 			@Override
 			public int run() {
@@ -214,6 +230,18 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("Create Instances", new Task() {
+			@Override
+			public int run() {
+				int out = 0;
+				for (int n = 0; n < 100000; n++) {
+					MyClass myClass = new MyClass("test" + n);
+					out += myClass.b;
+				}
+				return out;
+			}
+		});
+
 		char[] hexDataChar = new char[]{
 			0x50, 0x4B, 0x03, 0x04, 0x0A, 0x03, 0x00, 0x00, 0x00, 0x00, 0x49, 0x9E, 0x74, 0x48, 0xA3, 0x1C,
 			0x29, 0x1C, 0x0C, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x68, 0x65,
@@ -235,6 +263,20 @@ public class Benchmark {
 		byte[] hexData = new byte[hexDataChar.length];
 		for (int n = 0; n < hexDataChar.length; n++) hexData[n] = (byte) hexDataChar[n];
 
+		benchmark("CRC32", new Task() {
+			@Override
+			public int run() {
+				int out = 0;
+				CRC32 crc32 = new CRC32();
+				for (int n = 0; n < 10000; n++) {
+					crc32.reset();
+					crc32.update(hexData, 0, hexData.length);
+					out += crc32.getValue();
+				}
+				return out;
+			}
+		});
+
 		//benchmark("decompress zlib", new Task() {
 		//	@Override
 		//	public int run() {
@@ -254,40 +296,78 @@ public class Benchmark {
 		//	}
 		//});
 
-		//benchmark("compress zlib", new Task() {
-		//	@Override
-		//	public int run() {
-		//		try {
-		//			Random random = new Random(0L);
-		//			byte[] bytes = new byte[16 * 1024];
-		//			for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
-		//
-		//
-		//			DeflaterInputStream is = new DeflaterInputStream(new ByteArrayInputStream(bytes));
-		//			ByteArrayOutputStream out = new ByteArrayOutputStream();
-		//			com.jtransc.io.JTranscIoTools.copy(is, out);
-		//			return (int) out.size();
-		//		} catch (Throwable t) {
-		//			t.printStackTrace();
-		//			return 0;
-		//		}
-		//	}
-		//});
+		benchmark("compress jzlib", new Task() {
+			@Override
+			public int run() {
+				try {
+					Random random = new Random(0L);
+					byte[] bytes = new byte[64 * 1024];
+					byte[] out = new byte[128 * 1024];
+					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
+
+					com.jtransc.compression.jzlib.Deflater deflater = new com.jtransc.compression.jzlib.Deflater(9, false);
+					deflater.setInput(bytes, 0, bytes.length, false);
+					deflater.setOutput(out, 0, out.length);
+					int result = deflater.deflate(3);
+					return result;
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return 0;
+				}
+			}
+		});
+
+		benchmark("compress java's Deflate", new Task() {
+			@Override
+			public int run() {
+				try {
+					Random random = new Random(0L);
+					byte[] bytes = new byte[64 * 1024];
+					byte[] out = new byte[128 * 1024];
+					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
+
+					Deflater deflater = new Deflater(9, false);
+					deflater.setInput(bytes, 0, bytes.length);
+					int result = deflater.deflate(out, 0, out.length, Deflater.FULL_FLUSH);
+					return result;
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return 0;
+				}
+			}
+		});
 	}
 
 	static private void benchmark(String name, Task run) {
 		System.out.print(name + "...");
 
-		long t1 = System.nanoTime();
-		for (int n = 0; n < 10; n++) run.run(); // warming up
-		long t2 = System.nanoTime();
-		for (int n = 0; n < 10; n++) run.run();
-		long t3 = System.nanoTime();
-		//System.out.println("( " + (t2 - t1) + " ) :: ( " + (t3 - t2) + " )");
-		System.out.println((double)(t3 - t2) / 1000000.0);
+		try {
+			long t1 = System.nanoTime();
+			for (int n = 0; n < 10; n++) run.run(); // warming up
+			long t2 = System.nanoTime();
+			for (int n = 0; n < 10; n++) run.run();
+			long t3 = System.nanoTime();
+			//System.out.println("( " + (t2 - t1) + " ) :: ( " + (t3 - t2) + " )");
+
+			System.out.println((double)(t3 - t2) / 1000000.0);
+		} catch (Throwable t) {
+			System.out.println(t.getMessage());
+		}
+
 	}
 
 	static public int calc(int a, int b) {
 		return (a + b) * (a + b);
+	}
+
+	static class MyClass {
+		public int a = 10;
+		public int b = 20;
+		public String c = "hello";
+		public String d;
+
+		public MyClass(String d) {
+			this.d = d;
+		}
 	}
 }
