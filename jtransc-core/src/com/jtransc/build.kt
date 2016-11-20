@@ -112,7 +112,7 @@ class JTranscBuild(
 			java.lang.annotation.Annotation::class.java.name,
 			java.lang.reflect.InvocationHandler::class.java.name,
 			com.jtransc.JTranscWrapped::class.java.name,
-			com.jtransc.lang.Int64::class.java.name,
+			//com.jtransc.lang.Int64::class.java.name,
 			ProgramReflection::class.java.name,
 			entryPoint.fqname.fqname
 		)

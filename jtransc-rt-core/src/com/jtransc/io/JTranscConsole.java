@@ -51,7 +51,9 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
 	static public void log(int v) { System.out.println(v); }
 
-	@HaxeMethodBody("_log('Int64(' + p0.high + ',' + p0.low + ')');")
+	@SuppressWarnings("PointlessBitwiseExpression")
+	@HaxeMethodBody("_log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
+	@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
 	static public void log(long v) {
 		if (JTranscSystem.isEmulatedLong()) {
 			Int64 internal = Int64.getInternal(v);

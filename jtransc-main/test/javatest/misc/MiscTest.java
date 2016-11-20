@@ -207,6 +207,7 @@ public class MiscTest {
 		JTranscConsole.log("testPrintLong:");
 		for (int y = 0; y < v.length; y++) {
 			JTranscConsole.log(v[y]);
+			System.out.println(v[y]);
 		}
 		System.out.println();
 	}
@@ -215,6 +216,7 @@ public class MiscTest {
 		JTranscConsole.log("testNegLong:");
 		for (int y = 0; y < v.length; y++) {
 			JTranscConsole.log(-v[y]);
+			System.out.println(-v[y]);
 		}
 		System.out.println();
 	}
