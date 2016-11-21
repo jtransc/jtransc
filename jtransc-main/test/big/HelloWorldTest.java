@@ -1,6 +1,7 @@
 package big;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.reflection.JTranscReflection;
 import j.ClassInfo;
 import j.ProgramReflection;
 import javatest.utils.Base64Test;
@@ -18,6 +19,13 @@ public class HelloWorldTest {
 		//for (ClassInfo item : ProgramReflection.getAllClasses()) System.out.println(item.name + " : " + item.modifiers);
 
 		//System.out.println("HelloWorldTest.class.getModifiers(): " + HelloWorldTest.class.getModifiers());
+		System.out.println("Hello World!");
+		System.out.println("Hello World!".getClass());
+		Class<? extends Integer[]> intArrayClass = new Integer[0].getClass();
+		System.out.println(JTranscReflection.getClassByName("java.lang.Object"));
+		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
+		System.out.println(intArrayClass);
+		System.out.println(intArrayClass.getComponentType());
 
 		ArrayList<Integer> items = new ArrayList<>();
 		items.add(10);

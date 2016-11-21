@@ -39,7 +39,7 @@ abstract class CommonNames(
 
 	enum class StringPoolType { GLOBAL, PER_CLASS }
 
-	abstract val stringPoolType: StringPoolType
+	open val stringPoolType: StringPoolType = StringPoolType.GLOBAL
 
 	class StringPool {
 		private var lastId = 0
@@ -209,7 +209,7 @@ abstract class CommonNames(
 
 	open fun getDefault(type: AstType): Any? = type.getNull()
 
-	open fun getNativeType(type: AstType, typeKind: GenCommonGen.TypeKind): FqName {
+	open fun getNativeType(type: AstType, typeKind: CommonGenerator.TypeKind): FqName {
 		return when (type) {
 			is AstType.NULL -> NullType
 			is AstType.VOID -> VoidType
@@ -299,7 +299,7 @@ abstract class CommonNames(
 	open fun getGeneratedFqPackage(name: FqName): String = name.packagePath
 
 	open fun getFunctionalType(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, GenCommonGen.TypeKind.TYPETAG) }.joinToString(" -> ")
+		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenerator.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
 	open fun getAnnotationProxyName(classRef: AstType.REF): String = "AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"

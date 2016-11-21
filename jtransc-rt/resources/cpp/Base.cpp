@@ -21,13 +21,11 @@ extern "C" {
 	#include <string.h>
 	#ifndef _WIN32
 		#include <sys/stat.h>
-		#include <sys/time.h>
 		#include <unistd.h>
 	#endif
 	#include <math.h>
 	#include <stdlib.h>
 	#include <stdint.h>
-	#include <time.h>
 }
 
 #undef min
@@ -71,36 +69,6 @@ struct CLASS_TRACE { public:
 	#define TRACE_REGISTER(location) ;
 #endif
 
-
-#ifdef _WIN32
-	typedef struct timeval {
-		long tv_sec;
-		long tv_usec;
-	} timeval;
-
-	int gettimeofday(struct timeval * tp, struct timezone * tzp) {
-		// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
-		static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
-
-		SYSTEMTIME  system_time;
-		FILETIME    file_time;
-		uint64_t    time;
-
-		GetSystemTime( &system_time );
-		SystemTimeToFileTime( &system_time, &file_time );
-		time =  ((uint64_t)file_time.dwLowDateTime )      ;
-		time += ((uint64_t)file_time.dwHighDateTime) << 32;
-
-		tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
-		tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
-		return 0;
-	}
-
-	int mkdir(const char* str, int mode) {
-		return CreateDirectory(str, NULL);
-	}
-#endif
-
 // For referencing pointers
 {{ CLASS_REFERENCES }}
 
@@ -137,6 +105,7 @@ struct N { public:
 	static SOBJ resolveClass(std::wstring str);
 	inline static int64_t lnew(int high, int low);
 	static bool is(SOBJ obj, int type);
+	static bool isArray(SOBJ obj);
 	static bool isArray(SOBJ obj, std::wstring desc);
 	static bool isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
 	static int cmp(double a, double b);
@@ -239,6 +208,10 @@ bool N::is(SOBJ obj, int type) {
 	const int* table = TYPE_TABLE::TABLE[obj.get()->__INSTANCE_CLASS_ID].subtypes;
 	while (*table != 0) if (*(table++) == type) return true;
 	return false;
+};
+
+bool N::isArray(SOBJ obj) {
+	return GET_OBJECT(JA_0, obj) != NULL;
 };
 
 bool N::isArray(SOBJ obj, std::wstring desc) {
@@ -523,13 +496,15 @@ std::vector<SOBJ> N::getVectorOrEmpty(SOBJ obj) {
 	return array->getVector();
 };
 
+#include <chrono>
 
 double N::getTime() {
-	struct timeval tp;
-	gettimeofday(&tp, NULL);
-	int64_t ms = (int64_t)tp.tv_sec * 1000 + (int64_t)tp.tv_usec / 1000;
+	using namespace std::chrono;
+    milliseconds ms = duration_cast< milliseconds >(
+        system_clock::now().time_since_epoch()
+    );
 
-	return (double)ms;
+	return (double)(int64_t)ms.count();
 };
 
 void SIGSEGV_handler(int signal) {

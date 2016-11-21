@@ -14,6 +14,7 @@ import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
+import com.jtransc.io.ProcessResult2
 import com.jtransc.lang.JA_I
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.SyncVfsFile
@@ -22,7 +23,27 @@ import java.util.*
 class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
-open class GenCommonGen(val injector: Injector) {
+open class CommonGenerator(val injector: Injector) {
+	open fun buildSource(): Unit {
+		TODO()
+	}
+
+	open fun compile(): ProcessResult2 {
+		TODO()
+	}
+	open fun run(redirect: Boolean = true): ProcessResult2 {
+		TODO()
+	}
+
+	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
+		val compileResult = compile()
+		return if (!compileResult.success) {
+			ProcessResult2(compileResult.exitValue)
+		} else {
+			this.run(redirect)
+		}
+	}
+
 	val configSrcFolder: ConfigSrcFolder = injector.get()
 	val srcFolder: SyncVfsFile = configSrcFolder.srcFolder
 

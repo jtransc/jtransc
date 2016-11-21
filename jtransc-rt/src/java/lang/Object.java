@@ -26,6 +26,7 @@ import com.jtransc.annotation.haxe.HaxeAddSubtarget;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import j.ProgramReflection;
 
+import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.Field;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -56,15 +57,13 @@ public class Object {
 		return (this == obj);
 	}
 
-	@JTranscMethodBody(target = "js", value = {
-		"var obj = this;",
-		"if (obj == null) return null;",
-		"if (obj instanceof JA_0) return N.resolveClass(obj.desc);",
-		"return {% SMETHOD j.ProgramReflection:getClassById %}(obj.$$CLASS_ID);",
-	})
-	//@JTranscMethodBody(target = "cpp", value = "return {% SMETHOD java.lang.Class:forName0 %}(N::str(TYPE_TABLE::TABLE[this->__INSTANCE_CLASS_ID].tname));")
+	// @TODO: All object could have class descriptor eg. [I
 	public final Class<?> getClass() {
-		return java.lang.jtransc.JTranscCoreReflection.getClassById(ProgramReflection.getClassId(this));
+		if (JTranscCoreReflection.isArray(this)) {
+			return JTranscCoreReflection.getClassByName(JTranscCoreReflection.getArrayDescriptor(this));
+		} else {
+			return JTranscCoreReflection.getClassById(JTranscCoreReflection.getClassId(this));
+		}
 	}
 
 	@JTranscKeep

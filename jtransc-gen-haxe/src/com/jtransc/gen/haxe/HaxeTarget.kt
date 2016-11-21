@@ -15,7 +15,6 @@ import com.jtransc.ds.split
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -45,7 +44,8 @@ class HaxeTarget() : GenTargetDescriptor() {
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override val runningAvailable: Boolean = true
-	override fun getProcessor(injector: Injector): GenTargetProcessor {
+
+	override fun getGenerator(injector: Injector): CommonGenerator {
 		val program = injector.get<AstProgram>()
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
 		val configSubtarget = injector.get<ConfigSubtarget>()
@@ -79,7 +79,7 @@ class HaxeTarget() : GenTargetDescriptor() {
 
 		injector.mapImpl<CommonProgramTemplate, HaxeTemplateString>()
 
-		return injector.get<HaxeGenTargetProcessor>()
+		return injector.get<HaxeGenerator>()
 	}
 
 	override fun getTargetByExtension(ext: String): String? = when (ext) {
@@ -177,135 +177,6 @@ class HaxeTemplateString(
 class HaxeConfigMergedAssetsFolder(configTargetDirectory: ConfigTargetDirectory) {
 	val targetDirectory = configTargetDirectory.targetDirectory
 	val mergedAssetsFolder: File get() = File("$targetDirectory/merged-assets")
-}
-
-@Singleton
-class HaxeGenTargetProcessor(
-	val injector: Injector,
-	val program: AstProgram,
-	val configTargetDirectory: ConfigTargetDirectory,
-	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget,
-	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder,
-	val settings: AstBuildSettings,
-	val folders: CommonGenFolders,
-	val haxeTemplateString: CommonProgramTemplate,
-	val configOutputFile2: ConfigOutputFile2,
-	val configSrcFolder: ConfigSrcFolder,
-	val names: CommonNames,
-	val gen: GenHaxeGen
-) : GenTargetProcessor() {
-	val actualSubtarget = configHaxeAddSubtarget.subtarget
-	val targetDirectory = configTargetDirectory.targetDirectory
-	val tempdir = configTargetDirectory.targetDirectory
-	val mergedAssetsFolder = haxeConfigMergedAssetsFolder.mergedAssetsFolder
-	val mergedAssetsVfs by lazy { LocalVfs(mergedAssetsFolder) }
-	val outputFile2 = configOutputFile2.file
-	val srcFolder = configSrcFolder.srcFolder
-
-	override fun buildSource() {
-		gen._write()
-		haxeTemplateString.setInfoAfterBuildingSource()
-	}
-
-	fun haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
-		val files = program.allAnnotationsList.getAllTyped<HaxeAddAssets>().flatMap { it.value.toList() }
-		val resourcesVfs = program.resourcesVfs
-		log("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
-		if (assetsFolder != null) {
-			assetsFolder.mkdirs()
-			val outputVfs = com.jtransc.vfs.LocalVfs(assetsFolder)
-			for (file in files) {
-				log("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
-				outputVfs[file] = resourcesVfs[file]
-			}
-		}
-	}
-
-	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
-
-	override fun compileAndRun(redirect: Boolean): ProcessResult2 {
-		return _compileRun(run = true, redirect = redirect)
-	}
-
-	override fun compile(): ProcessResult2 {
-		return _compileRun(run = false, redirect = false)
-	}
-
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		outputFile2.delete()
-		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
-
-		program.haxeInstallRequiredLibs(settings)
-
-		log("Copying assets... ")
-		haxeCopyEmbeddedResourcesToFolder(mergedAssetsFolder)
-		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(mergedAssetsVfs, doLog = true)
-
-		log("Compiling... ")
-
-		val buildVfs = srcFolder.parent.jail()
-
-		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
-		for (file in copyFilesBeforeBuildTemplate) buildVfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
-
-		val buildAndRunAsASingleCommand = run && program.allAnnotationsList.contains<HaxeCustomBuildAndRunCommandLine>()
-
-		val lines = if (buildAndRunAsASingleCommand) {
-			(program.allAnnotationsList.getTyped<HaxeCustomBuildAndRunCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
-		} else {
-			(program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
-		}
-
-		val lines2 = lines.map {
-			if (it.startsWith("@")) {
-				program.resourcesVfs[it.substring(1).trim()].readString()
-			} else {
-				it
-			}
-		}
-
-		val cmdAll = haxeTemplateString.gen(lines2.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
-		val cmdList = cmdAll.split("----").filter { it.isNotEmpty() }
-
-		log("Commands to execute (buildAndRunAsASingleCommand=$buildAndRunAsASingleCommand):")
-		for (cmd in cmdList) {
-			log("- ${cmd.joinToString(" ")}")
-		}
-		for (cmd in cmdList) {
-			val commandRaw = cmd.first()
-			val cmdArgs = cmd.drop(1)
-
-			val command = when (commandRaw) {
-				"haxe" -> cmpvfs["haxe"].realpathOS
-				"haxelib" -> cmpvfs["haxelib"].realpathOS
-				else -> commandRaw
-			}
-
-			val processResult = log.logAndTime("Executing: $command ${cmdArgs.joinToString(" ")}") {
-				ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs, env = HaxeCompiler.getExtraEnvs())
-			}
-
-			if (!processResult.success) return ProcessResult2(processResult.exitValue)
-		}
-		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)
-	}
-
-	override fun run(redirect: Boolean): ProcessResult2 {
-		if (!outputFile2.exists()) {
-			return ProcessResult2(-1, "file $outputFile2 doesn't exist")
-		}
-		val fileSize = outputFile2.length()
-		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
-		val parentDir = outputFile2.parentFile
-
-		val runner = actualSubtarget.interpreter
-		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
-
-		log.info("Running: $runner ${arguments.joinToString(" ")}")
-		return measureProcess("Running") {
-			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
-		}
-	}
 }
 
 val HaxeKeywords = setOf(
@@ -416,7 +287,7 @@ class HaxeNames(
 	}
 
 	override fun getFunctionalType(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, GenCommonGen.TypeKind.TYPETAG) }.joinToString(" -> ")
+		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenerator.TypeKind.TYPETAG) }.joinToString(" -> ")
 	}
 
 	override fun getDefault(type: AstType): Any? = type.getNull()
@@ -543,7 +414,131 @@ class HaxeNames(
 }
 
 @Singleton
-class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
+class HaxeGenerator(
+	injector: Injector,
+	//val program: AstProgram,
+	val configTargetDirectory: ConfigTargetDirectory,
+	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget,
+	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder,
+	//val settings: AstBuildSettings,
+	//val folders: CommonGenFolders,
+	val haxeTemplateString: CommonProgramTemplate
+	//val configOutputFile2: ConfigOutputFile2,
+	//val configSrcFolder: ConfigSrcFolder,
+	//val names: CommonNames,
+) : FilePerClassCommonGenerator(injector) {
+	val actualSubtarget = configHaxeAddSubtarget.subtarget
+	val targetDirectory = configTargetDirectory.targetDirectory
+	val tempdir = configTargetDirectory.targetDirectory
+	val mergedAssetsFolder = haxeConfigMergedAssetsFolder.mergedAssetsFolder
+	val mergedAssetsVfs by lazy { LocalVfs(mergedAssetsFolder) }
+	val outputFile2 = configOutputFile2.file
+
+	override fun buildSource() {
+		_write()
+		haxeTemplateString.setInfoAfterBuildingSource()
+	}
+
+	fun haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
+		val files = program.allAnnotationsList.getAllTyped<HaxeAddAssets>().flatMap { it.value.toList() }
+		val resourcesVfs = program.resourcesVfs
+		log("GenTargetInfo.haxeCopyResourcesToAssetsFolder: $assetsFolder")
+		if (assetsFolder != null) {
+			assetsFolder.mkdirs()
+			val outputVfs = com.jtransc.vfs.LocalVfs(assetsFolder)
+			for (file in files) {
+				log("GenTargetInfo.haxeCopyResourcesToAssetsFolder.copy: $file")
+				outputVfs[file] = resourcesVfs[file]
+			}
+		}
+	}
+
+	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
+
+	override fun compileAndRun(redirect: Boolean): ProcessResult2 {
+		return _compileRun(run = true, redirect = redirect)
+	}
+
+	override fun compile(): ProcessResult2 {
+		return _compileRun(run = false, redirect = false)
+	}
+
+	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+		outputFile2.delete()
+		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
+
+		program.haxeInstallRequiredLibs(settings)
+
+		log("Copying assets... ")
+		haxeCopyEmbeddedResourcesToFolder(mergedAssetsFolder)
+		for (asset in settings.assets) LocalVfs(asset).copyTreeTo(mergedAssetsVfs, doLog = true)
+
+		log("Compiling... ")
+
+		val buildVfs = srcFolder.parent.jail()
+
+		val copyFilesBeforeBuildTemplate = program.classes.flatMap { it.annotationsList.getTyped<HaxeAddFilesBeforeBuildTemplate>()?.value?.toList() ?: listOf() }
+		for (file in copyFilesBeforeBuildTemplate) buildVfs[file] = haxeTemplateString.gen(program.resourcesVfs[file].readString())
+
+		val buildAndRunAsASingleCommand = run && program.allAnnotationsList.contains<HaxeCustomBuildAndRunCommandLine>()
+
+		val lines = if (buildAndRunAsASingleCommand) {
+			(program.allAnnotationsList.getTyped<HaxeCustomBuildAndRunCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
+		} else {
+			(program.allAnnotationsList.getTyped<HaxeCustomBuildCommandLine>()?.value?.toList() ?: listOf("{{ defaultBuildCommand() }}")).map { it.trim() }
+		}
+
+		val lines2 = lines.map {
+			if (it.startsWith("@")) {
+				program.resourcesVfs[it.substring(1).trim()].readString()
+			} else {
+				it
+			}
+		}
+
+		val cmdAll = haxeTemplateString.gen(lines2.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+		val cmdList = cmdAll.split("----").filter { it.isNotEmpty() }
+
+		log("Commands to execute (buildAndRunAsASingleCommand=$buildAndRunAsASingleCommand):")
+		for (cmd in cmdList) {
+			log("- ${cmd.joinToString(" ")}")
+		}
+		for (cmd in cmdList) {
+			val commandRaw = cmd.first()
+			val cmdArgs = cmd.drop(1)
+
+			val command = when (commandRaw) {
+				"haxe" -> cmpvfs["haxe"].realpathOS
+				"haxelib" -> cmpvfs["haxelib"].realpathOS
+				else -> commandRaw
+			}
+
+			val processResult = log.logAndTime("Executing: $command ${cmdArgs.joinToString(" ")}") {
+				ProcessUtils.runAndRedirect(buildVfs.realfile, command, cmdArgs, env = HaxeCompiler.getExtraEnvs())
+			}
+
+			if (!processResult.success) return ProcessResult2(processResult.exitValue)
+		}
+		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)
+	}
+
+	override fun run(redirect: Boolean): ProcessResult2 {
+		if (!outputFile2.exists()) {
+			return ProcessResult2(-1, "file $outputFile2 doesn't exist")
+		}
+		val fileSize = outputFile2.length()
+		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
+		val parentDir = outputFile2.parentFile
+
+		val runner = actualSubtarget.interpreter
+		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+
+		log.info("Running: $runner ${arguments.joinToString(" ")}")
+		return measureProcess("Running") {
+			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
+		}
+	}
+
 	val subtarget = injector.get<ConfigSubtarget>().subtarget
 	override val defaultGenStmSwitchHasBreaks = false
 
@@ -654,6 +649,7 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
+
 		val annotation = program.get3(a.type)
 		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
 		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"

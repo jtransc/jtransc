@@ -3,7 +3,6 @@ package com.jtransc.gen.cpp
 import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
-import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.annotation.JTranscAddMembersList
@@ -15,7 +14,6 @@ import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -49,14 +47,12 @@ data class ConfigCppOutput(val cppOutput: SyncVfsFile)
 // @TODO: Use std::array to ensure it is deleted
 class CppTarget() : GenTargetDescriptor() {
 	override val name = "cpp"
-	override val longName = "cpp"
-	override val sourceExtension = "cpp"
 	override val outputExtension = "bin"
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override val runningAvailable: Boolean = true
-	override fun getProcessor(injector: Injector): GenTargetProcessor {
-		injector.mapInstance(ConfigOutputFile("program.cpp"))
+
+	override fun getGenerator(injector: Injector): CommonGenerator {
 		val settings = injector.get<AstBuildSettings>()
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
 		val configOutputFile = injector.get<ConfigOutputFile>()
@@ -68,7 +64,7 @@ class CppTarget() : GenTargetDescriptor() {
 		injector.mapInstance(ConfigSrcFolder(targetFolder))
 		injector.mapInstance(ConfigOutputFile2(targetFolder[configOutputFile.outputFileBaseName].realfile))
 		injector.mapImpl<CommonProgramTemplate, CommonProgramTemplate>()
-		return injector.get<CppGenTargetProcessor>()
+		return injector.get<CppGenerator>()
 	}
 
 	override fun getTargetByExtension(ext: String): String? = when (ext) {
@@ -81,40 +77,22 @@ class CppTarget() : GenTargetDescriptor() {
 val CppFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 
 @Singleton
-class CppGenTargetProcessor(
-	val injector: Injector,
-	val settings: AstBuildSettings,
-	val configTargetFolder: ConfigTargetFolder,
-	val configOutputFile: ConfigOutputFile,
-	val templateString: CommonProgramTemplate,
-	val gen: GenCppGen
-) : CommonGenTargetProcessor(gen) {
-	var libraries = listOf<String>()
+class CppGenerator(
+	injector: Injector,
+	val configTargetFolder: ConfigTargetFolder
+) : SingleFileCommonGenerator(injector) {
+	//var libraries = listOf<String>()
 	override fun buildSource() {
-		gen.writeProgram(configTargetFolder.targetFolder)
+		writeProgram(configTargetFolder.targetFolder)
 		templateString.setInfoAfterBuildingSource()
 	}
 
 	override fun compile(): ProcessResult2 {
-		// -O0 = 23s && 7.2MB
-		// -O4 = 103s && 4.3MB
-		val debug = settings.debug
-		val release = !debug
-		val cmdAndArgs = arrayListOf<String>()
-		cmdAndArgs += "clang++"
-		cmdAndArgs += "-std=c++0x"
-		if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
-		if (debug) cmdAndArgs += "-g"
-		cmdAndArgs += if (debug) "-O0" else "-O3"
-		cmdAndArgs += "-fexceptions"
-		cmdAndArgs += "-Wno-parentheses-equality"
-		cmdAndArgs += "-Wimplicitly-unsigned-literal"
-		cmdAndArgs += "-frtti"
-		cmdAndArgs += configOutputFile.output
-		for (lib in injector.get<ConfigLibraries>().libs) {
-			cmdAndArgs += "-l$lib"
-		}
-
+		val cmdAndArgs = CppCompiler.genCommand(
+			programFile = File(configOutputFile.output),
+			debug = settings.debug,
+			libs = injector.get<ConfigLibraries>().libs
+		)
 		println(cmdAndArgs)
 		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
 		//val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec("clang++", "-O0", "-g", "-fexceptions", "-Wno-parentheses-equality", "-fno-rtti", configOutputFile.output)
@@ -131,10 +109,7 @@ class CppGenTargetProcessor(
 		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(outFile.realpathOS)
 		return ProcessResult2(result)
 	}
-}
 
-@Singleton
-class GenCppGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 	override val allowAssignItself = true
 	val lastClassId = program.classes.size
 	fun getClassId(fqname: FqName): Int = program[fqname].classId
@@ -704,7 +679,7 @@ class GenCppGen(injector: Injector) : GenCommonGenSingleFile(injector) {
 
 			fun genJavaBody() = Indenter.gen {
 				if (body != null) {
-					line(this@GenCppGen.genBody2WithFeatures(method, body))
+					line(this@CppGenerator.genBody2WithFeatures(method, body))
 				} else {
 					line("throw \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";");
 				}

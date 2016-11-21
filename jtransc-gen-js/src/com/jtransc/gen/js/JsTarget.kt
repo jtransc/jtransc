@@ -12,7 +12,6 @@ import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.GenTargetProcessor
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -34,12 +33,12 @@ class JsTarget() : GenTargetDescriptor() {
 	override val priority = 500
 	override val name = "js"
 	override val longName = "Javascript"
-	override val sourceExtension = "js"
 	override val outputExtension = "js"
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override val runningAvailable: Boolean = true
-	override fun getProcessor(injector: Injector): GenTargetProcessor {
+
+	override fun getGenerator(injector: Injector): CommonGenerator {
 		val settings = injector.get<AstBuildSettings>()
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
 		val configOutputFile = injector.get<ConfigOutputFile>()
@@ -51,7 +50,7 @@ class JsTarget() : GenTargetDescriptor() {
 		injector.mapInstance(ConfigSrcFolder(targetFolder))
 		injector.mapInstance(ConfigOutputFile2(targetFolder[configOutputFile.outputFileBaseName].realfile))
 		injector.mapImpl<CommonProgramTemplate, CommonProgramTemplate>()
-		return injector.get<JsGenTargetProcessor>()
+		return injector.get<JsGenerator>()
 	}
 
 	override fun getTargetByExtension(ext: String): String? = when (ext) {
@@ -70,48 +69,6 @@ fun hasSpecialChars(name: String): Boolean {
 
 fun accessStr(name: String): String {
 	return if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
-}
-
-@Singleton
-class JsGenTargetProcessor(
-	val injector: Injector,
-	val configOutputFile2: ConfigOutputFile2,
-	val configTargetFolder: ConfigTargetFolder,
-	val program: AstProgram,
-	val templateString: CommonProgramTemplate,
-	val gen: GenJsGen
-) : CommonGenTargetProcessor(gen) {
-	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-
-	override fun buildSource() {
-		//gen._write(configTargetFolder.targetFolder)
-		gen._write(configTargetFolder.targetFolder)
-		templateString.setInfoAfterBuildingSource()
-	}
-
-	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
-	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
-
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		val outputFile = injector.get<ConfigJavascriptOutput>().javascriptOutput
-
-		log.info("Generated javascript at..." + outputFile.realpathOS)
-
-		if (run) {
-			val result = CommonGenCliCommands.runProgramCmd(
-				program,
-				target = "js",
-				default = listOf("node", "{{ outputFile }}"),
-				template = templateString,
-				options = ExecOptions(passthru = redirect)
-			)
-			return ProcessResult2(result)
-		} else {
-			return ProcessResult2(0)
-		}
-	}
-
-	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
 }
 
 val JsKeywords = setOf(
@@ -230,7 +187,41 @@ class JsNames(
 }
 
 @Singleton
-class GenJsGen(injector: Injector) : GenCommonGenSingleFile(injector) {
+class JsGenerator(
+	injector: Injector,
+	val configTargetFolder: ConfigTargetFolder
+) : SingleFileCommonGenerator(injector) {
+
+	override fun buildSource() {
+		//gen._write(configTargetFolder.targetFolder)
+		_write(configTargetFolder.targetFolder)
+		templateString.setInfoAfterBuildingSource()
+	}
+
+	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
+	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
+
+	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+		val outputFile = injector.get<ConfigJavascriptOutput>().javascriptOutput
+
+		log.info("Generated javascript at..." + outputFile.realpathOS)
+
+		if (run) {
+			val result = CommonGenCliCommands.runProgramCmd(
+				program,
+				target = "js",
+				default = listOf("node", "{{ outputFile }}"),
+				template = templateString,
+				options = ExecOptions(passthru = redirect)
+			)
+			return ProcessResult2(result)
+		} else {
+			return ProcessResult2(0)
+		}
+	}
+
+	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
+
 	// @TODO: Kotlin IDE: Refactoring imports doesn't take into account: JTranscAddFileList::value so this is a workaround for this
 	val _JTranscCustomMainList = JTranscCustomMainList::class.java
 	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java

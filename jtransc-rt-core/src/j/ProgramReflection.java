@@ -92,13 +92,6 @@ public class ProgramReflection {
 		return new ClassInfo[0];
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__INSTANCE_CLASS_ID;")
-	@JTranscMethodBody(target = "js", value = "return p0['_JS_$$CLASS_ID'];")
-	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")
-	static public int getClassId(Object obj) {
-		return -1;
-	}
-
 	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getConstructors(int classId) {
 		return new MemberInfo[0];

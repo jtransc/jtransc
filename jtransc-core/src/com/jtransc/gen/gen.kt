@@ -16,34 +16,17 @@
 
 package com.jtransc.gen
 
-import com.jtransc.JTranscBuild
-import com.jtransc.ConfigCaptureRunOutput
-import com.jtransc.ConfigLibraries
-import com.jtransc.ConfigRun
+import com.jtransc.*
 import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.ast.AstProgram
 import com.jtransc.ast.AstProgramFeature
 import com.jtransc.ast.ConfigCompile
+import com.jtransc.gen.common.CommonGenerator
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.ProcessResult
-
-abstract class GenTargetProcessor() {
-	abstract fun buildSource(): Unit
-	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
-		val compileResult = compile()
-		return if (!compileResult.success) {
-			ProcessResult2(compileResult.exitValue)
-		} else {
-			this.run(redirect)
-		}
-	}
-
-	abstract fun compile(): ProcessResult2
-	abstract fun run(redirect: Boolean = true): ProcessResult2
-}
 
 data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: String, val ext: String = sub) {
 	val fullName: String get() = "${descriptor.name}:$sub"
@@ -65,24 +48,27 @@ data class TargetName(val name: String) {
 abstract class GenTargetDescriptor {
 	open val priority: Int = 0
 	abstract val name: String
-	abstract val longName: String
-	abstract val sourceExtension: String
+	open val longName: String get() = name
+	open val sourceExtension: String get() = name
 	abstract val outputExtension: String
 	open val programFeatures: Set<Class<out AstProgramFeature>> = setOf()
 	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
 	open val extraClasses = listOf<String>()
-	abstract fun getProcessor(injector: Injector): GenTargetProcessor
+	abstract fun getGenerator(injector: Injector): CommonGenerator
 	open fun getTargetByExtension(ext: String): String? = null
 	abstract val runningAvailable: Boolean
+
+	open val outputFile:String get() = "program.$sourceExtension"
 
 	fun build(injector: Injector): JTranscBuild.Result {
 		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput
 		val run = injector.get<ConfigRun>().run
 		val compile = injector.get<ConfigCompile>(default = { ConfigCompile(compile = true) }).compile
 		val processor = log.logAndTime("Preparing processor") {
-			//, settings
-			this.getProcessor(injector)
+			injector.mapInstance(ConfigOutputFile(outputFile))
+
+			this.getGenerator(injector)
 		}
 		log.logAndTime("Building source") { processor.buildSource() }
 

@@ -31,6 +31,14 @@ public class JTranscReflection {
 		}
 	}
 
+	static public Class<?> getClassByName(String name) {
+		try {
+			return Class.forName(name);
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
+	}
+
 	static private class ClasspathScanner {
 		private static final String CLASS_FILE_EXTENSION = ".class";
 		private static final String JAR_FILE_EXTENSION = ".jar";

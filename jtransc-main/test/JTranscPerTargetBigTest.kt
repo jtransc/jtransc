@@ -34,6 +34,13 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 
 	//@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 
+	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = true)
+	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true)
+	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = true)
+	//@Test fun testHelloWorldCppRelease() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = false)
+	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+
+
 	@Test fun testJavaEightJs() = testClass<Java8Test>(minimize = false, target = JsTarget(), log = true)
 
 	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
@@ -44,12 +51,6 @@ class JTranscPerTargetBigTest : JTranscTestBase() {
 	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, target = JsTarget(), log = true)
 
 	@Test fun testTwoJavaEightTwoJs() = testClass<Java8Test2>(minimize = false, target = JsTarget(), log = true)
-
-	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = true)
-	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = true)
-	//@Test fun testHelloWorldCppRelease() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = false)
-
-	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
 
 	//@Test fun testHelloWorldKotlinTestJs() = testClass<HelloWorldKotlinTest>(minimize = false, target = JsTarget(), log = true)
 	//@Test fun testHelloWorldKotlinTestCpp() = testClass<HelloWorldKotlinTest>(minimize = false, target = CppTarget(), log = true, debug = true)

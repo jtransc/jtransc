@@ -148,7 +148,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	public Class<?> getComponentType() {
 		if (isArray()) {
 			try {
-				return forName(getName().substring(1));
+				Class<?> out = forName(getName().substring(1));
+				return out;
 			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(e);
 			}
@@ -157,7 +158,9 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
-	public native Object[] getSigners();
+	public Object[] getSigners() {
+		return null;
+	}
 
 	native public Class<?> getDeclaringClass() throws SecurityException;
 
