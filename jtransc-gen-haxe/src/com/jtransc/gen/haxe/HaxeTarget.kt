@@ -129,6 +129,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		//////////////////////
 		"toString", "hashCode"
 	)
+	override val stringPoolType = StringPool.Type.PER_CLASS
 
 	val actualSubtarget = configHaxeAddSubtarget?.subtarget
 	val targetDirectory = configTargetDirectory.targetDirectory
@@ -481,7 +482,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			val fieldType = field.type
 			refs.add(fieldType)
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
-			val fieldName = field.haxeName
+			val fieldName = field.targetName
 			if (!field.annotationsList.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
 				line("$keep$static$visibility var $fieldName:${fieldType.targetTypeTag} = ${escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
@@ -658,8 +659,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	//val FqName.as3Fqname: String get() = this.fqname
 	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
 
-	override val stringPoolType: StringPoolType = StringPoolType.PER_CLASS
-
 	override fun buildConstructor(method: AstMethod): String = "new ${getClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
@@ -671,7 +670,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	}
 
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
-	override fun getNativeName(field: FieldRef): String = getFieldName(field)
+	//override fun getNativeName(field: FieldRef): String = getFieldName(field)
 	override fun getNativeName(methodRef: MethodRef): String = getHaxeMethodName(methodRef.ref)
 	override fun getNativeName(clazz: FqName): String = getClassFqName(clazz)
 	override fun getNativeNameForFields(clazz: FqName): String = getClassFqNameInt(clazz)
@@ -763,7 +762,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		return clazz?.nativeName ?: getGeneratedFqName(name).fqname
 	}
 
-	override fun getFieldName(field: AstFieldRef): String {
+	override val FieldRef.targetName: String get() {
+		val fieldRef = this
+		val field = fieldRef.ref
 		val realfield = program[field]
 		val realclass = program[field.containingClass]
 		//val keyToUse = if (realfield.keepName) field else field.name
@@ -787,7 +788,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 						val clazz = program[field].containingClass
 						val clazzAncestors = clazz.ancestors.reversed()
-						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getFieldName(it.ref) }.toHashSet()
+						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
 						val fieldsColliding = clazz.fields.filter {
 							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
 						}.map { it.ref } ?: listOf(field)

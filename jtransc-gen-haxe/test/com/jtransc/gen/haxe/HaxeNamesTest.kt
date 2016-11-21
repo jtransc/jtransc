@@ -32,7 +32,7 @@ class HaxeNamesTest {
 	@Suppress("NOTHING_TO_INLINE")
 	inline private fun testFieldName(name: String, expected: String) = Assert.assertEquals(
 		expected,
-		generator.getFieldName(AstFieldRef(FqName("com.test"), name, AstType.INT))
+		generator.apply { AstFieldRef(FqName("com.test"), name, AstType.INT).targetName }
 	)
 
 	@Test

@@ -66,6 +66,7 @@ fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote(
 class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
+	override val stringPoolType = StringPool.Type.GLOBAL
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
@@ -334,7 +335,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 			line("function $classBase()") {
 				for (field in allInstanceFieldsThis) {
-					val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+					val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 					line("this${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 				}
 			}
@@ -343,7 +344,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("$classBase.prototype.constructor = $classBase;")
 
 			for (field in allInstanceFieldsProto) {
-				val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+				val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 			}
 
@@ -354,7 +355,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
 					}
 					for (field in staticFields) {
-						val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
+						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 					}
 					if (clazz.staticConstructor != null) {
@@ -480,8 +481,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
-
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
@@ -503,13 +502,13 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	private val classNames = hashMapOf<Any?, String>()
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
-	fun getNativeName(field: AstField): String {
+	override val FieldRef.targetName: String get() {
+		val fieldRef = this
 		//"_" + field.uniqueName
-
-		val fieldRef = field.ref
-		val keyToUse = field.ref
+		val keyToUse = fieldRef.ref
 
 		return fieldNames.getOrPut2(keyToUse) {
+			val field = program[fieldRef.ref]
 			if (minimize) {
 				allocMemberName()
 			} else {
@@ -518,9 +517,9 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 					//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
 					var name = "_$fieldName"
 
-					val clazz = program[fieldRef].containingClass
+					val clazz = program[fieldRef.ref].containingClass
 					val clazzAncestors = clazz.ancestors.reversed()
-					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getNativeName(it.ref) }.toHashSet()
+					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
 					val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
 
 					// JTranscBugInnerMethodsWithSameName.kt
@@ -536,7 +535,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
+	//override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
 	override fun getNativeName(methodRef: MethodRef): String = getJsMethodName(methodRef.ref)
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
 	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
