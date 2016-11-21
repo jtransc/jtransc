@@ -196,6 +196,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable<Date> {
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._date.setTime(N.ltoFloat(p0));")
+	@HaxeMethodBody("_date = Date.fromTime(N.longToFloat(p0));")
 	public void setTime(long time) {
 		this.setTimestamp(time);
 	}

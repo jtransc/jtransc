@@ -3,6 +3,7 @@ package com.jtransc.ast.treeshaking
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate
+import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
@@ -173,7 +174,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 
 				//for (file in newclazz.annotationsList.getAllTyped<JTranscAddFile>()) {
 				for (file in newclazz.annotationsList.getTypedList(JTranscAddFileList::value)) {
-					if (file.process && file.target == target) {
+					if (file.process && TargetName.matches(file.target, target)) {
 						val possibleFiles = listOf(file.prepend, file.append, file.prependAppend)
 						for (pf in possibleFiles.filter { !it.isNullOrEmpty() }) {
 							val filecontent = program.resourcesVfs[pf].readString()
@@ -264,10 +265,20 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 
 			var dependenciesInBody = true
 
+			if (targetName.matches("haxe")) {
+				HaxeMethodBodyList::class.java // @HACK intelliJ remove JTranscMethodBodyList with just JTranscMethodBodyList::value
+
+				for (methodBody in newmethod.annotationsList.getTypedList(HaxeMethodBodyList::value)) {
+					if (targetName.matches(methodBody.target)) {
+						addTemplateReferences(methodBody.value, "methodBody=$newmethod")
+					}
+				}
+			}
+
 			JTranscMethodBodyList::class.java // @HACK intelliJ remove JTranscMethodBodyList with just JTranscMethodBodyList::value
 
 			for (methodBody in newmethod.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
-				if (methodBody.target == target) {
+				if (targetName.matches(methodBody.target)) {
 					addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
 					if (methodBody.cond.isNullOrEmpty()) {
 						dependenciesInBody = false

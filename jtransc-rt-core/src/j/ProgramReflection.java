@@ -1,6 +1,7 @@
 package j;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
 
@@ -93,6 +94,7 @@ public class ProgramReflection {
 
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__INSTANCE_CLASS_ID;")
 	@JTranscMethodBody(target = "js", value = "return p0['_JS_$$CLASS_ID'];")
+	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")
 	static public int getClassId(Object obj) {
 		return -1;
 	}

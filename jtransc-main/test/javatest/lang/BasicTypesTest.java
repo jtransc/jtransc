@@ -21,7 +21,7 @@ public class BasicTypesTest {
 
 	private static void conversionTests(double v) {
 		//System.out.println("conversionTests:" + v + " : " + (long)v);
-		System.out.println("conversionTests:" + (long)v);
+		System.out.println("conversionTests(double):" + (long)v);
 	}
 
 	private static void conversionTests() {
@@ -327,13 +327,24 @@ public class BasicTypesTest {
 		float[] floats2 = new float[] {-360f, -180f, 0f, 1f, 180f, 360f};
 		for (double l : floats2) {
 			System.out.println(l + ": ");
-			for (double r : doubles) System.out.print(", " + (l < 180f));
+			for (double r : doubles) System.out.print(", " + (l < r));
 			System.out.println();
-			for (double r : doubles) System.out.print(", " + (l >= 1f));
+			for (double r : doubles) System.out.print(", " + (l >= r));
 			System.out.println();
-			for (double r : doubles) System.out.print(", " + (l == 180f));
+			for (double r : doubles) System.out.print(", " + (l == r));
 			System.out.println();
-			for (double r : doubles) System.out.print(", " + (l != 0f));
+			for (double r : doubles) System.out.print(", " + (l != r));
+			System.out.println();
+		}
+		for (double l : floats2) {
+			System.out.println(l + ": ");
+			System.out.print(", " + (l < 180f));
+			System.out.println();
+			System.out.print(", " + (l >= 1f));
+			System.out.println();
+			System.out.print(", " + (l == 180f));
+			System.out.println();
+			System.out.print(", " + (l != 0f));
 			System.out.println();
 		}
 		System.out.println(Float.floatToIntBits(1f));

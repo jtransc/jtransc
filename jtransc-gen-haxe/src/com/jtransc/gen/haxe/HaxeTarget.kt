@@ -637,7 +637,6 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 
 		injector.mapInstance(ConfigEntryPointClass(entryPointClass))
 		injector.mapInstance(ConfigEntryPointFile(entryPointFilePath))
-		//injector.mapInstance(ConfigHaxeVfs(vfs))
 	}
 
 	fun annotation(a: AstAnnotation): String {
@@ -655,7 +654,6 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
 			}
 		}
-		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
 		val annotation = program.get3(a.type)
 		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
 		return "new ${names.getFullAnnotationProxyName(a.type)}([$itStr])"
@@ -875,7 +873,6 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 					"@:unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetTypeTag}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
-					//null
 					throw e
 				}
 
@@ -960,9 +957,13 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 			if (meta != null) line(meta)
 			line(declaration) {
 				if (!isInterface) {
+					if (isRootObject) {
+						line("public var _CLASS_ID__HX:Int;")
+					}
 					line("@:unreflective public function new()") {
 						line(if (isRootObject) "" else "super();")
 						line("SI();")
+						line("this._CLASS_ID__HX = ${clazz.classId};")
 					}
 				}
 
@@ -1021,8 +1022,8 @@ class GenHaxeGen(injector: Injector) : GenCommonGenFilePerClass(injector) {
 		}
 
 		val haxeFilePath = clazz.name.haxeFilePath
-		vfs["$haxeFilePath"] = fileStr
-		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs["$haxeFilePath"].realpathOS, fileStr, clazz.source, lineMappings)
+		vfs[haxeFilePath] = fileStr
+		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
 	//val FqName.as3Fqname: String get() = this.fqname

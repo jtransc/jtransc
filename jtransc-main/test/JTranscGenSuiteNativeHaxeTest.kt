@@ -23,7 +23,6 @@ import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
 class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
-	/*
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
 		true
@@ -52,8 +51,9 @@ class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
 		methodToExecute1:1
 		Class1.method1
 		Class1.method2
-		jtransc_jtransc_JTranscInternalNames_$
+		10
+		jtransc.jtransc.JTranscInternalNamesTest_
 		main__Ljava_lang_String__V
+		__hello
 	""", target = HaxeTarget(), minimize = false)
-	*/
 }

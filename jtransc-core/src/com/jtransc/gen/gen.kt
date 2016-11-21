@@ -53,6 +53,7 @@ data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: 
 data class TargetName(val name: String) {
 	companion object {
 		fun matches(target:String, pattern: String): Boolean {
+			if (pattern == "") return true
 			if (pattern == "all") return true
 			return pattern == target
 		}

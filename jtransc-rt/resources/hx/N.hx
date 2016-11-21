@@ -136,19 +136,12 @@ class N {
 
 	static public function z2i(v:Bool):Int return v ? 1 : 0;
 
-	inline static public function f2j(v:Float32):haxe.Int64 {
-		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
-	}
-
-	inline static public function d2j(v:Float64):haxe.Int64 {
-		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
-	}
+	inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
+	inline static public function d2j(v:Float64):haxe.Int64 return haxe.Int64.fromFloat(v);
 
 	static public function idiv(a:Int, b:Int):Int {
-		#if cpp
-		return untyped __cpp__("(({0})/({1}))", a, b);
-		#else
-		return Std.int(a / b);
+		#if cpp return untyped __cpp__("(({0})/({1}))", a, b);
+		#else return Std.int(a / b);
 		#end
 	}
 

@@ -1,7 +1,9 @@
 package com.jtransc.reflection;
 
+import com.jtransc.JTranscSystem;
 import j.ClassInfo;
 import j.MemberInfo;
+import j.ProgramReflection;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +18,17 @@ import java.util.jar.JarFile;
 @SuppressWarnings({"EmptyCatchBlock", "WeakerAccess"})
 public class JTranscReflection {
 	static public String[] getAllClasses() {
-		return new ClasspathScanner().getAllClasses();
+		if (JTranscSystem.isJTransc()) {
+			ArrayList<String> out = new ArrayList<>();
+			for (ClassInfo classInfo : ProgramReflection.getAllClasses()) {
+				if (classInfo != null && classInfo.name != null) {
+					out.add(classInfo.name);
+				}
+			}
+			return out.toArray(new String[out.size()]);
+		} else {
+			return new ClasspathScanner().getAllClasses();
+		}
 	}
 
 	static private class ClasspathScanner {

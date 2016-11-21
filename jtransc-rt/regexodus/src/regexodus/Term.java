@@ -1774,17 +1774,6 @@ public class Term implements REFlags, Serializable {
         result = 31 * result + maxCount;
         result = 31 * result + cntreg;
         result = 31 * result + lookaheadId;
-        /*
-        result = 31 * result + (failNext != null ? failNext.hashCode() : 0);
-        result = 31 * result + (target != null ? (this == target ? 73 : target.hashCode()) : 0);
-        result = 31 * result + (prev != null ? (this == prev ? 73 : prev.hashCode()) : 0);
-        result = 31 * result + (in != null ? (this == in ? 73 : in.hashCode()) : 0);
-        result = 31 * result + (out != null ? (this == out ? 73 : out.hashCode()) : 0);
-        result = 31 * result + (out1 != null ? (this == out1 ? 73 : out1.hashCode()) : 0);
-        result = 31 * result + (first != null ? (this == first ? 73 : first.hashCode()) : 0);
-        result = 31 * result + (current != null ? (this == current ? 73 : current.hashCode()) : 0);
-        result = 31 * result + (branchOut != null ? (this == branchOut ? 73 : branchOut.hashCode()) : 0);
-        */
         return result;
     }
 }

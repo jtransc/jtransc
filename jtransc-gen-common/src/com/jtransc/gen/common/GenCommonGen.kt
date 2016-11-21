@@ -12,6 +12,7 @@ import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
+import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.lang.JA_I
 import com.jtransc.text.Indenter
@@ -1106,7 +1107,9 @@ open class GenCommonGen(val injector: Injector) {
 	}
 
 	fun AstMethod.getNativeBodies(target: String): Map<String, Indenter> {
-		val bodies = this.annotationsList.getTypedList(com.jtransc.annotation.JTranscMethodBodyList::value).filter { it.target == target }
+		val bodies = this.annotationsList
+			.getTypedList(com.jtransc.annotation.JTranscMethodBodyList::value)
+			.filter { TargetName.matches(it.target, target) }
 
 		return bodies.associate { body ->
 			body.cond to Indenter.gen {

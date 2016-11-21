@@ -26,6 +26,7 @@ import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
+import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.maven.MavenLocalRepository
@@ -180,7 +181,7 @@ class AstProgram(
 
 	fun getExtraKeywords(target: String) = classes
 		.map { it.annotationsList.getTyped<JTranscAddKeywords>() }.filterNotNull()
-		.filter { it.target == target }.flatMap { it.value.toList() }
+		.filter { TargetName.matches(it.target, target) }.flatMap { it.value.toList() }
 
 	val classes: List<AstClass> get() = _classes
 

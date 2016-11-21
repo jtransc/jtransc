@@ -18,17 +18,20 @@ public class UseMinitemplatesTest {
 	@HaxeMethodBody("p0.{% METHOD jtransc.jtransc.UseMinitemplatesTest$Class2:method2 %}();")
 	native static private void callMethod2(Class2 clazz);
 
+	//@JTranscKeep
 	private static void methodToExecute1(int value) {
 		System.out.println("methodToExecute1:" + value);
 	}
 
 	static private class Class1 {
+		//@JTranscKeep
 		public void method1() {
 			System.out.println("Class1.method1");
 		}
 	}
 
 	static private class Class2 extends Class1 {
+		//@JTranscKeep
 		public void method2() {
 			System.out.println("Class1.method2");
 		}
