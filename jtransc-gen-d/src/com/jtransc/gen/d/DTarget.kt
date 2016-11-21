@@ -12,6 +12,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
+import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 
 class DTarget() : GenTargetDescriptor() {
@@ -42,21 +43,30 @@ class DTarget() : GenTargetDescriptor() {
 }
 
 @Singleton
-class DGenerator(
-	injector: Injector
-) : SingleFileCommonGenerator(injector) {
+class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val keywords = setOf<String>()
 
-	override fun buildSource() {
-		TODO("not implemented")
-	}
-
-	override fun compile(): ProcessResult2 {
-		TODO("not implemented")
+	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+		return DCompiler.genCommand(programFile, debug, libs)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		TODO("not implemented")
+		return ProcessResult2(0)
 	}
+
+	override fun writeProgram(output: SyncVfsFile) {
+		super.writeProgram(output)
+		println(output)
+	}
+
+	override val NullType = FqName("Object")
+	override val VoidType = FqName("void")
+	override val BoolType = FqName("bool")
+	override val IntType = FqName("int")
+	override val FloatType = FqName("float")
+	override val DoubleType = FqName("double")
+	override val LongType = FqName("long")
+
 }

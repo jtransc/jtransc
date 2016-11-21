@@ -1,5 +1,6 @@
 package com.jtransc.gen.common
 
+import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
 import com.jtransc.annotation.JTranscInvisible
@@ -28,6 +29,7 @@ import com.jtransc.text.quote
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
 import com.jtransc.vfs.SyncVfsFile
+import java.io.File
 import java.util.*
 import kotlin.reflect.KMutableProperty1
 
@@ -35,7 +37,9 @@ class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
 open class CommonGenerator(val injector: Injector) : IProgramTemplate {
+	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
+	val sortedClasses by lazy { program.classes.filter { !it.isNative }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
 	open val methodFeatures: Set<Class<out AstMethodFeature>> = setOf()
 	open val keywords: Set<String> = program.getExtraKeywords(targetName.name).toSet()
@@ -57,14 +61,28 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val refs = References()
 
 	open fun buildSource(): Unit {
-		TODO()
+		writeProgram(configTargetFolder.targetFolder)
+		setInfoAfterBuildingSource()
 	}
 
 	open fun compile(): ProcessResult2 {
-		TODO()
+		val cmdAndArgs = genCompilerCommand(
+			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
+			debug = settings.debug,
+			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
+		)
+		println(cmdAndArgs)
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
+		if (!result.success) throw RuntimeException(result.outputString + result.errorString)
+		return ProcessResult2(result)
 	}
+
+	open protected fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+		return listOf()
+	}
+
 	open fun run(redirect: Boolean = true): ProcessResult2 {
-		TODO()
+		return ProcessResult2(0)
 	}
 
 	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
@@ -75,6 +93,49 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			this.run(redirect)
 		}
 	}
+
+	open fun writeProgram(output: SyncVfsFile) {
+	}
+
+	fun genClasses(): Indenter = Indenter.gen {
+		for (clazz in sortedClasses) line(genClass(clazz))
+	}
+
+	fun genClass(clazz: AstClass): Indenter = Indenter.gen {
+		context.clazz = clazz
+
+		val CLASS = if (clazz.isInterface) "interface" else "class"
+		var decl = "$CLASS ${clazz.targetGeneratedSimpleClassNameBase}"
+		if (clazz.extending != null) decl += " extends ${clazz.extending.targetClassFqName}"
+		if (clazz.implementing.isNotEmpty()) decl += " implements ${clazz.implementing.map { it.targetClassFqName }.joinToString(", ")}"
+
+		line(decl) {
+			line(genClassBody(clazz))
+		}
+	}
+
+	fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
+		for (f in clazz.fields) line(genField(f))
+		for (m in clazz.methods) line(genMethod(m))
+	}
+
+	fun genField(field: AstField): Indenter = Indenter.gen {
+
+		line("${field.targetName2} ${field.name};")
+	}
+
+	fun genMethod(method: AstMethod): Indenter = Indenter.gen {
+		context.method = method
+		val methodType = method.methodType
+		line("${methodType.ret.nativeName} ${method.name}()") {
+			if (method.body != null) {
+				line(method.body!!.genBody())
+			}
+		}
+	}
+
+	var entryPointClass = FqName("EntryPointClass")
+	var entryPointFilePath = "EntryPointFile"
 
 	val JAVA_LANG_OBJECT by lazy { nativeName<java.lang.Object>() }
 	val JAVA_LANG_CLASS by lazy { nativeName<java.lang.Class<*>>() }
@@ -227,10 +288,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun AstExpr.genExpr(): String = genExpr2(this)
 	fun AstExpr.Box.genExpr(): String = genExpr2(this.value)
-
 	fun AstStm.genStm(): Indenter = genStm2(this)
 	fun AstStm.Box.genStm(): Indenter = genStm2(this.value)
-
 	fun AstExpr.Box.genNotNull(): String = this.value.genNotNull()
 
 	fun AstField.isVisible(): Boolean = !this.invisible
@@ -1152,6 +1211,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val FieldRef.nativeStaticText: String get() = buildStaticField(this)
 	val MethodRef.targetName: String get() = getNativeName(this)
 
+	val AstType.nativeName: String get() = getNativeType(this, TypeKind.NEW).fqname
+
 	val AstType.targetTypeTag: FqName get() = getNativeType(this, TypeKind.TYPETAG)
 	val AstType.targetTypeNew: FqName get() = getNativeType(this, TypeKind.NEW)
 	val AstType.targetTypeCast: FqName get() = getNativeType(this, TypeKind.CAST)
@@ -1274,7 +1335,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "new $clazz()[${methodName.quote()}]"
 	}
 
-	open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(program[classRef.name]!!)
+	open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(program[classRef.name])
 
 	open fun getClassFqName(name: FqName): String = name.fqname
 	open fun getFilePath(name: FqName): String = name.simpleName
@@ -1282,8 +1343,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun buildInstanceField(expr: String, field: AstField): String = expr + buildAccessName(field, static = false)
 	open fun buildStaticField(field: AstField): String = getNativeNameForFields(field.ref.containingTypeRef.name) + buildAccessName(field, static = true)
 
-	fun buildStaticField(field: FieldRef): String = buildStaticField(program[field.ref]!!)
-	fun buildInstanceField(expr: String, field: FieldRef): String = buildInstanceField(expr, program[field.ref]!!)
+	fun buildStaticField(field: FieldRef): String = buildStaticField(program[field.ref])
+	fun buildInstanceField(expr: String, field: FieldRef): String = buildInstanceField(expr, program[field.ref])
 
 	open fun buildAccessName(field: AstField, static: Boolean): String = buildAccessName(getNativeName(field), static)
 	open fun buildAccessName(name: String, static: Boolean): String = ".$name"
@@ -1320,7 +1381,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	inline fun <reified T : Any> nativeName(): String = getNativeName(T::class.java.name.fqname)
 
 	fun getNativeFieldName(clazz: Class<*>, name: String): String {
-		val actualClazz = program[clazz.name.fqname] ?: invalidOp("Can't find field $clazz.$name")
+		val actualClazz = program[clazz.name.fqname]
 		val actualField = actualClazz.fieldsByName[name] ?: invalidOp("Can't find field $clazz.$name")
 		return getNativeName(actualField)
 	}
@@ -1332,13 +1393,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun getNativeNameForMethods(clazz: FqName): String = getNativeName(clazz)
 	open fun getNativeNameForFields(clazz: FqName): String = getNativeName(clazz)
 
-	open val NullType = FqName("Dynamic")
-	open val VoidType = FqName("Void")
-	open val BoolType = FqName("Bool")
-	open val IntType = FqName("Int")
-	open val FloatType = FqName("Float32")
-	open val DoubleType = FqName("Float64")
-	open val LongType = FqName("haxe.Int64")
+	open val NullType = FqName("Object")
+	open val VoidType = FqName("void")
+	open val BoolType = FqName("boolean")
+	open val IntType = FqName("int")
+	open val FloatType = FqName("float")
+	open val DoubleType = FqName("double")
+	open val LongType = FqName("long")
 	open val BaseArrayType = FqName("JA_0")
 	open val BoolArrayType = FqName("JA_Z")
 	open val ByteArrayType = FqName("JA_B")
@@ -1362,7 +1423,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstType.FLOAT -> FloatType
 			is AstType.DOUBLE -> DoubleType
 			is AstType.LONG -> LongType
-			is AstType.REF -> FqName(program[type.name]?.nativeName ?: getNativeName(type.name))
+			is AstType.REF -> FqName(program[type.name].nativeName ?: getNativeName(type.name))
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> BoolArrayType
 				is AstType.BYTE -> ByteArrayType
@@ -1419,7 +1480,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun getClassFqNameForCalling(fqName: FqName): String = fqName.fqname.replace('.', '_')
 
 	open fun getGeneratedFqName(name: FqName): FqName = name
-	open fun getGeneratedSimpleClassName(name: FqName): String = name.fqname
+	open fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
 
 	fun getFieldName(clazz: Class<*>, name: String): String = getFieldName(program[clazz.name.fqname].fieldsByName[name]!!)
 	fun getFieldName(field: FieldRef): String = getFieldName(field.ref)
@@ -1463,13 +1524,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	/////////////////////////////////////////////
 	/////////////////////////////////////////////
 
-	val outputFile2 = configOutputFile2.file
+	open val outputFile2 = configOutputFile2.file
 	val configTargetDirectory: ConfigTargetDirectory = injector.get()
 
 	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
 	val tempdir = configTargetDirectory.targetDirectory
 
-	val params = hashMapOf(
+	val params by lazy { hashMapOf(
 		"outputFolder" to outputFile2.parent,
 		"outputFile" to outputFile2.absolutePath,
 		"outputFileBase" to outputFile2.name,
@@ -1493,11 +1554,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		"libraries" to settings.libraries,
 		"extra" to settings.extra,
 		"folders" to folders
-	)
+	) }
 
-	fun setInfoAfterBuildingSource() {
-		params["entryPointFile"] = injector.get<ConfigEntryPointFile>().entryPointFile
-		params["entryPointClass"] = buildTemplateClass(injector.get<ConfigEntryPointClass>().entryPointClass)
+	open fun setInfoAfterBuildingSource() {
+		params["entryPointFile"] = entryPointFilePath
+		params["entryPointClass"] = entryPointClass
 	}
 
 	fun setExtraData(map: Map<String, Any?>) {
@@ -1533,12 +1594,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	//class CopyFileNode(val ts: HaxeTemplateString, val type:String, val expr:Minitemplate.ExprNode) : Minitemplate.BlockNode {
-	//	override fun eval(context: Minitemplate.Context) {
-	//		val filetocopy = expr.eval(context)
-	//	}
-	//}
-
 	val miniConfig = Minitemplate.Config(
 		extraTags = listOf(
 			Minitemplate.Tag(
@@ -1568,4 +1623,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			return Minitemplate(template, miniConfig).invoke(params)
 		}
 	}
+
+	val AstClass.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this.name)
+	open val FqName.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this)
 }

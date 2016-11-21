@@ -86,53 +86,12 @@ class HaxeTarget() : GenTargetDescriptor() {
 	}
 }
 
-//val HaxeFeatures = setOf(GotosFeature::class.java, SwitchesFeature::class.java)
-
-private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
-
-fun AstProgram.haxeLibs(settings: AstBuildSettings): List<HaxeLib.LibraryRef> = this.getCached(HAXE_LIBS_KEY) {
-	this.classes
-		.map { it.annotationsList.getTyped<HaxeAddLibraries>()?.value }
-		.filterNotNull()
-		.flatMap { it.toList() }
-		.map { HaxeLib.LibraryRef.fromVersion(it) }
-}
-
-fun AstProgram.haxeExtraFlags(settings: AstBuildSettings): List<Pair<String, String>> = this.haxeLibs(settings).map { "-lib" to it.nameWithVersion }
-fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> = if (settings.analyzer) listOf() else listOf("no-analyzer")
-
-fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
-	val libs = this.haxeLibs(settings)
-	log(":: REFERENCED LIBS: $libs")
-	for (lib in libs) {
-		log(":: TRYING TO INSTALL LIBRARY $lib")
-		HaxeLib.installIfNotExists(lib)
-	}
-}
-
-object HaxeGenTools {
-	fun getSrcFolder(tempdir: String): SyncVfsFile {
-		val baseDir = "$tempdir/jtransc-haxe"
-		log("Temporal haxe files: $baseDir")
-		File("$baseDir/src").mkdirs()
-		return LocalVfs(File(baseDir)).ensuredir()["src"]
-	}
-}
-
-val cmpvfs: SyncVfsFile by lazy { HaxeCompiler.ensureHaxeCompilerVfs() }
-
 @Singleton
-class HaxeConfigMergedAssetsFolder(configTargetDirectory: ConfigTargetDirectory) {
-	val targetDirectory = configTargetDirectory.targetDirectory
-	val mergedAssetsFolder: File get() = File("$targetDirectory/merged-assets")
-}
-
-@Singleton
-class HaxeGenerator(
-	injector: Injector
-) : FilePerClassCommonGenerator(injector) {
+class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
+
+	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
 	companion object {
 		//const val ENABLE_HXCPP_GOTO_HACK = true
@@ -318,10 +277,10 @@ class HaxeGenerator(
 		val mainClassFq = program.entrypoint
 		val mainClass = mainClassFq.haxeClassFqName
 		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
-		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
-		val entryPointFilePath = entryPointClass.haxeFilePath
+		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
+		entryPointFilePath = entryPointClass.haxeFilePath
 		val entryPointFqName = entryPointClass.haxeGeneratedFqName
-		val entryPointSimpleName = entryPointClass.haxeGeneratedSimpleClassName
+		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
 
 		fun calcClasses(program: AstProgram, mainClass: AstClass): List<AstClass> {
@@ -359,9 +318,6 @@ class HaxeGenerator(
 			"inits" to inits().toString()
 		))
 		vfs[entryPointFilePath] = gen(customMain ?: plainMain)
-
-		injector.mapInstance(ConfigEntryPointClass(entryPointClass))
-		injector.mapInstance(ConfigEntryPointFile(entryPointFilePath))
 	}
 
 	fun annotation(a: AstAnnotation): String {
@@ -460,7 +416,7 @@ class HaxeGenerator(
 		return if (type is AstType.ARRAY) {
 			"(${e.array.genNotNull()}).length"
 		} else {
-			"cast(${e.array.genNotNull()}, ${BaseArrayType}).length"
+			"cast(${e.array.genNotNull()}, $BaseArrayType).length"
 		}
 	}
 
@@ -564,7 +520,7 @@ class HaxeGenerator(
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
 		val isNormalClass = (clazz.classType == AstClassType.CLASS)
 		val classType = if (isInterface) "interface" else "class"
-		val simpleClassName = clazz.name.haxeGeneratedSimpleClassName
+		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
 		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.haxeClassFqName }.joinToString(" $keyword ")
 		val isInterfaceWithStaticMembers = isInterface && clazz.fields.any { it.isStatic }
 		refs._usedDependencies.clear()
@@ -788,7 +744,6 @@ class HaxeGenerator(
 	val FqName.haxeFilePath: String get() = getFilePath(this)
 	val FqName.haxeGeneratedFqPackage: String get() = getGeneratedFqPackage(this)
 	val FqName.haxeGeneratedFqName: FqName get() = getGeneratedFqName(this)
-	val FqName.haxeGeneratedSimpleClassName: String get() = getGeneratedSimpleClassName(this)
 	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.targetTypeTag
 
 	override val stringPoolType: StringPoolType = StringPoolType.PER_CLASS
@@ -1032,4 +987,46 @@ class HaxeGenerator(
 		params["haxeExtraFlags"] = program.haxeExtraFlags(settings)
 		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
 	}
+}
+
+
+//val HaxeFeatures = setOf(GotosFeature::class.java, SwitchesFeature::class.java)
+
+private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
+
+fun AstProgram.haxeLibs(settings: AstBuildSettings): List<HaxeLib.LibraryRef> = this.getCached(HAXE_LIBS_KEY) {
+	this.classes
+		.map { it.annotationsList.getTyped<HaxeAddLibraries>()?.value }
+		.filterNotNull()
+		.flatMap { it.toList() }
+		.map { HaxeLib.LibraryRef.fromVersion(it) }
+}
+
+fun AstProgram.haxeExtraFlags(settings: AstBuildSettings): List<Pair<String, String>> = this.haxeLibs(settings).map { "-lib" to it.nameWithVersion }
+fun AstProgram.haxeExtraDefines(settings: AstBuildSettings): List<String> = if (settings.analyzer) listOf() else listOf("no-analyzer")
+
+fun AstProgram.haxeInstallRequiredLibs(settings: AstBuildSettings) {
+	val libs = this.haxeLibs(settings)
+	log(":: REFERENCED LIBS: $libs")
+	for (lib in libs) {
+		log(":: TRYING TO INSTALL LIBRARY $lib")
+		HaxeLib.installIfNotExists(lib)
+	}
+}
+
+object HaxeGenTools {
+	fun getSrcFolder(tempdir: String): SyncVfsFile {
+		val baseDir = "$tempdir/jtransc-haxe"
+		log("Temporal haxe files: $baseDir")
+		File("$baseDir/src").mkdirs()
+		return LocalVfs(File(baseDir)).ensuredir()["src"]
+	}
+}
+
+val cmpvfs: SyncVfsFile by lazy { HaxeCompiler.ensureHaxeCompilerVfs() }
+
+@Singleton
+class HaxeConfigMergedAssetsFolder(configTargetDirectory: ConfigTargetDirectory) {
+	val targetDirectory = configTargetDirectory.targetDirectory
+	val mergedAssetsFolder: File get() = File("$targetDirectory/merged-assets")
 }

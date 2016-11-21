@@ -20,9 +20,9 @@ install:
   - cmd: mvn -v
   - cmd: gradlew -v
 build_script:
-  - gradlew install
+  - gradlew -S install
 test_script:
-  - gradlew check
+  - gradlew -S check
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2

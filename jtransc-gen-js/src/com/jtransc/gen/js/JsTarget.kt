@@ -63,10 +63,7 @@ fun hasSpecialChars(name: String): Boolean = !name.all { it.isLetterDigitOrUnder
 fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
 @Singleton
-class JsGenerator(
-	injector: Injector,
-	val configTargetFolder: ConfigTargetFolder
-) : SingleFileCommonGenerator(injector) {
+class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 
@@ -146,8 +143,6 @@ class JsGenerator(
 
 		val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
-		val sortedClasses = program.classes.filter { !it.isNative }.sortedByExtending()
-
 		for (clazz in sortedClasses) {
 			val indenter = if (clazz.implCode != null) {
 				Indenter.gen { line(clazz.implCode!!) }
@@ -173,8 +168,8 @@ class JsGenerator(
 		val mainClass = mainClassFq.targetClassFqName
 		//val mainMethod = program[mainClassFq].getMethod("main", AstType.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.jsName
 		val mainMethod = "main"
-		val entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
-		val entryPointFilePath = entryPointClass.targetFilePath
+		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
+		entryPointFilePath = entryPointClass.targetFilePath
 		val entryPointFqName = entryPointClass.targetGeneratedFqName
 		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
@@ -237,8 +232,6 @@ class JsGenerator(
 		output[outputFileBaseName] = source
 		if (sourceMap != null) output[outputFileBaseName + ".map"] = sourceMap
 
-		injector.mapInstance(ConfigEntryPointClass(entryPointClass))
-		injector.mapInstance(ConfigEntryPointFile(entryPointFilePath))
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
 	}
 
@@ -607,6 +600,6 @@ class JsGenerator(
 
 	override fun getFilePath(name: FqName): String = name.simpleName
 	override fun getGeneratedFqName(name: FqName): FqName = name
-	override fun getGeneratedSimpleClassName(name: FqName): String = name.fqname
+	override fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
 	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(getNativeName(refMethod))
 }

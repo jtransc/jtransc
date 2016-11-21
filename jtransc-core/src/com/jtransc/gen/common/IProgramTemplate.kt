@@ -16,8 +16,6 @@ import java.util.*
 
 class ConfigOutputFile2(val file: File)
 class ConfigTargetFolder(val targetFolder: SyncVfsFile)
-class ConfigEntryPointFile(val entryPointFile: String)
-class ConfigEntryPointClass(val entryPointClass: FqName)
 
 interface IProgramTemplate {
 	fun gen(template: String): String

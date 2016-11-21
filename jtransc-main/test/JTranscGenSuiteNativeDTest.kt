@@ -1,3 +1,7 @@
+import big.HelloWorldTest
+import com.jtransc.gen.d.DTarget
+import org.junit.Test
+
 /*
  * Copyright 2016 Carlos Ballesteros Velasco
  *

@@ -72,33 +72,16 @@ class CppTarget() : GenTargetDescriptor() {
 }
 
 @Singleton
-class CppGenerator(
-	injector: Injector,
-	val configTargetFolder: ConfigTargetFolder
-) : SingleFileCommonGenerator(injector) {
+class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val keywords = super.keywords + setOf()
 
-	//var libraries = listOf<String>()
-	override fun buildSource() {
-		writeProgram(configTargetFolder.targetFolder)
-		setInfoAfterBuildingSource()
-	}
-
-	override fun compile(): ProcessResult2 {
-		val cmdAndArgs = CppCompiler.genCommand(
+	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+		return CppCompiler.genCommand(
 			programFile = File(configOutputFile.output),
 			debug = settings.debug,
 			libs = injector.get<ConfigLibraries>().libs
 		)
-		println(cmdAndArgs)
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
-		//val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec("clang++", "-O0", "-g", "-fexceptions", "-Wno-parentheses-equality", "-fno-rtti", configOutputFile.output)
-		//val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec("clang++", "-O4", "-g0", "-fexceptions", "-Wno-parentheses-equality", "-fno-rtti", configOutputFile.output)
-		if (!result.success) {
-			throw RuntimeException(result.outputString + result.errorString)
-		}
-		return ProcessResult2(result)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
@@ -206,7 +189,7 @@ class CppGenerator(
 	val JTranscAddHeaderList_CLASS = JTranscAddHeaderList::class.java
 	val JTranscAddFileList_CLASS = JTranscAddFileList::class.java
 
-	internal fun writeProgram(output: SyncVfsFile) {
+	override fun writeProgram(output: SyncVfsFile) {
 		val arrayTypes = listOf(
 			"JA_B" to "int8_t",
 			"JA_Z" to "int8_t",
@@ -220,8 +203,8 @@ class CppGenerator(
 		)
 
 		val mainClassFq = program.entrypoint
-		val entryPointClass = FqName(mainClassFq.fqname)
-		val entryPointFilePath = entryPointClass.targetFilePath
+		entryPointClass = FqName(mainClassFq.fqname)
+		entryPointFilePath = entryPointClass.targetFilePath
 
 		val HEADER = Indenter.gen {
 			// {{ HEADER }}
@@ -466,8 +449,6 @@ class CppGenerator(
 
 		output[outputFile] = classesIndenter.toString()
 
-		injector.mapInstance(ConfigEntryPointClass(entryPointClass))
-		injector.mapInstance(ConfigEntryPointFile(entryPointFilePath))
 		injector.mapInstance(ConfigCppOutput(output[outputFile]))
 
 		println(output[outputFile].realpathOS)
@@ -759,7 +740,7 @@ class CppGenerator(
 		if (isThisOrThisWithCast(e2.obj.value)) {
 			return "this$methodAccess(${args.joinToString(", ")})"
 		} else {
-			val objStr = "${e2.obj.genNotNull()}"
+			val objStr = e2.obj.genNotNull()
 			return "${getPtr(refMethodClass, objStr)}$methodAccess(${args.joinToString(", ")})"
 		}
 	}
@@ -781,13 +762,13 @@ class CppGenerator(
 			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]}")
 			val base = gen((arg.value as String))
 			when (methodName) {
-				"v_raw" -> "$base"
-				"o_raw" -> "$base"
-				"z_raw" -> "$base"
-				"i_raw" -> "$base"
-				"d_raw" -> "$base"
+				"v_raw" -> base
+				"o_raw" -> base
+				"z_raw" -> base
+				"i_raw" -> base
+				"d_raw" -> base
 				"s_raw" -> "N::str($base)"
-				else -> "$base"
+				else -> base
 			}
 		} else {
 			super.genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, args)
@@ -816,7 +797,7 @@ class CppGenerator(
 	override fun N_f2i(str: String) = "((int32_t)($str))"
 	override fun N_d2i(str: String) = "((int32_t)($str))"
 	//override fun N_i(str: String) = "((int32_t)($str))"
-	override fun N_i(str: String) = "$str"
+	override fun N_i(str: String) = str
 
 	override fun N_idiv(l: String, r: String) = N_func("idiv", "$l, $r")
 	override fun N_irem(l: String, r: String) = N_func("irem", "$l, $r")
@@ -998,7 +979,7 @@ class CppGenerator(
 
 			val suffix = "_" + normalizeName(astMethod.methodType.mangle())
 
-			"$prefix$prefix2" + super.getNativeName(methodRef) + "$suffix"
+			"$prefix$prefix2" + super.getNativeName(methodRef) + suffix
 		}
 	}
 

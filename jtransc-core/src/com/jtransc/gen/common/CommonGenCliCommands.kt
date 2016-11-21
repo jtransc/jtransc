@@ -5,22 +5,16 @@ import com.jtransc.annotation.JTranscRegisterCommandList
 import com.jtransc.annotation.JTranscRunCommand
 import com.jtransc.annotation.JTranscRunCommandList
 import com.jtransc.ast.AstProgram
-import com.jtransc.ds.split
-import com.jtransc.error.invalidOp
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.ProcessResult
 import com.jtransc.vfs.RootLocalVfs
-import com.jtransc.vfs.RootUrlVfs
-import java.io.File
 
+@Suppress("UNUSED_PARAMETER")
 //@JTranscRegisterCommand(target = "js", name = "electron", check = { "electron", "--version"}, getFolderCmd = "npm list -g", install = "npm -g install electron-prebuilt")
 //@JTranscRunCommand(target = "js", value = *arrayOf("@js/template/runelectron.cmd"))
 object CommonGenCliCommands {
-	fun expand(cmd: List<String>) {
-	}
-
 	fun getPaths(): List<String> {
 		val env = System.getenv("PATH") ?: ":"
 		return env.split(ProcessUtils.pathSeparator)
@@ -64,7 +58,7 @@ object CommonGenCliCommands {
 		log.info("Checking ${cmd.name}...")
 		try {
 			return execCmd(*cmd.check)
-		} catch (e:Throwable) {
+		} catch (e: Throwable) {
 			log.warn(e)
 			return false
 		}

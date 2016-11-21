@@ -13,6 +13,7 @@ import java.io.File
 fun <T : CommonGenerator> Injector.genCommonGeneratorDouble(clazz: Class<T>, target:String, subtarget:String = ""): T {
 	mapInstance(ConfigTargetDirectory(""))
 	mapInstance(ConfigResourcesVfs(MemoryVfs()))
+	mapInstance(ConfigTargetFolder(MemoryVfs()))
 	mapInstance(ConfigEntryPoint(FqName("dummy")))
 	mapInstance(ConfigSrcFolder(MemoryVfs()))
 	mapInstance(AstBuildSettings())

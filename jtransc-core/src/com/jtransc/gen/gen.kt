@@ -50,7 +50,7 @@ abstract class GenTargetDescriptor {
 	abstract val name: String
 	open val longName: String get() = name
 	open val sourceExtension: String get() = name
-	abstract val outputExtension: String
+	open val outputExtension: String get() = "out"
 	open val programFeatures: Set<Class<out AstProgramFeature>> = setOf()
 	open val defaultSubtarget: GenTargetSubDescriptor? = null
 	open val extraLibraries = listOf<String>()
