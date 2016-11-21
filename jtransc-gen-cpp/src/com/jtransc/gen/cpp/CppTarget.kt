@@ -326,20 +326,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 								line("static $name *fromArgValues($type a0, $type a1, $type a2) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2); };")
 								line("static $name *fromArgValues($type a0, $type a1, $type a2, $type a3) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };")
 
-								/*
-								if (name == "JA_I") {
-									line("static $name *fromValues(int n_args, ...)", after2 = ";") {
-										line("va_list ap;")
-										line("va_start(ap, n_args);")
-										line("auto out = new $name(n_args);")
-										line("for (int n = 0; n < n_args; n++)") {
-											line("out->fastSet(n, va_arg(ap, int32_t));")
-										}
-										line("return out;")
-									}
-								}
-								*/
-
 								if (name == "JA_L") {
 									line("std::vector<SOBJ> getVector()") {
 										line("int len = this->length;")
@@ -849,15 +835,15 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, _left: String, _right: String): String {
-		val left = if (stm.left.value is AstExpr.THIS) {
+	override fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, left: String, right: String): String {
+		val left2 = if (stm.left.value is AstExpr.THIS) {
 			buildInstanceField("this", fixField(stm.field))
 		} else {
 			buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME).get())", fixField(stm.field))
 		}
-		val right = "(${stm.field.type.cppString})((${stm.field.type.cppString})(" + stm.expr.genExpr() + "))"
+		val right2 = "(${stm.field.type.cppString})((${stm.field.type.cppString})(" + stm.expr.genExpr() + "))"
 
-		return "$left = $right;"
+		return "$left2 = $right2;"
 	}
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String): String {
@@ -901,9 +887,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return "${ObjectArrayType}${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
-	override fun genExprNew(e: AstExpr.NEW): String {
-		return "SOBJ(" + super.genExprNew(e) + ")"
-	}
+	override fun genExprNew(e: AstExpr.NEW): String = "SOBJ(" + super.genExprNew(e) + ")"
 
 	fun getUnderlyingType(type: AstType): String {
 		return when (type) {

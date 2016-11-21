@@ -20,7 +20,7 @@ import jtransc.ExtraKeywordsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 
-class JTranscGenSuiteNativeJsTest : JTranscTestBase() {
+class JsTest : Base() {
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
 		17
 		-333

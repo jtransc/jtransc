@@ -32,7 +32,7 @@ import com.jtransc.vfs.parent
 import org.junit.Assert
 import java.io.File
 
-open class JTranscTestBase {
+open class Base {
 	open val TREESHAKING = true
 	open val TREESHAKING_TRACE = false
 	companion object {

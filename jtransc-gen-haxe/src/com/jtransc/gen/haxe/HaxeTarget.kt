@@ -234,7 +234,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val parentDir = outputFile2.parentFile
 
 		val runner = actualSubtarget!!.interpreter
-		val arguments = listOf(outputFile2.absolutePath + actualSubtarget!!.interpreterSuffix)
+		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
 
 		log.info("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
@@ -318,57 +318,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			"inits" to inits().toString()
 		))
 		vfs[entryPointFilePath] = gen(customMain ?: plainMain)
-	}
-
-	fun annotation(a: AstAnnotation): String {
-		fun escapeValue(it: Any?): String {
-			return when (it) {
-				null -> "null"
-				is AstAnnotation -> annotation(it)
-				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> it.containingTypeRef.name.haxeClassFqName + "." + it.haxeName
-				is AstFieldWithoutTypeRef -> program[it.containingClass].ref.name.haxeClassFqName + "." + program.get(it).haxeName
-				is String -> "N.boxString(${it.quote()})"
-				is Boolean, is Byte, is Short, is Char, is Int, is Long, is Float, is Double -> escapeConstant(it)
-				is List<*> -> "[" + it.map { escapeValue(it) }.joinToString(", ") + "]"
-				is com.jtransc.org.objectweb.asm.Type -> "N.resolveClass(" + it.descriptor.quote() + ")"
-				else -> invalidOp("GenHaxeGen.annotation.escapeValue: Don't know how to handle value ${it.javaClass.name} : ${it.toBetterString()} while generating $context")
-			}
-		}
-
-		val annotation = program.get3(a.type)
-		val itStr = annotation.methods.map { escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag) }.joinToString(", ")
-		return "new ${getFullAnnotationProxyName(a.type)}([$itStr])"
-	}
-
-	fun annotationInit(a: AstAnnotation): List<AstType.REF> {
-		fun escapeValue(it: Any?): List<AstType.REF> {
-			return when (it) {
-				null -> listOf()
-				is AstAnnotation -> annotationInit(it)
-				is Pair<*, *> -> escapeValue(it.second)
-				is AstFieldRef -> listOf(it.containingTypeRef)
-				is AstFieldWithoutTypeRef -> listOf(it.containingClass.ref())
-				is List<*> -> it.flatMap { escapeValue(it) }
-				else -> listOf()
-			}
-		}
-		//val itStr = a.elements.map { it.key.quote() + ": " + escapeValue(it.value) }.joinToString(", ")
-		val annotation = program.get3(a.type)
-		return annotation.methods.flatMap {
-			escapeValue(if (it.name in a.elements) a.elements[it.name]!! else it.defaultTag)
-		}
-	}
-
-	fun visibleAnnotations(annotations: List<AstAnnotation>): String = "[" + annotations.filter { it.runtimeVisible }.map { annotation(it) }.joinToString(", ") + "]"
-	fun visibleAnnotationsList(annotations: List<List<AstAnnotation>>): String = "[" + annotations.map { visibleAnnotations(it) }.joinToString(", ") + "]"
-
-	fun annotationsInit(annotations: List<AstAnnotation>): Indenter {
-		return Indenter.gen {
-			for (i in annotations.filter { it.runtimeVisible }.flatMap { annotationInit(it) }.toHashSet()) {
-				line(getClassStaticInit(i, "annotationsInit"))
-			}
-		}
 	}
 
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
@@ -517,12 +466,10 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 		val isRootObject = clazz.name.fqname == "java.lang.Object"
 		val isInterface = clazz.isInterface
-		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
-		val isNormalClass = (clazz.classType == AstClassType.CLASS)
+		val isAbstract = clazz.isAbstract
 		val classType = if (isInterface) "interface" else "class"
 		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
 		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.haxeClassFqName }.joinToString(" $keyword ")
-		val isInterfaceWithStaticMembers = isInterface && clazz.fields.any { it.isStatic }
 		refs._usedDependencies.clear()
 
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
@@ -711,41 +658,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	//val FqName.as3Fqname: String get() = this.fqname
 	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
 
-	val AstVisibility.haxe: String get() = "public"
-
-	val AstType.haxeDefault: Any? get() = getDefault(this)
-	val AstType.haxeDefaultString: String get() = escapeConstant(getDefault(this), this)
-	val AstType.METHOD.functionalType: String get() = getFunctionalType2(this)
-
-	fun AstType.box(arg: String): String {
-		return when (this) {
-			is AstType.Primitive -> N_box(this, arg)
-			else -> "cast($arg)";
-		}
-	}
-
-	fun AstType.unbox(arg: String): String {
-		return when (this) {
-			is AstType.Primitive -> N_unbox(this, arg)
-			else -> "cast($arg)";
-		}
-	}
-
-	val AstField.haxeName: String get() = getFieldName(this)
-	val AstFieldRef.haxeName: String get() = getFieldName(this)
-	//val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
-
-
-	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
-
-	val FqName.haxeLambdaName: String get() = getClassFqNameLambda(this)
-	val FqName.haxeClassFqName: String get() = getClassFqName(this)
-	val FqName.haxeClassFqNameInt: String get() = getClassFqNameInt(this)
-	val FqName.haxeFilePath: String get() = getFilePath(this)
-	val FqName.haxeGeneratedFqPackage: String get() = getGeneratedFqPackage(this)
-	val FqName.haxeGeneratedFqName: FqName get() = getGeneratedFqName(this)
-	val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.targetTypeTag
-
 	override val stringPoolType: StringPoolType = StringPoolType.PER_CLASS
 
 	override fun buildConstructor(method: AstMethod): String = "new ${getClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
@@ -842,7 +754,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	}
 
 	override fun getFilePath(name: FqName): String = getGeneratedFqName(name).internalFqname + ".hx"
-
 	override fun getGeneratedFqPackage(name: FqName): String = _getHaxeFqName(name).packagePath
 	override fun getGeneratedFqName(name: FqName): FqName = _getHaxeFqName(name)
 	override fun getGeneratedSimpleClassName(name: FqName): String = _getHaxeFqName(name).simpleName
@@ -863,7 +774,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 		return if (realclass.isNative) {
 			// No cache
-			realfield?.nativeName ?: normalizedFieldName
+			realfield.nativeName ?: normalizedFieldName
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
 				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
@@ -874,12 +785,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 						val fieldName = normalizedFieldName
 						var name = if (fieldName in keywords) "${fieldName}_" else fieldName
 
-						val clazz = program[field]?.containingClass
-						val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
+						val clazz = program[field].containingClass
+						val clazzAncestors = clazz.ancestors.reversed()
 						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getFieldName(it.ref) }.toHashSet()
-						val fieldsColliding = clazz?.fields?.filter {
+						val fieldsColliding = clazz.fields.filter {
 							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
-						}?.map { it.ref } ?: listOf(field)
+						}.map { it.ref } ?: listOf(field)
 
 						// JTranscBugInnerMethodsWithSameName.kt
 						for (f2 in fieldsColliding) {
@@ -898,19 +809,19 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun getClassFqNameInt(name: FqName): String {
 		val clazz = program[name]
 		val simpleName = getGeneratedSimpleClassName(name)
-		val suffix = if (clazz?.isInterface ?: false) ".${simpleName}_IFields" else ""
-		return getClassFqName(clazz?.name ?: name) + suffix
+		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
+		return getClassFqName(clazz.name) + suffix
 	}
 
 	override fun getClassFqNameLambda(name: FqName): String {
 		val clazz = program[name]
 		val simpleName = getGeneratedSimpleClassName(name)
-		return getClassFqName(clazz?.name ?: name) + ".${simpleName}_Lambda"
+		return getClassFqName(clazz.name) + ".${simpleName}_Lambda"
 	}
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String {
 		val clazz = program[classRef.name]
-		if (clazz?.nativeName != null) {
+		if (clazz.nativeName != null) {
 			return ""
 		} else {
 			return "${getClassFqNameInt(classRef.name)}.SI();"
@@ -987,6 +898,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		params["haxeExtraFlags"] = program.haxeExtraFlags(settings)
 		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
 	}
+
+	open val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 }
 
 

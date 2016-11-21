@@ -22,38 +22,6 @@ import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
-class JTranscGenSuiteNativeHaxeTest : JTranscTestBase() {
-	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
-		true
-		true
-		false
-		true
-		true
-		false
-		STATIC:851975
-		INSTANCE:851975
-		MAP:851975
-		FIELD:851975
-		INPUT:16909060
-		&lt;hello&gt;"&amp;"&lt;/hello&gt;
-		&lt;hello&gt;&quot;&amp;&quot;&lt;/hello&gt;
-		mult:861
-		mult:246
-		INT:777
-		true
-		true
-		false
-		true
-		true
-		false
-		false
-		flush
-		methodToExecute1:1
-		Class1.method1
-		Class1.method2
-		10
-		jtransc.jtransc.JTranscInternalNamesTest_
-		main__Ljava_lang_String__V
-		__hello
-	""", target = HaxeTarget(), minimize = false)
+class CppTest : Base() {
+
 }

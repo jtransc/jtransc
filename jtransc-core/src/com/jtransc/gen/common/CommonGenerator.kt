@@ -97,11 +97,17 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun writeProgram(output: SyncVfsFile) {
 	}
 
-	fun genClasses(): Indenter = Indenter.gen {
-		for (clazz in sortedClasses) line(genClass(clazz))
+	val indenterPerClass = hashMapOf<AstClass, Indenter>()
+
+	open fun genClasses(): Indenter = Indenter.gen {
+		for (clazz in sortedClasses) {
+			val indenter = if (clazz.implCode != null) Indenter(clazz.implCode!!) else genClass(clazz)
+			indenterPerClass[clazz] = indenter
+			line(indenter)
+		}
 	}
 
-	fun genClass(clazz: AstClass): Indenter = Indenter.gen {
+	open fun genClass(clazz: AstClass): Indenter = Indenter.gen {
 		context.clazz = clazz
 
 		val CLASS = if (clazz.isInterface) "interface" else "class"
@@ -114,17 +120,16 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
+	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
 		for (f in clazz.fields) line(genField(f))
 		for (m in clazz.methods) line(genMethod(m))
 	}
 
-	fun genField(field: AstField): Indenter = Indenter.gen {
-
+	open fun genField(field: AstField): Indenter = Indenter.gen {
 		line("${field.targetName2} ${field.name};")
 	}
 
-	fun genMethod(method: AstMethod): Indenter = Indenter.gen {
+	open fun genMethod(method: AstMethod): Indenter = Indenter.gen {
 		context.method = method
 		val methodType = method.methodType
 		line("${methodType.ret.nativeName} ${method.name}()") {
@@ -323,7 +328,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
 	fun fixField(field: AstFieldRef): AstFieldRef = program[field].ref
 
-	fun fixMethod(method: AstMethodRef): AstMethodRef = program[method]?.ref ?: invalidOp("Can't find method $method while generating $context")
+	fun fixMethod(method: AstMethodRef): AstMethodRef = program[method]?.ref
+		?: invalidOp("Can't find method $method while generating $context")
 
 	val allAnnotationTypes = program.allAnnotations.flatMap { it.getAllDescendantAnnotations() }.map { it.type }.distinct().map { program[it.name] }.toSet()
 
@@ -1008,6 +1014,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		else -> invalidOp("Don't know how to unbox $type")
 	}
 
+	open fun N_func(name: String, args: String) = "N$staticAccessOperator$name($args)"
+
 	open protected fun N_boxVoid(e: String) = N_func("boxVoid", "$e")
 	open protected fun N_boxBool(e: String) = N_func("boxBool", "$e")
 	open protected fun N_boxByte(e: String) = N_func("boxByte", "$e")
@@ -1104,6 +1112,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_ishr(l: String, r: String) = N_c_shr(l, r)
 	open protected fun N_iushr(l: String, r: String) = N_c_ushr(l, r)
 
+	open protected fun N_lnew(value: Long) = N_func("lnew", "${value.high}, ${value.low}")
 	open protected fun N_ladd(l: String, r: String) = N_func("ladd", "$l, $r")
 	open protected fun N_lsub(l: String, r: String) = N_func("lsub", "$l, $r")
 	open protected fun N_lmul(l: String, r: String) = N_func("lmul", "$l, $r")
@@ -1283,6 +1292,115 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
+
+	open val outputFile2 = configOutputFile2.file
+	val configTargetDirectory: ConfigTargetDirectory = injector.get()
+
+	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
+	val tempdir = configTargetDirectory.targetDirectory
+
+	val params by lazy { hashMapOf(
+		"outputFolder" to outputFile2.parent,
+		"outputFile" to outputFile2.absolutePath,
+		"outputFileBase" to outputFile2.name,
+		"release" to settings.release,
+		"debug" to !settings.release,
+		"releasetype" to if (settings.release) "release" else "debug",
+		"settings" to settings,
+		"title" to settings.title,
+		"name" to settings.name,
+		"package" to settings.package_,
+		"version" to settings.version,
+		"company" to settings.company,
+		"initialWidth" to settings.initialWidth,
+		"initialHeight" to settings.initialHeight,
+		"orientation" to settings.orientation.lowName,
+		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive().filter { it.isFile }.map { it.file },
+		"embedResources" to settings.embedResources,
+		"assets" to settings.assets,
+		"hasIcon" to !settings.icon.isNullOrEmpty(),
+		"icon" to settings.icon,
+		"libraries" to settings.libraries,
+		"extra" to settings.extra,
+		"folders" to folders
+	) }
+
+	open fun setInfoAfterBuildingSource() {
+		params["entryPointFile"] = entryPointFilePath
+		params["entryPointClass"] = entryPointClass
+	}
+
+	fun setExtraData(map: Map<String, Any?>) {
+		for ((key, value) in map) {
+			this.params[key] = value
+		}
+	}
+
+	private fun getOrReplaceVar(name: String): String {
+		val out = if (name.startsWith("#")) {
+			params[name.substring(1)].toString()
+		} else {
+			name
+		}
+		return out
+	}
+
+	private fun evalReference(type: String, desc: String): String {
+		val ref = CommonTagHandler.getRef(program, type, desc, params)
+		return when (ref) {
+			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass);
+			is CommonTagHandler.CONSTRUCTOR -> buildConstructor(ref.method)
+			is CommonTagHandler.METHOD -> buildMethod(ref.method, static = ref.isStatic)
+			is CommonTagHandler.FIELD -> buildField(ref.field, static = ref.isStatic)
+			is CommonTagHandler.CLASS -> buildTemplateClass(ref.clazz)
+			else -> invalidOp("Unsupported result")
+		}
+	}
+
+	class ProgramRefNode(val ts: CommonGenerator, val type: String, val desc: String) : Minitemplate.BlockNode {
+		override fun eval(context: Minitemplate.Context) {
+			context.write(ts.evalReference(type, desc))
+		}
+	}
+
+	val miniConfig = Minitemplate.Config(
+		extraTags = listOf(
+			Minitemplate.Tag(
+				":programref:", setOf(), null,
+				aliases = listOf(
+					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
+					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
+				)
+			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
+			//, Minitemplate.Tag("copyfile", setOf(), null) {
+			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
+			//}
+		),
+		extraFilters = listOf(
+		)
+	)
+
+	override fun gen(template: String): String = gen(template, extra = hashMapOf())
+
+	fun gen(template: String, extra: HashMap<String, Any?> = hashMapOf()): String = Minitemplate(template, miniConfig).invoke(HashMap(params + extra))
+
+	fun gen(template: String, process: Boolean): String = if (process) Minitemplate(template, miniConfig).invoke(params) else template
+
+	fun gen(template: String, context: AstGenContext, type: String): String {
+		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");
+		context.rethrowWithContext {
+			return Minitemplate(template, miniConfig).invoke(params)
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
+
+
 	val perClassNameAllocator = hashMapOf<FqName, PerClassNameAllocator>()
 
 	private val stringPoolGlobal = StringPool()
@@ -1454,8 +1572,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val staticAccessOperator: String = "."
 	open val instanceAccessOperator: String = "."
 
-	open fun N_lnew(value: Long) = N_func("lnew", "${value.high}, ${value.low}")
-
 	open fun escapeConstant(value: Any?): String = when (value) {
 		null -> "null"
 		is Boolean -> if (value) "true" else "false"
@@ -1477,15 +1593,33 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val PositiveInfinityString = "Infinity"
 	open val NanString = "NaN"
 
-	open fun getClassFqNameForCalling(fqName: FqName): String = fqName.fqname.replace('.', '_')
+	open val AstVisibility.haxe: String get() = "public"
+	open val AstType.haxeDefault: Any? get() = getDefault(this)
+	open val AstType.haxeDefaultString: String get() = escapeConstant(getDefault(this), this)
+	open val AstType.METHOD.functionalType: String get() = getFunctionalType2(this)
 
-	open fun getGeneratedFqName(name: FqName): FqName = name
-	open fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
+	open val AstClass.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this.name)
+	open val FqName.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this)
+	open val AstField.haxeName: String get() = getFieldName(this)
+	open val AstFieldRef.haxeName: String get() = getFieldName(this)
+	//open val AstFieldRef.haxeStaticText: String get() = names.getStaticFieldText(this)
+	open val FqName.haxeLambdaName: String get() = getClassFqNameLambda(this)
+	open val FqName.haxeClassFqName: String get() = getClassFqName(this)
+	open val FqName.haxeClassFqNameInt: String get() = getClassFqNameInt(this)
+	open val FqName.haxeFilePath: String get() = getFilePath(this)
+	open val FqName.haxeGeneratedFqPackage: String get() = getGeneratedFqPackage(this)
+	open val FqName.haxeGeneratedFqName: FqName get() = getGeneratedFqName(this)
+	open val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.targetTypeTag
 
 	fun getFieldName(clazz: Class<*>, name: String): String = getFieldName(program[clazz.name.fqname].fieldsByName[name]!!)
 	fun getFieldName(field: FieldRef): String = getFieldName(field.ref)
 	fun getFieldName(field: AstField) = getFieldName(field.ref)
 	open fun getFieldName(field: AstFieldRef): String = field.name
+
+	open fun getClassFqNameForCalling(fqName: FqName): String = fqName.fqname.replace('.', '_')
+
+	open fun getGeneratedFqName(name: FqName): FqName = name
+	open fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
 
 	open fun getClassFqNameLambda(name: FqName): String {
 		val clazz = program[name]
@@ -1501,129 +1635,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun getGeneratedFqPackage(name: FqName): String = name.packagePath
-
-	open fun getFunctionalType2(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenerator.TypeKind.TYPETAG) }.joinToString(" -> ")
-	}
-
+	open fun getFunctionalType2(type: AstType.METHOD): String = type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenerator.TypeKind.TYPETAG) }.joinToString(" -> ")
 	open fun getAnnotationProxyName(classRef: AstType.REF): String = "AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
-
-	open fun getFullAnnotationProxyName(classRef: AstType.REF): String {
-		return getClassFqName(classRef.name) + ".AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
-	}
-
+	open fun getFullAnnotationProxyName(classRef: AstType.REF): String = getClassFqName(classRef.name) + ".AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
 	open fun getClassStaticClassInit(classRef: AstType.REF): String = "${getClassFqNameInt(classRef.name)}.HAXE_CLASS_INIT"
-
 	open fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(getNativeName(refMethod), static)
-
 	open fun getTypeStringForCpp(type: AstType): String = noImpl
 
-	fun N_func(name: String, args: String) = "N$staticAccessOperator$name($args)"
-
-
-	/////////////////////////////////////////////
-	/////////////////////////////////////////////
-
-	open val outputFile2 = configOutputFile2.file
-	val configTargetDirectory: ConfigTargetDirectory = injector.get()
-
-	//val outputFile2 = File(File(tinfo.outputFile).absolutePath)
-	val tempdir = configTargetDirectory.targetDirectory
-
-	val params by lazy { hashMapOf(
-		"outputFolder" to outputFile2.parent,
-		"outputFile" to outputFile2.absolutePath,
-		"outputFileBase" to outputFile2.name,
-		"release" to settings.release,
-		"debug" to !settings.release,
-		"releasetype" to if (settings.release) "release" else "debug",
-		"settings" to settings,
-		"title" to settings.title,
-		"name" to settings.name,
-		"package" to settings.package_,
-		"version" to settings.version,
-		"company" to settings.company,
-		"initialWidth" to settings.initialWidth,
-		"initialHeight" to settings.initialHeight,
-		"orientation" to settings.orientation.lowName,
-		"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive().filter { it.isFile }.map { it.file },
-		"embedResources" to settings.embedResources,
-		"assets" to settings.assets,
-		"hasIcon" to !settings.icon.isNullOrEmpty(),
-		"icon" to settings.icon,
-		"libraries" to settings.libraries,
-		"extra" to settings.extra,
-		"folders" to folders
-	) }
-
-	open fun setInfoAfterBuildingSource() {
-		params["entryPointFile"] = entryPointFilePath
-		params["entryPointClass"] = entryPointClass
-	}
-
-	fun setExtraData(map: Map<String, Any?>) {
-		for ((key, value) in map) {
-			this.params[key] = value
-		}
-	}
-
-	private fun getOrReplaceVar(name: String): String {
-		val out = if (name.startsWith("#")) {
-			params[name.substring(1)].toString()
-		} else {
-			name
-		}
-		return out
-	}
-
-	private fun evalReference(type: String, desc: String): String {
-		val ref = CommonTagHandler.getRef(program, type, desc, params)
-		return when (ref) {
-			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass);
-			is CommonTagHandler.CONSTRUCTOR -> buildConstructor(ref.method)
-			is CommonTagHandler.METHOD -> buildMethod(ref.method, static = ref.isStatic)
-			is CommonTagHandler.FIELD -> buildField(ref.field, static = ref.isStatic)
-			is CommonTagHandler.CLASS -> buildTemplateClass(ref.clazz)
-			else -> invalidOp("Unsupported result")
-		}
-	}
-
-	class ProgramRefNode(val ts: CommonGenerator, val type: String, val desc: String) : Minitemplate.BlockNode {
-		override fun eval(context: Minitemplate.Context) {
-			context.write(ts.evalReference(type, desc))
-		}
-	}
-
-	val miniConfig = Minitemplate.Config(
-		extraTags = listOf(
-			Minitemplate.Tag(
-				":programref:", setOf(), null,
-				aliases = listOf(
-					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
-					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
-				)
-			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
-			//, Minitemplate.Tag("copyfile", setOf(), null) {
-			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
-			//}
-		),
-		extraFilters = listOf(
-		)
-	)
-
-	override fun gen(template: String): String = gen(template, extra = hashMapOf())
-
-	fun gen(template: String, extra: HashMap<String, Any?> = hashMapOf()): String = Minitemplate(template, miniConfig).invoke(HashMap(params + extra))
-
-	fun gen(template: String, process: Boolean): String = if (process) Minitemplate(template, miniConfig).invoke(params) else template
-
-	fun gen(template: String, context: AstGenContext, type: String): String {
-		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");
-		context.rethrowWithContext {
-			return Minitemplate(template, miniConfig).invoke(params)
-		}
-	}
-
-	val AstClass.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this.name)
-	open val FqName.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this)
 }

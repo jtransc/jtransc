@@ -18,6 +18,6 @@ import org.junit.Test
  * limitations under the License.
  */
 
-class JTranscGenSuiteNativeDTest : JTranscTestBase() {
+class DTest : Base() {
 	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
 }

@@ -433,6 +433,7 @@ class AstClass(
 		annotationsList.getTyped<JTranscNativeClass>()?.value ?: annotationsList.getTyped<JTranscNativeName>()?.value
 	}
 
+	val isNormal: Boolean get() = classType == AstClassType.CLASS
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
 	val fqname: String = name.fqname

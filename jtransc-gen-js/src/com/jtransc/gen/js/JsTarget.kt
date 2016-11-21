@@ -67,12 +67,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 
-	override fun buildSource() {
-		//gen._write(configTargetFolder.targetFolder)
-		_write(configTargetFolder.targetFolder)
-		setInfoAfterBuildingSource()
-	}
-
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
 
@@ -103,7 +97,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	val _JTranscAddMembersList = JTranscAddMembersList::class.java
 
 	@Suppress("UNCHECKED_CAST")
-	internal fun _write(output: SyncVfsFile) {
+	override fun writeProgram(output: SyncVfsFile) {
 		val resourcesVfs = program.resourcesVfs
 		val copyFiles = getFilesToCopy("js")
 
@@ -141,21 +135,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		val classesIndenter = arrayListOf<Indenter>()
 
-		val indenterPerClass = hashMapOf<AstClass, Indenter>()
-
-		for (clazz in sortedClasses) {
-			val indenter = if (clazz.implCode != null) {
-				Indenter.gen { line(clazz.implCode!!) }
-			} else {
-				//if (!clazz.isInterface) {
-				writeClass(clazz)
-				//} else {
-				//	Indenter.EMPTY
-				//}
-			}
-			indenterPerClass[clazz] = indenter
-			classesIndenter.add(indenter)
-		}
+		classesIndenter += genClasses()
 
 		val SHOW_SIZE_REPORT = true
 		if (SHOW_SIZE_REPORT) {
@@ -325,7 +305,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> = this.getNativeBodies(target = "js")
 
-	fun writeClass(clazz: AstClass): Indenter {
+	override fun genClass(clazz: AstClass): Indenter {
 		setCurrentClass(clazz)
 
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
