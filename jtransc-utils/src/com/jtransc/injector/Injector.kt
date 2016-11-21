@@ -14,7 +14,8 @@ class Injector() {
 	inline fun <reified T : Any> get(default: () -> T): T = if (T::class.java in maps) getInstance(T::class.java) else default()
 
 	fun <T : Any> getInstance(clazz: Class<T>): T {
-		return getInstanceOrNull(clazz) ?: invalidOp("Cannot automap '$clazz' not @Singleton or @Prototype")
+		return getInstanceOrNull(clazz)
+			?: invalidOp("Cannot automap '$clazz' not @Singleton or @Prototype")
 	}
 
 	fun <T : Any> getInstanceOrNull(clazz: Class<T>): T? {

@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscRegisterCommandList
 import com.jtransc.annotation.JTranscRunCommand
 import com.jtransc.annotation.JTranscRunCommandList
 import com.jtransc.ast.AstProgram
+import com.jtransc.ds.split
 import com.jtransc.error.invalidOp
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
@@ -37,7 +38,7 @@ object CommonGenCliCommands {
 		return CommonGenCliCommands.getAllRunCommandForTarget(program, target = target).map { it.value }.firstOrNull()?.toList() ?: default
 	}
 
-	fun runProgramCmd(program: AstProgram, target: String, default: List<String>, template: CommonProgramTemplate, options: ExecOptions): ProcessResult {
+	fun runProgramCmd(program: AstProgram, target: String, default: List<String>, template: IProgramTemplate, options: ExecOptions): ProcessResult {
 		val commands = getAllCustomCommandsForTarget(program = program, target = target)
 		val templateParts = getRunProgramCmd(program, target = target, default = default)
 		var lines = template.gen(templateParts.joinToString("\n")).split("\n").map { it.trim() }.filter { it.isNotEmpty() }

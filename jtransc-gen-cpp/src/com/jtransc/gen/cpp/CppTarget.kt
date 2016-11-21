@@ -57,13 +57,10 @@ class CppTarget() : GenTargetDescriptor() {
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
 		val configOutputFile = injector.get<ConfigOutputFile>()
 		val targetFolder = LocalVfsEnsureDirs(File("${configTargetDirectory.targetDirectory}/jtransc-cpp"))
-		injector.mapInstance(ConfigFeatureSet(CppFeatures))
-		injector.mapImpl<CommonNames, CppNames>()
 		injector.mapInstance(CommonGenFolders(settings.assets.map { LocalVfs(it) }))
 		injector.mapInstance(ConfigTargetFolder(targetFolder))
 		injector.mapInstance(ConfigSrcFolder(targetFolder))
 		injector.mapInstance(ConfigOutputFile2(targetFolder[configOutputFile.outputFileBaseName].realfile))
-		injector.mapImpl<CommonProgramTemplate, CommonProgramTemplate>()
 		return injector.get<CppGenerator>()
 	}
 
@@ -74,17 +71,18 @@ class CppTarget() : GenTargetDescriptor() {
 	}
 }
 
-val CppFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
-
 @Singleton
 class CppGenerator(
 	injector: Injector,
 	val configTargetFolder: ConfigTargetFolder
 ) : SingleFileCommonGenerator(injector) {
+	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val keywords = super.keywords + setOf()
+
 	//var libraries = listOf<String>()
 	override fun buildSource() {
 		writeProgram(configTargetFolder.targetFolder)
-		templateString.setInfoAfterBuildingSource()
+		setInfoAfterBuildingSource()
 	}
 
 	override fun compile(): ProcessResult2 {
@@ -235,7 +233,7 @@ class CppGenerator(
 				}
 				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }) {
 					if (files.prepend.isNotEmpty()) {
-						line(templateString.gen(resourcesVfs[files.prepend].readString(), process = files.process))
+						line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
 					}
 				}
 			}
@@ -418,7 +416,7 @@ class CppGenerator(
 			// {{ STRINGS }}
 			// STRINGLIT_
 
-			val globalStrings = names.getGlobalStrings()
+			val globalStrings = getGlobalStrings()
 
 			line("static SOBJ ${globalStrings.map { it.name }.joinToString(", ")};")
 			line("void N::initStringPool()", after2 = ";") {
@@ -452,7 +450,7 @@ class CppGenerator(
 			}
 			if (TRACING_JUST_ENTER) line("#define TRACING_JUST_ENTER")
 			if (TRACING) line("#define TRACING")
-			line(templateString.gen(program.resourcesVfs["cpp/Base.cpp"].readString(), extra = hashMapOf(
+			line(gen(program.resourcesVfs["cpp/Base.cpp"].readString(), extra = hashMapOf(
 				"HEADER" to HEADER.toString(),
 				"CLASS_REFERENCES" to CLASS_REFERENCES.toString(),
 				"TYPE_TABLE_HEADERS" to TYPE_TABLE_HEADERS.toString(),
@@ -475,11 +473,11 @@ class CppGenerator(
 		println(output[outputFile].realpathOS)
 	}
 
-	val AstClass.cppName: String get() = names.getClassFqNameForCalling(this.name)
-	val AstType.REF.cppName: String get() = names.getClassFqNameForCalling(this.name)
-	val AstMethod.cppName: String get() = names.getNativeName(this)
-	val AstField.cppName: String get() = names.getNativeName(this)
-	val AstType.cppString: String get() = names.getTypeStringForCpp(this)
+	val AstClass.cppName: String get() = getClassFqNameForCalling(this.name)
+	val AstType.REF.cppName: String get() = getClassFqNameForCalling(this.name)
+	val AstMethod.cppName: String get() = getNativeName(this)
+	val AstField.cppName: String get() = getNativeName(this)
+	val AstType.cppString: String get() = getTypeStringForCpp(this)
 	val AstType.underlyingCppString: String get() = getUnderlyingType(this)
 
 	fun writeMain(): Indenter = Indenter.gen {
@@ -487,7 +485,7 @@ class CppGenerator(
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
-				line(names.buildStaticInit(program[program.entrypoint]))
+				line(buildStaticInit(program[program.entrypoint]))
 				line(program.entrypoint.ref().cppName + "::S_main___Ljava_lang_String__V(N::strEmptyArray());")
 			}
 			line("catch (char const *s)") {
@@ -556,7 +554,7 @@ class CppGenerator(
 				if (!clazz.isInterface) {
 					line("this->__INSTANCE_CLASS_ID = ${getClassId(clazz.name)};")
 					for (field in clazz.fields.filter { !it.isStatic }) {
-						val cst = if (field.hasConstantValue) names.escapeConstant(field.constantValue) else "0"
+						val cst = if (field.hasConstantValue) escapeConstant(field.constantValue) else "0"
 						line("this->${field.targetName2} = $cst;")
 					}
 				}
@@ -626,7 +624,7 @@ class CppGenerator(
 			line("SI_once = true;")
 			for (field in clazz.fields.filter { it.isStatic }) {
 				if (field.isStatic) {
-					val cst = if (field.hasConstantValue) names.escapeConstant(field.constantValue) else "0"
+					val cst = if (field.hasConstantValue) escapeConstant(field.constantValue) else "0"
 					line("${clazz.cppName}::${field.cppName} = $cst;")
 				}
 			}
@@ -781,7 +779,7 @@ class CppGenerator(
 		return if (className == Cpp::class.java.name && methodName.endsWith("_raw")) {
 			val arg = e2.args[0].value
 			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]}")
-			val base = templateString.gen((arg.value as String))
+			val base = gen((arg.value as String))
 			when (methodName) {
 				"v_raw" -> "$base"
 				"o_raw" -> "$base"
@@ -864,17 +862,17 @@ class CppGenerator(
 
 	override fun genExprFieldInstanceAccess(e: AstExpr.FIELD_INSTANCE_ACCESS): String {
 		if (isThisOrThisWithCast(e.expr.value)) {
-			return names.buildInstanceField("this", fixField(e.field))
+			return buildInstanceField("this", fixField(e.field))
 		} else {
-			return names.buildInstanceField("((" + e.field.containingTypeRef.underlyingCppString + ")(N::ensureNpe(" + e.expr.genNotNull() + ", FUNCTION_NAME).get()))", fixField(e.field))
+			return buildInstanceField("((" + e.field.containingTypeRef.underlyingCppString + ")(N::ensureNpe(" + e.expr.genNotNull() + ", FUNCTION_NAME).get()))", fixField(e.field))
 		}
 	}
 
 	override fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, _left: String, _right: String): String {
 		val left = if (stm.left.value is AstExpr.THIS) {
-			names.buildInstanceField("this", fixField(stm.field))
+			buildInstanceField("this", fixField(stm.field))
 		} else {
-			names.buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME).get())", fixField(stm.field))
+			buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME).get())", fixField(stm.field))
 		}
 		val right = "(${stm.field.type.cppString})((${stm.field.type.cppString})(" + stm.expr.genExpr() + "))"
 
@@ -912,14 +910,14 @@ class CppGenerator(
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"SOBJ(new ${names.ObjectArrayType}(${e.counts[0].genExpr()}, L\"$desc\"))"
+			"SOBJ(new ${ObjectArrayType}(${e.counts[0].genExpr()}, L\"$desc\"))"
 		} else {
 			"SOBJ(new ${e.type.targetTypeNew}(${e.counts[0].genExpr()}))"
 		}
 	}
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "${names.ObjectArrayType}${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
+		return "${ObjectArrayType}${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
 	override fun genExprNew(e: AstExpr.NEW): String {
@@ -939,7 +937,7 @@ class CppGenerator(
 				AstType.DOUBLE -> "JA_D"
 				else -> "JA_L"
 			} + "*"
-			is AstType.REF -> "${names.getClassFqNameForCalling(type.name)}*"
+			is AstType.REF -> "${getClassFqNameForCalling(type.name)}*"
 			else -> type.cppString
 		}
 	}
@@ -982,16 +980,6 @@ class CppGenerator(
 		}
 	}
 
-}
-
-val CppKeywords = setOf<String>()
-
-@Singleton
-class CppNames(
-	injector: Injector,
-	program: AstResolver,
-	val types: AstTypes
-) : CommonNames(injector, program, keywords = CppKeywords) {
 	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassFqNameForCalling(clazz.name) + "::SI();"

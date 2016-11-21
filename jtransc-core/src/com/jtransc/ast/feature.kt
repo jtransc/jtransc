@@ -21,8 +21,6 @@ import com.jtransc.ast.transform.RemoveTransitiveLocalsTransform
 import com.jtransc.injector.Singleton
 import java.util.*
 
-data class ConfigFeatureSet(val featureSet: Set<Class<out AstMethodFeature>>)
-
 @Singleton
 class AstMethodFeatures {
 	internal val AVAILABLE_FEATUES = ServiceLoader.load(AstMethodFeature::class.java).toMutableList()

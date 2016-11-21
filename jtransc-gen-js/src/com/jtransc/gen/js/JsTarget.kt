@@ -43,13 +43,11 @@ class JsTarget() : GenTargetDescriptor() {
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
 		val configOutputFile = injector.get<ConfigOutputFile>()
 		val targetFolder = LocalVfsEnsureDirs(File("${configTargetDirectory.targetDirectory}/jtransc-js"))
-		injector.mapInstance(ConfigFeatureSet(JsFeatures))
-		injector.mapImpl<CommonNames, JsNames>()
 		injector.mapInstance(CommonGenFolders(settings.assets.map { LocalVfs(it) }))
 		injector.mapInstance(ConfigTargetFolder(targetFolder))
 		injector.mapInstance(ConfigSrcFolder(targetFolder))
 		injector.mapInstance(ConfigOutputFile2(targetFolder[configOutputFile.outputFileBaseName].realfile))
-		injector.mapImpl<CommonProgramTemplate, CommonProgramTemplate>()
+		injector.mapImpl<IProgramTemplate, IProgramTemplate>()
 		return injector.get<JsGenerator>()
 	}
 
@@ -61,141 +59,21 @@ class JsTarget() : GenTargetDescriptor() {
 
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
-val JsFeatures = setOf(SwitchFeature::class.java)
-
-fun hasSpecialChars(name: String): Boolean {
-	return !name.all { it.isLetterDigitOrUnderscore() }
-}
-
-fun accessStr(name: String): String {
-	return if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
-}
-
-val JsKeywords = setOf(
-	"name", "constructor", "prototype", "__proto__", "N", "S", "SS", "IO"
-)
-
-@Singleton
-class JsNames(
-	injector: Injector,
-	program: AstProgram
-) : CommonNames(injector, keywords = JsKeywords + program.getExtraKeywords("js"), program = program) {
-	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
-
-	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
-	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
-	override fun buildMethod(method: AstMethod, static: Boolean): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val name = getJsMethodName(method)
-		return if (static) "$clazz[${name.quote()}]" else name
-	}
-
-	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
-
-	override fun buildConstructor(method: AstMethod): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val methodName = getJsMethodName(method)
-		return "new $clazz()[${methodName.quote()}]"
-	}
-
-	private val fieldNames = hashMapOf<Any?, String>()
-	private val methodNames = hashMapOf<Any?, String>()
-	private val classNames = hashMapOf<Any?, String>()
-	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
-
-	fun getNativeName(field: AstField): String {
-		//"_" + field.uniqueName
-
-		val fieldRef = field.ref
-		val keyToUse = field.ref
-
-		return fieldNames.getOrPut2(keyToUse) {
-			if (minimize) {
-				allocMemberName()
-			} else {
-				if (fieldRef !in cachedFieldNames) {
-					val fieldName = field.name.replace('$', '_')
-					//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
-					var name = "_$fieldName"
-
-					val clazz = program[fieldRef]?.containingClass
-					val clazzAncestors = clazz?.ancestors?.reversed() ?: listOf()
-					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getNativeName(it.ref) }.toHashSet()
-					val fieldsColliding = clazz?.fields?.filter { it.name == field.name }?.map { it.ref } ?: listOf(field.ref)
-
-					// JTranscBugInnerMethodsWithSameName.kt
-					for (f2 in fieldsColliding) {
-						while (name in names) name += "_"
-						cachedFieldNames[f2] = name
-						names += name
-					}
-					cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-				}
-				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-			}
-		}
-	}
-
-	override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref]!!)
-	override fun getNativeName(methodRef: MethodRef): String = getJsMethodName(methodRef.ref)
-	override fun getNativeName(local: LocalParamRef): String = super.getNativeName(local)
-	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
-	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
-
-	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
-
-	fun getJsMethodName(methodRef: AstMethodRef): String {
-		val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
-		return methodNames.getOrPut2(keyToUse) {
-			if (minimize) {
-				allocMemberName()
-			} else {
-				if (program is AstProgram) {
-					val method = methodRef.resolve(program)
-					if (method.nativeName != null) {
-						return method.nativeName!!
-					}
-				}
-				return if (methodRef.isInstanceInit) {
-					"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
-				} else {
-					"${methodRef.name}${methodRef.desc}"
-				}
-			}
-		}
-	}
-
-	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = getClassFqNameForCalling(classRef.name) + ".SI();"
-	override fun getClassFqName(name: FqName): String = name.fqname
-	override fun getClassFqNameForCalling(fqName: FqName): String {
-		val keyToUse = fqName
-		return classNames.getOrPut2(keyToUse) {
-			if (minimize) {
-				allocClassName()
-			} else {
-				fqName.fqname.replace('.', '_')
-			}
-		}
-	}
-
-	fun getJsClassFqNameInt(fqName: FqName): String = fqName.simpleName
-	override fun getFilePath(name: FqName): String = name.simpleName
-	fun getJsGeneratedFqPackage(fqName: FqName): String = fqName.fqname
-	override fun getGeneratedFqName(name: FqName): FqName = name
-	override fun getGeneratedSimpleClassName(name: FqName): String = name.fqname
-	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(getNativeName(refMethod))
-}
+fun hasSpecialChars(name: String): Boolean = !name.all { it.isLetterDigitOrUnderscore() }
+fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
 @Singleton
 class JsGenerator(
 	injector: Injector,
 	val configTargetFolder: ConfigTargetFolder
 ) : SingleFileCommonGenerator(injector) {
+	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
+	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 
 	override fun buildSource() {
 		//gen._write(configTargetFolder.targetFolder)
 		_write(configTargetFolder.targetFolder)
-		templateString.setInfoAfterBuildingSource()
+		setInfoAfterBuildingSource()
 	}
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
@@ -211,7 +89,7 @@ class JsGenerator(
 				program,
 				target = "js",
 				default = listOf("node", "{{ outputFile }}"),
-				template = templateString,
+				template = this,
 				options = ExecOptions(passthru = redirect)
 			)
 			return ProcessResult2(result)
@@ -250,7 +128,7 @@ class JsGenerator(
 			output[file.dst].ensureParentDir().write(file.content)
 		}
 
-		templateString.params["assetFiles"] = (templateString.params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
+		params["assetFiles"] = (params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
 
 		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
 			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
@@ -305,7 +183,7 @@ class JsGenerator(
 
 		log("Using ... " + if (customMain != null) "customMain" else "plainMain")
 
-		templateString.setExtraData(mapOf(
+		setExtraData(mapOf(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
 			"mainClass" to mainClass,
@@ -314,7 +192,7 @@ class JsGenerator(
 		))
 
 		val strs = Indenter.gen {
-			val strs = names.getGlobalStrings()
+			val strs = getGlobalStrings()
 			val maxId = strs.maxBy { it.id }?.id ?: 0
 			line("SS = new Array($maxId);")
 			for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
@@ -330,14 +208,10 @@ class JsGenerator(
 			line("__createJavaArrays();")
 			line("__buildStrings();")
 			line("N.linit();")
-			line(names.buildStaticInit(mainClassClass))
-			val mainMethod = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
-			val mainCall = names.buildMethod(mainMethod, static = true)
+			line(buildStaticInit(mainClassClass))
+			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
+			val mainCall = buildMethod(mainMethod2, static = true)
 			line("$mainCall(N.strArray(N.args()));")
-			//N.args
-			//names.
-			//mainClassFq
-			//line(templateString.gen(customMain ?: plainMain, context, "customMain"))
 			for (f in concatFilesTrans.reversed()) if (f.append != null) line(f.append)
 		}
 
@@ -394,7 +268,7 @@ class JsGenerator(
 	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
-		line(names.getClassStaticInit(clazzRef, reasons.joinToString(", ")))
+		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
@@ -447,11 +321,11 @@ class JsGenerator(
 	override fun N_dneg(str: String) = "-($str)"
 	override fun N_znot(str: String) = "!($str)"
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
-	override fun genLiteralString(v: String): String = "S[" + names.allocString(context.clazz.name, v) + "]"
+	override fun genLiteralString(v: String): String = "S[" + allocString(context.clazz.name, v) + "]"
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
-		val base = names.getClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
+		val base = getClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
 		val argsString = (listOf(e2.obj.genExpr()) + args).joinToString(", ")
 		return "$base$methodAccess.call($argsString)"
 	}
@@ -461,9 +335,7 @@ class JsGenerator(
 	fun writeClass(clazz: AstClass): Indenter {
 		setCurrentClass(clazz)
 
-		//val isRootObject = clazz.name.fqname == "java.lang.Object"
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
-		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
 		refs._usedDependencies.clear()
 
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
@@ -472,34 +344,20 @@ class JsGenerator(
 		val classCodeIndenter = Indenter.gen {
 			if (isAbstract) line("// ABSTRACT")
 
-			val classBase = names.getClassFqNameForCalling(clazz.name)
+			val classBase = getClassFqNameForCalling(clazz.name)
 			val memberBaseStatic = classBase
 			val memberBaseInstance = "$classBase.prototype"
 			fun getMemberBase(isStatic: Boolean) = if (isStatic) memberBaseStatic else memberBaseInstance
-
-			//fun renderFields(fields: List<AstField>) {
-			//	for (field in fields) {
-			//		val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
-			//		line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
-			//	}
-			//}
-
-			//val declarationHead = "func " + names.getClassFqNameForCalling(clazz.name) + " = program.registerType(${clazz.classId}, null, ${simpleClassName.quote()}, ${clazz.modifiers.acc}, ${clazz.extending?.targetClassFqName?.quote()}, $interfaces, null, function() {"
-			val parentClassBase = if (clazz.extending != null) names.getClassFqNameForCalling(clazz.extending!!) else "java_lang_Object_base";
+			val parentClassBase = if (clazz.extending != null) getClassFqNameForCalling(clazz.extending!!) else "java_lang_Object_base";
 
 			val staticFields = clazz.fields.filter { it.isStatic }
-			val instanceFields = clazz.fields.filter { !it.isStatic }
+			//val instanceFields = clazz.fields.filter { !it.isStatic }
 			val allInstanceFields = (listOf(clazz) + clazz.parentClassList).flatMap { it.fields }.filter { !it.isStatic }
 
 			fun lateInitField(a: Any?) = (a is String)
 
 			val allInstanceFieldsThis = allInstanceFields.filter { lateInitField(it) }
 			val allInstanceFieldsProto = allInstanceFields.filter { !lateInitField(it) }
-
-			//val allInstanceFieldsThis = allInstanceFields
-			//val allInstanceFieldsProto = allInstanceFields
-			//val allInstanceFieldsProto = listOf<AstField>()
-
 
 			line("function $classBase()") {
 				for (field in allInstanceFieldsThis) {
@@ -516,21 +374,18 @@ class JsGenerator(
 				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 			}
 
-			//line("$classBase.SI_INIT = false;")
-
-
 			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
 				line("$classBase.SI = function()", after2 = ";") {
 					line("$classBase.SI = N.EMPTY_FUNCTION;")
 					if (clazz.staticConstructor != null) {
-						line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
 					}
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName2 == field.name) field.name else field.targetName2
 						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 					}
 					if (clazz.staticConstructor != null) {
-						line("$classBase${names.getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
 					}
 				}
 			} else {
@@ -551,7 +406,7 @@ class JsGenerator(
 
 					//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
 					//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
-					val nativeMemberName = names.buildMethod(method, false)
+					val nativeMemberName = buildMethod(method, false)
 					val prefix = "${getMemberBase(method.isStatic)}${accessStr(nativeMemberName)}"
 
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
@@ -637,7 +492,7 @@ class JsGenerator(
 		return if (className == Js::class.java.name && methodName.endsWith("_raw")) {
 			val arg = e2.args[0].value
 			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]} at $context")
-			val base = templateString.gen((arg.value as String))
+			val base = gen((arg.value as String))
 			when (methodName) {
 				"v_raw" -> base
 				"o_raw" -> base
@@ -651,4 +506,107 @@ class JsGenerator(
 			super.genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, args)
 		}
 	}
+
+	override val stringPoolType: StringPoolType = StringPoolType.GLOBAL
+
+	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
+	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
+	override fun buildMethod(method: AstMethod, static: Boolean): String {
+		val clazz = getClassFqNameForCalling(method.containingClass.name)
+		val name = getJsMethodName(method)
+		return if (static) "$clazz[${name.quote()}]" else name
+	}
+
+	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
+
+	override fun buildConstructor(method: AstMethod): String {
+		val clazz = getClassFqNameForCalling(method.containingClass.name)
+		val methodName = getJsMethodName(method)
+		return "new $clazz()[${methodName.quote()}]"
+	}
+
+	private val fieldNames = hashMapOf<Any?, String>()
+	private val methodNames = hashMapOf<Any?, String>()
+	private val classNames = hashMapOf<Any?, String>()
+	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
+
+	fun getNativeName(field: AstField): String {
+		//"_" + field.uniqueName
+
+		val fieldRef = field.ref
+		val keyToUse = field.ref
+
+		return fieldNames.getOrPut2(keyToUse) {
+			if (minimize) {
+				allocMemberName()
+			} else {
+				if (fieldRef !in cachedFieldNames) {
+					val fieldName = field.name.replace('$', '_')
+					//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+					var name = "_$fieldName"
+
+					val clazz = program[fieldRef].containingClass
+					val clazzAncestors = clazz.ancestors.reversed()
+					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { getNativeName(it.ref) }.toHashSet()
+					val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
+
+					// JTranscBugInnerMethodsWithSameName.kt
+					for (f2 in fieldsColliding) {
+						while (name in names) name += "_"
+						cachedFieldNames[f2] = name
+						names += name
+					}
+					cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+				}
+				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+			}
+		}
+	}
+
+	override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
+	override fun getNativeName(methodRef: MethodRef): String = getJsMethodName(methodRef.ref)
+	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
+	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
+	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
+
+	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
+
+	fun getJsMethodName(methodRef: AstMethodRef): String {
+		val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
+		return methodNames.getOrPut2(keyToUse) {
+			if (minimize) {
+				allocMemberName()
+			} else {
+				if (program is AstProgram) {
+					val method = methodRef.resolve(program)
+					if (method.nativeName != null) {
+						return method.nativeName!!
+					}
+				}
+				return if (methodRef.isInstanceInit) {
+					"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
+				} else {
+					"${methodRef.name}${methodRef.desc}"
+				}
+			}
+		}
+	}
+
+	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = getClassFqNameForCalling(classRef.name) + ".SI();"
+	override fun getClassFqName(name: FqName): String = name.fqname
+	override fun getClassFqNameForCalling(fqName: FqName): String {
+		val keyToUse = fqName
+		return classNames.getOrPut2(keyToUse) {
+			if (minimize) {
+				allocClassName()
+			} else {
+				fqName.fqname.replace('.', '_')
+			}
+		}
+	}
+
+	override fun getFilePath(name: FqName): String = name.simpleName
+	override fun getGeneratedFqName(name: FqName): FqName = name
+	override fun getGeneratedSimpleClassName(name: FqName): String = name.fqname
+	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(getNativeName(refMethod))
 }

@@ -65,12 +65,15 @@ abstract class GenTargetDescriptor {
 		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput
 		val run = injector.get<ConfigRun>().run
 		val compile = injector.get<ConfigCompile>(default = { ConfigCompile(compile = true) }).compile
-		val processor = log.logAndTime("Preparing processor") {
+		val generator = log.logAndTime("Preparing generator") {
 			injector.mapInstance(ConfigOutputFile(outputFile))
+			injector.mapInstance(TargetName(name))
 
-			this.getGenerator(injector)
+			val generator = this.getGenerator(injector)
+			injector.mapInstance<CommonGenerator>(generator)
+			generator
 		}
-		log.logAndTime("Building source") { processor.buildSource() }
+		log.logAndTime("Building source") { generator.buildSource() }
 
 		JTranscAddLibrariesList::class.java
 
@@ -83,7 +86,7 @@ abstract class GenTargetDescriptor {
 		if (compile) {
 			if (run) {
 				log("Compiling and running...")
-				val (compileTime, result) = measureTime { processor.compileAndRun(!captureRunOutput) }
+				val (compileTime, result) = measureTime { generator.compileAndRun(!captureRunOutput) }
 				if (result.success) {
 					log("Ok ($compileTime)")
 				} else {
@@ -92,7 +95,7 @@ abstract class GenTargetDescriptor {
 				return JTranscBuild.Result(result)
 			} else {
 				log("Compiling...")
-				val (compileTime, compileResult) = measureTime { processor.compile() }
+				val (compileTime, compileResult) = measureTime { generator.compile() }
 				if (compileResult.success) {
 					log("Ok ($compileTime)")
 				} else {

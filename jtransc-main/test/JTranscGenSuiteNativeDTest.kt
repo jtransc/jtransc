@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-import big.HelloWorldTest
-import com.jtransc.gen.d.DTarget
-import com.jtransc.gen.js.JsTarget
-import org.junit.Test
-
 class JTranscGenSuiteNativeDTest : JTranscTestBase() {
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
+	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
 }
