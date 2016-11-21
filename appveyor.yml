@@ -20,7 +20,7 @@ install:
   - cmd: mvn -v
   - cmd: gradlew -v
 build_script:
-  - gradlew build
+  - gradlew install
 test_script:
   - gradlew check
 cache:
