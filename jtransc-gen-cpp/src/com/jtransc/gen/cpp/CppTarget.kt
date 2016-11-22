@@ -399,8 +399,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	val AstClass.cppName: String get() = getClassFqNameForCalling(this.name)
 	val AstType.REF.cppName: String get() = getClassFqNameForCalling(this.name)
-	val AstMethod.cppName: String get() = getNativeName(this)
-	val AstField.cppName: String get() = this.targetName
 	val AstType.cppString: String get() = getTypeStringForCpp(this)
 	val AstType.underlyingCppString: String get() = getUnderlyingType(this)
 
@@ -484,7 +482,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				val zero = if (clazz.isInterface && !method.isStatic) " = 0" else ""
 				val inlineNone = if (method.isInline) "inline " else ""
 				val virtualStatic = if (method.isStatic) "static " else "virtual "
-				line("$inlineNone$virtualStatic${method.returnTypeWithThis.cppString} ${method.cppName}($argsString)$zero;")
+				line("$inlineNone$virtualStatic${method.returnTypeWithThis.cppString} ${method.targetName}($argsString)$zero;")
 			}
 			for (parentMethod in directImplementing.flatMap { it.methods }) {
 				val type = parentMethod.methodType
@@ -493,7 +491,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				val argsCallString = type.args.map { it.name }.joinToString(", ")
 				val callingMethod = clazz.getMethodInAncestors(parentMethod.ref.withoutClass)
 				if (callingMethod != null) {
-					line("virtual ${parentMethod.returnTypeWithThis.cppString} ${parentMethod.cppName}($argsString) { $returnStr this->${callingMethod.cppName}($argsCallString); }")
+					line("virtual ${parentMethod.returnTypeWithThis.cppString} ${parentMethod.targetName}($argsString) { $returnStr this->${callingMethod.targetName}($argsCallString); }")
 				}
 			}
 			line("static bool SI_once;")
@@ -542,12 +540,12 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			for (field in clazz.fields.filter { it.isStatic }) {
 				if (field.isStatic) {
 					val cst = if (field.hasConstantValue) escapeConstant(field.constantValue) else "0"
-					line("${clazz.cppName}::${field.cppName} = $cst;")
+					line("${clazz.cppName}::${field.targetName} = $cst;")
 				}
 			}
 
 			for (ci in clazz.methods.filter { it.isClassInit }) {
-				line("${ci.cppName}();")
+				line("${ci.targetName}();")
 			}
 		}
 		line("};")
@@ -556,7 +554,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	fun writeField(field: AstField): Indenter = Indenter.gen {
 		val clazz = field.containingClass
 		if (field.isStatic) {
-			line("${field.type.cppString} ${clazz.cppName}::${field.cppName} = 0;")
+			line("${field.type.cppString} ${clazz.cppName}::${field.targetName} = 0;")
 		}
 	}
 
@@ -577,7 +575,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		val argsString = type.args.map { it.type.cppString + " " + it.name }.joinToString(", ")
 
-		line("${method.returnTypeWithThis.cppString} ${clazz.cppName}::${method.cppName}($argsString)") {
+		line("${method.returnTypeWithThis.cppString} ${clazz.cppName}::${method.targetName}($argsString)") {
 			if (method.name == "finalize") {
 				//line("""std::cout << "myfinalizer\n"; """);
 			}
@@ -676,7 +674,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
-		return "${refMethodClass.ref.cppName}::${superMethod.cppName}(${args.joinToString(", ")})"
+		return "${refMethodClass.ref.cppName}::${superMethod.targetName}(${args.joinToString(", ")})"
 	}
 
 	override fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
@@ -872,27 +870,25 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassFqNameForCalling(clazz.name) + "::SI();"
 
-	override fun getNativeName(methodRef: MethodRef): String {
-		return getClassNameAllocator(methodRef.ref.containingClass).allocate(methodRef.ref) {
-			val astMethod = program[methodRef.ref]!!
+	override val MethodRef.targetName: String get() {
+		return getClassNameAllocator(ref.containingClass).allocate(ref) {
+			val astMethod = program[ref]!!
 			val containingClass = astMethod.containingClass
 
 			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-			val prefix2 = if (containingClass.isInterface || methodRef.ref.isClassOrInstanceInit) {
+			val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) {
 				getClassFqNameForCalling(containingClass.name) + "_"
 			} else {
 				""
 			}
 
-			val suffix = "_" + normalizeName(astMethod.methodType.mangle())
-
-			"$prefix$prefix2" + super.getNativeName(methodRef) + suffix
+			"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
 		}
 	}
 
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val name = getNativeName(method)
+		val name = method.targetName
 		return if (static) "$clazz::$name" else name
 	}
 
@@ -933,7 +929,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildConstructor(method: AstMethod): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val methodName = getNativeName(method)
+		val methodName = method.targetName
 		return "(new $clazz())->$methodName"
 	}
 

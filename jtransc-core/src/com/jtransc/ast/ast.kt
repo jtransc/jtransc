@@ -253,6 +253,7 @@ class AstProgram(
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
+	operator fun get(ref: FieldRef): AstField = this[ref.ref.containingClass].get(ref.ref.withoutClass)
 
 	operator fun get(ref: AstFieldWithoutTypeRef): AstField = this[ref.containingClass].get(ref)
 

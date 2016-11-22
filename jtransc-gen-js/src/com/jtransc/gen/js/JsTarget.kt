@@ -485,7 +485,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
 	override fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val name = getJsMethodName(method)
+		val name = method.targetName
 		return if (static) "$clazz[${name.quote()}]" else name
 	}
 
@@ -493,7 +493,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildConstructor(method: AstMethod): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val methodName = getJsMethodName(method)
+		val methodName = method.targetName
 		return "new $clazz()[${methodName.quote()}]"
 	}
 
@@ -536,14 +536,12 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	//override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
-	override fun getNativeName(methodRef: MethodRef): String = getJsMethodName(methodRef.ref)
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
 	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
-	fun getJsMethodName(method: MethodRef): String = getJsMethodName(method.ref)
-
-	fun getJsMethodName(methodRef: AstMethodRef): String {
+	override val MethodRef.targetName: String get() {
+		val methodRef: AstMethodRef = this.ref
 		val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
 		return methodNames.getOrPut2(keyToUse) {
 			if (minimize) {
@@ -580,5 +578,5 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun getFilePath(name: FqName): String = name.simpleName
 	override fun getGeneratedFqName(name: FqName): FqName = name
 	override fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
-	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(getNativeName(refMethod))
+	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(refMethod.targetName)
 }

@@ -20,20 +20,15 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
-import com.jtransc.lang.toBetterString
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.time.measureProcess
-import com.jtransc.util.sortDependenciesSimple
 import com.jtransc.vfs.*
 import java.io.File
 import java.util.*
-
-//data class ConfigHaxeVfs(val vfs: SyncVfsFile)
-data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)
 
 class HaxeTarget() : GenTargetDescriptor() {
 	override val priority = 1000
@@ -132,7 +127,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override val stringPoolType = StringPool.Type.PER_CLASS
 
 	val actualSubtarget = configHaxeAddSubtarget?.subtarget
-	val targetDirectory = configTargetDirectory.targetDirectory
 	//override val tempdir = configTargetDirectory.targetDirectory
 	val mergedAssetsFolder = haxeConfigMergedAssetsFolder?.mergedAssetsFolder
 	val mergedAssetsVfs by lazy { LocalVfs(mergedAssetsFolder!!) }
@@ -284,14 +278,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
 
-		fun calcClasses(program: AstProgram, mainClass: AstClass): List<AstClass> {
-			return sortDependenciesSimple(mainClass) {
-				it.classDependencies.map { program.get3(it) }
-			}
-		}
-
 		fun inits() = Indenter.gen {
-			line("HaxePolyfills.install();");
+			line("HaxePolyfills.install();")
 			line("haxe.CallStack.callStack();")
 			line(getClassStaticInit(program[mainClassFq].ref, "program main"))
 		}
@@ -627,16 +615,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				line("#end")
 			}
 
-			//if (isInterfaceWithStaticMembers) {
 			if (isInterface) {
-				val javaLangObjectClass = program[FqName("java.lang.Object")]
-
 				line("@:unreflective class ${simpleClassName}_IFields") {
 					line("@:unreflective public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))
-					//line(dumpClassInfo(clazz))
 				}
 			}
 		}
@@ -644,20 +628,13 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val lineMappings = hashMapOf<Int, Int>()
 
 		val fileStr = classCodeIndenter.toString { sb, line, data ->
-			if (data is AstStm.LINE) {
-				//println("MARKER: ${sb.length}, $line, $data, ${clazz.source}")
-				lineMappings[line] = data.line
-				//clazzName.internalFqname + ".java"
-			}
+			if (data is AstStm.LINE) lineMappings[line] = data.line
 		}
 
 		val haxeFilePath = clazz.name.haxeFilePath
 		vfs[haxeFilePath] = fileStr
 		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
-
-	//val FqName.as3Fqname: String get() = this.fqname
-	//fun AstMethod.getHaxeMethodName(program: AstProgram): String = this.ref.getHaxeMethodName(program)
 
 	override fun buildConstructor(method: AstMethod): String = "new ${getClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
 
@@ -670,8 +647,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	}
 
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
-	//override fun getNativeName(field: FieldRef): String = getFieldName(field)
-	override fun getNativeName(methodRef: MethodRef): String = getHaxeMethodName(methodRef.ref)
+	override val MethodRef.targetName: String get() = getHaxeMethodName(this.ref)
 	override fun getNativeName(clazz: FqName): String = getClassFqName(clazz)
 	override fun getNativeNameForFields(clazz: FqName): String = getClassFqNameInt(clazz)
 
@@ -679,21 +655,15 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun buildTemplateClass(clazz: AstClass): String = getClassFqName(clazz.name)
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
-	//val ENABLED_MINIFY = false
 	val ENABLED_MINIFY = true
 	private val ENABLED_MINIFY_MEMBERS = ENABLED_MINIFY && minimize
 	private val ENABLED_MINIFY_CLASSES = ENABLED_MINIFY && minimize
-
-	//private val ENABLED_MINIFY_CLASSES = true
-	//private val ENABLED_MINIFY_MEMBERS = false
 
 	private val classNames = hashMapOf<FqName, FqName>()
 	private val methodNames = hashMapOf<Any?, String>()
 	private val fieldNames = hashMapOf<Any?, String>()
 
 	val minClassPrefix = "z."
-	//val minClassPrefix = ""
-
 
 	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
@@ -767,14 +737,11 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val field = fieldRef.ref
 		val realfield = program[field]
 		val realclass = program[field.containingClass]
-		//val keyToUse = if (realfield.keepName) field else field.name
-		//val keyToUse = if (ENABLED_MINIFY_FIELDS) field else field.name
 		val keyToUse = field
 
 		val normalizedFieldName = normalizeName(field.name)
 
 		return if (realclass.isNative) {
-			// No cache
 			realfield.nativeName ?: normalizedFieldName
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
@@ -812,12 +779,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val simpleName = getGeneratedSimpleClassName(name)
 		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
 		return getClassFqName(clazz.name) + suffix
-	}
-
-	override fun getClassFqNameLambda(name: FqName): String {
-		val clazz = program[name]
-		val simpleName = getGeneratedSimpleClassName(name)
-		return getClassFqName(clazz.name) + ".${simpleName}_Lambda"
 	}
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String {
@@ -900,11 +861,10 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
 	}
 
-	open val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
+	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 }
 
-
-//val HaxeFeatures = setOf(GotosFeature::class.java, SwitchesFeature::class.java)
+data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)
 
 private val HAXE_LIBS_KEY = UserKey<List<HaxeLib.LibraryRef>>()
 
