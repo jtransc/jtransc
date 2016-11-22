@@ -292,7 +292,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
-		val base = getClassFqNameForCalling(superMethod.containingClass.name) + ".prototype"
+		val base = superMethod.containingClass.name.targetName + ".prototype"
 		val argsString = (listOf(e2.obj.genExpr()) + args).joinToString(", ")
 		return "$base$methodAccess.call($argsString)"
 	}
@@ -311,11 +311,11 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val classCodeIndenter = Indenter.gen {
 			if (isAbstract) line("// ABSTRACT")
 
-			val classBase = getClassFqNameForCalling(clazz.name)
+			val classBase = clazz.name.targetName
 			val memberBaseStatic = classBase
 			val memberBaseInstance = "$classBase.prototype"
 			fun getMemberBase(isStatic: Boolean) = if (isStatic) memberBaseStatic else memberBaseInstance
-			val parentClassBase = if (clazz.extending != null) getClassFqNameForCalling(clazz.extending!!) else "java_lang_Object_base";
+			val parentClassBase = if (clazz.extending != null) clazz.extending!!.targetName else "java_lang_Object_base";
 
 			val staticFields = clazz.fields.filter { it.isStatic }
 			//val instanceFields = clazz.fields.filter { !it.isStatic }
@@ -514,10 +514,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	//override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
-	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
-
-	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
 	override val MethodRef.targetName: String get() {
@@ -542,10 +538,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = getClassFqNameForCalling(classRef.name) + ".SI();"
-	override fun getClassFqName(name: FqName): String = name.fqname
-	override fun getClassFqNameForCalling(fqName: FqName): String = classNames.getOrPut2(fqName) { if (minimize) allocClassName() else fqName.fqname.replace('.', '_') }
-	override fun getFilePath(name: FqName): String = name.simpleName
-	override fun getGeneratedFqName(name: FqName): FqName = name
-	override fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
+	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = "${classRef.name.targetName}.SI();"
+	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 }

@@ -399,8 +399,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		println(output[outputFile].realpathOS)
 	}
 
-	val AstClass.cppName: String get() = getClassFqNameForCalling(this.name)
-	val AstType.REF.cppName: String get() = getClassFqNameForCalling(this.name)
+	val AstClass.cppName: String get() = this.name.targetName
+	val AstType.REF.cppName: String get() = this.name.targetName
 	val AstType.cppString: String get() = getTypeStringForCpp(this)
 	val AstType.underlyingCppString: String get() = getUnderlyingType(this)
 
@@ -829,7 +829,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				AstType.DOUBLE -> DoubleArrayType
 				else -> ObjectArrayType
 			} + "*"
-			is AstType.REF -> "${getClassFqNameForCalling(type.name)}*"
+			is AstType.REF -> "${type.name.targetName}*"
 			else -> type.cppString
 		}
 	}
@@ -870,7 +870,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun buildStaticInit(clazz: AstClass): String = getClassFqNameForCalling(clazz.name) + "::SI();"
+	override fun buildStaticInit(clazz: AstClass): String = "${clazz.name.targetName}::SI();"
 
 	override val MethodRef.targetName: String get() {
 		return getClassNameAllocator(ref.containingClass).allocate(ref) {
@@ -878,11 +878,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			val containingClass = astMethod.containingClass
 
 			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-			val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) {
-				getClassFqNameForCalling(containingClass.name) + "_"
-			} else {
-				""
-			}
+			val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) "${containingClass.name.targetName}_" else ""
 
 			"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
 		}

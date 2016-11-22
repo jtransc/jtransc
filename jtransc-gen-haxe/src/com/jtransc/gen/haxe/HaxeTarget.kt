@@ -243,7 +243,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val vfs = srcFolder
 		for (clazz in program.classes.filter { !it.isNative }) {
 			if (clazz.implCode != null) {
-				vfs[clazz.name.haxeFilePath] = clazz.implCode!!
+				vfs[clazz.name.targetFilePath] = clazz.implCode!!
 			} else {
 				//try {
 				writeClass(clazz, vfs)
@@ -273,7 +273,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val mainClass = mainClassFq.targetClassFqName
 		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
 		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
-		entryPointFilePath = entryPointClass.haxeFilePath
+		entryPointFilePath = entryPointClass.targetFilePath
 		val entryPointFqName = entryPointClass.targetGeneratedFqName
 		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
@@ -631,21 +631,24 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			if (data is AstStm.LINE) lineMappings[line] = data.line
 		}
 
-		val haxeFilePath = clazz.name.haxeFilePath
+		val haxeFilePath = clazz.name.targetFilePath
 		vfs[haxeFilePath] = fileStr
 		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
 
-	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
 	override val MethodRef.targetName: String get() = getHaxeMethodName(this.ref)
-	override fun getNativeName(clazz: FqName): String = getClassFqName(clazz)
-	override fun getNativeNameForFields(clazz: FqName): String = getClassFqNameInt(clazz)
+	override val FqName.targetNameForFields: String get() {
+		val clazz = program[this]
+		val simpleName = this.targetGeneratedSimpleClassName
+		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
+		return clazz.name.targetClassFqName + suffix
+	}
 
-	override fun getClassFqNameForCalling(fqName: FqName): String = getClassFqName(fqName)
+	override val FqName.targetName: String get() = this.targetClassFqName
 
-	override fun buildTemplateClass(clazz: FqName): String = getClassFqName(clazz)
+	override fun buildTemplateClass(clazz: FqName): String = clazz.targetClassFqName
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	val ENABLED_MINIFY = true
@@ -658,7 +661,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	val minClassPrefix = "z."
 
-	fun getHaxeMethodName(method: AstMethod): String = getHaxeMethodName(method.ref)
 	fun getHaxeMethodName(method: AstMethodRef): String {
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
 		val realclass = realmethod.containingClass
@@ -709,15 +711,11 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 	}
 
-	override fun getFilePath(name: FqName): String = getGeneratedFqName(name).internalFqname + ".hx"
+	override val FqName.targetFilePath: String get() = this.targetGeneratedFqName.internalFqname + ".hx"
 	override val FqName.targetGeneratedFqPackage: String get() = _getHaxeFqName(this).packagePath
-	override fun getGeneratedFqName(name: FqName): FqName = _getHaxeFqName(name)
-	override fun getGeneratedSimpleClassName(name: FqName): String = _getHaxeFqName(name).simpleName
-
-	override fun getClassFqName(name: FqName): String {
-		val clazz = if (name in program) program[name] else null
-		return clazz?.nativeName ?: getGeneratedFqName(name).fqname
-	}
+	override val FqName.targetGeneratedFqName: FqName get() = _getHaxeFqName(this)
+	override val FqName.targetGeneratedSimpleClassName: String get() = _getHaxeFqName(this).simpleName
+	override val FqName.targetClassFqName: String get() = program.getOrNull(this)?.nativeName ?: this.targetGeneratedFqName.fqname
 
 	override val FieldRef.targetName: String get() {
 		val fieldRef = this
@@ -761,19 +759,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 	}
 
-	override fun getClassFqNameInt(name: FqName): String {
-		val clazz = program[name]
-		val simpleName = getGeneratedSimpleClassName(name)
-		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
-		return getClassFqName(clazz.name) + suffix
-	}
-
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String {
 		val clazz = program[classRef.name]
 		if (clazz.nativeName != null) {
 			return ""
 		} else {
-			return "${getClassFqNameInt(classRef.name)}.SI();"
+			return "${classRef.name.targetNameForFields}.SI();"
 		}
 	}
 
