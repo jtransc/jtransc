@@ -14,9 +14,8 @@ dependencies {
 	compile project(':jtransc-gen-js')
 	compile project(':jtransc-gen-cpp')
 	compile project(':jtransc-gen-d')
-	//runtime project(':jtransc-rt')
+
+	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 }
 
-
 project(':jtransc-main').compileKotlin.dependsOn(project(':jtransc-rt').test)
-//task.dependsOn(others)
