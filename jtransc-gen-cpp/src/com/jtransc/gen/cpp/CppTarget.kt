@@ -67,6 +67,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val keywords = super.keywords + setOf()
 	override val stringPoolType = StringPool.Type.GLOBAL
+	override val staticAccessOperator: String = "::"
+	override val instanceAccessOperator: String = "->"
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return CppCompiler.genCommand(
@@ -804,7 +806,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return if (e.type.elementType !is AstType.Primitive) {
 			"SOBJ(new $ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\"))"
 		} else {
-			"SOBJ(new ${e.type.targetTypeNew}(${e.counts[0].genExpr()}))"
+			"SOBJ(new ${e.type.targetName}(${e.counts[0].genExpr()}))"
 		}
 	}
 
@@ -817,15 +819,15 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	fun getUnderlyingType(type: AstType): String {
 		return when (type) {
 			is AstType.ARRAY -> when (type.element) {
-				AstType.BOOL -> "JA_Z"
-				AstType.BYTE -> "JA_B"
-				AstType.CHAR -> "JA_C"
-				AstType.SHORT -> "JA_S"
-				AstType.INT -> "JA_I"
-				AstType.LONG -> "JA_J"
-				AstType.FLOAT -> "JA_F"
-				AstType.DOUBLE -> "JA_D"
-				else -> "JA_L"
+				AstType.BOOL -> BoolArrayType
+				AstType.BYTE -> ByteArrayType
+				AstType.CHAR -> CharArrayType
+				AstType.SHORT -> ShortArrayType
+				AstType.INT -> IntArrayType
+				AstType.LONG -> LongArrayType
+				AstType.FLOAT -> FloatArrayType
+				AstType.DOUBLE -> DoubleArrayType
+				else -> ObjectArrayType
 			} + "*"
 			is AstType.REF -> "${getClassFqNameForCalling(type.name)}*"
 			else -> type.cppString
@@ -888,7 +890,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildAccessName(name: String, static: Boolean): String = if (static) "::$name" else "->$name"
 
-	override fun getTypeStringForCpp(type: AstType): String = when (type) {
+	fun getTypeStringForCpp(type: AstType): String = when (type) {
 		AstType.VOID -> "void"
 		AstType.BOOL -> "int8_t"
 		AstType.BYTE -> "int8_t"
@@ -901,9 +903,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		is AstType.Reference -> "SOBJ"
 		else -> "AstType_cppString_UNIMPLEMENTED($this)"
 	}
-
-	override val staticAccessOperator: String = "::"
-	override val instanceAccessOperator: String = "->"
 
 	override val FieldRef.targetName: String get() {
 		val fieldRef = this

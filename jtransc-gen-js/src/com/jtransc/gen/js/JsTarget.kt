@@ -2,9 +2,7 @@ package com.jtransc.gen.js
 
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
-import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscCustomMainList
-import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.Allocator
@@ -91,11 +89,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
-
-	// @TODO: Kotlin IDE: Refactoring imports doesn't take into account: JTranscAddFileList::value so this is a workaround for this
-	val _JTranscCustomMainList = JTranscCustomMainList::class.java
-	val _JTranscMethodBodyList = JTranscMethodBodyList::class.java
-	val _JTranscAddMembersList = JTranscAddMembersList::class.java
 
 	@Suppress("UNCHECKED_CAST")
 	override fun writeProgram(output: SyncVfsFile) {
@@ -255,7 +248,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				if (clazz.isInterface) {
 					"N.isClassId($a, ${clazz.classId})"
 				} else {
-					"($a instanceof ${b.targetTypeCast})"
+					"($a instanceof ${b.targetName})"
 				}
 			}
 			else -> {
@@ -268,9 +261,9 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i2z(str: String) = "(($str)!=0)"
-	override fun N_i2b(str: String) = "(($str)<<24>>24)" // shifts uses 32-bit integers
+	override fun N_i2b(str: String) = "(($str)<<24>>24)" // shifts use 32-bit integers
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
-	override fun N_i2s(str: String) = "(($str)<<16>>16)" // shifts uses 32-bit integers
+	override fun N_i2s(str: String) = "(($str)<<16>>16)" // shifts use 32-bit integers
 	override fun N_f2i(str: String) = "(($str)|0)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.i2j($str)"
@@ -481,9 +474,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
-	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
-
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
 
 	private val fieldNames = hashMapOf<Any?, String>()
@@ -526,6 +516,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	//override fun getNativeName(field: FieldRef): String = getNativeName(program[field.ref])
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
+
 	override fun getNativeName(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
@@ -553,19 +544,8 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = getClassFqNameForCalling(classRef.name) + ".SI();"
 	override fun getClassFqName(name: FqName): String = name.fqname
-	override fun getClassFqNameForCalling(fqName: FqName): String {
-		val keyToUse = fqName
-		return classNames.getOrPut2(keyToUse) {
-			if (minimize) {
-				allocClassName()
-			} else {
-				fqName.fqname.replace('.', '_')
-			}
-		}
-	}
-
+	override fun getClassFqNameForCalling(fqName: FqName): String = classNames.getOrPut2(fqName) { if (minimize) allocClassName() else fqName.fqname.replace('.', '_') }
 	override fun getFilePath(name: FqName): String = name.simpleName
 	override fun getGeneratedFqName(name: FqName): FqName = name
 	override fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
-	override fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = accessStr(refMethod.targetName)
 }

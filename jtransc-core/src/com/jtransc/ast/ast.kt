@@ -37,6 +37,7 @@ import com.jtransc.vfs.UserData
 import java.io.File
 import java.io.IOException
 import java.util.*
+import kotlin.reflect.KMutableProperty1
 
 data class ConfigCompile(val compile: Boolean = true)
 data class ConfigMinimizeNames(val minimizeNames: Boolean = false)
@@ -280,6 +281,8 @@ class AstProgram(
 		return method.classRef
 	}
 }
+
+inline fun <reified T : Any, R> KMutableProperty1<T, R>.locate(program: AstProgram) = program[T::class.java.fqname].fieldsByName[name] ?: invalidOp("Can't find field ${T::class.java}.$name")
 
 fun AstProgram.containsMethod(fqname: FqName, name: String) = this.getOrNull(fqname)?.getMethodWithoutOverrides(name) != null
 

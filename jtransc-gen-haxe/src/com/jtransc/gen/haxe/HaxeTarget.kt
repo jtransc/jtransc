@@ -270,11 +270,11 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		val mainClassFq = program.entrypoint
-		val mainClass = mainClassFq.haxeClassFqName
+		val mainClass = mainClassFq.targetClassFqName
 		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
 		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		entryPointFilePath = entryPointClass.haxeFilePath
-		val entryPointFqName = entryPointClass.haxeGeneratedFqName
+		val entryPointFqName = entryPointClass.targetGeneratedFqName
 		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
 		val entryPointPackage = entryPointFqName.packagePath
 
@@ -337,7 +337,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
 
-	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName}: ${local.type.targetTypeTag} = ${local.type.haxeDefaultString};") }
+	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName}: ${local.type.targetName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))
@@ -360,7 +360,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override fun convertToFromTarget(type: AstType, text: String, toTarget: Boolean): String {
 		if (type is AstType.ARRAY) {
-			return (if (toTarget) "N.unbox($text)" else "cast(N.box($text), ${getNativeType(type, TypeKind.CAST)})")
+			return (if (toTarget) "N.unbox($text)" else "cast(N.box($text), ${type.targetName})")
 		}
 
 		if (type is AstType.REF) {
@@ -397,7 +397,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun N_l2f(str: String) = "N.longToFloat($str)"
 	override fun N_l2d(str: String) = "N.longToFloat($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
-	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.targetTypeCast})"
+	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.targetName})"
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
 	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
@@ -458,7 +458,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val isAbstract = clazz.isAbstract
 		val classType = if (isInterface) "interface" else "class"
 		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
-		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.haxeClassFqName }.joinToString(" $keyword ")
+		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.targetClassFqName }.joinToString(" $keyword ")
 		refs._usedDependencies.clear()
 
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
@@ -466,14 +466,14 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter.gen {
 			val static = if (field.isStatic) "static " else ""
-			val visibility = if (isInterface) " " else field.visibility.haxe
+			val visibility = if (isInterface) " " else "public"
 			val fieldType = field.type
 			refs.add(fieldType)
-			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.haxeDefault
+			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
 			val fieldName = field.targetName
 			if (!field.annotationsList.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
-				line("$keep$static$visibility var $fieldName:${fieldType.targetTypeTag} = ${escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
+				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
 			}
 		}
 
@@ -481,14 +481,14 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			setCurrentMethod(method)
 			return Indenter.gen {
 				val static = if (method.isStatic) "static " else ""
-				val visibility = if (isInterface) " " else method.visibility.haxe
+				val visibility = if (isInterface) " " else "public"
 				refs.add(method.methodType)
-				val margs = method.methodType.args.map { it.name + ":" + it.type.targetTypeTag }
+				val margs = method.methodType.args.map { it.name + ":" + it.type.targetName }
 				val override = if (method.haxeIsOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"@:unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetTypeTag}".trim()
+					"@:unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetName}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					throw e
@@ -550,14 +550,14 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		val classCodeIndenter = Indenter.gen {
-			line("package ${clazz.name.haxeGeneratedFqPackage};")
+			line("package ${clazz.name.targetGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")
 			var declaration = "$classType $simpleClassName"
 			if (isInterface) {
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("extends")
 			} else {
-				if (clazz.extending != null && clazz.name.fqname != "java.lang.Object") declaration += " extends ${clazz.extending!!.haxeClassFqName}"
+				if (clazz.extending != null && clazz.name.fqname != "java.lang.Object") declaration += " extends ${clazz.extending!!.targetClassFqName}"
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("implements")
 			}
 
@@ -646,7 +646,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun getClassFqNameForCalling(fqName: FqName): String = getClassFqName(fqName)
 
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqName(clazz)
-	override fun buildTemplateClass(clazz: AstClass): String = getClassFqName(clazz.name)
 	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	val ENABLED_MINIFY = true
@@ -696,15 +695,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		return String(out)
 	}
 
-	override fun getFunctionalType2(type: AstType.METHOD): String {
-		return type.argsPlusReturnVoidIsEmpty.map { getNativeType(it, CommonGenerator.TypeKind.TYPETAG) }.joinToString(" -> ")
-	}
-
-	override fun getDefault(type: AstType): Any? = type.getNull()
-
 	@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 	private fun _getHaxeFqName(name: FqName): FqName {
-		val realclass = if (name in program) program[name]!! else null
+		val realclass = if (name in program) program[name] else null
 		return classNames.getOrPut2(name) {
 			if (realclass?.nativeName != null) {
 				FqName(realclass!!.nativeName!!)
@@ -717,7 +710,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	}
 
 	override fun getFilePath(name: FqName): String = getGeneratedFqName(name).internalFqname + ".hx"
-	override fun getGeneratedFqPackage(name: FqName): String = _getHaxeFqName(name).packagePath
+	override val FqName.targetGeneratedFqPackage: String get() = _getHaxeFqName(this).packagePath
 	override fun getGeneratedFqName(name: FqName): FqName = _getHaxeFqName(name)
 	override fun getGeneratedSimpleClassName(name: FqName): String = _getHaxeFqName(name).simpleName
 
@@ -784,31 +777,23 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 	}
 
-	override fun getClassStaticClassInit(classRef: AstType.REF): String = "${getClassFqNameInt(classRef.name)}.HAXE_CLASS_INIT"
-
-	override fun getAnnotationProxyName(classRef: AstType.REF): String = "AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
-
-	override fun getFullAnnotationProxyName(classRef: AstType.REF): String {
-		return getClassFqName(classRef.name) + ".AnnotationProxy_${getGeneratedFqName(classRef.name).fqname.replace('.', '_')}"
-	}
-
-	override val NullType = FqName("Dynamic")
-	override val VoidType = FqName("Void")
-	override val BoolType = FqName("Bool")
-	override val IntType = FqName("Int")
-	override val FloatType = FqName("Float32")
-	override val DoubleType = FqName("Float64")
-	override val LongType = FqName("haxe.Int64")
-	override val BaseArrayType = FqName("JA_0")
-	override val BoolArrayType = FqName("JA_Z")
-	override val ByteArrayType = FqName("JA_B")
-	override val CharArrayType = FqName("JA_C")
-	override val ShortArrayType = FqName("JA_S")
-	override val IntArrayType = FqName("JA_I")
-	override val LongArrayType = FqName("JA_J")
-	override val FloatArrayType = FqName("JA_F")
-	override val DoubleArrayType = FqName("JA_D")
-	override val ObjectArrayType = FqName("JA_L")
+	override val NullType = "Dynamic"
+	override val VoidType = "Void"
+	override val BoolType = "Bool"
+	override val IntType = "Int"
+	override val FloatType = "Float32"
+	override val DoubleType = "Float64"
+	override val LongType = "haxe.Int64"
+	override val BaseArrayType = "JA_0"
+	override val BoolArrayType = "JA_Z"
+	override val ByteArrayType = "JA_B"
+	override val CharArrayType = "JA_C"
+	override val ShortArrayType = "JA_S"
+	override val IntArrayType = "JA_I"
+	override val LongArrayType = "JA_J"
+	override val FloatArrayType = "JA_F"
+	override val DoubleArrayType = "JA_D"
+	override val ObjectArrayType = "JA_L"
 
 	override val NegativeInfinityString = "Math.NEGATIVE_INFINITY"
 	override val PositiveInfinityString = "Math.POSITIVE_INFINITY"

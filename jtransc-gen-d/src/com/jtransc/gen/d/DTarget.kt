@@ -15,6 +15,8 @@ import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 
+// Supports GOTO keyword
+// Supports static fields and methods on interfaces
 class DTarget() : GenTargetDescriptor() {
 	override val name = "d"
 	override val outputExtension = "bin"
@@ -61,12 +63,12 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		println(output)
 	}
 
-	override val NullType = FqName("Object")
-	override val VoidType = FqName("void")
-	override val BoolType = FqName("bool")
-	override val IntType = FqName("int")
-	override val FloatType = FqName("float")
-	override val DoubleType = FqName("double")
-	override val LongType = FqName("long")
+	override val NullType = "Object"
+	override val VoidType = "void"
+	override val BoolType = "bool"
+	override val IntType = "int"
+	override val FloatType = "float"
+	override val DoubleType = "double"
+	override val LongType = "long"
 
 }
