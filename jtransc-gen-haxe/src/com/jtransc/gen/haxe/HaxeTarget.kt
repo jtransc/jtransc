@@ -636,20 +636,14 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
-	override fun buildConstructor(method: AstMethod): String = "new ${getClassFqName(method.containingClass.name)}().${getHaxeMethodName(method)}"
-
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
-
-	override fun buildMethod(method: AstMethod, static: Boolean): String {
-		val clazz = getClassFqName(method.containingClass.name)
-		val name = getHaxeMethodName(method)
-		return if (static) "$clazz.$name" else name
-	}
 
 	override fun getNativeName2(local: LocalParamRef): String = super.getNativeName2(local)
 	override val MethodRef.targetName: String get() = getHaxeMethodName(this.ref)
 	override fun getNativeName(clazz: FqName): String = getClassFqName(clazz)
 	override fun getNativeNameForFields(clazz: FqName): String = getClassFqNameInt(clazz)
+
+	override fun getClassFqNameForCalling(fqName: FqName): String = getClassFqName(fqName)
 
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqName(clazz)
 	override fun buildTemplateClass(clazz: AstClass): String = getClassFqName(clazz.name)

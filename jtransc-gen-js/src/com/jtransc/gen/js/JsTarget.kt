@@ -483,19 +483,8 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildTemplateClass(clazz: FqName): String = getClassFqNameForCalling(clazz)
 	override fun buildTemplateClass(clazz: AstClass): String = getClassFqNameForCalling(clazz.name)
-	override fun buildMethod(method: AstMethod, static: Boolean): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val name = method.targetName
-		return if (static) "$clazz[${name.quote()}]" else name
-	}
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
-
-	override fun buildConstructor(method: AstMethod): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val methodName = method.targetName
-		return "new $clazz()[${methodName.quote()}]"
-	}
 
 	private val fieldNames = hashMapOf<Any?, String>()
 	private val methodNames = hashMapOf<Any?, String>()

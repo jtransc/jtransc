@@ -886,12 +886,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun buildMethod(method: AstMethod, static: Boolean): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val name = method.targetName
-		return if (static) "$clazz::$name" else name
-	}
-
 	override fun buildAccessName(name: String, static: Boolean): String = if (static) "::$name" else "->$name"
 
 	override fun getTypeStringForCpp(type: AstType): String = when (type) {
@@ -925,12 +919,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		is String -> "STRINGLIT_${allocString(currentClass, value)}"
 		is AstType -> N_func("resolveClass", "L${value.mangle().uquote()}")
 		else -> super.escapeConstant(value)
-	}
-
-	override fun buildConstructor(method: AstMethod): String {
-		val clazz = getClassFqNameForCalling(method.containingClass.name)
-		val methodName = method.targetName
-		return "(new $clazz())->$methodName"
 	}
 
 	override fun N_lnew(value: Long): String = when (value) {

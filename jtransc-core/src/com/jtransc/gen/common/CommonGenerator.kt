@@ -157,8 +157,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	protected fun setCurrentMethod(method: AstMethod) {
 		context.method = method
 		currentMethod = method.ref
-		//context.clazz = method.containingClass
-		//names.currentClass = method.clazz.name
 	}
 
 	open fun genStm2(stm: AstStm): Indenter {
@@ -241,9 +239,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 
 		val isNativeCall = refMethodClass.isNative
-
 		val processedArgs = args.map { processCallArg(it.value, if (isNativeCall) convertToTarget(it) else it.genExpr()) }
-
 		val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 		val result = when (e2) {
 			is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
@@ -254,17 +250,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 	}
 
-	open fun processCallArg(e: AstExpr, str: String): String {
-		return str
-	}
+	open fun processCallArg(e: AstExpr, str: String): String = str
 
 	open fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		return "super$methodAccess(${args.joinToString(", ")})"
 	}
 
 	open fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		//val className = method.containingClassType.fqname
-		//val methodName = method.name
 		return "${clazz.targetTypeNew}$methodAccess(${args.joinToString(", ")})"
 	}
 
@@ -308,12 +300,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun getFilesToCopy(target: String) = program.classes.flatMap { it.annotationsList.getTargetAddFiles(target) }.sortedBy { it.priority }
 
 	fun AstExpr.genNotNull(): String = genExpr2(this)
-	//fun AstBody.genBody(): Indenter = genBody2(this)
-	//fun AstBody.genBodyWithFeatures(): Indenter = features.apply(this, featureSet, settings, types).genBody()
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
-
 
 	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		return features.apply(method, body, methodFeatures, settings, types).genBody()
@@ -335,19 +324,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val method = context.method
 		this.mutableBody = MutableBody(method)
 
-		//val referencedLabels = (body.stm as AstStm.STMS).stms.filterIsInstance<AstStm.STM_LABEL>().map { it.label }.toHashSet()
-
 		trapsByStart.clear()
 		trapsByEnd.clear()
 
 		for (trap in body.traps) {
-			//if (trap.start !in referencedLabels) invalidOp("Invalid trap start!")
-			//if (trap.end !in referencedLabels) invalidOp("Invalid trap end!")
-			//if (trap.handler !in referencedLabels) invalidOp("Invalid trap handler!")
 			trapsByStart.getOrPut(trap.start) { arrayListOf() } += trap
 			trapsByEnd.getOrPut(trap.end) { arrayListOf() } += trap
 		}
-
 
 		return Indenter.gen {
 			for (local in body.locals) {
@@ -407,7 +390,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(buildStaticInit(program[clazzRef.name]))
-		//line(cnames.getJsClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
 	open fun genStmSetFieldStatic(stm: AstStm.SET_FIELD_STATIC): Indenter = indent {
@@ -1289,9 +1271,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
 				)
 			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
-			//, Minitemplate.Tag("copyfile", setOf(), null) {
-			//	CopyFileNode(this, it.first().token.name, Minitemplate.ExprNode.parse(it.first().token.content))
-			//}
 		),
 		extraFilters = listOf(
 		)
@@ -1304,10 +1283,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun gen(template: String, process: Boolean): String = if (process) Minitemplate(template, miniConfig).invoke(params) else template
 
 	fun gen(template: String, context: AstGenContext, type: String): String {
-		//System.out.println("WARNING: templates not implemented! : $type : $context : $template");
-		context.rethrowWithContext {
-			return Minitemplate(template, miniConfig).invoke(params)
-		}
+		return context.rethrowWithContext { Minitemplate(template, miniConfig).invoke(params) }
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -1316,7 +1292,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 
 	enum class TypeKind { TYPETAG, NEW, CAST }
-
 
 	val LocalParamRef.nativeName: String get() = getNativeName2(this)
 	val AstType.nativeDefault: Any? get() = getDefault(this)
@@ -1329,7 +1304,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val FqName.targetFilePath: String get() = getFilePath(this)
 	val FqName.targetGeneratedFqName: FqName get() = getGeneratedFqName(this)
 	val FqName.targetGeneratedSimpleClassName: String get() = getGeneratedSimpleClassName(this)
-	open val AstVisibility.haxe: String get() = "public"
 	open val AstType.haxeDefault: Any? get() = getDefault(this)
 	open val AstType.haxeDefaultString: String get() = escapeConstant(getDefault(this), this)
 	open val AstClass.targetGeneratedSimpleClassNameBase: String get() = getGeneratedSimpleClassName(this.name)
@@ -1339,6 +1313,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.haxeFilePath: String get() = getFilePath(this)
 	open val FqName.haxeGeneratedFqPackage: String get() = getGeneratedFqPackage(this)
 	open val FqName.haxeGeneratedFqName: FqName get() = getGeneratedFqName(this)
+	open val AstVisibility.haxe: String get() = "public"
 	open val AstArgument.haxeNameAndType: String get() = this.name + ":" + this.type.targetTypeTag
 
 	private var minClassLastId: Int = 0
@@ -1356,7 +1331,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	lateinit var currentClass: FqName
 	lateinit var currentMethod: AstMethodRef
-
 
 	open val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 
@@ -1401,7 +1375,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun getClassFqName(name: FqName): String = name.fqname
 	open fun getFilePath(name: FqName): String = name.simpleName
 
-
 	val normalizeNameCache = hashMapOf<String, String>()
 
 	fun normalizeName(name: String): String {
@@ -1444,6 +1417,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FloatArrayType = FqName("JA_F")
 	open val DoubleArrayType = FqName("JA_D")
 	open val ObjectArrayType = FqName("JA_L")
+	open val NegativeInfinityString = "-Infinity"
+	open val PositiveInfinityString = "Infinity"
+	open val NanString = "NaN"
 
 	open fun getDefault(type: AstType): Any? = type.getNull()
 
@@ -1505,14 +1481,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		else -> throw NotImplementedError("Literal of type $value")
 	}
 
-	open val NegativeInfinityString = "-Infinity"
-	open val PositiveInfinityString = "Infinity"
-	open val NanString = "NaN"
-
-	//fun getFieldName(clazz: Class<*>, name: String): String = getFieldName(program[clazz.name.fqname].fieldsByName[name]!!)
-
 	open fun getClassFqNameForCalling(fqName: FqName): String = fqName.fqname.replace('.', '_')
-
 	open fun getGeneratedFqName(name: FqName): FqName = name
 	open fun getGeneratedSimpleClassName(name: FqName): String = name.simpleName
 
@@ -1534,15 +1503,16 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//////////////////////////////////////////////////
 	open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
 	open fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static)
-	open fun buildMethod(method: AstMethod, static: Boolean): String {
+	fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
 		val name = method.targetName
 		return if (static) (clazz + buildAccessName(name, static = true)) else name
 	}
-	open fun buildConstructor(method: AstMethod): String {
+
+	fun buildConstructor(method: AstMethod): String {
 		val clazz = getClassFqNameForCalling(method.containingClass.name)
 		val methodName = method.targetName
-		return "new $clazz()[${methodName.quote()}]"
+		return "(new $clazz())" + buildAccessName(methodName, static = false)
 	}
 
 	// Method types
@@ -1556,7 +1526,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = escapeConstantRef(this.constantValueOrNativeDefault, this.type)
 	val FieldRef.nativeStaticText: String get() = getNativeNameForFields(this.ref.containingTypeRef.name) + buildAccessName(program[this.ref], static = true)
-	inline val <reified T : Any, R> KMutableProperty1<T, R>.targetName: String get() = program[T::class.java.fqname].fieldsByName[name]?.targetName ?: invalidOp("Can't find field ${T::class.java}.$name")
+	inline fun <reified T : Any, R> KMutableProperty1<T, R>.getTargetName(): String = program[T::class.java.fqname].fieldsByName[name]?.targetName ?: invalidOp("Can't find field ${T::class.java}.$name")
 
 	fun FieldRef.buildField(static: Boolean): String = if (static) this.nativeStaticText else this.targetName
 	fun buildInstanceField(expr: String, field: FieldRef): String = expr + buildAccessName(program[field], static = false)
