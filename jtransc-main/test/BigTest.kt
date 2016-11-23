@@ -50,7 +50,6 @@ class BigTest : Base() {
 	//@Test fun testHelloWorldKotlinTestJs() = testClass<HelloWorldKotlinTest>(minimize = false, target = JsTarget(), log = true)
 	//@Test fun testHelloWorldKotlinTestCpp() = testClass<HelloWorldKotlinTest>(minimize = false, target = CppTarget(), log = true, debug = true)
 
-
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = false)
 
 	@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)

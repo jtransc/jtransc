@@ -778,48 +778,30 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val value = e.value
 
 		return when (value) {
-			null -> genLiteralNull()
-			is AstType -> genLiteralType(value)
-			is String -> genLiteralString(value)
-			is Boolean -> genLiteralBoolean(value)
-			is Byte -> genLiteralByte(value)
-			is Char -> genLiteralChar(value)
-			is Short -> genLiteralShort(value)
-			is Int -> genLiteralInt(value)
-			is Long -> genLiteralLong(value)
-			is Float -> genLiteralFloat(value)
-			is Double -> genLiteralDouble(value)
+			null -> null.escapedConstant
+			is AstType -> value.escapedConstant
+			is String -> value.escapedConstant
+			is Boolean -> value.escapedConstant
+			is Byte -> value.escapedConstant
+			is Char -> value.escapedConstant
+			is Short -> value.escapedConstant
+			is Int -> value.escapedConstant
+			is Long -> value.escapedConstant
+			is Float -> value.escapedConstant
+			is Double -> value.escapedConstant
 			else -> invalidOp("Unsupported value $value")
 		}
 	}
 
 	open fun genExprLiteralRefName(e: AstExpr.LITERAL_REFNAME): String {
 		val value = e.value
-		return genLiteralString(when (value) {
+		return when (value) {
 			is AstType.REF -> value.targetName
 			is AstMethodRef -> value.targetName
 			is AstFieldRef -> value.targetName
 			else -> invalidOp("Unknown AstExpr.LITERAL_REFNAME value type : ${value?.javaClass} : $value")
-		})
+		}.escapedConstant
 	}
-
-	open fun genLiteralType(v: AstType): String {
-		for (fqName in v.getRefClasses()) {
-			mutableBody.initClassRef(fqName, "class literal")
-		}
-		return escapeConstant(v)
-	}
-
-	open fun genLiteralNull(): String = escapeConstant(null)
-	open fun genLiteralString(v: String): String = escapeConstant(v)
-	open fun genLiteralBoolean(v: Boolean): String = escapeConstant(v)
-	open fun genLiteralByte(v: Byte): String = escapeConstant(v)
-	open fun genLiteralChar(v: Char): String = escapeConstant(v)
-	open fun genLiteralShort(v: Short): String = escapeConstant(v)
-	open fun genLiteralInt(v: Int): String = escapeConstant(v)
-	open fun genLiteralLong(v: Long): String = escapeConstant(v)
-	open fun genLiteralFloat(v: Float): String = escapeConstant(v)
-	open fun genLiteralDouble(v: Double): String = escapeConstant(v)
 
 	class MutableBody(val method: AstMethod) {
 		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
@@ -1240,10 +1222,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		extraTags = listOf(
 			Minitemplate.Tag(
 				":programref:", setOf(), null,
-				aliases = listOf(
-					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
-					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
-				)
+				aliases = listOf("SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS")
 			) { ProgramRefNode(this, it.first().token.name, it.first().token.content) }
 		),
 		extraFilters = listOf(
@@ -1356,38 +1335,30 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//////////////////////////////////////////////////
 
 	val AstType.nativeDefault: Any? get() = this.getNull()
-	val AstType.nativeDefaultString: String get() = escapeConstant(this.getNull(), this)
+	val AstType.nativeDefaultString: String get() = this.getNull().escapedConstant
 
-	open fun getDefault(type: AstType): Any? = type.getNull()
-
-	open fun escapeConstantRef(value: Any?, type: AstType): String {
-		return when (value) {
-			is Long -> N_func("lnewRef", "${value.high}, ${value.low}")
-			else -> escapeConstant(value, type)
-		}
-	}
-
-	open fun escapeConstant(value: Any?, type: AstType): String {
-		val result = escapeConstant(value)
-		return if (type != AstType.BOOL) result else if (result != "false" && result != "0") "true" else "false"
-	}
-
-	open fun escapeConstant(value: Any?): String = when (value) {
+	val Any?.escapedConstant: String get() = when (this) {
 		null -> "null"
-		is Boolean -> if (value) "true" else "false"
-		is String -> N_func("strLitEscape", value.quote())
-		is Long -> N_lnew(value)
-		is Float -> escapeConstant(value.toDouble())
-		is Double -> if (value.isInfinite()) if (value < 0) NegativeInfinityString else PositiveInfinityString else if (value.isNaN()) NanString else "$value"
-		is Int -> when (value) {
+		is Boolean -> if (this) "true" else "false"
+		is String -> this.escapeString
+		is Long -> N_lnew(this)
+		is Float -> this.toDouble().escapedConstant
+		is Double -> if (this.isInfinite()) if (this < 0) NegativeInfinityString else PositiveInfinityString else if (this.isNaN()) NanString else "$this"
+		is Int -> when (this) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
-			else -> "$value"
+			else -> "$this"
 		}
-		is Number -> "${value.toInt()}"
-		is Char -> "${value.toInt()}"
-		is AstType -> N_func("resolveClass", "${value.mangle().quote()}")
-		else -> throw NotImplementedError("Literal of type $value")
+		is Number -> "${this.toInt()}"
+		is Char -> "${this.toInt()}"
+		is AstType -> {
+			for (fqName in this.getRefClasses()) mutableBody.initClassRef(fqName, "class literal")
+			this.escapeType
+		}
+		else -> throw NotImplementedError("Literal of type $this")
 	}
+
+	open protected val String.escapeString: String get() = N_func("strLitEscape", this.quote())
+	open protected val AstType.escapeType: String get() = N_func("resolveClass", "${this.mangle().quote()}")
 
 	//////////////////////////////////////////////////
 	// Type names
@@ -1462,7 +1433,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val FieldRef.targetName: String get() = normalizeName(this.ref.name)
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
-	val AstField.escapedConstantValue: String get() = escapeConstantRef(this.constantValueOrNativeDefault, this.type)
+	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
 	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForFields + buildAccessName(program[this.ref], static = true)
 	inline fun <reified T : Any, R> KMutableProperty1<T, R>.getTargetName(): String = this.locate(program).targetName
 
@@ -1473,6 +1444,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//////////////////////////////////////////////////
 	// Access to members
 	//////////////////////////////////////////////////
-	
+
 	open fun buildAccessName(name: String, static: Boolean): String = ".$name"
 }

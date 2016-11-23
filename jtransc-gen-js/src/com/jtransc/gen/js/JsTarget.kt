@@ -288,7 +288,8 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun N_dneg(str: String) = "-($str)"
 	override fun N_znot(str: String) = "!($str)"
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
-	override fun genLiteralString(v: String): String = "S[" + allocString(context.clazz.name, v) + "]"
+
+	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")

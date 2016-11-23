@@ -473,7 +473,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				if (!clazz.isInterface) {
 					line("this->__INSTANCE_CLASS_ID = ${getClassId(clazz.name)};")
 					for (field in clazz.fields.filter { !it.isStatic }) {
-						val cst = if (field.hasConstantValue) escapeConstant(field.constantValue) else "0"
+						val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
 						line("this->${field.targetName} = $cst;")
 					}
 				}
@@ -541,7 +541,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("SI_once = true;")
 			for (field in clazz.fields.filter { it.isStatic }) {
 				if (field.isStatic) {
-					val cst = if (field.hasConstantValue) escapeConstant(field.constantValue) else "0"
+					val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
 					line("${clazz.cppName}::${field.targetName} = $cst;")
 				}
 			}
@@ -910,11 +910,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val PositiveInfinityString = "INFINITY"
 	override val NanString = "NAN"
 
-	override fun escapeConstant(value: Any?): String = when (value) {
-		is String -> "STRINGLIT_${allocString(currentClass, value)}"
-		is AstType -> N_func("resolveClass", "L${value.mangle().uquote()}")
-		else -> super.escapeConstant(value)
-	}
+	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
+	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun N_lnew(value: Long): String = when (value) {
 		Long.MIN_VALUE -> "(int64_t)(0x8000000000000000U)"

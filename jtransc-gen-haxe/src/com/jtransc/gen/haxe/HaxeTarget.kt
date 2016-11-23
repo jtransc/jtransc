@@ -343,11 +343,10 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))
 	}
 
-	private fun getStringId(id: Int) = "__str$id"
-	private fun getStringId(clazz: FqName, str: String) = getStringId(allocString(clazz, str))
-
 	override fun genExprThis(e: AstExpr.THIS): String = "this"
-	override fun genLiteralString(v: String): String = getStringId(context.clazz.name, v)
+
+	private fun getStringId(id: Int) = "__str$id"
+	override val String.escapeString: String get() = getStringId(allocString(context.clazz.name, this))
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String {
 		val type = e.array.type
@@ -473,7 +472,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			val fieldName = field.targetName
 			if (!field.annotationsList.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
-				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${escapeConstant(defaultValue, fieldType)}; // /*${field.name}*/")
+				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${defaultValue.escapedConstant};")
 			}
 		}
 
@@ -538,9 +537,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				line("if (SII) return;")
 				line("SII = true;")
 
-				for (e in getClassStrings(clazz.name)) {
-					line("${getStringId(e.id)} = ${escapeConstant(e.str)};")
-				}
+				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.str(${e.str.quote()});")
 
 				if (clazz.hasStaticInit) {
 					val methodName = clazz.staticInitMethod!!.targetName

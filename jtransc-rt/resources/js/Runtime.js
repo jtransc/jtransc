@@ -637,10 +637,6 @@ function __createJavaArrays() {
 var N = function() {
 };
 
-//function Int64Ref(high, low) { this.high = high; this.low = low; }
-//N.lnewRef = function(high, low) { return new Int64Ref(high, low); };
-N.lnewRef = function(high, low) { return N.lnew(high, low); };
-
 var __reints = (function() {
 	var buffer = new ArrayBuffer(8);
 	var doubleArray = new Float64Array(buffer);
