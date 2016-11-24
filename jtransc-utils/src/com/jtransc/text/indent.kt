@@ -18,6 +18,22 @@ package com.jtransc.text
 
 import java.util.*
 
+object INDENTS {
+	private val INDENTS = arrayListOf<String>("")
+
+	operator fun get(index: Int): String {
+		if (index >= INDENTS.size) {
+			val calculate = INDENTS.size * 10
+			var indent = INDENTS[INDENTS.size - 1]
+			while (calculate >= INDENTS.size) {
+				indent += "\t"
+				INDENTS.add(indent)
+			}
+		}
+		return if (index <= 0) "" else INDENTS[index]
+	}
+}
+
 class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Action>()) : ToString {
 	interface Action {
 		data class Marker(val data: Any) : Action
@@ -49,20 +65,6 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 			return pattern.replace(templateString) { result ->
 				replacements[result.groupValues[1]] ?: ""
 			}
-		}
-
-		private val INDENTS = arrayListOf<String>("")
-
-		private fun getIndent(index: Int): String {
-			if (index >= INDENTS.size) {
-				val calculate = INDENTS.size * 10
-				var indent = INDENTS[INDENTS.size - 1]
-				while (calculate >= INDENTS.size) {
-					indent += "\t"
-					INDENTS.add(indent)
-				}
-			}
-			return if (index <= 0) "" else INDENTS[index]
 		}
 	}
 
@@ -124,13 +126,13 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 				when (action) {
 					is Action.Line -> {
 						if (noIndentEmptyLines && action.str.isEmpty()) {
-							if (doIndent) out.append("\n")
+							if (doIndent) out.append('\n')
 							line++
 						} else {
-							if (doIndent) out.append(getIndent(indentIndex)) else out.append(" ")
+							if (doIndent) out.append(INDENTS[indentIndex]) else out.append(" ")
 							out.append(action.str)
 							line += action.str.count { it == '\n' }
-							if (doIndent) out.append("\n")
+							if (doIndent) out.append('\n')
 							line++
 						}
 					}

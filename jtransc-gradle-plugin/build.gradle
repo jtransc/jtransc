@@ -1,13 +1,46 @@
 apply from: '../include.gradle'
 
-repositories {
-	mavenCentral()
-	maven {
-		url "http://repository.jetbrains.com/all"
+//repositories {
+//	mavenCentral()
+//	maven {
+//		url "http://repository.jetbrains.com/all"
+//	}
+//}
+
+buildscript {
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
 	}
+	dependencies {
+		classpath "com.gradle.publish:plugin-publish-plugin:0.9.6"
+	}
+}
+
+apply plugin: "com.gradle.plugin-publish"
+
+repositories {
+	jcenter()
 }
 
 dependencies {
 	compile project(':jtransc-main')
-	provided "org.jetbrains.kotlin:gradle-api:2.2"
+	//provided "org.jetbrains.kotlin:gradle-api:2.2"
+	compile gradleApi()
+	compile localGroovy()
+}
+
+pluginBundle {
+	website = 'http://jtransc.com/'
+	vcsUrl = 'https://github.com/jtransc/jtransc'
+	description = 'Convert your code to other languages and platforms!'
+	tags = ['jtransc']
+
+	plugins {
+		greetingsPlugin {
+			id = 'com.jtransc'
+			displayName = 'JTransc Gradle plugin'
+		}
+	}
 }
