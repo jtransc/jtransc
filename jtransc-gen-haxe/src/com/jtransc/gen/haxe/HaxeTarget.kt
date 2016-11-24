@@ -275,7 +275,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		entryPointFilePath = entryPointClass.targetFilePath
 		val entryPointFqName = entryPointClass.targetGeneratedFqName
-		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
+		val entryPointSimpleName = entryPointClass.targetSimpleName
 		val entryPointPackage = entryPointFqName.packagePath
 
 		fun inits() = Indenter.gen {
@@ -430,7 +430,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			val extrabodies = bodiesmap.filterKeys { it != "" }
 			Indenter.gen {
 				line(pre)
-				if (extrabodies.size == 0) {
+				if (extrabodies.isEmpty()) {
 					line(defaultbody)
 				} else {
 					var first = true
@@ -456,7 +456,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		val isInterface = clazz.isInterface
 		val isAbstract = clazz.isAbstract
 		val classType = if (isInterface) "interface" else "class"
-		val simpleClassName = clazz.name.targetGeneratedSimpleClassName
+		val simpleClassName = clazz.name.targetSimpleName
 		fun getInterfaceList(keyword: String) = (if (clazz.implementing.isNotEmpty()) " $keyword " else "") + clazz.implementing.map { it.targetClassFqName }.joinToString(" $keyword ")
 		refs._usedDependencies.clear()
 
@@ -483,7 +483,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				val visibility = if (isInterface) " " else "public"
 				refs.add(method.methodType)
 				val margs = method.methodType.args.map { it.name + ":" + it.type.targetName }
-				val override = if (method.haxeIsOverriding) "override " else ""
+				val override = if (method.targetIsOverriding) "override " else ""
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
@@ -498,22 +498,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				} else {
 					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
-					val rbody = if (method.body != null) {
-						method.body
-					} else if (method.bodyRef != null) {
-						program[method.bodyRef!!]?.body
-					} else {
-						null
-					}
+					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 					line(decl) {
 						try {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
-							val javaBody = if (rbody != null) {
-								rbody.genBodyWithFeatures(method)
-							} else Indenter.gen {
-								line("throw 'No method body';")
-							}
+							val javaBody = rbody?.genBodyWithFeatures(method) ?: Indenter("throw 'No method body';")
 							line(method.getHaxeNativeBody(javaBody).toString().template())
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
@@ -637,7 +627,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override val FqName.targetNameForFields: String get() {
 		val clazz = program[this]
-		val simpleName = this.targetGeneratedSimpleClassName
+		val simpleName = this.targetSimpleName
 		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
 		return clazz.name.targetClassFqName + suffix
 	}
@@ -669,50 +659,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override val FqName.targetFilePath: String get() = this.targetGeneratedFqName.internalFqname + ".hx"
 	override val FqName.targetGeneratedFqPackage: String get() = _getHaxeFqName(this).packagePath
 	override val FqName.targetGeneratedFqName: FqName get() = _getHaxeFqName(this)
-	override val FqName.targetGeneratedSimpleClassName: String get() = _getHaxeFqName(this).simpleName
+	override val FqName.targetSimpleName: String get() = _getHaxeFqName(this).simpleName
 	override val FqName.targetClassFqName: String get() = program.getOrNull(this)?.nativeName ?: this.targetGeneratedFqName.fqname
-
-	override val FieldRef.targetName: String get() {
-		val fieldRef = this
-		val field = fieldRef.ref
-		val realfield = program[field]
-		val realclass = program[field.containingClass]
-		val keyToUse = field
-
-		val normalizedFieldName = normalizeName(field.name)
-
-		return if (realclass.isNative) {
-			realfield.nativeName ?: normalizedFieldName
-		} else {
-			fieldNames.getOrPut2(keyToUse) {
-				if (ENABLED_MINIFY_MEMBERS && !realfield.keepName) {
-					allocMemberName()
-				} else {
-					// @TODO: Move to CommonNames
-					if (field !in cachedFieldNames) {
-						val fieldName = normalizedFieldName
-						var name = if (fieldName in keywords) "${fieldName}_" else fieldName
-
-						val clazz = program[field].containingClass
-						val clazzAncestors = clazz.ancestors.reversed()
-						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
-						val fieldsColliding = clazz.fields.filter {
-							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
-						}.map { it.ref } ?: listOf(field)
-
-						// JTranscBugInnerMethodsWithSameName.kt
-						for (f2 in fieldsColliding) {
-							while (name in names) name += "_"
-							cachedFieldNames[f2] = name
-							names += name
-						}
-						cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
-					}
-					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
-				}
-			}
-		}
-	}
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String {
 		val clazz = program[classRef.name]
@@ -786,7 +734,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
 	}
 
-	val AstMethod.haxeIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
+	//override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
+
+	override val AstType.localDeclType: String get() = "var"
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

@@ -54,6 +54,6 @@ class HaxeTest : Base() {
 		10
 		jtransc.jtransc.JTranscInternalNamesTest_
 		main__Ljava_lang_String__V
-		__hello
+		___hello
 	""", target = HaxeTarget(), minimize = false)
 }

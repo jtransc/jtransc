@@ -116,34 +116,55 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genClass(clazz: AstClass): Indenter = Indenter.gen {
 		context.clazz = clazz
 
-		val CLASS = if (clazz.isInterface) "interface" else "class"
-		var decl = "$CLASS ${clazz.name.targetGeneratedSimpleClassName}"
-		if (clazz.extending != null) decl += " extends ${clazz.extending.targetClassFqName}"
-		if (clazz.implementing.isNotEmpty()) decl += " implements ${clazz.implementing.map { it.targetClassFqName }.joinToString(", ")}"
-
-		line(decl) {
+		line(genClassDecl(clazz)) {
 			line(genClassBody(clazz))
 		}
 	}
 
+	open fun genClassDecl(clazz: AstClass): String {
+		val CLASS = if (clazz.isInterface) "interface" else "class"
+		var decl = "$CLASS ${clazz.name.targetSimpleName}"
+		if (clazz.extending != null) decl += " extends ${clazz.extending.targetClassFqName}"
+		if (clazz.implementing.isNotEmpty()) decl += " implements ${clazz.implementing.map { it.targetClassFqName }.joinToString(", ")}"
+		return decl
+	}
+
 	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
 		for (f in clazz.fields) line(genField(f))
-		for (m in clazz.methods) line(genMethod(m))
+		for (m in clazz.methods) line(genMethod(m, !clazz.isInterface))
 	}
 
 	open fun genField(field: AstField): Indenter = Indenter.gen {
-		line("${field.targetName} ${field.name};")
+		line("${field.type.targetName} ${field.targetName};")
 	}
 
-	open fun genMethod(method: AstMethod): Indenter = Indenter.gen {
-		context.method = method
+	open fun genMetodDecl(method: AstMethod): String {
 		val methodType = method.methodType
-		line("${methodType.ret.targetName} ${method.name}()") {
-			if (method.body != null) {
-				line(method.body!!.genBody())
+
+		val override = if (method.targetIsOverriding) "override " else ""
+		val istatic = if (method.isStatic) "static " else ""
+		val decl = "$istatic$override${methodType.ret.targetName} ${method.targetName}()"
+		return decl
+	}
+
+	open fun genMethod(method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
+		context.method = method
+
+		val decl = genMetodDecl(method)
+		if (mustPutBody) {
+			line(decl) {
+				if (method.body != null) {
+					line(method.body!!.genBody())
+				} else {
+					line("throw \"Missing body\";")
+				}
 			}
+		} else {
+			line("$decl;")
 		}
 	}
+
+	open val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 
 	var entryPointClass = FqName("EntryPointClass")
 	var entryPointFilePath = "EntryPointFile"
@@ -385,11 +406,15 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun resetLocalsPrefix() = Unit
 	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(genBodyLocal(local)) }
-	open fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
-	open fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
+	open fun genBodyLocal(local: AstLocal): Indenter = Indenter("${localDecl(local)} = ${local.type.nativeDefaultString};")
+	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(buildStaticInit(program[clazzRef.name]))
 	}
+
+	open val AstType.localDeclType: String get() = this.targetName
+
+	open fun localDecl(local: AstLocal) = "${local.type.localDeclType} ${local.nativeName}"
 
 	open fun genStmSetFieldStatic(stm: AstStm.SET_FIELD_STATIC): Indenter = indent {
 		refs.add(stm.clazz)
@@ -1295,6 +1320,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun normalizeName(name: String): String {
 		if (name.isNullOrEmpty()) return ""
 		if (name !in normalizeNameCache) {
+			if (name in keywords) return normalizeName("_$name")
 			val chars = name.toCharArray()
 			for (i in chars.indices) {
 				var c = chars[i]
@@ -1402,13 +1428,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	inline fun <reified T : Any> nativeName(): String = T::class.java.name.fqname.targetName
 
-	open val FqName.targetName: String get() = this.fqname.replace('.', '_')
+	open val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
+	open val FqName.targetClassFqName: String get() = this.targetName
+	open val FqName.targetSimpleName: String get() = this.simpleName
 	open val FqName.targetNameForFields: String get() = this.targetName
-	open val FqName.targetClassFqName: String get() = this.fqname
 	open val FqName.targetFilePath: String get() = this.simpleName
 	open val FqName.targetGeneratedFqName: FqName get() = this
 	open val FqName.targetGeneratedFqPackage: String get() = this.packagePath
-	open val FqName.targetGeneratedSimpleClassName: String get() = this.simpleName
 
 	//////////////////////////////////////////////////
 	// Method names
@@ -1448,6 +1474,12 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open protected fun cleanMethodName(name: String): String {
+		val out = CharArray(name.length)
+		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
+		return String(out)
+	}
+
+	open protected fun cleanFieldName(name: String): String {
 		val out = CharArray(name.length)
 		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
 		return String(out)
@@ -1504,7 +1536,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val realclass = program[field.containingClass]
 		val keyToUse = field
 
-		val normalizedFieldName = normalizeName(field.name)
+		val normalizedFieldName = cleanFieldName(field.name)
 
 		return if (realclass.isNative) {
 			realfield.nativeName ?: normalizedFieldName
@@ -1517,14 +1549,14 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					if (field !in cachedFieldNames) {
 						val fieldName = normalizedFieldName
 						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
-						var name = "_${fieldName}"
+						var name = "_$fieldName"
 
 						val clazz = program[field].containingClass
 						val clazzAncestors = clazz.ancestors.reversed()
 						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
 						val fieldsColliding = clazz.fields.filter {
 							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
-						}.map { it.ref } ?: listOf(field)
+						}.map { it.ref }
 
 						// JTranscBugInnerMethodsWithSameName.kt
 						for (f2 in fieldsColliding) {
@@ -1532,7 +1564,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 							cachedFieldNames[f2] = name
 							names += name
 						}
-						cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 					}
 					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 				}
@@ -1572,7 +1603,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//		}
 	//	}
 	//}
-
 
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant

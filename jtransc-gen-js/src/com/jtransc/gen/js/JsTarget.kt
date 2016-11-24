@@ -145,7 +145,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		entryPointFilePath = entryPointClass.targetFilePath
 		val entryPointFqName = entryPointClass.targetGeneratedFqName
-		val entryPointSimpleName = entryPointClass.targetGeneratedSimpleClassName
+		val entryPointSimpleName = entryPointClass.targetSimpleName
 		val entryPointPackage = entryPointFqName.packagePath
 
 		val customMain = program.allAnnotationsList.getTypedList(JTranscCustomMainList::value).firstOrNull { it.target == "js" }?.value
@@ -483,4 +483,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 
 	override fun cleanMethodName(name: String): String = name
+
+	override val AstType.localDeclType: String get() = "var"
 }

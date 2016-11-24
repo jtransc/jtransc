@@ -67,25 +67,20 @@ class TokenReader<T>(val list: List<T>) {
 	}
 }
 
-fun Char.isLetterOrUnderscore():Boolean {
-	return this.isLetter() || this == '_' || this == '$'
-}
+fun Char.isLetterOrUnderscore(): Boolean = this.isLetter() || this == '_' || this == '$'
+fun Char.isLetterDigitOrUnderscore(): Boolean = this.isLetterOrDigit() || this == '_' || this == '$'
+fun Char.isLetterOrDigitOrDollar(): Boolean = this.isLetterOrDigit() || this == '$'
 
-fun Char.isLetterDigitOrUnderscore():Boolean {
-	return this.isLetterOrDigit() || this == '_' || this == '$'
-}
-
-fun Char.isPrintable():Boolean {
-	// @TODO: Make a proper table
-	// 0x20, 0x7e
-	return (this >= '\u0020' && this <= '\u007e') || (this >= '\u00a1' && this <= '\u00ff')
-	//return this.isLetterDigitOrUnderscore() || this == '.' || this == '/' || this == '\'' || this == '"' || this == '(' || this == ')' || this == '[' || this == ']' || this == '+' || this == '-' || this == '*' || this == '/'
+// @TODO: Make a proper table
+// 0x20, 0x7e
+//return this.isLetterDigitOrUnderscore() || this == '.' || this == '/' || this == '\'' || this == '"' || this == '(' || this == ')' || this == '[' || this == ']' || this == '+' || this == '-' || this == '*' || this == '/'
+fun Char.isPrintable(): Boolean = when (this) {
+	in '\u0020'..'\u007e', in '\u00a1'..'\u00ff' -> true
+	else -> false
 }
 
 fun GenericTokenize(sr: Reader): List<String> {
-	val symbols = setOf(
-			"..."
-	)
+	val symbols = setOf("...")
 
 	val tokens = arrayListOf<String>()
 	while (sr.hasMore) {
@@ -126,7 +121,7 @@ fun GenericTokenize(sr: Reader): List<String> {
 				tokens.add(sr.read(3))
 			} else if (sr.peek(2) in symbols) {
 				tokens.add(sr.read(2))
-			} else{
+			} else {
 				tokens.add("$char")
 				sr.skip(1)
 			}

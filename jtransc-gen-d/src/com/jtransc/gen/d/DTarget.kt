@@ -48,7 +48,11 @@ class DTarget() : GenTargetDescriptor() {
 class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 //class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
-	override val keywords = setOf<String>()
+	override val keywords = setOf<String>(
+		"if", "while", "for", "switch",
+		"in",
+		"out"
+	)
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return DCompiler.genCommand(programFile, debug, libs)
@@ -63,6 +67,23 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		println(output)
 	}
 
+	override fun genClassDecl(clazz: AstClass): String {
+		val CLASS = if (clazz.isInterface) "interface" else "class"
+		val base = CLASS + " " + clazz.name.targetSimpleName
+		val parts = arrayListOf<String>()
+		if (clazz.extending != null) parts += clazz.extending!!.targetClassFqName
+		if (clazz.implementing.isNotEmpty()) parts += clazz.implementing.map { it.targetClassFqName }
+		if (parts.isEmpty()) {
+			return base
+		} else {
+			return "$base : ${parts.distinct().joinToString(", ")}"
+		}
+	}
+
+	override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding
+
+	override fun N_is(a: String, b: String): String = "((cast($b)$a) != null)"
+
 	override val NullType = "Object"
 	override val VoidType = "void"
 	override val BoolType = "bool"
@@ -71,4 +92,5 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val DoubleType = "double"
 	override val LongType = "long"
 
+	override val FqName.targetSimpleName: String get() = this.targetName
 }
