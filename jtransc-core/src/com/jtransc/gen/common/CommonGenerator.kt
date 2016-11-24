@@ -7,9 +7,11 @@ import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
+import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
+import com.jtransc.error.unexpected
 import com.jtransc.gen.MinimizedNames
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
@@ -1412,7 +1414,66 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Method names
 	//////////////////////////////////////////////////
 
-	open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
+	//open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
+
+	open val MethodRef.targetName: String get() {
+		val method = this.ref
+		val realmethod = program[method] ?: invalidOp("Can't find method $method")
+		val realclass = realmethod.containingClass
+		val methodWithoutClass = method.withoutClass
+
+		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
+
+		return if (realclass.isNative) {
+			// No cache
+			realmethod.nativeName ?: method.name
+		} else {
+			methodNames.getOrPut2(objectToCache) {
+				if (minimize && !realmethod.keepName) {
+					allocMemberName()
+				} else {
+					if (realmethod.nativeMethod != null) {
+						realmethod.nativeMethod!!
+					} else {
+						val name2 = "${method.name}${method.desc}"
+						val name = when (method.name) {
+							"<init>", "<clinit>" -> "${method.containingClass}$name2"
+							else -> name2
+						}
+						cleanMethodName(name)
+					}
+				}
+			}
+		}
+	}
+
+	open protected fun cleanMethodName(name: String): String {
+		val out = CharArray(name.length)
+		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
+		return String(out)
+	}
+
+	//override val MethodRef.targetName: String get() {
+	//	val methodRef: AstMethodRef = this.ref
+	//	val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
+	//	return methodNames.getOrPut2(keyToUse) {
+	//		if (minimize) {
+	//			allocMemberName()
+	//		} else {
+	//			if (program is AstProgram) {
+	//				val method = methodRef.resolve(program)
+	//				if (method.nativeName != null) {
+	//					return method.nativeName!!
+	//				}
+	//			}
+	//			return if (methodRef.isInstanceInit) {
+	//				"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
+	//			} else {
+	//				"${methodRef.name}${methodRef.desc}"
+	//			}
+	//		}
+	//	}
+	//}
 
 	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static)
 	fun buildMethod(method: AstMethod, static: Boolean): String {
@@ -1431,7 +1492,88 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Field names
 	//////////////////////////////////////////////////
 
-	open val FieldRef.targetName: String get() = normalizeName(this.ref.name)
+	protected val fieldNames = hashMapOf<Any?, String>()
+	protected val methodNames = hashMapOf<Any?, String>()
+	protected val classNames = hashMapOf<Any?, String>()
+	protected val cachedFieldNames = hashMapOf<AstFieldRef, String>()
+
+	open val FieldRef.targetName: String get() {
+		val fieldRef = this
+		val field = fieldRef.ref
+		val realfield = program[field]
+		val realclass = program[field.containingClass]
+		val keyToUse = field
+
+		val normalizedFieldName = normalizeName(field.name)
+
+		return if (realclass.isNative) {
+			realfield.nativeName ?: normalizedFieldName
+		} else {
+			fieldNames.getOrPut2(keyToUse) {
+				if (minimize && !realfield.keepName) {
+					allocMemberName()
+				} else {
+					// @TODO: Move to CommonNames
+					if (field !in cachedFieldNames) {
+						val fieldName = normalizedFieldName
+						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
+						var name = "_${fieldName}"
+
+						val clazz = program[field].containingClass
+						val clazzAncestors = clazz.ancestors.reversed()
+						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
+						val fieldsColliding = clazz.fields.filter {
+							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
+						}.map { it.ref } ?: listOf(field)
+
+						// JTranscBugInnerMethodsWithSameName.kt
+						for (f2 in fieldsColliding) {
+							while (name in names) name += "_"
+							cachedFieldNames[f2] = name
+							names += name
+						}
+						cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
+					}
+					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
+				}
+			}
+		}
+	}
+
+	//override val FieldRef.targetName: String get() {
+	//	val fieldRef = this
+	//	//"_" + field.uniqueName
+	//	val keyToUse = fieldRef.ref
+	//
+	//	return fieldNames.getOrPut2(keyToUse) {
+	//		val field = program[fieldRef.ref]
+	//		if (minimize) {
+	//			allocMemberName()
+	//		} else {
+	//			if (fieldRef !in cachedFieldNames) {
+	//				val fieldName = field.name.replace('$', '_')
+	//				//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+	//				var name = "_$fieldName"
+	//
+	//				val clazz = program[fieldRef.ref].containingClass
+	//				val clazzAncestors = clazz.ancestors.reversed()
+	//				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
+	//				val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
+	//
+	//				// JTranscBugInnerMethodsWithSameName.kt
+	//				for (f2 in fieldsColliding) {
+	//					while (name in names) name += "_"
+	//					cachedFieldNames[f2] = name
+	//					names += name
+	//				}
+	//				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+	//			}
+	//			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+	//		}
+	//	}
+	//}
+
+
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
 	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForFields + buildAccessName(program[this.ref], static = true)

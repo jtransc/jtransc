@@ -635,7 +635,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
 
-	override val MethodRef.targetName: String get() = getHaxeMethodName(this.ref)
 	override val FqName.targetNameForFields: String get() {
 		val clazz = program[this]
 		val simpleName = this.targetGeneratedSimpleClassName
@@ -646,66 +645,25 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override val FqName.targetName: String get() = this.targetClassFqName
 
 	override fun buildTemplateClass(clazz: FqName): String = clazz.targetClassFqName
-	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
 	val ENABLED_MINIFY = true
 	private val ENABLED_MINIFY_MEMBERS = ENABLED_MINIFY && minimize
 	private val ENABLED_MINIFY_CLASSES = ENABLED_MINIFY && minimize
 
-	private val classNames = hashMapOf<FqName, FqName>()
-	private val methodNames = hashMapOf<Any?, String>()
-	private val fieldNames = hashMapOf<Any?, String>()
-
 	val minClassPrefix = "z."
-
-	fun getHaxeMethodName(method: AstMethodRef): String {
-		val realmethod = program[method] ?: invalidOp("Can't find method $method")
-		val realclass = realmethod.containingClass
-		val methodWithoutClass = method.withoutClass
-
-		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
-
-		return if (realclass.isNative) {
-			// No cache
-			realmethod.nativeName ?: method.name
-		} else {
-			methodNames.getOrPut2(objectToCache) {
-				if (ENABLED_MINIFY_MEMBERS && !realmethod.keepName) {
-					allocMemberName()
-				} else {
-					if (realmethod.nativeMethod != null) {
-						realmethod.nativeMethod!!
-					} else {
-						val name2 = "${method.name}${method.desc}"
-						val name = when (method.name) {
-							"<init>", "<clinit>" -> "${method.containingClass}$name2"
-							else -> name2
-						}
-						cleanName(name)
-					}
-				}
-			}
-		}
-	}
-
-	private fun cleanName(name: String): String {
-		val out = CharArray(name.length)
-		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
-		return String(out)
-	}
 
 	@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 	private fun _getHaxeFqName(name: FqName): FqName {
 		val realclass = if (name in program) program[name] else null
-		return classNames.getOrPut2(name) {
+		return FqName(classNames.getOrPut2(name) {
 			if (realclass?.nativeName != null) {
-				FqName(realclass!!.nativeName!!)
+				realclass!!.nativeName!!
 			} else if (ENABLED_MINIFY_CLASSES && !realclass.keepName) {
-				FqName(minClassPrefix + allocClassName())
+				minClassPrefix + allocClassName()
 			} else {
-				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map { it.decapitalize() }, "${name.simpleName.replace('$', '_')}_".capitalize())
+				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map { it.decapitalize() }, "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
 			}
-		}
+		})
 	}
 
 	override val FqName.targetFilePath: String get() = this.targetGeneratedFqName.internalFqname + ".hx"

@@ -872,17 +872,17 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildStaticInit(clazz: AstClass): String = "${clazz.name.targetName}::SI();"
 
-	override val MethodRef.targetName: String get() {
-		return getClassNameAllocator(ref.containingClass).allocate(ref) {
-			val astMethod = program[ref]!!
-			val containingClass = astMethod.containingClass
-
-			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-			val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) "${containingClass.name.targetName}_" else ""
-
-			"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
-		}
-	}
+	//override val MethodRef.targetName: String get() {
+	//	return getClassNameAllocator(ref.containingClass).allocate(ref) {
+	//		val astMethod = program[ref]!!
+	//		val containingClass = astMethod.containingClass
+	//
+	//		val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
+	//		val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) "${containingClass.name.targetName}_" else ""
+	//
+	//		"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
+	//	}
+	//}
 
 	override fun buildAccessName(name: String, static: Boolean): String = if (static) "::$name" else "->$name"
 
@@ -900,11 +900,11 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		else -> "AstType_cppString_UNIMPLEMENTED($this)"
 	}
 
-	override val FieldRef.targetName: String get() {
-		val fieldRef = this
-		val ref = fieldRef.ref
-		return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
-	}
+	//override val FieldRef.targetName: String get() {
+	//	val fieldRef = this
+	//	val ref = fieldRef.ref
+	//	return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
+	//}
 
 	override val NegativeInfinityString = "-INFINITY"
 	override val PositiveInfinityString = "INFINITY"

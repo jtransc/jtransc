@@ -477,68 +477,10 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
 
-	private val fieldNames = hashMapOf<Any?, String>()
-	private val methodNames = hashMapOf<Any?, String>()
-	private val classNames = hashMapOf<Any?, String>()
-	private val cachedFieldNames = hashMapOf<AstFieldRef, String>()
-
-	override val FieldRef.targetName: String get() {
-		val fieldRef = this
-		//"_" + field.uniqueName
-		val keyToUse = fieldRef.ref
-
-		return fieldNames.getOrPut2(keyToUse) {
-			val field = program[fieldRef.ref]
-			if (minimize) {
-				allocMemberName()
-			} else {
-				if (fieldRef !in cachedFieldNames) {
-					val fieldName = field.name.replace('$', '_')
-					//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
-					var name = "_$fieldName"
-
-					val clazz = program[fieldRef.ref].containingClass
-					val clazzAncestors = clazz.ancestors.reversed()
-					val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
-					val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
-
-					// JTranscBugInnerMethodsWithSameName.kt
-					for (f2 in fieldsColliding) {
-						while (name in names) name += "_"
-						cachedFieldNames[f2] = name
-						names += name
-					}
-					cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-				}
-				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-			}
-		}
-	}
-
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
-
-	override val MethodRef.targetName: String get() {
-		val methodRef: AstMethodRef = this.ref
-		val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
-		return methodNames.getOrPut2(keyToUse) {
-			if (minimize) {
-				allocMemberName()
-			} else {
-				if (program is AstProgram) {
-					val method = methodRef.resolve(program)
-					if (method.nativeName != null) {
-						return method.nativeName!!
-					}
-				}
-				return if (methodRef.isInstanceInit) {
-					"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
-				} else {
-					"${methodRef.name}${methodRef.desc}"
-				}
-			}
-		}
-	}
 
 	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = "${classRef.name.targetName}.SI();"
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
+
+	override fun cleanMethodName(name: String): String = name
 }
