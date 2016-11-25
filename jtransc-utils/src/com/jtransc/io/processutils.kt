@@ -96,6 +96,8 @@ object ProcessUtils {
 
 	fun locateCommandSure(name: String): String = locateCommand(name) ?: invalidOp("Can't find command $name in path")
 
+	fun which(name: String): String? = locateCommand(name)
+
 	fun locateCommand(name: String): String? {
 		for (ext in if (JTranscSystem.isWindows()) listOf(".exe", ".cmd", ".bat", "") else listOf("")) {
 			for (path in getPaths()) {

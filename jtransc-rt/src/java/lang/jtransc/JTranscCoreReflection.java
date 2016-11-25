@@ -124,15 +124,18 @@ public class JTranscCoreReflection {
 	@HaxeMethodBody("return (p0 != null) ? Std.is(p0, JA_0) : false;")
 	@JTranscMethodBody(target = "js", value = "return p0 ? (p0 instanceof JA_0) : false;")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0) != null;")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0) !is null;")
 	native public static boolean isArray(Object o);
 
 	@HaxeMethodBody("return (p0 != null) ? N.str(cast(p0, JA_0).desc) : null;")
 	@JTranscMethodBody(target = "js", value = "return p0 ? N.str(p0.desc) : null;")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(GET_OBJECT(JA_0, p0)->desc);")
+	@JTranscMethodBody(target = "d", value = "return N.str((cast(JA_0)p0).desc);")
 	native public static String getArrayDescriptor(Object o);
 
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__INSTANCE_CLASS_ID;")
 	@JTranscMethodBody(target = "js", value = "return p0.$$CLASS_ID;")
+	@JTranscMethodBody(target = "d", value = "return p0.__D__CLASS_ID;")
 	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")
 	static public int getClassId(Object obj) {
 		return -1;

@@ -15,12 +15,10 @@
  */
 
 import big.BigTest
-import big.HelloWorldKotlinTest
 import big.HelloWorldTest
-import com.jtransc.gen.cpp.CppTarget
+import com.jtransc.gen.d.DTarget
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
-import javatest.awt.AWTTest
 import javatest.utils.KotlinInheritanceTest
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2
@@ -37,6 +35,8 @@ class BigTest : Base() {
 
 
 	@Test fun testJavaEightJs() = testClass<Java8Test>(minimize = false, target = JsTarget(), log = true)
+
+	//@Test fun testD() = testClass<BigTest>(minimize = false, target = DTarget(), log = false)
 
 	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
 	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)

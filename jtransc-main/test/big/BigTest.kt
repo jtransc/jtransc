@@ -53,7 +53,6 @@ object BigTest {
 		MathTest.main(args)
 		ProcessTest.main(args)
 		BasicTypesTest.main(args)
-		javatest.utils.regex.RegexTest.main(args)
 		DateTest.main(args)
 		AtomicTest.main(args)
 		JTranscBug12Test.main(args)
@@ -91,6 +90,9 @@ object BigTest {
 
 		// Misc
 		Base64Test.main(args);
+
+		// Regex
+		javatest.utils.regex.RegexTest.main(args)
 
 		// Java8 tests
 		JTranscClinitNotStatic.main(args)

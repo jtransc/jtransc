@@ -1,7 +1,7 @@
 apply from: '../include.gradle'
+apply plugin: 'idea'
 
 evaluationDependsOn(':jtransc-rt')
-
 
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
@@ -15,9 +15,16 @@ dependencies {
 	compile project(':jtransc-gen-cpp')
 	compile project(':jtransc-gen-d')
 
-	//provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
-	compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+	//compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	//providedCompile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+}
+
+idea {
+	module {
+		//COMPILE
+		scopes.PROVIDED.plus += [configurations.provided]
+	}
 }
 
 project(':jtransc-main').compileKotlin.dependsOn(project(':jtransc-rt').test)

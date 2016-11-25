@@ -12,20 +12,12 @@ public class StringsTest {
 		compareToIgnoreCaseTest();
 		regionMatchesTest();
 		extendedTest();
-		matchesTest();
-		replaceAllTest();
 		zeroTest();
 		formatTest();
 	}
 
 	private static void basicConcatTest() {
 		System.out.println("HELLO" + " " + "WORLD!");
-	}
-
-	private static void replaceAllTest() {
-		System.out.println("StringsTest.replaceAllTest:");
-		System.out.println("\\\\hello\\\\world".replaceAll("\\\\", "/"));
-		System.out.println("\\\\hello\\\\world".replaceFirst("\\\\", "/"));
 	}
 
 	private static void compareToIgnoreCaseTest() {
@@ -83,16 +75,6 @@ public class StringsTest {
 		//	((Test0<Integer>) null).getTest();
 		//} catch (Throwable t) {
 		//}
-	}
-
-	static public void matchesTest() {
-		JTranscConsole.log("StringsTest.matchesTest:");
-		System.out.println("hello".matches(".*el+.*"));
-		System.out.println("hello".matches("el+"));
-		System.out.println("hello".matches("ell"));
-		System.out.println("hello".matches(".*ell"));
-		System.out.println("hello".matches("elll"));
-		System.out.println("hello".matches(".*ell.*"));
 	}
 
 	static public void zeroTest() {

@@ -218,6 +218,7 @@ class GotosFeature : AstMethodFeature() {
 
 					fun extraReturn() = when (body.type.ret) {
 						is AstType.VOID -> AstStm.RETURN_VOID()
+						is AstType.BOOL -> AstStm.RETURN(AstExpr.LITERAL(false, types))
 						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0, types))
 						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L, types))
 						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f, types))

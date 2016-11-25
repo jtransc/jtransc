@@ -608,6 +608,8 @@ private class MergedSyncVfs(val nodes: List<SyncVfsFile>) : SyncVfs() {
 	}
 
 	override fun setMtime(path: String, time: Date) = op(path, "setMtime") { it[path].setMtime(time) }
+
+	override fun toString(): String = "MergedSyncVfs(" + this.nodes.joinToString(", ") + ")"
 }
 
 private class ResourcesSyncVfs(val clazz: Class<*>) : SyncVfs() {

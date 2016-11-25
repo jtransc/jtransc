@@ -45,6 +45,8 @@ data class TargetName(val name: String) {
 	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern)
 }
 
+data class TargetBuildTarget(val name: String, val target: String?, val outputFile: String?, val minimizeNames: Boolean = false)
+
 abstract class GenTargetDescriptor {
 	open val priority: Int = 0
 	abstract val name: String
@@ -58,6 +60,8 @@ abstract class GenTargetDescriptor {
 	abstract fun getGenerator(injector: Injector): CommonGenerator
 	open fun getTargetByExtension(ext: String): String? = null
 	abstract val runningAvailable: Boolean
+
+	open val buildTargets = listOf<TargetBuildTarget>()
 
 	open val outputFile:String get() = "program.$sourceExtension"
 

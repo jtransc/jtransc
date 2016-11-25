@@ -203,7 +203,7 @@ class N {
 			debugger();
 			return null;
 		}
-		var result = JavaClass.{% METHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+		var result = {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 		if (result == null) {
 			trace('resolveClass:result:null');
 			debugger();

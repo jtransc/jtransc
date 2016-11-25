@@ -5,14 +5,15 @@ import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.lang.high
-import com.jtransc.lang.low
 import com.jtransc.text.Indenter
+import com.jtransc.text.quote
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
@@ -27,6 +28,10 @@ class DTarget() : GenTargetDescriptor() {
 	override val extraClasses = listOf<String>()
 	override val runningAvailable = true
 	override val programFeatures: Set<Class<AstProgramFeature>> = setOf()
+
+	override val buildTargets: List<TargetBuildTarget> = listOf(
+		TargetBuildTarget("d", "d", "program.d", minimizeNames = false)
+	)
 
 	override fun getGenerator(injector: Injector): CommonGenerator {
 		val settings = injector.get<AstBuildSettings>()
@@ -49,12 +54,34 @@ class DTarget() : GenTargetDescriptor() {
 
 @Singleton
 class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
-//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
+	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
+
 	override val keywords = setOf<String>(
-		"if", "while", "for", "switch",
-		"in",
-		"out"
+		"abstract", "alias", "align", "asm", "assert", "auto",
+		"body", "bool", "break", "byte",
+		"case", "cast", "catch", "cdouble", "cent", "cfloat", "char", "class", "const", "continue", "creal",
+		"dchar", "debug", "default", "delegate", "delete", "deprecated", "do", "double",
+		"else", "enum", "export", "extern",
+		"false", "final", "finally", "float", "for", "foreach", "foreach_reverse", "function",
+		"goto",
+		"idouble", "if", "ifloat", "immutable", "import", "in", "inout", "int", "interface", "invariant", "ireal", "is",
+		"lazy", "long",
+		"macro", "mixin", "module",
+		"new", "nothrow", "null",
+		"out", "override",
+		"package", "pragma", "private", "protected", "public", "pure",
+		"real", "ref", "return",
+		"scope", "shared", "short", "static", "struct", "super", "switch", "synchronized",
+		"template", "this", "throw", "true", "try", "typedef", "typeid", "typeof",
+		"ubyte", "ucent", "uint", "ulong", "union", "unittest", "ushort",
+		"version", "void", "volatile",
+		"wchar", "while", "with",
+		"__FILE__", "__FILE_FULL_PATH__", "__MODULE__", "__LINE__", "__FUNCTION__", "__PRETTY_FUNCTION__", "__gshared", "__traits", "__vector", "__parameters",
+
+		// Known Object symbols
+		"clone", "toString"
 	)
 
 	override val languageRequiresDefaultInSwitch = true
@@ -65,17 +92,56 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		return ProcessResult2(0)
+		val names = listOf("program.exe", "program", "program.out", "a.exe", "a", "a.out")
+		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(outFile.realpathOS)
+		return ProcessResult2(result)
 	}
 
 	override fun writeProgram(output: SyncVfsFile) {
+		//println(program.resourcesVfs)
 		super.writeProgram(output)
 		println(output)
 	}
 
+	override fun genField(field: AstField): Indenter = Indenter.gen {
+		val istatic = if (field.isStatic) "__gshared " else ""
+		line("$istatic${field.type.targetName} ${field.targetName} = ${field.type.getNull().escapedConstant};")
+	}
+
+	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+		line(super.genClasses(output))
+		val entryPointFqName = program.entrypoint
+		val entryPointClass = program[entryPointFqName]
+		line("int main(string[] args)") {
+			line("N.init();")
+			line(buildStaticInit(entryPointFqName))
+			val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
+			line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+			line("return 0;")
+		}
+	}
+
+	override fun genClassBodyMethods(clazz: AstClass): Indenter = Indenter.gen {
+		val directMethods = clazz.methods
+		val interfaceMethods = clazz.allDirectInterfaces.flatMap { it.methods }
+		val actualMethods = (if (clazz.isInterface) directMethods else directMethods + interfaceMethods).filter { !it.isStatic }
+		for (rm in directMethods.filter { it.isStatic }) {
+			line(genMethod(rm, true))
+		}
+		for (rm in actualMethods.map { clazz.getMethodInAncestors(it.ref.nameDesc) ?: invalidOp("Can't find method $it in $clazz ancestors") }.distinct()) {
+			// @TODO: HACK!
+			if (rm.containingClass != clazz) {
+				if (!rm.isOverriding) line("override")
+			}
+			line(genMethod(rm, !clazz.isInterface))
+		}
+	}
+
 	override fun genClassDecl(clazz: AstClass): String {
 		val CLASS = if (clazz.isInterface) "interface" else "class"
-		val base = CLASS + " " + clazz.name.targetSimpleName
+		val iabstract = if (clazz.isAbstract) "abstract " else ""
+		val base = "$iabstract$CLASS ${clazz.name.targetSimpleName}"
 		val parts = arrayListOf<String>()
 		if (clazz.extending != null) parts += clazz.extending!!.targetClassFqName
 		if (clazz.implementing.isNotEmpty()) parts += clazz.implementing.map { it.targetClassFqName }
@@ -86,14 +152,15 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isClassOrInstanceInit
-
 	override fun N_is(a: String, b: String): String = "((cast($b)$a) !is null)"
 
 	override val NullType = "Object"
 	override val VoidType = "void"
 	override val BoolType = "bool"
 	override val IntType = "int"
+	override val ShortType = "short"
+	override val CharType = "wchar"
+	override val ByteType = "byte"
 	override val FloatType = "float"
 	override val DoubleType = "double"
 	override val LongType = "long"
@@ -106,8 +173,49 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
-		line("static public void SI()") {
-			genSIMethodBody(clazz)
+		if (clazz.isJavaLangObject) {
+			line("override public string toString()") {
+				line("return to!string(N.istr(" + buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false) + "()));");
+			}
+		}
+
+		if (!clazz.isInterface) {
+			if (clazz.isJavaLangObject) {
+				line("public int __D__CLASS_ID;")
+				line("this(int CLASS_ID = ${clazz.classId}) { this.__D__CLASS_ID = CLASS_ID; }")
+			} else {
+				line("this(int CLASS_ID = ${clazz.classId}) { super(CLASS_ID); }")
+			}
+		}
+		if (clazz.staticConstructor != null) {
+			/*
+			line("static public bool SSI = false;")
+			line("static public void SI()") {
+				line("if (SSI) return;")
+				line("SSI = true;")
+				line(genSIMethodBody(clazz))
+			}
+			*/
+			/*
+			line("static this()") {
+				for (field in clazz.fields.filter { it.isStatic }) {
+					line("${clazz.name.targetName}.${field.targetName} = ${field.escapedConstantValue};")
+				}
+				line(genSIMethodBody(clazz))
+			}
+			line("static public void SI() { }")
+			*/
+			line("static public bool SSI = false;")
+			line("static public void SI()") {
+				line("if (SSI) return;")
+				line("SSI = true;")
+				for (field in clazz.fields.filter { it.isStatic }) {
+					line("${clazz.name.targetName}.${field.targetName} = ${field.escapedConstantValue};")
+				}
+				line(genSIMethodBody(clazz))
+			}
+		} else {
+			line("static public void SI() { }")
 		}
 	}
 
@@ -123,7 +231,40 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
-		line("throw new Throwable(\"Missing body\");")
+		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
+		line("throw new Throwable(${message.quote()});")
 	}
 
+	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
+	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
+
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+		//line("try {")
+		//_indent()
+	}
+
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+		//_unindent()
+		//line("} catch (Throwable e) {")
+		//indent {
+		//	line("goto ${trap.handler.name};")
+		//}
+		//line("}")
+	}
+
+	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
+		line("try") {
+			line(stm.trystm.genStm())
+		}
+		line("catch (WrappedThrowable J__i__exception__)") {
+			line("J__exception__ = J__i__exception__.t;")
+			line(stm.catch.genStm())
+		}
+	}
+
+	override val NegativeInfinityString = "-double.infinity"
+	override val PositiveInfinityString = "double.infinity"
+	override val NanString = "double.nan"
+
+	override fun AstExpr.genNotNull(): String = "ensureNotNull(" + genExpr2(this) + ")"
 }

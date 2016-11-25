@@ -1,18 +1,42 @@
 import std.conv;
+import std.algorithm;
+import std.stdio;
+import core.stdc.string;
+import std.math;
+import std.random;
 
 abstract class JA_0 : {% CLASS java.lang.Object %} {
+	wstring desc;
+
+	this(wstring desc) { this.desc = desc; }
+
+	abstract int itemLen();
 	abstract int length();
+	abstract byte* ptr();
+	static public void copy(JA_0 src, int srcOffset, JA_0 dst, int dstOffset, int len) {
+		if (src.itemLen != dst.itemLen) return;
+		int itemLen = src.itemLen;
+		auto srcP = src.ptr + (srcOffset * itemLen);
+		auto dstP = dst.ptr + (dstOffset * itemLen);
+		core.stdc.string.memmove(cast(void*)dstP, cast(void*)srcP, (len * itemLen));
+	}
 }
 
-class JA_Template(U) : JA_0 {
+class JA_Template(U, wstring DESC) : JA_0 {
 	U[] data;
 	wstring desc;
 
-	this(int len, wstring desc = "") {
+	this(int len, wstring desc = DESC) {
+		super(desc);
 		this.data = new U[len];
 		this.desc = desc;
 	}
 
+	override byte* ptr() {
+		return cast(byte*)cast(void*)data.ptr;
+	}
+
+	override int itemLen() { return U.sizeof; }
 	override int length() { return to!int(data.length); }
 
 	U get(int index) { return data[index]; }
@@ -22,48 +46,83 @@ class JA_Template(U) : JA_0 {
 	void opIndexAssign(U v, int i) { data[i] = v; }
 }
 
-class JA_I : JA_Template!(int) {
-	this(int len, wstring desc = "") { super(len, desc); }
+class JA_I : JA_Template!(int, "[I") {
+	this(int len) { super(len); }
 
 	static public JA_I T(int[] ints) {
-		throw new Throwable("JA_I.T not implemented");
+		int len = cast(int)(ints.length);
+		auto o = new JA_I(len);
+		o.data[0..len] = ints[0..len];
+		return o;
 	}
 }
 
-class JA_S : JA_Template!(short) {
-	this(int len, wstring desc = "") { super(len, desc); }
-	void opIndexAssign(int v, int i) { data[i] = to!short(v); }
-}
+alias JA_Z = JA_Template!(bool, "[Z");
+alias JA_B = JA_Template!(byte, "[B");
+alias JA_S = JA_Template!(short, "[S");
+alias JA_C = JA_Template!(wchar, "[C");
+alias JA_J = JA_Template!(long, "[J");
+alias JA_F = JA_Template!(float, "[F");
+alias JA_D = JA_Template!(double, "[D");
+class JA_L : JA_Template!({% CLASS java.lang.Object %}, "[Ljava/lang/Object;") {
+	this(int len, wstring desc = "[Ljava/lang/Object;") { super(len, desc); }
 
-class JA_C : JA_Template!(ushort) {
-	this(int len, wstring desc = "") { super(len, desc); }
-	void opIndexAssign(int v, int i) { data[i] = to!ushort(v); }
-}
+	static JA_L createMultiSure(int[] sizes, wstring desc) {
+		if (!desc.startsWith('[')) return null;
+		if (sizes.length == 1) return cast(JA_L)(JA_L.create(sizes[0], desc));
+		auto o = new JA_L(sizes[0], desc);
+		auto sizes2 = sizes[1..$];
+		auto desc2 = desc[1..$];
+		for (auto n = 0; n < o.length; n++) {
+			o.set(n, JA_L.createMultiSure(sizes2, desc2));
+		}
+		return o;
+	}
 
-alias JA_Z = JA_Template!(bool);
-alias JA_B = JA_Template!(byte);
-alias JA_J = JA_Template!(long);
-alias JA_F = JA_Template!(float);
-alias JA_D = JA_Template!(double);
-alias JA_L = JA_Template!({% CLASS java.lang.Object %});
+	static JA_0 create(int size, wstring desc) {
+		switch (desc) {
+			case "[Z": return new JA_Z(size);
+			case "[B": return new JA_B(size);
+			case "[C": return new JA_C(size);
+			case "[S": return new JA_S(size);
+			case "[I": return new JA_I(size);
+			case "[J": return new JA_J(size);
+			case "[F": return new JA_F(size);
+			case "[D": return new JA_D(size);
+			default: return new JA_L(size, desc);
+		}
+	}
+}
 
 class WrappedThrowable : Throwable {
-	{% CLASS java.lang.Object %} t;
+	public {% CLASS java.lang.Object %} t;
 	this({% CLASS java.lang.Object %} t) {
-		super("WrappedThrowable");
+		super("WrappedThrowable:" ~ t.toString());
 		this.t = t;
 	}
 }
 
 class N {
-	static public int MIN_INT32 = -2147483648;
+	static immutable public int MIN_INT32 = -2147483648;
 
-	static public {% CLASS java.lang.Class %} resolveClass(wstring str) {
-		throw new Throwable("resolveClass");
+	static public {% CLASS java.lang.Class %} resolveClass(wstring name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+	}
+
+	static public {% CLASS java.lang.String %} str(wstring str) {
+		int len = cast(int)(str.length);
+		auto array = new JA_C(len);
+		for (int n = 0; n < len; n++) array[n] = str[n];
+		return {% CONSTRUCTOR java.lang.String:([CII)V %}(array, 0, len);
 	}
 
 	static public {% CLASS java.lang.String %} strLitEscape(wstring str) {
-		throw new Throwable("strLitEscape");
+		return N.str(str);
+	}
+
+	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
+		auto jstr = cast({% CLASS java.lang.String %})jstrObj;
+		return to!wstring(jstr.{% FIELD java.lang.String:value %}.data);
 	}
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
@@ -90,6 +149,10 @@ class N {
 	static public long lushr(long l, long r) { return l >>> r; }
 	static public int  lcmp(long l, long r) { return (l < r) ? -1 : ((l > r) ? 1 : 0); }
 
+	static public int cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); }
+	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(a)) ? (-1) : N.cmp(a, b); }
+	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(a)) ? (+1) : N.cmp(a, b); };
+
 	static public bool   unboxBool({% CLASS java.lang.Boolean %} i) { throw new Throwable("unboxBool"); }
 	static public byte   unboxByte({% CLASS java.lang.Byte %} i) { throw new Throwable("unboxByte"); }
 	static public char   unboxChar({% CLASS java.lang.Character %} i) { throw new Throwable("unboxChar"); }
@@ -114,5 +177,28 @@ class N {
 	static public {% CLASS java.lang.Long %}      boxLong  (long   i) { throw new Throwable("unboxLong"); }
 	static public {% CLASS java.lang.Float %}     boxFloat (float  i) { throw new Throwable("unboxFloat"); }
 	static public {% CLASS java.lang.Double %}    boxDouble(double i) { throw new Throwable("unboxDouble"); }
+
+	static public void arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dst, int dstPos, int length) {
+		JA_0.copy(cast(JA_0)src, srcPos, cast(JA_0)dst, dstPos, length);
+	}
+
+	static public JA_L strArray(wstring[] strs) {
+		return new JA_L(0);
+	}
+	static public JA_L strArray(string[] strs) {
+		return new JA_L(0);
+	}
+
+	static public void init() {
+		//writefln("INIT FROM D!");
+	}
 }
+
+T ensureNotNull(T)(T v) {
+	debug {
+		if (v is null) throw new WrappedThrowable({% CONSTRUCTOR java.lang.NullPointerException:()V %});
+	}
+	return v;
+}
+
 /* ## BODY ## */

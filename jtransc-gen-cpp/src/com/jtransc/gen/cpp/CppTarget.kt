@@ -14,6 +14,7 @@ import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -54,6 +55,11 @@ class CppTarget() : GenTargetDescriptor() {
 		injector.mapInstance(ConfigOutputFile2(targetFolder[configOutputFile.outputFileBaseName].realfile))
 		return injector.get<CppGenerator>()
 	}
+
+	override val buildTargets: List<TargetBuildTarget> = listOf(
+		TargetBuildTarget("cpp", "cpp", "program.cpp", minimizeNames = false),
+		TargetBuildTarget("plainCpp", "cpp", "program.cpp", minimizeNames = false)
+	)
 
 	override fun getTargetByExtension(ext: String): String? = when (ext) {
 		"exe" -> "cpp"
@@ -409,8 +415,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
-				line(buildStaticInit(program[program.entrypoint]))
-				line(program.entrypoint.ref().cppName + "::S_main___Ljava_lang_String__V(N::strEmptyArray());")
+				line(buildStaticInit(program.entrypoint))
+				line(program.entrypoint.ref.cppName + "::S_main___Ljava_lang_String__V(N::strEmptyArray());")
 			}
 			line("catch (char const *s)") {
 				line("""std::cout << "ERROR char const* " << s << "\n";""")
@@ -869,8 +875,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("((${stm.array.type.underlyingCppString})((" + stm.array.genExpr() + ").get()))->setArray(${stm.startIndex}, ${values.size}, ARRAY_LITERAL);")
 		}
 	}
-
-	override fun buildStaticInit(clazz: AstClass): String = "${clazz.name.targetName}::SI();"
 
 	//override val MethodRef.targetName: String get() {
 	//	return getClassNameAllocator(ref.containingClass).allocate(ref) {

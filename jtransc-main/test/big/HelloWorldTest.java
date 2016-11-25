@@ -26,6 +26,7 @@ public class HelloWorldTest {
 		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 		System.out.println(intArrayClass);
 		System.out.println(intArrayClass.getComponentType());
+		//System.out.println("Java " + System.getProperty("java.version"));
 
 		ArrayList<Integer> items = new ArrayList<>();
 		items.add(10);

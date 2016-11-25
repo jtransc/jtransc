@@ -10,6 +10,7 @@ import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -35,6 +36,11 @@ class JsTarget() : GenTargetDescriptor() {
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override val runningAvailable: Boolean = true
+
+	override val buildTargets: List<TargetBuildTarget> = listOf(
+		TargetBuildTarget("js", "js", "program.js", minimizeNames = true),
+		TargetBuildTarget("plainJs", "js", "program.js", minimizeNames = true)
+	)
 
 	override fun getGenerator(injector: Injector): CommonGenerator {
 		val settings = injector.get<AstBuildSettings>()
@@ -148,7 +154,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("__createJavaArrays();")
 			line("__buildStrings();")
 			line("N.linit();")
-			line(buildStaticInit(mainClassClass))
+			line(buildStaticInit(mainClassFq))
 			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = buildMethod(mainMethod2, static = true)
 			line("$mainCall(N.strArray(N.args()));")
@@ -313,12 +319,10 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
 			}
 
+			// @TODO: Move to genSIMethodBody
 			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
 				line("$classBase.SI = function()", after2 = ";") {
 					line("$classBase.SI = N.EMPTY_FUNCTION;")
-					if (clazz.staticConstructor != null) {
-						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
-					}
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
@@ -446,7 +450,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
+	override fun buildStaticInit(clazz: FqName): String = getClassStaticInit(clazz.ref, "template sinit")
 
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 

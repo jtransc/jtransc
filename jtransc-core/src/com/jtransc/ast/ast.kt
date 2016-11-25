@@ -458,14 +458,8 @@ class AstClass(
 		return methods.values.toList()
 	}
 
-	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? {
-		var result = methodsByNameDesc[nameDesc]
-		if (result == null) {
-			// @TODO: Check. This was calling 'getMethodInAncestorsAndInterfaces' before, but probably not wanted, since it is not described in the method name!
-			result = parentClass?.getMethodInAncestors(nameDesc)
-		}
-		methodsByNameDesc[nameDesc] = result
-		return result
+	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? = methodsByNameDesc.getOrPut(nameDesc) {
+		parentClass?.getMethodInAncestors(nameDesc)
 	}
 
 	/*
@@ -559,6 +553,8 @@ class AstClass(
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
+
+	val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
 }
 
 val AstClass?.isNative: Boolean get() = (this?.nativeName != null)

@@ -9,13 +9,16 @@ public class AtomicTest {
 	public volatile Integer value = 3;
 
 	static public void main(String[] test) {
+		System.out.println("AtomicTest.main:");
 		testBool();
 		testAtomicInteger();
 		testAtomicReference();
 		testAtomicReferenceFieldUpdater();
+		System.out.println("/AtomicTest.main:");
 	}
 
 	private static void testAtomicInteger() {
+		System.out.println("AtomicTest.testAtomicInteger:");
 		AtomicInteger ref = new AtomicInteger(10);
 		System.out.println(ref.get());
 		System.out.println(ref.getAndSet(12));
@@ -28,6 +31,7 @@ public class AtomicTest {
 	}
 
 	private static void testAtomicReference() {
+		System.out.println("AtomicTest.testAtomicReference:");
 		AtomicReference<Integer> ref = new AtomicReference<>(10);
 		System.out.println(ref.get());
 		System.out.println(ref.getAndSet(12));
@@ -40,6 +44,7 @@ public class AtomicTest {
 	}
 
 	static private void testBool() {
+		System.out.println("AtomicTest.testBool:");
 		AtomicBoolean atomicBoolean = new AtomicBoolean();
 		System.out.println(atomicBoolean.get());
 		atomicBoolean.set(true);
@@ -47,6 +52,7 @@ public class AtomicTest {
 	}
 
 	static private void testAtomicReferenceFieldUpdater() {
+		System.out.println("AtomicTest.testAtomicReferenceFieldUpdater:");
 		AtomicTest obj = new AtomicTest();
 		AtomicReferenceFieldUpdater<AtomicTest, Integer> updater = AtomicReferenceFieldUpdater.newUpdater(AtomicTest.class, Integer.class, "value");
 		System.out.println(updater.get(obj));

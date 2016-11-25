@@ -40,6 +40,18 @@ public class MiscTest {
 		//}
 
 		new MiscTest().main2(args);
+		ClInitCallTwice.test();
+	}
+
+	static public class ClInitCallTwice {
+		static private int COUNT = 1;
+		static {
+			COUNT++;
+		}
+		static public void test() {
+			System.out.println("ClInitCallTwice:" + COUNT);
+			COUNT = 2;
+		}
 	}
 
 	static private void testBootstrap1() {

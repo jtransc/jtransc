@@ -104,6 +104,7 @@ public class JTranscSystem {
 		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
 		if (isCpp()) return "cpp";
+		if (isD()) return "d";
 		if (isNeko()) return "neko";
 		if (isPhp()) return "php";
 		if (isPython()) return "python";
@@ -132,10 +133,14 @@ public class JTranscSystem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	@JTranscMethodBody(target = "cpp", value = "return true;")
 	public static boolean isCpp() {
+		return FALSE;
+	}
+
+	@JTranscInline
+	@JTranscMethodBody(target = "d", value = "return true;")
+	public static boolean isD() {
 		return FALSE;
 	}
 
@@ -220,6 +225,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('unknown');")
 	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");")
+	@JTranscMethodBody(target = "d", value = "return N.str(\"unknown\");")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}

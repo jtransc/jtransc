@@ -8,6 +8,7 @@ public class CopyTest {
 	static public void main(String[] args) {
 		JTranscConsole.log("CopyTest.main()");
 		testOverlapping(new int[] {0, 1, 2, 3, 4, 5, 6}, 3);
+		JTranscConsole.log("/CopyTest.main()");
 	}
 
 	private static void testOverlapping(int[] ints, int size) {

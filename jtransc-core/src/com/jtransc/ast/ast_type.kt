@@ -434,7 +434,7 @@ data class FqName(val fqname: String) : Serializable {
 
 val Class<*>.fqname: FqName get() = FqName(this.name)
 val String.fqname: FqName get() = FqName(this)
-fun FqName.ref() = AstType.REF(this)
+val FqName.ref: AstType.REF get() = AstType.REF(this)
 
 fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
 fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)

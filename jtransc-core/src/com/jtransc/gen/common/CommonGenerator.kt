@@ -45,6 +45,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val sortedClasses by lazy { program.classes.filter { !it.isNative }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
 	open val methodFeatures: Set<Class<out AstMethodFeature>> = setOf()
+	open val methodFeaturesWithTraps: Set<Class<out AstMethodFeature>> get() = methodFeatures
 	open val keywords: Set<String> = program.getExtraKeywords(targetName.name).toSet()
 	val configSrcFolder: ConfigSrcFolder = injector.get()
 	open val srcFolder: SyncVfsFile = configSrcFolder.srcFolder
@@ -134,16 +135,25 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genClassDecl(clazz: AstClass): String {
 		val CLASS = if (clazz.isInterface) "interface" else "class"
-		var decl = "$CLASS ${clazz.name.targetSimpleName}"
+		val iabstract = if (clazz.isAbstract) "abstract " else ""
+		var decl = "$iabstract$CLASS ${clazz.name.targetSimpleName}"
 		if (clazz.extending != null) decl += " extends ${clazz.extending.targetClassFqName}"
 		if (clazz.implementing.isNotEmpty()) decl += " implements ${clazz.implementing.map { it.targetClassFqName }.joinToString(", ")}"
 		return decl
 	}
 
 	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
-		for (f in clazz.fields) line(genField(f))
-		for (m in clazz.methods) line(genMethod(m, !clazz.isInterface))
+		line(genClassBodyFields(clazz))
+		line(genClassBodyMethods(clazz))
 		line(genSIMethod(clazz))
+	}
+
+	open fun genClassBodyFields(clazz: AstClass): Indenter = Indenter.gen {
+		for (f in clazz.fields) line(genField(f))
+	}
+
+	open fun genClassBodyMethods(clazz: AstClass): Indenter = Indenter.gen {
+		for (m in clazz.methods) line(genMethod(m, !clazz.isInterface))
 	}
 
 	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
@@ -151,16 +161,22 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genSIMethodBody(clazz: AstClass): Indenter = Indenter.gen {
+		//for (field in clazz.fields.filter { it.isStatic }) {
+		//	line("${field.buildField(static = true)};")
+		//}
+		if (clazz.staticConstructor != null) {
+			line("${buildMethod(clazz.staticConstructor!!, static = true)}();")
+		}
 	}
 
 	open fun genField(field: AstField): Indenter = Indenter.gen {
 		val istatic = if (field.isStatic) "static " else ""
-		line("$istatic${field.type.targetName} ${field.targetName};")
+		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValue};")
 	}
 
 	open fun genMetodDecl(method: AstMethod): String {
 		val args = method.methodType.args.map { it.argDecl }
-		val override = if (method.targetIsOverriding) "override " else ""
+		val override = if (!method.isStatic && method.targetIsOverriding) "override " else ""
 		val istatic = if (method.isStatic) "static " else ""
 
 		return "$istatic$override${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
@@ -174,8 +190,12 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val decl = genMetodDecl(method)
 		if (mustPutBody) {
 			line(decl) {
-				if (method.body != null) {
-					line(method.body!!.genBody())
+				val native = method.nativeBodies
+				val defaultNativeBody = native[""]
+				if (defaultNativeBody != null) {
+					line(defaultNativeBody)
+				} else if (method.body != null) {
+					line(genBody2WithFeatures(method, method.body!!))
 					if (method.isInstanceInit) line("return this;")
 				} else {
 					line(genMissingBody(method))
@@ -187,10 +207,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
-		line("throw \"Missing body\";")
+		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
+		line("throw ${message.quote()};")
 	}
 
-	open val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
+	open val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit && !this.isStatic
 
 	var entryPointClass = FqName("EntryPointClass")
 	var entryPointFilePath = "EntryPointFile"
@@ -401,13 +422,17 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		)
 	}
 
-	fun AstExpr.genNotNull(): String = genExpr2(this)
+	open fun AstExpr.genNotNull(): String = genExpr2(this)
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
 
 	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
-		return features.apply(method, body, methodFeatures, settings, types).genBody()
+		if (body.traps.isNotEmpty()) {
+			return features.apply(method, body, methodFeaturesWithTraps, settings, types).genBody()
+		} else {
+			return features.apply(method, body, methodFeatures, settings, types).genBody()
+		}
 	}
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
@@ -480,7 +505,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBodyLocal(local: AstLocal): Indenter = Indenter("${localDecl(local)} = ${local.type.nativeDefaultString};")
 	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
-		line(buildStaticInit(program[clazzRef.name]))
+		line(buildStaticInit(clazzRef.name))
 	}
 
 	open val AstType.localDeclType: String get() = this.targetName
@@ -1243,6 +1268,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
+	val AstMethod.nativeBodies: Map<String, Indenter> get() = getNativeBodies(target = this@CommonGenerator.targetName.name)
+
 	fun AstMethod.getNativeBodies(target: String): Map<String, Indenter> {
 		val bodies = this.annotationsList
 			.getTypedList(com.jtransc.annotation.JTranscMethodBodyList::value)
@@ -1302,7 +1329,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	private fun evalReference(type: String, desc: String): String {
 		val ref = CommonTagHandler.getRef(program, type, desc, params)
 		return when (ref) {
-			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass)
+			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass.name)
 			is CommonTagHandler.CONSTRUCTOR -> buildConstructor(ref.method)
 			is CommonTagHandler.METHOD -> buildMethod(ref.method, static = ref.isStatic)
 			is CommonTagHandler.FIELD -> ref.field.buildField(ref.isStatic)
@@ -1384,8 +1411,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun buildTemplateClass(clazz: FqName): String = clazz.targetName
 	fun buildTemplateClass(clazz: AstClass): String = buildTemplateClass(clazz.name)
-	open fun buildStaticInit(clazz: AstClass): String = clazz.name.targetName + buildAccessName("SI", static = true) + "();"
-	open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(program[classRef.name])
+	open fun buildStaticInit(clazz: FqName): String = clazz.targetName + buildAccessName("SI", static = true) + "();"
+
+	open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(classRef.name)
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
@@ -1413,6 +1441,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val VoidType = "void"
 	open val BoolType = "boolean"
 	open val IntType = "int"
+	open val ShortType: String get() = IntType
+	open val CharType: String get() = IntType
+	open val ByteType: String get() = IntType
 	open val FloatType = "float"
 	open val DoubleType = "double"
 	open val LongType = "long"
@@ -1469,7 +1500,10 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstType.VOID -> VoidType
 		is AstType.BOOL -> BoolType
 		is AstType.GENERIC -> this.type.targetName
-		is AstType.INT, is AstType.SHORT, is AstType.CHAR, is AstType.BYTE -> IntType
+		is AstType.INT -> IntType
+		is AstType.SHORT -> ShortType
+		is AstType.CHAR -> CharType
+		is AstType.BYTE -> ByteType
 		is AstType.FLOAT -> FloatType
 		is AstType.DOUBLE -> DoubleType
 		is AstType.LONG -> LongType
@@ -1533,7 +1567,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					if (realmethod.nativeMethod != null) {
 						realmethod.nativeMethod!!
 					} else {
-						val name2 = "${method.name}${method.desc}"
+						val name2 = method.targetNameBase
 						val name = when (method.name) {
 							"<init>", "<clinit>" -> "${method.containingClass}$name2"
 							else -> name2
@@ -1545,7 +1579,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
+	open val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
+	//open val MethodRef.targetNameBase: String get() = "${this.ref.name}"
+
 	open protected fun cleanMethodName(name: String): String {
+		if (name in keywords) return cleanMethodName("_$name")
 		val out = CharArray(name.length)
 		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
 		return String(out)

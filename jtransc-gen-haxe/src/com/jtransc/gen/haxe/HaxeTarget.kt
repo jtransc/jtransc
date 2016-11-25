@@ -12,9 +12,8 @@ import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
-import com.jtransc.error.invalidOp
-import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
@@ -39,6 +38,14 @@ class HaxeTarget() : GenTargetDescriptor() {
 	override val extraLibraries = listOf<String>()
 	override val extraClasses = listOf<String>()
 	override val runningAvailable: Boolean = true
+
+	override val buildTargets: List<TargetBuildTarget> = listOf(
+		TargetBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true),
+		TargetBuildTarget("swf", "haxe:swf", "program.swf"),
+		TargetBuildTarget("haxeCpp", "haxe:cpp", "program.exe"),
+		TargetBuildTarget("neko", "haxe:neko", "program.n"),
+		TargetBuildTarget("php", "haxe:php", "program.php")
+	)
 
 	override fun getGenerator(injector: Injector): CommonGenerator {
 		val program = injector.get<AstProgram>()
@@ -622,7 +629,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
-	override fun buildStaticInit(clazz: AstClass): String = getClassStaticInit(clazz.ref, "template sinit")
+	override fun buildStaticInit(clazz: FqName): String = getClassStaticInit(clazz.ref, "template sinit")
 
 	override val FqName.targetNameForFields: String get() {
 		val clazz = program[this]

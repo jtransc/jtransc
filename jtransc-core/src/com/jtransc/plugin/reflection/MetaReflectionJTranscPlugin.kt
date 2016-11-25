@@ -44,7 +44,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		fun getAnnotationProxyClass(annotationType: AstType.REF): AstClass {
 			return classesForAnnotations.getOrPut(annotationType) {
 				val annotationClass = program[annotationType]!!
-				val annotationMethods = annotationClass.methods
+				val annotationMethods = annotationClass.methods.filter { it.methodType.argCount == 0 }
 
 				val members = annotationMethods.map { it.name to it.methodType.ret }
 				val proxyClassName = "${annotationType.fqname}\$Impl"
@@ -343,7 +343,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val (classId, methodId, args) = it
 
 			SWITCH(methodId.expr) {
-				for (constructor in visibleClasses.flatMap { it.constructors.filter { it.mustReflect() } }.sortedBy { it.id }) {
+				for (constructor in visibleClasses.filter { !it.isAbstract && !it.isInterface }.flatMap { it.constructors.filter { it.mustReflect() } }.sortedBy { it.id }) {
 					CASE(constructor.id) {
 						val params = constructor.methodType.args.map {
 							cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)

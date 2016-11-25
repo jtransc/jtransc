@@ -1,11 +1,13 @@
 package com.jtransc.gradle
 
 import com.jtransc.JTranscVersion
+import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
 import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import groovy.lang.Closure
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.util.*
 
 /**
  * References:
@@ -40,18 +42,11 @@ open class JTranscGradlePlugin : Plugin<Project> {
 		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, compile = true, minimizeNames = false)
 		JTranscGradleExtension.addBuildTargetInternal(project, "gensrcJtransc", null, null, run = false, debug = true, compile = false, minimizeNames = false)
 
-		// @DEFAULT JS is PlainJs
-		addBuildTarget("js", "js", "program.js", minimizeNames = true)
-		addBuildTarget("cpp", "cpp", "program.cpp", minimizeNames = true)
+		val targets = ServiceLoader.load(GenTargetDescriptor::class.java).toList()
 
-		addBuildTarget("plainJs", "js", "program.js", minimizeNames = true)
-		addBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true)
-
-		addBuildTarget("swf", "haxe:swf", "program.swf")
-		addBuildTarget("plainCpp", "cpp", "program.exe")
-		addBuildTarget("haxeCpp", "haxe:cpp", "program.exe")
-		addBuildTarget("neko", "haxe:neko", "program.n")
-		addBuildTarget("php", "haxe:php", "program.php")
+		for (buildTarget in targets.flatMap { it.buildTargets }) {
+			addBuildTarget(buildTarget.name, buildTarget.target, buildTarget.outputFile, minimizeNames = buildTarget.minimizeNames)
+		}
 
 		project.configurations.create("jtranscRuntime")
 		project.configurations.create("jtransc")

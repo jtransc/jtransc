@@ -43,7 +43,7 @@ object References {
 						//val tag = it.first().token.name
 						val desc = it.first().token.content
 						val ref = CommonTagHandler.getRefFqName(desc, hashMapOf())
-						templateRefs += ref.ref()
+						templateRefs += ref.ref
 						Minitemplate.BlockNode.TEXT("")
 					}
 				),
