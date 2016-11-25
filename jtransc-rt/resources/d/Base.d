@@ -1,9 +1,23 @@
+// https://github.com/jtransc/jtransc
+
 import std.conv;
 import std.algorithm;
 import std.stdio;
 import core.stdc.string;
 import std.math;
 import std.random;
+
+int ilen(string s) {
+	return cast(int)s.length;
+}
+
+int ilen(wstring s) {
+	return cast(int)s.length;
+}
+
+int ilen(T)(T[] s) {
+	return cast(int)s.length;
+}
 
 abstract class JA_0 : {% CLASS java.lang.Object %} {
 	wstring desc;
@@ -22,11 +36,11 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 	}
 }
 
-class JA_Template(U, wstring DESC) : JA_0 {
+class JA_Template(U) : JA_0 {
 	U[] data;
 	wstring desc;
 
-	this(int len, wstring desc = DESC) {
+	this(int len, wstring desc) {
 		super(desc);
 		this.data = new U[len];
 		this.desc = desc;
@@ -37,7 +51,7 @@ class JA_Template(U, wstring DESC) : JA_0 {
 	}
 
 	override int itemLen() { return U.sizeof; }
-	override int length() { return to!int(data.length); }
+	override int length() { return ilen(data); }
 
 	U get(int index) { return data[index]; }
 	void set(int index, U value) { data[index] = value; }
@@ -46,26 +60,41 @@ class JA_Template(U, wstring DESC) : JA_0 {
 	void opIndexAssign(U v, int i) { data[i] = v; }
 }
 
-class JA_I : JA_Template!(int, "[I") {
-	this(int len) { super(len); }
+class JA_I : JA_Template!(int) {
+	this(int len) { super(len, "[I"); }
 
 	static public JA_I T(int[] ints) {
-		int len = cast(int)(ints.length);
+		int len = ilen(ints);
 		auto o = new JA_I(len);
 		o.data[0..len] = ints[0..len];
 		return o;
 	}
 }
 
-alias JA_Z = JA_Template!(bool, "[Z");
-alias JA_B = JA_Template!(byte, "[B");
-alias JA_S = JA_Template!(short, "[S");
-alias JA_C = JA_Template!(wchar, "[C");
-alias JA_J = JA_Template!(long, "[J");
-alias JA_F = JA_Template!(float, "[F");
-alias JA_D = JA_Template!(double, "[D");
-class JA_L : JA_Template!({% CLASS java.lang.Object %}, "[Ljava/lang/Object;") {
-	this(int len, wstring desc = "[Ljava/lang/Object;") { super(len, desc); }
+class JA_Z : JA_Template!(bool) {
+	this(int len) { super(len, "[Z"); }
+}
+class JA_B : JA_Template!(byte) {
+	this(int len) { super(len, "[B"); }
+}
+class JA_S : JA_Template!(short) {
+	this(int len) { super(len, "[S"); }
+}
+class JA_C : JA_Template!(wchar) {
+	this(int len) { super(len, "[C"); }
+}
+class JA_J : JA_Template!(long) {
+	this(int len) { super(len, "[J"); }
+}
+class JA_F : JA_Template!(float) {
+	this(int len) { super(len, "[F"); }
+}
+class JA_D : JA_Template!(double) {
+	this(int len) { super(len, "[D"); }
+}
+
+class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
+	this(int len, wstring desc) { super(len, desc); }
 
 	static JA_L createMultiSure(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;
@@ -110,15 +139,14 @@ class N {
 	}
 
 	static public {% CLASS java.lang.String %} str(wstring str) {
-		int len = cast(int)(str.length);
+		int len = ilen(str);
 		auto array = new JA_C(len);
 		for (int n = 0; n < len; n++) array[n] = str[n];
 		return {% CONSTRUCTOR java.lang.String:([CII)V %}(array, 0, len);
 	}
 
-	static public {% CLASS java.lang.String %} strLitEscape(wstring str) {
-		return N.str(str);
-	}
+	static public {% CLASS java.lang.String %} str(string str) { return N.str(to!wstring(str)); }
+	static public {% CLASS java.lang.String %} strLitEscape(wstring str) { return N.str(str); }
 
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
 		auto jstr = cast({% CLASS java.lang.String %})jstrObj;
@@ -183,10 +211,16 @@ class N {
 	}
 
 	static public JA_L strArray(wstring[] strs) {
-		return new JA_L(0);
+		int len = ilen(strs);
+		auto o = new JA_L(len, "[Ljava/lang/String;");
+		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
+		return o;
 	}
 	static public JA_L strArray(string[] strs) {
-		return new JA_L(0);
+		int len = ilen(strs);
+		auto o = new JA_L(len, "[Ljava/lang/String;");
+		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
+		return o;
 	}
 
 	static public void init() {
