@@ -25,7 +25,10 @@ install:
 - sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get -y update
 - sudo apt-get -y install php5.6 php5.6-mbstring
-- sudo apt-get -y install gdc # GDC D compiler
+#- sudo apt-get -y install gdc # GDC D compiler
+- sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
+- sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall d-apt-keyring && sudo apt-get update
+- sudo apt-get -y install dmd-bin
 - curl -s -S -O http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-linux64.tar.gz
 - tar xzf haxe-3.3.0-rc.1-linux64.tar.gz
 - nvm install 4 || true
