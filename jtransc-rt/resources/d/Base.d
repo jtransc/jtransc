@@ -7,15 +7,15 @@ import core.stdc.string;
 import std.math;
 import std.random;
 
-int ilen(string s) {
+int slen(string s) {
 	return cast(int)s.length;
 }
 
-int ilen(wstring s) {
+int slen(wstring s) {
 	return cast(int)s.length;
 }
 
-int ilen(T)(T[] s) {
+int alen(T)(T[] s) {
 	return cast(int)s.length;
 }
 
@@ -51,7 +51,7 @@ class JA_Template(U) : JA_0 {
 	}
 
 	override int itemLen() { return U.sizeof; }
-	override int length() { return ilen(data); }
+	override int length() { return alen(data); }
 
 	U get(int index) { return data[index]; }
 	void set(int index, U value) { data[index] = value; }
@@ -64,7 +64,7 @@ class JA_I : JA_Template!(int) {
 	this(int len) { super(len, "[I"); }
 
 	static public JA_I T(int[] ints) {
-		int len = ilen(ints);
+		int len = alen(ints);
 		auto o = new JA_I(len);
 		o.data[0..len] = ints[0..len];
 		return o;
@@ -139,7 +139,7 @@ class N {
 	}
 
 	static public {% CLASS java.lang.String %} str(wstring str) {
-		int len = ilen(str);
+		int len = slen(str);
 		auto array = new JA_C(len);
 		for (int n = 0; n < len; n++) array[n] = str[n];
 		return {% CONSTRUCTOR java.lang.String:([CII)V %}(array, 0, len);
@@ -211,13 +211,13 @@ class N {
 	}
 
 	static public JA_L strArray(wstring[] strs) {
-		int len = ilen(strs);
+		int len = alen(strs);
 		auto o = new JA_L(len, "[Ljava/lang/String;");
 		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
 		return o;
 	}
 	static public JA_L strArray(string[] strs) {
-		int len = ilen(strs);
+		int len = alen(strs);
 		auto o = new JA_L(len, "[Ljava/lang/String;");
 		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
 		return o;
