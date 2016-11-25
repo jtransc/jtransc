@@ -184,7 +184,7 @@ public class MiscTest {
 		}
 
 		testCatchBlockAccessingArguments(3, 7);
-		testRegex();
+		//testRegex();
 
 		JTranscReflectionTest.main(new String[0]);
 
@@ -371,7 +371,7 @@ public class MiscTest {
 		System.out.println("testCrypto:");
 
 		//System.out.println("[1]");
-		if (JTranscSystem.isCpp()) {
+		if (JTranscSystem.isCpp() || JTranscSystem.isD()) {
 			JTranscCrypto.secureRandomProvider = new JTranscCrypto.SecureRandomProvider() {
 				@Override
 				public void fillSecureRandomBytes(byte[] data) {
@@ -608,12 +608,16 @@ public class MiscTest {
 	boolean[] test = new boolean[16];
 
 	private void testBoolArray() {
+		System.out.println("MiscTest.testBoolArray:");
 		for (int n = 0; n < test.length; n += 2) test[n] = true;
+		System.out.println("SET!");
 		for (int n = 0; n < test.length; n++) System.out.print(test[n]);
 		System.out.println();
+		System.out.println("END!");
 	}
 
 	private void executionOrderTest(Reader r, int version) {
+		System.out.println("MiscTest.executionOrderTest:");
 		System.out.println(new TextFieldInfo(
 			r.i16(),
 			r.str(),
@@ -949,11 +953,11 @@ public class MiscTest {
 		}
 	}
 
-	static private void testRegex() {
-		System.out.println("regex.numbers[true]:" + Pattern.matches("^\\d+$", "10000"));
-		System.out.println("regex.numbers[false]:" + Pattern.matches("^\\d+$", "a"));
-		System.out.println("regex.split:" + Arrays.toString(Pattern.compile(",+").split("hello,,,world,,b,,c,,d")));
-	}
+	//static private void testRegex() {
+	//	System.out.println("regex.numbers[true]:" + Pattern.matches("^\\d+$", "10000"));
+	//	System.out.println("regex.numbers[false]:" + Pattern.matches("^\\d+$", "a"));
+	//	System.out.println("regex.split:" + Arrays.toString(Pattern.compile(",+").split("hello,,,world,,b,,c,,d")));
+	//}
 
 	static private void shortCalc() {
 		System.out.println("short:-1536==" + doShortCalc((short) 32000, (short) 32000));
@@ -1144,6 +1148,7 @@ public class MiscTest {
 	}
 
 	private void testRandom() {
+		System.out.println("Random:");
 		Random random = new Random(0L);
 		System.out.println("Random:" + random.nextInt());
 		System.out.println("Random:" + random.nextInt());

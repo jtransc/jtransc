@@ -18,7 +18,7 @@ public class JTranscZipTest {
 	}
 
 	static private void testFs() {
-		System.out.println("FS:");
+		System.out.println("JTranscZipTest.FS:");
 		System.out.println(new File("__nonExistantFile__").exists());
 		//System.out.println(normalizePath(new File("__nonExistantFile__").getAbsolutePath()));
 	}

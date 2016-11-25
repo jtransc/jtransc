@@ -46,18 +46,20 @@ public class System {
 
 	native public static void setErr(PrintStream err);
 
+	@JTranscMethodBody(target = "d", value = "return N.currentTimeMillis();")
 	public static long currentTimeMillis() {
 		return (long) JTranscSystem.fastTime();
 	}
 
+	@JTranscMethodBody(target = "d", value = "return N.nanoTime();")
 	public static long nanoTime() {
 		return JTranscSystem.nanoTime();
 	}
 
 	@HaxeMethodBody("N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
+	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
 	//@JTranscMethodBody(target = "cpp", value = "return N::identityHashCode(p0);")

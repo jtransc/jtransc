@@ -63,10 +63,12 @@ public class Thread implements Runnable {
 
 	}
 
+	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
 	public static void sleep(long millis) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}
 
+	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0) + dur!(\"nsecs\")(p1));")
 	public static void sleep(long millis, int nanos) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}

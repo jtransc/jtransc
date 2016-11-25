@@ -2,6 +2,7 @@ package javatest.utils.regex;
 
 import com.jtransc.io.JTranscConsole;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public class RegexTest {
@@ -10,6 +11,7 @@ public class RegexTest {
 		stringReplaceAllTest();
 		regexMatchesTest();
 		replaceTest();
+		testRegex();
 	}
 
 	static private void regexMatchesTest() {
@@ -22,7 +24,7 @@ public class RegexTest {
 		//System.out.println(NUMERIC.matcher("1.1").group());
 	}
 
-	static public void stringMatchesTest() {
+	private static void stringMatchesTest() {
 		JTranscConsole.log("StringsTest.matchesTest:");
 		System.out.println("hello".matches(".*el+.*"));
 		System.out.println("hello".matches("el+"));
@@ -38,8 +40,14 @@ public class RegexTest {
 		System.out.println("\\\\hello\\\\world".replaceFirst("\\\\", "/"));
 	}
 
-	static private void replaceTest() {
+	private static void replaceTest() {
 		System.out.println(Pattern.compile("l").matcher("hello").replaceAll("_"));
 		System.out.println(Pattern.compile("l").matcher("hello").replaceFirst("_"));
+	}
+
+	private static void testRegex() {
+		System.out.println("regex.numbers[true]:" + Pattern.matches("^\\d+$", "10000"));
+		System.out.println("regex.numbers[false]:" + Pattern.matches("^\\d+$", "a"));
+		System.out.println("regex.split:" + Arrays.toString(Pattern.compile(",+").split("hello,,,world,,b,,c,,d")));
 	}
 }

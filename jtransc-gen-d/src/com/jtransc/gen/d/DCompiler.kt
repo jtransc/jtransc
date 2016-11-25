@@ -31,7 +31,7 @@ object DCompiler {
 	object GDC : Provider("gdc") {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			if (debug) {
-				return listOf(cmd!!, "-O0", programFile.absolutePath)
+				return listOf(cmd!!, "-fdebug=1", "-g", "-O0", programFile.absolutePath)
 			} else {
 				return listOf(cmd!!, "-s", "-O3", programFile.absolutePath)
 			}

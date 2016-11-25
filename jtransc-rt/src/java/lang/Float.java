@@ -59,6 +59,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@HaxeMethodBody("return Math.isNaN(p0);")
 	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
+	@JTranscMethodBody(target = "d", value = "return std.math.isNaN(p0);")
 	native public static boolean isNaN(float value);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")

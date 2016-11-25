@@ -41,21 +41,24 @@ public class JTranscSystem {
 		return second - first;
 	}
 
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);")
 	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);")
+	@HaxeMethodBody(target = "d", value = "")
 	static public void gcDisable() {
 	}
 
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);")
 	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);")
+	@HaxeMethodBody(target = "d", value = "")
 	static public void gcEnable() {
 	}
 
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();")
 	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
+	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();")
+	@HaxeMethodBody(target = "d", value = "")
 	static public void gc() {
 		System.gc();
 	}
@@ -63,6 +66,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return true;")
 	@JTranscMethodBody(target = "js", value = "return true;")
 	@JTranscMethodBody(target = "cpp", value = "return true;")
+	@JTranscMethodBody(target = "d", value = "return true;")
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
 		return FALSE;
@@ -152,12 +156,8 @@ public class JTranscSystem {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "java", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
-	@JTranscMethodBody(target = "cpp", value = "return false;")
 	public static boolean isJvm() {
-		return TRUE;
+		return !isJTransc();
 	}
 
 	public static boolean isJava() {
@@ -190,32 +190,24 @@ public class JTranscSystem {
 
 	@JTranscInline
 	@HaxeMethodBody(target = "flash", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isSwf() {
 		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "neko", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isNeko() {
 		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "php", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPhp() {
 		return FALSE;
 	}
 
 	@JTranscInline
 	@HaxeMethodBody(target = "python", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
 	public static boolean isPython() {
 		return FALSE;
 	}
@@ -289,6 +281,7 @@ public class JTranscSystem {
 
 	@HaxeMethodBody(target = "debug", value = "return true;")
 	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscMethodBody(target = "d", value = "debug { return true; } return false;")
 	public static boolean isDebug() {
 		return FALSE;
 	}
@@ -296,6 +289,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('jtransc-haxe');")
 	@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");")
+	@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");")
 	public static String getRuntimeName() {
 		return "java";
 	}
@@ -303,6 +297,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('/jtransc-haxe');")
 	@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");")
+	@JTranscMethodBody(target = "d", value = "return N.str(\"/\");")
 	public static String getJavaHome() {
 		return System.getenv("java.home");
 	}

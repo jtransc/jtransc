@@ -51,7 +51,6 @@ object BigTest {
 		JTranscNioTest.main(args)
 		JTranscArithmeticTest.main(args)
 		MathTest.main(args)
-		ProcessTest.main(args)
 		BasicTypesTest.main(args)
 		DateTest.main(args)
 		AtomicTest.main(args)
@@ -74,9 +73,6 @@ object BigTest {
 		JTranscRegression3Test.main(args)
 
 
-		JTranscZipTest.main(args)
-
-
 		ProxyTest.main(args)
 		WrappedTest.main(args)
 
@@ -88,15 +84,17 @@ object BigTest {
 		//StrangeNamesTest.main(args)
 		ComparableTimSortTest.main(args)
 
-		// Misc
-		Base64Test.main(args);
-
-		// Regex
-		javatest.utils.regex.RegexTest.main(args)
-
 		// Java8 tests
 		JTranscClinitNotStatic.main(args)
 		DefaultMethodsTest.main(args)
 		Java8Test.main(args)
+
+		// Misc
+		Base64Test.main(args);
+		JTranscZipTest.main(args)
+		ProcessTest.main(args)
+
+		// Regex
+		javatest.utils.regex.RegexTest.main(args)
 	}
 }

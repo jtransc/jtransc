@@ -61,7 +61,6 @@ public class JTranscConsole {
 	@SuppressWarnings("PointlessBitwiseExpression")
 	@HaxeMethodBody("_log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
 	@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%f\", p0);")
 	static public void log(long v) {
 		if (JTranscSystem.isEmulatedLong()) {
 			Int64 internal = Int64.getInternal(v);
@@ -72,7 +71,7 @@ public class JTranscConsole {
 	}
 
 	static public void logLong(int high, int low) {
-		System.out.println("Int64(" + high + "," + low + ")");
+		log("Int64(" + high + "," + low + ")");
 	}
 
 	@HaxeMethodBody("_log(p0);")

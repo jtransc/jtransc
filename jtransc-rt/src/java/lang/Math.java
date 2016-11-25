@@ -170,7 +170,7 @@ public final class Math {
 	@JTranscInline
 	@HaxeMethodBody("return Math.random();")
 	@JTranscMethodBody(target = "js", value = "return Math.random();")
-	@JTranscMethodBody(target = "d", value = "return std.random.uniform01();")
+	@JTranscMethodBody(target = "d", value = "return std.random.uniform(0.0, 1.0);")
 	public static double random() {
 		if (random == null) random = new Random();
 		return random.nextDouble();

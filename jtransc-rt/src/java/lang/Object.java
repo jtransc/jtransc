@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddFile;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
@@ -27,7 +28,9 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import j.ProgramReflection;
 
 import java.lang.jtransc.JTranscCoreReflection;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 @HaxeAddFilesTemplate(base = "hx", value = {
@@ -72,19 +75,28 @@ public class Object {
 		return System.identityHashCode(this);
 	}
 
+	@SuppressWarnings("SuspiciousSystemArraycopy")
 	@JTranscKeep
 	@JTranscMethodBody(target = "js", value = "return N.clone(this);")
 	protected Object clone() throws CloneNotSupportedException {
-		// @TODO: This is slow! We could override this at code gen knowing all the fields and with generated code to generate them.
-		try {
-			Class<?> clazz = this.getClass();
-			Object newObject = clazz.newInstance();
-			for (Field field : clazz.getDeclaredFields()) {
-				field.set(newObject, field.get(this));
+		if (JTranscCoreReflection.isArray(this)) {
+			int len = Array.getLength(this);
+			Object o = Array.newInstance(this.getClass().getComponentType(), len);
+			//noinspection SuspiciousSystemArraycopy
+			System.arraycopy(this, 0, o, 0, len);
+			return o;
+		} else {
+			// @TODO: This is slow! We could override this at code gen knowing all the fields and with generated code to generate them.
+			try {
+				Class<?> clazz = this.getClass();
+				Object newObject = clazz.newInstance();
+				for (Field field : clazz.getDeclaredFields()) {
+					field.set(newObject, field.get(this));
+				}
+				return newObject;
+			} catch (Throwable e) {
+				throw new CloneNotSupportedException(e.toString());
 			}
-			return newObject;
-		} catch (Throwable e) {
-			throw new CloneNotSupportedException(e.toString());
 		}
 	}
 

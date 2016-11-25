@@ -314,17 +314,20 @@ public class BasicTypesTest {
 		System.out.println("compareNans:");
 		float[] floats = new float[]{0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN};
 		double[] doubles = new double[]{0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN};
+		System.out.println("compareNans.float:");
 		for (float l : floats) {
 			System.out.print(l + ": ");
 			for (float r : floats) System.out.print(", " + Float.compare(l, r));
 			System.out.println();
 		}
+		System.out.println("compareNans.double:");
 		for (double l : doubles) {
 			System.out.print(l + ": ");
 			for (double r : doubles) System.out.print(", " + Double.compare(l, r));
 			System.out.println();
 		}
 		float[] floats2 = new float[] {-360f, -180f, 0f, 1f, 180f, 360f};
+		System.out.println("floats2 variable comparisons:");
 		for (double l : floats2) {
 			System.out.println(l + ": ");
 			for (double r : doubles) System.out.print(", " + (l < r));
@@ -336,6 +339,7 @@ public class BasicTypesTest {
 			for (double r : doubles) System.out.print(", " + (l != r));
 			System.out.println();
 		}
+		System.out.println("floats2 constant comparisons:");
 		for (double l : floats2) {
 			System.out.println(l + ": ");
 			System.out.print(", " + (l < 180f));
@@ -347,6 +351,7 @@ public class BasicTypesTest {
 			System.out.print(", " + (l != 0f));
 			System.out.println();
 		}
+		System.out.println("Reinterprets:");
 		System.out.println(Float.floatToIntBits(1f));
 		System.out.println(Float.floatToRawIntBits(1f));
 		System.out.println(Double.doubleToLongBits(1.0));

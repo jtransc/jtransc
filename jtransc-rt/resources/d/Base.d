@@ -3,7 +3,10 @@
 import std.conv;
 import std.algorithm;
 import std.stdio;
+import std.datetime;
 import core.stdc.string;
+import core.thread;
+import core.time;
 import std.math;
 import std.random;
 
@@ -71,11 +74,11 @@ class JA_I : JA_Template!(int) {
 	}
 }
 
-class JA_Z : JA_Template!(bool) {
-	this(int len) { super(len, "[Z"); }
-}
 class JA_B : JA_Template!(byte) {
-	this(int len) { super(len, "[B"); }
+	this(int len, wstring desc = "[B") { super(len, desc); }
+}
+class JA_Z : JA_B {
+	this(int len) { super(len, "[Z"); }
 }
 class JA_S : JA_Template!(short) {
 	this(int len) { super(len, "[S"); }
@@ -96,14 +99,15 @@ class JA_D : JA_Template!(double) {
 class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 	this(int len, wstring desc) { super(len, desc); }
 
-	static JA_L createMultiSure(int[] sizes, wstring desc) {
+	static JA_0 createMultiSure(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;
-		if (sizes.length == 1) return cast(JA_L)(JA_L.create(sizes[0], desc));
-		auto o = new JA_L(sizes[0], desc);
+		if (sizes.length == 1) return JA_L.create(sizes[0], desc);
+		int len = sizes[0];
+		auto o = new JA_L(len, desc);
 		auto sizes2 = sizes[1..$];
 		auto desc2 = desc[1..$];
-		for (auto n = 0; n < o.length; n++) {
-			o.set(n, JA_L.createMultiSure(sizes2, desc2));
+		for (auto n = 0; n < len; n++) {
+			o[n] = JA_L.createMultiSure(sizes2, desc2);
 		}
 		return o;
 	}
@@ -132,7 +136,11 @@ class WrappedThrowable : Throwable {
 }
 
 class N {
-	static immutable public int MIN_INT32 = -2147483648;
+	//static immutable public int MIN_INT32 = -2147483648;
+	static immutable public int MIN_INT32 = 0x80000000;
+	static immutable public int MAX_INT32 = 0x7FFFFFFF;
+	static immutable public long MIN_INT64 = 0x8000000000000000L;
+	static immutable public long MAX_INT64 = 0x7FFFFFFFFFFFFFFFL;
 
 	static public {% CLASS java.lang.Class %} resolveClass(wstring name) {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
@@ -155,20 +163,18 @@ class N {
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
 
-	static public int l2i(long v) { return to!int(v); }
-	static public double l2d(long v) { return to!double(v); }
+	static public int l2i(long v) { return cast(int)(v); }
+	static public double l2d(long v) { return cast(double)(v); }
 
 	static public long i2l(int v) { return v; }
 	static public long i2j(int v) { return v; }
 
-	static public long f2j(float v) { return to!long(v); }
-	static public long d2j(double v) { return to!long(v); }
+	static public long f2j(float v) { return cast(long)(v); }
+	static public long d2j(double v) { return cast(long)(v); }
 
 	static public long ladd(long l, long r) { return l + r; }
 	static public long lsub(long l, long r) { return l - r; }
 	static public long lmul(long l, long r) { return l * r; }
-	static public long ldiv(long l, long r) { return l / r; }
-	static public long lrem(long l, long r) { return l % r; }
 	static public long lxor(long l, long r) { return l ^ r; }
 	static public long lor (long l, long r) { return l | r; }
 	static public long land(long l, long r) { return l & r; }
@@ -181,30 +187,25 @@ class N {
 	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(a)) ? (-1) : N.cmp(a, b); }
 	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(a)) ? (+1) : N.cmp(a, b); };
 
-	static public bool   unboxBool({% CLASS java.lang.Boolean %} i) { throw new Throwable("unboxBool"); }
-	static public byte   unboxByte({% CLASS java.lang.Byte %} i) { throw new Throwable("unboxByte"); }
-	static public char   unboxChar({% CLASS java.lang.Character %} i) { throw new Throwable("unboxChar"); }
-	static public short  unboxShort({% CLASS java.lang.Short %} i) { throw new Throwable("unboxShort"); }
-	static public int    unboxInt({% CLASS java.lang.Integer %} i) { throw new Throwable("unboxInt"); }
-	static public long   unboxLong({% CLASS java.lang.Long %} i) { throw new Throwable("unboxLong"); }
-	static public float  unboxFloat({% CLASS java.lang.Float %} i) { throw new Throwable("unboxFloat"); }
-	static public double unboxDouble({% CLASS java.lang.Double %} i) { throw new Throwable("unboxDouble"); }
+	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% SMETHOD java.lang.Boolean:booleanValue %}(); }
+	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% SMETHOD java.lang.Byte:byteValue %}(); }
+	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% SMETHOD java.lang.Short:shortValue %}(); }
+	static public wchar  unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% SMETHOD java.lang.Character:charValue %}(); }
+	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% SMETHOD java.lang.Integer:intValue %}(); }
+	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% SMETHOD java.lang.Long:longValue %}(); }
+	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% SMETHOD java.lang.Float:floatValue %}(); }
+	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% SMETHOD java.lang.Double:doubleValue %}(); }
 
 
-	static public {% CLASS java.lang.Boolean %}   boxBool  (bool   i) { throw new Throwable("unboxBool"); }
-	static public {% CLASS java.lang.Byte %}      boxByte  (byte   i) { throw new Throwable("unboxByte"); }
-	static public {% CLASS java.lang.Character %} boxChar  (char   i) { throw new Throwable("unboxChar"); }
-	static public {% CLASS java.lang.Short %}     boxShort (short  i) { throw new Throwable("unboxShort"); }
-	static public {% CLASS java.lang.Integer %}   boxInt   (int    i) { throw new Throwable("unboxInt"); }
-
-	static public {% CLASS java.lang.Boolean %}   boxBool  (int    i) { throw new Throwable("unboxBool"); }
-	static public {% CLASS java.lang.Byte %}      boxByte  (int    i) { throw new Throwable("unboxByte"); }
-	static public {% CLASS java.lang.Character %} boxChar  (int    i) { throw new Throwable("unboxChar"); }
-	static public {% CLASS java.lang.Short %}     boxShort (int    i) { throw new Throwable("unboxShort"); }
-
-	static public {% CLASS java.lang.Long %}      boxLong  (long   i) { throw new Throwable("unboxLong"); }
-	static public {% CLASS java.lang.Float %}     boxFloat (float  i) { throw new Throwable("unboxFloat"); }
-	static public {% CLASS java.lang.Double %}    boxDouble(double i) { throw new Throwable("unboxDouble"); }
+	static public {% CLASS java.lang.Object %}    boxVoid  (        ) { return null; }
+	static public {% CLASS java.lang.Boolean %}   boxBool  (bool   v) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
+	static public {% CLASS java.lang.Byte %}      boxByte  (byte   v) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
+	static public {% CLASS java.lang.Short %}     boxShort (short  v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
+	static public {% CLASS java.lang.Character %} boxChar  (wchar  v) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
+	static public {% CLASS java.lang.Integer %}   boxInt   (int    v) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(v); }
+	static public {% CLASS java.lang.Long %}      boxLong  (long   v) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
+	static public {% CLASS java.lang.Float %}     boxFloat (float  v) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }
+	static public {% CLASS java.lang.Double %}    boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
 
 	static public void arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dst, int dstPos, int length) {
 		JA_0.copy(cast(JA_0)src, srcPos, cast(JA_0)dst, dstPos, length);
@@ -223,8 +224,45 @@ class N {
 		return o;
 	}
 
+	static public int idiv(int a, int b) {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0;
+    	if (a == N.MIN_INT32 && b == -1) return N.MIN_INT32;
+    	return a / b;
+    }
+
+    static public int irem(int a, int b) {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0;
+    	if (a == N.MIN_INT32 && b == -1) return 0;
+    	return a % b;
+    }
+
+    static public long ldiv(long a, long b) {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0;
+    	if (a == N.MIN_INT64 && b == -1) return N.MIN_INT64;
+    	return a / b;
+    }
+    static public long lrem(long a, long b) {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0;
+    	if (a == N.MIN_INT64 && b == -1) return 0;
+    	return a % b;
+    }
+
 	static public void init() {
 		//writefln("INIT FROM D!");
+	}
+
+	static public long nanoTime() {
+		return (MonoTime.currTime.ticks() * 1000000000) / MonoTime.ticksPerSecond;
+	}
+
+	static public long currentTimeMillis() {
+		auto start = SysTime(DateTime(1970, 1, 1)).stdTime / 10000;
+		auto now = Clock.currTime.stdTime / 10000;
+		return now - start;
 	}
 }
 

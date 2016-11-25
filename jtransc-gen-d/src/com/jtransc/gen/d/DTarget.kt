@@ -117,7 +117,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("N.init();")
 			line(buildStaticInit(entryPointFqName))
 			val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
-			line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+			line(buildMethod(mainMethod, static = true) + "(N.strArray(args[1..$]));")
 			line("return 0;")
 		}
 	}
@@ -219,11 +219,15 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun N_i(str: String) = "(to!int($str))"
-	override fun N_f2i(str: String) = "(to!int($str))"
-	override fun N_d2i(str: String) = "(to!int($str))"
+	//override fun N_i(str: String) = "(cast(int)($str))"
+	override fun N_i(str: String) = "($str)"
+	override fun N_f2i(str: String) = "(cast(int)($str))"
+	override fun N_d2i(str: String) = "(cast(int)($str))"
 	override fun N_c_eq(l: String, r: String) = "($l is $r)"
 	override fun N_c_ne(l: String, r: String) = "($l !is $r)"
+
+	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
+	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
 
 	override fun N_lnew(value: Long): String = when (value) {
 		Long.MIN_VALUE -> "(cast(long)(0x8000000000000000LU))"
