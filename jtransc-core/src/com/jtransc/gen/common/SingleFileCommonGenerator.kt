@@ -5,6 +5,6 @@ import com.jtransc.vfs.SyncVfsFile
 
 open class SingleFileCommonGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun writeProgram(output: SyncVfsFile) {
-		output[outputFileBaseName] = genClasses().toString()
+		output[outputFileBaseName] = genClasses(output).toString()
 	}
 }

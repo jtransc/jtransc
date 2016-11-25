@@ -44,6 +44,7 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
+@JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 public class Object {
 	static private int $$lastId = 0;
 	public int $$id;

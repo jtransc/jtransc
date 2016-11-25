@@ -48,7 +48,7 @@ class JsTest : Base() {
 		JTranscWidgets.Component(3:text).setText('Hello World')
 		JTranscWidgets.Component(1:label).setParent(JTranscWidgets.Component(0:frame))
 		JTranscWidgets.Component(0:frame).setVisible(true)
-	""", minimize = true, target = JsTarget())
+	""", minimize = false, target = JsTarget())
 
 	@Test fun extraKeywordsJs() = testNativeClass<ExtraKeywordsTest>("""
 		1

@@ -92,44 +92,11 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	@Suppress("UNCHECKED_CAST")
 	override fun writeProgram(output: SyncVfsFile) {
-		val resourcesVfs = program.resourcesVfs
-		val copyFiles = getFilesToCopy("js")
-
-		data class ConcatFile(val prepend: String?, val append: String?)
-		class CopyFile(val content: ByteArray, val dst: String, val isAsset: Boolean)
-
-		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {
-			val file = resourcesVfs[it.src]
-			if (it.process) {
-				CopyFile(file.readString().template("copyfile").toByteArray(), it.dst, it.isAsset)
-			} else {
-				CopyFile(file.read(), it.dst, it.isAsset)
-			}
-		}
-
-		// Copy assets
-		folders.copyAssetsTo(output)
-		for (file in copyFilesTrans) {
-			output[file.dst].ensureParentDir().write(file.content)
-		}
-
-		params["assetFiles"] = (params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
-
-		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
-			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
-			val prependAppendParts = prependAppend?.split("/* ## BODY ## */")
-
-			val prepend = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[0] else if (it.prepend.isNotEmpty()) (resourcesVfs[it.prepend].readString() + "\n") else null
-			val append = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[1] else if (it.append.isNotEmpty()) (resourcesVfs[it.append].readString() + "\n") else null
-
-			fun process(str: String?): String? = if (it.process) str?.template("includeFile") else str
-
-			ConcatFile(process(prepend), process(append))
-		}
+		val concatFilesTrans = copyFiles(output)
 
 		val classesIndenter = arrayListOf<Indenter>()
 
-		classesIndenter += genClasses()
+		classesIndenter += genClassesWithoutAppends(output)
 
 		val SHOW_SIZE_REPORT = true
 		if (SHOW_SIZE_REPORT) {
@@ -169,10 +136,14 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		val out = Indenter.gen {
 			if (settings.debug) line("//# sourceMappingURL=program.js.map")
-			for (f in concatFilesTrans) if (f.prepend != null) line(f.prepend)
+			line(concatFilesTrans.prepend)
+			//line("// [1]")
 			line(strs.toString())
+			//line("// [2]")
 			for (indent in classesIndenter) line(indent)
+			//line("// [3]")
 			val mainClassClass = program[mainClassFq]
+			//line("// [4]")
 
 			line("__createJavaArrays();")
 			line("__buildStrings();")
@@ -181,7 +152,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = buildMethod(mainMethod2, static = true)
 			line("$mainCall(N.strArray(N.args()));")
-			for (f in concatFilesTrans.reversed()) if (f.append != null) line(f.append)
+			line(concatFilesTrans.append)
 		}
 
 		val sources = Allocator<String>()
@@ -227,12 +198,12 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun genBodyLocals(locals: List<AstLocal>) = indent {
 		if (locals.isNotEmpty()) {
-			val vars = locals.map { local -> "${local.nativeName} = ${local.type.nativeDefaultString}" }.joinToString(", ")
+			val vars = locals.map { local -> "${local.targetName} = ${local.type.nativeDefaultString}" }.joinToString(", ")
 			line("var $vars;")
 		}
 	}
 
-	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.nativeName} = ${local.type.nativeDefaultString};") }
+	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.targetName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))

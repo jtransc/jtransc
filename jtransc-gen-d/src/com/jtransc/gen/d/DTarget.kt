@@ -10,6 +10,7 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
+import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
@@ -80,7 +81,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding
+	override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isClassOrInstanceInit
 
 	override fun N_is(a: String, b: String): String = "((cast($b)$a) != null)"
 
@@ -93,4 +94,51 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val LongType = "long"
 
 	override val FqName.targetSimpleName: String get() = this.targetName
+
+	override fun N_c(str: String, from: AstType, to: AstType) = "(cast(${to.targetName})($str))"
+
+	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(cast($BaseArrayType)${e.array.genNotNull()}).length"
+	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
+
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+		line("static public void SI()") {
+			genSIMethodBody(clazz)
+		}
+	}
+
+	//override fun N_c_eq(l: String, r: String): String {
+	//	if (r == "null") {
+	//		return "($l is null)"
+	//	} else {
+	//		return "($l == $r)"
+	//	}
+	//}
+	//override fun N_c_ne(l: String, r: String): String {
+	//	if (r == "null") {
+	//		return "($l !is null)"
+	//	} else {
+	//		return "($l != $r)"
+	//	}
+	//}
+
+	/*
+	override fun N_obj_eq(l: String, r: String): String {
+		if (r == "null") {
+			return "($l is null)"
+		} else {
+			return "($l == $r)"
+		}
+	}
+	override fun N_obj_ne(l: String, r: String): String {
+		if (r == "null") {
+			return "($l !is null)"
+		} else {
+			return "($l != $r)"
+		}
+	}
+	*/
+
+	override fun N_c_eq(l: String, r: String) = "($l is $r)"
+	override fun N_c_ne(l: String, r: String) = "($l !is $r)"
+
 }

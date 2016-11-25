@@ -337,7 +337,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
 
-	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.nativeName}: ${local.type.targetName} = ${local.type.nativeDefaultString};") }
+	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.targetName}: ${local.type.targetName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))

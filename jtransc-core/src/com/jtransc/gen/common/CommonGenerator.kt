@@ -105,7 +105,15 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
-	open fun genClasses(): Indenter = Indenter.gen {
+	open fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+		val concatFilesTrans = copyFiles(output)
+
+		line(concatFilesTrans.prepend)
+		line(genClassesWithoutAppends(output))
+		line(concatFilesTrans.append)
+	}
+
+	open fun genClassesWithoutAppends(output: SyncVfsFile): Indenter = Indenter.gen {
 		for (clazz in sortedClasses) {
 			val indenter = if (clazz.implCode != null) Indenter(clazz.implCode!!) else genClass(clazz)
 			indenterPerClass[clazz] = indenter
@@ -132,20 +140,30 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
 		for (f in clazz.fields) line(genField(f))
 		for (m in clazz.methods) line(genMethod(m, !clazz.isInterface))
+		line(genSIMethod(clazz))
+	}
+
+	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+		line(genSIMethodBody(clazz))
+	}
+
+	open fun genSIMethodBody(clazz: AstClass): Indenter = Indenter.gen {
 	}
 
 	open fun genField(field: AstField): Indenter = Indenter.gen {
-		line("${field.type.targetName} ${field.targetName};")
+		val istatic = if (field.isStatic) "static " else ""
+		line("$istatic${field.type.targetName} ${field.targetName};")
 	}
 
 	open fun genMetodDecl(method: AstMethod): String {
-		val methodType = method.methodType
-
+		val args = method.methodType.args.map { it.argDecl }
 		val override = if (method.targetIsOverriding) "override " else ""
 		val istatic = if (method.isStatic) "static " else ""
-		val decl = "$istatic$override${methodType.ret.targetName} ${method.targetName}()"
-		return decl
+
+		return "$istatic$override${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
 	}
+
+	open val AstMethod.actualRetType: AstType get() = if (this.isInstanceInit) this.containingClass.astType else this.methodType.ret
 
 	open fun genMethod(method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
 		context.method = method
@@ -155,6 +173,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			line(decl) {
 				if (method.body != null) {
 					line(method.body!!.genBody())
+					if (method.isInstanceInit) line("return this;")
 				} else {
 					line("throw \"Missing body\";")
 				}
@@ -330,6 +349,51 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun getFilesToCopy(target: String) = program.classes.flatMap { it.annotationsList.getTargetAddFiles(target) }.sortedBy { it.priority }
 
+	data class ConcatFile(val prepend: String?, val append: String?)
+	class CopyFile(val content: ByteArray, val dst: String, val isAsset: Boolean)
+
+	class PrependAppend(val prepend: String, val append: String)
+
+	fun copyFiles(output: SyncVfsFile): PrependAppend {
+		val resourcesVfs = program.resourcesVfs
+		val copyFiles = getFilesToCopy(targetName.name)
+
+		//println(copyFiles)
+		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {
+			val file = resourcesVfs[it.src]
+			if (it.process) {
+				CopyFile(file.readString().template("copyfile").toByteArray(), it.dst, it.isAsset)
+			} else {
+				CopyFile(file.read(), it.dst, it.isAsset)
+			}
+		}
+
+		// Copy assets
+		folders.copyAssetsTo(output)
+		for (file in copyFilesTrans) {
+			output[file.dst].ensureParentDir().write(file.content)
+		}
+
+		params["assetFiles"] = (params["assetFiles"] as List<SyncVfsFile>) + copyFilesTrans.map { output[it.dst] }
+
+		val concatFilesTrans = copyFiles.filter { it.append.isNotEmpty() || it.prepend.isNotEmpty() || it.prependAppend.isNotEmpty() }.map {
+			val prependAppend = if (it.prependAppend.isNotEmpty()) (resourcesVfs[it.prependAppend].readString() + "\n") else null
+			val prependAppendParts = prependAppend?.split("/* ## BODY ## */")
+
+			val prepend = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[0] else if (it.prepend.isNotEmpty()) (resourcesVfs[it.prepend].readString() + "\n") else null
+			val append = if (prependAppendParts != null && prependAppendParts.size >= 2) prependAppendParts[1] else if (it.append.isNotEmpty()) (resourcesVfs[it.append].readString() + "\n") else null
+
+			fun process(str: String?): String? = if (it.process) str?.template("includeFile") else str
+
+			ConcatFile(process(prepend), process(append))
+		}
+
+		return PrependAppend(
+			concatFilesTrans.map { it.prepend }.filterNotNull().joinToString("\n"),
+			concatFilesTrans.map { it.append }.filterNotNull().reversed().joinToString("\n")
+		)
+	}
+
 	fun AstExpr.genNotNull(): String = genExpr2(this)
 
 	fun AstBody.genBody(): Indenter = genBody2(this)
@@ -393,7 +457,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		refs.add(stm.target)
 		val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
 		val className = stm.target.targetName
-		val targetLocalName = stm.local.nativeName
+		val targetLocalName = stm.local.targetName
 
 		if (newClazz.nativeName != null) {
 			line("$targetLocalName = new $className($commaArgs);")
@@ -414,7 +478,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val AstType.localDeclType: String get() = this.targetName
 
-	open fun localDecl(local: AstLocal) = "${local.type.localDeclType} ${local.nativeName}"
+	open fun localDecl(local: AstLocal) = "${local.type.localDeclType} ${local.targetName}"
+	open val AstArgument.argDecl: String get() = "${this.type.localDeclType} ${this.targetName}"
 
 	open fun genStmSetFieldStatic(stm: AstStm.SET_FIELD_STATIC): Indenter = indent {
 		refs.add(stm.clazz)
@@ -741,8 +806,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genExprParam(e: AstExpr.PARAM) = e.argument.nativeName
-	open fun genExprLocal(e: AstExpr.LOCAL) = e.local.nativeName
+	open fun genExprParam(e: AstExpr.PARAM) = e.argument.targetName
+	open fun genExprLocal(e: AstExpr.LOCAL) = e.local.targetName
 
 	open fun genStmLine(stm: AstStm.LINE) = indent {
 		mark(stm)
@@ -761,8 +826,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
 	open fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("// MONITOR_EXIT") }
-	open fun genStmThrow(stm: AstStm.THROW) = indent { line("throw ${stm.value.genExpr()};") }
-	open fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
+	open fun genStmThrow(stm: AstStm.THROW) = Indenter("throw ${stm.value.genExpr()};")
+	open fun genStmRethrow(stm: AstStm.RETHROW) = Indenter("""throw J__i__exception__;""")
 	open fun genStmStms(stm: AstStm.STMS) = indent { for (s in stm.stms) line(s.genStm()) }
 	open fun genStmExpr(stm: AstStm.STM_EXPR) = Indenter.single("${stm.expr.genExpr()};")
 	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID) = Indenter.single(if (context.method.methodVoidReturnThis) "return this;" else "return;")
@@ -785,7 +850,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val allowAssignItself = false
 
 	open fun genStmSetLocal(stm: AstStm.SET_LOCAL) = indent {
-		val localName = stm.local.nativeName
+		val localName = stm.local.targetName
 		val expr = stm.expr.genExpr()
 		if (allowAssignItself || localName != expr) {
 			// Avoid: Assigning a value to itself
@@ -1420,7 +1485,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Local names
 	//////////////////////////////////////////////////
 
-	open val LocalParamRef.nativeName: String get() = normalizeName(this.name)
+	open val LocalParamRef.targetName: String get() = normalizeName(this.name)
 
 	//////////////////////////////////////////////////
 	// Class names

@@ -630,7 +630,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun genBodyLocal(local: AstLocal): Indenter = indent {
-		line("${local.type.cppString} ${local.nativeName} = ${local.type.nativeDefaultString};")
+		line("${local.type.cppString} ${local.targetName} = ${local.type.nativeDefaultString};")
 	}
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()}.get())->length"

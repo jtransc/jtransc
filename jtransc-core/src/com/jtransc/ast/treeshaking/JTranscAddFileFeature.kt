@@ -6,7 +6,9 @@ import com.jtransc.gen.TargetName
 
 fun AstAnnotationList.getTargetAddFiles(target: String): List<JTranscAddFile> {
 	return getTypedList(com.jtransc.annotation.JTranscAddFileList::value)
-		.filter { TargetName.matches(it.target, target) }
+		.filter {
+			TargetName.matches(it.target, target)
+		}
 }
 
 fun JTranscAddFile.filesToProcess(): List<String> {
