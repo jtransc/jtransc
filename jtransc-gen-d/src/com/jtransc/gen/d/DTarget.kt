@@ -10,6 +10,8 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
+import com.jtransc.lang.high
+import com.jtransc.lang.low
 import com.jtransc.text.Indenter
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
@@ -55,6 +57,9 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		"out"
 	)
 
+	override val languageRequiresDefaultInSwitch = true
+	override val defaultGenStmSwitchHasBreaks = true
+
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return DCompiler.genCommand(programFile, debug, libs)
 	}
@@ -83,7 +88,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isClassOrInstanceInit
 
-	override fun N_is(a: String, b: String): String = "((cast($b)$a) != null)"
+	override fun N_is(a: String, b: String): String = "((cast($b)$a) !is null)"
 
 	override val NullType = "Object"
 	override val VoidType = "void"
@@ -106,39 +111,19 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	//override fun N_c_eq(l: String, r: String): String {
-	//	if (r == "null") {
-	//		return "($l is null)"
-	//	} else {
-	//		return "($l == $r)"
-	//	}
-	//}
-	//override fun N_c_ne(l: String, r: String): String {
-	//	if (r == "null") {
-	//		return "($l !is null)"
-	//	} else {
-	//		return "($l != $r)"
-	//	}
-	//}
-
-	/*
-	override fun N_obj_eq(l: String, r: String): String {
-		if (r == "null") {
-			return "($l is null)"
-		} else {
-			return "($l == $r)"
-		}
-	}
-	override fun N_obj_ne(l: String, r: String): String {
-		if (r == "null") {
-			return "($l !is null)"
-		} else {
-			return "($l != $r)"
-		}
-	}
-	*/
-
+	override fun N_i(str: String) = "(to!int($str))"
+	override fun N_f2i(str: String) = "(to!int($str))"
+	override fun N_d2i(str: String) = "(to!int($str))"
 	override fun N_c_eq(l: String, r: String) = "($l is $r)"
 	override fun N_c_ne(l: String, r: String) = "($l !is $r)"
+
+	override fun N_lnew(value: Long): String = when (value) {
+		Long.MIN_VALUE -> "(cast(long)(0x8000000000000000LU))"
+		else -> "(cast(long)(${value}L))"
+	}
+
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+		line("throw new Throwable(\"Missing body\");")
+	}
 
 }

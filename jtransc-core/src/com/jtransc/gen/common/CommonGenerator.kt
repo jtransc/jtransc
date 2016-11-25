@@ -33,9 +33,12 @@ class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
 open class CommonGenerator(val injector: Injector) : IProgramTemplate {
+	// CONFIG
 	open val staticAccessOperator: String = "."
 	open val instanceAccessOperator: String = "."
 	open val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
+	open val languageRequiresDefaultInSwitch = false
+	open val defaultGenStmSwitchHasBreaks = true
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -175,12 +178,16 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					line(method.body!!.genBody())
 					if (method.isInstanceInit) line("return this;")
 				} else {
-					line("throw \"Missing body\";")
+					line(genMissingBody(method))
 				}
 			}
 		} else {
 			line("$decl;")
 		}
+	}
+
+	open fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+		line("throw \"Missing body\";")
 	}
 
 	open val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
@@ -535,7 +542,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
 	}
 
-	open val defaultGenStmSwitchHasBreaks = true
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
 		if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
 			line("switch (${stm.subject.genExpr()})") {
@@ -556,7 +562,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 						}
 					}
 				}
-				if (!stm.default.value.isEmpty()) {
+				if (languageRequiresDefaultInSwitch || !stm.default.value.isEmpty()) {
 					line("default:")
 					indent {
 						line(stm.default.genStm())
@@ -722,6 +728,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			}
 			else -> invalid()
 		}
+
 		return when (resultType) {
 			AstType.BOOL -> N_z2z(result)
 			AstType.BYTE -> N_i2b(result)

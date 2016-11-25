@@ -125,6 +125,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		"toString", "hashCode"
 	)
 	override val stringPoolType = StringPool.Type.PER_CLASS
+	override val defaultGenStmSwitchHasBreaks = false
 
 	val actualSubtarget = configHaxeAddSubtarget?.subtarget
 	//override val tempdir = configTargetDirectory.targetDirectory
@@ -236,8 +237,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
 		}
 	}
-
-	override val defaultGenStmSwitchHasBreaks = false
 
 	internal fun _write() {
 		val vfs = srcFolder
