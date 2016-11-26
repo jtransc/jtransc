@@ -212,7 +212,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('unknown');")
 	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");")
-	@JTranscMethodBody(target = "d", value = "return N.str(\"unknown\");")
+	@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());")
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}

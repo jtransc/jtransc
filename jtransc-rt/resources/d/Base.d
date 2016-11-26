@@ -9,6 +9,7 @@ import std.stdio;
 import std.datetime;
 import std.math;
 import std.random;
+import std.system;
 import core.stdc.string;
 import core.thread;
 import core.time;
@@ -281,6 +282,21 @@ class N {
 		auto start = SysTime(DateTime(1970, 1, 1)).stdTime / 10000;
 		auto now = Clock.currTime.stdTime / 10000;
 		return now - start;
+	}
+
+	static public string getOS() {
+		switch (std.system.os) {
+			case std.system.OS.win32: return "windows";
+			case std.system.OS.win64: return "windows-x64";
+			case std.system.OS.linux: return "linux";
+			case std.system.OS.osx: return "mac";
+			case std.system.OS.freeBSD: return "linux";
+			case std.system.OS.netBSD: return "linux";
+			case std.system.OS.solaris: return "linux";
+			case std.system.OS.android: return "android";
+			case std.system.OS.otherPosix: return "linux";
+			default: return "unknown";
+		}
 	}
 }
 
