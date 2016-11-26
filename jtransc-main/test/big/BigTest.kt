@@ -10,6 +10,7 @@ import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
 import javatest.lang.SystemTest
+import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
 import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
@@ -40,6 +41,7 @@ object BigTest {
 		//KotlinInheritanceTest.main(args)
 		SimdTest.main(args)
 		MiscTest.main(args)
+		BenchmarkTest.main(args);
 
 		// Suite tests
 		JTranscBugWithStaticInits.main(args)

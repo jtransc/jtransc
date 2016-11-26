@@ -30,5 +30,5 @@ dependencies {
 }
 
 jtransc {
-	//treeshaking = true
+	treeshaking = true
 }

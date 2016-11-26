@@ -85,11 +85,6 @@ public class JTranscSystem {
 		//throw new Error("Debugger");
 	}
 
-	/**
-	 * Assertion for debug builds
-	 *
-	 * @param trueCond
-	 */
 	@JTranscInline
 	@HaxeMethodBody("if (!p0) N.debugger();")
 	@JTranscMethodBody(target = "js", value = "if (!p0) debugger;")

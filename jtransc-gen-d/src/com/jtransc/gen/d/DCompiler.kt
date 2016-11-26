@@ -23,7 +23,7 @@ object DCompiler {
 				//return listOf(cmd!!, "-debug", "-gc", "-gx", programFile.absolutePath)
 				return listOf(cmd!!, "-debug", programFile.absolutePath)
 			} else {
-				return listOf(cmd!!, "-release", "-O", "-o-", programFile.absolutePath)
+				return listOf(cmd!!, "-release", "-O", programFile.absolutePath)
 			}
 		}
 	}

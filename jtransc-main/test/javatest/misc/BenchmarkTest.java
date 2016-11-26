@@ -1,17 +1,14 @@
-import com.jtransc.compression.jzlib.*;
-import com.jtransc.simd.MutableFloat32x4;
+package javatest.misc;
+
 import com.jtransc.simd.Float32x4;
+import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.MutableMatrixFloat32x4x4;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.Random;
-import java.util.zip.*;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 
-@SuppressWarnings("Convert2Lambda")
-public class Benchmark {
+public class BenchmarkTest {
 	interface Task {
 		int run();
 	}
@@ -23,15 +20,15 @@ public class Benchmark {
 	}
 
 	static public void main(String[] args) {
-		System.out.println("JTransc " + com.jtransc.JTranscVersion.getVersion() + " - " + com.jtransc.JTranscSystem.getRuntimeKind());
-		System.out.println("Java " + System.getProperty("java.version"));
+		//System.out.println("JTransc " + com.jtransc.JTranscVersion.getVersion() + " - " + com.jtransc.JTranscSystem.getRuntimeKind());
+		//System.out.println("Java " + System.getProperty("java.version"));
 		System.out.println("Benchmarking:");
 
 		benchmark("plain loops", new Task() {
 			@Override
 			public int run() {
 				int m = 0;
-				for (int n = 0; n < 1000000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					m += n;
 				}
 				return m;
@@ -42,7 +39,7 @@ public class Benchmark {
 			@Override
 			public int run() {
 				int m = 0;
-				for (int n = 0; n < 1000000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					m += calc(m, n);
 				}
 				return m;
@@ -53,7 +50,7 @@ public class Benchmark {
 			@Override
 			public int run() {
 				int m = 0;
-				for (int n = 0; n < 1000000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					m += calc(m, n);
 				}
 				return m;
@@ -68,7 +65,7 @@ public class Benchmark {
 			@Override
 			public int run() {
 				int m = 1;
-				for (int n = 1; n < 1000000; n++) {
+				for (int n = 1; n < 100000; n++) {
 					m += calc(m, n);
 				}
 				return m;
@@ -87,7 +84,7 @@ public class Benchmark {
 				int rand = rand(2);
 				Object test1 = genObj((rand + 0) % 2);
 				Object test2 = genObj((rand + 1) % 2);
-				for (int n = 1; n < 1000000; n++) {
+				for (int n = 1; n < 100000; n++) {
 					if (test1 instanceof Test1) {
 						m += n - 1;
 					} else if (test1 instanceof Test2) {
@@ -119,8 +116,8 @@ public class Benchmark {
 		benchmark("write int[]", new Task() {
 			@Override
 			public int run() {
-				int[] array = new int[1000000];
-				for (int n = 0; n < 1000000; n++) {
+				int[] array = new int[100000];
+				for (int n = 0; n < 100000; n++) {
 					array[n] = n * 1000;
 				}
 				return (int) array[7];
@@ -130,8 +127,8 @@ public class Benchmark {
 		benchmark("write float[]", new Task() {
 			@Override
 			public int run() {
-				float[] array = new float[1000000];
-				for (int n = 0; n < 1000000; n++) {
+				float[] array = new float[100000];
+				for (int n = 0; n < 100000; n++) {
 					array[n] = n * 1000;
 				}
 				return (int) array[7];
@@ -143,7 +140,7 @@ public class Benchmark {
 			public int run() {
 				StringBuilder out = new StringBuilder();
 
-				for (int n = 0; n < 100000; n++) {
+				for (int n = 0; n < 10000; n++) {
 					out.append(n);
 				}
 
@@ -156,7 +153,7 @@ public class Benchmark {
 			public int run() {
 				long a = 0;
 
-				for (int n = 0; n < 10000; n++) {
+				for (int n = 0; n < 1000; n++) {
 					a = (17777L * (long)n) + a / 3;
 				}
 
@@ -170,7 +167,7 @@ public class Benchmark {
 				MutableFloat32x4 a = new MutableFloat32x4();
 				MutableFloat32x4 b = new MutableFloat32x4(2f, 3f, 4f, 5f);
 
-				for (int n = 0; n < 1000000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					a.setToAdd(a, b);
 				}
 
@@ -184,7 +181,7 @@ public class Benchmark {
 				Float32x4 a = Float32x4.create(0f, 0f, 0f, 0f);
 				Float32x4 b = Float32x4.create(2f, 3f, 4f, 5f);
 
-				for (int n = 0; n < 1000000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					a = Float32x4.add(a, b);
 				}
 
@@ -208,20 +205,20 @@ public class Benchmark {
 					2f, 3f, 4f, 5f
 				);
 
-				for (int n = 0; n < 100000; n++) {
+				for (int n = 0; n < 10000; n++) {
 					a.setToMul44(a, b);
 				}
 
 				return (int) a.getSumAll();
 			}
-        });
+		});
 
 
 		benchmark("StringBuilder", new Task() {
 			@Override
 			public int run() {
 				StringBuilder sb = new StringBuilder();
-				for (int n = 0; n < 100000; n++) {
+				for (int n = 0; n < 10000; n++) {
 					sb.append("hello");
 					sb.append('w');
 					sb.append("orld");
@@ -230,36 +227,11 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("Create Instances1", new Task() {
+		benchmark("Create Instances", new Task() {
 			@Override
 			public int run() {
 				int out = 0;
-				for (int n = 0; n < 100000; n++) {
-					MyClass myClass = new MyClass("test");
-					out += myClass.b;
-				}
-				return out;
-			}
-		});
-
-		benchmark("Create Instances2", new Task() {
-			@Override
-			public int run() {
-				int out = 0;
-				String s = "test";
-				for (int n = 0; n < 100000; n++) {
-					MyClass myClass = new MyClass(s);
-					out += myClass.b;
-				}
-				return out;
-			}
-		});
-
-		benchmark("Create Instances with builder", new Task() {
-			@Override
-			public int run() {
-				int out = 0;
-				for (int n = 0; n < 100000; n++) {
+				for (int n = 0; n < 10000; n++) {
 					MyClass myClass = new MyClass("test" + n);
 					out += myClass.b;
 				}
@@ -293,7 +265,7 @@ public class Benchmark {
 			public int run() {
 				int out = 0;
 				CRC32 crc32 = new CRC32();
-				for (int n = 0; n < 10000; n++) {
+				for (int n = 0; n < 1000; n++) {
 					crc32.reset();
 					crc32.update(hexData, 0, hexData.length);
 					out += crc32.getValue();
@@ -326,8 +298,8 @@ public class Benchmark {
 			public int run() {
 				try {
 					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
-					byte[] out = new byte[128 * 1024];
+					byte[] bytes = new byte[16 * 1024];
+					byte[] out = new byte[64 * 1024];
 					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
 					com.jtransc.compression.jzlib.Deflater deflater = new com.jtransc.compression.jzlib.Deflater(9, false);
@@ -347,8 +319,8 @@ public class Benchmark {
 			public int run() {
 				try {
 					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
-					byte[] out = new byte[128 * 1024];
+					byte[] bytes = new byte[16 * 1024];
+					byte[] out = new byte[64 * 1024];
 					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
 					Deflater deflater = new Deflater(9, false);
@@ -368,14 +340,14 @@ public class Benchmark {
 
 		try {
 			long t1 = System.nanoTime();
-			for (int n = 0; n < 10; n++) run.run(); // warming up
+			for (int n = 0; n < 1; n++) run.run(); // warming up
 			long t2 = System.nanoTime();
-			for (int n = 0; n < 10; n++) run.run();
+			for (int n = 0; n < 1; n++) run.run();
 			long t3 = System.nanoTime();
 			//System.out.println("( " + (t2 - t1) + " ) :: ( " + (t3 - t2) + " )");
 
 			//System.out.println((double)(t3 - t2) / 1000000.0);
-			System.out.println((double)(t3 - t2) / 1000000.0);
+			System.out.println("Ok");
 		} catch (Throwable t) {
 			System.out.println(t.getMessage());
 		}

@@ -109,8 +109,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		line("int TYPE_TABLE::count = $lastClassId;")
 		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
-			for (n in 0 until lastClassId) {
-				val clazz = program.classes[n]
+			for (clazz in program.classes) {
 				line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
 			}
 		}
@@ -166,10 +165,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	// @TODO: intelliJ BUG
-	val JTranscAddHeaderList_CLASS = JTranscAddHeaderList::class.java
-	val JTranscAddFileList_CLASS = JTranscAddFileList::class.java
-
 	override fun writeProgram(output: SyncVfsFile) {
 		val arrayTypes = listOf(
 			"JA_B" to "int8_t",
@@ -195,10 +190,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				for (includes in clazz.annotationsList.getTypedList(JTranscAddHeaderList::value).filter { it.target == "cpp" }) {
 					for (header in includes.value) line(header)
 				}
-				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }) {
-					if (files.prepend.isNotEmpty()) {
-						line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
-					}
+				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }.filter { it.prepend.isNotEmpty() }) {
+					line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
 				}
 			}
 		}
@@ -219,7 +212,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		val ARRAY_TYPES = Indenter.gen {
 			// {{ ARRAY_TYPES }}
-			for ((name, type) in arrayTypes) line("struct $name;")
+			for (name in arrayTypes.map { it.first }) line("struct $name;")
 		}
 
 		val ARRAY_HEADERS = Indenter.gen {
@@ -458,7 +451,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		line("struct ${clazz.cppName}${if (parts.isNotEmpty()) " : $parts " else " "} { public:")
 		indent {
-			JTranscAddMembersList::class.java // @TODO: Kotlin bug!
 			for (member in clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == "cpp" }.flatMap { it.value.toList() }) {
 				line(member)
 			}
@@ -567,7 +559,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
-	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java).toSet()
+	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java)
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		if (body.traps.isNotEmpty()) {
@@ -611,7 +603,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			val nonDefaultBodies = bodies.filterKeys { it != "" }
 			val defaultBody = bodies[""] ?: genJavaBody()
 
-			if (nonDefaultBodies.size > 0) {
+			if (nonDefaultBodies.isNotEmpty()) {
 				for ((cond, nbody) in nonDefaultBodies) {
 					line("#ifdef $cond")
 					indent {
@@ -631,13 +623,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun processCallArg(e: AstExpr, str: String): String {
-		return "((" + e.type.cppString + ")(" + str + "))"
-	}
-
-	override fun genBodyLocal(local: AstLocal): Indenter = indent {
-		line("${local.type.cppString} ${local.targetName} = ${local.type.nativeDefaultString};")
-	}
+	override fun processCallArg(e: AstExpr, str: String) = "((" + e.type.cppString + ")(" + str + "))"
+	override fun genBodyLocal(local: AstLocal) = Indenter("${local.type.cppString} ${local.targetName} = ${local.type.nativeDefaultString};")
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()}.get())->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
@@ -817,7 +804,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "${ObjectArrayType}${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
 	override fun genExprNew(e: AstExpr.NEW): String = "SOBJ(" + super.genExprNew(e) + ")"

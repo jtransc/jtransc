@@ -2,10 +2,12 @@ package jtransc.java8;
 
 public class DefaultMethodsTest {
 	static public void main(String[] args) {
+		System.out.println("DefaultMethodsTest.main:");
 		test1();
 	}
 
 	static private void test1() {
+		System.out.println("DefaultMethodsTest.test1:");
 		System.out.println(new MyImpl1().test());
 		System.out.println(new MyImpl2().test());
 		System.out.println(new MyImpl1b().test());

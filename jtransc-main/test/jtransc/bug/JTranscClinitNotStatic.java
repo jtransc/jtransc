@@ -2,6 +2,7 @@ package jtransc.bug;
 
 public class JTranscClinitNotStatic {
 	static public void main(String[] args) {
+		System.out.println("JTranscClinitNotStatic.main:");
 		System.out.println(Filter.DEFAULT_FILTER.isAllowed(null));
 		System.out.println(Filter.DEFAULT_FILTER.toString());
 	}

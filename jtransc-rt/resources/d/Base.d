@@ -1,6 +1,9 @@
-// https://github.com/jtransc/jtransc
+// JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
 
 import std.conv;
+import std.process;
+import std.file;
+import std.format;
 import std.algorithm;
 import std.stdio;
 import std.datetime;
@@ -10,17 +13,9 @@ import core.time;
 import std.math;
 import std.random;
 
-int slen(string s) {
-	return cast(int)s.length;
-}
-
-int slen(wstring s) {
-	return cast(int)s.length;
-}
-
-int alen(T)(T[] s) {
-	return cast(int)s.length;
-}
+int slen(string s) { return cast(int)s.length; }
+int slen(wstring s) { return cast(int)s.length; }
+int alen(T)(T[] s) { return cast(int)s.length; }
 
 abstract class JA_0 : {% CLASS java.lang.Object %} {
 	wstring desc;
@@ -147,18 +142,31 @@ class N {
 	}
 
 	static public {% CLASS java.lang.String %} str(wstring str) {
+		if (str is null) return null;
 		int len = slen(str);
 		auto array = new JA_C(len);
 		for (int n = 0; n < len; n++) array[n] = str[n];
 		return {% CONSTRUCTOR java.lang.String:([CII)V %}(array, 0, len);
 	}
 
-	static public {% CLASS java.lang.String %} str(string str) { return N.str(to!wstring(str)); }
-	static public {% CLASS java.lang.String %} strLitEscape(wstring str) { return N.str(str); }
+	static public {% CLASS java.lang.String %} str(string str) {
+		if (str is null) return null;
+		return N.str(to!wstring(str));
+	}
+
+	static public {% CLASS java.lang.String %} strLitEscape(wstring str) {
+		if (str is null) return null;
+		return N.str(str);
+	}
 
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
+		if (jstrObj is null) return null;
 		auto jstr = cast({% CLASS java.lang.String %})jstrObj;
 		return to!wstring(jstr.{% FIELD java.lang.String:value %}.data);
+	}
+
+	static public string istr2({% CLASS java.lang.Object %} jstrObj) {
+		return to!string(N.istr(jstrObj));
 	}
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
@@ -184,8 +192,8 @@ class N {
 	static public int  lcmp(long l, long r) { return (l < r) ? -1 : ((l > r) ? 1 : 0); }
 
 	static public int cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); }
-	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(a)) ? (-1) : N.cmp(a, b); }
-	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(a)) ? (+1) : N.cmp(a, b); };
+	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(b)) ? (-1) : N.cmp(a, b); }
+	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(b)) ? (+1) : N.cmp(a, b); };
 
 	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% SMETHOD java.lang.Boolean:booleanValue %}(); }
 	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% SMETHOD java.lang.Byte:byteValue %}(); }
@@ -256,7 +264,7 @@ class N {
 	}
 
 	static public long nanoTime() {
-		return (MonoTime.currTime.ticks() * 1000000000) / MonoTime.ticksPerSecond;
+		return Clock.currTime.stdTime * 100;
 	}
 
 	static public long currentTimeMillis() {
@@ -267,9 +275,7 @@ class N {
 }
 
 T ensureNotNull(T)(T v) {
-	debug {
-		if (v is null) throw new WrappedThrowable({% CONSTRUCTOR java.lang.NullPointerException:()V %});
-	}
+	if (v is null) throw new WrappedThrowable({% CONSTRUCTOR java.lang.NullPointerException:()V %});
 	return v;
 }
 

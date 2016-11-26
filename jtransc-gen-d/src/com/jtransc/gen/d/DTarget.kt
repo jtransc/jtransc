@@ -14,6 +14,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
+import com.jtransc.types.DEBUG
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
@@ -127,14 +128,14 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val interfaceMethods = clazz.allDirectInterfaces.flatMap { it.methods }
 		val actualMethods = (if (clazz.isInterface) directMethods else directMethods + interfaceMethods).filter { !it.isStatic }
 		for (rm in directMethods.filter { it.isStatic }) {
-			line(genMethod(rm, true))
+			line(genMethod(clazz, rm, true))
 		}
 		for (rm in actualMethods.map { clazz.getMethodInAncestors(it.ref.nameDesc) ?: invalidOp("Can't find method $it in $clazz ancestors") }.distinct()) {
 			// @TODO: HACK!
 			if (rm.containingClass != clazz) {
 				if (!rm.isOverriding) line("override")
 			}
-			line(genMethod(rm, !clazz.isInterface))
+			line(genMethod(clazz, rm, !clazz.isInterface))
 		}
 	}
 
@@ -270,5 +271,11 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val PositiveInfinityString = "double.infinity"
 	override val NanString = "double.nan"
 
-	override fun AstExpr.genNotNull(): String = "ensureNotNull(" + genExpr2(this) + ")"
+	override fun AstExpr.genNotNull(): String {
+		if (debugRelease) {
+			return "ensureNotNull(" + genExpr2(this) + ")"
+		} else {
+			return genExpr2(this)
+		}
+	}
 }

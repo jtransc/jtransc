@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 
+@SuppressWarnings({"WeakerAccess", "ForLoopReplaceableByForEach"})
 public class MiscTest {
 	static public int MY_GREAT_CONSTANT = 10;
 
@@ -126,6 +127,7 @@ public class MiscTest {
 		//testBasicTypes();
 
 		testTime();
+		testNanoTime();
 		testCrypto();
 		testFastMaps();
 
@@ -365,6 +367,19 @@ public class MiscTest {
 		long end = System.currentTimeMillis();
 		System.out.println(start >= 1460000000000L);
 		System.out.println((end - start) >= (100 - 1));
+	}
+
+	private void testNanoTime() {
+		System.out.println("testTime:");
+		long start = System.nanoTime();
+		try {
+			Thread.sleep(100L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		long end = System.nanoTime();
+		long elapsed = (end - start)  / 1000000L;
+		System.out.println(elapsed >= (100 - 1));
 	}
 
 	private void testCrypto() {

@@ -228,11 +228,11 @@ int N::cmp(double a, double b) {
 };
 
 int N::cmpl(double a, double b) {
-	return (std::isnan(a) || std::isnan(a)) ? (-1) : N::cmp(a, b);
+	return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b);
 };
 
 int N::cmpg(double a, double b) {
-	return (std::isnan(a) || std::isnan(a)) ? (+1) : N::cmp(a, b);
+	return (std::isnan(a) || std::isnan(b)) ? (+1) : N::cmp(a, b);
 };
 
 int32_t N::iushr(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> b); }

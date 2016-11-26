@@ -151,6 +151,9 @@ public class System {
 		"auto str = N::istr3(p0);",
 		"return N::str(std::getenv(str.c_str()));"
 	})
+	@JTranscMethodBody(target = "d", value = {
+		"return N.str(std.process.environment.get(N.istr2(p0)));",
+	})
 	public static String getenv(String name) {
 		return null;
 	}

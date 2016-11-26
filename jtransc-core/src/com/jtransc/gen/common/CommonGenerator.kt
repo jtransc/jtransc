@@ -3,6 +3,8 @@ package com.jtransc.gen.common
 import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
+import com.jtransc.JTranscVersion
+import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
@@ -53,6 +55,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val minimize: Boolean = configMinimizeNames?.minimizeNames ?: false
 
 	val settings: AstBuildSettings = injector.get()
+	val debugRelease: Boolean = settings.debug
 	val folders: CommonGenFolders = injector.get()
 
 	val configOutputFile: ConfigOutputFile = injector.get()
@@ -143,6 +146,10 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
+		for (member in clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == targetName.name }.flatMap { it.value.toList() }) {
+			line(member)
+		}
+
 		line(genClassBodyFields(clazz))
 		line(genClassBodyMethods(clazz))
 		line(genSIMethod(clazz))
@@ -153,7 +160,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassBodyMethods(clazz: AstClass): Indenter = Indenter.gen {
-		for (m in clazz.methods) line(genMethod(m, !clazz.isInterface))
+		for (m in clazz.methods) line(genMethod(clazz, m, !clazz.isInterface))
 	}
 
 	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
@@ -184,21 +191,28 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val AstMethod.actualRetType: AstType get() = if (this.isInstanceInit) this.containingClass.astType else this.methodType.ret
 
-	open fun genMethod(method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
+	open fun genMethod(clazz: AstClass, method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
 		context.method = method
 
 		val decl = genMetodDecl(method)
 		if (mustPutBody) {
 			line(decl) {
-				val native = method.nativeBodies
+				val actualMethod: AstMethod = if (method.bodyRef != null) {
+					// Default methods
+					method.bodyRef.resolve(program)
+				} else {
+					method
+				}
+
+				val native = actualMethod.nativeBodies
 				val defaultNativeBody = native[""]
 				if (defaultNativeBody != null) {
 					line(defaultNativeBody)
-				} else if (method.body != null) {
-					line(genBody2WithFeatures(method, method.body!!))
-					if (method.isInstanceInit) line("return this;")
+				} else if (actualMethod.body != null) {
+					line(genBody2WithFeatures(actualMethod, actualMethod.body!!))
+					if (actualMethod.isInstanceInit) line("return this;")
 				} else {
-					line(genMissingBody(method))
+					line(genMissingBody(actualMethod))
 				}
 			}
 		} else {
@@ -421,6 +435,10 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			concatFilesTrans.map { it.append }.filterNotNull().reversed().joinToString("\n")
 		)
 	}
+
+	//fun locateDefaultMethod(method: List<AstClass>) { sad ad ad as
+//
+	//}
 
 	open fun AstExpr.genNotNull(): String = genExpr2(this)
 
@@ -1311,7 +1329,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			"icon" to settings.icon,
 			"libraries" to settings.libraries,
 			"extra" to settings.extra,
-			"folders" to folders
+			"folders" to folders,
+			"JTRANSC_VERSION" to JTranscVersion.getVersion()
 		)
 	}
 

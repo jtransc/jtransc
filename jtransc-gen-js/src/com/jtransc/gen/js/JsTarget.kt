@@ -8,7 +8,6 @@ import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.Allocator
 import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
-import com.jtransc.error.unexpected
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
@@ -143,13 +142,9 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val out = Indenter.gen {
 			if (settings.debug) line("//# sourceMappingURL=program.js.map")
 			line(concatFilesTrans.prepend)
-			//line("// [1]")
 			line(strs.toString())
-			//line("// [2]")
 			for (indent in classesIndenter) line(indent)
-			//line("// [3]")
 			val mainClassClass = program[mainClassFq]
-			//line("// [4]")
 
 			line("__createJavaArrays();")
 			line("__buildStrings();")
@@ -355,7 +350,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
 					fun renderBranch(actualBody: Indenter?) = Indenter.gen {
-
 						if (actualBody != null) {
 							line("$prefix = function(${margs.joinToString(", ")})", after2 = ";") {
 								line(actualBody)
