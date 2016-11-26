@@ -17,5 +17,5 @@ include (
 	//'jtransc-main-run',
 	'jtransc-maven-plugin',
 	'jtransc-utils',
-	'benchmark',
+	//'benchmark',
 )
