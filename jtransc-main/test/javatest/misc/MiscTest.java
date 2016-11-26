@@ -93,6 +93,7 @@ public class MiscTest {
 		JTranscConsole.log("args:" + Arrays.toString(args));
 		JTranscConsole.log(true);
 		JTranscConsole.log(false);
+		testEmptyArrays();
 		testDefaultValues();
 		testDefaultValuesStatic();
 		testShifts();
@@ -874,6 +875,27 @@ public class MiscTest {
 	private static long seedUniquifier() {
 		return seedUniquifier = seedUniquifier * 181783497276652981L;
 		//return seedUniquifier = seedUniquifier * 1000L;
+	}
+
+	@SuppressWarnings("MismatchedReadAndWriteOfArray")
+	static private void testEmptyArrays() {
+		boolean[] v1 = new boolean[2];
+		byte[] v2 = new byte[2];
+		short[] v3 = new short[2];
+		char[] v4 = new char[2];
+		int[] v5 = new int[2];
+		long[] v6 = new long[2];
+		float[] v7 = new float[2];
+		double[] v8 = new double[2];
+		System.out.println("testEmptyArrays:");
+		System.out.println(v1[0]);
+		System.out.println(v2[0]);
+		System.out.println(v3[0]);
+		System.out.println(v4[0]);
+		System.out.println(v5[0]);
+		System.out.println(v6[0]);
+		System.out.println(v7[0]);
+		System.out.println(v8[0]);
 	}
 
 	static private void testArrays() {

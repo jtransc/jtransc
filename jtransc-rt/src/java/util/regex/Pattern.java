@@ -21,8 +21,9 @@ import regexodus.REFlags;
 import java.util.ArrayList;
 
 /**
- * Created by Tommy Ettinger on 6/7/2016.
+ * Tommy Ettinger : 6/7/2016.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class Pattern implements java.io.Serializable {
 	public static final int UNIX_LINES = 0x01;
 	public static final int CASE_INSENSITIVE = 0x02;
@@ -34,7 +35,7 @@ public final class Pattern implements java.io.Serializable {
 	public static final int CANON_EQ = 0x80;
 	public static final int UNICODE_CHARACTER_CLASS = 0x100;
 
-	public regexodus.Pattern internal;
+	public regexodus.Pattern i;
 
 	public static Pattern compile(String regex) {
 		return new Pattern(regex, 0);
@@ -50,8 +51,7 @@ public final class Pattern implements java.io.Serializable {
 	private Pattern(String pattern, int flags) {
 		this.pattern = pattern;
 		this.flags = flags;
-
-		internal = regexodus.Pattern.compile(pattern, convertFlags(flags));
+		this.i = regexodus.Pattern.compile(pattern, convertFlags(flags));
 	}
 
 	// @TODO: Maybe we could match flags to avoid conversion at all!
@@ -88,7 +88,7 @@ public final class Pattern implements java.io.Serializable {
 	public String[] split(CharSequence input, int limit) {
 		int index = 0;
 		boolean matchLimited = limit > 0;
-		ArrayList<String> matchList = new ArrayList<String>();
+		ArrayList<String> matchList = new ArrayList<>();
 		Matcher m = matcher(input);
 
 		while (m.find()) {
@@ -123,12 +123,11 @@ public final class Pattern implements java.io.Serializable {
 	}
 
 	public static String quote(String s) {
-		int slashEIndex = s.indexOf("\\E");
-		if (slashEIndex == -1) return "\\Q" + s + "\\E";
+		if (!s.contains("\\E")) return "\\Q" + s + "\\E";
 
 		StringBuilder sb = new StringBuilder(s.length() * 2);
 		sb.append("\\Q");
-		slashEIndex = 0;
+		int slashEIndex;
 		int current = 0;
 		while ((slashEIndex = s.indexOf("\\E", current)) != -1) {
 			sb.append(s.substring(current, slashEIndex));

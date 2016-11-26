@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 public class RegexTest {
 	static public void main(String[] args) {
+		patternCreateTest();
 		stringMatchesTest();
 		stringReplaceAllTest();
 		regexMatchesTest();
@@ -14,14 +15,10 @@ public class RegexTest {
 		testRegex();
 	}
 
-	static private void regexMatchesTest() {
-		Pattern NUMERIC = Pattern.compile("[-]?[0-9]+");
-		System.out.println(NUMERIC.matcher("1").matches());
-		System.out.println(NUMERIC.matcher("1.0").matches());
-		System.out.println(NUMERIC.matcher("1.1").matches());
-		System.out.println(NUMERIC.matcher("-1.1").matches());
-		System.out.println(NUMERIC.matcher("1.1").find());
-		//System.out.println(NUMERIC.matcher("1.1").group());
+	private static void patternCreateTest() {
+		System.out.println("patternCreateTest:");
+		Pattern.compile("HELLO");
+		System.out.println("/patternCreateTest:");
 	}
 
 	private static void stringMatchesTest() {
@@ -32,6 +29,16 @@ public class RegexTest {
 		System.out.println("hello".matches(".*ell"));
 		System.out.println("hello".matches("elll"));
 		System.out.println("hello".matches(".*ell.*"));
+	}
+
+	static private void regexMatchesTest() {
+		Pattern NUMERIC = Pattern.compile("[-]?[0-9]+");
+		System.out.println(NUMERIC.matcher("1").matches());
+		System.out.println(NUMERIC.matcher("1.0").matches());
+		System.out.println(NUMERIC.matcher("1.1").matches());
+		System.out.println(NUMERIC.matcher("-1.1").matches());
+		System.out.println(NUMERIC.matcher("1.1").find());
+		//System.out.println(NUMERIC.matcher("1.1").group());
 	}
 
 	private static void stringReplaceAllTest() {

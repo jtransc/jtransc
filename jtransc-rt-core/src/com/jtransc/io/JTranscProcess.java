@@ -2,6 +2,7 @@ package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
+import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.*;
 import com.jtransc.util.JTranscCollections;
@@ -20,6 +21,9 @@ import java.util.Objects;
 @HaxeAddMembers({
 	"#if sys public var process: sys.io.Process; #end"
 })
+@JTranscAddMembers(target = "d", value = {
+	""
+})
 public class JTranscProcess extends Process {
 	private JTranscWrapped processWrapped;
 
@@ -37,6 +41,8 @@ public class JTranscProcess extends Process {
 	})
 	private native JTranscWrapped create(String cmd, String[] args, String cwd, Map<String, String> env);
 
+	//private native JTranscWrapped createD(String cmd, String[] args, String cwd, Map<String, String> env);
+
 	private InputStream stdout;
 	private InputStream stderr;
 	private OutputStream stdin;
@@ -50,6 +56,13 @@ public class JTranscProcess extends Process {
 	static public class Creator {
 		public JTranscProcess start(JTranscProcess process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
 			if (JTranscSystem.isCpp()) {
+				process.stdin = new ByteArrayOutputStream(0);
+				process.stdout = new ByteArrayInputStream(new byte[] { 'd', 'u', 'm', 'm', 'y' });
+				process.stderr = new ByteArrayInputStream(new byte[0]);
+				process.exitCode = -1;
+				process.pid = -1;
+				return process;
+			} else if (JTranscSystem.isD()) {
 				process.stdin = new ByteArrayOutputStream(0);
 				process.stdout = new ByteArrayInputStream(new byte[] { 'd', 'u', 'm', 'm', 'y' });
 				process.stderr = new ByteArrayInputStream(new byte[0]);

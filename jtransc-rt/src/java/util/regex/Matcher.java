@@ -30,7 +30,7 @@ public final class Matcher implements MatchResult {
 
 	Matcher(Pattern parent, CharSequence text) {
 		this.pattern = parent;
-		this.internalPattern = parent.internal;
+		this.internalPattern = parent.i;
 		this.text = text;
 		this.matcher = new regexodus.Matcher(internalPattern, text);
 	}
@@ -52,9 +52,9 @@ public final class Matcher implements MatchResult {
 	}
 
 	public Matcher usePattern(Pattern newPattern) {
-		this.matcher.setPattern(newPattern.internal);
+		this.matcher.setPattern(newPattern.i);
 		this.pattern = newPattern;
-		this.internalPattern = newPattern.internal;
+		this.internalPattern = newPattern.i;
 		return this;
 	}
 

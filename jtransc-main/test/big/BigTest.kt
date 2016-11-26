@@ -12,6 +12,7 @@ import javatest.lang.StringsTest
 import javatest.lang.SystemTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
+import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
 import javatest.utils.CopyTest
@@ -95,6 +96,7 @@ object BigTest {
 		Base64Test.main(args);
 		JTranscZipTest.main(args)
 		ProcessTest.main(args)
+		CharCharMapTest.main(args);
 
 		// Regex
 		javatest.utils.regex.RegexTest.main(args)

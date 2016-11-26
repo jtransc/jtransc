@@ -3,10 +3,13 @@ import haxe.Int64;
 
 class JA_J extends JA_0 {
     public var data:Vector<Int64> = null;
+   static private var ZERO = Int64.make(0,0);
 
     public function new(length:Int) {
         super();
         this.data = new Vector<Int64>(length);
+        var zero = ZERO;
+        for (n in 0 ... length) this.data[n] = zero;
         this.length = length;
         this.desc = "[J";
     }

@@ -222,7 +222,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			}
 			line("static public void SI() { }")
 			*/
-			line("static public bool SSI = false;")
+			line("__gshared public bool SSI = false;")
 			line("static public void SI()") {
 				line("if (SSI) return;")
 				line("SSI = true;")

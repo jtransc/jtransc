@@ -49,14 +49,14 @@ public class JTranscSyncIO {
 			"int rc = ::stat(name, &stat_buf);",
 			"return (rc == 0) ? stat_buf.st_size : -1;",
 		})
-		@JTranscMethodBody(target = "d", value = "return std.file.getSize(N.istr(p0));")
+		@JTranscMethodBody(target = "d", value = "return std.file.getSize(N.istr2(p0));")
 		public long getLength(String file) {
 			return 0L;
 		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.delete(p0._str);")
-		@JTranscMethodBody(target = "d", value = "try { std.file.remove(N.istr(p0)); return true; } catch (Throwable t) { return false; }")
+		@JTranscMethodBody(target = "d", value = "try { std.file.remove(N.istr2(p0)); return true; } catch (Throwable t) { return false; }")
 		public native boolean delete(String file);
 
 		@Override
@@ -77,8 +77,8 @@ public class JTranscSyncIO {
 		@JTranscMethodBody(target = "d", value = {
 			"int res = 0;",
 			"try {",
-			"	auto attr = std.file.getAttributes(N.istr(p0));",
-			"	if (std.file.exists(N.istr(p0))) res |= 1;",
+			"	auto attr = std.file.getAttributes(N.istr2(p0));",
+			"	if (std.file.exists(N.istr2(p0))) res |= 1;",
 			"	if (std.file.attrIsFile(attr)) res |= 2;",
 			"	if (std.file.attrIsDir(attr)) res |= 4;",
 			"} catch (std.file.FileException e) {",
@@ -104,7 +104,7 @@ public class JTranscSyncIO {
 		})
 		@JTranscMethodBody(target = "d", value = {
 			//"scope f = new std.stdio.File(N.str(file))",
-			"return std.file.exists(N.istr(p0));",
+			"return std.file.exists(N.istr2(p0));",
 		})
 		public boolean checkAccess(String file, int access) {
 			return true;
@@ -292,7 +292,7 @@ public class JTranscSyncIO {
 		@JTranscMethodBody(target = "d", value = {
 			"try {",
 			"	scope readonly = !(p1 & 2);",
-			"	scope name = N.istr(p0);",
+			"	scope name = N.istr2(p0);",
 			"   scope mode = readonly ? \"rb\" : \"r+b\";",
 			"	this.file = File(name, mode);",
 			//"	writefln(\"Opened: %s in mode %s\", name, mode);",

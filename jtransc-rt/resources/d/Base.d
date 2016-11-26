@@ -79,16 +79,25 @@ class JA_S : JA_Template!(short) {
 	this(int len) { super(len, "[S"); }
 }
 class JA_C : JA_Template!(wchar) {
-	this(int len) { super(len, "[C"); }
+	this(int len) {
+		super(len, "[C");
+		this.data[0..$] = 0;
+	}
 }
 class JA_J : JA_Template!(long) {
 	this(int len) { super(len, "[J"); }
 }
 class JA_F : JA_Template!(float) {
-	this(int len) { super(len, "[F"); }
+	this(int len) {
+		super(len, "[F");
+		this.data[0..$] = 0f;
+	}
 }
 class JA_D : JA_Template!(double) {
-	this(int len) { super(len, "[D"); }
+	this(int len) {
+		super(len, "[D");
+		this.data[0..$] = 0.0;
+	}
 }
 
 class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
