@@ -12,13 +12,12 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
+import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 import com.jtransc.types.DEBUG
-import com.jtransc.vfs.LocalVfs
-import com.jtransc.vfs.LocalVfsEnsureDirs
-import com.jtransc.vfs.SyncVfsFile
+import com.jtransc.vfs.*
 import java.io.File
 
 // Supports GOTO keyword
@@ -98,8 +97,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val names = listOf("program.exe", "program", "program.out", "a.exe", "a", "a.out")
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(outFile.realpathOS)
-		return ProcessResult2(result)
+		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, listOf(), ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
 	override fun writeProgram(output: SyncVfsFile) {

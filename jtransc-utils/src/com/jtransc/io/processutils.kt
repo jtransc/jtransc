@@ -143,9 +143,9 @@ object ProcessUtils {
 		while (true) {
 			val i = input.readAvailableChunk()
 			val e = error.readAvailableChunk()
-			if (i.size > 0) handler.onOutputData(i.toString(charset))
-			if (e.size > 0) handler.onErrorData(e.toString(charset))
-			if (i.size == 0 && e.size == 0 && !p.isAlive) break
+			if (i.isNotEmpty()) handler.onOutputData(i.toString(charset))
+			if (e.isNotEmpty()) handler.onErrorData(e.toString(charset))
+			if (i.isEmpty() && e.isEmpty() && !p.isAlive) break
 			Thread.sleep(1L)
 		}
 		p.waitFor()
