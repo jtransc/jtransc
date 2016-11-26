@@ -1489,24 +1489,25 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val AstType.nativeDefault: Any? get() = this.getNull()
 	val AstType.nativeDefaultString: String get() = this.getNull().escapedConstant
 
-	val Any?.escapedConstant: String get() = when (this) {
+	val Any?.escapedConstant: String get() = escapedConstant(this)
+	open fun escapedConstant(v: Any?): String = when (v) {
 		null -> "null"
-		is Boolean -> if (this) "true" else "false"
-		is String -> this.escapeString
-		is Long -> N_lnew(this)
-		is Float -> this.toDouble().escapedConstant
-		is Double -> if (this.isInfinite()) if (this < 0) NegativeInfinityString else PositiveInfinityString else if (this.isNaN()) NanString else "$this"
-		is Int -> when (this) {
+		is Boolean -> if (v) "true" else "false"
+		is String -> v.escapeString
+		is Long -> N_lnew(v)
+		is Float -> v.toDouble().escapedConstant
+		is Double -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) NanString else "$v"
+		is Int -> when (v) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
-			else -> "$this"
+			else -> "$v"
 		}
-		is Number -> "${this.toInt()}"
-		is Char -> "${this.toInt()}"
+		is Number -> "${v.toInt()}"
+		is Char -> "${v.toInt()}"
 		is AstType -> {
-			for (fqName in this.getRefClasses()) mutableBody.initClassRef(fqName, "class literal")
-			this.escapeType
+			for (fqName in v.getRefClasses()) mutableBody.initClassRef(fqName, "class literal")
+			v.escapeType
 		}
-		else -> throw NotImplementedError("Literal of type $this")
+		else -> throw NotImplementedError("Literal of type $v")
 	}
 
 	open protected val String.escapeString: String get() = N_func("strLitEscape", this.quote())

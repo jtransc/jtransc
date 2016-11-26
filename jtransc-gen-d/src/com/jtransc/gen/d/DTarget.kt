@@ -294,4 +294,9 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			return genExpr2(this)
 		}
 	}
+
+	//override fun escapedConstant(v: Any?): String = when (v) {
+	//	is Double -> "N.longBitsToDouble(" + java.lang.Double.doubleToRawLongBits(v) + "L)"
+	//	else -> super.escapedConstant(v)
+	//}
 }

@@ -30,18 +30,24 @@ public class JTranscArithmeticTest {
 		System.out.println(JTranscBits.makeInt((byte) 255, (byte) 255, (byte) 255, (byte) 255));
 		System.out.println(JTranscBits.makeInt((byte) -127, (byte) 33, (byte) 1280, (byte) 232323));
 
+		System.out.println("isInfinite:");
 		System.out.println(java.lang.Double.isInfinite(1.0 / 0.0));
 		System.out.println(java.lang.Double.isInfinite(-1.0 / 0.0));
 		System.out.println(java.lang.Double.isInfinite(-1.0));
+		System.out.println("Infinite:");
 		System.out.println(1.0 / 0.0);
 		System.out.println(-1.0 / 0.0);
 		System.out.println(1.0);
 		System.out.println(0.0d / 0.0);
-		System.out.println(0x1.fffffffffffffP+1023);
-		System.out.println(0x1.0p-1022);
+
+		//System.out.println("Double literals:");
+		//System.out.println(0x1.fffffffffffffP+1023);
+		//System.out.println(0x1.0p-1022);
+
 		//System.out.println(0x0.0000000000001P-1022);
 		//System.out.println(5E-324);
 		//System.out.println(5E-320);
+
 		System.out.println(1023);
 		System.out.println(-1022);
 		System.out.println((double)-77);

@@ -231,6 +231,18 @@ class N {
 		JA_0.copy(cast(JA_0)src, srcPos, cast(JA_0)dst, dstPos, length);
 	}
 
+	static public wstring[] istrArray(JA_L arrays) {
+		wstring[] o;
+		for (int n = 0; n < arrays.length; n++) o ~= N.istr(arrays[n]);
+		return o;
+	}
+
+	static public string[] istrArray2(JA_L arrays) {
+		string[] o;
+		for (int n = 0; n < arrays.length; n++) o ~= N.istr2(arrays[n]);
+		return o;
+	}
+
 	static public JA_L strArray(wstring[] strs) {
 		int len = alen(strs);
 		auto o = new JA_L(len, "[Ljava/lang/String;");
@@ -269,6 +281,10 @@ class N {
     	if (b == 0) return 0;
     	if (a == N.MIN_INT64 && b == -1) return 0;
     	return a % b;
+    }
+
+    static public double longBitsToDouble(long p0) {
+		return *cast(double *)&p0;
     }
 
 	static public void init() {
