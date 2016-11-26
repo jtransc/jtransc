@@ -7,11 +7,11 @@ import std.format;
 import std.algorithm;
 import std.stdio;
 import std.datetime;
+import std.math;
+import std.random;
 import core.stdc.string;
 import core.thread;
 import core.time;
-import std.math;
-import std.random;
 
 int slen(string s) { return cast(int)s.length; }
 int slen(wstring s) { return cast(int)s.length; }
@@ -145,7 +145,8 @@ class N {
 		if (str is null) return null;
 		int len = slen(str);
 		auto array = new JA_C(len);
-		for (int n = 0; n < len; n++) array[n] = str[n];
+		array.data[0..$] = str[0..$];
+		//array.data = str[0..$];
 		return {% CONSTRUCTOR java.lang.String:([CII)V %}(array, 0, len);
 	}
 

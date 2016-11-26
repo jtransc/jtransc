@@ -105,8 +105,9 @@ public class System {
 			_setProperty("os.name", JTranscSystem.getOS(), "unknown");
 			_setProperty("os.version", "0.1");
 			_setProperty("java.runtime.name", JTranscSystem.getRuntimeName(), "jtransc-unknown");
-			_setProperty("java.vm.version", "1.7.0");
-			_setProperty("java.runtime.version", "1.7.0");
+			_setProperty("java.version", "1.8.0_51");
+			_setProperty("java.vm.version", "25.51-b03");
+			_setProperty("java.runtime.version", "1.8.0_51-b16");
 			_setProperty("file.separator", JTranscSystem.fileSeparator(), "/");
 			_setProperty("line.separator", JTranscSystem.lineSeparator(), "\n");
 			_setProperty("path.separator", JTranscSystem.pathSeparator(), ":");

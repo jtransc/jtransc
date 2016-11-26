@@ -21,8 +21,6 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
-import com.jtransc.internal.IntJTranscStrings;
-import com.jtransc.text.JTranscRegex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -188,6 +186,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	private byte[] _getBytes(String charsetName) {
 		int len = this.length();
 		ByteArrayOutputStream out = new ByteArrayOutputStream(len * 2);
+		if (charsetName == null) charsetName = "UTF-8";
 		switch (charsetName) {
 			default:
 			case "UTF-8":

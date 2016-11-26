@@ -129,6 +129,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClass(clazz: AstClass): Indenter = Indenter.gen {
+		currentClass = clazz.name
 		context.clazz = clazz
 
 		line(genClassDecl(clazz)) {
@@ -192,6 +193,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val AstMethod.actualRetType: AstType get() = if (this.isInstanceInit) this.containingClass.astType else this.methodType.ret
 
 	open fun genMethod(clazz: AstClass, method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
+		currentMethod = method.ref
 		context.method = method
 
 		val decl = genMetodDecl(method)

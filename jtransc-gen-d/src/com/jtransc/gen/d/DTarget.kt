@@ -13,6 +13,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.escape
 import com.jtransc.text.quote
 import com.jtransc.types.DEBUG
 import com.jtransc.vfs.LocalVfs
@@ -58,6 +59,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
+	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 
 	override val keywords = setOf<String>(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -82,7 +84,8 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		"__FILE__", "__FILE_FULL_PATH__", "__MODULE__", "__LINE__", "__FUNCTION__", "__PRETTY_FUNCTION__", "__gshared", "__traits", "__vector", "__parameters",
 
 		// Known Object symbols
-		"clone", "toString"
+		"clone", "toString",
+		"std", "core"
 	)
 
 	override val languageRequiresDefaultInSwitch = true
@@ -111,17 +114,30 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
-		line(super.genClasses(output))
+		val StringFqName = buildTemplateClass("java.lang.String".fqname)
+		val classesStr = super.genClasses(output)
+		line(classesStr)
+		for (lit in getGlobalStrings()) {
+			line("__gshared $StringFqName ${lit.name};")
+		}
+		line("static void __initStrings()") {
+			for (lit in getGlobalStrings()) {
+				line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
+			}
+		}
 		val entryPointFqName = program.entrypoint
 		val entryPointClass = program[entryPointFqName]
 		line("int main(string[] args)") {
 			line("N.init();")
+			line("__initStrings();")
 			line(buildStaticInit(entryPointFqName))
 			val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
 			line(buildMethod(mainMethod, static = true) + "(N.strArray(args[1..$]));")
 			line("return 0;")
 		}
 	}
+
+	fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"w" else "null"
 
 	override fun genClassBodyMethods(clazz: AstClass): Indenter = Indenter.gen {
 		val directMethods = clazz.methods
@@ -270,6 +286,8 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val NegativeInfinityString = "-double.infinity"
 	override val PositiveInfinityString = "double.infinity"
 	override val NanString = "double.nan"
+
+	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 
 	override fun AstExpr.genNotNull(): String {
 		if (debugRelease) {
