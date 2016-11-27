@@ -74,7 +74,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val refs = References()
 
 	open fun buildSource(): Unit {
-		writeProgram(configTargetFolder.targetFolder)
+		val targetFolder = configTargetFolder.targetFolder
+		writeProgram(targetFolder)
 		setInfoAfterBuildingSource()
 	}
 
@@ -86,7 +87,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		)
 		println(cmdAndArgs)
 		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
-		if (!result.success) throw RuntimeException(result.outputString + result.errorString)
+		if (!result.success) {
+			throw RuntimeException(result.outputString + result.errorString)
+		}
 		return ProcessResult2(result)
 	}
 
@@ -1570,19 +1573,18 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	//open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
 
+	open val AstMethodRef.objectToCache: Any get() = if (this.isClassOrInstanceInit) this else this.withoutClass
+
 	open val MethodRef.targetName: String get() {
 		val method = this.ref
 		val realmethod = program[method] ?: invalidOp("Can't find method $method")
 		val realclass = realmethod.containingClass
-		val methodWithoutClass = method.withoutClass
-
-		val objectToCache: Any = if (method.isClassOrInstanceInit) method else methodWithoutClass
 
 		return if (realclass.isNative) {
 			// No cache
 			realmethod.nativeName ?: method.name
 		} else {
-			methodNames.getOrPut2(objectToCache) {
+			methodNames.getOrPut2(method.objectToCache) {
 				if (minimize && !realmethod.keepName) {
 					allocMemberName()
 				} else {

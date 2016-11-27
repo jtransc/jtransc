@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import com.jtransc.gen.haxe.HaxeTarget
-import jtransc.annotation.ClassMembersTest
-import jtransc.annotation.MethodBodyTest
-import jtransc.jtransc.*
-import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
-import jtransc.rt.test.AssertionTests
+import big.HelloWorldTest
+import com.jtransc.gen.cpp.CppTarget
 import org.junit.Test
 
 class CppTest : Base() {
+	//override val TREESHAKING: Boolean = false
+	//override val TREESHAKING_TRACE: Boolean = false
 
+	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = false)
 }

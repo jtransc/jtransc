@@ -431,9 +431,7 @@ SOBJ N::dummyMethodClass() {
 void N::throwNpe(const wchar_t* position) {
 	TRACE_REGISTER("N::throwNpe()");
 	std::wcout << L"N::throwNpe():" << std::wstring(position) << L"\n";
-	auto out = SOBJ(new {% CLASS java.lang.NullPointerException %}());
-	(dynamic_cast<{% CLASS java.lang.NullPointerException %}*>(out.get()))->M_java_lang_NullPointerException__init____V();
-	throw out;
+	throw {% CONSTRUCTOR java.lang.NullPointerException:()V %}();
 }
 
 SOBJ N::ensureNpe(SOBJ obj, const wchar_t* position) {
@@ -488,7 +486,7 @@ SOBJ N::boxLong(int64_t v)  { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/
 SOBJ N::boxFloat(float v)   { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }
 SOBJ N::boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
 
-SOBJ JA_0::M_getClass___Ljava_lang_Class_() { return java_lang_Class::S_forName0__Ljava_lang_String__Ljava_lang_Class_(N::str(desc)); }
+//SOBJ JA_0::{% METHOD java.lang.Object:getClass %}() { return {% SMETHOD java.lang.Class:forName0 %}(N::str(desc)); }
 
 std::vector<SOBJ> N::getVectorOrEmpty(SOBJ obj) {
 	auto array = GET_OBJECT(JA_L, obj);

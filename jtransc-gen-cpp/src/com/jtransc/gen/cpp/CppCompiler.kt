@@ -19,6 +19,7 @@ object CppCompiler {
 			cmdAndArgs += "clang++"
 		} else {
 			cmdAndArgs += "g++"
+			cmdAndArgs += "-w"
 		}
 		cmdAndArgs += "-std=c++0x"
 		if (clang) {

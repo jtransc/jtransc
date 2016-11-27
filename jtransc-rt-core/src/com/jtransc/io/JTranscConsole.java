@@ -19,12 +19,12 @@ import com.jtransc.lang.Int64;
 public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->M_toString___Ljava_lang_String_() : N::str(std::wstring(L\"null\")));")
+	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
 	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
 	static public void log(Object v) { System.out.println(v); }
 
 	@JTranscMethodBody(target = "js", value = "console.log(p0);")
-	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->M_toString___Ljava_lang_String_() : N::str(std::wstring(L\"null\")));")
+	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
 	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
 	static public void dump(Object v) { System.out.println(v); }
 

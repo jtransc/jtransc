@@ -70,7 +70,8 @@ class CppTarget() : GenTargetDescriptor() {
 
 @Singleton
 class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
-	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf()
 	override val stringPoolType = StringPool.Type.GLOBAL
 	override val staticAccessOperator: String = "::"
@@ -78,7 +79,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return CppCompiler.genCommand(
-			programFile = File(configOutputFile.output),
+			//programFile = File(configOutputFile.output),
+			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
 			libs = injector.get<ConfigLibraries>().libs
 		)
@@ -238,7 +240,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 						line("static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len)") {
 							line("::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);")
 						}
-						line("virtual SOBJ M_getClass___Ljava_lang_Class_();")
+						//line("virtual SOBJ M_getClass___Ljava_lang_Class_();")
 					}
 					line("};")
 
@@ -261,11 +263,11 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 								}
 
 								// @TODO: Proper reference
-								line("virtual SOBJ M_clone___Ljava_lang_Object_()", after2 = ";") {
-									line("""auto out = new $name(this->length, this->desc);""")
-									line("""JA_0::copy(this, 0, out, 0, this->length);""")
-									line("""return SOBJ(out);""")
-								}
+								//line("virtual SOBJ M_clone___Ljava_lang_Object_()", after2 = ";") {
+								//	line("""auto out = new $name(this->length, this->desc);""")
+								//	line("""JA_0::copy(this, 0, out, 0, this->length);""")
+								//	line("""return SOBJ(out);""")
+								//}
 
 								line("$name *getStartPtr() { return ($name *)_data; }")
 
@@ -409,7 +411,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("try") {
 				line("N::startup();")
 				line(buildStaticInit(program.entrypoint))
-				line(program.entrypoint.ref.cppName + "::S_main___Ljava_lang_String__V(N::strEmptyArray());")
+				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
+
+				line("$callMain(N::strEmptyArray());")
 			}
 			line("catch (char const *s)") {
 				line("""std::cout << "ERROR char const* " << s << "\n";""")
@@ -418,11 +422,12 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				line("""std::wcout << L"ERROR std::wstring " << s << L"\n";""")
 			}
 			line("catch (java_lang_Throwable *s)") {
-				line("""std::wcout  << L"java_lang_Throwable:" << L"\n";""")
+				line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
 				line("""printf("Exception: %p\n", (void*)s);""")
 			}
 			line("catch (SOBJ s)") {
-				line("""std::wcout << L"ERROR SOBJ " << N::istr2(s.get()->M_toString___Ljava_lang_String_()) << L"\n";""")
+				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
+				line("""std::wcout << L"ERROR SOBJ " << N::istr2(s.get()->$toStringMethod()) << L"\n";""")
 			}
 			line("catch (...)") {
 				line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
@@ -475,6 +480,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 						line("this->${field.targetName} = $cst;")
 					}
 				}
+			}
+			if (clazz.fqname == "java.util.Set") {
+				println(clazz.fqname)
 			}
 			for (method in clazz.methods) {
 				val type = method.methodType
@@ -908,4 +916,31 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		Long.MIN_VALUE -> "(int64_t)(0x8000000000000000U)"
 		else -> "(int64_t)(${value}L)"
 	}
+
+	override val FieldRef.targetName: String get() = getNativeName(this)
+
+	override val MethodRef.targetNameBase: String get() {
+		val method = this
+		return getClassNameAllocator(method.ref.containingClass).allocate(method.ref) {
+			val astMethod = program[method.ref]!!
+			val containingClass = astMethod.containingClass
+			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
+			val prefix2 = if (containingClass.isInterface || method.ref.isClassOrInstanceInit) {
+				//getClassFqNameForCalling(containingClass.name) + "_"
+				containingClass.name.fqname + "_"
+			} else {
+				""
+			}
+			val suffix = "_${astMethod.name}${astMethod.desc}"
+			//"$prefix$prefix2" + super.getNativeName(method) + "$suffix"
+
+			"$prefix$prefix2$suffix"
+		}
+	}
+
+	fun getNativeName(field: FieldRef): String {
+		return getClassNameAllocator(field.ref.containingClass).allocate(field.ref) { "F_" + normalizeName(field.ref.name + "_" + field.ref.type.mangle()) }
+	}
+
+	override val AstMethodRef.objectToCache: Any get() = this
 }
