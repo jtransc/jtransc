@@ -16,6 +16,7 @@
 
 import big.BigTest
 import big.HelloWorldTest
+import com.jtransc.gen.cpp.CppTarget
 import com.jtransc.gen.d.DTarget
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget

@@ -114,9 +114,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			for (n in 0 until lastClassId) {
 				val clazz = classesById[n]
 				if (clazz != null) {
-					line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
+					line("{ ${clazz.cppName}::TABLE_INFO },")
 				} else {
-					line("NULL,")
+					line("{ NULL },")
 				}
 			}
 		}

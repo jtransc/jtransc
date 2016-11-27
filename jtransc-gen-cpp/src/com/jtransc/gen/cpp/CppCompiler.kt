@@ -1,6 +1,8 @@
 package com.jtransc.gen.cpp
 
 import com.jtransc.JTranscSystem
+import com.jtransc.error.invalidOp
+import com.jtransc.gen.common.BaseCompiler
 import java.io.File
 
 object CppCompiler {
@@ -11,36 +13,43 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		val clang = false
+		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find D compiler (dmd, gdc or ldc), please install one of them and put in the path.")
+		return compiler.genCommand(programFile, debug, libs)
+	}
 
-		val cmdAndArgs = arrayListOf<String>()
-
-		if (clang) {
+	object CLANG : BaseCompiler("clang++") {
+		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "clang++"
-		} else {
-			cmdAndArgs += "g++"
-			cmdAndArgs += "-w"
-		}
-		cmdAndArgs += "-std=c++0x"
-		if (clang) {
+			cmdAndArgs += "-std=c++0x"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
-		}
-		if (debug) cmdAndArgs += "-g"
-		cmdAndArgs += if (debug) "-O0" else "-O3"
-		cmdAndArgs += "-fexceptions"
-		if (clang) {
+			if (debug) cmdAndArgs += "-g"
+			cmdAndArgs += if (debug) "-O0" else "-O3"
+			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
+			cmdAndArgs += "-frtti"
+			cmdAndArgs += programFile.absolutePath
+			for (lib in libs) cmdAndArgs += "-l$lib"
+			return cmdAndArgs
 		}
-		cmdAndArgs += "-frtti"
-		cmdAndArgs += programFile.absolutePath
-		for (lib in libs) cmdAndArgs += "-l$lib"
-		return cmdAndArgs
 	}
-}
 
-object GccCompiler {
-
+	object GPP : BaseCompiler("g++") {
+		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+			val cmdAndArgs = arrayListOf<String>()
+			cmdAndArgs += "g++"
+			cmdAndArgs += "-w"
+			cmdAndArgs += "-std=c++0x"
+			if (debug) cmdAndArgs += "-g"
+			cmdAndArgs += if (debug) "-O0" else "-O3"
+			cmdAndArgs += "-fexceptions"
+			cmdAndArgs += "-frtti"
+			cmdAndArgs += programFile.absolutePath
+			for (lib in libs) cmdAndArgs += "-l$lib"
+			return cmdAndArgs
+		}
+	}
 }
 
 object MsVcCompiler {

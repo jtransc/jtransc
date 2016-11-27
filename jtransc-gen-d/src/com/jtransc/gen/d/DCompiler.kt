@@ -1,7 +1,7 @@
 package com.jtransc.gen.d
 
 import com.jtransc.error.invalidOp
-import com.jtransc.io.ProcessUtils
+import com.jtransc.gen.common.BaseCompiler
 import java.io.File
 
 object DCompiler {
@@ -10,13 +10,7 @@ object DCompiler {
 		return provider.genCommand(programFile, debug, libs)
 	}
 
-	abstract class Provider(val cmdName: String) {
-		val cmd by lazy { ProcessUtils.which(cmdName) }
-		val available by lazy { cmd != null }
-		abstract fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String>
-	}
-
-	object DMD : Provider("dmd") {
+	object DMD : BaseCompiler("dmd") {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			if (debug) {
 				// @TODO: DMD bug -gc allows to print good stacktraces but -gc makes compiler fail on large files
@@ -28,7 +22,7 @@ object DCompiler {
 		}
 	}
 
-	object GDC : Provider("gdc") {
+	object GDC : BaseCompiler("gdc") {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			if (debug) {
 				return listOf(cmd!!, "-fdebug=1", "-g", "-O0", programFile.absolutePath)
@@ -38,7 +32,7 @@ object DCompiler {
 		}
 	}
 
-	object LDC : Provider("ldc") {
+	object LDC : BaseCompiler("ldc") {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			if (debug) {
 				return listOf(cmd!!, "-O0", programFile.absolutePath)
