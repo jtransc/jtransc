@@ -94,8 +94,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override val allowAssignItself = true
-	val lastClassId = program.classes.size
-	fun getClassId(fqname: FqName): Int = program[fqname].classId
+	val lastClassId = program.classes.map { it.classId }.max() ?: 0
 
 	fun generateTypeTableHeader() = Indenter.gen {
 		line("struct TYPE_INFO", after2 = ";") { line("const int *subtypes;") }
@@ -111,8 +110,14 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		line("int TYPE_TABLE::count = $lastClassId;")
 		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
-			for (clazz in program.classes) {
-				line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
+			val classesById = program.classes.map { it.classId to it }.toMap()
+			for (n in 0 until lastClassId) {
+				val clazz = classesById[n]
+				if (clazz != null) {
+					line("{ .subtypes = ${clazz.cppName}::TABLE_INFO },")
+				} else {
+					line("NULL,")
+				}
 			}
 		}
 	}
@@ -202,7 +207,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val CLASS_REFERENCES = Indenter.gen {
 			// {{ CLASS_REFERENCES }}
 			for (clazz in ordereredClasses.filter { !it.isNative }) {
-				getClassId(clazz.name)
 				line(writeClassRef(clazz))
 			}
 		}
@@ -472,9 +476,17 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				line("$normalStatic$type ${field.targetName}$add;")
 			}
 
-			line("${clazz.cppName}() ") {
+			val decl = if (clazz.parentClass != null) {
+				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__INSTANCE_CLASS_ID)"
+			} else {
+				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId})"
+			}
+
+			line(decl) {
 				if (!clazz.isInterface) {
-					line("this->__INSTANCE_CLASS_ID = ${getClassId(clazz.name)};")
+					if (clazz.parentClass == null) {
+						line("this->__INSTANCE_CLASS_ID = __INSTANCE_CLASS_ID;")
+					}
 					for (field in clazz.fields.filter { !it.isStatic }) {
 						val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
 						line("this->${field.targetName} = $cst;")
@@ -505,7 +517,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("static bool SI_once;")
 			line("static void SI();")
 
-			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { it.classId }.filterNotNull() + listOf(0)
+			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { it.classId }.filterNotNull() + listOf(-1)
 			line("static const int TABLE_INFO[${ids.size}];")
 
 			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
@@ -759,7 +771,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun N_is(a: String, b: AstType.Reference): String = when (b) {
-		is AstType.REF -> N_func("is", "($a), ${getClassId(b.name)}")
+		is AstType.REF -> N_func("is", "($a), ${program[b.name].classId}")
 		is AstType.ARRAY -> N_func("isArray", "($a), L${b.mangle().quote()}")
 		else -> N_func("isUnknown", """$a, "Unsupported $b"""")
 	}

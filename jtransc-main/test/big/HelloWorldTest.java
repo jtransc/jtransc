@@ -22,10 +22,7 @@ public class HelloWorldTest {
 		System.out.println("Hello World!");
 		System.out.println("Hello World!".getClass());
 		Class<? extends Integer[]> intArrayClass = new Integer[0].getClass();
-		System.out.println(JTranscReflection.getClassByName("java.lang.Object"));
-		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 		System.out.println(intArrayClass);
-		System.out.println(intArrayClass.getComponentType());
 		//System.out.println("Java " + System.getProperty("java.version"));
 
 		ArrayList<Integer> items = new ArrayList<>();
@@ -43,6 +40,11 @@ public class HelloWorldTest {
 		System.out.println(map.size());
 
 		Base64Test.main(args);
+
+		System.out.println(JTranscReflection.getClassByName("java.lang.Object"));
+		System.out.println(intArrayClass.getComponentType());
+		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
+
 		/*
 		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();
 		//stringIntegerLinkedHashMap.put("a", 10);

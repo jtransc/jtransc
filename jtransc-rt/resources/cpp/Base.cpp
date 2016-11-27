@@ -206,7 +206,7 @@ int64_t N::lnew(int high, int low) {
 bool N::is(SOBJ obj, int type) {
 	if (obj.get() == NULL) return false;
 	const int* table = TYPE_TABLE::TABLE[obj.get()->__INSTANCE_CLASS_ID].subtypes;
-	while (*table != 0) if (*(table++) == type) return true;
+	while (*table != -1) if (*(table++) == type) return true;
 	return false;
 };
 
