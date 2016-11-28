@@ -107,7 +107,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 		val injector = Injector()
 		injector.mapInstance(BuildBackend.ASM)
-		injector.mapInstance(ConfigMinimizeNames(minimizedNames ?: extension.minimizeNames ?: false))
+		injector.mapInstance(ConfigMinimizeNames(extension.minimizeNames ?: minimizedNames ?: false))
 		injector.mapInstance(ConfigCompile(compile ?: true))
 		injector.mapInstance(ConfigTreeShaking(
 			treeshaking ?: extension.treeshaking ?: false,
