@@ -96,14 +96,14 @@ public class JTranscSystem {
 	}
 
 	@SuppressWarnings("all")
+	@JTranscMethodBody(target = "js", value = "return N.str(\"js\");")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(\"cpp\");")
+	@JTranscMethodBody(target = "d", value = "return N.str(\"d\");")
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
-		if (isJs()) return "js";
 		if (isSwf()) return "swf";
 		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
-		if (isCpp()) return "cpp";
-		if (isD()) return "d";
 		if (isNeko()) return "neko";
 		if (isPhp()) return "php";
 		if (isPython()) return "python";

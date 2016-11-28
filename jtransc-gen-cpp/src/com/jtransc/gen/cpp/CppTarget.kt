@@ -37,7 +37,7 @@ data class ConfigCppOutput(val cppOutput: SyncVfsFile)
 
 // @TODO: http://en.cppreference.com/w/cpp/language/eval_order
 // @TODO: Use std::array to ensure it is deleted
-class CppTarget() : GenTargetDescriptor() {
+class CppTarget : GenTargetDescriptor() {
 	override val name = "cpp"
 	override val outputExtension = "bin"
 	override val extraLibraries = listOf<String>()
@@ -111,6 +111,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		line("int TYPE_TABLE::count = $lastClassId;")
 		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			val classesById = program.classes.map { it.classId to it }.toMap()
+
+			@Suppress("LoopToCallChain")
 			for (n in 0 until lastClassId) {
 				val clazz = classesById[n]
 				if (clazz != null) {
@@ -221,133 +223,17 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			for (name in arrayTypes.map { it.first }) line("struct $name;")
 		}
 
-		val ARRAY_HEADERS = Indenter.gen {
+		val ARRAY_HEADERS_PRE = Indenter.gen {
 			// {{ ARRAY_HEADERS }}
-			for (clazz in ordereredClasses.filter { !it.isNative }) {
+			for (clazz in ordereredClasses.filter { !it.isNative }.filter { it.fqname == "java.lang.Object" }) {
 				line(writeClassHeader(clazz))
-				if (clazz.fqname == "java.lang.Object") {
-					line("struct JA_0 : public java_lang_Object { public:")
-					indent {
-						line("void *_data;")
-						line("int length;")
-						line("int elementSize;")
-						line("std::wstring desc;")
-						line("JA_0(int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {")
-						indent {
-							line("this->__INSTANCE_CLASS_ID = 1;")
-							line("this->_data = (void*)::malloc(esize * (len + 1));")
-							line("::memset(this->_data, 0, (len + 1) * esize);")
-						}
-						line("};")
-						line("~JA_0() { ::free(_data); }")
-						line("void *getOffsetPtr(int offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }")
-						line("static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len)") {
-							line("::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);")
-						}
-						//line("virtual SOBJ M_getClass___Ljava_lang_Class_();")
-					}
-					line("};")
+			}
+		}
 
-					for ((name, type) in arrayTypes) {
-						val c = name.substring(name.length - 1)
-						if (name == "JA_Z") {
-							line("""struct JA_Z : public JA_B { public: JA_Z(int size, std::wstring desc = L"[Z") : JA_B(size, desc) { }; };""")
-						} else {
-							line("struct $name : public JA_0 { public:")
-							indent {
-								line("""$name(int size, std::wstring desc = L"[$c") : JA_0(size, sizeof($type), desc)""", after2 = ";") {
-									//line("this->__INSTANCE_CLASS_ID = ${getClassId(name.fqname)};")
-								}
-								line("""inline void checkBounds(int offset)""", after2 = ";") {
-									line("""if (offset < 0 || offset >= length)""") {
-										line("""std::wstringstream os;""")
-										line("""os << L"Out of bounds " << offset << L" " << length;""")
-										line("""throw os.str();""")
-									}
-								}
-
-								// @TODO: Proper reference
-								//line("virtual SOBJ M_clone___Ljava_lang_Object_()", after2 = ";") {
-								//	line("""auto out = new $name(this->length, this->desc);""")
-								//	line("""JA_0::copy(this, 0, out, 0, this->length);""")
-								//	line("""return SOBJ(out);""")
-								//}
-
-								line("$name *getStartPtr() { return ($name *)_data; }")
-
-								if (CHECK_ARRAYS) {
-									line("""inline void fastSet(int offset, $type v) { checkBounds(offset); (($type*)(this->_data))[offset] = v; };""")
-									line("""inline $type fastGet(int offset) { checkBounds(offset); return (($type*)(this->_data))[offset]; }""")
-								} else {
-									line("""inline void fastSet(int offset, $type v) { (($type*)(this->_data))[offset] = v; };""")
-									line("""inline $type fastGet(int offset) { return (($type*)(this->_data))[offset]; }""")
-								}
-
-								line("""inline $name *init(int offset, $type v) { (($type*)(this->_data))[offset] = v; return this; };""")
-
-								line("""void set(int offset, $type v) { checkBounds(offset); fastSet(offset, v); };""")
-								line("""$type get(int offset) { checkBounds(offset); return fastGet(offset); }""")
-
-								line("""void fill(int from, int to, $type v) { checkBounds(from); checkBounds(to - 1); $type* data = ($type*)this->_data; for (int n = from; n < to; n++) data[n] = v; };""")
-
-								//line("void setArray(int start, std::vector<$type> arrays)") {
-								line("$name *setArray(int start, int size, const $type *arrays)") {
-									line("for (int n = 0; n < size; n++) this->set(start + n, arrays[n]);")
-									line("return this;")
-								}
-
-								line("static $name *fromVector($type *data, int count)", after2 = ";") {
-									line("return (new $name(count))->setArray(0, count, (const $type *)data);")
-								}
-
-								line("static $name *fromArgValues() { return (new $name(0)); };")
-								line("static $name *fromArgValues($type a0) { return (new $name(1))->init(0, a0); };")
-								line("static $name *fromArgValues($type a0, $type a1) { return (new $name(2))->init(0, a0)->init(1, a1); };")
-								line("static $name *fromArgValues($type a0, $type a1, $type a2) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2); };")
-								line("static $name *fromArgValues($type a0, $type a1, $type a2, $type a3) { return (new $name(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };")
-
-								if (name == "JA_L") {
-									line("std::vector<SOBJ> getVector()") {
-										line("int len = this->length;")
-										line("std::vector<SOBJ> out(len);")
-										line("for (int n = 0; n < len; n++) out[n] = this->fastGet(n);")
-										line("return out;")
-									}
-
-									line("""static JA_0* createMultiSure(std::wstring desc, std::vector<int32_t> sizes)""") {
-										line("""if (sizes.size() == 0) throw L"Multiarray with zero sizes";""")
-
-										line("""int32_t size = sizes[0];""")
-
-										line("if (sizes.size() == 1)") {
-											line("""if (desc == std::wstring(L"[Z")) return new JA_Z(size); """)
-											line("""if (desc == std::wstring(L"[B")) return new JA_B(size); """)
-											line("""if (desc == std::wstring(L"[S")) return new JA_S(size); """)
-											line("""if (desc == std::wstring(L"[C")) return new JA_C(size); """)
-											line("""if (desc == std::wstring(L"[I")) return new JA_I(size); """)
-											line("""if (desc == std::wstring(L"[J")) return new JA_J(size); """)
-											line("""if (desc == std::wstring(L"[F")) return new JA_F(size); """)
-											line("""if (desc == std::wstring(L"[D")) return new JA_D(size); """)
-											line("""throw L"Invalid multiarray"; """)
-										}
-
-										// std::vector<decltype(myvector)::value_type>(myvector.begin()+N, myvector.end()).swap(myvector);
-
-
-										line("""auto out = new JA_L(size, desc);""")
-										line("""auto subdesc = desc.substr(1);""")
-										line("""auto subsizes = std::vector<int32_t>(sizes.begin() + 1, sizes.end());""")
-										line("for (int n = 0; n < size; n++)") {
-											line("""out->set(n, SOBJ(createMultiSure(subdesc, subsizes)));""")
-										}
-										line("return out;")
-									}
-								}
-							}
-							line("};")
-						}
-					}
-				}
+		val ARRAY_HEADERS_POST = Indenter.gen {
+			// {{ ARRAY_HEADERS }}
+			for (clazz in ordereredClasses.filter { !it.isNative }.filter { it.fqname != "java.lang.Object" }) {
+				line(writeClassHeader(clazz))
 			}
 		}
 
@@ -388,7 +274,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				"CLASS_REFERENCES" to CLASS_REFERENCES.toString(),
 				"TYPE_TABLE_HEADERS" to TYPE_TABLE_HEADERS.toString(),
 				"ARRAY_TYPES" to ARRAY_TYPES.toString(),
-				"ARRAY_HEADERS" to ARRAY_HEADERS.toString(),
+				"ARRAY_HEADERS_PRE" to ARRAY_HEADERS_PRE.toString(),
+				"ARRAY_HEADERS_POST" to ARRAY_HEADERS_POST.toString(),
 				"CLASSES_IMPL" to CLASSES_IMPL.toString(),
 				"STRINGS" to STRINGS.toString(),
 				"TYPE_TABLE_FOOTER" to TYPE_TABLE_FOOTER.toString(),

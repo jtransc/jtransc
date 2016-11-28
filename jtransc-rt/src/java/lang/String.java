@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("ALL")
 @HaxeAddMembers({
 	"public var _str:String = '';",
 	"public var _array:JA_C = null;",
@@ -551,6 +552,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return join(delimiter, out.toArray(new CharSequence[out.size()]));
 	}
 
+	@Override
 	public String toString() {
 		return this;
 	}

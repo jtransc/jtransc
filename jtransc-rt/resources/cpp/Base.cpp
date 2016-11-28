@@ -185,13 +185,132 @@ struct N { public:
 	static void initStringPool();
 };
 
-{{ ARRAY_HEADERS }}
+
+/// ARRAY_HEADERS
+
+{{ ARRAY_HEADERS_PRE }}
+
+struct JA_0 : public java_lang_Object { public:
+	void *_data;
+	int length;
+	int elementSize;
+	std::wstring desc;
+	JA_0(int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+		this->__INSTANCE_CLASS_ID = 1;
+		this->_data = (void*)::malloc(esize * (len + 1));
+		::memset(this->_data, 0, (len + 1) * esize);
+	}
+	~JA_0() { ::free(_data); }
+	void *getOffsetPtr(int offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
+	static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len) {
+		::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);
+	}
+};
+
+template <class T>
+struct JA_Base : JA_0 {
+	JA_Base(int size, std::wstring desc) : JA_0(size, sizeof(T), desc) {
+	};
+	inline void checkBounds(int offset) {
+		if (offset < 0 || offset >= length) {
+			std::wstringstream os;
+			os << L"Out of bounds " << offset << L" " << length;
+			throw os.str();
+		}
+	};
+	T *getStartPtr() { return (T *)_data; }
+
+	#ifdef CHECK_ARRAYS
+		inline void fastSet(int offset, T v) { checkBounds(offset); ((T*)(this->_data))[offset] = v; };
+		inline T fastGet(int offset) { checkBounds(offset); return ((T*)(this->_data))[offset]; }
+	#else
+		inline void fastSet(int offset, T v) { ((T*)(this->_data))[offset] = v; };
+		inline T fastGet(int offset) { return ((T*)(this->_data))[offset]; }
+	#endif
+
+	inline JA_Base<T> *init(int offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
+
+	void set(int offset, T v) { checkBounds(offset); fastSet(offset, v); };
+	T get(int offset) { checkBounds(offset); return fastGet(offset); };
+
+	void fill(int from, int to, T v) { checkBounds(from); checkBounds(to - 1); T* data = (T*)this->_data; for (int n = from; n < to; n++) data[n] = v; };
+
+	JA_Base<T> *setArray(int start, int size, const T *arrays) {
+		for (int n = 0; n < size; n++) this->set(start + n, arrays[n]);
+		return this;
+	};
+};
+
+struct JA_B : JA_Base<int8_t> { public: JA_B(int size, std::wstring desc = L"[B") : JA_Base(size, desc) { }; };
+struct JA_Z : public JA_B { public: JA_Z(int size, std::wstring desc = L"[Z") : JA_B(size, desc) { }; };
+struct JA_S : JA_Base<int16_t> { public: JA_S(int size, std::wstring desc = L"[S") : JA_Base(size, desc) { }; };
+struct JA_C : JA_Base<uint16_t> { public: JA_C(int size, std::wstring desc = L"[C") : JA_Base(size, desc) { }; };
+struct JA_I : JA_Base<int32_t> {
+	public: JA_I(int size, std::wstring desc = L"[I") : JA_Base(size, desc) { };
+
+	// @TODO: Try to move to JA_Base
+	static JA_I *fromVector(int *data, int count) {
+		return (JA_I * )(new JA_I(count))->setArray(0, count, (const int *)data);
+	};
+
+	static JA_I *fromArgValues() { return (JA_I * )(new JA_I(0)); };
+	static JA_I *fromArgValues(int a0) { return (JA_I * )(new JA_I(1))->init(0, a0); };
+	static JA_I *fromArgValues(int a0, int a1) { return (JA_I * )(new JA_I(2))->init(0, a0)->init(1, a1); };
+	static JA_I *fromArgValues(int a0, int a1, int a2) { return (JA_I * )(new JA_I(3))->init(0, a0)->init(1, a1)->init(2, a2); };
+	static JA_I *fromArgValues(int a0, int a1, int a2, int a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
+
+};
+struct JA_J : JA_Base<int64_t> { public: JA_J(int size, std::wstring desc = L"[J") : JA_Base(size, desc) { }; };
+struct JA_F : JA_Base<float> { public: JA_F(int size, std::wstring desc = L"[F") : JA_Base(size, desc) { }; };
+struct JA_D : JA_Base<double> { public: JA_D(int size, std::wstring desc = L"[D") : JA_Base(size, desc) { }; };
+struct JA_L : JA_Base<SOBJ> {
+	public: JA_L(int size, std::wstring desc) : JA_Base(size, desc) { };
+
+	std::vector<SOBJ> getVector() {
+		int len = this->length;
+		std::vector<SOBJ> out(len);
+		for (int n = 0; n < len; n++) out[n] = this->fastGet(n);
+		return out;
+	}
+
+	static JA_0* createMultiSure(std::wstring desc, std::vector<int32_t> sizes) {
+		if (sizes.size() == 0) throw L"Multiarray with zero sizes";
+
+		int32_t size = sizes[0];
+
+		if (sizes.size() == 1) {
+			if (desc == std::wstring(L"[Z")) return new JA_Z(size);
+			if (desc == std::wstring(L"[B")) return new JA_B(size);
+			if (desc == std::wstring(L"[S")) return new JA_S(size);
+			if (desc == std::wstring(L"[C")) return new JA_C(size);
+			if (desc == std::wstring(L"[I")) return new JA_I(size);
+			if (desc == std::wstring(L"[J")) return new JA_J(size);
+			if (desc == std::wstring(L"[F")) return new JA_F(size);
+			if (desc == std::wstring(L"[D")) return new JA_D(size);
+			throw L"Invalid multiarray";
+		}
+
+		// std::vector<decltype(myvector)::value_type>(myvector.begin()+N, myvector.end()).swap(myvector);
+
+
+		auto out = new JA_L(size, desc);
+		auto subdesc = desc.substr(1);
+		auto subsizes = std::vector<int32_t>(sizes.begin() + 1, sizes.end());
+		for (int n = 0; n < size; n++) {
+			out->set(n, SOBJ(createMultiSure(subdesc, subsizes)));
+		}
+		return out;
+	}
+};
+
+{{ ARRAY_HEADERS_POST }}
 
 // Strings
 {{ STRINGS }}
 
 // Classes IMPLS
 {{ CLASSES_IMPL }}
+
 
 // N IMPLS
 
@@ -378,13 +497,13 @@ SOBJ N::strArray(std::vector<std::wstring> strs) {
 
 SOBJ N::strArray(std::vector<std::string> strs) {
 	int len = strs.size();
-	std::shared_ptr<JA_L> out(new JA_L(len, L"[java/lang/String;"));
+	std::shared_ptr<JA_L> out(new JA_L(len, L"[Ljava/lang/String;"));
 	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return out.get()->sptr();
 }
 
 SOBJ N::strEmptyArray() {
-	std::shared_ptr<JA_L> out(new JA_L(0));
+	std::shared_ptr<JA_L> out(new JA_L(0, L"Ljava/lang/String;"));
 	return out.get()->sptr();
 }
 

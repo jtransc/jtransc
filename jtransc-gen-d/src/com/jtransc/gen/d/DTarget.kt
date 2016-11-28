@@ -2,6 +2,7 @@ package com.jtransc.gen.d
 
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
+import com.jtransc.JTranscSystem
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
@@ -12,17 +13,15 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.io.ProcessUtils
 import com.jtransc.text.Indenter
 import com.jtransc.text.escape
 import com.jtransc.text.quote
-import com.jtransc.types.DEBUG
 import com.jtransc.vfs.*
 import java.io.File
 
 // Supports GOTO keyword
 // Supports static fields and methods on interfaces
-class DTarget() : GenTargetDescriptor() {
+class DTarget : GenTargetDescriptor() {
 	override val name = "d"
 	override val outputExtension = "bin"
 	override val extraLibraries = listOf<String>()
@@ -34,6 +33,7 @@ class DTarget() : GenTargetDescriptor() {
 		TargetBuildTarget("d", "d", "program.d", minimizeNames = false)
 	)
 
+	@Suppress("ConvertLambdaToReference")
 	override fun getGenerator(injector: Injector): CommonGenerator {
 		val settings = injector.get<AstBuildSettings>()
 		val configTargetDirectory = injector.get<ConfigTargetDirectory>()
@@ -60,7 +60,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 
-	override val keywords = setOf<String>(
+	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
 		"body", "bool", "break", "byte",
 		"case", "cast", "catch", "cdouble", "cent", "cfloat", "char", "class", "const", "continue", "creal",
@@ -95,7 +95,11 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		val names = listOf("program.exe", "program", "program.out", "a.exe", "a", "a.out")
+		val names = if (JTranscSystem.isWindows()) {
+			listOf("program.exe", "a.exe")
+		} else {
+			listOf("program", "program.out", "a", "a.out")
+		}
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, listOf(), ExecOptions(passthru = redirect, sysexec = true)))
 	}
@@ -190,7 +194,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
 		if (clazz.isJavaLangObject) {
 			line("override public string toString()") {
-				line("return to!string(N.istr(" + buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false) + "()));");
+				line("return to!string(N.istr(" + buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false) + "()));")
 			}
 		}
 
@@ -236,6 +240,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	//override fun N_i(str: String) = "(cast(int)($str))"
 	override fun N_i(str: String) = "($str)"
+
 	override fun N_f2i(str: String) = "(cast(int)($str))"
 	override fun N_d2i(str: String) = "(cast(int)($str))"
 	override fun N_c_eq(l: String, r: String) = "($l is $r)"
@@ -295,8 +300,17 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	//override fun escapedConstant(v: Any?): String = when (v) {
-	//	is Double -> "N.longBitsToDouble(" + java.lang.Double.doubleToRawLongBits(v) + "L)"
-	//	else -> super.escapedConstant(v)
-	//}
+	override fun escapedConstant(v: Any?): String = when (v) {
+		is Double -> {
+			val isVerySmall = (v >= 0.0 && v <= 4.940656e-324)
+			val representable = !isVerySmall
+			if (representable) {
+				super.escapedConstant(v)
+			} else {
+				"N.longBitsToDouble(cast(long)0x" + java.lang.Long.toHexString(java.lang.Double.doubleToRawLongBits(v)) + "UL)"
+			}
+			//"N.longBitsToDouble(" + java.lang.Double.doubleToRawLongBits(v) + "L)"
+		}
+		else -> super.escapedConstant(v)
+	}
 }
