@@ -3,6 +3,7 @@ package big
 import android.AndroidArgsTest
 import android.AndroidTest8019
 import com.jtransc.annotation.JTranscInvisible
+import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.annotation.JTranscMethodBody
 import javatest.KotlinCollections
 import javatest.StrangeNamesTest
@@ -26,6 +27,8 @@ import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
+import testservice.ITestService
+import java.util.*
 
 object BigTest {
 	@Throws(Throwable::class)
@@ -100,5 +103,29 @@ object BigTest {
 
 		// Regex
 		javatest.utils.regex.RegexTest.main(args)
+
+		servicesTest()
+
+		keepConstructorsTest()
+	}
+
+	private fun servicesTest() {
+		val load = ServiceLoader.load(testservice.ITestService::class.java)
+		println("Services:")
+		for (testService in load) {
+			println(testService.test())
+		}
+		println("/Services:")
+	}
+
+	private fun keepConstructorsTest() {
+		println("keepConstructorsTest:")
+		println(Demo::class.java.declaredConstructors.size)
 	}
 }
+
+@JTranscKeepConstructors
+annotation class KeepConstructorsAnnotation()
+
+@KeepConstructorsAnnotation
+class Demo(val a: Int, val s: String)

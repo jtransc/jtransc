@@ -19,6 +19,31 @@ var O_DSYNC  = 8;
 var IO = function() {
 };
 
+IO.remove = function(path) {
+	if (!fs) return;
+	fs.unlinkSync(ptah);
+};
+
+IO.createDirectory = function(path) {
+	if (!fs) return true;
+	try {
+		fs.mkdirSync(path);
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
+IO.rename = function(oldPath, newPath) {
+	if (!fs) return;
+	fs.renameSync(oldPath, newPath)
+};
+
+IO.list = function(path) {
+	if (!fs) return [];
+	return fs.readdirSync(path);
+};
+
 IO.getCwd = function() { return (nodeJs) ? process.cwd() : '/assets'; };
 
 IO.getLength = function(path) {

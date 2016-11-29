@@ -16,9 +16,11 @@
 
 package com.jtransc.env
 
-import com.jtransc.vfs.*
+import com.jtransc.vfs.LocalAndJars
+import com.jtransc.vfs.LocalVfs
+import com.jtransc.vfs.MergeVfs
+import com.jtransc.vfs.SyncVfsFile
 import java.io.File
-import java.nio.file.Paths
 
 class RuntimeProvider {
 	private val cl = javaClass.classLoader
@@ -28,7 +30,7 @@ class RuntimeProvider {
 	private val javaAotProjectPath = javaAotProjectDirectory.absolutePath
 
 	//val project_root = Paths.get("$javaAotProjectPath/../..").normalize().toFile().absolutePath
-	val project_root = Paths.get("$javaAotProjectPath/../../../").normalize().toFile().absolutePath
+	val project_root = File("$javaAotProjectPath/../../../").canonicalPath
 	val java_runtime_classes_path = "$project_root/jtransc-rt/target/classes"
 	//val java_runtime_classes_path = "$javaAotProjectPath"
 

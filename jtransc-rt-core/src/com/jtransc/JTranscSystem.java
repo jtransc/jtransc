@@ -77,7 +77,6 @@ public class JTranscSystem {
 		return usingJTransc();
 	}
 
-	@JTranscInline
 	@HaxeMethodBody("N.debugger();")
 	@JTranscMethodBody(target = "js", value = "debugger;")
 	static public void debugger() {
@@ -85,7 +84,6 @@ public class JTranscSystem {
 		//throw new Error("Debugger");
 	}
 
-	@JTranscInline
 	@HaxeMethodBody("if (!p0) N.debugger();")
 	@JTranscMethodBody(target = "js", value = "if (!p0) debugger;")
 	static public void assert2(boolean trueCond) {
@@ -110,19 +108,16 @@ public class JTranscSystem {
 		return "unknown";
 	}
 
-	@JTranscInline
 	@HaxeMethodBody("return true;")
 	public static boolean isHaxe() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isPureJs() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "sys", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return false;")
@@ -131,26 +126,22 @@ public class JTranscSystem {
 		return TRUE;
 	}
 
-	@JTranscInline
 	@JTranscMethodBody(target = "cpp", value = "return true;")
 	public static boolean isCpp() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@JTranscMethodBody(target = "d", value = "return true;")
 	public static boolean isD() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "cs", value = "return true;")
 	@HaxeMethodBody("return false;")
 	public static boolean isCsharp() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	public static boolean isJvm() {
 		return !isJTransc();
 	}
@@ -159,7 +150,6 @@ public class JTranscSystem {
 		return isJvm();
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "js", value = "return true;")
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "js", value = "return true;")
@@ -183,25 +173,21 @@ public class JTranscSystem {
 		}
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "flash", value = "return true;")
 	public static boolean isSwf() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "neko", value = "return true;")
 	public static boolean isNeko() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "php", value = "return true;")
 	public static boolean isPhp() {
 		return FALSE;
 	}
 
-	@JTranscInline
 	@HaxeMethodBody(target = "python", value = "return true;")
 	public static boolean isPython() {
 		return FALSE;

@@ -56,6 +56,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.delete(p0._str);")
+		@JTranscMethodBody(target = "js", value = "return IO.remove(N.istr(p0));")
 		@JTranscMethodBody(target = "d", value = "try { std.file.remove(N.istr2(p0)); return true; } catch (Throwable t) { return false; }")
 		public native boolean delete(String file);
 
@@ -112,6 +113,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.createDirectory(p0._str);")
+		@JTranscMethodBody(target = "js", value = "return IO.createDirectory(N.istr(p0));")
 		@JTranscMethodBody(target = "cpp", value = {
 			"char name[1024] = {0};",
 			"::strcpy(name, N::istr3(p0).c_str());",
@@ -129,6 +131,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.rename(p0._str, p1._str);")
+		@JTranscMethodBody(target = "js", value = "return IO.rename(N.istr(p0), N.istr(p1));")
 		@JTranscMethodBody(target = "cpp", value = {
 			"char name1[1024] = {0};",
 			"char name2[1024] = {0};",
@@ -148,6 +151,7 @@ public class JTranscSyncIO {
 
 		@Override
 		@HaxeMethodBody("return N.strArray(HaxeIO.SyncFS.list(p0._str));")
+		@JTranscMethodBody(target = "js", value = "return N.istrArray(IO.list(N.istr(p0)));")
 		//@JTranscMethodBody(target = "cpp", cond = "_WIN32", value = { // Not implemented
 		//	"auto str = N::istr3(p0);",
 		//	"std::vector<std::string> out;",

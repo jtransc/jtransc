@@ -1,5 +1,7 @@
 package com.jtransc.injector
 
+import com.jtransc.annotation.JTranscKeep
+import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.error.invalidOp
 import java.lang.reflect.InvocationTargetException
 
@@ -71,8 +73,10 @@ class Injector() {
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
+@JTranscKeepConstructors
 annotation class Singleton()
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
+@JTranscKeepConstructors
 annotation class Prototype()

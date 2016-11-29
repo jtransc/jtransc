@@ -250,4 +250,13 @@ public interface Map<K,V> {
      * @return a collection of the values contained in this map.
      */
     public Collection<V> values();
+
+	default V putIfAbsent(K key, V value) {
+		V v = get(key);
+		if (v == null) {
+			v = put(key, value);
+		}
+
+		return v;
+	}
 }

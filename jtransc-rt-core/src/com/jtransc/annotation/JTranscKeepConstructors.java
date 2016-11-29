@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package java.lang;
+package com.jtransc.annotation;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public abstract class Process {
-	public abstract OutputStream getOutputStream();
-
-	public abstract InputStream getInputStream();
-
-	public abstract InputStream getErrorStream();
-
-	public abstract int waitFor() throws InterruptedException;
-
-	public abstract int exitValue();
-
-	public abstract boolean isAlive();
-
-	public abstract void destroy();
-
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE})
+public @interface JTranscKeepConstructors {
 }

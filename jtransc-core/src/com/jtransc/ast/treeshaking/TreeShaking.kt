@@ -1,6 +1,7 @@
 package com.jtransc.ast.treeshaking
 
 import com.jtransc.annotation.JTranscAddFileList
+import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate
 import com.jtransc.annotation.haxe.HaxeMethodBodyList
@@ -60,6 +61,13 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 		val processed = hashSetOf<Any>()
 		val newclasses = hashMapOf<FqName, AstClass>()
 		val classtree = ClassTree(SHAKING_TRACE, newprogram)
+
+		val classesWithKeepConstructors = oldprogram.classes.filter { it.annotationsList.contains<JTranscKeepConstructors>() }.map { it.name }.toSet()
+		val actualClassesWithKeepConstructors = oldprogram.classes.filter {
+			it.name in classesWithKeepConstructors ||
+			it.annotationsList.list.any { it.type.name in classesWithKeepConstructors }
+		}.map { it.name }.toSet()
+		// oldclazz.annotationsList.list.any { it.type.name in classesWithKeepConstructors })
 
 		fun addTemplateReferences(template: String, templateReason: String) {
 			val refs = GetTemplateReferences(oldprogram, template)
@@ -133,6 +141,17 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 
 				for (impl in oldclazz.implementing) addBasicClass(impl, reason = "implementing $fqname")
 				if (oldclazz.extending != null) addBasicClass(oldclazz.extending, reason = "extending $fqname")
+
+				val relatedTypes = oldclazz.getAllRelatedTypes().map { it.name }
+
+				val keepConstructors = relatedTypes.any { it in actualClassesWithKeepConstructors }
+
+				if (keepConstructors) {
+					for (constructor in oldclazz.constructors) {
+						addMethod(constructor.ref, reason = "<method>@JTranscKeepConstructors")
+					}
+					//println("keepConstructors:")
+				}
 
 				if (oldclazz.keep) {
 					addFullClass(fqname, reason = "$fqname+@JTranscKeep")

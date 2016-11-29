@@ -16,14 +16,12 @@
 
 package com.jtransc.vfs
 
+import com.jtransc.error.noImpl
 import com.jtransc.io.ProcessUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.net.URI
 import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 
 //fun String.toBuffer(encoding: Charset = UTF8): ByteBuffer = encoding.toBuffer(this)
@@ -152,19 +150,23 @@ object RawIo {
 		File(path).mkdir()
 	}
 
-	private fun getNioPath(path: String): java.nio.file.Path = Paths.get(URI("file://$path"))
+	//private fun getNioPath(path: String): java.nio.file.Path = Paths.get(URI("file://$path"))
 
 	fun chmod(path: String, mode: FileMode): Boolean {
+		noImpl("Not implemented chmod")
+		/*
 		try {
 			Files.setPosixFilePermissions(getNioPath(path), mode.toPosix())
 			return true
 		} catch (t: Throwable) {
 			return false
 		}
+		*/
 	}
 
 	fun symlink(link: String, target: String) {
-		Files.createSymbolicLink(getNioPath(link), getNioPath(target))
+		noImpl("Not implemented symlink")
+		//Files.createSymbolicLink(getNioPath(link), getNioPath(target))
 		//execOrPassthruSync(".", "ln", listOf("-s", target, link))
 	}
 }

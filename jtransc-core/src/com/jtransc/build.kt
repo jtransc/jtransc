@@ -24,10 +24,12 @@ import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.injector.Injector
 import com.jtransc.input.AsmToAst
+import com.jtransc.io.JTranscConsole
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.target.Js
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -39,8 +41,9 @@ import java.util.*
 
 fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetSubDescriptor {
 	val parts = target.split(":")
+
 	return GenTargetSubDescriptor(
-		descriptor = this.firstOrNull { it.name == parts[0] } ?: throw Exception("Unknown target $target"),
+		descriptor = this.firstOrNull { it.name == parts[0] } ?: invalidOp("Unknown target $target among $this : ${this.map { it.name }}"),
 		sub = parts.getOrElse(1) { "default" }
 	)
 }

@@ -95,7 +95,7 @@ public class System {
 	static private void _setProperty(String key, String value, String defaultValue) {
 		if (key == null) key = "";
 		if (value == null) value = defaultValue;
-		_props.put(key, value);
+		getProps().put(key, value);
 	}
 
 	static private Properties getProps() {
@@ -152,9 +152,7 @@ public class System {
 		"auto str = N::istr3(p0);",
 		"return N::str(std::getenv(str.c_str()));"
 	})
-	@JTranscMethodBody(target = "d", value = {
-		"return N.str(std.process.environment.get(N.istr2(p0)));",
-	})
+	@JTranscMethodBody(target = "d", value = "return N.str(std.process.environment.get(N.istr2(p0)));")
 	public static String getenv(String name) {
 		return null;
 	}
@@ -167,15 +165,23 @@ public class System {
 	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")
 	@HaxeMethodBody(target = "js", value = "untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
 	@HaxeMethodBody("throw 'EXIT!';")
+	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
+	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
+	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
 	native public static void exit(int status);
 
-	@HaxeMethodBody("")
-	native public static void gc();
+	public static void gc() {
 
-	native public static void runFinalization();
+	}
+
+	public static void runFinalization() {
+
+	}
 
 	@Deprecated
-	native public static void runFinalizersOnExit(boolean value);
+	public static void runFinalizersOnExit(boolean value) {
+
+	}
 
 	public static void load(String filename) {
 	}

@@ -26,7 +26,7 @@ import jtransc.java8.Java8Test2
 import org.junit.Test
 
 class BigTest : Base() {
-	//@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
+	@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 
 	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = true)
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true)
@@ -39,7 +39,7 @@ class BigTest : Base() {
 
 	@Test fun testD() = testClass<BigTest>(minimize = false, target = DTarget(), log = false)
 
-	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
+	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = true)
 	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
 	//@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = true)
 

@@ -8,7 +8,6 @@ import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
 import javatest.lang.BasicTypesTest;
-import jtransc.bug.JTranscRegression3Test;
 import jtransc.jtransc.FastMemoryTest;
 import jtransc.rt.test.JTranscReflectionTest;
 
@@ -22,7 +21,6 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 
@@ -35,6 +33,7 @@ public class MiscTest {
 		testBootstrap2();
 		testBootstrap3();
 		testBootstrap4();
+		testTestStrings();
 
 		//if (JTranscSystem.isJs()) {
 		//	JTranscSystem.debugger();
@@ -42,6 +41,15 @@ public class MiscTest {
 
 		new MiscTest().main2(args);
 		ClInitCallTwice.test();
+	}
+
+	static private void testTestStrings() {
+		System.out.println("testTestStrings:");
+		System.out.println(TestStrings.staticInt);
+		System.out.println(TestStrings.staticString);
+		TestStrings testStrings = new TestStrings();
+		System.out.println(testStrings.instanceInt);
+		System.out.println(testStrings.instanceString);
 	}
 
 	static public class ClInitCallTwice {
@@ -868,6 +876,13 @@ public class MiscTest {
 				elements = 10;
 			}
 		}
+	}
+
+	static class TestStrings {
+		static public String staticString = "staticTest";
+		static public int staticInt = 7;
+		public String instanceString = "instanceString";
+		public int instanceInt = -7;
 	}
 
 	private static long seedUniquifier = 8682522807148012L;

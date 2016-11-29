@@ -324,7 +324,8 @@ fun File.toSyncStat(vfs: SyncVfs, path: String) = SyncVfsStat(
 	size = this.length(),
 	mtime = Date(this.lastModified()),
 	isDirectory = this.isDirectory,
-	isSymlink = java.nio.file.Files.isSymbolicLink(java.nio.file.Paths.get(this.toURI())),
+	//isSymlink = java.nio.file.Files.isSymbolicLink(java.nio.file.Paths.get(this.toURI())),
+	isSymlink = false,
 	exists = true,
 	mode = FileMode.FULL_ACCESS
 )

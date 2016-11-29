@@ -4,7 +4,6 @@ import com.jtransc.numeric.toInt
 import com.jtransc.util.extract
 import com.jtransc.util.extractBool
 import com.jtransc.util.withBool
-import java.nio.file.attribute.PosixFilePermission
 
 data class PartPermission(val value: Int) {
 	val canExec = value.extractBool(0)
@@ -45,6 +44,7 @@ data class FileMode(val value: Int) {
 	}
 }
 
+/*
 fun FileMode.toPosix(): Set<PosixFilePermission> {
 	// Symbolic Notation	Numeric Notation	English
 	// ----------	0000	no permissions
@@ -72,3 +72,4 @@ fun FileMode.toPosix(): Set<PosixFilePermission> {
 
 	return out
 }
+*/

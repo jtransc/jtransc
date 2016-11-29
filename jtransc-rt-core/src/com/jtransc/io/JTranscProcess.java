@@ -149,6 +149,16 @@ public class JTranscProcess extends Process {
 	@JTranscMethodBody(target = "d", value = "std.process.kill(this.pipes.pid);")
 	//@JTranscMethodBody(target = "js", value = "")
 	public native void destroy();
+
+	@JTranscMethodBody(target = "d", value = "return !std.process.tryWait(this.pipes.pid).terminated;")
+	public boolean isAlive() {
+		try {
+			exitValue();
+			return false;
+		} catch(IllegalThreadStateException e) {
+			return true;
+		}
+	}
 }
 
 @SuppressWarnings("unused")

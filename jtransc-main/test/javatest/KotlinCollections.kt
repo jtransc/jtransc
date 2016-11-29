@@ -32,6 +32,10 @@ object KotlinCollections {
 		}
 
 		sortTest()
+
+		println("KotlinCollections:")
+		println(D2Target::class.java.newInstance().name)
+		println(DTarget().name)
 	}
 
 	@JvmStatic fun sortTest() {
@@ -90,6 +94,18 @@ object KotlinCollections {
 			)
 		}
 	}
+}
+
+class D2Target : GenTargetDescriptor() {
+	override val name: String = "d2"
+}
+
+class DTarget : GenTargetDescriptor() {
+	override val name: String = "d"
+}
+
+abstract class GenTargetDescriptor {
+	abstract val name: String
 }
 
 data class PairInt(val a: Int, val b: Int)

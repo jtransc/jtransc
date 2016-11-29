@@ -34,7 +34,10 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		for (serviceListFile in servicesFolders.flatMap { it.listdir() }) {
 			val serviceName = serviceListFile.name
 			val serviceImpls = serviceListFile.file.readString().trim().lines().map { it.split('#').firstOrNull()?.trim() ?: "" }.filter { it.isNotEmpty() }
-			servicesToImpls[serviceName] = serviceImpls
+			if (serviceName !in servicesToImpls) {
+				servicesToImpls[serviceName] = listOf()
+			}
+			servicesToImpls[serviceName] = servicesToImpls[serviceName]!! + serviceImpls
 			log.info("Detected service: $serviceName with implementations $serviceImpls")
 		}
 
@@ -43,7 +46,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 			if (impls != null) {
 				referencedServices += clazz.fqname
 				//log.info("Discovered used service: $clazz with impls $impls")
-				println("Discovered used service: $clazz with impls $impls")
+				log.info("Discovered used service: $clazz with impls $impls")
 				for (impl in impls) {
 					program.addReference(AstType.REF(impl.fqname), clazz.ref)
 				}
@@ -51,11 +54,11 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		}
 	}
 
-	override fun processBeforeTreeShaking(program: AstProgram) {
+	override fun processBeforeTreeShaking(programBase: AstProgram) {
 		if (referencedServices.isEmpty()) return
 
-		val ServiceLoaderClass = program[ServiceLoader::class.java.fqname]
-		val objectsClass = program[Objects::class.java.fqname]
+		val ServiceLoaderClass = programBase[ServiceLoader::class.java.fqname]
+		val objectsClass = programBase[Objects::class.java.fqname]
 		val ServiceLoader_getInstances = ServiceLoaderClass.getMethodWithoutOverrides("getInstances") ?: return
 		val Objects_equals = objectsClass.getMethodWithoutOverrides(Objects::equals.name) ?: return
 		ServiceLoader_getInstances.replaceBodyOptBuild {
@@ -69,7 +72,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 					SET(out, NEW_ARRAY(ARRAY(OBJECT), impls.size.lit))
 					for ((index, impl) in impls.withIndex()) {
 						//val ref = AstType.REF(impl.fqname)
-						val clazz = program[impl.fqname]
+						val clazz = programBase[impl.fqname]
 						val emptyConstructor = clazz[AstMethodWithoutClassRef("<init>", AstType.METHOD(AstType.VOID, listOf()))] ?: invalidOp("Can't find default constructor for service implementation $impl")
 						//clazz.extraKeep = true
 						SET_ARRAY(out, index.lit, AstExpr.NEW_WITH_CONSTRUCTOR(emptyConstructor.ref, listOf()))

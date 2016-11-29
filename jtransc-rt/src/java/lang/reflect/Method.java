@@ -90,7 +90,10 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		return (getModifiers() & Modifier.BRIDGE) != 0;
 	}
 
-	native public Object getDefaultValue();
+	public Object getDefaultValue() {
+		// @TODO:
+		return null;
+	}
 
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		return super.getAnnotation(annotationClass);

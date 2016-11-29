@@ -30,6 +30,12 @@ object AstDependencyAnalyzer {
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
+		fun ana(method: AstMethodRef) {
+			methods.add(method)
+		}
+		fun ana(field: AstFieldRef) {
+			fields.add(field)
+		}
 		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
 		fun ana(types: List<AstType>) = types.forEach { ana(it) }
 
@@ -79,7 +85,7 @@ object AstDependencyAnalyzer {
 				is AstExpr.CALL_BASE -> {
 					ana(expr.method.type)
 					for (arg in expr.args) ana(arg)
-					methods.add(expr.method)
+					ana(expr.method)
 					if (expr is AstExpr.CALL_INSTANCE) ana(expr.obj)
 					//if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
 				}
@@ -88,9 +94,9 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.FIELD_INSTANCE_ACCESS -> {
 					ana(expr.expr)
-					fields.add(expr.field)
+					ana(expr.field)
 				}
-				is AstExpr.FIELD_STATIC_ACCESS -> fields.add(expr.field)
+				is AstExpr.FIELD_STATIC_ACCESS -> ana(expr.field)
 				is AstExpr.INSTANCE_OF -> ana(expr.checkType)
 				is AstExpr.UNOP -> ana(expr.right)
 				is AstExpr.THIS -> ana(expr.type)
@@ -104,14 +110,15 @@ object AstDependencyAnalyzer {
 				is AstExpr.PARAM -> ana(expr.type)
 				is AstExpr.INVOKE_DYNAMIC_METHOD -> {
 					ana(expr.type)
-					methods += expr.methodInInterfaceRef
-					methods += expr.methodToConvertRef
+					ana(expr.methodInInterfaceRef)
+					ana(expr.methodToConvertRef)
 					ana(expr.methodInInterfaceRef.allClassRefs)
 					ana(expr.methodToConvertRef.allClassRefs)
 				}
 				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
 					ana(expr.target)
 					ana(expr.type)
+					ana(expr.constructor)
 					for (arg in expr.args) ana(arg)
 				}
 			//is AstExpr.REF -> ana(expr.expr)
@@ -140,10 +147,10 @@ object AstDependencyAnalyzer {
 					for (v in stm.values) ana(v)
 				}
 				is AstStm.SET_FIELD_INSTANCE -> {
-					fields.add(stm.field); ana(stm.left); ana(stm.expr)
+					ana(stm.field); ana(stm.left); ana(stm.expr)
 				}
 				is AstStm.SET_FIELD_STATIC -> {
-					fields.add(stm.field); ana(stm.expr)
+					ana(stm.field); ana(stm.expr)
 				}
 				is AstStm.RETURN -> ana(stm.retval)
 				is AstStm.RETURN_VOID -> Unit

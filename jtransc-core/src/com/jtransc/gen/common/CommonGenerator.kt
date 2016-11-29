@@ -653,7 +653,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genExprNew(e: AstExpr.NEW): String {
 		refs.add(e.target)
 		val className = e.target.targetName
-		return "new $className()"
+		return "(new $className())"
 	}
 
 	open fun genExprNewWithConstructor(e: AstExpr.NEW_WITH_CONSTRUCTOR): String {
