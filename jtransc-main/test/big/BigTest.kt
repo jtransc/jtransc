@@ -28,6 +28,9 @@ import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
 import testservice.ITestService
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
 import java.util.*
 
 object BigTest {
@@ -107,6 +110,9 @@ object BigTest {
 		servicesTest()
 
 		keepConstructorsTest()
+
+		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
+		println("readLine:" + BufferedReader(`is`).readLine())
 	}
 
 	private fun servicesTest() {
