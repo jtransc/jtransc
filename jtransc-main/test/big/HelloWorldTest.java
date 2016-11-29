@@ -6,6 +6,10 @@ import j.ClassInfo;
 import j.ProgramReflection;
 import javatest.utils.Base64Test;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,8 +19,11 @@ public class HelloWorldTest {
 	//public HelloWorldTest() {
 	//}
 
-	static public void main(String[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, NoSuchFieldException, InstantiationException {
+	static public void main(String[] args) throws Throwable {
 		//for (ClassInfo item : ProgramReflection.getAllClasses()) System.out.println(item.name + " : " + item.modifiers);
+
+		InputStreamReader is = new InputStreamReader(new ByteArrayInputStream(new byte[]{'A', 'B', (byte)0xC3, (byte)0xA1}));
+		System.out.println("readLine:" + new BufferedReader(is).readLine());
 
 		//System.out.println("HelloWorldTest.class.getModifiers(): " + HelloWorldTest.class.getModifiers());
 		System.out.println("Hello World!");

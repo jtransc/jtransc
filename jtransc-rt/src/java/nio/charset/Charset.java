@@ -48,7 +48,67 @@ public abstract class Charset implements Comparable<Charset> {
 
 		if (charsets == null) {
 			charsets = new FastStringMap<Charset>();
-			charsets.set("UTF-8", new JTranscGenericCharset("UTF-8", new String[]{}));
+			charsets.set("UTF-8", new JTranscGenericCharset("UTF-8", new String[]{}) {
+				@Override
+				public CharsetDecoder newDecoder() {
+					return new CharsetDecoder(this, 1f, 4f) {
+						int c;
+						boolean readC = false;
+
+						@Override
+						protected CoderResult implFlush(CharBuffer out) {
+							readC = false;
+							return super.implFlush(out);
+						}
+
+						@Override
+						protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
+							while (in.hasRemaining() && out.hasRemaining()) {
+								if (!readC) {
+									c = in.get() & 0xFF;
+									readC = true;
+								}
+								switch (c >> 4) {
+									case 0:
+									case 1:
+									case 2:
+									case 3:
+									case 4:
+									case 5:
+									case 6:
+									case 7: {
+										// 0xxxxxxx
+										out.put((char) (c));
+										readC = false;
+										break;
+									}
+									case 12:
+									case 13: {
+										if (in.remaining() < 1) return CoderResult.OVERFLOW;
+										// 110x xxxx   10xx xxxx
+										out.put((char) (((c & 0x1F) << 6) | (in.get() & 0x3F)));
+										readC = false;
+										break;
+									}
+									case 14: {
+										if (in.remaining() < 2) return CoderResult.OVERFLOW;
+										// 1110 xxxx  10xx xxxx  10xx xxxx
+										out.put((char) (((c & 0x0F) << 12) | ((in.get() & 0x3F) << 6) | ((in.get() & 0x3F) << 0)));
+										readC = false;
+										break;
+									}
+								}
+							}
+							readC = false;
+							if (in.hasRemaining() && !out.hasRemaining()) {
+								return CoderResult.OVERFLOW;
+							} else {
+								return CoderResult.UNDERFLOW;
+							}
+						}
+					};
+				}
+			});
 			charsets.set("ISO-8859-1", new JTranscGenericCharset("ISO-8859-1", new String[]{}));
 			charsets.set("UTF-16", new JTranscGenericCharset("UTF-16", new String[]{}));
 			charsets.set("UTF-16LE", new JTranscGenericCharset("UTF-16LE", new String[]{}));

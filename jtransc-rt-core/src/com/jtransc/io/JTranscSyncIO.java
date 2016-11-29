@@ -10,7 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-@JTranscAddFile(target = "js", priority = -2000, prepend = "js/io.js")
+@JTranscAddFile(target = "js", priority = 0, process = true, prepend = "js/io.js")
 public class JTranscSyncIO {
 	static public final int BA_EXISTS = 0x01;
 	static public final int BA_REGULAR = 0x02;

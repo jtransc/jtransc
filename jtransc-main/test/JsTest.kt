@@ -25,7 +25,7 @@ class JsTest : Base() {
 		17
 		-333
 		Services:
-		TestServiceImpl1.test
+		TestServiceImpl1.test:ss
 		/Services:
 		2
 		hello

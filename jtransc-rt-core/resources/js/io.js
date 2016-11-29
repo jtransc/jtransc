@@ -95,7 +95,8 @@ IO.Stream.prototype.open = function(path, flags) {
 		this.position = 0;
 		this.length = stat.size;
 	} catch (e) {
-		N.throwRuntimeException('' + e);
+		throw {% CONSTRUCTOR java.io.FileNotFoundException:(Ljava/lang/String;)V %}(N.str('' + e));
+		//N.throwRuntimeException('' + e);
 	}
 };
 

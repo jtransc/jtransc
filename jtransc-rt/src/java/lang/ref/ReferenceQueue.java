@@ -20,9 +20,15 @@ public class ReferenceQueue<T> {
 	public ReferenceQueue() {
 	}
 
-	public native Reference<? extends T> poll();
+	public Reference<? extends T> poll() {
+		return null;
+	}
 
-	public native Reference<? extends T> remove(long timeout) throws IllegalArgumentException, InterruptedException;
+	public Reference<? extends T> remove(long timeout) throws IllegalArgumentException, InterruptedException {
+		return null;
+	}
 
-	public native Reference<? extends T> remove() throws InterruptedException;
+	public Reference<? extends T> remove() throws InterruptedException {
+		return null;
+	}
 }

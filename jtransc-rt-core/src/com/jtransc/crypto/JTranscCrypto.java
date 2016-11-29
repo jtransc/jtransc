@@ -13,7 +13,7 @@ import java.security.SecureRandom;
 public class JTranscCrypto {
 	static public void fillSecureRandomBytes(byte[] data) {
 		if (secureRandomProvider == null || data == null) throw new RuntimeException("fillSecureRandomBytes");
-		System.out.println("JTranscCrypto.fillSecureRandomBytes!");
+		//System.out.println("JTranscCrypto.fillSecureRandomBytes!");
 		secureRandomProvider.fillSecureRandomBytes(data);
 	}
 

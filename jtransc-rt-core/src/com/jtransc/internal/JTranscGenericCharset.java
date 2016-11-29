@@ -15,8 +15,12 @@ public class JTranscGenericCharset extends Charset {
 	}
 
 	@Override
-	native public CharsetDecoder newDecoder();
+	public CharsetDecoder newDecoder() {
+		throw new RuntimeException("No newDecoder for " + this.name());
+	}
 
 	@Override
-	native public CharsetEncoder newEncoder();
+	public CharsetEncoder newEncoder() {
+		throw new RuntimeException("No newEncoder for " + this.name());
+	}
 }
