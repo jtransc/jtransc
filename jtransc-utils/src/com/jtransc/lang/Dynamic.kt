@@ -155,16 +155,9 @@ object Dynamic {
 		if (target.isAssignableFrom(java.lang.Long::class.java)) return str.parseLong() as T
 		if (target.isAssignableFrom(java.lang.Float::class.java)) return str.toFloat() as T
 		if (target.isAssignableFrom(java.lang.Double::class.java)) return str.toDouble() as T
-		if (target.isAssignableFrom(java.lang.String::class.java)) {
-			return (if (value == null) "" else str) as T
-		}
-		if (target.isEnum) {
-			if (value == null) return (target.getMethod("values").invoke(null) as Array<Any?>)[0] as T
-			return java.lang.Enum.valueOf<AnyEnum>(target as Class<AnyEnum>, str) as T
-		}
-		if (value is List<*>) {
-			return value.toList() as T
-		}
+		if (target.isAssignableFrom(java.lang.String::class.java)) return (if (value == null) "" else str) as T
+		if (target.isEnum) return if (value != null) java.lang.Enum.valueOf<AnyEnum>(target as Class<AnyEnum>, str) as T else target.enumConstants.first()
+		if (value is List<*>) return value.toList() as T
 		if (value is Map<*, *>) {
 			val map = value as Map<Any?, *>
 			val resultClass = target as Class<Any>

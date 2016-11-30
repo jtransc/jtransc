@@ -20,6 +20,7 @@ import com.jtransc.gen.cpp.CppTarget
 import com.jtransc.gen.d.DTarget
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsTarget
+import javatest.D3Target
 import javatest.utils.KotlinInheritanceTest
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2

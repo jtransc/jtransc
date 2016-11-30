@@ -49,6 +49,8 @@ public class HelloWorldTest {
 		System.out.println(intArrayClass.getComponentType());
 		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 
+		System.out.println(Arrays.asList(EnumABC.class.getEnumConstants()));
+
 		/*
 		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();
 		//stringIntegerLinkedHashMap.put("a", 10);
@@ -85,4 +87,8 @@ public class HelloWorldTest {
 	//static public void hello() {
 	//	System.out.println("hello!");
 	//}
+}
+
+enum EnumABC {
+	A, B, C;
 }

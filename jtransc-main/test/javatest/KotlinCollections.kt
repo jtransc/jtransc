@@ -35,7 +35,7 @@ object KotlinCollections {
 
 		println("KotlinCollections:")
 		println(D2Target::class.java.newInstance().name)
-		println(DTarget().name)
+		println(D3Target().name)
 	}
 
 	@JvmStatic fun sortTest() {
@@ -100,7 +100,7 @@ class D2Target : GenTargetDescriptor() {
 	override val name: String = "d2"
 }
 
-class DTarget : GenTargetDescriptor() {
+class D3Target : GenTargetDescriptor() {
 	override val name: String = "d"
 }
 
