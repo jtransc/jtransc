@@ -11,12 +11,12 @@ import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ZipVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.haxe.HaxeMethodBody
-import com.jtransc.ast.AstAnnotationList
-import com.jtransc.ast.AstTypes
+import com.jtransc.ast.*
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.AnnotationNode
 import com.jtransc.org.objectweb.asm.tree.ClassNode
+import com.jtransc.org.objectweb.asm.tree.FieldNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
 
 class JTranscRtReport {
@@ -88,6 +88,11 @@ class JTranscRtReport {
 			.filter { it.access hasAnyFlags (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED) }
 			.map { MethodRef(it.name, it.desc) }
 
+		fun ClassNode.getPublicOrProtectedFieldDescs() = this.methods
+			.filterIsInstance<FieldNode>()
+			.filter { it.access hasAnyFlags (Opcodes.ACC_PUBLIC or Opcodes.ACC_PROTECTED) }
+			.map { AstFieldWithoutClassRef(it.name, types.demangle(it.desc)) }
+
 		if (f1.exists) {
 			val javaClass = readClass(f1.readBytes())
 			if (javaClass.access hasAnyFlags Opcodes.ACC_PUBLIC) {
@@ -97,15 +102,23 @@ class JTranscRtReport {
 					val javaMethods = javaClass.getPublicOrProtectedMethodDescs()
 					val jtranscMethods = jtranscClass.getPublicOrProtectedMethodDescs()
 
-					val javaFields = javaClass.getPublicOrProtectedMethodDescs()
-					val jtranscFields = jtranscClass.getPublicOrProtectedMethodDescs()
+					val javaFields = javaClass.getPublicOrProtectedFieldDescs()
+					val jtranscFields = jtranscClass.getPublicOrProtectedFieldDescs()
 
-					val result = javaMethods.diff(jtranscMethods)
+					val methodResults = javaMethods.diff(jtranscMethods)
+					val fieldResults = javaFields.diff(jtranscFields)
 
-					if (result.justFirst.isNotEmpty()) {
+					if (methodResults.justFirst.isNotEmpty()) {
 						println("${javaClass.name} (missing methods)")
-						for (i in result.justFirst) {
+						for (i in methodResults.justFirst) {
 							println(" - ${i.name} : ${i.desc}")
+						}
+					}
+
+					if (fieldResults.justFirst.isNotEmpty()) {
+						println("${javaClass.name} (missing fields)")
+						for (i in fieldResults.justFirst) {
+							println(" - ${i.name} : ${i.type.mangle()}")
 						}
 					}
 				} else {

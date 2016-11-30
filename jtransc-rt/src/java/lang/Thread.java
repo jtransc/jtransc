@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.thread.JTranscThreading;
@@ -24,6 +25,10 @@ import com.jtransc.thread.JTranscThreading;
 import java.util.HashMap;
 import java.util.Map;
 
+@JTranscAddMembers(target = "d", value = {
+	"static {% CLASS java.lang.Thread %} _dCurrentThread;",
+	"Thread thread;",
+})
 public class Thread implements Runnable {
 	public final static int MIN_PRIORITY = 1;
 	public final static int NORM_PRIORITY = 5;
@@ -31,6 +36,12 @@ public class Thread implements Runnable {
 
 	static private Thread _currentThread;
 
+	@JTranscMethodBody(target = "d", value = {
+		"if (_dCurrentThread is null) {",
+		"	_dCurrentThread = new {% CLASS java.lang.Thread %}();",
+		"}",
+		"return _dCurrentThread;",
+	})
 	public static Thread currentThread() {
 		if (_currentThread == null) {
 			_currentThread = new Thread();
@@ -59,8 +70,8 @@ public class Thread implements Runnable {
 		return ST_NULL;
 	}
 
+	@JTranscMethodBody(target = "d", value = "Thread.yield();")
 	public static void yield() {
-
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
@@ -76,41 +87,72 @@ public class Thread implements Runnable {
 	public Thread() {
 	}
 
+	private ThreadGroup group;
 	public String name;
+	private long stackSize;
 	public long _data;
 	public boolean _isAlive;
 	private Runnable target;
 
 	public Thread(Runnable target) {
-		this.target = target;
+		this(null, target, null, 1024);
 	}
 
 	//Thread(Runnable target, AccessControlContext acc) {
 	//}
 
 	public Thread(ThreadGroup group, Runnable target) {
+		this(group, target, null, 1024);
 	}
 
 	public Thread(String name) {
+		this(null, null, name, 1024);
 	}
 
 	public Thread(ThreadGroup group, String name) {
+		this(group, null, name, 1024);
 	}
 
 	public Thread(Runnable target, String name) {
-		this.target = target;
+		this(null, target, name, 1024);
 	}
 
 	public Thread(ThreadGroup group, Runnable target, String name) {
-		this.target = target;
+		this(group, target, name, 1024);
 	}
 
 	public Thread(ThreadGroup group, Runnable target, String name, long stackSize) {
+		this.group = group;
 		this.target = target;
+		this.name = name;
+		this.stackSize = stackSize;
+		_init();
 	}
 
+	@JTranscMethodBody(target = "d", value = {
+		"this.thread = new Thread(delegate () {",
+		"	{% METHOD java.lang.Thread:runInternal:()V %}();",
+		"});",
+	})
+	private void _init() {
+	}
+
+	@JTranscMethodBody(target = "d", value = "this.thread.start();")
 	public synchronized void start() {
 		JTranscThreading.impl.start(this);
+	}
+
+
+	@SuppressWarnings("unused")
+	private void runInternal() {
+		runInternalInit();
+		run();
+	}
+
+	@JTranscMethodBody(target = "d", value = {
+		"_dCurrentThread = this;",
+	})
+	private void runInternalInit() {
 	}
 
 	@Override
@@ -121,19 +163,28 @@ public class Thread implements Runnable {
 	}
 
 	@Deprecated
+	@JTranscMethodBody(target = "d", value = "this.thread.stop();")
 	native public final void stop();
 
 	@Deprecated
-	native public final synchronized void stop(Throwable obj);
+	public final synchronized void stop(Throwable obj) {
+	}
 
-	native public void interrupt();
+	public void interrupt() {
 
-	native public static boolean interrupted();
+	}
 
-	native public boolean isInterrupted();
+	public static boolean interrupted() {
+		return false;
+	}
+
+	public boolean isInterrupted() {
+		return false;
+	}
 
 	@Deprecated
-	native public void destroy();
+	public void destroy() {
+	}
 
 	public final boolean isAlive() {
 		return JTranscThreading.impl.isAlive(this);
@@ -174,8 +225,10 @@ public class Thread implements Runnable {
 
 	native public static void dumpStack();
 
+	@JTranscMethodBody(target = "d", value = "this.thread.isDaemon = p0;")
 	native public final void setDaemon(boolean on);
 
+	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
 	native public final boolean isDaemon();
 
 	native public final void checkAccess();
@@ -210,8 +263,9 @@ public class Thread implements Runnable {
 		return new HashMap<>();
 	}
 
+	@JTranscMethodBody(target = "d", value = "return this.thread.id;")
 	public long getId() {
-		return 0;
+		return 0L;
 	}
 
 	public enum State {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED}

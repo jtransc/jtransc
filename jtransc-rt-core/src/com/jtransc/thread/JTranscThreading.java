@@ -28,6 +28,7 @@ public class JTranscThreading {
 		}
 
 		@JTranscMethodBody(target = "js", value = "return false;")
+		@JTranscMethodBody(target = "d", value = "return true;")
 		private boolean _isSupported() {
 			return !JTranscSystem.isJTransc();
 		}

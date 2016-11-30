@@ -137,4 +137,12 @@ public class BigInteger extends Number implements Comparable<BigInteger>, Serial
 	native public BigInteger nextProbablePrime();
 
 	native public static BigInteger probablePrime(int bitLength, Random random);
+
+	native public long longValueExact();
+
+	native public int intValueExact();
+
+	native public short shortValueExact();
+
+	native public byte byteValueExact();
 }

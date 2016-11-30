@@ -942,4 +942,6 @@ public abstract class URLConnection {
 			return u.getInputStream();
 		}
 	}
+
+	native public long getHeaderFieldLong(String name, long Default);
 }

@@ -163,7 +163,6 @@ public final class Math {
 	@HaxeMethodBody("return Math.round(p0);")
 	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
-	@JTranscMethodBody(target = "d", value = "return std.math.round(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.lround(p0);")
 	native public static long round(double a);
 
@@ -360,31 +359,4 @@ public final class Math {
 	public static float scalb(float f, int scaleFactor) {
 		return (float) (f * Math.pow(2, scaleFactor));
 	}
-
-	//body("addExact", "*", "return p0 + p1;") // @TODO: Not like this! Check Overflows!
-	//body("subtractExact", "*", "return p0 - p1;") // @TODO: Not like this! Check Overflows!
-	//body("multiplyExact", "*", "return p0 * p1;") // @TODO: Not like this! Check Overflows!
-	//body("incrementExact", "*", "return p0 + 1;") // @TODO: Not like this! Check Overflows!
-	//body("decrementExact", "*", "return p0 - 1;") // @TODO: Not like this! Check Overflows!
-	//body("negateExact", "*", "return -p0;") // @TODO: Not like this! Check Overflows!
-
-	//fun toIntExact(value: Long): Int
-	//fun floorDiv(x: Int, y: Int): Int
-	//fun floorDiv(x: Long, y: Long): Long
-	//fun floorMod(x: Int, y: Int): Int
-	//fun floorMod(x: Long, y: Long): Long
-	//fun ulp(d: Double): Double
-	//fun ulp(f: Float): Float
-	//fun expm1(x: Double): Double
-	//fun log1p(x: Double): Double
-	//fun copySign(magnitude: Double, sign: Double): Double
-	//fun copySign(magnitude: Float, sign: Float): Float
-	//fun getExponent(f: Float): Int
-	//fun getExponent(d: Double): Int
-	//fun nextAfter(start: Double, direction: Double): Double
-	//fun nextAfter(start: Float, direction: Double): Float
-	//fun nextUp(d: Double): Double
-	//fun nextUp(f: Float): Float
-	//fun nextDown(d: Double): Double
-	//fun nextDown(f: Float): Float
 }

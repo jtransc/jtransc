@@ -2,6 +2,7 @@ import big.HelloWorldTest
 import big.MiniHelloWorldTest
 import com.jtransc.gen.d.DTarget
 import org.junit.Test
+import threading.ThreadingTest
 
 /*
  * Copyright 2016 Carlos Ballesteros Velasco
@@ -22,4 +23,6 @@ import org.junit.Test
 class DTest : Base() {
 	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, target = DTarget(), log = false)
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
+
+	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)
 }

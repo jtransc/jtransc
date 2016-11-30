@@ -16,31 +16,65 @@
 
 package java.lang;
 
+import java.util.Objects;
+
 //public class Package implements java.lang.reflect.AnnotatedElement {
 public class Package {
-	native public String getName();
+	private String name;
 
-	native public String getSpecificationTitle();
+	private Package(String name) {
+		this.name = name;
+	}
 
-	native public String getSpecificationVersion();
+	public String getName() {
+		return name;
+	}
 
-	native public String getSpecificationVendor();
+	public String getSpecificationTitle() {
+		return name;
+	}
 
-	native public String getImplementationTitle();
+	public String getSpecificationVersion() {
+		return "1.0";
+	}
 
-	native public String getImplementationVersion();
+	public String getSpecificationVendor() {
+		return "jtransc";
+	}
 
-	native public String getImplementationVendor();
+	public String getImplementationTitle() {
+		return getSpecificationTitle();
+	}
 
-	native public boolean isSealed();
+	public String getImplementationVersion() {
+		return getSpecificationVersion();
+	}
 
-	native public boolean isCompatibleWith(String desired) throws NumberFormatException;
+	public String getImplementationVendor() {
+		return getSpecificationVendor();
+	}
 
-	native public static Package getPackage(String name);
+	public boolean isSealed() {
+		return true;
+	}
 
-	native public static Package[] getPackages();
+	public boolean isCompatibleWith(String desired) throws NumberFormatException {
+		return Objects.equals(this.getName(), desired);
+	}
 
-	native public int hashCode();
+	public static Package getPackage(String name) {
+		return new Package(name);
+	}
 
-	native public String toString();
+	public static Package[] getPackages() {
+		return new Package[]{};
+	}
+
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	public String toString() {
+		return name;
+	}
 }

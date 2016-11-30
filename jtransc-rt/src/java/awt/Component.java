@@ -78,7 +78,7 @@ public class Component implements ImageObserver, MenuContainer, Serializable {
 	}
 
 	public Toolkit getToolkit() {
-		return null;
+		return Toolkit.getDefaultToolkit();
 	}
 
 	public boolean isValid() {

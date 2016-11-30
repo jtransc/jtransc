@@ -150,10 +150,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassBody(clazz: AstClass): Indenter = Indenter.gen {
-		for (member in clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == targetName.name }.flatMap { it.value.toList() }) {
-			line(member)
-		}
-
+		val members = clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == targetName.name }.flatMap { it.value.toList() }.joinToString("\n")
+		line(gen(members, process = true))
 		line(genClassBodyFields(clazz))
 		line(genClassBodyMethods(clazz))
 		line(genSIMethod(clazz))

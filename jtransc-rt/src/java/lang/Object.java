@@ -17,10 +17,7 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscAddFile;
-import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscReferenceClass;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
@@ -48,6 +45,9 @@ import java.util.Arrays;
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
+@JTranscAddMembers(target = "d", value = {
+	"core.sync.mutex.Mutex __d_mutex = null;",
+})
 public class Object {
 	static private int $$lastId = 0;
 	public int $$id;

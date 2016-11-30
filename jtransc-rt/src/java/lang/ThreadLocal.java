@@ -1,30 +1,53 @@
 package java.lang;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+
+// @TODO: This is slow, this should be implemented different in each target.
 public class ThreadLocal<T> {
-	private T value;
+	private Map<Long, T> valuesPerThread = new HashMap<>();
+	private Set<Long> initialized = new HashSet<>();
 
 	protected T initialValue() {
 		return null;
 	}
 
 	public ThreadLocal() {
-		value = initialValue();
+	}
+
+	public static <S> ThreadLocal<S> withInitial(Supplier<? extends S> supplier) {
+		return new ThreadLocal<S>() {
+			@Override
+			protected S initialValue() {
+				return supplier.get();
+			}
+		};
+	}
+
+	private long initializeOnce() {
+		long id = Thread.currentThread().getId();
+		if (!initialized.contains(id)) {
+			initialized.add(id);
+			valuesPerThread.put(id, initialValue());
+		}
+		return id;
 	}
 
 	public T get() {
-		return value;
-	}
-
-	private T setInitialValue() {
-		this.value = initialValue();
-		return value;
+		long id = initializeOnce();
+		return valuesPerThread.get(id);
 	}
 
 	public void set(T value) {
-		this.value = value;
+		long id = initializeOnce();
+		valuesPerThread.put(id, value);
 	}
 
 	public void remove() {
-		this.value = null;
+		long id = initializeOnce();
+		valuesPerThread.put(id, null);
 	}
 }

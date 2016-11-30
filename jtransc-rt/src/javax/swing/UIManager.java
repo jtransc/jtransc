@@ -6,7 +6,10 @@ public class UIManager {
 	}
 
 	public static void setLookAndFeel(String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+	}
 
+	public static UIManager.LookAndFeelInfo[] getInstalledLookAndFeels() {
+		return new LookAndFeelInfo[] { new LookAndFeelInfo("default", "defaultLookAndFeelFqName") };
 	}
 
 	public static class LookAndFeelInfo {

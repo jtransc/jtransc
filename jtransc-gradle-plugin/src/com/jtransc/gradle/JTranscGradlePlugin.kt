@@ -3,6 +3,7 @@ package com.jtransc.gradle
 import com.jtransc.JTranscVersion
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
+import com.jtransc.gradle.tasks.JTranscGradleReport
 import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import groovy.lang.Closure
 import org.gradle.api.Plugin
@@ -47,6 +48,14 @@ open class JTranscGradlePlugin : Plugin<Project> {
 		for (buildTarget in targets.flatMap { it.buildTargets }) {
 			addBuildTarget(buildTarget.name, buildTarget.target, buildTarget.outputFile, minimizeNames = buildTarget.minimizeNames)
 		}
+
+		project.task(mapOf(
+			"type" to JTranscGradleReport::class.java,
+			"group" to "other",
+			"description" to "Reports the status of the runtime implementation",
+			"overwrite" to true
+		), "jtranscReport", JTranscGradlePlugin.LambdaClosure({ it: JTranscGradleReport ->
+		})).dependsOn("build")
 
 		project.configurations.create("jtranscRuntime")
 		project.configurations.create("jtransc")

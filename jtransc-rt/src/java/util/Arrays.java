@@ -2059,4 +2059,76 @@ public class Arrays {
 		if (start < 0 || start > originalLength) throw new ArrayIndexOutOfBoundsException();
 		return originalLength;
 	}
+
+	static public void parallelSort(byte[] v) {
+    	sort(v);
+	}
+
+	static public void parallelSort(byte[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(char[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(char[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(short[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(short[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(int[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(int[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(long[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(long[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(float[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(float[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public void parallelSort(double[] v) {
+		sort(v);
+	}
+
+	static public void parallelSort(double[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public <T extends Comparable<? super T>> void parallelSort(T[] v) {
+		sort(v);
+	}
+
+	static public <T extends Comparable<? super T>> void parallelSort(T[] v, int start, int end) {
+		sort(v, start, end);
+	}
+
+	static public <T extends Comparable<? super T>> void parallelSort(T[] v, Comparator<T> comparator) {
+		sort(v, comparator);
+	}
+
+	static public <T extends Comparable<? super T>> void parallelSort(T[] v, int start, int end, Comparator<T> comparator) {
+		sort(v, start, end, comparator);
+	}
 }

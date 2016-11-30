@@ -296,4 +296,57 @@ public final class StrictMath {
 	public static float scalb(float f, int scaleFactor) {
 		return Math.scalb(f, scaleFactor);
 	}
+
+	public static int addExact(int x, int y) {
+		return Math.addExact(x, y);
+	}
+
+	public static long addExact(long x, long y) {
+		return Math.addExact(x, y);
+	}
+
+	public static int subtractExact(int x, int y) {
+		return Math.subtractExact(x, y);
+	}
+
+	public static long subtractExact(long x, long y) {
+		return Math.subtractExact(x, y);
+	}
+
+	public static int multiplyExact(int x, int y) {
+		return Math.multiplyExact(x, y);
+	}
+
+	public static long multiplyExact(long x, long y) {
+		return Math.multiplyExact(x, y);
+	}
+
+	public static int toIntExact(long x) {
+		return Math.toIntExact(x);
+	}
+
+
+	public static int floorDiv(int x, int y) {
+		return Math.floorDiv(x, y);
+	}
+
+	public static long floorDiv(long x, long y) {
+		return Math.floorDiv(x, y);
+	}
+
+	public static int floorMod(int x, int y) {
+		return Math.floorMod(x, y);
+	}
+
+	public static long floorMod(long x, long y) {
+		return Math.floorMod(x, y);
+	}
+
+	public static double nextDown(double x) {
+		return Math.nextDown(x);
+	}
+
+	public static float nextDown(float x) {
+		return Math.nextDown(x);
+	}
 }

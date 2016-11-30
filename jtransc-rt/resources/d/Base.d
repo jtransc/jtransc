@@ -15,6 +15,7 @@ import core.stdc.stdlib;
 //import core.stdc.stdio;
 import core.thread;
 import core.time;
+import core.sync.mutex;
 
 int slen(string s) { return cast(int)s.length; }
 int slen(wstring s) { return cast(int)s.length; }
@@ -288,10 +289,6 @@ class N {
 		return *cast(double *)&p0;
     }
 
-	static public void init() {
-		//writefln("INIT FROM D!");
-	}
-
 	static public long nanoTime() {
 		return Clock.currTime.stdTime * 100;
 	}
@@ -315,6 +312,28 @@ class N {
 			case std.system.OS.otherPosix: return "linux";
 			default: return "unknown";
 		}
+	}
+
+	__gshared core.sync.mutex.Mutex prepareMutexMutex;
+
+	static public void init() {
+		//writefln("INIT FROM D!");
+		prepareMutexMutex = new core.sync.mutex.Mutex();
+	}
+
+	static public void prepareMutex({% CLASS java.lang.Object %} obj) {
+		synchronized (prepareMutexMutex) {
+			if (obj.__d_mutex is null) obj.__d_mutex = new core.sync.mutex.Mutex();
+		}
+	}
+
+	static public void monitorEnter({% CLASS java.lang.Object %} obj) {
+		prepareMutex(obj);
+		obj.__d_mutex.lock();
+	}
+	static public void monitorExit({% CLASS java.lang.Object %} obj) {
+		prepareMutex(obj);
+		obj.__d_mutex.unlock();
 	}
 }
 
