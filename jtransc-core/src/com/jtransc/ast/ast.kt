@@ -346,7 +346,6 @@ class AstClass(
 	val methods = arrayListOf<AstMethod>()
 	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
 	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
-
 	val staticConstructor: AstMethod? get() = methods.firstOrNull { it.isClassInit }
 
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
