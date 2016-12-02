@@ -1,8 +1,8 @@
 language: java
-d:
-- dmd
-haxe:
-- development
+#d:
+#- dmd
+#haxe:
+#- development
 node_js:
 - '4'
 jdk:
@@ -38,7 +38,6 @@ install:
 - nvm install 4 || true
 - nvm use 4 || true
 
-
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.3.0-rc2/std
 - export HAXEPATH=$PWD/haxe-3.3.0-rc2
@@ -54,6 +53,7 @@ before_script:
 - which node || true
 - node --version || true
 - php --version || true
+- dmd --version || true
 - ./gradlew --version
 
 script:
