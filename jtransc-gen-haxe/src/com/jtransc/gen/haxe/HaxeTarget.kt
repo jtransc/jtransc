@@ -390,11 +390,11 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun N_f2i(str: String) = "Std.int($str)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.intToLong($str)"
-	override fun N_i2f(str: String) = "Math.fround(($str))"
+	override fun N_i2f(str: String) = "($str)"
 	override fun N_i2d(str: String) = "($str)"
-	override fun N_f2f(str: String) = "Math.fround($str)"
+	override fun N_f2f(str: String) = "($str)"
 	override fun N_f2d(str: String) = "($str)"
-	override fun N_d2f(str: String) = "Math.fround(($str))"
+	override fun N_d2f(str: String) = "(($str))"
 	override fun N_d2d(str: String) = "($str)"
 	override fun N_d2i(str: String) = "Std.int($str)"
 	override fun N_l2i(str: String) = "(($str).low)"
@@ -524,9 +524,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		fun addClassInit(clazz: AstClass) = Indenter.gen {
-			line("static public var SII = false;");
+			line("@:unreflective static public var SII = false;");
 			for (e in getClassStrings(clazz.name)) {
-				line("static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
+				line("@:unreflective static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
 
 			line("@:unreflective static public function SI()") {

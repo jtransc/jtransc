@@ -246,6 +246,12 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun N_c_eq(l: String, r: String) = "($l is $r)"
 	override fun N_c_ne(l: String, r: String) = "($l !is $r)"
 
+	override fun N_i2f(str: String) = "(cast(float)($str))"
+	override fun N_i2d(str: String) = "(cast(double)($str))"
+
+	override fun N_l2f(str: String) = "(cast(float)($str))"
+	override fun N_l2d(str: String) = "(cast(double)($str))"
+
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
 

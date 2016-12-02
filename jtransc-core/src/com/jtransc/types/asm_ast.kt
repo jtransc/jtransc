@@ -98,7 +98,7 @@ fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:Stri
 		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = hasDynamicInvoke)
 	).optimize()
 
-	return out;
+	return out
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {
@@ -142,7 +142,7 @@ fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals,
 	val isStatic = method.access.hasFlag(Opcodes.ACC_STATIC)
 	val methodType = types.demangleMethod(method.desc)
 
-	var stms = ArrayList<AstStm>()
+	val stms = ArrayList<AstStm>()
 	var idx = 0
 
 	for (arg in (if (!isStatic) listOf(AstExpr.THIS(clazz.name)) else listOf()) + methodType.args.map { AstExpr.PARAM(it) }) {
@@ -209,12 +209,12 @@ class Locals {
 	data class ID(val index: Int, val type: AstType, val prefix: String)
 
 	var tempLocalId = 0
-	val locals = hashMapOf<Locals.ID, AstLocal>()  // @TODO: remove this
+	val locals = hashMapOf<Locals.ID, AstLocal>() // @TODO: remove this
 
 	private fun _local(type: AstType, index: Int, prefix: String): AstLocal {
 		val info = localPair(index, type, prefix)
 		val type2 = fixType(type)
-		if (info !in locals) locals[info] = AstLocal(index, "$prefix${nameType(type2)}${index}", type2)
+		if (info !in locals) locals[info] = AstLocal(index, "$prefix${nameType(type2)}$index", type2)
 		return locals[info]!!
 	}
 
@@ -278,7 +278,7 @@ private class BasicBlockBuilder(
 		//if (false) {
 		//	stms.add(s)
 		//} else {
-		if (DEBUG) println("Preserve because stm: ${s}")
+		if (DEBUG) println("Preserve because stm: $s")
 		val stack = preserveStack()
 		stms.add(s)
 		restoreStack(stack)
@@ -293,9 +293,9 @@ private class BasicBlockBuilder(
 		stack.push(AstExprUtils.localRef(e))
 	}
 
-	fun stackPushList(e: List<AstExpr>) {
-		for (i in e) stackPush(i)
-	}
+	//fun stackPushList(e: List<AstExpr>) {
+	//	for (i in e) stackPush(i)
+	//}
 
 	fun stackPushListLocal(e: List<AstLocal>) {
 		for (i in e) stackPush(i)
@@ -405,17 +405,12 @@ private class BasicBlockBuilder(
 			Pair(local, v)
 		}
 
-		//for (p in pairs.reversed()) {
-		for (p in pairs) {
-			if (stmSet(p.first, p.second)) {
-				stackPopToLocalsItemsCount++
-			}
-		}
+		stackPopToLocalsItemsCount += pairs.count { stmSet(it.first, it.second) }
 
 		return pairs.map { it.first }.reversed()
-		//return pairs.map { it.first }
 	}
 
+	@Suppress("RemoveRedundantCallsOfConversionMethods")
 	fun handleInsn(i: InsnNode): Unit {
 		val op = i.opcode
 		when (i.opcode) {
@@ -432,11 +427,11 @@ private class BasicBlockBuilder(
 			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(PTYPES[op - Opcodes.IASTORE])
 			Opcodes.POP -> {
 				// We store it, so we don't lose all the calculated stuff!
-				val pop = stackPopToLocalsCount(1)
+				stackPopToLocalsCount(1)
 				stackPopToLocalsFixOrder()
 			}
 			Opcodes.POP2 -> {
-				val pop = stackPopDouble()
+				stackPopDouble()
 				stackPopToLocalsFixOrder()
 			}
 			Opcodes.DUP -> {
@@ -615,7 +610,7 @@ private class BasicBlockBuilder(
 
 	fun handleMethod(i: MethodInsnNode) {
 		val type = types.REF_INT(i.owner)
-		val clazz = if (type is AstType.REF) type else AstType.OBJECT
+		val clazz = (type as? AstType.REF) ?: AstType.OBJECT
 		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
@@ -630,8 +625,8 @@ private class BasicBlockBuilder(
 				if (obj!!.type !is AstType.REF) {
 					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
 				}
-				val obj = fastcast(obj, methodRef.containingClassType)
-				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj else AstExprUtils.fastcast(obj, methodRef.containingClassType)
+				val obj1 = fastcast(obj, methodRef.containingClassType)
+				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj1 else AstExprUtils.fastcast(obj1, methodRef.containingClassType)
 				stackPush(AstExpr.CALL_INSTANCE(obj2, methodRef, args, isSpecial))
 			}
 			else -> invalidOp
@@ -685,11 +680,10 @@ private class BasicBlockBuilder(
 	}
 
 	fun dumpExprs() {
-		while (stack.isNotEmpty()) {
-			stmAdd(AstStm.STM_EXPR(stackPop()))
-		}
+		while (stack.isNotEmpty()) stmAdd(AstStm.STM_EXPR(stackPop()))
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	fun preserveStack(): List<AstLocal> {
 		if (stack.isEmpty()) return Collections.EMPTY_LIST as List<AstLocal>
 
@@ -721,6 +715,7 @@ private class BasicBlockBuilder(
 		}
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	fun call(entry: AbstractInsnNode, input: BasicBlock.Input): BasicBlock {
 		var i: AbstractInsnNode? = entry
 		var next: AbstractInsnNode? = null
@@ -735,12 +730,10 @@ private class BasicBlockBuilder(
 		}
 
 		this.stack.clear()
-		for (i in input.stack.clone() as Stack<AstExpr>) {
-			this.stack += i
+		for (i2 in input.stack.clone() as Stack<AstExpr>) {
+			this.stack += i2
 		}
-		for (l in HashMap(input.locals)) {
-			locals.locals[l.key] = l.value
-		}
+		for ((key, value) in HashMap(input.locals)) locals.locals[key] = value
 
 		if (DEBUG) {
 			println("**** BASIC_BLOCK ${clazz.name}.${method.name}:${method.desc} :: BASIC_BLOCK: $entry, $input")
@@ -784,13 +777,11 @@ private class BasicBlockBuilder(
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
 							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null,types)), labels.label(i.label))
-							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 							val r = stackPop()
 							val l = stackPop()
 							addJump(AstExprUtils.BINOP(AstType.BOOL, l, CTYPES[op - Opcodes.IF_ICMPEQ], r), labels.label(i.label))
-							//addJump(null, labels.label(i.next))
 						}
 						Opcodes.GOTO -> addJump(null, labels.label(i.label))
 						Opcodes.JSR -> deprecated
@@ -850,8 +841,6 @@ private class BasicBlockBuilder(
 			}
 			i = i.next
 		}
-
-		//dumpExprs()
 
 		return BasicBlock(
 			input = input,

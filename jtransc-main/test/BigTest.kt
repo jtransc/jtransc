@@ -53,6 +53,8 @@ class BigTest : Base() {
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget, log = true, debug = false)
 
 	@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+	//@Test fun testHaxeJs() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = true)
+
 	//@Test fun testHaxeJsMinimized() = testClass<BigTest>(minimize = true, target = HaxeTarget(), lang = "js", log = null)
 
 	//@Test fun testSmallPlainJs() = testClass<CopyTest>(minimize = false, target = JsTarget, log = null)

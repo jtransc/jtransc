@@ -1,7 +1,9 @@
 import big.HelloWorldTest
 import big.MiniHelloWorldTest
 import com.jtransc.gen.d.DTarget
+import com.jtransc.gen.js.JsTarget
 import org.junit.Test
+import testservice.test.ServiceLoaderTest
 import threading.ThreadingTest
 
 /*
@@ -25,4 +27,9 @@ class DTest : Base() {
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
 
 	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)
+
+	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+		TestServiceImpl1.test:ss
+		TestServiceD
+	""", target = DTarget(), minimize = false)
 }

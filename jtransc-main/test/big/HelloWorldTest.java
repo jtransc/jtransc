@@ -53,60 +53,7 @@ public class HelloWorldTest {
 		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 
 		System.out.println(Arrays.asList(EnumABC.class.getEnumConstants()));
-
-		int[] ints = {0, 1, 12, 123, 1234, 12345, 123456, 1234567, 12345678};
-		Locale[] locales = {Locale.ENGLISH, Locale.UK, Locale.US, Locale.FRENCH,Locale.forLanguageTag("es"),Locale.forLanguageTag("ja")};
-
-		for (int i : ints) {
-			for (Locale locale : locales) {
-				String s = NumberFormat.getIntegerInstance(locale).format(i);
-				System.out.println(locale.getLanguage() + ":" + s);
-				if (s.length() == 5) {
-					System.out.println((int) s.charAt(1));
-				}
-			}
-		}
-
-		String[] strings = {"", "1", "12", "123", "1234", "12345", "123456", "1234567"};
-		for (String s : strings) System.out.println(JTranscStrings.join(JTranscStrings.splitInChunks(s, 3), "-"));
-		for (String s : strings) System.out.println(JTranscStrings.join(JTranscStrings.splitInChunksRightToLeft(s, 3), "-"));
-
-		/*
-		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();
-		//stringIntegerLinkedHashMap.put("a", 10);
-		//stringIntegerLinkedHashMap.put("b", 20);
-		//stringIntegerLinkedHashMap.put("a", 11);
-		//System.out.println("Hello World! : " + stringIntegerLinkedHashMap.get("a"));
-		System.out.println("Hello World!");
-		try {
-			Thread.sleep(10000L);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		System.out.println("Hello World!");
-		*/
-		//System.out.println(new File("c:/temp/2.bin").length());
-		//JTranscConsole.log("Hello World!");
-
-		//ProgramReflection.dynamicInvoke(0, null, null);
-		//System.out.println("HelloWorldTest.class.field[10]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
-		//HelloWorldTest.class.getDeclaredField("a").set(null, 20);
-		//System.out.println("HelloWorldTest.class.field[20]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
-		//System.out.println("HelloWorldTest.class.method: " + HelloWorldTest.class.getDeclaredMethod("hello").invoke(null));
-		//
-		//System.out.println(HelloWorldTest.class.getConstructor().newInstance().demo);
-		//System.out.println(HelloWorldTest.class.getConstructor().newInstance());
-		//System.out.println("####");
 	}
-
-	//public String demo = "demo";
-	//
-	//static public int a = 10;
-	//
-	//@JTranscKeep
-	//static public void hello() {
-	//	System.out.println("hello!");
-	//}
 }
 
 enum EnumABC {

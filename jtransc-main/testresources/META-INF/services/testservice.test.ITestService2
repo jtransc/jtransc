@@ -1,0 +1,3 @@
+testservice.test.TestServiceImpl1
+testservice.test.TestServiceJs     # <target=js>
+testservice.test.TestServiceD      # <target=d>

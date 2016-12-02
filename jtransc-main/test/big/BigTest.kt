@@ -5,6 +5,7 @@ import android.AndroidTest8019
 import com.jtransc.annotation.JTranscInvisible
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.annotation.JTranscMethodBody
+import com.jtransc.util.JTranscStrings
 import javatest.KotlinCollections
 import javatest.StrangeNamesTest
 import javatest.lang.AtomicTest
@@ -31,6 +32,7 @@ import testservice.ITestService
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
+import java.text.NumberFormat
 import java.util.*
 
 object BigTest {
@@ -116,6 +118,7 @@ object BigTest {
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
+		NumberFormatTest.main(args);
 	}
 
 	private fun servicesTest() {
@@ -130,6 +133,55 @@ object BigTest {
 	private fun keepConstructorsTest() {
 		println("keepConstructorsTest:")
 		println(Demo::class.java.declaredConstructors.size)
+	}
+}
+
+object NumberFormatTest {
+	@JvmStatic fun main(args: Array<String>) {
+		val ints = intArrayOf(0, 1, 12, 123, 1234, 12345, 123456, 1234567, 12345678)
+		val locales = arrayOf(Locale.ENGLISH, Locale.UK, Locale.US, Locale.FRENCH, Locale.forLanguageTag("es"), Locale.forLanguageTag("ja"))
+
+		for (i in ints) {
+			for (locale in locales) {
+				val s = NumberFormat.getIntegerInstance(locale).format(i.toLong())
+				println(locale.language + ":" + s)
+				if (s.length == 5) {
+					println(s[1].toInt())
+				}
+			}
+		}
+
+		val strings = arrayOf("", "1", "12", "123", "1234", "12345", "123456", "1234567")
+		for (s in strings) println(JTranscStrings.join(JTranscStrings.splitInChunks(s, 3), "-"))
+		for (s in strings) println(JTranscStrings.join(JTranscStrings.splitInChunksRightToLeft(s, 3), "-"))
+
+		/*
+		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();
+		//stringIntegerLinkedHashMap.put("a", 10);
+		//stringIntegerLinkedHashMap.put("b", 20);
+		//stringIntegerLinkedHashMap.put("a", 11);
+		//System.out.println("Hello World! : " + stringIntegerLinkedHashMap.get("a"));
+		System.out.println("Hello World!");
+		try {
+			Thread.sleep(10000L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Hello World!");
+		*/
+		//System.out.println(new File("c:/temp/2.bin").length());
+		//JTranscConsole.log("Hello World!");
+
+		//ProgramReflection.dynamicInvoke(0, null, null);
+		//System.out.println("HelloWorldTest.class.field[10]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
+		//HelloWorldTest.class.getDeclaredField("a").set(null, 20);
+		//System.out.println("HelloWorldTest.class.field[20]: " + HelloWorldTest.class.getDeclaredField("a").get(null));
+		//System.out.println("HelloWorldTest.class.method: " + HelloWorldTest.class.getDeclaredMethod("hello").invoke(null));
+		//
+		//System.out.println(HelloWorldTest.class.getConstructor().newInstance().demo);
+		//System.out.println(HelloWorldTest.class.getConstructor().newInstance());
+		//System.out.println("####");
+
 	}
 }
 

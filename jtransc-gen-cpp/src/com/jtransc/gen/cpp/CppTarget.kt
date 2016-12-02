@@ -621,6 +621,13 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun N_i2s(str: String) = "((int16_t)($str))"
 	override fun N_f2i(str: String) = "((int32_t)($str))"
 	override fun N_d2i(str: String) = "((int32_t)($str))"
+
+	override fun N_i2f(str: String) = "((float)($str))"
+	override fun N_i2d(str: String) = "((double)($str))"
+
+	override fun N_l2f(str: String) = "((float)($str))"
+	override fun N_l2d(str: String) = "((double)($str))"
+
 	//override fun N_i(str: String) = "((int32_t)($str))"
 	override fun N_i(str: String) = str
 

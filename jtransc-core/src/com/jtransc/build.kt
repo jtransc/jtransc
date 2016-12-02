@@ -22,6 +22,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
+import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.input.AsmToAst
 import com.jtransc.io.JTranscConsole
@@ -129,7 +130,8 @@ class JTranscBuild(
 			ConfigCaptureRunOutput(captureRunOutput),
 			ConfigRun(run),
 			ConfigOutputPath(LocalVfs(File("$tempdir/out_ast"))),
-			ConfigMainClass(entryPoint)
+			ConfigMainClass(entryPoint),
+			TargetName(target.name)
 		)
 
 		when (backend) {

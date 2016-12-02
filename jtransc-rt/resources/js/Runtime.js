@@ -729,6 +729,7 @@ N.lneg  = function(a) { return Int64.neg(a); }
 N.linv  = function(a) { return Int64.not(a); }
 
 N.l2i   = function(v) { return Int64.toInt(v); }
+N.l2f   = function(v) { return Int64.toFloat(v); }
 N.l2d   = function(v) { return Int64.toFloat(v); }
 
 N.cmp  = function(a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }

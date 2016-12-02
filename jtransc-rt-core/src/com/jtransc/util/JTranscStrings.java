@@ -29,7 +29,11 @@ public class JTranscStrings {
 		final boolean leftToRight = (count > 0);
 		final int slen = subject.length();
 		final int acount = Math.abs(count);
+		//System.out.println("subject: " + subject + " : " + subject.length() + " : " + acount);
+		final double dpartCount = Math.ceil((double) subject.length() / (double) acount);
 		final int partCount = (int) Math.ceil((double) subject.length() / (double) acount);
+		//System.out.println("dpartCount: " + dpartCount);
+		//System.out.println("partCount: " + partCount);
 		final String[] out = new String[partCount];
 		for (int n = 0; n < partCount; n++) {
 			int pos;
@@ -45,6 +49,7 @@ public class JTranscStrings {
 				pos = 0;
 			}
 			int end = Math.min(slen, pos + len);
+			//System.out.println("substring: " + pos + ", " + end);
 			out[index] = subject.substring(pos, end);
 		}
 		return out;

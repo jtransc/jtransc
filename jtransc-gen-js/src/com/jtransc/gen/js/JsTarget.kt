@@ -65,6 +65,7 @@ data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 fun hasSpecialChars(name: String): Boolean = !name.all { it.isLetterDigitOrUnderscore() }
 fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
+@Suppress("ConvertLambdaToReference")
 @Singleton
 class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)

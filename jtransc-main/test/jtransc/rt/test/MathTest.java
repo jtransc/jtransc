@@ -17,6 +17,7 @@ public class MathTest {
 		nanInf();
 		copySign();
 		mathTest();
+		intDouble();
 	}
 
 	static private void mathTest() {
@@ -114,5 +115,28 @@ public class MathTest {
 			}
 			System.out.println();
 		}
+	}
+
+	static private void intDouble() {
+		short ba = 1;
+		short bb = 2;
+		short sa = 1;
+		short sb = 2;
+		int ia = 1;
+		int ib = 2;
+		long la = 1L;
+		long lb = 2L;
+		System.out.println("intDouble:");
+		System.out.println(ia / ib);
+		System.out.println((float)ba / (float)bb);
+		System.out.println((double)ba / (double)bb);
+		System.out.println((float)sa / (float)sb);
+		System.out.println((double)sa / (double)sb);
+		System.out.println((float)ia / (float)ib);
+		System.out.println((double)ia / (double)ib);
+		System.out.println((float)la / (float)lb);
+		System.out.println((double)la / (double)lb);
+		System.out.println(Math.ceil((float)la / (float)lb));
+		System.out.println(Math.ceil((double)la / (double)lb));
 	}
 }

@@ -1,12 +1,9 @@
 package big
 
-import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddHeader
 import com.jtransc.annotation.JTranscInline
 import com.jtransc.annotation.JTranscMethodBody
 import com.jtransc.io.JTranscSyncIO
-import jtransc.jtransc.JTranscSystemTest
-import java.io.File
 
 object HelloWorldKotlinTest {
 	@JvmStatic fun main(args: Array<String>) {
@@ -21,6 +18,7 @@ object HelloWorldKotlinTest {
 //        "-Wl,-q"
 //})
 //-lc -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceCtrl_stub -lSceTouch_stub
+@Suppress("unused", "UNUSED_PARAMETER")
 @JTranscAddHeader(target = "cpp", value = """
 	void input_read() { }
 	int pad_buttons() { return 0; }
@@ -42,37 +40,12 @@ object PSP2 {
 	private val BLACK = 0xFF000000.toInt()
 
 	@JvmStatic fun main(args: Array<String>) {
-		val api = Api.create();
+		val api = Api.create()
 
 		println("Start!")
 		init_video()
 
 		println(api.demo())
-
-
-		//File("c:/temp/${JTranscSystem.getRuntimeName()}").mkdir()
-
-		/*
-		println("[1]")
-		val file = RandomAccessFile(File("c:/temp/lol.dat"), "rw")
-		println("[2]")
-		file.write(10)
-		println("[3]")
-		file.close()
-		println("[4]")
-		*/
-		/*
-		println("SIZE:" + File("c:/temp/lol.dat").length())
-		if (JTranscSystem.isJTransc()) {
-			File("c:/temp/demo.bin").writeBytes(byteArrayOf(1, 2, 3, 4, 5))
-		}
-		*/
-
-		//println("SIZE:" + File("ux0:/temp/kotlin.txt").length())
-
-		//if (JTranscSystem.isJTransc()) {
-		//	File("ux0:/temp/kotlin.txt").writeText("Hello World from Kotlin!")
-		//}
 
 		JTranscSyncIO.impl = object : JTranscSyncIO.Impl(JTranscSyncIO.impl) {
 			@JTranscMethodBody(target = "cpp", value = """
@@ -86,10 +59,6 @@ object PSP2 {
 			override external fun list(file: String): Array<String>
 		}
 
-		//println(File("/temp").list().toList())
-
-		//input_read();
-		//while ((pad_buttons() & PSP2_CTRL_START) != 0) {
 		println("Start2!")
 		var frame = 0
 		while (true) {
@@ -198,9 +167,7 @@ object PSP2 {
 	@JTranscMethodBody(target = "cpp", value = "::sceKernelExitProcess(p0);")
 	@JTranscInline
 	fun sceKernelExitProcess(value: Int) {
-
 	}
-
 
 	val PSP2_CTRL_SELECT = 0x000001
 	val PSP2_CTRL_START = 0x000008

@@ -127,6 +127,7 @@ struct N { public:
 	inline static int64_t lshr (int64_t a, int b);
 	inline static int64_t lushr(int64_t a, int b);
 	inline static int32_t z2i(int32_t v);
+	inline static float   l2f(int64_t v);
 	inline static double  l2d(int64_t v);
 	inline static int64_t i2j(int32_t v);
 	inline static int32_t l2i(int64_t v);
@@ -424,6 +425,7 @@ int64_t N::lshr (int64_t a, int b) { return a >> b; }
 int64_t N::lushr(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> b); }
 
 int32_t N::z2i(int32_t v) { return (v != 0) ? 1 : 0; }
+float   N::l2f(int64_t v) { return (float)v; }
 double  N::l2d(int64_t v) { return (double)v; }
 int64_t N::i2j(int32_t v) { return (int64_t)v; }
 int32_t N::l2i(int64_t v) { return (int32_t)v; }

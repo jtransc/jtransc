@@ -146,8 +146,7 @@ public class JTranscReflection {
 		}
 
 		private static String jarEntryToClassName(final String entryName) {
-			return entryName.substring(0, entryName.length() - CLASS_FILE_EXTENSION.length()).replace(File.separatorChar,
-				'.');
+			return entryName.substring(0, entryName.length() - CLASS_FILE_EXTENSION.length()).replace(File.separatorChar, '.');
 		}
 
 		private static class DepthFile {

@@ -43,6 +43,8 @@ data class TargetName(val name: String) {
 	}
 
 	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern)
+
+	fun matches(pattern: List<String>): Boolean = pattern.any { matches(it) }
 }
 
 data class TargetBuildTarget(val name: String, val target: String?, val outputFile: String?, val minimizeNames: Boolean = false)

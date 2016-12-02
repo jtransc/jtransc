@@ -1,5 +1,6 @@
 package com.jtransc.plugin.reflection
 
+import com.jtransc.annotation.JTranscNativeClass
 import com.jtransc.annotation.haxe.HaxeRemoveField
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
@@ -16,7 +17,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override val priority: Int = Int.MAX_VALUE
 
 	fun AstClass.mustReflect(): Boolean {
-		return this.visible
+		return this.visible && !this.annotationsList.contains<JTranscNativeClass>()
 	}
 
 	fun AstMethod.mustReflect(): Boolean {

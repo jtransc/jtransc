@@ -1152,7 +1152,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_d2j(str: String) = N_func("d2j", str)
 	open protected fun N_l2i(str: String) = N_func("l2i", "$str")
 	open protected fun N_l2l(str: String) = "($str)"
-	open protected fun N_l2f(str: String) = N_func("l2d", "$str")
+	open protected fun N_l2f(str: String) = N_func("l2f", "$str")
 	open protected fun N_l2d(str: String) = N_func("l2d", "$str")
 	open protected fun N_getFunction(str: String) = N_func("getFunction", "$str")
 	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"

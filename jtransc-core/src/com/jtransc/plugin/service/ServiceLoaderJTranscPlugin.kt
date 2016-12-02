@@ -2,6 +2,7 @@ package com.jtransc.plugin.service
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
+import com.jtransc.gen.TargetName
 import com.jtransc.log.log
 import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.vfs.getUnmergedFiles
@@ -23,6 +24,8 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		if (alreadyExecuted) return
 		if (ServiceLoader::class.java.fqname !in program) return
 
+		val targetName = program.injector.get<TargetName>()
+
 		alreadyExecuted = true
 
 		servicesToImpls.clear()
@@ -31,14 +34,23 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		//log.info("Referenced ServiceLoader!")
 
 		val servicesFolders = program.resourcesVfs["META-INF/services"].getUnmergedFiles().filter { it.exists && it.isDirectory }
+		val targetRegex = Regex("<target=([^>]*)>")
 		for (serviceListFile in servicesFolders.flatMap { it.listdir() }) {
 			val serviceName = serviceListFile.name
-			val serviceImpls = serviceListFile.file.readString().trim().lines().map { it.split('#').firstOrNull()?.trim() ?: "" }.filter { it.isNotEmpty() }
-			if (serviceName !in servicesToImpls) {
-				servicesToImpls[serviceName] = listOf()
+			if (serviceName !in servicesToImpls) servicesToImpls[serviceName] = listOf()
+			for (line in serviceListFile.file.readString().trim().lines()) {
+				val parts = line.split('#')
+				val serviceImpl = parts.getOrNull(0)?.trim() ?: continue
+				val comment = parts.getOrNull(1) ?: ""
+				val targets = (targetRegex.find(comment)?.groups?.get(1)?.value ?: "").split(',').map { it.trim().toLowerCase() }.distinct().toSet()
+				val isForTarget = targetName.matches(targets.toList())
+				if (isForTarget) {
+					servicesToImpls[serviceName] = servicesToImpls[serviceName]!! + serviceImpl
+					log.info("Detected service: $serviceName with implementations $serviceImpl for targets $targets")
+				} else {
+					log.info("Detected service not included for $targetName: $serviceName with implementations $serviceImpl for targets $targets")
+				}
 			}
-			servicesToImpls[serviceName] = servicesToImpls[serviceName]!! + serviceImpls
-			log.info("Detected service: $serviceName with implementations $serviceImpls")
 		}
 
 		for (clazz in program.classes) {

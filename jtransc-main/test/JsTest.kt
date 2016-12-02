@@ -20,9 +20,15 @@ import javatest.awt.AWTTest
 import jtransc.ExtraKeywordsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
+import testservice.test.ServiceLoaderTest
 
 class JsTest : Base() {
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false)
+
+	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+		TestServiceImpl1.test:ss
+		TestServiceJs
+	""", target = JsTarget(), minimize = false)
 
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
 		17
