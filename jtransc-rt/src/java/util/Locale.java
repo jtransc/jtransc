@@ -140,6 +140,10 @@ public final class Locale implements Cloneable, Serializable {
 		return defaultLocale;
 	}
 
+	public static Locale getDefault(Category category) {
+		return defaultLocale;
+	}
+
 	public final String getDisplayCountry() {
 		return getDisplayCountry(getDefault());
 	}

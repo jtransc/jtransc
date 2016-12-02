@@ -1,4 +1,8 @@
 language: java
+d:
+- dmd
+haxe:
+- development
 node_js:
 - '4'
 jdk:
