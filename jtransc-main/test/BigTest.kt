@@ -29,11 +29,9 @@ import org.junit.Test
 class BigTest : Base() {
 	//@Test fun testPlainCpp() = testClass<BigTest>(minimize = false, target = CppTarget(), log = null, debug = true)
 
-	@Test fun testHelloWorldJs() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = true)
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true)
 	//@Test fun testHelloWorldCpp() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = true)
 	//@Test fun testHelloWorldCppRelease() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, debug = false)
-	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
 
 
 	@Test fun testJavaEightJs() = testClass<Java8Test>(minimize = false, target = JsTarget(), log = true)

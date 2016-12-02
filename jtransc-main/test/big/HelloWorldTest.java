@@ -2,6 +2,7 @@ package big;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.reflection.JTranscReflection;
+import com.jtransc.util.JTranscStrings;
 import j.ClassInfo;
 import j.ProgramReflection;
 import javatest.utils.Base64Test;
@@ -11,9 +12,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class HelloWorldTest {
 	//public HelloWorldTest() {
@@ -50,6 +53,23 @@ public class HelloWorldTest {
 		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 
 		System.out.println(Arrays.asList(EnumABC.class.getEnumConstants()));
+
+		int[] ints = {0, 1, 12, 123, 1234, 12345, 123456, 1234567, 12345678};
+		Locale[] locales = {Locale.ENGLISH, Locale.UK, Locale.US, Locale.FRENCH,Locale.forLanguageTag("es"),Locale.forLanguageTag("ja")};
+
+		for (int i : ints) {
+			for (Locale locale : locales) {
+				String s = NumberFormat.getIntegerInstance(locale).format(i);
+				System.out.println(locale.getLanguage() + ":" + s);
+				if (s.length() == 5) {
+					System.out.println((int) s.charAt(1));
+				}
+			}
+		}
+
+		String[] strings = {"", "1", "12", "123", "1234", "12345", "123456", "1234567"};
+		for (String s : strings) System.out.println(JTranscStrings.join(JTranscStrings.splitInChunks(s, 3), "-"));
+		for (String s : strings) System.out.println(JTranscStrings.join(JTranscStrings.splitInChunksRightToLeft(s, 3), "-"));
 
 		/*
 		//LinkedHashMap<String, Integer> stringIntegerLinkedHashMap = new LinkedHashMap<>();

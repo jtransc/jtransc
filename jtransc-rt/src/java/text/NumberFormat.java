@@ -16,6 +16,9 @@
 
 package java.text;
 
+import com.jtransc.text.JTranscStringTools;
+import com.jtransc.util.JTranscStrings;
+
 import java.io.InvalidObjectException;
 import java.math.RoundingMode;
 import java.util.Currency;
@@ -23,34 +26,100 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public abstract class NumberFormat extends Format {
+@SuppressWarnings("WeakerAccess")
+public class NumberFormat extends Format {
 	public static final int INTEGER_FIELD = 0;
 	public static final int FRACTION_FIELD = 1;
 
+	private boolean parseIntegerOnly = false;
+	private boolean groupingUsed = true;
+	private int maximumIntegerDigits = 100;
+	private int minimumIntegerDigits = 1;
+	private int maximumFractionDigits = 100;
+	private int minimumFractionDigits = 0;
+	private RoundingMode roundingMode = RoundingMode.HALF_EVEN;
+	private Locale locale;
+	private int intGroupDigits = 3;
+	private String intGroupSeparator = ".";
+	private String commaSeparator = ",";
+	private Currency currency;
+
 	protected NumberFormat() {
+		this(Locale.getDefault());
+	}
+
+
+	private NumberFormat(Locale locale) {
+		this.locale = locale;
+		//System.out.println(locale.getLanguage());
+
+		// https://docs.oracle.com/cd/E19455-01/806-0169/overview-9/index.html
+		switch (locale.getLanguage()) {
+			case "es":
+			case "it":
+			case "nw":
+				intGroupDigits = 3;
+				intGroupSeparator = ".";
+				commaSeparator = ",";
+				break;
+			case "en":
+			case "ja":
+				intGroupDigits = 3;
+				intGroupSeparator = ",";
+				commaSeparator = ".";
+				break;
+			case "fr":
+			default:
+				intGroupDigits = 3;
+				intGroupSeparator = "\u00a0";
+				commaSeparator = ",";
+				break;
+		}
 	}
 
 	@Override
-	native public StringBuffer format(Object number, StringBuffer toAppendTo, FieldPosition pos);
+	public StringBuffer format(Object number, StringBuffer toAppendTo, FieldPosition pos) {
+		toAppendTo.append(format((Number) number));
+		return toAppendTo;
+	}
 
 	@Override
 	public final Object parseObject(String source, ParsePosition pos) {
 		return parse(source, pos);
 	}
 
+	private String format(Number value) {
+		return _format(value.toString());
+	}
+
 	public final String format(double value) {
-		return format(value, new StringBuffer(), new FieldPosition(0)).toString();
+		return _format(JTranscStringTools.toString(value));
 	}
 
 	public final String format(long value) {
-		return format(value, new StringBuffer(), new FieldPosition(0)).toString();
+		return _format(Long.toString(value));
 	}
 
-	public abstract StringBuffer format(double value, StringBuffer toAppendTo, FieldPosition pos);
+	private String _format(String value) {
+		// @TODO: Here we add dots and/or commas
+		return _formatInt(value);
+	}
 
-	public abstract StringBuffer format(long value, StringBuffer toAppendTo, FieldPosition pos);
+	private String _formatInt(String value) {
+		return JTranscStrings.join(JTranscStrings.splitInChunksRightToLeft(value, intGroupDigits), intGroupSeparator);
+	}
 
-	public abstract Number parse(String source, ParsePosition parsePosition);
+	public StringBuffer format(double value, StringBuffer toAppendTo, FieldPosition pos) {
+		toAppendTo.append(format(value));
+		return toAppendTo;
+	}
+
+	public StringBuffer format(long value, StringBuffer toAppendTo, FieldPosition pos) {
+		toAppendTo.append(format(value));
+		return toAppendTo;
+	}
+
+	public native Number parse(String source, ParsePosition parsePosition);
 
 	public Number parse(String source) throws ParseException {
 		ParsePosition parsePosition = new ParsePosition(0);
@@ -61,31 +130,57 @@ public abstract class NumberFormat extends Format {
 		return result;
 	}
 
-	native public boolean isParseIntegerOnly();
+	public boolean isParseIntegerOnly() {
+		return parseIntegerOnly;
+	}
 
-	native public void setParseIntegerOnly(boolean value);
+	public void setParseIntegerOnly(boolean value) {
+		this.parseIntegerOnly = value;
+	}
 
-	native public static NumberFormat getInstance();
+	public static NumberFormat getInstance() {
+		return new NumberFormat();
+	}
 
-	native public static NumberFormat getInstance(Locale inLocale);
+	public static NumberFormat getInstance(Locale locale) {
+		return new NumberFormat(locale);
+	}
 
-	native public static NumberFormat getNumberInstance();
+	public static NumberFormat getNumberInstance() {
+		return new NumberFormat();
+	}
 
-	native public static NumberFormat getNumberInstance(Locale inLocale);
+	public static NumberFormat getNumberInstance(Locale locale) {
+		return new NumberFormat(locale);
+	}
 
-	native public static NumberFormat getIntegerInstance();
+	public static NumberFormat getIntegerInstance() {
+		return new NumberFormat();
+	}
 
-	native public static NumberFormat getIntegerInstance(Locale inLocale);
+	public static NumberFormat getIntegerInstance(Locale locale) {
+		return new NumberFormat(locale);
+	}
 
-	native public static NumberFormat getCurrencyInstance();
+	public static NumberFormat getCurrencyInstance() {
+		return new NumberFormat();
+	}
 
-	native public static NumberFormat getCurrencyInstance(Locale inLocale);
+	public static NumberFormat getCurrencyInstance(Locale inLocale) {
+		return new NumberFormat();
+	}
 
-	native public static NumberFormat getPercentInstance();
+	public static NumberFormat getPercentInstance() {
+		return getPercentInstance(Locale.getDefault(Locale.Category.FORMAT));
+	}
 
-	native public static NumberFormat getPercentInstance(Locale inLocale);
+	public static NumberFormat getPercentInstance(Locale locale) {
+		return new NumberFormat(locale);
+	}
 
-	public native static Locale[] getAvailableLocales();
+	public static Locale[] getAvailableLocales() {
+		return new Locale[] { Locale.ENGLISH };
+	}
 
 	@Override
 	public int hashCode() {
@@ -114,40 +209,61 @@ public abstract class NumberFormat extends Format {
 		return other;
 	}
 
-	native public boolean isGroupingUsed();
+	public boolean isGroupingUsed() {
+		return groupingUsed;
+	}
 
-	native public void setGroupingUsed(boolean newValue);
+	public void setGroupingUsed(boolean newValue) {
+		groupingUsed = newValue;
+	}
 
-	native public int getMaximumIntegerDigits();
+	public int getMaximumIntegerDigits() {
+		return maximumIntegerDigits;
+	}
 
-	native public void setMaximumIntegerDigits(int newValue);
+	public void setMaximumIntegerDigits(int newValue) {
+		maximumIntegerDigits = newValue;
+	}
 
-	native public int getMinimumIntegerDigits();
+	public int getMinimumIntegerDigits() {
+		return minimumIntegerDigits;
+	}
 
-	native public void setMinimumIntegerDigits(int newValue);
+	public void setMinimumIntegerDigits(int newValue) {
+		minimumIntegerDigits = newValue;
+	}
 
-	native public int getMaximumFractionDigits();
+	public int getMaximumFractionDigits() {
+		return maximumFractionDigits;
+	}
 
-	native public void setMaximumFractionDigits(int newValue);
+	public void setMaximumFractionDigits(int newValue) {
+		maximumFractionDigits = newValue;
+	}
 
-	native public int getMinimumFractionDigits();
+	public int getMinimumFractionDigits() {
+		return minimumFractionDigits;
+	}
 
-	native public void setMinimumFractionDigits(int newValue);
+	public void setMinimumFractionDigits(int newValue) {
+		minimumFractionDigits = newValue;
+	}
 
 	public Currency getCurrency() {
-		throw new UnsupportedOperationException();
+		if (currency == null) currency = Currency.getInstance(this.locale);
+		return currency;
 	}
 
 	public void setCurrency(Currency currency) {
-		throw new UnsupportedOperationException();
+		this.currency = currency;
 	}
 
 	public RoundingMode getRoundingMode() {
-		throw new UnsupportedOperationException();
+		return roundingMode;
 	}
 
 	public void setRoundingMode(RoundingMode roundingMode) {
-		throw new UnsupportedOperationException();
+		this.roundingMode = roundingMode;
 	}
 
 	public static class Field extends Format.Field {
@@ -155,9 +271,7 @@ public abstract class NumberFormat extends Format {
 
 		protected Field(String name) {
 			super(name);
-			if (this.getClass() == NumberFormat.Field.class) {
-				instances.put(name, this);
-			}
+			instances.put(name, this);
 		}
 
 		@Override

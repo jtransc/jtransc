@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import big.HelloWorldTest
 import com.jtransc.gen.js.JsTarget
 import javatest.awt.AWTTest
 import jtransc.ExtraKeywordsTest
@@ -21,6 +22,8 @@ import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 
 class JsTest : Base() {
+	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false)
+
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
 		17
 		-333

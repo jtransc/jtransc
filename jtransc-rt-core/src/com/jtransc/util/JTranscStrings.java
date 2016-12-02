@@ -3,6 +3,7 @@ package com.jtransc.util;
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscInvisible;
 
+@SuppressWarnings("WeakerAccess")
 @JTranscInvisible
 public class JTranscStrings {
 	static public String substr(String subject, int offset) {
@@ -14,5 +15,59 @@ public class JTranscStrings {
 		int realStart = (offset < 0) ? JTranscBits.clamp(JTranscBits.unsignedMod(offset, subjectLen), 0, subjectLen) : JTranscBits.clamp(offset, 0, subjectLen);
 		int realEnd = (count < 0) ? JTranscBits.unsignedMod(subjectLen + count, subjectLen) : JTranscBits.clamp(realStart + count, 0, subjectLen);
 		return subject.substring(realStart, realEnd);
+	}
+
+	static public String[] splitInChunks(String subject, int count) {
+		return splitInChunksDirection(subject, +count);
+	}
+
+	static public String[] splitInChunksRightToLeft(String subject, int count) {
+		return splitInChunksDirection(subject, -count);
+	}
+
+	static public String[] splitInChunksDirection(String subject, int count) {
+		final boolean leftToRight = (count > 0);
+		final int slen = subject.length();
+		final int acount = Math.abs(count);
+		final int partCount = (int) Math.ceil((double) subject.length() / (double) acount);
+		final String[] out = new String[partCount];
+		for (int n = 0; n < partCount; n++) {
+			int pos;
+			if (leftToRight) {
+				pos = n * acount;
+			} else {
+				pos = subject.length() - ((n + 1) * acount);
+			}
+			int index = leftToRight ? n : (partCount - n - 1);
+			int len = acount;
+			if (pos < 0) {
+				len += pos;
+				pos = 0;
+			}
+			int end = Math.min(slen, pos + len);
+			out[index] = subject.substring(pos, end);
+		}
+		return out;
+	}
+
+	static public String join(String[] parts) {
+		int count = 0;
+		for (String part : parts) count += part.length();
+		StringBuilder out = new StringBuilder(count);
+		for (String part : parts) out.append(part);
+		return out.toString();
+	}
+
+	static public String join(String[] parts, String separator) {
+		if (parts.length == 0) return "";
+		int count = 0;
+		for (String part : parts) count += part.length();
+		count += (parts.length - 1) * separator.length();
+		StringBuilder out = new StringBuilder(count);
+		for (int n = 0; n < parts.length; n++) {
+			if (n != 0) out.append(separator);
+			out.append(parts[n]);
+		}
+		return out.toString();
 	}
 }

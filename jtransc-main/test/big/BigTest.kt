@@ -113,6 +113,9 @@ object BigTest {
 
 		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
 		println("readLine:" + BufferedReader(`is`).readLine())
+
+		// Hello World functionality!
+		HelloWorldTest.main(args)
 	}
 
 	private fun servicesTest() {

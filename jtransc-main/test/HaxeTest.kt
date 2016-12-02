@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import jtransc.annotation.ClassMembersTest
 import jtransc.annotation.MethodBodyTest
@@ -23,6 +24,8 @@ import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
 class HaxeTest : Base() {
+	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
 		true
