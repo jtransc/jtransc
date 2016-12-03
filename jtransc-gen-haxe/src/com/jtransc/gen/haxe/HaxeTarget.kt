@@ -93,6 +93,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
 
+	//val unreflective = "@:unreflective"
+	val unreflective = ""
+
 	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
 	companion object {
@@ -494,7 +497,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"@:unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetName}".trim()
+					"$unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetName}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					throw e
@@ -525,12 +528,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		fun addClassInit(clazz: AstClass) = Indenter.gen {
-			line("@:unreflective static public var SII = false;");
+			line("$unreflective static public var SII = false;");
 			for (e in getClassStrings(clazz.name)) {
-				line("@:unreflective static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
+				line("$unreflective static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
 
-			line("@:unreflective static public function SI()") {
+			line("$unreflective static public function SI()") {
 				line("if (SII) return;")
 				line("SII = true;")
 
@@ -572,7 +575,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 					if (isRootObject) {
 						line("public var _CLASS_ID__HX:Int;")
 					}
-					line("@:unreflective public function new()") {
+					line("$unreflective public function new()") {
 						line(if (isRootObject) "" else "super();")
 						line("SI();")
 						line("this._CLASS_ID__HX = ${clazz.classId};")
@@ -595,8 +598,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				}
 
 				if (isRootObject) {
-					line("@:unreflective public function toString():String { return N.toNativeString(this.$toStringTargetName()); }")
-					line("@:unreflective public function hashCode():Int { return this.$hashCodeTargetName(); }")
+					line("$unreflective public function toString():String { return N.toNativeString(this.$toStringTargetName()); }")
+					line("$unreflective public function hashCode():Int { return this.$hashCodeTargetName(); }")
 				}
 
 				if (!isInterface) {
@@ -610,8 +613,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			}
 
 			if (isInterface) {
-				line("@:unreflective class ${simpleClassName}_IFields") {
-					line("@:unreflective public function new() {}")
+				line("$unreflective class ${simpleClassName}_IFields") {
+					line("$unreflective public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))

@@ -1307,9 +1307,12 @@ public class MiscTest {
 	}
 
 	private void testCrc32() {
+		Random random = new Random(12345678L);
+		byte[] bytes = new byte[3731];
+		random.nextBytes(bytes);
 		CRC32 crc32 = new CRC32();
 		System.out.println(crc32.getValue());
-		crc32.update(new byte[]{1, 2, 3, 4});
+		crc32.update(bytes);
 		System.out.println(crc32.getValue());
 	}
 
