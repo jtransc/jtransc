@@ -16,6 +16,9 @@
 
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
+import com.jtransc.gen.d.DTarget
+import jtransc.jtransc.nativ.JTranscCppNativeMixedTest
+import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import org.junit.Test
 
 class CppTest : Base() {
@@ -23,4 +26,13 @@ class CppTest : Base() {
 	//override val TREESHAKING_TRACE: Boolean = false
 
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = false)
+
+	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
+	//	JTranscReinterpretArrays:
+	//	bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
+	//	floats:2 : [0.0, 0.0]
+	//	bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
+	//	floats:2 : [1.0, -1.0]
+	//""", target = CppTarget(), minimize = false)
+
 }

@@ -5,16 +5,19 @@ import haxe.io.BytesData;
 class JA_B extends JA_0 {
     public var data:UInt8Array = null;
 
-    public function new(length:Int) {
+    public function new(length:Int, data: UInt8Array = null) {
         super();
-        this.data = new UInt8Array(length);
+        if (data == null) data = new UInt8Array(length); else length = data.length;
+        this.data = data;
         this.length = length;
         this.desc = "[B";
     }
 
+	override public function getElementBytesSize():Int return 1;
+	override public function getArrayBufferView() return data.view;
     public function getTypedArray() return data;
 
-    public function getBytes():Bytes {
+    override public function getBytes():Bytes {
     	#if js
     	return Bytes.ofData(data.getData().buffer);
     	#else
@@ -86,4 +89,5 @@ class JA_B extends JA_0 {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
     }
+
 }

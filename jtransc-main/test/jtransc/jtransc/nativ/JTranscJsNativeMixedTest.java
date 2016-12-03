@@ -1,5 +1,6 @@
 package jtransc.jtransc.nativ;
 
+import com.jtransc.JTranscArrays;
 import com.jtransc.target.Js;
 import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
@@ -15,6 +16,7 @@ public class JTranscJsNativeMixedTest {
 		CustomJsRunTest.main(args);
 		JTranscInternalNamesTest.main(args);
 		AssertionTests.main(args);
+		JTranscReinterpretArrays.main(args);
 	}
 
 	private static void servicesTest() {

@@ -3,13 +3,16 @@ import haxe.io.Float64Array;
 class JA_D extends JA_0 {
     public var data:Float64Array = null;
 
-    public function new(length:Int) {
+    public function new(length:Int, data:Float64Array = null) {
         super();
-        this.data = new Float64Array(length);
+        if (data == null) data = new Float64Array(length); else length = data.length;
+        this.data = data;
         this.length = length;
         this.desc = "[D";
     }
 
+	override public function getElementBytesSize():Int return 8;
+	override public function getArrayBufferView() return data.view;
     public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {

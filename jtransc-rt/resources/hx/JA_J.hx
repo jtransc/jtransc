@@ -2,8 +2,8 @@ import haxe.ds.Vector;
 import haxe.Int64;
 
 class JA_J extends JA_0 {
-    public var data:Vector<Int64> = null;
-   static private var ZERO = Int64.make(0,0);
+	public var data:Vector<Int64> = null;
+	static private var ZERO = Int64.make(0,0);
 
     public function new(length:Int) {
         super();
@@ -14,6 +14,7 @@ class JA_J extends JA_0 {
         this.desc = "[J";
     }
 
+	override public function getElementBytesSize():Int return 8;
     public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {

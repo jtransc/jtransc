@@ -3,8 +3,8 @@ import haxe.io.Bytes;
 import haxe.io.BytesData;
 
 class JA_Z extends JA_B {
-    public function new(length:Int) {
-        super(length);
+    public function new(length:Int, data: UInt8Array = null) {
+        super(length, data);
         this.desc = "[Z";
     }
 

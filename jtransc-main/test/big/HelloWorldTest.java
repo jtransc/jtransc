@@ -1,5 +1,6 @@
 package big;
 
+import com.jtransc.JTranscArrays;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.reflection.JTranscReflection;
 import com.jtransc.util.JTranscStrings;

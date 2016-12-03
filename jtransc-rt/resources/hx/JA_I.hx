@@ -3,32 +3,19 @@ import haxe.io.Bytes;
 import haxe.ds.Vector;
 
 class JA_I extends JA_0 {
-	#if flash
-	public var data:Vector<Int> = null;
-	#else
 	public var data:Int32Array = null;
-	#end
 
-    public function new(length:Int) {
+    public function new(length:Int, data:Int32Array = null) {
         super();
-        #if flash
-        this.data = new Vector<Int>(length);
-        #else
-        this.data = new Int32Array(length);
-        #end
+        if (data == null) data = new Int32Array(length); else length = data.length;
+        this.data = data;
         this.length = length;
         this.desc = "[I";
     }
 
-    public function getTypedArray() {
-        #if flash
-        var out = new Int32Array(this.length);
-        for (n in 0 ... this.length) out[n] = this.get(n);
-        return out;
-        #else
-        return data;
-        #end
-    }
+	override public function getElementBytesSize():Int return 4;
+	override public function getArrayBufferView() return data.view;
+    public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
@@ -41,15 +28,7 @@ class JA_I extends JA_0 {
     	return fromArray(items);
     }
 
-    public function getBytes() {
-    	#if flash
-    	var out = Bytes.alloc(this.length * 4);
-    	for (n in 0 ... this.length) out.setInt32(n * 4, this.get(n));
-    	return out;
-    	#else
-    	return data.view.buffer;
-    	#end
-    }
+    override public function getBytes() return data.view.buffer;
 
     static public function fromBytes(bytes:Bytes) {
         if (bytes == null) return null;

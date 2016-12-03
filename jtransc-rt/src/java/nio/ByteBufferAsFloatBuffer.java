@@ -16,22 +16,13 @@
 
 package java.nio;
 
+import com.jtransc.JTranscArrays;
+import com.jtransc.mem.BytesWrite;
+
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-/**
- * This class wraps a byte buffer to be a float buffer.
- * <p>
- * Implementation notice:
- * <ul>
- * <li>After a byte buffer instance is wrapped, it becomes privately owned by
- * the adapter. It must NOT be accessed outside the adapter any more.</li>
- * <li>The byte buffer's position and limit are NOT linked with the adapter.
- * The adapter extends Buffer, thus has its own position and limit.</li>
- * </ul>
- * </p>
- */
 final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 
     final ByteBuffer byteBuffer;
@@ -144,14 +135,23 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
         return this;
     }
 
-    //@Override
-    //public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
-    //    byteBuffer.limit(limit * SizeOf.FLOAT);
-    //    byteBuffer.position(position * SizeOf.FLOAT);
-    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, floatCount);
-    //    this.position += floatCount;
-    //    return this;
-    //}
+    @Override
+    public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
+        byteBuffer.limit(limit * SizeOf.FLOAT);
+		byteBuffer.position(position * SizeOf.FLOAT);
+		if (JTranscArrays.nativeReinterpretSupported() && byteBuffer.isNativeOrder) {
+			float[] dst = JTranscArrays.nativeReinterpretAsFloat(byteBuffer.array());
+			System.arraycopy(src, srcOffset, dst, position, floatCount);
+		} else {
+			int offset = position * SizeOf.FLOAT;
+			for (int n = 0; n < floatCount; n++) {
+				byteBuffer.putFloat(offset, src[srcOffset + n]);
+				offset += 4;
+			}
+		}
+		position += floatCount;
+        return this;
+    }
 
     @Override
     public FloatBuffer slice() {

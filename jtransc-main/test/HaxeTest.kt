@@ -58,5 +58,10 @@ class HaxeTest : Base() {
 		jtransc.jtransc.JTranscInternalNamesTest_
 		main__Ljava_lang_String__V
 		___hello
+		JTranscReinterpretArrays:
+		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
+		floats:2 : [0.0, 0.0]
+		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
+		floats:2 : [1.0, -1.0]
 	""", target = HaxeTarget(), minimize = false)
 }

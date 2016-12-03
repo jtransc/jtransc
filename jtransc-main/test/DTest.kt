@@ -2,6 +2,7 @@ import big.HelloWorldTest
 import big.MiniHelloWorldTest
 import com.jtransc.gen.d.DTarget
 import com.jtransc.gen.js.JsTarget
+import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 import threading.ThreadingTest
@@ -31,5 +32,13 @@ class DTest : Base() {
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss
 		TestServiceD
+	""", target = DTarget(), minimize = false)
+
+	@Test fun testMixed() = testNativeClass<JTranscDNativeMixedTest>("""
+		JTranscReinterpretArrays:
+		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
+		floats:2 : [0.0, 0.0]
+		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
+		floats:2 : [1.0, -1.0]
 	""", target = DTarget(), minimize = false)
 }

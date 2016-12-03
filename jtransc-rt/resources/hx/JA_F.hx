@@ -2,32 +2,19 @@ import haxe.io.Float32Array;
 import haxe.ds.Vector;
 
 class JA_F extends JA_0 {
-	#if flash
-	public var data:Vector<Float32> = null;
-	#else
 	public var data:Float32Array = null;
-	#end
 
-    public function new(length:Int) {
+    public function new(length:Int, data:Float32Array = null) {
         super();
-		#if flash
-		this.data = new Vector<Float32>(length);
-		#else
-		this.data = new Float32Array(length);
-		#end
+        if (data == null) data = new Float32Array(length); else length = data.length;
+		this.data = data;
         this.length = length;
         this.desc = "[F";
     }
 
-    public function getTypedArray() {
-        #if flash
-        var out = new Float32Array(this.length);
-        for (n in 0 ... this.length) out[n] = this.get(n);
-        return out;
-        #else
-        return data;
-        #end
-    }
+	override public function getElementBytesSize():Int return 4;
+	override public function getArrayBufferView() return data.view;
+    public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;

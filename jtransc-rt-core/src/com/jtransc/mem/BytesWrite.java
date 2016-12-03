@@ -75,4 +75,12 @@ public class BytesWrite {
 		out[offset + 1] = (byte) (l >>> 8);
 		out[offset + 0] = (byte) (l >>> 0);
 	}
+
+	public static void writeFloatLE(byte[] out, int offset, float value) {
+		writeIntLE(out, offset, Float.floatToIntBits(value));
+	}
+
+	public static void writeFloatBE(byte[] out, int offset, float value) {
+		writeIntBE(out, offset, Float.floatToIntBits(value));
+	}
 }

@@ -1,6 +1,4 @@
-import haxe.io.UInt8Array;
-import haxe.io.Bytes;
-import haxe.io.BytesData;
+import haxe.io.*;
 
 class JA_0 extends {% CLASS java.lang.Object %} {
     public var length:Int = 0;
@@ -54,4 +52,17 @@ class JA_0 extends {% CLASS java.lang.Object %} {
     public override function {% METHOD java.lang.Object:clone:()Ljava/lang/Object; %}():{% CLASS java.lang.Object %} {
     	return this.clone();
     }
+
+	public function getArrayBufferView():ArrayBufferView throw 'Not implemented';
+	public function getBytes():haxe.io.Bytes return getArrayBufferView().buffer;
+	public function getElementBytesSize():Int throw 'Not implemented';
+	public function getBytesLength():Int return this.length * getElementBytesSize();
+
+	public function toByteArray():JA_B return new JA_B(0, UInt8Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 1)));
+	public function toCharArray():JA_C return new JA_C(0, UInt16Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 2)));
+	public function toShortArray():JA_S return new JA_S(0, UInt16Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 2)));
+	public function toIntArray():JA_I return new JA_I(0, Int32Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 4)));
+	//public function toLongArray():JA_J return new JA_J(0, Int32Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 4)));
+	public function toFloatArray():JA_F return new JA_F(0, Float32Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 4)));
+	public function toDoubleArray():JA_D return new JA_D(0, Float64Array.fromBytes(getBytes(), 0, Std.int(getBytesLength() / 8)));
 }

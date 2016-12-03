@@ -36,6 +36,14 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 		auto dstP = dst.ptr + (dstOffset * itemLen);
 		core.stdc.string.memmove(cast(void*)dstP, cast(void*)srcP, (len * itemLen));
 	}
+	int bytesLength() { return length / itemLen; }
+	public JA_B toByteArray  () { return new JA_B((cast(byte   *)ptr)[0..bytesLength / byte.sizeof]); }
+	public JA_C toCharArray  () { return new JA_C((cast(wchar  *)ptr)[0..bytesLength / wchar.sizeof]); }
+	public JA_S toShortArray () { return new JA_S((cast(short  *)ptr)[0..bytesLength / short.sizeof]); }
+	public JA_I toIntArray   () { return new JA_I((cast(int    *)ptr)[0..bytesLength / int.sizeof]); }
+	public JA_J toLongArray  () { return new JA_J((cast(long   *)ptr)[0..bytesLength / long.sizeof]); }
+	public JA_F toFloatArray () { return new JA_F((cast(float  *)ptr)[0..bytesLength / float.sizeof]); }
+	public JA_D toDoubleArray() { return new JA_D((cast(double *)ptr)[0..bytesLength / double.sizeof]); }
 }
 
 class JA_Template(U) : JA_0 {
@@ -43,8 +51,12 @@ class JA_Template(U) : JA_0 {
 	wstring desc;
 
 	this(int len, wstring desc) {
+		this(new U[len], desc);
+	}
+
+	this(U[] data, wstring desc) {
 		super(desc);
-		this.data = new U[len];
+		this.data = data;
 		this.desc = desc;
 	}
 
@@ -64,6 +76,7 @@ class JA_Template(U) : JA_0 {
 
 class JA_I : JA_Template!(int) {
 	this(int len) { super(len, "[I"); }
+	this(int[] data) { super(data, "[I"); }
 
 	static public JA_I T(int[] ints) {
 		int len = alen(ints);
@@ -75,37 +88,45 @@ class JA_I : JA_Template!(int) {
 
 class JA_B : JA_Template!(byte) {
 	this(int len, wstring desc = "[B") { super(len, desc); }
+	this(byte[] data, wstring desc = "[B") { super(data, desc); }
 }
 class JA_Z : JA_B {
 	this(int len) { super(len, "[Z"); }
+	this(byte[] data) { super(data, "[Z"); }
 }
 class JA_S : JA_Template!(short) {
 	this(int len) { super(len, "[S"); }
+	this(short[] data) { super(data, "[S"); }
 }
 class JA_C : JA_Template!(wchar) {
 	this(int len) {
 		super(len, "[C");
 		this.data[0..$] = 0;
 	}
+	this(wchar[] data) { super(data, "[C"); }
 }
 class JA_J : JA_Template!(long) {
 	this(int len) { super(len, "[J"); }
+	this(long[] data) { super(data, "[J"); }
 }
 class JA_F : JA_Template!(float) {
 	this(int len) {
 		super(len, "[F");
 		this.data[0..$] = 0f;
 	}
+	this(float[] data) { super(data, "[F"); }
 }
 class JA_D : JA_Template!(double) {
 	this(int len) {
 		super(len, "[D");
 		this.data[0..$] = 0.0;
 	}
+	this(double[] data) { super(data, "[D"); }
 }
 
 class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 	this(int len, wstring desc) { super(len, desc); }
+	this({% CLASS java.lang.Object %}[] data, wstring desc) { super(data, desc); }
 
 	static JA_0 createMultiSure(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;

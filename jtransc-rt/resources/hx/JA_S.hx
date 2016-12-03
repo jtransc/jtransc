@@ -3,13 +3,16 @@ import haxe.io.UInt16Array;
 class JA_S extends JA_0 {
     public var data:UInt16Array = null;
 
-    public function new(length:Int) {
+    public function new(length:Int, data: UInt16Array = null) {
         super();
-        this.data = new UInt16Array(length);
+        if (data == null) data = new UInt16Array(length); else length = data.length;
+        this.data = data;
         this.length = length;
         this.desc = "[S";
     }
 
+	override public function getElementBytesSize():Int return 2;
+	override public function getArrayBufferView() return data.view;
     public function getTypedArray() return data;
 
     static public function fromArray(items:Array<Dynamic>) {

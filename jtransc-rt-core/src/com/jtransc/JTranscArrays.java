@@ -50,22 +50,55 @@ public class JTranscArrays {
 		return out;
 	}
 
+	@HaxeMethodBody(value = "return true;")
+	@JTranscMethodBody(target = "haxe", value = "return true;")
+	@JTranscMethodBody(target = "js", value = "return true;")
+	//@JTranscMethodBody(target = "cpp", value = "return true;")
+	@JTranscMethodBody(target = "d", value = "return true;")
+	static public boolean nativeReinterpretSupported() {
+		return false;
+	}
+
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toByteArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toByteArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_B.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toByteArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toByteArray();")
 	native static public byte[] nativeReinterpretAsByte(Object data);
 
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toShortArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toShortArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_S.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toShortArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toShortArray();")
 	native static public short[] nativeReinterpretAsShort(Object data);
 
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toCharArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toCharArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_C.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toCharArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toCharArray();")
 	native static public char[] nativeReinterpretAsChar(Object data);
 
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toIntArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toIntArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_I.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toIntArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toIntArray();")
 	native static public int[] nativeReinterpretAsInt(Object data);
 
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toFloatArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toFloatArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_F.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toFloatArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toFloatArray();")
 	native static public float[] nativeReinterpretAsFloat(Object data);
 
+	@HaxeMethodBody(value = "return cast(p0, JA_0).toDoubleArray();")
+	@JTranscMethodBody(target = "haxe", value = "return cast(p0, JA_0).toDoubleArray();")
 	@JTranscMethodBody(target = "js", value = "return JA_D.wrapBuffer(p0.getBuffer());")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0)->toDoubleArray();")
+	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).toDoubleArray();")
 	native static public double[] nativeReinterpretAsDouble(Object data);
 
 	static public byte[] copyReinterpretReversed(int[] data) {

@@ -196,21 +196,36 @@ struct JA_0 : public java_lang_Object { public:
 	int length;
 	int elementSize;
 	std::wstring desc;
-	JA_0(int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+	JA_0(void* data, int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
 		this->__INSTANCE_CLASS_ID = 1;
-		this->_data = (void*)::malloc(esize * (len + 1));
+		this->_data = data;
+	}
+
+	JA_0(int len, int esize, std::wstring d) : JA_0((void*)::malloc(esize * (len + 1)), len, esize, d) {
 		::memset(this->_data, 0, (len + 1) * esize);
 	}
 	~JA_0() { ::free(_data); }
 	void *getOffsetPtr(int offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
+	void *getStartPtr() { return getOffsetPtr(0); }
+	int bytesLength() { return length * elementSize; }
 	static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len) {
 		::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);
 	}
+	SOBJ toBoolArray();
+	SOBJ toByteArray();
+	SOBJ toCharArray();
+	SOBJ toShortArray();
+	SOBJ toIntArray();
+	SOBJ toLongArray();
+	SOBJ toFloatArray();
+	SOBJ toDoubleArray();
 };
 
 template <class T>
 struct JA_Base : JA_0 {
 	JA_Base(int size, std::wstring desc) : JA_0(size, sizeof(T), desc) {
+	};
+	JA_Base(void* data, int size, std::wstring desc) : JA_0(data, size, sizeof(T), desc) {
 	};
 	inline void checkBounds(int offset) {
 		if (offset < 0 || offset >= length) {
@@ -242,12 +257,25 @@ struct JA_Base : JA_0 {
 	};
 };
 
-struct JA_B : JA_Base<int8_t> { public: JA_B(int size, std::wstring desc = L"[B") : JA_Base(size, desc) { }; };
-struct JA_Z : public JA_B { public: JA_Z(int size, std::wstring desc = L"[Z") : JA_B(size, desc) { }; };
-struct JA_S : JA_Base<int16_t> { public: JA_S(int size, std::wstring desc = L"[S") : JA_Base(size, desc) { }; };
-struct JA_C : JA_Base<uint16_t> { public: JA_C(int size, std::wstring desc = L"[C") : JA_Base(size, desc) { }; };
+struct JA_B : JA_Base<int8_t> {
+	JA_B(int size, std::wstring desc = L"[B") : JA_Base(size, desc) { };
+	JA_B(void* data, int size, std::wstring desc = L"[B") : JA_Base(data, size, desc) { };
+};
+struct JA_Z : public JA_B {
+	JA_Z(int size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
+	JA_Z(void* data, int size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
+};
+struct JA_S : JA_Base<int16_t> {
+	JA_S(int size, std::wstring desc = L"[S") : JA_Base(size, desc) { };
+	JA_S(void* data, int size, std::wstring desc = L"[S") : JA_Base(data, size, desc) { };
+};
+struct JA_C : JA_Base<uint16_t> {
+	JA_C(int size, std::wstring desc = L"[C") : JA_Base(size, desc) { };
+	JA_C(void* data, int size, std::wstring desc = L"[C") : JA_Base(data, size, desc) { };
+};
 struct JA_I : JA_Base<int32_t> {
-	public: JA_I(int size, std::wstring desc = L"[I") : JA_Base(size, desc) { };
+	JA_I(int size, std::wstring desc = L"[I") : JA_Base(size, desc) { };
+	JA_I(void* data, int size, std::wstring desc = L"[I") : JA_Base(data, size, desc) { };
 
 	// @TODO: Try to move to JA_Base
 	static JA_I *fromVector(int *data, int count) {
@@ -261,11 +289,21 @@ struct JA_I : JA_Base<int32_t> {
 	static JA_I *fromArgValues(int a0, int a1, int a2, int a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
 };
-struct JA_J : JA_Base<int64_t> { public: JA_J(int size, std::wstring desc = L"[J") : JA_Base(size, desc) { }; };
-struct JA_F : JA_Base<float> { public: JA_F(int size, std::wstring desc = L"[F") : JA_Base(size, desc) { }; };
-struct JA_D : JA_Base<double> { public: JA_D(int size, std::wstring desc = L"[D") : JA_Base(size, desc) { }; };
+struct JA_J : JA_Base<int64_t> {
+	JA_J(int size, std::wstring desc = L"[J") : JA_Base(size, desc) { };
+	JA_J(void* data, int size, std::wstring desc = L"[J") : JA_Base(data, size, desc) { };
+};
+struct JA_F : JA_Base<float> {
+	JA_F(int size, std::wstring desc = L"[F") : JA_Base(size, desc) { };
+	JA_F(void* data, int size, std::wstring desc = L"[F") : JA_Base(data, size, desc) { };
+};
+struct JA_D : JA_Base<double> {
+	JA_D(int size, std::wstring desc = L"[D") : JA_Base(size, desc) { };
+	JA_D(void* data, int size, std::wstring desc = L"[D") : JA_Base(data, size, desc) { };
+};
 struct JA_L : JA_Base<SOBJ> {
-	public: JA_L(int size, std::wstring desc) : JA_Base(size, desc) { };
+	JA_L(int size, std::wstring desc) : JA_Base(size, desc) { };
+	JA_L(void* data, int size, std::wstring desc) : JA_Base(data, size, desc) { };
 
 	std::vector<SOBJ> getVector() {
 		int len = this->length;
@@ -303,6 +341,16 @@ struct JA_L : JA_Base<SOBJ> {
 		return out;
 	}
 };
+
+SOBJ JA_0::toBoolArray  () { return SOBJ(new JA_Z((void *)getStartPtr(), bytesLength() / 1)); };
+SOBJ JA_0::toByteArray  () { return SOBJ(new JA_B((void *)getStartPtr(), bytesLength() / 1)); };
+SOBJ JA_0::toCharArray  () { return SOBJ(new JA_C((void *)getStartPtr(), bytesLength() / 2)); };
+SOBJ JA_0::toShortArray () { return SOBJ(new JA_S((void *)getStartPtr(), bytesLength() / 2)); };
+SOBJ JA_0::toIntArray   () { return SOBJ(new JA_I((void *)getStartPtr(), bytesLength() / 4)); };
+SOBJ JA_0::toLongArray  () { return SOBJ(new JA_J((void *)getStartPtr(), bytesLength() / 8)); };
+SOBJ JA_0::toFloatArray () { return SOBJ(new JA_F((void *)getStartPtr(), bytesLength() / 4)); };
+SOBJ JA_0::toDoubleArray() { return SOBJ(new JA_D((void *)getStartPtr(), bytesLength() / 8)); };
+
 
 {{ ARRAY_HEADERS_POST }}
 

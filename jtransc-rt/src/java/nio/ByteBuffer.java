@@ -23,7 +23,8 @@ import libcore.io.Memory;
 import java.nio.internal.SizeOf;
 
 public final class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
-	ByteOrder order = ByteOrder.BIG_ENDIAN;
+	ByteOrder order;
+	boolean isNativeOrder;
 
 	public final byte[] backingArray;
 	final int arrayOffset;
@@ -46,6 +47,7 @@ public final class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		this.backingArray = backingArray;
 		this.arrayOffset = arrayOffset;
 		this.isReadOnly = isReadOnly;
+		order(ByteOrder.BIG_ENDIAN);
 		if (arrayOffset + capacity > backingArray.length) {
 			throw new IndexOutOfBoundsException("backingArray.length=" + backingArray.length +
 				", capacity=" + capacity + ", arrayOffset=" + arrayOffset);
@@ -77,7 +79,8 @@ public final class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 
 	@Override
 	public final byte[] array() {
-		return protectedArray();
+		_checkWritable();
+		return backingArray;
 	}
 
 	@Override
@@ -179,10 +182,9 @@ public final class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	}
 
 	public final ByteBuffer order(ByteOrder byteOrder) {
-		if (byteOrder == null) {
-			byteOrder = ByteOrder.LITTLE_ENDIAN;
-		}
+		if (byteOrder == null) byteOrder = ByteOrder.LITTLE_ENDIAN;
 		order = byteOrder;
+		isNativeOrder = byteOrder == ByteOrder.nativeOrder();
 		return this;
 	}
 

@@ -13,5 +13,6 @@ public class JTranscHaxeNativeMixedTest {
 		JTranscSystemTest.main(args);
 		UseMinitemplatesTest.main(args);
 		JTranscInternalNamesTest.main(args);
+		JTranscReinterpretArrays.main(args);
 	}
 }
