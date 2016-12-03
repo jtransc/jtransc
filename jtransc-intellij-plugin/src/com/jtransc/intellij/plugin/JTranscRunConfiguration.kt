@@ -20,7 +20,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Element
 import java.io.OutputStream
-import javax.swing.JComponent
 
 //class JTranscRunConfiguration(project: Project, configurationFactory: JTranscConfigurationFactory) : AbstractRunConfiguration(project, configurationFactory) {
 class JTranscRunConfiguration(project: Project, factory: JTranscConfigurationFactory) : ApplicationConfiguration("jtransc", project, factory) {

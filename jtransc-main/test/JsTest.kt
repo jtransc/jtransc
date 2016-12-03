@@ -16,7 +16,6 @@
 
 import big.HelloWorldTest
 import com.jtransc.gen.js.JsTarget
-import javatest.awt.AWTTest
 import jtransc.ExtraKeywordsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
@@ -46,18 +45,6 @@ class JsTest : Base() {
 		Error !(10 < 10)
 		ok
 	""", target = JsTarget(), minimize = false)
-
-	@Test fun testAwtJs() = testNativeClass<AWTTest>("""
-		JTranscWidgets.Component(0:frame).init()
-		JTranscWidgets.Component(1:label).init()
-		JTranscWidgets.Component(2:image).init()
-		JTranscWidgets.Component(3:text).init()
-		JTranscWidgets.Component(2:image).setParent(JTranscWidgets.Component(1:label))
-		JTranscWidgets.Component(3:text).setParent(JTranscWidgets.Component(1:label))
-		JTranscWidgets.Component(3:text).setText('Hello World')
-		JTranscWidgets.Component(1:label).setParent(JTranscWidgets.Component(0:frame))
-		JTranscWidgets.Component(0:frame).setVisible(true)
-	""", minimize = false, target = JsTarget())
 
 	@Test fun extraKeywordsJs() = testNativeClass<ExtraKeywordsTest>("""
 		1
