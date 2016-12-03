@@ -276,8 +276,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		val mainClassFq = program.entrypoint
-		val mainClass = mainClassFq.targetClassFqName
-		val mainMethod = program[mainClassFq].getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
+		val mainClassFqName = mainClassFq.targetClassFqName
+		val mainClass = program[mainClassFq]
+		val mainMethod = mainClass.getMethod("main", types.build { METHOD(VOID, ARRAY(STRING)) }.desc)!!.targetName
 		entryPointClass = FqName(mainClassFq.fqname + "_EntryPoint")
 		entryPointFilePath = entryPointClass.targetFilePath
 		val entryPointFqName = entryPointClass.targetGeneratedFqName
@@ -287,7 +288,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		fun inits() = Indenter.gen {
 			line("HaxePolyfills.install();")
 			line("haxe.CallStack.callStack();")
-			line(getClassStaticInit(program[mainClassFq].ref, "program main"))
+			line(getClassStaticInit(mainClass.ref, "program main"))
 		}
 
 		val customMain = program.allAnnotationsList.getTyped<HaxeCustomMain>()?.value
@@ -307,7 +308,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		setExtraData(mapOf(
 			"entryPointPackage" to entryPointPackage,
 			"entryPointSimpleName" to entryPointSimpleName,
-			"mainClass" to mainClass,
+			"mainClass" to mainClassFqName,
 			"mainClass2" to mainClassFq.fqname,
 			"mainMethod" to mainMethod,
 			"inits" to inits().toString()

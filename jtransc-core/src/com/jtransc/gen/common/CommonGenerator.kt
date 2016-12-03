@@ -1339,7 +1339,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun setInfoAfterBuildingSource() {
 		params["entryPointFile"] = entryPointFilePath
-		params["entryPointClass"] = entryPointClass
+		params["entryPointClass"] = entryPointClass.targetName
 	}
 
 	fun setExtraData(map: Map<String, Any?>) {
