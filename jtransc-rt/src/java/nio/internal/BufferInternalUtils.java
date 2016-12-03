@@ -3,6 +3,7 @@ package java.nio.internal;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
+@SuppressWarnings("unused")
 public class BufferInternalUtils {
 	static public ByteBuffer getByteBuffer(Buffer buffer) {
 		if (buffer instanceof ByteBufferAs) return ((ByteBufferAs)buffer).getByteBuffer();
@@ -12,8 +13,5 @@ public class BufferInternalUtils {
 
 	static public byte[] getByteBufferByteArray(Buffer buffer) {
 		return getByteBuffer(buffer).array();
-	}
-
-	public static void reference() {
 	}
 }

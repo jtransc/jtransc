@@ -1,23 +1,42 @@
 package com.jtransc.ast
 
+import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.ast.template.CommonTagHandler
+import com.jtransc.ast.treeshaking.GetClassTemplateReferences
+import com.jtransc.gen.TargetName
 import com.jtransc.template.Minitemplate
 
 object References {
 	private val bl = JTranscMethodBodyList::class.java
 
-	fun get(clazz: AstClass) = clazz.getClassReferences()
+	fun get(clazz: AstClass, targetName: TargetName) = clazz.getClassReferences(targetName)
 
-	fun AstClass.getClassReferences(): List<AstType.REF> {
+	fun AstClass.getClassReferences(targetName: TargetName): List<AstType.REF> {
 		val me = AstType.REF(this.fqname)
 		val parent = if (this.extending != null) AstType.REF(this.extending) else null
 		val interfaces = this.implementing.map { AstType.REF(it) }
 		val fields = this.fields.flatMap { it.getClassReferences() }
 		val methods = this.methods.flatMap { it.getClassReferences() }
 		val annotations = this.annotations.getClassReferences()
+		val annotations2 = this.annotationsList.getClassReferencesExtra(this.program, targetName)
+		//val annotations2 = listOf<AstType.REF>()
 
-		return (listOf(me) + listOf(parent) + interfaces + fields + methods + annotations).filterNotNull()
+		return (listOf(me) + listOf(parent) + interfaces + fields + methods + annotations + annotations2).filterNotNull()
+	}
+
+	fun AstAnnotationList.getClassReferencesExtra(program: AstProgram, targetName: TargetName): List<AstType.REF> {
+		val out = arrayListOf<AstType.REF>()
+		for (file in this.getTypedList(JTranscAddFileList::value)) {
+			if (file.process && targetName.matches(file.target)) {
+				val possibleFiles = listOf(file.prepend, file.append, file.prependAppend)
+				for (pf in possibleFiles.filter { !it.isNullOrEmpty() }) {
+					val filecontent = program.resourcesVfs[pf].readString()
+					out += GetClassTemplateReferences(program, filecontent).map { AstType.REF(it) }
+				}
+			}
+		}
+		return out
 	}
 
 	fun AstField.getClassReferences(): List<AstType.REF> {

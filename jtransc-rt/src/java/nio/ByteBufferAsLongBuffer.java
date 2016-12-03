@@ -62,9 +62,7 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
 
     @Override
     public LongBuffer compact() {
-        if (byteBuffer.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        }
+        if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
         byteBuffer.limit(limit * SizeOf.LONG);
         byteBuffer.position(position * SizeOf.LONG);
         byteBuffer.compact();
@@ -87,9 +85,7 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
 
     @Override
     public long get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getLong(position++ * SizeOf.LONG);
     }
 
@@ -103,7 +99,7 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
     public LongBuffer get(long[] dst, int dstOffset, int longCount) {
         byteBuffer.limit(limit * SizeOf.LONG);
         byteBuffer.position(position * SizeOf.LONG);
-		((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, longCount);
+		((ByteBuffer) byteBuffer).get(dst, dstOffset, longCount);
         this.position += longCount;
         return this;
     }
@@ -155,7 +151,7 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
     //public LongBuffer put(long[] src, int srcOffset, int longCount) {
     //    byteBuffer.limit(limit * SizeOf.LONG);
     //    byteBuffer.position(position * SizeOf.LONG);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, longCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, longCount);
     //    this.position += longCount;
     //    return this;
     //}

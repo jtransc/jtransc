@@ -20,6 +20,8 @@ import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
+import static java.nio.Buffer.UNSET_MARK;
+
 /**
  * This class wraps a byte buffer to be a double buffer.
  * <p>
@@ -87,9 +89,7 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
 
     @Override
     public double get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getDouble(position++ * SizeOf.DOUBLE);
     }
 
@@ -103,7 +103,7 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
     public DoubleBuffer get(double[] dst, int dstOffset, int doubleCount) {
         byteBuffer.limit(limit * SizeOf.DOUBLE);
         byteBuffer.position(position * SizeOf.DOUBLE);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, doubleCount);
+        ((ByteBuffer) byteBuffer).get(dst, dstOffset, doubleCount);
         this.position += doubleCount;
         return this;
     }
@@ -137,9 +137,7 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
 
     @Override
     public DoubleBuffer put(double c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
+        if (position == limit) throw new BufferOverflowException();
         byteBuffer.putDouble(position++ * SizeOf.DOUBLE, c);
         return this;
     }
@@ -155,7 +153,7 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
     //public DoubleBuffer put(double[] src, int srcOffset, int doubleCount) {
     //    byteBuffer.limit(limit * SizeOf.DOUBLE);
     //    byteBuffer.position(position * SizeOf.DOUBLE);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, doubleCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, doubleCount);
     //    this.position += doubleCount;
     //    return this;
     //}

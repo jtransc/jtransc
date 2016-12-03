@@ -62,9 +62,7 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
     @Override
     public IntBuffer compact() {
-        if (byteBuffer.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        }
+        if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
         byteBuffer.limit(limit * SizeOf.INT);
         byteBuffer.position(position * SizeOf.INT);
         byteBuffer.compact();
@@ -87,9 +85,7 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
     @Override
     public int get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getInt(position++ * SizeOf.INT);
     }
 
@@ -103,7 +99,7 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     public IntBuffer get(int[] dst, int dstOffset, int intCount) {
         byteBuffer.limit(limit * SizeOf.INT);
         byteBuffer.position(position * SizeOf.INT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, intCount);
+        ((ByteBuffer) byteBuffer).get(dst, dstOffset, intCount);
         this.position += intCount;
         return this;
     }
@@ -137,9 +133,7 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
     @Override
     public IntBuffer put(int c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
+        if (position == limit) throw new BufferOverflowException();
         byteBuffer.putInt(position++ * SizeOf.INT, c);
         return this;
     }
@@ -155,7 +149,7 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     //public IntBuffer put(int[] src, int srcOffset, int intCount) {
     //    byteBuffer.limit(limit * SizeOf.INT);
     //    byteBuffer.position(position * SizeOf.INT);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, intCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, intCount);
     //    this.position += intCount;
     //    return this;
     //}

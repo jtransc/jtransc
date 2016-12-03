@@ -70,4 +70,11 @@ object CommonTagHandler {
 			throw InvalidOperationException("Invalid: $type $desc", e)
 		}
 	}
+
+	fun getClassRef(program: AstProgram, type: String, desc: String, params: HashMap<String, Any?>): FqName {
+		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
+		val desc2 = dataParts.joinToString(":")
+		val classFqname = dataParts[0].replace('@', '$').fqname
+		return classFqname
+	}
 }

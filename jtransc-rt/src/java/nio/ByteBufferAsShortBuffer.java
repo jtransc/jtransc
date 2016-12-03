@@ -61,9 +61,7 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
 
     @Override
     public ShortBuffer compact() {
-        if (byteBuffer.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        }
+        if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
         byteBuffer.limit(limit * SizeOf.SHORT);
         byteBuffer.position(position * SizeOf.SHORT);
         byteBuffer.compact();
@@ -86,9 +84,7 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
 
     @Override
     public short get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getShort(position++ * SizeOf.SHORT);
     }
 
@@ -102,7 +98,7 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
     public ShortBuffer get(short[] dst, int dstOffset, int shortCount) {
         byteBuffer.limit(limit * SizeOf.SHORT);
         byteBuffer.position(position * SizeOf.SHORT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, shortCount);
+        ((ByteBuffer) byteBuffer).get(dst, dstOffset, shortCount);
         this.position += shortCount;
         return this;
     }
@@ -136,9 +132,7 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
 
     @Override
     public ShortBuffer put(short c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
+        if (position == limit) throw new BufferOverflowException();
         byteBuffer.putShort(position++ * SizeOf.SHORT, c);
         return this;
     }
@@ -154,7 +148,7 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
     //public ShortBuffer put(short[] src, int srcOffset, int shortCount) {
     //    byteBuffer.limit(limit * SizeOf.SHORT);
     //    byteBuffer.position(position * SizeOf.SHORT);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, shortCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, shortCount);
     //    this.position += shortCount;
     //    return this;
     //}

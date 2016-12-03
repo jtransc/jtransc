@@ -17,6 +17,7 @@
 import big.HelloWorldTest
 import com.jtransc.gen.js.JsTarget
 import jtransc.ExtraKeywordsTest
+import jtransc.ExtraRefsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
@@ -56,5 +57,9 @@ class JsTest : Base() {
 		7
 		8
 		9
+	""", minimize = true, target = JsTarget())
+
+	@Test fun extraRefsTest() = testNativeClass<ExtraRefsTest>("""
+		OK
 	""", minimize = true, target = JsTarget())
 }

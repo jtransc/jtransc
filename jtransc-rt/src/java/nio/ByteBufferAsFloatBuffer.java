@@ -61,9 +61,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
 
     @Override
     public FloatBuffer compact() {
-        if (byteBuffer.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        }
+        if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
         byteBuffer.limit(limit * SizeOf.FLOAT);
         byteBuffer.position(position * SizeOf.FLOAT);
         byteBuffer.compact();
@@ -86,9 +84,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
 
     @Override
     public float get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getFloat(position++ * SizeOf.FLOAT);
     }
 
@@ -102,7 +98,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
     public FloatBuffer get(float[] dst, int dstOffset, int floatCount) {
         byteBuffer.limit(limit * SizeOf.FLOAT);
         byteBuffer.position(position * SizeOf.FLOAT);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, floatCount);
+        ((ByteBuffer) byteBuffer).get(dst, dstOffset, floatCount);
         this.position += floatCount;
         return this;
     }
@@ -136,9 +132,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
 
     @Override
     public FloatBuffer put(float c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
+        if (position == limit) throw new BufferOverflowException();
         byteBuffer.putFloat(position++ * SizeOf.FLOAT, c);
         return this;
     }
@@ -154,7 +148,7 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
     //public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
     //    byteBuffer.limit(limit * SizeOf.FLOAT);
     //    byteBuffer.position(position * SizeOf.FLOAT);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, floatCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, floatCount);
     //    this.position += floatCount;
     //    return this;
     //}

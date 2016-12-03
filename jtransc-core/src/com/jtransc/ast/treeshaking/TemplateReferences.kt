@@ -1,6 +1,7 @@
 package com.jtransc.ast.treeshaking
 
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.FqName
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.template.Minitemplate
 
@@ -20,6 +21,31 @@ fun GetTemplateReferences(program: AstProgram, templateStr: String): List<Common
 				val ref = CommonTagHandler.getRef(program, tag, desc, hashMapOf())
 
 				refs += ref
+
+				Minitemplate.BlockNode.TEXT("")
+			}
+		),
+		extraFilters = listOf(
+		)
+	))
+	template(hashMapOf<String, Any?>())
+	return refs
+}
+
+fun GetClassTemplateReferences(program: AstProgram, templateStr: String): List<FqName> {
+	val refs = arrayListOf<FqName>()
+	val template = Minitemplate(templateStr, Minitemplate.Config(
+		extraTags = listOf(
+			Minitemplate.Tag(
+				":programref:", setOf(), null,
+				aliases = listOf(
+					//"sinit", "constructor", "smethod", "method", "sfield", "field", "class",
+					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
+				)
+			) {
+				val tag = it.first().token.name
+				val desc = it.first().token.content
+				refs += CommonTagHandler.getClassRef(program, tag, desc, hashMapOf())
 
 				Minitemplate.BlockNode.TEXT("")
 			}

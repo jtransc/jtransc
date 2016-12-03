@@ -62,9 +62,7 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
 
     @Override
     public CharBuffer compact() {
-        if (byteBuffer.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        }
+        if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
         byteBuffer.limit(limit * SizeOf.CHAR);
         byteBuffer.position(position * SizeOf.CHAR);
         byteBuffer.compact();
@@ -87,9 +85,7 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
 
     @Override
     public char get() {
-        if (position == limit) {
-            throw new BufferUnderflowException();
-        }
+        if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getChar(position++ * SizeOf.CHAR);
     }
 
@@ -103,7 +99,7 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     public CharBuffer get(char[] dst, int dstOffset, int charCount) {
         byteBuffer.limit(limit * SizeOf.CHAR);
         byteBuffer.position(position * SizeOf.CHAR);
-        ((ByteArrayBuffer) byteBuffer).get(dst, dstOffset, charCount);
+        ((ByteBuffer) byteBuffer).get(dst, dstOffset, charCount);
         this.position += charCount;
         return this;
     }
@@ -155,7 +151,7 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     //public CharBuffer put(char[] src, int srcOffset, int charCount) {
     //    byteBuffer.limit(limit * SizeOf.CHAR);
     //    byteBuffer.position(position * SizeOf.CHAR);
-    //    ((ByteArrayBuffer) byteBuffer).put(src, srcOffset, charCount);
+    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, charCount);
     //    this.position += charCount;
     //    return this;
     //}
