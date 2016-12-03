@@ -1,5 +1,6 @@
 package javatest.misc;
 
+import com.jtransc.JTranscArrays;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.crypto.JTranscCrypto;
@@ -203,8 +204,56 @@ public class MiscTest {
 
 		systemPropertiesTest();
 
+		testArrayCopy();
+
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
+	}
+
+	private void testArrayCopy() {
+		System.out.println("testArrayCopy:");
+		boolean[] booleans = new boolean[32];
+		byte[] bytes = new byte[32];
+		char[] chars = new char[32];
+		short[] shorts = new short[32];
+		int[] ints = new int[32];
+		long[] longs = new long[32];
+		float[] floats = new float[32];
+		double[] doubles = new double[32];
+		for (int n = 0; n < 32; n++) {
+			booleans[n] = ((n * n) % 2) != 0;
+			bytes[n] = (byte) (n * n);
+			shorts[n] = (short) (n * n);
+			chars[n] = (char) (n * n);
+			ints[n] = (int) (n * n);
+			longs[n] = (long) (n * n);
+			floats[n] = (float) (n * n);
+			doubles[n] = (double) (n * n);
+		}
+		testArrayCopyStep(booleans, new boolean[32]);
+		testArrayCopyStep(bytes, new byte[32]);
+		testArrayCopyStep(shorts, new short[32]);
+		testArrayCopyStep(chars, new char[32]);
+		testArrayCopyStep(ints, new int[32]);
+		testArrayCopyStep(longs, new long[32]);
+		testArrayCopyStep(floats, new float[32]);
+		testArrayCopyStep(doubles, new double[32]);
+	}
+
+	private void testArrayCopyStep(Object array1, Object array2) {
+		int[] ints = {3, 7, 9};
+		for (int i1 : ints) {
+			for (int i2 : ints) {
+				System.arraycopy(array1, i1, array2, i2, 7);
+				System.out.println(JTranscArrays.toStringCharsAsInts(array2));
+			}
+		}
+		for (int i1 : ints) {
+			for (int i2 : ints) {
+				System.arraycopy(array1, i1, array1, i2, 7);
+				System.out.println(JTranscArrays.toStringCharsAsInts(array1));
+			}
+		}
 	}
 
 	private void testArithmetic() {

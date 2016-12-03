@@ -188,4 +188,28 @@ public class JTranscArrays {
 		}
 	}
 
+	static public String toString(Object array) {
+		if (array == null) return "null";
+		if (array instanceof boolean[]) return Arrays.toString((boolean[]) array);
+		if (array instanceof byte[]) return Arrays.toString((byte[]) array);
+		if (array instanceof short[]) return Arrays.toString((short[]) array);
+		if (array instanceof char[]) return Arrays.toString((char[]) array);
+		if (array instanceof int[]) return Arrays.toString((int[]) array);
+		if (array instanceof long[]) return Arrays.toString((long[]) array);
+		if (array instanceof float[]) return Arrays.toString((float[]) array);
+		if (array instanceof double[]) return Arrays.toString((double[]) array);
+		if (array instanceof Object[]) return Arrays.toString((Object[]) array);
+		return array.toString();
+	}
+
+	static public String toStringCharsAsInts(Object array) {
+		if (array instanceof char[]) {
+			char[] a = (char[]) array;
+			int[] o = new int[a.length];
+			for (int n = 0; n < a.length; n++) o[n] = (int) a[n];
+			return toString(o);
+		} else {
+			return toString(array);
+		}
+	}
 }

@@ -901,16 +901,36 @@ N._arraycopyGeneric = function(srcData, srcPos, destData, destPos, length, overl
 	}
 }
 
-N._arraycopyTyped_B = function(srcData, srcPos, destData, destPos, length) {
+N._arraycopyTyped_B = function(srcData, srcPos, destData, destPos, length, overlapping) {
 	destData.set(new Int8Array(srcData.buffer, srcPos * 1, length), destPos);
 }
 
-N._arraycopyTyped_S = function(srcData, srcPos, destData, destPos, length) {
-	destData.set(new Int16Array(srcData.buffer, srcPos * 1, length), destPos);
+N._arraycopyTyped_C = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	destData.set(new Uint16Array(srcData.buffer, srcPos * 2, length), destPos);
 }
 
-N._arraycopyTyped_I = function(srcData, srcPos, destData, destPos, length) {
+N._arraycopyTyped_S = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	destData.set(new Int16Array(srcData.buffer, srcPos * 2, length), destPos);
+}
+
+N._arraycopyTyped_I = function(srcData, srcPos, destData, destPos, length, overlapping) {
 	destData.set(new Int32Array(srcData.buffer, srcPos * 4, length), destPos);
+}
+
+N._arraycopyTyped_F = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	destData.set(new Float32Array(srcData.buffer, srcPos * 4, length), destPos);
+}
+
+N._arraycopyTyped_D = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	destData.set(new Float64Array(srcData.buffer, srcPos * 8, length), destPos);
+}
+
+N._arraycopyTyped_J = function(srcData, srcPos, destData, destPos, length, overlapping) {
+	if (overlapping) {
+		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
+	} else {
+		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
+	}
 }
 
 N.arraycopy = function(src, srcPos, dest, destPos, length) {
@@ -924,12 +944,22 @@ N.arraycopy = function(src, srcPos, dest, destPos, length) {
 
 	if (src instanceof JA_L) {
 		N._arraycopyArray(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_Z) {
+		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length, overlapping);
 	} else if (src instanceof JA_B) {
-		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length);
+		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length, overlapping);
 	} else if (src instanceof JA_S) {
-		N._arraycopyTyped_S(srcData, srcPos, destData, destPos, length);
+		N._arraycopyTyped_S(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_C) {
+		N._arraycopyTyped_C(srcData, srcPos, destData, destPos, length, overlapping);
 	} else if (src instanceof JA_I) {
-		N._arraycopyTyped_I(srcData, srcPos, destData, destPos, length);
+		N._arraycopyTyped_I(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_F) {
+		N._arraycopyTyped_F(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_D) {
+		N._arraycopyTyped_D(srcData, srcPos, destData, destPos, length, overlapping);
+	} else if (src instanceof JA_J) {
+		N._arraycopyTyped_J(srcData, srcPos, destData, destPos, length, overlapping);
 	} else {
 		N._arraycopyGeneric(srcData, srcPos, destData, destPos, length, overlapping);
 	}
