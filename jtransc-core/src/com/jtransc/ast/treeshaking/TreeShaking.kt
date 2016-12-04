@@ -316,6 +316,11 @@ class TreeShakingApi(
 			}
 		}
 
+		//if (methodRef.name == "_onKeyDownUp") {
+		//	val bodyDependencies = oldmethod.bodyDependencies
+		//	println(bodyDependencies)
+		//}
+
 		if (dependenciesInBody) {
 			for (dep in oldmethod.bodyDependencies.classes) addBasicClass(dep.name, reason = "dependenciesInBody $methodRef")
 			for (dep in oldmethod.bodyDependencies.fields) addField(dep, reason = "dependenciesInBody $methodRef")

@@ -17,6 +17,7 @@
 package com.jtransc.ast.dependency
 
 import com.jtransc.ast.*
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 // @TODO: Use generic visitor!
@@ -30,12 +31,8 @@ object AstDependencyAnalyzer {
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
-		fun ana(method: AstMethodRef) {
-			methods.add(method)
-		}
-		fun ana(field: AstFieldRef) {
-			fields.add(field)
-		}
+		fun ana(method: AstMethodRef) = methods.add(method)
+		fun ana(field: AstFieldRef) = fields.add(field)
 		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
 		fun ana(types: List<AstType>) = types.forEach { ana(it) }
 
@@ -86,8 +83,9 @@ object AstDependencyAnalyzer {
 					ana(expr.method.type)
 					for (arg in expr.args) ana(arg)
 					ana(expr.method)
+					if (expr is AstExpr.CALL_STATIC) ana(expr.clazz)
 					if (expr is AstExpr.CALL_INSTANCE) ana(expr.obj)
-					//if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
+					if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
 				}
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
@@ -96,15 +94,29 @@ object AstDependencyAnalyzer {
 					ana(expr.expr)
 					ana(expr.field)
 				}
-				is AstExpr.FIELD_STATIC_ACCESS -> ana(expr.field)
-				is AstExpr.INSTANCE_OF -> ana(expr.checkType)
+				is AstExpr.FIELD_STATIC_ACCESS -> {
+					ana(expr.field)
+				}
+				is AstExpr.INSTANCE_OF -> {
+					ana(expr.expr)
+					ana(expr.checkType)
+				}
 				is AstExpr.UNOP -> ana(expr.right)
 				is AstExpr.THIS -> ana(expr.type)
 				is AstExpr.LITERAL -> {
-					if (expr.value is AstType) {
-						types.addAll(expr.value.getRefTypesFqName())
+					val value = expr.value
+					when (value) {
+						is AstType -> ana(value)
+						//null -> Unit
+						//is Void, is String -> Unit
+						//is Boolean, is Byte, is Char, is Short, is Int, is Long -> Unit
+						//is Float, is Double -> Unit
+						is AstMethodHandle -> {
+							ana(value.type)
+							ana(value.methodRef)
+						}
+						//else -> invalidOp("Literal: ${expr.value}")
 					}
-
 				}
 				is AstExpr.LOCAL -> Unit
 				is AstExpr.PARAM -> ana(expr.type)
@@ -140,6 +152,7 @@ object AstDependencyAnalyzer {
 				is AstStm.MONITOR_EXIT -> ana(stm.expr)
 				is AstStm.SET_LOCAL -> ana(stm.expr)
 				is AstStm.SET_ARRAY -> {
+					ana(stm.array);
 					ana(stm.expr); ana(stm.index)
 				}
 				is AstStm.SET_ARRAY_LITERALS -> {
@@ -167,12 +180,6 @@ object AstDependencyAnalyzer {
 				is AstStm.TRY_CATCH -> {
 					ana(stm.trystm);
 					ana(stm.catch)
-					/*
-					for (catch in stm.catches) {
-						ana(catch.first)
-						ana(catch.second)
-					}
-					*/
 				}
 				is AstStm.SWITCH_GOTO -> {
 					ana(stm.subject)
@@ -184,13 +191,11 @@ object AstDependencyAnalyzer {
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					ana(stm.target)
 					ana(stm.method.type)
-					for (arg in stm.args) {
-						ana(arg)
-					}
+					for (arg in stm.args) ana(arg)
 				}
 				is AstStm.LINE -> Unit
 				is AstStm.NOP -> Unit
-				else -> throw NotImplementedError("Not implemented STM $stm")
+				else -> noImpl("Not implemented STM $stm")
 			}
 		}
 
@@ -200,9 +205,7 @@ object AstDependencyAnalyzer {
 
 				ana(body.stm)
 
-				for (trap in body.traps) {
-					types.add(trap.exception.name)
-				}
+				for (trap in body.traps) types.add(trap.exception.name)
 			}
 		}
 
