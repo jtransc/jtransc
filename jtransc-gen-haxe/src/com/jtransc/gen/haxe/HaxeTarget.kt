@@ -482,7 +482,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			val fieldName = field.targetName
 			if (!field.annotationsList.contains<HaxeRemoveField>()) {
 				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
-				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${defaultValue.escapedConstant};")
+				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${defaultValue.escapedConstantOfType(fieldType)};")
 			}
 		}
 

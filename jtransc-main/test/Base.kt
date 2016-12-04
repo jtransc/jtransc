@@ -63,11 +63,16 @@ open class Base {
 		target: GenTargetDescriptor? = null,
 		debug: Boolean? = null,
 		log: Boolean? = null,
+		treeShaking: Boolean? = null,
 		noinline transformer: (String) -> String = { it },
 		noinline transformerOut: (String) -> String = { it }
 	) {
 		com.jtransc.log.log.setTempLogger({ content, level -> if (log ?: DEBUG) println(content) }) {
-			testClass(minimize = minimize, analyze = analyze, lang = lang, clazz = T::class.java, transformer = transformer, transformerOut = transformerOut, target = target, debug = debug)
+			testClass(
+				minimize = minimize, analyze = analyze, lang = lang,
+				clazz = T::class.java, transformer = transformer, transformerOut = transformerOut,
+				target = target, debug = debug, treeShaking = treeShaking
+			)
 		}
 	}
 
@@ -85,12 +90,13 @@ open class Base {
 
 	fun <T : Any> testClass(
 		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
+		treeShaking: Boolean? = null,
 		transformer: (String) -> String,
 		transformerOut: (String) -> String
 	) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug))
+		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug, treeShaking = treeShaking))
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
@@ -119,6 +125,7 @@ open class Base {
 	fun <T : Any> runClass(
 		clazz: Class<T>, lang: String, minimize: Boolean?,
 		analyze: Boolean?, debug: Boolean? = null,
+		treeShaking: Boolean? = null,
 		//target: GenTargetDescriptor = HaxeTarget
 		target: GenTargetDescriptor? = null
 	): String {
@@ -137,7 +144,7 @@ open class Base {
 
 		injector.mapImpl<AstTypes, AstTypes>()
 		injector.mapInstance(ConfigMinimizeNames(minimize ?: MINIMIZE))
-		injector.mapInstance(ConfigTreeShaking(TREESHAKING, TREESHAKING_TRACE))
+		injector.mapInstance(ConfigTreeShaking(treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
 
 		return log.setTempLogger({ v, l -> }) {
 			JTranscBuild(

@@ -5,6 +5,7 @@ import jtransc.annotation.MethodBodyTest;
 import jtransc.jtransc.*;
 
 public class JTranscHaxeNativeMixedTest {
+
 	static public void main(String[] args) {
 		CustomBuildTest.main(args);
 		HaxeNativeCallTest.main(args);

@@ -1490,6 +1490,17 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val AstType.nativeDefault: Any? get() = this.getNull()
 	val AstType.nativeDefaultString: String get() = this.getNull().escapedConstant
 
+	fun Any?.escapedConstantOfType(type: AstType): String {
+		if (type == AstType.BOOL) {
+			return when ("$this") {
+				"", "0", "false" -> "false"
+				else -> "true"
+			}
+		} else {
+			return this.escapedConstant
+		}
+	}
+
 	val Any?.escapedConstant: String get() = escapedConstant(this)
 	open fun escapedConstant(v: Any?): String = when (v) {
 		null -> "null"

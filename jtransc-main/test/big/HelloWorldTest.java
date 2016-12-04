@@ -1,27 +1,21 @@
 package big;
 
-import com.jtransc.JTranscArrays;
-import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.reflection.JTranscReflection;
-import com.jtransc.util.JTranscStrings;
-import j.ClassInfo;
-import j.ProgramReflection;
 import javatest.utils.Base64Test;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.lang.reflect.InvocationTargetException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class HelloWorldTest {
+	static private final boolean FINAL_TRUE = true;
+	static private final boolean FINAL_FALSE = false;
+	static private boolean TRUE = true;
 	//public HelloWorldTest() {
 	//}
+
+	static private boolean[] sbools = new boolean[1];
+	private boolean[] ibools = new boolean[1];
 
 	static public void main(String[] args) throws Throwable {
 		//for (ClassInfo item : ProgramReflection.getAllClasses()) System.out.println(item.name + " : " + item.modifiers);
@@ -54,6 +48,42 @@ public class HelloWorldTest {
 		System.out.println(JTranscReflection.getClassByName("class.that.doesnt.exist"));
 
 		System.out.println(Arrays.asList(EnumABC.class.getEnumConstants()));
+
+		System.out.println(FINAL_TRUE);
+		System.out.println(FINAL_FALSE);
+		System.out.println(TRUE);
+
+		sbools[0] = true;
+
+		new Runnable() {
+			@Override
+			public void run() {
+				System.out.println(sbools[0]);
+			}
+		}.run();
+		System.out.println(sbools[0]);
+
+		new HelloWorldTest().test();
+	}
+
+	private void test() {
+		new InnerTest().testInner();
+	}
+
+	class InnerTest {
+		private void testInner() {
+			sbools[0] = true;
+			ibools[0] = true;
+			new Runnable() {
+				@Override
+				public void run() {
+					System.out.println(sbools[0]);
+					System.out.println(ibools[0]);
+				}
+			}.run();
+			System.out.println(sbools[0]);
+			System.out.println(ibools[0]);
+		}
 	}
 }
 

@@ -16,15 +16,12 @@
 
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
-import jtransc.annotation.ClassMembersTest
-import jtransc.annotation.MethodBodyTest
-import jtransc.jtransc.*
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
-import jtransc.rt.test.AssertionTests
 import org.junit.Test
 
 class HaxeTest : Base() {
-	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = true)
+	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = false)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true

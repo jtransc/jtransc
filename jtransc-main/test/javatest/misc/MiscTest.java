@@ -28,6 +28,8 @@ import java.util.zip.CRC32;
 @SuppressWarnings({"WeakerAccess", "ForLoopReplaceableByForEach"})
 public class MiscTest {
 	static public int MY_GREAT_CONSTANT = 10;
+	static private final boolean FINAL_TRUE = true;
+	static private boolean TRUE = true;
 
 	static public void main(String[] args) throws Throwable {
 		testBootstrap1();
@@ -35,6 +37,8 @@ public class MiscTest {
 		testBootstrap3();
 		testBootstrap4();
 		testTestStrings();
+		System.out.println(FINAL_TRUE);
+		System.out.println(TRUE);
 
 		//if (JTranscSystem.isJs()) {
 		//	JTranscSystem.debugger();
