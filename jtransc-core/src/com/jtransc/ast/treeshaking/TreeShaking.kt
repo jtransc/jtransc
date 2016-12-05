@@ -293,11 +293,7 @@ class TreeShakingApi(
 
 		for (ref in methodRef.type.getRefTypesFqName()) addBasicClass(ref, reason = "$methodRef")
 
-		var dependenciesInBody = true
-
 		if (targetName.matches("haxe")) {
-			HaxeMethodBodyList::class.java // @HACK intelliJ remove JTranscMethodBodyList with just JTranscMethodBodyList::value
-
 			for (methodBody in newmethod.annotationsList.getTypedList(HaxeMethodBodyList::value)) {
 				if (targetName.matches(methodBody.target)) {
 					addTemplateReferences(methodBody.value, "methodBody=$newmethod")
@@ -305,14 +301,9 @@ class TreeShakingApi(
 			}
 		}
 
-		JTranscMethodBodyList::class.java // @HACK intelliJ remove JTranscMethodBodyList with just JTranscMethodBodyList::value
-
 		for (methodBody in newmethod.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
 			if (targetName.matches(methodBody.target)) {
 				addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
-				if (methodBody.cond.isNullOrEmpty()) {
-					dependenciesInBody = false
-				}
 			}
 		}
 
@@ -321,7 +312,7 @@ class TreeShakingApi(
 		//	println(bodyDependencies)
 		//}
 
-		if (dependenciesInBody) {
+		if (oldmethod.hasDependenciesInBody(targetName)) {
 			for (dep in oldmethod.bodyDependencies.classes) addBasicClass(dep.name, reason = "dependenciesInBody $methodRef")
 			for (dep in oldmethod.bodyDependencies.fields) addField(dep, reason = "dependenciesInBody $methodRef")
 			for (dep in oldmethod.bodyDependencies.methods) addMethod(dep, reason = "dependenciesInBody $methodRef")

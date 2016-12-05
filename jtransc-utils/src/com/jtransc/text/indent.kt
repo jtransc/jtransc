@@ -72,6 +72,9 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 
 	fun line(indenter: Indenter) = this.apply { this.actions.addAll(indenter.actions) }
 	fun line(str: String) = this.apply { this.actions.add(Action.Line(str)) }
+	fun line(str: String?) {
+		if (str != null) line(str)
+	}
 	fun mark(data: Any) = this.apply { this.actions.add(Action.Marker(data)) }
 
 	fun linedeferred(init: Indenter.() -> Unit): Indenter {

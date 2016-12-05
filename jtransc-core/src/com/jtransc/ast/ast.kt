@@ -20,6 +20,7 @@ import com.jtransc.ConfigEntryPoint
 import com.jtransc.ConfigResourcesVfs
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.*
+import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ast.optimize.AstOptimizer
 import com.jtransc.ds.clearFlags
@@ -177,6 +178,7 @@ class AstProgram(
 	var lastClassId = 0
 	var lastMethodId = 0
 	var lastFieldId = 0
+	val staticInitsSorted = LinkedHashSet<AstType.REF>()
 	private val _classes = arrayListOf<AstClass>()
 	private val _classesByFqname = hashMapOf<String, AstClass>()
 
@@ -346,7 +348,11 @@ class AstClass(
 	val methods = arrayListOf<AstMethod>()
 	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
 	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
-	val staticConstructor: AstMethod? get() = methods.firstOrNull { it.isClassInit }
+
+	val hasStaticInit: Boolean get() = staticInitMethod != null
+	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
+	val staticConstructor: AstMethod? get() = staticInitMethod
+	//val staticConstructor: AstMethod? get() = methods.firstOrNull { it.isClassInit }
 
 	val methodsByName = hashMapOf<String, ArrayList<AstMethod>>()
 	val methodsByNameDescInterfaces = hashMapOf<AstMethodWithoutClassRef, AstMethod?>()
@@ -506,9 +512,6 @@ class AstClass(
 		invalidOp("Can't find field $ref on ancestors")
 
 
-	val hasStaticInit: Boolean get() = staticInitMethod != null
-	val staticInitMethod: AstMethod? by lazy { methodsByName["<clinit>"]?.firstOrNull() }
-
 	val allDependencies: Set<AstRef> by lazy {
 		val out = hashSetOf<AstRef>()
 		if (extending != null) out.add(AstType.REF(extending))
@@ -602,6 +605,7 @@ fun AstType.getRefClasses(): List<AstType.REF> = this.getRefTypesFqName().map { 
 
 data class AstReferences(
 	val program: AstProgram?,
+	val allSortedRefs: Set<AstRef> = setOf(),
 	val classes: Set<AstType.REF> = setOf(),
 	val methods: Set<AstMethodRef> = setOf(),
 	val fields: Set<AstFieldRef> = setOf()
@@ -737,6 +741,31 @@ class AstMethod(
 	override val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 
 	var calculatedBodyDependencies: AstReferences? = null
+
+	fun hasDependenciesInBody(targetName: TargetName): Boolean {
+		var dependenciesInBody = true
+
+		if (targetName.matches("haxe")) {
+			for (methodBody in annotationsList.getTypedList(HaxeMethodBodyList::value)) {
+				if (targetName.matches(methodBody.target)) {
+					//addTemplateReferences(methodBody.value, "methodBody=$newmethod")
+				}
+			}
+		}
+
+		for (methodBody in annotationsList.getTypedList(JTranscMethodBodyList::value)) {
+			if (targetName.matches(methodBody.target)) {
+				//addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
+				if (methodBody.cond.isNullOrEmpty()) {
+					dependenciesInBody = false
+				}
+			}
+		}
+
+		return dependenciesInBody
+	}
+
+	// @TODO: Use hasDependenciesInBody?
 	val bodyDependencies: AstReferences get() {
 		if (calculatedBodyDependencies == null) {
 			calculatedBodyDependencies = AstDependencyAnalyzer.analyze(containingClass.program, body, name)

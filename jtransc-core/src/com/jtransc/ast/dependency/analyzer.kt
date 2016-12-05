@@ -27,13 +27,23 @@ object AstDependencyAnalyzer {
 	}
 
 	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?, name: String? = null) {
+		val allSortedRefs = linkedSetOf<AstRef>()
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
-		fun ana(method: AstMethodRef) = methods.add(method)
-		fun ana(field: AstFieldRef) = fields.add(field)
-		fun ana(type: AstType) = types.addAll(type.getRefTypesFqName())
+		fun ana(method: AstMethodRef) {
+			allSortedRefs.add(method)
+			methods.add(method)
+		}
+		fun ana(field: AstFieldRef) {
+			allSortedRefs.add(field)
+			fields.add(field)
+		}
+		fun ana(type: AstType) {
+			allSortedRefs.addAll(type.getRefTypes())
+			types.addAll(type.getRefTypesFqName())
+		}
 		fun ana(types: List<AstType>) = types.forEach { ana(it) }
 
 		fun ana(expr: AstExpr.Box?) = ana(expr?.value)
@@ -95,6 +105,7 @@ object AstDependencyAnalyzer {
 					ana(expr.field)
 				}
 				is AstExpr.FIELD_STATIC_ACCESS -> {
+					ana(expr.clazzName)
 					ana(expr.field)
 				}
 				is AstExpr.INSTANCE_OF -> {
@@ -134,6 +145,9 @@ object AstDependencyAnalyzer {
 					for (arg in expr.args) ana(arg)
 				}
 			//is AstExpr.REF -> ana(expr.expr)
+				is AstExpr.LITERAL_REFNAME -> {
+					ana(expr.type)
+				}
 				else -> noImpl("Not implemented $expr")
 			}
 		}
@@ -205,12 +219,13 @@ object AstDependencyAnalyzer {
 
 				ana(body.stm)
 
-				for (trap in body.traps) types.add(trap.exception.name)
+				for (trap in body.traps) ana(trap.exception)
 			}
 		}
 
 		val references = AstReferences(
 			program = program,
+			allSortedRefs = allSortedRefs,
 			classes = types.map { AstType.REF(it) }.toSet(),
 			fields = fields.toSet(),
 			methods = methods.toSet()

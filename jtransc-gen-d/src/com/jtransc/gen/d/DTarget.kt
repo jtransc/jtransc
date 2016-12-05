@@ -132,7 +132,8 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		line("int main(string[] args)") {
 			line("N.init();")
 			line("__initStrings();")
-			line(buildStaticInit(entryPointFqName))
+			line(genStaticConstructorsSorted())
+			//line(buildStaticInit(entryPointFqName))
 			val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
 			line(buildMethod(mainMethod, static = true) + "(N.strArray(args[1..$]));")
 			line("return 0;")
@@ -207,27 +208,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			}
 		}
 		if (clazz.staticConstructor != null) {
-			/*
-			line("static public bool SSI = false;")
 			line("static public void SI()") {
-				line("if (SSI) return;")
-				line("SSI = true;")
-				line(genSIMethodBody(clazz))
-			}
-			*/
-			/*
-			line("static this()") {
-				for (field in clazz.fields.filter { it.isStatic }) {
-					line("${clazz.name.targetName}.${field.targetName} = ${field.escapedConstantValue};")
-				}
-				line(genSIMethodBody(clazz))
-			}
-			line("static public void SI() { }")
-			*/
-			line("__gshared public bool SSI = false;")
-			line("static public void SI()") {
-				line("if (SSI) return;")
-				line("SSI = true;")
 				for (field in clazz.fields.filter { it.isStatic }) {
 					line("${clazz.name.targetName}.${field.targetName} = ${field.escapedConstantValue};")
 				}
@@ -327,4 +308,5 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		line("N.monitorExit(" + stm.expr.genExpr() + ");")
 	}
 
+	override fun buildStaticInit(clazzName: FqName): String? = null
 }

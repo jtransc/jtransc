@@ -20,8 +20,13 @@ public class BenchmarkTest {
 	}
 
 	static public void main(String[] args) {
+		com.jtransc.JTranscVersion.getVersion();
+		com.jtransc.JTranscSystem.getRuntimeKind();
+		System.getProperty("java.version");
+		System.getProperty("java.vm.version");
+		System.getProperty("java.runtime.version");
 		//System.out.println("JTransc " + com.jtransc.JTranscVersion.getVersion() + " - " + com.jtransc.JTranscSystem.getRuntimeKind());
-		//System.out.println("Java " + System.getProperty("java.version"));
+		//System.out.println("Java " + System.getProperty("java.version") + " - " + System.getProperty("java.vm.version") + " - " + System.getProperty("java.runtime.version"));
 		System.out.println("Benchmarking:");
 
 		benchmark("plain loops", new Task() {

@@ -512,7 +512,7 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 	else -> throw RuntimeException("Don't know how to mangle $this")
 }
 
-fun AstType.getRefTypes(): List<AstType> = this.getRefTypesFqName().map { AstType.REF(it) }
+fun AstType.getRefTypes(): List<AstType.REF> = this.getRefTypesFqName().map { AstType.REF(it) }
 
 fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.REF -> listOf(this.name)

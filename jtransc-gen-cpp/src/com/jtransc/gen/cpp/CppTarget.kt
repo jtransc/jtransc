@@ -318,7 +318,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
-				line(buildStaticInit(program.entrypoint))
+				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
 				line("$callMain(N::strEmptyArray());")
@@ -455,12 +455,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			}
 		}
 
-		line("bool ${clazz.cppName}::SI_once = false;")
 		line("void ${clazz.cppName}::SI() {")
 		indent {
-			line("if (SI_once) return;")
 			line("""TRACE_REGISTER("${clazz.cppName}::SI");""")
-			line("SI_once = true;")
 			for (field in clazz.fields.filter { it.isStatic }) {
 				if (field.isStatic) {
 					val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
@@ -468,8 +465,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				}
 			}
 
-			for (ci in clazz.methods.filter { it.isClassInit }) {
-				line("${ci.targetName}();")
+			val sim = clazz.staticInitMethod
+			if (sim != null) {
+				line("${sim.targetName}();")
 			}
 		}
 		line("};")
@@ -866,4 +864,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override val AstMethodRef.objectToCache: Any get() = this
+
+	override fun buildStaticInit(clazzName: FqName): String? = null
 }

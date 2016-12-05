@@ -150,7 +150,8 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("__createJavaArrays();")
 			line("__buildStrings();")
 			line("N.linit();")
-			line(buildStaticInit(mainClassFq))
+			line(genStaticConstructorsSorted())
+			//line(buildStaticInit(mainClassFq))
 			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = buildMethod(mainMethod2, static = true)
 			line("$mainCall(N.strArray(N.args()));")
@@ -208,7 +209,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.targetName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
-		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))
+		line(buildStaticInit(clazzRef.name))
 	}
 
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
@@ -316,9 +317,25 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			}
 
 			// @TODO: Move to genSIMethodBody
+			//if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
+			//	line("$classBase.SI = function()", after2 = ";") {
+			//		line("$classBase.SI = N.EMPTY_FUNCTION;")
+			//		for (field in staticFields) {
+			//			val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
+			//			line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+			//		}
+			//		if (clazz.staticConstructor != null) {
+			//			line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+			//		}
+			//	}
+			//} else {
+			//	line("$classBase.SI = N.EMPTY_FUNCTION;")
+			//}
+			//line("$classBase.SI = N.EMPTY_FUNCTION;")
+
 			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
 				line("$classBase.SI = function()", after2 = ";") {
-					line("$classBase.SI = N.EMPTY_FUNCTION;")
+					//line("$classBase.SI = N.EMPTY_FUNCTION;")
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
@@ -328,7 +345,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 					}
 				}
 			} else {
-				line("$classBase.SI = N.EMPTY_FUNCTION;")
+				line("$classBase.SI = function(){};")
 			}
 
 			val relatedTypesIds = clazz.getAllRelatedTypes().map { it.classId }
@@ -445,11 +462,10 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun buildStaticInit(clazz: FqName): String = getClassStaticInit(clazz.ref, "template sinit")
+	override fun buildStaticInit(clazzName: FqName): String? = null
 
 	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
 
-	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String = "${classRef.name.targetName}.SI();"
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 
 	override fun cleanMethodName(name: String): String = name

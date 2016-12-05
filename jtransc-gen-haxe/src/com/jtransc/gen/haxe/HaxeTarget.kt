@@ -291,7 +291,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		fun inits() = Indenter.gen {
 			line("HaxePolyfills.install();")
 			line("haxe.CallStack.callStack();")
-			line(getClassStaticInit(mainClass.ref, "program main"))
+			line(genStaticConstructorsSorted())
+			//line(buildStaticInit())
+			//line(buildStaticInit(mainClass.name))
 		}
 
 		val customMain = program.allAnnotationsList.getTyped<HaxeCustomMain>()?.value
@@ -350,7 +352,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.targetName}: ${local.type.targetName} = ${local.type.nativeDefaultString};") }
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
-		line(getClassStaticInit(clazzRef, reasons.joinToString(", ")))
+		line(buildStaticInit(clazzRef.name))
 	}
 
 	override fun genExprThis(e: AstExpr.THIS): String = "this"
@@ -528,15 +530,11 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		}
 
 		fun addClassInit(clazz: AstClass) = Indenter.gen {
-			line("$unreflective static public var SII = false;");
 			for (e in getClassStrings(clazz.name)) {
 				line("$unreflective static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
 
 			line("$unreflective static public function SI()") {
-				line("if (SII) return;")
-				line("SII = true;")
-
 				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.str(${e.str.quote()});")
 
 				if (clazz.hasStaticInit) {
@@ -577,7 +575,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 					}
 					line("$unreflective public function new()") {
 						line(if (isRootObject) "" else "super();")
-						line("SI();")
 						line("this._CLASS_ID__HX = ${clazz.classId};")
 					}
 				}
@@ -633,9 +630,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		vfs["$haxeFilePath.map"] = Sourcemaps.encodeFile(vfs[haxeFilePath].realpathOS, fileStr, clazz.source, lineMappings)
 	}
 
-	override fun buildStaticInit(clazz: FqName): String = getClassStaticInit(clazz.ref, "template sinit")
+	override fun buildStaticInit(clazzName: FqName) = null
 
-	override val FqName.targetNameForFields: String get() {
+	override val FqName.targetNameForStatic: String get() {
 		val clazz = program[this]
 		val simpleName = this.targetSimpleName
 		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
@@ -671,15 +668,6 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	override val FqName.targetGeneratedFqName: FqName get() = _getHaxeFqName(this)
 	override val FqName.targetSimpleName: String get() = _getHaxeFqName(this).simpleName
 	override val FqName.targetClassFqName: String get() = program.getOrNull(this)?.nativeName ?: this.targetGeneratedFqName.fqname
-
-	override fun getClassStaticInit(classRef: AstType.REF, reason: String): String {
-		val clazz = program[classRef.name]
-		if (clazz.nativeName != null) {
-			return ""
-		} else {
-			return "${classRef.name.targetNameForFields}.SI();"
-		}
-	}
 
 	override val NullType = "Dynamic"
 	override val VoidType = "Void"

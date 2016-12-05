@@ -17,6 +17,7 @@
 package com.jtransc
 
 import com.jtransc.ast.*
+import com.jtransc.ast.dependency.genStaticInitOrder
 import com.jtransc.ast.treeshaking.TreeShaking
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
@@ -25,12 +26,10 @@ import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.input.AsmToAst
-import com.jtransc.io.JTranscConsole
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.plugin.JTranscPlugin
-import com.jtransc.target.Js
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -171,6 +170,8 @@ class JTranscBuild(
 
 		for (featureClass in MissingFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onMissing(program, settings, types)
 		for (featureClass in SupportedFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onSupported(program, settings, types)
+
+		genStaticInitOrder(program)
 
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
 		return target.build(injector)

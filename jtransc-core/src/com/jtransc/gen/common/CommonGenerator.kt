@@ -525,9 +525,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(genBodyLocal(local)) }
 	open fun genBodyLocal(local: AstLocal): Indenter = Indenter("${localDecl(local)} = ${local.type.nativeDefaultString};")
 	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
-	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
-		line(buildStaticInit(clazzRef.name))
-	}
 
 	open val AstType.localDeclType: String get() = this.targetName
 
@@ -1351,7 +1348,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	private fun evalReference(type: String, desc: String): String {
 		val ref = CommonTagHandler.getRef(program, type, desc, params)
 		return when (ref) {
-			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass.name)
+			is CommonTagHandler.SINIT -> buildStaticInit(ref.method.containingClass.name) ?: ""
 			is CommonTagHandler.CONSTRUCTOR -> buildConstructor(ref.method)
 			is CommonTagHandler.METHOD -> buildMethod(ref.method, static = ref.isStatic)
 			is CommonTagHandler.FIELD -> ref.field.buildField(ref.isStatic)
@@ -1433,9 +1430,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun buildTemplateClass(clazz: FqName): String = clazz.targetName
 	fun buildTemplateClass(clazz: AstClass): String = buildTemplateClass(clazz.name)
-	open fun buildStaticInit(clazz: FqName): String = clazz.targetName + buildAccessName("SI", static = true) + "();"
 
-	open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(classRef.name)
+	//open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(classRef.name)
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
@@ -1571,7 +1567,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	open val FqName.targetClassFqName: String get() = this.targetName
 	open val FqName.targetSimpleName: String get() = this.simpleName
-	open val FqName.targetNameForFields: String get() = this.targetName
+	open val FqName.targetNameForStatic: String get() = this.targetName
 	open val FqName.targetFilePath: String get() = this.simpleName
 	open val FqName.targetGeneratedFqName: FqName get() = this
 	open val FqName.targetGeneratedFqPackage: String get() = this.packagePath
@@ -1749,7 +1745,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
-	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForFields + buildAccessName(program[this.ref], static = true)
+	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForStatic + buildAccessName(program[this.ref], static = true)
 	inline fun <reified T : Any, R> KMutableProperty1<T, R>.getTargetName(): String = this.locate(program).targetName
 
 	fun FieldRef.buildField(static: Boolean): String = if (static) this.nativeStaticText else this.targetName
@@ -1761,4 +1757,26 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//////////////////////////////////////////////////
 
 	open fun buildAccessName(name: String, static: Boolean): String = ".$name"
+
+
+	/////////////////
+	// STATIC INIT //
+	/////////////////
+
+	// @TODO: This should simplify StaticInit
+	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
+		line(buildStaticInit(clazzRef.name))
+	}
+	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + buildAccessName("SI", static = true) + "();"
+
+	open fun genStaticConstructorsSorted() = indent {
+		for (sis in program.staticInitsSorted) {
+			val clazz = program[sis]
+			if (!clazz.isNative) {
+				line("${sis.name.targetNameForStatic}" + buildAccessName("SI", static = true) + "();")
+			}
+			//val sc = program[sis]?.staticConstructor
+			//if (sc != null) line(buildMethod(sc, true) + "();")
+		}
+	}
 }

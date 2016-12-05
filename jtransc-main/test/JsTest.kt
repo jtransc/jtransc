@@ -25,6 +25,7 @@ import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.injector.Injector
 import javatest.GenTargetDescriptor
+import javatest.misc.BenchmarkTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
@@ -33,6 +34,7 @@ import testservice.test.ServiceLoaderTest
 
 class JsTest : Base() {
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false)
+	@Test fun testBenchmarkTest() = testClass<BenchmarkTest>(minimize = false, target = JsTarget(), log = false)
 
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss
