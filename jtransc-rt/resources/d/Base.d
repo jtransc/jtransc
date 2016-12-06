@@ -191,7 +191,10 @@ class N {
 
 	static public {% CLASS java.lang.String %} strLitEscape(wstring str) {
 		if (str is null) return null;
-		return N.str(str);
+		int len = slen(str);
+		auto array = new JA_C(len);
+		array.data[0..$] = str[0..$];
+		return {% CONSTRUCTOR java.lang.String:([CZ)V %}(array, false);
 	}
 
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {

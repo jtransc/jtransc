@@ -7,6 +7,8 @@ import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.annotation.JTranscMethodBody
 import com.jtransc.util.JTranscStrings
 import javatest.KotlinCollections
+import javatest.KotlinPropertiesTest
+import javatest.KotlinStaticInitOrderTest
 import javatest.StrangeNamesTest
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -38,6 +40,8 @@ import java.util.*
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
+		KotlinPropertiesTest.main(args)
+
 		// Misc tests
 		StringsTest.main(args)
 		SystemTest.main(args)
@@ -119,6 +123,8 @@ object BigTest {
 		// Hello World functionality!
 		HelloWorldTest.main(args)
 		NumberFormatTest.main(args);
+
+		KotlinStaticInitOrderTest.main(args)
 	}
 
 	private fun servicesTest() {

@@ -124,7 +124,9 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			)
 		)
 
-		println(injector.get<ConfigClassPaths>())
+		//val classPaths = injector.get<ConfigClassPaths>().classPaths
+		//log.info("ConfigClassPaths:")
+		//for (clazzPath in classPaths) log.info("\"clazzPath\"")
 
 		val result = AllBuildSimple(
 			injector,

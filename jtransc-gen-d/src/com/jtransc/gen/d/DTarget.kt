@@ -124,6 +124,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 		line("static void __initStrings()") {
 			for (lit in getGlobalStrings()) {
+				// STRINGLIT_
 				line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
 			}
 		}

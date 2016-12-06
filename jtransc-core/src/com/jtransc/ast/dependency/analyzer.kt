@@ -187,7 +187,9 @@ object AstDependencyAnalyzer {
 				is AstStm.IF_ELSE -> {
 					ana(stm.cond); ana(stm.strue); ana(stm.sfalse)
 				}
-				is AstStm.THROW -> ana(stm.value)
+				is AstStm.THROW -> {
+					ana(stm.value)
+				}
 				is AstStm.WHILE -> {
 					ana(stm.cond); ana(stm.iter)
 				}

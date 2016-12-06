@@ -95,7 +95,7 @@ class JTranscBuild(
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
-		for (cp in classPaths2) log("ClassPath: $cp")
+		//for (cp in classPaths2) log("ClassPath: $cp")
 
 		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
 		val initialClasses: List<String> = listOf(
@@ -187,6 +187,9 @@ class JTranscBuild(
 
 		val classPaths: List<String> = injector.get<ConfigClassPaths>().classPaths
 
+		for (classPath in classPaths) {
+			log("classPaths.add(\"$classPath\")")
+		}
 		//println(classPaths)
 
 		injector.mapInstances(

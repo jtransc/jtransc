@@ -115,6 +115,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		this(value, 0, value.length);
 	}
 
+	// Constructor used by static targets (C++, D) to avoid copying or having extra dependencies
+	@HaxeMethodBody("this.setStr(N.charArrayToString(p0, 0, p0.length));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
+	String(char[] value, boolean dummy) {
+		this.value = value;
+	}
+
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
 		this(bytes, offset, length, charsetName, false);
 	}
