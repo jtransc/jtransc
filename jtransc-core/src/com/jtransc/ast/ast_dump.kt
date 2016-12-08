@@ -1,4 +1,4 @@
-package com.jtransc.types
+package com.jtransc.ast
 
 import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
@@ -19,7 +19,6 @@ fun dump(body: AstBody): Indenter {
 fun dump(expr: AstStm.Box?): Indenter {
 	return dump(expr?.value)
 }
-
 
 fun dump(stm: AstStm?): Indenter {
 	return Indenter.gen {

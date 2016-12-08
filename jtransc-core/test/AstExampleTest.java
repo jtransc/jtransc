@@ -1,11 +1,7 @@
-import com.jtransc.ast.AstBody;
-import com.jtransc.ast.AstBuildSettings;
-import com.jtransc.ast.AstType;
-import com.jtransc.ast.AstTypes;
+import com.jtransc.ast.*;
 import com.jtransc.ast.feature.method.GotosFeature;
+import com.jtransc.backend.asm1.AsmToAstMethodBody1Kt;
 import com.jtransc.io.ClassutilsKt;
-import com.jtransc.types.Asm_astKt;
-import com.jtransc.types.Exp_dumpKt;
 import com.jtransc.org.objectweb.asm.ClassReader;
 import com.jtransc.org.objectweb.asm.tree.ClassNode;
 import com.jtransc.org.objectweb.asm.tree.MethodNode;
@@ -30,14 +26,14 @@ class AstExampleTest {
 			MethodNode method = (MethodNode) _method;
 			AstType.METHOD methodType = types.demangleMethod(method.desc);
 			System.out.println("::" + method.name + " :: " + methodType);
-			AstBody astBody = Asm_astKt.Asm2Ast(
+			AstBody astBody = AsmToAstMethodBody1Kt.AsmToAstMethodBody1(
 				types.REF_INT2(clazz.name),
 				method,
 				types,
 				(clazz.sourceFile != null) ? clazz.sourceFile : (clazz.name + ".java")
 			);
-			System.out.println(Exp_dumpKt.dump(astBody));
-			System.out.println(Exp_dumpKt.dump(new GotosFeature().remove(null, astBody, new AstBuildSettings(), types)));
+			System.out.println(Ast_dumpKt.dump(astBody));
+			System.out.println(Ast_dumpKt.dump(new GotosFeature().remove(null, astBody, new AstBuildSettings(), types)));
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}
 	}

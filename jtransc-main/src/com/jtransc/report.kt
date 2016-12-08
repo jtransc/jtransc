@@ -3,7 +3,7 @@ package com.jtransc
 import com.jtransc.ds.diff
 import com.jtransc.ds.hasAnyFlags
 import com.jtransc.ds.hasFlag
-import com.jtransc.input.toAst
+import com.jtransc.backend.toAst
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.vfs.GetClassJar
 import com.jtransc.vfs.MergedLocalAndJars

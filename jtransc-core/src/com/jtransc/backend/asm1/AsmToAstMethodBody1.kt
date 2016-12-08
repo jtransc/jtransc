@@ -1,25 +1,25 @@
-package com.jtransc.types
+package com.jtransc.backend.asm1
 
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
+import com.jtransc.backend.JvmOpcode
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.deprecated
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.org.objectweb.asm.tree.*
+import com.jtransc.backend.ast
 import com.jtransc.org.objectweb.asm.Handle
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
+import com.jtransc.org.objectweb.asm.tree.*
 import java.util.*
-
-fun Handle.ast(types: AstTypes): AstMethodRef = AstMethodRef(FqName.fromInternal(this.owner), this.name, types.demangleMethod(this.desc))
 
 //const val DEBUG = true
 const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
-fun Asm2Ast(clazz: AstType.REF, method: MethodNode, types: AstTypes, source:String = "unknown.java"): AstBody {
+fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
 	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
@@ -209,7 +209,7 @@ class Locals {
 	data class ID(val index: Int, val type: AstType, val prefix: String)
 
 	var tempLocalId = 0
-	val locals = hashMapOf<Locals.ID, AstLocal>() // @TODO: remove this
+	val locals = hashMapOf<ID, AstLocal>() // @TODO: remove this
 
 	private fun _local(type: AstType, index: Int, prefix: String): AstLocal {
 		val info = localPair(index, type, prefix)
@@ -242,7 +242,6 @@ fun nameType(type: AstType): String {
 	}
 }
 
-
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
 private class BasicBlockBuilder(
 	val clazz: AstType.REF,
@@ -250,8 +249,8 @@ private class BasicBlockBuilder(
 	val locals: Locals,
 	val labels: Labels,
 	val DEBUG: Boolean,
-	val source:String,
-    val types: AstTypes
+	val source: String,
+	val types: AstTypes
 ) {
 	companion object {
 		val PTYPES = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
@@ -611,7 +610,7 @@ private class BasicBlockBuilder(
 	fun handleMethod(i: MethodInsnNode) {
 		val type = types.REF_INT(i.owner)
 		val clazz = (type as? AstType.REF) ?: AstType.OBJECT
-		val methodRef = fix(com.jtransc.ast.AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
+		val methodRef = fix(AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
 		val args = methodRef.type.args.reversed().map { fastcast(stackPop(), it.type) }.reversed()
@@ -645,7 +644,7 @@ private class BasicBlockBuilder(
 			i.bsm.ast(types),
 			i.bsmArgs.map {
 				when (it) {
-					is com.jtransc.org.objectweb.asm.Type -> when (it.sort) {
+					is Type -> when (it.sort) {
 						Type.METHOD -> AstExpr.LITERAL(types.demangleMethod(it.descriptor), types)
 						else -> noImpl("${it.sort} : $it")
 					}
@@ -739,8 +738,8 @@ private class BasicBlockBuilder(
 			println("**** BASIC_BLOCK ${clazz.name}.${method.name}:${method.desc} :: BASIC_BLOCK: $entry, $input")
 		}
 
-		loop@while (i != null) {
-			if (DEBUG) println(AsmOpcode.disasm(i))
+		loop@ while (i != null) {
+			if (DEBUG) println(JvmOpcode.disasm(i))
 			val op = i.opcode
 			when (i) {
 				is FieldInsnNode -> handleField(i)
@@ -772,11 +771,11 @@ private class BasicBlockBuilder(
 				is JumpInsnNode -> {
 					when (op) {
 						in Opcodes.IFEQ..Opcodes.IFLE -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0,types)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0, types)), labels.label(i.label))
 							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null,types)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null, types)), labels.label(i.label))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 							val r = stackPop()
@@ -855,4 +854,28 @@ private class BasicBlockBuilder(
 			outgoing = outgoing
 		)
 	}
+}
+
+fun JvmOpcode.Companion.disasm(i: AbstractInsnNode): String {
+	val op = BY_ID[i.opcode]
+	return when (i) {
+		is FieldInsnNode -> "$op ${i.owner}.${i.name} :: ${i.desc}"
+		is InsnNode -> "$op"
+		is TypeInsnNode -> "$op ${i.desc}"
+		is VarInsnNode -> "$op ${i.`var`}"
+		is JumpInsnNode -> "$op ${i.label.label}"
+		is LdcInsnNode -> "$op (${i.cst}) : ${i.cst.javaClass}"
+		is IntInsnNode -> "$op ${i.operand}"
+		is MethodInsnNode -> "$op ${i.owner}.${i.name} :: ${i.desc} :: ${i.itf}"
+		is LookupSwitchInsnNode -> "$op ${i.dflt.label} ${i.keys} ${i.labels.cast<LabelNode>().map { it.label }}"
+		is TableSwitchInsnNode -> "$op ${i.dflt.label} ${i.min}..${i.max} ${i.labels.cast<LabelNode>().map { it.label }}"
+		is InvokeDynamicInsnNode -> "$op ${i.name} ${i.desc} ${i.bsm} ${i.bsmArgs}"
+		is LabelNode -> ":${i.label}"
+		is IincInsnNode -> "$op ${i.`var`} += ${i.incr}"
+		is LineNumberNode -> "LINE_${i.line}"
+		is FrameNode -> "FRAME: ${i.local} : ${i.stack} : ${i.type}"
+		is MultiANewArrayInsnNode -> "$op : ${i.desc} : ${i.dims}"
+		else -> invalidOp("$i")
+	}
+	//BY_ID[i.opcode]?.toString() ?: "$i"
 }

@@ -19,13 +19,14 @@ package com.jtransc
 import com.jtransc.ast.*
 import com.jtransc.ast.dependency.genStaticInitOrder
 import com.jtransc.ast.treeshaking.TreeShaking
+import com.jtransc.backend.asm1.AsmToAst1
+import com.jtransc.backend.asm2.AsmToAst2
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
-import com.jtransc.input.AsmToAst
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
@@ -48,7 +49,7 @@ fun Iterable<GenTargetDescriptor>.locateTargetByName(target: String): GenTargetS
 	)
 }
 
-enum class BuildBackend { ASM }
+enum class BuildBackend { ASM, ASM2 }
 data class ConfigSubtarget(val subtarget: String)
 data class ConfigTargetDirectory(val targetDirectory: String)
 data class ConfigCaptureRunOutput(val captureRunOutput: Boolean)
@@ -134,7 +135,8 @@ class JTranscBuild(
 		)
 
 		when (backend) {
-			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst>()
+			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst1>()
+			BuildBackend.ASM2 -> injector.mapImpl<AstClassGenerator, AsmToAst2>()
 			else -> invalidOp("Unsupported backend")
 		}
 

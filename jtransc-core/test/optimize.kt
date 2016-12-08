@@ -1,6 +1,6 @@
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
-import com.jtransc.types.exprDump
+import com.jtransc.ast.exprDump
 import org.junit.Assert
 import org.junit.Test
 

@@ -2,7 +2,7 @@ package com.jtransc.graph
 
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
-import com.jtransc.types.dump
+import com.jtransc.ast.dump
 import org.junit.Assert
 import org.junit.Test
 

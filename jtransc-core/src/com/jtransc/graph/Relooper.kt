@@ -6,7 +6,7 @@ import com.jtransc.ast.AstStmUtils
 import com.jtransc.ast.not
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.types.dump
+import com.jtransc.ast.dump
 import java.util.*
 
 class Relooper {
