@@ -129,6 +129,7 @@ interface AstType {
 	}
 
 	companion object {
+		val THROWABLE = AstType.REF("java.lang.Throwable")
 		val STRING = AstType.REF("java.lang.String")
 		val STRINGBUILDER = AstType.REF("java.lang.StringBuilder")
 		val OBJECT = AstType.REF("java.lang.Object")

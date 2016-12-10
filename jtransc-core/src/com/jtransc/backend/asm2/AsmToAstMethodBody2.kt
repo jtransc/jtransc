@@ -2,7 +2,6 @@ package com.jtransc.backend.asm2
 
 import com.jtransc.ast.*
 import com.jtransc.backend.JvmOpcode
-import com.jtransc.backend.asm1.BasicBlock
 import com.jtransc.backend.asm1.disasm
 import com.jtransc.backend.isEnd
 import com.jtransc.backend.isEndOfBasicBlock
@@ -14,35 +13,44 @@ import com.jtransc.org.objectweb.asm.Type
 import com.jtransc.org.objectweb.asm.tree.*
 import java.util.*
 
-interface TOIR {
+interface TIR {
 	//val target: Local?
 	//val sources: List<Local>
-	var prev: TOIR?
-	var next: TOIR?
+	var prev: TIR?
+	var next: TIR?
 
-	class Mixin : TOIR {
+	class Mixin : TIR {
 		//override val target: Local? = null
 		//override val sources = listOf<Local>()
-		override var prev: TOIR? = null
-		override var next: TOIR? = null
+		override var prev: TIR? = null
+		override var next: TIR? = null
 	}
 
-	data class LABEL(val label: Label) : TOIR by Mixin()
-	data class THIS(val dst: Local, val thisType: AstType) : TOIR by Mixin()
-	data class PHI(val dst: Local, val params: ArrayList<Operand> = arrayListOf()) : TOIR by Mixin()
-	data class PARAM(val dst: Local, val paramIndex: Int, val paramType: AstType) : TOIR by Mixin()
-	data class MOV(val dst: Local, val src: Operand) : TOIR by Mixin()
+	data class LABEL(val label: Label) : TIR by Mixin()
+	data class THIS(val dst: Local, val thisType: AstType) : TIR by Mixin()
+	data class PHI(val dst: Local, val params: ArrayList<Operand> = arrayListOf()) : TIR by Mixin()
+	data class PARAM(val dst: Local, val paramIndex: Int, val paramType: AstType) : TIR by Mixin()
+	data class MOV(val dst: Local, val src: Operand) : TIR by Mixin()
 	//data class CST(val dst: Local, val value: Number) : TOIR by Mixin()
-	data class BINOP(val dst: Local, val l: Operand, val op: String, val r: Operand) : TOIR by Mixin()
-	data class UNOP(val dst: Local, val op: String, val r: Operand) : TOIR by Mixin()
-	data class CONV(val dst: Local, val src: Operand, val dstType: AstType) : TOIR by Mixin()
-	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) : TOIR by Mixin()
-	data class ALOAD(val dst: Local, val array: Operand, val index: Operand) : TOIR by Mixin()
-	data class NEWARRAY(val temp: Local, val type: AstType, val len: Operand) : TOIR by Mixin()
-	data class JUMP_IF(val label: Label, val l: Operand, val op: String, val r: Operand) : TOIR by Mixin()
-	data class JUMP(val label: Label) : TOIR by Mixin()
-	data class RET(val v: Operand?) : TOIR by Mixin()
-	data class INVOKE(val dst: Local?, val obj: Local?, val method: AstMethodRef, val args: List<Operand>) : TOIR by Mixin()
+	data class BINOP(val dst: Local, val l: Operand, val op: String, val r: Operand) : TIR by Mixin()
+
+	data class UNOP(val dst: Local, val op: String, val r: Operand) : TIR by Mixin()
+	data class CONV(val dst: Local, val src: Operand, val dstType: AstType) : TIR by Mixin()
+	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) : TIR by Mixin()
+	data class ALOAD(val dst: Local, val array: Operand, val index: Operand) : TIR by Mixin()
+	data class NEW(val temp: Local, val type: AstType) : TIR by Mixin()
+	data class NEWARRAY(val temp: Local, val type: AstType, val len: Operand) : TIR by Mixin()
+	data class JUMP_IF(val label: Label, val l: Operand, val op: String, val r: Operand) : TIR by Mixin()
+	data class JUMP(val label: Label) : TIR by Mixin()
+	data class RET(val v: Operand?) : TIR by Mixin()
+	data class INVOKE(val dst: Local?, val obj: Local?, val method: AstMethodRef, val args: List<Operand>) : TIR by Mixin()
+	data class CHECKCAST(val dst: Local, val type: AstType, val src: Operand) : TIR by Mixin()
+	data class INSTANCEOF(val dst: Local, val type: AstType, val src: Operand) : TIR by Mixin()
+	data class THROW(val ex: Operand) : TIR by Mixin()
+	data class GETSTATIC(val dst: Local, val field: AstFieldRef) : TIR by Mixin()
+	data class PUTSTATIC(val fieldRef: AstFieldRef, val src: Operand) : TIR by Mixin()
+	data class GETFIELD(val dst: Local, val field: AstFieldRef, val obj: Operand) : TIR by Mixin()
+	data class PUTFIELD(val field: AstFieldRef, val obj: Operand, val src: Operand) : TIR by Mixin()
 }
 
 interface Operand {
@@ -52,6 +60,9 @@ data class Local(val v: Int) : Operand {
 }
 
 data class Constant(val type: AstType, val v: Any?) : Operand {
+}
+
+data class CatchException(val type: AstType) : Operand {
 }
 
 class Definition {
@@ -71,11 +82,15 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	val builder = BlockCfgBuilder(types)
 	builder.buildTree(method.instructions.first)
+	for (tcb in method.tryCatchBlocks) {
+		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
+		builder.buildTree(tcb.handler, initialStack = listOf(CatchException(exceptionType)))
+	}
 
 	println("--------")
 	for (i in method.instructions.toArray().toList()) {
-		if (i in builder.nodesToBlocks) {
-			for (stm in builder.nodesToBlocks[i]!!.stms) {
+		if (i in builder.startToBlocks) {
+			for (stm in builder.startToBlocks[i]!!.stms) {
 				println("$stm")
 			}
 		}
@@ -99,25 +114,25 @@ class Locals {
 
 class BlockCfgBuilder(val types: AstTypes) {
 	val locals = Locals()
-	val nodesToBlocks = hashMapOf<AbstractInsnNode, BasicBlockBuilder>()
+	val startToBlocks = hashMapOf<AbstractInsnNode, BasicBlockBuilder>()
 
-	fun buildTree(start: AbstractInsnNode) {
-		build(start, onePredecessor = null)
+	fun buildTree(start: AbstractInsnNode, initialStack: List<Operand>? = null) {
+		build(start, onePredecessor = null, initialStack = initialStack)
 	}
 
-	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?) {
-		val bbb1 = nodesToBlocks[start]
+	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?, initialStack: List<Operand>? = null) {
+		val bbb1 = startToBlocks[start]
 		if (bbb1 != null) { // Processed already!
 			if (onePredecessor != null) {
 				bbb1.registerPredecessor(onePredecessor)
 			}
 		} else {
 			val bbb = BasicBlockBuilder(types, locals).apply {
-				decodeBlock(start, onePredecessor)
+				decodeBlock(start, onePredecessor, initialStack)
 			}
-			nodesToBlocks[start] = bbb
+			startToBlocks[start] = bbb
 			for (successor in bbb.allSuccessors) {
-				build(successor, onePredecessor = bbb)
+				build(successor, onePredecessor = bbb, initialStack = null)
 			}
 		}
 	}
@@ -126,7 +141,7 @@ class BlockCfgBuilder(val types: AstTypes) {
 class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 	val JUMP_OPS = listOf("==", "!=", "<", ">=", ">", "<=", "==", "!=")
 	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
-	val stms = arrayListOf<TOIR>()
+	val stms = arrayListOf<TIR>()
 	val stack = Stack<Operand>()
 
 	fun pop(type: AstType): Operand {
@@ -150,21 +165,24 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 		if (predecessors.isEmpty()) {
 			for (item in predecessor.stack.toList()) {
 				val phi = createTemp()
-				stms += TOIR.PHI(phi)
+				stms += TIR.PHI(phi)
 				push(phi)
 			}
 		}
 		if (predecessor !in predecessors) {
 			predecessors += predecessor
 			for ((index, item) in predecessor.stack.toList().withIndex()) {
-				val phi = stms[index] as TOIR.PHI
+				val phi = stms[index] as TIR.PHI
 				phi.params += item
 			}
 		}
 	}
 
-	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?) {
+	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?, initialStack: List<Operand>? = null) {
 		if (onePredecessor != null) registerPredecessor(onePredecessor)
+		if (initialStack != null) {
+			for (s in initialStack) push(s)
+		}
 		var current: AbstractInsnNode? = start
 		while (current != null) {
 			decodeIns(current)
@@ -197,7 +215,68 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 			is IntInsnNode -> decodeIns(n)
 			is InsnNode -> decodeIns(n)
 			is MethodInsnNode -> decodeIns(n)
-			else -> TODO()
+			is TypeInsnNode -> decodeIns(n)
+			is FieldInsnNode -> decodeIns(n)
+			else -> TODO("$n")
+		}
+	}
+
+	fun decodeIns(n: FieldInsnNode) {
+		val owner = types.REF_INT2(n.owner)
+		val op = n.opcode
+		val fieldRef = AstFieldRef(owner.name, n.name, types.demangle(n.desc))
+		when (op) {
+			Opcodes.GETSTATIC -> {
+				val temp = createTemp()
+				stms += TIR.GETSTATIC(temp, fieldRef)
+				push(temp)
+			}
+			Opcodes.PUTSTATIC -> {
+				val src = pop(owner)
+				stms += TIR.PUTSTATIC(fieldRef, src)
+			}
+			Opcodes.GETFIELD -> {
+				val temp = createTemp()
+				val obj = pop(owner)
+				stms += TIR.GETFIELD(temp, fieldRef, obj)
+				push(temp)
+			}
+			Opcodes.PUTFIELD -> {
+				val temp = createTemp()
+				val src = pop(owner)
+				val obj = pop(owner)
+				stms += TIR.PUTFIELD(fieldRef, obj, src)
+				push(temp)
+			}
+		}
+	}
+
+	fun decodeIns(n: TypeInsnNode) {
+		val type = types.REF_INT(n.desc)
+		when (n.opcode) {
+			Opcodes.NEW -> {
+				val temp = createTemp()
+				stms += TIR.NEW(temp, type)
+				push(temp)
+			}
+			Opcodes.ANEWARRAY -> {
+				val temp = createTemp()
+				val len = pop(AstType.INT)
+				stms += TIR.NEWARRAY(temp, AstType.ARRAY(type), len)
+				push(temp)
+			}
+			Opcodes.CHECKCAST -> {
+				val temp = createTemp()
+				val obj = pop(AstType.OBJECT)
+				stms += TIR.CHECKCAST(temp, type, obj)
+				push(temp)
+			}
+			Opcodes.INSTANCEOF -> {
+				val temp = createTemp()
+				val obj = pop(AstType.OBJECT)
+				stms += TIR.INSTANCEOF(temp, type, obj)
+				push(temp)
+			}
 		}
 	}
 
@@ -242,27 +321,28 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 			in Opcodes.IFEQ..Opcodes.IFLE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFEQ]
 				val value = stack.pop()
-				stms += TOIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0))
+				stms += TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0))
 			}
 			Opcodes.IFNULL, Opcodes.IFNONNULL -> {
+				val op = JUMP_OPS[n.opcode - Opcodes.IFNULL]
 				val value = stack.pop()
-				stms += TOIR.JUMP_IF(n.label.label, value, if (n.opcode == Opcodes.IFNULL) "==" else "!=", Constant(AstType.OBJECT, null))
+				stms += TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.OBJECT, null))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
-				val op= JUMP_OPS[n.opcode - Opcodes.IFEQ]
+				val op = JUMP_OPS[n.opcode - Opcodes.IF_ICMPEQ]
 				val valueL = stack.pop()
 				val valueR = stack.pop()
-				stms += TOIR.JUMP_IF(n.label.label, valueL, op, valueR)
+				stms += TIR.JUMP_IF(n.label.label, valueL, op, valueR)
 			}
 			Opcodes.GOTO -> {
-				stms += TOIR.JUMP(n.label.label)
+				stms += TIR.JUMP(n.label.label)
 			}
 		}
 		//n.label
 	}
 
 	fun decodeIns(n: IincInsnNode) {
-		stms += TOIR.BINOP(getVar(n.`var`), getVar(n.`var`), "+", Constant(AstType.INT, 1))
+		stms += TIR.BINOP(getVar(n.`var`), getVar(n.`var`), "+", Constant(AstType.INT, 1))
 	}
 
 	fun decodeIns(n: FrameNode) {
@@ -270,7 +350,7 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 	}
 
 	fun decodeIns(n: LabelNode) {
-		stms += TOIR.LABEL(n.label)
+		stms += TIR.LABEL(n.label)
 		//Unit // Do nothing. We handle basic blocks in other place.
 	}
 
@@ -295,7 +375,7 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 
 		val res = if (methodType.retVoid) null else createTemp()
 
-		stms += TOIR.INVOKE(res, obj, methodRef, args)
+		stms += TIR.INVOKE(res, obj, methodRef, args)
 		if (res != null) push(res)
 	}
 
@@ -324,40 +404,41 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 				}
 				val temp = createTemp()
 				val len = pop(AstType.INT)
-				stms += TOIR.NEWARRAY(temp, type, len)
+				stms += TIR.NEWARRAY(temp, type, len)
 				push(temp)
 			}
 		}
 	}
 
 	fun decodeIns(n: InsnNode) {
-		when (n.opcode) {
-			in Opcodes.INEG..Opcodes.DNEG -> unop(TPRIM[n.opcode - Opcodes.INEG], "-")
+		val op = n.opcode
+		when (op) {
+			in Opcodes.INEG..Opcodes.DNEG -> unop(TPRIM[op - Opcodes.INEG], "-")
 
-			in Opcodes.IADD..Opcodes.DADD -> binop(TPRIM[n.opcode - Opcodes.IADD], "+")
-			in Opcodes.ISUB..Opcodes.DSUB -> binop(TPRIM[n.opcode - Opcodes.ISUB], "-")
-			in Opcodes.IMUL..Opcodes.DMUL -> binop(TPRIM[n.opcode - Opcodes.IMUL], "*")
-			in Opcodes.IDIV..Opcodes.DDIV -> binop(TPRIM[n.opcode - Opcodes.IDIV], "/")
-			in Opcodes.IREM..Opcodes.DREM -> binop(TPRIM[n.opcode - Opcodes.IREM], "%")
+			in Opcodes.IADD..Opcodes.DADD -> binop(TPRIM[op - Opcodes.IADD], "+")
+			in Opcodes.ISUB..Opcodes.DSUB -> binop(TPRIM[op - Opcodes.ISUB], "-")
+			in Opcodes.IMUL..Opcodes.DMUL -> binop(TPRIM[op - Opcodes.IMUL], "*")
+			in Opcodes.IDIV..Opcodes.DDIV -> binop(TPRIM[op - Opcodes.IDIV], "/")
+			in Opcodes.IREM..Opcodes.DREM -> binop(TPRIM[op - Opcodes.IREM], "%")
 
-			in Opcodes.ISHL..Opcodes.LSHL -> binop(TPRIM[n.opcode - Opcodes.ISHL], "<<")
-			in Opcodes.ISHR..Opcodes.LSHR -> binop(TPRIM[n.opcode - Opcodes.ISHR], ">>")
-			in Opcodes.IUSHR..Opcodes.LUSHR -> binop(TPRIM[n.opcode - Opcodes.IUSHR], ">>>")
-			in Opcodes.IAND..Opcodes.LAND -> binop(TPRIM[n.opcode - Opcodes.IAND], "&")
-			in Opcodes.IOR..Opcodes.LOR -> binop(TPRIM[n.opcode - Opcodes.IOR], "|")
-			in Opcodes.IXOR..Opcodes.LXOR -> binop(TPRIM[n.opcode - Opcodes.IXOR], "^")
+			in Opcodes.ISHL..Opcodes.LSHL -> binop(TPRIM[op - Opcodes.ISHL], "<<")
+			in Opcodes.ISHR..Opcodes.LSHR -> binop(TPRIM[op - Opcodes.ISHR], ">>")
+			in Opcodes.IUSHR..Opcodes.LUSHR -> binop(TPRIM[op - Opcodes.IUSHR], ">>>")
+			in Opcodes.IAND..Opcodes.LAND -> binop(TPRIM[op - Opcodes.IAND], "&")
+			in Opcodes.IOR..Opcodes.LOR -> binop(TPRIM[op - Opcodes.IOR], "|")
+			in Opcodes.IXOR..Opcodes.LXOR -> binop(TPRIM[op - Opcodes.IXOR], "^")
 
 			Opcodes.NOP -> Unit
 
 			Opcodes.ACONST_NULL -> TODO()
 
-			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> const(AstType.INT, (n.opcode - Opcodes.ICONST_0).toInt())
-			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> const(AstType.LONG, (n.opcode - Opcodes.LCONST_0).toLong())
-			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> const(AstType.FLOAT, (n.opcode - Opcodes.FCONST_0).toFloat())
-			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> const(AstType.DOUBLE, (n.opcode - Opcodes.DCONST_0).toDouble())
+			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> const(AstType.INT, (op - Opcodes.ICONST_0).toInt())
+			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> const(AstType.LONG, (op - Opcodes.LCONST_0).toLong())
+			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> const(AstType.FLOAT, (op - Opcodes.FCONST_0).toFloat())
+			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> const(AstType.DOUBLE, (op - Opcodes.DCONST_0).toDouble())
 
-			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(TPRIM[n.opcode - Opcodes.IALOAD])
-			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(TPRIM[n.opcode - Opcodes.IASTORE])
+			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(TPRIM[op - Opcodes.IALOAD])
+			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(TPRIM[op - Opcodes.IASTORE])
 
 			Opcodes.POP -> stack.pop()
 			Opcodes.POP2 -> TODO()
@@ -406,10 +487,13 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 			Opcodes.DCMPG -> TODO()
 
 			Opcodes.RETURN -> ret(AstType.VOID)
-			in Opcodes.IRETURN..Opcodes.ARETURN -> ret(TPRIM[n.opcode - Opcodes.IRETURN])
+			in Opcodes.IRETURN..Opcodes.ARETURN -> ret(TPRIM[op - Opcodes.IRETURN])
 
 			Opcodes.ARRAYLENGTH -> TODO()
-			Opcodes.ATHROW -> TODO()
+			Opcodes.ATHROW -> {
+				val ex = pop(AstType.OBJECT)
+				stms += TIR.THROW(ex)
+			}
 
 			Opcodes.MONITORENTER -> TODO()
 			Opcodes.MONITOREXIT -> TODO()
@@ -420,29 +504,29 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 		val value = pop(astType)
 		val index = pop(AstType.INT)
 		val array = pop(AstType.ARRAY(astType))
-		stms += TOIR.ASTORE(array, index, value)
+		stms += TIR.ASTORE(array, index, value)
 	}
 
 	private fun arrayLoad(astType: AstType) {
 		val temp = createTemp()
 		val array = pop(AstType.ARRAY(astType))
 		val index = pop(AstType.INT)
-		stms += TOIR.ALOAD(temp, array, index)
+		stms += TIR.ALOAD(temp, array, index)
 		push(temp)
 	}
 
 	fun conv(src: AstType, dst: AstType) {
 		val temp = createTemp()
 		val srcVar = pop(src)
-		stms += TOIR.CONV(temp, srcVar, dst)
+		stms += TIR.CONV(temp, srcVar, dst)
 		push(temp)
 	}
 
 	fun ret(type: AstType) {
 		if (type == AstType.VOID) {
-			stms += TOIR.RET(null)
+			stms += TIR.RET(null)
 		} else {
-			stms += TOIR.RET(pop(type))
+			stms += TIR.RET(pop(type))
 		}
 	}
 
@@ -460,21 +544,21 @@ class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
 	}
 
 	fun store(type: AstType, idx: Int) {
-		stms += TOIR.MOV(getVar(idx), pop(type))
+		stms += TIR.MOV(getVar(idx), pop(type))
 	}
 
 	fun binop(type: AstType, op: String) {
 		val res = createTemp()
 		val r = pop(type)
 		val l = pop(type)
-		stms += TOIR.BINOP(res, l, op, r)
+		stms += TIR.BINOP(res, l, op, r)
 		push(res)
 	}
 
 	fun unop(type: AstType, op: String) {
 		val res = createTemp()
 		val r = pop(type)
-		stms += TOIR.UNOP(res, op, r)
+		stms += TIR.UNOP(res, op, r)
 		push(res)
 	}
 }

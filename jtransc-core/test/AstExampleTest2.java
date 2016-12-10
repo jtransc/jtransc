@@ -23,6 +23,21 @@ public class AstExampleTest2 {
 	static private boolean isLetterOrDigit(char c) {
 		return Character.isLetter(c) || Character.isDigit(c);
 	}
+
+	static private int max(int a, int b) {
+		return (a > b) ? a : b;
+	}
+
+	static private String tryCatchTest(int a, int b) {
+		try {
+			if (a == b) throw new RuntimeException("equals");
+			return "ok";
+		} catch (RuntimeException t) {
+			return "exception";
+		} finally {
+			System.out.println("Demo");
+		}
+	}
 //
 	//public boolean isDirectory() {
 	//	//if (isInvalid()) return false;
