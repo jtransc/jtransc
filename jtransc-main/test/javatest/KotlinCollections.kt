@@ -111,16 +111,10 @@ abstract class GenTargetDescriptor {
 data class PairInt(val a: Int, val b: Int)
 data class TripleInt(val a: Int, val b: Int, val c: PairInt)
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun xrange(stop: Int): IntRange = (0..(stop - 1))
 
 data class Rectangle(var x: Int, var y: Int, var width: Int, var height: Int)
-
-data class TextFieldInfo2(
-	val symbolId: Int,
-	val symbolName: String,
-	val initialText: String,
-	val rectangle: Rectangle
-)
 
 data class TextFieldInfo(
 	val symbolId: Int,

@@ -67,21 +67,26 @@ class Queue<T>() : Iterable<T> {
 	override fun iterator(): Iterator<T> = data.iterator()
 }
 
-class Stack<T> : Iterable<T> {
-	private val data = LinkedList<T>()
+class Stack<T>(
+	private var data: ArrayList<T> = arrayListOf<T>()
+): Iterable<T> {
 
 	val hasMore: Boolean get() = data.isNotEmpty()
 
 	val length: Int get() = data.size
 
 	fun push(value: T): T {
-		data.addLast(value)
+		data.add(value)
 		return value
 	}
 
 	fun pop(): T {
-		return data.removeLast()
+		return data.removeAt(data.size - 1)
 	}
+
+	fun clone(): Stack<T> = Stack<T>(ArrayList(data))
+
+	fun toList(): List<T> = data.toList()
 
 	override fun iterator(): Iterator<T> = data.iterator()
 
@@ -104,7 +109,7 @@ fun <T> List<T>.flatMapInChunks(chunkSize: Int, handler: (items: List<T>) -> Lis
 }
 
 fun <T, T2> List<T>.flatMapInChunks2(chunkSize: Int, handler: (items: List<T>) -> List<T2>): List<T2> {
-	var out = arrayListOf<T2>()
+	val out = arrayListOf<T2>()
 	for (n in 0 until this.size / chunkSize) {
 		//println("IN: $out")
 		out.addAll(handler(this.slice(n * chunkSize until n * chunkSize + chunkSize)))
@@ -138,10 +143,10 @@ fun List<Any?>.toTypedArray2(clazz: Class<*>): Any {
 }
 
 fun List<Any?>?.toTypedArray2(): Any? {
-	if (this != null && this.size == 0) {
+	if (this != null && this.isEmpty()) {
 		//println("empty array!")
 	}
-	return this?.toTypedArray2(this.getOrNull(0)?.javaClass ?: Object::class.java)
+	return this?.toTypedArray2(this.getOrNull(0)?.javaClass ?: Any::class.java)
 }
 
 data class DiffResult<T>(val both: List<T>, val justFirst: List<T>, val justSecond: List<T>)

@@ -2,28 +2,47 @@ package com.jtransc.backend.asm2
 
 import com.jtransc.ast.*
 import com.jtransc.backend.JvmOpcode
+import com.jtransc.backend.asm1.BasicBlock
 import com.jtransc.backend.asm1.disasm
+import com.jtransc.backend.isEnd
+import com.jtransc.backend.isEndOfBasicBlock
 import com.jtransc.ds.Stack
 import com.jtransc.error.invalidOp
+import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
+import com.jtransc.org.objectweb.asm.Type
 import com.jtransc.org.objectweb.asm.tree.*
 import java.util.*
 
-interface BAF {
-	//var prev: BAF? = null
-	//var next: BAF? = null
+interface TOIR {
+	//val target: Local?
+	//val sources: List<Local>
+	var prev: TOIR?
+	var next: TOIR?
 
-	data class THIS(val dst: Local, val thisType: AstType) : BAF
-	data class PARAM(val dst: Local, val paramIndex: Int, val paramType: AstType) : BAF
-	data class MOV(val dst: Local, val src: Operand) : BAF
-	data class CST(val dst: Local, val value: Number) : BAF
-	data class BINOP(val dst: Local, val l: Operand, val op: String, val r: Operand) : BAF
-	data class UNOP(val dst: Local, val op: String, val r: Operand) : BAF
-	data class CONV(val dst: Local, val src: Operand, val dstType: AstType) :  BAF
-	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) :  BAF
-	data class ALOAD(val dst: Local, val array: Operand, val index: Operand) :  BAF
-	data class NEWARRAY(val temp: Local, val type: AstType, val len: Operand) : BAF
-	data class RET(val v: Operand?) : BAF
+	class Mixin : TOIR {
+		//override val target: Local? = null
+		//override val sources = listOf<Local>()
+		override var prev: TOIR? = null
+		override var next: TOIR? = null
+	}
+
+	data class LABEL(val label: Label) : TOIR by Mixin()
+	data class THIS(val dst: Local, val thisType: AstType) : TOIR by Mixin()
+	data class PHI(val dst: Local, val params: ArrayList<Operand> = arrayListOf()) : TOIR by Mixin()
+	data class PARAM(val dst: Local, val paramIndex: Int, val paramType: AstType) : TOIR by Mixin()
+	data class MOV(val dst: Local, val src: Operand) : TOIR by Mixin()
+	//data class CST(val dst: Local, val value: Number) : TOIR by Mixin()
+	data class BINOP(val dst: Local, val l: Operand, val op: String, val r: Operand) : TOIR by Mixin()
+	data class UNOP(val dst: Local, val op: String, val r: Operand) : TOIR by Mixin()
+	data class CONV(val dst: Local, val src: Operand, val dstType: AstType) : TOIR by Mixin()
+	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) : TOIR by Mixin()
+	data class ALOAD(val dst: Local, val array: Operand, val index: Operand) : TOIR by Mixin()
+	data class NEWARRAY(val temp: Local, val type: AstType, val len: Operand) : TOIR by Mixin()
+	data class JUMP_IF(val label: Label, val l: Operand, val op: String, val r: Operand) : TOIR by Mixin()
+	data class JUMP(val label: Label) : TOIR by Mixin()
+	data class RET(val v: Operand?) : TOIR by Mixin()
+	data class INVOKE(val dst: Local?, val obj: Local?, val method: AstMethodRef, val args: List<Operand>) : TOIR by Mixin()
 }
 
 interface Operand {
@@ -32,7 +51,7 @@ interface Operand {
 data class Local(val v: Int) : Operand {
 }
 
-data class Constant(val v: Number) : Operand {
+data class Constant(val type: AstType, val v: Any?) : Operand {
 }
 
 class Definition {
@@ -40,19 +59,28 @@ class Definition {
 
 // http://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf
 // Simple and Efficient Construction of Static Single Assignment Form
+// ----------------------------------------------------------------
+// PASS1: Build untyped Basic Blocks with simple constant clean ups
+// PASS2: SSA-Form
+// PASS3: Type locals
+// PASS4: Construct AstStm + AstExpr
+// ----------------------------------------------------------------
 fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
-	val body = AstToMethodBody(types)
+	//val body = BasicBlockBuilder(types)
 	val methodType = types.demangleMethod(method.desc)
 
-	body.decode(method.instructions.toArray().toList())
-	println(body.nodes.joinToString("\n"))
-	/*
-	//val node = method.instructions.first
-	//node.next
-	for (tcb in method.tryCatchBlocks) {
-		tcb.invisibleTypeAnnotations
+	val builder = BlockCfgBuilder(types)
+	builder.buildTree(method.instructions.first)
+
+	println("--------")
+	for (i in method.instructions.toArray().toList()) {
+		if (i in builder.nodesToBlocks) {
+			for (stm in builder.nodesToBlocks[i]!!.stms) {
+				println("$stm")
+			}
+		}
 	}
-	*/
+
 	return AstBody(
 		types,
 		AstStm.STMS(),
@@ -60,12 +88,95 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	)
 }
 
-class AstToMethodBody(
-	val types: AstTypes
-) {
-	fun decode(items: List<AbstractInsnNode>) {
-		for (n in items) {
-			decodeIns(n)
+class Block {
+
+}
+
+class Locals {
+	var tempId = 1000
+	fun createTemp() = Local(tempId++)
+}
+
+class BlockCfgBuilder(val types: AstTypes) {
+	val locals = Locals()
+	val nodesToBlocks = hashMapOf<AbstractInsnNode, BasicBlockBuilder>()
+
+	fun buildTree(start: AbstractInsnNode) {
+		build(start, onePredecessor = null)
+	}
+
+	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?) {
+		val bbb1 = nodesToBlocks[start]
+		if (bbb1 != null) { // Processed already!
+			if (onePredecessor != null) {
+				bbb1.registerPredecessor(onePredecessor)
+			}
+		} else {
+			val bbb = BasicBlockBuilder(types, locals).apply {
+				decodeBlock(start, onePredecessor)
+			}
+			nodesToBlocks[start] = bbb
+			for (successor in bbb.allSuccessors) {
+				build(successor, onePredecessor = bbb)
+			}
+		}
+	}
+}
+
+class BasicBlockBuilder(val types: AstTypes, val locals: Locals) {
+	val JUMP_OPS = listOf("==", "!=", "<", ">=", ">", "<=", "==", "!=")
+	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
+	val stms = arrayListOf<TOIR>()
+	val stack = Stack<Operand>()
+
+	fun pop(type: AstType): Operand {
+		return stack.pop()
+	}
+
+	fun push(v: Operand) {
+		stack.push(v)
+	}
+
+	fun getVar(v: Int) = Local(v)
+
+	fun createTemp() = locals.createTemp()
+	val allSuccessors = arrayListOf<AbstractInsnNode>()
+	val jumpNodes = arrayListOf<AbstractInsnNode>()
+	var nextDirectNode: AbstractInsnNode? = null
+
+	val predecessors = hashSetOf<BasicBlockBuilder>()
+
+	fun registerPredecessor(predecessor: BasicBlockBuilder) {
+		if (predecessors.isEmpty()) {
+			for (item in predecessor.stack.toList()) {
+				val phi = createTemp()
+				stms += TOIR.PHI(phi)
+				push(phi)
+			}
+		}
+		if (predecessor !in predecessors) {
+			predecessors += predecessor
+			for ((index, item) in predecessor.stack.toList().withIndex()) {
+				val phi = stms[index] as TOIR.PHI
+				phi.params += item
+			}
+		}
+	}
+
+	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?) {
+		if (onePredecessor != null) registerPredecessor(onePredecessor)
+		var current: AbstractInsnNode? = start
+		while (current != null) {
+			decodeIns(current)
+			if (current.isEndOfBasicBlock()) {
+				if (!current.isEnd()) {
+					nextDirectNode = current.next
+				}
+				allSuccessors += jumpNodes
+				if (nextDirectNode != null) allSuccessors += nextDirectNode!!
+				break
+			}
+			current = current.next
 		}
 	}
 
@@ -95,10 +206,14 @@ class AstToMethodBody(
 	}
 
 	fun decodeIns(n: TableSwitchInsnNode) {
+		nextDirectNode = n.dflt
+		jumpNodes += n.labels
 		TODO()
 	}
 
 	fun decodeIns(n: LookupSwitchInsnNode) {
+		nextDirectNode = n.dflt
+		jumpNodes += n.labels
 		TODO()
 	}
 
@@ -107,43 +222,56 @@ class AstToMethodBody(
 	}
 
 	fun decodeIns(n: LdcInsnNode) {
-		TODO()
+		val cst = n.cst
+		when (cst) {
+			is Int -> push(Constant(AstType.INT, cst))
+			is Float -> push(Constant(AstType.FLOAT, cst))
+			is Long -> push(Constant(AstType.LONG, cst))
+			is Double -> push(Constant(AstType.DOUBLE, cst))
+			is String -> push(Constant(AstType.STRING, cst))
+			is Type -> push(Constant(AstType.OBJECT, types.REF_INT(cst.internalName)))
+			else -> invalidOp
+		}
 	}
 
-	val JUMP_OPS = listOf("==", "!=", "<", ">=", ">", "<=", "==", "!=")
-
 	fun decodeIns(n: JumpInsnNode) {
+		jumpNodes += n.label
+
 		when (n.opcode) {
 			Opcodes.JSR -> TODO()
 			in Opcodes.IFEQ..Opcodes.IFLE -> {
-				JUMP_OPS[n.opcode - Opcodes.IFEQ]
+				val op = JUMP_OPS[n.opcode - Opcodes.IFEQ]
 				val value = stack.pop()
+				stms += TOIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0))
 			}
 			Opcodes.IFNULL, Opcodes.IFNONNULL -> {
 				val value = stack.pop()
+				stms += TOIR.JUMP_IF(n.label.label, value, if (n.opcode == Opcodes.IFNULL) "==" else "!=", Constant(AstType.OBJECT, null))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
-				JUMP_OPS[n.opcode - Opcodes.IFEQ]
-				val value2 = stack.pop()
-				val value1 = stack.pop()
+				val op= JUMP_OPS[n.opcode - Opcodes.IFEQ]
+				val valueL = stack.pop()
+				val valueR = stack.pop()
+				stms += TOIR.JUMP_IF(n.label.label, valueL, op, valueR)
 			}
 			Opcodes.GOTO -> {
-				Unit
+				stms += TOIR.JUMP(n.label.label)
 			}
 		}
 		//n.label
 	}
 
 	fun decodeIns(n: IincInsnNode) {
-		nodes += BAF.BINOP(getVar(n.`var`), getVar(n.`var`), "+", Constant(1))
+		stms += TOIR.BINOP(getVar(n.`var`), getVar(n.`var`), "+", Constant(AstType.INT, 1))
 	}
 
 	fun decodeIns(n: FrameNode) {
-		Unit
+		Unit // Do nothing. We calculate frames ourselves to full compatibility with versions less than Java6.
 	}
 
 	fun decodeIns(n: LabelNode) {
-		Unit
+		stms += TOIR.LABEL(n.label)
+		//Unit // Do nothing. We handle basic blocks in other place.
 	}
 
 	fun decodeIns(n: LineNumberNode) {
@@ -151,24 +279,24 @@ class AstToMethodBody(
 	}
 
 	fun decodeIns(n: MethodInsnNode) {
-		val owner = types.REF_INT(n.owner)
+		val ownerType = types.REF_INT(n.owner)
 		val methodType = types.demangleMethod(n.desc)
+		val ownerTypeRef = if (ownerType is AstType.ARRAY) AstType.OBJECT else ownerType as AstType.REF
+		val methodRef = AstMethodRef(ownerTypeRef.name, n.name, methodType)
+		val retType = methodType.ret
 
-		for (arg in methodType.args.reversed()) {
-			pop(arg.type)
+		val args = methodType.args.reversed().map { pop(it.type) }
+
+		val obj = if (n.opcode != Opcodes.INVOKESTATIC) {
+			pop(ownerType) as Local
+		} else {
+			null
 		}
 
-		val res = createTemp()
+		val res = if (methodType.retVoid) null else createTemp()
 
-		when (n.opcode) {
-			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESPECIAL, Opcodes.INVOKEINTERFACE -> {
-				pop(owner)
-			}
-			Opcodes.INVOKESTATIC -> {
-
-			}
-		}
-		stack.push(res)
+		stms += TOIR.INVOKE(res, obj, methodRef, args)
+		if (res != null) push(res)
 	}
 
 	fun decodeIns(n: VarInsnNode) {
@@ -196,13 +324,11 @@ class AstToMethodBody(
 				}
 				val temp = createTemp()
 				val len = pop(AstType.INT)
-				nodes += BAF.NEWARRAY(temp, type, len)
-				stack.push(temp)
+				stms += TOIR.NEWARRAY(temp, type, len)
+				push(temp)
 			}
 		}
 	}
-
-	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
 
 	fun decodeIns(n: InsnNode) {
 		when (n.opcode) {
@@ -237,8 +363,8 @@ class AstToMethodBody(
 			Opcodes.POP2 -> TODO()
 			Opcodes.DUP -> {
 				val p = stack.pop()
-				stack.push(p)
-				stack.push(p)
+				push(p)
+				push(p)
 			}
 			Opcodes.DUP_X1 -> TODO()
 			Opcodes.DUP_X2 -> TODO()
@@ -249,8 +375,8 @@ class AstToMethodBody(
 			Opcodes.SWAP -> {
 				val p1 = stack.pop()
 				val p2 = stack.pop()
-				stack.push(p1)
-				stack.push(p2)
+				push(p1)
+				push(p2)
 			}
 
 			Opcodes.I2L -> conv(AstType.INT, AstType.LONG)
@@ -277,9 +403,9 @@ class AstToMethodBody(
 			Opcodes.FCMPL -> TODO()
 			Opcodes.FCMPG -> TODO()
 			Opcodes.DCMPL -> TODO()
-			Opcodes.DCMPG  -> TODO()
+			Opcodes.DCMPG -> TODO()
 
-			Opcodes.RETURN  -> ret(AstType.VOID)
+			Opcodes.RETURN -> ret(AstType.VOID)
 			in Opcodes.IRETURN..Opcodes.ARETURN -> ret(TPRIM[n.opcode - Opcodes.IRETURN])
 
 			Opcodes.ARRAYLENGTH -> TODO()
@@ -294,72 +420,61 @@ class AstToMethodBody(
 		val value = pop(astType)
 		val index = pop(AstType.INT)
 		val array = pop(AstType.ARRAY(astType))
-		nodes += BAF.ASTORE(array, index, value)
+		stms += TOIR.ASTORE(array, index, value)
 	}
 
 	private fun arrayLoad(astType: AstType) {
 		val temp = createTemp()
 		val array = pop(AstType.ARRAY(astType))
 		val index = pop(AstType.INT)
-		nodes += BAF.ALOAD(temp, array, index)
-		stack.push(temp)
+		stms += TOIR.ALOAD(temp, array, index)
+		push(temp)
 	}
 
 	fun conv(src: AstType, dst: AstType) {
 		val temp = createTemp()
 		val srcVar = pop(src)
-		nodes += BAF.CONV(temp, srcVar, dst)
-		stack.push(temp)
-	}
-
-	val nodes = arrayListOf<BAF>()
-	val stack = Stack<Operand>()
-
-	fun getVar(v: Int) = Local(v)
-
-	var tempId = 1000
-	fun createTemp() = Local(tempId++)
-
-	fun pop(type: AstType): Operand {
-		return stack.pop()
+		stms += TOIR.CONV(temp, srcVar, dst)
+		push(temp)
 	}
 
 	fun ret(type: AstType) {
 		if (type == AstType.VOID) {
-			nodes += BAF.RET(null)
+			stms += TOIR.RET(null)
 		} else {
-			nodes += BAF.RET(pop(type))
+			stms += TOIR.RET(pop(type))
 		}
 	}
 
 	fun const(type: AstType, v: Number) {
 		//val res = createTemp()
 		//nodes += Node.CST(res, v)
-		stack.push(Constant(v))
+		push(Constant(type, v))
 	}
 
 	fun load(type: AstType, idx: Int) {
-		val temp = createTemp()
-		nodes += BAF.MOV(temp, getVar(idx))
-		stack.push(temp)
+		//val temp = createTemp()
+		//stms += TOIR.MOV(temp, getVar(idx))
+		//stack.push(temp)
+		push(getVar(idx))
 	}
 
 	fun store(type: AstType, idx: Int) {
-		nodes += BAF.MOV(getVar(idx), pop(type))
+		stms += TOIR.MOV(getVar(idx), pop(type))
 	}
 
 	fun binop(type: AstType, op: String) {
 		val res = createTemp()
 		val r = pop(type)
 		val l = pop(type)
-		nodes += BAF.BINOP(res, l, op, r)
-		stack.push(res)
+		stms += TOIR.BINOP(res, l, op, r)
+		push(res)
 	}
 
 	fun unop(type: AstType, op: String) {
 		val res = createTemp()
 		val r = pop(type)
-		nodes += BAF.UNOP(res, op, r)
-		stack.push(res)
+		stms += TOIR.UNOP(res, op, r)
+		push(res)
 	}
 }
