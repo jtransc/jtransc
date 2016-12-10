@@ -1,6 +1,5 @@
 package com.jtransc.ast
 
-import com.jtransc.ast.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
@@ -40,12 +39,13 @@ fun dump(stm: AstStm?): Indenter {
 			is AstStm.STM_LABEL -> line(":" + stm.label.name)
 			is AstStm.SET_LOCAL -> line(stm.local.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_FIELD_INSTANCE -> line(dump(stm.left) + "." + stm.field.name + " = " + dump(stm.expr) + ";")
+			is AstStm.SET_ARRAY_LITERALS -> line(dump(stm.array) + "[${stm.startIndex}..${stm.startIndex + stm.values.size - 1}] = ${stm.values.map { dump(it) }};")
 			is AstStm.STM_EXPR -> line(dump(stm.expr) + ";")
 			is AstStm.IF_GOTO -> line("if (" + dump(stm.cond) + ") goto " + stm.label.name + ";")
 			is AstStm.GOTO -> line("goto " + stm.label.name + ";")
 			is AstStm.RETURN -> line("return " + dump(stm.retval) + ";")
 			is AstStm.RETURN_VOID -> line("return;")
-			//is AstStm.CALL_INSTANCE -> line("call")
+		//is AstStm.CALL_INSTANCE -> line("call")
 			is AstStm.SET_FIELD_STATIC -> line(stm.clazz.fqname + "." + stm.field.name + " = " + dump(stm.expr) + ";")
 			is AstStm.SET_ARRAY -> line(dump(stm.array) + "[" + dump(stm.index) + "] = " + dump(stm.expr) + ";")
 			is AstStm.LINE -> {
@@ -106,7 +106,7 @@ fun dump(expr: AstExpr?): String {
 		is AstExpr.INSTANCE_OF -> "(" + dump(expr.expr) + " instance of " + javaDump(expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
 		is AstExpr.TERNARY -> dump(expr.cond) + " ? " + dump(expr.etrue) + " : " + dump(expr.efalse)
-		//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
+	//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(it) }

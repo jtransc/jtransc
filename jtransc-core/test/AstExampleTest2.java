@@ -1,5 +1,3 @@
-import java.nio.*;
-
 public class AstExampleTest2 {
 	/*
 	boolean test = true;
@@ -12,6 +10,15 @@ public class AstExampleTest2 {
 		return c >= '0' && c <= '9';
 	}
 	*/
+
+	static private int demo(int a) {
+		a = a + 10;
+		return a;
+	}
+
+	static private int[] demo2() {
+		return new int[]{100, 101, 102, 103, 104};
+	}
 
 	static private boolean isLetterOrDigit(char c) {
 		return Character.isLetter(c) || Character.isDigit(c);

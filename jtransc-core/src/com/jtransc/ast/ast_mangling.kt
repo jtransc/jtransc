@@ -1,7 +1,5 @@
 package com.jtransc.ast
 
-import com.jtransc.text.StrReader
-
 object AstTypeJavaDescriptorMangler {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// FieldDescriptor: FieldType
@@ -45,7 +43,6 @@ object AstTypeJavaSignatureMangler {
 	// ClassTypeSignature: L [PackageSpecifier] SimpleClassTypeSignature {ClassTypeSignatureSuffix} ;
 	// PackageSpecifier: Identifier / {PackageSpecifier}
 	// SimpleClassTypeSignature: Identifier [TypeArguments]
-
 
 
 	// ClassTypeSignatureSuffix: . SimpleClassTypeSignature
