@@ -463,6 +463,8 @@ class AstClass(
 		return methods.values.toList()
 	}
 
+	fun isMethodOverloaded(name: String): Boolean = getMethodsInAncestorsAndInterfaces(name).count() > 1
+
 	fun getMethodInAncestors(nameDesc: AstMethodWithoutClassRef): AstMethod? = methodsByNameDesc.getOrPut(nameDesc) {
 		parentClass?.getMethodInAncestors(nameDesc)
 	}
@@ -787,6 +789,7 @@ class AstMethod(
 
 	val returnTypeWithThis: AstType get() = if (methodVoidReturnThis) containingClass.astType else this.methodType.ret
 
+	val isOverloaded: Boolean by lazy { containingClass.isMethodOverloaded(this.name) }
 	val isOverriding: Boolean by lazy { containingClass.ancestors.any { it[ref.withoutClass] != null } }
 	val isImplementing: Boolean by lazy { containingClass.allDirectInterfaces.any { it.getMethod(this.name, this.desc) != null } }
 
