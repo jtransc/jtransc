@@ -3,15 +3,11 @@ package com.jtransc.backend.asm2
 import com.jtransc.ast.*
 import com.jtransc.backend.JvmOpcode
 import com.jtransc.backend.asm1.disasm
-import com.jtransc.backend.ast
 import com.jtransc.backend.isEnd
 import com.jtransc.backend.isEndOfBasicBlock
 import com.jtransc.ds.Stack
-import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.error.unsupported
-import com.jtransc.org.objectweb.asm.Handle
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
@@ -150,10 +146,6 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 	val stms = arrayListOf<TIR>()
 	val stack = Stack<Operand>()
 
-	fun pop(type: AstType): Operand {
-		return stack.pop()
-	}
-
 	fun pop(): Operand {
 		return stack.pop()
 	}
@@ -166,6 +158,10 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			val v2 = stack.pop()
 			return listOf(v2, v1)
 		}
+	}
+
+	fun add(n: TIR) {
+		stms += n
 	}
 
 	fun push(v: Operand) {
@@ -189,7 +185,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 		if (predecessors.isEmpty()) {
 			for (item in predecessor.stack.toList()) {
 				val phi = createTemp(item.type)
-				stms += TIR.PHI(phi)
+				add(TIR.PHI(phi))
 				push(phi)
 			}
 		}
@@ -223,122 +219,122 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 	}
 
 	fun decodeIns(n: AbstractInsnNode) {
-		println(JvmOpcode.disasm(n))
+		//println(JvmOpcode.disasm(n))
 		when (n) {
-			is FrameNode -> decodeIns(n)
-			is JumpInsnNode -> decodeIns(n)
-			is LdcInsnNode -> decodeIns(n)
-			is LookupSwitchInsnNode -> decodeIns(n)
-			is TableSwitchInsnNode -> decodeIns(n)
-			is MultiANewArrayInsnNode -> decodeIns(n)
-			is InvokeDynamicInsnNode -> decodeIns(n)
-			is IincInsnNode -> decodeIns(n)
-			is LabelNode -> decodeIns(n)
-			is LineNumberNode -> decodeIns(n)
-			is VarInsnNode -> decodeIns(n)
-			is IntInsnNode -> decodeIns(n)
-			is InsnNode -> decodeIns(n)
-			is MethodInsnNode -> decodeIns(n)
-			is TypeInsnNode -> decodeIns(n)
-			is FieldInsnNode -> decodeIns(n)
+			is FrameNode -> decodeFrameNode(n)
+			is JumpInsnNode -> decodeJumpNode(n)
+			is LdcInsnNode -> decodeLdcNode(n)
+			is LookupSwitchInsnNode -> decodeLookupSwitchNode(n)
+			is TableSwitchInsnNode -> decodeTableSwitchNode(n)
+			is MultiANewArrayInsnNode -> decodeMultiANewArrayNode(n)
+			is InvokeDynamicInsnNode -> decodeInvokeDynamicNode(n)
+			is IincInsnNode -> decodeIincNode(n)
+			is LabelNode -> decodeLabelNode(n)
+			is LineNumberNode -> decodeLineNode(n)
+			is VarInsnNode -> decodeVarNode(n)
+			is IntInsnNode -> decodeIntNode(n)
+			is InsnNode -> decodeInsNode(n)
+			is MethodInsnNode -> decodeMethodNode(n)
+			is TypeInsnNode -> decodeTypeNode(n)
+			is FieldInsnNode -> decodeFieldNode(n)
 			else -> TODO("$n")
 		}
 	}
 
-	fun decodeIns(n: FieldInsnNode) {
+	fun decodeFieldNode(n: FieldInsnNode) {
 		val owner = types.REF_INT2(n.owner)
 		val op = n.opcode
 		val fieldRef = AstFieldRef(owner.name, n.name, types.demangle(n.desc))
 		when (op) {
 			Opcodes.GETSTATIC -> {
 				val dst = createTemp(fieldRef.type)
-				stms += TIR.GETSTATIC(dst, fieldRef)
+				add(TIR.GETSTATIC(dst, fieldRef))
 				push(dst)
 			}
 			Opcodes.PUTSTATIC -> {
-				val src = pop(owner)
-				stms += TIR.PUTSTATIC(fieldRef, src)
+				val src = pop()
+				add(TIR.PUTSTATIC(fieldRef, src))
 			}
 			Opcodes.GETFIELD -> {
+				val obj = pop()
 				val dst = createTemp(fieldRef.type)
-				val obj = pop(owner)
-				stms += TIR.GETFIELD(dst, fieldRef, obj)
+				add(TIR.GETFIELD(dst, fieldRef, obj))
 				push(dst)
 			}
 			Opcodes.PUTFIELD -> {
+				val src = pop()
+				val obj = pop()
 				val dst = createTemp(fieldRef.type)
-				val src = pop(owner)
-				val obj = pop(owner)
-				stms += TIR.PUTFIELD(fieldRef, obj, src)
+				add(TIR.PUTFIELD(fieldRef, obj, src))
 				push(dst)
 			}
 		}
 	}
 
-	fun decodeIns(n: TypeInsnNode) {
+	fun decodeTypeNode(n: TypeInsnNode) {
 		val type = types.REF_INT(n.desc)
 		when (n.opcode) {
 			Opcodes.NEW -> {
 				val dst = createTemp(type)
-				stms += TIR.NEW(dst, type)
+				add(TIR.NEW(dst, type))
 				push(dst)
 			}
 			Opcodes.ANEWARRAY -> {
 				val arrayType = AstType.ARRAY(type)
-				val len = pop(AstType.INT)
+				val len = pop()
 				val dst = createTemp(arrayType)
-				stms += TIR.NEWARRAY(dst, arrayType, listOf(len))
+				add(TIR.NEWARRAY(dst, arrayType, listOf(len)))
 				push(dst)
 			}
 			Opcodes.CHECKCAST -> {
 				val obj = pop()
 				val dst = createTemp(obj.type)
-				stms += TIR.CHECKCAST(dst, type, obj)
+				add(TIR.CHECKCAST(dst, type, obj))
 				push(dst)
 			}
 			Opcodes.INSTANCEOF -> {
 				val dst = createTemp(AstType.BOOL)
-				val obj = pop(AstType.OBJECT)
-				stms += TIR.INSTANCEOF(dst, type, obj)
+				val obj = pop()
+				add(TIR.INSTANCEOF(dst, type, obj))
 				push(dst)
 			}
 		}
 	}
 
-	fun decodeIns(n: MultiANewArrayInsnNode) {
+	fun decodeMultiANewArrayNode(n: MultiANewArrayInsnNode) {
 		val arrayType = types.REF_INT(n.desc) as AstType.ARRAY
 		val dst = createTemp(arrayType)
-		stms += TIR.NEWARRAY(dst, arrayType, (0 until n.dims).map { pop(AstType.INT) }.reversed())
+		add(TIR.NEWARRAY(dst, arrayType, (0 until n.dims).map { pop() }.reversed()))
 		push(dst)
 	}
 
-	fun decodeIns(n: TableSwitchInsnNode) {
+	fun decodeTableSwitchNode(n: TableSwitchInsnNode) {
 		nextDirectNode = n.dflt
 		jumpNodes += n.labels
 
 		val subject = pop()
 
-		stms += TIR.SWITCH_GOTO(
+		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
 			n.labels.withIndex().map { (n.min + it.index) to it.value.label }.toMap()
-		)
+		))
 	}
 
-	fun decodeIns(n: LookupSwitchInsnNode) {
+	fun decodeLookupSwitchNode(n: LookupSwitchInsnNode) {
 		nextDirectNode = n.dflt
 		jumpNodes += n.labels
 
 		val subject = pop()
 
-		stms += TIR.SWITCH_GOTO(
+		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
 			n.keys.zip(n.labels).map { it.first to it.second.label }.toMap()
-		)
+		))
 	}
 
-	fun decodeIns(n: InvokeDynamicInsnNode) {
+	fun decodeInvokeDynamicNode(n: InvokeDynamicInsnNode) {
 		//hasInvokeDynamic = true
 		//val dynamicResult = AstExprUtils.INVOKE_DYNAMIC(
 		//	AstMethodWithoutClassRef(i.name, types.demangleMethod(i.desc)),
@@ -366,7 +362,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 		TODO()
 	}
 
-	fun decodeIns(n: LdcInsnNode) {
+	fun decodeLdcNode(n: LdcInsnNode) {
 		val cst = n.cst
 		when (cst) {
 			is Int -> push(Constant(AstType.INT, cst))
@@ -379,7 +375,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 		}
 	}
 
-	fun decodeIns(n: JumpInsnNode) {
+	fun decodeJumpNode(n: JumpInsnNode) {
 		jumpNodes += n.label
 
 		when (n.opcode) {
@@ -387,65 +383,56 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			in Opcodes.IFEQ..Opcodes.IFLE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFEQ]
 				val value = stack.pop()
-				stms += TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0))
+				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0)))
 			}
 			Opcodes.IFNULL, Opcodes.IFNONNULL -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFNULL]
 				val value = stack.pop()
-				stms += TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.OBJECT, null))
+				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.OBJECT, null)))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IF_ICMPEQ]
 				val valueL = stack.pop()
 				val valueR = stack.pop()
-				stms += TIR.JUMP_IF(n.label.label, valueL, op, valueR)
+				add(TIR.JUMP_IF(n.label.label, valueL, op, valueR))
 			}
 			Opcodes.GOTO -> {
-				stms += TIR.JUMP(n.label.label)
+				add(TIR.JUMP(n.label.label))
 			}
 		}
 		//n.label
 	}
 
-	fun decodeIns(n: IincInsnNode) {
-		stms += TIR.BINOP(getVar(AstType.INT, n.`var`), getVar(AstType.INT, n.`var`), "+", Constant(AstType.INT, 1))
+	fun decodeIincNode(n: IincInsnNode) {
+		add(TIR.BINOP(getVar(AstType.INT, n.`var`), getVar(AstType.INT, n.`var`), "+", Constant(AstType.INT, 1)))
 	}
 
-	fun decodeIns(n: FrameNode) {
+	fun decodeFrameNode(n: FrameNode) {
 		Unit // Do nothing. We calculate frames ourselves to full compatibility with versions less than Java6.
 	}
 
-	fun decodeIns(n: LabelNode) {
-		stms += TIR.LABEL(n.label)
+	fun decodeLabelNode(n: LabelNode) {
+		add(TIR.LABEL(n.label))
 		//Unit // Do nothing. We handle basic blocks in other place.
 	}
 
-	fun decodeIns(n: LineNumberNode) {
+	fun decodeLineNode(n: LineNumberNode) {
 		Unit
 	}
 
-	fun decodeIns(n: MethodInsnNode) {
+	fun decodeMethodNode(n: MethodInsnNode) {
 		val ownerType = types.REF_INT(n.owner)
 		val methodType = types.demangleMethod(n.desc)
 		val ownerTypeRef = if (ownerType is AstType.ARRAY) AstType.OBJECT else ownerType as AstType.REF
 		val methodRef = AstMethodRef(ownerTypeRef.name, n.name, methodType)
-		val retType = methodType.ret
-
-		val args = methodType.args.reversed().map { pop(it.type) }
-
-		val obj = if (n.opcode != Opcodes.INVOKESTATIC) {
-			pop(ownerType) as Local
-		} else {
-			null
-		}
-
+		val args = methodType.args.reversed().map { pop() }
+		val obj = if (n.opcode != Opcodes.INVOKESTATIC) pop() as Local else null
 		val res = if (methodType.retVoid) null else createTemp(methodType.ret)
-
-		stms += TIR.INVOKE(res, obj, methodRef, args)
+		add(TIR.INVOKE(res, obj, methodRef, args))
 		if (res != null) push(res)
 	}
 
-	fun decodeIns(n: VarInsnNode) {
+	fun decodeVarNode(n: VarInsnNode) {
 		when (n.opcode) {
 			in Opcodes.ILOAD..Opcodes.ALOAD -> load(TPRIM[n.opcode - Opcodes.ILOAD], n.`var`)
 			in Opcodes.ISTORE..Opcodes.ASTORE -> store(TPRIM[n.opcode - Opcodes.ISTORE], n.`var`)
@@ -453,7 +440,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 		}
 	}
 
-	fun decodeIns(n: IntInsnNode) {
+	fun decodeIntNode(n: IntInsnNode) {
 		when (n.opcode) {
 			Opcodes.BIPUSH, Opcodes.SIPUSH -> const(AstType.INT, n.operand)
 			Opcodes.NEWARRAY -> {
@@ -469,15 +456,15 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 					else -> invalidOp
 				}
 				val arrayType = AstType.ARRAY(type)
-				val len = pop(AstType.INT)
+				val len = pop()
 				val dst = createTemp(arrayType)
-				stms += TIR.NEWARRAY(dst, type, listOf(len))
+				add(TIR.NEWARRAY(dst, type, listOf(len)))
 				push(dst)
 			}
 		}
 	}
 
-	fun decodeIns(n: InsnNode) {
+	fun decodeInsNode(n: InsnNode) {
 		val op = n.opcode
 		when (op) {
 			Opcodes.NOP -> Unit
@@ -555,25 +542,14 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 				push(p2)
 			}
 
-			Opcodes.I2L -> conv(AstType.INT, AstType.LONG)
-			Opcodes.I2F -> conv(AstType.INT, AstType.FLOAT)
-			Opcodes.I2D -> conv(AstType.INT, AstType.DOUBLE)
+			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> conv(AstType.INT)
+			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> conv(AstType.LONG)
+			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> conv(AstType.FLOAT)
+			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> conv(AstType.DOUBLE)
 
-			Opcodes.L2I -> conv(AstType.LONG, AstType.INT)
-			Opcodes.L2F -> conv(AstType.LONG, AstType.FLOAT)
-			Opcodes.L2D -> conv(AstType.LONG, AstType.DOUBLE)
-
-			Opcodes.F2I -> conv(AstType.FLOAT, AstType.INT)
-			Opcodes.F2L -> conv(AstType.FLOAT, AstType.LONG)
-			Opcodes.F2D -> conv(AstType.FLOAT, AstType.DOUBLE)
-
-			Opcodes.D2I -> conv(AstType.DOUBLE, AstType.INT)
-			Opcodes.D2L -> conv(AstType.DOUBLE, AstType.LONG)
-			Opcodes.D2F -> conv(AstType.DOUBLE, AstType.FLOAT)
-
-			Opcodes.I2B -> conv(AstType.INT, AstType.BYTE)
-			Opcodes.I2C -> conv(AstType.INT, AstType.CHAR)
-			Opcodes.I2S -> conv(AstType.INT, AstType.SHORT)
+			Opcodes.I2B -> conv(AstType.BYTE)
+			Opcodes.I2C -> conv(AstType.CHAR)
+			Opcodes.I2S -> conv(AstType.SHORT)
 
 			Opcodes.LCMP -> binop(AstType.INT, "cmp")
 			Opcodes.FCMPL, Opcodes.DCMPL -> binop(AstType.INT, "cmpl")
@@ -585,81 +561,68 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			Opcodes.ARRAYLENGTH -> {
 				val array = pop()
 				val dst = createTemp(AstType.INT)
-				stms += TIR.ARRAYLENGTH(dst, array)
+				add(TIR.ARRAYLENGTH(dst, array))
 				push(dst)
 			}
 			Opcodes.ATHROW -> {
-				val ex = pop(AstType.OBJECT)
-				stms += TIR.THROW(ex)
+				val ex = pop()
+				add(TIR.THROW(ex))
 			}
 			Opcodes.MONITORENTER, Opcodes.MONITOREXIT -> {
 				val obj = pop()
-				stms += TIR.MONITOR(obj, enter = (op == Opcodes.MONITORENTER))
+				add(TIR.MONITOR(obj, enter = (op == Opcodes.MONITORENTER)))
 			}
 		}
 	}
 
 	private fun arrayStore(elementType: AstType) {
-		val arrayType = AstType.ARRAY(elementType)
-		val value = pop(elementType)
-		val index = pop(AstType.INT)
-		val array = pop(arrayType)
-		stms += TIR.ASTORE(array, index, value)
+		//val arrayType = AstType.ARRAY(elementType)
+		val value = pop()
+		val index = pop()
+		val array = pop()
+		add(TIR.ASTORE(array, index, value))
 	}
 
 	private fun arrayLoad(elementType: AstType) {
-		val arrayType = AstType.ARRAY(elementType)
-		val index = pop(AstType.INT)
-		val array = pop(arrayType)
+		//val arrayType = AstType.ARRAY(elementType)
+		val index = pop()
+		val array = pop()
 		val dst = createTemp(elementType)
-		stms += TIR.ALOAD(dst, array, index)
+		add(TIR.ALOAD(dst, array, index))
 		push(dst)
 	}
 
-	fun conv(src: AstType, dstType: AstType) {
-		val srcVar = pop(src)
+	fun conv(dstType: AstType) {
+		val srcVar = pop()
 		val dst = createTemp(dstType)
-		stms += TIR.CONV(dst, srcVar, dstType)
+		add(TIR.CONV(dst, srcVar, dstType))
 		push(dst)
 	}
 
 	fun ret(type: AstType) {
 		if (type == AstType.VOID) {
-			stms += TIR.RET(null)
+			add(TIR.RET(null))
 		} else {
-			stms += TIR.RET(pop(type))
+			add(TIR.RET(pop()))
 		}
 	}
 
-	fun const(type: AstType, v: Any?) {
-		//val res = createTemp()
-		//nodes += Node.CST(res, v)
-		push(Constant(type, v))
-	}
-
-	fun load(type: AstType, idx: Int) {
-		//val temp = createTemp()
-		//stms += TOIR.MOV(temp, getVar(idx))
-		//stack.push(temp)
-		push(getVar(type, idx))
-	}
-
-	fun store(type: AstType, idx: Int) {
-		stms += TIR.MOV(getVar(type, idx), pop(type))
-	}
+	fun const(type: AstType, v: Any?) = push(Constant(type, v))
+	fun load(type: AstType, idx: Int) = push(getVar(type, idx))
+	fun store(type: AstType, idx: Int) = add(TIR.MOV(getVar(type, idx), pop()))
 
 	fun binop(resultType: AstType, op: String) {
 		val r = pop()
 		val l = pop()
 		val dst = createTemp(resultType)
-		stms += TIR.BINOP(dst, l, op, r)
+		add(TIR.BINOP(dst, l, op, r))
 		push(dst)
 	}
 
 	fun unop(type: AstType, op: String) {
-		val r = pop(type)
+		val r = pop()
 		val dst = createTemp(type)
-		stms += TIR.UNOP(dst, op, r)
+		add(TIR.UNOP(dst, op, r))
 		push(dst)
 	}
 }
