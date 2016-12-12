@@ -16,12 +16,10 @@ object References {
 		val me = AstType.REF(this.fqname)
 		val parent = if (this.extending != null) AstType.REF(this.extending) else null
 		val interfaces = this.implementing.map { AstType.REF(it) }
-		val fields = this.fields.flatMap { it.getClassReferences() }
-		val methods = this.methods.flatMap { it.getClassReferences() }
-		val annotations = this.annotations.getClassReferences()
+		val fields = this.fields.flatMap { it.getClassReferences(targetName) }
+		val methods = this.methods.flatMap { it.getClassReferences(targetName) }
+		val annotations = this.annotations.getClassReferences(targetName)
 		val annotations2 = this.annotationsList.getClassReferencesExtra(this.program, targetName)
-		//val annotations2 = listOf<AstType.REF>()
-
 		return (listOf(me) + listOf(parent) + interfaces + fields + methods + annotations + annotations2).filterNotNull()
 	}
 
@@ -39,17 +37,19 @@ object References {
 		return out
 	}
 
-	fun AstField.getClassReferences(): List<AstType.REF> {
-		return this.genericType.getRefClasses() + this.annotations.getClassReferences()
+	fun AstField.getClassReferences(targetName: TargetName): List<AstType.REF> {
+		return this.genericType.getRefClasses() + this.annotations.getClassReferences(targetName)
 	}
 
-	fun AstMethod.getClassReferences(): List<AstType.REF> {
+	fun AstMethod.getClassReferences(targetName: TargetName): List<AstType.REF> {
 		val signatureRefs = this.genericMethodType.getRefClasses()
-		val refs = this.body?.getClassReferences() ?: listOf()
-		val annotations = this.annotations.getClassReferences()
-		val parameterAnnotations = this.parameterAnnotations.flatMap { it }.getClassReferences()
+		val annotations = this.annotations.getClassReferences(targetName)
+		val parameterAnnotations = this.parameterAnnotations.flatMap { it }.getClassReferences(targetName)
 		val templateRefs = arrayListOf<AstType.REF>()
-		for (methodBody in this.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
+		val methodBodyList = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }
+		val refs = if (methodBodyList.isEmpty()) this.body?.getClassReferences() ?: listOf() else listOf()
+
+		for (methodBody in methodBodyList) {
 			val template = Minitemplate(methodBody.value.joinToString("\n"), Minitemplate.Config(
 				extraTags = listOf(
 					Minitemplate.Tag(
@@ -74,26 +74,26 @@ object References {
 		return signatureRefs + refs + annotations + parameterAnnotations + templateRefs
 	}
 
-	fun List<AstAnnotation>.getClassReferences(): List<AstType.REF> {
-		return this.flatMap { it.getClassReferences() }
+	fun List<AstAnnotation>.getClassReferences(targetName: TargetName): List<AstType.REF> {
+		return this.flatMap { it.getClassReferences(targetName) }
 	}
 
-	fun Any?.getClassReferences(): List<AstType.REF> {
+	fun Any?.getClassReferences(targetName: TargetName): List<AstType.REF> {
 		return when (this) {
 			null -> listOf()
-			is List<*> -> this.flatMap { it.getClassReferences() }
-			is AstAnnotation -> this.getClassReferences()
+			is List<*> -> this.flatMap { it.getClassReferences(targetName) }
+			is AstAnnotation -> this.getClassReferences(targetName)
 			is AstBody -> this.getClassReferences()
 			is AstStm -> this.getClassReferences()
-			is AstMethod -> this.getClassReferences()
-			is AstField -> this.getClassReferences()
-			is AstClass -> this.getClassReferences()
+			is AstMethod -> this.getClassReferences(targetName)
+			is AstField -> this.getClassReferences(targetName)
+			is AstClass -> this.getClassReferences(targetName)
 			else -> listOf()
 		}
 	}
 
-	fun AstAnnotation.getClassReferences(): List<AstType.REF> {
-		return listOf(this.type) + this.elements.values.getClassReferences()
+	fun AstAnnotation.getClassReferences(targetName: TargetName): List<AstType.REF> {
+		return listOf(this.type) + this.elements.values.getClassReferences(targetName)
 	}
 
 	fun AstBody.getClassReferences(): List<AstType.REF> {

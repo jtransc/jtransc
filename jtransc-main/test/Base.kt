@@ -102,12 +102,12 @@ open class Base {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor? = null): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, treeShaking = treeShaking)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null) {
-		Assert.assertEquals(expected.trimIndent(), runClass<T>(minimize = minimize, debug = debug, target = target).trim())
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null) {
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, target = target, treeShaking = treeShaking).trim()))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {

@@ -153,9 +153,7 @@ public class System {
 		"return N::str(std::getenv(str.c_str()));"
 	})
 	@JTranscMethodBody(target = "d", value = "return N.str(std.process.environment.get(N.istr2(p0)));")
-	public static String getenv(String name) {
-		return null;
-	}
+	native public static String getenv(String name);
 
 	@HaxeMethodBody(target = "sys", value = "return N.hashMap(Sys.environment());")
 	@HaxeMethodBody(target = "js", value = "return N.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")

@@ -15,20 +15,12 @@
  */
 
 import big.HelloWorldTest
-import com.jtransc.ConfigClassPaths
-import com.jtransc.JTranscBuild
-import com.jtransc.JTranscVersion
-import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstTypes
-import com.jtransc.ast.ConfigMinimizeNames
-import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.gen.js.JsTarget
-import com.jtransc.injector.Injector
-import javatest.GenTargetDescriptor
 import javatest.misc.BenchmarkTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
+import jtransc.ref.MethodBodyReferencesTest
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 
@@ -61,7 +53,16 @@ class JsTest : Base() {
 		floats:2 : [0.0, 0.0]
 		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
 		floats:2 : [1.0, -1.0]
-	""", target = JsTarget(), minimize = false)
+		MethodBodyReferencesTestJs:true
+		MethodBodyReferencesTestCpp:false
+		MethodBodyReferencesTestJvm:false
+	""", target = JsTarget(), minimize = false, treeShaking = true)
+
+	@Test fun referencesTest() = testNativeClass<MethodBodyReferencesTest>("""
+		MethodBodyReferencesTestJs:true
+		MethodBodyReferencesTestCpp:false
+		MethodBodyReferencesTestJvm:false
+	""", target = JsTarget(), minimize = true, treeShaking = false)
 
 	@Test fun extraKeywordsJs() = testNativeClass<ExtraKeywordsTest>("""
 		1
