@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsole;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -89,7 +90,25 @@ public class Throwable implements Serializable {
 	}
 
 	public void printStackTrace() {
-		printStackTrace(System.err);
+		// Print our stack trace
+		JTranscConsole.error(this);
+		StackTraceElement[] trace = this.stackTrace;
+		for (StackTraceElement traceElement : trace)
+			JTranscConsole.error("\tat " + traceElement);
+
+		// Print suppressed exceptions, if any
+		for (Throwable se : getSuppressed()) {
+			JTranscConsole.error("Supressed:");
+			se.printStackTrace();
+		}
+
+		// Print cause, if any
+		Throwable ourCause = getCause();
+
+		if (ourCause != null) {
+			JTranscConsole.error("Cause:");
+			ourCause.printStackTrace();
+		}
 	}
 
 	public void printStackTrace(PrintStream s) {
@@ -101,7 +120,7 @@ public class Throwable implements Serializable {
 
 		// Print suppressed exceptions, if any
 		for (Throwable se : getSuppressed()) {
-			System.out.println("Supressed:");
+			JTranscConsole.error("Supressed:");
 			se.printStackTrace(s);
 		}
 
@@ -109,7 +128,7 @@ public class Throwable implements Serializable {
 		Throwable ourCause = getCause();
 
 		if (ourCause != null) {
-			System.out.println("Cause:");
+			JTranscConsole.error("Cause:");
 			ourCause.printStackTrace(s);
 		}
 	}

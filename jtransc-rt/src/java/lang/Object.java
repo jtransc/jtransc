@@ -16,18 +16,16 @@
 
 package java.lang;
 
-import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.*;
+import com.jtransc.annotation.JTranscAddFile;
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import j.ProgramReflection;
 
 import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 @HaxeAddFilesTemplate(base = "hx", value = {
@@ -56,7 +54,7 @@ public class Object {
 		$$id = $$lastId++;
 	}
 
-	@JTranscKeep
+	//@JTranscKeep
 	public boolean equals(Object obj) {
 		return (this == obj);
 	}
@@ -70,13 +68,13 @@ public class Object {
 		}
 	}
 
-	@JTranscKeep
+	//@JTranscKeep
 	public int hashCode() {
-		return System.identityHashCode(this);
+		return SystemInt.identityHashCode(this);
 	}
 
 	@SuppressWarnings("SuspiciousSystemArraycopy")
-	@JTranscKeep
+	//@JTranscKeep
 	@JTranscMethodBody(target = "js", value = "return N.clone(this);")
 	protected Object clone() throws CloneNotSupportedException {
 		if (JTranscCoreReflection.isArray(this)) {

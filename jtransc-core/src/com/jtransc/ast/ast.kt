@@ -749,8 +749,9 @@ class AstMethod(
 
 		if (targetName.matches("haxe")) {
 			for (methodBody in annotationsList.getTypedList(HaxeMethodBodyList::value)) {
-				if (targetName.matches(methodBody.target)) {
+				if (targetName.haxeMatches(methodBody.target)) {
 					//addTemplateReferences(methodBody.value, "methodBody=$newmethod")
+					dependenciesInBody = false
 				}
 			}
 		}

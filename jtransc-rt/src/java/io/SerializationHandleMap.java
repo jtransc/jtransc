@@ -89,7 +89,7 @@ final class SerializationHandleMap {
     }
 
     private int getModuloHash(Object key, int length) {
-        return (System.identityHashCode(key) & 0x7FFFFFFF) % length;
+        return (SystemInt.identityHashCode(key) & 0x7FFFFFFF) % length;
     }
 
     public int put(Object key, int value) {

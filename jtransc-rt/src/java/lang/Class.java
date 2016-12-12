@@ -23,6 +23,7 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscVisible;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastStringMap;
+import com.jtransc.io.JTranscConsole;
 import j.ClassInfo;
 
 import java.io.InputStream;
@@ -257,7 +258,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 		Class<?> result = _classCache.get(className);
 		if (result == null) {
-			System.err.println("Couldn't find class " + className);
+			JTranscConsole.error("Couldn't find class " + className);
 		}
 		return result;
 	}

@@ -428,7 +428,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	private fun AstMethod.hasHaxeNativeBody(): Boolean = this.annotationsList.contains<HaxeMethodBodyList>() || this.annotationsList.contains<HaxeMethodBody>()
 
-	private fun AstMethod.getHaxeNativeBody(defaultContent: Indenter): Indenter {
+	private fun AstMethod.getHaxeNativeBody(defaultContentGen: () -> Indenter): Indenter {
 		val method = this
 
 		val bodies = this.getHaxeNativeBodyList()
@@ -438,7 +438,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
 			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody: Indenter = if ("" in bodiesmap) Indenter.gen { line(bodiesmap[""]!!) } else defaultContent
+			val defaultbody: Indenter = if ("" in bodiesmap) Indenter.gen { line(bodiesmap[""]!!) } else defaultContentGen()
 			val extrabodies = bodiesmap.filterKeys { it != "" }
 			Indenter.gen {
 				line(pre)
@@ -457,7 +457,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 				line(post)
 			}
 		} else {
-			defaultContent
+			defaultContentGen()
 		}
 	}
 
@@ -515,8 +515,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 						try {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
-							val javaBody = rbody?.genBodyWithFeatures(method) ?: Indenter("throw 'No method body';")
-							line(method.getHaxeNativeBody(javaBody).toString().template())
+							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw 'No method body';") }.toString().template())
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							//e.printStackTrace()
@@ -535,8 +534,7 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			}
 
 			line("$unreflective static public function SI()") {
-				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.str(${e.str.quote()});")
-
+				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.strLit(${e.str.quote()});")
 				if (clazz.hasStaticInit) {
 					val methodName = clazz.staticInitMethod!!.targetName
 					line("$methodName();")

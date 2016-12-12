@@ -105,8 +105,8 @@ public class IdentityHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V
 
         @Override
         public int hashCode() {
-            return System.identityHashCode(key)
-                    ^ System.identityHashCode(value);
+            return SystemInt.identityHashCode(key)
+                    ^ SystemInt.identityHashCode(value);
         }
 
         @Override

@@ -98,26 +98,8 @@ class JTranscBuild(
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
 		//for (cp in classPaths2) log("ClassPath: $cp")
 
-		// @TODO: We should be able to add these references to java.lang.Object using some kind of annotation!!
-		val initialClasses: List<String> = listOf(
-			//java.lang.Object::class.java.name,
-			//java.lang.Void::class.java.name,
-			//java.lang.Byte::class.java.name,
-			//java.lang.Character::class.java.name,
-			//java.lang.Short::class.java.name,
-			//java.lang.Integer::class.java.name,
-			//java.lang.Long::class.java.name,
-			//java.lang.Float::class.java.name,
-			//java.lang.Double::class.java.name,
-			//java.lang.Class::class.java.name,
-			//java.lang.reflect.Method::class.java.name,
-			//java.lang.reflect.Field::class.java.name,
-			//java.lang.reflect.Constructor::class.java.name,
-			//java.lang.annotation.Annotation::class.java.name,
-			//java.lang.reflect.InvocationHandler::class.java.name,
-			//com.jtransc.JTranscWrapped::class.java.name,
-			//com.jtransc.lang.Int64::class.java.name,
-			//ProgramReflection::class.java.name,
+		val initialClasses = listOf(
+			"j.ProgramReflection", // @TODO: This shouldn't be necessary. But haxe target requires it or strings are not initialized when generating reflection types.
 			entryPoint.fqname.fqname
 		)
 

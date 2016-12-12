@@ -1,5 +1,7 @@
 package java.util.logging;
 
+import com.jtransc.io.JTranscConsole;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -160,8 +162,8 @@ public class LogManager {
 				Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 				return clazz.newInstance();
 			} catch (Exception innerE) {
-				System.err.println("Loading class '" + className + "' failed");
-				System.err.println(innerE);
+				JTranscConsole.error("Loading class '" + className + "' failed");
+				JTranscConsole.error(innerE);
 				return null;
 			}
 		}

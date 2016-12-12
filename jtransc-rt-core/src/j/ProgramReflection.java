@@ -4,6 +4,7 @@ import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -30,6 +31,7 @@ public class ProgramReflection {
 
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
+			//if (info.name == null) JTranscConsole.error("ProgramReflection.ensure: info.name==null");
 			_classInfosByName.set(info.name, info);
 			_classNames[info.id] = info.name;
 		}

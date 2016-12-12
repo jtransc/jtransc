@@ -25,12 +25,12 @@ package java.util;
  * // Legacy code:
  * StringTokenizer st = new StringTokenizer("a:b:c", ":");
  * while (st.hasMoreTokens()) {
- *     System.err.println(st.nextToken());
+ *     JTranscConsole.error(st.nextToken());
  * }
  *
  * // New code:
  * for (String token : "a:b:c".split(":")) {
- *     System.err.println(token);
+ *     JTranscConsole.error(token);
  * }
  * </pre>
  * </blockquote>

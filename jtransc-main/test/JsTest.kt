@@ -20,11 +20,13 @@ import javatest.misc.BenchmarkTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
+import jtransc.micro.MicroHelloWorld
 import jtransc.ref.MethodBodyReferencesTest
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 
 class JsTest : Base() {
+	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false)
 	@Test fun testBenchmarkTest() = testClass<BenchmarkTest>(minimize = false, target = JsTarget(), log = false)
 

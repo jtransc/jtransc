@@ -17,6 +17,7 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.text.MStringReader;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ class _InternalUtils {
 		try {
 			return Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			System.err.println("Class_forName0: Can't find class '" + className + "'");
+			JTranscConsole.error("Class_forName0: Can't find class '" + className + "'");
 			return null;
 		}
 	}

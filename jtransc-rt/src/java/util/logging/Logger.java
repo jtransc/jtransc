@@ -1,5 +1,7 @@
 package java.util.logging;
 
+import com.jtransc.io.JTranscConsole;
+
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -347,7 +349,7 @@ public class Logger {
 
 	public void log(Level logLevel, String msg) {
 		if (!internalIsLoggable(logLevel)) return;
-		System.err.println("Logger.log : " + logLevel + " : " + msg);
+		JTranscConsole.error("Logger.log : " + logLevel + " : " + msg);
 	}
 
 	public void log(Level logLevel, String msg, Object param) {

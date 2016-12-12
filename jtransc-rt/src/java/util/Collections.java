@@ -3330,7 +3330,7 @@ public class Collections {
      * @hide
      */
     public static int secondaryIdentityHash(Object key) {
-        return secondaryHash(System.identityHashCode(key));
+        return secondaryHash(SystemInt.identityHashCode(key));
     }
 
     private static int secondaryHash(int h) {

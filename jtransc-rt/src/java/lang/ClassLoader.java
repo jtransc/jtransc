@@ -47,8 +47,8 @@ public abstract class ClassLoader {
 	}
 
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		//System.err.println("ClassLoader.loadClass('" + name + "');");
-		//System.out.println("ClassLoader.loadClass('" + name + "');");
+		//JTranscConsole.error("ClassLoader.loadClass('" + name + "');");
+		//JTranscConsole.log("ClassLoader.loadClass('" + name + "');");
 		return Class.forName(name);
 	}
 

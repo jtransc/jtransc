@@ -34,6 +34,10 @@ data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: 
 }
 
 data class TargetName(val name: String) {
+	val parts = name.split(':')
+	val primary = parts.getOrElse(0) { "" }
+	val secondary = parts.getOrElse(1) { "" }
+
 	companion object {
 		fun matches(target:String, pattern: String): Boolean {
 			if (pattern == "") return true
@@ -42,7 +46,11 @@ data class TargetName(val name: String) {
 		}
 	}
 
-	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern)
+	fun haxeMatches(pattern: String): Boolean {
+		return (primary == "haxe") && (secondary == pattern || pattern == "")
+	}
+
+	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern) || TargetName.matches(this.primary, pattern)
 
 	fun matches(pattern: List<String>): Boolean = pattern.any { matches(it) }
 }

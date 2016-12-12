@@ -62,9 +62,8 @@ public class System {
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
 
-	//@JTranscMethodBody(target = "cpp", value = "return N::identityHashCode(p0);")
 	public static int identityHashCode(Object x) {
-		return (x != null) ? x.$$id : 0;
+		return SystemInt.identityHashCode(x);
 	}
 
 	public static Properties getProperties() {

@@ -538,7 +538,7 @@ public class BitSet implements Serializable, Cloneable {
      * For example: {@code "{0,1,8}"}.
      */
     @Override public String toString() {
-        //System.err.println("BitSet[longCount=" + longCount + ",bits=" + Arrays.toString(bits) + "]");
+        //JTranscConsole.error("BitSet[longCount=" + longCount + ",bits=" + Arrays.toString(bits) + "]");
         StringBuilder sb = new StringBuilder(longCount / 2);
         sb.append('{');
         boolean comma = false;

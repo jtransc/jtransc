@@ -62,7 +62,7 @@ public class Random implements Serializable {
     public Random() {
         // Note: Using identityHashCode() to be hermetic wrt subclasses.
 		//System.out.println("[a]");
-        setSeed(System.currentTimeMillis() + System.identityHashCode(this));
+        setSeed(System.currentTimeMillis() + SystemInt.identityHashCode(this));
 		//System.out.println("[b]");
     }
 

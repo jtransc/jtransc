@@ -1,5 +1,7 @@
 package java.util.logging;
 
+import com.jtransc.io.JTranscConsole;
+
 public class ErrorManager {
 	public static final int GENERIC_FAILURE = 0;
 	public static final int WRITE_FAILURE = 1;
@@ -26,12 +28,12 @@ public class ErrorManager {
 			}
 			called = true;
 		}
-		System.err.println(this.getClass().getName() + ": " + FAILURES[errorCode]);
+		JTranscConsole.error(this.getClass().getName() + ": " + FAILURES[errorCode]);
 		if (message != null) {
-			System.err.println("Error message - " + message);
+			JTranscConsole.error("Error message - " + message);
 		}
 		if (exception != null) {
-			System.err.println("Exception - " + exception);
+			JTranscConsole.error("Exception - " + exception);
 		}
 	}
 }
