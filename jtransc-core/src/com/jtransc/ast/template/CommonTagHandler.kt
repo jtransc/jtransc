@@ -21,6 +21,7 @@ object CommonTagHandler {
 	data class METHOD(val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean) : Result
 	data class FIELD(val ref: AstFieldRef, val field: AstField, val isStatic: Boolean) : Result
 	data class CLASS(val clazz: AstClass) : Result
+	data class CLASS_REF(val clazz: FqName) : Result
 
 	fun getRefFqName(desc: String, params: HashMap<String, Any?>): FqName {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
@@ -28,10 +29,14 @@ object CommonTagHandler {
 		return dataParts[0].replace('@', '$').fqname
 	}
 
+	private fun resolveClassName(str: String, params: HashMap<String, Any?>): FqName {
+		return str.replace('@', '$').fqname
+	}
+
 	fun getRef(program: AstProgram, type: String, desc: String, params: HashMap<String, Any?>): Result {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
 		val desc2 = dataParts.joinToString(":")
-		val classFqname = dataParts[0].replace('@', '$').fqname
+		val classFqname = resolveClassName(dataParts[0], params)
 		if (!program.contains(classFqname)) {
 			invalidOp("evalReference: Can't find class '$classFqname' (I)")
 		}
@@ -73,8 +78,6 @@ object CommonTagHandler {
 
 	fun getClassRef(program: AstProgram, type: String, desc: String, params: HashMap<String, Any?>): FqName {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
-		val desc2 = dataParts.joinToString(":")
-		val classFqname = dataParts[0].replace('@', '$').fqname
-		return classFqname
+		return resolveClassName(dataParts[0], params)
 	}
 }

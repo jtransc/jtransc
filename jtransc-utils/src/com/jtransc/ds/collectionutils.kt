@@ -91,6 +91,7 @@ class Stack<T>(
 	override fun iterator(): Iterator<T> = data.iterator()
 
 	fun isEmpty() = !hasMore
+	fun isNotEmpty() = hasMore
 }
 
 // @TODO: Make clearer!

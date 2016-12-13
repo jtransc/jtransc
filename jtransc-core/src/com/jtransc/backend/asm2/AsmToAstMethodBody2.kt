@@ -5,9 +5,11 @@ import com.jtransc.backend.JvmOpcode
 import com.jtransc.backend.asm1.disasm
 import com.jtransc.backend.isEnd
 import com.jtransc.backend.isEndOfBasicBlock
+import com.jtransc.backend.isStatic
 import com.jtransc.ds.Stack
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unsupported
+import com.jtransc.log.log
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
@@ -27,9 +29,12 @@ interface TIR {
 		override var next: TIR? = null
 	}
 
+	data class NOP(val dummy: Boolean) : TIR by Mixin()
+	data class PHI_PLACEHOLDER(val dummy: Boolean) : TIR by Mixin()
+
 	data class LABEL(val label: Label) : TIR by Mixin()
 	data class THIS(val dst: Local, val thisType: AstType) : TIR by Mixin()
-	data class PHI(val dst: Local, val params: ArrayList<Operand> = arrayListOf()) : TIR by Mixin()
+	data class PHI(val dst: Local, val params: ArrayList<PHIOption> = arrayListOf()) : TIR by Mixin()
 	data class PARAM(val dst: Local, val paramIndex: Int, val paramType: AstType) : TIR by Mixin()
 	data class MOV(val dst: Local, val src: Operand) : TIR by Mixin()
 	//data class CST(val dst: Local, val value: Number) : TOIR by Mixin()
@@ -57,6 +62,8 @@ interface TIR {
 	data class SWITCH_GOTO(val subject: Operand, val label: Label?, val toMap: Map<Int, Label>) : TIR by Mixin()
 }
 
+data class PHIOption(val branch: AbstractInsnNode, val op: Operand)
+
 interface Operand {
 	val type: AstType
 }
@@ -65,6 +72,12 @@ data class Local(override val type: AstType, val v: Int) : Operand {
 }
 
 data class Constant(override val type: AstType, val v: Any?) : Operand {
+}
+
+data class Param(override val type: AstType, val index: Int) : Operand {
+}
+
+data class This(override val type: AstType) : Operand {
 }
 
 data class CatchException(override val type: AstType) : Operand {
@@ -92,13 +105,28 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		builder.buildTree(tcb.handler, initialStack = listOf(CatchException(exceptionType)))
 	}
 
-	println("--------")
+	// Remove PHI nodes
+	//builder.removePHI()
+
+	val outStms = arrayListOf<TIR>()
+
+	var varIndex = 0
+	if (!method.isStatic()) {
+		outStms += TIR.THIS(Local(clazz, varIndex++), clazz)
+	}
+	for (arg in methodType.args) {
+		outStms += TIR.PARAM(Local(arg.type, varIndex++), arg.index, arg.type)
+	}
+
 	for (i in method.instructions.toArray().toList()) {
 		if (i in builder.startToBlocks) {
-			for (stm in builder.startToBlocks[i]!!.stms) {
-				println("$stm")
-			}
+			outStms += builder.startToBlocks[i]!!.stms
 		}
+	}
+
+	println("--------")
+	for (stm in outStms) {
+		println(stm)
 	}
 
 	return AstBody(
@@ -112,6 +140,7 @@ class BlockContext {
 	var hasInvokeDynamic = false
 	var tempId = 1000
 	fun createTemp(type: AstType) = Local(type, tempId++)
+	fun getVar(type: AstType, v: Int) = Local(type, v)
 }
 
 class BlockCfgBuilder(val types: AstTypes) {
@@ -138,6 +167,31 @@ class BlockCfgBuilder(val types: AstTypes) {
 			}
 		}
 	}
+
+	fun removePHI() {
+		for (block in startToBlocks.values) {
+			removePHI(block.stms)
+		}
+	}
+
+	fun removePHI(items: ArrayList<TIR>) {
+		for ((n, item) in items.withIndex()) {
+			if (item is TIR.PHI) {
+				val phi = item
+				for (param in phi.params) {
+					val predecessorStms = startToBlocks[param.branch]!!.stms
+					// @TODO: Use linkedlist nodes to totally avoid searching
+					val placeHolderIndex = predecessorStms.indexOfLast { it is TIR.PHI_PLACEHOLDER }
+					if (placeHolderIndex >= 0) {
+						predecessorStms[placeHolderIndex] = TIR.MOV(phi.dst, param.op)
+					} else {
+						println("Not found PHI placeholder")
+					}
+				}
+				items[n] = TIR.NOP(false)
+			}
+		}
+	}
 }
 
 class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
@@ -145,6 +199,8 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
 	val stms = arrayListOf<TIR>()
 	val stack = Stack<Operand>()
+
+	fun getVar(type: AstType, v: Int) = blockContext.getVar(type, v)
 
 	fun pop(): Operand {
 		return stack.pop()
@@ -172,7 +228,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 		for (v in l) stack.push(v)
 	}
 
-	fun getVar(type: AstType, v: Int) = Local(type, v)
+	lateinit var start: AbstractInsnNode
 
 	fun createTemp(type: AstType) = blockContext.createTemp(type)
 	val allSuccessors = arrayListOf<AbstractInsnNode>()
@@ -193,12 +249,13 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			predecessors += predecessor
 			for ((index, item) in predecessor.stack.toList().withIndex()) {
 				val phi = stms[index] as TIR.PHI
-				phi.params += item
+				phi.params += PHIOption(predecessor.start, item)
 			}
 		}
 	}
 
 	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlockBuilder?, initialStack: List<Operand>? = null) {
+		this.start = start
 		if (onePredecessor != null) registerPredecessor(onePredecessor)
 		if (initialStack != null) {
 			for (s in initialStack) push(s)
@@ -314,6 +371,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 
 		val subject = pop()
 
+		phiPlaceholder()
 		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
@@ -327,6 +385,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 
 		val subject = pop()
 
+		phiPlaceholder()
 		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
@@ -383,24 +442,39 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			in Opcodes.IFEQ..Opcodes.IFLE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFEQ]
 				val value = stack.pop()
+				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0)))
 			}
 			Opcodes.IFNULL, Opcodes.IFNONNULL -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFNULL]
 				val value = stack.pop()
+				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.OBJECT, null)))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IF_ICMPEQ]
 				val valueL = stack.pop()
 				val valueR = stack.pop()
+				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, valueL, op, valueR))
 			}
 			Opcodes.GOTO -> {
+				phiPlaceholder()
 				add(TIR.JUMP(n.label.label))
 			}
 		}
 		//n.label
+	}
+
+	private fun emptyStack() {
+		if (stack.isNotEmpty()) {
+			log.warn("Stack is not empty on ATHROW or RETURN")
+		}
+		while (stack.isNotEmpty()) stack.pop()
+	}
+
+	private fun phiPlaceholder() {
+		for (n in 0 until stack.length) add(TIR.PHI_PLACEHOLDER(false))
 	}
 
 	fun decodeIincNode(n: IincInsnNode) {
@@ -412,7 +486,8 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 	}
 
 	fun decodeLabelNode(n: LabelNode) {
-		add(TIR.LABEL(n.label))
+		//add(TIR.LABEL(n.label))
+
 		//Unit // Do nothing. We handle basic blocks in other place.
 	}
 
@@ -555,8 +630,14 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			Opcodes.FCMPL, Opcodes.DCMPL -> binop(AstType.INT, "cmpl")
 			Opcodes.FCMPG, Opcodes.DCMPG -> binop(AstType.INT, "cmpg")
 
-			Opcodes.RETURN -> ret(AstType.VOID)
-			in Opcodes.IRETURN..Opcodes.ARETURN -> ret(TPRIM[op - Opcodes.IRETURN])
+			Opcodes.RETURN -> {
+				ret(AstType.VOID)
+				emptyStack()
+			}
+			in Opcodes.IRETURN..Opcodes.ARETURN -> {
+				ret(TPRIM[op - Opcodes.IRETURN])
+				emptyStack()
+			}
 
 			Opcodes.ARRAYLENGTH -> {
 				val array = pop()
@@ -567,6 +648,7 @@ class BasicBlockBuilder(val types: AstTypes, val blockContext: BlockContext) {
 			Opcodes.ATHROW -> {
 				val ex = pop()
 				add(TIR.THROW(ex))
+				emptyStack()
 			}
 			Opcodes.MONITORENTER, Opcodes.MONITOREXIT -> {
 				val obj = pop()

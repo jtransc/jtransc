@@ -132,8 +132,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClass(clazz: AstClass): Indenter = Indenter.gen {
-		currentClass = clazz.name
-		context.clazz = clazz
+		setCurrentClass(clazz)
 
 		line(genClassDecl(clazz)) {
 			line(genClassBody(clazz))
@@ -185,10 +184,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genMetodDecl(method: AstMethod): String {
 		val args = method.methodType.args.map { it.argDecl }
-		val override = if (!method.isStatic && method.targetIsOverriding) "override " else ""
-		val istatic = if (method.isStatic) "static " else ""
 
-		return "$istatic$override${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
+		var mods = ""
+		if (!method.isStatic && method.targetIsOverriding) mods += "override "
+		if (method.isStatic) mods += "static "
+		//if (method.isInstanceInit) mods += "final "
+
+		return "$mods${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
 	}
 
 	open val AstMethod.actualRetType: AstType get() = if (this.isInstanceInit) this.containingClass.astType else this.methodType.ret
@@ -247,6 +249,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	protected fun setCurrentClass(clazz: AstClass) {
 		context.clazz = clazz
 		currentClass = clazz.name
+		params["CLASS"] = clazz.fqname
 	}
 
 	protected fun setCurrentMethod(method: AstMethod) {
@@ -1307,6 +1310,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
 		hashMapOf(
+			"CLASS" to "",
 			"outputFolder" to outputFile2.parent,
 			"outputFile" to outputFile2.absolutePath,
 			"outputFileBase" to outputFile2.name,

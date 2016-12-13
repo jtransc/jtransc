@@ -2,7 +2,6 @@ package com.jtransc.template
 
 import com.jtransc.ds.ListReader
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.lang.Dynamic
 import com.jtransc.text.*
 import java.io.File
@@ -12,7 +11,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 	val node = BlockNode.parse(templateTokens, config)
 
 	class Config(
-			private val extraTags: List<Tag> = listOf(),
+		private val extraTags: List<Tag> = listOf(),
 		private val extraFilters: List<Filter> = listOf()
 	) {
 		val integratedFilters = listOf(
@@ -40,7 +39,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 	}
 
-	data class Filter(val name:String, val eval: (subject: Any?, args: List<Any?>) -> Any?)
+	data class Filter(val name: String, val eval: (subject: Any?, args: List<Any?>) -> Any?)
 
 	class Scope(val map: Any?, val parent: Scope? = null) {
 		operator fun get(key: Any?): Any? {
@@ -59,7 +58,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		return str.toString()
 	}
 
-	class Context(var scope: Scope, val config: Config, val write: (str:String) -> Unit) {
+	class Context(var scope: Scope, val config: Config, val write: (str: String) -> Unit) {
 		inline fun createScope(callback: () -> Unit) = this.apply {
 			val old = this.scope
 			this.scope = Scope(hashMapOf<Any?, Any?>(), old)
@@ -83,7 +82,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			override fun eval(context: Context): Any? = items.map { it.eval(context) }
 		}
 
-		data class FILTER(val name:String, val expr: ExprNode, val params: List<ExprNode>) : ExprNode {
+		data class FILTER(val name: String, val expr: ExprNode, val params: List<ExprNode>) : ExprNode {
 			override fun eval(context: Context): Any? {
 				val filter = context.config.filters[name] ?: invalidOp("Unknown filter '$name'")
 				return filter.eval(expr.eval(context), params.map { it.eval(context) })
@@ -96,7 +95,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				val key = name.eval(context)
 				try {
 					return Dynamic.accessAny(obj, key)
-				} catch (t:Throwable) {
+				} catch (t: Throwable) {
 					try {
 						return Dynamic.callAny(obj, key, listOf())
 					} catch (t: Throwable) {
@@ -125,13 +124,13 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 
 		companion object {
-			fun ListReader<Token>.expectPeek(vararg types:String):Token {
+			fun ListReader<Token>.expectPeek(vararg types: String): Token {
 				val token = this.peek()
 				if (token.text !in types) throw RuntimeException("Expected ${types.joinToString(", ")}")
 				return token
 			}
 
-			fun ListReader<Token>.expect(vararg types:String):Token {
+			fun ListReader<Token>.expect(vararg types: String): Token {
 				val token = this.read()
 				if (token.text !in types) throw RuntimeException("Expected ${types.joinToString(", ")}")
 				return token
@@ -141,11 +140,11 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				return parseFullExpr(Token.tokenize(str))
 			}
 
-			fun parseId(r: ListReader<ExprNode.Token>):String {
+			fun parseId(r: ListReader<ExprNode.Token>): String {
 				return r.read().text
 			}
 
-			fun expect(r: ListReader<ExprNode.Token>, vararg tokens:String) {
+			fun expect(r: ListReader<ExprNode.Token>, vararg tokens: String) {
 				val token = r.read()
 				if (token.text !in tokens) invalidOp("Expected ${tokens.joinToString(", ")} but found $token")
 			}
@@ -169,7 +168,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				while (r.hasMore) {
 					if (r.peek() !is Token.TOperator || r.peek().text !in BINOPS) break
 					val operator = r.read().text
-					var right = parseFinal(r)
+					val right = parseFinal(r)
 					result = ExprNode.BINOP(result, right, operator)
 				}
 				// @TODO: Fix order!
@@ -189,11 +188,11 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						if (r.read().text != ")") throw RuntimeException("Expected ')'")
 						result
 					}
-					// Array literal
+				// Array literal
 					"[" -> {
 						val items = arrayListOf<ExprNode>()
 						r.read()
-						loop@while (r.hasMore && r.peek().text != "]") {
+						loop@ while (r.hasMore && r.peek().text != "]") {
 							items += parseExpr(r)
 							when (r.peek().text) {
 								"," -> r.read()
@@ -215,7 +214,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					}
 				}
 
-				loop@while (r.hasMore) {
+				loop@ while (r.hasMore) {
 					when (r.peek().text) {
 						"." -> {
 							r.read()
@@ -236,7 +235,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 							val args = arrayListOf<ExprNode>()
 							if (r.peek().text == "(") {
 								r.read()
-								callargsloop@while (r.hasMore && r.peek().text != ")") {
+								callargsloop@ while (r.hasMore && r.peek().text != ")") {
 									args += parseExpr(r)
 									when (r.expectPeek(",", ")").text) {
 										"," -> r.read()
@@ -250,7 +249,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						"(" -> {
 							r.read()
 							val args = arrayListOf<ExprNode>()
-							callargsloop@while (r.hasMore && r.peek().text != ")") {
+							callargsloop@ while (r.hasMore && r.peek().text != ")") {
 								args += parseExpr(r)
 								when (r.expectPeek(",", ")").text) {
 									"," -> r.read()
@@ -372,7 +371,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 
 		companion object {
-			fun group(children: List<BlockNode>): BlockNode = if (children.size == 1) children[0] else GROUP(children.toList())
+			fun group(children: List<BlockNode>): BlockNode = if (children.size == 1) children[0] else GROUP(children)
 
 			fun parse(tokens: List<Token>, config: Config): BlockNode {
 				val tr = ListReader(tokens)
@@ -385,7 +384,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 						parts += TagPart(currentToken, BlockNode.group(children))
 					}
 
-					loop@while (!tr.eof) {
+					loop@ while (!tr.eof) {
 						val it = tr.read()
 						when (it) {
 							is Token.TLiteral -> children += BlockNode.TEXT(it.content)

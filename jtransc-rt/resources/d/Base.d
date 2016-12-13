@@ -16,6 +16,7 @@ import core.stdc.stdlib;
 import core.thread;
 import core.time;
 import core.sync.mutex;
+import core.atomic;
 
 int slen(string s) { return cast(int)s.length; }
 int slen(wstring s) { return cast(int)s.length; }

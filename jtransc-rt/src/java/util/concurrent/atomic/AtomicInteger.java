@@ -16,6 +16,9 @@
 
 package java.util.concurrent.atomic;
 
+import com.jtransc.annotation.JTranscMethodBody;
+
+@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class AtomicInteger extends Number implements java.io.Serializable {
 	private volatile int value;
 
@@ -26,35 +29,55 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 	public AtomicInteger() {
 	}
 
+	// http://dlang.org/library/core/atomic.html
+	//MemoryOrder:
+	//acq	Hoist-load + hoist-store barrier.
+	//raw	Not sequenced.
+	//rel	Sink-load + sink-store barrier.
+	//seq	Fully sequenced (acquire + release).
+
+	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicLoad!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this.{% FIELD #CLASS:value %});")
 	public final int get() {
 		return value;
 	}
 
+	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
 	public final void set(int newValue) {
 		value = newValue;
 	}
 
+	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.raw)(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
 	public final void lazySet(int newValue) {
-		value = newValue;
+		set(newValue);
 	}
 
-	public final int getAndSet(int newValue) {
-		int old = this.value;
-		this.value = newValue;
-		return old;
-	}
-
-	private int _setAndSet(int newValue) {
-		return this.value = newValue;
-	}
-
+	@JTranscMethodBody(target = "d", value = "return core.atomic.cas(cast(shared(int *))&this.{% FIELD #CLASS:value %}, cast(const(int))p0, p1);")
 	public final boolean compareAndSet(int expect, int update) {
-		if (this.value == expect) {
-			this.value = update;
+		if (get() == expect) {
+			set(update);
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicOp!(\"+=\")(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
+	private int _addAndGet(int delta) {
+		return this.value = get() + delta;
+	}
+
+	public final int addAndGet(int delta) {
+		return _addAndGet(delta);
+	}
+
+	public final int getAndAdd(int delta) {
+		return _addAndGet(delta) - delta;
+	}
+
+	public final int getAndSet(int newValue) {
+		int old = get();
+		set(newValue);
+		return old;
 	}
 
 	public final boolean weakCompareAndSet(int expect, int update) {
@@ -62,27 +85,19 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 	}
 
 	public final int getAndIncrement() {
-		return getAndSet(this.value + 1);
+		return getAndAdd(+1);
 	}
 
 	public final int getAndDecrement() {
-		return getAndSet(this.value - 1);
-	}
-
-	public final int getAndAdd(int delta) {
-		return getAndSet(this.value + delta);
+		return getAndAdd(-1);
 	}
 
 	public final int incrementAndGet() {
-		return _setAndSet(this.value + 1);
+		return addAndGet(+1);
 	}
 
 	public final int decrementAndGet() {
-		return _setAndSet(this.value - 1);
-	}
-
-	public final int addAndGet(int delta) {
-		return _setAndSet(this.value + delta);
+		return addAndGet(-1);
 	}
 
 	public String toString() {

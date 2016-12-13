@@ -111,8 +111,11 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun genField(field: AstField): Indenter = Indenter.gen {
-		val istatic = if (field.isStatic) "__gshared " else ""
-		line("$istatic${field.type.targetName} ${field.targetName} = ${field.type.getNull().escapedConstant};")
+		var targetType = field.type.targetName
+		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
+		if (field.isStatic) targetType = "__gshared $targetType"
+
+		line("$targetType ${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
 	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {

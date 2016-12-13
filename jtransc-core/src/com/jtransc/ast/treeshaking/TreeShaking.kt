@@ -74,8 +74,8 @@ class TreeShakingApi(
 	}.map { it.name }.toSet()
 	// oldclazz.annotationsList.list.any { it.type.name in classesWithKeepConstructors })
 
-	fun addTemplateReferences(template: String, templateReason: String) {
-		val refs = GetTemplateReferences(oldprogram, template)
+	fun addTemplateReferences(template: String, currentClass: FqName, templateReason: String) {
+		val refs = GetTemplateReferences(oldprogram, template, currentClass)
 		val reason = "template $templateReason"
 		for (ref in refs) {
 			if (SHAKING_TRACE) println("TEMPLATEREF: $ref")
@@ -192,7 +192,7 @@ class TreeShakingApi(
 				if (templateFiles.isNotEmpty()) {
 					for (pf in templateFiles) {
 						val filecontent = program.resourcesVfs[pf].readString()
-						addTemplateReferences(filecontent, templateReason = "HaxeAddFilesTemplate: $pf")
+						addTemplateReferences(filecontent, fqname, templateReason = "HaxeAddFilesTemplate: $pf")
 					}
 				}
 			}
@@ -204,7 +204,7 @@ class TreeShakingApi(
 					val possibleFiles = listOf(file.prepend, file.append, file.prependAppend)
 					for (pf in possibleFiles.filter { !it.isNullOrEmpty() }) {
 						val filecontent = program.resourcesVfs[pf].readString()
-						addTemplateReferences(filecontent, templateReason = "JTranscAddFileList: $pf")
+						addTemplateReferences(filecontent, fqname, templateReason = "JTranscAddFileList: $pf")
 					}
 				}
 			}
@@ -296,14 +296,14 @@ class TreeShakingApi(
 		if (targetName.matches("haxe")) {
 			for (methodBody in newmethod.annotationsList.getTypedList(HaxeMethodBodyList::value)) {
 				if (targetName.matches(methodBody.target)) {
-					addTemplateReferences(methodBody.value, "methodBody=$newmethod")
+					addTemplateReferences(methodBody.value, methodRef.containingClass, "methodBody=$newmethod")
 				}
 			}
 		}
 
 		for (methodBody in newmethod.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
 			if (targetName.matches(methodBody.target)) {
-				addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
+				addTemplateReferences(methodBody.value.joinToString("\n"), methodRef.containingClass, "methodBody=$newmethod")
 			}
 		}
 
@@ -347,7 +347,7 @@ class TreeShakingApi(
 			for (filePath in addFile.filesToProcess()) {
 				val filecontent = program.resourcesVfs[filePath].readString()
 				if (SHAKING_TRACE) println("PROCESSNG(TargetAddFile::${newclazz.name}): $filePath")
-				addTemplateReferences(filecontent, templateReason = "TargetAddFile : ${newclazz.name}")
+				addTemplateReferences(filecontent, newclazz.name, templateReason = "TargetAddFile : ${newclazz.name}")
 			}
 			//println(":" + addFile.prependAppend)
 			//println(":" + addFile.prepend)
@@ -413,7 +413,7 @@ fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: Li
 	// HACK
 		"cpp" -> {
 			val filecontent = program.resourcesVfs["cpp/Base.cpp"].readString()
-			shaking.addTemplateReferences(filecontent, templateReason = "<base target>: cpp/Base.cpp")
+			shaking.addTemplateReferences(filecontent, "java.lang.Object".fqname, templateReason = "<base target>: cpp/Base.cpp")
 		}
 	}
 

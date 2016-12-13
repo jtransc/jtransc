@@ -28,6 +28,30 @@ public class AtomicTest {
 		System.out.println(ref.get());
 		ref.compareAndSet(14, -14);
 		System.out.println(ref.get());
+		//ref.set(11);
+		System.out.println("incrementAndGet[0]:" + ref.get());
+		System.out.println("incrementAndGet[1]:" + ref.incrementAndGet());
+		System.out.println("incrementAndGet[2]:" + ref.get());
+		//ref.set(11);
+		System.out.println("getAndIncrement[0]:" + ref.get());
+		System.out.println("getAndIncrement[1]:" + ref.getAndIncrement());
+		System.out.println("getAndIncrement[2]:" + ref.get());
+		//ref.set(11);
+		System.out.println("decrementAndGet[0]:" + ref.get());
+		System.out.println("decrementAndGet[1]:" + ref.decrementAndGet());
+		System.out.println("decrementAndGet[2]:" + ref.get());
+		//ref.set(11);
+		System.out.println("getAndDecrement[0]:" + ref.get());
+		System.out.println("getAndDecrement[1]:" + ref.getAndDecrement());
+		System.out.println("getAndDecrement[2]:" + ref.get());
+		//ref.set(11);
+		System.out.println("addAndGet[0]:" + ref.get());
+		System.out.println("addAndGet[1]:" + ref.addAndGet(1000));
+		System.out.println("addAndGet[2]:" + ref.get());
+		//ref.set(11);
+		System.out.println("getAndAdd[0]:" + ref.get());
+		System.out.println("getAndAdd[1]:" + ref.getAndAdd(2000));
+		System.out.println("getAndAdd[2]:" + ref.get());
 	}
 
 	private static void testAtomicReference() {
