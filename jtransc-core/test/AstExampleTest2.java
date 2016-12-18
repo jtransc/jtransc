@@ -1,45 +1,48 @@
 public class AstExampleTest2 {
 	boolean test = true;
 
-	private boolean isLetter(char c) {
-		return c >= 'a' && c <= 'z';
+	//private boolean isLetter(char c) {return c >= 'a' && c <= 'z';}
+
+	private void test() {
+		byte[] out = new byte[16];
+		for (int n = 0; n < out.length; n++) out[n] = (byte) n;
 	}
 
-	private boolean isDigit(char c) {
-		return c >= '0' && c <= '9';
-	}
-
-	static private int demo(int a) {
-		a = a + 10;
-		return a;
-	}
-
-	static private int[] demo2() {
-		return new int[]{100, 101, 102, 103, 104};
-	}
-
-	static private boolean isLetterOrDigit(char c) {
-		return Character.isLetter(c) || Character.isDigit(c);
-	}
-
-	static private int max(int a, int b) {
-		return (a > b) ? a : b;
-	}
-
-	static private int clamp(int v, int min, int max) {
-		return (v < min) ? min : ((v > max) ? max : v);
-	}
-
-	static private String tryCatchTest(int a, int b) {
-		try {
-			if (a == b) throw new RuntimeException("equals");
-			return "ok";
-		} catch (RuntimeException t) {
-			return "exception";
-		} finally {
-			System.out.println("Demo");
-		}
-	}
+	//private boolean isDigit(char c) {
+	//	return c >= '0' && c <= '9';
+	//}
+//
+	//static private int demo(int a) {
+	//	a = a + 10;
+	//	return a;
+	//}
+//
+	//static private int[] demo2() {
+	//	return new int[]{100, 101, 102, 103, 104};
+	//}
+//
+	//static private boolean isLetterOrDigit(char c) {
+	//	return Character.isLetter(c) || Character.isDigit(c);
+	//}
+//
+	//static private int max(int a, int b) {
+	//	return (a > b) ? a : b;
+	//}
+//
+	//static private int clamp(int v, int min, int max) {
+	//	return (v < min) ? min : ((v > max) ? max : v);
+	//}
+//
+	//static private String tryCatchTest(int a, int b) {
+	//	try {
+	//		if (a == b) throw new RuntimeException("equals");
+	//		return "ok";
+	//	} catch (RuntimeException t) {
+	//		return "exception";
+	//	} finally {
+	//		System.out.println("Demo");
+	//	}
+	//}
 //
 	//public boolean isDirectory() {
 	//	//if (isInvalid()) return false;

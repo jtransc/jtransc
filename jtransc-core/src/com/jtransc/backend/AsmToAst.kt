@@ -18,6 +18,8 @@ import java.util.*
 
 @Singleton
 abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
+	open val expandFrames = false
+
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
 		val cr = try {
 			ClassReader(program.getClassBytes(fqname))
@@ -25,7 +27,7 @@ abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
 			invalidOp("Can't find class $fqname")
 		}
 		val classNode = ClassNode()
-		cr.accept(classNode, ClassReader.SKIP_FRAMES)
+		cr.accept(classNode, if (expandFrames) ClassReader.EXPAND_FRAMES else ClassReader.SKIP_FRAMES)
 
 		// SourceFile
 

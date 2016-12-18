@@ -3,9 +3,10 @@ package com.jtransc.backend.asm2
 import com.jtransc.ast.*
 import com.jtransc.backend.BaseAsmToAst
 import com.jtransc.backend.asm1.AsmToAstMethodBody1
+import com.jtransc.backend.asm1.disasm
+import com.jtransc.backend.isStatic
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
-import com.jtransc.error.invalidOp
 import com.jtransc.injector.Singleton
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
@@ -14,19 +15,12 @@ import com.jtransc.org.objectweb.asm.tree.LabelNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
 import com.jtransc.org.objectweb.asm.tree.TryCatchBlockNode
 import java.util.*
-import kotlin.collections.List
-import kotlin.collections.arrayListOf
-import kotlin.collections.contains
-import kotlin.collections.hashMapOf
-import kotlin.collections.indexOfLast
-import kotlin.collections.listOf
-import kotlin.collections.plusAssign
 import kotlin.collections.set
-import kotlin.collections.toList
-import kotlin.collections.withIndex
 
 @Singleton
 class AsmToAst2(types: AstTypes) : BaseAsmToAst(types) {
+	override val expandFrames = true
+
 	override fun genBody(classRef: AstType.REF, methodNode: MethodNode, types: AstTypes, source: String): AstBody {
 		return AsmToAstMethodBody1(classRef, methodNode, types, source)
 	}
@@ -41,7 +35,7 @@ interface Operand {
 }
 
 data class Local(override val type: AstType, val index: Int) : Operand {
-	override fun toString(): String = "\$$index"
+	override fun toString(): String = "\$$index:$type"
 
 	class Box(var local: Local)
 }
@@ -80,19 +74,42 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	//val body = BasicBlockBuilder(types)
 	val methodType = types.demangleMethod(method.desc)
 
+	for (i in method.instructions.toArray().toList()) {
+		println(i.disasm())
+	}
+
+	val entryLocals = LocalsBuilder()
+	var varIndex = 0
+	if (!method.isStatic()) {
+		entryLocals.setLocalType(varIndex, clazz)
+		varIndex++
+	}
+	for (arg in methodType.args) {
+		entryLocals.setLocalType(varIndex, arg.type)
+		varIndex += if (arg.type.isLongOrDouble()) 2 else 1
+	}
+
 	val builder = MethodBlocks(clazz, method, types)
 	val context = builder.blockContext
-	builder.buildTree(method.instructions.first)
+	builder.buildTree(method.instructions.first, BasicFrame(entryLocals.locals.toList(), listOf()))
+
 	for (tcb in method.tryCatchBlocks) {
 		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
-		builder.buildTree(tcb.handler, initialStack = listOf(CatchException(exceptionType)))
+		builder.buildTree(tcb.handler, BasicFrame(entryLocals.locals.toList(), listOf(OutputStackElement(CatchException(exceptionType), Local(exceptionType, 9999)))))
+	}
+
+	for (i in method.instructions.toArray().toList()) {
+		if (i in builder.startToBlocks) {
+			println("-----")
+			println(builder.startToBlocks[i]!!.stms.joinToString("\n"))
+		}
 	}
 
 	// Create SSA form
 	SSABuilder(builder).build()
 
 	// Remove PHI nodes
-	builder.removePHI()
+	//builder.removePHI()
 
 	val tirToStm = TirToStm(context, types)
 	for (i in method.instructions.toArray().toList()) {
@@ -147,11 +164,13 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 			when (tir) {
 				is TIR.NOP -> Unit
 				is TIR.MOV -> stms += AstStm.SET_LOCAL(tir.dst.expr, tir.src.expr)
+				is TIR.CONV -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.CAST(tir.src.expr, tir.dst.type))
+				is TIR.ARRAYLENGTH -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_LENGTH(tir.obj.expr))
 				is TIR.NEW -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW(tir.type))
 				is TIR.NEWARRAY -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
 				is TIR.BINOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr, tir.op, tir.r.expr))
-				is TIR.ASTORE -> stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr)
-				is TIR.ALOAD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
+				is TIR.ARRAY_STORE -> stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr)
+				is TIR.ARRAY_LOAD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
 				is TIR.GETSTATIC -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_STATIC_ACCESS(tir.field))
 				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr))
 				is TIR.INVOKE_COMMON -> {
@@ -167,7 +186,7 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 						stms += AstStm.STM_EXPR(expr)
 					}
 				}
-				// control flow:
+			// control flow:
 				is TIR.LABEL -> stms += AstStm.STM_LABEL(tir.label.ast)
 				is TIR.JUMP -> stms += AstStm.GOTO(tir.label.ast)
 				is TIR.JUMP_IF -> stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr))
@@ -190,6 +209,8 @@ interface DefinitionProcessor {
 }
 
 class SSABuilder(val blocks: MethodBlocks) : DefinitionProcessor {
+	val visited = hashSetOf<BasicBlock>()
+
 	override fun use(tir: TIR, c: Operand) {
 	}
 
@@ -202,6 +223,8 @@ class SSABuilder(val blocks: MethodBlocks) : DefinitionProcessor {
 	}
 
 	private fun build(bb: BasicBlock) {
+		if (bb in visited) return
+		visited += bb
 		for (stm in bb.stms) {
 			//println("SSA:$stm")
 		}
@@ -224,23 +247,23 @@ class MethodBlocks(val clazz: AstType.REF, val method: MethodNode, val types: As
 	val startToBlocks = hashMapOf<AbstractInsnNode, BasicBlock>()
 	lateinit var first: BasicBlock
 
-	fun buildTree(start: AbstractInsnNode, initialStack: List<Operand>? = null) {
-		first = build(start, onePredecessor = null, initialStack = initialStack)
+	fun buildTree(start: AbstractInsnNode, initialFrame: BasicFrame) {
+		first = build(start, onePredecessor = null, inputFrame = initialFrame)
 	}
 
-	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlock?, initialStack: List<Operand>? = null): BasicBlock {
+	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlock?, inputFrame: BasicFrame): BasicBlock {
 		val bbb1 = startToBlocks[start]
 		if (bbb1 != null) { // Processed already!
 			if (onePredecessor != null) {
 				bbb1.registerPredecessor(onePredecessor)
 			}
 		} else {
-			val bbb = BasicBlock(types, blockContext).apply {
-				decodeBlock(clazz, method, start, onePredecessor, initialStack)
+			val bbb = BasicBlock(types, blockContext, clazz, method, inputFrame).apply {
+				decodeBlock(start, onePredecessor)
 			}
 			startToBlocks[start] = bbb
 			for (successor in bbb.allSuccessors) {
-				build(successor, onePredecessor = bbb, initialStack = null)
+				build(successor, onePredecessor = bbb, inputFrame = bbb.outputFrame)
 			}
 		}
 		return startToBlocks[start]!!
@@ -270,9 +293,5 @@ class MethodBlocks(val clazz: AstType.REF, val method: MethodNode, val types: As
 			}
 		}
 	}
-}
-
-class OutputStackElement(val operand: Operand, val target: Local) {
-
 }
 

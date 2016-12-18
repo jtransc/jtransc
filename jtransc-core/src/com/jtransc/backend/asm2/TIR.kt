@@ -57,11 +57,11 @@ interface TIR {
 		override fun toStmString() = "$dst = ($dstType)$src;"
 	}
 
-	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) : TIR by Mixin() {
+	data class ARRAY_STORE(val array: Operand, val index: Operand, val value: Operand) : TIR by Mixin() {
 		override fun toStmString() = "$array[$index] = $value;"
 	}
 
-	data class ALOAD(override val dst: Local, val array: Operand, val index: Operand) : TIR by Mixin(), Def {
+	data class ARRAY_LOAD(override val dst: Local, val array: Operand, val index: Operand) : TIR by Mixin(), Def {
 		override fun toStmString() = "$dst = $array[$index];"
 	}
 

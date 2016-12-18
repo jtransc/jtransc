@@ -856,6 +856,8 @@ private class BasicBlockBuilder(
 	}
 }
 
+fun AbstractInsnNode.disasm() = JvmOpcode.disasm(this)
+
 fun JvmOpcode.Companion.disasm(i: AbstractInsnNode): String {
 	val op = BY_ID[i.opcode]
 	return when (i) {

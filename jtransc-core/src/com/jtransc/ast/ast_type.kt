@@ -82,6 +82,10 @@ interface AstType {
 		override fun toString() = "COMMON($elements)"
 	}
 
+	data class MUTABLE(var ref: AstType) {
+		override fun toString() = "MUTABLE($ref)"
+	}
+
 	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 
