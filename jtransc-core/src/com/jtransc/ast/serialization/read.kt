@@ -41,8 +41,8 @@ class AstRead(val types: AstTypes) {
 	fun readExpr(s: InputStream): AstExpr {
 		return when (s.i8()) {
 			AstExprOp.THIS -> AstExpr.THIS(current)
-			AstExprOp.LIT_BOOL_FALSE -> AstExpr.LITERAL(false, types)
-			AstExprOp.LIT_BOOL_TRUE -> AstExpr.LITERAL(true, types)
+			AstExprOp.LIT_BOOL_FALSE -> AstExpr.LITERAL(false)
+			AstExprOp.LIT_BOOL_TRUE -> AstExpr.LITERAL(true)
 			AstExprOp.BIN_ADD -> readBinop(s, AstBinop.ADD)
 			AstExprOp.BIN_SUB -> readBinop(s, AstBinop.SUB)
 			else -> noImpl

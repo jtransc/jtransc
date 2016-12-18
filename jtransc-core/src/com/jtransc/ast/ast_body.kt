@@ -355,11 +355,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 	*/
 
-	class LITERAL(override val value: Any?, val types: AstTypes) : LiteralExpr() {
-		override val type = types.fromConstant(value)
+	class LITERAL(override val value: Any?) : LiteralExpr() {
+		override val type = AstType.fromConstant(value)
 	}
 
-	class LITERAL_REFNAME(override val value: Any?, val types: AstTypes) : LiteralExpr() {
+	class LITERAL_REFNAME(override val value: Any?) : LiteralExpr() {
 		override val type = AstType.STRING
 	}
 
@@ -514,6 +514,8 @@ object AstStmUtils {
 	}
 }
 
+fun AstExpr.castTo(type: AstType): AstExpr = AstExprUtils.cast(this, type)
+
 object AstExprUtils {
 	fun localRef(local: AstLocal): AstExpr.LOCAL {
 		val localExpr = AstExpr.LOCAL(local)
@@ -523,26 +525,26 @@ object AstExprUtils {
 	}
 
 	fun cast(expr: AstExpr, to: AstType): AstExpr {
+		if (expr.type == to) return expr
+
 		if (expr is AstExpr.LITERAL) {
 			val value = expr.value
 			when (value) {
-				is Boolean -> castLiteral(value, to)
-				is Byte -> castLiteral(value, to)
-				is Char -> castLiteral(value, to)
-				is Short -> castLiteral(value, to)
-				is Int -> castLiteral(value, to)
-				is Long -> castLiteral(value, to)
-				is Float -> castLiteral(value, to)
-				is Double -> castLiteral(value, to)
+				null -> Unit
+				is String -> Unit
+				is AstType -> Unit
+				is Boolean -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Byte -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Char -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Short -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Int -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Long -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Float -> return AstExpr.LITERAL(castLiteral(value, to))
+				is Double -> return AstExpr.LITERAL(castLiteral(value, to))
+				else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
 			}
-			//return AstExpr.LITERAL(expr.value)
 		}
-
-		if (expr.type != to) {
-			return AstExpr.CAST(expr, to)
-		} else {
-			return expr
-		}
+		return AstExpr.CAST(expr, to)
 	}
 
 	// Can cast nulls
@@ -644,18 +646,18 @@ open class BuilderBase(val types: AstTypes) {
 
 	fun NEW_ARRAY(element: AstType.ARRAY, size: AstExpr) = AstExpr.NEW_ARRAY(element, listOf(size))
 
-	val NULL: AstExpr get() = AstExpr.LITERAL(null, types)
+	val NULL: AstExpr get() = AstExpr.LITERAL(null)
 
-	val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val AstType.REF.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
-	val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, types)
+	val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val AstType.REF.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+	val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
 
 	val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
 	val AstLocal.expr: AstExpr.LOCAL get() = AstExprUtils.localRef(this)

@@ -5,7 +5,8 @@ import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.injector.Singleton
-import com.jtransc.lang.*
+import com.jtransc.lang.toBool
+import com.jtransc.lang.toInt
 import com.jtransc.text.StrReader
 import com.jtransc.text.readUntil
 import java.io.Serializable
@@ -17,10 +18,10 @@ interface AstType {
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
 		override fun hashCode() = ch.toInt()
-		override fun equals(that: Any?): Boolean {
-			if (that == null) return false;
-			if (that !is Primitive) return false
-			return Objects.equals(this.ch, (that as Primitive?)?.ch)
+		override fun equals(other: Any?): Boolean {
+			if (other == null) return false;
+			if (other !is Primitive) return false
+			return Objects.equals(this.ch, (other as Primitive?)?.ch)
 		}
 
 		override fun toString() = shortName
@@ -159,6 +160,24 @@ interface AstType {
 		val STRINGBUILDER = AstType.REF("java.lang.StringBuilder")
 		val OBJECT = AstType.REF("java.lang.Object")
 		val CLASS = AstType.REF("java.lang.Class")
+
+		fun fromConstant(value: Any?): AstType = when (value) {
+			null -> AstType.NULL
+			is Boolean -> AstType.BOOL
+			is Byte -> AstType.BYTE
+			is Char -> AstType.CHAR
+			is Short -> AstType.SHORT
+			is Int -> AstType.INT
+			is Long -> AstType.LONG
+			is Float -> AstType.FLOAT
+			is Double -> AstType.DOUBLE
+			is String -> AstType.STRING
+			is AstType.ARRAY -> AstType.CLASS
+			is AstType.REF -> AstType.CLASS
+			is AstType.METHOD -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
+			is AstMethodHandle -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
+			else -> invalidOp("Literal type: ${value.javaClass} : $value")
+		}
 	}
 }
 
@@ -167,6 +186,9 @@ fun ARRAY(type: AstType) = AstType.ARRAY(type)
 @Singleton
 class AstTypes {
 	private val AstTypeDemangleCache = hashMapOf<String, AstType>()
+
+	fun fromConstant(value: Any?): AstType = AstType.fromConstant(value)
+
 
 	fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) AstType.ARRAY(element) else ARRAY(AstType.ARRAY(element), count - 1)
 
@@ -193,24 +215,6 @@ class AstTypes {
 
 	fun demangleMethod(text: String): AstType.METHOD {
 		return demangle(text) as AstType.METHOD
-	}
-
-	fun fromConstant(value: Any?): AstType = when (value) {
-		null -> AstType.NULL
-		is Boolean -> AstType.BOOL
-		is Byte -> AstType.BYTE
-		is Char -> AstType.CHAR
-		is Short -> AstType.SHORT
-		is Int -> AstType.INT
-		is Long -> AstType.LONG
-		is Float -> AstType.FLOAT
-		is Double -> AstType.DOUBLE
-		is String -> AstType.STRING
-		is AstType.ARRAY -> AstType.CLASS
-		is AstType.REF -> AstType.CLASS
-		is AstType.METHOD -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
-		is AstMethodHandle -> AstType.CLASS // @TODO: Probably java.lang...MethodHandle or something like this!
-		else -> invalidOp("Literal type: ${value.javaClass} : $value")
 	}
 
 	fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
@@ -251,7 +255,7 @@ class AstTypes {
 					'<' -> {
 						var index = 0
 						val suffixes = arrayListOf<AstType.GENERIC_SUFFIX>();
-						mainGenerics@while (reader.hasMore) {
+						mainGenerics@ while (reader.hasMore) {
 							val id = if (reader.peekch() == '.') {
 								reader.readch()
 								val id = reader.readUntil(REF_DELIMITER, including = false, readDelimiter = false)
@@ -268,7 +272,7 @@ class AstTypes {
 								null
 							}
 							val generic = arrayListOf<AstType>()
-							mainGeneric@while (reader.hasMore) {
+							mainGeneric@ while (reader.hasMore) {
 								val ch = reader.peekch()
 								if (ch == '>') {
 									reader.expect(">")
@@ -330,7 +334,7 @@ class AstTypes {
 
 }
 
-fun _castLiteral(value: Int, to: AstType): Any {
+fun _castLiteral(value: Int, to: AstType): Any? {
 	return when (to) {
 		AstType.BOOL -> value.toBool()
 		AstType.BYTE -> value.toByte()
@@ -340,7 +344,8 @@ fun _castLiteral(value: Int, to: AstType): Any {
 		AstType.LONG -> value.toLong()
 		AstType.FLOAT -> value.toFloat()
 		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp
+		//is AstType.Reference -> null
+		else -> invalidOp("Can't cast $value to $to")
 	}
 }
 
@@ -356,7 +361,21 @@ fun _castLiteral(value: Long, to: AstType): Any {
 		AstType.LONG -> value.toLong()
 		AstType.FLOAT -> value.toFloat()
 		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp
+		else -> invalidOp("Can't cast $value to $to")
+	}
+}
+
+fun _castLiteral(value: Float, to: AstType): Any {
+	return when (to) {
+		AstType.BOOL -> value.toBool()
+		AstType.BYTE -> value.toByte()
+		AstType.CHAR -> value.toChar()
+		AstType.SHORT -> value.toShort()
+		AstType.INT -> value.toInt()
+		AstType.LONG -> value.toLong()
+		AstType.FLOAT -> value.toFloat()
+		AstType.DOUBLE -> value.toDouble()
+		else -> invalidOp("Can't cast $value to $to")
 	}
 }
 
@@ -370,24 +389,24 @@ fun _castLiteral(value: Double, to: AstType): Any {
 		AstType.LONG -> value.toLong()
 		AstType.FLOAT -> value.toFloat()
 		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp
+		else -> invalidOp("Can't cast $value to $to")
 	}
 }
 
-fun castLiteral(value: Boolean, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Byte, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Char, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Short, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Int, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Long, to: AstType): Any = _castLiteral(value.toLong(), to)
-fun castLiteral(value: Float, to: AstType): Any = _castLiteral(value.toDouble(), to)
-fun castLiteral(value: Double, to: AstType): Any = _castLiteral(value.toDouble(), to)
+fun castLiteral(value: Boolean, to: AstType): Any? = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Byte, to: AstType): Any? = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Char, to: AstType): Any? = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Short, to: AstType): Any? = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Int, to: AstType): Any? = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Long, to: AstType): Any? = _castLiteral(value.toLong(), to)
+fun castLiteral(value: Float, to: AstType): Any? = _castLiteral(value.toFloat(), to)
+fun castLiteral(value: Double, to: AstType): Any? = _castLiteral(value.toDouble(), to)
 
 fun Iterable<AstType>.toArguments(): List<AstArgument> {
 	return this.mapIndexed { i, v -> AstArgument(i, v) }
 }
 
-fun AstType.getNull(): Any? = when(this) {
+fun AstType.getNull(): Any? = when (this) {
 	is AstType.VOID -> null
 	is AstType.BOOL -> false
 	is AstType.INT -> 0.toInt()
@@ -497,7 +516,6 @@ object AstTypeBuilder {
 fun <T : AstType> AstTypeBuild(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 
 
-
 val REF_DELIMITER = setOf(';', '<')
 val REF_DELIMITER2 = setOf(';', '<', '.')
 val T_DELIMITER = setOf(';')
@@ -552,7 +570,7 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 	is AstType.COMMON -> {
 		if (this.elements.size == 1) {
 			this.elements.first().mangle(retval)
-		} else{
+		} else {
 			throw RuntimeException("Can't mangle common with several types: ${this.elements}. Resolve COMMONS first.")
 		}
 	}

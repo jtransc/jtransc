@@ -882,7 +882,32 @@ data class AstModifiers(val acc: Int) {
 
 fun ARRAY(type: AstClass) = AstType.ARRAY(type.astType)
 
-fun AstType.COMMON.resolve(program: AstProgram): AstType {
-	TODO("Not implemented yet!")
-	//return AstType.OBJECT
+fun AstType.resolve(program: AstProgram): AstType = when (this) {
+	is AstType.COMMON -> {
+		if (this.single != null) {
+			this.single!!.resolve(program)
+		} else {
+			println("@TODO: AstType.resolve: Used first")
+			// @TODO: Do this right!
+			this.elements.first().resolve(program)
+		}
+	}
+	else -> this
+}
+
+fun AstType.simplify(): AstType = when (this) {
+	is AstType.MUTABLE -> this.ref.simplify()
+	is AstType.COMMON -> {
+		if (this.single != null) {
+			this.single!!.simplify()
+		} else {
+			val items = HashSet(this.elements.map { it.simplify() })
+			if (items.size == 1) {
+				items.first()
+			} else {
+				AstType.COMMON(items)
+			}
+		}
+	}
+	else -> this
 }

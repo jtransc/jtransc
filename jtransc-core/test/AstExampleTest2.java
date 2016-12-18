@@ -1,20 +1,28 @@
 public class AstExampleTest2 {
 	boolean test = true;
 
+	private void demo() {
+		demo2(new byte[0], 10);
+	}
+
+	private void demo2(byte[] a, int b) {
+
+	}
+
 	//private boolean isLetter(char c) {return c >= 'a' && c <= 'z';}
 
-	private void test() {
-		byte[] out = new byte[16];
-		for (int n = 0; n < out.length; n++) out[n] = (byte) n;
-	}
-
-	private I test2(int a) {
-		return (a < 0) ? new A() : new B();
-	}
-
-	interface I { }
-	static class A implements I { }
-	static class B implements I { }
+	//private void test() {
+	//	byte[] out = new byte[16];
+	//	for (int n = 0; n < out.length; n++) out[n] = (byte) n;
+	//}
+//
+	//private I test2(int a) {
+	//	return (a < 0) ? new A() : new B();
+	//}
+//
+	//interface I { }
+	//static class A implements I { }
+	//static class B implements I { }
 
 	//private boolean isDigit(char c) {
 	//	return c >= '0' && c <= '9';

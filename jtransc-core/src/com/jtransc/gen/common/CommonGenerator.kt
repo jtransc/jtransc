@@ -674,10 +674,16 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
+	fun AstType.resolve(): AstType = when (this) {
+		is AstType.COMMON -> this.resolve(program)
+		is AstType.MUTABLE -> this.ref.resolve()
+		else -> this
+	}
+
 	open fun genExprBinop(e: AstExpr.BINOP): String {
-		val resultType = e.type
-		val leftType = e.left.type
-		val rightType = e.right.type
+		val resultType = e.type.resolve()
+		val leftType = e.left.type.resolve()
+		val rightType = e.right.type.resolve()
 		val l = e.left.genExpr()
 		val r = e.right.genExpr()
 		val op = e.op
@@ -788,7 +794,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type as AstType.ARRAY, e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
+	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.resolve(program) as AstType.ARRAY, e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
 
 	open fun genExprFieldStaticAccess(e: AstExpr.FIELD_STATIC_ACCESS): String {
 		refs.add(e.clazzName)
@@ -849,12 +855,12 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	inline protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter.gen(init)
 
-	open fun genStmSetArray(stm: AstStm.SET_ARRAY) = Indenter.single(N_ASET_T(stm.array.type as AstType.ARRAY, stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
+	open fun genStmSetArray(stm: AstStm.SET_ARRAY) = Indenter.single(N_ASET_T(stm.array.type.resolve(program) as AstType.ARRAY, stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
 
 	open fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		var n = 0
 		for (v in stm.values) {
-			line(genStmSetArray(AstStm.SET_ARRAY(stm.array.value, AstExpr.LITERAL(stm.startIndex + n, types), v.value)))
+			line(genStmSetArray(AstStm.SET_ARRAY(stm.array.value, AstExpr.LITERAL(stm.startIndex + n), v.value)))
 			n++
 		}
 	}

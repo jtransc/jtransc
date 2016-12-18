@@ -66,7 +66,7 @@ internal class AstExampleTest {
 		val types = AstTypes()
 		for (_method in clazz.methods) {
 			val methodType = types.demangleMethod(_method.desc)
-			if (_method.name == "<init>") continue
+			//if (_method.name == "<init>") continue
 			println("::" + _method.name + " :: " + methodType)
 			val astBody = AsmToAstMethodBody2(
 				types.REF_INT2(clazz.name),

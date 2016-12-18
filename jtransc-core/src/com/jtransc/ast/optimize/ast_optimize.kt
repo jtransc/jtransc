@@ -318,14 +318,14 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			if (literalValue is Number) {
 				val box2 = expr.box
 				when (castTo) {
-					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool(), types)
-					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte(), types)
-					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort(), types)
-					AstType.CHAR -> box2.value = AstExpr.LITERAL(literalValue.toInt().toChar(), types)
-					AstType.INT -> box2.value = AstExpr.LITERAL(literalValue.toInt(), types)
-					AstType.LONG -> box2.value = AstExpr.LITERAL(literalValue.toLong(), types)
-					AstType.FLOAT -> box2.value = AstExpr.LITERAL(literalValue.toFloat(), types)
-					AstType.DOUBLE -> box2.value = AstExpr.LITERAL(literalValue.toDouble(), types)
+					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool())
+					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte())
+					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort())
+					AstType.CHAR -> box2.value = AstExpr.LITERAL(literalValue.toInt().toChar())
+					AstType.INT -> box2.value = AstExpr.LITERAL(literalValue.toInt())
+					AstType.LONG -> box2.value = AstExpr.LITERAL(literalValue.toLong())
+					AstType.FLOAT -> box2.value = AstExpr.LITERAL(literalValue.toFloat())
+					AstType.DOUBLE -> box2.value = AstExpr.LITERAL(literalValue.toDouble())
 				}
 				AstAnnotateExpressions.visitExprWithStm(stm, box2)
 				return

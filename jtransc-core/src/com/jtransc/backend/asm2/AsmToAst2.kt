@@ -1,8 +1,8 @@
 package com.jtransc.backend.asm2
 
 import com.jtransc.ast.*
+import com.jtransc.ast.optimize.optimize
 import com.jtransc.backend.BaseAsmToAst
-import com.jtransc.backend.asm1.AsmToAstMethodBody1
 import com.jtransc.backend.asm1.disasm
 import com.jtransc.backend.isStatic
 import com.jtransc.ds.cast
@@ -11,7 +11,6 @@ import com.jtransc.injector.Singleton
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.*
-import java.util.*
 import kotlin.collections.set
 
 @Singleton
@@ -70,6 +69,41 @@ class Definition {
 fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
 	//val body = BasicBlockBuilder(types)
 	val methodType = types.demangleMethod(method.desc)
+	val methodInstructions = method.instructions
+
+	val referencedLabels = hashSetOf<Label>()
+
+	// Find referenced labels
+	for (f in methodInstructions) {
+		when (f) {
+			is JumpInsnNode -> referencedLabels += f.label.label
+			is LookupSwitchInsnNode -> {
+				referencedLabels += f.dflt.label
+				referencedLabels += f.labels.map { it.label }
+			}
+			is TableSwitchInsnNode -> {
+				referencedLabels += f.dflt.label
+				referencedLabels += f.labels.map { it.label }
+			}
+		}
+	}
+
+	for (tcb in method.tryCatchBlocks) {
+		referencedLabels += tcb.start.label
+		referencedLabels += tcb.end.label
+		referencedLabels += tcb.handler.label
+	}
+
+	// Remove unused labels
+	for (f in methodInstructions.toArray().toList()) {
+		if (f is LabelNode) {
+			if (f.label !in referencedLabels) {
+				methodInstructions.remove(f)
+			}
+		}
+	}
+
+	//method.instructions.remove()
 
 	//for (i in method.instructions.toArray().toList()) println(i.disasm())
 
@@ -86,7 +120,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	val builder = MethodBlocks(clazz, method, types)
 	val context = builder.blockContext
-	builder.buildTree(method.instructions.first, BasicFrame(entryLocals.locals.toList(), listOf()))
+	builder.buildTree(methodInstructions.first, BasicFrame(entryLocals.locals.toList(), listOf()))
 
 	for (tcb in method.tryCatchBlocks) {
 		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
@@ -133,7 +167,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 			)
 		},
 		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = context.hasInvokeDynamic)
-	)
+	)//.optimize()
 }
 
 class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
@@ -141,13 +175,16 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 	val stms = arrayListOf<AstStm>()
 	var id = 0
 
-	val Local.ast: AstLocal get() = locals.getOrPut(this) { AstLocal(id++, this.type) }
+	val Local.ast: AstLocal get() {
+		val canonicalLocal = Local(this.type.simplify(), this.index)
+		return locals.getOrPut(canonicalLocal) { AstLocal(id++, canonicalLocal.type) }
+	}
 	val Label.ast: AstLabel get() = blockContext.label(this)
 
 	val Local.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this.ast)
 
 	val Operand.expr: AstExpr get() = when (this) {
-		is Constant -> AstExpr.LITERAL(this.v, types)
+		is Constant -> AstExpr.LITERAL(this.v)
 		is Param -> AstExpr.PARAM(AstArgument(this.index, this.type))
 		is Local -> AstExpr.LOCAL(this.ast)
 		is This -> AstExpr.THIS(this.clazz.name)
@@ -171,10 +208,11 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 				is TIR.ARRAY_LOAD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
 				is TIR.GETSTATIC -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_STATIC_ACCESS(tir.field))
 				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr))
-				is TIR.PUTSTATIC -> stms += AstStm.SET_FIELD_STATIC(tir.field, tir.src.expr)
-				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr, tir.src.expr)
+				is TIR.PUTSTATIC -> stms += AstStm.SET_FIELD_STATIC(tir.field, tir.src.expr.castTo(tir.field.type))
+				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr, tir.src.expr.castTo(tir.field.type))
 				is TIR.INVOKE_COMMON -> {
-					val args = tir.args.map { it.expr }
+					val method = tir.method
+					val args = tir.args.zip(method.type.args).map { it.first.expr.castTo(it.second.type) }
 					val expr = if (tir.obj != null) {
 						AstExpr.CALL_INSTANCE(tir.obj!!.expr, tir.method, args)
 					} else {
@@ -194,7 +232,7 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
 				is TIR.RET -> stms += if (tir.v != null) AstStm.RETURN(tir.v.expr) else AstStm.RETURN_VOID()
 				is TIR.THROW -> stms += AstStm.THROW(tir.ex.expr)
-				//is TIR.PHI_PLACEHOLDER -> stms += AstStm.NOP("PHI_PLACEHOLDER")
+			//is TIR.PHI_PLACEHOLDER -> stms += AstStm.NOP("PHI_PLACEHOLDER")
 				else -> TODO("$tir")
 			}
 		}

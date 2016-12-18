@@ -124,7 +124,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		fun toAnnotationExpr(data: Any?, temps: TempAstLocalFactory, builder: AstBuilder2): AstExpr {
 			return builder.run {
 				when (data) {
-					null -> AstExpr.LITERAL(null, types)
+					null -> AstExpr.LITERAL(null)
 					is AstAnnotation -> {
 						val annotationType = program[data.type]
 						val annotationProxy = getAnnotationProxyClass(data.type)
@@ -148,9 +148,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						local.expr
 					}
 					is com.jtransc.org.objectweb.asm.Type -> {
-						AstExpr.LITERAL(AstType.REF(data.className.fqname), types)
+						AstExpr.LITERAL(AstType.REF(data.className.fqname))
 					}
-					else -> AstExpr.LITERAL(data, types)
+					else -> AstExpr.LITERAL(data)
 				}
 			}
 		}
@@ -296,7 +296,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				//println("CLASS: ${oldClass.fqname}")
 				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
 					classId.lit,
-					if (genInternalClassNames) AstExpr.LITERAL_REFNAME(oldClass.ref, types) else NULL,
+					if (genInternalClassNames) AstExpr.LITERAL_REFNAME(oldClass.ref) else NULL,
 					oldClass.fqname.lit,
 					oldClass.modifiers.acc.lit,
 					(oldClass.parentClass?.classId ?: -1).lit,
@@ -388,7 +388,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 									SET_ARRAY(out, index.lit, MemberInfo_create(
 										member.id.lit,
-										if (genInternalMemberNames) AstExpr.LITERAL_REFNAME(ref, types) else NULL,
+										if (genInternalMemberNames) AstExpr.LITERAL_REFNAME(ref) else NULL,
 										member.name.lit,
 										member.modifiers.lit,
 										member.desc.lit,

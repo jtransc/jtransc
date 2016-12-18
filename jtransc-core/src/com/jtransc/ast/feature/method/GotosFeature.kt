@@ -170,7 +170,7 @@ class GotosFeature : AstMethodFeature() {
 					}
 
 					fun simulateGotoLabel(index: Int) = listOf(
-						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index, types)),
+						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index)),
 						AstStm.CONTINUE()
 					)
 
@@ -218,16 +218,16 @@ class GotosFeature : AstMethodFeature() {
 
 					fun extraReturn() = when (body.type.ret) {
 						is AstType.VOID -> AstStm.RETURN_VOID()
-						is AstType.BOOL -> AstStm.RETURN(AstExpr.LITERAL(false, types))
-						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0, types))
-						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L, types))
-						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f, types))
-						is AstType.DOUBLE -> AstStm.RETURN(AstExpr.LITERAL(0.0, types))
-						else -> AstStm.RETURN(AstExpr.LITERAL(null, types))
+						is AstType.BOOL -> AstStm.RETURN(AstExpr.LITERAL(false))
+						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0))
+						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L))
+						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f))
+						is AstType.DOUBLE -> AstStm.RETURN(AstExpr.LITERAL(0.0))
+						else -> AstStm.RETURN(AstExpr.LITERAL(null))
 					}
 
 					val plainWhile = AstStm.STMS(
-						AstStm.WHILE(AstExpr.LITERAL(true, types),
+						AstStm.WHILE(AstExpr.LITERAL(true),
 							AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
 						),
 						extraReturn()
@@ -243,13 +243,13 @@ class GotosFeature : AstMethodFeature() {
 							val handlerState = getStateFromLabel(trap.handler)
 
 							AstStm.IF(
-								(gotostate ge AstExpr.LITERAL(startState, types)) band (gotostate le AstExpr.LITERAL(endState, types)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
+								(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								AstStm.STMS(simulateGotoLabel(handlerState))
 							)
 						}
 
 						AstStm.STMS(
-							AstStm.WHILE(AstExpr.LITERAL(true, types),
+							AstStm.WHILE(AstExpr.LITERAL(true),
 								AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
 									checkTraps.stms,
 									AstStm.RETHROW()

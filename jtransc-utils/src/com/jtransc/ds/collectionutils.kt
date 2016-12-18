@@ -86,6 +86,9 @@ class Stack<T>(
 
 	fun clone(): Stack<T> = Stack<T>(ArrayList(data))
 
+
+	override fun toString(): String = toList().toString()
+
 	fun toList(): List<T> = data.toList()
 
 	override fun iterator(): Iterator<T> = data.iterator()
