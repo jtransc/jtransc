@@ -18,6 +18,7 @@ public class AstExampleTest2 {
 		return a;
 	}
 
+	/*
 	static private int[] demo2() {
 		return new int[]{100, 101, 102, 103, 104};
 	}
@@ -44,6 +45,7 @@ public class AstExampleTest2 {
 			System.out.println("Demo");
 		}
 	}
+	*/
 //
 	//public boolean isDirectory() {
 	//	//if (isInvalid()) return false;
@@ -96,9 +98,9 @@ public class AstExampleTest2 {
 	//	return (a > b && a < b) ? (((b > a && b < c)) ? a * b : a * c) : b * c;
 	//}
 
-	public static void mix(Buffer src, Buffer dst, boolean bb) {
-		(bb ? ((ByteBuffer) dst).asCharBuffer() : (CharBuffer) dst).put((bb ? ((ByteBuffer) src).asCharBuffer() : (CharBuffer) src));
-	}
+	//public static void mix(Buffer src, Buffer dst, boolean bb) {
+	//	(bb ? ((ByteBuffer) dst).asCharBuffer() : (CharBuffer) dst).put((bb ? ((ByteBuffer) src).asCharBuffer() : (CharBuffer) src));
+	//}
 
 //	public static void copy (Buffer src, Buffer dst, int numElements) {
 //		int srcPos = src.position();
@@ -149,11 +151,11 @@ public class AstExampleTest2 {
 	//	*/
 	//}
 
-	public static char forDigit(int digit, int radix) {
-		if (digit >= 0 && digit <= 9) return (char) ('0' + (digit - 0));
-		//if (digit >= 10 && digit <= 35) return (char) ('a' + (digit - 10));
-		return '\0';
-	}
+	//public static char forDigit(int digit, int radix) {
+	//	if (digit >= 0 && digit <= 9) return (char) ('0' + (digit - 0));
+	//	//if (digit >= 10 && digit <= 35) return (char) ('a' + (digit - 10));
+	//	return '\0';
+	//}
 
 	/*
 	//private void test() { int[] a = new int[] { 1, 2, 3, 4, c };}
