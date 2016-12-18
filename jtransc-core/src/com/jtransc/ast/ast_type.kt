@@ -78,6 +78,10 @@ interface AstType {
 		override fun toString() = "$element[]"
 	}
 
+	data class COMMON(val elements: List<AstType>) {
+		override fun toString() = "COMMON($elements)"
+	}
+
 	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 

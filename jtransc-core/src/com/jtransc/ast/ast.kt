@@ -881,3 +881,8 @@ data class AstModifiers(val acc: Int) {
 }
 
 fun ARRAY(type: AstClass) = AstType.ARRAY(type.astType)
+
+fun AstType.COMMON.resolve(program: AstProgram): AstType {
+	TODO("Not implemented yet!")
+	//return AstType.OBJECT
+}

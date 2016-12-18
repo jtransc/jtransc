@@ -70,6 +70,7 @@ class TempAstLocalFactory {
 }
 
 data class AstLocal(val index: Int, override val name: String, val type: AstType) : LocalRef {
+	constructor(index: Int, type: AstType) : this(index, "v$index", type)
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
 	val writes = arrayListOf<AstStm.SET_LOCAL>()

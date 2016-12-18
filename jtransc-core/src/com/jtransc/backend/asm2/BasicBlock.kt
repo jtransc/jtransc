@@ -8,411 +8,12 @@ import com.jtransc.ds.Stack
 import com.jtransc.error.invalidOp
 import com.jtransc.error.unsupported
 import com.jtransc.log.log
-import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
 import com.jtransc.org.objectweb.asm.tree.*
-import java.util.*
-
-interface TIR {
-	//val target: Local?
-	//val sources: List<Local>
-	var prev: TIR?
-	var next: TIR?
-	fun toStmString(): String
-	fun processDefs(p: DefinitionProcessor): Unit
-	var dstBox:LocalBox?
-
-	class Mixin : TIR {
-		//override val target: Local? = null
-		//override val sources = listOf<Local>()
-		override var dstBox:LocalBox? = null
-		override var prev: TIR? = null
-		override var next: TIR? = null
-		override fun toStmString() = this.toString()
-		override fun processDefs(p: DefinitionProcessor) {
-		}
-	}
-
-	data class NOP(val dummy: Boolean) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-		}
-
-		override fun toStmString() = ";"
-	}
-
-	data class PHI_PLACEHOLDER(val dummy: Boolean) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-		}
-
-		override fun toStmString() = "PHI_PLACEHOLDER"
-	}
-
-	data class LABEL(val label: Label) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-		}
-
-		override fun toStmString() = "$label"
-	}
-
-	data class PHI(val dst: Local, val params: ArrayList<PHIOption> = arrayListOf()) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "PHI"
-	}
-
-	data class MOV(val dst: Local, val src: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, src)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $src;"
-	}
-
-	data class BINOP(val dst: Local, val l: Operand, val op: String, val r: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, l)
-			p.use(this, r)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $l $op $r;"
-	}
-
-	data class UNOP(val dst: Local, val op: String, val r: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, r)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $op $r;"
-	}
-
-	data class CONV(val dst: Local, val src: Operand, val dstType: AstType) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, src)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = ($dstType)$src;"
-	}
-
-	data class ASTORE(val array: Operand, val index: Operand, val value: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, value)
-			p.use(this, index)
-			p.use(this, array)
-		}
-
-		override fun toStmString() = "$array[$index] = $value;"
-	}
-
-	data class ALOAD(val dst: Local, val array: Operand, val index: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, index)
-			p.use(this, array)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $array[$index];"
-	}
-
-	data class NEW(val dst: Local, val type: AstType) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = new $type();"
-	}
-
-	data class NEWARRAY(val dst: Local, val arrayType: AstType, val lens: List<Operand>) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			for (l in lens) p.use(this, l)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = new $arrayType$lens;"
-	}
-
-	data class JUMP_IF(val label: Label, val l: Operand, val op: String, val r: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, r)
-			p.use(this, l)
-		}
-
-		override fun toStmString() = "if ($l $op $r) goto $label;"
-	}
-
-	data class JUMP(val label: Label) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-		}
-
-		override fun toStmString() = "goto $label;"
-	}
-
-	data class RET(val v: Operand?) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			if (v != null) p.use(this, v)
-		}
-
-		override fun toStmString() = if (v == null) "return;" else "return $v;"
-	}
-
-	data class INVOKE(val dst: Local?, val obj: Local?, val method: AstMethodRef, val args: List<Operand>) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			for (arg in args) p.use(this, arg)
-			if (obj != null) p.use(this, obj)
-			if (dst != null) p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $obj.$method($args)"
-	}
-
-	data class INSTANCEOF(val dst: Local, val type: AstType, val src: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, src)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $src instanceof $type;"
-	}
-
-	data class THROW(val ex: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, ex)
-		}
-
-		override fun toStmString() = "throw $ex;"
-	}
-
-	data class GETSTATIC(val dst: Local, val field: AstFieldRef) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $field;"
-	}
-
-	data class PUTSTATIC(val field: AstFieldRef, val src: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, src)
-		}
-
-		override fun toStmString() = "$field = $src;"
-	}
-
-	data class GETFIELD(val dst: Local, val field: AstFieldRef, val obj: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, obj)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $obj.$field;"
-	}
-
-	data class PUTFIELD(val field: AstFieldRef, val obj: Operand, val src: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, obj)
-			p.use(this, src)
-		}
-
-		override fun toStmString() = "$obj.$field = $src;"
-	}
-
-	data class ARRAYLENGTH(val dst: Local, val obj: Operand) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, obj)
-			p.def(this, dst)
-		}
-
-		override fun toStmString() = "$dst = $obj.length;"
-	}
-
-	data class MONITOR(val obj: Operand, val enter: Boolean) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, obj)
-		}
-
-		override fun toStmString() = "MONITOR($obj, enter=$enter)"
-	}
-
-	data class SWITCH_GOTO(val subject: Operand, val label: Label?, val toMap: Map<Int, Label>) : TIR by Mixin() {
-		override fun processDefs(p: DefinitionProcessor) {
-			p.use(this, subject)
-		}
-	}
-}
-
-data class PHIOption(val branch: AbstractInsnNode, val op: Operand)
-
-class LocalBox(var local: Local)
-
-interface Operand {
-	val type: AstType
-}
-
-data class Local(override val type: AstType, val index: Int) : Operand {
-	override fun toString(): String = "\$$index"
-}
-
-data class Constant(override val type: AstType, val v: Any?) : Operand {
-	override fun toString(): String = "$v"
-}
-
-data class Param(override val type: AstType, val index: Int) : Operand {
-	override fun toString(): String = "p$index"
-}
-
-data class This(override val type: AstType) : Operand {
-	override fun toString(): String = "this"
-}
-
-data class CatchException(override val type: AstType) : Operand {
-	override fun toString(): String = "exception"
-}
-
-class Definition {
-}
-
-// http://compilers.cs.uni-saarland.de/papers/bbhlmz13cc.pdf
-// Simple and Efficient Construction of Static Single Assignment Form
-// ----------------------------------------------------------------
-// PASS1: Build untyped Basic Blocks with simple constant clean ups
-// PASS2: SSA-Form
-// PASS3: Type locals
-// PASS4: Construct AstStm + AstExpr
-// ----------------------------------------------------------------
-fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
-	//val body = BasicBlockBuilder(types)
-	val methodType = types.demangleMethod(method.desc)
-
-	val builder = MethodBlocks(clazz, method, types)
-	builder.buildTree(method.instructions.first)
-	for (tcb in method.tryCatchBlocks) {
-		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
-		builder.buildTree(tcb.handler, initialStack = listOf(CatchException(exceptionType)))
-	}
-
-	SSABuilder(builder).build()
-
-	// Remove PHI nodes
-	//builder.removePHI()
-
-	val outStms = arrayListOf<TIR>()
-
-	for (i in method.instructions.toArray().toList()) {
-		if (i in builder.startToBlocks) {
-			outStms += builder.startToBlocks[i]!!.stms
-		}
-	}
-
-	println("--------")
-	for (stm in outStms) {
-		println(stm)
-	}
-
-	return AstBody(
-		types,
-		AstStm.STMS(),
-		methodType
-	)
-}
-
-interface DefinitionProcessor {
-	fun use(tir: TIR, c: Operand): Unit
-	fun def(tir: TIR, c: Local): Unit
-}
-
-class SSABuilder(val blocks: MethodBlocks) : DefinitionProcessor {
-	override fun use(tir: TIR, c: Operand) {
-	}
-
-	override fun def(tir: TIR, c: Local) {
-		c.index
-	}
-
-	fun build() {
-		build(blocks.first)
-	}
-
-	private fun build(bb: BasicBlock) {
-		for (stm in bb.stms) {
-			println("SSA:$stm")
-			stm.processDefs(this)
-		}
-		for (s in bb.allSuccessors) build(blocks.startToBlocks[s]!!)
-	}
-}
-
-class BlockContext {
-	var hasInvokeDynamic = false
-	var tempId = 1000
-	fun createTemp(type: AstType) = Local(type, tempId++)
-	fun getVar(type: AstType, v: Int) = Local(type, v)
-}
-
-class MethodBlocks(val clazz: AstType.REF, val method: MethodNode, val types: AstTypes) {
-	val locals = BlockContext()
-	val startToBlocks = hashMapOf<AbstractInsnNode, BasicBlock>()
-	lateinit var first: BasicBlock
-
-	fun buildTree(start: AbstractInsnNode, initialStack: List<Operand>? = null) {
-		first = build(start, onePredecessor = null, initialStack = initialStack)
-	}
-
-	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlock?, initialStack: List<Operand>? = null): BasicBlock {
-		val bbb1 = startToBlocks[start]
-		if (bbb1 != null) { // Processed already!
-			if (onePredecessor != null) {
-				bbb1.registerPredecessor(onePredecessor)
-			}
-		} else {
-			val bbb = BasicBlock(types, locals).apply {
-				decodeBlock(clazz, method, start, onePredecessor, initialStack)
-			}
-			startToBlocks[start] = bbb
-			for (successor in bbb.allSuccessors) {
-				build(successor, onePredecessor = bbb, initialStack = null)
-			}
-		}
-		return startToBlocks[start]!!
-	}
-
-	fun removePHI() {
-		for (block in startToBlocks.values) {
-			removePHI(block.stms)
-		}
-	}
-
-	fun removePHI(items: ArrayList<TIR>) {
-		for ((n, item) in items.withIndex()) {
-			if (item is TIR.PHI) {
-				val phi = item
-				for (param in phi.params) {
-					val predecessorStms = startToBlocks[param.branch]!!.stms
-					// @TODO: Use linkedlist nodes to totally avoid searching
-					val placeHolderIndex = predecessorStms.indexOfLast { it is TIR.PHI_PLACEHOLDER }
-					if (placeHolderIndex >= 0) {
-						predecessorStms[placeHolderIndex] = TIR.MOV(phi.dst, param.op)
-					} else {
-						println("Not found PHI placeholder")
-					}
-				}
-				items[n] = TIR.NOP(false)
-			}
-		}
-	}
-}
-
-class OutputStackElement(val operand: Operand, val target: Local) {
-
-}
 
 class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
-	val JUMP_OPS = listOf("==", "!=", "<", ">=", ">", "<=", "==", "!=")
+	val JUMP_OPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
 	var tail: TIR? = null
 	val stms = arrayListOf<TIR>()
@@ -570,7 +171,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 		when (n.opcode) {
 			Opcodes.NEW -> {
 				val dst = createTemp(type)
-				add(TIR.NEW(dst, type))
+				add(TIR.NEW(dst, type as AstType.REF))
 				push(dst)
 			}
 			Opcodes.ANEWARRAY -> {
@@ -631,6 +232,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 	}
 
 	fun decodeInvokeDynamicNode(n: InvokeDynamicInsnNode) {
+		blockContext.hasInvokeDynamic = true
 		//hasInvokeDynamic = true
 		//val dynamicResult = AstExprUtils.INVOKE_DYNAMIC(
 		//	AstMethodWithoutClassRef(i.name, types.demangleMethod(i.desc)),
@@ -715,7 +317,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 	}
 
 	fun decodeIincNode(n: IincInsnNode) {
-		add(TIR.BINOP(getVar(AstType.INT, n.`var`), getVar(AstType.INT, n.`var`), "+", Constant(AstType.INT, 1)))
+		add(TIR.BINOP(getVar(AstType.INT, n.`var`), getVar(AstType.INT, n.`var`), AstBinop.ADD, Constant(AstType.INT, 1)))
 	}
 
 	fun decodeFrameNode(n: FrameNode) {
@@ -723,7 +325,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 	}
 
 	fun decodeLabelNode(n: LabelNode) {
-		//add(TIR.LABEL(n.label))
+		add(TIR.LABEL(n.label))
 
 		//Unit // Do nothing. We handle basic blocks in other place.
 	}
@@ -739,9 +341,13 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 		val methodRef = AstMethodRef(ownerTypeRef.name, n.name, methodType)
 		val args = methodType.args.reversed().map { pop() }
 		val obj = if (n.opcode != Opcodes.INVOKESTATIC) pop() as Local else null
-		val res = if (methodType.retVoid) null else createTemp(methodType.ret)
-		add(TIR.INVOKE(res, obj, methodRef, args))
-		if (res != null) push(res)
+		if (methodType.retVoid) {
+			add(TIR.INVOKE_VOID(obj, methodRef, args))
+		} else {
+			val dst = createTemp(methodType.ret)
+			add(TIR.INVOKE(dst, obj, methodRef, args))
+			push(dst)
+		}
 	}
 
 	fun decodeVarNode(n: VarInsnNode) {
@@ -770,7 +376,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 				val arrayType = AstType.ARRAY(type)
 				val len = pop()
 				val dst = createTemp(arrayType)
-				add(TIR.NEWARRAY(dst, type, listOf(len)))
+				add(TIR.NEWARRAY(dst, arrayType, listOf(len)))
 				push(dst)
 			}
 		}
@@ -781,20 +387,20 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 		when (op) {
 			Opcodes.NOP -> Unit
 
-			in Opcodes.INEG..Opcodes.DNEG -> unop(TPRIM[op - Opcodes.INEG], "-")
+			in Opcodes.INEG..Opcodes.DNEG -> unop(TPRIM[op - Opcodes.INEG], AstUnop.NEG)
 
-			in Opcodes.IADD..Opcodes.DADD -> binop(TPRIM[op - Opcodes.IADD], "+")
-			in Opcodes.ISUB..Opcodes.DSUB -> binop(TPRIM[op - Opcodes.ISUB], "-")
-			in Opcodes.IMUL..Opcodes.DMUL -> binop(TPRIM[op - Opcodes.IMUL], "*")
-			in Opcodes.IDIV..Opcodes.DDIV -> binop(TPRIM[op - Opcodes.IDIV], "/")
-			in Opcodes.IREM..Opcodes.DREM -> binop(TPRIM[op - Opcodes.IREM], "%")
+			in Opcodes.IADD..Opcodes.DADD -> binop(TPRIM[op - Opcodes.IADD], AstBinop.ADD)
+			in Opcodes.ISUB..Opcodes.DSUB -> binop(TPRIM[op - Opcodes.ISUB], AstBinop.SUB)
+			in Opcodes.IMUL..Opcodes.DMUL -> binop(TPRIM[op - Opcodes.IMUL], AstBinop.MUL)
+			in Opcodes.IDIV..Opcodes.DDIV -> binop(TPRIM[op - Opcodes.IDIV], AstBinop.DIV)
+			in Opcodes.IREM..Opcodes.DREM -> binop(TPRIM[op - Opcodes.IREM], AstBinop.REM)
 
-			in Opcodes.ISHL..Opcodes.LSHL -> binop(TPRIM[op - Opcodes.ISHL], "<<")
-			in Opcodes.ISHR..Opcodes.LSHR -> binop(TPRIM[op - Opcodes.ISHR], ">>")
-			in Opcodes.IUSHR..Opcodes.LUSHR -> binop(TPRIM[op - Opcodes.IUSHR], ">>>")
-			in Opcodes.IAND..Opcodes.LAND -> binop(TPRIM[op - Opcodes.IAND], "&")
-			in Opcodes.IOR..Opcodes.LOR -> binop(TPRIM[op - Opcodes.IOR], "|")
-			in Opcodes.IXOR..Opcodes.LXOR -> binop(TPRIM[op - Opcodes.IXOR], "^")
+			in Opcodes.ISHL..Opcodes.LSHL -> binop(TPRIM[op - Opcodes.ISHL], AstBinop.SHL)
+			in Opcodes.ISHR..Opcodes.LSHR -> binop(TPRIM[op - Opcodes.ISHR], AstBinop.SHR)
+			in Opcodes.IUSHR..Opcodes.LUSHR -> binop(TPRIM[op - Opcodes.IUSHR], AstBinop.USHR)
+			in Opcodes.IAND..Opcodes.LAND -> binop(TPRIM[op - Opcodes.IAND], AstBinop.AND)
+			in Opcodes.IOR..Opcodes.LOR -> binop(TPRIM[op - Opcodes.IOR], AstBinop.OR)
+			in Opcodes.IXOR..Opcodes.LXOR -> binop(TPRIM[op - Opcodes.IXOR], AstBinop.XOR)
 
 			Opcodes.ACONST_NULL -> const(AstType.OBJECT, null)
 			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> const(AstType.INT, (op - Opcodes.ICONST_0).toInt())
@@ -863,9 +469,9 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 			Opcodes.I2C -> conv(AstType.CHAR)
 			Opcodes.I2S -> conv(AstType.SHORT)
 
-			Opcodes.LCMP -> binop(AstType.INT, "cmp")
-			Opcodes.FCMPL, Opcodes.DCMPL -> binop(AstType.INT, "cmpl")
-			Opcodes.FCMPG, Opcodes.DCMPG -> binop(AstType.INT, "cmpg")
+			Opcodes.LCMP -> binop(AstType.INT, AstBinop.LCMP)
+			Opcodes.FCMPL, Opcodes.DCMPL -> binop(AstType.INT, AstBinop.CMPL)
+			Opcodes.FCMPG, Opcodes.DCMPG -> binop(AstType.INT, AstBinop.CMPG)
 
 			Opcodes.RETURN -> {
 				ret(AstType.VOID)
@@ -930,7 +536,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 	fun load(type: AstType, idx: Int) = push(getVar(type, idx))
 	fun store(type: AstType, idx: Int) = add(TIR.MOV(getVar(type, idx), pop()))
 
-	fun binop(resultType: AstType, op: String) {
+	fun binop(resultType: AstType, op: AstBinop) {
 		val r = pop()
 		val l = pop()
 		val dst = createTemp(resultType)
@@ -938,7 +544,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext) {
 		push(dst)
 	}
 
-	fun unop(type: AstType, op: String) {
+	fun unop(type: AstType, op: AstUnop) {
 		val r = pop()
 		val dst = createTemp(type)
 		add(TIR.UNOP(dst, op, r))

@@ -1,7 +1,4 @@
-import java.nio.*;
-
 public class AstExampleTest2 {
-	/*
 	boolean test = true;
 
 	private boolean isLetter(char c) {
@@ -11,14 +8,12 @@ public class AstExampleTest2 {
 	private boolean isDigit(char c) {
 		return c >= '0' && c <= '9';
 	}
-	*/
 
 	static private int demo(int a) {
 		a = a + 10;
 		return a;
 	}
 
-	/*
 	static private int[] demo2() {
 		return new int[]{100, 101, 102, 103, 104};
 	}
@@ -45,7 +40,6 @@ public class AstExampleTest2 {
 			System.out.println("Demo");
 		}
 	}
-	*/
 //
 	//public boolean isDirectory() {
 	//	//if (isInvalid()) return false;
