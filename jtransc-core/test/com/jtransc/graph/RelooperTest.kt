@@ -7,8 +7,8 @@ import org.junit.Assert
 import org.junit.Test
 
 class RelooperTest {
-	val relooper = Relooper()
 	val types = AstTypes()
+	val relooper = Relooper(types)
 
 	private fun stmt(name:String) = types.build2 { SET(INT.local(name), 1.lit) }
 

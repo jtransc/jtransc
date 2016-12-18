@@ -4,18 +4,38 @@ import com.jtransc.ast.*
 import com.jtransc.org.objectweb.asm.Label
 import java.util.*
 
-interface TIR {
+class TIRList {
+	var head: TIR? = null
+	var tail: TIR? = null
+	fun add(n: TIR) {
+		if (head == null) head = n
+		tail?.append(n)
+		tail = n
+	}
+}
+
+interface TIR : Iterable<TIR> {
 	//val target: Local?
 	//val sources: List<Local>
 	var prev: TIR?
 	var next: TIR?
 	fun toStmString(): String
-	var dstBox:LocalBox?
+	var dstBox: LocalBox?
 
 	class Mixin : TIR {
+		override fun iterator(): Iterator<TIR> = object : Iterator<TIR> {
+			var current: TIR? = this@Mixin
+			override fun hasNext(): Boolean = current != null
+			override fun next(): TIR {
+				val old = current
+				current = current?.next
+				return old!!
+			}
+		}
+
 		//override val target: Local? = null
 		//override val sources = listOf<Local>()
-		override var dstBox:LocalBox? = null
+		override var dstBox: LocalBox? = null
 		override var prev: TIR? = null
 		override var next: TIR? = null
 		override fun toStmString() = this.toString()
@@ -25,7 +45,7 @@ interface TIR {
 		val dst: Local
 	}
 
-	data class NOP(val dummy: Boolean) : TIR by Mixin() {
+	data class NOP(val dummy: Boolean = true) : TIR by Mixin() {
 		override fun toStmString() = ";"
 	}
 
@@ -78,16 +98,16 @@ interface TIR {
 	}
 
 	interface INVOKE_COMMON : TIR {
-		val obj: Local?
+		val obj: Operand?
 		val method: AstMethodRef
 		val args: List<Operand>
 	}
 
-	data class INVOKE_VOID(override val obj: Local?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin() {
+	data class INVOKE_VOID(override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin() {
 		override fun toStmString() = "$obj.$method($args)"
 	}
 
-	data class INVOKE(override val dst: Local, override val obj: Local?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin(), Def {
+	data class INVOKE(override val dst: Local, override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin(), Def {
 		override fun toStmString() = "$dst = $obj.$method($args)"
 	}
 
@@ -123,7 +143,7 @@ interface TIR {
 		override fun toStmString() = "MONITOR($obj, enter=$enter)"
 	}
 
-	data class SWITCH_GOTO(val subject: Operand, val label: Label?, val toMap: Map<Int, Label>) : TIR by Mixin() {
+	data class SWITCH_GOTO(val subject: Operand, val deflt: Label, val cases: Map<Int, Label>) : TIR by Mixin() {
 		override fun toStmString() = "SWITCH*"
 	}
 
@@ -133,5 +153,17 @@ interface TIR {
 
 	data class JUMP(val label: Label) : TIR by Mixin() {
 		override fun toStmString() = "goto $label;"
+	}
+
+	fun prepend(prev: TIR) {
+		prev.prev = this.prev
+		this.prev = prev
+		prev.next = this
+	}
+
+	fun append(next: TIR) {
+		next.next = this.next
+		this.next = next
+		next.prev = this
 	}
 }

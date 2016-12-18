@@ -1,30 +1,24 @@
 package com.jtransc.graph
 
-import com.jtransc.ast.AstExpr
-import com.jtransc.ast.AstStm
-import com.jtransc.ast.AstStmUtils
-import com.jtransc.ast.not
-import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
-import com.jtransc.ast.dump
+import com.jtransc.ast.*
 import java.util.*
 
-class Relooper {
+class Relooper(val types: AstTypes) {
 	class Graph
-	class Node(val body: List<AstStm>) {
+	class Node(val types: AstTypes, val body: List<AstStm>) {
 		var next: Node? = null
 		val edges = arrayListOf<Edge>()
 		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + edges.map { it.dst }
 
-		override fun toString(): String = dump(AstStmUtils.stms(body)).toString().trim()
+		override fun toString(): String = dump(types, AstStmUtils.stms(body)).toString().trim()
 	}
 
 	class Edge(val dst: Node, val cond: AstExpr) {
 		override fun toString(): String = "IF ($cond) goto $dst;"
 	}
 
-	fun node(body: List<AstStm>): Node = Node(body)
-	fun node(body: AstStm): Node = Node(listOf(body))
+	fun node(body: List<AstStm>): Node = Node(types, body)
+	fun node(body: AstStm): Node = Node(types, listOf(body))
 
 	fun edge(a: Node, b: Node) {
 		a.next = b
@@ -118,7 +112,7 @@ class Relooper {
 
 		when (targets.size) {
 			0 -> Unit
-			1 -> stms += renderInternal( targets.first(), endnode)
+			1 -> stms += renderInternal(targets.first(), endnode)
 			2 -> {
 				val common = lookup.common(targets)
 				val branches = targets.map { branch -> renderInternal(branch, common) }

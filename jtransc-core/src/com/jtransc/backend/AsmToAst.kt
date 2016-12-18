@@ -1,7 +1,6 @@
 package com.jtransc.backend
 
 import com.jtransc.ast.*
-import com.jtransc.backend.asm1.AsmToAstMethodBody1
 import com.jtransc.ds.Concat
 import com.jtransc.ds.cast
 import com.jtransc.ds.createPairs
@@ -84,16 +83,16 @@ abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
 	abstract fun genBody(classRef: AstType.REF, methodNode: MethodNode, types: AstTypes, source: String): AstBody
 
 	fun generateField(containingClass: AstClass, field: FieldNode): AstField = AstField(
-        containingClass = containingClass,
-        name = field.name,
-        annotations = field.getAnnotations(types),
-        type = types.demangle(field.desc),
-        desc = field.desc,
-        genericSignature = field.signature,
-        modifiers = AstModifiers(field.access),
-        constantValue = field.value,
-        types = types
-    )
+		containingClass = containingClass,
+		name = field.name,
+		annotations = field.getAnnotations(types),
+		type = types.demangle(field.desc),
+		desc = field.desc,
+		genericSignature = field.signature,
+		modifiers = AstModifiers(field.access),
+		constantValue = field.value,
+		types = types
+	)
 }
 
 fun AstAnnotationValue(value: Any?, visible: Boolean, types: AstTypes): Any? {
@@ -205,7 +204,7 @@ fun AbstractInsnNode.isEndOfBasicBlock(): Boolean {
 
 fun AbstractInsnNode.isEnd(): Boolean {
 	return when (this.opcode) {
-		in Opcodes.TABLESWITCH.. Opcodes.LOOKUPSWITCH -> true
+		in Opcodes.TABLESWITCH..Opcodes.LOOKUPSWITCH -> true
 		Opcodes.GOTO -> true
 		Opcodes.ATHROW -> true
 		in Opcodes.IRETURN..Opcodes.RETURN -> true

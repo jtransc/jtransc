@@ -69,8 +69,8 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	for (b in tryCatchBlocks) {
 		val catchStack = Stack<AstExpr>()
-		catchStack.push(AstExpr.CAUGHT_EXCEPTION(AstType.OBJECT))
-		basicBlocks.queue(b.handler, BasicBlock.Input(catchStack, prefix.output.locals))
+		catchStack.push(AstExpr.CAUGHT_EXCEPTION(types.REF_INT3(b.type) ?: AstType.THROWABLE))
+		basicBlocks.queue(b.handler, BasicBlock.Frame(catchStack, prefix.output.locals))
 	}
 
 	var hasDynamicInvoke = false
@@ -84,6 +84,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
 
 	val out = AstBody(
+		types,
 		optimizedStms,
 		types.demangleMethod(method.desc),
 		locals.locals.values.toList(),
@@ -92,7 +93,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				start = labels.label(it.start),
 				end = labels.label(it.end),
 				handler = labels.label(it.handler),
-				exception = if (it.type != null) types.REF_INT2(it.type) else AstType.OBJECT
+				exception = types.REF_INT3(it.type) ?: AstType.THROWABLE
 			)
 		},
 		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = hasDynamicInvoke)
@@ -111,7 +112,7 @@ fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstS
 	}
 }
 
-data class FunctionPrefix(val output: BasicBlock.Input, val stms: List<AstStm>)
+data class FunctionPrefix(val output: BasicBlock.Frame, val stms: List<AstStm>)
 
 class BasicBlocks(
 	private val clazz: AstType.REF,
@@ -124,7 +125,7 @@ class BasicBlocks(
 	val labels = Labels()
 	private val blocks = hashMapOf<AbstractInsnNode, BasicBlock>()
 
-	fun queue(entry: AbstractInsnNode, input: BasicBlock.Input) {
+	fun queue(entry: AbstractInsnNode, input: BasicBlock.Frame) {
 		if (entry in blocks) return
 		val bb = BasicBlockBuilder(clazz, method, locals, labels, DEBUG, source, types).call(entry, input)
 		blocks[bb.entry] = bb
@@ -158,12 +159,12 @@ fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals,
 		}
 	}
 
-	return FunctionPrefix(BasicBlock.Input(Stack(), localsOutput), stms)
+	return FunctionPrefix(BasicBlock.Frame(Stack(), localsOutput), stms)
 }
 
 data class BasicBlock(
-	val input: Input,
-	val output: Input,
+	val input: Frame,
+	val output: Frame,
 	val entry: AbstractInsnNode,
 	val stms: List<AstStm>,
 	val next: AbstractInsnNode?,
@@ -172,7 +173,7 @@ data class BasicBlock(
 ) {
 	val outgoingAll = (if (next != null) listOf(next) else listOf()) + outgoing
 
-	data class Input(
+	data class Frame(
 		val stack: Stack<AstExpr>,
 		val locals: Map<Locals.ID, AstLocal>
 	)
@@ -715,7 +716,7 @@ private class BasicBlockBuilder(
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	fun call(entry: AbstractInsnNode, input: BasicBlock.Input): BasicBlock {
+	fun call(entry: AbstractInsnNode, input: BasicBlock.Frame): BasicBlock {
 		var i: AbstractInsnNode? = entry
 		var next: AbstractInsnNode? = null
 		val outgoing = arrayListOf<AbstractInsnNode>()
@@ -844,7 +845,7 @@ private class BasicBlockBuilder(
 		return BasicBlock(
 			input = input,
 			hasInvokeDynamic = hasInvokeDynamic,
-			output = BasicBlock.Input(
+			output = BasicBlock.Frame(
 				stack.clone() as Stack<AstExpr>,
 				locals.locals.clone() as Map<Locals.ID, AstLocal>
 			),

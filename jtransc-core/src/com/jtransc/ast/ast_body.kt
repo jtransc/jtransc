@@ -5,6 +5,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 data class AstBody(
+	val types: AstTypes,
 	var stm: AstStm,
 	var type: AstType.METHOD,
 	var locals: List<AstLocal>,
@@ -19,7 +20,7 @@ fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD): AstBody {
 			locals += local
 		}
 	}).visit(stm)
-	return AstBody(stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
+	return AstBody(types, stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
 }
 
 data class AstBodyFlags(
@@ -420,7 +421,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class ARRAY_ACCESS(array: AstExpr, index: AstExpr) : LValueExpr() {
 		val array = array.box
 		val index = index.box
-		override val type = array.type.elementType
+		override val type by lazy { array.type.elementType }
 	}
 
 	class FIELD_INSTANCE_ACCESS(val field: AstFieldRef, expr: AstExpr) : LValueExpr() {

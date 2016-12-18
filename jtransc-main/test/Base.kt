@@ -33,10 +33,10 @@ import org.junit.Assert
 import java.io.File
 
 open class Base {
+	open val BACKEND = BuildBackend.ASM
 	open val TREESHAKING = true
 	open val TREESHAKING_TRACE = false
 	companion object {
-		val BACKEND = BuildBackend.ASM
 		const val MINIMIZE = true
 		//const val TREESHAKING = false
 		const val RELOOPER = true
@@ -64,12 +64,14 @@ open class Base {
 		debug: Boolean? = null,
 		log: Boolean? = null,
 		treeShaking: Boolean? = null,
+		backend: BuildBackend? = null,
 		noinline transformer: (String) -> String = { it },
 		noinline transformerOut: (String) -> String = { it }
 	) {
 		com.jtransc.log.log.setTempLogger({ content, level -> if (log ?: DEBUG) println(content) }) {
 			testClass(
 				minimize = minimize, analyze = analyze, lang = lang,
+				backend = backend,
 				clazz = T::class.java, transformer = transformer, transformerOut = transformerOut,
 				target = target, debug = debug, treeShaking = treeShaking
 			)
@@ -90,24 +92,25 @@ open class Base {
 
 	fun <T : Any> testClass(
 		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
+		backend: BuildBackend? = null,
 		treeShaking: Boolean? = null,
 		transformer: (String) -> String,
 		transformerOut: (String) -> String
 	) {
 		println(clazz.name)
 		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug, treeShaking = treeShaking))
+		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug, treeShaking = treeShaking, backend = backend))
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, treeShaking = treeShaking)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, backend: BuildBackend? = null,target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, treeShaking = treeShaking, backend = backend)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null) {
-		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, target = target, treeShaking = treeShaking).trim()))
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null) {
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, target = target, treeShaking = treeShaking, backend = backend).trim()))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -126,6 +129,7 @@ open class Base {
 		clazz: Class<T>, lang: String, minimize: Boolean?,
 		analyze: Boolean?, debug: Boolean? = null,
 		treeShaking: Boolean? = null,
+		backend: BuildBackend? = null,
 		//target: GenTargetDescriptor = HaxeTarget
 		target: GenTargetDescriptor? = null
 	): String {
@@ -139,7 +143,7 @@ open class Base {
 		val pid = 0
 
 		injector.mapInstances(
-			BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
+			backend ?: BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
 		)
 
 		injector.mapImpl<AstTypes, AstTypes>()

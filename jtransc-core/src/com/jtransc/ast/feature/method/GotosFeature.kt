@@ -105,7 +105,7 @@ class GotosFeature : AstMethodFeature() {
 			}
 		}
 
-		val relooper = Relooper()
+		val relooper = Relooper(types)
 		for (n in bblist) {
 			n.node = relooper.node(n.stms)
 			//println("NODE(${n.index}): ${n.stms}")
@@ -120,7 +120,7 @@ class GotosFeature : AstMethodFeature() {
 		}
 
 		try {
-			return AstBody(relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.type, body.locals, body.traps, body.flags)
+			return AstBody(types, relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.type, body.locals, body.traps, body.flags)
 		} catch (e: RelooperException) {
 			//println("RelooperException: ${e.message}")
 			return null
@@ -269,7 +269,7 @@ class GotosFeature : AstMethodFeature() {
 			locals.add(gotostate.local)
 		}
 
-		return AstBody(stm, body.type, locals, traps, body.flags)
+		return AstBody(types, stm, body.type, locals, traps, body.flags)
 	}
 
 }

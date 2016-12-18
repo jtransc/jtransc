@@ -10,10 +10,7 @@ import com.jtransc.ds.hasFlag
 import com.jtransc.injector.Singleton
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
-import com.jtransc.org.objectweb.asm.tree.AbstractInsnNode
-import com.jtransc.org.objectweb.asm.tree.LabelNode
-import com.jtransc.org.objectweb.asm.tree.MethodNode
-import com.jtransc.org.objectweb.asm.tree.TryCatchBlockNode
+import com.jtransc.org.objectweb.asm.tree.*
 import java.util.*
 import kotlin.collections.set
 
@@ -22,7 +19,7 @@ class AsmToAst2(types: AstTypes) : BaseAsmToAst(types) {
 	override val expandFrames = true
 
 	override fun genBody(classRef: AstType.REF, methodNode: MethodNode, types: AstTypes, source: String): AstBody {
-		return AsmToAstMethodBody1(classRef, methodNode, types, source)
+		return AsmToAstMethodBody2(classRef, methodNode, types, source)
 	}
 }
 
@@ -74,9 +71,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	//val body = BasicBlockBuilder(types)
 	val methodType = types.demangleMethod(method.desc)
 
-	for (i in method.instructions.toArray().toList()) {
-		println(i.disasm())
-	}
+	//for (i in method.instructions.toArray().toList()) println(i.disasm())
 
 	val entryLocals = LocalsBuilder()
 	var varIndex = 0
@@ -95,18 +90,18 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	for (tcb in method.tryCatchBlocks) {
 		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
-		builder.buildTree(tcb.handler, BasicFrame(entryLocals.locals.toList(), listOf(OutputStackElement(CatchException(exceptionType), Local(exceptionType, 9999)))))
+		builder.buildTree(tcb.handler, BasicFrame(entryLocals.locals.toList(), listOf(CatchException(exceptionType))))
 	}
 
-	for (i in method.instructions.toArray().toList()) {
-		if (i in builder.startToBlocks) {
-			println("-----")
-			println(builder.startToBlocks[i]!!.stms.joinToString("\n"))
-		}
-	}
+	//for (i in method.instructions.toArray().toList()) {
+	//	if (i in builder.startToBlocks) {
+	//		println("-----")
+	//		println(builder.startToBlocks[i]!!.stms.toList().joinToString("\n"))
+	//	}
+	//}
 
 	// Create SSA form
-	SSABuilder(builder).build()
+	//SSABuilder(builder).build()
 
 	// Remove PHI nodes
 	//builder.removePHI()
@@ -125,6 +120,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 
 	return AstBody(
+		types,
 		AstStm.STMS(outStms),
 		methodType,
 		tirToStm.locals.values.toList(),
@@ -164,15 +160,19 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 			when (tir) {
 				is TIR.NOP -> Unit
 				is TIR.MOV -> stms += AstStm.SET_LOCAL(tir.dst.expr, tir.src.expr)
+				is TIR.INSTANCEOF -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.INSTANCE_OF(tir.src.expr, tir.type as AstType.Reference))
 				is TIR.CONV -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.CAST(tir.src.expr, tir.dst.type))
 				is TIR.ARRAYLENGTH -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_LENGTH(tir.obj.expr))
 				is TIR.NEW -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW(tir.type))
 				is TIR.NEWARRAY -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
+				is TIR.UNOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.UNOP(tir.op, tir.r.expr))
 				is TIR.BINOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr, tir.op, tir.r.expr))
 				is TIR.ARRAY_STORE -> stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr)
 				is TIR.ARRAY_LOAD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
 				is TIR.GETSTATIC -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_STATIC_ACCESS(tir.field))
 				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr))
+				is TIR.PUTSTATIC -> stms += AstStm.SET_FIELD_STATIC(tir.field, tir.src.expr)
+				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr, tir.src.expr)
 				is TIR.INVOKE_COMMON -> {
 					val args = tir.args.map { it.expr }
 					val expr = if (tir.obj != null) {
@@ -186,12 +186,15 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 						stms += AstStm.STM_EXPR(expr)
 					}
 				}
+				is TIR.MONITOR -> stms += if (tir.enter) AstStm.MONITOR_ENTER(tir.obj.expr) else AstStm.MONITOR_EXIT(tir.obj.expr)
 			// control flow:
 				is TIR.LABEL -> stms += AstStm.STM_LABEL(tir.label.ast)
 				is TIR.JUMP -> stms += AstStm.GOTO(tir.label.ast)
 				is TIR.JUMP_IF -> stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr))
+				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
 				is TIR.RET -> stms += if (tir.v != null) AstStm.RETURN(tir.v.expr) else AstStm.RETURN_VOID()
 				is TIR.THROW -> stms += AstStm.THROW(tir.ex.expr)
+				//is TIR.PHI_PLACEHOLDER -> stms += AstStm.NOP("PHI_PLACEHOLDER")
 				else -> TODO("$tir")
 			}
 		}
@@ -225,7 +228,7 @@ class SSABuilder(val blocks: MethodBlocks) : DefinitionProcessor {
 	private fun build(bb: BasicBlock) {
 		if (bb in visited) return
 		visited += bb
-		for (stm in bb.stms) {
+		for (stm in bb.stms.toList()) {
 			//println("SSA:$stm")
 		}
 		for (s in bb.allSuccessors) build(blocks.startToBlocks[s]!!)
@@ -236,6 +239,7 @@ class BlockContext {
 	var hasInvokeDynamic = false
 	var tempId = 1000
 	val labels = hashMapOf<Label, AstLabel>()
+	val inputFrames = hashMapOf<AbstractInsnNode, BasicFrame>()
 	fun createTemp(type: AstType) = Local(type, tempId++)
 	fun getVar(type: AstType, v: Int) = Local(type, v)
 	fun label(label: Label): AstLabel = labels.getOrPut(label) { AstLabel("$label") }
@@ -253,11 +257,7 @@ class MethodBlocks(val clazz: AstType.REF, val method: MethodNode, val types: As
 
 	private fun build(start: AbstractInsnNode, onePredecessor: BasicBlock?, inputFrame: BasicFrame): BasicBlock {
 		val bbb1 = startToBlocks[start]
-		if (bbb1 != null) { // Processed already!
-			if (onePredecessor != null) {
-				bbb1.registerPredecessor(onePredecessor)
-			}
-		} else {
+		if (bbb1 == null) { // Not processed yet!
 			val bbb = BasicBlock(types, blockContext, clazz, method, inputFrame).apply {
 				decodeBlock(start, onePredecessor)
 			}
@@ -271,27 +271,27 @@ class MethodBlocks(val clazz: AstType.REF, val method: MethodNode, val types: As
 
 	fun removePHI() {
 		for (block in startToBlocks.values) {
-			removePHI(block.stms)
+			removePHI(block.stms.toList())
 		}
 	}
 
-	fun removePHI(items: ArrayList<TIR>) {
-		for ((n, item) in items.withIndex()) {
-			if (item is TIR.PHI) {
-				val phi = item
-				for (param in phi.params) {
-					val predecessorStms = startToBlocks[param.branch]!!.stms
-					// @TODO: Use linkedlist nodes to totally avoid searching
-					val placeHolderIndex = predecessorStms.indexOfLast { it is TIR.PHI_PLACEHOLDER }
-					if (placeHolderIndex >= 0) {
-						predecessorStms[placeHolderIndex] = TIR.MOV(phi.dst, param.op)
-					} else {
-						println("Not found PHI placeholder")
-					}
-				}
-				items[n] = TIR.NOP(false)
-			}
-		}
+	fun removePHI(items: List<TIR>) {
+		//for ((n, item) in items.withIndex()) {
+		//	if (item is TIR.PHI) {
+		//		val phi = item
+		//		for (param in phi.params) {
+		//			val predecessorStms = startToBlocks[param.branch]!!.first!!.toList()
+		//			// @TODO: Use linkedlist nodes to totally avoid searching
+		//			val placeHolderIndex = predecessorStms.indexOfLast { it is TIR.PHI_PLACEHOLDER }
+		//			if (placeHolderIndex >= 0) {
+		//				predecessorStms[placeHolderIndex] = TIR.MOV(phi.dst, param.op)
+		//			} else {
+		//				println("Not found PHI placeholder")
+		//			}
+		//		}
+		//		items[n] = TIR.NOP(false)
+		//	}
+		//}
 	}
 }
 

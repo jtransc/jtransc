@@ -8,6 +8,14 @@ public class AstExampleTest2 {
 		for (int n = 0; n < out.length; n++) out[n] = (byte) n;
 	}
 
+	private I test2(int a) {
+		return (a < 0) ? new A() : new B();
+	}
+
+	interface I { }
+	static class A implements I { }
+	static class B implements I { }
+
 	//private boolean isDigit(char c) {
 	//	return c >= '0' && c <= '9';
 	//}

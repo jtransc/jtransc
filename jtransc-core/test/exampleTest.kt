@@ -54,7 +54,7 @@ internal class AstExampleTest {
 				types,
 				if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
 			)
-			println(dump(astBody))
+			println(dump(types, astBody))
 			//println(dump(GotosFeature().remove(null, astBody, AstBuildSettings(), types)))
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}
@@ -74,7 +74,7 @@ internal class AstExampleTest {
 				types,
 				if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
 			)
-			println(dump(astBody))
+			println(dump(types, astBody))
 			//println(dump(GotosFeature().remove(null, astBody, AstBuildSettings(), types)))
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}

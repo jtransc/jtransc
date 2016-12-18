@@ -24,22 +24,33 @@ class LocalsBuilder {
 	}
 }
 
-data class BasicFrame(val locals: List<AstType>, val stack: List<OutputStackElement>) {
-	fun combineWith(other: BasicFrame) {
-
-	}
+data class BasicFrame(val locals: List<AstType>, val stack: List<Operand>) {
+	//fun linkTo(target: BasicFrame) {
+	//	for ((src, dst) in this.locals.zip(target.locals)) {
+	//		if (dst is AstType.COMMON) {
+	//			dst.add(src)
+	//		}
+	//	}
+	//	for ((src, dst) in this.stack.zip(target.stack)) {
+	//		if (dst.type is AstType.COMMON) {
+	//			(dst.type as AstType.COMMON).add(src.type)
+	//		}
+	//	}
+	//}
 }
-class OutputStackElement(val operand: Operand, val target: Local) {
-}
 
-class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz: AstType.REF, val method: MethodNode, val inputFrame: BasicFrame) {
+class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz: AstType.REF, val method: MethodNode, val oneInputFrame: BasicFrame) {
 	val JUMP_OPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
-	var tail: TIR? = null
+	//var first: TIR? = null
+	//var tail: TIR? = null
 	val stms = arrayListOf<TIR>()
 	val stack = Stack<Operand>()
 	val locals = LocalsBuilder()
 
+	val predecessors = hashSetOf<BasicBlock>()
+
+	val allInputFrames = arrayListOf(oneInputFrame)
 	lateinit var outputFrame: BasicFrame
 
 
@@ -63,10 +74,10 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	}
 
 	fun add(n: TIR) {
-		n.prev = tail
-		tail?.next = n
-		stms += n
-		tail = n
+		//if (first == null) first = n
+		//tail?.append(n)
+		//tail = n
+		stms.add(n)
 	}
 
 	fun push(v: Operand) {
@@ -84,29 +95,20 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	val jumpNodes = arrayListOf<AbstractInsnNode>()
 	var nextDirectNode: AbstractInsnNode? = null
 
-	val predecessors = hashSetOf<BasicBlock>()
-
-	fun registerPredecessor(predecessor: BasicBlock) {
-		if (predecessors.isEmpty()) {
-			for (item in predecessor.outputFrame.stack) {
-				add(TIR.PHI(item.target))
-				push(item.target)
-			}
-		}
-		if (predecessor !in predecessors) {
-			predecessors += predecessor
-			for ((index, item) in predecessor.outputFrame.stack.withIndex()) {
-				val phi = stms[index] as TIR.PHI
-				phi.params += PHIOption(predecessor.start, item.operand)
-			}
-		}
-	}
+	//fun registerPredecessor(predecessor: BasicBlock) {
+	//	if (predecessor !in predecessors) {
+	//		predecessors += predecessor
+//
+	//		predecessor.outputFrame.linkTo(oneInputFrame)
+	//	}
+	//}
 
 	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlock?) {
 		this.start = start
 
 		val isEntryNode = onePredecessor == null
 
+		// @TODO: Remove this from here!
 		if (isEntryNode) {
 			val methodType = types.demangleMethod(method.desc)
 			var varIndex = 0
@@ -122,15 +124,16 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			}
 		}
 
-		if (onePredecessor != null) registerPredecessor(onePredecessor)
-		locals.setFrame(inputFrame)
-		for (s in inputFrame.stack) {
-			push(s.operand)
-		}
-		var current: AbstractInsnNode? = start
-		while (current != null) {
+		//if (onePredecessor != null) registerPredecessor(onePredecessor)
+
+		locals.setFrame(oneInputFrame)
+		for (s in oneInputFrame.stack) push(s)
+
+		var current: AbstractInsnNode = start
+		while (true) {
+			val isLastIns = current.next == null || current.next is LabelNode || current.isEndOfBasicBlock()
 			decodeIns(current)
-			if (current.next is LabelNode || current.isEndOfBasicBlock()) {
+			if (isLastIns) {
 				if (!current.isEnd()) {
 					nextDirectNode = current.next
 				}
@@ -138,15 +141,43 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 				if (nextDirectNode != null) allSuccessors += nextDirectNode!!
 
 				if (!current.isEnd() && (current.next is LabelNode)) {
-					phiPlaceholder()
 					add(TIR.JUMP((current.next as LabelNode).label))
 				}
-
 				break
 			}
 			current = current.next
 		}
-		outputFrame = BasicFrame(locals.locals.toList(), stack.toList().map { OutputStackElement(it, createTemp(it.type)) })
+
+		val alreadyCreatedFrame = allSuccessors.map { blockContext.inputFrames[it] }.filterNotNull().firstOrNull()
+
+		if (alreadyCreatedFrame != null) {
+			outputFrame = alreadyCreatedFrame
+
+			// Merge frame types!
+			for ((src, dst) in locals.locals.zip(outputFrame.locals)) {
+				if (dst is AstType.COMMON) dst.add(src)
+			}
+			for ((src, dst) in stack.toList().zip(outputFrame.stack)) {
+				val dstType = dst.type
+				if (dstType is AstType.COMMON) dstType.add(src.type)
+			}
+		} else {
+			val frame = BasicFrame(locals.locals.toList().map {
+				AstType.COMMON(it)
+			}, stack.toList().map {
+				createTemp(AstType.COMMON(it.type))
+			})
+			for (s in allSuccessors) blockContext.inputFrames[s] = frame
+			outputFrame = frame
+		}
+
+		val items = arrayListOf<TIR>()
+		for ((v, op) in outputFrame.stack.zip(stack.toList()).reversed()) {
+			if (v is Local) {
+				items.add(TIR.MOV(v, op))
+			}
+		}
+		stms.addAll(stms.size - 1, items)
 	}
 
 	fun decodeIns(n: AbstractInsnNode) {
@@ -245,7 +276,6 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 
 		val subject = pop()
 
-		phiPlaceholder()
 		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
@@ -259,7 +289,6 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 
 		val subject = pop()
 
-		phiPlaceholder()
 		add(TIR.SWITCH_GOTO(
 			subject,
 			n.dflt.label,
@@ -317,24 +346,20 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			in Opcodes.IFEQ..Opcodes.IFLE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFEQ]
 				val value = stack.pop()
-				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.INT, 0)))
 			}
 			Opcodes.IFNULL, Opcodes.IFNONNULL -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IFNULL]
 				val value = stack.pop()
-				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, value, op, Constant(AstType.OBJECT, null)))
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IF_ICMPEQ]
 				val valueL = stack.pop()
 				val valueR = stack.pop()
-				phiPlaceholder()
 				add(TIR.JUMP_IF(n.label.label, valueL, op, valueR))
 			}
 			Opcodes.GOTO -> {
-				phiPlaceholder()
 				add(TIR.JUMP(n.label.label))
 			}
 		}
@@ -348,10 +373,6 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		while (stack.isNotEmpty()) stack.pop()
 	}
 
-	private fun phiPlaceholder() {
-		for (n in 0 until stack.length) add(TIR.PHI_PLACEHOLDER(false))
-	}
-
 	fun decodeIincNode(n: IincInsnNode) {
 		add(TIR.BINOP(getVar(AstType.INT, n.`var`), getVar(AstType.INT, n.`var`), AstBinop.ADD, Constant(AstType.INT, 1)))
 	}
@@ -359,28 +380,30 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	//private fun getLocalType(index: Int) = locals.getOrElse(index) { AstType.UNKNOWN }
 
 	fun decodeFrameNode(n: FrameNode) {
-		// Do nothing. We calculate frames ourselves to full compatibility with versions less than Java6.
-
-		// Take advantage of frames to get information without calculcating it
-		//for ((index, l) in n.local.withIndex()) {
-		//	when (l) {
-		//		is Int -> {
-		//			when (l) {
-		//				Opcodes.TOP -> locals.setLocalType(index, AstType.UNKNOWN) // UNUSED SLOTS
-		//				Opcodes.INTEGER -> locals.setLocalType(index, AstType.INT)
-		//				Opcodes.FLOAT -> locals.setLocalType(index, AstType.FLOAT)
-		//				Opcodes.DOUBLE -> locals.setLocalType(index, AstType.DOUBLE)
-		//				Opcodes.LONG -> locals.setLocalType(index, AstType.LONG)
-		//				Opcodes.NULL -> locals.setLocalType(index, AstType.OBJECT)
-		//				Opcodes.UNINITIALIZED_THIS -> locals.setLocalType(index, this.clazz)
-		//				else -> TODO("Type $l")
-		//			}
-		//		}
-		//		is String -> locals.setLocalType(index, types.REF_INT(l))
-		//		is LabelNode -> TODO("LabelNode")
-		//		else -> TODO("Type $l ${l.javaClass}")
-		//	}
-		//}
+		if (true) {
+			// Do nothing. We calculate frames ourselves to full compatibility with versions less than Java6.
+		} else {
+			// Take advantage of frames to get information without calculcating it
+			for ((index, l) in n.local.withIndex()) {
+				when (l) {
+					is Int -> {
+						when (l) {
+							Opcodes.TOP -> locals.setLocalType(index, AstType.UNKNOWN) // UNUSED SLOTS
+							Opcodes.INTEGER -> locals.setLocalType(index, AstType.INT)
+							Opcodes.FLOAT -> locals.setLocalType(index, AstType.FLOAT)
+							Opcodes.DOUBLE -> locals.setLocalType(index, AstType.DOUBLE)
+							Opcodes.LONG -> locals.setLocalType(index, AstType.LONG)
+							Opcodes.NULL -> locals.setLocalType(index, AstType.OBJECT)
+							Opcodes.UNINITIALIZED_THIS -> locals.setLocalType(index, this.clazz)
+							else -> TODO("Type $l")
+						}
+					}
+					is String -> locals.setLocalType(index, types.REF_INT(l))
+					is LabelNode -> TODO("LabelNode")
+					else -> TODO("Type $l ${l.javaClass}")
+				}
+			}
+		}
 	}
 
 	fun decodeLabelNode(n: LabelNode) {
@@ -399,7 +422,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		val ownerTypeRef = if (ownerType is AstType.ARRAY) AstType.OBJECT else ownerType as AstType.REF
 		val methodRef = AstMethodRef(ownerTypeRef.name, n.name, methodType)
 		val args = methodType.args.reversed().map { pop() }
-		val obj = if (n.opcode != Opcodes.INVOKESTATIC) pop() as Local else null
+		val obj = if (n.opcode != Opcodes.INVOKESTATIC) pop() else null
 		if (methodType.retVoid) {
 			add(TIR.INVOKE_VOID(obj, methodRef, args))
 		} else {

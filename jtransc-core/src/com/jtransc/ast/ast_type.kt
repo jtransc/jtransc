@@ -78,11 +78,28 @@ interface AstType {
 		override fun toString() = "$element[]"
 	}
 
-	data class COMMON(val elements: List<AstType>) {
+	data class COMMON(val elements: HashSet<AstType>) : AstType {
+		constructor(first: AstType) : this(HashSet()) {
+			add(first)
+		}
+
+		val single: AstType? get() = if (elements.size == 1) elements.first() else null
+		val singleOrInvalid: AstType get() = single ?: invalidArgument("Common type not resolved $elements")
+
+		fun add(type: AstType) {
+			if (type != this) {
+				if (type is AstType.COMMON) {
+					for (e in type.elements) add(e)
+				} else {
+					elements += type
+				}
+			}
+		}
+
 		override fun toString() = "COMMON($elements)"
 	}
 
-	data class MUTABLE(var ref: AstType) {
+	data class MUTABLE(var ref: AstType) : AstType {
 		override fun toString() = "MUTABLE($ref)"
 	}
 
@@ -164,6 +181,8 @@ class AstTypes {
 	fun REF_INT2(internalName: String): AstType.REF {
 		return AstType.REF(internalName.replace('/', '.'))
 	}
+
+	fun REF_INT3(internalName: String?): AstType.REF? = if (internalName != null) REF_INT2(internalName) else null
 
 	fun demangle(desc: String): AstType {
 		if (desc !in AstTypeDemangleCache) {
@@ -379,6 +398,7 @@ fun AstType.getNull(): Any? = when(this) {
 	is AstType.FLOAT -> 0f.toFloat()
 	is AstType.DOUBLE -> 0.0.toDouble()
 	is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
+	is AstType.COMMON -> this.elements.firstOrNull()?.getNull()
 	else -> noImpl("Not supported type $this")
 }
 
@@ -483,11 +503,23 @@ val REF_DELIMITER2 = setOf(';', '<', '.')
 val T_DELIMITER = setOf(';')
 val TYPE_DELIMITER = setOf(':', '>')
 
-
 val AstType.elementType: AstType get() = when (this) {
 	is AstType.ARRAY -> this.element
 	is AstType.GENERIC -> this.suffixes[0].params!![0]
+	is AstType.COMMON -> this.singleOrInvalid.elementType
 	else -> invalidArgument("Type is not an array: $this")
+}
+
+fun AstType.mangleExt(retval: Boolean = true): String = when (this) {
+	is AstType.COMMON -> {
+		if (this.elements.size == 1) {
+			this.elements.first().mangleExt(retval)
+		} else {
+			"COMMON(" + this.elements.map { it.mangleExt(retval) } + ")"
+		}
+	}
+	is AstType.MUTABLE -> this.ref.mangleExt(retval)
+	else -> mangle(retval)
 }
 
 fun AstType.mangle(retval: Boolean = true): String = when (this) {
@@ -505,7 +537,7 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 		"<" + this.types.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">" + this.element.mangle(retval)
 	}
 	is AstType.METHOD -> {
-		var param = if (this.paramTypes.size > 0) {
+		val param = if (this.paramTypes.isNotEmpty()) {
 			"<" + this.paramTypes.map { it.first + ":" + it.second.mangle(retval) }.joinToString("") + ">"
 		} else {
 			""
@@ -515,6 +547,13 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 			param + args + ret.mangle(retval)
 		} else {
 			param + args
+		}
+	}
+	is AstType.COMMON -> {
+		if (this.elements.size == 1) {
+			this.elements.first().mangle(retval)
+		} else{
+			throw RuntimeException("Can't mangle common with several types: ${this.elements}. Resolve COMMONS first.")
 		}
 	}
 	is AstType.UNKNOWN -> throw RuntimeException("Can't mangle unknown")
@@ -538,5 +577,7 @@ fun AstType.getRefTypesFqName(): List<FqName> = when (this) {
 	is AstType.GENERIC_STAR -> listOf()
 	is AstType.GENERIC_LOWER_BOUND -> this.element.getRefTypesFqName()
 	is AstType.GENERIC_UPPER_BOUND -> this.element.getRefTypesFqName()
+	is AstType.COMMON -> this.elements.flatMap { it.getRefTypesFqName() }
+	is AstType.MUTABLE -> this.ref.getRefTypesFqName()
 	else -> noImpl("AstType.getRefTypesFqName: $this")
 }

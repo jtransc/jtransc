@@ -46,7 +46,17 @@ public class MiscTest {
 
 		new MiscTest().main2(args);
 		ClInitCallTwice.test();
+		System.out.println(test2(-1).getClass().getName());
+		System.out.println(test2(+1).getClass().getName());
 	}
+
+	static private II test2(int a) {
+		return (a < 0) ? new AI() : new BI();
+	}
+
+	interface II { }
+	static class AI implements II { }
+	static class BI implements II { }
 
 	static private void testTestStrings() {
 		System.out.println("testTestStrings:");
