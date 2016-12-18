@@ -178,7 +178,7 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun N_is(a: String, b: String): String = "((cast($b)$a) !is null)"
 
-	override val NullType = "Object"
+	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
 	override val BoolType = "bool"
 	override val IntType = "int"

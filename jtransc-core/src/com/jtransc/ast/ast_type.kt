@@ -13,7 +13,7 @@ import java.io.Serializable
 import java.util.*
 
 interface AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String) : AstType {
+	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
@@ -33,23 +33,23 @@ interface AstType {
 
 	object NULL : Reference
 
-	object VOID : Primitive("java.lang.Void", 'V', "void")
+	object VOID : Primitive("java.lang.Void", 'V', "void", 0)
 
-	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool")
+	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1)
 
-	object BYTE : Primitive("java.lang.Byte", 'B', "byte")
+	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1)
 
-	object CHAR : Primitive("java.lang.Character", 'C', "char")
+	object CHAR : Primitive("java.lang.Character", 'C', "char", 2)
 
-	object SHORT : Primitive("java.lang.Short", 'S', "short")
+	object SHORT : Primitive("java.lang.Short", 'S', "short", 2)
 
-	object INT : Primitive("java.lang.Integer", 'I', "int")
+	object INT : Primitive("java.lang.Integer", 'I', "int", 4)
 
-	object LONG : Primitive("java.lang.Long", 'J', "long")
+	object LONG : Primitive("java.lang.Long", 'J', "long", 8)
 
-	object FLOAT : Primitive("java.lang.Float", 'F', "float")
+	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4)
 
-	object DOUBLE : Primitive("java.lang.Double", 'D', "double")
+	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8)
 
 	data class REF(val name: FqName) : Reference, AstRef {
 		constructor(name: String) : this(FqName(name))
@@ -416,6 +416,10 @@ fun AstType.getNull(): Any? = when (this) {
 	is AstType.LONG -> 0.toLong()
 	is AstType.FLOAT -> 0f.toFloat()
 	is AstType.DOUBLE -> 0.0.toDouble()
+	is AstType.UNKNOWN -> {
+		println("Referenced UNKNOWN")
+		null
+	}
 	is AstType.REF, is AstType.ARRAY, is AstType.NULL -> null
 	is AstType.COMMON -> this.elements.firstOrNull()?.getNull()
 	else -> noImpl("Not supported type $this")

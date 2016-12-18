@@ -140,7 +140,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	// Remove PHI nodes
 	//builder.removePHI()
 
-	val tirToStm = TirToStm(context, types)
+	val tirToStm = TirToStm(methodType, context, types)
 	for (i in method.instructions.toArray().toList()) {
 		if (i in builder.startToBlocks) {
 			tirToStm.convert(builder.startToBlocks[i]!!.stms)
@@ -170,7 +170,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	)//.optimize()
 }
 
-class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
+class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, val types: AstTypes) {
 	val locals = hashMapOf<Local, AstLocal>()
 	val stms = arrayListOf<AstStm>()
 	var id = 0
@@ -188,7 +188,8 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 		is Param -> AstExpr.PARAM(AstArgument(this.index, this.type))
 		is Local -> AstExpr.LOCAL(this.ast)
 		is This -> AstExpr.THIS(this.clazz.name)
-		is CatchException -> AstExpr.CAUGHT_EXCEPTION(this.type)
+		//is CatchException -> AstExpr.CAUGHT_EXCEPTION(this.type)
+		is CatchException -> AstExpr.CAUGHT_EXCEPTION(AstType.OBJECT)
 		else -> TODO("$this")
 	}
 
@@ -196,7 +197,7 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 		for (tir in tirs) {
 			when (tir) {
 				is TIR.NOP -> Unit
-				is TIR.MOV -> stms += AstStm.SET_LOCAL(tir.dst.expr, tir.src.expr)
+				is TIR.MOV -> stms += AstStm.SET_LOCAL(tir.dst.expr, tir.src.expr.castTo(tir.dst.type))
 				is TIR.INSTANCEOF -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.INSTANCE_OF(tir.src.expr, tir.type as AstType.Reference))
 				is TIR.CONV -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.CAST(tir.src.expr, tir.dst.type))
 				is TIR.ARRAYLENGTH -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_LENGTH(tir.obj.expr))
@@ -204,17 +205,21 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 				is TIR.NEWARRAY -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
 				is TIR.UNOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.UNOP(tir.op, tir.r.expr))
 				is TIR.BINOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr, tir.op, tir.r.expr))
-				is TIR.ARRAY_STORE -> stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr)
-				is TIR.ARRAY_LOAD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
+				is TIR.ARRAY_STORE -> {
+					stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr.castTo(tir.array.type.elementType))
+				}
+				is TIR.ARRAY_LOAD -> {
+					stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
+				}
 				is TIR.GETSTATIC -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_STATIC_ACCESS(tir.field))
-				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr))
+				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr.castTo(tir.field.containingTypeRef)))
 				is TIR.PUTSTATIC -> stms += AstStm.SET_FIELD_STATIC(tir.field, tir.src.expr.castTo(tir.field.type))
-				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr, tir.src.expr.castTo(tir.field.type))
+				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr.castTo(tir.field.containingTypeRef), tir.src.expr.castTo(tir.field.type))
 				is TIR.INVOKE_COMMON -> {
 					val method = tir.method
 					val args = tir.args.zip(method.type.args).map { it.first.expr.castTo(it.second.type) }
 					val expr = if (tir.obj != null) {
-						AstExpr.CALL_INSTANCE(tir.obj!!.expr, tir.method, args)
+						AstExpr.CALL_INSTANCE(tir.obj!!.expr.castTo(tir.method.containingClassType), tir.method, args)
 					} else {
 						AstExpr.CALL_STATIC(tir.method, args)
 					}
@@ -230,7 +235,7 @@ class TirToStm(val blockContext: BlockContext, val types: AstTypes) {
 				is TIR.JUMP -> stms += AstStm.GOTO(tir.label.ast)
 				is TIR.JUMP_IF -> stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr))
 				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
-				is TIR.RET -> stms += if (tir.v != null) AstStm.RETURN(tir.v.expr) else AstStm.RETURN_VOID()
+				is TIR.RET -> stms += if (tir.v != null) AstStm.RETURN(tir.v.expr.castTo(methodType.ret)) else AstStm.RETURN_VOID()
 				is TIR.THROW -> stms += AstStm.THROW(tir.ex.expr)
 			//is TIR.PHI_PLACEHOLDER -> stms += AstStm.NOP("PHI_PLACEHOLDER")
 				else -> TODO("$tir")

@@ -524,8 +524,10 @@ object AstExprUtils {
 		return localExpr
 	}
 
-	fun cast(expr: AstExpr, to: AstType): AstExpr {
-		if (expr.type == to) return expr
+	fun cast(expr: AstExpr, _to: AstType): AstExpr {
+		val exprType = expr.type.simplify()
+		val to = _to.simplify()
+		if (exprType == to) return expr
 
 		if (expr is AstExpr.LITERAL) {
 			val value = expr.value

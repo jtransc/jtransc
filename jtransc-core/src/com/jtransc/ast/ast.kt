@@ -23,6 +23,7 @@ import com.jtransc.annotation.*
 import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ast.optimize.AstOptimizer
+import com.jtransc.ds.cast
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
@@ -905,7 +906,20 @@ fun AstType.simplify(): AstType = when (this) {
 			if (items.size == 1) {
 				items.first()
 			} else {
-				AstType.COMMON(items)
+				if (items.all { it is AstType.Primitive }) {
+					val primElements = this.elements.cast<AstType.Primitive>()
+					this.elements.clear()
+					if (primElements.contains(AstType.DOUBLE)) {
+						this.elements += AstType.DOUBLE
+					} else if (primElements.contains(AstType.FLOAT)) {
+						this.elements += AstType.FLOAT
+					} else {
+						this.elements += primElements.sortedByDescending { it.byteSize }.first()
+					}
+					this.elements.first()
+				} else {
+					AstType.COMMON(items)
+				}
 			}
 		}
 	}

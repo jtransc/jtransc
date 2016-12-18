@@ -1465,7 +1465,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Primitive types
 	//////////////////////////////////////////////////
 
-	open val NullType = "Object"
+	open val NullType by lazy { AstType.OBJECT.targetName }
 	open val VoidType = "void"
 	open val BoolType = "boolean"
 	open val IntType = "int"
@@ -1535,31 +1535,38 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Type names
 	//////////////////////////////////////////////////
 
-	open val AstType.targetName: String get() = when (this) {
-		is AstType.NULL -> NullType
-		is AstType.VOID -> VoidType
-		is AstType.BOOL -> BoolType
-		is AstType.GENERIC -> this.type.targetName
-		is AstType.INT -> IntType
-		is AstType.SHORT -> ShortType
-		is AstType.CHAR -> CharType
-		is AstType.BYTE -> ByteType
-		is AstType.FLOAT -> FloatType
-		is AstType.DOUBLE -> DoubleType
-		is AstType.LONG -> LongType
-		is AstType.REF -> program[this.name].nativeName ?: this.name.targetName
-		is AstType.ARRAY -> when (this.element) {
-			is AstType.BOOL -> BoolArrayType
-			is AstType.BYTE -> ByteArrayType
-			is AstType.CHAR -> CharArrayType
-			is AstType.SHORT -> ShortArrayType
-			is AstType.INT -> IntArrayType
-			is AstType.LONG -> LongArrayType
-			is AstType.FLOAT -> FloatArrayType
-			is AstType.DOUBLE -> DoubleArrayType
-			else -> ObjectArrayType
+	open val AstType.targetName: String get() {
+		val type = this.resolve()
+		return when (type) {
+			is AstType.NULL -> NullType
+			is AstType.UNKNOWN -> {
+				println("Referenced UNKNOWN")
+				NullType
+			}
+			is AstType.VOID -> VoidType
+			is AstType.BOOL -> BoolType
+			is AstType.GENERIC -> type.type.targetName
+			is AstType.INT -> IntType
+			is AstType.SHORT -> ShortType
+			is AstType.CHAR -> CharType
+			is AstType.BYTE -> ByteType
+			is AstType.FLOAT -> FloatType
+			is AstType.DOUBLE -> DoubleType
+			is AstType.LONG -> LongType
+			is AstType.REF -> program[type.name].nativeName ?: type.name.targetName
+			is AstType.ARRAY -> when (type.element) {
+				is AstType.BOOL -> BoolArrayType
+				is AstType.BYTE -> ByteArrayType
+				is AstType.CHAR -> CharArrayType
+				is AstType.SHORT -> ShortArrayType
+				is AstType.INT -> IntArrayType
+				is AstType.LONG -> LongArrayType
+				is AstType.FLOAT -> FloatArrayType
+				is AstType.DOUBLE -> DoubleArrayType
+				else -> ObjectArrayType
+			}
+			else -> throw RuntimeException("Not supported native type $this")
 		}
-		else -> throw RuntimeException("Not supported native type $this")
 	}
 
 	//////////////////////////////////////////////////
