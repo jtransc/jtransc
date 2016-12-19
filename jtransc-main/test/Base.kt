@@ -162,6 +162,7 @@ open class Base {
 					jtranscVersion = JTranscVersion.getVersion(),
 					debug = debug ?: DEBUG,
 					relooper = RELOOPER,
+					//relooper = false,
 					analyzer = analyze ?: ANALYZER,
 					rtAndRtCore = listOf(
 						projectRoot["jtransc-rt/target/classes"].realpathOS,

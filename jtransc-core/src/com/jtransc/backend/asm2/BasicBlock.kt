@@ -41,6 +41,7 @@ data class BasicFrame(val locals: ArrayList<AstType>, val stack: List<Operand>) 
 }
 
 class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz: AstType.REF, val method: MethodNode, val inputFrame: BasicFrame) {
+	//val CTYPES = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	val JUMP_OPS = listOf(AstBinop.EQ, AstBinop.NE, AstBinop.LT, AstBinop.GE, AstBinop.GT, AstBinop.LE, AstBinop.EQ, AstBinop.NE)
 	val TPRIM = listOf(AstType.INT, AstType.LONG, AstType.FLOAT, AstType.DOUBLE, AstType.OBJECT, AstType.BYTE, AstType.CHAR, AstType.SHORT)
 	//var first: TIR? = null
@@ -381,8 +382,8 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			}
 			in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 				val op = JUMP_OPS[n.opcode - Opcodes.IF_ICMPEQ]
-				val valueL = stack.pop()
 				val valueR = stack.pop()
+				val valueL = stack.pop()
 				add(TIR.JUMP_IF(n.label.label, valueL, op, valueR))
 			}
 			Opcodes.GOTO -> {
