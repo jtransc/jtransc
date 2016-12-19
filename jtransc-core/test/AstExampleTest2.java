@@ -1,13 +1,74 @@
+import com.jtransc.JTranscArrays;
+import com.jtransc.ds.FastIntMap;
+import j.ClassInfo;
+import j.MemberInfo;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.HashMap;
+
 public class AstExampleTest2 {
-	boolean test = true;
-
-	private void demo() {
-		demo2(new byte[0], 10);
+	public void write(byte[] buffer, int offset, int length) {
+		JTranscArrays.checkOffsetAndCount(buffer.length, offset, length);
+		synchronized (this) {
+			if (out == null) {
+				setError();
+				return;
+			}
+			try {
+				out.write(buffer, offset, length);
+				if (autoFlush) {
+					flush();
+				}
+			} catch (IOException e) {
+				setError();
+			}
+		}
 	}
 
-	private void demo2(byte[] a, int b) {
+	native private void setError();
+	native private void flush();
 
-	}
+	private OutputStream out;
+	private boolean autoFlush;
+
+	//boolean test = true;
+//
+	//private void demo() {
+	//	demo2(new byte[0], 10);
+	//}
+//
+	//private void demo2(byte[] a, int b) {
+//
+	//}
+//
+	//public static void setBoolean(Object array, int index, boolean v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+	//	((boolean[])array)[index] = v;
+	//}
+//
+	//static public ClassInfo[] _classInfos;
+	//static public HashMap<Integer, HashMap<Integer, MemberInfo>> _constructorsInfo;
+//
+	//static public void _ensure() {
+//
+	//}
+//
+	//static public void _ensureConstructors() {
+	//	//if (_constructorsInfo != null) return;
+	//	//_ensure();
+//
+	//	//_constructorsInfo = new HashMap<>();
+	//	for (ClassInfo info : _classInfos) {
+	//		if (info == null) continue;
+	//		HashMap<Integer, MemberInfo> map = new HashMap<>();
+	//		//_constructorsInfo.put(info.id, map);
+	//		//MemberInfo[] minfo = getConstructors(0);
+	//		for (MemberInfo i : getConstructors(0)) map.put(0, null);
+	//	}
+	//}
+//
+	//native static public MemberInfo[] getConstructors(int classId);
 
 	//private boolean isLetter(char c) {return c >= 'a' && c <= 'z';}
 

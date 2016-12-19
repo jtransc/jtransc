@@ -4,6 +4,9 @@ import com.jtransc.ast.dump
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.backend.asm1.AsmToAstMethodBody1
 import com.jtransc.backend.asm2.AsmToAstMethodBody2
+import com.jtransc.backend.hasBody
+import com.jtransc.backend.isNative
+import com.jtransc.backend.isStatic
 import com.jtransc.io.readBytes
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.tree.ClassNode
@@ -68,13 +71,15 @@ internal class AstExampleTest {
 			val methodType = types.demangleMethod(_method.desc)
 			//if (_method.name == "<init>") continue
 			println("::" + _method.name + " :: " + methodType)
-			val astBody = AsmToAstMethodBody2(
-				types.REF_INT2(clazz.name),
-				_method,
-				types,
-				if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
-			)
-			println(dump(types, astBody))
+			if (_method.hasBody()) {
+				val astBody = AsmToAstMethodBody2(
+					types.REF_INT2(clazz.name),
+					_method,
+					types,
+					if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
+				)
+				println(dump(types, astBody))
+			}
 			//println(dump(GotosFeature().remove(null, astBody, AstBuildSettings(), types)))
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}

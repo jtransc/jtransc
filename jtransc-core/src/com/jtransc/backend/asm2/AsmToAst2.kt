@@ -11,6 +11,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.org.objectweb.asm.Label
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.*
+import java.util.*
 import kotlin.collections.set
 
 @Singleton
@@ -105,7 +106,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	//method.instructions.remove()
 
-	//for (i in method.instructions.toArray().toList()) println(i.disasm())
+	//println("---------------------------\n".repeat(10)); for (i in method.instructions.toArray().toList()) println(i.disasm())
 
 	val entryLocals = LocalsBuilder()
 	var varIndex = 0
@@ -120,11 +121,13 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	val builder = MethodBlocks(clazz, method, types)
 	val context = builder.blockContext
-	builder.buildTree(methodInstructions.first, BasicFrame(entryLocals.locals.toList(), listOf()))
+	builder.buildTree(methodInstructions.first, BasicFrame(ArrayList(entryLocals.locals), listOf()))
 
 	for (tcb in method.tryCatchBlocks) {
 		val exceptionType = if (tcb.type != null) types.REF_INT(tcb.type) else AstType.THROWABLE
-		builder.buildTree(tcb.handler, BasicFrame(entryLocals.locals.toList(), listOf(CatchException(exceptionType))))
+		val startBlock = builder.startToBlocks[tcb.start]!!
+
+		builder.buildTree(tcb.handler, BasicFrame(ArrayList(startBlock.inputFrame.locals), listOf(CatchException(exceptionType))))
 	}
 
 	//for (i in method.instructions.toArray().toList()) {
@@ -168,80 +171,6 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		},
 		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = context.hasInvokeDynamic)
 	)//.optimize()
-}
-
-class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, val types: AstTypes) {
-	val locals = hashMapOf<Local, AstLocal>()
-	val stms = arrayListOf<AstStm>()
-	var id = 0
-
-	val Local.ast: AstLocal get() {
-		val canonicalLocal = Local(this.type.simplify(), this.index)
-		return locals.getOrPut(canonicalLocal) { AstLocal(id++, canonicalLocal.type) }
-	}
-	val Label.ast: AstLabel get() = blockContext.label(this)
-
-	val Local.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this.ast)
-
-	val Operand.expr: AstExpr get() = when (this) {
-		is Constant -> AstExpr.LITERAL(this.v)
-		is Param -> AstExpr.PARAM(AstArgument(this.index, this.type))
-		is Local -> AstExpr.LOCAL(this.ast)
-		is This -> AstExpr.THIS(this.clazz.name)
-		//is CatchException -> AstExpr.CAUGHT_EXCEPTION(this.type)
-		is CatchException -> AstExpr.CAUGHT_EXCEPTION(AstType.OBJECT)
-		else -> TODO("$this")
-	}
-
-	fun convert(tirs: List<TIR>) {
-		for (tir in tirs) {
-			when (tir) {
-				is TIR.NOP -> Unit
-				is TIR.MOV -> stms += AstStm.SET_LOCAL(tir.dst.expr, tir.src.expr.castTo(tir.dst.type))
-				is TIR.INSTANCEOF -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.INSTANCE_OF(tir.src.expr, tir.type as AstType.Reference))
-				is TIR.CONV -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.CAST(tir.src.expr, tir.dst.type))
-				is TIR.ARRAYLENGTH -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_LENGTH(tir.obj.expr))
-				is TIR.NEW -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW(tir.type))
-				is TIR.NEWARRAY -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
-				is TIR.UNOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.UNOP(tir.op, tir.r.expr))
-				is TIR.BINOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr, tir.op, tir.r.expr))
-				is TIR.ARRAY_STORE -> {
-					stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr.castTo(tir.array.type.elementType))
-				}
-				is TIR.ARRAY_LOAD -> {
-					stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.ARRAY_ACCESS(tir.array.expr, tir.index.expr))
-				}
-				is TIR.GETSTATIC -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_STATIC_ACCESS(tir.field))
-				is TIR.GETFIELD -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.FIELD_INSTANCE_ACCESS(tir.field, tir.obj.expr.castTo(tir.field.containingTypeRef)))
-				is TIR.PUTSTATIC -> stms += AstStm.SET_FIELD_STATIC(tir.field, tir.src.expr.castTo(tir.field.type))
-				is TIR.PUTFIELD -> stms += AstStm.SET_FIELD_INSTANCE(tir.field, tir.obj.expr.castTo(tir.field.containingTypeRef), tir.src.expr.castTo(tir.field.type))
-				is TIR.INVOKE_COMMON -> {
-					val method = tir.method
-					val args = tir.args.zip(method.type.args).map { it.first.expr.castTo(it.second.type) }
-					val expr = if (tir.obj != null) {
-						AstExpr.CALL_INSTANCE(tir.obj!!.expr.castTo(tir.method.containingClassType), tir.method, args)
-					} else {
-						AstExpr.CALL_STATIC(tir.method, args)
-					}
-					if (tir is TIR.INVOKE) {
-						stms += AstStm.SET_LOCAL(tir.dst.expr, expr)
-					} else {
-						stms += AstStm.STM_EXPR(expr)
-					}
-				}
-				is TIR.MONITOR -> stms += if (tir.enter) AstStm.MONITOR_ENTER(tir.obj.expr) else AstStm.MONITOR_EXIT(tir.obj.expr)
-			// control flow:
-				is TIR.LABEL -> stms += AstStm.STM_LABEL(tir.label.ast)
-				is TIR.JUMP -> stms += AstStm.GOTO(tir.label.ast)
-				is TIR.JUMP_IF -> stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr))
-				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
-				is TIR.RET -> stms += if (tir.v != null) AstStm.RETURN(tir.v.expr.castTo(methodType.ret)) else AstStm.RETURN_VOID()
-				is TIR.THROW -> stms += AstStm.THROW(tir.ex.expr)
-			//is TIR.PHI_PLACEHOLDER -> stms += AstStm.NOP("PHI_PLACEHOLDER")
-				else -> TODO("$tir")
-			}
-		}
-	}
 }
 
 class DefinitionInfo {

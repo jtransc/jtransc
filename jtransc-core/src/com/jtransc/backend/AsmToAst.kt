@@ -185,6 +185,8 @@ fun MethodNode.getParameterAnnotations(types: AstTypes): List<List<AstAnnotation
 }
 
 fun MethodNode.isStatic() = this.access hasFlag Opcodes.ACC_STATIC
+fun MethodNode.isNative() = this.access hasFlag Opcodes.ACC_NATIVE
+fun MethodNode.hasBody() = this.instructions.first != null
 fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 	AstVisibility.PUBLIC
 } else if (this.access hasFlag Opcodes.ACC_PROTECTED) {

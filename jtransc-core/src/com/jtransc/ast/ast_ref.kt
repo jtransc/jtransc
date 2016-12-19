@@ -71,7 +71,7 @@ data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD) 
 val AstMethodRef.methodDesc: AstMethodWithoutClassRef get() = AstMethodWithoutClassRef(this.name, this.type)
 
 val AstMethodRef.withoutRetval: AstMethodRef get() {
-	return if (this.type.ret == AstType.UNKNOWN) this else AstMethodRef(containingClass, name, type.withoutRetval)
+	return if (this.type.ret is AstType.UNKNOWN) this else AstMethodRef(containingClass, name, type.withoutRetval)
 }
 
 val AstFieldRef.withoutClass: AstFieldWithoutClassRef get() = AstFieldWithoutClassRef(this.name, this.type)

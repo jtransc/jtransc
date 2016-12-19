@@ -31,6 +31,7 @@ class JsTest : Base() {
 
 	@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
+	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = JsTarget(), log = false)
 	@Test fun testBenchmarkTest() = testClass<BenchmarkTest>(minimize = false, target = JsTarget(), log = false)

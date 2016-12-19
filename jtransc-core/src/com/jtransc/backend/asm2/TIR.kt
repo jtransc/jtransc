@@ -77,11 +77,11 @@ interface TIR : Iterable<TIR> {
 		override fun toStmString() = "$dst = ($dstType)$src;"
 	}
 
-	data class ARRAY_STORE(val array: Operand, val index: Operand, val value: Operand) : TIR by Mixin() {
+	data class ARRAY_STORE(val array: Operand, val elementType: AstType, val index: Operand, val value: Operand) : TIR by Mixin() {
 		override fun toStmString() = "$array[$index] = $value;"
 	}
 
-	data class ARRAY_LOAD(override val dst: Local, val array: Operand, val index: Operand) : TIR by Mixin(), Def {
+	data class ARRAY_LOAD(override val dst: Local, val array: Operand, val elementType: AstType, val index: Operand) : TIR by Mixin(), Def {
 		override fun toStmString() = "$dst = $array[$index];"
 	}
 
@@ -101,13 +101,14 @@ interface TIR : Iterable<TIR> {
 		val obj: Operand?
 		val method: AstMethodRef
 		val args: List<Operand>
+		val isSpecial: Boolean
 	}
 
-	data class INVOKE_VOID(override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin() {
+	data class INVOKE_VOID(override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>, override val isSpecial: Boolean) : INVOKE_COMMON, TIR by Mixin() {
 		override fun toStmString() = "$obj.$method($args)"
 	}
 
-	data class INVOKE(override val dst: Local, override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>) : INVOKE_COMMON, TIR by Mixin(), Def {
+	data class INVOKE(override val dst: Local, override val obj: Operand?, override val method: AstMethodRef, override val args: List<Operand>, override val isSpecial: Boolean) : INVOKE_COMMON, TIR by Mixin(), Def {
 		override fun toStmString() = "$dst = $obj.$method($args)"
 	}
 

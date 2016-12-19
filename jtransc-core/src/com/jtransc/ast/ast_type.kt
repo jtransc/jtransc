@@ -13,7 +13,7 @@ import java.io.Serializable
 import java.util.*
 
 interface AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int) : AstType {
+	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
@@ -29,27 +29,27 @@ interface AstType {
 
 	interface Reference : AstType
 
-	object UNKNOWN : Reference
+	data class UNKNOWN(val reason: String) : Reference
 
 	object NULL : Reference
 
-	object VOID : Primitive("java.lang.Void", 'V', "void", 0)
+	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8)
 
-	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1)
+	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1, priority = 7)
 
-	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1)
+	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1, priority = 6)
 
-	object CHAR : Primitive("java.lang.Character", 'C', "char", 2)
+	object CHAR : Primitive("java.lang.Character", 'C', "char", 2, priority = 5)
 
-	object SHORT : Primitive("java.lang.Short", 'S', "short", 2)
+	object SHORT : Primitive("java.lang.Short", 'S', "short", 2, priority = 4)
 
-	object INT : Primitive("java.lang.Integer", 'I', "int", 4)
+	object INT : Primitive("java.lang.Integer", 'I', "int", 4, priority = 3)
 
-	object LONG : Primitive("java.lang.Long", 'J', "long", 8)
+	object LONG : Primitive("java.lang.Long", 'J', "long", 8, priority = 2)
 
-	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4)
+	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4, priority = 1)
 
-	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8)
+	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0)
 
 	data class REF(val name: FqName) : Reference, AstRef {
 		constructor(name: String) : this(FqName(name))
@@ -147,7 +147,7 @@ interface AstType {
 				argTypes + listOf(ret)
 			}
 		}
-		val withoutRetval: AstType.METHOD get() = AstType.METHOD(AstType.UNKNOWN, argTypes, paramTypes)
+		val withoutRetval: AstType.METHOD get() = AstType.METHOD(AstType.UNKNOWN("No retval"), argTypes, paramTypes)
 
 		override fun hashCode() = desc.hashCode();
 		override fun equals(other: Any?) = Objects.equals(this.desc, (other as METHOD?)?.desc)
@@ -226,7 +226,7 @@ class AstTypes {
 
 	// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
 	fun readOne(reader: StrReader): AstType {
-		if (reader.eof) return AstType.UNKNOWN
+		if (reader.eof) return AstType.UNKNOWN("demangling eof")
 		val typech = reader.readch()
 		return when (typech) {
 			'V' -> AstType.VOID
@@ -492,7 +492,6 @@ fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
 fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)
 
 object AstTypeBuilder {
-	val UNKNOWN = AstType.UNKNOWN
 	val STRING = AstType.STRING
 	val OBJECT = AstType.OBJECT
 	val CLASS = AstType.CLASS
@@ -578,7 +577,10 @@ fun AstType.mangle(retval: Boolean = true): String = when (this) {
 			throw RuntimeException("Can't mangle common with several types: ${this.elements}. Resolve COMMONS first.")
 		}
 	}
-	is AstType.UNKNOWN -> throw RuntimeException("Can't mangle unknown")
+	is AstType.UNKNOWN -> {
+		//throw RuntimeException("Can't mangle unknown")
+		"!!UNKNOWN!!"
+	}
 	else -> throw RuntimeException("Don't know how to mangle $this")
 }
 

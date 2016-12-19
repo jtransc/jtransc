@@ -71,6 +71,8 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 					line("default: ${dump(types, stm.default)}")
 				}
 			}
+			is AstStm.MONITOR_ENTER -> line("MONITOR_ENTER(${dump(types, stm.expr)})")
+			is AstStm.MONITOR_EXIT -> line("MONITOR_EXIT(${dump(types, stm.expr)})")
 			else -> noImpl("$stm")
 		}
 	}

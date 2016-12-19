@@ -11,11 +11,12 @@ import com.jtransc.log.log
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
 import com.jtransc.org.objectweb.asm.tree.*
+import java.util.*
 
 class LocalsBuilder {
 	val locals = arrayListOf<AstType>()
 	fun setLocalType(index: Int, type: AstType) {
-		while (locals.size <= index) locals += AstType.UNKNOWN
+		while (locals.size <= index) locals += AstType.UNKNOWN("empty local: setLocalType")
 		locals[index] = type
 	}
 
@@ -24,7 +25,7 @@ class LocalsBuilder {
 	}
 }
 
-data class BasicFrame(val locals: List<AstType>, val stack: List<Operand>) {
+data class BasicFrame(val locals: ArrayList<AstType>, val stack: List<Operand>) {
 	//fun linkTo(target: BasicFrame) {
 	//	for ((src, dst) in this.locals.zip(target.locals)) {
 	//		if (dst is AstType.COMMON) {
@@ -55,8 +56,13 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 
 
 	fun getVar(type: AstType, idx: Int): Local {
-		val type2 = if (type == AstType.OBJECT) locals.locals.getOrNull(idx) ?: type else type
-		val out = blockContext.getVar(type2, idx)
+		val stype = type.simplify()
+		val type2 = if (stype.simplify() == AstType.OBJECT) locals.locals.getOrNull(idx) ?: stype else stype
+		val type3 = if (type2.simplify() is AstType.UNKNOWN) AstType.OBJECT else type2
+		val out = blockContext.getVar(type3, idx)
+		if (out.type is AstType.UNKNOWN) {
+			println("ASSERT UNKNOWN")
+		}
 		return out
 	}
 
@@ -103,6 +109,11 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	//		predecessor.outputFrame.linkTo(oneInputFrame)
 	//	}
 	//}
+
+	fun <T, U> zipWithMissing(a: List<T>, b: List<U>, missingA: (Int) -> T, missingB: (Int) -> U): List<Pair<T, U>> {
+		val size = Math.max(a.size, b.size)
+		return (0 until size).map { a.getOrElse(it, missingA) to b.getOrElse(it, missingB) }
+	}
 
 	fun decodeBlock(start: AbstractInsnNode, onePredecessor: BasicBlock?) {
 		this.start = start
@@ -156,8 +167,15 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		if (alreadyCreatedFrame != null) {
 			outputFrame = alreadyCreatedFrame
 
+			while (outputFrame.locals.size < locals.locals.size) outputFrame.locals += AstType.UNKNOWN("empty local merge")
+			for ((index, src) in locals.locals.withIndex()) {
+				val dst = outputFrame.locals[index]
+				if (dst is AstType.COMMON) dst.add(src)
+				if (dst is AstType.UNKNOWN) outputFrame.locals[index] = src
+			}
+
 			// Merge frame types!
-			for ((src, dst) in locals.locals.zip(outputFrame.locals)) {
+			for ((src, dst) in zipWithMissing(locals.locals, outputFrame.locals, { AstType.UNKNOWN("locals empty (a)") }, { AstType.UNKNOWN("locals empty (b)") })) {
 				if (dst is AstType.COMMON) dst.add(src)
 			}
 			for ((src, dst) in stack.toList().zip(outputFrame.stack)) {
@@ -165,9 +183,9 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 				if (dstType is AstType.COMMON) dstType.add(src.type)
 			}
 		} else {
-			val frame = BasicFrame(locals.locals.toList().map {
+			val frame = BasicFrame(ArrayList(locals.locals.toList().map {
 				AstType.COMMON(it)
-			}, stack.toList().map {
+			}), stack.toList().map {
 				createTemp(AstType.COMMON(it.type))
 			})
 			for (s in allSuccessors) blockContext.inputFrames[s] = frame
@@ -180,6 +198,9 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			val items = arrayListOf<TIR>()
 			for ((v, op) in outputFrame.stack.zip(stack.toList()).reversed()) {
 				if (v is Local) {
+					if (v.type.simplify() is AstType.UNKNOWN) {
+						println("AstType.UNKNOWN!!!")
+					}
 					items.add(TIR.MOV(v, op))
 				}
 			}
@@ -255,7 +276,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			}
 			Opcodes.CHECKCAST -> {
 				val obj = pop()
-				val dst = createTemp(obj.type)
+				val dst = createTemp(type)
 				add(TIR.CONV(dst, obj, type))
 				push(dst)
 			}
@@ -422,6 +443,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	}
 
 	fun decodeMethodNode(n: MethodInsnNode) {
+		val isSpecial = n.opcode == Opcodes.INVOKESPECIAL
 		val ownerType = types.REF_INT(n.owner)
 		val methodType = types.demangleMethod(n.desc)
 		val ownerTypeRef = if (ownerType is AstType.ARRAY) AstType.OBJECT else ownerType as AstType.REF
@@ -429,10 +451,10 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		val args = methodType.args.map { pop() }.reversed()
 		val obj = if (n.opcode != Opcodes.INVOKESTATIC) pop() else null
 		if (methodType.retVoid) {
-			add(TIR.INVOKE_VOID(obj, methodRef, args))
+			add(TIR.INVOKE_VOID(obj, methodRef, args, isSpecial))
 		} else {
 			val dst = createTemp(methodType.ret)
-			add(TIR.INVOKE(dst, obj, methodRef, args))
+			add(TIR.INVOKE(dst, obj, methodRef, args, isSpecial))
 			push(dst)
 		}
 	}
@@ -592,7 +614,10 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		val value = pop()
 		val index = pop()
 		val array = pop()
-		add(TIR.ARRAY_STORE(array, index, value))
+		if (array.type.simplify() !is AstType.ARRAY) {
+			println("ARRAY not array type: ${array.type}")
+		}
+		add(TIR.ARRAY_STORE(array, elementType, index, value))
 	}
 
 	private fun arrayLoad(elementType: AstType) {
@@ -600,7 +625,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 		val index = pop()
 		val array = pop()
 		val dst = createTemp(elementType)
-		add(TIR.ARRAY_LOAD(dst, array, index))
+		add(TIR.ARRAY_LOAD(dst, array, elementType, index))
 		push(dst)
 	}
 
@@ -623,10 +648,14 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	fun load(type: AstType, idx: Int) {
 		push(getVar(type, idx))
 	}
+
 	fun store(type: AstType, idx: Int) {
 		val res = pop()
 		val type2 = res.type
 		val v = getVar(type2, idx)
+		if (v.type.simplify() is AstType.UNKNOWN) {
+			println("AstType.UNKNOWN!!!")
+		}
 		locals.setLocalType(idx, type2)
 		add(TIR.MOV(v, res))
 	}

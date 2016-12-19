@@ -3,6 +3,7 @@ import big.MiniHelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.d.DTarget
 import com.jtransc.gen.js.JsTarget
+import javatest.misc.BenchmarkTest
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Test
@@ -30,6 +31,7 @@ class DTest : Base() {
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
+	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
 	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)
 

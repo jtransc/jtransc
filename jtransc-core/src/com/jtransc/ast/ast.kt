@@ -883,14 +883,44 @@ data class AstModifiers(val acc: Int) {
 
 fun ARRAY(type: AstClass) = AstType.ARRAY(type.astType)
 
+fun getCommonTypePrim(a: AstType.Primitive, b: AstType.Primitive): AstType.Primitive {
+	return if (a.priority < b.priority) a else b
+}
+
+fun getCommonTypePrim(types: List<AstType.Primitive>): AstType.Primitive {
+	return if (types.isEmpty()) AstType.INT else types.fold(types.first()) { a, b -> getCommonTypePrim(a, b) }
+}
+
+fun AstProgram.getCommonType(a: AstType.REF, b: AstType.REF): AstType.REF {
+	val program = this
+	val ac = program[a]
+	val bc = program[b]
+	val aAncestors = (ac!!.getAllRelatedTypes() + program[AstType.OBJECT]!!).toSet()
+	val bAncestors = (bc!!.getAllRelatedTypes() + program[AstType.OBJECT]!!).toSet()
+	return aAncestors.intersect(bAncestors).first().ref // @TODO: try to select best one
+}
+
+fun AstProgram.getCommonType(a: AstType, b: AstType): AstType {
+	if (a is AstType.Primitive && b is AstType.Primitive) {
+		return getCommonTypePrim(a, b)
+	} else {
+		return getCommonType(a as AstType.REF, b as AstType.REF)
+	}
+}
+
+fun AstProgram.getCommonType(types: List<AstType>): AstType {
+	return types.fold(types.first()) { a, b -> getCommonType(a, b) }
+}
+
 fun AstType.resolve(program: AstProgram): AstType = when (this) {
 	is AstType.COMMON -> {
 		if (this.single != null) {
 			this.single!!.resolve(program)
 		} else {
-			println("@TODO: AstType.resolve: Used first")
-			// @TODO: Do this right!
-			this.elements.first().resolve(program)
+			val items = this.elements.toList()
+			this.elements.clear()
+			this.elements.add(program.getCommonType(items))
+			this.single!!
 		}
 	}
 	else -> this
@@ -909,13 +939,7 @@ fun AstType.simplify(): AstType = when (this) {
 				if (items.all { it is AstType.Primitive }) {
 					val primElements = this.elements.cast<AstType.Primitive>()
 					this.elements.clear()
-					if (primElements.contains(AstType.DOUBLE)) {
-						this.elements += AstType.DOUBLE
-					} else if (primElements.contains(AstType.FLOAT)) {
-						this.elements += AstType.FLOAT
-					} else {
-						this.elements += primElements.sortedByDescending { it.byteSize }.first()
-					}
+					this.elements += primElements.fold(primElements.first(), { a, b -> getCommonTypePrim(a, b) })
 					this.elements.first()
 				} else {
 					AstType.COMMON(items)

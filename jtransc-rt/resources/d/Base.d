@@ -314,6 +314,10 @@ class N {
 		return *cast(double *)&p0;
     }
 
+    //static public double longBitsToDoubleConst(long p0)() {
+	//	return *(cast(double *)&p0);
+    //}
+
 	static public long nanoTime() {
 		return Clock.currTime.stdTime * 100;
 	}

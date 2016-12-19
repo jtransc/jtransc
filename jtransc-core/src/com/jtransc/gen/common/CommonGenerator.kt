@@ -1540,7 +1540,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return when (type) {
 			is AstType.NULL -> NullType
 			is AstType.UNKNOWN -> {
-				println("Referenced UNKNOWN")
+				println("Referenced UNKNOWN: $type")
 				NullType
 			}
 			is AstType.VOID -> VoidType
