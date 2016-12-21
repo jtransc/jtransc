@@ -51,13 +51,15 @@ internal class AstExampleTest {
 		for (_method in clazz.methods) {
 			val methodType = types.demangleMethod(_method.desc)
 			println("::" + _method.name + " :: " + methodType)
-			val astBody = AsmToAstMethodBody1(
-				types.REF_INT2(clazz.name),
-				_method,
-				types,
-				if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
-			)
-			println(dump(types, astBody))
+			if (_method.hasBody()) {
+				val astBody = AsmToAstMethodBody1(
+					types.REF_INT2(clazz.name),
+					_method,
+					types,
+					if (clazz.sourceFile != null) clazz.sourceFile else clazz.name + ".java"
+				)
+				println(dump(types, astBody))
+			}
 			//println(dump(GotosFeature().remove(null, astBody, AstBuildSettings(), types)))
 			//System.out.println(Exp_dumpKt.dump(astBody));
 		}

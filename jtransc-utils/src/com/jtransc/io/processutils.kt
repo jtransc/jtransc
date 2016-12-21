@@ -21,18 +21,24 @@ import com.jtransc.ds.toHashMap
 import com.jtransc.error.invalidOp
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.ProcessResult
-import com.jtransc.vfs.UTF8
 import java.io.File
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.nio.charset.Charset
 
-data class ProcessResult2(val exitValue: Int, val out:String = "", val err:String = "", val outerr: String = out + err) {
+data class ProcessResult2(val exitValue: Int, val out: String = "", val err: String = "", val outerr: String = out + err) {
 	val success = exitValue == 0
 
 	constructor(pr: ProcessResult) : this(pr.exitCode, pr.outputString, pr.errorString, pr.outputString + pr.errorString)
 }
 
 object ProcessUtils {
+	//val defaultCharset = Charset.forName("UTF-8")
+	val defaultCharset = Charset.defaultCharset()
+	//val defaultCharset = Charset.forName("ISO-8859-1")
+	//val defaultCharset = Charset.forName("ASCII")
+	//val defaultCharset = Charset.forName("Cp1252")
+
 	fun run(currentDir: File, command: String, args: List<String>, options: ExecOptions): ProcessResult2 {
 		var out = ""
 		var err = ""
@@ -61,15 +67,15 @@ object ProcessUtils {
 		return ProcessResult2(exitValue, out, err, outerr)
 	}
 
-	fun runAndReadStderr(currentDir: File, command: String, args: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+	fun runAndReadStderr(currentDir: File, command: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
 		return run(currentDir, command, args, options = ExecOptions().copy(passthru = false, env = env))
 	}
 
-	fun runAndRedirect(currentDir: File, command: String, args: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+	fun runAndRedirect(currentDir: File, command: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
 		return run(currentDir, command, args, options = ExecOptions().copy(passthru = true, env = env))
 	}
 
-	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>, env:Map<String, String> = mapOf()): ProcessResult2 {
+	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
 		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), options = ExecOptions().copy(passthru = true, env = env))
 	}
 
@@ -108,8 +114,8 @@ object ProcessUtils {
 		return null
 	}
 
-	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8, options: ExecOptions = ExecOptions()): Int {
-		val fullCommand = if (File(command).isAbsolute) command else  locateCommandSure(command)
+	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = defaultCharset, options: ExecOptions = ExecOptions()): Int {
+		val fullCommand = if (File(command).isAbsolute) command else locateCommandSure(command)
 
 		val absoluteCurrentDir = currentDir.absoluteFile
 		val env = options.env
@@ -138,14 +144,19 @@ object ProcessUtils {
 			for ((key, value) in penv.entries) penv2[key] = value
 			pb.start()
 		}
-		val input = p.inputStream
-		val error = p.errorStream
+		val input = InputStreamReader(p.inputStream, charset)
+		val error = InputStreamReader(p.errorStream, charset)
+		var closing = false
 		while (true) {
-			val i = input.readAvailableChunk()
-			val e = error.readAvailableChunk()
-			if (i.isNotEmpty()) handler.onOutputData(i.toString(charset))
-			if (e.isNotEmpty()) handler.onErrorData(e.toString(charset))
-			if (i.isEmpty() && e.isEmpty() && !p.isAlive) break
+			val i = input.readAvailableChunk(p.inputStream, readRest = closing)
+			val e = error.readAvailableChunk(p.errorStream, readRest = closing)
+			if (i.isNotEmpty()) handler.onOutputData(i)
+			if (e.isNotEmpty()) handler.onErrorData(e)
+			if (closing) break
+			if (i.isEmpty() && e.isEmpty() && !p.isAlive) {
+				closing = true
+				continue
+			}
 			Thread.sleep(1L)
 		}
 		p.waitFor()
@@ -153,10 +164,21 @@ object ProcessUtils {
 		return p.exitValue()
 	}
 
-	fun runAsync(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8) {
+	//fun runAsync(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = Charsets.UTF_8) {
+	fun runAsync(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = defaultCharset) {
 		Thread {
 			run2(currentDir, command, args, handler, charset)
 		}.start()
 	}
+}
+
+private fun InputStreamReader.readAvailableChunk(i: InputStream, readRest: Boolean): String {
+	val out = StringBuilder()
+	while (if (readRest) true else i.available() > 0) {
+		val c = this.read()
+		if (c < 0) break
+		out.append(c.toChar())
+	}
+	return out.toString()
 }
 
