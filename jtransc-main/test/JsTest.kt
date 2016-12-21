@@ -20,6 +20,7 @@ import com.jtransc.gen.js.JsTarget
 import javatest.misc.BenchmarkTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
+import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import jtransc.ref.MethodBodyReferencesTest
@@ -27,6 +28,8 @@ import org.junit.Test
 import testservice.test.ServiceLoaderTest
 
 class JsTest : Base() {
+	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
+
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
