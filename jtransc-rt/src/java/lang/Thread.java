@@ -210,7 +210,9 @@ public class Thread implements Runnable {
 
 	native public final ThreadGroup getThreadGroup();
 
-	native public static int activeCount();
+	public static int activeCount() {
+		return 1;
+	}
 
 	native public static int enumerate(Thread tarray[]);
 

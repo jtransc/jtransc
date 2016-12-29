@@ -16,4 +16,4 @@
 
 package com.jtransc
 
-val KotlinVersion = "1.0.5-2"
+val KotlinVersion = "1.0.6"

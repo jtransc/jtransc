@@ -1,5 +1,4 @@
 apply from: '../includeNoKotlin.gradle'
 
 dependencies {
-	compile project(':jtransc-annotations')
 }

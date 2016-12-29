@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>1.0.5-2</version>
+            <version>1.0.6</version>
         </dependency>
 
 		<!--
