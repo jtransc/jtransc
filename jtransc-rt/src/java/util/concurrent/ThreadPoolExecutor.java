@@ -98,6 +98,6 @@ public class ThreadPoolExecutor implements ExecutorService {
 
 	@Override
 	public void execute(Runnable command) {
-
+		command.run();
 	}
 }
