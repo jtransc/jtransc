@@ -877,11 +877,17 @@ N.createStackTraceElement = function(declaringClass, methodName, fileName, lineN
 	return out;
 };
 
+function stackTrace() {
+    var err = new Error();
+    return err.stack.split('\n').slice(3);
+}
+
 N.getStackTrace = function(count) {
-	var out = new JA_L(3, '[Ljava/lang/StackTraceElement;');
-	out.set(0, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
-	out.set(1, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
-	out.set(2, N.createStackTraceElement('Dummy', 'dummy', 'Dummy.java', 0));
+	var traces = stackTrace()
+	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
+	for (var n = 0; n < traces.length; n++) {
+		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
+	}
 	return out;
 };
 
@@ -1122,8 +1128,9 @@ N.sort = function(array, start, end, comparator) {
 
 N.getByteArray = function(v) {
 	if (v instanceof JA_B) return v;
+	var length = v.byteLength || v.length
 	if (v.buffer) v = v.buffer;
-	var out = new JA_B(v.byteLength);
+	var out = new JA_B(length);
 	out.data = new Int8Array(v);
 	return out;
 };
