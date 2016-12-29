@@ -16,9 +16,7 @@
 
 package com.jtransc.maven
 
-import com.jtransc.AllBuildSimple
-import com.jtransc.BuildBackend
-import com.jtransc.ConfigClassPaths
+import com.jtransc.*
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
 import com.jtransc.ast.ConfigMinimizeNames
@@ -112,10 +110,7 @@ class JTranscMojo : AbstractMojo() {
 
 		log.info("KT: JTransc version : $jtranscVersion");
 
-		for (artifact in listOf(
-			"com.jtransc:jtransc-rt:$jtranscVersion",
-			"com.jtransc:jtransc-rt-core:$jtranscVersion"
-		)) {
+		for (artifact in BaseRuntimeArtifactsForVersion(jtranscVersion).toListString()) {
 			val jtranscRuntimeArtifact = DefaultArtifact(artifact)
 
 			log.info("KT: Resolving $jtranscRuntimeArtifact");

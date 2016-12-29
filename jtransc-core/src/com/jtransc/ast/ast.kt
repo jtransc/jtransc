@@ -16,9 +16,7 @@
 
 package com.jtransc.ast
 
-import com.jtransc.ConfigEntryPoint
-import com.jtransc.ConfigResourcesVfs
-import com.jtransc.JTranscVersion
+import com.jtransc.*
 import com.jtransc.annotation.*
 import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
@@ -68,10 +66,7 @@ data class AstBuildSettings(
 	val relooper: Boolean = false,
 	val analyzer: Boolean = false,
 	val extra: Map<String?, String?> = mapOf(),
-	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(
-		"com.jtransc:jtransc-rt:$jtranscVersion",
-		"com.jtransc:jtransc-rt-core:$jtranscVersion"
-	)
+	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(BaseRuntimeArtifactsForVersion(jtranscVersion).toListString())
 ) {
 	companion object {
 		val DEFAULT = AstBuildSettings()

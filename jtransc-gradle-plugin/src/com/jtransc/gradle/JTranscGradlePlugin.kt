@@ -1,5 +1,6 @@
 package com.jtransc.gradle
 
+import com.jtransc.BaseRuntimeArtifactsForVersion
 import com.jtransc.JTranscVersion
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
@@ -59,10 +60,9 @@ open class JTranscGradlePlugin : Plugin<Project> {
 
 		project.configurations.create("jtranscRuntime")
 		project.configurations.create("jtransc")
-		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt:$jtranscVersion")
-		project.dependencies.add("jtranscRuntime", "com.jtransc:jtransc-rt-core:$jtranscVersion")
-
-		//project.
+		for (artifact in BaseRuntimeArtifactsForVersion(jtranscVersion)) {
+			project.dependencies.add("jtranscRuntime", artifact.str)
+		}
 	}
 
 	open class LambdaClosure<T, TR>(val lambda: (value: T) -> TR) : Closure<T>(Unit) {
