@@ -1,6 +1,5 @@
 package jtransc.jtransc.nativ;
 
-import com.jtransc.JTranscArrays;
 import com.jtransc.target.Js;
 import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
@@ -19,6 +18,7 @@ public class JTranscJsNativeMixedTest {
 		AssertionTests.main(args);
 		JTranscReinterpretArrays.main(args);
 		MethodBodyReferencesTest.main(args);
+		customAnnotationTest();
 	}
 
 	private static void servicesTest() {
@@ -34,4 +34,17 @@ public class JTranscJsNativeMixedTest {
 		System.out.println(Js.i_raw("10 + 7"));
 		Js.v_raw("console.log(-333);");
 	}
+
+	static private void customAnnotationTest() {
+		System.out.println(getCustomAnnotationTest() ? "OK!" : "ERROR!");
+	}
+
+	@JsMethodBody("return true;")
+	static private boolean getCustomAnnotationTest() {
+		return false;
+	}
+}
+
+@interface JsMethodBody {
+	String value();
 }

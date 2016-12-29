@@ -301,10 +301,8 @@ class TreeShakingApi(
 			}
 		}
 
-		for (methodBody in newmethod.annotationsList.getTypedList(JTranscMethodBodyList::value)) {
-			if (targetName.matches(methodBody.target)) {
-				addTemplateReferences(methodBody.value.joinToString("\n"), methodRef.containingClass, "methodBody=$newmethod")
-			}
+		for (methodBody in newmethod.annotationsList.getBodiesForTarget(targetName)) {
+			addTemplateReferences(methodBody.value, methodRef.containingClass, "methodBody=$newmethod")
 		}
 
 		//if (methodRef.name == "_onKeyDownUp") {

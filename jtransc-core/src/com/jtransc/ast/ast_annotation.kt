@@ -1,5 +1,7 @@
 package com.jtransc.ast
 
+import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.gen.TargetName
 import java.lang.reflect.Proxy
 import kotlin.reflect.KProperty1
 
@@ -100,4 +102,16 @@ class AstAnnotationList(val list: List<AstAnnotation>) {
 	inline fun <reified T : Any> getAllTyped(): List<T> = byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf()
 	operator fun get(name: FqName): AstAnnotation? = byClassName[name.fqname]?.firstOrNull()
 	inline fun <reified T : Any> contains(): Boolean = T::class.java.name in byClassName
+}
+
+class NativeBody(val lines: List<String>, val cond: String = "") {
+	val value = lines.joinToString("\n")
+}
+
+fun AstAnnotationList.getBodiesForTarget(targetName: TargetName): List<NativeBody> {
+	val extra = when (targetName.name) {
+		"js" -> this.list.filter { it.type.name.simpleName == "JsMethodBody" }.map { NativeBody(listOf(it.elements["value"]?.toString() ?: "")) }
+		else -> listOf()
+	}
+	return this.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }.map { NativeBody(it.value.toList(), it.cond) } + extra
 }

@@ -68,6 +68,7 @@ class JsTest : Base() {
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
+		OK!
 	""", target = JsTarget(), minimize = false, treeShaking = true)
 
 	@Test fun referencesTest() = testNativeClass<MethodBodyReferencesTest>("""

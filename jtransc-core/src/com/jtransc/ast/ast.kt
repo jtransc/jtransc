@@ -757,12 +757,10 @@ class AstMethod(
 			}
 		}
 
-		for (methodBody in annotationsList.getTypedList(JTranscMethodBodyList::value)) {
-			if (targetName.matches(methodBody.target)) {
-				//addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
-				if (methodBody.cond.isNullOrEmpty()) {
-					dependenciesInBody = false
-				}
+		for (methodBody in annotationsList.getBodiesForTarget(targetName)) {
+			//addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")
+			if (methodBody.cond.isNullOrEmpty()) {
+				dependenciesInBody = false
 			}
 		}
 

@@ -67,12 +67,13 @@ object References {
 		val annotations = this.annotations.getClassReferences(targetName)
 		val parameterAnnotations = this.parameterAnnotations.flatMap { it }.getClassReferences(targetName)
 		val templateRefs = arrayListOf<AstType.REF>()
-		val methodBodyList = this.annotationsList.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }
+		//this.annotationsList.list.filter { it.type.name.simpleName == "JsMethodBody" }
+		val methodBodyList = this.annotationsList.getBodiesForTarget(targetName)
 		val haxeMethodBodyList = this.annotationsList.getTypedList(HaxeMethodBodyList::value).filter { targetName.haxeMatches(it.target) }
 		val refs = if (methodBodyList.isEmpty() && haxeMethodBodyList.isEmpty()) this.body?.getClassReferences() ?: listOf() else listOf()
 
 		for (methodBody in methodBodyList) {
-			templateRefs += GetClassTemplateReferences(program, methodBody.value.joinToString("\n"), clazzFqname).map { AstType.REF(it) }
+			templateRefs += GetClassTemplateReferences(program, methodBody.value, clazzFqname).map { AstType.REF(it) }
 		}
 
 		for (methodBody in haxeMethodBodyList) {

@@ -1298,13 +1298,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val AstMethod.nativeBodies: Map<String, Indenter> get() = getNativeBodies(target = this@CommonGenerator.targetName.name)
 
 	fun AstMethod.getNativeBodies(target: String): Map<String, Indenter> {
-		val bodies = this.annotationsList
-			.getTypedList(com.jtransc.annotation.JTranscMethodBodyList::value)
-			.filter { TargetName.matches(it.target, target) }
+		val bodies = this.annotationsList.getBodiesForTarget(TargetName(target))
 
 		return bodies.associate { body ->
 			body.cond to Indenter.gen {
-				for (line in body.value.toList()) line(line.template("nativeBody"))
+				for (line in body.lines) line(line.template("nativeBody"))
 			}
 		}
 	}
