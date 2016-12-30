@@ -1,1 +1,1 @@
-JTRANCS_DEPLOY=1 ./gradlew install uploadArchives -xtest
+JTRANCS_DEPLOY=1 ./gradlew install uploadArchives publishPlugins -xtest

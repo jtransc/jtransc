@@ -26,6 +26,7 @@ allprojects { project ->
 	project.ext.group = "com.jtransc"
 	project.ext.jtranscVersion = "$version"
 
+
 	//apply from: '../include.gradle'
 }
 
@@ -160,3 +161,4 @@ project(':jtransc-main').tasks.test.doLast {
 //}
 //
 //gradle.addProjectEvaluationListener(new SubProjectOrderListener())
+

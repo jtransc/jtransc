@@ -1,2 +1,2 @@
 SET JTRANCS_DEPLOY=1
-gradle install uploadArchives -xtest
+gradle install uploadArchives publishPlugins -xtest
