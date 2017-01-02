@@ -122,6 +122,19 @@ external fun <TR> jsFunctionRaw1(v: Function1<JsDynamic?, TR>): JsDynamic?
 """)
 external fun <TR> jsFunctionRaw2(v: Function2<JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
+@JTranscMethodBody(target = "js", value = """
+	return function(p1, p2, p3) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function3:invoke %}'](p1, p2, p3));};
+""")
+external fun <TR> jsFunctionRaw3(v: Function3<JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = """
+	return function(p1, p2, p3, p4) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function4:invoke %}'](p1, p2, p3, p4));};
+""")
+external fun <TR> jsFunctionRaw4(v: Function4<JsDynamic?, JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = """return !!p0;""")
+external fun JsDynamic?.toBool(): Boolean
+
 @JTranscMethodBody(target = "js", value = "return p0|0;")
 external fun JsDynamic?.toInt(): Int
 
@@ -177,3 +190,6 @@ external fun jsGetAssetStats(): Array<JsAssetStat>
 external fun jsObject(vararg items: Pair<String, Any?>): JsDynamic?
 
 fun jsObject(map: Map<String, Any?>): JsDynamic? = jsObject(*map.map { it.key to it.value }.toTypedArray())
+
+@JTranscMethodBody(target = "js", value = "return require(N.istr(name));")
+external fun jsRequire(name: String): JsDynamic?
