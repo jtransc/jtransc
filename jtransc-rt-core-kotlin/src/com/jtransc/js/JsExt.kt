@@ -78,6 +78,10 @@ external fun JsDynamic?.toJavaString(): String
 @JTranscMethodBody(target = "js", value = "return N.str(p0);")
 external fun JsDynamic?.toJavaStringOrNull(): String?
 
+fun <TR> jsFunction(v: Function0<TR>): JsDynamic? = v.toJsDynamic()
+fun <T1, TR> jsFunction(v: Function1<T1, TR>): JsDynamic? = v.toJsDynamic()
+fun <T1, T2, TR> jsFunction(v: Function2<T1, T2, TR>): JsDynamic? = v.toJsDynamic()
+
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function() {
