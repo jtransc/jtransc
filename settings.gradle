@@ -2,6 +2,7 @@ include (
 	// First build runtime
 	'jtransc-rt',
 	'jtransc-rt-core',
+	'jtransc-rt-core-kotlin',
 
 	'jtransc-asm',
 	'jtransc-buildjar-maven-plugin',

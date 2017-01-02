@@ -1020,8 +1020,7 @@ N.unboxDouble    = function(value) { return value["{% FIELD java.lang.Double:val
 N.unboxString    = function(value) { return N.istr(value); }
 N.unboxWrapped   = function(value) { return value._wrapped; }
 
-
-N.unbox = function(value) {
+N.unbox = function(value, throwOnInvalid) {
 	if (N.is(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
 	if (N.is(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);
 	if (N.is(value, {% CLASS java.lang.Short %})) return N.unboxShort(value);
@@ -1033,7 +1032,8 @@ N.unbox = function(value) {
 	if (N.is(value, {% CLASS java.lang.String %})) return N.unboxString(value);
 	if (value instanceof JA_B) return N.unboxByteArray(value);
 	if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return unboxWrapped(value);
-	throw 'Was not able to unbox "$value"';
+	if (throwOnInvalid) throw 'Was not able to unbox "' + value + '"';
+	return value;
 }
 
 N.wrap = function(value) {
