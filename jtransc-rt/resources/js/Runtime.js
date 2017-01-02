@@ -1035,7 +1035,7 @@ N.unbox = function(value, throwOnInvalid) {
 	if (N.is(value, {% CLASS java.lang.Double %})) return N.unboxDouble(value);
 	if (N.is(value, {% CLASS java.lang.String %})) return N.unboxString(value);
 	if (value instanceof JA_B) return N.unboxByteArray(value);
-	if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return unboxWrapped(value);
+	if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return N.unboxWrapped(value);
 	if (throwOnInvalid) throw 'Was not able to unbox "' + value + '"';
 	return value;
 }

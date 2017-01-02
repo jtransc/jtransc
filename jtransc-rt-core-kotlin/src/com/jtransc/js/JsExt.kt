@@ -120,3 +120,16 @@ external fun String.toJavaScriptString(): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = "debugger;")
 external fun jsDebugger(): Unit
+
+class JsMethods(val obj: JsDynamic?) {
+	operator fun get(name: String) = JsBoundedMethod(obj, name)
+}
+
+val JsDynamic?.methods: JsMethods get() = JsMethods(this)
+
+@JTranscMethodBody(target = "js", value = """
+	var out = [];
+	for (var n = 0; n < p0.length; n++) out.push(N.unbox(p0.data[n]));
+	return out;
+""")
+external fun jsArray(vararg items: Any?): JsDynamic?
