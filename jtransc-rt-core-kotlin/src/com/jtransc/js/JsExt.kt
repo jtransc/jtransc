@@ -41,9 +41,9 @@ external operator fun JsDynamic?.set(key: String, value: Any?): Unit
 """)
 external fun JsDynamic?.call(name: String, vararg args: Any?): JsDynamic?
 
-fun jsNew(clazz: String): JsDynamic? = global[clazz].new2()
-fun jsNew(clazz: String, arg1: Any?): JsDynamic? = global[clazz].new2(arg1)
-fun jsNew(clazz: String, arg1: Any?, arg2: Any?): JsDynamic? = global[clazz].new2(arg1, arg2)
+fun jsNew(clazz: String): JsDynamic? = global[clazz].new()
+fun jsNew(clazz: String, arg1: Any?): JsDynamic? = global[clazz].new(arg1)
+fun jsNew(clazz: String, arg1: Any?, arg2: Any?): JsDynamic? = global[clazz].new(arg1, arg2)
 
 @JTranscMethodBody(target = "js", value = """
 	var clazz = p0, rawArgs = p1;
@@ -62,6 +62,9 @@ fun jsGlobal(key: String): JsDynamic? = window[key]
 
 @JTranscMethodBody(target = "js", value = "return p0;")
 external fun Any?.asJsDynamic(): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = "return p0;")
+external fun <T : Any?> JsDynamic?.asJavaType(): T
 
 @JTranscMethodBody(target = "js", value = "return N.unbox(p0);")
 external fun Any?.toJsDynamic(): JsDynamic?
