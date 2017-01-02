@@ -44,7 +44,7 @@ external operator fun JsDynamic?.set(key: Int, value: Any?): Unit
 """)
 external fun JsDynamic?.call(name: String, vararg args: Any?): JsDynamic?
 
-fun jsNew(clazz: String, vararg args: JsDynamic?): JsDynamic? = global[clazz].new(*args)
+fun jsNew(clazz: String, vararg args: Any?): JsDynamic? = global[clazz].new(*args)
 
 @JTranscMethodBody(target = "js", value = """
 	var clazz = p0, rawArgs = p1;
@@ -149,3 +149,19 @@ val JsDynamic?.methods: JsMethods get() = JsMethods(this)
 	return out;
 """)
 external fun jsArray(vararg items: Any?): JsDynamic?
+
+private fun jsRegExp(regex: String): JsDynamic? = global["RegExp"].new(regex)
+private fun jsRegExp(regex: Regex): JsDynamic? = global["RegExp"].new(regex.pattern)
+fun Regex.toJs() = jsRegExp(this)
+
+data class JsAssetStat(val path: String, val size: Long)
+
+@JTranscMethodBody(target = "js", value = """
+	var out = new JA_L({{ assetFiles|length }}, '[Lcom/jtransc/js/JsAssetStat;');
+	var n = 0;
+	{% for asset in assetFiles %}
+	out.data[n++] = {% CONSTRUCTOR com.jtransc.js.JsAssetStat %}(N.str({{ asset.path|quote }}), Int64.ofFloat({{ asset.size }}));
+	{% end %}
+	return out
+""")
+external fun jsGetAssetStats(): Array<JsAssetStat>

@@ -48,8 +48,16 @@ object CommonTagHandler {
 			return when (tag) {
 				"SINIT" -> SINIT(clazz.getMethod("<clinit>", "()V")!!)
 				"CONSTRUCTOR" -> {
-					val ref = AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))
-					CONSTRUCTOR(ref, program[ref]!!)
+					if (dataParts.size >= 2) {
+						val ref = AstMethodRef(clazz.name, "<init>", types.demangleMethod(dataParts[1]))
+						CONSTRUCTOR(ref, program[ref]!!)
+					} else {
+						val methods = clazz.constructors
+						if (methods.isEmpty()) invalidOp("evalReference: Can't find constructor $desc2")
+						if (methods.size > 1) invalidOp("evalReference: Several signatures for constructor $desc2, please specify signature")
+						val method = methods.first()
+						CONSTRUCTOR(method.ref, method)
+					}
 				}
 				"SMETHOD", "METHOD" -> {
 					val isStatic = (tag == "SMETHOD")
@@ -72,7 +80,7 @@ object CommonTagHandler {
 				else -> invalidOp("evalReference: Unknown type!")
 			}
 		} catch (e: Throwable) {
-			throw InvalidOperationException("Invalid: $type $desc", e)
+			throw InvalidOperationException("Invalid: $type $desc : ${e.message}", e)
 		}
 	}
 

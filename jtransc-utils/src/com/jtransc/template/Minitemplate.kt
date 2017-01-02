@@ -15,6 +15,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		private val extraFilters: List<Filter> = listOf()
 	) {
 		val integratedFilters = listOf(
+			Filter("length") { subject, args -> Dynamic.length(subject) },
 			Filter("capitalize") { subject, args -> Dynamic.toString(subject).toLowerCase().capitalize() },
 			Filter("upper") { subject, args -> Dynamic.toString(subject).toUpperCase() },
 			Filter("lower") { subject, args -> Dynamic.toString(subject).toLowerCase() },

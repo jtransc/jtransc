@@ -2,6 +2,7 @@ package com.jtransc.lang
 
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.noImpl
+import java.lang.reflect.Array
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
@@ -286,5 +287,12 @@ object Dynamic {
 
 	fun callAny(callable: Any?, args: List<Any?>): Any? {
 		return callAny(callable, "invoke", args)
+	}
+
+	fun length(subject: Any?): Int {
+		if (subject == null) return 0
+		if (subject.javaClass.isArray) return Array.getLength(subject)
+		if (subject is List<*>) return subject.size
+		return subject.toString().length
 	}
 }

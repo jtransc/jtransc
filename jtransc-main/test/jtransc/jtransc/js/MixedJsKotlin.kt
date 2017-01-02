@@ -15,5 +15,8 @@ object MixedJsKotlin {
 			buffer[n] = n
 		}
 		console.methods["log"](buffer)
+		for (stat in jsGetAssetStats()) {
+			println(stat)
+		}
 	}
 }
