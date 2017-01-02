@@ -73,6 +73,7 @@ class JsTest : Base() {
 		MixedJsKotlin.main[2]
 		[ 1, 2, 3 ]
 		<Buffer 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f>
+		{"a":10,"b":"c","c":[1,2,3]}
 		Timeout!
 	""", target = JsTarget(), minimize = false, treeShaking = true)
 

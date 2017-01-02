@@ -165,3 +165,15 @@ data class JsAssetStat(val path: String, val size: Long)
 	return out
 """)
 external fun jsGetAssetStats(): Array<JsAssetStat>
+
+@JTranscMethodBody(target = "js", value = """
+	var out = {};
+	for (var n = 0; n < p0.length; n++) {
+		var item = p0.data[n];
+		out[N.istr(item["{% FIELD kotlin.Pair:first %}"])] = N.unbox(item["{% FIELD kotlin.Pair:second %}"]);
+	}
+	return out
+""")
+external fun jsObject(vararg items: Pair<String, Any?>): JsDynamic?
+
+fun jsObject(map: Map<String, Any?>): JsDynamic? = jsObject(*map.map { it.key to it.value }.toTypedArray())

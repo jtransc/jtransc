@@ -18,5 +18,7 @@ object MixedJsKotlin {
 		for (stat in jsGetAssetStats()) {
 			println(stat)
 		}
+		//println(Pair<String, Any>("a", 10).javaClass.name)
+		console.methods["log"](global["JSON"].methods["stringify"](jsObject("a" to 10, "b" to "c", "c" to jsArray(1, 2, 3))))
 	}
 }
