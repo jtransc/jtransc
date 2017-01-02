@@ -169,8 +169,8 @@ val JsDynamic?.methods: JsMethods get() = JsMethods(this)
 """)
 external fun jsArray(vararg items: Any?): JsDynamic?
 
-private fun jsRegExp(regex: String): JsDynamic? = global["RegExp"].new(regex)
-private fun jsRegExp(regex: Regex): JsDynamic? = global["RegExp"].new(regex.pattern)
+fun jsRegExp(regex: String): JsDynamic? = global["RegExp"].new(regex)
+fun jsRegExp(regex: Regex): JsDynamic? = global["RegExp"].new(regex.pattern)
 fun Regex.toJs() = jsRegExp(this)
 
 data class JsAssetStat(val path: String, val size: Long)
