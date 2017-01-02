@@ -1020,6 +1020,10 @@ N.unboxDouble    = function(value) { return value["{% FIELD java.lang.Double:val
 N.unboxString    = function(value) { return N.istr(value); }
 N.unboxWrapped   = function(value) { return value._wrapped; }
 
+N.unboxByteArray = function(value) {
+	return value.data;
+};
+
 N.unbox = function(value, throwOnInvalid) {
 	if (N.is(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
 	if (N.is(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);

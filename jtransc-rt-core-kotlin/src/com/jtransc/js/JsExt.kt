@@ -9,14 +9,16 @@ class JsBoundedMethod(@JvmField val obj: JsDynamic?, @JvmField val methodName: S
 }
 
 val global: JsDynamic
-	@JTranscMethodBody(target = "js", value = "(typeof(window) != 'undefined') ? window : global")
+	@JTranscMethodBody(target = "js", value = "return (typeof(window) != 'undefined') ? window : global;")
 	get() = throw RuntimeException()
 
 val window: JsDynamic
 	@JTranscMethodBody(target = "js", value = "return window;")
 	get() = throw RuntimeException()
 
-val document: JsDynamic get() = window["document"]!!
+val console: JsDynamic get() = global["console"]!!
+
+val document: JsDynamic get() = global["document"]!!
 
 @JTranscMethodBody(target = "js", value = "return p0[N.istr(p1)];")
 external operator fun JsDynamic?.get(key: String): JsDynamic?
@@ -39,9 +41,13 @@ external operator fun JsDynamic?.set(key: String, value: Any?): Unit
 """)
 external fun JsDynamic?.call(name: String, vararg args: Any?): JsDynamic?
 
+fun jsNew(clazz: String): JsDynamic? = global[clazz].new2()
+fun jsNew(clazz: String, arg1: Any?): JsDynamic? = global[clazz].new2(arg1)
+fun jsNew(clazz: String, arg1: Any?, arg2: Any?): JsDynamic? = global[clazz].new2(arg1, arg2)
+
 @JTranscMethodBody(target = "js", value = """
 	var clazz = p0, rawArgs = p1;
-	var args = [];
+	var args = [null];
 	for (var n = 0; n < rawArgs.length; n++) args.push(N.unbox(rawArgs.data[n]));
 	return new (Function.prototype.bind.apply(clazz, args));
 """)
@@ -75,20 +81,35 @@ external fun JsDynamic?.toJavaStringOrNull(): String?
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());
 	};
 """)
-fun <TR> Function0<TR>.toJsDynamic(): JsDynamic = throw NotImplementedError()
+fun <TR> Function0<TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
 
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
-	return function() {
+	return function(p1) {
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](N.box(p1)));
 	};
 """)
-fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic = throw NotImplementedError()
+fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
 
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
-	return function() {
+	return function(p1, p2) {
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](N.box(p1), N.box(p2)));
 	};
 """)
-fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic = throw NotImplementedError()
+fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
+
+@JTranscMethodBody(target = "js", value = "return p0|0;")
+external fun JsDynamic?.toInt(): Int
+
+@JTranscMethodBody(target = "js", value = "return +p0;")
+external fun JsDynamic?.toDouble(): Double
+
+@JTranscMethodBody(target = "js", value = "return p0 == p1;")
+external fun JsDynamic?.eq(that: JsDynamic?): Boolean
+
+@JTranscMethodBody(target = "js", value = "return N.istr(p0);")
+external fun String.toJavaScriptString(): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = "debugger;")
+external fun jsDebugger(): Unit
