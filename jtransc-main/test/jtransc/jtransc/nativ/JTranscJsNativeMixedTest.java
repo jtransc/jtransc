@@ -3,6 +3,7 @@ package jtransc.jtransc.nativ;
 import com.jtransc.target.Js;
 import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
+import jtransc.jtransc.js.MixedJsKotlin;
 import jtransc.ref.MethodBodyReferencesTest;
 import jtransc.rt.test.AssertionTests;
 import testservice.ITestService;
@@ -19,6 +20,7 @@ public class JTranscJsNativeMixedTest {
 		JTranscReinterpretArrays.main(args);
 		MethodBodyReferencesTest.main(args);
 		customAnnotationTest();
+		MixedJsKotlin.main(args);
 	}
 
 	private static void servicesTest() {

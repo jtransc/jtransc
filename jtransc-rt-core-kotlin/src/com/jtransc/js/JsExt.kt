@@ -4,7 +4,7 @@ import com.jtransc.annotation.JTranscMethodBody
 
 interface JsDynamic
 
-class JsBoundedMethod(@JvmField val obj: JsDynamic?, @JvmField val methodName: String) {
+class JsBoundedMethod(val obj: JsDynamic?, val methodName: String) {
 	operator fun invoke(vararg args: Any?): JsDynamic? = obj.call(methodName, *args)
 }
 
@@ -33,6 +33,9 @@ fun JsDynamic?.method(key: String): JsBoundedMethod = JsBoundedMethod(this, key)
 @JTranscMethodBody(target = "js", value = "p0[N.istr(p1)] = N.unbox(p2);")
 external operator fun JsDynamic?.set(key: String, value: Any?): Unit
 
+@JTranscMethodBody(target = "js", value = "p0[p1] = N.unbox(p2);")
+external operator fun JsDynamic?.set(key: Int, value: Any?): Unit
+
 @JTranscMethodBody(target = "js", value = """
 	var obj = p0, methodName = N.istr(p1), rawArgs = p2;
 	var args = [];
@@ -41,9 +44,7 @@ external operator fun JsDynamic?.set(key: String, value: Any?): Unit
 """)
 external fun JsDynamic?.call(name: String, vararg args: Any?): JsDynamic?
 
-fun jsNew(clazz: String): JsDynamic? = global[clazz].new()
-fun jsNew(clazz: String, arg1: Any?): JsDynamic? = global[clazz].new(arg1)
-fun jsNew(clazz: String, arg1: Any?, arg2: Any?): JsDynamic? = global[clazz].new(arg1, arg2)
+fun jsNew(clazz: String, vararg args: JsDynamic?): JsDynamic? = global[clazz].new(*args)
 
 @JTranscMethodBody(target = "js", value = """
 	var clazz = p0, rawArgs = p1;
@@ -88,7 +89,7 @@ fun <T1, T2, TR> jsFunction(v: Function2<T1, T2, TR>): JsDynamic? = v.toJsDynami
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());
 	};
 """)
-fun <TR> Function0<TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
+external fun <TR> Function0<TR>.toJsDynamic(): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
@@ -96,7 +97,7 @@ fun <TR> Function0<TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](N.box(p1)));
 	};
 """)
-fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
+external fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
@@ -104,7 +105,22 @@ fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic? = throw NotImplementedE
 		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](N.box(p1), N.box(p2)));
 	};
 """)
-fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic? = throw NotImplementedError()
+external fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = """
+	return function() {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());};
+""")
+external fun <TR> jsFunctionRaw0(v: Function0<TR>): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = """
+	return function(p1) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](p1));};
+""")
+external fun <TR> jsFunctionRaw1(v: Function1<JsDynamic?, TR>): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = """
+	return function(p1, p2) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](p1, p2));};
+""")
+external fun <TR> jsFunctionRaw2(v: Function2<JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = "return p0|0;")
 external fun JsDynamic?.toInt(): Int

@@ -171,6 +171,9 @@ open class Base {
 						projectRoot["jtransc-rt-core/target/classes"].realpathOS,
 						projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
 						projectRoot["jtransc-rt-core/build/resources/main"].realpathOS,
+						projectRoot["jtransc-rt-core-kotlin/target/classes"].realpathOS,
+						projectRoot["jtransc-rt-core-kotlin/build/classes/main"].realpathOS,
+						projectRoot["jtransc-rt-core-kotlin/build/resources/main"].realpathOS,
 						projectRoot["jtransc-annotations/target/classes"].realpathOS,
 						projectRoot["jtransc-annotations/build/classes/main"].realpathOS,
 						projectRoot["jtransc-annotations/build/resources/main"].realpathOS
