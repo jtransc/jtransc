@@ -1,6 +1,7 @@
 package com.jtransc.js
 
 import com.jtransc.annotation.JTranscMethodBody
+import com.sun.tracing.dtrace.ArgsAttributes
 
 interface JsDynamic
 
@@ -43,6 +44,8 @@ external operator fun JsDynamic?.set(key: Int, value: Any?): Unit
 	return obj[methodName].apply(obj, args)
 """)
 external fun JsDynamic?.call(name: String, vararg args: Any?): JsDynamic?
+
+//operator fun JsDynamic?.invoke(name: String, vararg args: Any?): JsDynamic? = this.call(name, *args)
 
 fun jsNew(clazz: String, vararg args: Any?): JsDynamic? = global[clazz].new(*args)
 
@@ -142,7 +145,10 @@ external fun JsDynamic?.toInt(): Int
 external fun JsDynamic?.toDouble(): Double
 
 @JTranscMethodBody(target = "js", value = "return p0 == p1;")
-external fun JsDynamic?.eq(that: JsDynamic?): Boolean
+external infix fun JsDynamic?.eq(that: JsDynamic?): Boolean
+
+@JTranscMethodBody(target = "js", value = "return p0 != p1;")
+external infix fun JsDynamic?.ne(that: JsDynamic?): Boolean
 
 @JTranscMethodBody(target = "js", value = "return N.istr(p0);")
 external fun String.toJavaScriptString(): JsDynamic?
@@ -191,5 +197,5 @@ external fun jsObject(vararg items: Pair<String, Any?>): JsDynamic?
 
 fun jsObject(map: Map<String, Any?>): JsDynamic? = jsObject(*map.map { it.key to it.value }.toTypedArray())
 
-@JTranscMethodBody(target = "js", value = "return require(N.istr(name));")
+@JTranscMethodBody(target = "js", value = "return require(N.istr(p0));")
 external fun jsRequire(name: String): JsDynamic?
