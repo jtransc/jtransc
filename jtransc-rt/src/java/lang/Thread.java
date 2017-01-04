@@ -262,7 +262,7 @@ public class Thread implements Runnable {
 	}
 
 	public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
-		return new HashMap<>();
+		return new HashMap<Thread, StackTraceElement[]>();
 	}
 
 	@JTranscMethodBody(target = "d", value = "return this.thread.id;")

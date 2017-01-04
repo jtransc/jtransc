@@ -171,7 +171,7 @@ public class Throwable implements Serializable {
 	private ArrayList<Throwable> supressed;
 
 	public final synchronized void addSuppressed(Throwable exception) {
-		if (supressed == null) supressed = new ArrayList<>();
+		if (supressed == null) supressed = new ArrayList<Throwable>();
 		supressed.add(exception);
 	}
 

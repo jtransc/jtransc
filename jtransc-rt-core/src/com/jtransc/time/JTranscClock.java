@@ -2,6 +2,7 @@ package com.jtransc.time;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscClock {
@@ -16,8 +17,10 @@ public class JTranscClock {
 		}
 
 		@HaxeMethodBody("return N.getTime();")
-		@JTranscMethodBody(target = "js", value = "return N.getTime();")
-		@JTranscMethodBody(target = "cpp", value = "return N::getTime();")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "js", value = "return N.getTime();"),
+			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
+		})
 		public double fastTime() {
 			if (parent != null) {
 				return parent.fastTime();

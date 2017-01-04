@@ -413,7 +413,7 @@ public class MiscTest {
 
 	private void testFastMapsInt() {
 		System.out.println("testFastMapsInt:");
-		FastIntMap<String> map = new FastIntMap<>();
+		FastIntMap<String> map = new FastIntMap<String>();
 		System.out.println(map.has(10));
 		System.out.println(map.get(10));
 		map.set(10, "hello");

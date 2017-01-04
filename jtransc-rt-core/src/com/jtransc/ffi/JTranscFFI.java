@@ -4,6 +4,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMeta;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -119,24 +120,28 @@ public class JTranscFFI {
 			}
 		}
 
-		@HaxeMethodBody(target ="js", value = "" +
-			"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
-			"var obj:Dynamic = {};\n" +
-			"for (item in p1.toArray()) {\n" +
-			"  Reflect.setField(obj, item.name, [N.toNativeString(item.retval), N.toNativeStrArray(item.args)]);\n" +
-			"}\n" +
-			"this.lib = ffi.Library(p0._str, obj);\n"
-		)
-		@HaxeMethodBody("")
+		@HaxeMethodBodyList({
+			@HaxeMethodBody(target = "js", value = "" +
+				"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
+				"var obj:Dynamic = {};\n" +
+				"for (item in p1.toArray()) {\n" +
+				"  Reflect.setField(obj, item.name, [N.toNativeString(item.retval), N.toNativeStrArray(item.args)]);\n" +
+				"}\n" +
+				"this.lib = ffi.Library(p0._str, obj);\n"
+			),
+			@HaxeMethodBody(""),
+		})
 		public NodeFFI_Library(String name, Function[] functions) {
 		}
 
-		@HaxeMethodBody(target = "js", value = "" +
-			"var name = N.toNativeString(p0);\n" +
-			"var args = N.toNativeUnboxedArray(p1);\n" +
-			"return N.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
-		)
-		@HaxeMethodBody("return null;")
+		@HaxeMethodBodyList({
+			@HaxeMethodBody(target = "js", value = "" +
+				"var name = N.toNativeString(p0);\n" +
+				"var args = N.toNativeUnboxedArray(p1);\n" +
+				"return N.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
+			),
+			@HaxeMethodBody("return null;"),
+		})
 		public native Object invoke(String name, Object... args);
 	}
 

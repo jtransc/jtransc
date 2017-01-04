@@ -2,6 +2,9 @@ apply from: '../include.gradle'
 
 apply plugin: "kotlin" // or apply plugin: "kotlin2js" if targeting JavaScript
 
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
 repositories {
 	mavenCentral()
 }

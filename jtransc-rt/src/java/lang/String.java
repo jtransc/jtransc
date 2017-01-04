@@ -520,7 +520,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	private String[] split(char ch, int limit) {
-		ArrayList<String> out = new ArrayList<>();
+		ArrayList<String> out = new ArrayList<String>();
 		int n = 0;
 		int start = 0;
 		for (; n < length(); n++) {
@@ -554,7 +554,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	public static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements) {
-		ArrayList<CharSequence> out = new ArrayList<>();
+		ArrayList<CharSequence> out = new ArrayList<CharSequence>();
 		for (CharSequence element : elements) out.add(element);
 		return join(delimiter, out.toArray(new CharSequence[out.size()]));
 	}

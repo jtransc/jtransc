@@ -47,7 +47,7 @@ public final class ProcessBuilder {
 	}
 
 	public ProcessBuilder command(String... command) {
-		this.command = new ArrayList<>(Arrays.asList(command));
+		this.command = new ArrayList<String>(Arrays.asList(command));
 		return this;
 	}
 
@@ -56,12 +56,12 @@ public final class ProcessBuilder {
 	}
 
 	public Map<String, String> environment() {
-		if (environment == null) environment = new HashMap<>();
+		if (environment == null) environment = new HashMap<String, String>();
 		return environment;
 	}
 
 	ProcessBuilder environment(String[] envp) {
-		environment = new HashMap<>(envp.length);
+		environment = new HashMap<String, String>(envp.length);
 
 		for (String envstring : envp) {
 			int eqlsign = envstring.indexOf('=', 1);

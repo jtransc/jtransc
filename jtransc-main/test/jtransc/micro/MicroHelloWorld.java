@@ -14,6 +14,11 @@ public class MicroHelloWorld {
 		JTranscConsole.log(true);
 		JTranscConsole.log(a);
 		new MicroHelloWorld().demo();
+		new MicroHelloWorld().demo2(new C());
+	}
+
+	private void demo2(A a) {
+		a.test();
 	}
 
 	private void demo() {
@@ -26,5 +31,20 @@ public class MicroHelloWorld {
 			JTranscConsole.log("WOOPS");
 		}
 		//BenchmarkTest.main(new String[0]);
+	}
+}
+
+class A {
+	public void test() {
+		System.out.println("A");
+	}
+}
+
+class B extends A {
+}
+
+class C extends B {
+	public void test() {
+		System.out.println("C");
 	}
 }

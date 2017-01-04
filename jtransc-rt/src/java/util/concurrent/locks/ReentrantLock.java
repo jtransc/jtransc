@@ -67,7 +67,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 	}
 
 	protected Collection<Thread> getQueuedThreads() {
-		return new ArrayList<>();
+		return new ArrayList<Thread>();
 	}
 
 	public boolean hasWaiters(Condition condition) {
@@ -79,7 +79,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 	}
 
 	protected Collection<Thread> getWaitingThreads(Condition condition) {
-		return new ArrayList<>();
+		return new ArrayList<Thread>();
 	}
 
 	public String toString() {

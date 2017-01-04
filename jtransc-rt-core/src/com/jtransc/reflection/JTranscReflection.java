@@ -19,7 +19,7 @@ import java.util.jar.JarFile;
 public class JTranscReflection {
 	static public String[] getAllClasses() {
 		if (JTranscSystem.isJTransc()) {
-			ArrayList<String> out = new ArrayList<>();
+			ArrayList<String> out = new ArrayList<String>();
 			for (ClassInfo classInfo : ProgramReflection.getAllClasses()) {
 				if (classInfo != null && classInfo.name != null) {
 					out.add(classInfo.name);

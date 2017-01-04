@@ -4,14 +4,16 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.*;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 import com.jtransc.util.JTranscCollections;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @SuppressWarnings("ConstantConditions")
 @HaxeAddMembers({
@@ -29,9 +31,11 @@ public class JTranscProcess extends Process {
 		"var cwd = N.toNativeString(p2);\n" +
 		"var env = N.mapToObject(p3);\n"
 	)
-	@HaxeMethodBody(target = "sys", value = "return N.wrap(new sys.io.Process(cmd, args));")
-	@HaxeMethodBody(target = "js", value = "return N.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));")
-	@HaxeMethodBody("return null;")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "sys", value = "return N.wrap(new sys.io.Process(cmd, args));"),
+		@HaxeMethodBody(target = "js", value = "return N.wrap(untyped __js__(\"require('child_process')\").spawnSync(cmd, args, {cwd:cwd, env:env}));"),
+		@HaxeMethodBody("return null;"),
+	})
 	@JTranscMethodBody(target = "js", value = {
 		"return N.wrap(require('child_process').spawnSync(N.istr(p0), N.istrArray(p1), {cwd:N.istr(p2), env:N.imap(p3)}));"
 	})
@@ -60,13 +64,13 @@ public class JTranscProcess extends Process {
 			} else {
 				process.processWrapped = process.create(cmds.get(0), JTranscCollections.sliceArray(cmds, 1, new String[cmds.size() - 1]), dir, environment);
 				if (JTranscSystem.isJs()) {
-					process.stdoutString = Objects.toString(process.processWrapped.get("stdout"));
-					process.stderrString = Objects.toString(process.processWrapped.get("stderr"));
+					process.stdoutString = process.processWrapped.get("stdout").toString();
+					process.stderrString = process.processWrapped.get("stderr").toString();
 					process.stdout = new ByteArrayInputStream(process.stdoutString.getBytes(Charset.forName("utf-8")));
 					process.stderr = new ByteArrayInputStream(process.stderrString.getBytes(Charset.forName("utf-8")));
 					process.stderr = null;
 					process.exitCode = (Integer) process.processWrapped.get("status");
-					process.pid = (int) process.processWrapped.get("pid");
+					process.pid = (Integer) (process.processWrapped.get("pid"));
 				} else {
 					process.stdin = new JTranscHaxeOutputStream((JTranscWrapped) process.processWrapped.get("stdin"));
 					process.stdout = new JTranscHaxeInputStream((JTranscWrapped) process.processWrapped.get("stdout"));
@@ -94,12 +98,12 @@ public class JTranscProcess extends Process {
 
 	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.io.DFileInputStream %}(this.pipes.stderr);")
 	private InputStream genStderr() {
-		return new ByteArrayInputStream(new byte[] { 'd', 'u', 'm', 'm', 'y' });
+		return new ByteArrayInputStream(new byte[]{'d', 'u', 'm', 'm', 'y'});
 	}
 
 	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.io.DFileInputStream %}(this.pipes.stdout);")
 	private InputStream genStdout() {
-		return new ByteArrayInputStream(new byte[] { 'd', 'u', 'm', 'm', 'y' });
+		return new ByteArrayInputStream(new byte[]{'d', 'u', 'm', 'm', 'y'});
 	}
 
 	static public Creator creator = new Creator();
@@ -144,8 +148,10 @@ public class JTranscProcess extends Process {
 	}
 
 	@Override
-	@HaxeMethodBody(target = "sys", value = "this.process.kill();")
-	@HaxeMethodBody("")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "sys", value = "this.process.kill();"),
+		@HaxeMethodBody(""),
+	})
 	@JTranscMethodBody(target = "d", value = "std.process.kill(this.pipes.pid);")
 	//@JTranscMethodBody(target = "js", value = "")
 	public native void destroy();
@@ -155,7 +161,7 @@ public class JTranscProcess extends Process {
 		try {
 			exitValue();
 			return false;
-		} catch(IllegalThreadStateException e) {
+		} catch (IllegalThreadStateException e) {
 			return true;
 		}
 	}

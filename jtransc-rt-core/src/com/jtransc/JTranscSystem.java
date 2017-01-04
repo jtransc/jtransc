@@ -2,7 +2,9 @@ package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 import com.jtransc.target.Js;
 import com.jtransc.time.JTranscClock;
 
@@ -41,32 +43,40 @@ public class JTranscSystem {
 		return second - first;
 	}
 
-	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);")
-	@HaxeMethodBody(target = "d", value = "")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);"),
+		@HaxeMethodBody(target = "d", value = ""),
+		@HaxeMethodBody(""),
+	})
 	static public void gcDisable() {
 	}
 
-	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);")
-	@HaxeMethodBody(target = "d", value = "")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(""),
+		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);"),
+		@HaxeMethodBody(target = "d", value = ""),
+	})
 	static public void gcEnable() {
 	}
 
-	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();")
-	@HaxeMethodBody(target = "d", value = "")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(""),
+		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();"),
+		@HaxeMethodBody(target = "d", value = ""),
+	})
 	static public void gc() {
 		System.gc();
 	}
 
 	@HaxeMethodBody("return true;")
-	@JTranscMethodBody(target = "js", value = "return true;")
-	@JTranscMethodBody(target = "cpp", value = "return true;")
-	@JTranscMethodBody(target = "d", value = "return true;")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return true;"),
+		@JTranscMethodBody(target = "cpp", value = "return true;"),
+		@JTranscMethodBody(target = "d", value = "return true;"),
+	})
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
 		return FALSE;
@@ -94,9 +104,11 @@ public class JTranscSystem {
 	}
 
 	@SuppressWarnings("all")
-	@JTranscMethodBody(target = "js", value = "return N.str(\"js\");")
-	@JTranscMethodBody(target = "cpp", value = "return N::str(\"cpp\");")
-	@JTranscMethodBody(target = "d", value = "return N.str(\"d\");")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(\"cpp\");"),
+		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
+	})
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
 		if (isSwf()) return "swf";
@@ -118,10 +130,14 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBody(target = "sys", value = "return true;")
-	@HaxeMethodBody("return false;")
-	@JTranscMethodBody(target = "js", value = "return false;")
-	@JTranscMethodBody(target = "cpp", value = "return true;")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "sys", value = "return true;"),
+		@HaxeMethodBody("return false;"),
+	})
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return false;"),
+		@JTranscMethodBody(target = "cpp", value = "return true;"),
+	})
 	public static boolean isSys() {
 		return TRUE;
 	}
@@ -136,8 +152,10 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBody(target = "cs", value = "return true;")
-	@HaxeMethodBody("return false;")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "cs", value = "return true;"),
+		@HaxeMethodBody("return false;"),
+	})
 	public static boolean isCsharp() {
 		return FALSE;
 	}
@@ -150,8 +168,10 @@ public class JTranscSystem {
 		return isJvm();
 	}
 
-	@HaxeMethodBody(target = "js", value = "return true;")
-	@HaxeMethodBody("return false;")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "js", value = "return true;"),
+		@HaxeMethodBody("return false;"),
+	})
 	@JTranscMethodBody(target = "js", value = "return true;")
 	public static boolean isJs() {
 		return FALSE;
@@ -193,12 +213,16 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.systemName());")
-	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));")
-	@HaxeMethodBody("return N.str('unknown');")
-	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
-	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");")
-	@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "sys", value = "return N.str(Sys.systemName());"),
+		@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));"),
+		@HaxeMethodBody("return N.str('unknown');"),
+	})
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");"),
+		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
+	})
 	static private String getOSRaw() {
 		return System.getProperty("os.name");
 	}
@@ -213,8 +237,10 @@ public class JTranscSystem {
 
 	// http://lopica.sourceforge.net/os.html
 	@HaxeMethodBody("return N.str('x86');")
-	@JTranscMethodBody(target = "js", value = "return N.str('x86');")
-	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str('x86');"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");"),
+	})
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
 		if (isJvm()) {
@@ -261,24 +287,30 @@ public class JTranscSystem {
 	}
 
 	@HaxeMethodBody(target = "debug", value = "return true;")
-	@JTranscMethodBody(target = "js", value = "return true;")
-	@JTranscMethodBody(target = "d", value = "debug { return true; } return false;")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return true;"),
+		@JTranscMethodBody(target = "d", value = "debug { return true; } return false;"),
+	})
 	public static boolean isDebug() {
 		return FALSE;
 	}
 
 	@HaxeMethodBody("return N.str('jtransc-haxe');")
-	@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');")
-	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");")
-	@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");"),
+		@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");"),
+	})
 	public static String getRuntimeName() {
 		return "java";
 	}
 
 	@HaxeMethodBody("return N.str('/jtransc-haxe');")
-	@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');")
-	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");")
-	@JTranscMethodBody(target = "d", value = "return N.str(\"/\");")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");"),
+		@JTranscMethodBody(target = "d", value = "return N.str(\"/\");"),
+	})
 	public static String getJavaHome() {
 		return System.getenv("java.home");
 	}

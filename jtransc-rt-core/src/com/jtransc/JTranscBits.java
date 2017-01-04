@@ -20,6 +20,7 @@ import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 
 @JTranscInvisible
 @SuppressWarnings({"PointlessBitwiseExpression", "PointlessArithmeticExpression", "WeakerAccess", "unused"})
@@ -343,14 +344,14 @@ public class JTranscBits {
 
 	static public long readInt64BE(byte[] data, int offset) {
 		return (
-			((long)(data[offset + 0] & 0xFF) << 56) |
-				((long)(data[offset + 1] & 0xFF) << 48) |
-				((long)(data[offset + 2] & 0xFF) << 42) |
-				((long)(data[offset + 3] & 0xFF) << 32) |
-				((long)(data[offset + 4] & 0xFF) << 24) |
-				((long)(data[offset + 5] & 0xFF) << 16) |
-				((long)(data[offset + 6] & 0xFF) << 8) |
-				((long)(data[offset + 7] & 0xFF) << 0)
+			((long) (data[offset + 0] & 0xFF) << 56) |
+				((long) (data[offset + 1] & 0xFF) << 48) |
+				((long) (data[offset + 2] & 0xFF) << 42) |
+				((long) (data[offset + 3] & 0xFF) << 32) |
+				((long) (data[offset + 4] & 0xFF) << 24) |
+				((long) (data[offset + 5] & 0xFF) << 16) |
+				((long) (data[offset + 6] & 0xFF) << 8) |
+				((long) (data[offset + 7] & 0xFF) << 0)
 		);
 	}
 
@@ -384,16 +385,17 @@ public class JTranscBits {
 
 	static public long readInt64LE(byte[] data, int offset) {
 		return (
-			((long)(data[offset + 7] & 0xFF) << 56) |
-				((long)(data[offset + 6] & 0xFF) << 48) |
-				((long)(data[offset + 5] & 0xFF) << 42) |
-				((long)(data[offset + 4] & 0xFF) << 32) |
-				((long)(data[offset + 3] & 0xFF) << 24) |
-				((long)(data[offset + 2] & 0xFF) << 16) |
-				((long)(data[offset + 1] & 0xFF) << 8) |
-				((long)(data[offset + 0] & 0xFF) << 0)
+			((long) (data[offset + 7] & 0xFF) << 56) |
+				((long) (data[offset + 6] & 0xFF) << 48) |
+				((long) (data[offset + 5] & 0xFF) << 42) |
+				((long) (data[offset + 4] & 0xFF) << 32) |
+				((long) (data[offset + 3] & 0xFF) << 24) |
+				((long) (data[offset + 2] & 0xFF) << 16) |
+				((long) (data[offset + 1] & 0xFF) << 8) |
+				((long) (data[offset + 0] & 0xFF) << 0)
 		);
 	}
+
 	public static int clamp(int v, int min, int max) {
 		if (v < min) return min;
 		if (v > max) return max;
@@ -401,22 +403,28 @@ public class JTranscBits {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend1(p0);")
-	@HaxeMethodBody("return N.signExtend(p0, 1);")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend1(p0);"),
+		@HaxeMethodBody("return N.signExtend(p0, 1);"),
+	})
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend8(p0);")
-	@HaxeMethodBody("return N.i2b(p0);")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend8(p0);"),
+		@HaxeMethodBody("return N.i2b(p0);"),
+	})
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-	@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend16(p0);")
-	@HaxeMethodBody("return N.i2s(p0);")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend16(p0);"),
+		@HaxeMethodBody("return N.i2s(p0);"),
+	})
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;
 	}

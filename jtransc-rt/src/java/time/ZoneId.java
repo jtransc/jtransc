@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class ZoneId implements Serializable {
-	public static final Map<String, String> SHORT_IDS = new HashMap<>(64);
+	public static final Map<String, String> SHORT_IDS = new HashMap<String, String>(64);
 
 	ZoneId() {
 	}

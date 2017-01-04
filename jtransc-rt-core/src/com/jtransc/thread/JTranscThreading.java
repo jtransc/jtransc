@@ -2,6 +2,7 @@ package com.jtransc.thread;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 
 public class JTranscThreading {
 	static public Impl impl = new Impl(null);
@@ -27,8 +28,10 @@ public class JTranscThreading {
 			thread.run();
 		}
 
-		@JTranscMethodBody(target = "js", value = "return false;")
-		@JTranscMethodBody(target = "d", value = "return true;")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "js", value = "return false;"),
+			@JTranscMethodBody(target = "d", value = "return true;"),
+		})
 		private boolean _isSupported() {
 			return !JTranscSystem.isJTransc();
 		}

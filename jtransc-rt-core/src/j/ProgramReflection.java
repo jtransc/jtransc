@@ -25,7 +25,7 @@ public class ProgramReflection {
 	static public void _ensure() {
 		if (_classInfos != null) return;
 
-		_classInfosByName = new FastStringMap<>();
+		_classInfosByName = new FastStringMap<ClassInfo>();
 		_classInfos = ProgramReflection.getAllClasses();
 		_classNames = new String[_classInfos.length];
 
@@ -41,10 +41,10 @@ public class ProgramReflection {
 		if (_constructorsInfo != null) return;
 		_ensure();
 
-		_constructorsInfo = new FastIntMap<>();
+		_constructorsInfo = new FastIntMap<FastIntMap<MemberInfo>>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
-			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
 			_constructorsInfo.set(info.id, map);
 			MemberInfo[] minfo = getConstructors(info.id);
 			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
@@ -55,10 +55,10 @@ public class ProgramReflection {
 		if (_fieldsInfos != null) return;
 		_ensure();
 
-		_fieldsInfos = new FastIntMap<>();
+		_fieldsInfos = new FastIntMap<FastIntMap<MemberInfo>>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
-			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
 			_fieldsInfos.set(info.id, map);
 			MemberInfo[] minfo = getFields(info.id);
 			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
@@ -69,10 +69,10 @@ public class ProgramReflection {
 		if (_methodInfos != null) return;
 		_ensure();
 
-		_methodInfos = new FastIntMap<>();
+		_methodInfos = new FastIntMap<FastIntMap<MemberInfo>>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
-			FastIntMap<MemberInfo> map = new FastIntMap<>();
+			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
 			_methodInfos.set(info.id, map);
 			MemberInfo[] minfo = getMethods(info.id);
 			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);

@@ -88,7 +88,7 @@ public final class Pattern implements java.io.Serializable {
 	public String[] split(CharSequence input, int limit) {
 		int index = 0;
 		boolean matchLimited = limit > 0;
-		ArrayList<String> matchList = new ArrayList<>();
+		ArrayList<String> matchList = new ArrayList<String>();
 		Matcher m = matcher(input);
 
 		while (m.find()) {

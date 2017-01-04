@@ -27,7 +27,7 @@ public class SimpleDateFormat extends DateFormat {
 
 	static private List<String> compilePattern(String pattern) {
 		JTranscStringReader r = new JTranscStringReader(pattern);
-		ArrayList<String> out = new ArrayList<>();
+		ArrayList<String> out = new ArrayList<String>();
 		while (!r.eof()) {
 			String result = r.tryRead("YYYY", "yyyy", "MM", "mm", "dd", "HH", "ss", "hh", "M", "m", "s", "z");
 			if (result != null) {

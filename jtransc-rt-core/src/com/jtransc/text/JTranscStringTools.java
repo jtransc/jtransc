@@ -1,8 +1,8 @@
 package com.jtransc.text;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.text.internal.RealToString;
 
 @SuppressWarnings("IndexOfReplaceableByContains")
 public class JTranscStringTools {
@@ -62,11 +62,13 @@ public class JTranscStringTools {
 	//native static public String _toString(float v);
 
 	@HaxeMethodBody("return N.str(N.isNegativeZero(p0) ? '-0' : '$p0');")
-	@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));")
-	@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%g\", p0); return N::str(std::wstring(temp));")
-	//@JTranscMethodBody(target = "js", value = "return N.str(String(Number(p0)));")
-	//@JTranscMethodBody(target = "js", value = "return N.str(Number(p0).toPrecision(2));")
-	//@JTranscMethodBody(target = "d", value = "return N.str(to!string(p0));")
-	@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));"),
+		@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%g\", p0); return N::str(std::wstring(temp));"),
+		//@JTranscMethodBody(target = "js", value = "return N.str(String(Number(p0)));")
+		//@JTranscMethodBody(target = "js", value = "return N.str(Number(p0).toPrecision(2));")
+		//@JTranscMethodBody(target = "d", value = "return N.str(to!string(p0));")
+		@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));"),
+	})
 	native static public String _toString(double v);
 }

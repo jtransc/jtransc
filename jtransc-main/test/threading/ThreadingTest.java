@@ -5,7 +5,7 @@ import java.util.Collections;
 
 public class ThreadingTest {
 	static public void main(String[] args) {
-		ArrayList<String> logs = new ArrayList<>();
+		ArrayList<String> logs = new ArrayList<String>();
 		long start = System.currentTimeMillis();
 		for (int n = 0; n < 3; n++) {
 			Thread thread = new Thread(new Runnable() {

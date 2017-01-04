@@ -23,7 +23,7 @@ abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
 		val cr = try {
 			ClassReader(program.getClassBytes(fqname))
 		} catch (e: IOException) {
-			invalidOp("Can't find class $fqname")
+			invalidOp("generateClass: Can't find class $fqname")
 		}
 		val classNode = ClassNode()
 		cr.accept(classNode, if (expandFrames) ClassReader.EXPAND_FRAMES else ClassReader.SKIP_FRAMES)

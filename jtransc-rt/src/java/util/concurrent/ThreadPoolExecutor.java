@@ -22,7 +22,7 @@ public class ThreadPoolExecutor implements ExecutorService {
 
 	@Override
 	public List<Runnable> shutdownNow() {
-		return new ArrayList<>();
+		return new ArrayList<Runnable>();
 	}
 
 	@Override
@@ -43,16 +43,16 @@ public class ThreadPoolExecutor implements ExecutorService {
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 		try {
-			return new ImmediateFuture<>(task.call());
+			return new ImmediateFuture<T>(task.call());
 		} catch (Exception e) {
-			return new ImmediateFuture<>(null);
+			return new ImmediateFuture<T>(null);
 		}
 	}
 
 	@Override
 	public <T> Future<T> submit(Runnable task, T result) {
 		task.run();
-		return new ImmediateFuture<>(result);
+		return new ImmediateFuture<T>(result);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class ThreadPoolExecutor implements ExecutorService {
 
 	@Override
 	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-		ArrayList<Future<T>> out = new ArrayList<>();
+		ArrayList<Future<T>> out = new ArrayList<Future<T>>();
 		for (Callable<T> task : tasks) {
 			try {
 				out.add(new ImmediateFuture(task.call()));

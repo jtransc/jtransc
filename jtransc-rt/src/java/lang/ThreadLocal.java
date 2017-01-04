@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 // @TODO: This is slow, this should be implemented different in each target.
 public class ThreadLocal<T> {
-	private Map<Long, T> valuesPerThread = new HashMap<>();
-	private Set<Long> initialized = new HashSet<>();
+	private Map<Long, T> valuesPerThread = new HashMap<Long, T>();
+	private Set<Long> initialized = new HashSet<Long>();
 
 	protected T initialValue() {
 		return null;

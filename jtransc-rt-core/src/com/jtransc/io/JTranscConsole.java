@@ -3,8 +3,10 @@ package com.jtransc.io;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 import com.jtransc.lang.Int64;
 
 @HaxeAddMembers({"" +
@@ -18,45 +20,73 @@ import com.jtransc.lang.Int64;
 })
 public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void log(Object v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(Object v) {
+		System.out.println(v);
+	}
 
-	@JTranscMethodBody(target = "js", value = "console.log(p0);")
-	@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void dump(Object v) { System.out.println(v); }
-
-	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? L\"true\" : L\"false\");")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void log(boolean v) { System.out.println(v); }
-
-	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void log(byte v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log(p0);"),
+		@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void dump(Object v) {
+		System.out.println(v);
+	}
 
 	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void log(short v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? L\"true\" : L\"false\");"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(boolean v) {
+		System.out.println(v);
+	}
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(byte v) {
+		System.out.println(v);
+	}
+
+	@HaxeMethodBody("_log(p0);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(short v) {
+		System.out.println(v);
+	}
 
 	@HaxeMethodBody("_log(String.fromCharCode(p0));")
-	@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();")
-	static public void log(char v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(char v) {
+		System.out.println(v);
+	}
 
 	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
-	@JTranscMethodBody(target = "d", value = "writefln(\"%d\", p0); std.stdio.stdout.flush();")
-	static public void log(int v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
+		@JTranscMethodBody(target = "d", value = "writefln(\"%d\", p0); std.stdio.stdout.flush();"),
+	})
+	static public void log(int v) {
+		System.out.println(v);
+	}
 
 	@SuppressWarnings("PointlessBitwiseExpression")
 	@HaxeMethodBody("_log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
@@ -66,7 +96,7 @@ public class JTranscConsole {
 			Int64 internal = Int64.getInternal(v);
 			logLong(internal.high, internal.low);
 		} else {
-			logLong((int)(v >> 32), (int)(v >> 0));
+			logLong((int) (v >> 32), (int) (v >> 0));
 		}
 	}
 
@@ -75,25 +105,37 @@ public class JTranscConsole {
 	}
 
 	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);")
-	static public void log(float v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);"),
+	})
+	static public void log(float v) {
+		System.out.println(v);
+	}
 
 	@HaxeMethodBody("_log(p0);")
-	@JTranscMethodBody(target = "js", value = "console.log('' + p0);")
-	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);")
-	static public void log(double v) { System.out.println(v); }
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);"),
+	})
+	static public void log(double v) {
+		System.out.println(v);
+	}
 
-	@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");")
-	@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");")
-	@HaxeMethodBody("trace('' + p0);")
+	@HaxeMethodBodyList({
+		@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");"),
+		@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");"),
+		@HaxeMethodBody("trace('' + p0);"),
+	})
 	@JTranscMethodBody(target = "js", value = "console.error('' + p0);")
 	static public void error(Object msg) {
 		System.err.println(msg);
 	}
 
 	@JTranscKeep
-	static public void logString(String v) { log(v); }
+	static public void logString(String v) {
+		log(v);
+	}
 
 	static public void logOrError(Object msg, boolean error) {
 		if (error) {
