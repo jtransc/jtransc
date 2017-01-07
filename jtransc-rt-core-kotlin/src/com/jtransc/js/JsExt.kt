@@ -199,3 +199,14 @@ fun jsObject(map: Map<String, Any?>): JsDynamic? = jsObject(*map.map { it.key to
 
 @JTranscMethodBody(target = "js", value = "return require(N.istr(p0));")
 external fun jsRequire(name: String): JsDynamic?
+
+@JTranscMethodBody(target = "js", value = "return this instanceof p0;")
+external fun JsDynamic?.jsInstanceOf(type: JsDynamic?): JsDynamic?
+
+fun JsDynamic?.jsIsString(): Boolean = this.typeOf().toJavaString() == "string"
+
+@JTranscMethodBody(target = "js", value = "return JA_B.fromTypedArray(new Int8Array(p0));")
+external fun JsDynamic?.toByteArray(): ByteArray
+
+@JTranscMethodBody(target = "js", value = "return new Int8Array(p0.data.buffer, 0, p0.length);")
+external fun ByteArray.toJsTypedArray(): JsDynamic?
