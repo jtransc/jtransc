@@ -29,6 +29,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
+import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.text.quote
 import com.jtransc.util.dependencySorter
@@ -454,7 +455,7 @@ class AstClass(
 	fun getMethodsInAncestorsAndInterfaces(name: String): List<AstMethod> {
 		val methods = hashMapOf<AstMethodWithoutClassRef, AstMethod>()
 		for (m in thisAncestorsAndInterfaces.flatMap { it.getMethods(name) }) {
-			methods.putIfAbsent(m.ref.withoutClass, m)
+			methods.putIfAbsentJre7(m.ref.withoutClass, m)
 		}
 		return methods.values.toList()
 	}

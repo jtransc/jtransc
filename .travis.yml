@@ -57,8 +57,10 @@ before_script:
 - ./gradlew --version
 
 script:
+- jdk_switcher use oraclejdk8
 - ./gradlew -s -i check install
 #- ./gradlew check install
+- jdk_switcher use oraclejdk7
 - pushd jtransc-main-run/example
 - "./run"
 - popd

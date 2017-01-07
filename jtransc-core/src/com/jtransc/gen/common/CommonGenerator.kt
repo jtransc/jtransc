@@ -20,6 +20,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.lang.high
 import com.jtransc.lang.low
+import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.isLetterDigitOrUnderscore
@@ -957,7 +958,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	class MutableBody(val method: AstMethod) {
 		val referencedClasses = hashMapOf<AstType.REF, ArrayList<String>>()
 		fun initClassRef(classRef: AstType.REF, reason: String) {
-			referencedClasses.putIfAbsent(classRef, arrayListOf())
+			referencedClasses.putIfAbsentJre7(classRef, arrayListOf())
 			referencedClasses[classRef]!! += reason
 		}
 	}
