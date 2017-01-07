@@ -153,7 +153,7 @@ object ProcessUtils {
 			if (i.isNotEmpty()) handler.onOutputData(i)
 			if (e.isNotEmpty()) handler.onErrorData(e)
 			if (closing) break
-			if (i.isEmpty() && e.isEmpty() && !p.isAlive) {
+			if (i.isEmpty() && e.isEmpty() && !p.isAliveJre7) {
 				closing = true
 				continue
 			}
@@ -180,5 +180,12 @@ private fun InputStreamReader.readAvailableChunk(i: InputStream, readRest: Boole
 		out.append(c.toChar())
 	}
 	return out.toString()
+}
+
+val Process.isAliveJre7: Boolean get() = try {
+	exitValue()
+	false
+} catch (e: IllegalThreadStateException) {
+	true
 }
 
