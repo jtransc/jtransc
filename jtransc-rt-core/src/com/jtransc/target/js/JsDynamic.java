@@ -23,6 +23,6 @@ final public class JsDynamic {
 	@JTranscCallSiteBody(target = "js", value = "((#@)|0)")
 	native public int toInt();
 
-	@JTranscCallSiteBody(target = "js", value = "global[#'0]")
+	@JTranscCallSiteBody(target = "js", value = "_global[#'0]")
 	static native public JsDynamic global(@JTranscLiteralParam String name);
 }

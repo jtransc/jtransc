@@ -1,3 +1,5 @@
+var _global = (typeof window !== "undefined") ? window : global;
+
 // Polyfills
 Array.prototype.includes = Array.prototype.includes || (function(searchElement /*, fromIndex*/ ) {
 	var O = Object(this);
@@ -1162,4 +1164,4 @@ java_lang_Object_base.prototype.toString = function() {
 
 /* ## BODY ## */
 
-})((typeof window !== "undefined") ? window : global);
+})(_global);
