@@ -1,6 +1,10 @@
 package jtransc.jtransc.nativ;
 
+import com.jtransc.annotation.JTranscCallSiteBody;
+import com.jtransc.annotation.JTranscLiteralParam;
+import com.jtransc.annotation.JTranscUnboxParam;
 import com.jtransc.target.Js;
+import com.jtransc.target.js.JsDynamic;
 import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
 import jtransc.jtransc.js.MixedJsKotlin;
@@ -21,7 +25,21 @@ public class JTranscJsNativeMixedTest {
 		MethodBodyReferencesTest.main(args);
 		customAnnotationTest();
 		MixedJsKotlin.main(args);
+		call(access(global("console"), "log"), 1);
+		JsDynamic.global("console").get("log").call(2);
+		int res = JsDynamic.global("console").get("log").toInt();
+		System.out.println(res);
+		System.out.println(JsDynamic.global("Math").get("max").call(-4, -3).toInt() == -3);
 	}
+
+	@JTranscCallSiteBody(target = "js", value = "global[#'0]")
+	static native private Object global(@JTranscLiteralParam String name);
+
+	@JTranscCallSiteBody(target = "js", value = "#0[#'1]")
+	static native private Object access(Object obj, @JTranscLiteralParam String name);
+
+	@JTranscCallSiteBody(target = "js", value = "#0(#1)")
+	static native private Object call(Object obj, @JTranscUnboxParam Object v);
 
 	private static void servicesTest() {
 		ServiceLoader<ITestService> load = ServiceLoader.load(ITestService.class);

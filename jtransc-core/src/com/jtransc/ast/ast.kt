@@ -680,6 +680,8 @@ class AstMethod(
 	val types: AstTypes
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
+	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(it) }
+
 	init {
 		if (id < 0) {
 			println("Invalid method id: $id")

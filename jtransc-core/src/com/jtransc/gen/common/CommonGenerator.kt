@@ -6,6 +6,8 @@ import com.jtransc.ConfigTargetDirectory
 import com.jtransc.JTranscVersion
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscInvisibleExternal
+import com.jtransc.annotation.JTranscLiteralParam
+import com.jtransc.annotation.JTranscUnboxParam
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
@@ -336,18 +338,57 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			refs.add(clazz)
 			mutableBody.initClassRef(clazz, "CALL_STATIC")
 		}
-
 		val isNativeCall = refMethodClass.isNative
 		val processedArgs = args.map { processCallArg(it.value, if (isNativeCall) convertToTarget(it) else it.genExpr()) }
-		val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
-		val result = when (e2) {
-			is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
-			is AstExpr.CALL_SUPER -> genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
-			is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
-			else -> invalidOp("Unexpected")
+
+		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)
+
+		if (callsiteBody != null) {
+			val args2 = processedArgs.withIndex().map {
+				val arg = args[it.index]
+				val processedArg = it.value
+				val paramAnnotations = refMethod.parameterAnnotationsList[it.index]
+				if (paramAnnotations.contains<JTranscLiteralParam>()) {
+					val expr = args[it.index].value
+					val lit = (expr as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: $processedArg")
+					lit.value.toString()
+				} else if (paramAnnotations.contains<JTranscUnboxParam>()) {
+					N_unboxRaw(processedArg)
+				} else {
+					processedArg
+				}
+			}
+
+			val objStr = when (e2) {
+				is AstExpr.CALL_INSTANCE -> e2.obj.genNotNull()
+				else -> ""
+			}
+
+			val out = Regex("#(')?((@|\\d)+)").replace(callsiteBody) { mr ->
+				val mustQuote = mr.groupValues[1]
+				val rid = mr.groupValues[2]
+				val res = if (rid == "@") {
+					objStr
+				} else {
+					val id = rid.toInt()
+					args2[id]
+				}
+				if (mustQuote.isNotEmpty()) quoteString(res) else res
+			}
+			return out
+		} else {
+			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
+			val result = when (e2) {
+				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				is AstExpr.CALL_SUPER -> genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				else -> invalidOp("Unexpected")
+			}
+			return if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 		}
-		return if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
 	}
+
+	open fun quoteString(str: String) = str.quote()
 
 	open fun processCallArg(e: AstExpr, str: String): String = str
 
@@ -1098,6 +1139,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun N_unbox(type: AstType, e: String) = when (type) {
 		is AstType.Primitive -> N_unbox(type, e)
+	//else -> N_unboxRaw(e)
 		else -> e
 	}
 
@@ -1135,6 +1177,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_unboxLong(e: String) = N_func("unboxLong", "$e")
 	open protected fun N_unboxFloat(e: String) = N_func("unboxFloat", "$e")
 	open protected fun N_unboxDouble(e: String) = N_func("unboxDouble", "$e")
+	open protected fun N_unboxRaw(e: String) = N_func("unbox", "$e")
 
 	open protected fun N_is(a: String, b: AstType.Reference) = N_is(a, b.targetName)
 	open protected fun N_is(a: String, b: String) = N_func("is", "$a, $b")
@@ -1783,6 +1826,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(buildStaticInit(clazzRef.name))
 	}
+
 	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + buildAccessName("SI", static = true) + "();"
 
 	open fun genStaticConstructorsSorted() = indent {
