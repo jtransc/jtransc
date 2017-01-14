@@ -22,10 +22,9 @@ allprojects { project ->
 
 	def version = "${jtranscVersion}"
 
-	project.ext.kotlin_version =  kotlinVersion
+	project.ext.kotlin_version = kotlinVersion
 	project.ext.group = "com.jtransc"
 	project.ext.jtranscVersion = "$version"
-
 
 	//apply from: '../include.gradle'
 }
@@ -44,7 +43,6 @@ allprojects { project ->
 //	}
 //}
 
-
 /*
 project(':jtransc-main').tasks.test.doLast {
 	dependsOn ':jtransc-rt:test'
@@ -52,12 +50,9 @@ project(':jtransc-main').tasks.test.doLast {
 }
 */
 
-
-
 /**
  * This is how you attach the listener in your root projects build.gradle
  */
-
 
 //class SubProjectOrderListener implements org.gradle.api.ProjectEvaluationListener {
 //	private static final Logger LOG = Logging.getLogger(SubProjectOrderListener.class);
@@ -162,3 +157,27 @@ project(':jtransc-main').tasks.test.doLast {
 //
 //gradle.addProjectEvaluationListener(new SubProjectOrderListener())
 
+
+def sed = { String file, /* language=RegExp */ String regexp, String replacement ->
+	def f = new File(file)
+	def content = f.getText("UTF-8")
+	def res = content.replaceAll(regexp, replacement)
+	//println(res)
+	f.write(res)
+}
+
+task updateVersion() {
+	doLast {
+		println "Updating to version '$newversion'"
+		sed("jtransc-rt-core/src/com/jtransc/JTranscVersion.java", 'static private final String version = "(.*)"', "static private final String version = \"$newversion\"")
+		sed("gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
+		sed("jtransc-main-run/example-gradle/gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
+		sed("benchmark/gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
+		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/pom.properties", 'version=(.*)', "version=$newversion")
+		sed("jtransc-main-run/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+		sed("jtransc-maven-plugin/example/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/plugin-help.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+		sed("jtransc-maven-plugin/resources/META-INF/maven/plugin.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+	}
+}

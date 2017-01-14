@@ -1,5 +1,6 @@
-if [ "$1" == '' ]; then
+@echo off
+if "%1" == "" (
 	echo "update_version x.y.z"
-	exit 1;
-fi
+	exit /b
+)
 call gradlew updateVersion -Pnewversion=%1
