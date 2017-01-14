@@ -1,10 +1,15 @@
 package com.jtransc.ast.treeshaking
 
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.AstRef
 import com.jtransc.ast.FqName
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.template.Minitemplate
 import java.util.*
+
+fun GetTemplateReferencesRefs(program: AstProgram, templateStr: String, currentClass: FqName): List<AstRef> {
+	return GetTemplateReferences(program, templateStr, currentClass).map { it.ref }
+}
 
 fun GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName): List<CommonTagHandler.Result> {
 	return _GetTemplateReferences(program, templateStr, currentClass, classes = false)

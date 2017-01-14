@@ -214,7 +214,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public String toGenericString();
 
-	private static FastStringMap<Class<?>> _classCache = new FastStringMap<>();
+	private static FastStringMap<Class<?>> _classCache;
 
 	static public Class<?> forName0(String className) {
 		if (className == null) return null;
@@ -253,6 +253,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		if (className.startsWith("L") && className.endsWith(";")) {
 			return forName(className.substring(1, className.length() - 1).replace('/', '.'));
 		}
+		if (_classCache == null) _classCache = new FastStringMap<>();
 		if (!_classCache.has(className)) {
 			_classCache.set(className, new Class<>(className));
 		}

@@ -15,13 +15,23 @@ object CommonTagHandler {
 		return out
 	}
 
-	interface Result
-	data class SINIT(val method: AstMethod) : Result
-	data class CONSTRUCTOR(val ref: AstMethodRef, val method: AstMethod) : Result
-	data class METHOD(val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean) : Result
-	data class FIELD(val ref: AstFieldRef, val field: AstField, val isStatic: Boolean) : Result
-	data class CLASS(val clazz: AstClass) : Result
-	data class CLASS_REF(val clazz: FqName) : Result
+	interface Result {
+		val ref: AstRef
+	}
+	data class SINIT(val method: AstMethod) : Result {
+		override val ref = method.ref
+	}
+	data class CONSTRUCTOR(override val ref: AstMethodRef, val method: AstMethod) : Result {
+	}
+	data class METHOD(override val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean) : Result {
+	}
+	data class FIELD(override val ref: AstFieldRef, val field: AstField, val isStatic: Boolean) : Result
+	data class CLASS(val clazz: AstClass) : Result {
+		override val ref = clazz.ref
+	}
+	data class CLASS_REF(val clazz: FqName) : Result {
+		override val ref = clazz.ref
+	}
 
 	fun getRefFqName(desc: String, params: HashMap<String, Any?>): FqName {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }

@@ -28,6 +28,7 @@ object AstDependencyAnalyzer {
 
 	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?, name: String? = null) {
 		val allSortedRefs = linkedSetOf<AstRef>()
+		val allSortedRefsStaticInit = linkedSetOf<AstRef>()
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
@@ -59,10 +60,12 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.NEW -> {
 					ana(expr.target)
+					allSortedRefsStaticInit += expr.target
 				}
 				is AstExpr.NEW_ARRAY -> {
 					for (c in expr.counts) ana(c)
 					ana(expr.arrayType)
+					allSortedRefsStaticInit += expr.arrayType.getRefClasses()
 				}
 				is AstExpr.INTARRAY_LITERAL -> {
 					//for (c in expr.values) ana(c)
@@ -71,6 +74,7 @@ object AstDependencyAnalyzer {
 				is AstExpr.STRINGARRAY_LITERAL -> {
 					//for (c in expr.values) ana(c)
 					ana(expr.arrayType)
+					allSortedRefsStaticInit += AstType.STRING
 				}
 				is AstExpr.ARRAY_ACCESS -> {
 					ana(expr.type)
@@ -96,6 +100,7 @@ object AstDependencyAnalyzer {
 					if (expr is AstExpr.CALL_STATIC) ana(expr.clazz)
 					if (expr is AstExpr.CALL_INSTANCE) ana(expr.obj)
 					if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
+					allSortedRefsStaticInit += expr.method
 				}
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
@@ -107,6 +112,7 @@ object AstDependencyAnalyzer {
 				is AstExpr.FIELD_STATIC_ACCESS -> {
 					ana(expr.clazzName)
 					ana(expr.field)
+					allSortedRefsStaticInit += expr.field.containingTypeRef
 				}
 				is AstExpr.INSTANCE_OF -> {
 					ana(expr.expr)
@@ -117,7 +123,10 @@ object AstDependencyAnalyzer {
 				is AstExpr.LITERAL -> {
 					val value = expr.value
 					when (value) {
-						is AstType -> ana(value)
+						is AstType -> {
+							ana(value)
+							allSortedRefsStaticInit += value.getRefClasses()
+						}
 						//null -> Unit
 						//is Void, is String -> Unit
 						//is Boolean, is Byte, is Char, is Short, is Int, is Long -> Unit
@@ -125,6 +134,7 @@ object AstDependencyAnalyzer {
 						is AstMethodHandle -> {
 							ana(value.type)
 							ana(value.methodRef)
+							allSortedRefsStaticInit += value.methodRef
 						}
 						//else -> invalidOp("Literal: ${expr.value}")
 					}
@@ -137,12 +147,15 @@ object AstDependencyAnalyzer {
 					ana(expr.methodToConvertRef)
 					ana(expr.methodInInterfaceRef.allClassRefs)
 					ana(expr.methodToConvertRef.allClassRefs)
+					allSortedRefsStaticInit += expr.methodInInterfaceRef
+					allSortedRefsStaticInit += expr.methodToConvertRef
 				}
 				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
 					ana(expr.target)
 					ana(expr.type)
 					ana(expr.constructor)
 					for (arg in expr.args) ana(arg)
+					allSortedRefsStaticInit += expr.target
 				}
 			//is AstExpr.REF -> ana(expr.expr)
 				is AstExpr.LITERAL_REFNAME -> {
@@ -178,6 +191,7 @@ object AstDependencyAnalyzer {
 				}
 				is AstStm.SET_FIELD_STATIC -> {
 					ana(stm.field); ana(stm.expr)
+					allSortedRefsStaticInit += stm.field.containingTypeRef
 				}
 				is AstStm.RETURN -> ana(stm.retval)
 				is AstStm.RETURN_VOID -> Unit
@@ -208,6 +222,7 @@ object AstDependencyAnalyzer {
 					ana(stm.target)
 					ana(stm.method.type)
 					for (arg in stm.args) ana(arg)
+					allSortedRefsStaticInit += stm.method
 				}
 				is AstStm.LINE -> Unit
 				is AstStm.NOP -> Unit
@@ -228,6 +243,7 @@ object AstDependencyAnalyzer {
 		val references = AstReferences(
 			program = program,
 			allSortedRefs = allSortedRefs,
+			allSortedRefsStaticInit = allSortedRefsStaticInit,
 			classes = types.map { AstType.REF(it) }.toSet(),
 			fields = fields.toSet(),
 			methods = methods.toSet()

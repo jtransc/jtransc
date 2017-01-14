@@ -605,6 +605,7 @@ fun AstType.getRefClasses(): List<AstType.REF> = this.getRefTypesFqName().map { 
 data class AstReferences(
 	val program: AstProgram?,
 	val allSortedRefs: Set<AstRef> = setOf(),
+	val allSortedRefsStaticInit: Set<AstRef> = setOf(),
 	val classes: Set<AstType.REF> = setOf(),
 	val methods: Set<AstMethodRef> = setOf(),
 	val fields: Set<AstFieldRef> = setOf()
