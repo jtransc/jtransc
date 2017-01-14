@@ -23,6 +23,10 @@ inline fun <reified T: Any> Class<T>.ast(): AstType {
 	}
 }
 
+object AstProgramRef : AstRef {
+
+}
+
 data class AstFieldRef(override val containingClass: FqName, override val name: String, val type: AstType) : AstMemberRef, FieldRef {
 	override val ref = this
 	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }

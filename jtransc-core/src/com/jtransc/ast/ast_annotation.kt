@@ -89,7 +89,7 @@ fun AstAnnotation.getRefTypesFqName(): List<FqName> {
 }
 
 
-class AstAnnotationList(val list: List<AstAnnotation>) {
+class AstAnnotationList(val containerRef: AstRef, val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
 
 	inline fun <reified TItem : Any, reified TList : Any> getTypedList(field: KProperty1<TList, Array<TItem>>): List<TItem> {

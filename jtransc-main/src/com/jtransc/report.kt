@@ -58,11 +58,13 @@ class JTranscRtReport {
 			val nativeMethodsWithoutBody = clazz.methods.filterIsInstance<MethodNode>()
 				.filter { it.access hasFlag Opcodes.ACC_NATIVE }
 
-			if (nativeMethodsWithoutBody.size > 0) {
+			if (nativeMethodsWithoutBody.isNotEmpty()) {
 				println("${clazz.name} (native without body):")
-				for (method in nativeMethodsWithoutBody.filter {
-					if (it.invisibleAnnotations != null) {
-						!AstAnnotationList(it.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
+				for (method in nativeMethodsWithoutBody.filter { method ->
+					if (method.invisibleAnnotations != null) {
+						!AstAnnotationList(
+							AstMethodRef(clazz.name.fqname, method.name, types.demangleMethod(method.desc)),
+							method.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
 					} else {
 						true
 					}

@@ -255,8 +255,13 @@ class TreeShakingApi(
 
 	fun addAnnotations(annotations: AstAnnotationList, reason: String) {
 		for (annotation in annotations.list) {
-			for (ref in annotation.getRefTypesFqName()) {
-				addBasicClass(ref, "annotation $reason")
+			try {
+				for (ref in annotation.getRefTypesFqName()) {
+					addBasicClass(ref, "annotation $reason")
+				}
+			} catch (e: Throwable) {
+				System.err.println("While adding annotations for ${annotations.containerRef}:")
+				e.printStackTrace()
 			}
 		}
 	}
@@ -318,7 +323,7 @@ class TreeShakingApi(
 
 		addAnnotations(newmethod.annotationsList, reason = "method $methodRef")
 		for (paramAnnotation in newmethod.parameterAnnotations) {
-			addAnnotations(AstAnnotationList(paramAnnotation), reason = "method $methodRef")
+			addAnnotations(AstAnnotationList(newmethod.ref, paramAnnotation), reason = "method $methodRef")
 		}
 
 		checkTreeNewMethod(newmethod)

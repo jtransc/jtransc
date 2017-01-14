@@ -248,7 +248,7 @@ class AstProgram(
 		}
 	}
 
-	val allAnnotationsList by lazy { AstAnnotationList(allAnnotations) }
+	val allAnnotationsList by lazy { AstAnnotationList(AstProgramRef, allAnnotations) }
 
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
@@ -308,6 +308,7 @@ class UniqueNames {
 
 open class AstAnnotatedElement(
 	val program: AstProgram,
+	val elementRef: AstRef,
 	override val annotations: List<AstAnnotation>
 ) : AstAnnotated {
 	var extraKeep: Boolean? = null
@@ -316,7 +317,7 @@ open class AstAnnotatedElement(
 	//val visible: Boolean get() = annotationsList.contains<JTranscVisible>() || !annotationsList.contains<JTranscInvisible>()
 	val visible: Boolean get() = extraVisible ?: !annotationsList.contains<JTranscInvisible>()
 	val invisible: Boolean get() = !visible
-	override val annotationsList = AstAnnotationList(annotations)
+	override val annotationsList = AstAnnotationList(elementRef, annotations)
 	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
 }
 
@@ -331,7 +332,7 @@ class AstClass(
 	val implementing: List<FqName> = listOf(),
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
-) : AstAnnotatedElement(program, annotations), IUserData by UserData() {
+) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
 	val THIS: AstExpr get() = AstExpr.THIS(name)
 	//var lastMethodId = 0
 	//var lastFieldId = 0
@@ -629,8 +630,9 @@ open class AstMember(
 	val genericType: AstType,
 	val isStatic: Boolean = false,
 	val visibility: AstVisibility = AstVisibility.PUBLIC,
+	elementRef: AstMemberRef,
 	annotations: List<AstAnnotation> = listOf()
-) : AstAnnotatedElement(containingClass.program, annotations), IUserData by UserData() {
+) : AstAnnotatedElement(containingClass.program, elementRef, annotations), IUserData by UserData() {
 
 	val nativeName: String? by lazy { annotationsList.getTyped<JTranscNativeName>()?.value }
 }
@@ -653,11 +655,11 @@ class AstField(
 	annotations: List<AstAnnotation>,
 	val genericSignature: String?,
 	val constantValue: Any? = null,
-	val types: AstTypes
-) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, annotations), FieldRef {
+	val types: AstTypes,
+	override val ref: AstFieldRef = AstFieldRef(containingClass.name, name, type)
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, ref, annotations), FieldRef {
 	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
-	override val ref: AstFieldRef by lazy { AstFieldRef(this.containingClass.name, this.name, this.type) }
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
 	val hasConstantValue = constantValue != null
 	val isWeak by lazy { annotationsList.contains<JTranscWeak>() }
@@ -678,10 +680,11 @@ class AstMethod(
 	var generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
-	val types: AstTypes
+	val types: AstTypes,
+	override val ref: AstMethodRef = AstMethodRef(containingClass.name, name, methodType)
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, annotations), MethodRef {
-	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(it) }
+) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
+	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
 
 	init {
 		if (id < 0) {
@@ -740,7 +743,6 @@ class AstMethod(
 	val methodType: AstType.METHOD = methodType
 	val genericMethodType: AstType.METHOD = genericType as AstType.METHOD
 	val desc = methodType.desc
-	override val ref: AstMethodRef by lazy { AstMethodRef(containingClass.name, name, methodType) }
 
 	var calculatedBodyDependencies: AstReferences? = null
 
