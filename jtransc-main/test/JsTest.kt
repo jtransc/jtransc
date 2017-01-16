@@ -45,7 +45,7 @@ class JsTest : Base() {
 
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss
-		TestServiceJs
+		TestServiceJs10
 	""", target = JsTarget(), minimize = false)
 
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""

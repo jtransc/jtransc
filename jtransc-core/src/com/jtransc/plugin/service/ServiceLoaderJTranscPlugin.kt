@@ -12,26 +12,17 @@ import java.util.*
  * Plugin that reference classes in META-INF/services folder for ServiceLoader to work
  */
 class ServiceLoaderJTranscPlugin : JTranscPlugin() {
-	var alreadyExecuted = false
 	val servicesToImpls = hashMapOf<String, List<String>>()
 	val referencedServices = arrayListOf<String>()
 
-	override fun onAfterClassDiscovered(clazz: AstType.REF, program: AstProgram) {
-		//println("Referenced: $clazz")
-	}
-
-	override fun onAfterAllClassDiscovered(program: AstProgram) {
-		if (alreadyExecuted) return
-		if (ServiceLoader::class.java.fqname !in program) return
-
+	override fun onStartBuilding(program: AstProgram) {
 		val targetName = program.injector.get<TargetName>()
-
-		alreadyExecuted = true
-
 		servicesToImpls.clear()
 		referencedServices.clear()
 
 		//log.info("Referenced ServiceLoader!")
+
+		//println("--------------------------------------------")
 
 		val servicesFolders = program.resourcesVfs["META-INF/services"].getUnmergedFiles().filter { it.exists && it.isDirectory }
 		val targetRegex = Regex("<target=([^>]*)>")
@@ -47,22 +38,28 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 				if (isForTarget) {
 					servicesToImpls[serviceName] = servicesToImpls[serviceName]!! + serviceImpl
 					log.info("Detected service: $serviceName with implementations $serviceImpl for targets $targets")
+					//println("Detected service: $serviceName with implementations $serviceImpl for targets $targets")
 				} else {
 					log.info("Detected service not included for $targetName: $serviceName with implementations $serviceImpl for targets $targets")
+					//println("Detected service not included for $targetName: $serviceName with implementations $serviceImpl for targets $targets")
 				}
 			}
 		}
+	}
 
-		for (clazz in program.classes) {
-			val impls = servicesToImpls[clazz.fqname]
-			if (impls != null) {
-				referencedServices += clazz.fqname
-				//log.info("Discovered used service: $clazz with impls $impls")
-				log.info("Discovered used service: $clazz with impls $impls")
-				for (impl in impls) {
-					program.addReference(AstType.REF(impl.fqname), clazz.ref)
-				}
+	override fun onAfterClassDiscovered(clazz: AstType.REF, program: AstProgram) {
+		//println("Referenced: $clazz")
+		val impls = servicesToImpls[clazz.fqname]
+		if (impls != null) {
+			referencedServices += clazz.fqname
+			//log.info("Discovered used service: $clazz with impls $impls")
+			log.info("Discovered used service: $clazz with impls $impls")
+			//println(":: Discovered used service: $clazz with impls $impls")
+			for (impl in impls) {
+				program.addReference(AstType.REF(impl.fqname), clazz)
 			}
+		} else {
+			//println("-- No implementations for $clazz")
 		}
 	}
 
@@ -80,6 +77,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 			SET(out, NULL)
 			for (serviceName in referencedServices) {
 				val impls = servicesToImpls[serviceName]!!
+				//println("$serviceName -> $impls")
 				IF(Objects_equals(nameArg.expr, serviceName.lit)) {
 					SET(out, NEW_ARRAY(ARRAY(OBJECT), impls.size.lit))
 					for ((index, impl) in impls.withIndex()) {
