@@ -172,35 +172,35 @@ final public class FastMemory {
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setUInt16(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.view.setInt16(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "this.view.setInt16(p0, p1, true);")
 	final public void setInt16(int index, int value) {
 		data.putShort(index, (short) value);
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setInt32(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1, true);")
 	final public void setInt32(int index, int value) {
 		data.putInt(index, value);
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setInt64(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1.high); this.view.setInt32(p0 + 4, p1.low);")
+	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1.high); this.view.setInt32(p0 + 4, p1.low, true);")
 	final public void setInt64(int index, long value) {
 		data.putLong(index, value);
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setFloat(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.view.setFloat32(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "this.view.setFloat32(p0, p1, true);")
 	final public void setFloat32(int index, float value) {
 		data.putFloat(index, value);
 	}
 
 	@JTranscInline
 	@HaxeMethodBody("this._data.setDouble(p0, p1);")
-	@JTranscMethodBody(target = "js", value = "this.view.setFloat64(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "this.view.setFloat64(p0, p1, true);")
 	final public void setFloat64(int index, double value) {
 		data.putDouble(index, value);
 	}
