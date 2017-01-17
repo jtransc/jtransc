@@ -326,14 +326,17 @@ final public class FastMemory {
 		for (int n = 0; n < len; n++) setInt8(index + n, data.get(offset + n));
 	}
 
+	@JTranscMethodBody(target = "js", value = "var index = p0, data = p1.data.buffer, offset = p2, len = p3; new Int8Array(this.buffer, index, len).set(new Int8Array(data, offset, len));")
 	final public void setArrayInt8(int index, byte[] data, int offset, int len) {
 		for (int n = 0; n < len; n++) setInt8(index + n, data[offset + n]);
 	}
 
+	@JTranscMethodBody(target = "js", value = "var index = p0, data = p1.data.buffer, offset = p2, len = p3; new Int8Array(this.buffer, index, len * 2).set(new Int8Array(data, offset * 2, len * 2));")
 	final public void setArrayInt16(int index, short[] data, int offset, int len) {
 		for (int n = 0; n < len; n++) setInt16(index + n * 2, data[offset + n]);
 	}
 
+	@JTranscMethodBody(target = "js", value = "var index = p0, data = p1.data.buffer, offset = p2, len = p3; new Int8Array(this.buffer, index, len * 4).set(new Int8Array(data, offset * 4, len * 4));")
 	final public void setArrayInt32(int index, int[] data, int offset, int len) {
 		for (int n = 0; n < len; n++) setInt32(index + n * 4, data[offset + n]);
 	}
@@ -342,10 +345,12 @@ final public class FastMemory {
 		for (int n = 0; n < len; n++) setInt64(index + n * 8, data[offset + n]);
 	}
 
+	@JTranscMethodBody(target = "js", value = "var index = p0, data = p1.data.buffer, offset = p2, len = p3; new Int8Array(this.buffer, index, len * 4).set(new Int8Array(data, offset * 4, len * 4));")
 	final public void setArrayFloat32(int index, float[] data, int offset, int len) {
 		for (int n = 0; n < len; n++) setFloat32(index + n * 4, data[offset + n]);
 	}
 
+	@JTranscMethodBody(target = "js", value = "var index = p0, data = p1.data.buffer, offset = p2, len = p3; new Int8Array(this.buffer, index, len * 8).set(new Int8Array(data, offset * 8, len * 8));")
 	final public void setArrayFloat64(int index, float[] data, int offset, int len) {
 		for (int n = 0; n < len; n++) setFloat32(index + n * 4, data[offset + n]);
 	}
