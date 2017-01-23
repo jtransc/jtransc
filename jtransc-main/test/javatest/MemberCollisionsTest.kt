@@ -14,12 +14,12 @@ object MemberCollisionsTest {
 		val _ctx: String = ""
 		//val ctx: Int = 2
 
-		val a get() = _ctx
+		val a: String get() = _ctx
 	}
 
 	internal class B : A() {
 		val ctx: Int = 5
 
-		val b get() = ctx
+		val b: Int get() = ctx
 	}
 }
