@@ -203,20 +203,16 @@ fun MethodNode.visibility() = if (this.access hasFlag Opcodes.ACC_PUBLIC) {
 
 fun MethodNode.astRef(clazz: AstType.REF, types: AstTypes) = AstMethodRef(clazz.name, this.name, types.demangleMethod(this.desc))
 
-fun AbstractInsnNode.isEndOfBasicBlock(): Boolean {
-	return when (this.opcode) {
-		in Opcodes.IFEQ..Opcodes.IF_ACMPNE -> true
-		else -> isEnd()
-	}
+fun AbstractInsnNode.isEndOfBasicBlock(): Boolean = when (this.opcode) {
+	in Opcodes.IFEQ..Opcodes.IF_ACMPNE -> true
+	else -> isEnd()
 }
 
-fun AbstractInsnNode.isEnd(): Boolean {
-	return when (this.opcode) {
-		in Opcodes.TABLESWITCH..Opcodes.LOOKUPSWITCH -> true
-		Opcodes.GOTO -> true
-		Opcodes.ATHROW -> true
-		in Opcodes.IRETURN..Opcodes.RETURN -> true
-		else -> false
-	}
+fun AbstractInsnNode.isEnd(): Boolean = when (this.opcode) {
+	in Opcodes.TABLESWITCH..Opcodes.LOOKUPSWITCH -> true
+	Opcodes.GOTO -> true
+	Opcodes.ATHROW -> true
+	in Opcodes.IRETURN..Opcodes.RETURN -> true
+	else -> false
 }
 

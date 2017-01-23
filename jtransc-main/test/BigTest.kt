@@ -38,8 +38,6 @@ class BigTest : Base() {
 
 	@Test fun testD() = testClass<BigTest>(minimize = false, target = DTarget(), log = false)
 
-	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
-	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
 	//@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = true)
 
 	//@Test fun testKotlinInheritanceTestCpp() = testClass<KotlinInheritanceTest>(minimize = false, target = CppTarget(), log = null, debug = true)

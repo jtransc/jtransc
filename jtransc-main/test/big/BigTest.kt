@@ -1,15 +1,13 @@
 package big
 
 import android.AndroidArgsTest
-import android.AndroidTest8019
-import com.jtransc.annotation.JTranscInvisible
+import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscKeepConstructors
-import com.jtransc.annotation.JTranscMethodBody
 import com.jtransc.util.JTranscStrings
 import javatest.KotlinCollections
 import javatest.KotlinPropertiesTest
 import javatest.KotlinStaticInitOrderTest
-import javatest.StrangeNamesTest
+import javatest.MemberCollisionsTest
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
@@ -21,16 +19,15 @@ import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
 import javatest.utils.CopyTest
 import javatest.utils.DateTest
-import javatest.utils.KotlinInheritanceTest
 import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.bug.*
 import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
+import jtransc.jtransc.JTranscSystemTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
-import testservice.ITestService
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
@@ -124,7 +121,11 @@ object BigTest {
 		HelloWorldTest.main(args)
 		NumberFormatTest.main(args);
 
+		NumberFormatTest2.main(args);
+
 		KotlinStaticInitOrderTest.main(args)
+
+		MemberCollisionsTest.main(args)
 	}
 
 	private fun servicesTest() {
@@ -188,6 +189,46 @@ object NumberFormatTest {
 		//System.out.println(HelloWorldTest.class.getConstructor().newInstance());
 		//System.out.println("####");
 
+	}
+}
+
+object NumberFormatTest2 {
+	@JvmStatic fun main(args: Array<String>) {
+		val numbers = listOf(
+			"1",
+			"10",
+			"-10",
+			"+10",
+			"10.3",
+			"a10",
+			"+a10",
+			"10a",
+			"10e",
+			"10e10",
+			"1.12345",
+			"5e-10",
+			"5.3e-10"
+		)
+
+		//println("NumberFormat2(${JTranscSystem.getRuntimeName()}):")
+		println("NumberFormat2:")
+		for (num in numbers) {
+			println(" - $num : int=${checkInt(num)} : double=${checkDouble(num)}")
+		}
+	}
+
+	fun checkInt(str: String) = try {
+		java.lang.Integer.parseInt(str)
+	} catch (e: NumberFormatException) {
+		-1
+	}
+
+	fun checkDouble(str: String) = try {
+		java.lang.Double.parseDouble(str)
+		true
+	} catch (e: NumberFormatException) {
+		//-1.0
+		false
 	}
 }
 

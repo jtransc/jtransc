@@ -55,7 +55,12 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
 	@JTranscMethodBody(target = "cpp", value = "char temp[256] = {0}; N::writeChars(p0, temp, sizeof(temp)); return ::atof(temp);")
 	@JTranscMethodBody(target = "d", value = "return to!double(N.istr(p0));")
-	native public static double parseDouble(String value);
+	native private static double _parseDouble(String value);
+
+	public static double parseDouble(String value) {
+		JTranscNumber.checkNumber(value, 10, true);
+		return _parseDouble(value);
+	}
 
 	@HaxeMethodBody("return Math.isNaN(p0);")
 	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")

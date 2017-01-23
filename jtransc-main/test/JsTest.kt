@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import big.HelloWorldTest
+import big.NumberFormatTest2
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
+import javatest.MemberCollisionsTest
 import javatest.misc.BenchmarkTest
+import javatest.misc.TryFinallyCheck
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.jtransc.js.ScriptEngineTest
@@ -106,4 +110,14 @@ class JsTest : Base() {
 	@Test fun extraRefsTest() = testNativeClass<ExtraRefsTest>("""
 		OK
 	""", minimize = true, target = JsTarget())
+
+	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
+	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
+
+	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, target = JsTarget(), log = false)
+
+	@Test fun testTryFinallyCheck() = testClass<TryFinallyCheck>(minimize = false, target = JsTarget(), log = false)
+
+	@Test fun testMemberCollisionsTest() = testClass<MemberCollisionsTest>(minimize = false, target = JsTarget(), log = false)
+
 }

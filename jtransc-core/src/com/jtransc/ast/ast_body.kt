@@ -489,6 +489,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 
 	infix fun ge(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.GE, that)
+	infix fun gt(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.GT, that)
+	infix fun lt(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LT, that)
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)

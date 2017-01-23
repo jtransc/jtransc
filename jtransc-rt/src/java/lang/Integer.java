@@ -91,8 +91,13 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return toUnsignedString(i, 10);
 	}
 
-	//@JTranscMethodBody(target = "js", value = "return parseInt(p0, p1);")
 	public static int parseInt(String input, int radix) {
+		JTranscNumber.checkNumber(input, radix, false);
+		return _parseInt(input, radix);
+	}
+
+	@JTranscMethodBody(target = "js", value = "return parseInt(p0, p1);")
+	public static int _parseInt(String input, int radix) {
 		String s = input;
 		int result = 0;
 		int sign = +1;

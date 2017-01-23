@@ -1743,17 +1743,24 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				if (minimize && !realfield.keepName) {
 					allocMemberName()
 				} else {
+					val rnormalizedFieldName = normalizeName(field.name)
 					// @TODO: Move to CommonNames
 					if (field !in cachedFieldNames) {
 						val fieldName = normalizedFieldName
 						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
-						var name = "_$fieldName"
 
 						val clazz = program[field].containingClass
+
+						var name = "_$fieldName"
+						//var name = "_${fieldName}_${clazz.name.fqname}_${fieldRef.ref.type.mangle()}"
+
 						val clazzAncestors = clazz.ancestors.reversed()
-						val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
+						val names = clazzAncestors.flatMap { it.fields }
+							.filter { normalizeName(it.name) == rnormalizedFieldName }
+							//.filter { it.name == field.name }
+							.map { it.targetName }.toHashSet()
 						val fieldsColliding = clazz.fields.filter {
-							(it.ref == field) || (normalizeName(it.name) == normalizedFieldName)
+							(it.ref == field) || (normalizeName(it.name) == rnormalizedFieldName)
 						}.map { it.ref }
 
 						// JTranscBugInnerMethodsWithSameName.kt
