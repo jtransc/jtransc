@@ -168,6 +168,7 @@ def sed = { String file, /* language=RegExp */ String regexp, String replacement
 
 task updateVersion() {
 	doLast {
+		def newversion = jtranscVersion
 		println "Updating to version '$newversion'"
 		sed("jtransc-rt-core/src/com/jtransc/JTranscVersion.java", 'static private final String version = "(.*)"', "static private final String version = \"$newversion\"")
 		sed("gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
