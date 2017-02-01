@@ -114,28 +114,31 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	val lastClassId = program.classes.map { it.classId }.max() ?: 0
 
 	fun generateTypeTableHeader() = Indenter.gen {
-		line("struct TYPE_INFO", after2 = ";") { line("const int *subtypes;") }
-		line("struct TYPE_TABLE { static int count; static TYPE_INFO TABLE[$lastClassId]; };")
-		line("const int TABLE_INFO_NULL[1] = {0};")
+		line("struct TYPE_INFO", after2 = ";") {
+			line("const size_t size;")
+			line("const int* subtypes;")
+		}
+		line("struct TYPE_TABLE { static const int count; static const TYPE_INFO TABLE[$lastClassId]; };")
+		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int[1]{0}};")
 	}
 
 	fun generateTypeTableFooter() = Indenter.gen {
 		for (clazz in ordereredClasses) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
-			line("const int ${clazz.cppName}::TABLE_INFO[] = { ${ids.joinToString(", ")} };")
+			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
-		line("int TYPE_TABLE::count = $lastClassId;")
-		line("TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
+		line("const int TYPE_TABLE::count = $lastClassId;")
+		line("const TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			val classesById = program.classes.map { it.classId to it }.toMap()
 
 			@Suppress("LoopToCallChain")
 			for (n in 0 until lastClassId) {
 				val clazz = classesById[n]
 				if (clazz != null) {
-					line("{ ${clazz.cppName}::TABLE_INFO },")
+					line("${clazz.cppName}::TABLE_INFO ,")
 				} else {
-					line("{ NULL },")
+					line("TABLE_INFO_NULL,")
 				}
 			}
 		}
@@ -422,7 +425,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("static void SI();")
 
 			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { it.classId }.filterNotNull() + listOf(-1)
-			line("static const int TABLE_INFO[${ids.size}];")
+			line("static const TYPE_INFO TABLE_INFO;")
 
 			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
 			line("static ${clazz.cppName} *GET_npe(java_lang_Object *obj, const wchar_t *location);")
