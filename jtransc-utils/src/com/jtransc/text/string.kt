@@ -21,14 +21,14 @@ interface ToString {
 }
 
 fun String.toUcFirst():String {
-	if (this.length == 0) return ""
+	if (this.isEmpty()) return ""
 	return this.substring(0, 1).toUpperCase() + this.substring(1)
 }
 
 val HexDigitsLC = "0123456789abcdef"
 
 fun ByteArray.toHexString():String {
-	var out = StringBuilder(this.size * 2)
+	val out = StringBuilder(this.size * 2)
 	for (b in this) {
 		val bi = b.toInt()
 		val l = ((bi ushr 0) and 0xF)
