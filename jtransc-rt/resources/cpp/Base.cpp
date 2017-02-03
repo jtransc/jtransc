@@ -187,6 +187,10 @@ struct N { public:
 };
 
 
+// Strings
+{{ STRINGS }}
+
+
 /// ARRAY_HEADERS
 
 {{ ARRAY_HEADERS_PRE }}
@@ -354,8 +358,6 @@ SOBJ JA_0::toDoubleArray() { return SOBJ(new JA_D((void *)getStartPtr(), bytesLe
 
 {{ ARRAY_HEADERS_POST }}
 
-// Strings
-{{ STRINGS }}
 
 // Classes IMPLS
 {{ CLASSES_IMPL }}
