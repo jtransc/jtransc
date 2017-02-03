@@ -16,10 +16,7 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscAddFile;
-import com.jtransc.annotation.JTranscAddMembers;
-import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
 
@@ -47,7 +44,10 @@ import java.lang.reflect.Field;
 	"core.sync.mutex.Mutex __d_mutex = null;",
 })
 public class Object {
+	@JTranscInvisible
 	static private int $$lastId = 0;
+
+	@JTranscInvisible
 	public int $$id;
 
 	public Object() {

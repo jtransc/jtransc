@@ -7,7 +7,7 @@
   <description>Maven plugin for JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>
   <groupId>com.jtransc</groupId>
   <artifactId>jtransc-maven-plugin</artifactId>
-  <!--jtransc--><version>0.5.9</version>
+  <!--jtransc--><version>0.5.10</version>
   <goalPrefix>jtransc</goalPrefix>
   <mojos>
     <mojo>

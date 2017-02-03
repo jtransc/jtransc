@@ -21,12 +21,23 @@ import java.lang.reflect.Field;
 @SuppressWarnings({"WeakerAccess", "NullableProblems", "unchecked", "unused"})
 public abstract class AtomicReferenceFieldUpdater<T, V> {
 	public static <U, W> AtomicReferenceFieldUpdater<U, W> newUpdater(Class<U> tclass, Class<W> vclass, String fieldName) {
-		final Field field;
+		Field f;
 		try {
-			field = tclass.getField(fieldName);
+			f = tclass.getDeclaredField(fieldName);
 		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
+			try {
+				f = tclass.getField(fieldName);
+			} catch (NoSuchFieldException e2) {
+				throw new RuntimeException(e2);
+			}
 		}
+
+		if (f == null) {
+			throw new RuntimeException("field==null");
+		}
+
+		final Field field = f;
+
 		return new AtomicReferenceFieldUpdater<U, W>() {
 			@Override
 			public boolean compareAndSet(U obj, W expect, W update) {

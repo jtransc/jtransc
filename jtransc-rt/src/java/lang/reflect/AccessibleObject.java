@@ -37,7 +37,7 @@ abstract public class AccessibleObject implements AnnotatedElement {
 	}
 
 	public boolean isAccessible() {
-		return true;
+		return (info.modifiers & Modifier.PUBLIC) != 0;
 	}
 
 	protected AccessibleObject() {

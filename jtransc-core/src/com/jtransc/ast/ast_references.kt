@@ -1,14 +1,12 @@
 package com.jtransc.ast
 
 import com.jtransc.annotation.JTranscAddFileList
-import com.jtransc.annotation.JTranscAddMembers
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.haxe.*
-import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.GetClassTemplateReferences
 import com.jtransc.gen.TargetName
-import com.jtransc.template.Minitemplate
+import com.jtransc.org.objectweb.asm.Type
 
 object References {
 	private val bl = JTranscMethodBodyList::class.java
@@ -98,14 +96,28 @@ object References {
 	fun Any?.getClassReferences(targetName: TargetName): List<AstType.REF> {
 		return when (this) {
 			null -> listOf()
-			is List<*> -> this.flatMap { it.getClassReferences(targetName) }
+		//is List<*> -> this.flatMap { it.getClassReferences(targetName) }
+		//is Collection<*> -> this.flatMap { it.getClassReferences(targetName) }
+			is Iterable<*> -> this.flatMap { it.getClassReferences(targetName) }
 			is AstAnnotation -> this.getClassReferences(targetName)
 			is AstBody -> this.getClassReferences()
 			is AstStm -> this.getClassReferences()
 			is AstMethod -> this.getClassReferences(targetName)
 			is AstField -> this.getClassReferences(targetName)
-			is AstClass -> this.getClassReferences(targetName)
-			else -> listOf()
+			is AstFieldWithoutTypeRef -> listOf(AstType.REF(this.containingClass))
+			is AstClass -> {
+				this.getClassReferences(targetName)
+			}
+			is String, is Boolean, is Int, is Float, is Double, is Long, is Byte, is Short, is Char, is Void -> listOf()
+			is Type -> {
+				val cn = this.className
+				//val cn = this.internalName
+				//println("CN: $cn")
+				listOf(AstType.REF(cn))
+			}
+			else -> {
+				listOf()
+			}
 		}
 	}
 

@@ -8,6 +8,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings({"WeakerAccess", "unchecked", "ImplicitArrayToString", "ConstantConditions"})
@@ -31,6 +33,89 @@ public class JTranscReflectionTest {
 		toStringArray();
 		getAnnotationType();
 		classNewInstance();
+		testReflectFields();
+		classInAnnotationTest();
+	}
+
+	interface ClassAnInt {
+		int getV();
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface ClassAn {
+		Class<? extends ClassAnInt> value();
+	}
+
+	@ClassAn(Class2.class)
+	static public class Class1 {
+	}
+
+	static public class Class2 implements ClassAnInt {
+		public Class2() {
+		}
+
+		@Override
+		public int getV() {
+			return -99;
+		}
+	}
+
+	private static void classInAnnotationTest() throws Throwable {
+		System.out.println("classInAnnotationTest:");
+		ClassAn an = Class1.class.getAnnotation(ClassAn.class);
+		System.out.println(an.value().newInstance().getV());
+	}
+
+	@JTranscKeep
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface TestAn {
+	}
+
+	@SuppressWarnings("unused")
+	@JTranscKeep
+	class RcBase {
+		public int a;
+		private int ap;
+	}
+
+	@SuppressWarnings("unused")
+	@JTranscKeep
+	class Rc1 extends RcBase {
+		@TestAn public String b;
+		@TestAn private String bp;
+	}
+
+	private static void testReflectFields() throws Throwable {
+		System.out.println("testReflectFields:");
+
+		List<Field> declaredFields = Arrays.asList(Rc1.class.getDeclaredFields());
+		List<Field> fields = Arrays.asList(Rc1.class.getFields());
+
+		Comparator<Field> c = new Comparator<Field>() {
+			@Override
+			public int compare(Field o1, Field o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		};
+		Collections.sort(declaredFields, c);
+		Collections.sort(fields, c);
+
+		for (Field f : declaredFields) {
+			System.out.println(" - getDeclaredFields: " + f.getName());
+		}
+		for (Field f : fields) {
+			System.out.println(" - getFields: " + f.getName());
+			for (Annotation annotation : f.getDeclaredAnnotations()) {
+				System.out.println("   - annotation: " + annotation.annotationType().getName());
+			}
+		}
+		System.out.println(" - annotation[a]: " + (Rc1.class.getField("a").getAnnotation(TestAn.class) != null));
+		System.out.println(" - annotation[b]: " + (Rc1.class.getField("b").getAnnotation(TestAn.class) != null));
+
+		System.out.println(" - getField: " + Rc1.class.getField("a").getName());
+		System.out.println(" - getField: " + Rc1.class.getField("b").getName());
+		//System.out.println(" - getField: " + RcBase.class.getField("ap").getName());
+		//System.out.println(" - getField: " + Rc1.class.getField("bp").getName());
 	}
 
 	private static void getAnnotationType() {

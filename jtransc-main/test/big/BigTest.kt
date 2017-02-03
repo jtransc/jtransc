@@ -195,6 +195,10 @@ object NumberFormatTest {
 object NumberFormatTest2 {
 	@JvmStatic fun main(args: Array<String>) {
 		val numbers = listOf(
+			"",
+			"\t",
+			"\n",
+			"    ",
 			"1",
 			"10",
 			"-10",

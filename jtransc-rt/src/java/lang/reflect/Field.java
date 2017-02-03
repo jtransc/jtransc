@@ -20,7 +20,6 @@ import j.MemberInfo;
 import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
-import java.lang.jtransc.JTranscCoreReflection;
 
 @SuppressWarnings({"ConstantConditions", "unused", "StatementWithEmptyBody"})
 public final class Field extends AccessibleObject implements Member {
@@ -36,7 +35,7 @@ public final class Field extends AccessibleObject implements Member {
 	//private transient FieldRepository genericInfo;
 
 	public Annotation[] getDeclaredAnnotations() {
-		Annotation[]out = ProgramReflection.getFieldAnnotations(clazz.id, info.id);
+		Annotation[] out = ProgramReflection.getFieldAnnotations(clazz.id, info.id);
 		return (out != null) ? out : new Annotation[0];
 	}
 

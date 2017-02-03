@@ -20,5 +20,6 @@ import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD, ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.CONSTRUCTOR})
+@SuppressWarnings("unused")
 public @interface JTranscKeep {
 }

@@ -17,11 +17,8 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscVisible;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastStringMap;
 import com.jtransc.io.JTranscConsole;
 import j.ClassInfo;
@@ -32,8 +29,8 @@ import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
-import java.lang.AnnotatedElement;
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "unused", "TryWithIdenticalCatches", "SuspiciousToArrayCall"})
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
@@ -408,17 +405,41 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	private FastStringMap<Field> _fieldsByName;
 	private FastStringMap<Field> _declaredFieldsByName;
 
+	private Field[] _allFields = null;
+	private Field[] _accessibleFields = null;
+
+	private Field[] getAllFields() throws SecurityException {
+		if (_allFields == null) {
+			ArrayList<Field> allFields = new ArrayList<>();
+			Collections.addAll(allFields, getDeclaredFields());
+			if (getSuperclass() != null) {
+				Collections.addAll(allFields, getSuperclass().getFields());
+			}
+			_allFields = allFields.toArray(new Field[0]);
+		}
+		return _allFields;
+	}
+
 	// Returns an array containing Field objects reflecting all the accessible public fields of the class or interface represented by this Class object. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface has no accessible public fields, or if it represents an array class, a primitive type, or void.
 	public Field[] getFields() throws SecurityException {
-		return getDeclaredFields(); // @TODO: Filter just public!
+		if (_accessibleFields == null) {
+			ArrayList<Field> accessibleFields = new ArrayList<>();
+			for (Field field : getAllFields()) {
+				if (field.isAccessible()) accessibleFields.add(field);
+			}
+			_accessibleFields = accessibleFields.toArray(new Field[0]);
+		}
+		return _accessibleFields;
 	}
 
 	public Field getField(String name) throws NoSuchFieldException, SecurityException {
 		if (_fieldsByName == null) {
 			_fieldsByName = new FastStringMap<>();
-			for (Field f : this.getFields()) _fieldsByName.set(f.getName(), f);
+			for (Field f : this.getAllFields()) _fieldsByName.set(f.getName(), f);
 		}
-		return _fieldsByName.get(name);
+		Field field = _fieldsByName.get(name);
+		if (field == null) throw new NoSuchFieldException(name);
+		return field;
 	}
 
 	public Field getDeclaredField(String name) throws NoSuchFieldException, SecurityException {
@@ -426,11 +447,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 			_declaredFieldsByName = new FastStringMap<>();
 			for (Field f : this.getDeclaredFields()) _declaredFieldsByName.set(f.getName(), f);
 		}
-		return _declaredFieldsByName.get(name);
+		Field field = _declaredFieldsByName.get(name);
+		if (field == null) throw new NoSuchFieldException(name);
+		return field;
 	}
 
 	public Method[] getMethods() throws SecurityException {
-		return this.getDeclaredMethods(); // @TODO: Filter just public!
+		return this.getDeclaredMethods(); // @TODO: Filter just public! + ancestors
 	}
 
 	public Annotation[] getAnnotations() {
@@ -438,7 +461,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Constructor<?>[] getConstructors() throws SecurityException {
-		return this.getDeclaredConstructors(); // @TODO: Filter just public!
+		return this.getDeclaredConstructors(); // @TODO: Filter just public! + ancestors?
 	}
 
 	public Method getMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {

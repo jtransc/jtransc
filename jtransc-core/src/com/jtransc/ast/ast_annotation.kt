@@ -2,6 +2,8 @@ package com.jtransc.ast
 
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.gen.TargetName
+import com.jtransc.log.log
+import com.jtransc.org.objectweb.asm.Type
 import java.lang.reflect.Proxy
 import kotlin.reflect.KProperty1
 
@@ -73,7 +75,7 @@ fun AstAnnotation.getRefTypesFqName(): List<FqName> {
 			is AstAnnotation -> {
 				out += e.getRefTypesFqName()
 			}
-			is List<*> -> {
+			is Iterable<*> -> {
 				for (i in e) {
 					when (i) {
 						is AstAnnotation -> {
@@ -81,6 +83,17 @@ fun AstAnnotation.getRefTypesFqName(): List<FqName> {
 						}
 					}
 				}
+			}
+			is String, is Boolean, is Int, is Float, is Double, is Long, is Byte, is Short, is Char, is Void -> Unit
+			is Type -> {
+				out += FqName(e.className)
+			}
+			is AstFieldWithoutTypeRef -> {
+				out += e.containingClass
+			}
+			else -> {
+				log.info("AstAnnotation.getRefTypesFqName.Unhandled: $e")
+				//println("Unhandled: $e")
 			}
 		}
 		//println("" + e + " : " + e?.javaClass)

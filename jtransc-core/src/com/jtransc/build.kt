@@ -207,7 +207,10 @@ class JTranscBuild(
 				val time = measureTime {
 					try {
 						val generatedClass = generator.generateClass(program, className.name)
-						for (ref in References.get(generatedClass, targetName)) program.addReference(ref, className)
+						for (ref in References.get(generatedClass, targetName)) {
+							//println("$ref : $className")
+							program.addReference(ref, className)
+						}
 					} catch (e: InvalidOperationException) {
 						System.err.println("ERROR! : " + e.message)
 					}

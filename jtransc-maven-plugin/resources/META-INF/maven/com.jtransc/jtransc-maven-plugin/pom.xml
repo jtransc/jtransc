@@ -20,7 +20,7 @@
 	<parent>
 		<groupId>com.jtransc</groupId>
 		<artifactId>jtransc</artifactId>
-		<!--jtransc--><version>0.5.9</version>
+		<!--jtransc--><version>0.5.10</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 

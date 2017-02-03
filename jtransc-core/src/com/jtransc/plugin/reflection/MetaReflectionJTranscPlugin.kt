@@ -186,7 +186,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val temps = TempAstLocalFactory()
 			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
 
-			SWITCH(fieldIdArg.expr) {
+			SWITCH(classIdArg.expr) {
 				for (clazz in visibleClasses) {
 					val fields = clazz.fields.filter { it.mustReflect() }
 					if (fields.flatMap { it.runtimeAnnotations }.isNotEmpty()) {

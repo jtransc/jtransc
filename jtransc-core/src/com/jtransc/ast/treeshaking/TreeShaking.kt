@@ -408,6 +408,7 @@ class TreeShakingApi(
 
 fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
 	// The unshaked program should be cached, in a per class basis, since it doesn't have information about other classes.
+
 	val shaking = TreeShakingApi(program, target, trace, plugins)
 	shaking.addMethod(shaking.main.ref, "<ENTRY>")
 //shaking.addMethod(program[FqName("java.lang.reflect.InvocationHandler")].getMethods("invoke").first().ref, "<ENTRY>")

@@ -339,23 +339,54 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			mutableBody.initClassRef(clazz, "CALL_STATIC")
 		}
 		val isNativeCall = refMethodClass.isNative
-		val processedArgs = args.map { processCallArg(it.value, if (isNativeCall) convertToTarget(it) else it.genExpr()) }
+
+		fun processArg(it: AstExpr.Box) = processCallArg(it.value, if (isNativeCall) convertToTarget(it) else it.genExpr())
 
 		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)
 
+		fun unbox(arg: AstExpr.Box): String {
+			val processed = processArg(arg)
+			val invoke = PeepholeMatcher.matchOptionalCastAndStaticInvoke(arg.value)
+			if (invoke != null) {
+				val ret = when (invoke.method.fid) {
+					"java.lang.Integer:valueOf:(I)Ljava/lang/Integer;",
+					"java.lang.Long:valueOf:(J)Ljava/lang/Long;",
+					"java.lang.Double:valueOf:(D)Ljava/lang/Double;",
+					"java.lang.Float:valueOf:(F)Ljava/lang/Float;"
+					-> {
+						processArg(invoke.args[0])
+					}
+					else -> null
+				}
+				//println(":::" + invoke.method.fid + " -> $ret")
+				if (ret != null) return ret
+			}
+			//println("Unbox: ${arg.value}")
+			//println("Unbox: ${invoke}")
+			//println("Unbox: $processed")
+			return N_unboxRaw(processed)
+		}
+
 		if (callsiteBody != null) {
-			val args2 = processedArgs.withIndex().map {
-				val arg = args[it.index]
-				val processedArg = it.value
-				val paramAnnotations = refMethod.parameterAnnotationsList[it.index]
+			val args2 = args.withIndex().map { arginfo ->
+				val index = arginfo.index
+				val arg = arginfo.value
+				val paramAnnotations = refMethod.parameterAnnotationsList[index]
 				if (paramAnnotations.contains<JTranscLiteralParam>()) {
-					val expr = args[it.index].value
-					val lit = (expr as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: $processedArg")
+					val lit = (arg.value as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: ${processArg(arg)} in $context")
 					lit.value.toString()
 				} else if (paramAnnotations.contains<JTranscUnboxParam>()) {
-					N_unboxRaw(processedArg)
+					val lit = (arg.value as? AstExpr.LITERAL)
+					if (lit != null) {
+						when (lit.value) {
+							is String -> quoteString(lit.value)
+							else -> unbox(arg)
+						}
+					} else {
+						unbox(arg)
+					}
 				} else {
-					processedArg
+					processArg(arg)
 				}
 			}
 
@@ -377,6 +408,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			}
 			return out
 		} else {
+			val processedArgs = args.map { processArg(it) }
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
 				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
