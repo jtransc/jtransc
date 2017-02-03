@@ -373,8 +373,12 @@ int64_t N::lnew(int high, int low) {
 
 bool N::is(SOBJ obj, int type) {
 	if (obj.get() == NULL) return false;
-	const int* table = TYPE_TABLE::TABLE[obj.get()->__INSTANCE_CLASS_ID].subtypes;
-	while (*table != -1) if (*(table++) == type) return true;
+	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj.get()->__INSTANCE_CLASS_ID];
+	const size_t size = type_info.size;
+	const int* subtypes = type_info.subtypes;
+    for(int i = 0; i < size; i++){
+    	if(subtypes[i] == type) return true;
+    }
 	return false;
 };
 
