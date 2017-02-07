@@ -291,3 +291,15 @@ external fun JsDynamic?.toByteArray(): ByteArray
 
 @JTranscMethodBody(target = "js", value = "return new Int8Array(p0.data.buffer, 0, p0.length);")
 external fun ByteArray.toJsTypedArray(): JsDynamic?
+
+fun JsDynamic.arrayToList(): List<JsDynamic?> {
+	val array = this
+	return (0 until array["length"].toInt()).map { array[it] }
+}
+
+fun JsDynamic.getObjectKeys(): List<String> {
+	val keys = global["Object"].call("keys", this)
+	return (0 until keys["length"].toInt()).map { keys[it].toJavaStringOrNull() ?: "" }
+}
+
+fun JsDynamic.toObjectMap(): Map<String, JsDynamic?> = (getObjectKeys()).map { key -> key to this[key] }.toMap()
