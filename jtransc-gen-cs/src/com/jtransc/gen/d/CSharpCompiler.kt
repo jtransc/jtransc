@@ -1,5 +1,6 @@
 package com.jtransc.gen.d
 
+import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.vfs.LocalVfs
 import java.io.File
@@ -13,6 +14,18 @@ object CSharpCompiler {
 	}
 
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
-		return listOf(dotNetV4Folder["csc"].realpathOS, programFile.absolutePath)
+		if (OS.isWindows) {
+			return listOf(Windows.CSC, programFile.absolutePath)
+		} else {
+			return listOf(Mono.MCS, programFile.absolutePath)
+		}
+	}
+
+	object Mono {
+		val MCS = "mcs"
+	}
+
+	object Windows {
+		val CSC = dotNetV4Folder["csc"].realpathOS
 	}
 }

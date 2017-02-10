@@ -2,7 +2,7 @@
 
 using System;
 
-#pragma warning disable 108, 109, 162
+#pragma warning disable 108, 109, 162, 219, 414
 
 class N {
 	static public int MIN_INT32 = Int32.MinValue;

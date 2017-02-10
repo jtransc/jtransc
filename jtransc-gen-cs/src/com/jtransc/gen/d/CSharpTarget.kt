@@ -147,6 +147,11 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
 					line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
 				}
+				line("} catch (WrappedThrowable e) {")
+				indent {
+					line("Console.WriteLine(e.t.ToString());")
+					line("Console.WriteLine(e.ToString());")
+				}
 				line("} catch (Exception e) {")
 				indent {
 					line("Console.WriteLine(e.ToString());")
