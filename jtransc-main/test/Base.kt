@@ -21,6 +21,7 @@ import com.jtransc.ast.ConfigMinimizeNames
 import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gen.d.CSharpTarget
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.injector.Injector
 import com.jtransc.log.log
@@ -33,6 +34,8 @@ import org.junit.Assert
 import java.io.File
 
 open class Base {
+	open val DEFAULT_TARGET: GenTargetDescriptor = JsTarget()
+
 	open val BACKEND = BuildBackend.ASM
 	open val TREESHAKING = true
 	open val TREESHAKING_TRACE = false
@@ -41,8 +44,7 @@ open class Base {
 		//const val TREESHAKING = false
 		const val RELOOPER = true
 		const val ANALYZER = false
-		const val DEBUG = true
-		val DEFAULT_TARGET = JsTarget()
+		const val DEBUG = false
 		//val DEFAULT_TARGET = HaxeTarget
 	}
 

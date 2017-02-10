@@ -232,16 +232,16 @@ class N {
 
 	static public int cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); }
 	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(b)) ? (-1) : N.cmp(a, b); }
-	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(b)) ? (+1) : N.cmp(a, b); };
+	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(b)) ? (+1) : N.cmp(a, b); }
 
-	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% SMETHOD java.lang.Boolean:booleanValue %}(); }
-	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% SMETHOD java.lang.Byte:byteValue %}(); }
-	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% SMETHOD java.lang.Short:shortValue %}(); }
-	static public wchar  unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% SMETHOD java.lang.Character:charValue %}(); }
-	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% SMETHOD java.lang.Integer:intValue %}(); }
-	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% SMETHOD java.lang.Long:longValue %}(); }
-	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% SMETHOD java.lang.Float:floatValue %}(); }
-	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% SMETHOD java.lang.Double:doubleValue %}(); }
+	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
+	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% METHOD java.lang.Byte:byteValue %}(); }
+	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% METHOD java.lang.Short:shortValue %}(); }
+	static public wchar  unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% METHOD java.lang.Character:charValue %}(); }
+	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% METHOD java.lang.Integer:intValue %}(); }
+	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% METHOD java.lang.Long:longValue %}(); }
+	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% METHOD java.lang.Float:floatValue %}(); }
+	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% METHOD java.lang.Double:doubleValue %}(); }
 
 
 	static public {% CLASS java.lang.Object %}    boxVoid  (        ) { return null; }

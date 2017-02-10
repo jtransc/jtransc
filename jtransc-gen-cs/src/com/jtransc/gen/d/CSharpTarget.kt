@@ -14,8 +14,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.escape
-import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -121,6 +119,8 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		line("public $targetType ${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
+	override fun quoteString(str: String) = str.dquote()
+
 	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
 		val classesStr = super.genClasses(output)
@@ -161,14 +161,43 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		}
 	}
 
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array[$index] = (${elementType.targetName})$value;"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
+		if (elementType is AstType.Primitive) {
+			return "$array[$index] = (${elementType.targetName})$value;"
+		} else {
+			return "$array[$index] = (${AstType.OBJECT.targetName})$value;"
+		}
+	}
 
 	override fun N_i2b(str: String) = "((sbyte)($str))"
 	override fun N_i2c(str: String) = "((ushort)($str))"
 	override fun N_i2s(str: String) = "((short)($str))"
 	override fun N_f2i(str: String) = "((int)($str))"
 
-	fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"" else "null"
+	//fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"" else "null"
+
+	fun String?.dquote(): String {
+		if (this != null) {
+			val out = StringBuilder()
+			for (n in 0 until this.length) {
+				val c = this[n]
+				when (c) {
+					'\\' -> out.append("\\\\")
+					'"' -> out.append("\\\"")
+					'\n' -> out.append("\\n")
+					'\r' -> out.append("\\r")
+					'\t' -> out.append("\\t")
+				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
+				//in '\u0020'..'\u00ff' -> out.append(c)
+					else -> out.append("\\u" + "%04x".format(c.toInt()))
+				}
+			}
+			return "\"" + out.toString() + "\""
+		} else {
+			return "null"
+		}
+	}
+
 
 	override fun genMetodDeclModifiers(method: AstMethod): String {
 		if (method.containingClass.isInterface) {
@@ -204,7 +233,10 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		}
 	}
 
-	override fun N_is(a: String, b: String): String = "((($b)$a) != null)"
+	override fun N_f2d(str: String) = "((double)($str))"
+	override fun N_d2f(str: String) = "((float)($str))"
+
+	override fun N_is(a: String, b: String): String = "(($a) is $b)"
 
 	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
@@ -244,8 +276,9 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		}
 		if (clazz.staticConstructor != null) {
 			line("static public void SI()") {
+				val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
 				for (field in clazz.fields.filter { it.isStatic }) {
-					line("${clazz.name.targetName}.${field.targetName} = ${field.escapedConstantValue};")
+					line("$clazzName.${field.targetName} = ${field.escapedConstantValue};")
 				}
 				line(genSIMethodBody(clazz))
 			}
@@ -254,11 +287,18 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		}
 	}
 
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		line("unchecked") {
+			line(super.genBody2WithFeatures(method, body))
+		}
+	}
+
 	//override fun N_i(str: String) = "((int)($str))"
 	override fun N_i(str: String) = "($str)"
 
 	//override fun N_f2i(str: String) = "((int)($str))"
 	override fun N_d2i(str: String) = "((int)($str))"
+
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"
 
@@ -268,11 +308,16 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	override fun N_l2f(str: String) = "((float)($str))"
 	override fun N_l2d(str: String) = "((double)($str))"
 
+	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
+
+	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
+	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
+
 	override fun N_lnew(value: Long): String = "((long)(${value}L))"
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
-		line("throw new Exception(${message.quote()});")
+		line("throw new Exception(${message.dquote()});")
 	}
 
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
@@ -302,11 +347,15 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		}
 	}
 
-	override protected fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
 
-	override val NegativeInfinityString = "-double.infinity"
-	override val PositiveInfinityString = "double.infinity"
-	override val NanString = "double.nan"
+	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
+	}
+
+	override val NegativeInfinityString = "Double.NegativeInfinity"
+	override val PositiveInfinityString = "Double.PositiveInfinity"
+	override val NanString = "Double.NaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 
@@ -324,7 +373,7 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	}
 
 
-		//override fun escapedConstant(v: Any?): String = when (v) {
+	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {
 	//		val isVerySmall = (v >= 0.0 && v <= 4.940656e-324)
 	//		val representable = !isVerySmall

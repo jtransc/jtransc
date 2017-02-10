@@ -2,6 +2,7 @@ package com.jtransc.crypto;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPost;
@@ -66,7 +67,10 @@ public class JTranscCrypto {
 			"  bytes.set(n, Std.int(Math.random() * 255));\n" +
 			"}"
 		)
-		@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);"),
+			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
+		})
 		@SuppressWarnings("all")
 		public void fillSecureRandomBytes(byte[] data) {
 			if (!JTranscSystem.isJTransc()) {

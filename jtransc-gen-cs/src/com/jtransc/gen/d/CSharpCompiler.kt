@@ -15,9 +15,9 @@ object CSharpCompiler {
 
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
 		if (OS.isWindows) {
-			return listOf(Windows.CSC, programFile.absolutePath)
+			return listOf(Windows.CSC, "/debug:full", "/unsafe+", "/checked-", "/define:UNSAFE", programFile.absolutePath)
 		} else {
-			return listOf(Mono.MCS, programFile.absolutePath)
+			return listOf(Mono.MCS, "-g", "-unsafe+", "-checked-", "-define:UNSAFE", programFile.absolutePath)
 		}
 	}
 

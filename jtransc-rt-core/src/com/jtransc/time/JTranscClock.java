@@ -20,6 +20,7 @@ public class JTranscClock {
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "js", value = "return N.getTime();"),
 			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
+			@JTranscMethodBody(target = "cs", value = "return N.getTime();"),
 		})
 		public double fastTime() {
 			if (parent != null) {

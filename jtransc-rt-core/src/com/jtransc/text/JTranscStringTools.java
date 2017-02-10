@@ -69,6 +69,7 @@ public class JTranscStringTools {
 		//@JTranscMethodBody(target = "js", value = "return N.str(Number(p0).toPrecision(2));")
 		//@JTranscMethodBody(target = "d", value = "return N.str(to!string(p0));")
 		@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));"),
+		@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));"),
 	})
 	native static public String _toString(double v);
 }

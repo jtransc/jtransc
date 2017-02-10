@@ -56,6 +56,12 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 			return indenter
 		}
 
+		inline operator fun invoke(init: Indenter.() -> Unit): Indenter {
+			val indenter = Indenter()
+			indenter.init()
+			return indenter
+		}
+
 		fun single(str: String): Indenter = Indenter(arrayListOf(Action.Line(str)))
 
 		operator fun invoke(str: String): Indenter = single(str)

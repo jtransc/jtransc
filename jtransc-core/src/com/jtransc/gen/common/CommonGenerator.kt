@@ -186,7 +186,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
-		for (m in clazz.methods) if (kind.check(m)) line(genMethod(clazz, m, !clazz.isInterface))
+		for (m in clazz.methods) if (kind.check(m)) line(genMethod(clazz, m, !clazz.isInterface || m.isStatic))
 	}
 
 	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
@@ -257,7 +257,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
-		line("throw ${message.quote()};")
+		line("throw ${quoteString(message)};")
 	}
 
 	open val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit && !this.isStatic
@@ -1631,8 +1631,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		else -> throw NotImplementedError("Literal of type $v")
 	}
 
-	open protected val String.escapeString: String get() = N_func("strLitEscape", this.quote())
-	open protected val AstType.escapeType: String get() = N_func("resolveClass", "${this.mangle().quote()}")
+	open protected val String.escapeString: String get() = N_func("strLitEscape", quoteString(this))
+	open protected val AstType.escapeType: String get() = N_func("resolveClass", quoteString(this.mangle()))
 
 	//////////////////////////////////////////////////
 	// Type names
@@ -1768,7 +1768,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static)
 	fun buildMethod(method: AstMethod, static: Boolean): String {
-		val clazz = method.containingClass.name.targetName
+		val clazzFqname = method.containingClass.name
+		val clazz = if (static) clazzFqname.targetNameForStatic else clazzFqname.targetName
 		val name = method.targetName
 		return if (static) (clazz + buildAccessName(name, static = true)) else name
 	}

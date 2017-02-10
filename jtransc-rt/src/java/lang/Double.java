@@ -55,6 +55,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "js", value = "return parseFloat(N.istr(p0));")
 	@JTranscMethodBody(target = "cpp", value = "char temp[256] = {0}; N::writeChars(p0, temp, sizeof(temp)); return ::atof(temp);")
 	@JTranscMethodBody(target = "d", value = "return to!double(N.istr(p0));")
+	@JTranscMethodBody(target = "cs", value = "return Double.Parse(N.istr(p0), System.Globalization.CultureInfo.InvariantCulture);")
 	native private static double _parseDouble(String value);
 
 	public static double parseDouble(String value) {
@@ -66,12 +67,14 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.isNaN(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Double.IsNaN(p0);")
 	native public static boolean isNaN(double v);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
 	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")
+	@JTranscMethodBody(target = "cs", value = "return !double.IsInfinity(p0);")
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {
@@ -145,18 +148,21 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(long *)&p0;")
+	@JTranscMethodBody(target = "cs", value = "return N.doubleToLongBits(p0);")
 	native public static long doubleToLongBits(double value);
 
 	@HaxeMethodBody("return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int64_t *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(long *)&p0;")
+	@JTranscMethodBody(target = "cs", value = "return N.doubleToLongBits(p0);")
 	native public static long doubleToRawLongBits(double value);
 
 	@HaxeMethodBody("return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "js", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(double *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(double *)&p0;")
+	@JTranscMethodBody(target = "cs", value = "return N.longBitsToDouble(p0);")
 	public static native double longBitsToDouble(long bits);
 
 	public int compareTo(Double that) {

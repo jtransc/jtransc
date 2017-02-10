@@ -37,6 +37,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.sin(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::sin(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sin(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Sin(p0);")
 	native public static double sin(double a);
 
 	@JTranscInline
@@ -44,6 +45,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.cos(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::cos(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.cos(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Cos(p0);")
 	native public static double cos(double a);
 
 	@JTranscInline
@@ -51,6 +53,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.tan(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::tan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.tan(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Tan(p0);")
 	native public static double tan(double a);
 
 	@JTranscInline
@@ -58,6 +61,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.asin(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::asin(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.asin(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Asin(p0);")
 	native public static double asin(double a);
 
 	@JTranscInline
@@ -65,6 +69,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.acos(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::acos(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.acos(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Acos(p0);")
 	native public static double acos(double a);
 
 	@JTranscInline
@@ -72,6 +77,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.atan(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::atan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.atan(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Atan(p0);")
 	native public static double atan(double a);
 
 	public static double toRadians(double angdeg) {
@@ -87,6 +93,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.exp(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::exp(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.exp(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Exp(p0);")
 	native public static double exp(double a);
 
 	@JTranscInline
@@ -94,19 +101,24 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.log(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::log(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.log(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Log(p0);")
 	native public static double log(double a);
 
 	@HaxeMethodBody("return Math.log(p0) / Math.log(10);")
 	@JTranscMethodBody(target = "js", value = "return Math.log10(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::log10(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.log10(p0);")
-	native public static double log10(double a);
+	@JTranscMethodBody(target = "cs", value = "return Math.Log10(p0);")
+	public static double log10(double a) {
+		return log(a) / log(10.0);
+	}
 
 	@JTranscInline
 	@HaxeMethodBody("return Math.sqrt(p0);")
 	@JTranscMethodBody(target = "js", value = "return Math.sqrt(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::sqrt(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sqrt(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Sqrt(p0);")
 	native public static double sqrt(double a);
 
 	static public double cbrt(double x) {
@@ -122,6 +134,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.ceil(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::ceil(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.ceil(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Ceiling(p0);")
 	native public static double ceil(double a);
 
 	@JTranscInline
@@ -129,6 +142,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.floor(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::floor(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.floor(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Floor(p0);")
 	native public static double floor(double a);
 
 	//@HaxeMethodBody("return Math.rint(p0);")
@@ -143,6 +157,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.atan2(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::atan2(p0, p1);")
 	@JTranscMethodBody(target = "d", value = "return std.math.atan2(p0, p1);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Atan2(p0, p1);")
 	native public static double atan2(double y, double x);
 
 	@JTranscInline
@@ -150,6 +165,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.pow(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::pow(p0, p1);")
 	@JTranscMethodBody(target = "d", value = "return std.math.pow(p0, p1);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Pow(p0, p1);")
 	native public static double pow(double a, double b);
 
 	@JTranscInline
@@ -157,6 +173,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)::lround(p0);")
 	@JTranscMethodBody(target = "d", value = "return cast(int)std.math.lround(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Round(p0);")
 	native public static int round(float a);
 
 	@JTranscInline
@@ -164,6 +181,7 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.lround(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Round(p0);")
 	native public static long round(double a);
 
 	@JTranscInline
@@ -271,6 +289,7 @@ public final class Math {
 
 	@HaxeMethodBody("return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
+	@JTranscMethodBody(target = "cs", value = "return (double)Math.Sign(p0);")
 	public static double signum(double v) {
 		if (v < 0) return -1;
 		if (v > 0) return +1;
@@ -279,6 +298,7 @@ public final class Math {
 
 	@HaxeMethodBody("return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
+	@JTranscMethodBody(target = "cs", value = "return (float)Math.Sign(p0);")
 	public static float signum(float v) {
 		if (v < 0) return -1;
 		if (v > 0) return +1;
@@ -288,6 +308,7 @@ public final class Math {
 	//@HaxeMethodBody("return Math.sinh(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::sinh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sinh(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Sinh(p0);")
 	public static double sinh(double x) {
 		return (Math.pow(Math.E, x) - Math.pow(Math.E, -x)) / 2.0;
 	}
@@ -295,6 +316,7 @@ public final class Math {
 	//@HaxeMethodBody("return Math.cosh(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::cosh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.cosh(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Cosh(p0);")
 	public static double cosh(double x) {
 		return (Math.pow(Math.E, x) + Math.pow(Math.E, -x)) / 2.0;
 	}
@@ -302,6 +324,7 @@ public final class Math {
 	//@HaxeMethodBody("return Math.tanh(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::tanh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.tanh(p0);")
+	@JTranscMethodBody(target = "cs", value = "return Math.Tanh(p0);")
 	public static double tanh(double x) {
 		return sinh(x) / cosh(x);
 	}

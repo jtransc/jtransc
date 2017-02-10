@@ -28,6 +28,15 @@ import threading.ThreadingTest
  */
 
 class CSharpTest : Base() {
+	override val DEFAULT_TARGET = CSharpTarget()
+
+	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
+
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = CSharpTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, target = CSharpTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+
+	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+		TestServiceImpl1.test:ss
+		TestServiceCS
+	""", minimize = false)
 }
