@@ -3,12 +3,12 @@ package com.jtransc.backend.asm1
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
 import com.jtransc.backend.JvmOpcode
+import com.jtransc.backend.ast
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.deprecated
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.backend.ast
 import com.jtransc.org.objectweb.asm.Handle
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.Type
@@ -366,6 +366,10 @@ private class BasicBlockBuilder(
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
 		val l = stackPop()
+		//val type2 = when (type) {
+		//	AstType.LONG -> AstType.LONG
+		//	else -> AstType.INT
+		//}
 		stackPush(optimize(AstExprUtils.BINOP(type, l, op, r)))
 	}
 

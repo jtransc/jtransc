@@ -361,6 +361,11 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 	}
 
 	override fun visit(stm: AstStm.STM_EXPR) {
+		// Remove unnecessary cast
+		while (stm.expr.value is AstExpr.CAST) {
+			//println(stm.expr.value)
+			stm.expr.value = (stm.expr.value as AstExpr.CAST).expr.value
+		}
 		super.visit(stm)
 		if (stm.expr.value.isPure()) {
 			stm.box.value = AstStm.NOP("pure stm")
