@@ -24,6 +24,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
 	})
 	static public void log(Object v) {
 		System.out.println(v);

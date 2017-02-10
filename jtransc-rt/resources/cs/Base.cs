@@ -30,16 +30,45 @@ class N {
 	static public void monitorExit({% CLASS java.lang.Object %} obj) {
 	}
 
-	static public JA_L strArray(string[] array) {
-		throw new Exception();
+	static public void arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dest, int destPos, int length) {
+		_arraycopy(src, srcPos, dest, destPos, length);
+	}
+
+	static private int _arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dest, int destPos, int length) {
+		if (src is JA_B) return ((JA_B)src).copyTo(((JA_B)dest), srcPos, destPos, length);
+		if (src is JA_C) return ((JA_C)src).copyTo(((JA_C)dest), srcPos, destPos, length);
+		throw new Exception("Not implemented arraycopy for " + src);
+	}
+
+	static public JA_L strArray(string[] strs) {
+		int len = strs.Length;
+		JA_L o = new JA_L(len, "[Ljava/lang/String;");
+		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
+		return o;
 	}
 
 	static public {% CLASS java.lang.Class %} resolveClass(string s) {
 		throw new Exception();
 	}
 
+	static public string istr({% CLASS java.lang.String %} s) {
+		JA_C chars = s.{% FIELD java.lang.String:value %};
+		int len = chars.length;
+		char[] cchars = new char[len];
+		for (int n = 0; n < len; n++) cchars[n] = (char)chars[n];
+		return new string(cchars);
+	}
+
+	static public {% CLASS java.lang.String %} str(string s) {
+		char[] c = s.ToCharArray();
+		int len = c.Length;
+		ushort[] shorts = new ushort[len];
+		for (int n = 0; n < len; n++) shorts[n] = (ushort)c[n];
+		return {% CONSTRUCTOR java.lang.String:([C)V %}(new JA_C(shorts));
+	}
+
 	static public {% CLASS java.lang.String %} strLitEscape(string s) {
-		throw new Exception();
+		return str(s);
 	}
 
 	static public double longBitsToDouble(long v) {
@@ -67,6 +96,11 @@ class JA_Template<T> : JA_0 {
 
 	public JA_Template(int size) : base(size) {
 		this.data = new T[size];
+	}
+
+	public int copyTo(JA_Template<T> target, int src, int dst, int len) {
+		Array.Copy(this.data, src, target.data, dst, len);
+		return len;
 	}
 
 	public T this[int i] { get { return data[i]; } set { data[i] = value; } }
@@ -102,10 +136,6 @@ class WrappedThrowable : Exception {
 	public WrappedThrowable({% CLASS java.lang.Object %} t) : base() {
 		this.t = t;
 	}
-}
-
-class JTranscBase {
-	virtual public string toString() { return this.ToString(); }
 }
 
 /* ## BODY ## */

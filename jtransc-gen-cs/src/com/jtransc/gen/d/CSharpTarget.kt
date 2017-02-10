@@ -138,12 +138,20 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
 			line("static void Main(string[] args)") {
-				line("N.init();")
-				line("__initStrings();")
-				line(genStaticConstructorsSorted())
-				//line(buildStaticInit(entryPointFqName))
-				val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
-				line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+				line("try {")
+				indent {
+					line("N.init();")
+					line("__initStrings();")
+					line(genStaticConstructorsSorted())
+					//line(buildStaticInit(entryPointFqName))
+					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
+					line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+				}
+				line("} catch (Exception e) {")
+				indent {
+					line("Console.WriteLine(e.ToString());")
+				}
+				line("}")
 			}
 		}
 	}
@@ -176,8 +184,6 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
 		if (kind.isStatic) {
 			return "class ${clazz.name.targetNameForStatic}"
-		} else if (clazz.isJavaLangObject) {
-			return "class ${clazz.name.targetSimpleName} : JTranscBase"
 		} else {
 			val CLASS = if (clazz.isInterface) "interface" else "class"
 			val iabstract = if (clazz.isAbstract) "abstract " else ""
@@ -216,11 +222,12 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
-		//if (clazz.isJavaLangObject) {
-		//	line("override public string toString()") {
-		//		line("return to!string(N.istr(" + buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false) + "()));")
-		//	}
-		//}
+		if (clazz.isJavaLangObject) {
+			line("override public string ToString()") {
+				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
+				line("return N.istr($toStringMethodName());")
+			}
+		}
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {

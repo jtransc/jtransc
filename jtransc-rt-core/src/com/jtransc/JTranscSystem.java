@@ -76,6 +76,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "js", value = "return true;"),
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "return true;"),
+		@JTranscMethodBody(target = "cs", value = "return true;"),
 	})
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
@@ -156,6 +157,7 @@ public class JTranscSystem {
 		@HaxeMethodBody(target = "cs", value = "return true;"),
 		@HaxeMethodBody("return false;"),
 	})
+	@JTranscMethodBody(target = "cs", value = "return true;")
 	public static boolean isCsharp() {
 		return FALSE;
 	}
