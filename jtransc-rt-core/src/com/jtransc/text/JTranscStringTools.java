@@ -40,6 +40,10 @@ public class JTranscStringTools {
 	public static String toString(double v) {
 		if (Double.isNaN(v)) return "NaN";
 		if (Double.isInfinite(v)) return (v < 0) ? "-Infinity" : "Infinity";
+		if (v == 0.0) {
+			long l = Double.doubleToRawLongBits(v);
+			if ((l >>> 63) != 0) return "-0.0";
+		}
 		//return JTranscStringTools.toString(d);
 		String out = _toString(v);
 		boolean hasSymbols = false;

@@ -26,7 +26,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
-		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
+		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 	})
 	static public void log(Object v) {
 		JTranscSystem.checkInJVM();
@@ -37,7 +37,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "js", value = "console.log(p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0.get() ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
-		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
+		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 	})
 	static public void dump(Object v) {
 		log(v);
@@ -80,7 +80,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
-		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
+		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((char)p0);"),
 	})
 	static public void log(char v) {
 		log(Character.toString(v));

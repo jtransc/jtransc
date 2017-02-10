@@ -123,6 +123,9 @@ public class JTranscSyncIO {
 				//"scope f = new std.stdio.File(N.str(file))",
 				"return std.file.exists(N.istr2(p0));",
 			}),
+			@JTranscMethodBody(target = "cs", value = {
+				"return System.IO.File.Exists(N.istr(p0));",
+			}),
 		})
 		native public boolean checkAccess(String file, int access);
 

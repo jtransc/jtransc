@@ -41,5 +41,5 @@ class CSharpTest : Base() {
 		TestServiceCS
 	""", minimize = false)
 
-	//@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
+	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
 }

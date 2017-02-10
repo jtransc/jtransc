@@ -5,6 +5,11 @@ using System;
 #pragma warning disable 108, 109, 162, 219, 414, 675
 
 class N {
+	//public static readonly double DoubleNaN = 0.0d / 0.0;
+	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
+
+
+
 	//static public int MIN_INT32 = Int32.MinValue;
 	static readonly public int MIN_INT32 = unchecked((int)0x80000000);
 	static readonly public int MAX_INT32 = unchecked((int)0x7FFFFFFF);

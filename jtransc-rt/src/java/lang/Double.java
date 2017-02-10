@@ -74,7 +74,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")
-	@JTranscMethodBody(target = "cs", value = "return !double.IsInfinity(p0);")
+	@JTranscMethodBody(target = "cs", value = "return !double.IsNaN(p0) && !double.IsInfinity(p0);")
 	native private static boolean _isFinite(double v);
 
 	public static boolean isInfinite(double v) {

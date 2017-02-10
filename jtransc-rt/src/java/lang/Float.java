@@ -67,7 +67,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")
-	@JTranscMethodBody(target = "cs", value = "return !float.IsInfinity(p0);")
+	@JTranscMethodBody(target = "cs", value = "return !float.IsNaN(p0) && !float.IsInfinity(p0);")
 	native private static boolean _isFinite(float v);
 
 	public static boolean isInfinite(float v) {

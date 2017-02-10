@@ -362,7 +362,8 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 
 	override val NegativeInfinityString = "Double.NegativeInfinity"
 	override val PositiveInfinityString = "Double.PositiveInfinity"
-	override val NanString = "Double.NaN"
+	//override val NanString = "Double.NaN"
+	override val NanString = "N.DoubleNaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 

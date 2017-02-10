@@ -109,9 +109,16 @@ public class MathTest {
 		double[] doubles = new double[] { 0, -128, 6, Double.NaN, -Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
 
 		for (double a : doubles) {
+			System.out.print(a);
+			System.out.printf("=%016X,", Double.doubleToRawLongBits(a));
+		}
+		System.out.println();
+
+		for (double a : doubles) {
 			for (double b : doubles) {
-				System.out.print(Math.copySign(a, b));
-				System.out.print(",");
+				double d = Math.copySign(a, b);
+				System.out.print(d);
+				System.out.printf("=%016X,", Double.doubleToRawLongBits(d));
 			}
 			System.out.println();
 		}
