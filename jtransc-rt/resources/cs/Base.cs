@@ -127,19 +127,19 @@ class N {
 		return str(s);
 	}
 
-#if UNSAFE
-	static public unsafe double longBitsToDouble(long v) { return *((double*)&v); }
-	static public unsafe long doubleToLongBits(double v) { return *((long*)&v); }
-	static public unsafe float intBitsToFloat(int v) { return *((float*)&v); }
-	static public unsafe int floatToIntBits(float v) { return *((int*)&v); }
-#else
-	//static public double longBitsToDouble(long v) { return BitConverter.Int64BitsToDouble(v); } // Requires FW >= 4.0
-	//static public long doubleToLongBits(double v) { return BitConverter.DoubleToInt64Bits(v); } // Requires FW >= 4.0
-	static public double longBitsToDouble(long v) { return BitConverter.ToDouble(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
-	static public long doubleToLongBits(double v) { return BitConverter.ToInt64(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
-	static public float intBitsToFloat(int v) { return BitConverter.ToSingle(BitConverter.GetBytes(v), 0); }
-	static public int floatToIntBits(float v) { return BitConverter.ToInt32(BitConverter.GetBytes(v), 0); }
-#endif
+//#if UNSAFE
+	static public unsafe double longBitsToDouble(long v) { return unchecked(*((double*)&v)); }
+	static public unsafe long doubleToLongBits(double v) { return unchecked(*((long*)&v)); }
+	static public unsafe float intBitsToFloat(int v) { return unchecked(*((float*)&v)); }
+	static public unsafe int floatToIntBits(float v) { return unchecked(*((int*)&v)); }
+//#else
+//	//static public double longBitsToDouble(long v) { return BitConverter.Int64BitsToDouble(v); } // Requires FW >= 4.0
+//	//static public long doubleToLongBits(double v) { return BitConverter.DoubleToInt64Bits(v); } // Requires FW >= 4.0
+//	static public double longBitsToDouble(long v) { return BitConverter.ToDouble(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
+//	static public long doubleToLongBits(double v) { return BitConverter.ToInt64(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
+//	static public float intBitsToFloat(int v) { return BitConverter.ToSingle(BitConverter.GetBytes(v), 0); }
+//	static public int floatToIntBits(float v) { return BitConverter.ToInt32(BitConverter.GetBytes(v), 0); }
+//#endif
 
 	static public double getTime() {
 		return (double)CurrentTimeMillis();

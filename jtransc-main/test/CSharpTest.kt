@@ -1,3 +1,4 @@
+import big.BigTest
 import big.HelloWorldTest
 import big.MiniHelloWorldTest
 import com.jtransc.BuildBackend
@@ -39,4 +40,6 @@ class CSharpTest : Base() {
 		TestServiceImpl1.test:ss
 		TestServiceCS
 	""", minimize = false)
+
+	//@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
 }
