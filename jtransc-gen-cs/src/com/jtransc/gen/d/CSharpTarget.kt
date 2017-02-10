@@ -99,10 +99,17 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		val names = if (JTranscSystem.isWindows()) {
 			listOf("program.exe", "a.exe")
 		} else {
-			listOf("program", "program.out", "a", "a.out")
+			listOf("program.exe", "program", "program.out", "a", "a.out")
 		}
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, listOf(), ExecOptions(passthru = redirect, sysexec = true)))
+
+		val cmdAndArgs = if (JTranscSystem.isWindows()) {
+			listOf(outFile.realpathOS)
+		} else {
+			listOf("mono", outFile.realpathOS)
+		}
+
+		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
 	override fun writeProgram(output: SyncVfsFile) {
