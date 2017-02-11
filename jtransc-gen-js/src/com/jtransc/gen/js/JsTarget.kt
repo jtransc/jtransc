@@ -16,7 +16,6 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
-import com.jtransc.target.Js
 import com.jtransc.text.Indenter
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
@@ -439,27 +438,6 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
-	}
-
-	override fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		val className = method.containingClassType.fqname
-		val methodName = method.name
-		return if (className == Js::class.java.name && methodName.endsWith("_raw")) {
-			val arg = e2.args[0].value
-			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]} at $context")
-			val base = gen((arg.value as String))
-			when (methodName) {
-				"v_raw" -> base
-				"o_raw" -> base
-				"z_raw" -> "(!!($base))"
-				"i_raw" -> "(($base)|0)"
-				"d_raw" -> "(+($base))"
-				"s_raw" -> "N.str($base)"
-				else -> base
-			}
-		} else {
-			super.genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, args)
-		}
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null

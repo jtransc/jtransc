@@ -1,24 +1,32 @@
 package com.jtransc.target;
 
+import com.jtransc.annotation.JTranscCallSiteBody;
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscLiteralParam;
 
 @JTranscInvisible
 public class Js {
 	@JTranscInvisible
-	native static public void v_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public void v_raw(@JTranscLiteralParam String raw);
 
 	@JTranscInvisible
-	native static public boolean z_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public boolean z_raw(@JTranscLiteralParam String raw);
 
 	@JTranscInvisible
-	native static public int i_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public int i_raw(@JTranscLiteralParam String raw);
 
 	@JTranscInvisible
-	native static public double d_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public double d_raw(@JTranscLiteralParam String raw);
 
 	@JTranscInvisible
-	native static public String s_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public String s_raw(@JTranscLiteralParam String raw);
 
 	@JTranscInvisible
-	native static public Object o_raw(String raw);
+	@JTranscCallSiteBody(target = "js", value = "#0")
+	native static public Object o_raw(@JTranscLiteralParam String raw);
 }

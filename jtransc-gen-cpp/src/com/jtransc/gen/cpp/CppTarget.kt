@@ -597,27 +597,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return "${refMethodClass.ref.cppName}::${superMethod.targetName}(${args.joinToString(", ")})"
 	}
 
-	override fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		val className = method.containingClassType.fqname
-		val methodName = method.name
-		return if (className == Cpp::class.java.name && methodName.endsWith("_raw")) {
-			val arg = e2.args[0].value
-			if (arg !is AstExpr.LITERAL || arg.value !is String) invalidOp("Raw call $e2 has not a string literal! but ${args[0]}")
-			val base = gen((arg.value as String))
-			when (methodName) {
-				"v_raw" -> base
-				"o_raw" -> base
-				"z_raw" -> base
-				"i_raw" -> base
-				"d_raw" -> base
-				"s_raw" -> "N::str($base)"
-				else -> base
-			}
-		} else {
-			super.genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, args)
-		}
-	}
-
 	override fun genExprThis(e: AstExpr.THIS): String {
 		return genExprThis()
 	}
