@@ -134,39 +134,26 @@ class N {
 		return {% CONSTRUCTOR java.lang.String:([C)V %}(new JA_C(shorts));
 	}
 
-	static public {% CLASS java.lang.String %} strLitEscape(string s) {
-		return str(s);
-	}
+	static public {% CLASS java.lang.String %} strLitEscape(string s) { return str(s); }
 
-//#if UNSAFE
+#if UNSAFE
 	static public unsafe double longBitsToDouble(long v) { return unchecked(*((double*)&v)); }
 	static public unsafe long doubleToLongBits(double v) { return unchecked(*((long*)&v)); }
 	static public unsafe float intBitsToFloat(int v) { return unchecked(*((float*)&v)); }
 	static public unsafe int floatToIntBits(float v) { return unchecked(*((int*)&v)); }
-//#else
-//	//static public double longBitsToDouble(long v) { return BitConverter.Int64BitsToDouble(v); } // Requires FW >= 4.0
-//	//static public long doubleToLongBits(double v) { return BitConverter.DoubleToInt64Bits(v); } // Requires FW >= 4.0
-//	static public double longBitsToDouble(long v) { return BitConverter.ToDouble(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
-//	static public long doubleToLongBits(double v) { return BitConverter.ToInt64(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
-//	static public float intBitsToFloat(int v) { return BitConverter.ToSingle(BitConverter.GetBytes(v), 0); }
-//	static public int floatToIntBits(float v) { return BitConverter.ToInt32(BitConverter.GetBytes(v), 0); }
-//#endif
+#else
+	//static public double longBitsToDouble(long v) { return BitConverter.Int64BitsToDouble(v); } // Requires FW >= 4.0
+	//static public long doubleToLongBits(double v) { return BitConverter.DoubleToInt64Bits(v); } // Requires FW >= 4.0
+	static public double longBitsToDouble(long v) { return BitConverter.ToDouble(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
+	static public long doubleToLongBits(double v) { return BitConverter.ToInt64(BitConverter.GetBytes(v), 0); } // Compatible with FW 2.0
+	static public float intBitsToFloat(int v) { return BitConverter.ToSingle(BitConverter.GetBytes(v), 0); }
+	static public int floatToIntBits(float v) { return BitConverter.ToInt32(BitConverter.GetBytes(v), 0); }
+#endif
 
-	static public double getTime() {
-		return (double)CurrentTimeMillis();
-	}
+	static public double getTime() { return (double)CurrentTimeMillis(); }
+	private static readonly DateTime Jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static long CurrentTimeMillis() { return (long) (DateTime.UtcNow - Jan1st1970).TotalMilliseconds; }
 
-	private static readonly DateTime Jan1st1970 = new DateTime
-        (1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-    public static long CurrentTimeMillis()
-    {
-        return (long) (DateTime.UtcNow - Jan1st1970).TotalMilliseconds;
-    }
-
-	static public string getOS() {
-		return "unknown-os";
-	}
 }
 
 class JA_0 : {% CLASS java.lang.Object %} {

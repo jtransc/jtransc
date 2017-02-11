@@ -111,4 +111,8 @@ public class JTranscProcessCSharp extends JTranscProcess {
 	})
 	public void destroy() {
 	}
+
+	public boolean isAlive() {
+		return !hasExited();
+	}
 }
