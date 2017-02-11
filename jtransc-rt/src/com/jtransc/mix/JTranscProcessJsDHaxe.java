@@ -94,18 +94,18 @@ public class JTranscProcessJsDHaxe extends JTranscProcess {
 
 
 	@JTranscMethodBody(target = "d", value = {
-		"this.pipes = pipeShell(escapeShellCommand(N.istrArray2(this.{% FIELD com.jtransc.io.JTranscProcess:cmds %})));"
+		"this.pipes = pipeShell(escapeShellCommand(N.istrArray2(this.{% FIELD #CLASS:cmds %})));"
 	})
 	private void genPipes() {
 
 	}
 
-	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.io.DFileInputStream %}(this.pipes.stderr);")
+	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.mix.DFileInputStream %}(this.pipes.stderr);")
 	private InputStream genStderr() {
 		return new ByteArrayInputStream(new byte[]{'d', 'u', 'm', 'm', 'y'});
 	}
 
-	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.io.DFileInputStream %}(this.pipes.stdout);")
+	@JTranscMethodBody(target = "d", value = "return new {% CLASS com.jtransc.mix.DFileInputStream %}(this.pipes.stdout);")
 	private InputStream genStdout() {
 		return new ByteArrayInputStream(new byte[]{'d', 'u', 'm', 'm', 'y'});
 	}

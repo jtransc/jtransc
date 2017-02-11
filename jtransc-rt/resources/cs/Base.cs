@@ -24,6 +24,7 @@ class N {
 
 
 	static public void init() {
+		//Console.WriteLine(Console.OutputEncoding.CodePage);
 	}
 
 	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
