@@ -17,7 +17,7 @@ object CSharpCompiler {
 		if (OS.isWindows) {
 			return listOf(Windows.CSC, "/debug:full", "/unsafe+", "/checked-", "/optimize+", "/define:UNSAFE", programFile.absolutePath)
 		} else {
-			return listOf(Mono.MCS, "-debug", "-unsafe+", "-checked-", "optimize+", "-define:UNSAFE", programFile.absolutePath)
+			return listOf(Mono.MCS, "-debug", "-unsafe+", "-checked-", "-optimize+", "-define:UNSAFE", programFile.absolutePath)
 		}
 	}
 
