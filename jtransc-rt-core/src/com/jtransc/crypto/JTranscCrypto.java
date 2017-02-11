@@ -69,7 +69,8 @@ public class JTranscCrypto {
 		)
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);"),
-			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
+			//@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
+			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
 		})
 		@SuppressWarnings("all")
 		public void fillSecureRandomBytes(byte[] data) {
