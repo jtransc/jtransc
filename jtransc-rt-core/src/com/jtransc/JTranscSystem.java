@@ -348,9 +348,9 @@ public class JTranscSystem {
 		return JTranscSystemProperties.userHome();
 	}
 
-	static public void checkInJVM() {
+	static public void checkInJVM(String reason) {
 		if (JTranscSystem.isJTransc()) {
-			throw new RuntimeException("Not expected JTransc");
+			throw new RuntimeException("Not expected JTransc: " + reason);
 		}
 	}
 }

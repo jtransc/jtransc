@@ -7,8 +7,6 @@ public class JTranscStackTraceTest {
 
 	static public void test() {
 		StackTraceElement[] items = Thread.currentThread().getStackTrace();
-		int a = 10;
-		System.out.println(a >= 3);
 		System.out.println(items.length >= 3);
 		System.out.println(items[1].getMethodName() != null); // .contains("test")
 		System.out.println(items[2].getMethodName() != null); // .contains("main")

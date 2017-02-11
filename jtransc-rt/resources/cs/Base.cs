@@ -9,11 +9,13 @@ class N {
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
 	static public {% CLASS com.jtransc.JTranscWrapped %} wrap(object item) {
+		if (item == null) return null;
 		return {% CLASS com.jtransc.JTranscWrapped %}.wrap(item);
 	}
 
-	static public object unwrap({% CLASS com.jtransc.JTranscWrapped %} item) {
-		return {% CLASS com.jtransc.JTranscWrapped %}.unwrap(item);
+	static public object unwrap({% CLASS java.lang.Object %} item) {
+		if (item == null) return null;
+		return {% CLASS com.jtransc.JTranscWrapped %}.unwrap(({% CLASS com.jtransc.JTranscWrapped %})item);
 	}
 
 	//static public int MIN_INT32 = Int32.MinValue;
@@ -22,9 +24,27 @@ class N {
 	static readonly public long MIN_INT64 = unchecked((long)0x8000000000000000L);
 	static readonly public long MAX_INT64 = unchecked((long)0x7FFFFFFFFFFFFFFFL);
 
-
 	static public void init() {
 		//Console.WriteLine(Console.OutputEncoding.CodePage);
+	}
+
+	static public JA_L getStackTrace(int skip) {
+		var st = new System.Diagnostics.StackTrace();
+
+		var o = new JA_L(st.FrameCount, "[Ljava/lang/StackTraceElement;");
+
+		for (int n = 0; n < st.FrameCount; n++) {
+			var f = st.GetFrame(n);
+			var clazz = (f != null) ? ("" + f.GetMethod().DeclaringType) : "DummyClass";
+			var method = (f != null) ? ("" + f.GetMethod().Name) : "dummyMethod";
+			var file = (f != null) ? ("" + f.GetFileName()) : "Dummy.java";
+			var lineNumber = (f != null) ? f.GetFileLineNumber() : 0;
+			o[n] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
+				N.str(clazz), N.str(method), N.str(file), lineNumber
+			);
+		}
+
+		return o;
 	}
 
 	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
@@ -188,7 +208,11 @@ class JA_Template<T> : JA_0 {
 	public T this[int i] { get { return data[i]; } set { data[i] = value; } }
 }
 
-class JA_B : JA_Template<sbyte>  { public JA_B(sbyte[]  data, string desc = "[B") : base(data, desc) { } public JA_B(int size, string desc = "[B") : base(size, desc) { } }
+class JA_B : JA_Template<sbyte>  {
+	public JA_B(sbyte[] data, string desc = "[B") : base(data, desc) { }
+	public JA_B(int size, string desc = "[B") : base(size, desc) { }
+	public byte[] u() { return (byte[])(Array)this.data; }
+}
 class JA_C : JA_Template<ushort> { public JA_C(ushort[] data, string desc = "[C") : base(data, desc) { } public JA_C(int size, string desc = "[C") : base(size, desc) { } }
 class JA_S : JA_Template<short>  { public JA_S(short[]  data, string desc = "[S") : base(data, desc) { } public JA_S(int size, string desc = "[S") : base(size, desc) { } }
 class JA_I : JA_Template<int>    { public JA_I(int[]    data, string desc = "[I") : base(data, desc) { } public JA_I(int size, string desc = "[I") : base(size, desc) { } static public JA_I T(int[] data) { return new JA_I(data); } }

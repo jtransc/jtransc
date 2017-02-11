@@ -214,6 +214,7 @@ public class JTranscSyncIO {
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "js", value = "return N.str(IO.getCwd());"),
 			@JTranscMethodBody(target = "d", value = "return N.str(std.file.getcwd());"),
+			@JTranscMethodBody(target = "cs", value = "return N.str(System.IO.Directory.GetCurrentDirectory());"),
 		})
 		public String getCwd() {
 			return cwd;
@@ -227,7 +228,10 @@ public class JTranscSyncIO {
 			@HaxeMethodBody(target = "js", value = "untyped __js__('process.chdir({0})', p0._str);"),
 			@HaxeMethodBody(""),
 		})
-		@JTranscMethodBody(target = "d", value = "std.file.chdir(N.istr(p0));")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "d", value = "std.file.chdir(N.istr(p0));"),
+			@JTranscMethodBody(target = "cs", value = "System.IO.Directory.SetCurrentDirectory(N.istr(p0));"),
+		})
 		public void setCwd(String path) {
 			this.cwd = path;
 		}

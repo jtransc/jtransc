@@ -47,6 +47,9 @@ public class JTranscClock {
 		}
 
 		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
+		@JTranscMethodBody(target = "cs", value = {
+			"System.Threading.Thread.Sleep((int)p0);"
+		})
 		public void sleep(double ms) {
 			if (parent != null) {
 				parent.sleep(ms);

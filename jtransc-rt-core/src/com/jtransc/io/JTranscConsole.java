@@ -29,7 +29,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 	})
 	static public void log(Object v) {
-		JTranscSystem.checkInJVM();
+		JTranscSystem.checkInJVM("logObject");
 		System.out.println(v);
 	}
 
@@ -119,7 +119,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);"),
 	})
 	static public void log(float v) {
-		JTranscSystem.checkInJVM();
+		JTranscSystem.checkInJVM("logFloat");
 		System.out.println(v);
 	}
 
@@ -129,7 +129,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);"),
 	})
 	static public void log(double v) {
-		JTranscSystem.checkInJVM();
+		JTranscSystem.checkInJVM("logDouble");
 		System.out.println(v);
 	}
 
@@ -138,9 +138,12 @@ public class JTranscConsole {
 		@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");"),
 		@HaxeMethodBody("trace('' + p0);"),
 	})
-	@JTranscMethodBody(target = "js", value = "console.error('' + p0);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
+		@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
+	})
 	static public void error(Object msg) {
-		JTranscSystem.checkInJVM();
+		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
 	}
 

@@ -401,7 +401,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				val paramAnnotations = refMethod.parameterAnnotationsList[index]
 				if (paramAnnotations.contains<JTranscLiteralParam>()) {
 					val lit = (arg.value as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: ${processArg(arg)} in $context")
-					lit.value.toString()
+					lit.value.toString().template("JTranscLiteralParam")
 				} else if (paramAnnotations.contains<JTranscUnboxParam>()) {
 					val lit = (arg.value as? AstExpr.LITERAL)
 					if (lit != null) {
@@ -422,7 +422,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				else -> ""
 			}
 
-			val out = Regex("#(')?((@|\\d)+)").replace(callsiteBody) { mr ->
+			val out = Regex("#([',])?((@|\\d)+)").replace(callsiteBody) { mr ->
 				val mustQuote = mr.groupValues[1]
 				val rid = mr.groupValues[2]
 				val res = if (rid == "@") {

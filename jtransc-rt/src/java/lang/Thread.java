@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.thread.JTranscThreading;
 
@@ -65,9 +66,12 @@ public class Thread implements Runnable {
 	static private final StackTraceElement[] ST_NULL = null;
 
 	@HaxeMethodBody("return N.getStackTrace(2);")
-	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);"),
+		@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(2);"),
+	})
 	private StackTraceElement[] _getStackTrace() {
-		return ST_NULL;
+		return null;
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.yield();")
