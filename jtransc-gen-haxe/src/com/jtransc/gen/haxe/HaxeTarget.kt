@@ -550,7 +550,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			if (isInterface) {
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("extends")
 			} else {
-				if (clazz.extending != null && clazz.name.fqname != "java.lang.Object") declaration += " extends ${clazz.extending!!.targetClassFqName}"
+				val clazzExtending = clazz.extending
+				if (clazzExtending != null && clazz.name.fqname != "java.lang.Object") declaration += " extends ${clazzExtending.targetClassFqName}"
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("implements")
 			}
 

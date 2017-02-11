@@ -8,7 +8,13 @@ class N {
 	//public static readonly double DoubleNaN = 0.0d / 0.0;
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
+	static public {% CLASS com.jtransc.JTranscWrapped %} wrap(object item) {
+		return {% CLASS com.jtransc.JTranscWrapped %}.wrap(item);
+	}
 
+	static public object unwrap({% CLASS com.jtransc.JTranscWrapped %} item) {
+		return {% CLASS com.jtransc.JTranscWrapped %}.unwrap(item);
+	}
 
 	//static public int MIN_INT32 = Int32.MinValue;
 	static readonly public int MIN_INT32 = unchecked((int)0x80000000);

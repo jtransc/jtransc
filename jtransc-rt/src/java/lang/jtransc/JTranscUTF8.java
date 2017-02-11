@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class JTranscUTF8 {
 	static public char[] decode(byte[] bytes, int offset, int length) {
+		if (length <= 0) return new char[0];
 		char[] out = new char[length];
 		int o = 0;
 		int i = offset;

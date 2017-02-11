@@ -19,8 +19,8 @@ public class ProcessTest {
 		byte[] buffer = new byte[1024];
 		System.out.println("[5]");
 		int len = p.getInputStream().read(buffer);
-		String out = new String(buffer, 0, len);
 		System.out.println("len:" + len);
+		String out = new String(buffer, 0, len);
 		for (int n = 0; n < len; n++) System.out.println("c[" + n + "]:" + (int)buffer[n]);
 		System.out.println("[6]");
 		System.out.println(out);

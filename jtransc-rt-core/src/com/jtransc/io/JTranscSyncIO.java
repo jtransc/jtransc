@@ -93,8 +93,8 @@ public class JTranscSyncIO {
 				"try {",
 				"  var path = N.istr(p0);",
 				"  var attr = System.IO.File.GetAttributes(path);",
-				"  if (System.IO.File.Exists(path)) res |= 1;",
-				"  if ((attr & System.IO.FileAttributes.Normal) != 0) res |= 2;",
+				"  if (System.IO.File.Exists(path) || System.IO.Directory.Exists(path)) res |= 1;",
+				"  if ((attr & System.IO.FileAttributes.Directory) == 0) res |= 2;",
 				"  if ((attr & System.IO.FileAttributes.Directory) != 0) res |= 4;",
 				"} catch (System.IO.IOException) {",
 				"}",
@@ -124,7 +124,7 @@ public class JTranscSyncIO {
 				"return std.file.exists(N.istr2(p0));",
 			}),
 			@JTranscMethodBody(target = "cs", value = {
-				"return System.IO.File.Exists(N.istr(p0));",
+				"var path = N.istr(p0); return System.IO.File.Exists(path) || System.IO.Directory.Exists(path);",
 			}),
 		})
 		native public boolean checkAccess(String file, int access);

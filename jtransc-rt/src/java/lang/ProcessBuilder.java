@@ -16,7 +16,7 @@
 
 package java.lang;
 
-import com.jtransc.io.JTranscProcess;
+import com.jtransc.JTranscProcess;
 import com.jtransc.lang.JTranscObjects;
 
 import java.io.File;
@@ -138,8 +138,8 @@ public final class ProcessBuilder {
 
 	public Process start() throws IOException {
 		try {
-
-			return new JTranscProcess().start(
+			JTranscProcess process = ServiceLoader.load(JTranscProcess.class).iterator().next();
+			return process.start(
 				command,
 				environment,
 				JTranscObjects.toStringOrNull(directory),

@@ -1,5 +1,6 @@
-package com.jtransc.io;
+package com.jtransc.mix;
 
+import com.jtransc.JTranscProcess;
 import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscWrapped;
 import com.jtransc.annotation.JTranscAddMembers;
@@ -10,7 +11,10 @@ import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 import com.jtransc.util.JTranscCollections;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,7 @@ import java.util.Map;
 @JTranscAddMembers(target = "d", value = {
 	"ProcessPipes pipes;"
 })
-public class JTranscProcess extends Process {
+public class JTranscProcessJsDHaxe extends JTranscProcess {
 	private JTranscWrapped processWrapped;
 
 	@HaxeMethodBodyPre("" +
@@ -56,7 +60,7 @@ public class JTranscProcess extends Process {
 	private String[] cmds;
 
 	static public class Creator {
-		public JTranscProcess start(JTranscProcess process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+		public JTranscProcessJsDHaxe start(JTranscProcessJsDHaxe process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
 			process.cmds = cmds.toArray(new String[cmds.size()]);
 			if (JTranscSystem.isCpp() || JTranscSystem.isD()) {
 				process.__init();
@@ -108,8 +112,8 @@ public class JTranscProcess extends Process {
 
 	static public Creator creator = new Creator();
 
-	public Process start(List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
-		return creator.start(this, cmds, environment, dir, stdin, stdout, stderr, redirectErrorStream);
+	public Process start(List<String> cmds, Map<String, String> environment, String startDirectory, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+		return creator.start(this, cmds, environment, startDirectory, stdin, stdout, stderr, redirectErrorStream);
 	}
 
 	@Override
@@ -165,23 +169,4 @@ public class JTranscProcess extends Process {
 			return true;
 		}
 	}
-}
-
-@SuppressWarnings("unused")
-@JTranscAddMembers(target = "d", value = {
-	"public File file;",
-	"public this(File file) { this.file = file; }",
-})
-class DFileInputStream extends InputStream {
-	@Override
-	@JTranscMethodBody(target = "d", value = {
-		"if (this.file.eof) {",
-		"	return -1;",
-		"} else {",
-		"	scope b = new byte[1];",
-		"	scope o = this.file.rawRead(b);",
-		"	return (o.length >= 1) ? b[0] : -1;",
-		"}",
-	})
-	native public int read() throws IOException;
 }

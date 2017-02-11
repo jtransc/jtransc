@@ -1,4 +1,4 @@
-package com.jtransc.io;
+package com.jtransc.mix;
 
 import com.jtransc.JTranscWrapped;
 import com.jtransc.annotation.haxe.HaxeAddMembers;

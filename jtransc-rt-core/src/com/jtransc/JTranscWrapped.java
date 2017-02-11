@@ -1,5 +1,7 @@
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscAddMembersList;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
@@ -12,6 +14,13 @@ import java.util.Objects;
 	"public var _wrapped:Dynamic;",
 	"static public function wrap(value:Dynamic) { var out = new {% CLASS com.jtransc.JTranscWrapped: %}(); out._wrapped = value; return out; }",
 	"static public function unwrap(value:{% CLASS com.jtransc.JTranscWrapped: %}) { return value._wrapped; }"
+})
+@JTranscAddMembersList({
+	@JTranscAddMembers(target = "cs", value = {
+		"public object _wrapped;",
+		"static public {% CLASS com.jtransc.JTranscWrapped: %} wrap(object value) { var o = new {% CLASS com.jtransc.JTranscWrapped: %}(); o._wrapped = value; return o; }",
+		"static public object unwrap({% CLASS com.jtransc.JTranscWrapped: %} value) { return value._wrapped; }"
+	}),
 })
 @JTranscKeep
 public class JTranscWrapped {
