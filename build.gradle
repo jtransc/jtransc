@@ -180,5 +180,7 @@ task updateVersion() {
 		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/plugin-help.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
 		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
 		sed("jtransc-maven-plugin/resources/META-INF/maven/plugin.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
+		sed("README.md", 'id "com.jtransc" version "(.*)"', "id \"com.jtransc\" version \"$newversion\"")
+
 	}
 }
