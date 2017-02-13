@@ -90,11 +90,15 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
 		)
 		println(cmdAndArgs)
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
-		if (!result.success) {
-			throw RuntimeException(result.outputString + result.errorString)
+		return if (cmdAndArgs.isEmpty()) {
+			ProcessResult2(0)
+		} else {
+			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
+			if (!result.success) {
+				throw RuntimeException(result.outputString + result.errorString)
+			}
+			ProcessResult2(result)
 		}
-		return ProcessResult2(result)
 	}
 
 	open protected fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
@@ -166,10 +170,27 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val CLASS = if (clazz.isInterface) "interface" else "class"
 		val iabstract = if (clazz.isAbstract) "abstract " else ""
 		var decl = "$iabstract$CLASS ${clazz.name.targetSimpleName}"
-		if (clazz.extending != null) decl += " extends ${clazz.extending.targetClassFqName}"
-		if (clazz.implementing.isNotEmpty()) decl += " implements ${clazz.implementing.map { it.targetClassFqName }.joinToString(", ")}"
+		decl += genClassDeclExtendsImplements(clazz, kind)
 		return decl
 	}
+
+	protected open fun genClassDeclExtendsImplements(clazz: AstClass, kind: MemberTypes): String {
+		var decl = ""
+		decl += genClassDeclExtends(clazz, kind)
+		decl += genClassDeclImplements(clazz, kind)
+		return decl
+	}
+
+	protected open fun genClassDeclExtends(clazz: AstClass, kind: MemberTypes): String {
+		return if (clazz.extending != null) " extends ${clazz.extending.targetClassFqName}" else ""
+	}
+
+	protected open fun genClassDeclImplements(clazz: AstClass, kind: MemberTypes): String {
+		val implementing = getClassInterfaces(clazz)
+		return if (implementing.isNotEmpty()) " implements ${implementing.map { it.targetClassFqName }.joinToString(", ")}" else ""
+	}
+
+	protected open fun getClassInterfaces(clazz: AstClass): List<FqName> = clazz.implementing
 
 	open fun genClassBody(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
 		val members = clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == targetName.name }.flatMap { it.value.toList() }.joinToString("\n")
@@ -245,7 +266,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					line(defaultNativeBody)
 				} else if (actualMethod.body != null) {
 					line(genBody2WithFeatures(actualMethod, actualMethod.body!!))
-					if (actualMethod.isInstanceInit) line("return this;")
+					if (actualMethod.isInstanceInit) line("return " + genExprThis(AstExpr.THIS(clazz.name)) +  ";")
 				} else {
 					line(genMissingBody(actualMethod))
 				}
@@ -628,7 +649,10 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(genBodyLocal(local)) }
 	open fun genBodyLocal(local: AstLocal): Indenter = Indenter("${localDecl(local)} = ${local.type.nativeDefaultString};")
+
 	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
+	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
+
 
 	open val AstType.localDeclType: String get() = this.targetName
 
@@ -741,7 +765,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"new $ObjectArrayType(${e.counts[0].genExpr()}, \"$desc\")"
+			"new $ObjectArrayType(${e.counts[0].genExpr()}, " + quoteString(desc) + ")"
 		} else {
 			"new ${e.type.targetName}(${e.counts[0].genExpr()})"
 		}
@@ -774,8 +798,6 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String {
 		return "(${e.array.genNotNull()})${instanceAccessOperator}length"
 	}
-
-	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
 	fun AstType.resolve(): AstType = when (this) {
 		is AstType.COMMON -> this.resolve(program)
@@ -992,7 +1014,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmRethrow(stm: AstStm.RETHROW) = Indenter("""throw J__i__exception__;""")
 	open fun genStmStms(stm: AstStm.STMS) = indent { for (s in stm.stms) line(s.genStm()) }
 	open fun genStmExpr(stm: AstStm.STM_EXPR) = Indenter.single("${stm.expr.genExpr()};")
-	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID) = Indenter.single(if (context.method.methodVoidReturnThis) "return this;" else "return;")
+	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID) = Indenter.single(if (context.method.methodVoidReturnThis) "return " + genExprThis(AstExpr.THIS("Dummy".fqname)) + ";" else "return;")
 	open fun genStmReturnValue(stm: AstStm.RETURN) = Indenter.single("return ${stm.retval.genExpr()};")
 	open fun genStmWhile(stm: AstStm.WHILE) = indent {
 		line("while (${stm.cond.genExpr()})") {
@@ -1766,18 +1788,18 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	//	}
 	//}
 
-	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static)
+	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static, field = false)
 	fun buildMethod(method: AstMethod, static: Boolean): String {
 		val clazzFqname = method.containingClass.name
 		val clazz = if (static) clazzFqname.targetNameForStatic else clazzFqname.targetName
 		val name = method.targetName
-		return if (static) (clazz + buildAccessName(name, static = true)) else name
+		return if (static) (clazz + buildAccessName(name, static = true, field = false)) else name
 	}
 
 	fun buildConstructor(method: AstMethod): String {
 		val clazz = method.containingClass.name.targetName
 		val methodName = method.targetName
-		return "(new $clazz())" + buildAccessName(methodName, static = false)
+		return "(new $clazz())" + buildAccessName(methodName, static = false, field = false)
 	}
 
 	//////////////////////////////////////////////////
@@ -1878,13 +1900,15 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun FieldRef.buildField(static: Boolean): String = if (static) this.nativeStaticText else this.targetName
 	fun buildInstanceField(expr: String, field: FieldRef): String = expr + buildAccessName(program[field], static = false)
-	fun buildAccessName(field: AstField, static: Boolean): String = buildAccessName(field.targetName, static)
+	fun buildAccessName(field: AstField, static: Boolean): String = buildAccessName(field.targetName, static, field = true)
 
 	//////////////////////////////////////////////////
 	// Access to members
 	//////////////////////////////////////////////////
 
-	open fun buildAccessName(name: String, static: Boolean): String = ".$name"
+	open fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) buildStaticAccessName(name, field) else buildInstanceAccessName(name, field)
+	open fun buildStaticAccessName(name: String, field: Boolean): String = "$staticAccessOperator$name"
+	open fun buildInstanceAccessName(name: String, field: Boolean): String = "$instanceAccessOperator$name"
 
 
 	/////////////////
@@ -1896,13 +1920,13 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		line(buildStaticInit(clazzRef.name))
 	}
 
-	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + buildAccessName("SI", static = true) + "();"
+	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + buildAccessName("SI", static = true, field = false) + "();"
 
 	open fun genStaticConstructorsSorted() = indent {
 		for (sis in program.staticInitsSorted) {
 			val clazz = program[sis]
 			if (!clazz.isNative) {
-				line("${sis.name.targetNameForStatic}" + buildAccessName("SI", static = true) + "();")
+				line("${sis.name.targetNameForStatic}" + buildAccessName("SI", static = true, field = false) + "();")
 			}
 			//val sc = program[sis]?.staticConstructor
 			//if (sc != null) line(buildMethod(sc, true) + "();")

@@ -3,6 +3,8 @@
 buildscript {
 	ext.kotlin_version = kotlinVersion
 	repositories {
+		mavenLocal()
+		maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.1" }
 		mavenCentral()
 	}
 	dependencies {

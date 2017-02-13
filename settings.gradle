@@ -12,6 +12,7 @@ include (
 	'jtransc-gen-cpp',
 	'jtransc-gen-d',
 	'jtransc-gen-cs',
+	'jtransc-gen-php',
 	'jtransc-gen-js',
 	'jtransc-gradle-plugin',
 	'jtransc-annotations',

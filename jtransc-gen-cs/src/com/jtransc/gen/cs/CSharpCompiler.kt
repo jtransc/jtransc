@@ -1,4 +1,4 @@
-package com.jtransc.gen.d
+package com.jtransc.gen.cs
 
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp

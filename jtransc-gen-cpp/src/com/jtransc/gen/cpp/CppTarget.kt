@@ -786,7 +786,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	//	}
 	//}
 
-	override fun buildAccessName(name: String, static: Boolean): String = if (static) "::$name" else "->$name"
+	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) "::$name" else "->$name"
 
 	fun getTypeStringForCpp(type: AstType): String = when (type) {
 		AstType.VOID -> "void"

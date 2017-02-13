@@ -30,6 +30,7 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
 
+@SuppressWarnings("ManualArrayCopy")
 public class System {
 	static public final InputStream in = new InputStream() {
 		@Override
@@ -61,7 +62,53 @@ public class System {
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);
+	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
+		if (src instanceof boolean[]) arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length);
+		else if (src instanceof byte[]) arraycopy((byte[]) src, srcPos, (byte[]) dest, destPos, length);
+		else if (src instanceof char[]) arraycopy((char[]) src, srcPos, (char[]) dest, destPos, length);
+		else if (src instanceof short[]) arraycopy((short[]) src, srcPos, (short[]) dest, destPos, length);
+		else if (src instanceof int[]) arraycopy((int[]) src, srcPos, (int[]) dest, destPos, length);
+		else if (src instanceof long[]) arraycopy((long[]) src, srcPos, (long[]) dest, destPos, length);
+		else if (src instanceof float[]) arraycopy((float[]) src, srcPos, (float[]) dest, destPos, length);
+		else if (src instanceof double[]) arraycopy((double[]) src, srcPos, (double[]) dest, destPos, length);
+		else arraycopy((Object[]) src, srcPos, (Object[]) dest, destPos, length);
+	}
+
+	static private void arraycopy(boolean[] src, int srcPos, boolean[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(byte[] src, int srcPos, byte[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(char[] src, int srcPos, char[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(short[] src, int srcPos, short[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(int[] src, int srcPos, int[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(long[] src, int srcPos, long[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(float[] src, int srcPos, float[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(double[] src, int srcPos, double[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
+
+	static private void arraycopy(Object[] src, int srcPos, Object[] dest, int destPos, int length) {
+		for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+	}
 
 	public static int identityHashCode(Object x) {
 		return SystemInt.identityHashCode(x);

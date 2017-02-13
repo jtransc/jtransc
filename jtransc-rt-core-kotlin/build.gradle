@@ -5,10 +5,6 @@ apply plugin: "kotlin" // or apply plugin: "kotlin2js" if targeting JavaScript
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-repositories {
-	mavenCentral()
-}
-
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 	compile project(':jtransc-annotations')

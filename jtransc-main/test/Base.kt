@@ -21,7 +21,6 @@ import com.jtransc.ast.ConfigMinimizeNames
 import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.d.CSharpTarget
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.injector.Injector
 import com.jtransc.log.log
@@ -39,6 +38,7 @@ open class Base {
 	open val BACKEND = BuildBackend.ASM
 	open val TREESHAKING = true
 	open val TREESHAKING_TRACE = false
+
 	companion object {
 		const val MINIMIZE = true
 		//const val TREESHAKING = false
@@ -107,7 +107,7 @@ open class Base {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, backend: BuildBackend? = null,target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, backend: BuildBackend? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, treeShaking = treeShaking, backend = backend)
 	}
 

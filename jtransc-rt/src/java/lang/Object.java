@@ -41,6 +41,7 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")
+@JTranscAddFile(target = "php", priority = -1, process = true, prependAppend = "php/Base.php")
 @JTranscAddMembers(target = "d", value = {
 	"core.sync.mutex.Mutex __d_mutex = null;",
 })

@@ -1,16 +1,10 @@
 import big.BigTest
 import big.HelloWorldTest
-import big.MiniHelloWorldTest
 import com.jtransc.BuildBackend
-import com.jtransc.gen.d.CSharpTarget
-import com.jtransc.gen.d.DTarget
-import com.jtransc.gen.js.JsTarget
-import javatest.misc.BenchmarkTest
-import jtransc.jtransc.nativ.JTranscDNativeMixedTest
+import com.jtransc.gen.cs.CSharpTarget
 import jtransc.micro.MicroHelloWorld
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
-import threading.ThreadingTest
 
 /*
  * Copyright 2016 Carlos Ballesteros Velasco

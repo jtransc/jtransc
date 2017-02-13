@@ -442,7 +442,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun buildAccessName(name: String, static: Boolean): String = accessStr(name)
+	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = accessStr(name)
 
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 

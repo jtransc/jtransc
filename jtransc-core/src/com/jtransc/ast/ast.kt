@@ -338,6 +338,21 @@ class AstClass(
 	//var lastFieldId = 0
 	val uniqueNames = UniqueNames()
 
+	val implementingNormalized by lazy {
+		val interfaces = arrayListOf<AstClass>()
+		val supportedInterfaces = hashSetOf<AstClass>()
+
+		for (interfaceFqName in implementing) {
+			val interfase = program[interfaceFqName]
+			if (interfase !in supportedInterfaces) {
+				interfaces += interfase
+				supportedInterfaces += interfase.allInterfacesInAncestors + interfase
+			}
+		}
+
+		interfaces.map { it.name }
+	}
+
 	val ref = AstType.REF(name)
 	val astType = AstType.REF(this.name)
 	val classType: AstClassType = modifiers.classType

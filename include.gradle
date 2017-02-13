@@ -3,6 +3,12 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'kotlin'
 
+repositories {
+	mavenLocal()
+	maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.1" }
+	mavenCentral()
+}
+
 group = "${project.ext.group}"
 version = "${project.ext.jtranscVersion}"
 
