@@ -25,7 +25,7 @@ class CppTest : Base() {
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = false)
+	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = false)
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:

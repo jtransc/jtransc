@@ -9,7 +9,7 @@ public class ConcurrentCollectionsTest {
 	static public void main(String[] args) {
 		testConcurrentQueue("ConcurrentLinkedQueue", new ConcurrentLinkedQueue<>());
 		testConcurrentQueue("ConcurrentLinkedDeque", new ConcurrentLinkedDeque<>());
-		testConcurrentSet("ConcurrentSkipListSet", new ConcurrentSkipListSet<>());
+		//testConcurrentSet("ConcurrentSkipListSet", new ConcurrentSkipListSet<>());
 		testConcurrentMap("ConcurrentSkipListMap", new ConcurrentSkipListMap<>());
 		testConcurrentMap("ConcurrentHashMap", new ConcurrentHashMap<>());
 	}
