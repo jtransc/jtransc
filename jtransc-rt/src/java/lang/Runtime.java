@@ -43,7 +43,9 @@ public class Runtime {
 
 	native public boolean removeShutdownHook(Thread hook);
 
-	native public void halt(int status);
+	public void halt(int status) {
+		System.exit(status);
+	}
 
 	@Deprecated
 	native public static void runFinalizersOnExit(boolean value);
@@ -76,29 +78,50 @@ public class Runtime {
 		return new ProcessBuilder(cmdarray).environment(envp).directory(dir).start();
 	}
 
-	public native int availableProcessors();
+	public int availableProcessors() {
+		return 1;
+	}
 
-	public native long freeMemory();
+	public long freeMemory() {
+		return 8 * 1024 * 1024 * 1024L;
+	}
 
-	public native long totalMemory();
+	public long totalMemory() {
+		return 8 * 1024 * 1024 * 1024L;
+	}
 
-	public native long maxMemory();
+	public long maxMemory() {
+		return 8 * 1024 * 1024 * 1024L;
+	}
 
-	public native void gc();
+	public void gc() {
+	}
 
-	native public void runFinalization();
+	public void runFinalization() {
+	}
 
-	public native void traceInstructions(boolean on);
+	public void traceInstructions(boolean on) {
+	}
 
-	public native void traceMethodCalls(boolean on);
+	public void traceMethodCalls(boolean on) {
 
-	native public void load(String filename);
+	}
 
-	native synchronized void load0(Class<?> fromClass, String filename);
+	public void load(String filename) {
 
-	native public void loadLibrary(String libname);
+	}
 
-	native synchronized void loadLibrary0(Class<?> fromClass, String libname);
+	synchronized void load0(Class<?> fromClass, String filename) {
+
+	}
+
+	public void loadLibrary(String libname) {
+
+	}
+
+	synchronized void loadLibrary0(Class<?> fromClass, String libname) {
+
+	}
 
 	@Deprecated
 	public InputStream getLocalizedInputStream(InputStream in) {

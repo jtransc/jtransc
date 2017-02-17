@@ -1,13 +1,9 @@
 package big
 
 import android.AndroidArgsTest
-import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.util.JTranscStrings
-import javatest.KotlinCollections
-import javatest.KotlinPropertiesTest
-import javatest.KotlinStaticInitOrderTest
-import javatest.MemberCollisionsTest
+import javatest.*
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
 import javatest.lang.StringsTest
@@ -25,7 +21,6 @@ import jtransc.bug.*
 import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
-import jtransc.jtransc.JTranscSystemTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
 import java.io.BufferedReader
@@ -126,6 +121,8 @@ object BigTest {
 		KotlinStaticInitOrderTest.main(args)
 
 		MemberCollisionsTest.main(args)
+
+		ConcurrentCollectionsTest.main(args)
 	}
 
 	private fun servicesTest() {
