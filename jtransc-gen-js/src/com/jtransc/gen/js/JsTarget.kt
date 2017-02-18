@@ -61,7 +61,7 @@ class JsTarget() : GenTargetDescriptor() {
 
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
-fun hasSpecialChars(name: String): Boolean = !name.all { it.isLetterDigitOrUnderscore() }
+fun hasSpecialChars(name: String): Boolean = !name.all(Char::isLetterDigitOrUnderscore)
 fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
 @Suppress("ConvertLambdaToReference")

@@ -19,6 +19,7 @@ dependencies {
 	compile project(':jtransc-gen-d')
 	compile project(':jtransc-gen-cs')
 	compile project(':jtransc-gen-php')
+	compile project(':jtransc-gen-as3')
 
 	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	//compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
