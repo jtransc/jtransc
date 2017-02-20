@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<application xmlns="http://ns.adobe.com/air/application/24.0">
+<application xmlns="http://ns.adobe.com/air/application/{{ AIRSDK_VERSION_INT }}.0">
 	<id>HelloWorld</id>
 	<versionNumber>1</versionNumber>
 	<version>2.0</version>

@@ -96,7 +96,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
 
 	@Suppress("UNCHECKED_CAST")
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		val concatFilesTrans = copyFiles(output)
 
 		val classesIndenter = arrayListOf<Indenter>()
@@ -205,7 +205,8 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun genBodyLocal(local: AstLocal) = indent { line("var ${local.targetName} = ${local.type.nativeDefaultString};") }
+	override val AstLocal.decl: String get() = "var ${this.targetName} = ${this.type.nativeDefaultString};"
+
 	override fun genBodyTrapsPrefix() = indent { line("var J__exception__ = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(buildStaticInit(clazzRef.name))

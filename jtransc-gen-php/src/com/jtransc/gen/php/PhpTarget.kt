@@ -100,9 +100,9 @@ class PhpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		//println(program.resourcesVfs)
-		super.writeProgram(output)
+		super.writeClasses(output)
 		println(output)
 	}
 
@@ -191,28 +191,28 @@ class PhpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun genBodyLocal(local: AstLocal): Indenter = Indenter("\$${local.targetName} = ${local.type.nativeDefaultString};")
+	override val AstLocal.decl: String get() = "\$${this.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genExprParam(e: AstExpr.PARAM) = "\$" + e.argument.targetName
 	override fun genExprLocal(e: AstExpr.LOCAL) = "\$" + e.local.targetName
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String) = "\$$localName = $exprStr;"
 
-	override val AstArgument.argDecl: String get() = "\$${this.targetName}"
+	override val AstArgument.decl: String get() = "\$${this.targetName}"
 
 	override fun genMetodDecl(method: AstMethod): String {
-		val args = method.methodType.args.map { it.argDecl }
+		val args = method.methodType.args.map { it.decl }
 		val static = if (method.isStatic) "static " else ""
 		return "public ${static}function ${method.targetName}(${args.joinToString(", ")})"
 	}
 
 	override fun genExprThis(e: AstExpr.THIS): String = "\$this"
 
-	override fun genMetodDeclModifiers(method: AstMethod): String {
+	override fun genMethodDeclModifiers(method: AstMethod): String {
 		if (method.containingClass.isInterface) {
 			return if (method.isStatic) "static" else ""
 		} else {
-			var mods = super.genMetodDeclModifiers(method)
+			var mods = super.genMethodDeclModifiers(method)
 			//if (method.isStatic && (method.isOverriding || method.isClassInit)) mods += "new "
 			//if (!method.isStatic && !method.targetIsOverriding) mods += "virtual "
 			mods += "public "

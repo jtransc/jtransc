@@ -4,7 +4,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.vfs.SyncVfsFile
 
 open class SingleFileCommonGenerator(injector: Injector) : CommonGenerator(injector) {
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		output[outputFileBaseName] = genClasses(output).toString()
 	}
 }

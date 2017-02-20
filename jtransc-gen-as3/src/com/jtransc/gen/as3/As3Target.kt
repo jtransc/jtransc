@@ -5,6 +5,7 @@ import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
+import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
@@ -12,6 +13,7 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
+import com.jtransc.lang.map
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.vfs.*
@@ -68,6 +70,7 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		"else", "enum", "export", "extern",
 		"false", "final", "finally", "float", "for", "foreach", "foreach_reverse", "function",
 		"goto",
+		"internal",
 		"idouble", "if", "ifloat", "immutable", "import", "in", "inout", "int", "interface", "invariant", "ireal", "is",
 		"lazy", "long",
 		"macro", "mixin", "module",
@@ -87,16 +90,39 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		"std", "core"
 	)
 
-
-
 	override val languageRequiresDefaultInSwitch = true
 	override val defaultGenStmSwitchHasBreaks = true
 
-	override fun getClassFilename(clazz: AstClass) = clazz.fqname.replace('.', '/') + ".as"
-
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
-		return As3Compiler.genCommand(File(programFile.parentFile, "Main.as"), debug, libs)
+		return As3Compiler.genCommand(programFile.parentFile, File(programFile.parentFile, "Main.as"), debug, libs)
 	}
+
+	override fun setTemplateParamsAfterBuildingSource() {
+		super.setTemplateParamsAfterBuildingSource()
+		params["AIRSDK_VERSION_INT"] = As3Compiler.AIRSDK_VERSION_INT
+		params["BASE_CLASSES_FQNAMES"] = getClassesForStaticConstruction().map { it.name.targetName }
+		params["STATIC_CONSTRUCTORS"] = genStaticConstructorsSortedLines()
+	}
+
+	@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+	private fun _getActualFqName(name: FqName): FqName {
+		val realclass = if (name in program) program[name] else null
+		return FqName(classNames.getOrPut2(name) {
+			if (realclass?.nativeName != null) {
+				realclass!!.nativeName!!
+			} else {
+				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
+			}
+		})
+	}
+
+	//override fun getClassBaseFilename(clazz: AstClass): String = clazz.actualFqName.fqname.replace('.', '/').replace('$', '_')
+	//override fun getClassBaseFilename(clazz: AstClass): String = clazz.actualFqName.fqname.replace('.', '/').replace('$', '_')
+	override fun getClassBaseFilename(clazz: AstClass): String = clazz.fqname.replace('.', '_').replace('$', '_')
+	override fun getClassFilename(clazz: AstClass) = getClassBaseFilename(clazz) + ".as"
+
+	override val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
+	//override val FqName.targetName: String get() = this.actualFqName.fqname.replace('$', '_')
 
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val names = listOf("Main.xml")
@@ -107,59 +133,63 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		//println(program.resourcesVfs)
-		super.writeProgram(output)
+		super.writeClasses(output)
 		println(output)
 	}
 
 	override fun genField(field: AstField): Indenter = Indenter.gen {
-		var targetType = field.type.targetName
-		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
-		if (field.isStatic) targetType = "static $targetType"
+		val static = field.isStatic.map("static ", "")
 
-		line("public $targetType ${field.targetName} = ${field.type.getNull().escapedConstant};")
+		line("public ${static}var ${field.targetName}: ${field.type.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
-		val StringFqName = buildTemplateClass("java.lang.String".fqname)
-		val classesStr = super.genClasses(output)
-		line(classesStr)
-		line("class Bootstrap") {
-			for (lit in getGlobalStrings()) {
-				line("static public $StringFqName ${lit.name};")
-			}
-			line("static public void __initStrings()") {
-				for (lit in getGlobalStrings()) {
-					// STRINGLIT_
-					line("${lit.name} = N.strLitEscape(${lit.str.quote()});")
-				}
-			}
-			val entryPointFqName = program.entrypoint
-			val entryPointClass = program[entryPointFqName]
-			line("static void Main(string[] args)") {
-				line("try {")
-				indent {
-					line("N.init();")
-					line("__initStrings();")
-					line(genStaticConstructorsSorted())
-					//line(buildStaticInit(entryPointFqName))
-					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
-					line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
-				}
-				line("} catch (WrappedThrowable e) {")
-				indent {
-					line("Console.WriteLine(e.t.ToString());")
-					line("Console.WriteLine(e.ToString());")
-				}
-				line("} catch (Exception e) {")
-				indent {
-					line("Console.WriteLine(e.ToString());")
-				}
-				line("}")
-			}
+	override fun genClass(clazz: AstClass): Indenter = Indenter {
+		line("package") {
+			line(super.genClass(clazz))
 		}
 	}
+
+	//override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	//	val StringFqName = buildTemplateClass("java.lang.String".fqname)
+	//	val classesStr = super.genClasses(output)
+	//	line(classesStr)
+	//	line("class Bootstrap") {
+	//		for (lit in getGlobalStrings()) {
+	//			line("static public $StringFqName ${lit.name};")
+	//		}
+	//		line("static public void __initStrings()") {
+	//			for (lit in getGlobalStrings()) {
+	//				// STRINGLIT_
+	//				line("${lit.name} = N.strLitEscape(${lit.str.quote()});")
+	//			}
+	//		}
+	//		val entryPointFqName = program.entrypoint
+	//		val entryPointClass = program[entryPointFqName]
+	//		line("static void Main(string[] args)") {
+	//			line("try {")
+	//			indent {
+	//				line("N.init();")
+	//				line("__initStrings();")
+	//				line(genStaticConstructorsSorted())
+	//				//line(buildStaticInit(entryPointFqName))
+	//				val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
+	//				line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+	//			}
+	//			line("} catch (WrappedThrowable e) {")
+	//			indent {
+	//				line("Console.WriteLine(e.t.ToString());")
+	//				line("Console.WriteLine(e.ToString());")
+	//			}
+	//			line("} catch (Exception e) {")
+	//			indent {
+	//				line("Console.WriteLine(e.ToString());")
+	//			}
+	//			line("}")
+	//		}
+	//	}
+	//}
 
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		if (elementType is AstType.Primitive) {
@@ -169,13 +199,32 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		}
 	}
 
-	override fun genMetodDeclModifiers(method: AstMethod): String {
+	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
+		val CLASS = if (clazz.isInterface) "interface" else "class"
+		var decl = "public $CLASS ${clazz.name.targetSimpleName}"
+		decl += genClassDeclExtendsImplements(clazz, kind)
+		return decl
+	}
+
+	override val AstLocal.decl: String get() = "var ${this.targetName}: ${this.type.localDeclType} = ${this.type.nativeDefaultString};"
+	override val AstArgument.decl: String get() = "${this.targetName}: ${this.type.localDeclType}"
+
+	override fun genMetodDecl(method: AstMethod): String {
+		val args = method.methodType.args.map { it.decl }
+
+		//if (method.isInstanceInit) mods += "final "
+
+		val mods = genMethodDeclModifiers(method)
+		return "$mods function ${method.targetName}(${args.joinToString(", ")}): ${method.actualRetType.targetName}"
+	}
+
+	override fun genMethodDeclModifiers(method: AstMethod): String {
 		if (method.containingClass.isInterface) {
-			return if (method.isStatic) "static" else ""
+			return "public " + method.isStatic.map("static ", "")
 		} else {
-			var mods = super.genMetodDeclModifiers(method)
-			if (method.isStatic && (method.isOverriding || method.isClassInit)) mods += "new "
-			if (!method.isStatic && !method.targetIsOverriding) mods += "override "
+			var mods = ""
+			if (!method.isStatic && method.targetIsOverriding) mods += "override "
+			if (method.isStatic) mods += "static "
 			mods += "public "
 			return mods
 		}
@@ -203,9 +252,9 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
-	override fun N_c(str: String, from: AstType, to: AstType) = "((${to.targetName})($str))"
+	override fun N_c(str: String, from: AstType, to: AstType) = "(($str) as ${to.targetName})"
 
-	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
+	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as $BaseArrayType).length"
 	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
 	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
@@ -221,9 +270,9 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
 				line("public __AS3__CLASS_ID: int;")
-				line("public ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { this.__AS3__CLASS_ID = CLASS_ID; }")
+				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { this.__AS3__CLASS_ID = CLASS_ID; }")
 			} else {
-				line("public ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) : base(CLASS_ID) { }")
+				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { super(CLASS_ID); }")
 			}
 		}
 		if (clazz.staticConstructor != null) {
@@ -235,7 +284,7 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 				line(genSIMethodBody(clazz))
 			}
 		} else {
-			line("static public void SI():void { }")
+			line("static public function SI(): void { }")
 		}
 	}
 
@@ -263,7 +312,7 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
-		line("throw new Exception(${message.quote()});")
+		line("throw new Error(${message.quote()});")
 	}
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
@@ -276,7 +325,7 @@ class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 		}
 	}
 
-	override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun N_c_ushr(l: String, r: String) = "int((uint($l)) >> $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"

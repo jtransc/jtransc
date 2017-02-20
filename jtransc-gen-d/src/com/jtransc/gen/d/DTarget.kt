@@ -104,9 +104,9 @@ class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, listOf(), ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		//println(program.resourcesVfs)
-		super.writeProgram(output)
+		super.writeClasses(output)
 		println(output)
 	}
 

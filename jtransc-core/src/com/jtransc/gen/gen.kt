@@ -87,7 +87,7 @@ abstract class GenTargetDescriptor {
 			injector.mapInstance<CommonGenerator>(generator)
 			generator
 		}
-		log.logAndTime("Building source") { generator.buildSource() }
+		log.logAndTime("Building source") { generator.writeProgramAndFiles() }
 
 		JTranscAddLibrariesList::class.java
 
