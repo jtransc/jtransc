@@ -539,4 +539,3 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return name.hashCode();
 	}
 }
-

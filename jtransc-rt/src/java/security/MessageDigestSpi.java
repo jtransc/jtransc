@@ -27,13 +27,28 @@ public abstract class MessageDigestSpi {
 
 	protected abstract void engineUpdate(byte[] input, int offset, int len);
 
-	native public static int getTempArraySize(int len);
+	public static int getTempArraySize(int len) {
+		return 0x100;
+	}
 
-	native protected void engineUpdate(ByteBuffer input);
+	protected void engineUpdate(ByteBuffer input) {
+		while (input.hasRemaining()) {
+			engineUpdate(input.get());
+		}
+	}
 
-	protected abstract byte[] engineDigest();
+	protected byte[] engineDigest() {
+		byte[] out = new byte[engineGetDigestLength()];
+		try {
+			engineDigest(out, 0, out.length);
+		} catch (DigestException e) {
+			e.printStackTrace();
+			return new byte[0];
+		}
+		return out;
+	}
 
-	native protected int engineDigest(byte[] buf, int offset, int len) throws DigestException;
+	abstract protected int engineDigest(byte[] buf, int offset, int len) throws DigestException;
 
 	protected abstract void engineReset();
 

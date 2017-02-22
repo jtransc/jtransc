@@ -123,6 +123,8 @@ object BigTest {
 		MemberCollisionsTest.main(args)
 
 		ConcurrentCollectionsTest.main(args)
+
+		MessageDigestTest.main(args)
 	}
 
 	private fun servicesTest() {

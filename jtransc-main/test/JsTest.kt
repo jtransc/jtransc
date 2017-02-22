@@ -20,6 +20,7 @@ import big.NumberFormatTest2
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
 import javatest.MemberCollisionsTest
+import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import jtransc.ExtraKeywordsTest
@@ -36,6 +37,8 @@ class JsTest : Base() {
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
+
+	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
