@@ -663,6 +663,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 		})
 	}
 
+	override var baseElementPrefix = "jt_"
+
 	override val FqName.targetFilePath: String get() = this.targetGeneratedFqName.internalFqname + ".hx"
 	override val FqName.targetGeneratedFqPackage: String get() = _getHaxeFqName(this).packagePath
 	override val FqName.targetGeneratedFqName: FqName get() = _getHaxeFqName(this)

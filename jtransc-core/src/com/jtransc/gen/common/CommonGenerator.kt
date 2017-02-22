@@ -1569,20 +1569,28 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
-	open fun normalizeName(name: String): String {
+	protected open var baseElementPrefix = ""
+
+	enum class NameKind { PARAM, LOCAL, METHOD, FIELD }
+
+	open fun normalizeName(name: String, kind: NameKind): String {
 		if (name.isNullOrEmpty()) return ""
-		if (name !in normalizeNameCache) {
-			if (name in keywords) return normalizeName("_$name")
-			val chars = name.toCharArray()
+		val rname = when (kind) {
+			NameKind.METHOD, NameKind.FIELD -> "$baseElementPrefix$name"
+			NameKind.PARAM, NameKind.LOCAL -> name
+		}
+		if (rname !in normalizeNameCache) {
+			if (rname in keywords) return normalizeName("_$rname", kind)
+			val chars = rname.toCharArray()
 			for (i in chars.indices) {
 				var c = chars[i]
 				if (!c.isLetterDigitOrUnderscore() || c == '$') c = '_'
 				chars[i] = c
 			}
 			if (chars[0].isDigit()) chars[0] = '_'
-			normalizeNameCache[name] = String(chars)
+			normalizeNameCache[rname] = String(chars)
 		}
-		return normalizeNameCache[name]!!
+		return normalizeNameCache[rname]!!
 	}
 
 	//////////////////////////////////////////////////
@@ -1697,7 +1705,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Local names
 	//////////////////////////////////////////////////
 
-	open val LocalParamRef.targetName: String get() = normalizeName(this.name)
+	open val LocalParamRef.targetName: String get() = normalizeName(this.name, NameKind.LOCAL)
 
 	//////////////////////////////////////////////////
 	// Class names
@@ -1826,10 +1834,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				if (minimize && !realfield.keepName) {
 					allocMemberName()
 				} else {
-					val rnormalizedFieldName = normalizeName(field.name)
+					val rnormalizedFieldName = normalizeName(cleanFieldName(field.name), NameKind.FIELD)
 					// @TODO: Move to CommonNames
 					if (field !in cachedFieldNames) {
-						val fieldName = normalizedFieldName
+						//val fieldName = normalizedFieldName
+						val fieldName = rnormalizedFieldName
 						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
 
 						val clazz = program[field].containingClass
@@ -1839,11 +1848,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 						val clazzAncestors = clazz.ancestors.reversed()
 						val names = clazzAncestors.flatMap { it.fields }
-							.filter { normalizeName(it.name) == rnormalizedFieldName }
+							.filter { normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName }
 							//.filter { it.name == field.name }
 							.map { it.targetName }.toHashSet()
 						val fieldsColliding = clazz.fields.filter {
-							(it.ref == field) || (normalizeName(it.name) == rnormalizedFieldName)
+							(it.ref == field) || (normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName)
 						}.map { it.ref }
 
 						// JTranscBugInnerMethodsWithSameName.kt
