@@ -1,48 +1,26 @@
 package com.jtransc.crypto.org.bouncycastle;
 
-/**
- * implementation of SHA-1 as outlined in "Handbook of Applied Cryptography", pages 346 - 349.
- *
- * It is interesting to ponder why the, apart from the extra IV, the other difference here from MD5
- * is the "endianness" of the word processing!
- */
-public class SHA1Digest
-	extends GeneralDigest
-	implements EncodableDigest
-{
-	private static final int    DIGEST_LENGTH = 20;
+import java.util.Arrays;
 
-	private int     H1, H2, H3, H4, H5;
+public class SHA1Digest extends GeneralDigest implements EncodableDigest {
+	private static final int DIGEST_LENGTH = 20;
 
-	private int[]   X = new int[80];
-	private int     xOff;
+	private int H1, H2, H3, H4, H5;
 
-	/**
-	 * Standard constructor
-	 */
-	public SHA1Digest()
-	{
+	private int[] X = new int[80];
+	private int xOff;
+
+	public SHA1Digest() {
 		reset();
 	}
 
-	/**
-	 * Copy constructor.  This will copy the state of the provided
-	 * message digest.
-	 */
-	public SHA1Digest(SHA1Digest t)
-	{
+	public SHA1Digest(SHA1Digest t) {
 		super(t);
 
 		copyIn(t);
 	}
 
-	/**
-	 * State constructor - create a digest initialised with the state of a previous one.
-	 *
-	 * @param encodedState the encoded state from the originating digest.
-	 */
-	public SHA1Digest(byte[] encodedState)
-	{
+	public SHA1Digest(byte[] encodedState) {
 		super(encodedState);
 
 		H1 = Pack.bigEndianToInt(encodedState, 16);
@@ -52,14 +30,12 @@ public class SHA1Digest
 		H5 = Pack.bigEndianToInt(encodedState, 32);
 
 		xOff = Pack.bigEndianToInt(encodedState, 36);
-		for (int i = 0; i != xOff; i++)
-		{
+		for (int i = 0; i != xOff; i++) {
 			X[i] = Pack.bigEndianToInt(encodedState, 40 + (i * 4));
 		}
 	}
 
-	private void copyIn(SHA1Digest t)
-	{
+	private void copyIn(SHA1Digest t) {
 		H1 = t.H1;
 		H2 = t.H2;
 		H3 = t.H3;
@@ -70,50 +46,42 @@ public class SHA1Digest
 		xOff = t.xOff;
 	}
 
-	public String getAlgorithmName()
-	{
+	public String getAlgorithmName() {
 		return "SHA-1";
 	}
 
-	public int getDigestSize()
-	{
+	public int getDigestSize() {
 		return DIGEST_LENGTH;
 	}
 
 	protected void processWord(
-		byte[]  in,
-		int     inOff)
-	{
-		// Note: Inlined for performance
-//        X[xOff] = Pack.bigEndianToInt(in, inOff);
-		int n = in[  inOff] << 24;
+		byte[] in,
+		int inOff) {
+
+		int n = in[inOff] << 24;
 		n |= (in[++inOff] & 0xff) << 16;
 		n |= (in[++inOff] & 0xff) << 8;
 		n |= (in[++inOff] & 0xff);
 		X[xOff] = n;
 
-		if (++xOff == 16)
-		{
+		if (++xOff == 16) {
 			processBlock();
 		}
 	}
 
 	protected void processLength(
-		long    bitLength)
-	{
-		if (xOff > 14)
-		{
+		long bitLength) {
+		if (xOff > 14) {
 			processBlock();
 		}
 
-		X[14] = (int)(bitLength >>> 32);
-		X[15] = (int)(bitLength & 0xffffffff);
+		X[14] = (int) (bitLength >>> 32);
+		X[15] = (int) (bitLength & 0xffffffff);
 	}
 
 	public int doFinal(
-		byte[]  out,
-		int     outOff)
-	{
+		byte[] out,
+		int outOff) {
 		finish();
 
 		Pack.intToBigEndian(H1, out, outOff);
@@ -127,11 +95,7 @@ public class SHA1Digest
 		return DIGEST_LENGTH;
 	}
 
-	/**
-	 * reset the chaining variables
-	 */
-	public void reset()
-	{
+	public void reset() {
 		super.reset();
 
 		H1 = 0x67452301;
@@ -141,73 +105,41 @@ public class SHA1Digest
 		H5 = 0xc3d2e1f0;
 
 		xOff = 0;
-		for (int i = 0; i != X.length; i++)
-		{
-			X[i] = 0;
-		}
+		Arrays.fill(X, 0);
 	}
 
-	//
-	// Additive constants
-	//
-	private static final int    Y1 = 0x5a827999;
-	private static final int    Y2 = 0x6ed9eba1;
-	private static final int    Y3 = 0x8f1bbcdc;
-	private static final int    Y4 = 0xca62c1d6;
+	private static final int Y1 = 0x5a827999;
+	private static final int Y2 = 0x6ed9eba1;
+	private static final int Y3 = 0x8f1bbcdc;
+	private static final int Y4 = 0xca62c1d6;
 
-	private int f(
-		int    u,
-		int    v,
-		int    w)
-	{
+	private int f(int u, int v, int w) {
 		return ((u & v) | ((~u) & w));
 	}
 
-	private int h(
-		int    u,
-		int    v,
-		int    w)
-	{
+	private int h(int u, int v, int w) {
 		return (u ^ v ^ w);
 	}
 
-	private int g(
-		int    u,
-		int    v,
-		int    w)
-	{
+	private int g(int u, int v, int w) {
 		return ((u & v) | (u & w) | (v & w));
 	}
 
-	protected void processBlock()
-	{
-		//
-		// expand 16 word block into 80 word block.
-		//
-		for (int i = 16; i < 80; i++)
-		{
+	protected void processBlock() {
+		for (int i = 16; i < 80; i++) {
 			int t = X[i - 3] ^ X[i - 8] ^ X[i - 14] ^ X[i - 16];
 			X[i] = t << 1 | t >>> 31;
 		}
 
-		//
-		// set up working variables.
-		//
-		int     A = H1;
-		int     B = H2;
-		int     C = H3;
-		int     D = H4;
-		int     E = H5;
+		int A = H1;
+		int B = H2;
+		int C = H3;
+		int D = H4;
+		int E = H5;
 
-		//
-		// round 1
-		//
 		int idx = 0;
 
-		for (int j = 0; j < 4; j++)
-		{
-			// E = rotateLeft(A, 5) + f(B, C, D) + E + X[idx++] + Y1
-			// B = rotateLeft(B, 30)
+		for (int j = 0; j < 4; j++) {
 			E += (A << 5 | A >>> 27) + f(B, C, D) + X[idx++] + Y1;
 			B = B << 30 | B >>> 2;
 
@@ -224,13 +156,7 @@ public class SHA1Digest
 			C = C << 30 | C >>> 2;
 		}
 
-		//
-		// round 2
-		//
-		for (int j = 0; j < 4; j++)
-		{
-			// E = rotateLeft(A, 5) + h(B, C, D) + E + X[idx++] + Y2
-			// B = rotateLeft(B, 30)
+		for (int j = 0; j < 4; j++) {
 			E += (A << 5 | A >>> 27) + h(B, C, D) + X[idx++] + Y2;
 			B = B << 30 | B >>> 2;
 
@@ -247,13 +173,7 @@ public class SHA1Digest
 			C = C << 30 | C >>> 2;
 		}
 
-		//
-		// round 3
-		//
-		for (int j = 0; j < 4; j++)
-		{
-			// E = rotateLeft(A, 5) + g(B, C, D) + E + X[idx++] + Y3
-			// B = rotateLeft(B, 30)
+		for (int j = 0; j < 4; j++) {
 			E += (A << 5 | A >>> 27) + g(B, C, D) + X[idx++] + Y3;
 			B = B << 30 | B >>> 2;
 
@@ -270,13 +190,7 @@ public class SHA1Digest
 			C = C << 30 | C >>> 2;
 		}
 
-		//
-		// round 4
-		//
-		for (int j = 0; j <= 3; j++)
-		{
-			// E = rotateLeft(A, 5) + h(B, C, D) + E + X[idx++] + Y4
-			// B = rotateLeft(B, 30)
+		for (int j = 0; j < 4; j++) {
 			E += (A << 5 | A >>> 27) + h(B, C, D) + X[idx++] + Y4;
 			B = B << 30 | B >>> 2;
 
@@ -293,38 +207,30 @@ public class SHA1Digest
 			C = C << 30 | C >>> 2;
 		}
 
-
 		H1 += A;
 		H2 += B;
 		H3 += C;
 		H4 += D;
 		H5 += E;
 
-		//
-		// reset start of the buffer.
-		//
 		xOff = 0;
-		for (int i = 0; i < 16; i++)
-		{
+		for (int i = 0; i < 16; i++) {
 			X[i] = 0;
 		}
 	}
 
-	public Memoable copy()
-	{
+	public Memoable copy() {
 		return new SHA1Digest(this);
 	}
 
-	public void reset(Memoable other)
-	{
-		SHA1Digest d = (SHA1Digest)other;
+	public void reset(Memoable other) {
+		SHA1Digest d = (SHA1Digest) other;
 
 		super.copyIn(d);
 		copyIn(d);
 	}
 
-	public byte[] getEncodedState()
-	{
+	public byte[] getEncodedState() {
 		byte[] state = new byte[40 + xOff * 4];
 
 		super.populateState(state);
@@ -336,8 +242,7 @@ public class SHA1Digest
 		Pack.intToBigEndian(H5, state, 32);
 		Pack.intToBigEndian(xOff, state, 36);
 
-		for (int i = 0; i != xOff; i++)
-		{
+		for (int i = 0; i != xOff; i++) {
 			Pack.intToBigEndian(X[i], state, 40 + (i * 4));
 		}
 

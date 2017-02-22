@@ -1,13 +1,5 @@
 package com.jtransc.crypto.org.bouncycastle;
 
-public interface ExtendedDigest
-	extends Digest
-{
-	/**
-	 * Return the size in bytes of the internal buffer the digest applies it's compression
-	 * function to.
-	 *
-	 * @return byte length of the digests internal buffer.
-	 */
+public interface ExtendedDigest extends Digest {
 	public int getByteLength();
 }
