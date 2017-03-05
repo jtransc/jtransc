@@ -98,3 +98,31 @@ You can find it in [jtransc-intellij-plugin](https://github.com/jtransc/jtransc/
 
 Eventually that intermediate AST will be able to be generated or consumed.
 So others could generate that without JVM and others could generate other targets from that AST directly without all the complexities of stack-based IRs.
+
+##Requirements:
+- Haxe 3.4.0
+- NekoVM 2.0.0
+- Lime 3.7.4
+- hxcpp 3.4.49
+- NodeJS 6.9.5 with npm
+
+##Install
+####Windows
+######Remember: antivirus may delete this tools.
+- Download [Haxe](http://haxe.org/download/) binaries
+- Download [NekoVM](http://nekovm.org/download/) binaries
+- Add in environment variable HAXEPATH = "path/to/haxe" and NEKO_INSTPATH = "path/to/neko" 
+- Add in Path HAXEPATH and NEKO_INSTPATH
+###### With installation package Haxe and NekoVM not needed.
+- Set path to haxelib "haxelib setup"
+- Install [Lime](http://www.openfl.org/builds/lime/) "haxelib install lime 3.7.4"
+- Install [hxcpp](http://nmehost.com/hxcpp/) "haxelib install hxcpp 3.4.49"
+- Install NodeJS with npm
+- haxelib run lime setup
+- Download [DMD](https://dlang.org/download.html#dmd) dmd-2.073.1.exe
+- Install DMD with all extras
+###### [Read more about clang install](http://blog.johannesmp.com/2015/09/01/installing-clang-on-windows-pt2)
+- Install [Clang](http://releases.llvm.org/download.html) LLVM-3.7.0-rc3-win64.exe (3.7.1, 3.8, 3.9 working from MSVS only)
+- Download [mingw-w64](https://sourceforge.net/projects/mingw-w64/files/) 5.1.0 -> x86_64-posix-seh
+- Unzip mingw-w64 to "C:\" (in clang hardcoded path "C:\mingw64\bin")
+- Add in Path "C:\mingw64\bin"
