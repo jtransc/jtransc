@@ -22,7 +22,6 @@ buildscript {
 
 repositories {
 	mavenLocal()
-	maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.1" }
 	mavenCentral()
 }
 

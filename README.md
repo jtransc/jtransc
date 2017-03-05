@@ -12,6 +12,12 @@ JTRANSC
 
 You can find documentation at the [wiki](http://docs.jtransc.com/).
 
+# Support this project
+
+Along JTransc, I'm writting a set of libraries to be able to use JTransc.
+
+[https://github.com/soywiz/korlibs](https://github.com/soywiz/korlibs)
+
 # What is this?
 
 JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
@@ -92,7 +98,3 @@ You can find it in [jtransc-intellij-plugin](https://github.com/jtransc/jtransc/
 
 Eventually that intermediate AST will be able to be generated or consumed.
 So others could generate that without JVM and others could generate other targets from that AST directly without all the complexities of stack-based IRs.
-
-## Sponsored by:
-
-![Akamon Entertainment](extra/akamon.png)

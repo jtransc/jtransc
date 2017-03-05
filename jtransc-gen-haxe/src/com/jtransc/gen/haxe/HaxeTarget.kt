@@ -143,9 +143,9 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 	val mergedAssetsVfs by lazy { LocalVfs(mergedAssetsFolder!!) }
 	//override val outputFile2 = configOutputFile2.file
 
-	override fun buildSource() {
+	override fun writeProgramAndFiles() {
 		_write()
-		setInfoAfterBuildingSource()
+		setTemplateParamsAfterBuildingSource()
 	}
 
 	fun haxeCopyEmbeddedResourcesToFolder(assetsFolder: File?) {
@@ -349,7 +349,8 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 
 	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
 
-	override fun genBodyLocal(local: AstLocal): Indenter = indent { line("var ${local.targetName}: ${local.type.targetName} = ${local.type.nativeDefaultString};") }
+	override val AstLocal.decl: String get() = "var ${this.targetName}: ${this.type.targetName} = ${this.type.nativeDefaultString};"
+
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
 	override fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
 		line(buildStaticInit(clazzRef.name))
@@ -657,10 +658,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			} else if (ENABLED_MINIFY_CLASSES && !realclass.keepName) {
 				minClassPrefix + allocClassName()
 			} else {
-				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map { it.decapitalize() }, "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
+				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
 			}
 		})
 	}
+
+	override var baseElementPrefix = "jt_"
 
 	override val FqName.targetFilePath: String get() = this.targetGeneratedFqName.internalFqname + ".hx"
 	override val FqName.targetGeneratedFqPackage: String get() = _getHaxeFqName(this).packagePath

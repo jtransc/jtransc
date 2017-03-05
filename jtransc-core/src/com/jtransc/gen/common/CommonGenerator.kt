@@ -27,6 +27,7 @@ import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
+import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
 import com.jtransc.vfs.SyncVfsFile
@@ -77,10 +78,9 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val context = AstGenContext()
 	val refs = References()
 
-	open fun buildSource(): Unit {
-		val targetFolder = configTargetFolder.targetFolder
-		writeProgram(targetFolder)
-		setInfoAfterBuildingSource()
+	open fun writeProgramAndFiles(): Unit {
+		writeClasses(configTargetFolder.targetFolder)
+		setTemplateParamsAfterBuildingSource()
 	}
 
 	open fun compile(): ProcessResult2 {
@@ -89,11 +89,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			debug = settings.debug,
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
 		)
-		println(cmdAndArgs)
+		println(cmdAndArgs.joinToString(" "))
 		return if (cmdAndArgs.isEmpty()) {
 			ProcessResult2(0)
 		} else {
-			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs)
+			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true))
 			if (!result.success) {
 				throw RuntimeException(result.outputString + result.errorString)
 			}
@@ -118,7 +118,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun writeProgram(output: SyncVfsFile) {
+	open fun writeClasses(output: SyncVfsFile) {
 	}
 
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
@@ -229,15 +229,15 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genMetodDecl(method: AstMethod): String {
-		val args = method.methodType.args.map { it.argDecl }
+		val args = method.methodType.args.map { it.decl }
 
 		//if (method.isInstanceInit) mods += "final "
 
-		val mods = genMetodDeclModifiers(method)
+		val mods = genMethodDeclModifiers(method)
 		return "$mods ${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
 	}
 
-	open fun genMetodDeclModifiers(method: AstMethod): String {
+	open fun genMethodDeclModifiers(method: AstMethod): String {
 		var mods = ""
 		if (!method.isStatic && method.targetIsOverriding) mods += "override "
 		if (method.isStatic) mods += "static "
@@ -647,8 +647,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun resetLocalsPrefix() = Unit
 	open fun genLocalsPrefix(): Indenter = indent { }
-	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(genBodyLocal(local)) }
-	open fun genBodyLocal(local: AstLocal): Indenter = Indenter("${localDecl(local)} = ${local.type.nativeDefaultString};")
+	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(local.decl) }
 
 	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
 	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
@@ -656,8 +655,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val AstType.localDeclType: String get() = this.targetName
 
-	open fun localDecl(local: AstLocal) = "${local.type.localDeclType} ${local.targetName}"
-	open val AstArgument.argDecl: String get() = "${this.type.localDeclType} ${this.targetName}"
+	open val AstLocal.decl: String get() = "${this.type.localDeclType} ${this.targetName} = ${this.type.nativeDefaultString};"
+	open val AstArgument.decl: String get() = "${this.type.localDeclType} ${this.targetName}"
 
 	open fun genStmSetFieldStatic(stm: AstStm.SET_FIELD_STATIC): Indenter = indent {
 		refs.add(stm.clazz)
@@ -1469,7 +1468,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		)
 	}
 
-	open fun setInfoAfterBuildingSource() {
+	open fun setTemplateParamsAfterBuildingSource() {
 		params["entryPointFile"] = entryPointFilePath
 		params["entryPointClass"] = entryPointClass.targetName
 	}
@@ -1570,20 +1569,28 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
-	open fun normalizeName(name: String): String {
+	protected open var baseElementPrefix = ""
+
+	enum class NameKind { PARAM, LOCAL, METHOD, FIELD }
+
+	open fun normalizeName(name: String, kind: NameKind): String {
 		if (name.isNullOrEmpty()) return ""
-		if (name !in normalizeNameCache) {
-			if (name in keywords) return normalizeName("_$name")
-			val chars = name.toCharArray()
+		val rname = when (kind) {
+			NameKind.METHOD, NameKind.FIELD -> "$baseElementPrefix$name"
+			NameKind.PARAM, NameKind.LOCAL -> name
+		}
+		if (rname !in normalizeNameCache) {
+			if (rname in keywords) return normalizeName("_$rname", kind)
+			val chars = rname.toCharArray()
 			for (i in chars.indices) {
 				var c = chars[i]
 				if (!c.isLetterDigitOrUnderscore() || c == '$') c = '_'
 				chars[i] = c
 			}
 			if (chars[0].isDigit()) chars[0] = '_'
-			normalizeNameCache[name] = String(chars)
+			normalizeNameCache[rname] = String(chars)
 		}
-		return normalizeNameCache[name]!!
+		return normalizeNameCache[rname]!!
 	}
 
 	//////////////////////////////////////////////////
@@ -1698,7 +1705,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	// Local names
 	//////////////////////////////////////////////////
 
-	open val LocalParamRef.targetName: String get() = normalizeName(this.name)
+	open val LocalParamRef.targetName: String get() = normalizeName(this.name, NameKind.LOCAL)
 
 	//////////////////////////////////////////////////
 	// Class names
@@ -1827,10 +1834,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				if (minimize && !realfield.keepName) {
 					allocMemberName()
 				} else {
-					val rnormalizedFieldName = normalizeName(field.name)
+					val rnormalizedFieldName = normalizeName(cleanFieldName(field.name), NameKind.FIELD)
 					// @TODO: Move to CommonNames
 					if (field !in cachedFieldNames) {
-						val fieldName = normalizedFieldName
+						//val fieldName = normalizedFieldName
+						val fieldName = rnormalizedFieldName
 						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
 
 						val clazz = program[field].containingClass
@@ -1840,11 +1848,11 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 						val clazzAncestors = clazz.ancestors.reversed()
 						val names = clazzAncestors.flatMap { it.fields }
-							.filter { normalizeName(it.name) == rnormalizedFieldName }
+							.filter { normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName }
 							//.filter { it.name == field.name }
 							.map { it.targetName }.toHashSet()
 						val fieldsColliding = clazz.fields.filter {
-							(it.ref == field) || (normalizeName(it.name) == rnormalizedFieldName)
+							(it.ref == field) || (normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName)
 						}.map { it.ref }
 
 						// JTranscBugInnerMethodsWithSameName.kt
@@ -1922,14 +1930,31 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + buildAccessName("SI", static = true, field = false) + "();"
 
+	open fun getClassesForStaticConstruction(): List<AstClass> = program.staticInitsSorted.map { program[it]!! }.filter { !it.isNative }
+
+	open fun genStaticConstructorsSortedLines(): List<String> {
+		return getClassesForStaticConstruction().map { "${it.name.targetNameForStatic}" + buildAccessName("SI", static = true, field = false) + "();" }
+	}
+
 	open fun genStaticConstructorsSorted() = indent {
-		for (sis in program.staticInitsSorted) {
-			val clazz = program[sis]
-			if (!clazz.isNative) {
-				line("${sis.name.targetNameForStatic}" + buildAccessName("SI", static = true, field = false) + "();")
-			}
-			//val sc = program[sis]?.staticConstructor
-			//if (sc != null) line(buildMethod(sc, true) + "();")
+		for (line in genStaticConstructorsSortedLines()) {
+			line(line)
 		}
 	}
+
+	open val FqName.actualFqName: FqName get() = this
+	val AstClass.actualFqName: FqName get() = this.name.actualFqName
+
+	//open fun getActualFqName(name: FqName): FqName {
+	//	/*
+	//	val realclass = if (name in program) program[name] else null
+	//	return FqName(classNames.getOrPut2(name) {
+	//		if (realclass?.nativeName != null) {
+	//			realclass!!.nativeName!!
+	//		} else {
+	//			FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
+	//		}
+	//	})
+	//	*/
+	//}
 }

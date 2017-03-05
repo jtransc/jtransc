@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<application xmlns="http://ns.adobe.com/air/application/{{ AIRSDK_VERSION_INT }}.0">
+	<id>HelloWorld</id>
+	<versionNumber>1</versionNumber>
+	<version>2.0</version>
+	<filename>Hello World</filename>
+	<name>Example Co. AIR Hello World</name>
+	<initialWindow>
+		<title>Hello World</title>
+		<content>Main.swf</content>
+		<!--
+		<visible>true</visible>
+		-->
+		<visible>false</visible>
+		<minSize>320 240</minSize>
+	</initialWindow>
+	<installFolder>Example Co/Hello World</installFolder>
+	<customUpdateUI>true</customUpdateUI>
+	<allowBrowserInvocation>false</allowBrowserInvocation>
+</application>

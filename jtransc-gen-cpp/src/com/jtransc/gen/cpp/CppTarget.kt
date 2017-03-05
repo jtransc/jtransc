@@ -194,7 +194,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 	}
 
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		val arrayTypes = listOf(
 			"JA_B" to "int8_t",
 			"JA_Z" to "int8_t",
@@ -549,7 +549,8 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	override fun processCallArg(e: AstExpr, str: String) = "((" + e.type.cppString + ")(" + str + "))"
-	override fun genBodyLocal(local: AstLocal) = Indenter("${local.type.cppString} ${local.targetName} = ${local.type.nativeDefaultString};")
+
+	override val AstLocal.decl: String get() = "${this.type.cppString} ${this.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()}.get())->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
@@ -842,7 +843,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	fun getNativeName(field: FieldRef): String {
-		return getClassNameAllocator(field.ref.containingClass).allocate(field.ref) { "F_" + normalizeName(field.ref.name + "_" + field.ref.type.mangle()) }
+		return getClassNameAllocator(field.ref.containingClass).allocate(field.ref) { "F_" + normalizeName(field.ref.name + "_" + field.ref.type.mangle(), NameKind.FIELD) }
 	}
 
 	override val AstMethodRef.objectToCache: Any get() = this

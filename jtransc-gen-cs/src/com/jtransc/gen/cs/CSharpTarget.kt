@@ -112,9 +112,9 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
-	override fun writeProgram(output: SyncVfsFile) {
+	override fun writeClasses(output: SyncVfsFile) {
 		//println(program.resourcesVfs)
-		super.writeProgram(output)
+		super.writeClasses(output)
 		println(output)
 	}
 
@@ -207,11 +207,11 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	}
 
 
-	override fun genMetodDeclModifiers(method: AstMethod): String {
+	override fun genMethodDeclModifiers(method: AstMethod): String {
 		if (method.containingClass.isInterface) {
 			return if (method.isStatic) "static" else ""
 		} else {
-			var mods = super.genMetodDeclModifiers(method)
+			var mods = super.genMethodDeclModifiers(method)
 			if (method.isStatic && (method.isOverriding || method.isClassInit)) mods += "new "
 			if (!method.isStatic && !method.targetIsOverriding) mods += "virtual "
 			mods += "public "

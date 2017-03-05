@@ -16,19 +16,34 @@
 
 package java.security;
 
+import com.jtransc.crypto.org.bouncycastle.GeneralDigestAdaptor;
+import com.jtransc.crypto.org.bouncycastle.MD5Digest;
+import com.jtransc.crypto.org.bouncycastle.SHA1Digest;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 // MD2, MD5, SHA-1, SHA-256, SHA-384, SHA-512
 public abstract class MessageDigest extends MessageDigestSpi {
+	final private String algorithm;
+
 	protected MessageDigest(String algorithm) {
+		this.algorithm = algorithm;
 	}
 
-	native public static MessageDigest getInstance(String algorithm) throws NoSuchAlgorithmException;
+	public static MessageDigest getInstance(String algorithm) throws NoSuchAlgorithmException {
+		if ("MD5".equalsIgnoreCase(algorithm)) return new GeneralDigestAdaptor(new MD5Digest());
+		if ("SHA1".equalsIgnoreCase(algorithm)) return new GeneralDigestAdaptor(new SHA1Digest());
+		throw new NoSuchAlgorithmException(algorithm);
+	}
 
-	native public static MessageDigest getInstance(String algorithm, String provider) throws NoSuchAlgorithmException, NoSuchProviderException;
+	public static MessageDigest getInstance(String algorithm, String provider) throws NoSuchAlgorithmException, NoSuchProviderException {
+		return getInstance(algorithm);
+	}
 
-	native public static MessageDigest getInstance(String algorithm, Provider provider) throws NoSuchAlgorithmException;
+	public static MessageDigest getInstance(String algorithm, Provider provider) throws NoSuchAlgorithmException {
+		return getInstance(algorithm);
+	}
 
 	native public final Provider getProvider();
 
@@ -39,32 +54,51 @@ public abstract class MessageDigest extends MessageDigestSpi {
 		update(tempBuffer, 0, 1);
 	}
 
-	abstract public void update(byte[] input, int offset, int len);
+	public void update(byte[] input, int offset, int len) {
+		engineUpdate(input, offset, len);
+	}
 
 	public void update(byte[] input) {
 		update(input, 0, input.length);
 	}
 
-	native public final void update(ByteBuffer input);
+	public final void update(ByteBuffer input) {
+		engineUpdate(input);
+	}
 
-	native public byte[] digest();
+	public byte[] digest() {
+		return engineDigest();
+	}
 
-	native public int digest(byte[] buf, int offset, int len) throws DigestException;
+	public int digest(byte[] buf, int offset, int len) throws DigestException {
+		return engineDigest(buf, offset, len);
+	}
 
-	native public byte[] digest(byte[] input);
+	public byte[] digest(byte[] input) {
+		engineUpdate(input, 0, input.length);
+		return engineDigest();
+	}
 
-	native public String toString();
+	public String toString() {
+		return algorithm;
+	}
 
 	public static boolean isEqual(byte[] digesta, byte[] digestb) {
 		// @TODO: This should execute in constant time either it works or not to avoid timing attacks on secure contexts
 		return Arrays.equals(digesta, digestb);
 	}
 
-	native public void reset();
+	public void reset() {
+		engineReset();
+	}
 
-	native public final String getAlgorithm();
+	public final String getAlgorithm() {
+		return algorithm;
+	}
 
-	native public final int getDigestLength();
+	public final int getDigestLength() {
+		return engineGetDigestLength();
+	}
 
 	native public Object clone() throws CloneNotSupportedException;
 }

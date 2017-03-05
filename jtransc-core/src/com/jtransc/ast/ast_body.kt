@@ -72,6 +72,7 @@ class TempAstLocalFactory {
 
 data class AstLocal(val index: Int, override val name: String, val type: AstType) : LocalRef {
 	constructor(index: Int, type: AstType) : this(index, "v$index", type)
+
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
 	val writes = arrayListOf<AstStm.SET_LOCAL>()
@@ -81,13 +82,8 @@ data class AstLocal(val index: Int, override val name: String, val type: AstType
 	val readCount: Int get() = reads.size
 	val isUsed: Boolean get() = (writesCount != 0) || (readCount != 0)
 
-	fun write(set: AstStm.SET_LOCAL) {
-		writes += set
-	}
-
-	fun read(ref: AstExpr.LOCAL) {
-		reads += ref
-	}
+	fun write(set: AstStm.SET_LOCAL) = run { writes += set }
+	fun read(ref: AstExpr.LOCAL) = run { reads += ref }
 }
 
 fun AstType.local(name: String, index: Int = 0) = AstExpr.LOCAL(AstLocal(index, name, this))
@@ -482,7 +478,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class INVOKE_DYNAMIC_METHOD(
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef,
-	    var extraArgCount: Int
+		var extraArgCount: Int
 	) : AstExpr() {
 		var startArgs = listOf<AstExpr>()
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
@@ -564,7 +560,7 @@ object AstExprUtils {
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
 		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
 			bootstrapMethodRef.name == "metafactory"
-		) {
+			) {
 			val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
 			val interfaceMethodType = literals[0].value as AstType.METHOD
 			val methodHandle = literals[1].value as AstMethodHandle
