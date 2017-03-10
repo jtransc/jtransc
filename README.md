@@ -111,7 +111,7 @@ So others could generate that without JVM and others could generate other target
 ##Install
 
 ####Windows
-- Download [Haxe](http://haxe.org/download/) binaries
+- Download [Haxe](https://haxe.org/download/) binaries
 - Download [NekoVM](http://nekovm.org/download/) binaries
 - Add in environment variable HAXEPATH = "path/to/haxe" and NEKO_INSTPATH = "path/to/neko" 
 - Add in Path HAXEPATH and NEKO_INSTPATH # With installation package Haxe and NekoVM not needed.
@@ -126,5 +126,5 @@ So others could generate that without JVM and others could generate other target
 - Add in Path "path/to/mingw64"
 
 ######Comments
-- Antivirus may delete this tools.
+- Antivirus may delete this tools, e.g. Comodo Antivirus and Windows Defender.
 - Clang used MSVS. g++ most stable choose, but need delete clang from Path.
