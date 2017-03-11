@@ -99,32 +99,42 @@ You can find it in [jtransc-intellij-plugin](https://github.com/jtransc/jtransc/
 Eventually that intermediate AST will be able to be generated or consumed.
 So others could generate that without JVM and others could generate other targets from that AST directly without all the complexities of stack-based IRs.
 
-##Requirements:
+## Tool dependencies:
+
+### For the Haxe target:
 - Haxe 3.4.0
 - NekoVM 2.0.0
 - Lime 3.7.4
 - hxcpp 3.4.49
+
+### For Node.JS running:
 - NodeJS 6.9.5 with npm
+
+### For D target:
 - DMD2 or GDC or LDC
+
+### For C++ target:
 - Clang++ or g++
 
-##Install
+### Windows
 
-####Windows
-- Download [Haxe](http://haxe.org/download/) binaries
-- Download [NekoVM](http://nekovm.org/download/) binaries
-- Add in environment variable HAXEPATH = "path/to/haxe" and NEKO_INSTPATH = "path/to/neko" 
-- Add in Path HAXEPATH and NEKO_INSTPATH # With installation package Haxe and NekoVM not needed.
-- Set path to haxelib "haxelib setup"
-- Install [Lime](http://www.openfl.org/builds/lime/) "haxelib install lime 3.7.4"
-- Install [hxcpp](http://nmehost.com/hxcpp/) "haxelib install hxcpp 3.4.49"
-- Install NodeJS with npm
-- haxelib run lime setup
+#### Installing Haxe
+- Install [Haxe](https://haxe.org/download/) from here
+- When not using an installer, please grab NekoVM binaries too [NekoVM](http://nekovm.org/download)
+- Add HAXEPATH environment variable if you are not using an installer: "path/to/haxe" and NEKO_INSTPATH = "path/to/neko" 
+- Add in Path HAXEPATH and NEKO_INSTPATH # With installation package Haxe and NekoVM not needed
+- Set path to haxelib running "haxelib setup" command
+- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 3.7.4`
+- Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.49`
+- Run `haxelib run lime setup`
+
+#### Installing Node.JS
+- Install [NodeJS + npm](https://nodejs.org/en/)
+
+#### Installing D
 - Download [DMD](https://dlang.org/download.html#dmd) dmd-2.073.1.exe
 - Install DMD with all extras
-- Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v6.3.0 -> x68_64-posix-seh Revision 1
-- Add in Path "path/to/mingw64"
 
-######Comments
-- Antivirus may delete this tools.
-- Clang used MSVS. g++ most stable choose, but need delete clang from Path.
+#### Installing C++ suitable compiler
+- Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v6.3.0 -> x68_64-posix-seh Revision 1
+- Add "path/to/mingw64" to `PATH` environment variable
