@@ -123,6 +123,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	fun generateTypeTableFooter() = Indenter.gen {
+		var objectClassId = program["java.lang.Object".fqname].classId
 		for (clazz in ordereredClasses) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int[${ids.size}]{${ids.joinToString(", ")}} };")
@@ -136,7 +137,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			for (n in 0 until lastClassId) {
 				val clazz = classesById[n]
 				if (clazz != null) {
-					line("${clazz.cppName}::TABLE_INFO ,")
+					line("${clazz.cppName}::TABLE_INFO,")
+				} else if (n == 1) { // Special case for the array base class, which is also an object
+					line("{ 1, new int[1]{${objectClassId}} },")
 				} else {
 					line("TABLE_INFO_NULL,")
 				}

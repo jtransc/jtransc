@@ -89,13 +89,16 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			debug = settings.debug,
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
 		)
-		println(cmdAndArgs.joinToString(" "))
+
+		val cmdAndArgsStr = cmdAndArgs.joinToString(" ")
+
+		println(cmdAndArgsStr)
 		return if (cmdAndArgs.isEmpty()) {
 			ProcessResult2(0)
 		} else {
 			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true))
 			if (!result.success) {
-				throw RuntimeException(result.outputString + result.errorString)
+				throw RuntimeException("success=${result.success} exitCode=${result.exitCode} output='${result.outputString}' error='${result.errorString}' folder=${configTargetFolder.targetFolder.realpathOS} command='$cmdAndArgsStr'")
 			}
 			ProcessResult2(result)
 		}
@@ -266,7 +269,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					line(defaultNativeBody)
 				} else if (actualMethod.body != null) {
 					line(genBody2WithFeatures(actualMethod, actualMethod.body!!))
-					if (actualMethod.isInstanceInit) line("return " + genExprThis(AstExpr.THIS(clazz.name)) +  ";")
+					if (actualMethod.isInstanceInit) line("return " + genExprThis(AstExpr.THIS(clazz.name)) + ";")
 				} else {
 					line(genMissingBody(actualMethod))
 				}
