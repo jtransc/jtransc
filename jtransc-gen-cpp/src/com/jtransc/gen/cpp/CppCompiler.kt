@@ -13,7 +13,7 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (gpp or clang), please install one of them and put in the path.")
+		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (gpp or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)
 	}
 
@@ -24,12 +24,16 @@ object CppCompiler {
 			cmdAndArgs += "-std=c++0x"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 			if (debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (debug) "-O0" else "-O3"
+			cmdAndArgs += if (debug) "-O0" else "-O0"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
+			cmdAndArgs += "-Lgclibs"
+			//cmdAndArgs += "-static"
+			cmdAndArgs += "-lgc"
+			cmdAndArgs += "-lgccpp"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}

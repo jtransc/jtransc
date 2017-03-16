@@ -185,13 +185,13 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		for (prefix in bodyPrefixes) line(prefix)
 	}
 
-	override fun genBodyTrapsPrefix(): Indenter = indent { line("SOBJ J__exception__ = null;") }
+	override fun genBodyTrapsPrefix(): Indenter = indent { line("JAVA_OBJECT J__exception__ = null;") }
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH): Indenter = Indenter.gen {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (SOBJ J__i__exception__)") {
+		line("catch (JAVA_OBJECT J__i__exception__)") {
 			line("J__exception__ = J__i__exception__;")
 			line(stm.catch.genStm())
 		}
@@ -207,7 +207,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			"JA_J" to "int64_t",
 			"JA_F" to "float",
 			"JA_D" to "double",
-			"JA_L" to "SOBJ"
+			"JA_L" to "JAVA_OBJECT"
 		)
 
 		val mainClassFq = program.entrypoint
@@ -272,7 +272,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 		val STRINGS = Indenter.gen {
 			val globalStrings = getGlobalStrings()
-			line("static SOBJ ${globalStrings.map { it.name }.joinToString(", ")};")
+			line("static JAVA_OBJECT ${globalStrings.map { it.name }.joinToString(", ")};")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
 					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
@@ -335,17 +335,17 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			line("catch (std::wstring s)") {
 				line("""std::wcout << L"ERROR std::wstring " << s << L"\n";""")
 			}
-			line("catch (java_lang_Throwable *s)") {
-				line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
-				line("""printf("Exception: %p\n", (void*)s);""")
-			}
-			line("catch (SOBJ s)") {
+			//line("catch (java_lang_Throwable *s)") {
+			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
+			//	line("""printf("Exception: %p\n", (void*)s);""")
+			//}
+			line("catch (JAVA_OBJECT s)") {
 				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
-				line("""std::wcout << L"ERROR SOBJ " << N::istr2(s.get()->$toStringMethod()) << L"\n";""")
+				line("""std::wcout << L"ERROR JAVA_OBJECT " << N::istr2(s->$toStringMethod()) << L"\n";""")
 			}
-			line("catch (...)") {
-				line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
-			}
+			//line("catch (...)") {
+			//	line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
+			//}
 			line("return 0;")
 		}
 	}
@@ -363,7 +363,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val parts = if (clazz.isInterface) {
 			""
 		} else if (clazz.fqname == "java.lang.Object") {
-			"public std::enable_shared_from_this<java_lang_Object>"
+			"public gc"
 		} else {
 			directExtendingAndImplementing.map { "public ${it.cppName}" }.joinToString(", ")
 		}
@@ -376,7 +376,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 			if (clazz.fqname == "java.lang.Object") {
 				line("int __INSTANCE_CLASS_ID;")
-				line("SOBJ sptr() { return shared_from_this(); };")
+				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
 				val normalStatic = if (field.isStatic) "static " else ""
@@ -547,7 +547,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 				line(defaultBody)
 			}
 
-			if (method.methodVoidReturnThis) line("return this->sptr();")
+			//if (method.methodVoidReturnThis) line("return this->sptr();")
 		}
 	}
 
@@ -555,15 +555,15 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override val AstLocal.decl: String get() = "${this.type.cppString} ${this.targetName} = ${this.type.nativeDefaultString};"
 
-	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()}.get())->length"
+	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()})->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
 		val getMethod = if (context.useUnsafeArrays) "get" else "fastGet"
-		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME).get()))->$getMethod($index)"
+		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME)))->$getMethod($index)"
 	}
 
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		val setMethod = if (context.useUnsafeArrays) "set" else "fastSet"
-		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME).get()))->$setMethod($index, $value);"
+		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME)))->$setMethod($index, $value);"
 	}
 
 	private fun isThisOrThisWithCast(e: AstExpr): Boolean {
@@ -580,9 +580,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	private fun getPtr(clazz: AstClass, objStr: String): String {
 		if (clazz.isInterface) {
-			return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+			return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME)))"
 		} else {
-			return "(static_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME).get()))"
+			return "(static_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME)))"
 		}
 	}
 
@@ -595,7 +595,6 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			return "${getPtr(refMethodClass, objStr)}$methodAccess(${args.joinToString(", ")})"
 		}
 	}
-
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		return "${refMethodClass.ref.cppName}::${superMethod.targetName}(${args.joinToString(", ")})"
@@ -606,7 +605,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	}
 
 	fun genExprThis(): String {
-		return "this->sptr()"
+		return "this" //->sptr()"
 	}
 
 	override fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter {
@@ -675,7 +674,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		if (isThisOrThisWithCast(e.expr.value)) {
 			return buildInstanceField("this", fixField(e.field))
 		} else {
-			return buildInstanceField("((" + e.field.containingTypeRef.underlyingCppString + ")(N::ensureNpe(" + e.expr.genNotNull() + ", FUNCTION_NAME).get()))", fixField(e.field))
+			return buildInstanceField("((" + e.field.containingTypeRef.underlyingCppString + ")(N::ensureNpe(" + e.expr.genNotNull() + ", FUNCTION_NAME)))", fixField(e.field))
 		}
 	}
 
@@ -683,7 +682,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val left2 = if (stm.left.value is AstExpr.THIS) {
 			buildInstanceField("this", fixField(stm.field))
 		} else {
-			buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME).get())", fixField(stm.field))
+			buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME))", fixField(stm.field))
 		}
 		val right2 = "(${stm.field.type.cppString})((${stm.field.type.cppString})(" + stm.expr.genExpr() + "))"
 
@@ -697,12 +696,12 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
 		val ints = e.values.joinToString(",")
 		if (e.values.size <= 4) {
-			return "SOBJ(JA_I::fromArgValues($ints))"
+			return "JA_I::fromArgValues($ints)"
 		} else {
 			val id = prefixTempId++
 			val tempname = "arraylit_$id"
 			bodyPrefixes += "int32_t $tempname[] = {$ints};"
-			return "SOBJ(JA_I::fromVector($tempname, ${e.values.size}))"
+			return "JA_I::fromVector($tempname, ${e.values.size})"
 		}
 	}
 
@@ -712,9 +711,9 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"SOBJ(new $ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\"))"
+			"new $ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\")"
 		} else {
-			"SOBJ(new ${e.type.targetName}(${e.counts[0].genExpr()}))"
+			"new ${e.type.targetName}(${e.counts[0].genExpr()})"
 		}
 	}
 
@@ -722,7 +721,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
-	override fun genExprNew(e: AstExpr.NEW): String = "SOBJ(" + super.genExprNew(e) + ")"
+	override fun genExprNew(e: AstExpr.NEW): String = "" + super.genExprNew(e) + ""
 
 	fun getUnderlyingType(type: AstType): String {
 		return when (type) {
@@ -774,7 +773,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val values = stm.values.map { it.genExpr() }
 		line("") {
 			line("const ${stm.array.type.elementType.cppString} ARRAY_LITERAL[${values.size}] = { ${values.joinToString(", ")} };")
-			line("((${stm.array.type.underlyingCppString})((" + stm.array.genExpr() + ").get()))->setArray(${stm.startIndex}, ${values.size}, ARRAY_LITERAL);")
+			line("((${stm.array.type.underlyingCppString})((" + stm.array.genExpr() + ")))->setArray(${stm.startIndex}, ${values.size}, ARRAY_LITERAL);")
 		}
 	}
 
@@ -802,7 +801,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		AstType.LONG -> "int64_t"
 		AstType.FLOAT -> "float"
 		AstType.DOUBLE -> "double"
-		is AstType.Reference -> "SOBJ"
+		is AstType.Reference -> "JAVA_OBJECT"
 		else -> "AstType_cppString_UNIMPLEMENTED($this)"
 	}
 

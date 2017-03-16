@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
 import com.jtransc.gen.d.DTarget
+import javatest.misc.MiscTest
 import jtransc.jtransc.nativ.JTranscCppNativeMixedTest
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import org.junit.Test
@@ -25,7 +27,7 @@ class CppTest : Base() {
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
-	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = false)
+	@Test fun testHelloWorld() = testClass<MiscTest>(minimize = false, target = CppTarget(), log = true, treeShaking = true)
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:
