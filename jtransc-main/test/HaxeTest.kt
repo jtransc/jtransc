@@ -16,12 +16,15 @@
 
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
+import issues.Issue94Enum
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import org.junit.Test
 
 class HaxeTest : Base() {
 	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = true)
 	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = false)
+
+	@Test fun testEnumBugIssue94() = testClass<Issue94Enum>(minimize = false, target = HaxeTarget(), log = false, treeShaking = true)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
