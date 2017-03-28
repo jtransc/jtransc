@@ -2,13 +2,21 @@ package com.jtransc.gen.cs
 
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
+import com.jtransc.sys.Arch
 import com.jtransc.vfs.LocalVfs
 import java.io.File
 
 object CSharpCompiler {
 	val dotNetV4Folder by lazy {
-		val folder = System.getenv("SystemRoot") + "\\Microsoft.NET\\Framework"
+		//println(System.getProperty("os.arch"))
+
+		val folder = when (Arch.CURRENT) {
+			Arch.X86 -> System.getenv("SystemRoot") + "\\Microsoft.NET\\Framework"
+			Arch.X64 -> System.getenv("SystemRoot") + "\\Microsoft.NET\\Framework64"
+			else -> System.getenv("SystemRoot") + "\\Microsoft.NET\\Framework"
+		}
 		val local = LocalVfs(File(folder))
+
 		val dotnetv4 = local.listdir().filter { it.name.startsWith("v4") }.firstOrNull() ?: invalidOp("JTransc can't find .net framework v4")
 		dotnetv4.file
 	}
