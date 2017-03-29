@@ -1,5 +1,6 @@
 package com.jtransc.plugin.reflection
 
+import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscNativeClass
 import com.jtransc.annotation.haxe.HaxeRemoveField
 import com.jtransc.ast.*
@@ -8,7 +9,6 @@ import com.jtransc.reflection.JTranscInternalNames
 import j.ClassInfo
 import j.MemberInfo
 import j.ProgramReflection
-import kotlin.reflect.KFunction1
 
 /**
  * This class aims to create classes to perform reflection on available classes
@@ -16,7 +16,8 @@ import kotlin.reflect.KFunction1
 class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override val priority: Int = Int.MAX_VALUE
 
-	fun AstClass.mustReflect(): Boolean {
+	fun AstClass.mustReflect(invisibleExternalList: List<String>): Boolean {
+		if (this.fqname in invisibleExternalList) return false
 		return this.visible && !this.annotationsList.contains<JTranscNativeClass>()
 	}
 
@@ -27,8 +28,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	fun AstField.mustReflect(): Boolean {
 		return this.visible && !this.annotationsList.contains<HaxeRemoveField>()
 	}
-
-	val AstProgram.visibleClasses: List<AstClass> get() = classes.filter { it.mustReflect() }
 
 	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!
@@ -113,7 +112,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			getAnnotationProxyClass(clazz.ref)
 		}
 
-		val visibleClasses = program.visibleClasses
+		val invisibleExternalList = program.allAnnotations.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull().flatMap { it.classes.toList() }
+
+		val visibleClasses = program.classes.filter { it.mustReflect(invisibleExternalList) }
 
 		val CLASS_INFO = program[ClassInfo::class.java.fqname]
 		val CLASS_INFO_CREATE = CLASS_INFO.getMethodWithoutOverrides(ClassInfo::create.name)!!.ref
