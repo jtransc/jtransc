@@ -40,7 +40,7 @@ object HaxeTools {
 
 
 		val libraryInfo = LibraryInfo(
-			libraries = listOf("lime:2.9.1"),
+			libraries = listOf("lime:4.0.2"),
 			includePackages = listOf("lime"),
 			includePackagesRec = listOf(
 				"lime.ui", "lime.app",

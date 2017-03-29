@@ -102,10 +102,10 @@ So others could generate that without JVM and others could generate other target
 ## Tool dependencies:
 
 ### For the Haxe target:
-- Haxe 3.4.0
-- NekoVM 2.0.0
-- Lime 3.7.4
-- hxcpp 3.4.49
+- Haxe 3.4.2
+- NekoVM 2.1.0
+- Lime 4.0.2
+- hxcpp 3.4.64
 
 ### For Node.JS running:
 - NodeJS 6.9.5 with npm
@@ -124,8 +124,8 @@ So others could generate that without JVM and others could generate other target
 - Add HAXEPATH environment variable if you are not using an installer: "path/to/haxe" and NEKO_INSTPATH = "path/to/neko" 
 - Add in Path HAXEPATH and NEKO_INSTPATH # With installation package Haxe and NekoVM not needed
 - Set path to haxelib running "haxelib setup" command
-- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 3.7.4`
-- Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.49`
+- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 4.0.2`
+- Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.64`
 - Run `haxelib run lime setup`
 
 #### Installing Node.JS
