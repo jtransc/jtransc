@@ -140,6 +140,11 @@ object ProcessUtils {
 
 	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = defaultCharset, options: ExecOptions = ExecOptions()): Int {
 		val fullCommand = if (File(command).isAbsolute) command else locateCommandSure(command)
+		var printCmd = fullCommand
+		for (arg in args) {
+			printCmd += " " + arg
+		}
+		println("Execute command " + printCmd)
 
 		val absoluteCurrentDir = currentDir.absoluteFile
 		val env = options.env
@@ -165,7 +170,7 @@ object ProcessUtils {
 
 			Runtime.getRuntime().exec((prefixCmds + listOf(fullCommand) + args).toTypedArray(), envList.toTypedArray(), absoluteCurrentDir)
 		} else {
-			val pb = ProcessBuilder(fullCommand, *args.toTypedArray());
+			val pb = ProcessBuilder(fullCommand, *args.toTypedArray())
 			pb.directory(absoluteCurrentDir)
 			val penv2 = pb.environment()
 			for ((key, value) in penv.entries) penv2[key] = value
