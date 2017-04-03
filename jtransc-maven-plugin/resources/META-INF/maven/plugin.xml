@@ -7,7 +7,7 @@
   <description>Maven plugin for JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>
   <groupId>com.jtransc</groupId>
   <artifactId>jtransc-maven-plugin</artifactId>
-  <!--jtransc--><version>0.5.12</version>
+  <!--jtransc--><version>0.5.13</version>
   <goalPrefix>jtransc</goalPrefix>
   <isolatedRealm>false</isolatedRealm>
   <inheritedByDefault>true</inheritedByDefault>
@@ -296,37 +296,37 @@
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-core</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-utils</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-asm</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-rt-core</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-main</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-gen-haxe</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.12</version>
+		<!--jtransc--><version>0.5.13</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>

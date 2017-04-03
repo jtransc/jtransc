@@ -129,7 +129,10 @@ public class Formatter implements Closeable, Flushable {
 				int width = 0;
 				while (true) {
 					char cc = format.charAt(n++);
-					if (cc == '-') {
+					if (cc == '%') {
+						out.append('%');
+						break;
+					} else if (cc == '-') {
 						right = true;
 					} else if (step == 0 && cc == '0') {
 						pad = '0';

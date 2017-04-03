@@ -19,6 +19,7 @@ import big.HelloWorldTest
 import big.NumberFormatTest2
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
+import issues.Issue100Double
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
@@ -37,6 +38,9 @@ class JsTest : Base() {
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
+
+	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = true, treeShaking = true, debug = true)
+	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 

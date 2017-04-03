@@ -166,7 +166,11 @@ object ProcessUtils {
 			val envList = penv.map { it.key + "=" + it.value }
 			//val envList = listOf<String>()
 
-			val prefixCmds = if (OS.isWindows) listOf("cmd", "/c", "chcp", "65001", ">", "NUL", "&") else listOf()
+			val prefixCmds = if (OS.isWindows) {
+				if (options.fixencoding) listOf("cmd", "/c", "chcp", "65001", ">", "NUL", "&") else listOf("cmd", "/c")
+			} else {
+				listOf()
+			}
 
 			Runtime.getRuntime().exec((prefixCmds + listOf(fullCommand) + args).toTypedArray(), envList.toTypedArray(), absoluteCurrentDir)
 		} else {

@@ -34,17 +34,17 @@ install:
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
 - sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall d-apt-keyring && sudo apt-get update
 - sudo apt-get -y install dmd-bin
-- curl -s -S -O http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-linux64.tar.gz
-- tar xzf haxe-3.3.0-rc.1-linux64.tar.gz
+- wget http://haxe.org/website-content/downloads/3.4.2/downloads/haxe-3.4.2-linux64.tar.gz
+- tar xzf haxe-3.4.2-linux64.tar.gz
 - nvm install 4 || true
 - nvm use 4 || true
 
 before_script:
-- export HAXE_STD_PATH=$PWD/haxe-3.3.0-rc2/std
-- export HAXEPATH=$PWD/haxe-3.3.0-rc2
+- export HAXE_STD_PATH=$PWD/haxe-3.4.2/std
+- export HAXEPATH=$PWD/haxe-3.4.2
 - export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
-- ls -la $PWD/haxe-3.3.0-rc2
+- ls -la $PWD/haxe-3.4.2
 - which java || true
 - java -version || true
 - which haxe || true

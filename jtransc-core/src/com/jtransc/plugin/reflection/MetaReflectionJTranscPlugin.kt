@@ -16,9 +16,8 @@ import j.ProgramReflection
 class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override val priority: Int = Int.MAX_VALUE
 
-	fun AstClass.mustReflect(invisibleExternalList: List<String>): Boolean {
-		if (this.fqname in invisibleExternalList) return false
-		return this.visible && !this.annotationsList.contains<JTranscNativeClass>()
+	fun AstClass.mustReflect(invisibleExternalSet: Set<String> = setOf()): Boolean {
+		return this.visible && (this.fqname !in invisibleExternalSet) && !this.annotationsList.contains<JTranscNativeClass>()
 	}
 
 	fun AstMethod.mustReflect(): Boolean {
@@ -112,9 +111,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			getAnnotationProxyClass(clazz.ref)
 		}
 
-		val invisibleExternalList = program.allAnnotations.map { it.toObject<JTranscInvisibleExternal>() }.filterNotNull().flatMap { it.classes.toList() }
+		val invisibleExternalSet = program.allAnnotationsList.getAllTyped<JTranscInvisibleExternal>().flatMap { it.classes.toList() }.toSet()
 
-		val visibleClasses = program.classes.filter { it.mustReflect(invisibleExternalList) }
+		val visibleClasses = program.classes.filter { it.mustReflect(invisibleExternalSet) }
 
 		val CLASS_INFO = program[ClassInfo::class.java.fqname]
 		val CLASS_INFO_CREATE = CLASS_INFO.getMethodWithoutOverrides(ClassInfo::create.name)!!.ref

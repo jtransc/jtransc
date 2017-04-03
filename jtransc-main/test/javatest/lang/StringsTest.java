@@ -14,6 +14,7 @@ public class StringsTest {
 		extendedTest();
 		zeroTest();
 		formatTest();
+		trimTest();
 	}
 
 	private static void basicConcatTest() {
@@ -88,5 +89,16 @@ public class StringsTest {
 		JTranscConsole.log("StringsTest.formatTest:");
 		JTranscConsole.log(String.format("%d", 10));
 		JTranscConsole.log(String.format("%08X", -1));
+		JTranscConsole.log(String.format("%d%%", 10));
+	}
+
+	static public void trimTest() {
+		JTranscConsole.log("".trim());
+		JTranscConsole.log("HELLO  ".trim());
+		JTranscConsole.log("  HELLO".trim());
+		JTranscConsole.log("  HELLO  ".trim());
+		JTranscConsole.log("HELLO".trim());
+		JTranscConsole.log("A".trim());
+		JTranscConsole.log("AB".trim());
 	}
 }

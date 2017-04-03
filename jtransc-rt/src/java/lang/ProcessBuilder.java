@@ -61,14 +61,16 @@ public final class ProcessBuilder {
 	}
 
 	ProcessBuilder environment(String[] envp) {
-		environment = new HashMap<String, String>(envp.length);
+		environment = new HashMap<String, String>((envp != null) ? envp.length : 0);
 
-		for (String envstring : envp) {
-			int eqlsign = envstring.indexOf('=', 1);
-			if (eqlsign >= 0) {
-				String key = envstring.substring(0, eqlsign);
-				String value = envstring.substring(eqlsign + 1);
-				environment.put(key, value);
+		if (envp != null) {
+			for (String envstring : envp) {
+				int eqlsign = envstring.indexOf('=', 1);
+				if (eqlsign >= 0) {
+					String key = envstring.substring(0, eqlsign);
+					String value = envstring.substring(eqlsign + 1);
+					environment.put(key, value);
+				}
 			}
 		}
 		return this;

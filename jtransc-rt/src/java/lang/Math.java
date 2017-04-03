@@ -172,16 +172,16 @@ public final class Math {
 	@HaxeMethodBody("return Math.round(p0);")
 	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)::lround(p0);")
-	@JTranscMethodBody(target = "d", value = "return cast(int)std.math.lround(p0);")
-	@JTranscMethodBody(target = "cs", value = "return Math.Round(p0);")
+	@JTranscMethodBody(target = "d", value = "return cast(int)std.math.round(p0);")
+	@JTranscMethodBody(target = "cs", value = "return (int)Math.Round(p0);")
 	native public static int round(float a);
 
 	@JTranscInline
 	@HaxeMethodBody("return Math.round(p0);")
-	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Math.round(p0));")
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
-	@JTranscMethodBody(target = "d", value = "return std.math.lround(p0);")
-	@JTranscMethodBody(target = "cs", value = "return Math.Round(p0);")
+	@JTranscMethodBody(target = "d", value = "return cast(long)std.math.round(p0);")
+	@JTranscMethodBody(target = "cs", value = "return (long)Math.Round(p0);")
 	native public static long round(double a);
 
 	@JTranscInline
