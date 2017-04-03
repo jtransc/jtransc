@@ -3,6 +3,8 @@ package big
 import android.AndroidArgsTest
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.util.JTranscStrings
+import issues.Issue100Double
+import issues.Issue94Enum
 import javatest.*
 import javatest.lang.AtomicTest
 import javatest.lang.BasicTypesTest
@@ -125,6 +127,11 @@ object BigTest {
 		ConcurrentCollectionsTest.main(args)
 
 		MessageDigestTest.main(args)
+
+		Issue94Enum.main(args)
+		Issue100Double.main(args)
+
+		System.out.println(String.format("%d%%", 100))
 	}
 
 	private fun servicesTest() {

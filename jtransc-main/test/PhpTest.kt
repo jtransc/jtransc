@@ -22,5 +22,5 @@ import org.junit.Test
 class PhpTest : Base() {
 	override val DEFAULT_TARGET: GenTargetDescriptor = PhpTarget()
 
-	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)
+	//@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)
 }

@@ -83,6 +83,7 @@ open class Base {
 	val kotlinPaths = listOf<String>() + listOf(
 		MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion")
 		, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
+		, MavenGradleLocalRepository.locateJars("org.jetbrains:annotations:13.0")
 	).flatMap { it }
 
 	val testClassesPaths = listOf(

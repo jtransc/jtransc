@@ -83,6 +83,8 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		setTemplateParamsAfterBuildingSource()
 	}
 
+	open val fixencoding = true
+
 	open fun compile(): ProcessResult2 {
 		val cmdAndArgs = genCompilerCommand(
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
@@ -96,7 +98,7 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return if (cmdAndArgs.isEmpty()) {
 			ProcessResult2(0)
 		} else {
-			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true))
+			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true, fixencoding = fixencoding))
 			if (!result.success) {
 				throw RuntimeException("success=${result.success} exitCode=${result.exitCode} output='${result.outputString}' error='${result.errorString}' folder=${configTargetFolder.targetFolder.realpathOS} command='$cmdAndArgsStr'")
 			}

@@ -26,5 +26,5 @@ import testservice.test.ServiceLoaderTest
 class As3Test : Base() {
 	override val DEFAULT_TARGET = As3Target()
 
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 }

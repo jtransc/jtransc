@@ -438,7 +438,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.trim());")
-	native public String trim();
+	public String trim() {
+		int len = length();
+		int l = 0, r = len - 1;
+		while (l < length() && Character.isSpaceChar(this.value[l])) l++;
+		while (r >= 0 && Character.isSpaceChar(this.value[r])) r--;
+		return new String(this.value, l, r - l + 1);
+	}
 
 	public boolean contains(CharSequence s) {
 		return indexOf(s.toString()) >= 0;

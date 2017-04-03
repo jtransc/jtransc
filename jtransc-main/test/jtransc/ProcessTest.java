@@ -1,12 +1,19 @@
 package jtransc;
 
+import com.jtransc.JTranscSystem;
+
 import java.io.ByteArrayInputStream;
 
 public class ProcessTest {
 	static public void main(String[] args) throws Throwable {
 		System.out.println("ProcessTest.main:");
 		System.out.println(new ByteArrayInputStream(new byte[0]).read(new byte[1024]));
-		ProcessBuilder pb = new ProcessBuilder("echo", "helloworld");
+		ProcessBuilder pb;
+		if (JTranscSystem.isWindows()) {
+			pb = new ProcessBuilder("cmd", "/c", "echo", "helloworld");
+		} else {
+			pb = new ProcessBuilder("echo", "helloworld");
+		}
 		System.out.println("[1]");
 		pb.redirectInput();
 		pb.redirectOutput();
@@ -23,7 +30,7 @@ public class ProcessTest {
 		String out = new String(buffer, 0, len);
 		for (int n = 0; n < len; n++) System.out.println("c[" + n + "]:" + (int)buffer[n]);
 		System.out.println("[6]");
-		System.out.println(out);
+		System.out.println(out.trim());
 		System.out.println("[7]");
 		System.out.println(p.exitValue());
 		System.out.println("[8]");

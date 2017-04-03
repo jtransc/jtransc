@@ -91,6 +91,8 @@ class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) 
 	override val languageRequiresDefaultInSwitch = true
 	override val defaultGenStmSwitchHasBreaks = true
 
+	override val fixencoding = false
+
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return CSharpCompiler.genCommand(programFile, debug, libs)
 	}
