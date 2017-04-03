@@ -43,7 +43,7 @@
         <dependency>
             <groupId>com.jtransc</groupId>
             <artifactId>jtransc-rt-core</artifactId>
-			<!--jtransc--><version>0.5.12</version>
+			<!--jtransc--><version>0.5.13</version>
         </dependency>
     </dependencies>
 
@@ -53,7 +53,7 @@
             <plugin>
                 <groupId>com.jtransc</groupId>
                 <artifactId>jtransc-maven-plugin</artifactId>
-				<!--jtransc--><version>0.5.12</version>
+				<!--jtransc--><version>0.5.13</version>
                 <configuration>
                     <target>js:js:program.js</target>
                     <mainClass>example.Test</mainClass>
