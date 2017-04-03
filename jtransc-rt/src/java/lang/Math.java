@@ -178,7 +178,7 @@ public final class Math {
 
 	@JTranscInline
 	@HaxeMethodBody("return Math.round(p0);")
-	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
+	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Math.round(p0));")
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.lround(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Round(p0);")
