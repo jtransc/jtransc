@@ -1,10 +1,7 @@
 package j;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
-import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -91,40 +88,84 @@ public class ProgramReflection {
 
 	// Class
 	static public ClassInfo[] getAllClasses() {
-		return new ClassInfo[0];
+		return AllClasses.getAllClasses();
+	}
+
+	public static class AllClasses {
+		static public ClassInfo[] getAllClasses() {
+			return new ClassInfo[0];
+		}
 	}
 
 	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getConstructors(int classId) {
-		return new MemberInfo[0];
+		return AllConstructors.getConstructors(classId);
+	}
+
+	public static class AllConstructors {
+		static public MemberInfo[] getConstructors(int classId) {
+			return new MemberInfo[0];
+		}
 	}
 
 	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getMethods(int classId) {
-		return new MemberInfo[0];
+		return AllMethods.getMethods(classId);
+	}
+
+	public static class AllMethods {
+		static public MemberInfo[] getMethods(int classId) {
+			return new MemberInfo[0];
+		}
 	}
 
 	// @NOTE: This will be replaced by MetaReflectionPlugin
 	static public MemberInfo[] getFields(int classId) {
-		return new MemberInfo[0];
+		return AllFields.getFields(classId);
+	}
+
+	public static class AllFields {
+		static public MemberInfo[] getFields(int classId) {
+			return new MemberInfo[0];
+		}
 	}
 
 	// Constructor
 	static public Object dynamicNew(int classId, int constructorId, Object[] params) {
-		return null;
+		return DynamicNewInvoke.dynamicNew(classId, constructorId, params);
 	}
 
 	// Method
 	static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
-		return null;
+		return DynamicNewInvoke.dynamicInvoke(classId, methodId, object, params);
 	}
 
 	// Field
 	static public Object dynamicGet(int classId, int fieldId, Object object) {
-		return null;
+		return DynamicGetSet.dynamicGet(classId, fieldId, object);
 	}
 
 	static public void dynamicSet(int classId, int fieldId, Object object, Object value) {
+		DynamicGetSet.dynamicSet(classId, fieldId, object, value);
+	}
+
+	public static class DynamicNewInvoke {
+		static public Object dynamicNew(int classId, int constructorId, Object[] params) {
+			return null;
+		}
+
+		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
+			return null;
+		}
+	}
+
+	public static class DynamicGetSet {
+		static public Object dynamicGet(int classId, int fieldId, Object object) {
+			return null;
+		}
+
+		static public void dynamicSet(int classId, int fieldId, Object object, Object value) {
+		}
 	}
 
 	static public Annotation[] getClassAnnotations(int classId) {

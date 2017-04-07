@@ -286,7 +286,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			RETURN(NULL)
 		}
 
-		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getAllClasses.name)?.replaceBodyOptBuild {
+		var getAllClassesMethod: AstMethod? =
+			if (program.contains(ProgramReflection.AllClasses::class.java.fqname))
+				program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses.name)
+			else
+				ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getAllClasses.name)
+
+		getAllClassesMethod?.replaceBodyOptBuild {
 			val out = AstLocal(0, "out", ARRAY(CLASS_INFO))
 
 			SET(out, NEW_ARRAY(ARRAY(CLASS_INFO), program.lastClassId.lit))
@@ -309,7 +315,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
-		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicInvoke.name)?.replaceBodyOptBuild {
+		var dynamicInvokeMethod: AstMethod? =
+			if (program.contains(ProgramReflection.DynamicNewInvoke::class.java.fqname))
+				program[ProgramReflection.DynamicNewInvoke::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.DynamicNewInvoke::dynamicInvoke.name)
+			else
+				ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicInvoke.name)
+
+		dynamicInvokeMethod?.replaceBodyOptBuild {
 			val (classId, methodId, obj, args) = it
 
 			SWITCH(methodId.expr) {
@@ -340,7 +352,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		}
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
-		ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicNew.name)?.replaceBodyOptBuild {
+		var dynamicNewMethod: AstMethod? =
+			if (program.contains(ProgramReflection.DynamicNewInvoke::class.java.fqname))
+				program[ProgramReflection.DynamicNewInvoke::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.DynamicNewInvoke::dynamicNew.name)
+			else
+				ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicNew.name)
+
+		dynamicNewMethod?.replaceBodyOptBuild {
 			val (classId, methodId, args) = it
 
 			SWITCH(methodId.expr) {
@@ -408,7 +426,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.getConstructors
-			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getConstructors.name)?.replaceBodyOptBuild {
+			var getConstructorsMethod: AstMethod? =
+				if (program.contains(ProgramReflection.AllConstructors::class.java.fqname))
+					program[ProgramReflection.AllConstructors::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllConstructors::getConstructors.name)
+				else
+					ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getConstructors.name)
+
+			getConstructorsMethod?.replaceBodyOptBuild {
 				genMemberList(it, visibleClasses.map { clazz ->
 					//val classId = getClassId(clazz)
 					clazz to clazz.constructors.filter { it.mustReflect() }.map {
@@ -418,7 +442,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.getMethods
-			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getMethods.name)?.replaceBodyOptBuild {
+			var getMethodsMethod: AstMethod? =
+				if (program.contains(ProgramReflection.AllMethods::class.java.fqname))
+					program[ProgramReflection.AllMethods::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllMethods::getMethods.name)
+				else
+					ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getMethods.name)
+
+			getMethodsMethod?.replaceBodyOptBuild {
 				genMemberList(it, visibleClasses.map { clazz ->
 					//val classId = getClassId(clazz)
 					clazz to clazz.methodsWithoutConstructors.filter { it.mustReflect() }.map {
@@ -428,7 +458,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.getFields
-			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getFields.name)?.replaceBodyOptBuild {
+			var getFieldsMethod: AstMethod? =
+				if (program.contains(ProgramReflection.AllFields::class.java.fqname))
+					program[ProgramReflection.AllFields::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllFields::getFields.name)
+				else
+					ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getFields.name)
+
+			getFieldsMethod?.replaceBodyOptBuild {
 				genMemberList(it, visibleClasses.map { clazz ->
 					clazz to clazz.fields.filter { it.mustReflect() }.map {
 						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
@@ -437,7 +473,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.dynamicGet
-			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicGet.name)?.replaceBodyOptBuild {
+			var dynamicGetMethod: AstMethod? =
+				if (program.contains(ProgramReflection.DynamicGetSet::class.java.fqname))
+					program[ProgramReflection.DynamicGetSet::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.DynamicGetSet::dynamicGet.name)
+				else
+					ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicGet.name)
+
+			dynamicGetMethod?.replaceBodyOptBuild {
 				val (classId, fieldId, objParam) = it
 
 				SWITCH(fieldId.expr) {
@@ -458,7 +500,13 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.dynamicSet
-			ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicSet.name)?.replaceBodyOptBuild {
+			var dynamicSetMethod: AstMethod? =
+				if (program.contains(ProgramReflection.DynamicGetSet::class.java.fqname))
+					program[ProgramReflection.DynamicGetSet::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.DynamicGetSet::dynamicSet.name)
+				else
+					ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::dynamicSet.name)
+
+			dynamicSetMethod?.replaceBodyOptBuild {
 				val (classIdParam, fieldIdParam, objParam, valueParam) = it
 
 				SWITCH(fieldIdParam.expr) {
