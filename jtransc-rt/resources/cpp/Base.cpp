@@ -14,8 +14,10 @@
 #include <csignal>
 //#include <chrono>
 //#include <thread>
+#include "jni.h"
 
-#include "include/gc_cpp.h"
+
+#include "gc_cpp.h"
 
 extern "C" {
 	#include <stdio.h>
@@ -78,6 +80,9 @@ struct CLASS_TRACE { public:
 //typedef std::weak_ptr<java_lang_Object> WOBJ;
 typedef java_lang_Object* JAVA_OBJECT;
 
+
+
+
 // generateTypeTableHeader()
 {{ TYPE_TABLE_HEADERS }}
 
@@ -96,7 +101,15 @@ struct N;
 
 // Headers
 
+struct Env {
+ 	JNIEnv jni;
+ 	//
+};
+
 struct N { public:
+	static Env env;
+
+
 	static const int32_t MIN_INT32 = (int32_t)0x80000000;
 	static const int32_t MAX_INT32 = (int32_t)0x7FFFFFFF;
 
@@ -367,6 +380,10 @@ JAVA_OBJECT JA_0::toIntArray   () { return new JA_I((void *)getStartPtr(), bytes
 JAVA_OBJECT JA_0::toLongArray  () { return new JA_J((void *)getStartPtr(), bytesLength() / 8); };
 JAVA_OBJECT JA_0::toFloatArray () { return new JA_F((void *)getStartPtr(), bytesLength() / 4); };
 JAVA_OBJECT JA_0::toDoubleArray() { return new JA_D((void *)getStartPtr(), bytesLength() / 8); };
+
+
+
+#include "jni_impl.cpp"
 
 
 {{ ARRAY_HEADERS_POST }}
@@ -710,7 +727,427 @@ void SIGFPE_handler(int signal) {
 //SIGABRT	abnormal termination condition, as is e.g. initiated by std::abort()
 //SIGFPE	erroneous arithmetic operation such as divide by zero
 
+
+
+
+
+
+
+
+
+JAVA_OBJECT jtvmNewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
+	JA_B* byteArray = new JA_B(address, capacity);
+	return {% CONSTRUCTOR java.nio.ByteBuffer:([BZ)V %}(byteArray, (int8_t)true);
+
+	/*auto byteArray = SOBJ(new JA_B(address, capacity));
+	std::cerr << "N::jtvmNewDirectByteBuffer after byte array";
+	//std::shared_ptr<JA_L> out(new JA_L(count, L"[java/lang/String;"));
+    //for (int n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
+    //return out.get()->sptr();
+	auto buffer = std::make_shared<{% CLASS java.nio.ByteBuffer %}>({% CONSTRUCTOR java.nio.ByteBuffer:([BZ)V %}(byteArray, (int8_t)true)).get()->sptr();
+	std::cerr << "N::jtvmNewDirectByteBuffer after alloc";
+	return buffer.get();*/
+	//return null;
+}
+
+jobject NewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
+	return (jobject) jtvmNewDirectByteBuffer(env, address, capacity);
+}
+
+void* jtvmGetDirectBufferAddress(JNIEnv* env, JAVA_OBJECT buf){
+	auto buffer = GET_OBJECT({% CLASS java.nio.ByteBuffer %}, buf);
+	//TODO check that this is a direct buffer
+	return GET_OBJECT(JA_B, buffer->{% FIELD java.nio.ByteBuffer:backingArray %})->_data;
+}
+
+void* GetDirectBufferAddress(JNIEnv* env, jobject buf){
+	return jtvmGetDirectBufferAddress(env, (JAVA_OBJECT) buf);
+}
+
+jlong jtvmGetDirectBufferCapacity(JNIEnv* env, JAVA_OBJECT buf){
+	auto buffer = GET_OBJECT({% CLASS java.nio.ByteBuffer %}, buf);
+    return GET_OBJECT(JA_B, buffer->{% FIELD java.nio.ByteBuffer:backingArray %})->length;
+}
+
+jlong GetDirectBufferCapacity(JNIEnv* env, jobject buf){
+	return jtvmGetDirectBufferCapacity(env, (JAVA_OBJECT) buf);
+}
+
+jsize jtvmGetArrayLength(JNIEnv* env, jarray array){
+	return ((JA_0*)array)->length;
+}
+
+jsize GetArrayLength(JNIEnv* env, jarray array){
+	return jtvmGetArrayLength(env, array);
+}
+
+JA_Z* jtvmNewBooleanArray(JNIEnv* env, jsize length){
+	JA_Z* out = new JA_Z(length);
+    return out;
+}
+
+jbooleanArray NewBooleanArray(JNIEnv* env, jsize length){
+	return (jbooleanArray) jtvmNewBooleanArray(env, length);
+}
+
+
+JA_B* jtvmNewByteArray(JNIEnv* env, jsize length){
+	JA_B* out = new JA_B(length);
+    return out;
+}
+
+jbyteArray NewByteArray(JNIEnv* env, jsize length){
+	return (jbyteArray) jtvmNewByteArray(env, length);
+}
+
+
+JA_C* jtvmNewCharArray(JNIEnv* env, jsize length){
+	JA_C* out = new JA_C(length);
+    return out;
+}
+
+jcharArray NewCharArray(JNIEnv* env, jsize length){
+	return (jcharArray) jtvmNewCharArray(env, length);
+}
+
+
+JA_S* jtvmNewShortArray(JNIEnv* env, jsize length){
+	JA_S* out = new JA_S(length);
+    return out;
+}
+
+jshortArray NewShortArray(JNIEnv* env, jsize length){
+	return (jshortArray) jtvmNewShortArray(env, length);
+}
+
+JA_I* jtvmNewIntArray(JNIEnv* env, jsize length){
+	JA_I* out = new JA_I(length);
+    return out;
+}
+
+jintArray NewIntArray(JNIEnv* env, jsize length){
+	return (jintArray) jtvmNewIntArray(env, length);
+}
+
+JA_J* jtvmNewLongArray(JNIEnv* env, jsize length){
+	JA_J* out = new JA_J(length);
+    return out;
+}
+
+jlongArray NewLongArray(JNIEnv* env, jsize length){
+	return (jlongArray) jtvmNewLongArray(env, length);
+}
+
+JA_F* jtvmNewFloatArray(JNIEnv* env, jsize length){
+	JA_F* out = new JA_F(length);
+    return out;
+}
+
+jfloatArray NewFloatArray(JNIEnv* env, jsize length){
+	return (jfloatArray) jtvmNewFloatArray(env, length);
+}
+
+JA_D* jtvmNewDoubleArray(JNIEnv* env, jsize length){
+	JA_D* out = new JA_D(length);
+    return out;
+}
+
+jdoubleArray NewDoubleArray(JNIEnv* env, jsize length){
+	return (jdoubleArray) jtvmNewDoubleArray(env, length);
+}
+
+JNIEnv* getJniEnv(){
+	return &N::env.jni;
+}
+
+jint GetVersion(JNIEnv* env){
+	return JNI_VERSION_1_6;
+}
+
+const struct JNINativeInterface_ jni = {
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	&GetVersion,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	&GetArrayLength/*NULL*/,
+
+	NULL,
+	NULL,
+	NULL,
+
+	&NewBooleanArray,
+    &NewByteArray,
+    &NewCharArray,
+    &NewShortArray,
+    &NewIntArray,
+    &NewLongArray,
+    &NewFloatArray,
+    &NewDoubleArray,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
+
+	&NewDirectByteBuffer,
+	&GetDirectBufferAddress,
+	&GetDirectBufferCapacity,
+
+	NULL
+};
+
+
+
+
+
+
+
+Env N::env;
 void N::startup() {
+	N::env.jni.functions = &jni;
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 	std::signal(SIGSEGV, SIGSEGV_handler);

@@ -543,13 +543,112 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 					line(defaultBody)
 				}
 				line("#endif")
+			} else if (method.isNative && bodies.isEmpty() && method.name.startsWith("dooFoo")) {
+				line(genJniMethod(method))
 			} else {
 				line(defaultBody)
 			}
 
-			//if (method.methodVoidReturnThis) line("return this->sptr();")
+			if (method.methodVoidReturnThis) line("return this;")
 		}
 	}
+
+
+	fun genJniMethod(method: AstMethod) = Indenter.gen {
+		var mangledJniFunctionName: String
+		//if (method.isOverloaded) {
+		//	mangledJniFunctionName = JniUtils.mangleLongJavaMethod(method);
+		//} else {
+		mangledJniFunctionName = JniUtils.mangleShortJavaMethod(method);
+		//}
+
+		val sb = StringBuilder(30)
+		for (i in method.methodType.args.indices) {
+			val arg = method.methodType.args[i]
+			sb.append(", ") // This seperates the arguments that are _always_ passed to jni from the other arguments
+			sb.append(toNativeType(arg.type))
+		}
+		val nativeParameterString = sb.toString()
+		var standardJniArgumentString = "JNIEnv*"
+		if (method.isStatic) standardJniArgumentString += ", jclass"
+		else standardJniArgumentString += ", jobject"
+
+
+		line("typedef ${toNativeType(method.methodType.ret)} (JNICALL *func_ptr_t)(${standardJniArgumentString + nativeParameterString});")
+		line("static void* nativePointer = NULL;")
+		//{% CLASS ${method.containingClass.fqname} %}
+		line("func_ptr_t fptr = (func_ptr_t)N::jtvmResolveNative(N::resolveClass(L\"${method.containingClass.fqname}\"), \"${JniUtils.mangleShortJavaMethod(method)}\", \"${JniUtils.mangleLongJavaMethod(method)}\", &nativePointer);")
+
+		val sb2 = StringBuilder(30)
+		for (i in method.methodType.args.indices) {
+			val arg = method.methodType.args[i].type;
+			if (arg is AstType.REF) {
+				sb2.append(", ((${referenceToNativeType(arg)})((SOBJ)");
+				sb2.append("p${i}");
+				sb2.append(").get())");
+			} else if (arg is AstType.ARRAY) {
+				sb2.append(", ((${arrayToNativeType(arg)})((SOBJ)");
+				sb2.append("p${i}");
+				sb2.append(").get())");
+			} else {
+				sb2.append(", p${i}");
+			}
+
+		}
+		line("return fptr(N::getJniEnv(), NULL ${sb2.toString()});")
+		//line("JNI: \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";")
+	}
+
+	private fun toNativeType(type: AstType): String {
+		when (type) {
+			is AstType.BOOL -> return "jboolean"
+			is AstType.BYTE -> return "jbyte"
+			is AstType.CHAR -> return "jchar"
+			is AstType.SHORT -> return "jshort"
+			is AstType.INT -> return "jint"
+			is AstType.LONG -> return "jlong"
+			is AstType.FLOAT -> return "jfloat"
+			is AstType.DOUBLE -> return "jdouble"
+			is AstType.REF -> return referenceToNativeType(type)
+			is AstType.ARRAY -> return arrayToNativeType(type)
+			AstType.VOID -> return "void"
+			else -> throw Exception("Encountered unrecognized type for JNI: ${type}")
+		}
+	}
+
+	private fun arrayToNativeType(type: AstType.ARRAY): String {
+		val arrayType = type.element
+		when (arrayType) {
+			is AstType.BOOL -> return "jbooleanArray"
+			is AstType.BYTE -> return "jbyteArray"
+			is AstType.CHAR -> return "jcharArray"
+			is AstType.SHORT -> return "jshortArray"
+			is AstType.INT -> return "jintArray"
+			is AstType.LONG -> return "jlongArray"
+			is AstType.FLOAT -> return "jfloatArray"
+			is AstType.DOUBLE -> return "jdoubleArray"
+			else -> return "jobjectArray"
+		}
+	}
+
+	private fun referenceToNativeType(type: AstType.REF): String {
+		val throwableClass = program.get("java.lang.Throwable".fqname.ref)
+		fun isThrowable(type: AstType.REF): Boolean {
+			val clazz = program.get(type)
+			if (clazz == throwableClass) return true
+			if (clazz == null) throw RuntimeException("Couldn't generate jni call because the class for reference ${clazz} is null")
+			return clazz.parentClassList.contains(throwableClass)
+		}
+		when {
+			type == AstType.STRING -> return "jstring"
+			type == AstType.CLASS -> return "jclass"
+			isThrowable(type) -> return "jthrowable"
+			else -> return "jobject"
+		}
+
+
+	}
+
 
 	override fun processCallArg(e: AstExpr, str: String) = "((" + e.type.cppString + ")(" + str + "))"
 
@@ -595,6 +694,7 @@ class CppGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 			return "${getPtr(refMethodClass, objStr)}$methodAccess(${args.joinToString(", ")})"
 		}
 	}
+
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		return "${refMethodClass.ref.cppName}::${superMethod.targetName}(${args.joinToString(", ")})"

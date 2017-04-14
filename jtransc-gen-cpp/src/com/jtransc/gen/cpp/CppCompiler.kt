@@ -30,10 +30,17 @@ object CppCompiler {
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
-			cmdAndArgs += "-Lgclibs"
+			//cmdAndArgs += "-Lgclibs"
 			//cmdAndArgs += "-static"
-			cmdAndArgs += "-lgc"
-			cmdAndArgs += "-lgccpp"
+			//cmdAndArgs += "libgc.dylib"
+			//cmdAndArgs += "libgccpp.dylib"
+			cmdAndArgs += "-Imac"
+			cmdAndArgs += "-I/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/include/"
+			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgc.dylib"
+			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgccpp.dylib"
+			cmdAndArgs += "-I/Users/simon/boost/test_libs/include/"
+			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_thread.a"
+			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_system.a"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}
