@@ -20,6 +20,7 @@ private fun <TCase> reduceSwitchGeneric(
 			is AstExpr.LOCAL -> true
 			is AstExpr.LITERAL -> true
 			else -> false
+			//else -> true
 		}
 
 		val assignTemp = !alreadyValidSubject
