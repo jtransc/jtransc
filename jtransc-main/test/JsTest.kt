@@ -20,6 +20,7 @@ import big.NumberFormatTest2
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
 import issues.Issue100Double
+import issues.Issue105
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
@@ -41,6 +42,8 @@ class JsTest : Base() {
 
 	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = true, treeShaking = true, debug = true)
 	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+	@Test fun testIssue105() = testClass<Issue105>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+
 
 	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
