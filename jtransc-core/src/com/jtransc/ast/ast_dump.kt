@@ -71,6 +71,12 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 					line("default: ${dump(types, stm.default)}")
 				}
 			}
+			is AstStm.SWITCH_GOTO -> {
+				line("switch (${dump(types, stm.subject)})") {
+					for ((index, case) in stm.cases) line("case $index: goto $case;")
+					line("default: goto ${stm.default};")
+				}
+			}
 			is AstStm.MONITOR_ENTER -> line("MONITOR_ENTER(${dump(types, stm.expr)})")
 			is AstStm.MONITOR_EXIT -> line("MONITOR_EXIT(${dump(types, stm.expr)})")
 			else -> noImpl("$stm")

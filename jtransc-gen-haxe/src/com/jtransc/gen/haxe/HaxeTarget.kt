@@ -9,6 +9,7 @@ import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
+import com.jtransc.ast.transform.reduceSwitch
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
@@ -92,6 +93,7 @@ class HaxeTarget() : GenTargetDescriptor() {
 class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
+	val MAX_SWITCH_SIZE = 10
 
 	//val unreflective = "@:unreflective"
 	val unreflective = ""
@@ -161,6 +163,12 @@ class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) 
 			}
 		}
 	}
+
+	//override fun genStmSwitch(stm: AstStm.SWITCH): Indenter = if (stm.cases.size > MAX_SWITCH_SIZE) {
+	//	this.genStm2(stm.reduceSwitch(maxChunkSize = 10))
+	//} else {
+	//	super.genStmSwitch(stm)
+	//}
 
 	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
 
