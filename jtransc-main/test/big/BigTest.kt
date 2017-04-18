@@ -33,7 +33,7 @@ import java.util.*
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
-		KotlinPropertiesTest.main(args)
+		//KotlinPropertiesTest.main(args)
 
 		// Misc tests
 		StringsTest.main(args)
@@ -43,7 +43,7 @@ object BigTest {
 		FastMemoryTest.main(args)
 		FastMemoryTest.main(args)
 		MultidimensionalArrayTest.main(args)
-		KotlinCollections.main(args)
+		//KotlinCollections.main(args)
 		//KotlinInheritanceTest.main(args)
 		SimdTest.main(args)
 		MiscTest.main(args)
@@ -63,7 +63,7 @@ object BigTest {
 		DateTest.main(args)
 		AtomicTest.main(args)
 		JTranscBug12Test.main(args)
-		JTranscBug12Test2Kotlin.main(args)
+		//JTranscBug12Test2Kotlin.main(args)
 		JTranscBug14Test.main(args)
 		JTranscBugArrayGetClass.main(args)
 		JTranscBugArrayDynamicInstantiate.main(args)
@@ -93,9 +93,9 @@ object BigTest {
 		ComparableTimSortTest.main(args)
 
 		// Java8 tests
-		JTranscClinitNotStatic.main(args)
-		DefaultMethodsTest.main(args)
-		Java8Test.main(args)
+		//JTranscClinitNotStatic.main(args)
+		//DefaultMethodsTest.main(args)
+		//Java8Test.main(args)
 
 		// Misc
 		Base64Test.main(args);
@@ -116,7 +116,7 @@ object BigTest {
 		HelloWorldTest.main(args)
 		NumberFormatTest.main(args);
 
-		NumberFormatTest2.main(args);
+		//NumberFormatTest2.main(args);
 
 		KotlinStaticInitOrderTest.main(args)
 

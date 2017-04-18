@@ -263,9 +263,9 @@ public class JTranscSyncIO {
 				//"printf(\"JTranscIOSyncFile<init>\\n\");",
 				"this->file = NULL;"
 			}),
-			@JTranscMethodBody(target = "cpp", value = {
+			/*@JTranscMethodBody(target = "cpp", value = {
 				"this.file = null;"
-			}),
+			}),*/
 		})
 		private void init() {
 		}

@@ -11,4 +11,4 @@ fun String.toXml(): Xml = Xml.parse(this)
 
 fun Xml(@Language("xml") str: String): Xml = Xml.parse(str)
 
-suspend fun SyncVfsFile.readXml(): Xml = Xml(this.readString())
+/*suspend*/ fun SyncVfsFile.readXml(): Xml = Xml(this.readString())
