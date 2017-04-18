@@ -18,6 +18,8 @@ Along JTransc, I'm writting a set of libraries to be able to use JTransc.
 
 [https://github.com/soywiz/korlibs](https://github.com/soywiz/korlibs)
 
+Kotlin Game Engine that uses JTransc for multiplatform: [https://github.com/soywiz/korge](https://github.com/soywiz/korge)
+
 # What is this?
 
 JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
@@ -62,7 +64,7 @@ This is the preferred way of using JTransc. You can include it from maven centra
 
 ```
 plugins {
-  id "com.jtransc" version "0.5.13"
+  id "com.jtransc" version "0.5.14"
 }
 ```
 
