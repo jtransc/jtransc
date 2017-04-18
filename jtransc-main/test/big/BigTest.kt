@@ -129,6 +129,8 @@ object BigTest {
 		Issue94Enum.main(args)
 		Issue100Double.main(args)
 
+		CaseInsensitiveOrder.main(args);
+
 		System.out.println(String.format("%d%%", 100))
 	}
 
@@ -237,6 +239,19 @@ object NumberFormatTest2 {
 	} catch (e: NumberFormatException) {
 		//-1.0
 		false
+	}
+}
+
+private class CaseInsensitiveOrder {
+	companion object {
+		@JvmStatic fun main(args: Array<String>) {
+			val tm = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER)
+			tm["Ab"] = "hello";
+			println(tm["ab"])
+			println(tm["aB"])
+			println(tm["Ab"])
+			println(tm["AB"])
+		}
 	}
 }
 
