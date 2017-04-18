@@ -60,7 +60,7 @@ class HaxeTest : Base() {
 		10
 		jtransc.jtransc.JTranscInternalNamesTest_
 		main__Ljava_lang_String__V
-		___hello
+		_jt___hello
 		JTranscReinterpretArrays:
 		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
 		floats:2 : [0.0, 0.0]

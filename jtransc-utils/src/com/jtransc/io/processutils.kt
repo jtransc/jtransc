@@ -92,15 +92,15 @@ object ProcessUtils {
 	}
 
 	fun runAndReadStderr(currentDir: File, command: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
-		return run(currentDir, command, args, options = ExecOptions().copy(passthru = false, env = env))
+		return run(currentDir, command, args, options = ExecOptions(sysexec = true).copy(passthru = false, env = env))
 	}
 
 	fun runAndRedirect(currentDir: File, command: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
-		return run(currentDir, command, args, options = ExecOptions().copy(passthru = true, env = env))
+		return run(currentDir, command, args, options = ExecOptions(sysexec = true).copy(passthru = true, env = env))
 	}
 
 	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
-		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), options = ExecOptions().copy(passthru = true, env = env))
+		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), options = ExecOptions(sysexec = true).copy(passthru = true, env = env))
 	}
 
 	open class ProcessHandler(val parent: ProcessHandler? = null) {
@@ -139,7 +139,7 @@ object ProcessUtils {
 	}
 
 	fun run2(currentDir: File, command: String, args: List<String>, handler: ProcessHandler = RedirectOutputHandler, charset: Charset = defaultCharset, options: ExecOptions = ExecOptions()): Int {
-		val fullCommand = if (File(command).isAbsolute) command else locateCommandSure(command)
+		val fullCommand = if (File(command).isAbsolute) command else locateCommand(command) ?: command
 		var printCmd = fullCommand
 		for (arg in args) {
 			printCmd += " " + arg
