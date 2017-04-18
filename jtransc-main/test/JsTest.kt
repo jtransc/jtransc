@@ -27,6 +27,7 @@ import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
+import jtransc.ProcessTest
 import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -42,6 +43,7 @@ class JsTest : Base() {
 
 	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = true, treeShaking = true, debug = true)
 	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+
 	@Test fun testIssue105() = testClass<Issue105>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 
@@ -123,6 +125,7 @@ class JsTest : Base() {
 
 	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
 	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
+	@Test fun testProcess() = testClass<ProcessTest>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, target = JsTarget(), log = false)
 

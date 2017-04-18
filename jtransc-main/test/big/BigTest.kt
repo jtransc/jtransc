@@ -17,7 +17,6 @@ import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
 import javatest.utils.CopyTest
 import javatest.utils.DateTest
-import jtransc.ProcessTest
 import jtransc.WrappedTest
 import jtransc.bug.*
 import jtransc.java8.DefaultMethodsTest
@@ -101,7 +100,6 @@ object BigTest {
 		// Misc
 		Base64Test.main(args);
 		JTranscZipTest.main(args)
-		ProcessTest.main(args)
 		CharCharMapTest.main(args);
 
 		// Regex
