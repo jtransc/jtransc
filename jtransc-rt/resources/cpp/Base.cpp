@@ -781,6 +781,176 @@ jsize GetArrayLength(JNIEnv* env, jarray array){
 	return jtvmGetArrayLength(env, array);
 }
 
+void* jtvmGetUniversalArrayElements(JNIEnv *env, JA_0* array, jboolean *isCopy){
+	if(isCopy) *isCopy = false;
+	return array->_data;
+}
+
+jboolean* GetBooleanArrayElements(JNIEnv *env, jbooleanArray array, jboolean *isCopy){
+	return (jboolean*) jtvmGetUniversalArrayElements(env, (JA_Z*) array, isCopy);
+}
+
+jbyte* GetByteArrayElements(JNIEnv *env, jbyteArray array, jboolean *isCopy){
+	return (jbyte*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jchar* GetCharArrayElements(JNIEnv *env, jcharArray array, jboolean *isCopy){
+	return (jchar*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jshort* GetShortArrayElements(JNIEnv *env, jshortArray array, jboolean *isCopy){
+	return (jshort*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jint* GetIntArrayElements(JNIEnv *env, jintArray array, jboolean *isCopy){
+	return (jint*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jlong* GetLongArrayElements(JNIEnv *env, jlongArray array, jboolean *isCopy){
+	return (jlong*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jfloat* GetFloatArrayElements(JNIEnv *env, jfloatArray array, jboolean *isCopy){
+	return (jfloat*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+jdouble* GetDoubleArrayElements(JNIEnv *env, jdoubleArray array, jboolean *isCopy){
+	return (jdouble*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+}
+
+
+
+
+
+
+
+
+
+void ReleaseBooleanArrayElements(JNIEnv *env, jbooleanArray array, jboolean *elems, jint mode){
+}
+
+void ReleaseByteArrayElements(JNIEnv *env, jbyteArray array, jbyte *elems, jint mode){
+}
+
+void ReleaseCharArrayElements(JNIEnv *env, jcharArray array, jchar *elems, jint mode){
+}
+
+void ReleaseShortArrayElements(JNIEnv *env, jshortArray array, jshort *elems, jint mode){
+}
+
+void ReleaseIntArrayElements(JNIEnv *env, jintArray array, jint *elems, jint mode){
+}
+
+void ReleaseLongArrayElements(JNIEnv *env, jlongArray array, jlong *elems, jint mode){
+}
+
+void ReleaseFloatArrayElements(JNIEnv *env, jfloatArray array, jfloat *elems, jint mode){
+}
+
+void ReleaseDoubleArrayElements(JNIEnv *env, jdoubleArray array, jdouble *elems, jint mode){
+}
+
+
+static jboolean checkBounds(JNIEnv* env, JA_0* array, jint start, jint len){
+	jsize arrayLength = array->length;
+	jsize end = start + arrayLength;
+	if(len < 0 || len < 0 || end > arrayLength){
+		//jtvmThrowException();
+		return false;
+	}
+	return true;
+}
+
+void GetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, jboolean *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jboolean* )((JA_Z*) array)->_data) + start, sizeof(jboolean) * len);
+}
+
+void GetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, jbyte *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jbyte* )((JA_B*) array)->_data) + start, sizeof(jbyte) * len);
+}
+
+void GetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, jchar *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jchar* )((JA_C*) array)->_data) + start, sizeof(jchar) * len);
+}
+
+void GetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, jshort *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jshort* )((JA_S*) array)->_data) + start, sizeof(jshort) * len);
+}
+
+void GetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, jint *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jint* )((JA_I*) array)->_data) + start, sizeof(jint) * len);
+}
+
+void GetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, jlong *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jlong* )((JA_J*) array)->_data) + start, sizeof(jlong) * len);
+}
+
+void GetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, jfloat *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jfloat* )((JA_F*) array)->_data) + start, sizeof(jfloat) * len);
+}
+
+void GetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, jdouble *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(buf, ((jdouble* )((JA_D*) array)->_data) + start, sizeof(jdouble) * len);
+}
+
+void SetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, const jboolean *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jboolean* )((JA_Z*) array)->_data) + start, buf, sizeof(jboolean) * len);
+}
+
+void SetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, const jbyte *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jbyte* )((JA_B*) array)->_data) + start, buf, sizeof(jbyte) * len);
+}
+
+void SetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, const jchar *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jchar* )((JA_C*) array)->_data) + start, buf, sizeof(jchar) * len);
+}
+
+void SetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, const jshort *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jshort* )((JA_S*) array)->_data) + start, buf, sizeof(jshort) * len);
+}
+
+void SetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, const jint *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jint* )((JA_I*) array)->_data) + start, buf, sizeof(jint) * len);
+}
+
+void SetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, const jlong *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jlong* )((JA_J*) array)->_data) + start, buf, sizeof(jlong) * len);
+}
+
+void SetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, const jfloat *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jfloat* )((JA_F*) array)->_data) + start, buf, sizeof(jfloat) * len);
+}
+
+void SetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, const jdouble *buf){
+	if(!checkBounds(env, (JA_0*) array, start, len)) return;
+	memcpy(((jdouble* )((JA_D*) array)->_data) + start, buf, sizeof(jdouble) * len);
+}
+
+
+void* GetPrimitiveArrayCritical(JNIEnv *env, jarray array, jboolean *isCopy){
+	if(isCopy) *isCopy = false;
+	return ((JA_0*) array)->_data;
+}
+
+void ReleasePrimitiveArrayCritical(JNIEnv *env, jarray array, void *carray, jint mode){
+
+}
+
 JA_Z* jtvmNewBooleanArray(JNIEnv* env, jsize length){
 	JA_Z* out = new JA_Z(length);
     return out;
@@ -864,6 +1034,34 @@ jint GetVersion(JNIEnv* env){
 	return JNI_VERSION_1_6;
 }
 
+JAVA_OBJECT jtvmFindClass(JNIEnv* env, const char *name){
+	return N::resolveClass(N::istr2(N::str(name)));
+	// FIXME horribly inefficient
+	// FIXME semantics are probably wrong
+}
+
+jclass FindClass(JNIEnv* env, const char *name){
+	return (jclass) jtvmFindClass(env, name);
+}
+
+JAVA_OBJECT jtvmGetObjectClass(JNIEnv *env, JAVA_OBJECT obj){
+	return obj->{% METHOD java.lang.Object:getClass %}();
+}
+
+jclass GetObjectClass(JNIEnv *env, jobject obj){
+	return (jclass) jtvmGetObjectClass(env, (JAVA_OBJECT) obj);
+}
+
+bool jtvmIsInstanceOf(JNIEnv *env, JAVA_OBJECT obj, JAVA_OBJECT clazz){
+	return N::is(obj, GET_OBJECT_NPE({% CLASS java.lang.Class %}, clazz)->{% FIELD java.lang.Class:id %}); // FIXME verification and stuff...
+}
+
+jboolean IsInstanceOf(JNIEnv *env, jobject obj, jclass clazz){
+	return jtvmIsInstanceOf(env, (JAVA_OBJECT) obj, (JAVA_OBJECT) clazz);
+}
+
+
+
 const struct JNINativeInterface_ jni = {
 
 	NULL,
@@ -873,7 +1071,7 @@ const struct JNINativeInterface_ jni = {
 	&GetVersion,
 
 	NULL,
-	NULL,
+	&FindClass,
 
 	NULL,
 	NULL,
@@ -902,12 +1100,12 @@ const struct JNINativeInterface_ jni = {
 	NULL,
 
 	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,//&NewObject,
+	NULL,//&NewObjectV,
+	NULL,//&NewObjectA,
 
-	NULL,
-	NULL,
+	&GetObjectClass,
+	&IsInstanceOf,
 
 	NULL,
 
@@ -1075,54 +1273,54 @@ const struct JNINativeInterface_ jni = {
     &NewFloatArray,
     &NewDoubleArray,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	&GetBooleanArrayElements,
+	&GetByteArrayElements,
+	&GetCharArrayElements,
+	&GetShortArrayElements,
+	&GetIntArrayElements,
+	&GetLongArrayElements,
+	&GetFloatArrayElements,
+	&GetDoubleArrayElements,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	&ReleaseBooleanArrayElements,
+	&ReleaseByteArrayElements,
+	&ReleaseCharArrayElements,
+	&ReleaseShortArrayElements,
+	&ReleaseIntArrayElements,
+	&ReleaseLongArrayElements,
+	&ReleaseFloatArrayElements,
+	&ReleaseDoubleArrayElements,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-
-	NULL,
-	NULL,
-
-	NULL,
-	NULL,
-
-	NULL,
+	&GetBooleanArrayRegion,
+    &GetByteArrayRegion,
+    &GetCharArrayRegion,
+    &GetShortArrayRegion,
+    &GetIntArrayRegion,
+    &GetLongArrayRegion,
+    &GetFloatArrayRegion,
+    &GetDoubleArrayRegion,
+    &SetBooleanArrayRegion,
+    &SetByteArrayRegion,
+    &SetCharArrayRegion,
+    &SetShortArrayRegion,
+    &SetIntArrayRegion,
+    &SetLongArrayRegion,
+    &SetFloatArrayRegion,
+    &SetDoubleArrayRegion,
 
 	NULL,
 	NULL,
 
 	NULL,
 	NULL,
+
+	NULL,
+
+	NULL,
+    NULL,
+
+	&GetPrimitiveArrayCritical,
+    &ReleasePrimitiveArrayCritical,
 
 	NULL,
 	NULL,
