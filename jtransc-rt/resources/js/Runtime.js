@@ -1,5 +1,9 @@
 var _global = (typeof window !== "undefined") ? window : global;
 
+if ('á'.charCodeAt(0) != 225) {
+	throw 'Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html';
+}
+
 // Polyfills
 Array.prototype.includes = Array.prototype.includes || (function(searchElement /*, fromIndex*/ ) {
 	var O = Object(this);
