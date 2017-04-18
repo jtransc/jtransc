@@ -3,15 +3,25 @@ package com.jtransc.gen.cpp
 import com.jtransc.JTranscSystem
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
+import com.jtransc.vfs.LocalVfs
 import java.io.File
 
 object CppCompiler {
 	class Context(val desiredCompiler: String = "any")
 	interface Compiler
 
+	val CPP_COMMON_FOLDER by lazy {
+		//println(System.getProperty("user.home") + "/.jtransc/cpp")
+		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp")
+		folder.mkdirs()
+		LocalVfs(folder)
+	}
+
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
+
+		CPP_COMMON_FOLDER
 
 		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)

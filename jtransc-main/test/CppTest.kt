@@ -26,6 +26,7 @@ import jtransc.jtransc.nativ.JTranscCppNativeMixedTest
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.rt.test.JTranscReflectionTest
 import jtransc.rt.test.ProxyTest
+import org.junit.Ignore
 import org.junit.Test
 import threading.ThreadingTest
 
@@ -33,6 +34,7 @@ class CppTest : Base() {
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
+	@Ignore("Ignored until stabilized C++ target to avoid problems with travis")
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, treeShaking = true)
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
