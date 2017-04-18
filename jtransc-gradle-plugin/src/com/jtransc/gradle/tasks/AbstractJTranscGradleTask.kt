@@ -52,6 +52,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		val compileConfiguration = configurations["compile"]
 		val jtranscConfiguration = configurations["jtransc"]
+		val nojtranscConfiguration = configurations["nojtransc"]
 		val runtimeConfiguration = configurations["jtranscRuntime"]
 
 		log.logger = { content, level ->
@@ -66,6 +67,9 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		for (file in runtimeConfiguration.files) logger.info("jtranscRuntime: $file")
 		for (file in jtranscConfiguration.files) logger.info("jtransc: $file")
 		for (file in compileConfiguration.files) logger.info("compile: $file")
+		for (file in nojtranscConfiguration.files) logger.info("nojtransc: $file")
+
+		val blacklist = nojtranscConfiguration.files.toSet()
 
 		logger.info("JTranscTask.jtransc() extension: $extension");
 		//println(project.property("output.classesDir"))
@@ -114,15 +118,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			treeshakingTrace ?: extension.treeshakingTrace ?: false
 		))
 
-		injector.mapInstances(
-			ConfigClassPaths(
-				listOf(classesDir.absolutePath) +
-					jtranscConfiguration.files.map { it.absolutePath } +
-					compileConfiguration.files.map { it.absolutePath } +
-					mainSourceSet.resources.srcDirs.toList().map { it.absolutePath }
+		val files = listOf(File(classesDir.absolutePath)) + jtranscConfiguration.files + compileConfiguration.files + mainSourceSet.resources.srcDirs.toList()
+		val actualFiles = files - blacklist
 
-			)
-		)
+		injector.mapInstances(ConfigClassPaths(actualFiles.map { it.absolutePath }))
 
 		//val classPaths = injector.get<ConfigClassPaths>().classPaths
 		//log.info("ConfigClassPaths:")
