@@ -590,7 +590,10 @@ private class MergedSyncVfs(val nodes: List<SyncVfsFile>) : SyncVfs() {
 	override fun read(path: String): ByteArray = op(path, "read") { it[path].read() }
 	override fun write(path: String, data: ByteArray) = op(path, "write") { it[path].write(data) }
 	override fun <T> readSpecial(clazz: Class<T>, path: String): T = op(path, "readSpecial") { it[path].readSpecial(clazz) }
-	override fun listdir(path: String): Iterable<SyncVfsStat> = op(path, "listdir") { it[path].listdir() }
+	override fun listdir(path: String): Iterable<SyncVfsStat> {
+		//op(path, "listdir") { it[path].listdir() }
+		return nodesSorted.flatMap { it.listdir() }
+	}
 	override fun mkdir(path: String) = op(path, "mkdir") { it[path].mkdir() }
 	override fun rmdir(path: String) = op(path, "rmdir") { it[path].rmdir() }
 	override fun exec(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {

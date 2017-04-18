@@ -35,6 +35,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var initialHeight: Int? = null
 	var extra = hashMapOf<String?, String?>()
 	var assets = arrayListOf<String>()
+	val newAssets = arrayListOf<File>()
 	var libraries = arrayListOf<String>()
 	var package_: String? = null
 	var company: String? = null
@@ -43,6 +44,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var title: String? = null
 
 	val types: AstTypes = AstTypes()
+
+	fun assets(vararg folders: String) {
+		newAssets += folders.map { File(project.buildFile.parentFile, it) }
+	}
 
 	open protected fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
@@ -93,7 +98,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			package_ = package_ ?: extension.package_ ?: default.package_,
 			embedResources = embedResources ?: extension.embedResources ?: default.embedResources,
 			libraries = (libraries + extension.libraries).map { AstBuildSettings.Library.fromInfo(it) },
-			assets = (assets + extension.assets).map { File(it) },
+			assets = (assets + extension.assets).map(::File) + newAssets + extension.newAssets,
 			debug = debug ?: extension.debug ?: default.debug,
 			initialWidth = initialWidth ?: extension.initialWidth ?: default.initialWidth,
 			initialHeight = initialHeight ?: extension.initialHeight ?: default.initialHeight,
