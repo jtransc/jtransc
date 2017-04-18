@@ -35,6 +35,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var initialHeight: Int? = null
 	var extra = hashMapOf<String?, String?>()
 	var assets = arrayListOf<String>()
+	val newAssets = arrayListOf<File>()
 	var libraries = arrayListOf<String>()
 	var package_: String? = null
 	var company: String? = null
@@ -44,6 +45,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 	val types: AstTypes = AstTypes()
 
+	fun assets(vararg folders: String) {
+		newAssets += folders.map { File(project.buildFile.parentFile, it) }
+	}
+
 	open protected fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
 		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
@@ -52,6 +57,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		val compileConfiguration = configurations["compile"]
 		val jtranscConfiguration = configurations["jtransc"]
+		val nojtranscConfiguration = configurations["nojtransc"]
 		val runtimeConfiguration = configurations["jtranscRuntime"]
 
 		log.logger = { content, level ->
@@ -66,6 +72,9 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		for (file in runtimeConfiguration.files) logger.info("jtranscRuntime: $file")
 		for (file in jtranscConfiguration.files) logger.info("jtransc: $file")
 		for (file in compileConfiguration.files) logger.info("compile: $file")
+		for (file in nojtranscConfiguration.files) logger.info("nojtransc: $file")
+
+		val blacklist = nojtranscConfiguration.files.toSet()
 
 		logger.info("JTranscTask.jtransc() extension: $extension");
 		//println(project.property("output.classesDir"))
@@ -89,7 +98,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			package_ = package_ ?: extension.package_ ?: default.package_,
 			embedResources = embedResources ?: extension.embedResources ?: default.embedResources,
 			libraries = (libraries + extension.libraries).map { AstBuildSettings.Library.fromInfo(it) },
-			assets = (assets + extension.assets).map { File(it) },
+			assets = (assets + extension.assets).map(::File) + newAssets + extension.newAssets,
 			debug = debug ?: extension.debug ?: default.debug,
 			initialWidth = initialWidth ?: extension.initialWidth ?: default.initialWidth,
 			initialHeight = initialHeight ?: extension.initialHeight ?: default.initialHeight,
@@ -114,15 +123,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			treeshakingTrace ?: extension.treeshakingTrace ?: false
 		))
 
-		injector.mapInstances(
-			ConfigClassPaths(
-				listOf(classesDir.absolutePath) +
-					jtranscConfiguration.files.map { it.absolutePath } +
-					compileConfiguration.files.map { it.absolutePath } +
-					mainSourceSet.resources.srcDirs.toList().map { it.absolutePath }
+		val files = listOf(File(classesDir.absolutePath)) + jtranscConfiguration.files + compileConfiguration.files + mainSourceSet.resources.srcDirs.toList()
+		val actualFiles = files - blacklist
 
-			)
-		)
+		injector.mapInstances(ConfigClassPaths(actualFiles.map { it.absolutePath }))
 
 		//val classPaths = injector.get<ConfigClassPaths>().classPaths
 		//log.info("ConfigClassPaths:")

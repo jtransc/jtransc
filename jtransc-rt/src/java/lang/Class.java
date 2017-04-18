@@ -141,7 +141,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public Package getPackage();
 
-	native public Type[] getGenericInterfaces();
+	// @TODO:
+	public Type[] getGenericInterfaces() {
+		return new Type[0];
+	}
 
 	public Class<?> getComponentType() {
 		if (isArray()) {

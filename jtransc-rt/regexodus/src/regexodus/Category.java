@@ -1,6 +1,7 @@
 package regexodus;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.io.JTranscConsole;
 import regexodus.ds.CharArrayList;
 import regexodus.ds.CharCharMap;
 import regexodus.ds.IntBitSet;
@@ -71,7 +72,12 @@ public class Category {
                 continue;
             }
             bss[eb++].set(e & 0xff, 255);
-            while (eb != e2b) {
+
+			while (eb != e2b) {
+				if (eb > e2b) {
+					JTranscConsole.error("Problem in regexodus.Category.makeBlocks");
+					break;
+				}
                 if(bss[eb] == null) bss[eb] = new IntBitSet();
                 bss[eb++].set(0, 255);
             }

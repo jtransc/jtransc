@@ -263,8 +263,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return _compareTo(anotherString);
 	}
 
-	//public static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
-	public static final Comparator<String> CASE_INSENSITIVE_ORDER = null;
+	public static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
+
+	private static class CaseInsensitiveComparator implements Comparator<String>, java.io.Serializable {
+		public int compare(String s1, String s2) {
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 
 	public int compareToIgnoreCase(String str) {
 		return this.toLowerCase().compareTo(str.toLowerCase());

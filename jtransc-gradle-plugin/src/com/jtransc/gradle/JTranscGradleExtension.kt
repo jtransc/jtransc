@@ -4,6 +4,7 @@ import com.jtransc.gradle.tasks.AbstractJTranscGradleTask
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
 import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import org.gradle.api.Project
+import java.io.File
 
 open class JTranscGradleExtension(val project: Project) {
 	companion object {
@@ -52,6 +53,7 @@ open class JTranscGradleExtension(val project: Project) {
 	var extra = hashMapOf<String?, String?>()
 	var libraries = arrayListOf<String>()
 	var assets = arrayListOf<String>()
+	val newAssets = arrayListOf<File>()
 	var title: String? = null
 	var name: String? = null
 	var version: String? = null
@@ -75,6 +77,10 @@ open class JTranscGradleExtension(val project: Project) {
 	var mainClassName: String? = null
 	var treeshaking: Boolean? = null
 	var treeshakingTrace: Boolean? = null
+
+	fun assets(vararg folders: String) {
+		newAssets += folders.map { File(project.buildFile.parentFile, it) }
+	}
 
 	/*
 	Alias for:
