@@ -17,10 +17,12 @@
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.php.PhpTarget
 import jtransc.micro.MicroHelloWorld
+import org.junit.Ignore
 import org.junit.Test
 
 class PhpTest : Base() {
 	override val DEFAULT_TARGET: GenTargetDescriptor = PhpTarget()
 
-	//@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)
+	@Ignore
+	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)
 }

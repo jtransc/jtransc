@@ -26,7 +26,7 @@ public final class Array {
 
 	@HaxeMethodBody("return new JA_L(p0, p1._str);")
 	@JTranscMethodBody(target = "js", value = "return new JA_L(p0, N.istr(p1));")
-	@JTranscMethodBody(target = "cpp", value = "return SOBJ(new JA_L(p0, N::istr2(p1)));")
+	@JTranscMethodBody(target = "cpp", value = "return new JA_L(p0, N::istr2(p1));")
 	@JTranscMethodBody(target = "d", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "cs", value = "return new JA_L(p0, N.istr(p1));")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;

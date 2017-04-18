@@ -3,17 +3,27 @@ package com.jtransc.gen.cpp
 import com.jtransc.JTranscSystem
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
+import com.jtransc.vfs.LocalVfs
 import java.io.File
 
 object CppCompiler {
 	class Context(val desiredCompiler: String = "any")
 	interface Compiler
 
+	val CPP_COMMON_FOLDER by lazy {
+		//println(System.getProperty("user.home") + "/.jtransc/cpp")
+		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp")
+		folder.mkdirs()
+		LocalVfs(folder)
+	}
+
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (gpp or clang), please install one of them and put in the path.")
+		CPP_COMMON_FOLDER
+
+		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)
 	}
 
@@ -24,12 +34,23 @@ object CppCompiler {
 			cmdAndArgs += "-std=c++0x"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 			if (debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (debug) "-O0" else "-O3"
+			cmdAndArgs += if (debug) "-O0" else "-O0"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
+			//cmdAndArgs += "-Lgclibs"
+			//cmdAndArgs += "-static"
+			//cmdAndArgs += "libgc.dylib"
+			//cmdAndArgs += "libgccpp.dylib"
+			cmdAndArgs += "-Imac"
+			cmdAndArgs += "-I/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/include/"
+			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgc.dylib"
+			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgccpp.dylib"
+			cmdAndArgs += "-I/Users/simon/boost/test_libs/include/"
+			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_thread.a"
+			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_system.a"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}

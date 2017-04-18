@@ -16,6 +16,10 @@
 
 package java.lang;
 
+import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscAddLibraries;
+import com.jtransc.annotation.JTranscMethodBody;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,7 +31,43 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
+@JTranscAddLibraries(target = "cpp", value = {"dl"})
 public abstract class ClassLoader {
+
+	private ArrayList<NativeLib> nativeLibs = new ArrayList<>();
+
+	public static class NativeLib {
+		long handle;
+		String name;
+
+		NativeLib(long handle, String name) {
+			this.handle = handle;
+			this.name = name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			NativeLib nativeLib = (NativeLib) o;
+
+			return handle == nativeLib.handle;
+
+		}
+
+		@Override
+		public int hashCode() {
+			return (int) (handle ^ (handle >>> 32));
+		}
+	}
+
+	public ArrayList<NativeLib> getNativeLibs() {
+		System.out.println(nativeLibs.size());
+		System.out.flush();
+		return nativeLibs;
+	}
+
 	private ClassLoader parent;
 
 	protected ClassLoader(ClassLoader parent) {
@@ -136,4 +176,26 @@ public abstract class ClassLoader {
 	native public void setClassAssertionStatus(String className, boolean enabled);
 
 	native public void clearAssertionStatus();
+
+	void loadLibrary(Class fromClass, String name, boolean isAbsolute) {
+		if (JTranscSystem.isCpp()) {
+			NativeLib nativeLib = new NativeLib(loadLibrarayCpp(name), name);
+			if (!nativeLibs.contains(nativeLib)) {
+				nativeLibs.add(nativeLib);
+			} else {
+				unLoadLibrarayCpp(nativeLib.handle);
+			}
+		} else {
+			throw new UnsupportedOperationException("Loading dynamic libs is only supported by the cpp target!");
+		}
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "return ptr_to_jlong(N::jtvmLoadDynamicLibraray(N::istr3(p0).c_str()));")
+	private static long loadLibrarayCpp(String filename) {
+		return 0L;
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "N::jtvmUnLoadDynamicLibraray(jlong_to_ptr(p0));")
+	private static void unLoadLibrarayCpp(long handle) {
+	}
 }

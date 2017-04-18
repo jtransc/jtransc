@@ -59,7 +59,7 @@ public class System {
 
 	@HaxeMethodBody("N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0.get(), p1, (JA_0*)p2.get(), p3, p4);")
+	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0, p1, (JA_0*)p2, p3, p4);")
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
@@ -230,6 +230,7 @@ public class System {
 	}
 
 	public static void load(String filename) {
+		Runtime.getRuntime().load(filename);
 	}
 
 	public static void loadLibrary(String libname) {
