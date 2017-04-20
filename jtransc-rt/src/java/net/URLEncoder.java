@@ -1,6 +1,7 @@
 package java.net;
 
 import java.io.UnsupportedEncodingException;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class URLEncoder {
 	private URLEncoder() {
@@ -15,5 +16,6 @@ public class URLEncoder {
 		}
 	}
 
+	@HaxeMethodBody("return StringTools.urlEncode(p0);")
 	native public static String encode(String s, String enc) throws UnsupportedEncodingException;
 }
