@@ -16,6 +16,6 @@ public class URLEncoder {
 		}
 	}
 
-	@HaxeMethodBody("return StringTools.urlEncode(p0);")
+	@HaxeMethodBody("return N.str(StringTools.urlEncode(p0._str));")
 	native public static String encode(String s, String enc) throws UnsupportedEncodingException;
 }
