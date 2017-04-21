@@ -25,6 +25,7 @@ dependencies {
 	//compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	//providedCompile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	testCompile project(":jtransc-rt-core-kotlin")
+	testCompile project(":jtransc-rt-extended-charsets")
 }
 
 idea {

@@ -1,6 +1,6 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
-import java.lang.jtransc.JTranscCharsetSingleByte;
+import com.jtransc.charset.JTranscCharsetSingleByte;
 
 public class JTranscCharsetLatin1 extends JTranscCharsetSingleByte {
 	public JTranscCharsetLatin1() {

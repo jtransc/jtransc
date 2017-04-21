@@ -1,6 +1,6 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
-import java.lang.jtransc.JTranscCharsetSingleByte;
+import com.jtransc.charset.JTranscCharsetSingleByte;
 
 public class JTranscCharsetIBM866 extends JTranscCharsetSingleByte {
 	public JTranscCharsetIBM866() {

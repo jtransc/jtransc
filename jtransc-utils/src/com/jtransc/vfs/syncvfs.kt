@@ -74,12 +74,11 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun <T> readSpecial(clazz: Class<T>): T = vfs.readSpecial(clazz, path)
 	fun write(data: ByteArray): Unit = vfs.write(path, data)
 	fun readString(encoding: Charset = Charsets.UTF_8): String = encoding.toString(vfs.read(path))
-	fun readLines(encoding: Charset = Charsets.UTF_8): List<String> = this.readString().lines()
+	fun readLines(encoding: Charset = Charsets.UTF_8): List<String> = this.readString(encoding).lines()
 	val exists: Boolean get() = vfs.exists(path)
 	val isDirectory: Boolean get() = stat().isDirectory
 	fun remove(): Unit = vfs.remove(path)
-	fun removeIfExists(): Unit = if (exists) remove() else {
-	}
+	fun removeIfExists(): Unit = if (exists) remove() else Unit
 
 	fun exec(cmdAndArgs: List<String>, options: ExecOptions = ExecOptions()): ProcessResult = vfs.exec(path, cmdAndArgs.first(), cmdAndArgs.drop(1), options)
 	fun exec(cmd: String, args: List<String>, options: ExecOptions): ProcessResult = vfs.exec(path, cmd, args, options)

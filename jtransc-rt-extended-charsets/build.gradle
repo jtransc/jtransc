@@ -1,0 +1,12 @@
+apply from: '../include.gradle'
+
+apply plugin: "kotlin"
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+dependencies {
+	testCompile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+	testCompile project(":jtransc-utils")
+	compile project(":jtransc-rt-core")
+}
