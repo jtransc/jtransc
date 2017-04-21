@@ -50,7 +50,9 @@ class PhpTarget : GenTargetDescriptor() {
 }
 
 @Singleton
-class PhpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = true
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val staticAccessOperator: String = "::"
 	override val instanceAccessOperator: String = "->"

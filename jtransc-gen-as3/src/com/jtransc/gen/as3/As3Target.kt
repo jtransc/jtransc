@@ -55,7 +55,9 @@ class As3Target : GenTargetDescriptor() {
 }
 
 @Singleton
-class As3Generator(injector: Injector) : FilePerClassCommonGenerator(injector) {
+class As3Generator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = false
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)

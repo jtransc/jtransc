@@ -30,7 +30,7 @@ import com.jtransc.vfs.*
 import java.io.File
 import java.util.*
 
-class HaxeTarget() : GenTargetDescriptor() {
+class HaxeTarget : GenTargetDescriptor() {
 	override val priority = 1000
 	override val name = "haxe"
 	override val longName = "Haxe"
@@ -90,7 +90,8 @@ class HaxeTarget() : GenTargetDescriptor() {
 }
 
 @Singleton
-class HaxeGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
+class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = false
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
 	val MAX_SWITCH_SIZE = 10

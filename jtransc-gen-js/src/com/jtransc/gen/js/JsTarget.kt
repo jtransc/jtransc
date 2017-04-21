@@ -66,7 +66,8 @@ fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote(
 
 @Suppress("ConvertLambdaToReference")
 @Singleton
-class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+class JsGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = true
 	override val ADD_UTF8_BOM = true
 
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)

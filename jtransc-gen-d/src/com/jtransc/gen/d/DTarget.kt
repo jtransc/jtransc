@@ -54,7 +54,9 @@ class DTarget : GenTargetDescriptor() {
 }
 
 @Singleton
-class DGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+class DGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = true
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
