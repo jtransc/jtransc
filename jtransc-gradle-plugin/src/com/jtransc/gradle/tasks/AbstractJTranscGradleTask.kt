@@ -8,6 +8,7 @@ import com.jtransc.gradle.get
 import com.jtransc.gradle.getIfExists
 import com.jtransc.injector.Injector
 import com.jtransc.log.log
+import com.jtransc.plugin.service.ConfigServiceLoader
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSetContainer
@@ -42,7 +43,11 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var version: String? = null
 	var productName: String? = null
 	var title: String? = null
+	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
+	fun skipServiceLoader(serviceLoader: String) {
+		skipServiceLoaderClasses.add(serviceLoader)
+	}
 	val types: AstTypes = AstTypes()
 
 	fun assets(vararg folders: String) {
@@ -121,6 +126,10 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		injector.mapInstance(ConfigTreeShaking(
 			treeshaking ?: extension.treeshaking ?: false,
 			treeshakingTrace ?: extension.treeshakingTrace ?: false
+		))
+
+		injector.mapInstance(ConfigServiceLoader(
+			skipServiceLoaderClasses + extension.skipServiceLoaderClasses
 		))
 
 		val files = listOf(File(classesDir.absolutePath)) + jtranscConfiguration.files + compileConfiguration.files + mainSourceSet.resources.srcDirs.toList()

@@ -77,9 +77,14 @@ open class JTranscGradleExtension(val project: Project) {
 	var mainClassName: String? = null
 	var treeshaking: Boolean? = null
 	var treeshakingTrace: Boolean? = null
+	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
 	fun assets(vararg folders: String) {
 		newAssets += folders.map { File(project.buildFile.parentFile, it) }
+	}
+
+	fun skipServiceLoader(serviceLoader: String) {
+		skipServiceLoaderClasses.add(serviceLoader)
 	}
 
 	/*

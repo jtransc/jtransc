@@ -1,4 +1,5 @@
 testservice.test.TestServiceImpl1
 testservice.test.TestServiceJs     # <target=js>
+testservice.test.TestServiceJs2     # <target=js>
 testservice.test.TestServiceD      # <target=d>
 testservice.test.TestServiceCS      # <target=cs>
