@@ -25,7 +25,6 @@ public class URLEncoder {
 		}
 	}
 
-	@HaxeMethodBody("return N.str(StringTools.urlEncode(p0._str));")
 	public static String encode(String s, String enc) throws UnsupportedEncodingException {
 		final StringBuilder sb = new StringBuilder(s.length());
 		byte[] data = s.getBytes(enc);
