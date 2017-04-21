@@ -367,6 +367,10 @@ public class JTranscBits {
 		return readInt64BE(data, 0);
 	}
 
+	static public short readInt16(byte[] data, int offset, boolean LE) {
+		return LE ? readInt16LE(data, offset) : readInt16BE(data, offset);
+	}
+
 	static public short readInt16LE(byte[] data, int offset) {
 		return (short) (
 			((data[offset + 1] & 0xFF) << 8) |

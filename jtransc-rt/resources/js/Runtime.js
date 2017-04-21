@@ -856,13 +856,6 @@ N.byteArrayToString = N.intArrayToString = N.charArrayToString = function(array,
 	return out;
 };
 
-N.stringToByteArray = function(str, encoding) {
-	// @TODO: Handle encoding!
-	var out = new JA_B(str.length);
-	for (var n = 0; n < str.length; n++) out.set(n, str.charCodeAt(n));
-	return out;
-};
-
 N.stringToCharArray = function(str) {
 	var out = new JA_C(str.length);
 	for (var n = 0; n < str.length; n++) out.set(n, str.charCodeAt(n));

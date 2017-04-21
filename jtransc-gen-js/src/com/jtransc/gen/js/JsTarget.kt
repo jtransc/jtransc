@@ -67,6 +67,8 @@ fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote(
 @Suppress("ConvertLambdaToReference")
 @Singleton
 class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+	override val ADD_UTF8_BOM = true
+
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 	override val stringPoolType = StringPool.Type.GLOBAL
@@ -140,7 +142,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		}
 
 		val out = Indenter.gen {
-			if (settings.debug) line("//# sourceMappingURL=program.js.map")
+			if (settings.debug) line("//# sourceMappingURL=$outputFileBaseName.map")
 			line(concatFilesTrans.prepend)
 			line(strs.toString())
 			for (indent in classesIndenter) line(indent)
@@ -176,7 +178,7 @@ class JsGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
 		val sourceMap = if (settings.debug) Sourcemaps.encodeFile(sources.array, mappings) else null
 		// Generate source
 		//println("outputFileBaseName:$outputFileBaseName")
-		output[outputFileBaseName] = source
+		output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + source.toByteArray(Charsets.UTF_8)
 		if (sourceMap != null) output[outputFileBaseName + ".map"] = sourceMap
 
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))

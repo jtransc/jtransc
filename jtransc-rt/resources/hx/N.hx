@@ -348,12 +348,6 @@ class N {
 		return out.toString();
 	}
 
-	static public function stringToByteArray(str:String, charset:String = "UTF-8"):JA_B {
-		var out = new JA_B(str.length);
-		for (n in 0 ... str.length) out.set(n, str.charCodeAt(n));
-		return out;
-	}
-
 	static public function stringToCharArray(str:String):JA_C {
 		#if (js || flash || java || cs)
 		var out = new JA_C(str.length);

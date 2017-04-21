@@ -22,15 +22,14 @@ import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
 
-import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.jtransc.JTranscCharset;
 import java.lang.jtransc.JTranscStrings;
-import java.lang.jtransc.JTranscUTF8;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("ALL")
+//@SuppressWarnings("ALL")
 @HaxeAddMembers({
 	"public var _str:String = '';",
 	"public var _array:JA_C = null;",
@@ -45,65 +44,46 @@ import java.util.regex.Pattern;
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	public char[] value;
 
-	@HaxeMethodBody("this.setStr('');")
-	@JTranscMethodBody(target = "js", value = "this._str = '';")
+	@HaxeMethodBody("this.setStr(N.charArrayToString(p0, 0, p0.length));")
+	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
+	private void setChars(char[] chars) {
+		this.value = chars;
+	}
+
+	/////////////////////
+	// Constructors:
+	/////////////////////
+
 	public String() {
-		//throw new RuntimeException("Native");
-		this.value = new char[0];
+		setChars(new char[0]);
 	}
 
 	@HaxeMethodBody("this.setStr(p0._str);")
 	@JTranscMethodBody(target = "js", value = "this._str = p0._str;")
 	public String(String original) {
-		//throw new RuntimeException("Native");
-		this.value = original.value;
+		setChars(original.toCharArray());
 	}
 
-	@HaxeMethodBody("this.setStr(N.charArrayToString(p0, p1, p2));")
-	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, p1, p2);")
 	public String(char[] value, int offset, int count) {
-		//throw new RuntimeException("Native");
-		this.value = Arrays.copyOfRange(value, offset, offset + count);
+		setChars(Arrays.copyOfRange(value, offset, offset + count));
 	}
 
-	@HaxeMethodBody("this.setStr(N.intArrayToString(p0, p1, p2));")
-	@JTranscMethodBody(target = "js", value = "this._str = N.intArrayToString(p0, p1, p2);")
 	public String(int[] codePoints, int offset, int count) {
-		this.value = new char[count];
-		for (int n = 0; n < count; n++) {
-			this.value[n] = (char) codePoints[offset + n];
-		}
+		char[] chars = new char[count];
+		for (int n = 0; n < count; n++) chars[n] = (char) codePoints[offset + n];
+		setChars(chars);
 	}
 
 	@Deprecated
-	@HaxeMethodBody("this.setStr(N.byteArrayWithHiToString(p0, p1, p2, p3));")
-	@JTranscMethodBody(target = "js", value = "this._str = N.byteArrayWithHiToString(p0, p1, p2, p3);")
 	public String(byte[] ascii, int hibyte, int offset, int count) {
-		this.value = new char[count];
+		char[] chars = new char[count];
 		int up = (hibyte << 8);
-		for (int n = 0; n < count; n++) {
-			this.value[n] = (char) (ascii[n] | up);
-		}
+		for (int n = 0; n < count; n++) chars[n] = (char) (ascii[offset + n] | up);
+		setChars(chars);
 	}
 
-	@HaxeMethodBody("this.setStr(N.byteArrayToString(p0, p1, p2, p3._str));")
-	@JTranscMethodBody(target = "js", value = "this._str = N.byteArrayToString(p0, p1, p2, p3._str);")
 	private String(byte[] bytes, int offset, int length, String charsetName, boolean dummy) {
-		switch (charsetName) {
-			case "ascii":
-				this.value = new char[length];
-				for (int n = 0; n < length; n++) this.value[n] = (char) bytes[offset + n];
-				break;
-			case "utf8":
-			case "utf-8":
-			case "UTF8":
-			case "UTF-8":
-				this.value = JTranscUTF8.decode(bytes, offset, length);
-				break;
-			default:
-				throw new RuntimeException("Unsupported charset " + charsetName);
-		}
-
+		setChars(JTranscCharset.forName(charsetName).decodeChars(bytes, offset, length));
 	}
 
 	@Deprecated
@@ -112,14 +92,12 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	public String(char[] value) {
-		this(value, 0, value.length);
+		setChars(Arrays.copyOf(value, value.length));
 	}
 
 	// Constructor used by static targets (C++, D) to avoid copying or having extra dependencies
-	@HaxeMethodBody("this.setStr(N.charArrayToString(p0, 0, p0.length));")
-	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
 	String(char[] value, boolean dummy) {
-		this.value = value;
+		setChars(value);
 	}
 
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
@@ -153,6 +131,10 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public String(StringBuilder builder) {
 		this(builder.toString());
 	}
+
+	/////////////////////
+	// End of constructors
+	/////////////////////
 
 	public boolean isEmpty() {
 		return length() == 0;
@@ -189,34 +171,16 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		System.arraycopy(out, 0, dst, dstBegin, out.length);
 	}
 
-	@HaxeMethodBody("return N.stringToByteArray(this._str, p0._str);")
-	@JTranscMethodBody(target = "js", value = "return N.stringToByteArray(this._str, p0._str);")
-	private byte[] _getBytes(String charsetName) {
-		int len = this.length();
-		ByteArrayOutputStream out = new ByteArrayOutputStream(len * 2);
-		if (charsetName == null) charsetName = "UTF-8";
-		switch (charsetName) {
-			default:
-			case "UTF-8":
-				for (int n = 0; n < len; n++) {
-					// @TODO: Proper UTF-8 encoding!
-					out.write(this.charAt(n));
-				}
-				break;
-		}
-		return out.toByteArray();
-	}
-
 	public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
-		return _getBytes(charsetName);
+		return JTranscCharset.forName(charsetName).encode(this);
 	}
 
 	public byte[] getBytes(Charset charset) {
-		return _getBytes(charset.name());
+		return JTranscCharset.forName(charset.name()).encode(this);
 	}
 
 	public byte[] getBytes() {
-		return _getBytes("UTF-8");
+		return JTranscCharset.defaultCharset().encode(this);
 	}
 
 	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
