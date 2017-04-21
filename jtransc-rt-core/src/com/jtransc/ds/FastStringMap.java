@@ -23,6 +23,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeRemoveField;
 
 import java.util.HashMap;
+import java.util.Set;
 
 @JTranscInvisible
 @HaxeAddMembers({"var _map = new Map<String, Dynamic>();"})
@@ -52,5 +53,21 @@ public class FastStringMap<T> {
 	@JTranscMethodBody(target = "js", value = "return this.data.has(N.istr(p0));")
 	public boolean has(String key) {
 		return this.map.containsKey(key);
+	}
+
+	@HaxeMethodBody("return N.haxeStringArrayToJavaArray(N.haxeIteratorToArray(_map.keys()));")
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray1(Array.from(this.data.keys()).map(function(it) { return N.str(it); }), 'Ljava/lang/String;');")
+	public String[] getKeys() {
+		String[] out = new String[map.size()];
+		int n = 0;
+		for (String key : this.map.keySet()) out[n++] = key;
+		return out;
+	}
+
+	public T[] getValues() {
+		String[] keys = getKeys();
+		Object[] values = new Object[keys.length];
+		for (int n = 0; n < keys.length; n++) values[n] = get(keys[n]);
+		return (T[])values;
 	}
 }

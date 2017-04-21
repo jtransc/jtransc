@@ -19,12 +19,14 @@ import big.HelloWorldTest
 import big.NumberFormatTest2
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
+import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
+import javatest.net.URLEncoderDecoderTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
@@ -35,16 +37,19 @@ import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
+import testservice.test.TestServiceJs2
 
 class JsTest : Base() {
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
+	@Test fun testURLEncoderDecoder() = testClass<URLEncoderDecoderTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
+
 	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = true, treeShaking = true, debug = true)
 	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
-	@Test fun testIssue105() = testClass<Issue105>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+	@Test fun testIssue105() = testClass<Issue105>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 
 	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
@@ -62,7 +67,13 @@ class JsTest : Base() {
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss
 		TestServiceJs10
-	""", target = JsTarget(), minimize = false)
+	""", target = JsTarget(), minimize = false, configureInjector = {
+		mapInstance(ConfigServiceLoader(
+			classesToSkip = listOf(
+				TestServiceJs2::class.java.name
+			)
+		))
+	})
 
 	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
 		17

@@ -97,6 +97,12 @@ class N {
 	static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
 	static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
 
+	static public function haxeStringArrayToJavaArray(strs:Array<String>):JA_L {
+		var out = [];
+		for (s in strs) out.push(N.str(s));
+		return JA_L.fromArray(out, '[Ljava/lang/String;');
+	}
+
 	static public function toNativeStrArray(strs:JA_L):Array<String> {
 		var list = strs.toArray();
 		return [for (s in 0 ... list.length) toNativeString(cast list[s])];
@@ -332,6 +338,12 @@ class N {
 		return out.toString();
 	}
 
+	static public function haxeIteratorToArray<T>(iterator: Iterator<T>):Array<T> {
+		var out = [];
+		for (v in iterator) out.push(v);
+		return out;
+	}
+
 	static public function charArrayToString(chars:JA_C, start:Int = 0, count:Int = 999999999):String {
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
@@ -346,12 +358,6 @@ class N {
 		var out = new haxe.Utf8();
 		for (n in start ... end) out.addChar(chars.get(n));
 		return out.toString();
-	}
-
-	static public function stringToByteArray(str:String, charset:String = "UTF-8"):JA_B {
-		var out = new JA_B(str.length);
-		for (n in 0 ... str.length) out.set(n, str.charCodeAt(n));
-		return out;
 	}
 
 	static public function stringToCharArray(str:String):JA_C {

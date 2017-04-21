@@ -8,6 +8,17 @@ import java.util.Arrays;
 public class JTranscHex {
 	static public String chars = "0123456789abcdef";
 
+	static public int decodeInt(String hex, int offset, int len) {
+		//return java.lang.Integer.parseInt(hex.substring(offset, offset + len), 16);
+
+		int out = 0;
+		for (int n = 0; n < len; n++) {
+			out *= 16;
+			out += JTranscCType.decodeDigit(hex.charAt(offset + n));
+		}
+		return out;
+	}
+
 	static public byte[] decode(String hex) {
 		int len = hex.length();
 		byte[] out = new byte[len / 2 + 1];

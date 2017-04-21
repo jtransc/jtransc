@@ -108,12 +108,12 @@ open class Base {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", debug: Boolean? = null, backend: BuildBackend? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, treeShaking = treeShaking, backend = backend)
+	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", noinline configureInjector: Injector.() -> Unit = {},debug: Boolean? = null, backend: BuildBackend? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
+		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, configureInjector = configureInjector, treeShaking = treeShaking, backend = backend)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null) {
-		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, target = target, treeShaking = treeShaking, backend = backend).trim()))
+	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, noinline configureInjector: Injector.() -> Unit = {}, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null) {
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, configureInjector = configureInjector, target = target, treeShaking = treeShaking, backend = backend).trim()))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -133,6 +133,7 @@ open class Base {
 		analyze: Boolean?, debug: Boolean? = null,
 		treeShaking: Boolean? = null,
 		backend: BuildBackend? = null,
+		configureInjector: (Injector) -> Unit = {},
 		//target: GenTargetDescriptor = HaxeTarget
 		target: GenTargetDescriptor? = null
 	): String {
@@ -152,6 +153,8 @@ open class Base {
 		injector.mapImpl<AstTypes, AstTypes>()
 		injector.mapInstance(ConfigMinimizeNames(minimize ?: MINIMIZE))
 		injector.mapInstance(ConfigTreeShaking(treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
+
+		configureInjector(injector)
 
 		return log.setTempLogger({ v, l -> }) {
 			JTranscBuild(
