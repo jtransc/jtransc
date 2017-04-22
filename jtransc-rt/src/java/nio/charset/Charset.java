@@ -18,7 +18,7 @@ package java.nio.charset;
 
 import com.jtransc.ds.FastStringMap;
 
-import java.lang.jtransc.JTranscCharset;
+import com.jtransc.charset.JTranscCharset;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;

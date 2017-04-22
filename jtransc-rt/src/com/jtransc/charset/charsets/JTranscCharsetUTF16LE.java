@@ -1,9 +1,9 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
 import com.jtransc.JTranscBits;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.jtransc.JTranscCharset;
+import com.jtransc.charset.JTranscCharset;
 
 public class JTranscCharsetUTF16LE extends JTranscCharsetUTF16Base {
 	public JTranscCharsetUTF16LE() {

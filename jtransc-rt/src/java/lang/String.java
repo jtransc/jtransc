@@ -23,7 +23,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.jtransc.JTranscCharset;
+import com.jtransc.charset.JTranscCharset;
 import java.lang.jtransc.JTranscStrings;
 import java.nio.charset.Charset;
 import java.util.*;

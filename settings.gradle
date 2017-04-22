@@ -3,6 +3,7 @@ include (
 	'jtransc-rt',
 	'jtransc-rt-core',
 	'jtransc-rt-core-kotlin',
+	'jtransc-rt-extended-charsets',
 
 	'jtransc-asm',
 	'jtransc-buildjar-maven-plugin',

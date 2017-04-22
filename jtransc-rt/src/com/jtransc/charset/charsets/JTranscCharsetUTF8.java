@@ -1,23 +1,11 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.jtransc.JTranscCharset;
+import com.jtransc.charset.JTranscCharset;
 
 public class JTranscCharsetUTF8 extends JTranscCharset {
 	public JTranscCharsetUTF8() {
-		super(new String[] { "UTF-8", "UTF8" });
-	}
-
-	public final float minBytesPerCharacter() {
-		return 1;
-	}
-
-	public final float avgBytesPerCharacter() {
-		return 1.2f;
-	}
-
-	public final float maxBytesPerCharacter() {
-		return 4;
+		super(new String[] { "UTF-8", "UTF8" }, 1, 1.2f, 4);
 	}
 
 	@Override

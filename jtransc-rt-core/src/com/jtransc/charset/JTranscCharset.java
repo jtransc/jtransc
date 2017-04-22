@@ -1,22 +1,25 @@
-package java.lang.jtransc;
+package com.jtransc.charset;
 
 import com.jtransc.ds.FastStringMap;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.ServiceLoader;
+import java.util.Set;
 
-public class JTranscCharset {
-	public float minBytesPerCharacter() {
-		return 1;
+abstract public class JTranscCharset {
+	final public float minBytesPerCharacter() {
+		return min;
 	}
 
-	public float avgBytesPerCharacter() {
-		return minBytesPerCharacter();
+	final public float avgBytesPerCharacter() {
+		return avg;
 	}
 
-	public float maxBytesPerCharacter() {
-		return minBytesPerCharacter();
+	final public float maxBytesPerCharacter() {
+		return max;
 	}
 
 	final public String getCannonicalName() {
@@ -24,22 +27,24 @@ public class JTranscCharset {
 	}
 
 	private final String[] names;
+	private final int min;
+	private final float avg;
+	private final int max;
 
-	public JTranscCharset(String[] names) {
+	public JTranscCharset(String[] names, int min, float avg, int max) {
 		this.names = names;
+		this.min = min;
+		this.avg= avg;
+		this.max = max;
 	}
 
 	final public String[] getAliases() {
 		return names;
 	}
 
-	public void encode(char[] in, int offset, int len, ByteArrayOutputStream out) {
-		throw new RuntimeException("Not implemented encode");
-	}
+	abstract public void encode(char[] in, int offset, int len, ByteArrayOutputStream out);
 
-	public void decode(byte[] in, int offset, int len, StringBuilder out) {
-		throw new RuntimeException("Not implemented decode");
-	}
+	abstract public void decode(byte[] in, int offset, int len, StringBuilder out);
 
 	public final byte[] encode(String str) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream((int) (str.length() * avgBytesPerCharacter()));

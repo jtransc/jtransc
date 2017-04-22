@@ -38,7 +38,10 @@ import kotlin.reflect.KMutableProperty1
 class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
-open class CommonGenerator(val injector: Injector) : IProgramTemplate {
+abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
+	abstract val SINGLE_FILE: Boolean
+	open val ADD_UTF8_BOM = false
+
 	// CONFIG
 	open val staticAccessOperator: String = "."
 	open val instanceAccessOperator: String = "."
@@ -79,8 +82,19 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val refs = References()
 
 	open fun writeProgramAndFiles(): Unit {
-		writeClasses(configTargetFolder.targetFolder)
-		setTemplateParamsAfterBuildingSource()
+		if (SINGLE_FILE) {
+			writeClasses(configTargetFolder.targetFolder)
+			setTemplateParamsAfterBuildingSource()
+		} else {
+			val output = configTargetFolder.targetFolder
+			writeClasses(output)
+			setTemplateParamsAfterBuildingSource()
+			for (file in getFilesToCopy(targetName.name)) {
+				val str = program.resourcesVfs[file.src].readString()
+				val strr = if (file.process) str.template("includeFile") else str
+				output[file.dst] = strr
+			}
+		}
 	}
 
 	open val fixencoding = true
@@ -124,7 +138,22 @@ open class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun writeClasses(output: SyncVfsFile) {
+		if (!SINGLE_FILE) {
+			for (clazz in sortedClasses) {
+				output[getClassFilename(clazz)] = genClass(clazz).toString()
+			}
+		} else {
+			if (ADD_UTF8_BOM) {
+				output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + genClasses(output).toString().toByteArray()
+			} else {
+				output[outputFileBaseName] = genClasses(output).toString()
+			}
+		}
 	}
+
+	open fun getClassBaseFilename(clazz: AstClass) = clazz.actualFqName.fqname.replace('.', '/')
+
+	open fun getClassFilename(clazz: AstClass) = getClassBaseFilename(clazz)
 
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
 

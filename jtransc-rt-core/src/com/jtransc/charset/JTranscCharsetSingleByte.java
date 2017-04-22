@@ -1,4 +1,4 @@
-package java.lang.jtransc;
+package com.jtransc.charset;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -9,20 +9,8 @@ public class JTranscCharsetSingleByte extends JTranscCharset {
 	final Map<Character, Byte> encode;
 	final byte invalidChar = (byte) '?';
 
-	public final float minBytesPerCharacter() {
-		return 1;
-	}
-
-	public final float avgBytesPerCharacter() {
-		return 1;
-	}
-
-	public final float maxBytesPerCharacter() {
-		return 1;
-	}
-
 	public JTranscCharsetSingleByte(String[] aliases, String chars) {
-		super(aliases);
+		super(aliases, 1, 1, 1);
 		this.decode = chars;
 		this.encode = new HashMap<>(chars.length());
 		for (int n = 0; n < chars.length(); n++) {

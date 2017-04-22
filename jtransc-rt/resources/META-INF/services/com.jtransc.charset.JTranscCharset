@@ -1,0 +1,6 @@
+com.jtransc.charset.charsets.JTranscCharsetUTF8
+com.jtransc.charset.charsets.JTranscCharsetIBM866
+com.jtransc.charset.charsets.JTranscCharsetLatin1
+com.jtransc.charset.charsets.JTranscCharsetUSASCII
+com.jtransc.charset.charsets.JTranscCharsetUTF16LE
+com.jtransc.charset.charsets.JTranscCharsetUTF16BE

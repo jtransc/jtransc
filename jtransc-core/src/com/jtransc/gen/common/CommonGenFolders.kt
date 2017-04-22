@@ -1,6 +1,5 @@
 package com.jtransc.gen.common
 
-import com.jtransc.injector.Singleton
 import com.jtransc.vfs.MergeVfs
 import com.jtransc.vfs.SyncVfsFile
 

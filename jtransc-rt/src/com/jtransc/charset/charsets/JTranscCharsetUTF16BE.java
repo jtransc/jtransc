@@ -1,4 +1,4 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
 public class JTranscCharsetUTF16BE extends JTranscCharsetUTF16Base {
 	public JTranscCharsetUTF16BE() {

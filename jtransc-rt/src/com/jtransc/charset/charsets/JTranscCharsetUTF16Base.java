@@ -1,28 +1,16 @@
-package java.lang.jtransc.charsets;
+package com.jtransc.charset.charsets;
 
 import com.jtransc.JTranscBits;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.jtransc.JTranscCharset;
+import com.jtransc.charset.JTranscCharset;
 
 abstract class JTranscCharsetUTF16Base extends JTranscCharset {
-	public final float minBytesPerCharacter() {
-		return 2;
-	}
-
-	public final float avgBytesPerCharacter() {
-		return 2;
-	}
-
-	public final float maxBytesPerCharacter() {
-		return 2;
-	}
-
 	private String[] aliases;
 	private boolean littleEndian;
 
 	public JTranscCharsetUTF16Base(String[] names, boolean littleEndian) {
-		super(names);
+		super(names, 2, 2 ,2);
 		this.littleEndian = littleEndian;
 	}
 

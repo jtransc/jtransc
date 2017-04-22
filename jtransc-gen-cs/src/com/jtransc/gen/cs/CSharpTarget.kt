@@ -54,7 +54,9 @@ class CSharpTarget : GenTargetDescriptor() {
 }
 
 @Singleton
-class CSharpGenerator(injector: Injector) : SingleFileCommonGenerator(injector) {
+class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val SINGLE_FILE: Boolean = true
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)

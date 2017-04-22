@@ -22,6 +22,7 @@ import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
+import javatest.ExtendedCharsets
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
@@ -42,7 +43,7 @@ import testservice.test.TestServiceJs2
 class JsTest : Base() {
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
-	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
+	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testURLEncoderDecoder() = testClass<URLEncoderDecoderTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
@@ -51,6 +52,7 @@ class JsTest : Base() {
 
 	@Test fun testIssue105() = testClass<Issue105>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
+	@Test fun testExtendedCharsets() = testClass<ExtendedCharsets>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
