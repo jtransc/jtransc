@@ -525,6 +525,16 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
     	return out;
     };
 
+	//override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) // Use typedarrays
+	//ARRAY.prototype['setTypedArraySlice'] = function(startIndex, array) {
+	//	this.data.set(array, startIndex);
+	//};
+
+	// @TODO: Check performance
+	//ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
+	//	this.data.set(new type(array), startIndex);
+	//};
+
 	__addArrayJavaMethods(ARRAY);
 
 	return ARRAY;
