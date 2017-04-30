@@ -34,7 +34,9 @@ val invalidOp: Nothing get() = throw InvalidOperationException()
 fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
 fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
 fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
-fun invalidOp(msg:String, cause: Throwable? = null): Nothing { throw InvalidOperationException(msg, cause) }
+fun invalidOp(msg:String, cause: Throwable? = null): Nothing {
+	throw InvalidOperationException(msg, cause)
+}
 fun unsupported(msg:String): Nothing { throw UnsupportedOperationException(msg) }
 fun invalidArgument(msg:String): Nothing { throw InvalidArgumentException(msg) }
 fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }
@@ -49,4 +51,21 @@ inline fun ignoreErrors(action: () -> Unit) {
 	} catch (e:Throwable) {
 		e.printStackTrace()
 	}
+}
+
+inline fun <T> nullOnError(action: () -> T): T? {
+	try {
+		return action()
+	} catch (e:Throwable) {
+		e.printStackTrace()
+		return null
+	}
+}
+
+inline fun <T, T2> Iterable<T>.firstMapOrNull(callback: (T) -> T2?): T2? {
+	for (v in this) {
+		val res = callback(v)
+		if (res != null) return res
+	}
+	return null
 }

@@ -43,7 +43,6 @@ import testservice.test.ServiceLoaderTest
 import testservice.test.TestServiceJs2
 
 class JsTest : Base() {
-	@Ignore
 	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)

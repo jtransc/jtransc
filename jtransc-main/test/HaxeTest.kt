@@ -33,7 +33,6 @@ class HaxeTest : Base() {
 	@Test fun testEnumBugIssue94() = testClass<Issue94Enum>(minimize = false, target = HaxeTarget(), log = false, treeShaking = true)
 	@Test fun testBigSwitchIssue103() = testClass<Issue103>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
 
-	@Ignore
 	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
