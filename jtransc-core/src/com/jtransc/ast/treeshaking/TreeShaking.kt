@@ -218,7 +218,7 @@ class TreeShakingApi(
 		if (fieldRef in processed) return
 		if (SHAKING_TRACE) println("addField: $fieldRef. Reason: $reason")
 		processed += fieldRef
-		val oldfield = oldprogram[fieldRef]
+		val oldfield = oldprogram.get(fieldRef)
 		val oldfieldRef = oldfield.ref
 		val oldfield2 = oldfield.containingClass[oldfieldRef.withoutClass]
 

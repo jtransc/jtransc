@@ -25,6 +25,7 @@ import com.jtransc.ds.cast
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
+import com.jtransc.error.firstMapOrNull
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
@@ -253,6 +254,7 @@ class AstProgram(
 	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
 	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
+
 	operator fun get(ref: FieldRef): AstField = this[ref.ref.containingClass].get(ref.ref.withoutClass)
 
 	operator fun get(ref: AstFieldWithoutTypeRef): AstField = this[ref.containingClass].get(ref)
@@ -520,8 +522,12 @@ class AstClass(
 	operator fun get(ref: AstFieldRef): AstField = fieldsByInfo[ref.withoutClass] ?:
 		invalidOp("Can't find field $ref")
 
-	operator fun get(ref: AstFieldWithoutClassRef): AstField = fieldsByInfo[ref] ?: parentClass?.get(ref) ?:
-		invalidOp("Can't find field $ref on ancestors")
+	fun getOrNull(ref: AstFieldWithoutClassRef): AstField? =
+		fieldsByInfo[ref]
+			?: parentClass?.getOrNull(ref)
+			?: allInterfacesInAncestors.firstMapOrNull { it.getOrNull(ref) }
+
+	operator fun get(ref: AstFieldWithoutClassRef): AstField = getOrNull(ref) ?: invalidOp("Can't find field $ref on ancestors or interfaces")
 
 	operator fun get(ref: AstFieldWithoutTypeRef): AstField = fieldsByName[ref.name] ?: parentClass?.get(ref) ?:
 		invalidOp("Can't find field $ref on ancestors")

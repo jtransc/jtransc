@@ -21,6 +21,7 @@ import issues.Issue94Enum
 import jtransc.bug.JTranscBug110
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
+import org.junit.Ignore
 import org.junit.Test
 
 class HaxeTest : Base() {
