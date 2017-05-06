@@ -13,10 +13,7 @@ import jtransc.jtransc.FastMemoryTest;
 import jtransc.rt.test.JTranscReflectionTest;
 
 import java.lang.annotation.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -1053,6 +1050,23 @@ public class MiscTest {
 			}
 		}
 
+		for (Field f : GenericTest2.class.getDeclaredFields()) {
+			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
+			// java.lang.reflect.ParameterizedType
+			System.out.println("Field.null: " + (f == null));
+			System.out.println("Field.name: " + f.getName());
+			System.out.println("Field.type: " + f.getType());
+			System.out.println("Field.declaringClass: " + f.getDeclaringClass());
+			System.out.println("Field.string: " + f.toString());
+			Type genericType = f.getGenericType();
+			if (genericType instanceof ParameterizedType) {
+				ParameterizedType pt = (ParameterizedType) genericType;
+				System.out.println("  type args:" + Arrays.toString(pt.getActualTypeArguments()));
+				System.out.println("  owner type:" + pt.getOwnerType());
+				System.out.println("  raw type:" + pt.getRawType());
+			}
+		}
+
 		for (Method m : GenericTest.class.getDeclaredMethods()) {
 			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 			// java.lang.reflect.ParameterizedType
@@ -1060,6 +1074,30 @@ public class MiscTest {
 			System.out.println("  ret: " + m.getReturnType());
 			System.out.println("  args count: " + m.getParameterCount());
 			System.out.println("  args: " + Arrays.toString(m.getParameterTypes()));
+			Parameter[] parameters = m.getParameters();
+			System.out.println("  args count2: " + parameters.length);
+			for (Parameter param : parameters) {
+				System.out.println("  args2: " + param.getType());
+			}
+			Type[] genericTypes = m.getGenericParameterTypes();
+			System.out.println("  ret generic: " + m.getGenericReturnType());
+			for (Type genericType : genericTypes) {
+				System.out.println("  param generic: " + genericType);
+			}
+		}
+
+		for (Method m : GenericTest2.class.getDeclaredMethods()) {
+			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
+			// java.lang.reflect.ParameterizedType
+			System.out.println("Method: " + m.toString());
+			System.out.println("  ret: " + m.getReturnType());
+			System.out.println("  args count: " + m.getParameterCount());
+			System.out.println("  args: " + Arrays.toString(m.getParameterTypes()));
+			Parameter[] parameters = m.getParameters();
+			System.out.println("  args count2: " + parameters.length);
+			for (Parameter param : parameters) {
+				System.out.println("  args2: " + param.getType());
+			}
 			Type[] genericTypes = m.getGenericParameterTypes();
 			System.out.println("  ret generic: " + m.getGenericReturnType());
 			for (Type genericType : genericTypes) {
@@ -1483,6 +1521,20 @@ class GenericTest {
 	public List<Integer> method1(List<String> a, boolean b, Map<String, List<Integer>> c, int d) {
 		throw new Error("Not supported calling!");
 	}
+}
+
+class GenericTest2 {
+	@MyKeep
+	public Map<String, Map<Integer, Double>> map;
+
+	@MyKeep
+	public List<Integer> method1(List<String> a, boolean b, Map<String, List<Integer>> c, int d) {
+		throw new Error("Not supported calling!");
+	}
+}
+
+@JTranscKeep
+@interface MyKeep {
 }
 
 @SuppressWarnings("all")
