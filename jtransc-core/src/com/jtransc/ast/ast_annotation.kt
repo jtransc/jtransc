@@ -1,6 +1,7 @@
 package com.jtransc.ast
 
 import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.log.log
 import com.jtransc.org.objectweb.asm.Type
@@ -22,8 +23,10 @@ data class AstAnnotation(
 		}
 	}
 
+	fun getAnnotationAnnotations(program: AstProgram): AstAnnotationList = program[type]?.annotationsList ?: AstAnnotationList(type, listOf())
+
 	fun getAllDescendantAnnotations(): List<AstAnnotation> {
-		var out = arrayListOf<AstAnnotation>()
+		val out = arrayListOf<AstAnnotation>()
 		out.add(this)
 		out.addAll(getAllDescendantAnnotations(this))
 		return out

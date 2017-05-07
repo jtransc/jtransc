@@ -115,6 +115,19 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return (Class<?>[]) methodType().args;
 	}
 
+	private Parameter[] _parameters;
+
+	public Parameter[] getParameters() {
+		if (_parameters == null) {
+			Class<?>[] parameterTypes = getParameterTypes();
+			_parameters = new Parameter[parameterTypes.length];
+			for (int n = 0; n < parameterTypes.length; n++) {
+				_parameters[n] = new Parameter(this, n);
+			}
+		}
+		return _parameters.clone();
+	}
+
 	public boolean isVarArgs() {
 		return (getModifiers() & Modifier.VARARGS) != 0;
 	}

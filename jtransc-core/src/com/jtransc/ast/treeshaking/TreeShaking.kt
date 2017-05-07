@@ -2,7 +2,6 @@ package com.jtransc.ast.treeshaking
 
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscKeepConstructors
-import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate
 import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.*
@@ -182,8 +181,6 @@ class TreeShakingApi(
 			//if (newclazz.fqname == "java.lang.Object") {
 			//	invalidOp
 			//}
-
-			JTranscAddFileList::class.java
 
 			//println(fqname)
 
@@ -370,6 +367,10 @@ class TreeShakingApi(
 				val rmethod = oldprogram[relatedClass.name].getMethod(mref)
 				if (rmethod != null) addMethod(rmethod.ref, "checkTreeNewClass $newclazz")
 			}
+		}
+
+		for (method in newclazz.methods) {
+			//method.annotationsList
 		}
 	}
 
