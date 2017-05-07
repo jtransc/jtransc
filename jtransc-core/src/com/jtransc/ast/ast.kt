@@ -315,7 +315,13 @@ open class AstAnnotatedElement(
 ) : AstAnnotated {
 	var extraKeep: Boolean? = null
 	var extraVisible: Boolean? = null
-	val keep: Boolean get() = extraKeep ?: annotationsList.contains<JTranscKeep>()
+	val keep: Boolean get() {
+		if (extraKeep ?: annotationsList.contains<JTranscKeep>()) return true
+		for (annotation in annotationsList.list) {
+			if (annotation.getAnnotationAnnotations(program).contains<JTranscKeep>()) return true
+		}
+		return false
+	}
 	//val visible: Boolean get() = annotationsList.contains<JTranscVisible>() || !annotationsList.contains<JTranscInvisible>()
 	val visible: Boolean get() = extraVisible ?: !annotationsList.contains<JTranscInvisible>()
 	val invisible: Boolean get() = !visible
