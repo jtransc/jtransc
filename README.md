@@ -114,7 +114,7 @@ So others could generate that without JVM and others could generate other target
 - hxcpp 3.4.64
 
 ### For Node.JS running:
-- NodeJS 6.10.2 with npm 3.10.10
+- NodeJS 7.10.0 with npm 4.2.0
 
 ### For D target:
 - DMD2 or GDC or LDC (Verified dmd-2.074.0)
@@ -144,7 +144,7 @@ So others could generate that without JVM and others could generate other target
 
 #### Installing C++ suitable compiler
 __WINDOWS__
-- Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v6.3.0 -> x68_64-posix-seh Revision 1
+- Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v7.1.0 -> x68_64-posix-seh Revision 0
 - Add "path/to/mingw64" to `PATH` environment variable
 
 __MAC__
