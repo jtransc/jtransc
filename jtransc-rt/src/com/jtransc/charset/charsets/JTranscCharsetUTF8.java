@@ -1,6 +1,9 @@
 package com.jtransc.charset.charsets;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 import com.jtransc.charset.JTranscCharset;
 
 public class JTranscCharsetUTF8 extends JTranscCharset {
@@ -63,6 +66,43 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
 				case 14: {
 					// 1110 xxxx  10xx xxxx  10xx xxxx
 					out.append((char) (((c & 0x0F) << 12) | ((in[i++] & 0x3F) << 6) | ((in[i++] & 0x3F) << 0)));
+					break;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void decode(ByteBuffer in, CharBuffer out) {
+		while (in.hasRemaining() && out.hasRemaining()) {
+			int c = in.get() & 0xFF;
+
+			switch (c >> 4) {
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+				case 7: {
+					// 0xxxxxxx
+					out.append((char) (c));
+					break;
+				}
+				case 12:
+				case 13: {
+					// 110x xxxx   10xx xxxx
+					if(in.hasRemaining()) {
+						out.append((char) (((c & 0x1F) << 6) | (in.get() & 0x3F)));
+					}
+					break;
+				}
+				case 14: {
+					// 1110 xxxx  10xx xxxx  10xx xxxx
+					if(in.hasRemaining()) {
+						out.append((char) (((c & 0x0F) << 12) | ((in.get() & 0x3F) << 6) | ((in.get() & 0x3F) << 0)));
+					}
 					break;
 				}
 			}

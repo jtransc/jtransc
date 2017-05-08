@@ -1,6 +1,8 @@
 package com.jtransc.charset;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +37,14 @@ public class JTranscCharsetSingleByte extends JTranscCharset {
 	final public void decode(byte[] in, int offset, int len, StringBuilder out) {
 		for (int n = 0; n < len; n++) {
 			int b = in[offset + n] & 0xFF;
+			out.append(decode.charAt(b));
+		}
+	}
+
+	@Override
+	final public void decode(ByteBuffer in, CharBuffer out) {
+		while(in.hasRemaining() && out.hasRemaining()) {
+			int b = in.get() & 0xFF;
 			out.append(decode.charAt(b));
 		}
 	}
