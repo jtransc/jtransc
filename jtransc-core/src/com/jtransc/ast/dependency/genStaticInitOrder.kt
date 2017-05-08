@@ -1,5 +1,6 @@
 package com.jtransc.ast.dependency
 
+import com.jtransc.ast.*
 import com.jtransc.ast.treeshaking.GetTemplateReferencesRefs
 import com.jtransc.gen.TargetName
 import java.util.*
