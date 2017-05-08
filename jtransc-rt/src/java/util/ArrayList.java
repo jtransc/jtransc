@@ -26,6 +26,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	private Object[] buffer;
 	private int length;
 
+	@HaxeMethodBody("this._data = [];")
 	@JTranscMethodBody(target = "js", value = "this._data = [];")
 	public ArrayList(int initialCapacity) {
 		buffer = new Object[initialCapacity];
@@ -41,10 +42,14 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		addAll(c);
 	}
 
+	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
 	public void trimToSize() {
 		buffer = Arrays.copyOf(buffer, length);
 	}
 
+	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
 	private void ensure(int minimumCapacity) {
 		if (minimumCapacity > buffer.length) {
 			buffer = Arrays.copyOf(buffer, Math.max(minimumCapacity, (buffer.length * 2) + 2));
