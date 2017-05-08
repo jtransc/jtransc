@@ -1167,6 +1167,11 @@ public class MiscTest {
 		list.add("B");
 		list.add("C");
 		sb.append(list.size());
+		list.ensureCapacity(5);
+		sb.append(list.size());
+		list.trimToSize();
+		sb.append(list.size());
+
 		Collections.reverse(list);
 		for (String item : list) sb.append(item);
 
