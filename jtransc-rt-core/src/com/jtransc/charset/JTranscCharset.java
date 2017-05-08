@@ -3,6 +3,8 @@ package com.jtransc.charset;
 import com.jtransc.ds.FastStringMap;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,6 +47,8 @@ abstract public class JTranscCharset {
 	abstract public void encode(char[] in, int offset, int len, ByteArrayOutputStream out);
 
 	abstract public void decode(byte[] in, int offset, int len, StringBuilder out);
+
+	abstract public void decode(ByteBuffer in, CharBuffer out);
 
 	public final byte[] encode(String str) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream((int) (str.length() * avgBytesPerCharacter()));

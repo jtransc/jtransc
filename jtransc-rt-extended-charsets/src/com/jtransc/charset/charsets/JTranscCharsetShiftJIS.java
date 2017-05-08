@@ -3,6 +3,8 @@ package com.jtransc.charset.charsets;
 import com.jtransc.charset.JTranscCharset;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +58,24 @@ public class JTranscCharsetShiftJIS extends JTranscCharset {
 			Character cc;
 			if (isDoubleWidth) {
 				int b2 = in[offset + n++] & 0xFF;
+				cc = fromSjisToUnicode.get((char) ((b << 8) | (b2 << 0)));
+			} else {
+				cc = fromSjisToUnicode.get((char) b);
+			}
+			char c = (cc != null) ? cc : '?';
+			out.append(c);
+		}
+	}
+
+	@Override
+	final public void decode(ByteBuffer in, CharBuffer out) {
+		ensureTables();
+		while(in.hasRemaining() && out.hasRemaining()) {
+			int b = in.get() & 0xFF;
+			boolean isDoubleWidth = (b >= 0x81 && b <= 0x9F) || (b >= 0xE0 && b <= 0xEF);
+			Character cc;
+			if (isDoubleWidth) {
+				int b2 = in.get() & 0xFF;
 				cc = fromSjisToUnicode.get((char) ((b << 8) | (b2 << 0)));
 			} else {
 				cc = fromSjisToUnicode.get((char) b);

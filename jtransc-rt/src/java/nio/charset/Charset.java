@@ -51,9 +51,7 @@ public abstract class Charset implements Comparable<Charset> {
 				return new CharsetDecoder(this, jCharset.avgBytesPerCharacter(), jCharset.maxBytesPerCharacter()) {
 					@Override
 					protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
-						byte[] inBytes = new byte[in.remaining()];
-						in.get(inBytes);
-						out.append(jCharset.decode(inBytes));
+						jCharset.decode(in, out);
 						return CoderResult.UNDERFLOW;
 					}
 				};
