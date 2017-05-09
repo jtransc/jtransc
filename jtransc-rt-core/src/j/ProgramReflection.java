@@ -11,6 +11,14 @@ import java.lang.reflect.Method;
  */
 @SuppressWarnings({"unused", "WeakerAccess", "ConstantConditions"})
 public class ProgramReflection {
+
+	// Static initialization for classes.
+	// Necessary due to existing getClass() method in code will generate static constructor.
+	static {
+		_ensure();
+	}
+
+
 	static public ClassInfo[] _classInfos;
 	static public String[] _classNames;
 	static public FastStringMap<ClassInfo> _classInfosByName;
@@ -24,14 +32,21 @@ public class ProgramReflection {
 
 		_classInfosByName = new FastStringMap<ClassInfo>();
 		_classInfos = ProgramReflection.getAllClasses();
-		_classNames = new String[_classInfos.length];
 
-		for (ClassInfo info : _classInfos) {
-			if (info == null) continue;
-			//if (info.name == null) JTranscConsole.error("ProgramReflection.ensure: info.name==null");
-			_classInfosByName.set(info.name, info);
-			_classNames[info.id] = info.name;
+		if(_classInfos != null) {
+			_classNames = new String[_classInfos.length];
+
+			for (ClassInfo info : _classInfos) {
+				if (info == null) continue;
+				//if (info.name == null) JTranscConsole.error("ProgramReflection.ensure: info.name==null");
+				_classInfosByName.set(info.name, info);
+				_classNames[info.id] = info.name;
+			}
 		}
+		// initialize static variables in other reflection classes
+		getConstructors(-1);
+		getFields(-1);
+		getMethods(-1);
 	}
 
 	static public void _ensureConstructors() {
@@ -88,7 +103,7 @@ public class ProgramReflection {
 
 	// Class
 	static public ClassInfo[] getAllClasses() {
-		return AllClasses.getAllClasses();
+		return _classInfos != null ? _classInfos : AllClasses.getAllClasses();
 	}
 
 	public static class AllClasses {

@@ -4,6 +4,8 @@ import com.jtransc.ast.*
 import com.jtransc.ast.treeshaking.GetTemplateReferencesRefs
 import com.jtransc.gen.TargetName
 import java.util.*
+import com.jtransc.charset.*
+import j.ProgramReflection
 
 fun genStaticInitOrder(program: AstProgram) {
 	//val classes = LinkedHashSet<AstType.REF>()
@@ -25,12 +27,6 @@ fun genStaticInitOrder(program: AstProgram) {
 			val clazz = method.containingClass
 			val captured = capturedClass.add(clazz)
 			//println("Appeared $method")
-
-			// Totally ignore this class since it references all classes!
-			// @TODO: Think about this some more
-			if (clazz.fqname == "j.ProgramReflection") return
-
-			//if ("Easings" in clazz.fqname) println(INDENTS[depth] + "${clazz.fqname}")
 
 			val refs = if (method.hasDependenciesInBody(targetName)) {
 				method.bodyDependencies.allSortedRefsStaticInit
@@ -82,7 +78,17 @@ fun genStaticInitOrder(program: AstProgram) {
 			inits += clazz.ref
 		}
 	}
-	obj.visitClass(mainClass) // Not required, since this should work in any order
+
+	// Should be added ProgramReflection first because getClass created static constructor and request Class
+	obj.visitClass(program[ProgramReflection::class.java.fqname])
+	// Also should be added different charsets. We don't see them directly because they added as services
+	for (clazz in program.classes)
+		for (ancestor in clazz.ancestors)
+			if(ancestor.name == JTranscCharset::class.java.fqname)
+				obj.visitClass(program[clazz.name])
+
+	obj.visitClass(mainClass)
+
 	for (clazz in program.classes) obj.visitClass(clazz)
 
 	// Classes without extra static requirements
