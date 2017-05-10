@@ -3,6 +3,7 @@ package com.jtransc.thread;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 public class JTranscThreading {
 	static public Impl impl = new Impl(null);
@@ -19,6 +20,7 @@ public class JTranscThreading {
 			return _isSupported();
 		}
 
+		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Thread.create(function():Void{p0.{% METHOD java.lang.Runnable:run %}();});")
 		public void start(Thread thread) {
 			if (parent != null) {
 				parent.start(thread);
@@ -27,7 +29,7 @@ public class JTranscThreading {
 			System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 			thread.run();
 		}
-
+		
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "js", value = "return false;"),
 			@JTranscMethodBody(target = "d", value = "return true;"),

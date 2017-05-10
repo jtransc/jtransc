@@ -525,7 +525,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 						try {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
-							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw 'No method body';") }.toString().template())
+							val str : String = "${clazz.name}.${method.name} :: ${method.desc}: No method body".replace('$', '_');
+							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';") }.toString().template())
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							//e.printStackTrace()
