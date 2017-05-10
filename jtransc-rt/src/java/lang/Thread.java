@@ -163,7 +163,7 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "cpp", value = "t_ = boost::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
 
 	public synchronized void start() {
-		JTranscThreading.impl.start_target(target);
+		JTranscThreading.impl.start(this);
 	}
 
 
