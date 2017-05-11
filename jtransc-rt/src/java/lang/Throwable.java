@@ -133,7 +133,27 @@ public class Throwable implements Serializable {
 		}
 	}
 
-	native public void printStackTrace(PrintWriter s);
+	public void printStackTrace(PrintWriter s) {
+		// Print our stack trace
+		s.println(this);
+		StackTraceElement[] trace = this.stackTrace;
+		for (StackTraceElement traceElement : trace)
+			s.println("\tat " + traceElement);
+
+		// Print suppressed exceptions, if any
+		for (Throwable se : getSuppressed()) {
+			JTranscConsole.error("Supressed:");
+			se.printStackTrace(s);
+		}
+
+		// Print cause, if any
+		Throwable ourCause = getCause();
+
+		if (ourCause != null) {
+			JTranscConsole.error("Cause:");
+			ourCause.printStackTrace(s);
+		}
+	}
 
 	public synchronized Throwable fillInStackTrace() {
 		fillInStackTrace(0);

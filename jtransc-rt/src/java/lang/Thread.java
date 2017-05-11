@@ -232,7 +232,9 @@ public class Thread implements Runnable {
 		return this.name;
 	}
 
-	native public final ThreadGroup getThreadGroup();
+	public final ThreadGroup getThreadGroup() {
+		return group;
+	}
 
 	public static int activeCount() {
 		return 1;
