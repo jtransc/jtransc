@@ -30,6 +30,10 @@ public class JTranscCoreReflection {
 		return checkClassId(classId) ? ProgramReflection._classInfos[classId].parent : -1;
 	}
 
+	static public Class<?> getSuperclassById(int classId) {
+		return getClassById(getSuperclassId(classId));
+	}
+
 	static public <T> Constructor<T>[] getDeclaredConstructors(Class<?> clazz) {
 		MemberInfo[] infos = ProgramReflection.getConstructors(getClassId(clazz));
 		int count = (infos != null) ? infos.length : 0;
