@@ -1,95 +1,165 @@
 package {
-	import Long;
+import Long;
+import flash.utils.ByteArray;
+import flash.crypto.generateRandomBytes;
 
-	public class N {
-		static public var MIN_INT32: int = -2147483648;
-		static public var MAX_INT32: int = 2147483647;
+public class N {
+	static public var MIN_INT32: int = -2147483648;
+	static public var MAX_INT32: int = 2147483647;
 
-		static public function resolveClass(name: String): {% CLASS java.lang.Class %} {
-			return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
-		}
-
-		static public function ichar(i: int): String { return String.fromCharCode(i); }
-
-		static public function strLitEscape(s: String): {% CLASS java.lang.String %} { return str(s); }
-
-		static public function str(s: String): {% CLASS java.lang.String %} {
-			var out: {% CLASS java.lang.String %} = new {% CLASS java.lang.String %}();
-			out.__initFromAs3(s);
-			return out;
-		}
-
-		static public function istr(s: {% CLASS java.lang.String %}): String { return (s != null) ? s._str : null; }
-
-		static public function boxBool(v: Boolean): {% CLASS java.lang.Boolean %} { throw new Error("Not implemented"); }
-		static public function boxByte(v: int): {% CLASS java.lang.Byte %} { throw new Error("Not implemented"); }
-		static public function boxChar(v: int): {% CLASS java.lang.Character %} { throw new Error("Not implemented"); }
-		static public function boxShort(v: int): {% CLASS java.lang.Short %} { throw new Error("Not implemented"); }
-		static public function boxInt(v: int): {% CLASS java.lang.Integer %} { throw new Error("Not implemented"); }
-		static public function boxLong(v: Long): {% CLASS java.lang.Long %} { throw new Error("Not implemented"); }
-		static public function boxFloat(v: Number): {% CLASS java.lang.Float %} { throw new Error("Not implemented"); }
-		static public function boxDouble(v: Number): {% CLASS java.lang.Double %} { throw new Error("Not implemented"); }
-
-		static public function z2i(v: Boolean): int { return v ? 1 : 0; }
-		static public function l2i(v: Long): int { return v.low; }
-		static public function i2j(v: int): Long { return Long.ofInt(v); }
-
-		static public function f2j(v: Number): Long { return Long.ofFloat(v); }
-		static public function d2j(v: Number): Long { return Long.ofFloat(v); }
-
-		static public function irem(l: int, r: int): int { return l % r; }
-		static public function idiv(l: int, r: int): int { return l / r; }
-
-		static public function lnew(high: int, low: int): Long { return Long.make(high, low); }
-
-		static public function lneg(l: Long): Long { return Long.neg(l); }
-
-		static public function cmpl(l: Number, r: Number): int { throw new Error("Not implemented"); }
-		static public function cmpg(l: Number, r: Number): int { throw new Error("Not implemented"); }
-
-		static public function lcmp(l: Long, r: Long): int { throw new Error("Not implemented"); }
-
-		static public function lxor(l: Long, r: Long): Long { return Long.xor(l, r); }
-		static public function land(l: Long, r: Long): Long { return Long.and(l, r); }
-		static public function lor(l: Long, r: Long): Long { return Long.or(l, r); }
-
-		static public function ladd(l: Long, r: Long): Long { return Long.add(l, r); }
-		static public function lsub(l: Long, r: Long): Long { return Long.sub(l, r); }
-		static public function lmul(l: Long, r: Long): Long { return Long.mul(l, r); }
-		static public function ldiv(l: Long, r: Long): Long { return Long.div(l, r); }
-		static public function lrem(l: Long, r: Long): Long { return Long.rem(l, r); }
-
-		static public function lushr(l: Long, r: int): Long { return Long.ushr(l, r); }
-		static public function lshr(l: Long, r: int): Long { return Long.shr(l, r); }
-		static public function lshl(l: Long, r: int): Long { return Long.shl(l, r); }
-
-
-		static public function monitorEnter(v: *): void { }
-
-		static public function monitorExit(v: *): void { }
-
-		static public function charArrayToString(data: JA_C, start: int, len: int): String {
-			var out: String = "";
-			for (var n: int = 0; n < len; n++) out += String.fromCharCode(data.data[start + n]);
-			return out;
-		}
-
-		static public function stringToCharArray(str: String): JA_C {
-			var out: JA_C = new JA_C(str.length);
-			for (var n: int = 0; n < str.length; n++) out.data[n] = str.charCodeAt(n);
-			return out;
-		}
-
-		static public function strArray(array: Array): JA_L {
-			var out: JA_L = new JA_L(array.length, '[Ljava/lang/String;');
-			for (var n:int = 0; n < array.length; n++) out.data[n] = N.str(array[n]);
-			return out;
-		}
-
-		static public function arraycopy(src: {% CLASS java.lang.Object %}, srcPos: int, dest: {% CLASS java.lang.Object %}, destPos: int, length: int): void {
-			if (src == null) throw 'N.arraycopy src==null';
-			if (dest == null) throw 'N.arraycopy dest==null';
-			(src as JA_0).arraycopy(srcPos, dest as JA_0, destPos, length);
-		}
+	static public function resolveClass(name: String): {% CLASS java.lang.Class %} {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 	}
+
+	static public function ichar(i: int): String { return String.fromCharCode(i); }
+
+	static public function strLitEscape(s: String): {% CLASS java.lang.String %} { return str(s); }
+
+	static public function str(s: String): {% CLASS java.lang.String %} {
+		var out: {% CLASS java.lang.String %} = new {% CLASS java.lang.String %}();
+		out.__initFromAs3(s);
+		return out;
+	}
+
+	static public function istr(s: {% CLASS java.lang.String %}): String { return (s != null) ? s._str : null; }
+
+	static public function unboxBool(v: {% CLASS java.lang.Boolean %}): Boolean { return v.{% FIELD java.lang.Boolean:value %}; }
+	static public function unboxByte(v: {% CLASS java.lang.Byte %}): int { return v.{% FIELD java.lang.Byte:value %}; }
+	static public function unboxChar(v: {% CLASS java.lang.Character %}): int { return v.{% FIELD java.lang.Character:value %}; }
+	static public function unboxShort(v: {% CLASS java.lang.Short %}): int { return v.{% FIELD java.lang.Short:value %}; }
+	static public function unboxInt(v: {% CLASS java.lang.Integer %}): int { return v.{% FIELD java.lang.Integer:value %}; }
+	static public function unboxLong(v: {% CLASS java.lang.Long %}): Long { return v.{% FIELD java.lang.Long:value %}; }
+	static public function unboxFloat(v: {% CLASS java.lang.Float %}): Number { return v.{% FIELD java.lang.Float:value %}; }
+	static public function unboxDouble(v: {% CLASS java.lang.Double %}): Number { return v.{% FIELD java.lang.Double:value %}; }
+
+	static public function boxBool(v: Boolean): {% CLASS java.lang.Boolean %} { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean;  %}(v); }
+	static public function boxByte(v: int): {% CLASS java.lang.Byte %}        { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte;  %}(v); }
+	static public function boxChar(v: int): {% CLASS java.lang.Character %}   { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character;  %}(v); }
+	static public function boxShort(v: int): {% CLASS java.lang.Short %}      { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short;  %}(v); }
+	static public function boxInt(v: int): {% CLASS java.lang.Integer %}      { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer;  %}(v); }
+	static public function boxLong(v: Long): {% CLASS java.lang.Long %}       { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long;  %}(v); }
+	static public function boxFloat(v: Number): {% CLASS java.lang.Float %}   { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float;  %}(v); }
+	static public function boxDouble(v: Number): {% CLASS java.lang.Double %} { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double;  %}(v); }
+
+	static public function z2i(v: Boolean): int { return v ? 1 : 0; }
+	static public function l2i(v: Long): int { return v.low; }
+	static public function i2j(v: int): Long { return Long.ofInt(v); }
+
+	static public function f2j(v: Number): Long { return Long.ofFloat(v); }
+	static public function d2j(v: Number): Long { return Long.ofFloat(v); }
+
+	static public function irem(l: int, r: int): int { return l % r; }
+	static public function idiv(l: int, r: int): int { return l / r; }
+
+	static public function lnew(high: int, low: int): Long { return Long.make(high, low); }
+	static public function lnewFloat(v: Number): Long { return Long.ofFloat(v); }
+
+
+	static public function lneg(l: Long): Long { return Long.neg(l); }
+
+	static public function cmp(a: Number, b: Number): int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+	static public function cmpl(a: Number, b: Number): int { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
+	static public function cmpg(a: Number, b: Number): int { return (isNaN(a) || isNaN(b)) ? 1 : N.cmp(a, b); }
+
+	static public function lcmp(l: Long, r: Long): int { return Long.compare(l, r); }
+
+	static public function lxor(l: Long, r: Long): Long { return Long.xor(l, r); }
+	static public function land(l: Long, r: Long): Long { return Long.and(l, r); }
+	static public function lor(l: Long, r: Long): Long { return Long.or(l, r); }
+
+	static public function ladd(l: Long, r: Long): Long { return Long.add(l, r); }
+	static public function lsub(l: Long, r: Long): Long { return Long.sub(l, r); }
+	static public function lmul(l: Long, r: Long): Long { return Long.mul(l, r); }
+	static public function ldiv(l: Long, r: Long): Long { return Long.div(l, r); }
+	static public function lrem(l: Long, r: Long): Long { return Long.rem(l, r); }
+
+	static public function lushr(l: Long, r: int): Long { return Long.ushr(l, r); }
+	static public function lshr(l: Long, r: int): Long { return Long.shr(l, r); }
+	static public function lshl(l: Long, r: int): Long { return Long.shl(l, r); }
+
+	//static public function iushr(l: int, r: int): int { return l >>> r; }
+
+
+	static public function monitorEnter(v: *): void { }
+
+	static public function monitorExit(v: *): void { }
+
+	static public function charArrayToString(data: JA_C, start: int, len: int): String {
+		var out: String = "";
+		for (var n: int = 0; n < len; n++) out += String.fromCharCode(data.data[start + n]);
+		return out;
+	}
+
+	static public function stringToCharArray(str: String): JA_C {
+		var out: JA_C = new JA_C(str.length);
+		for (var n: int = 0; n < str.length; n++) out.data[n] = str.charCodeAt(n);
+		return out;
+	}
+
+	static public function strArray(array: Array): JA_L {
+		var out: JA_L = new JA_L(array.length, '[Ljava/lang/String;');
+		for (var n:int = 0; n < array.length; n++) out.data[n] = N.str(array[n]);
+		return out;
+	}
+
+	static public function arraycopy(src: {% CLASS java.lang.Object %}, srcPos: int, dest: {% CLASS java.lang.Object %}, destPos: int, length: int): void {
+		if (src == null) throw 'N.arraycopy src==null';
+		if (dest == null) throw 'N.arraycopy dest==null';
+
+		var overlapping: Boolean = src == dest && (destPos > srcPos);
+
+		(src as JA_0).arraycopy(srcPos, dest as JA_0, destPos, length, overlapping);
+	}
+
+	static private var tempArray: ByteArray = new ByteArray();
+
+	{
+		tempArray.length = 4096;
+	}
+
+	static public function floatToIntBits(v: Number): int {
+		tempArray.position = 0;
+		tempArray.writeFloat(v);
+		tempArray.position = 0;
+		return tempArray.readInt();
+	}
+
+	static public function intBitsToFloat(v: int): Number {
+		tempArray.position = 0;
+		tempArray.writeInt(v);
+		tempArray.position = 0;
+		return tempArray.readFloat();
+	}
+
+	static public function doubleToLongBits(v: Number): Long {
+		tempArray.position = 0;
+		tempArray.writeDouble(v);
+		tempArray.position = 0;
+		var high: int = tempArray.readInt();
+		var low: int = tempArray.readInt();
+		return Long.make(high, low);
+	}
+
+	static public function longBitsToDouble(v: Long): Number {
+		tempArray.position = 0;
+		tempArray.writeInt(v.high);
+		tempArray.writeInt(v.low);
+		tempArray.position = 0;
+		return tempArray.readDouble();
+	}
+
+	static public function lhigh(v: Long): int { return v.high; }
+	static public function llow(v: Long): int { return v.low; }
+
+	static public function ineg(v: int): int {
+		//return int(~uint(v)) + 1;
+		return -v;
+	}
+
+	static public function fillSecureRandomBytes(data: ByteArray) {
+		var out: ByteArray = flash.crypto.generateRandomBytes(data.length);
+		data.position = 0;
+		data.writeBytes(out);
+	}
+}
 }

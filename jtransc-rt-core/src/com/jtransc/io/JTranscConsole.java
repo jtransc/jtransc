@@ -87,6 +87,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((char)p0);"),
+		@JTranscMethodBody(target = "as3", value = "trace(N.ichar(p0));"),
 	})
 	static public void log(char v) {
 		log(Character.toString(v));
@@ -106,7 +107,10 @@ public class JTranscConsole {
 
 	@SuppressWarnings("PointlessBitwiseExpression")
 	@HaxeMethodBody("_log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
-	@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
+		@JTranscMethodBody(target = "as3", value = "trace('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
+	})
 	static public void log(long v) {
 		if (JTranscSystem.isEmulatedLong()) {
 			Int64 internal = Int64.getInternal(v);
@@ -150,6 +154,7 @@ public class JTranscConsole {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
 		@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
+		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 	})
 	static public void error(Object msg) {
 		JTranscSystem.checkInJVM("logError");

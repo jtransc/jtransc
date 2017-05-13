@@ -251,8 +251,8 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.get($index))"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.set($index, $value);"
 
 	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
 		return "JA_I${staticAccessOperator}T(new<int>[ " + e.values.joinToString(",") + " ])"
@@ -262,6 +262,8 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_d2f(str: String) = "Number($str)"
 
 	override fun N_is(a: String, b: String): String = "(($a) is $b)"
+
+	override fun N_ineg(str: String) = "N.ineg($str)"
 
 	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
@@ -350,16 +352,15 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_c_ushr(l: String, r: String) = "int((uint($l)) >> $r)"
+	//override fun N_c_ushr(l: String, r: String) = "N.iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", [${e.counts.map { it.genExpr() }.joinToString(", ")}])"
 	}
 
-	override val NegativeInfinityString = "Double.NegativeInfinity"
-	override val PositiveInfinityString = "Double.PositiveInfinity"
-	//override val NanString = "Double.NaN"
-	override val NanString = "N.DoubleNaN"
+	override val NegativeInfinityString = "Number.NEGATIVE_INFINITY"
+	override val PositiveInfinityString = "Number.POSITIVE_INFINITY"
+	override val NanString = "Number.NaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 

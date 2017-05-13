@@ -74,6 +74,8 @@ public class JTranscStringTools {
 		//@JTranscMethodBody(target = "d", value = "return N.str(to!string(p0));")
 		@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));"),
+		//@JTranscMethodBody(target = "as3", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));"),
+		@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);"),
 	})
 	native static public String _toString(double v);
 }

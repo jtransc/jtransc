@@ -56,19 +56,19 @@ public final class Float extends Number implements Comparable<Float> {
 		return new Float(value);
 	}
 
-	@HaxeMethodBody("return Math.isNaN(p0);")
-	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.isNaN(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Single.IsNaN(p0);")
-	native public static boolean isNaN(float value);
+	public static boolean isNaN(float value) {
+		return Double.isNaN((double)value);
+	}
 
-	@HaxeMethodBody("return Math.isFinite(p0);")
-	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")
 	@JTranscMethodBody(target = "cs", value = "return !float.IsNaN(p0) && !float.IsInfinity(p0);")
-	native private static boolean _isFinite(float v);
+	private static boolean _isFinite(float v) {
+		return Double.isFinite(v);
+	}
 
 	public static boolean isInfinite(float v) {
 		return !isNaN(v) && !_isFinite(v);
@@ -146,6 +146,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(int *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.floatToIntBits(p0);")
+	@JTranscMethodBody(target = "as3", value = "return N.floatToIntBits(p0);")
 	native public static int floatToIntBits(float value);
 
 	@HaxeMethodBody("return N.floatToIntBits(p0);")
@@ -153,6 +154,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(int *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.floatToIntBits(p0);")
+	@JTranscMethodBody(target = "as3", value = "return N.floatToIntBits(p0);")
 	native public static int floatToRawIntBits(float value);
 
 	@HaxeMethodBody("return N.intBitsToFloat(p0);")
@@ -160,6 +162,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(float *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(float *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.intBitsToFloat(p0);")
+	@JTranscMethodBody(target = "as3", value = "return N.intBitsToFloat(p0);")
 	native public static float intBitsToFloat(int bits);
 
 	public int compareTo(Float that) {

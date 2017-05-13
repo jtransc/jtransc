@@ -66,8 +66,8 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@HaxeMethodBody("this.setStr(p0._str);")
-	@JTranscMethodBody(target = "js", value = "this._str = p0._str;")
-	@JTranscMethodBody(target = "as3", value = "this._str = p0._str;")
+	@JTranscMethodBody(target = "js", value = "this._str = p0._str; return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str = p0._str; return this;")
 	public String(String original) {
 		setChars(original.toCharArray());
 	}
@@ -433,7 +433,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.trim());")
-	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.replace(/^\\\\s+/, '').replace(/\\\\s+$/, ''));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.replace(/^\\s+/, '').replace(/\\s+$/, ''));")
 	public String trim() {
 		int len = length();
 		int l = 0, r = len - 1;

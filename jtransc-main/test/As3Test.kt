@@ -33,4 +33,7 @@ class As3Test : Base() {
 
 	@Ignore
 	@Test fun test2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+
+	@Ignore
+	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 }

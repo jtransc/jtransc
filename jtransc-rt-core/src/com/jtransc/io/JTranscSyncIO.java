@@ -51,7 +51,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "return std.file.getSize(N.istr2(p0));"),
 			@JTranscMethodBody(target = "cs", value = "return new System.IO.FileInfo(N.istr(p0)).Length;"),
 		})
-		native public long getLength(String file);
+		public long getLength(String file) {
+			return 0L;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.delete(p0._str);")
@@ -59,7 +61,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "js", value = "return IO.remove(N.istr(p0));"),
 			@JTranscMethodBody(target = "d", value = "try { std.file.remove(N.istr2(p0)); return true; } catch (Throwable t) { return false; }"),
 		})
-		public native boolean delete(String file);
+		public boolean delete(String file) {
+			return false;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.getBooleanAttributes(p0._str);")
@@ -101,7 +105,9 @@ public class JTranscSyncIO {
 				"return res;",
 			})
 		})
-		native public int getBooleanAttributes(String file);
+		public int getBooleanAttributes(String file) {
+			return 0;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.checkAccess(p0._str, p1);")
@@ -127,7 +133,9 @@ public class JTranscSyncIO {
 				"var path = N.istr(p0); return System.IO.File.Exists(path) || System.IO.Directory.Exists(path);",
 			}),
 		})
-		native public boolean checkAccess(String file, int access);
+		public boolean checkAccess(String file, int access) {
+			return false;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.createDirectory(p0._str);")
@@ -147,7 +155,9 @@ public class JTranscSyncIO {
 				"}",
 			}),
 		})
-		public native boolean createDirectory(String file);
+		public boolean createDirectory(String file) {
+			return false;
+		}
 
 		@Override
 		@HaxeMethodBody("return HaxeIO.SyncFS.rename(p0._str, p1._str);")
@@ -169,7 +179,9 @@ public class JTranscSyncIO {
 				"}",
 			}),
 		})
-		public native boolean rename(String fileOld, String fileNew);
+		public boolean rename(String fileOld, String fileNew) {
+			return false;
+		}
 
 		@Override
 		@HaxeMethodBody("return N.strArray(HaxeIO.SyncFS.list(p0._str));")
@@ -203,7 +215,9 @@ public class JTranscSyncIO {
 				"}",
 			}),
 		})
-		public native String[] list(String file);
+		public String[] list(String file) {
+			return new String[] {};
+		}
 
 		@Override
 		@HaxeMethodBodyList({
@@ -357,7 +371,9 @@ public class JTranscSyncIO {
 				"}",
 			}),
 		})
-		native private boolean _open(String name, int mode);
+		private boolean _open(String name, int mode) {
+			return false;
+		}
 
 		@HaxeMethodBody("_stream.syncioClose();")
 		@JTranscMethodBodyList({
@@ -366,7 +382,8 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "this.file.close();"),
 			@JTranscMethodBody(target = "cs", value = "this.file.Close();"),
 		})
-		private native void _close() throws IOException;
+		private void _close() throws IOException {
+		}
 
 		@HaxeMethodBody("return _stream.syncioReadBytes(p0, p1, p2);")
 		@JTranscMethodBodyList({
@@ -375,7 +392,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "return cast(int)this.file.rawRead(p0.data[p1..p1 + p2]).length;"),
 			@JTranscMethodBody(target = "cs", value = "return this.file.Read((byte[])(Array)p0.data, p1, p2);"),
 		})
-		private native int _read(byte b[], int off, int len);
+		private int _read(byte b[], int off, int len) {
+			return -1;
+		}
 
 		@HaxeMethodBody("return _stream.syncioWriteBytes(p0, p1, p2);")
 		@JTranscMethodBodyList({
@@ -384,7 +403,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "this.file.rawWrite(p0.data[p1..p1 + p2]); return p2;"),
 			@JTranscMethodBody(target = "cs", value = "this.file.Write((byte[])(Array)p0.data, p1, p2); return p2;"),
 		})
-		private native int _write(byte b[], int off, int len);
+		private int _write(byte b[], int off, int len) {
+			return -1;
+		}
 
 		@HaxeMethodBody("return _stream.syncioPosition();")
 		@JTranscMethodBodyList({
@@ -393,7 +414,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "return this.file.tell;"),
 			@JTranscMethodBody(target = "cs", value = "return this.file.Position;"),
 		})
-		private native long _getPosition();
+		private long _getPosition() {
+			return 0L;
+		}
 
 		@HaxeMethodBody("_stream.syncioSetPosition(p0);")
 		@JTranscMethodBodyList({
@@ -402,7 +425,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "this.file.seek(p0);"),
 			@JTranscMethodBody(target = "cs", value = "this.file.Position = p0;"),
 		})
-		private native void _setPosition(long pos);
+		private void _setPosition(long pos) {
+
+		}
 
 		@HaxeMethodBody("return _stream.syncioLength();")
 		@JTranscMethodBodyList({
@@ -413,7 +438,9 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "return this.file.size;"),
 			@JTranscMethodBody(target = "cs", value = "return this.file.Length;"),
 		})
-		private native long _getLength();
+		private long _getLength() {
+			return 0L;
+		}
 
 		@HaxeMethodBody("_stream.syncioSetLength(p0);")
 		@JTranscMethodBodyList({

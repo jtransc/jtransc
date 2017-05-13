@@ -1,6 +1,7 @@
 package com.jtransc.crypto;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -12,6 +13,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+@JTranscAddHeader(target = "as3", value = {
+	"import flash.crypto.generateRandomBytes;"
+})
 public class JTranscCrypto {
 	static public void fillSecureRandomBytes(byte[] data) {
 		if (secureRandomProvider == null || data == null) throw new RuntimeException("fillSecureRandomBytes");
@@ -69,6 +73,8 @@ public class JTranscCrypto {
 			@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);"),
 			//@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
 			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
+			@JTranscMethodBody(target = "as3", value = "N.fillSecureRandomBytes(p0.data);"),
+
 		})
 		@SuppressWarnings("all")
 		public void fillSecureRandomBytes(byte[] data) {

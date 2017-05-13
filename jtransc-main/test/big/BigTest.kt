@@ -37,6 +37,7 @@ object BigTest {
 
 		// Misc tests
 		StringsTest.main(args)
+		BasicTypesTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
 		AtomicTest.main(args);
@@ -59,7 +60,6 @@ object BigTest {
 		JTranscNioTest.main(args)
 		JTranscArithmeticTest.main(args)
 		MathTest.main(args)
-		BasicTypesTest.main(args)
 		DateTest.main(args)
 		AtomicTest.main(args)
 		JTranscBug12Test.main(args)

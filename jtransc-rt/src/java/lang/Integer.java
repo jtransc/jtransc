@@ -43,6 +43,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
+	@JTranscMethodBody(target = "as3", value = "return N.str((p0|0).toString(p1));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
 	public static String toString(int i, int radix) {
 		if (radix < 2) throw new RuntimeException("Invalid radix");
@@ -60,6 +61,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.str((p0 >>> 0).toString(p1));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(uint(p0).toString(p1));")
 	public static String toUnsignedString(int i, int radix) {
 		if (i == 0) return "0";
 		StringBuilder out = new StringBuilder();
@@ -96,7 +98,8 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return _parseInt(input, radix);
 	}
 
-	@JTranscMethodBody(target = "js", value = "return parseInt(p0, p1);")
+	@JTranscMethodBody(target = "js", value = "return parseInt(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return parseInt(N.istr(p0), p1);")
 	public static int _parseInt(String input, int radix) {
 		String s = input;
 		int result = 0;
@@ -241,6 +244,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	@JTranscMethodBody(target = "js", value = "return (p0 < p1) ? -1 : ((p0 > p1) ? 1 : 0);")
 	@JTranscMethodBody(target = "cpp", value = "return (p0 < p1) ? -1 : ((p0 > p1) ? 1 : 0);")
+	@JTranscMethodBody(target = "as3", value = "return (p0 < p1) ? -1 : ((p0 > p1) ? 1 : 0);")
 	public static int compare(int l, int r) {
 		return (l < r) ? -1 : ((l > r) ? 1 : 0);
 	}
@@ -254,6 +258,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)((uint32_t)p0 / (uint32_t)p1);")
+	@JTranscMethodBody(target = "as3", value = "return uint(p0) / uint(p1);")
 	public static int divideUnsigned(int dividend, int divisor) {
 		//return (int) (toUnsignedLong(dividend) / toUnsignedLong(divisor));
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? 0 : 1;
@@ -264,6 +269,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)((uint32_t)p0 % (uint32_t)p1);")
+	@JTranscMethodBody(target = "as3", value = "return uint(p0) % uint(p1);")
 	public static int remainderUnsigned(int dividend, int divisor) {
 		//return (int) (toUnsignedLong(dividend) % toUnsignedLong(divisor));
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? dividend : (dividend - divisor);
