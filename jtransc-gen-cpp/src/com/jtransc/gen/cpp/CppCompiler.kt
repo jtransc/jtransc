@@ -1,6 +1,7 @@
 package com.jtransc.gen.cpp
 
 import com.jtransc.JTranscSystem
+import com.jtransc.JTranscVersion
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
 import com.jtransc.vfs.LocalVfs
@@ -11,8 +12,8 @@ object CppCompiler {
 	interface Compiler
 
 	val CPP_COMMON_FOLDER by lazy {
-		//println(System.getProperty("user.home") + "/.jtransc/cpp")
-		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp")
+		val jtranscVersion = JTranscVersion.getVersion().replace('.', '_');
+		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp/" + jtranscVersion)
 		folder.mkdirs()
 		LocalVfs(folder)
 	}
@@ -21,10 +22,29 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		CPP_COMMON_FOLDER
-
 		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)
+	}
+
+	fun addCommonCmdArgs(cmdAndArgs: List<String>) {
+		val commonFolder = CPP_COMMON_FOLDER.realpathOS
+
+		when {
+			JTranscSystem.isWindows() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/win32/")
+			JTranscSystem.isLinux() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/linux")
+			JTranscSystem.isMac() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/mac")
+			else -> {
+				System.err.println("Unkown OS detected: Aborting.")
+				System.exit(-1)
+			}
+		}
+		cmdAndArgs.plus("-I${commonFolder}/jni-headers/")
+		cmdAndArgs.plus("-I${commonFolder}/bdwgc/include/")
+		cmdAndArgs.plus("${commonFolder}/bdwgc/.libs/libgc.a")
+		cmdAndArgs.plus("${commonFolder}/bdwgc/.libs/libgccpp.a")
+		cmdAndArgs.plus("-I${commonFolder}/boost/compiled-libs/include/")
+		cmdAndArgs.plus("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
+		cmdAndArgs.plus("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
 	}
 
 	object CLANG : BaseCompiler("clang++") {
@@ -39,18 +59,8 @@ object CppCompiler {
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			cmdAndArgs += "-frtti"
+			addCommonCmdArgs(cmdAndArgs)
 			cmdAndArgs += programFile.absolutePath
-			//cmdAndArgs += "-Lgclibs"
-			//cmdAndArgs += "-static"
-			//cmdAndArgs += "libgc.dylib"
-			//cmdAndArgs += "libgccpp.dylib"
-			cmdAndArgs += "-Imac"
-			cmdAndArgs += "-I/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/include/"
-			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgc.dylib"
-			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgccpp.dylib"
-			cmdAndArgs += "-I/Users/simon/boost/test_libs/include/"
-			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_thread.a"
-			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_system.a"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}

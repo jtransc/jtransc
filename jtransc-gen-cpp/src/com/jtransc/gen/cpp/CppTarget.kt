@@ -19,7 +19,6 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.target.Cpp
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.text.uquote
@@ -28,6 +27,7 @@ import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 import java.util.*
+
 
 const val CHECK_ARRAYS = true
 const val TRACING = false
@@ -95,6 +95,20 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val stringPoolType = StringPool.Type.GLOBAL
 	override val staticAccessOperator: String = "::"
 	override val instanceAccessOperator: String = "->"
+
+	override fun compile(): ProcessResult2 {
+		if (!Libs.areRequiredLibsInstalled()) {
+			System.err.println("Required libs(boost, bdwgc and jni-headers) couldn't be found.")
+			System.err.println("Trying to install them now.")
+			try {
+				Libs.installRequiredLibs(program)
+			} catch(e: Exception) {
+				System.err.println("Failed to install required libs.")
+				throw e;
+			}
+		}
+		return super.compile()
+	}
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return CppCompiler.genCommand(
@@ -432,18 +446,18 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			val ids = (clazz.thisAndAncestors + clazz.allInterfacesInAncestors).distinct().map { it.classId }.filterNotNull() + listOf(-1)
 			line("static const TYPE_INFO TABLE_INFO;")
 
-			line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
-			line("static ${clazz.cppName} *GET_npe(java_lang_Object *obj, const wchar_t *location);")
+			//line("static ${clazz.cppName} *GET(java_lang_Object *obj);")
+			//line("static ${clazz.cppName} *GET_npe(java_lang_Object *obj, const wchar_t *location);")
 		}
 		line("};")
 
-		line("${clazz.cppName} *${clazz.cppName}::GET(java_lang_Object *obj)") {
-			line("return dynamic_cast<${clazz.cppName}*>(obj);")
-		}
+		/*line("${clazz.cppName} *${clazz.cppName}::GET(java_lang_Object *obj)") {
+            line("return dynamic_cast<${clazz.cppName}*>(obj);")
+        }
 
-		line("${clazz.cppName} *${clazz.cppName}::GET_npe(java_lang_Object *obj, const wchar_t *location)") {
-			line("return dynamic_cast<${clazz.cppName}*>(obj);")
-		}
+        line("${clazz.cppName} *${clazz.cppName}::GET_npe(java_lang_Object *obj, const wchar_t *location)") {
+            line("return dynamic_cast<${clazz.cppName}*>(obj);")
+        }*/
 
 	}
 
@@ -879,17 +893,17 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	//override val MethodRef.targetName: String get() {
-	//	return getClassNameAllocator(ref.containingClass).allocate(ref) {
-	//		val astMethod = program[ref]!!
-	//		val containingClass = astMethod.containingClass
-	//
-	//		val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-	//		val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) "${containingClass.name.targetName}_" else ""
-	//
-	//		"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
-	//	}
-	//}
+//override val MethodRef.targetName: String get() {
+//	return getClassNameAllocator(ref.containingClass).allocate(ref) {
+//		val astMethod = program[ref]!!
+//		val containingClass = astMethod.containingClass
+//
+//		val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
+//		val prefix2 = if (containingClass.isInterface || ref.isClassOrInstanceInit) "${containingClass.name.targetName}_" else ""
+//
+//		"$prefix$prefix2${super.targetName}_" + normalizeName(astMethod.methodType.mangle())
+//	}
+//}
 
 	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) "::$name" else "->$name"
 
@@ -907,11 +921,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		else -> "AstType_cppString_UNIMPLEMENTED($this)"
 	}
 
-	//override val FieldRef.targetName: String get() {
-	//	val fieldRef = this
-	//	val ref = fieldRef.ref
-	//	return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
-	//}
+//override val FieldRef.targetName: String get() {
+//	val fieldRef = this
+//	val ref = fieldRef.ref
+//	return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
+//}
 
 	override val NegativeInfinityString = "-INFINITY"
 	override val PositiveInfinityString = "INFINITY"
