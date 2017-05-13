@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -23,6 +24,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBody;
 import java.lang.jtransc.JTranscStrings;
 import java.util.Arrays;
 
+// @TODO: Optimize using arrays
 @HaxeAddMembers({
 	"public var buffer2:StringBuf = new StringBuf();",
 	"public var str2:String = null;",
@@ -30,6 +32,9 @@ import java.util.Arrays;
 	"public function addChar(c:Int) { this.str2 = null; buffer2.add(String.fromCharCode(c)); return this; }",
 	"public function getStr() { if (this.str2 == null) this.str2 = buffer2.toString(); return this.str2; }",
 	"public function setStr(str:String) { this.str2 = str; buffer2 = new StringBuf(); buffer2.add(str); return this; }",
+})
+@JTranscAddMembers(target = "as3", value = {
+	"public var _str: String = '';"
 })
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	protected char[] buffer;
@@ -39,7 +44,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 		this(0);
 	}
 
-	@JTranscMethodBody(target = "js", value = "this._str = '';")
+	@JTranscMethodBody(target = "js", value = "this._str = ''; return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str = ''; return this;")
 	AbstractStringBuilder(int capacity) {
 		buffer = new char[capacity];
 	}
@@ -47,12 +53,14 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	//@Override
 	@HaxeMethodBody("return this.buffer2.length;")
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
+	@JTranscMethodBody(target = "as3", value = "return this._str.length;")
 	public int length() {
 		return length;
 	}
 
 	@HaxeMethodBody("setStr(getStr());")
 	@JTranscMethodBody(target = "js", value = "")
+	@JTranscMethodBody(target = "as3", value = "")
 	public void trimToSize() {
 		this.buffer = Arrays.copyOf(buffer, length);
 	}
@@ -60,36 +68,42 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	//@Override
 	@HaxeMethodBody("return this.getStr().charCodeAt(p0);")
 	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.charCodeAt(p0);")
 	public char charAt(int index) {
 		return buffer[index];
 	}
 
 	@HaxeMethodBody("return this.getStr().indexOf(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0));")
 	public int indexOf(String str) {
 		return indexOf(str, 0);
 	}
 
 	@HaxeMethodBody("return this.getStr().indexOf(p0._str, p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0), p1);")
 	public int indexOf(String str, int fromIndex) {
 		return JTranscStrings.indexOf(buffer, fromIndex, JTranscStrings.getData(str));
 	}
 
 	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(p0._str);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0));")
 	public int lastIndexOf(String str) {
 		return lastIndexOf(str, length);
 	}
 
 	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str, p1);")
-	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
 	public int lastIndexOf(String str, int fromIndex) {
 		return JTranscStrings.lastIndexOf(buffer, fromIndex, JTranscStrings.getData(str));
 	}
 
 	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
+	@JTranscMethodBody(target = "as3", value = "var len: int = this._str.length; var reversed: String = ''; for (var n:int = 0; n < len; n++) reversed += this._str.substr(len - n - 1, 1); this._str = reversed; return this;")
 	public AbstractStringBuilder reverse() {
 		int len = length / 2;
 		for (int n = 0; n < len; n++) {
@@ -103,6 +117,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	@HaxeMethodBody("return this.add(N.toNativeString(p0));")
 	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str += N.istr(p0); return this;")
 	public AbstractStringBuilder append(String _str) {
 		String str = String.valueOf(_str);
 		//JTranscConsole.log("append.String:");
@@ -117,6 +132,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	//@Override
 	@HaxeMethodBody("return this.addChar(p0);")
 	@JTranscMethodBody(target = "js", value = "this._str += String.fromCharCode(p0); return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str += String.fromCharCode(p0); return this;")
 	public AbstractStringBuilder append(char v) {
 		//JTranscConsole.log("append.char:");
 		//JTranscConsole.log(v);
@@ -127,12 +143,14 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + this.getStr().substr(p1));")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
 	public AbstractStringBuilder delete(int start, int end) {
 		return replace(start, end, "");
 	}
 
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + p2._str + this.getStr().substr(p1));")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
 	public AbstractStringBuilder replace(int start, int end, String str) {
 		//ensure(end);
 		int addLength = str.length();
@@ -308,6 +326,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
 	@Override
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str);")
 	public String toString() {
 		return new String(buffer, 0, length);
 	}

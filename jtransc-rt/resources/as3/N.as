@@ -160,7 +160,7 @@ public class N {
 		return -v;
 	}
 
-	static public function fillSecureRandomBytes(data: ByteArray) {
+	static public function fillSecureRandomBytes(data: ByteArray): void {
 		var out: ByteArray = flash.crypto.generateRandomBytes(data.length);
 		data.position = 0;
 		data.writeBytes(out);
