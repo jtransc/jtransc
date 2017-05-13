@@ -69,6 +69,9 @@ class _InternalUtils {
 				return Integer.TYPE;
 			case 'J':
 				return Long.TYPE;
+			case 'T': //Special case for T[]
+				Class<?> enumValue = Class_forName0("java.lang.Object");
+				return new ArrayType(enumValue);
 			case '[':
 				int start = sr.offset - 1;
 				Type type = parseType(sr, owner);
