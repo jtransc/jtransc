@@ -26,25 +26,25 @@ object CppCompiler {
 		return compiler.genCommand(programFile, debug, libs)
 	}
 
-	fun addCommonCmdArgs(cmdAndArgs: List<String>) {
+	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>) {
 		val commonFolder = CPP_COMMON_FOLDER.realpathOS
 
 		when {
-			JTranscSystem.isWindows() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/win32/")
-			JTranscSystem.isLinux() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/linux")
-			JTranscSystem.isMac() -> cmdAndArgs.plus("-I${commonFolder}/jni-headers/mac")
+			JTranscSystem.isWindows() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/win32/")
+			JTranscSystem.isLinux() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/linux")
+			JTranscSystem.isMac() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/mac")
 			else -> {
 				System.err.println("Unkown OS detected: Aborting.")
 				System.exit(-1)
 			}
 		}
-		cmdAndArgs.plus("-I${commonFolder}/jni-headers/")
-		cmdAndArgs.plus("-I${commonFolder}/bdwgc/include/")
-		cmdAndArgs.plus("${commonFolder}/bdwgc/.libs/libgc.a")
-		cmdAndArgs.plus("${commonFolder}/bdwgc/.libs/libgccpp.a")
-		cmdAndArgs.plus("-I${commonFolder}/boost/compiled-libs/include/")
-		cmdAndArgs.plus("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
-		cmdAndArgs.plus("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
+		cmdAndArgs.add("-I${commonFolder}/jni-headers/")
+		cmdAndArgs.add("-I${commonFolder}/bdwgc/include/")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgc.a")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgccpp.a")
+		cmdAndArgs.add("-I${commonFolder}/boost/compiled-libs/include/")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
 	}
 
 	object CLANG : BaseCompiler("clang++") {
