@@ -49,6 +49,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val languageRequiresDefaultInSwitch = false
 	open val defaultGenStmSwitchHasBreaks = true
 	open val interfacesSupportStaticMembers = true
+	open val usePackages = true
+	open val classFileExtension = ""
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -138,56 +140,86 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun writeClasses(output: SyncVfsFile) {
-		if (!SINGLE_FILE) {
-			for (clazz in sortedClasses) {
-				output[getClassFilename(clazz)] = genClass(clazz).toString()
+		if (SINGLE_FILE) {
+			if (ADD_UTF8_BOM) {
+				output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + genSingleFileClasses(output).toString().toByteArray()
+			} else {
+				output[outputFileBaseName] = genSingleFileClasses(output).toString()
 			}
 		} else {
-			if (ADD_UTF8_BOM) {
-				output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + genClasses(output).toString().toByteArray()
-			} else {
-				output[outputFileBaseName] = genClasses(output).toString()
+			for (clazz in sortedClasses) {
+				val results = genClass(clazz)
+				for (result in results) {
+					output[getClassFilename(result.subclass.clazz, result.subclass.type)] = result.indenter.toString()
+				}
 			}
 		}
 	}
 
-	open fun getClassBaseFilename(clazz: AstClass) = clazz.actualFqName.fqname.replace('.', '/')
+	open fun getClassBaseFilename(clazz: AstClass, type: MemberTypes): String {
+		val basename = if (type == MemberTypes.STATIC) {
+			clazz.name.targetNameForStatic
+		} else {
+			clazz.name.targetName
+		}
 
-	open fun getClassFilename(clazz: AstClass) = getClassBaseFilename(clazz)
+		return basename.replace('.', if (usePackages) '/' else '_')
+	}
+
+	open fun getClassFilename(clazz: AstClass, type: MemberTypes) = getClassBaseFilename(clazz, type) + classFileExtension
 
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
-	open fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	open fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
 		val concatFilesTrans = copyFiles(output)
 
 		line(concatFilesTrans.prepend)
-		line(genClassesWithoutAppends(output))
+		line(genSingleFileClassesWithoutAppends(output))
 		line(concatFilesTrans.append)
 	}
 
-	open fun genClassesWithoutAppends(output: SyncVfsFile): Indenter = Indenter.gen {
+	open fun genSingleFileClassesWithoutAppends(output: SyncVfsFile): Indenter = Indenter.gen {
 		for (clazz in sortedClasses) {
-			val indenter = if (clazz.implCode != null) Indenter(clazz.implCode!!) else genClass(clazz)
-			indenterPerClass[clazz] = indenter
-			line(indenter)
+			val indenters = if (clazz.implCode != null) listOf(Indenter(clazz.implCode!!)) else genClass(clazz).map { it.indenter }
+			for (indenter in indenters) {
+				indenterPerClass[clazz] = indenter
+				line(indenter)
+			}
 		}
 	}
 
-	open fun genClass(clazz: AstClass): Indenter = Indenter.gen {
+	data class SubClass(val clazz: AstClass, val type: MemberTypes)
+
+	data class ClassResult(val subclass: SubClass, val indenter: Indenter)
+
+	open fun genClass(clazz: AstClass): List<ClassResult> {
 		setCurrentClass(clazz)
 
+		val out = arrayListOf<ClassResult>()
+
 		if (interfacesSupportStaticMembers || !clazz.isInterface) {
-			line(genClassDecl(clazz, MemberTypes.ALL)) {
-				line(genClassBody(clazz, MemberTypes.ALL))
-			}
+			out += genClassPart(clazz, MemberTypes.ALL)
 		} else {
-			line(genClassDecl(clazz, MemberTypes.INSTANCE)) {
-				line(genClassBody(clazz, MemberTypes.INSTANCE))
-			}
-			line(genClassDecl(clazz, MemberTypes.STATIC)) {
-				line(genClassBody(clazz, MemberTypes.STATIC))
-			}
+			out += genClassPart(clazz, MemberTypes.INSTANCE)
+			out += genClassPart(clazz, MemberTypes.STATIC)
 		}
+
+		return out
+	}
+
+	open fun genClassPart(clazz: AstClass, type: MemberTypes): ClassResult {
+		return ClassResult(
+			SubClass(clazz, type),
+			//when (type) {
+			//	MemberTypes.ALL, MemberTypes.INSTANCE -> FqName(clazz.name.targetName)
+			//	MemberTypes.STATIC -> FqName(clazz.name.targetNameForStatic)
+			//},
+			Indenter.gen {
+				line(genClassDecl(clazz, type)) {
+					line(genClassBody(clazz, type))
+				}
+			}
+		)
 	}
 
 	enum class MemberTypes(val isStatic: Boolean) {
@@ -1802,6 +1834,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open protected fun cleanFieldName(name: String): String {
+		if (name in keywords) return cleanFieldName("_$name")
 		val out = CharArray(name.length)
 		for (n in 0 until name.length) out[n] = if (name[n].isLetterOrDigit()) name[n] else '_'
 		return String(out)
@@ -1860,6 +1893,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val keyToUse = field
 
 		val normalizedFieldName = cleanFieldName(field.name)
+
+		//if (normalizedFieldName == "_parameters" || normalizedFieldName == "__parameters") {
+		//	println("_parameters")
+		//}
 
 		return if (realclass.isNative) {
 			realfield.nativeName ?: normalizedFieldName

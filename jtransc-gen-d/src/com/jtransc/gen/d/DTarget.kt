@@ -117,12 +117,16 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
 		if (field.isStatic) targetType = "__gshared $targetType"
 
+		if (field.targetName == "__parameters") {
+			println("ERROR")
+		}
+
 		line("$targetType ${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
-		val classesStr = super.genClasses(output)
+		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
 		for (lit in getGlobalStrings()) {
 			line("__gshared $StringFqName ${lit.name};")

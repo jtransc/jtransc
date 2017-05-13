@@ -132,9 +132,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun quoteString(str: String) = str.dquote()
 
-	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
-		val classesStr = super.genClasses(output)
+		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
 		line("class Bootstrap") {
 			for (lit in getGlobalStrings()) {

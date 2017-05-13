@@ -104,7 +104,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val classesIndenter = arrayListOf<Indenter>()
 
-		classesIndenter += genClassesWithoutAppends(output)
+		classesIndenter += genSingleFileClassesWithoutAppends(output)
 
 		val SHOW_SIZE_REPORT = true
 		if (SHOW_SIZE_REPORT) {
@@ -277,7 +277,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> = this.getNativeBodies(target = "js")
 
-	override fun genClass(clazz: AstClass): Indenter {
+	override fun genClass(clazz: AstClass): List<ClassResult> {
 		setCurrentClass(clazz)
 
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
@@ -437,7 +437,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
 		}
 
-		return classCodeIndenter
+		return listOf(ClassResult(SubClass(clazz, MemberTypes.ALL), classCodeIndenter))
 	}
 
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {

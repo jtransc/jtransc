@@ -4,6 +4,7 @@ import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
 import com.jtransc.gen.cs.CSharpTarget
 import jtransc.micro.MicroHelloWorld
+import org.junit.Ignore
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 
@@ -26,5 +27,6 @@ import testservice.test.ServiceLoaderTest
 class As3Test : Base() {
 	override val DEFAULT_TARGET = As3Target()
 
-	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Ignore
+	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 }

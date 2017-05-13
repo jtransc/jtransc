@@ -5,7 +5,6 @@ import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
-import com.jtransc.ds.getOrPut2
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
@@ -63,6 +62,11 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
+	override val usePackages = true
+	override val classFileExtension = ".as"
+	override val languageRequiresDefaultInSwitch = true
+	override val defaultGenStmSwitchHasBreaks = true
+
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -92,9 +96,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		"std", "core"
 	)
 
-	override val languageRequiresDefaultInSwitch = true
-	override val defaultGenStmSwitchHasBreaks = true
-
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return As3Compiler.genCommand(programFile.parentFile, File(programFile.parentFile, "Main.as"), debug, libs)
 	}
@@ -102,26 +103,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun setTemplateParamsAfterBuildingSource() {
 		super.setTemplateParamsAfterBuildingSource()
 		params["AIRSDK_VERSION_INT"] = As3Compiler.AIRSDK_VERSION_INT
-		params["BASE_CLASSES_FQNAMES"] = getClassesForStaticConstruction().map { it.name.targetName }
+		params["BASE_CLASSES_FQNAMES"] = getClassesForStaticConstruction().map { it.name.targetNameForStatic }
 		params["STATIC_CONSTRUCTORS"] = genStaticConstructorsSortedLines()
 	}
-
-	@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-	private fun _getActualFqName(name: FqName): FqName {
-		val realclass = if (name in program) program[name] else null
-		return FqName(classNames.getOrPut2(name) {
-			if (realclass?.nativeName != null) {
-				realclass!!.nativeName!!
-			} else {
-				FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
-			}
-		})
-	}
-
-	//override fun getClassBaseFilename(clazz: AstClass): String = clazz.actualFqName.fqname.replace('.', '/').replace('$', '_')
-	//override fun getClassBaseFilename(clazz: AstClass): String = clazz.actualFqName.fqname.replace('.', '/').replace('$', '_')
-	override fun getClassBaseFilename(clazz: AstClass): String = clazz.fqname.replace('.', '_').replace('$', '_')
-	override fun getClassFilename(clazz: AstClass) = getClassBaseFilename(clazz) + ".as"
 
 	override val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	//override val FqName.targetName: String get() = this.actualFqName.fqname.replace('$', '_')
@@ -147,10 +131,13 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		line("public ${static}var ${field.targetName}: ${field.type.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun genClass(clazz: AstClass): Indenter = Indenter {
-		line("package") {
-			line(super.genClass(clazz))
-		}
+	override fun genClassPart(clazz: AstClass, type: MemberTypes): ClassResult {
+		val result = super.genClassPart(clazz, type)
+		return result.copy(indenter = Indenter {
+			line("package") {
+				line(result.indenter)
+			}
+		})
 	}
 
 	//override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
@@ -202,9 +189,19 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
-		val CLASS = if (clazz.isInterface) "interface" else "class"
-		var decl = "public $CLASS ${clazz.name.targetSimpleName}"
-		decl += genClassDeclExtendsImplements(clazz, kind)
+		val CLASS = when (kind) {
+			MemberTypes.STATIC -> "class"
+			else -> if (clazz.isInterface) "interface" else "class"
+		}
+		val name = when (kind) {
+			MemberTypes.STATIC -> clazz.name.targetNameForStatic
+			else -> clazz.name.targetSimpleName
+		}
+		var decl = "public $CLASS $name"
+		decl += when (kind) {
+			MemberTypes.STATIC -> ""
+			else -> genClassDeclExtendsImplements(clazz, kind)
+		}
 		return decl
 	}
 

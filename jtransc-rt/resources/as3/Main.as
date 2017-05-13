@@ -4,6 +4,7 @@ package {
 	import flash.system.fscommand;
 	import flash.desktop.NativeApplication;
 	import flash.utils.setTimeout;
+	import Bootstrap;
 	{% for c in BASE_CLASSES_FQNAMES %}
 	import {{ c }};
 	{% end %}
@@ -14,6 +15,7 @@ package {
 		}
 
 		static private function init(): void {
+			Bootstrap.init();
 			{% for sc in STATIC_CONSTRUCTORS %}
 			{{ sc }}
 			{% end %}
