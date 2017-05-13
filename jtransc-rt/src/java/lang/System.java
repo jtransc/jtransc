@@ -62,6 +62,7 @@ public class System {
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0, p1, (JA_0*)p2, p3, p4);")
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
+	@JTranscMethodBody(target = "as3", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
 		if (src instanceof boolean[]) arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length);
 		else if (src instanceof byte[]) arraycopy((byte[]) src, srcPos, (byte[]) dest, destPos, length);

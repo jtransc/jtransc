@@ -1,5 +1,7 @@
 package {
-	public class JA_C extends JA_0 {
-		public function JA_C(size: int) { super(size, '[C'); }
+	public class JA_C extends JA_I {
+		public function JA_C(length: int) {
+			super(length, '[C');
+		}
 	}
 }

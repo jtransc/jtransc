@@ -11,17 +11,43 @@ package {
 
 	public class Main extends flash.display.Sprite {
 		public function Main() {
-			flash.utils.setTimeout(function(): void { Main.init(); }, 0);
+			flash.utils.setTimeout(function(): void { Main.doMain(); }, 0);
 		}
 
-		static private function init(): void {
+		static private function staticInit(): void {
 			Bootstrap.init();
-			{% for sc in STATIC_CONSTRUCTORS %}
-			{{ sc }}
+			{% for sc in STATIC_CONSTRUCTORS %}{{ sc }}
 			{% end %}
-			trace('a');
-			//flash.system.System.exit(0);
-			flash.desktop.NativeApplication.nativeApplication.exit();
+		}
+
+		static private function doActualMain(): void {
+			{{ MAIN_METHOD_CALL }}
+		}
+
+		static private function doMain(): void {
+			var air: Boolean = inAir();
+
+			if (air) {
+				try {
+					staticInit();
+					doActualMain();
+				} catch (e: *) {
+					trace(e);
+				}
+				flash.desktop.NativeApplication.nativeApplication.exit();
+			} else {
+				staticInit();
+				doActualMain();
+			}
+		}
+
+		static private function inAir(): Boolean {
+			try {
+				flash.utils.getDefinitionByName('flash.desktop.NativeApplication');
+				return true;
+			} catch (e: *) {
+				return false;
+			}
 		}
 	}
 }

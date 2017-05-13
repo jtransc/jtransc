@@ -1,6 +1,5 @@
 package com.jtransc.gen.as3
 
-import com.jtransc.ast.FqName
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.serialization.xml.Xml
@@ -28,17 +27,36 @@ object As3Compiler {
 			else -> {
 				listOf(File(System.getenv("HOME") + "/mm.cfg"), File("/Library/Application Support/Macromedia/mm.cfg"))
 			}
-		}
+		}.filter { it.exists() }
 	}
 
 	val AIR_COMPILER by lazy { "${AIRSDK_BIN}amxmlc" }
 	val SWF_COMPILER by lazy { "${AIRSDK_BIN}mxmlc" }
 	val ADL by lazy { "${AIRSDK_BIN}adl" }
 
+	fun <T> useAdl(callback: () -> T): T {
+		for (file in MM_CFG_FILES) {
+			val jtransc = File(file.absolutePath + ".jtransc")
+			file.copyTo(jtransc, overwrite = true)
+		}
+		try {
+			for (file in MM_CFG_FILES) {
+				file.writeText("")
+			}
+
+			return callback()
+		} finally {
+			for (file in MM_CFG_FILES) {
+				val jtransc = File(file.absolutePath + ".jtransc")
+				jtransc.copyTo(file, overwrite = true)
+			}
+		}
+	}
+
 	fun genCommand(sourceFolder: File, programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
 		//mxmlc.exe src/Editor.as -output=Editor.swf  -compiler.source-path=src1 -compiler.source-path=../src2 -compiler.library-path+=libs -compiler.library-path=../libs
 
-		return listOf(AIR_COMPILER, "-compiler.source-path+=${sourceFolder.absolutePath}", programFile.absolutePath)
+		return listOf(AIR_COMPILER, if (debug) "-debug" else "", "-compiler.source-path+=${sourceFolder.absolutePath}", programFile.absolutePath)
 	}
 
 	fun getSdkVersionFromString(@Language("xml") str: String): String {

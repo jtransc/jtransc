@@ -7,5 +7,9 @@ package {
 			this.length = length;
 			this.descriptor = descriptor;
 		}
+
+		public function arraycopy(srcPos: int, dst: JA_0, dstPos: int, len: int): void {
+			throw 'Must override JA_0.arraycopy for ' + this;
+		}
 	}
 }

@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
@@ -41,11 +42,17 @@ import java.util.regex.Pattern;
 //@JTranscAddMembers(target = "cpp", value = {
 //	""
 //})
+@JTranscAddMembers(target = "as3", value = {
+	"public var _str: String = null;",
+	"public var _arr: JA_C = null;",
+	"public function __initFromAs3(str: String): void { this._str = str; } ",
+})
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	public char[] value;
 
 	@HaxeMethodBody("this.setStr(N.charArrayToString(p0, 0, p0.length));")
 	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
+	@JTranscMethodBody(target = "as3", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
 	private void setChars(char[] chars) {
 		this.value = chars;
 	}
@@ -60,6 +67,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("this.setStr(p0._str);")
 	@JTranscMethodBody(target = "js", value = "this._str = p0._str;")
+	@JTranscMethodBody(target = "as3", value = "this._str = p0._str;")
 	public String(String original) {
 		setChars(original.toCharArray());
 	}
@@ -185,6 +193,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
 	@JTranscMethodBody(target = "js", value = "return N.is(p0, {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0);")
+	@JTranscMethodBody(target = "as3", value = "return (p0 is {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0 as {% CLASS java.lang.String %});")
 	public boolean equals(Object anObject) {
 		if (this == anObject) return true;
 		if (!(anObject instanceof String)) return false;
@@ -210,6 +219,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("var a = this._str; var b = p0._str; return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
 	@JTranscMethodBody(target = "js", value = "var a = N.istr(this), b = N.istr(p0); return (a < b) ? -1 : ((a > b) ? 1 : 0);")
+	@JTranscMethodBody(target = "as3", value = "var a: String = N.istr(this), b: String = N.istr(p0); return (a < b) ? -1 : ((a > b) ? 1 : 0);")
 	private int _compareTo(String that) {
 		char v1[] = this.value;
 		char v2[] = that.value;
@@ -267,12 +277,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return StringTools.startsWith(this._str, p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.startsWith(p0._str);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.substr(0, p0._str.length) == p0._str;")
 	public boolean startsWith(String prefix) {
 		return this.length() >= prefix.length() && JTranscStrings.equals(this.value, 0, prefix.value, 0, prefix.length());
 	}
 
 	@HaxeMethodBody("return StringTools.endsWith(this._str, p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.endsWith(p0._str);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.substr(-p0._str.length) == p0._str;")
 	public boolean endsWith(String suffix) {
 		return this.length() >= suffix.length() && JTranscStrings.equals(this.value, this.value.length - suffix.length(), suffix.value, 0, suffix.length());
 	}
@@ -283,6 +295,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0));")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.ichar(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.ichar(p0));")
 	@JTranscInline
 	public int indexOf(int ch) {
 		return indexOf(ch, 0);
@@ -290,6 +303,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.indexOf(p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0));")
 	@JTranscInline
 	public int indexOf(String str) {
 		return indexOf(str, 0);
@@ -297,12 +311,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.indexOf(String.fromCharCode(p0), p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.ichar(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.ichar(p0), p1);")
 	public int indexOf(int ch, int fromIndex) {
 		return JTranscStrings.indexOf(value, fromIndex, ch);
 	}
 
 	@HaxeMethodBody("return _str.indexOf(p0._str, p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0), p1);")
 	public int indexOf(String str, int fromIndex) {
 		return JTranscStrings.indexOf(value, fromIndex, str.value);
 	}
@@ -313,6 +329,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0));")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(String.fromCharCode(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(String.fromCharCode(p0));")
 	@JTranscInline
 	public int lastIndexOf(int ch) {
 		return lastIndexOf(ch, length());
@@ -320,12 +337,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.lastIndexOf(String.fromCharCode(p0), p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(String.fromCharCode(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(String.fromCharCode(p0), p1);")
 	public int lastIndexOf(int ch, int fromIndex) {
 		return JTranscStrings.lastIndexOf(value, fromIndex, ch);
 	}
 
 	@HaxeMethodBody("return _str.lastIndexOf(p0._str);")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0));")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0));")
 	@JTranscInline
 	public int lastIndexOf(String str) {
 		return lastIndexOf(str, length());
@@ -333,6 +352,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _str.lastIndexOf(p0._str, p1);")
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
 	public int lastIndexOf(String str, int fromIndex) {
 		return JTranscStrings.lastIndexOf(value, fromIndex, str.value);
 	}
@@ -343,12 +363,14 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return make(_str.substring(p0));")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.slice(p0));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.slice(p0));")
 	public String substring(int beginIndex) {
 		return substring(beginIndex, this.value.length);
 	}
 
 	@HaxeMethodBody("return make(_str.substring(p0, p1));")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.slice(p0, p1));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.slice(p0, p1));")
 	public String substring(int beginIndex, int endIndex) {
 		return new String(this.value, beginIndex, endIndex - beginIndex);
 	}
@@ -364,6 +386,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(this._str + p0._str);")
 	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this) + N.istr(p0));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this) + N.istr(p0));")
 	public String concat(String str) {
 		char[] out = new char[this.length() + str.length()];
 		System.arraycopy(this.value, 0, out, 0, this.length());
@@ -373,6 +396,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(StringTools.replace(this._str, String.fromCharCode(p0), String.fromCharCode(p1)));")
 	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this).replaceAll(String.fromCharCode(p0), String.fromCharCode(p1)));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this).split(String.fromCharCode(p0)).join(String.fromCharCode(p1)));")
 	public String replace(char oldChar, char newChar) {
 		char[] out = Arrays.copyOf(value, value.length);
 		for (int n = 0; n < out.length; n++) if (out[n] == oldChar) out[n] = newChar;
@@ -386,6 +410,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(_str.toLowerCase());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toLowerCase());")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.toLowerCase());")
 	public String toLowerCase() {
 		char[] out = Arrays.copyOf(value, value.length);
 		for (int n = 0; n < out.length; n++) out[n] = Character.toLowerCase(out[n]);
@@ -399,6 +424,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(_str.toUpperCase());")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.toUpperCase());")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.toUpperCase());")
 	public String toUpperCase() {
 		char[] out = Arrays.copyOf(value, value.length);
 		for (int n = 0; n < out.length; n++) out[n] = Character.toUpperCase(out[n]);
@@ -407,6 +433,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(StringTools.trim(this._str));")
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str.trim());")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str.replace(/^\\\\s+/, '').replace(/\\\\s+$/, ''));")
 	public String trim() {
 		int len = length();
 		int l = 0, r = len - 1;
@@ -551,6 +578,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return N.str(StringTools.replace(this._str, '$p0', '$p1'));")
 	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this).replaceAll(N.istr(p0), N.istr(p1)));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
 	private String _replace(String target, String replacement) {
 		int len = this.length();
 		StringBuilder out = new StringBuilder(len);
@@ -586,6 +614,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@HaxeMethodBody("return _getArray();")
 	@JTranscMethodBody(target = "js", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
+	@JTranscMethodBody(target = "as3", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	public char[] toCharArray() {
 		return Arrays.copyOf(this.value, this.value.length);
 	}
@@ -593,6 +622,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.length;")
 	@HaxeMethodBody("return _getArray().length;")
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
+	@JTranscMethodBody(target = "as3", value = "return this._str.length;")
 	public int length() {
 		return this.value.length;
 	}
@@ -600,6 +630,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.charCodeAt(p0);")
 	@HaxeMethodBody("return _getArray().get(p0);")
 	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
+	@JTranscMethodBody(target = "as3", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
 	@JTranscInline
 	public char charAt(int index) {
 		return this.value[index];

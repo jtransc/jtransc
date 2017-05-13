@@ -105,6 +105,12 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		params["AIRSDK_VERSION_INT"] = As3Compiler.AIRSDK_VERSION_INT
 		params["BASE_CLASSES_FQNAMES"] = getClassesForStaticConstruction().map { it.name.targetNameForStatic }
 		params["STATIC_CONSTRUCTORS"] = genStaticConstructorsSortedLines()
+
+		val entryPointFqName = program.entrypoint
+		val entryPointClass = program[entryPointFqName]
+		val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
+		params["MAIN_METHOD_CALL"] = buildMethod(mainMethod, static = true) + "(N.strArray([]));"
+
 	}
 
 	override val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
@@ -114,9 +120,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		val names = listOf("Main.xml")
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 
-		val cmdAndArgs = listOf(As3Compiler.ADL, outFile.realpathOS)
-
-		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
+		return As3Compiler.useAdl {
+			ProcessResult2(RootLocalVfs().exec(listOf(As3Compiler.ADL, outFile.realpathOS), ExecOptions(passthru = redirect, sysexec = true)))
+		}
 	}
 
 	override fun writeClasses(output: SyncVfsFile) {
@@ -199,14 +205,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	//	}
 	//}
 
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
-		if (elementType is AstType.Primitive) {
-			return "$array[$index] = ($value) as ${elementType.targetName};"
-		} else {
-			return "$array[$index] = ($value) as ${AstType.OBJECT.targetName};"
-		}
-	}
-
 	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
 		val CLASS = when (kind) {
 			MemberTypes.STATIC -> "class"
@@ -252,6 +250,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 			return mods
 		}
 	}
+
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
 
 	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
 		return "JA_I${staticAccessOperator}T(new<int>[ " + e.values.joinToString(",") + " ])"
