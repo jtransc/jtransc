@@ -33,6 +33,9 @@ package {
 					doActualMain();
 				} catch (e: *) {
 					trace(e);
+					if (e is Error) {
+						trace((e as Error).getStackTrace())
+					}
 				}
 				flash.desktop.NativeApplication.nativeApplication.exit();
 			} else {

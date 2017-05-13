@@ -5,9 +5,11 @@ package {
 		static public var MIN_INT32: int = -2147483648;
 		static public var MAX_INT32: int = 2147483647;
 
-		static public function resolveClass(className: String): {% CLASS java.lang.Class %} {
-			throw new Error("Not implemented: N.resolveClass");
+		static public function resolveClass(name: String): {% CLASS java.lang.Class %} {
+			return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 		}
+
+		static public function ichar(i: int): String { return String.fromCharCode(i); }
 
 		static public function strLitEscape(s: String): {% CLASS java.lang.String %} { return str(s); }
 
@@ -29,30 +31,38 @@ package {
 		static public function boxDouble(v: Number): {% CLASS java.lang.Double %} { throw new Error("Not implemented"); }
 
 		static public function z2i(v: Boolean): int { return v ? 1 : 0; }
-		static public function l2i(v: Long): int { throw new Error("Not implemented"); }
-		static public function i2j(v: int): Long { throw new Error("Not implemented"); }
+		static public function l2i(v: Long): int { return v.low; }
+		static public function i2j(v: int): Long { return Long.ofInt(v); }
 
-		static public function f2j(v: Number): Long { throw new Error("Not implemented"); }
-		static public function d2j(v: Number): Long { throw new Error("Not implemented"); }
+		static public function f2j(v: Number): Long { return Long.ofFloat(v); }
+		static public function d2j(v: Number): Long { return Long.ofFloat(v); }
 
-		static public function irem(l: int, r: int): int { throw new Error("Not implemented"); }
-		static public function idiv(l: int, r: int): int { throw new Error("Not implemented"); }
+		static public function irem(l: int, r: int): int { return l % r; }
+		static public function idiv(l: int, r: int): int { return l / r; }
 
-		static public function lnew(high: int, low: int): Long { throw new Error("Not implemented"); }
+		static public function lnew(high: int, low: int): Long { return Long.make(high, low); }
 
-		static public function lneg(l: Long): Long { throw new Error("Not implemented"); }
+		static public function lneg(l: Long): Long { return Long.neg(l); }
 
 		static public function cmpl(l: Number, r: Number): int { throw new Error("Not implemented"); }
 		static public function cmpg(l: Number, r: Number): int { throw new Error("Not implemented"); }
 
 		static public function lcmp(l: Long, r: Long): int { throw new Error("Not implemented"); }
-		static public function ladd(l: Long, r: Long): Long { throw new Error("Not implemented"); }
-		static public function lxor(l: Long, r: Long): Long { throw new Error("Not implemented"); }
-		static public function ldiv(l: Long, r: Long): Long { throw new Error("Not implemented"); }
-		static public function lrem(l: Long, r: Long): Long { throw new Error("Not implemented"); }
-		static public function lushr(l: Long, r: int): Long { throw new Error("Not implemented"); }
 
-		static public function ichar(i: int): String { return String.fromCharCode(i); }
+		static public function lxor(l: Long, r: Long): Long { return Long.xor(l, r); }
+		static public function land(l: Long, r: Long): Long { return Long.and(l, r); }
+		static public function lor(l: Long, r: Long): Long { return Long.or(l, r); }
+
+		static public function ladd(l: Long, r: Long): Long { return Long.add(l, r); }
+		static public function lsub(l: Long, r: Long): Long { return Long.sub(l, r); }
+		static public function lmul(l: Long, r: Long): Long { return Long.mul(l, r); }
+		static public function ldiv(l: Long, r: Long): Long { return Long.div(l, r); }
+		static public function lrem(l: Long, r: Long): Long { return Long.rem(l, r); }
+
+		static public function lushr(l: Long, r: int): Long { return Long.ushr(l, r); }
+		static public function lshr(l: Long, r: int): Long { return Long.shr(l, r); }
+		static public function lshl(l: Long, r: int): Long { return Long.shl(l, r); }
+
 
 		static public function monitorEnter(v: *): void { }
 

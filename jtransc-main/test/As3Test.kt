@@ -3,6 +3,7 @@ import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
 import com.jtransc.gen.cs.CSharpTarget
+import javatest.misc.BenchmarkTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -29,4 +30,7 @@ class As3Test : Base() {
 
 	@Ignore
 	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+
+	@Ignore
+	@Test fun test2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 }

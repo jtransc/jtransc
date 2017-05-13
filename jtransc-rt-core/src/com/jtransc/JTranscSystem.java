@@ -77,6 +77,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "return true;"),
 		@JTranscMethodBody(target = "cs", value = "return true;"),
+		@JTranscMethodBody(target = "as3", value = "return true;"),
 	})
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
@@ -233,9 +234,14 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
+		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
 	})
 	static private String getOSRaw() {
-		return System.getProperty("os.name");
+		if (JTranscSystem.isJTransc()) {
+			throw new RuntimeException("getOSRaw()");
+		} else {
+			return System.getProperty("os.name");
+		}
 	}
 
 	static public String getOS() {

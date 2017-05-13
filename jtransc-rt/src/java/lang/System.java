@@ -202,6 +202,7 @@ public class System {
 	})
 	@JTranscMethodBody(target = "d", value = "return N.str(std.process.environment.get(N.istr2(p0)));")
 	@JTranscMethodBody(target = "cs", value = "return N.str(Environment.GetEnvironmentVariable(N.istr(p0)));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(null);")
 	native public static String getenv(String name);
 
 	@HaxeMethodBody(target = "sys", value = "return N.hashMap(Sys.environment());")
