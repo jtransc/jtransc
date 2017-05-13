@@ -326,7 +326,11 @@ public class JTranscSystem {
 		return System.getenv("java.home");
 	}
 
-	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return true;"),
+		@JTranscMethodBody(target = "php", value = "return true;"),
+		@JTranscMethodBody(target = "as3", value = "return true;"),
+	})
 	public static boolean isEmulatedLong() {
 		return FALSE;
 	}

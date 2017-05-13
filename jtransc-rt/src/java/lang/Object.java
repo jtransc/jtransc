@@ -53,6 +53,7 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_F.as", dst = "JA_F.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_D.as", dst = "JA_D.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_L.as", dst = "JA_L.as")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Long.as", dst = "Long.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/N.as", dst = "N.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/WrappedThrowable.as", dst = "WrappedThrowable.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")

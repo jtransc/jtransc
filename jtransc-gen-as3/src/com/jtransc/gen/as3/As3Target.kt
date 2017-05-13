@@ -66,7 +66,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val classFileExtension = ".as"
 	override val languageRequiresDefaultInSwitch = true
 	override val defaultGenStmSwitchHasBreaks = true
-
+	override val allowRepeatMethodsInInterfaceChain = false
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -122,7 +122,25 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun writeClasses(output: SyncVfsFile) {
 		//println(program.resourcesVfs)
 		super.writeClasses(output)
-		println(output)
+
+		val StringFqName = buildTemplateClass("java.lang.String".fqname)
+
+		output["Bootstrap.as"] = Indenter {
+			line("package") {
+				line("public class Bootstrap") {
+					for (lit in getGlobalStrings()) {
+						line("static public var ${lit.name}: $StringFqName;")
+					}
+
+					line("static public function init():void") {
+						for (lit in getGlobalStrings()) {
+							// STRINGLIT_
+							line("Bootstrap.${lit.name} = N.strLitEscape(${lit.str.quote()});")
+						}
+					}
+				}
+			}
+		}
 	}
 
 	override fun genField(field: AstField): Indenter = Indenter.gen {
@@ -135,6 +153,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		val result = super.genClassPart(clazz, type)
 		return result.copy(indenter = Indenter {
 			line("package") {
+				line("import Long;")
 				line(result.indenter)
 			}
 		})
@@ -214,7 +233,12 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		//if (method.isInstanceInit) mods += "final "
 
 		val mods = genMethodDeclModifiers(method)
-		return "$mods function ${method.targetName}(${args.joinToString(", ")}): ${method.actualRetType.targetName}"
+		val clazz = method.containingClass
+		val m = method
+
+		val rmods = if (!clazz.isInterface || m.isStatic) mods else ""
+		//val rmods = mods
+		return "$rmods function ${method.targetName}(${args.joinToString(", ")}): ${method.actualRetType.targetName}"
 	}
 
 	override fun genMethodDeclModifiers(method: AstMethod): String {
@@ -240,7 +264,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
-	override val BoolType = "boolean"
+	override val BoolType = "Boolean"
 	override val IntType = "int"
 	override val ShortType = "int"
 	override val CharType = "int"
@@ -260,7 +284,8 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
 		if (clazz.isJavaLangObject) {
-			line("override public string ToString()") {
+			//line("override public function toString(): String") {
+			line("public function toString(): String") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
 				line("return N.istr($toStringMethodName());")
 			}
@@ -268,7 +293,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("public __AS3__CLASS_ID: int;")
+				line("public var __AS3__CLASS_ID: int;")
 				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { this.__AS3__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { super(CLASS_ID); }")
@@ -307,7 +332,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
 
-	override fun N_lnew(value: Long): String = "((long)(${value}L))"
+	override fun N_lneg(str: String) = "N.lneg($str)"
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
@@ -318,7 +343,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (WrappedThrowable J__i__exception__)") {
+		line("catch (J__i__exception__: WrappedThrowable)") {
 			line("J__exception__ = J__i__exception__.t;")
 			line(stm.catch.genStm())
 		}
@@ -343,15 +368,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		} else {
 			return genExpr2(this)
 		}
-	}
-
-	override fun escapedConstant(v: Any?): String = when (v) {
-		is Float -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) NanString else "${v}f"
-		else -> super.escapedConstant(v)
-	}
-
-	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		return "base$methodAccess(${args.joinToString(", ")})"
 	}
 
 	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {

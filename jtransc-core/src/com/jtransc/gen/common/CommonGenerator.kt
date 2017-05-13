@@ -51,6 +51,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val interfacesSupportStaticMembers = true
 	open val usePackages = true
 	open val classFileExtension = ""
+	open val allowRepeatMethodsInInterfaceChain = true
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -252,8 +253,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	protected open fun genClassDeclImplements(clazz: AstClass, kind: MemberTypes): String {
-		val implementing = getClassInterfaces(clazz)
-		return if (implementing.isNotEmpty()) " implements ${implementing.map { it.targetClassFqName }.joinToString(", ")}" else ""
+		val implementing = getClassInterfaces(clazz).distinct()
+		val IMPLEMENTS = if (clazz.isInterface) "extends" else "implements"
+		return if (implementing.isNotEmpty()) " $IMPLEMENTS ${implementing.map { it.targetClassFqName }.joinToString(", ")}" else ""
 	}
 
 	protected open fun getClassInterfaces(clazz: AstClass): List<FqName> = clazz.implementing
@@ -273,7 +275,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
-		for (m in clazz.methods) if (kind.check(m)) line(genMethod(clazz, m, !clazz.isInterface || m.isStatic))
+		val methodsWithoutClassToIgnore = if (clazz.isInterface && !allowRepeatMethodsInInterfaceChain) {
+			clazz.allInterfacesInAncestors.flatMap { it.methodsWithoutConstructors }.distinct().map { it.ref.withoutClass }.toSet()
+		} else {
+			setOf()
+		}
+
+		for (m in clazz.methods) {
+			if (!kind.check(m)) continue
+			if (m.ref.withoutClass in methodsWithoutClassToIgnore) continue
+
+			val mustPutBody = !clazz.isInterface || m.isStatic
+			line(genMethod(clazz, m, mustPutBody))
+		}
 	}
 
 	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
@@ -630,9 +644,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		)
 	}
 
-	//fun locateDefaultMethod(method: List<AstClass>) { sad ad ad as
+//fun locateDefaultMethod(method: List<AstClass>) { sad ad ad as
 //
-	//}
+//}
 
 	open fun AstExpr.genNotNull(): String = genExpr2(this)
 
@@ -648,7 +662,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
-	// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
+// @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
 	fun fixField(field: AstFieldRef): AstFieldRef = program[field].ref
 
 	fun fixMethod(method: AstMethodRef): AstMethodRef = program[method]?.ref
@@ -715,7 +729,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(local.decl) }
 
-	open fun genBodyTrapsPrefix() = Indenter("${AstType.OBJECT.localDeclType} J__exception__ = null;")
+	open fun genBodyTrapsPrefix() = Indenter(AstLocal(0, "J__exception__", AstType.OBJECT).decl)
 	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
 
@@ -1287,7 +1301,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun N_unbox(type: AstType, e: String) = when (type) {
 		is AstType.Primitive -> N_unbox(type, e)
-	//else -> N_unboxRaw(e)
+//else -> N_unboxRaw(e)
 		else -> e
 	}
 
@@ -1499,9 +1513,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
@@ -1580,9 +1594,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	@Suppress("UNUSED_PARAMETER")
 	fun gen(template: String, context: AstGenContext, type: String): String = context.rethrowWithContext { Minitemplate(template, miniConfig).invoke(params) }
 
-	///////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 
 	private var minClassLastId: Int = 0
 	private var minMemberLastId: Int = 0
@@ -1631,7 +1645,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun buildTemplateClass(clazz: FqName): String = clazz.targetName
 	fun buildTemplateClass(clazz: AstClass): String = buildTemplateClass(clazz.name)
 
-	//open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(classRef.name)
+//open fun getClassStaticInit(classRef: AstType.REF, reason: String): String = buildStaticInit(classRef.name)
 
 	val normalizeNameCache = hashMapOf<String, String>()
 
@@ -1659,9 +1673,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return normalizeNameCache[rname]!!
 	}
 
-	//////////////////////////////////////////////////
-	// Primitive types
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Primitive types
+//////////////////////////////////////////////////
 
 	open val NullType by lazy { AstType.OBJECT.targetName }
 	open val VoidType = "void"
@@ -1687,9 +1701,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val PositiveInfinityString = "Infinity"
 	open val NanString = "NaN"
 
-	//////////////////////////////////////////////////
-	// Constants
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Constants
+//////////////////////////////////////////////////
 
 	val AstType.nativeDefault: Any? get() = this.getNull()
 	val AstType.nativeDefaultString: String get() = this.getNull().escapedConstant
@@ -1729,9 +1743,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected val String.escapeString: String get() = N_func("strLitEscape", quoteString(this))
 	open protected val AstType.escapeType: String get() = N_func("resolveClass", quoteString(this.mangle()))
 
-	//////////////////////////////////////////////////
-	// Type names
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Type names
+//////////////////////////////////////////////////
 
 	open val AstType.targetName: String get() {
 		val type = this.resolve()
@@ -1767,15 +1781,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	//////////////////////////////////////////////////
-	// Local names
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Local names
+//////////////////////////////////////////////////
 
 	open val LocalParamRef.targetName: String get() = normalizeName(this.name, NameKind.LOCAL)
 
-	//////////////////////////////////////////////////
-	// Class names
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Class names
+//////////////////////////////////////////////////
 
 	inline fun <reified T : Any> nativeName(): String = T::class.java.name.fqname.targetName
 
@@ -1787,11 +1801,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.targetGeneratedFqName: FqName get() = this
 	open val FqName.targetGeneratedFqPackage: String get() = this.packagePath
 
-	//////////////////////////////////////////////////
-	// Method names
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Method names
+//////////////////////////////////////////////////
 
-	//open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
+//open val MethodRef.targetName: String get() = normalizeName(this.ref.name)
 
 	open val AstMethodRef.objectToCache: Any get() = if (this.isClassOrInstanceInit) this else this.withoutClass
 
@@ -1824,7 +1838,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
-	//open val MethodRef.targetNameBase: String get() = "${this.ref.name}"
+//open val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
 	open protected fun cleanMethodName(name: String): String {
 		if (name in keywords) return cleanMethodName("_$name")
@@ -1840,27 +1854,27 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return String(out)
 	}
 
-	//override val MethodRef.targetName: String get() {
-	//	val methodRef: AstMethodRef = this.ref
-	//	val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
-	//	return methodNames.getOrPut2(keyToUse) {
-	//		if (minimize) {
-	//			allocMemberName()
-	//		} else {
-	//			if (program is AstProgram) {
-	//				val method = methodRef.resolve(program)
-	//				if (method.nativeName != null) {
-	//					return method.nativeName!!
-	//				}
-	//			}
-	//			return if (methodRef.isInstanceInit) {
-	//				"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
-	//			} else {
-	//				"${methodRef.name}${methodRef.desc}"
-	//			}
-	//		}
-	//	}
-	//}
+//override val MethodRef.targetName: String get() {
+//	val methodRef: AstMethodRef = this.ref
+//	val keyToUse: Any = if (methodRef.isInstanceInit) methodRef else methodRef.withoutClass
+//	return methodNames.getOrPut2(keyToUse) {
+//		if (minimize) {
+//			allocMemberName()
+//		} else {
+//			if (program is AstProgram) {
+//				val method = methodRef.resolve(program)
+//				if (method.nativeName != null) {
+//					return method.nativeName!!
+//				}
+//			}
+//			return if (methodRef.isInstanceInit) {
+//				"${methodRef.classRef.fqname}${methodRef.name}${methodRef.desc}"
+//			} else {
+//				"${methodRef.name}${methodRef.desc}"
+//			}
+//		}
+//	}
+//}
 
 	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = buildAccessName(refMethod.targetName, static, field = false)
 	fun buildMethod(method: AstMethod, static: Boolean): String {
@@ -1876,9 +1890,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "(new $clazz())" + buildAccessName(methodName, static = false, field = false)
 	}
 
-	//////////////////////////////////////////////////
-	// Field names
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Field names
+//////////////////////////////////////////////////
 
 	protected val fieldNames = hashMapOf<Any?, String>()
 	protected val methodNames = hashMapOf<Any?, String>()
@@ -1939,38 +1953,38 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	//override val FieldRef.targetName: String get() {
-	//	val fieldRef = this
-	//	//"_" + field.uniqueName
-	//	val keyToUse = fieldRef.ref
-	//
-	//	return fieldNames.getOrPut2(keyToUse) {
-	//		val field = program[fieldRef.ref]
-	//		if (minimize) {
-	//			allocMemberName()
-	//		} else {
-	//			if (fieldRef !in cachedFieldNames) {
-	//				val fieldName = field.name.replace('$', '_')
-	//				//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
-	//				var name = "_$fieldName"
-	//
-	//				val clazz = program[fieldRef.ref].containingClass
-	//				val clazzAncestors = clazz.ancestors.reversed()
-	//				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
-	//				val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
-	//
-	//				// JTranscBugInnerMethodsWithSameName.kt
-	//				for (f2 in fieldsColliding) {
-	//					while (name in names) name += "_"
-	//					cachedFieldNames[f2] = name
-	//					names += name
-	//				}
-	//				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-	//			}
-	//			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
-	//		}
-	//	}
-	//}
+//override val FieldRef.targetName: String get() {
+//	val fieldRef = this
+//	//"_" + field.uniqueName
+//	val keyToUse = fieldRef.ref
+//
+//	return fieldNames.getOrPut2(keyToUse) {
+//		val field = program[fieldRef.ref]
+//		if (minimize) {
+//			allocMemberName()
+//		} else {
+//			if (fieldRef !in cachedFieldNames) {
+//				val fieldName = field.name.replace('$', '_')
+//				//var name = if (fieldName in JsKeywordsWithToStringAndHashCode) "${fieldName}_" else fieldName
+//				var name = "_$fieldName"
+//
+//				val clazz = program[fieldRef.ref].containingClass
+//				val clazzAncestors = clazz.ancestors.reversed()
+//				val names = clazzAncestors.flatMap { it.fields }.filter { it.name == field.name }.map { it.targetName }.toHashSet()
+//				val fieldsColliding = clazz.fields.filter { it.name == field.name }.map { it.ref }
+//
+//				// JTranscBugInnerMethodsWithSameName.kt
+//				for (f2 in fieldsColliding) {
+//					while (name in names) name += "_"
+//					cachedFieldNames[f2] = name
+//					names += name
+//				}
+//				cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+//			}
+//			cachedFieldNames[field.ref] ?: unexpected("Unexpected. Not cached: $field")
+//		}
+//	}
+//}
 
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
@@ -1981,18 +1995,18 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun buildInstanceField(expr: String, field: FieldRef): String = expr + buildAccessName(program[field], static = false)
 	fun buildAccessName(field: AstField, static: Boolean): String = buildAccessName(field.targetName, static, field = true)
 
-	//////////////////////////////////////////////////
-	// Access to members
-	//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+// Access to members
+//////////////////////////////////////////////////
 
 	open fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) buildStaticAccessName(name, field) else buildInstanceAccessName(name, field)
 	open fun buildStaticAccessName(name: String, field: Boolean): String = "$staticAccessOperator$name"
 	open fun buildInstanceAccessName(name: String, field: Boolean): String = "$instanceAccessOperator$name"
 
 
-	/////////////////
-	// STATIC INIT //
-	/////////////////
+/////////////////
+// STATIC INIT //
+/////////////////
 
 	// @TODO: This should simplify StaticInit
 	open fun genBodyStaticInitPrefix(clazzRef: AstType.REF, reasons: ArrayList<String>) = indent {
@@ -2016,16 +2030,16 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.actualFqName: FqName get() = this
 	val AstClass.actualFqName: FqName get() = this.name.actualFqName
 
-	//open fun getActualFqName(name: FqName): FqName {
-	//	/*
-	//	val realclass = if (name in program) program[name] else null
-	//	return FqName(classNames.getOrPut2(name) {
-	//		if (realclass?.nativeName != null) {
-	//			realclass!!.nativeName!!
-	//		} else {
-	//			FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
-	//		}
-	//	})
-	//	*/
-	//}
+//open fun getActualFqName(name: FqName): FqName {
+//	/*
+//	val realclass = if (name in program) program[name] else null
+//	return FqName(classNames.getOrPut2(name) {
+//		if (realclass?.nativeName != null) {
+//			realclass!!.nativeName!!
+//		} else {
+//			FqName(name.packageParts.map { if (it in keywords) "${it}_" else it }.map(String::decapitalize), "${name.simpleName.replace('$', '_')}_".capitalize()).fqname
+//		}
+//	})
+//	*/
+//}
 }
