@@ -5,23 +5,24 @@ public class JA_J extends JA_0 {
 	public function JA_J(length: int) {
 		super(length, '[J');
 		data = new Array(length);
-		for (var n: int = 0; n < length; n++) data[n] = Long.zero;
+		for (var n: int = 0; n < length; n++) data[n] = Int64.zero;
 	}
 
-	public function set(index: int, value: Long): void {
+	public function set(index: int, value: Int64): void {
 		data[index] = value;
 	}
 
-	public function get(index: int): Long {
+	public function get(index: int): Int64 {
 		return data[index];
 	}
 
 	override public function arraycopy(srcPos: int, dst: JA_0, dstPos: int, len: int, overlapping: Boolean): void {
 		var rdst: Array = (dst as JA_J).data;
+		var n: int;
 		if (overlapping) {
-			for (var n: int = len - 1; n >= 0; n--) rdst[dstPos + n] = this.data[srcPos + n];
+			for (n = len - 1; n >= 0; n--) rdst[dstPos + n] = this.data[srcPos + n];
 		} else {
-			for (var n: int = 0; n < len; n++) rdst[dstPos + n] = this.data[srcPos + n];
+			for (n = 0; n < len; n++) rdst[dstPos + n] = this.data[srcPos + n];
 		}
 	}
 }

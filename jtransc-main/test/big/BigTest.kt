@@ -6,10 +6,7 @@ import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
 import issues.Issue94Enum
 import javatest.*
-import javatest.lang.AtomicTest
-import javatest.lang.BasicTypesTest
-import javatest.lang.StringsTest
-import javatest.lang.SystemTest
+import javatest.lang.*
 import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
 import javatest.sort.CharCharMapTest
@@ -37,6 +34,7 @@ object BigTest {
 
 		// Misc tests
 		StringsTest.main(args)
+		PropertiesTest.main(args);
 		BasicTypesTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
@@ -99,7 +97,6 @@ object BigTest {
 
 		// Misc
 		Base64Test.main(args);
-		JTranscZipTest.main(args)
 		CharCharMapTest.main(args);
 
 		// Regex

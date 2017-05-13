@@ -198,7 +198,7 @@ class TreeShakingApi(
 			//for (file in newclazz.annotationsList.getAllTyped<JTranscAddFile>()) {
 			for (file in newclazz.annotationsList.getTypedList(JTranscAddFileList::value)) {
 				if (file.process && TargetName.matches(file.target, target)) {
-					val possibleFiles = listOf(file.prepend, file.append, file.prependAppend)
+					val possibleFiles = listOf(file.prepend, file.append, file.prependAppend, file.src)
 					for (pf in possibleFiles.filter { !it.isNullOrEmpty() }) {
 						val filecontent = program.resourcesVfs[pf].readString()
 						addTemplateReferences(filecontent, fqname, templateReason = "JTranscAddFileList: $pf")

@@ -1,3 +1,4 @@
+import big.BigIOTest
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
@@ -40,5 +41,5 @@ class CSharpTest : Base() {
 	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
 
 	@Ignore("Not working fine yet")
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false)
+	@Test fun testBigIO() = testClass<BigIOTest>(minimize = false, log = false)
 }

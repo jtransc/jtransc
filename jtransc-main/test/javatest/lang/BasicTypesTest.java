@@ -1,5 +1,7 @@
 package javatest.lang;
 
+import com.jtransc.io.JTranscConsole;
+
 /**
  * Created by mike on 4/11/15.
  */
@@ -315,12 +317,14 @@ public class BasicTypesTest {
 		float[] floats = new float[]{0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN};
 		double[] doubles = new double[]{0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN};
 		System.out.println("compareNans.float:");
+		//for (float v : floats) JTranscConsole.log(v);
 		for (float l : floats) {
 			System.out.print(l + ": ");
 			for (float r : floats) System.out.print(", " + Float.compare(l, r));
 			System.out.println();
 		}
 		System.out.println("compareNans.double:");
+		//for (double v : doubles) JTranscConsole.log(v);
 		for (double l : doubles) {
 			System.out.print(l + ": ");
 			for (double r : doubles) System.out.print(", " + Double.compare(l, r));

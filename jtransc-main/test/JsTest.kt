@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import big.BigIOTest
 import big.BigTest
 import big.HelloWorldTest
 import big.NumberFormatTest2
@@ -142,7 +143,7 @@ class JsTest : Base() {
 
 	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
 	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+	@Test fun testBigIO() = testClass<BigIOTest>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, target = JsTarget(), log = false)
 

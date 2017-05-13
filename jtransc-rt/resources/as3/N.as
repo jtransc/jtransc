@@ -1,5 +1,5 @@
 package {
-import Long;
+import Int64;
 import flash.utils.ByteArray;
 import flash.crypto.generateRandomBytes;
 
@@ -16,9 +16,13 @@ public class N {
 	static public function strLitEscape(s: String): {% CLASS java.lang.String %} { return str(s); }
 
 	static public function str(s: String): {% CLASS java.lang.String %} {
-		var out: {% CLASS java.lang.String %} = new {% CLASS java.lang.String %}();
-		out.__initFromAs3(s);
-		return out;
+		if (s == null) {
+			return null;
+		} else {
+			var out: {% CLASS java.lang.String %} = new {% CLASS java.lang.String %}();
+			out.__initFromAs3(s);
+			return out;
+		}
 	}
 
 	static public function istr(s: {% CLASS java.lang.String %}): String { return (s != null) ? s._str : null; }
@@ -28,7 +32,7 @@ public class N {
 	static public function unboxChar(v: {% CLASS java.lang.Character %}): int { return v.{% FIELD java.lang.Character:value %}; }
 	static public function unboxShort(v: {% CLASS java.lang.Short %}): int { return v.{% FIELD java.lang.Short:value %}; }
 	static public function unboxInt(v: {% CLASS java.lang.Integer %}): int { return v.{% FIELD java.lang.Integer:value %}; }
-	static public function unboxLong(v: {% CLASS java.lang.Long %}): Long { return v.{% FIELD java.lang.Long:value %}; }
+	static public function unboxLong(v: {% CLASS java.lang.Long %}): Int64 { return v.{% FIELD java.lang.Long:value %}; }
 	static public function unboxFloat(v: {% CLASS java.lang.Float %}): Number { return v.{% FIELD java.lang.Float:value %}; }
 	static public function unboxDouble(v: {% CLASS java.lang.Double %}): Number { return v.{% FIELD java.lang.Double:value %}; }
 
@@ -37,45 +41,45 @@ public class N {
 	static public function boxChar(v: int): {% CLASS java.lang.Character %}   { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character;  %}(v); }
 	static public function boxShort(v: int): {% CLASS java.lang.Short %}      { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short;  %}(v); }
 	static public function boxInt(v: int): {% CLASS java.lang.Integer %}      { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer;  %}(v); }
-	static public function boxLong(v: Long): {% CLASS java.lang.Long %}       { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long;  %}(v); }
+	static public function boxLong(v: Int64): {% CLASS java.lang.Long %}       { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long;  %}(v); }
 	static public function boxFloat(v: Number): {% CLASS java.lang.Float %}   { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float;  %}(v); }
 	static public function boxDouble(v: Number): {% CLASS java.lang.Double %} { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double;  %}(v); }
 
 	static public function z2i(v: Boolean): int { return v ? 1 : 0; }
-	static public function l2i(v: Long): int { return v.low; }
-	static public function i2j(v: int): Long { return Long.ofInt(v); }
+	static public function l2i(v: Int64): int { return v.low; }
+	static public function i2j(v: int): Int64 { return Int64.ofInt(v); }
 
-	static public function f2j(v: Number): Long { return Long.ofFloat(v); }
-	static public function d2j(v: Number): Long { return Long.ofFloat(v); }
+	static public function f2j(v: Number): Int64 { return Int64.ofFloat(v); }
+	static public function d2j(v: Number): Int64 { return Int64.ofFloat(v); }
 
 	static public function irem(l: int, r: int): int { return l % r; }
 	static public function idiv(l: int, r: int): int { return l / r; }
 
-	static public function lnew(high: int, low: int): Long { return Long.make(high, low); }
-	static public function lnewFloat(v: Number): Long { return Long.ofFloat(v); }
+	static public function lnew(high: int, low: int): Int64 { return Int64.make(high, low); }
+	static public function lnewFloat(v: Number): Int64 { return Int64.ofFloat(v); }
 
 
-	static public function lneg(l: Long): Long { return Long.neg(l); }
+	static public function lneg(l: Int64): Int64 { return Int64.neg(l); }
 
 	static public function cmp(a: Number, b: Number): int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 	static public function cmpl(a: Number, b: Number): int { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
 	static public function cmpg(a: Number, b: Number): int { return (isNaN(a) || isNaN(b)) ? 1 : N.cmp(a, b); }
 
-	static public function lcmp(l: Long, r: Long): int { return Long.compare(l, r); }
+	static public function lcmp(l: Int64, r: Int64): int { return Int64.compare(l, r); }
 
-	static public function lxor(l: Long, r: Long): Long { return Long.xor(l, r); }
-	static public function land(l: Long, r: Long): Long { return Long.and(l, r); }
-	static public function lor(l: Long, r: Long): Long { return Long.or(l, r); }
+	static public function lxor(l: Int64, r: Int64): Int64 { return Int64.xor(l, r); }
+	static public function land(l: Int64, r: Int64): Int64 { return Int64.and(l, r); }
+	static public function lor(l: Int64, r: Int64): Int64 { return Int64.or(l, r); }
 
-	static public function ladd(l: Long, r: Long): Long { return Long.add(l, r); }
-	static public function lsub(l: Long, r: Long): Long { return Long.sub(l, r); }
-	static public function lmul(l: Long, r: Long): Long { return Long.mul(l, r); }
-	static public function ldiv(l: Long, r: Long): Long { return Long.div(l, r); }
-	static public function lrem(l: Long, r: Long): Long { return Long.rem(l, r); }
+	static public function ladd(l: Int64, r: Int64): Int64 { return Int64.add(l, r); }
+	static public function lsub(l: Int64, r: Int64): Int64 { return Int64.sub(l, r); }
+	static public function lmul(l: Int64, r: Int64): Int64 { return Int64.mul(l, r); }
+	static public function ldiv(l: Int64, r: Int64): Int64 { return Int64.div(l, r); }
+	static public function lrem(l: Int64, r: Int64): Int64 { return Int64.rem(l, r); }
 
-	static public function lushr(l: Long, r: int): Long { return Long.ushr(l, r); }
-	static public function lshr(l: Long, r: int): Long { return Long.shr(l, r); }
-	static public function lshl(l: Long, r: int): Long { return Long.shl(l, r); }
+	static public function lushr(l: Int64, r: int): Int64 { return Int64.ushr(l, r); }
+	static public function lshr(l: Int64, r: int): Int64 { return Int64.shr(l, r); }
+	static public function lshl(l: Int64, r: int): Int64 { return Int64.shl(l, r); }
 
 	//static public function iushr(l: int, r: int): int { return l >>> r; }
 
@@ -131,16 +135,16 @@ public class N {
 		return tempArray.readFloat();
 	}
 
-	static public function doubleToLongBits(v: Number): Long {
+	static public function doubleToLongBits(v: Number): Int64 {
 		tempArray.position = 0;
 		tempArray.writeDouble(v);
 		tempArray.position = 0;
 		var high: int = tempArray.readInt();
 		var low: int = tempArray.readInt();
-		return Long.make(high, low);
+		return Int64.make(high, low);
 	}
 
-	static public function longBitsToDouble(v: Long): Number {
+	static public function longBitsToDouble(v: Int64): Number {
 		tempArray.position = 0;
 		tempArray.writeInt(v.high);
 		tempArray.writeInt(v.low);
@@ -148,8 +152,8 @@ public class N {
 		return tempArray.readDouble();
 	}
 
-	static public function lhigh(v: Long): int { return v.high; }
-	static public function llow(v: Long): int { return v.low; }
+	static public function lhigh(v: Int64): int { return v.high; }
+	static public function llow(v: Int64): int { return v.low; }
 
 	static public function ineg(v: int): int {
 		//return int(~uint(v)) + 1;
@@ -161,5 +165,7 @@ public class N {
 		data.position = 0;
 		data.writeBytes(out);
 	}
+
+	static public var NaN: Number = longBitsToDouble(Int64.make(0x7FF80000, 0x00000000));
 }
 }

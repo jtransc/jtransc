@@ -12,7 +12,7 @@ public class CharCharMapTest {
 		System.out.println(charMap.get('A'));
 		System.out.println(charMap.get('B'));
 		System.out.println(charMap.get('C'));
-		System.out.println(charMap.get('x'));
+		System.out.println((int)charMap.get('x'));
 	}
 }
 

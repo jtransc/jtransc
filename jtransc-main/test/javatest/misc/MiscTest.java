@@ -277,7 +277,7 @@ public class MiscTest {
 		testMod(ints);
 
 		//JTranscSystem.debugger();
-		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678};
+		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678, 0x123456789ABCDEF1L, -0x123456789ABCDEF1L};
 
 		testPrintLong(longs);
 		testNegLong(longs);
@@ -487,7 +487,7 @@ public class MiscTest {
 		System.out.println("testSeedUniquifier:");
 		seedUniquifier = 8682522807148012L;
 		System.out.println(seedUniquifier);
-		System.out.println(seedUniquifier());
+		JTranscConsole.log(seedUniquifier());
 	}
 
 	static private void testIdentityHashCode() {
@@ -507,7 +507,7 @@ public class MiscTest {
 		JTranscConsole.log(o.z);
 		JTranscConsole.log(o.b);
 		JTranscConsole.log(o.s);
-		JTranscConsole.log(o.c);
+		JTranscConsole.log((int)o.c);
 		JTranscConsole.log(o.i);
 		JTranscConsole.log(o.i2);
 		JTranscConsole.log(o.i3);
@@ -522,7 +522,7 @@ public class MiscTest {
 		JTranscConsole.log(DefaultValuesClassStatic.z);
 		JTranscConsole.log(DefaultValuesClassStatic.b);
 		JTranscConsole.log(DefaultValuesClassStatic.s);
-		JTranscConsole.log(DefaultValuesClassStatic.c);
+		JTranscConsole.log((int)DefaultValuesClassStatic.c);
 		JTranscConsole.log(DefaultValuesClassStatic.i);
 		System.out.println(DefaultValuesClassStatic.j);
 		System.out.println(DefaultValuesClassStatic.f);

@@ -159,7 +159,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		val result = super.genClassPart(clazz, type)
 		return result.copy(indenter = Indenter {
 			line("package") {
-				line("import Long;")
+				line("import Int64;")
 				line(result.indenter)
 			}
 		})
@@ -274,7 +274,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val ByteType = "int"
 	override val FloatType = "Number"
 	override val DoubleType = "Number"
-	override val LongType = "Long"
+	override val LongType = "Int64"
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
@@ -360,7 +360,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 	override val NegativeInfinityString = "Number.NEGATIVE_INFINITY"
 	override val PositiveInfinityString = "Number.POSITIVE_INFINITY"
-	override val NanString = "Number.NaN"
+	override val NanString = "N.NaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 
