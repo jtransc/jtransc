@@ -382,10 +382,6 @@ JAVA_OBJECT JA_0::toFloatArray () { return new JA_F((void *)getStartPtr(), bytes
 JAVA_OBJECT JA_0::toDoubleArray() { return new JA_D((void *)getStartPtr(), bytesLength() / 8); };
 
 
-
-#include "jni_impl.cpp"
-
-
 {{ ARRAY_HEADERS_POST }}
 
 
