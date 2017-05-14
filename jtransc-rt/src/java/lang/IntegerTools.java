@@ -4,6 +4,7 @@ class IntegerTools {
 	static public int countDigits(int i, int radix) {
 		if (radix == 10) return countDigits10(i);
 		if (radix == 16) return countDigits16(i);
+		if (radix == 2) return countDigits2(i);
 		return countDigitsGeneric(i, radix);
 	}
 
@@ -25,6 +26,11 @@ class IntegerTools {
 		}
 
 		return count;
+	}
+
+	static private int countDigits2(int n) {
+		if (n < 0x0) return (n == Integer.MIN_VALUE) ? 33 : (1 + countDigits2(-n));
+		return 32 - Integer.numberOfLeadingZeros(n);
 	}
 
 	static private int countDigits16(int n) {
@@ -93,9 +99,18 @@ class IntegerTools {
 			if (i == 0) {
 				out[--o] = '0';
 			} else {
-				while (i != 0) {
-					out[--o] = Character.forDigit(i % radix, radix);
-					i /= radix;
+				if (radix == 10) {
+					while (i != 0) {
+						final int v = i % 10;
+						i = i / 10;
+						out[--o] = Character.forDigit(v, radix);
+					}
+				} else {
+					while (i != 0) {
+						final int v = i % radix;
+						i = i / radix;
+						out[--o] = Character.forDigit(v, radix);
+					}
 				}
 			}
 			if (negative) {
