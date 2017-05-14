@@ -22,7 +22,7 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
+		val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)
 	}
 
