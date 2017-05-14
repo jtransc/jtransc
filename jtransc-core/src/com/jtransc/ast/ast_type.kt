@@ -13,7 +13,10 @@ import java.io.Serializable
 import java.util.*
 
 open class AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType() {
+	abstract class Primitive(
+		underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int,
+		val subsets: Set<Primitive> = setOf()
+	) : AstType() {
 		//val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
@@ -25,6 +28,7 @@ open class AstType {
 		}
 
 		override fun toString() = shortName
+		fun canHold(other: Primitive) = other in subsets
 	}
 
 	open class Reference : AstType()
@@ -33,23 +37,23 @@ open class AstType {
 
 	object NULL : Reference()
 
-	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8)
+	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8, subsets = setOf())
 
-	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1, priority = 7)
+	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1, priority = 7, subsets = setOf())
 
-	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1, priority = 6)
+	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1, priority = 6, subsets = setOf(BOOL))
 
-	object CHAR : Primitive("java.lang.Character", 'C', "char", 2, priority = 5)
+	object CHAR : Primitive("java.lang.Character", 'C', "char", 2, priority = 5, subsets = setOf(BOOL))
 
-	object SHORT : Primitive("java.lang.Short", 'S', "short", 2, priority = 4)
+	object SHORT : Primitive("java.lang.Short", 'S', "short", 2, priority = 4, subsets = setOf(BOOL, BYTE))
 
-	object INT : Primitive("java.lang.Integer", 'I', "int", 4, priority = 3)
+	object INT : Primitive("java.lang.Integer", 'I', "int", 4, priority = 3, subsets = setOf(BOOL, BYTE, CHAR, SHORT))
 
-	object LONG : Primitive("java.lang.Long", 'J', "long", 8, priority = 2)
+	object LONG : Primitive("java.lang.Long", 'J', "long", 8, priority = 2, subsets = setOf(BOOL, BYTE, CHAR, SHORT, INT))
 
-	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4, priority = 1)
+	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4, priority = 1, subsets = setOf(BOOL, BYTE, CHAR, SHORT))
 
-	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0)
+	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0, subsets = setOf(BOOL, BYTE, CHAR, SHORT, INT))
 
 	data class REF(val name: FqName) : Reference(), AstRef {
 		constructor(name: String) : this(FqName(name))
@@ -459,6 +463,8 @@ val String.fqname: FqName get() = FqName(this)
 val FqName.ref: AstType.REF get() = AstType.REF(this)
 
 fun AstType.isPrimitive() = (this is AstType.Primitive)
+fun AstType.isNotPrimitive() = (this !is AstType.Primitive)
+fun AstType.isReference() = (this is AstType.Reference)
 fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
 fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)
 

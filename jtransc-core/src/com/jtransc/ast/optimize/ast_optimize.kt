@@ -280,59 +280,6 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		}
 	}
 
-	override fun visit(expr: AstExpr.CAST) {
-		super.visit(expr)
-
-		val castTo = expr.to
-		val child = expr.expr.value
-
-		val box = expr.box
-
-		//println("${expr.expr.type} -> ${expr.to}")
-
-		// DUMMY CAST
-		if (expr.expr.type == castTo) {
-			box.value = expr.expr.value
-			visit(box)
-			return
-		}
-
-		// DOUBLE CAST
-		if (child is AstExpr.CAST) {
-			val cast1 = expr
-			val cast2 = child
-			if ((cast1.type is AstType.REF) && (cast2.type is AstType.REF)) {
-				cast1.expr.value = cast2.expr.value
-				visit(box)
-			}
-			//if ((cast1.type is AstType.INT) && (cast2.type is AstType.SHORT)) {
-			//	cast1.expr.value = cast2.expr.value
-			//	visit(box)
-			//}
-			return
-		}
-
-		// CAST LITERAL
-		if (child is AstExpr.LITERAL) {
-			val literalValue = child.value
-			if (literalValue is Number) {
-				val box2 = expr.box
-				when (castTo) {
-					AstType.BOOL -> box2.value = literalValue.toBool().lit
-					AstType.BYTE -> box2.value = literalValue.toByte().lit
-					AstType.SHORT -> box2.value = literalValue.toShort().lit
-					AstType.CHAR -> box2.value = literalValue.toInt().toChar().lit
-					AstType.INT -> box2.value = literalValue.toInt().lit
-					AstType.LONG -> box2.value = literalValue.toLong().lit
-					AstType.FLOAT -> box2.value = literalValue.toFloat().lit
-					AstType.DOUBLE -> box2.value = literalValue.toDouble().lit
-				}
-				AstAnnotateExpressions.visitExprWithStm(stm, box2)
-				return
-			}
-		}
-	}
-
 	override fun visit(stm: AstStm.IF) {
 		super.visit(stm)
 		val strue = stm.strue.value
@@ -393,14 +340,21 @@ object AstAnnotateExpressions : AstVisitor() {
 	}
 }
 
+val OPTIMIZATIONS = listOf(
+	{ AstCastOptimizer() },
+	{ AstLocalTyper() }
+)
+
 fun AstBody.optimize() = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(this.flags).visit(this)
+	for (opt in OPTIMIZATIONS) opt().transform(this)
 }
 
 fun AstStm.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(flags).visit(this)
+	for (opt in OPTIMIZATIONS) opt().transform(this)
 }
 
 fun AstExpr.Box.optimize(types: AstTypes, strictfp: Boolean = true) = this.optimize(AstBodyFlags(types, strictfp))

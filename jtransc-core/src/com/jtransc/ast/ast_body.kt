@@ -273,9 +273,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class Box(_value: AstExpr) {
 		var value: AstExpr = _value
 			set(value) {
-				field.box = AstExpr.Box(field)
-				field = value
-				field.box = this
+				if (field != value) {
+					field.box = AstExpr.Box(field)
+					field = value
+					field.box = this
+				}
 			}
 
 		init {
@@ -574,12 +576,14 @@ fun AstExpr.castToInternal(type: AstType): AstExpr {
 			}
 		}
 		is AstExpr.CAST -> {
-			if (expr.to.isPrimitive()) {
-				// Prevent if more general value to less general value
-				expr.castToUnoptimized(to)
-				//expr.expr.value.castToUnoptimized(to)
+			if (expr.to is AstType.Primitive) {
+				if (to is AstType.Primitive && expr.to.canHold(to)) {
+					expr.expr.value.castTo(to)
+				} else {
+					expr.castToUnoptimized(to)
+				}
 			} else {
-				expr.expr.value.castToUnoptimized(to)
+				expr.expr.value.castTo(to)
 			}
 		}
 		else -> expr.castToUnoptimized(to)
