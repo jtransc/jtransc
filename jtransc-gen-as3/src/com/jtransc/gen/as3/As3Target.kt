@@ -76,6 +76,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		"else", "enum", "export", "extern",
 		"false", "final", "finally", "float", "for", "foreach", "foreach_reverse", "function",
 		"goto",
+		"as", "is",
 		"internal",
 		"idouble", "if", "ifloat", "immutable", "import", "in", "inout", "int", "interface", "invariant", "ireal", "is",
 		"lazy", "long",
@@ -160,7 +161,17 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		return result.copy(indenter = Indenter {
 			line("package") {
 				line("import Int64;")
+				for (header in clazz.annotationsList.getHeadersForTarget(targetName)) {
+					line(header)
+				}
+				val actualImports = arrayListOf<FqName>()
+				linedeferred {
+					for (import in actualImports) {
+						line("import $import;")
+					}
+				}
 				line(result.indenter)
+				actualImports += imports.toSet()
 			}
 		})
 	}
@@ -221,6 +232,11 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 		return decl
 	}
+
+	//override fun getTypeTargetName(type: AstType): String {
+	//	val res = super.getTypeTargetName(type)
+	//	return if (res == "java_lang_Object") "*" else res
+	//}
 
 	override val AstLocal.decl: String get() = "var ${this.targetName}: ${this.type.localDeclType} = ${this.type.nativeDefaultString};"
 	override val AstArgument.decl: String get() = "${this.targetName}: ${this.type.localDeclType}"

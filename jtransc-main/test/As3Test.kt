@@ -1,9 +1,12 @@
+import as3.As3PureTest
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
 import com.jtransc.gen.cs.CSharpTarget
+import com.jtransc.gen.js.JsTarget
 import javatest.misc.BenchmarkTest
+import jtransc.ExtraKeywordsTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -37,4 +40,10 @@ class As3Test : Base() {
 
 	@Ignore
 	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+
+
+
+	@Test fun as3PureTest() = testNativeClass<As3PureTest>("""
+		-
+	""", minimize = true, debug = true, target = As3Target())
 }

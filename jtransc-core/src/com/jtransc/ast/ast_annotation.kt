@@ -135,3 +135,7 @@ fun AstAnnotationList.getBodiesForTarget(targetName: TargetName): List<NativeBod
 fun AstAnnotationList.getCallSiteBodiesForTarget(targetName: TargetName): String? {
 	return this.getTypedList(com.jtransc.annotation.JTranscCallSiteBodyList::value).filter { targetName.matches(it.target) }.map { it.value.joinToString("\n") }.firstOrNull()
 }
+
+fun AstAnnotationList.getHeadersForTarget(targetName: TargetName): List<String> {
+	return this.getTypedList(com.jtransc.annotation.JTranscAddHeaderList::value).filter { targetName.matches(it.target) }.flatMap { it.value.toList() }
+}

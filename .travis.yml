@@ -1,4 +1,5 @@
 language: java
+dist: trusty
 #d:
 #- dmd
 #haxe:
@@ -30,6 +31,7 @@ install:
 - sudo apt-get -y update
 #- sudo apt-get -y install php7.1 php7.1-mbstring
 - sudo apt-get -y install mono-complete
+- sudo apt-get install wine1.6
 #- sudo apt-get -y install gdc # GDC D compiler
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
 - sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall d-apt-keyring && sudo apt-get update

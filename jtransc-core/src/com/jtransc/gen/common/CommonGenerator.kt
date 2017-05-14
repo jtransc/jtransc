@@ -172,6 +172,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
 	open fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+		imports.clear()
 		val concatFilesTrans = copyFiles(output)
 
 		line(concatFilesTrans.prepend)
@@ -209,6 +210,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genClassPart(clazz: AstClass, type: MemberTypes): ClassResult {
+		imports.clear()
 		return ClassResult(
 			SubClass(clazz, type),
 			//when (type) {
@@ -718,6 +720,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val targetLocalName = stm.local.targetName
 
 		if (newClazz.nativeName != null) {
+			imports += FqName(newClazz.nativeName!!)
 			line("$targetLocalName = new $className($commaArgs);")
 		} else {
 			line("$targetLocalName = new $className();")
@@ -1487,6 +1490,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	class References {
 		var _usedDependencies = hashSetOf<AstType.REF>()
+
+		fun clear() {
+			_usedDependencies.clear()
+		}
+
 		fun add(type: AstType?) {
 			when (type) {
 				null -> Unit
@@ -1747,8 +1755,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 // Type names
 //////////////////////////////////////////////////
 
-	open val AstType.targetName: String get() {
-		val type = this.resolve()
+	val AstType.targetName: String get() = getTypeTargetName(this)
+
+	open fun getTypeTargetName(type: AstType): String {
+		val type = type.resolve()
 		return when (type) {
 			is AstType.NULL -> NullType
 			is AstType.UNKNOWN -> {
@@ -1765,7 +1775,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstType.FLOAT -> FloatType
 			is AstType.DOUBLE -> DoubleType
 			is AstType.LONG -> LongType
-			is AstType.REF -> program[type.name].nativeName ?: type.name.targetName
+			is AstType.REF -> {
+				val clazz = program[type.name]
+				if (clazz.nativeName != null) {
+					imports += FqName(clazz.nativeName!!)
+				}
+				clazz.nativeName ?: type.name.targetName
+			}
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> BoolArrayType
 				is AstType.BYTE -> ByteArrayType
@@ -1793,10 +1809,22 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	inline fun <reified T : Any> nativeName(): String = T::class.java.name.fqname.targetName
 
+	val imports = hashSetOf<FqName>()
+
 	open val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	open val FqName.targetClassFqName: String get() = this.targetName
 	open val FqName.targetSimpleName: String get() = this.simpleName
-	open val FqName.targetNameForStatic: String get() = if (!program[this].isInterface || interfacesSupportStaticMembers) this.targetName else this.targetName + "_IFields"
+	open val FqName.targetNameForStatic: String get() {
+		val clazz = program[this]
+		return when {
+			(clazz.nativeName != null) -> {
+				imports += FqName(clazz.nativeName!!)
+				clazz.nativeName!!
+			}
+			(!clazz.isInterface || interfacesSupportStaticMembers) -> this.targetName
+			else -> this.targetName + "_IFields"
+		}
+	}
 	open val FqName.targetFilePath: String get() = this.simpleName
 	open val FqName.targetGeneratedFqName: FqName get() = this
 	open val FqName.targetGeneratedFqPackage: String get() = this.packagePath
