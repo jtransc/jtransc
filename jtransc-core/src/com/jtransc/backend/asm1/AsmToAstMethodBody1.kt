@@ -81,7 +81,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		bb?.stms ?: listOf()
 	}
 
-	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
+	val optimizedStms = optimize(prefix.stms + body2, labels.referencedLabels).stm()
 
 	val out = AstBody(
 		types,
@@ -618,19 +618,11 @@ private class BasicBlockBuilder(
 		val args = methodRef.type.args.reversed().map { stackPop().castTo(it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
-		when (i.opcode) {
-			Opcodes.INVOKESTATIC -> {
-				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
-			}
-			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE, Opcodes.INVOKESPECIAL -> {
-				if (obj!!.type !is AstType.REF) {
-					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
-				}
-				val obj1 = obj.castTo(methodRef.containingClassType)
-				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj1 else obj1.castTo(methodRef.containingClassType)
-				stackPush(AstExpr.CALL_INSTANCE(obj2, methodRef, args, isSpecial))
-			}
-			else -> invalidOp
+		if (obj != null) {
+			val cobj = obj.castTo(methodRef.containingClassType)
+			stackPush(AstExpr.CALL_INSTANCE(cobj, methodRef, args, isSpecial))
+		} else {
+			stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
 		}
 
 		if (methodRef.type.retVoid) {

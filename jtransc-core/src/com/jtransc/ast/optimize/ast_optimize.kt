@@ -117,18 +117,18 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		// REMOVE UNUSED VARIABLES
 		body.locals = body.locals.filter { it.isUsed }
 
-		val unoptstms = (body.stm as AstStm.STMS).stms.map { it.value }
+		val unoptstms = body.stm.expand()
 		//if (unoptstms.any { it is AstStm.NOP }) {
 		//	println("done")
 		//}
 		val optstms = unoptstms.filter { it !is AstStm.NOP }
-		body.stm = AstStm.STMS(optstms)
+		body.stm = optstms.stm()
 
 		//if (unoptstms.any { it is AstStm.NOP }) {
 		//	println("done")
 		//}
 
-		val stms = (body.stm as AstStm.STMS).stms
+		val stms = body.stm.expand().map { it.box }
 		var n = 0
 		while (n < stms.size) {
 			val startStmIndex = n

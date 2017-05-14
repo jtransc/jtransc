@@ -35,10 +35,10 @@ private fun <TCase> reduceSwitchGeneric(
 		)
 
 		if (assignTemp) {
-			AstStm.STMS(
+			listOf(
 				AstStm.SET_LOCAL(newLocal, subject),
 				ifElseStm
-			)
+			).stm()
 		} else {
 			ifElseStm
 		}

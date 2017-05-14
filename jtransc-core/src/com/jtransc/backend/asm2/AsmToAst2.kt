@@ -158,7 +158,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 
 	return AstBody(
 		types,
-		AstStm.STMS(outStms),
+		outStms.stm(),
 		methodType,
 		tirToStm.locals.values.toList(),
 		tryCatchBlocks.map {

@@ -117,6 +117,7 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.CAST -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.expr) + ")"
 		is AstExpr.INSTANCE_OF -> "(" + dump(types, expr.expr) + " instance of " + javaDump(types, expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
+		is AstExpr.NEW_WITH_CONSTRUCTOR -> dump(types, AstExpr.CALL_INSTANCE(AstExpr.NEW(expr.type), expr.constructor, expr.args.map { it.value }, isSpecial = false))
 		is AstExpr.TERNARY -> dump(types, expr.cond) + " ? " + dump(types, expr.etrue) + " : " + dump(types, expr.efalse)
 	//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(types, it) }.joinToString(", ") + "]"

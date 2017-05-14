@@ -164,7 +164,7 @@ class GotosFeature : AstMethodFeature() {
 					val cases = arrayListOf<Pair<Int, AstStm>>()
 
 					fun flush() {
-						cases.add(Pair(stateIndex2, AstStm.STMS(stateStms)))
+						cases.add(Pair(stateIndex2, stateStms.stm()))
 						stateIndex2 = -1
 						stateStms = arrayListOf<AstStm>()
 					}
@@ -192,7 +192,7 @@ class GotosFeature : AstMethodFeature() {
 							is AstStm.IF_GOTO -> {
 								stateStms.add(AstStm.IF(
 									s.cond.value,
-									AstStm.STMS(simulateGotoLabel(s.label))
+									simulateGotoLabel(s.label).stm()
 								))
 							}
 							is AstStm.GOTO -> {
@@ -202,9 +202,9 @@ class GotosFeature : AstMethodFeature() {
 								//throw NotImplementedError("Must implement switch goto ")
 								stateStms.add(AstStm.SWITCH(
 									s.subject.value,
-									AstStm.STMS(simulateGotoLabel(s.default)),
+									simulateGotoLabel(s.default).stm(),
 									s.cases.map {
-										Pair(it.first, AstStm.STMS(simulateGotoLabel(it.second)))
+										Pair(it.first, simulateGotoLabel(it.second).stm())
 									}
 								))
 							}
@@ -226,12 +226,14 @@ class GotosFeature : AstMethodFeature() {
 						else -> AstStm.RETURN(AstExpr.LITERAL(null))
 					}
 
-					val plainWhile = AstStm.STMS(
-						AstStm.WHILE(AstExpr.LITERAL(true),
-							AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
-						),
-						extraReturn()
-					)
+					val plainWhile =
+						listOf(
+							AstStm.WHILE(AstExpr.LITERAL(true),
+								AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
+							),
+							extraReturn()
+						).stm()
+
 
 					if (traps.isEmpty()) {
 						plainWhile
@@ -245,19 +247,19 @@ class GotosFeature : AstMethodFeature() {
 							AstStm.IF(
 								//(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								(gotostate ge AstExpr.LITERAL(startState)) band (gotostate lt AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								AstStm.STMS(simulateGotoLabel(handlerState))
+								simulateGotoLabel(handlerState).stm()
 							)
 						}
 
-						AstStm.STMS(
+						listOf(
 							AstStm.WHILE(AstExpr.LITERAL(true),
-								AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
+								AstStm.TRY_CATCH(plainWhile, stms(
 									checkTraps.stms,
 									AstStm.RETHROW()
 								))
 							),
 							extraReturn()
-						)
+						).stm()
 					}
 				}
 			}

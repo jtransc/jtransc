@@ -47,13 +47,13 @@ class OptimizeTests {
 
 	@Test fun test7() {
 		val stms = types.buildStms {
-			val t1 by LOCAL(AstType.INT)
-
-			IF(1.lit eq 2.lit) {
-				SET(t1, 1.lit + 2.lit)
-			} ELSE {
-				SET(t1, 2.lit)
-			}
+			val obj by LOCAL(AstType.OBJECT)
+			val StringBuilder = AstType.REF("java.lang.StringBuilder")
+			val StringBuilderAppend = StringBuilder.method("append", AstType.METHOD(StringBuilder, listOf(AstType.STRING)))
+			SET(obj, StringBuilder.constructor().newInstance())
+			STM(obj[StringBuilderAppend]("hello".lit))
+			STM(obj[StringBuilderAppend]("hello".lit))
+			STM(obj[StringBuilderAppend]("hello".lit))
 		}
 		val stm2 = stms.stm().optimize(AstBodyFlags(types))
 		println(stms.dump(types))
