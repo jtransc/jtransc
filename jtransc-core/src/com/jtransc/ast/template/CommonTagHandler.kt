@@ -33,15 +33,7 @@ object CommonTagHandler {
 		override val ref = clazz.ref
 	}
 
-	fun getRefFqName(desc: String, params: HashMap<String, Any?>): FqName {
-		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }
-		val desc2 = dataParts.joinToString(":")
-		return dataParts[0].replace('@', '$').fqname
-	}
-
-	private fun resolveClassName(str: String, params: HashMap<String, Any?>): FqName {
-		return str.replace('@', '$').fqname
-	}
+	private fun resolveClassName(str: String, params: HashMap<String, Any?>): FqName = str.replace('@', '$').fqname
 
 	fun getRef(program: AstProgram, type: String, desc: String, params: HashMap<String, Any?>): Result {
 		val dataParts = desc.split(':').map { getOrReplaceVar(it, params) }

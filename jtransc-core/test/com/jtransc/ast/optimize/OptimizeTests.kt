@@ -1,10 +1,10 @@
+package com.jtransc.ast.optimize
+
 import com.jtransc.ast.*
-import com.jtransc.ast.optimize.optimize
-import com.jtransc.ast.exprDump
 import org.junit.Assert
 import org.junit.Test
 
-class OptimizeTest {
+class OptimizeTests {
 	val types = AstTypes()
 	val flags = AstBodyFlags(strictfp = false, types = types)
 

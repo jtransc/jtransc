@@ -12,8 +12,8 @@ import com.jtransc.text.readUntil
 import java.io.Serializable
 import java.util.*
 
-interface AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType {
+open class AstType {
+	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType() {
 		val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
@@ -27,11 +27,11 @@ interface AstType {
 		override fun toString() = shortName
 	}
 
-	interface Reference : AstType
+	open class Reference : AstType()
 
-	data class UNKNOWN(val reason: String) : Reference
+	data class UNKNOWN(val reason: String) : Reference()
 
-	object NULL : Reference
+	object NULL : Reference()
 
 	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8)
 
@@ -51,7 +51,7 @@ interface AstType {
 
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0)
 
-	data class REF(val name: FqName) : Reference, AstRef {
+	data class REF(val name: FqName) : Reference(), AstRef {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -75,11 +75,11 @@ interface AstType {
 
 	//object NULL : REF("java.lang.Object")
 
-	data class ARRAY(val element: AstType) : Reference {
+	data class ARRAY(val element: AstType) : Reference() {
 		override fun toString() = "$element[]"
 	}
 
-	data class COMMON(val elements: HashSet<AstType>) : AstType {
+	data class COMMON(val elements: HashSet<AstType>) : AstType() {
 		constructor(first: AstType) : this(HashSet()) {
 			add(first)
 		}
@@ -100,11 +100,11 @@ interface AstType {
 		override fun toString() = "COMMON($elements)"
 	}
 
-	data class MUTABLE(var ref: AstType) : AstType {
+	data class MUTABLE(var ref: AstType) : AstType() {
 		override fun toString() = "MUTABLE($ref)"
 	}
 
-	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference {
+	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference() {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 
 		val params0: List<AstType> get() = suffixes[0].params!!
@@ -112,18 +112,18 @@ interface AstType {
 
 	data class GENERIC_SUFFIX(val id: String?, val params: List<AstType>?)
 
-	data class TYPE_PARAMETER(val id: String) : AstType
+	data class TYPE_PARAMETER(val id: String) : AstType()
 
-	object GENERIC_STAR : AstType
+	object GENERIC_STAR : AstType()
 
-	object GENERIC_ITEM : AstType
+	object GENERIC_ITEM : AstType()
 
-	data class GENERIC_DESCRIPTOR(val element: AstType, val types: List<Pair<String, AstType>>) : AstType
+	data class GENERIC_DESCRIPTOR(val element: AstType, val types: List<Pair<String, AstType>>) : AstType()
 
-	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType
-	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType
+	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType()
+	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType()
 
-	data class METHOD(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType {
+	data class METHOD(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType() {
 		val argCount: Int get() = argTypes.size
 
 		constructor(ret: AstType, argTypes: List<AstType>, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, argTypes.toArguments(), true, paramTypes)
@@ -188,7 +188,6 @@ class AstTypes {
 	private val AstTypeDemangleCache = hashMapOf<String, AstType>()
 
 	fun fromConstant(value: Any?): AstType = AstType.fromConstant(value)
-
 
 	fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) AstType.ARRAY(element) else ARRAY(AstType.ARRAY(element), count - 1)
 

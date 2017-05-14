@@ -149,7 +149,7 @@ fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals,
 	for (arg in (if (!isStatic) listOf(AstExpr.THIS(clazz.name)) else listOf()) + methodType.args.map { AstExpr.PARAM(it) }) {
 		//setLocalAtIndex(idx, AstExpr.PARAM(arg))
 		val local = locals.local(fixType(arg.type), idx)
-		stms.add(AstStmUtils.set(local, arg))
+		stms.add(local.setTo(arg))
 		val info = localPair(idx, arg.type, "l")
 		localsOutput[info] = local
 		idx++
@@ -318,7 +318,7 @@ private class BasicBlockBuilder(
 	fun stmSet(local: AstLocal, value: AstExpr): Boolean {
 		//if (value is AstExpr.REF && value.expr is AstExpr.LOCAL && (value.expr as AstExpr.LOCAL).local == local) return false
 		if (value is AstExpr.LOCAL && value.local == local) return false
-		stmAdd(AstStmUtils.set(local, value))
+		stmAdd(local.setTo(value))
 		return true
 	}
 
