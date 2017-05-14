@@ -124,7 +124,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		fun toAnnotationExpr(data: Any?, temps: TempAstLocalFactory, builder: AstBuilder2): AstExpr {
 			return builder.run {
 				when (data) {
-					null -> AstExpr.LITERAL(null)
+					null -> null.lit
 					is AstAnnotation -> {
 						if (data.runtimeVisible) {
 							val annotationType = program[data.type]
@@ -137,7 +137,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 							}
 							AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, args.map { toAnnotationExpr(it, temps, builder) })
 						} else {
-							AstExpr.LITERAL(null)
+							null.lit
 						}
 					}
 					is AstFieldWithoutTypeRef -> toAnnotationExpr(program[data.containingClass].locateField(data.name)!!.ref, temps, builder)
@@ -152,9 +152,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						local.expr
 					}
 					is com.jtransc.org.objectweb.asm.Type -> {
-						AstExpr.LITERAL(AstType.REF(data.className.fqname))
+						AstType.REF(data.className.fqname).lit
 					}
-					else -> AstExpr.LITERAL(data)
+					else -> data.lit
 				}
 			}
 		}
@@ -378,7 +378,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					while (--id >= 0) {
 						val method: AstMethod = additionalMethods[id]
 						val constructor: AstMethod = classes[id * casesPerMethod]
-						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, AstExpr.LITERAL(constructor.id))) {
+						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, constructor.id.lit)) {
 							val params: List<AstExpr> = listOf(classId.expr, methodId.expr, obj.expr, args.expr)
 							val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
 							RETURN(callExprUncasted.castTo(OBJECT))
@@ -440,7 +440,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					while (--id >= 0) {
 						val method: AstMethod = additionalMethods[id]
 						val constructor: AstMethod = classes[id * casesPerMethod]
-						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, AstExpr.LITERAL(constructor.id))) {
+						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, constructor.id.lit)) {
 							val params: List<AstExpr> = listOf(classId.expr, methodId.expr, args.expr)
 							val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
 							RETURN(callExprUncasted.castTo(OBJECT))
@@ -519,7 +519,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				while (--id >= 0) {
 					val method: AstMethod = additionalMethods[id]
 					val (keyClass, members) = list[id * casesPerMethod]
-					IF(AstExpr.BINOP(AstType.BOOL, classIdArg.expr, AstBinop.GE, AstExpr.LITERAL(keyClass.classId))) {
+					IF(AstExpr.BINOP(AstType.BOOL, classIdArg.expr, AstBinop.GE, keyClass.classId.lit)) {
 						val params = listOf(classIdArg.expr)
 						val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
 
@@ -635,7 +635,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						while (--id >= 0) {
 							val method: AstMethod = additionalMethods[id]
 							val field: AstField = fields[id * casesPerMethod]
-							IF(AstExpr.BINOP(AstType.BOOL, fieldId.expr, AstBinop.GE, AstExpr.LITERAL(field.id))) {
+							IF(AstExpr.BINOP(AstType.BOOL, fieldId.expr, AstBinop.GE, field.id.lit)) {
 								val params = listOf(classId.expr, fieldId.expr, objParam.expr)
 								val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
 								RETURN(callExprUncasted.castTo(OBJECT))
@@ -693,7 +693,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						while (--id >= 0) {
 							val method: AstMethod = additionalMethods[id]
 							val field: AstField = fields[id * casesPerMethod]
-							IF(AstExpr.BINOP(AstType.BOOL, fieldIdParam.expr, AstBinop.GE, AstExpr.LITERAL(field.id))) {
+							IF(AstExpr.BINOP(AstType.BOOL, fieldIdParam.expr, AstBinop.GE, field.id.lit)) {
 								val params = listOf(classIdParam.expr, fieldIdParam.expr, objParam.expr, valueParam.expr)
 								STM(AstExpr.CALL_STATIC(method.ref, params))
 								RETURN()

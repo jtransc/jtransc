@@ -347,7 +347,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 	*/
 
-	class LITERAL(override val value: Any?) : LiteralExpr() {
+	class LITERAL constructor(override val value: Any?, dummy: Boolean) : LiteralExpr() {
 		override val type = AstType.fromConstant(value)
 	}
 
@@ -555,14 +555,14 @@ fun AstExpr.castToInternal(type: AstType): AstExpr {
 			null -> Unit
 			is String -> Unit
 			is AstType -> Unit
-			is Boolean -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Byte -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Char -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Short -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Int -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Long -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Float -> return AstExpr.LITERAL(castLiteral(value, to))
-			is Double -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Boolean -> return castLiteral(value, to).lit
+			is Byte -> return castLiteral(value, to).lit
+			is Char -> return castLiteral(value, to).lit
+			is Short -> return castLiteral(value, to).lit
+			is Int -> return castLiteral(value, to).lit
+			is Long -> return castLiteral(value, to).lit
+			is Float -> return castLiteral(value, to).lit
+			is Double -> return castLiteral(value, to).lit
 			else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
 		}
 	}
@@ -665,7 +665,7 @@ open class BuilderBase(val types: AstTypes) {
 	val OBJECT get() = AstType.OBJECT
 	val CLASS get() = AstType.CLASS
 	val STRING get() = AstType.STRING
-	val NULL get() = AstExpr.LITERAL(null)
+	val NULL get() = null.lit
 }
 
 fun AstType.array() = AstType.ARRAY(this)
@@ -681,16 +681,7 @@ fun AstType.REF.method(methodName: String, methodType: AstType.METHOD): AstMetho
 operator fun AstExpr.invoke(method: AstMethodRef, vararg args: AstExpr): AstExpr = AstExpr.CALL_INSTANCE(this, method, args.toList(), isSpecial = false)
 operator fun AstLocal.invoke(method: AstMethodRef, vararg args: AstExpr): AstExpr = this.expr.invoke(method, *args)
 
-val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val AstType.REF.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
+val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, dummy = true)
 
 val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
 val AstLocal.expr: AstExpr.LOCAL get() = AstExprUtils.localRef(this)

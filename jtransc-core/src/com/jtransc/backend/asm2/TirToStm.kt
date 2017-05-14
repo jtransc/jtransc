@@ -39,7 +39,7 @@ class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, v
 	val Local.expr: AstExpr.LOCAL get() = AstExpr.LOCAL(this.ast)
 
 	val Operand.expr: AstExpr get() = when (this) {
-		is Constant -> AstExpr.LITERAL(this.v)
+		is Constant -> this.v.lit
 		is Param -> AstExpr.PARAM(AstArgument(this.index, this.type.convertType()))
 		is Local -> AstExpr.LOCAL(this.ast)
 		is This -> AstExpr.THIS(this.clazz.name)

@@ -419,11 +419,11 @@ private class BasicBlockBuilder(
 				//stmAdd(AstStm.NOP)
 				Unit
 			}
-			Opcodes.ACONST_NULL -> stackPush(AstExpr.LITERAL(null))
-			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush(AstExpr.LITERAL((op - Opcodes.ICONST_0).toInt()))
-			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
-			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
-			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
+			Opcodes.ACONST_NULL -> stackPush(null.lit)
+			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush((op - Opcodes.ICONST_0).toInt().lit)
+			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush((op - Opcodes.LCONST_0).toLong().lit)
+			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush((op - Opcodes.FCONST_0).toFloat().lit)
+			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush((op - Opcodes.DCONST_0).toDouble().lit)
 			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(PTYPES[op - Opcodes.IALOAD])
 			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(PTYPES[op - Opcodes.IASTORE])
 			Opcodes.POP -> {
@@ -581,16 +581,16 @@ private class BasicBlockBuilder(
 	fun handleLdc(i: LdcInsnNode) {
 		val cst = i.cst
 		when (cst) {
-			is Int, is Float, is Long, is Double, is String -> stackPush(AstExpr.LITERAL(cst))
-			is Type -> stackPush(AstExpr.LITERAL(types.REF_INT(cst.internalName)))
+			is Int, is Float, is Long, is Double, is String -> stackPush(cst.lit)
+			is Type -> stackPush(types.REF_INT(cst.internalName).lit)
 			else -> invalidOp
 		}
 	}
 
 	fun handleInt(i: IntInsnNode) {
 		when (i.opcode) {
-			Opcodes.BIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toByte()))
-			Opcodes.SIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toShort()))
+			Opcodes.BIPUSH -> stackPush(i.operand.toByte().lit)
+			Opcodes.SIPUSH -> stackPush(i.operand.toShort().lit)
 			Opcodes.NEWARRAY -> {
 				val type = when (i.operand) {
 					Opcodes.T_BOOLEAN -> AstType.BOOL
@@ -639,15 +639,15 @@ private class BasicBlockBuilder(
 			i.bsmArgs.map {
 				when (it) {
 					is Type -> when (it.sort) {
-						Type.METHOD -> AstExpr.LITERAL(types.demangleMethod(it.descriptor))
+						Type.METHOD -> types.demangleMethod(it.descriptor).lit
 						else -> noImpl("${it.sort} : $it")
 					}
 					is Handle -> {
 						val kind = AstMethodHandle.Kind.fromId(it.tag)
 						val type = types.demangleMethod(it.desc)
-						AstExpr.LITERAL(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind))
+						AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind).lit
 					}
-					else -> AstExpr.LITERAL(it)
+					else -> it.lit
 				}
 			}
 		)
@@ -660,7 +660,7 @@ private class BasicBlockBuilder(
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = locals.local(AstType.INT, i.`var`)
-		stmSet(local, AstExprUtils.localRef(local) + AstExpr.LITERAL(i.incr))
+		stmSet(local, AstExprUtils.localRef(local) + i.incr.lit)
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
@@ -765,11 +765,11 @@ private class BasicBlockBuilder(
 				is JumpInsnNode -> {
 					when (op) {
 						in Opcodes.IFEQ..Opcodes.IFLE -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], 0.lit), labels.label(i.label))
 							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], null.lit), labels.label(i.label))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 							val r = stackPop()

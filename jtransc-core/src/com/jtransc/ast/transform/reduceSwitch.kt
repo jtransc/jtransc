@@ -29,7 +29,7 @@ private fun <TCase> reduceSwitchGeneric(
 		val newSubject: AstExpr = if (assignTemp) newLocal else subject
 
 		val ifElseStm = AstStm.IF_ELSE(
-			newSubject lt AstExpr.LITERAL(middleValue),
+			newSubject lt middleValue.lit,
 			generate(newSubject, default, sortedCases.slice(0 until middleIndex)),
 			generate(newSubject, default, sortedCases.slice(middleIndex until sortedCases.size))
 		)

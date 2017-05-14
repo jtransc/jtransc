@@ -318,14 +318,14 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			if (literalValue is Number) {
 				val box2 = expr.box
 				when (castTo) {
-					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool())
-					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte())
-					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort())
-					AstType.CHAR -> box2.value = AstExpr.LITERAL(literalValue.toInt().toChar())
-					AstType.INT -> box2.value = AstExpr.LITERAL(literalValue.toInt())
-					AstType.LONG -> box2.value = AstExpr.LITERAL(literalValue.toLong())
-					AstType.FLOAT -> box2.value = AstExpr.LITERAL(literalValue.toFloat())
-					AstType.DOUBLE -> box2.value = AstExpr.LITERAL(literalValue.toDouble())
+					AstType.BOOL -> box2.value = literalValue.toBool().lit
+					AstType.BYTE -> box2.value = literalValue.toByte().lit
+					AstType.SHORT -> box2.value = literalValue.toShort().lit
+					AstType.CHAR -> box2.value = literalValue.toInt().toChar().lit
+					AstType.INT -> box2.value = literalValue.toInt().lit
+					AstType.LONG -> box2.value = literalValue.toLong().lit
+					AstType.FLOAT -> box2.value = literalValue.toFloat().lit
+					AstType.DOUBLE -> box2.value = literalValue.toDouble().lit
 				}
 				AstAnnotateExpressions.visitExprWithStm(stm, box2)
 				return

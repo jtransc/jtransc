@@ -1067,7 +1067,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		var n = 0
 		for (v in stm.values) {
-			line(genStmSetArray(AstStm.SET_ARRAY(stm.array.value, AstExpr.LITERAL(stm.startIndex + n), v.value)))
+			line(genStmSetArray(AstStm.SET_ARRAY(stm.array.value, (stm.startIndex + n).lit, v.value)))
 			n++
 		}
 	}

@@ -170,7 +170,7 @@ class GotosFeature : AstMethodFeature() {
 					}
 
 					fun simulateGotoLabel(index: Int) = listOf(
-						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index)),
+						AstStm.SET_LOCAL(gotostate, index.lit),
 						AstStm.CONTINUE()
 					)
 
@@ -218,17 +218,17 @@ class GotosFeature : AstMethodFeature() {
 
 					fun extraReturn() = when (body.type.ret) {
 						is AstType.VOID -> AstStm.RETURN_VOID()
-						is AstType.BOOL -> AstStm.RETURN(AstExpr.LITERAL(false))
-						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0))
-						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L))
-						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f))
-						is AstType.DOUBLE -> AstStm.RETURN(AstExpr.LITERAL(0.0))
-						else -> AstStm.RETURN(AstExpr.LITERAL(null))
+						is AstType.BOOL -> AstStm.RETURN(false.lit)
+						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(0.lit)
+						is AstType.LONG -> AstStm.RETURN(0L.lit)
+						is AstType.FLOAT -> AstStm.RETURN(0f.lit)
+						is AstType.DOUBLE -> AstStm.RETURN(0.0.lit)
+						else -> AstStm.RETURN(null.lit)
 					}
 
 					val plainWhile =
 						listOf(
-							AstStm.WHILE(AstExpr.LITERAL(true),
+							AstStm.WHILE(true.lit,
 								AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
 							),
 							extraReturn()
@@ -246,13 +246,13 @@ class GotosFeature : AstMethodFeature() {
 
 							AstStm.IF(
 								//(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								(gotostate ge AstExpr.LITERAL(startState)) band (gotostate lt AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
+								(gotostate ge startState.lit) band (gotostate lt endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								simulateGotoLabel(handlerState).stm()
 							)
 						}
 
 						listOf(
-							AstStm.WHILE(AstExpr.LITERAL(true),
+							AstStm.WHILE(true.lit,
 								AstStm.TRY_CATCH(plainWhile, stms(
 									checkTraps.stms,
 									AstStm.RETHROW()
