@@ -51,7 +51,7 @@ object CppCompiler {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "clang++"
-			cmdAndArgs += "-std=c++0x"
+			cmdAndArgs += "-std=c++11"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O0"
@@ -71,7 +71,7 @@ object CppCompiler {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
-			cmdAndArgs += "-std=c++0x"
+			cmdAndArgs += "-std=c++11"
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
