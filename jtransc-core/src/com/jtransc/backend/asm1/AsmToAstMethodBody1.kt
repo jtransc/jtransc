@@ -96,7 +96,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				exception = types.REF_INT3(it.type) ?: AstType.THROWABLE
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = hasDynamicInvoke)
+		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = hasDynamicInvoke)
 	).optimize()
 
 	return out

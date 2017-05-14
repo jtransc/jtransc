@@ -44,4 +44,19 @@ class OptimizeTests {
 		Assert.assertEquals("(test == 10)", build { (test ne 10.lit).not() }.optimize(flags).exprDump(types))
 		Assert.assertEquals("(test != 10)", build { (test ne 10.lit).not().not() }.optimize(flags).exprDump(types))
 	}
+
+	@Test fun test7() {
+		val stms = types.buildStms {
+			val t1 by LOCAL(AstType.INT)
+
+			IF(1.lit eq 2.lit) {
+				SET(t1, 1.lit + 2.lit)
+			} ELSE {
+				SET(t1, 2.lit)
+			}
+		}
+		val stm2 = stms.stm().optimize(AstBodyFlags(types))
+		println(stms.dump(types))
+		println(stm2.dump(types))
+	}
 }

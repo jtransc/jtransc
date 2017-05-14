@@ -2,6 +2,7 @@ package com.jtransc.plugin.lang
 
 import com.jtransc.ast.AstExpr
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.expr
 import com.jtransc.ast.fqname
 import com.jtransc.plugin.JTranscPlugin
 import j.ProgramReflection

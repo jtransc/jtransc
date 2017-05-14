@@ -85,7 +85,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 				val impls = servicesToImpls[serviceName]!!
 				//println("$serviceName -> $impls")
 				IF(Objects_equals(nameArg.expr, serviceName.lit)) {
-					SET(out, NEW_ARRAY(ARRAY(OBJECT), impls.size.lit))
+					SET(out, ARRAY(OBJECT).newArray(impls.size))
 					for ((index, impl) in impls.withIndex()) {
 						//val ref = AstType.REF(impl.fqname)
 						val clazz = programBase[impl.fqname]
@@ -96,7 +96,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 					RETURN(out)
 				}
 			}
-			RETURN(NEW_ARRAY(ARRAY(OBJECT), 0.lit))
+			RETURN(ARRAY(OBJECT).newArray(0))
 		}
 	}
 

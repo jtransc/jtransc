@@ -191,37 +191,18 @@ class AstTypes {
 
 	fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) AstType.ARRAY(element) else ARRAY(AstType.ARRAY(element), count - 1)
 
-	fun REF_INT(internalName: String): AstType {
-		if (internalName.startsWith("[")) {
-			return demangle(internalName)
-		} else {
-			return REF_INT2(internalName)
-		}
-	}
+	fun REF_INT(internalName: String): AstType = if (internalName.startsWith("[")) demangle(internalName) else REF_INT2(internalName)
 
-	fun REF_INT2(internalName: String): AstType.REF {
-		return AstType.REF(internalName.replace('/', '.'))
-	}
-
+	fun REF_INT2(internalName: String): AstType.REF = AstType.REF(internalName.replace('/', '.'))
 	fun REF_INT3(internalName: String?): AstType.REF? = if (internalName != null) REF_INT2(internalName) else null
 
-	fun demangle(desc: String): AstType {
-		if (desc !in AstTypeDemangleCache) {
-			AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
-		}
-		return AstTypeDemangleCache[desc]!!
-	}
-
-	fun demangleMethod(text: String): AstType.METHOD {
-		return demangle(text) as AstType.METHOD
-	}
+	fun demangle(desc: String): AstType = AstTypeDemangleCache.getOrPut(desc) { this.readOne(StrReader(desc)) }
+	fun demangleMethod(text: String): AstType.METHOD = demangle(text) as AstType.METHOD
 
 	fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 
-	fun unify(a: AstType, b: AstType): AstType {
-		// @TODO: implement unification
-		return a
-	}
+	// @TODO: implement unification
+	fun unify(a: AstType, b: AstType): AstType = a
 
 	// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
 	fun readOne(reader: StrReader): AstType {
@@ -333,77 +314,67 @@ class AstTypes {
 
 }
 
-fun _castLiteral(value: Int, to: AstType): Any? {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		//is AstType.Reference -> null
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Int, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	//is AstType.Reference -> null
+	else -> invalidOp("Can't cast $value to $to")
 }
 
 fun <T> Class<T>.ref() = AstType.REF(this.name)
 
-fun _castLiteral(value: Long, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Long, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun _castLiteral(value: Float, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Float, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun _castLiteral(value: Double, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Double, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun castLiteral(value: Boolean, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Byte, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Char, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Short, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Int, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Long, to: AstType): Any? = _castLiteral(value.toLong(), to)
-fun castLiteral(value: Float, to: AstType): Any? = _castLiteral(value.toFloat(), to)
-fun castLiteral(value: Double, to: AstType): Any? = _castLiteral(value.toDouble(), to)
+fun castLiteral(value: Boolean, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Byte, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Char, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Short, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Int, to: AstType): Any = _castLiteral(value.toInt(), to)
+fun castLiteral(value: Long, to: AstType): Any = _castLiteral(value.toLong(), to)
+fun castLiteral(value: Float, to: AstType): Any = _castLiteral(value.toFloat(), to)
+fun castLiteral(value: Double, to: AstType): Any = _castLiteral(value.toDouble(), to)
 
-fun Iterable<AstType>.toArguments(): List<AstArgument> {
-	return this.mapIndexed { i, v -> AstArgument(i, v) }
-}
+fun Iterable<AstType>.toArguments(): List<AstArgument> = this.mapIndexed { i, v -> AstArgument(i, v) }
 
 fun AstType.getNull(): Any? = when (this) {
 	is AstType.VOID -> null

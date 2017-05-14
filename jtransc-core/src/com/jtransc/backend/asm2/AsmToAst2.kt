@@ -169,7 +169,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				exception = if (it.type != null) types.REF_INT2(it.type) else AstType.OBJECT
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = context.hasInvokeDynamic)
+		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = context.hasInvokeDynamic)
 	)//.optimize()
 }
 

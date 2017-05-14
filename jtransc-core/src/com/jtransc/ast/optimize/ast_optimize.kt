@@ -408,5 +408,6 @@ fun AstExpr.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstOptimizer(flags).visit(this)
 }
 
-fun AstStm.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
-fun AstExpr.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
+fun AstStm.optimize(types: AstTypes, strictfp: Boolean = true): AstStm = this.let { this.box.optimize(AstBodyFlags(types, strictfp)).value }
+fun AstStm.optimize(flags: AstBodyFlags): AstStm = this.let { this.box.optimize(flags).value }
+fun AstExpr.optimize(flags: AstBodyFlags): AstExpr = this.let { this.box.optimize(flags).value }
