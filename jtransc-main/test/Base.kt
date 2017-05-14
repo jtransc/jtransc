@@ -36,6 +36,7 @@ open class Base {
 	open val DEFAULT_TARGET: GenTargetDescriptor = JsTarget()
 
 	open val BACKEND = BuildBackend.ASM
+	//open val BACKEND = BuildBackend.ASM2
 	open val TREESHAKING = true
 	open val TREESHAKING_TRACE = false
 

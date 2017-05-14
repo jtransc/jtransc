@@ -41,7 +41,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
 	protected int length;
 
 	AbstractStringBuilder() {
-		this(0);
+		this(16);
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._str = ''; return this;")

@@ -15,6 +15,7 @@ public class MicroHelloWorld {
 		JTranscConsole.log(a);
 		new MicroHelloWorld().demo();
 		new MicroHelloWorld().demo2(new C());
+		demo3();
 	}
 
 	private void demo2(A a) {
@@ -31,6 +32,18 @@ public class MicroHelloWorld {
 			JTranscConsole.log("WOOPS");
 		}
 		//BenchmarkTest.main(new String[0]);
+	}
+
+	static private void demo3() {
+		z = null;
+		System.out.println(_demo3());
+		System.out.println(_demo3());
+	}
+
+	static private String z = null;
+
+	static private String _demo3() {
+		return (z != null) ? z : "hello";
 	}
 }
 

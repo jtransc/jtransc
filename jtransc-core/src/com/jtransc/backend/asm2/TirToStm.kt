@@ -59,7 +59,18 @@ class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, v
 				is TIR.NEW -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW(tir.type))
 				is TIR.NEWARRAY -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
 				is TIR.UNOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.UNOP(tir.op, tir.r.expr))
-				is TIR.BINOP -> stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr, tir.op, tir.r.expr))
+				is TIR.BINOP -> {
+					val leftType = when (tir.op) {
+						AstBinop.LCMP, AstBinop.EQ, AstBinop.NE, AstBinop.GE, AstBinop.LE, AstBinop.GT, AstBinop.LT -> tir.l.type
+						AstBinop.CMPG, AstBinop.CMPL -> AstType.DOUBLE
+						else -> tir.dst.type
+					}
+					val rightType = when (tir.op) {
+						AstBinop.SHL, AstBinop.SHR, AstBinop.USHR -> AstType.INT
+						else -> leftType
+					}
+					stms += AstStm.SET_LOCAL(tir.dst.expr, AstExpr.BINOP(tir.dst.type, tir.l.expr.castTo(leftType), tir.op, tir.r.expr.castTo(rightType)))
+				}
 				is TIR.ARRAY_STORE -> {
 					stms += AstStm.SET_ARRAY(tir.array.expr, tir.index.expr, tir.value.expr.castTo(tir.elementType.convertType()))
 				}
@@ -88,7 +99,10 @@ class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, v
 			// control flow:
 				is TIR.LABEL -> stms += AstStm.STM_LABEL(tir.label.ast)
 				is TIR.JUMP -> stms += AstStm.GOTO(tir.label.ast)
-				is TIR.JUMP_IF -> stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr))
+				is TIR.JUMP_IF -> {
+					val t1 = tir.l.expr.type
+					stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr.castTo(t1)))
+				}
 				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
 				is TIR.RET -> {
 					//if (methodType.ret == AstType.REF("j.ClassInfo")) {

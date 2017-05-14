@@ -201,6 +201,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 					'\t' -> out.append("\\t")
 				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
 				//in '\u0020'..'\u00ff' -> out.append(c)
+					in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '$', '&' -> out.append(c)
 					else -> out.append("\\u" + "%04x".format(c.toInt()))
 				}
 			}
@@ -217,7 +218,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		} else {
 			var mods = super.genMethodDeclModifiers(method)
 			if (method.isStatic && (method.isOverriding || method.isClassInit)) mods += "new "
-			if (!method.isStatic && !method.targetIsOverriding) mods += "virtual "
+			if (!method.isStatic && !method.targetIsOverriding && !method.isInstanceInit) mods += "virtual "
 			mods += "public "
 			return mods
 		}

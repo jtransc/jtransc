@@ -1,5 +1,5 @@
 language: java
-#dist: trusty # Causes problems with mono? Check
+#dist: trusty # Causes problems with mono hanging
 #d:
 #- dmd
 #haxe:

@@ -1,7 +1,9 @@
 package j;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
