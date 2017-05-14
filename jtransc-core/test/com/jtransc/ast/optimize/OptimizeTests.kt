@@ -13,8 +13,8 @@ class OptimizeTests {
 	@Test fun test1() {
 		val expr = build { null.lit.castToUnoptimized(OBJECT).castToUnoptimized(CLASS).castToUnoptimized(STRING) }
 		Assert.assertEquals("((java.lang.String)((java.lang.Class)((java.lang.Object)null)))", expr.exprDump(types))
-		expr.optimize(flags)
-		Assert.assertEquals("((java.lang.String)null)", expr.exprDump(types))
+		val result = expr.optimize(flags)
+		Assert.assertEquals("((java.lang.String)null)", result.exprDump(types))
 	}
 
 	@Test fun test2() {

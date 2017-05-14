@@ -255,10 +255,14 @@ class JA_L : JA_Template<{% CLASS java.lang.Object %}> {
 class JA_Z : JA_B  { public JA_Z(sbyte[] data, string desc = "[Z") : base(data, desc) { } public JA_Z(int size, string desc = "[Z") : base(size, desc) { } }
 
 class WrappedThrowable : Exception {
-	public {% CLASS java.lang.Object %} t;
+	public {% CLASS java.lang.Throwable %} t;
+
+	public WrappedThrowable({% CLASS java.lang.Throwable %} t) : base() {
+		this.t = ({% CLASS java.lang.Throwable %})t;
+	}
 
 	public WrappedThrowable({% CLASS java.lang.Object %} t) : base() {
-		this.t = t;
+		this.t = ({% CLASS java.lang.Throwable %})t;
 	}
 }
 

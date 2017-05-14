@@ -185,6 +185,11 @@ open class AstType {
 	}
 }
 
+fun AstType.asArray(): AstType.ARRAY {
+	if (this !is AstType.ARRAY) invalidOp("$this is not AstType.ARRAY")
+	return this
+}
+
 fun ARRAY(type: AstType) = AstType.ARRAY(type)
 
 @Singleton

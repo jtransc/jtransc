@@ -9,7 +9,6 @@ import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscLiteralParam
 import com.jtransc.annotation.JTranscUnboxParam
 import com.jtransc.ast.*
-import com.jtransc.ast.optimize.optimize
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
@@ -735,7 +734,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(local.decl) }
 
-	open fun genBodyTrapsPrefix() = Indenter(AstLocal(0, "J__exception__", AstType.OBJECT).decl)
+	open fun genBodyTrapsPrefix() = Indenter(AstLocal(0, "J__exception__", AstType.THROWABLE).decl)
 	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
 
@@ -1004,7 +1003,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.resolve(program) as AstType.ARRAY, e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
+	open fun genExprArrayAccess(e: AstExpr.ARRAY_ACCESS): String = N_AGET_T(e.array.type.resolve(program).asArray(), e.array.type.elementType, e.array.genNotNull(), e.index.genExpr())
 
 	open fun genExprFieldStaticAccess(e: AstExpr.FIELD_STATIC_ACCESS): String {
 		refs.add(e.clazzName)
@@ -1069,7 +1068,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val array = stm.array.genNotNull()
 		//if (array == "((JA_B)(((java_lang_Object)(p1))))") println(array)
 		val res = N_ASET_T(
-			stm.array.type.resolve(program) as AstType.ARRAY,
+			stm.array.type.resolve(program).asArray(),
 			stm.array.type.elementType,
 			array,
 			stm.index.genExpr(),
@@ -1186,7 +1185,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genExprCast(e: AstExpr.CAST): String = genExprCast(e.expr.genExpr(), e.from, e.to)
+	open fun genExprCast(e: AstExpr.CAST): String = genExprCast(e.subject.genExpr(), e.from, e.to)
 
 	open fun genExprCast(e: String, from: AstType, to: AstType): String {
 		refs.add(from)

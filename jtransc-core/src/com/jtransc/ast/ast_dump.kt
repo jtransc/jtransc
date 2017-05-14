@@ -114,7 +114,7 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.ARRAY_ACCESS -> dump(types, expr.array) + "[" + dump(types, expr.index) + "]"
 		is AstExpr.FIELD_INSTANCE_ACCESS -> dump(types, expr.expr) + "." + expr.field.name
 		is AstExpr.FIELD_STATIC_ACCESS -> "" + expr.clazzName + "." + expr.field.name
-		is AstExpr.CAST -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.expr) + ")"
+		is AstExpr.CAST -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.subject) + ")"
 		is AstExpr.INSTANCE_OF -> "(" + dump(types, expr.expr) + " instance of " + javaDump(types, expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
 		is AstExpr.NEW_WITH_CONSTRUCTOR -> dump(types, AstExpr.CALL_INSTANCE(AstExpr.NEW(expr.type), expr.constructor, expr.args.map { it.value }, isSpecial = false))

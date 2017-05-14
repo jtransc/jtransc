@@ -291,7 +291,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	}
 
 	fun decodeMultiANewArrayNode(n: MultiANewArrayInsnNode) {
-		val arrayType = types.REF_INT(n.desc) as AstType.ARRAY
+		val arrayType = types.REF_INT(n.desc).asArray()
 		val dst = createTemp(arrayType)
 		add(TIR.NEWARRAY(dst, arrayType, (0 until n.dims).map { pop() }.reversed()))
 		push(dst)

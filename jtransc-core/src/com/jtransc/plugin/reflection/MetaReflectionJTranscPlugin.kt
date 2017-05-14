@@ -145,7 +145,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					is Pair<*, *> -> toAnnotationExpr(data.second, temps, builder)
 					is List<*> -> {
 						val local = temps.create(ARRAY(OBJECT))
-						SET(local, (local.type as AstType.ARRAY).newArray(data.size.lit))
+						SET(local, (local.type.asArray()).newArray(data.size.lit))
 						for ((index, item) in data.withIndex()) {
 							SET_ARRAY(local, index.lit, toAnnotationExpr(item, temps, builder))
 						}

@@ -354,7 +354,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(expr: AstExpr.CAST) {
-		visit(expr.expr)
+		visit(expr.subject)
 		visit(expr.type)
 	}
 

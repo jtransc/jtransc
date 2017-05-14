@@ -9,19 +9,36 @@ data class AstBody constructor(
 	val types: AstTypes,
 	var stm: AstStm,
 	var type: AstType.METHOD,
-	var locals: List<AstLocal>,
 	val traps: List<AstTrap>,
-	val flags: AstBodyFlags
-)
+	val flags: AstBodyFlags,
+	val methodRef: AstMethodRef
+) {
+	private var _locals: List<AstLocal>? = null
 
-fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD): AstBody {
-	val locals = hashSetOf<AstLocal>()
-	(object : AstVisitor() {
-		override fun visit(local: AstLocal) {
-			locals += local
+	val locals: List<AstLocal> get() {
+		if (_locals == null) {
+			val locals = hashSetOf<AstLocal>()
+			(object : AstVisitor() {
+				override fun visit(local: AstLocal) {
+					locals += local
+				}
+			}).visit(stm)
+			_locals = locals.toList()
 		}
-	}).visit(stm)
-	return AstBody(types, stm, desc, locals.toList(), listOf(), AstBodyFlags(types, false))
+		return _locals!!
+	}
+
+	fun invalidateLocals() {
+		_locals = null
+	}
+
+	fun invalidate() {
+		invalidateLocals()
+	}
+}
+
+fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD, methodRef: AstMethodRef): AstBody {
+	return AstBody(types, stm, desc, listOf(), AstBodyFlags(types, false), methodRef = methodRef)
 }
 
 data class AstBodyFlags(
@@ -76,13 +93,12 @@ data class AstLocal(val index: Int, override val name: String, val type: AstType
 
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
+	// @TODO: Move this to ast_optimize in an attached object
 	val writes = arrayListOf<AstStm.SET_LOCAL>()
 	val reads = arrayListOf<AstExpr.LOCAL>()
-
 	val writesCount: Int get() = writes.size // @TODO: In SSA this should be one
 	val readCount: Int get() = reads.size
 	val isUsed: Boolean get() = (writesCount != 0) || (readCount != 0)
-
 	fun write(set: AstStm.SET_LOCAL) = run { writes += set }
 	fun read(ref: AstExpr.LOCAL) = run { reads += ref }
 }
@@ -98,15 +114,20 @@ interface Cloneable<T> {
 	fun clone(): T
 }
 
-open class AstStm() : AstElement, Cloneable<AstStm> {
+open class AstStm : AstElement, Cloneable<AstStm> {
 	class Box(_value: AstStm) {
 		var value: AstStm = _value
 			get() = field
 			set(value) {
-				field.box = AstStm.Box(field)
-				field = value
-				field.box = this
+				if (field !== value) {
+					field.box = AstStm.Box(field)
+					field = value
+					field.box = this
+				}
 			}
+
+		fun replaceWith(stm: AstStm) = run { this.value = stm }
+		fun replaceWith(stm: AstStm.Box) = run { this.value = stm.value }
 
 		init {
 			_value.box = this
@@ -114,6 +135,9 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	}
 
 	var box: AstStm.Box = AstStm.Box(this)
+
+	fun replaceWith(stm: AstStm) = this.box.replaceWith(stm)
+	fun replaceWith(stm: AstStm.Box) = this.box.replaceWith(stm)
 
 	override fun clone(): AstStm = noImpl("AstStm.clone: $this")
 
@@ -273,12 +297,15 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class Box(_value: AstExpr) {
 		var value: AstExpr = _value
 			set(value) {
-				if (field != value) {
+				if (field !== value) {
 					field.box = AstExpr.Box(field)
 					field = value
 					field.box = this
 				}
 			}
+
+		fun replaceWith(expr: AstExpr) = run { this.value = expr }
+		fun replaceWith(expr: AstExpr.Box) = run { this.value = expr.value }
 
 		init {
 			_value.box = this
@@ -291,6 +318,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 
 	var box: AstExpr.Box = AstExpr.Box(this)
 	var stm: AstStm? = null
+
+	fun replaceWith(expr: AstExpr) = this.box.replaceWith(expr)
+	fun replaceWith(expr: AstExpr.Box) = this.box.replaceWith(expr)
 
 	abstract val type: AstType
 
@@ -438,12 +468,12 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 
 	class CAST constructor(expr: AstExpr, val to: AstType, val dummy: Boolean) : AstExpr() {
-		val expr = expr.box
-		val from: AstType get() = expr.type
+		val subject = expr.box
+		val from: AstType get() = subject.type
 
 		override val type = to
 
-		override fun clone(): AstExpr = CAST(expr.value.clone(), to, true)
+		override fun clone(): AstExpr = CAST(subject.value.clone(), to, true)
 	}
 
 	class NEW(val target: AstType.REF) : AstExpr() {
@@ -523,7 +553,7 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.BINOP -> this.left.isPure() && this.right.isPure()
 	is AstExpr.UNOP -> this.right.isPure()
 	is AstExpr.CALL_BASE -> false // we would have to check call pureness
-	is AstExpr.CAST -> this.expr.isPure()
+	is AstExpr.CAST -> this.subject.isPure()
 	is AstExpr.FIELD_INSTANCE_ACCESS -> this.expr.isPure()
 	is AstExpr.INSTANCE_OF -> this.expr.isPure()
 	is AstExpr.TERNARY -> this.cond.isPure() && this.etrue.isPure() && this.efalse.isPure()
@@ -548,6 +578,16 @@ fun AstExpr.isPure(): Boolean = when (this) {
 fun AstExpr.castToUnoptimized(type: AstType): AstExpr = AstExpr.CAST(this, type, true)
 fun AstExpr.castTo(type: AstType): AstExpr = this.castToInternal(type)
 
+fun AstExpr.withoutCast(): AstExpr = when (this) {
+	is AstExpr.CAST -> this.subject.value
+	else -> this
+}
+
+fun AstExpr.withoutCasts(): AstExpr = when (this) {
+	is AstExpr.CAST -> this.subject.value.withoutCasts()
+	else -> this
+}
+
 fun AstExpr.castToInternal(type: AstType): AstExpr {
 	val expr = this
 	val _to = type
@@ -557,7 +597,7 @@ fun AstExpr.castToInternal(type: AstType): AstExpr {
 	if (exprType == to) return expr
 
 	return when (expr) {
-		//is AstExpr.LOCAL_BASE -> AstExpr.TYPED_LOCAL(expr.local, to)
+	//is AstExpr.LOCAL_BASE -> AstExpr.TYPED_LOCAL(expr.local, to)
 		is AstExpr.LITERAL -> {
 			val value = expr.value
 			when (value) {
@@ -578,12 +618,12 @@ fun AstExpr.castToInternal(type: AstType): AstExpr {
 		is AstExpr.CAST -> {
 			if (expr.to is AstType.Primitive) {
 				if (to is AstType.Primitive && expr.to.canHold(to)) {
-					expr.expr.value.castTo(to)
+					expr.subject.value.castTo(to)
 				} else {
 					expr.castToUnoptimized(to)
 				}
 			} else {
-				expr.expr.value.castTo(to)
+				expr.subject.value.castTo(to)
 			}
 		}
 		else -> expr.castToUnoptimized(to)

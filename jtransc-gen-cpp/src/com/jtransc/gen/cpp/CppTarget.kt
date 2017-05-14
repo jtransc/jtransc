@@ -19,7 +19,6 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.target.Cpp
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.text.uquote
@@ -671,7 +670,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		return when (e) {
 			is AstExpr.THIS -> true
 			is AstExpr.CAST -> if (e.to == this.mutableBody.method.containingClass.astType) {
-				isThisOrThisWithCast(e.expr.value)
+				isThisOrThisWithCast(e.subject.value)
 			} else {
 				false
 			}

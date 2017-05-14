@@ -4,13 +4,13 @@ import com.jtransc.ast.*
 import com.jtransc.lang.toBool
 
 class AstCastOptimizer : AstTransformer() {
-	override fun transform(expr: AstExpr.CAST): AstExpr {
-		val castTo = expr.to
-		val child = expr.expr.value
+	override fun transform(cast: AstExpr.CAST): AstExpr {
+		val castTo = cast.to
+		val child = cast.subject.value
 
 		// DUMMY CAST
-		if (expr.expr.type == castTo) {
-			return transform(expr.expr.value)
+		if (cast.subject.type == castTo) {
+			return transform(cast.subject.value)
 		}
 
 		// DOUBLE CAST
@@ -33,11 +33,11 @@ class AstCastOptimizer : AstTransformer() {
 					AstType.LONG -> literalValue.toLong().lit
 					AstType.FLOAT -> literalValue.toFloat().lit
 					AstType.DOUBLE -> literalValue.toDouble().lit
-					else -> super.transform(expr)
+					else -> super.transform(cast)
 				}
 			}
 		}
 
-		return super.transform(expr)
+		return super.transform(cast)
 	}
 }

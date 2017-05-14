@@ -726,14 +726,14 @@ class AstMethod(
 	val hasBody: Boolean get() = body != null
 
 	fun replaceBody(stmGen: () -> AstStm) {
-		this.generateBody = { AstBody(types, stmGen(), methodType) }
+		this.generateBody = { AstBody(types, stmGen(), methodType, ref) }
 		calculatedBodyDependencies = null
 		generatedBody = false
 	}
 
 	fun replaceBodyOpt(stmGen: () -> AstStm) {
 		this.generateBody = {
-			val body = AstBody(types, stmGen(), methodType)
+			val body = AstBody(types, stmGen(), methodType, ref)
 			AstOptimizer(AstBodyFlags(types, false)).visit(body)
 			body
 		}
@@ -745,7 +745,7 @@ class AstMethod(
 		this.generateBody = {
 			val builder = AstBuilder2(types, AstBuilderBodyCtx())
 			builder.stmGen(methodType.args)
-			val body = AstBody(types, builder.genstm(), methodType)
+			val body = AstBody(types, builder.genstm(), methodType, ref)
 			AstOptimizer(AstBodyFlags(types, false)).visit(body)
 			body
 		}
@@ -754,7 +754,7 @@ class AstMethod(
 	}
 
 	fun replaceBody(stm: AstStm) {
-		this.generateBody = { AstBody(types, stm, methodType) }
+		this.generateBody = { AstBody(types, stm, methodType, ref) }
 		calculatedBodyDependencies = null
 		generatedBody = false
 	}

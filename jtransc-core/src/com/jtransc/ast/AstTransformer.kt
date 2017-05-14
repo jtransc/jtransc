@@ -4,16 +4,23 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 open class AstTransformer {
+	open fun finish() {
+	}
+
 	open fun transform(body: AstBody) {
 		transform(body.stm.box)
 	}
 
-	open fun transform(stm: AstStm.Box) {
-		stm.value = transform(stm.value)
+	open fun transform(stm: AstStm.Box): AstStm {
+		val result = transform(stm.value)
+		stm.value = result
+		return result
 	}
 
-	open fun transform(expr: AstExpr.Box) {
-		expr.value = transform(expr.value)
+	open fun transform(expr: AstExpr.Box): AstExpr {
+		val result = transform(expr.value)
+		expr.value = result
+		return result
 	}
 
 	open fun transformStmsBox(stms: List<AstStm.Box>) {
@@ -105,10 +112,10 @@ open class AstTransformer {
 	open fun transform(ref: AstType.REF) {
 	}
 
-	open fun transform(local: AstLocal) {
+	open fun visit(local: AstLocal) {
 	}
 
-	open fun transform(label: AstLabel) {
+	open fun visit(label: AstLabel) {
 	}
 
 	open fun transform(ref: AstType) {
@@ -224,26 +231,26 @@ open class AstTransformer {
 	}
 
 	open fun transform(stm: AstStm.STM_LABEL): AstStm {
-		transform(stm.label)
+		visit(stm.label)
 		return stm
 	}
 
 	open fun transform(stm: AstStm.IF_GOTO): AstStm {
-		transform(stm.label)
+		visit(stm.label)
 		transform(stm.cond)
 		return stm
 	}
 
 	open fun transform(stm: AstStm.GOTO): AstStm {
-		transform(stm.label)
+		visit(stm.label)
 		return stm
 	}
 
 	open fun transform(stm: AstStm.SWITCH_GOTO): AstStm {
 		transform(stm.subject)
-		transform(stm.default)
+		visit(stm.default)
 		for ((value, case) in stm.cases) {
-			transform(case)
+			visit(case)
 		}
 		return stm
 	}
@@ -312,12 +319,12 @@ open class AstTransformer {
 	}
 
 	open fun transform(expr: AstExpr.LOCAL): AstExpr {
-		transform(expr.local)
+		visit(expr.local)
 		return expr
 	}
 
 	open fun transform(expr: AstExpr.TYPED_LOCAL): AstExpr {
-		transform(expr.local)
+		visit(expr.local)
 		transform(expr.type)
 		return expr
 	}
@@ -390,10 +397,10 @@ open class AstTransformer {
 		return expr
 	}
 
-	open fun transform(expr: AstExpr.CAST): AstExpr {
-		transform(expr.expr)
-		transform(expr.type)
-		return expr
+	open fun transform(cast: AstExpr.CAST): AstExpr {
+		transform(cast.subject)
+		transform(cast.type)
+		return cast
 	}
 
 	open fun transform(expr: AstExpr.NEW): AstExpr {
@@ -432,5 +439,20 @@ open class AstTransformer {
 		transform(expr.etrue)
 		transform(expr.efalse)
 		return expr
+	}
+
+	open fun transformAndFinish(body: AstBody) {
+		transform(body)
+		finish()
+	}
+
+	open fun transformAndFinish(box: AstStm.Box) {
+		transform(box)
+		finish()
+	}
+
+	open fun transformAndFinish(box: AstExpr.Box) {
+		transform(box)
+		finish()
 	}
 }

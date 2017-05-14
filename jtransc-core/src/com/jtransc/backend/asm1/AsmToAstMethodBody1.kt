@@ -20,6 +20,10 @@ const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
 fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
+	val methodType = types.demangleMethod(method.desc)
+	val methodInstructions = method.instructions
+	val methodRef = AstMethodRef(clazz.name, method.name, methodType)
+
 	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
@@ -87,7 +91,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		types,
 		optimizedStms,
 		types.demangleMethod(method.desc),
-		locals.locals.values.toList(),
+		//locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(
 				start = labels.label(it.start),
@@ -96,7 +100,8 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				exception = types.REF_INT3(it.type) ?: AstType.THROWABLE
 			)
 		},
-		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = hasDynamicInvoke)
+		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = hasDynamicInvoke),
+		methodRef = methodRef
 	).optimize()
 
 	return out
@@ -512,7 +517,7 @@ private class BasicBlockBuilder(
 	fun handleMultiArray(i: MultiANewArrayInsnNode) {
 		when (i.opcode) {
 			Opcodes.MULTIANEWARRAY -> {
-				stackPush(AstExpr.NEW_ARRAY(types.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }.reversed()))
+				stackPush(AstExpr.NEW_ARRAY(types.REF_INT(i.desc).asArray(), (0 until i.dims).map { stackPop() }.reversed()))
 			}
 			else -> invalidOp("$i")
 		}

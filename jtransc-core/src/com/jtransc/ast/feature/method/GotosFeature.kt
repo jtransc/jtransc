@@ -120,7 +120,9 @@ class GotosFeature : AstMethodFeature() {
 		}
 
 		try {
-			return AstBody(types, relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.type, body.locals, body.traps, body.flags)
+			return body.copy(
+				stm = relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null
+			)
 		} catch (e: RelooperException) {
 			//println("RelooperException: ${e.message}")
 			return null
@@ -132,7 +134,7 @@ class GotosFeature : AstMethodFeature() {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
 		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
-		val locals = body.locals.toCollection(arrayListOf<AstLocal>())
+		//val locals = body.locals.toCollection(arrayListOf<AstLocal>())
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
 
 		//val gotostate = AstLocal(-1, "_gotostate", AstType.INT)
@@ -268,11 +270,9 @@ class GotosFeature : AstMethodFeature() {
 
 		stm = strip(stm)
 
-		if (hasLabels) {
-			locals.add(gotostate.local)
-		}
+		//if (hasLabels) locals.add(gotostate.local)
 
-		return AstBody(types, stm, body.type, locals, traps, body.flags)
+		return body.copy(types = types, stm = stm, traps = traps)
 	}
 
 }

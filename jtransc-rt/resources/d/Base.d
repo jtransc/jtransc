@@ -158,10 +158,14 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 }
 
 class WrappedThrowable : Throwable {
-	public {% CLASS java.lang.Object %} t;
-	this({% CLASS java.lang.Object %} t) {
+	public {% CLASS java.lang.Throwable %} t;
+	this({% CLASS java.lang.Throwable %} t) {
 		super("WrappedThrowable:" ~ t.toString());
 		this.t = t;
+	}
+	this({% CLASS java.lang.Object %} t) {
+		super("WrappedThrowable:" ~ t.toString());
+		this.t = cast({% CLASS java.lang.Throwable %})(t);
 	}
 }
 
