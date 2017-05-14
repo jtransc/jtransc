@@ -58,6 +58,7 @@ object CppCompiler {
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs)
@@ -71,11 +72,12 @@ object CppCompiler {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
-			cmdAndArgs += "-std=c++11" 
+			cmdAndArgs += "-std=c++11"
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-frtti"
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs)
 			for (lib in libs) cmdAndArgs += "-l$lib"
