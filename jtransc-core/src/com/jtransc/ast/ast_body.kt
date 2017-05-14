@@ -436,13 +436,13 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = AstType.BOOL
 	}
 
-	class CAST(expr: AstExpr, val to: AstType) : AstExpr() {
+	class CAST(expr: AstExpr, val to: AstType, val dummy: Boolean) : AstExpr() {
 		val expr = expr.box
 		val from: AstType get() = expr.type
 
 		override val type = to
 
-		override fun clone(): AstExpr = CAST(expr.value.clone(), to)
+		override fun clone(): AstExpr = CAST(expr.value.clone(), to, true)
 	}
 
 	class NEW(val target: AstType.REF) : AstExpr() {
@@ -499,7 +499,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 
 object AstStmUtils {
 	fun set(local: AstLocal, value: AstExpr): AstStm.SET_LOCAL {
-		val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
+		val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), value.castTo(local.type))
 		local.write(stm)
 		return stm
 	}
@@ -512,7 +512,44 @@ object AstStmUtils {
 	}
 }
 
-fun AstExpr.castTo(type: AstType): AstExpr = AstExprUtils.cast(this, type)
+fun AstExpr.castToUnoptimized(type: AstType): AstExpr {
+	return AstExpr.CAST(this, type, true)
+}
+
+fun AstExpr.castTo(type: AstType): AstExpr {
+	val expr = this
+	val _to = type
+	if (expr.type == _to) return expr
+	val exprType = expr.type.simplify()
+	val to = _to.simplify()
+	if (exprType == to) return expr
+
+	if (expr is AstExpr.LITERAL) {
+		val value = expr.value
+		when (value) {
+			null -> Unit
+			is String -> Unit
+			is AstType -> Unit
+			is Boolean -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Byte -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Char -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Short -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Int -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Long -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Float -> return AstExpr.LITERAL(castLiteral(value, to))
+			is Double -> return AstExpr.LITERAL(castLiteral(value, to))
+			else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
+		}
+	}
+	if (expr is AstExpr.CAST) {
+		if (expr.to.isPrimitive()) {
+			// Prevent if more general value to less general value
+		} else {
+			return AstExpr.CAST(expr.expr.value, to, true)
+		}
+	}
+	return AstExpr.CAST(expr, to, true)
+}
 
 object AstExprUtils {
 	fun localRef(local: AstLocal): AstExpr.LOCAL {
@@ -520,41 +557,6 @@ object AstExprUtils {
 		//val refExpr = AstExpr.REF(localExpr)
 		local.read(localExpr)
 		return localExpr
-	}
-
-	fun cast(expr: AstExpr, _to: AstType): AstExpr {
-		val exprType = expr.type.simplify()
-		val to = _to.simplify()
-		if (exprType == to) return expr
-
-		if (expr is AstExpr.LITERAL) {
-			val value = expr.value
-			when (value) {
-				null -> Unit
-				is String -> Unit
-				is AstType -> Unit
-				is Boolean -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Byte -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Char -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Short -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Int -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Long -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Float -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Double -> return AstExpr.LITERAL(castLiteral(value, to))
-				else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
-			}
-		}
-		return AstExpr.CAST(expr, to)
-	}
-
-	// Can cast nulls
-	fun fastcast(expr: AstExpr, to: AstType): AstExpr {
-		// LITERAL + IMMEDIATE = IMMEDIATE casted
-		if (expr.type != to) {
-			return AstExpr.CAST(expr, to)
-		} else {
-			return expr
-		}
 	}
 
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
@@ -589,21 +591,21 @@ object AstExprUtils {
 		//if (obj is AstExpr.THIS && ((obj.type as AstType.REF).name != method.containingClass)) {
 		if ((obj.type as AstType.REF).name != method.containingClass) {
 			//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
-			return AstExpr.CALL_SUPER(cast(obj, method.containingClassType), method.containingClass, method, args, isSpecial = true)
+			return AstExpr.CALL_SUPER(obj.castTo(method.containingClassType), method.containingClass, method, args, isSpecial = true)
 		} else {
-			return AstExpr.CALL_INSTANCE(cast(obj, method.containingClassType), method, args, isSpecial = true)
+			return AstExpr.CALL_INSTANCE(obj.castTo(method.containingClassType), method, args, isSpecial = true)
 		}
 	}
 
 	fun BINOP(type: AstType, l: AstExpr, op: AstBinop, r: AstExpr): AstExpr.BINOP {
 		if (l.type == AstType.BOOL && r.type == AstType.BOOL) {
-			if (op == AstBinop.AND) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BAND, cast(r, AstType.BOOL))
-			if (op == AstBinop.OR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BOR, cast(r, AstType.BOOL))
-			if (op == AstBinop.XOR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.NE, cast(r, AstType.BOOL))
+			if (op == AstBinop.AND) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.BAND, r.castTo(AstType.BOOL))
+			if (op == AstBinop.OR) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.BOR, r.castTo(AstType.BOOL))
+			if (op == AstBinop.XOR) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.NE, r.castTo(AstType.BOOL))
 		} else if (l.type == AstType.BOOL) {
-			return AstExpr.BINOP(type, cast(l, r.type), op, r)
+			return AstExpr.BINOP(type, l.castTo(r.type), op, r)
 		} else if (r.type == AstType.BOOL) {
-			return AstExpr.BINOP(type, l, op, cast(r, l.type))
+			return AstExpr.BINOP(type, l, op, r.castTo(l.type))
 		}
 		return AstExpr.BINOP(type, l, op, r)
 	}
@@ -670,18 +672,12 @@ open class BuilderBase(val types: AstTypes) {
 	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 
 	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
-	fun AstExpr.castTo(type: AstType) = AstExpr.CAST(this, type)
-	fun AstExpr.castTo(type: AstClass) = AstExpr.CAST(this, type.ref)
-	fun AstExpr.castTo(type: FqName) = AstExpr.CAST(this, AstType.REF(type))
 
 	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 
 	operator fun AstMethod.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
 	operator fun AstMethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
-
-	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
-	fun AstExpr.toType(toType: AstType): AstExpr = if (this.type == toType) this else AstExpr.CAST(this, toType)
 
 	operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
 	operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)

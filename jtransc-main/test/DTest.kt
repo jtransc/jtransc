@@ -31,7 +31,9 @@ class DTest : Base() {
 	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, target = DTarget(), log = false)
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
 
-	@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
+	@Test fun testMicroHelloWorldAsm1() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM)
+
+	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
 	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)

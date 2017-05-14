@@ -336,19 +336,19 @@ private class BasicBlockBuilder(
 		val ref = fix(AstFieldRef(types.REF_INT2(i.owner).fqname.fqname, i.name, types.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> {
-				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_STATIC_ACCESS(ref), ref.type))
+				stackPush(AstExpr.FIELD_STATIC_ACCESS(ref).castTo(ref.type))
 			}
 			Opcodes.GETFIELD -> {
-				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
-				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_INSTANCE_ACCESS(ref, obj), ref.type))
+				val obj = stackPop().castTo(ref.containingTypeRef)
+				stackPush(AstExpr.FIELD_INSTANCE_ACCESS(ref, obj).castTo(ref.type))
 			}
 			Opcodes.PUTSTATIC -> {
-				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.fastcast(stackPop(), ref.type)))
+				stmAdd(AstStm.SET_FIELD_STATIC(ref, stackPop().castTo(ref.type)))
 			}
 			Opcodes.PUTFIELD -> {
 				val param = stackPop()
-				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
-				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, AstExprUtils.fastcast(param, ref.type)))
+				val obj = stackPop().castTo(ref.containingTypeRef)
+				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, param.castTo(ref.type)))
 			}
 			else -> invalidOp
 		}
@@ -359,9 +359,6 @@ private class BasicBlockBuilder(
 	fun optimize(e: AstExpr.BINOP): AstExpr {
 		return e
 	}
-
-	fun cast(expr: AstExpr, to: AstType) = AstExprUtils.cast(expr, to)
-	fun fastcast(expr: AstExpr, to: AstType) = AstExprUtils.fastcast(expr, to)
 
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
@@ -376,14 +373,14 @@ private class BasicBlockBuilder(
 	fun arrayLoad(type: AstType): Unit {
 		val index = stackPop()
 		val array = stackPop()
-		stackPush(AstExpr.ARRAY_ACCESS(fastcast(array, AstType.ARRAY(type)), fastcast(index, AstType.INT)))
+		stackPush(AstExpr.ARRAY_ACCESS(array.castTo(AstType.ARRAY(type)), index.castTo(AstType.INT)))
 	}
 
 	fun arrayStore(elementType: AstType): Unit {
 		val expr = stackPop()
 		val index = stackPop()
 		val array = stackPop()
-		stmAdd(AstStm.SET_ARRAY(fastcast(array, AstType.ARRAY(elementType)), fastcast(index, AstType.INT), fastcast(expr, elementType)))
+		stmAdd(AstStm.SET_ARRAY(array.castTo(AstType.ARRAY(elementType)), index.castTo(AstType.INT), expr.castTo(elementType)))
 	}
 
 	private var stackPopToLocalsItemsCount = 0
@@ -508,13 +505,13 @@ private class BasicBlockBuilder(
 			in Opcodes.IOR..Opcodes.LOR -> pushBinop(PTYPES[op - Opcodes.IOR], AstBinop.OR)
 			in Opcodes.IXOR..Opcodes.LXOR -> pushBinop(PTYPES[op - Opcodes.IXOR], AstBinop.XOR)
 
-			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(fastcast(stackPop(), AstType.LONG))
-			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(fastcast(stackPop(), AstType.FLOAT))
-			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(fastcast(stackPop(), AstType.DOUBLE))
-			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(fastcast(stackPop(), AstType.INT))
-			Opcodes.I2B -> stackPush(fastcast(stackPop(), AstType.BYTE))
-			Opcodes.I2C -> stackPush(fastcast(stackPop(), AstType.CHAR))
-			Opcodes.I2S -> stackPush(fastcast(stackPop(), AstType.SHORT))
+			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(stackPop().castTo(AstType.LONG))
+			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(stackPop().castTo(AstType.FLOAT))
+			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(stackPop().castTo(AstType.DOUBLE))
+			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(stackPop().castTo(AstType.INT))
+			Opcodes.I2B -> stackPush(stackPop().castTo(AstType.BYTE))
+			Opcodes.I2C -> stackPush(stackPop().castTo(AstType.CHAR))
+			Opcodes.I2S -> stackPush(stackPop().castTo(AstType.SHORT))
 
 			Opcodes.LCMP -> pushBinop(AstType.INT, AstBinop.LCMP)
 			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
@@ -541,9 +538,9 @@ private class BasicBlockBuilder(
 	fun handleType(i: TypeInsnNode) {
 		val type = types.REF_INT(i.desc)
 		when (i.opcode) {
-			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
+			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
-			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
+			Opcodes.CHECKCAST -> stackPush(stackPop().castTo(type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType.Reference))
 			else -> invalidOp("$i")
 		}
@@ -618,7 +615,7 @@ private class BasicBlockBuilder(
 		val methodRef = fix(AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val args = methodRef.type.args.reversed().map { fastcast(stackPop(), it.type) }.reversed()
+		val args = methodRef.type.args.reversed().map { stackPop().castTo(it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
 		when (i.opcode) {
@@ -629,8 +626,8 @@ private class BasicBlockBuilder(
 				if (obj!!.type !is AstType.REF) {
 					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
 				}
-				val obj1 = fastcast(obj, methodRef.containingClassType)
-				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj1 else AstExprUtils.fastcast(obj1, methodRef.containingClassType)
+				val obj1 = obj.castTo(methodRef.containingClassType)
+				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj1 else obj1.castTo(methodRef.containingClassType)
 				stackPush(AstExpr.CALL_INSTANCE(obj2, methodRef, args, isSpecial))
 			}
 			else -> invalidOp
@@ -753,7 +750,7 @@ private class BasicBlockBuilder(
 						in Opcodes.IRETURN..Opcodes.ARETURN -> {
 							val ret = stackPop()
 							dumpExprs()
-							stmAdd(AstStm.RETURN(fastcast(ret, this.methodType.ret)))
+							stmAdd(AstStm.RETURN(ret.castTo(this.methodType.ret)))
 							next = null
 							break@loop
 						}

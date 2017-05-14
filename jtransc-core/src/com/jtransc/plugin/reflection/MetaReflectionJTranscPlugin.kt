@@ -345,7 +345,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 									val method = classes[currentIndex]
 
 									val params: List<AstExpr> = method.methodType.args.map {
-										cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
+										AstExpr.ARRAY_ACCESS(args.expr, it.index.lit).castTo(it.type)
 									}
 
 									val callExprUncasted = if (method.isStatic) {
@@ -416,7 +416,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 									CASE(constructor.id) {
 										val params = constructor.methodType.args.map {
-											cast(AstExpr.ARRAY_ACCESS(args.expr, it.index.lit), it.type)
+											AstExpr.ARRAY_ACCESS(args.expr, it.index.lit).castTo(it.type)
 										}
 
 										val callExprUncasted = AstExpr.NEW_WITH_CONSTRUCTOR(constructor.ref, params)
@@ -669,7 +669,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 							SWITCH(fieldIdParam.expr) {
 								while (currentIndex < finishIndex) {
 									val field = fields[currentIndex]
-									val expr = AstExpr.CAST(valueParam.expr, field.type)
+									val expr = valueParam.expr.castTo(field.type)
 									CASE(field.id) {
 										if (field.isStatic) {
 											STM(AstStm.SET_FIELD_STATIC(field.ref, expr))

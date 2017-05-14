@@ -488,6 +488,7 @@ val Class<*>.fqname: FqName get() = FqName(this.name)
 val String.fqname: FqName get() = FqName(this)
 val FqName.ref: AstType.REF get() = AstType.REF(this)
 
+fun AstType.isPrimitive() = (this is AstType.Primitive)
 fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
 fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)
 

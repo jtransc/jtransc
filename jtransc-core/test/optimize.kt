@@ -11,7 +11,7 @@ class OptimizeTest {
 	fun <T> build(callback: AstBuilder2.() -> T): T = types.build2 { callback() }
 
 	@Test fun test1() {
-		val expr = build { null.lit.castTo(OBJECT).castTo(CLASS).castTo(STRING) }
+		val expr = build { null.lit.castToUnoptimized(OBJECT).castToUnoptimized(CLASS).castToUnoptimized(STRING) }
 		Assert.assertEquals("((java.lang.String)((java.lang.Class)((java.lang.Object)null)))", expr.exprDump(types))
 		expr.optimize(flags)
 		Assert.assertEquals("((java.lang.String)null)", expr.exprDump(types))
@@ -25,15 +25,15 @@ class OptimizeTest {
 	}
 
 	@Test fun test3() {
-		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT), AstBinop.EQ, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
-		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT), AstBinop.NE, AstExpr.LITERAL(0)).optimize(flags).exprDump(types))
+		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.EQ, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
+		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.NE, AstExpr.LITERAL(0)).optimize(flags).exprDump(types))
 
-		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT), AstBinop.EQ, AstExpr.LITERAL(0)).optimize(flags).exprDump(types))
-		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT), AstBinop.NE, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
+		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.EQ, AstExpr.LITERAL(0)).optimize(flags).exprDump(types))
+		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.NE, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
 	}
 
 	@Test fun test4() {
-		Assert.assertEquals("true", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LITERAL(true), AstType.INT), AstBinop.EQ, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
+		Assert.assertEquals("true", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LITERAL(true), AstType.INT, true), AstBinop.EQ, AstExpr.LITERAL(1)).optimize(flags).exprDump(types))
 		Assert.assertEquals("false", build { 0.lit.castTo(BOOL) }.optimize(flags).exprDump(types))
 		Assert.assertEquals("true", build { 1.lit.castTo(BOOL) }.optimize(flags).exprDump(types))
 	}
