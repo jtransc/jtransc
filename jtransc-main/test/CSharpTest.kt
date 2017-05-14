@@ -40,7 +40,7 @@ class CSharpTest : Base() {
 		TestServiceCS
 	""", minimize = false)
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
+	@Test fun testBig() = testClass<BigTest>(minimize = false, debug = false, log = false)
 
 	//@Test fun testMicroStaticInitTestAsm2() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM2, treeShaking = true)
 	@Test fun testMicroStaticInitTestAsm1() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true)

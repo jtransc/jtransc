@@ -235,13 +235,7 @@ fun fixType(type: AstType): AstType {
 	}
 }
 
-fun nameType(type: AstType): String {
-	if (type is AstType.Primitive) {
-		return type.chstring
-	} else {
-		return "A"
-	}
-}
+fun nameType(type: AstType): String = (type as? AstType.Primitive)?.chstring ?: "A"
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
 private class BasicBlockBuilder(
@@ -285,21 +279,9 @@ private class BasicBlockBuilder(
 		//}
 	}
 
-	fun stackPush(e: AstExpr) {
-		stack.push(e)
-	}
-
-	fun stackPush(e: AstLocal) {
-		stack.push(AstExprUtils.localRef(e))
-	}
-
-	//fun stackPushList(e: List<AstExpr>) {
-	//	for (i in e) stackPush(i)
-	//}
-
-	fun stackPushListLocal(e: List<AstLocal>) {
-		for (i in e) stackPush(i)
-	}
+	fun stackPush(e: AstExpr) = run { stack.push(e) }
+	fun stackPush(e: AstLocal) = run { stack.push(AstExprUtils.localRef(e)) }
+	fun stackPushListLocal(e: List<AstLocal>) = run { for (i in e) stackPush(i) }
 
 	fun stackPop(): AstExpr {
 		if (stack.isEmpty()) {
@@ -380,7 +362,8 @@ private class BasicBlockBuilder(
 		val expr = stackPop()
 		val index = stackPop()
 		val array = stackPop()
-		stmAdd(AstStm.SET_ARRAY(array.castTo(AstType.ARRAY(elementType)), index.castTo(AstType.INT), expr.castTo(elementType)))
+		val arrayTyped = array.castTo(AstType.ARRAY(elementType))
+		stmAdd(AstStm.SET_ARRAY(arrayTyped, index.castTo(AstType.INT), expr.castTo(elementType)))
 	}
 
 	private var stackPopToLocalsItemsCount = 0

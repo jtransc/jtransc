@@ -354,7 +354,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			local.local.writes.remove(strue)
 			local.local.writes.remove(sfalse)
 
-			val newset = AstStm.SET_LOCAL(local, AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value, types))
+			val newset = local.setTo(AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value, types))
 			stm.box.value = newset
 			local.local.writes.add(newset)
 		}
@@ -402,6 +402,8 @@ fun AstStm.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(flags).visit(this)
 }
+
+fun AstExpr.Box.optimize(types: AstTypes, strictfp: Boolean = true) = this.optimize(AstBodyFlags(types, strictfp))
 
 fun AstExpr.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstAnnotateExpressions.visit(this)

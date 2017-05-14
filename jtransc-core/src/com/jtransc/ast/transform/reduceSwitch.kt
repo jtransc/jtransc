@@ -36,7 +36,7 @@ private fun <TCase> reduceSwitchGeneric(
 
 		if (assignTemp) {
 			listOf(
-				AstStm.SET_LOCAL(newLocal, subject),
+				newLocal.setTo(subject),
 				ifElseStm
 			).stm()
 		} else {

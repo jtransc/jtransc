@@ -140,6 +140,7 @@ object AstDependencyAnalyzer {
 					}
 				}
 				is AstExpr.LOCAL -> Unit
+				is AstExpr.TYPED_LOCAL -> Unit
 				is AstExpr.PARAM -> ana(expr.type)
 				is AstExpr.INVOKE_DYNAMIC_METHOD -> {
 					ana(expr.type)

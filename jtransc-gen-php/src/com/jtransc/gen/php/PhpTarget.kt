@@ -61,6 +61,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
+	override val localVarPrefix = "\""
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -196,7 +197,6 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstLocal.decl: String get() = "\$${this.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genExprParam(e: AstExpr.PARAM) = "\$" + e.argument.targetName
-	override fun genExprLocal(e: AstExpr.LOCAL) = "\$" + e.local.targetName
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String) = "\$$localName = $exprStr;"
 

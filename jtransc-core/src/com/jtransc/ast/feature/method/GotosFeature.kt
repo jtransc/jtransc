@@ -170,7 +170,7 @@ class GotosFeature : AstMethodFeature() {
 					}
 
 					fun simulateGotoLabel(index: Int) = listOf(
-						AstStm.SET_LOCAL(gotostate, index.lit),
+						gotostate.setTo(index.lit),
 						AstStm.CONTINUE()
 					)
 

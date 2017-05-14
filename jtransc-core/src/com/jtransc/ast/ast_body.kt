@@ -5,7 +5,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import kotlin.reflect.KProperty
 
-data class AstBody(
+data class AstBody constructor(
 	val types: AstTypes,
 	var stm: AstStm,
 	var type: AstType.METHOD,
@@ -133,12 +133,12 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val expr = expr.box
 	}
 
-	class SET_LOCAL(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
+	class SET_LOCAL constructor(val local: AstExpr.LOCAL, expr: AstExpr, dummy: Boolean) : AstStm() {
 		val expr = expr.box
 		override fun toString(): String = "SET_LOCAL($local = $expr)"
 	}
 
-	class SET_ARRAY(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
+	class SET_ARRAY constructor(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
 		val array = array.box
 		val index = index.box
 		val expr = expr.box
@@ -311,13 +311,16 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override fun clone(): AstExpr.THIS = THIS(ref)
 	}
 
-	class LOCAL(val local: AstLocal) : LocalExpr() {
+	abstract class LOCAL_BASE(val local: AstLocal, override val type: AstType) : LocalExpr() {
 		override val name: String get() = local.name
-		override val type = local.type
 
 		override fun clone(): AstExpr.LOCAL = LOCAL(local)
-		override fun toString(): String = "LOCAL($local)"
+		override fun toString(): String = if (local.type == type) "LOCAL($local)" else "LOCAL($local as $type)"
 	}
+
+	class TYPED_LOCAL(local: AstLocal, type: AstType) : LOCAL_BASE(local, type)
+
+	class LOCAL(local: AstLocal) : LOCAL_BASE(local, local.type)
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
@@ -432,7 +435,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = AstType.BOOL
 	}
 
-	class CAST(expr: AstExpr, val to: AstType, val dummy: Boolean) : AstExpr() {
+	class CAST constructor(expr: AstExpr, val to: AstType, val dummy: Boolean) : AstExpr() {
 		val expr = expr.box
 		val from: AstType get() = expr.type
 
@@ -493,12 +496,13 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 }
 
-fun AstLocal.setTo(value: AstExpr): AstStm.SET_LOCAL {
-	val local = this
-	val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), value.castTo(local.type))
-	local.write(stm)
+fun AstExpr.LOCAL.setTo(value: AstExpr): AstStm.SET_LOCAL {
+	val stm = AstStm.SET_LOCAL(this, value.castTo(this.type), dummy = true)
+	this.local.write(stm)
 	return stm
 }
+
+fun AstLocal.setTo(value: AstExpr): AstStm.SET_LOCAL = AstExpr.LOCAL(this).setTo(value)
 
 fun stms(vararg stms: AstStm) = stms.toList().stm()
 
@@ -525,6 +529,7 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.FIELD_STATIC_ACCESS -> true
 	is AstExpr.LITERAL -> true
 	is AstExpr.LOCAL -> true
+	is AstExpr.TYPED_LOCAL -> true
 	is AstExpr.NEW -> false
 	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
 	is AstExpr.NEW_ARRAY -> true
@@ -549,31 +554,36 @@ fun AstExpr.castToInternal(type: AstType): AstExpr {
 	val to = _to.simplify()
 	if (exprType == to) return expr
 
-	if (expr is AstExpr.LITERAL) {
-		val value = expr.value
-		when (value) {
-			null -> Unit
-			is String -> Unit
-			is AstType -> Unit
-			is Boolean -> return castLiteral(value, to).lit
-			is Byte -> return castLiteral(value, to).lit
-			is Char -> return castLiteral(value, to).lit
-			is Short -> return castLiteral(value, to).lit
-			is Int -> return castLiteral(value, to).lit
-			is Long -> return castLiteral(value, to).lit
-			is Float -> return castLiteral(value, to).lit
-			is Double -> return castLiteral(value, to).lit
-			else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
+	return when (expr) {
+		//is AstExpr.LOCAL_BASE -> AstExpr.TYPED_LOCAL(expr.local, to)
+		is AstExpr.LITERAL -> {
+			val value = expr.value
+			when (value) {
+				null -> expr.castToUnoptimized(to)
+				is String -> expr.castToUnoptimized(to)
+				is AstType -> expr.castToUnoptimized(to)
+				is Boolean -> value.castTo(to).lit
+				is Byte -> value.castTo(to).lit
+				is Char -> value.castTo(to).lit
+				is Short -> value.castTo(to).lit
+				is Int -> value.castTo(to).lit
+				is Long -> value.castTo(to).lit
+				is Float -> value.castTo(to).lit
+				is Double -> value.castTo(to).lit
+				else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
+			}
 		}
-	}
-	if (expr is AstExpr.CAST) {
-		if (expr.to.isPrimitive()) {
-			// Prevent if more general value to less general value
-		} else {
-			return expr.expr.value.castToUnoptimized(to)
+		is AstExpr.CAST -> {
+			if (expr.to.isPrimitive()) {
+				// Prevent if more general value to less general value
+				expr.castToUnoptimized(to)
+				//expr.expr.value.castToUnoptimized(to)
+			} else {
+				expr.expr.value.castToUnoptimized(to)
+			}
 		}
+		else -> expr.castToUnoptimized(to)
 	}
-	return expr.castToUnoptimized(to)
 }
 
 object AstExprUtils {

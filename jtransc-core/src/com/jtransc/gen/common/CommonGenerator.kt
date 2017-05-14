@@ -9,6 +9,7 @@ import com.jtransc.annotation.JTranscInvisibleExternal
 import com.jtransc.annotation.JTranscLiteralParam
 import com.jtransc.annotation.JTranscUnboxParam
 import com.jtransc.ast.*
+import com.jtransc.ast.optimize.optimize
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
@@ -52,6 +53,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val usePackages = true
 	open val classFileExtension = ""
 	open val allowRepeatMethodsInInterfaceChain = true
+	open val localVarPrefix = ""
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -432,6 +434,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.CAST -> genExprCast(e)
 		is AstExpr.PARAM -> genExprParam(e)
 		is AstExpr.LOCAL -> genExprLocal(e)
+		is AstExpr.TYPED_LOCAL -> genExprTypedLocal(e)
 		is AstExpr.UNOP -> genExprUnop(e)
 		is AstExpr.BINOP -> genExprBinop(e)
 		is AstExpr.FIELD_STATIC_ACCESS -> genExprFieldStaticAccess(e)
@@ -1062,7 +1065,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	inline protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter.gen(init)
 
-	open fun genStmSetArray(stm: AstStm.SET_ARRAY) = Indenter.single(N_ASET_T(stm.array.type.resolve(program) as AstType.ARRAY, stm.array.type.elementType, stm.array.genNotNull(), stm.index.genExpr(), stm.expr.genExpr()))
+	open fun genStmSetArray(stm: AstStm.SET_ARRAY): Indenter {
+		val array = stm.array.genNotNull()
+		//if (array == "((JA_B)(((java_lang_Object)(p1))))") println(array)
+		val res = N_ASET_T(
+			stm.array.type.resolve(program) as AstType.ARRAY,
+			stm.array.type.elementType,
+			array,
+			stm.index.genExpr(),
+			stm.expr.genExpr()
+		)
+
+		return Indenter(res)
+	}
 
 	open fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		var n = 0
@@ -1073,7 +1088,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genExprParam(e: AstExpr.PARAM) = e.argument.targetName
-	open fun genExprLocal(e: AstExpr.LOCAL) = e.local.targetName
+	fun genExprLocal(e: AstLocal) = if (localVarPrefix.isEmpty()) e.targetName else localVarPrefix + e.targetName
+	fun genExprLocal(e: AstExpr.LOCAL) = if (localVarPrefix.isEmpty()) e.local.targetName else localVarPrefix + e.local.targetName
+	fun genExprTypedLocal(e: AstExpr.TYPED_LOCAL) = genExprCast(genExprLocal(e.local), e.local.type, e.type)
 
 	open fun genStmLine(stm: AstStm.LINE) = indent {
 		mark(stm)

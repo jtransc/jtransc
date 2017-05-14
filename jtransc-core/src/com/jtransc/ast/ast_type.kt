@@ -14,7 +14,7 @@ import java.util.*
 
 open class AstType {
 	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType() {
-		val underlyingClass: FqName = underlyingClassStr.fqname
+		//val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
 		override fun hashCode() = ch.toInt()
@@ -323,7 +323,7 @@ fun _castLiteral(value: Int, to: AstType): Any = when (to) {
 	AstType.LONG -> value.toLong()
 	AstType.FLOAT -> value.toFloat()
 	AstType.DOUBLE -> value.toDouble()
-	//is AstType.Reference -> null
+//is AstType.Reference -> null
 	else -> invalidOp("Can't cast $value to $to")
 }
 
@@ -365,14 +365,14 @@ fun _castLiteral(value: Double, to: AstType): Any = when (to) {
 	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun castLiteral(value: Boolean, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Byte, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Char, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Short, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Int, to: AstType): Any = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Long, to: AstType): Any = _castLiteral(value.toLong(), to)
-fun castLiteral(value: Float, to: AstType): Any = _castLiteral(value.toFloat(), to)
-fun castLiteral(value: Double, to: AstType): Any = _castLiteral(value.toDouble(), to)
+fun Boolean.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Byte.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Char.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Short.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Int.castTo(to: AstType) = _castLiteral(this, to)
+fun Long.castTo(to: AstType) = _castLiteral(this, to)
+fun Float.castTo(to: AstType) = _castLiteral(this, to)
+fun Double.castTo(to: AstType) = _castLiteral(this, to)
 
 fun Iterable<AstType>.toArguments(): List<AstArgument> = this.mapIndexed { i, v -> AstArgument(i, v) }
 
@@ -449,7 +449,7 @@ data class FqName(val fqname: String) : Serializable {
 
 	override fun hashCode(): Int = fqname.hashCode()
 
-	override fun equals(that: Any?): Boolean = this.fqname == (that as? FqName)?.fqname
+	override fun equals(other: Any?): Boolean = this.fqname == (other as? FqName)?.fqname
 
 	fun append(s: String): FqName = FqName(this.fqname + s)
 }
