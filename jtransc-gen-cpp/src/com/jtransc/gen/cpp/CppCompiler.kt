@@ -39,12 +39,12 @@ object CppCompiler {
 			}
 		}
 		cmdAndArgs.add("-I${commonFolder}/jni-headers/")
-		cmdAndArgs.add("-I${commonFolder}/bdwgc/include/")
-		cmdAndArgs.add("-${commonFolder}/bdwgc/.libs/libgccpp.a")
-		cmdAndArgs.add("-${commonFolder}/bdwgc/.libs/libgc.a")
 		cmdAndArgs.add("-I${commonFolder}/boost/compiled-libs/include/")
-		cmdAndArgs.add("-${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
-		cmdAndArgs.add("-${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
+		cmdAndArgs.add("-I${commonFolder}/bdwgc/include/")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgccpp.a")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgc.a")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
 	}
 
 	object CLANG : BaseCompiler("clang++") {
@@ -54,7 +54,7 @@ object CppCompiler {
 			cmdAndArgs += "-std=c++0x"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 			if (debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (debug) "-O0" else "-O3"
+			cmdAndArgs += if (debug) "-O0" else "-O0"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
