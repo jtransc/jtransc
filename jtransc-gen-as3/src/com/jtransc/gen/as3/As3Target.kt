@@ -122,7 +122,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 
 		return As3Compiler.useAdl {
-			ProcessResult2(RootLocalVfs().exec(listOf(As3Compiler.ADL, outFile.realpathOS), ExecOptions(passthru = redirect, sysexec = true)))
+			ProcessResult2(RootLocalVfs().exec(listOf(As3Compiler.ADL) + (if (debugVersion) listOf() else listOf("-nodebug")) + listOf(outFile.realpathOS), ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true)))
 		}
 	}
 

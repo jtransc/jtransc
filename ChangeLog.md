@@ -16,6 +16,11 @@
 ### Implemented features
 - SergeyLabutin - Implemented Class.getGenericSuperclass
 
+### Optimizations
+- Better output quality (less casts), still left
+- Lightly improved compile time
+- Improved StringBuilder runtime in all targets
+
 ## 0.5.16
 
 ...

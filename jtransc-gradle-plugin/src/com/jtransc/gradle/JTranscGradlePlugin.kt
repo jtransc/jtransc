@@ -46,6 +46,9 @@ open class JTranscGradlePlugin : Plugin<Project> {
 
 		val targets = ServiceLoader.load(GenTargetDescriptor::class.java).toList()
 
+		//println("JTransc Targets:")
+		//println(targets)
+
 		for (buildTarget in targets.flatMap { it.buildTargets }) {
 			addBuildTarget(buildTarget.name, buildTarget.target, buildTarget.outputFile, minimizeNames = buildTarget.minimizeNames)
 		}

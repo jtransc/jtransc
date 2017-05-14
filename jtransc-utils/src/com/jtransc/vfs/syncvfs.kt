@@ -206,7 +206,8 @@ data class ExecOptions(
 	val filter: ((line: String) -> Boolean)? = null,
 	val env: Map<String, String> = mapOf(),
     val sysexec: Boolean = false,
-	val fixencoding: Boolean = true
+	val fixencoding: Boolean = true,
+	val fixLineEndings: Boolean = true
 ) {
 	val redirect: Boolean get() = passthru
 }

@@ -40,7 +40,7 @@ open class JTranscGradleExtension(val project: Project) {
 				it.target = target
 				it.outputFile = outputFile
 				it.minimizedNames = justBuild && minimizeNames
-				it.debug = if (debug) true else false
+				it.debug = debug
 				it.compile = compile
 			})).dependsOn("build")
 		}

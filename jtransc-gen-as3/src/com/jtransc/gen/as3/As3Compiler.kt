@@ -53,10 +53,13 @@ object As3Compiler {
 		}
 	}
 
+	val DEBUG_FLAGS = listOf("-debug=true")
+	val RELEASE_FLAGS = listOf("-debug=false", "-verbose-stacktraces=false", "-inline", "-optimize=true")
+
 	fun genCommand(sourceFolder: File, programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
 		//mxmlc.exe src/Editor.as -output=Editor.swf  -compiler.source-path=src1 -compiler.source-path=../src2 -compiler.library-path+=libs -compiler.library-path=../libs
 
-		return listOf(AIR_COMPILER, if (debug) "-debug" else "", "-compiler.source-path+=${sourceFolder.absolutePath}", programFile.absolutePath)
+		return listOf(AIR_COMPILER) + (if (debug) DEBUG_FLAGS else RELEASE_FLAGS) + listOf("-compiler.source-path+=${sourceFolder.absolutePath}", programFile.absolutePath)
 	}
 
 	fun getSdkVersionFromString(@Language("xml") str: String): String {
