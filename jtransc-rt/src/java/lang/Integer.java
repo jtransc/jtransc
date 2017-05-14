@@ -39,25 +39,15 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
-	static private char[] temp = new char[32 + 1];
-
 	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
 	@JTranscMethodBody(target = "as3", value = "return N.str((p0|0).toString(p1));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
 	public static String toString(int i, int radix) {
-		if (radix < 2) throw new RuntimeException("Invalid radix");
 		if (i == 0) return "0";
-		//if (i == MIN_VALUE) return "-2147483648";
-		boolean negative = (i < 0);
-		if (i < 0) i = -i;
-		int tempPos = temp.length;
-		while (i != 0) {
-			temp[--tempPos] = JTranscCType.encodeDigit(Integer.remainderUnsigned(i, radix));
-			i = Integer.divideUnsigned(i, radix);
-		}
-		if (negative) temp[--tempPos] = '-';
-		return new String(temp, tempPos, temp.length - tempPos);
+		char[] out = new char[IntegerTools.countDigits(i, radix)];
+		int count = IntegerTools.writeInt(out, 0, i, radix);
+		return new String(out, 0, count);
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.str((p0 >>> 0).toString(p1));")

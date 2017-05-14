@@ -19,7 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
-public final class StringBuffer extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
+public final class StringBuffer extends StringBuilder implements java.io.Serializable, CharSequence {
 	public StringBuffer() {
 		this(16);
 	}

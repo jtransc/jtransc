@@ -590,10 +590,9 @@ fun AstExpr.withoutCasts(): AstExpr = when (this) {
 
 fun AstExpr.castToInternal(type: AstType): AstExpr {
 	val expr = this
-	val _to = type
-	if (expr.type == _to) return expr
+	if (expr.type == type) return expr
 	val exprType = expr.type.simplify()
-	val to = _to.simplify()
+	val to = type.simplify()
 	if (exprType == to) return expr
 
 	return when (expr) {

@@ -619,6 +619,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return Arrays.copyOf(this.value, this.value.length);
 	}
 
+	@HaxeMethodBody("return _getArray();")
+	@JTranscMethodBody(target = "js", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
+	@JTranscMethodBody(target = "as3", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
+	public char[] getNativeCharArray() {
+		return this.value;
+	}
+
 	@HaxeMethodBody(target = "js || flash || java || cs", value = "return _str.length;")
 	@HaxeMethodBody("return _getArray().length;")
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")

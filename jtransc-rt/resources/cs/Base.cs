@@ -18,6 +18,10 @@ class N {
 		return {% CLASS com.jtransc.JTranscWrapped %}.unwrap(({% CLASS com.jtransc.JTranscWrapped %})item);
 	}
 
+	static public int iushr(int l, int r) {
+		return (int)(((uint)l) >> r);
+	}
+
 	//static public int MIN_INT32 = Int32.MinValue;
 	static readonly public int MIN_INT32 = unchecked((int)0x80000000);
 	static readonly public int MAX_INT32 = unchecked((int)0x7FFFFFFF);

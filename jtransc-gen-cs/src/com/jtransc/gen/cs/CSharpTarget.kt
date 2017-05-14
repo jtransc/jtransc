@@ -360,7 +360,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	//override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun N_c_ushr(l: String, r: String) = "N.iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"

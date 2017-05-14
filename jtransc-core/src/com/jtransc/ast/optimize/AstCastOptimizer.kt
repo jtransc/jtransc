@@ -15,8 +15,12 @@ class AstCastOptimizer : AstTransformer() {
 
 		// DOUBLE CAST
 		if (child is AstExpr.CAST) {
-			if (castTo.isNotPrimitive() && child.to.isNotPrimitive()) {
-				return transform(child.castTo(castTo))
+			if (castTo is AstType.Primitive && child.to is AstType.Primitive) {
+				if (child.to.canHold(castTo)) {
+					return transform(child.subject).castTo(castTo)
+				}
+			} else if (castTo.isNotPrimitive() && child.to.isNotPrimitive()) {
+				return transform(child.subject).castTo(castTo)
 			}
 		}
 

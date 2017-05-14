@@ -8,6 +8,7 @@ import com.jtransc.io.JTranscConsole;
 public class BasicTypesTest {
 
 	public static void main(String[] args) throws Throwable {
+		showInts();
 		compareInts();
 		parseTests();
 		compareNans();
@@ -286,9 +287,20 @@ public class BasicTypesTest {
 		System.out.println((double)Long.MAX_VALUE < 0.0);
 	}
 
+	private static void showInts() {
+		System.out.println("showInts:");
+		for (int a : ints) {
+			System.out.println(Integer.toString(a, 2));
+			System.out.println(Integer.toString(a, 8));
+			System.out.println(Integer.toString(a, 16));
+			System.out.println(Integer.toString(a, 20));
+		}
+	}
+
+	static private int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
+
 	private static void compareInts() {
 		System.out.println("compareInts:");
-		int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
 		for (int a : ints) {
 			for (int b : ints) {
 				System.out.print(Integer.compare(a, b));

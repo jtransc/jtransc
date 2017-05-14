@@ -54,8 +54,7 @@ class AstLocalTyper : AstTransformer() {
 		//	println("++++")
 		//}
 
-		/*
-		super.transformAndFinish(body)
+		return super.transformAndFinish(body)
 
 		for (info in locals.values.filter { it.valid && (it.types.size == 1) }) {
 			val oldLocal = info.local
@@ -86,6 +85,5 @@ class AstLocalTyper : AstTransformer() {
 		//if (body.methodRef.name == "intToBigEndian") {
 		//	println("----")
 		//}
-		*/
 	}
 }
