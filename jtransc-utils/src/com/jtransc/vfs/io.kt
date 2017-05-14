@@ -92,6 +92,7 @@ val UTF8 = Charsets.UTF_8
 class StopExecException() : Exception()
 
 fun File.readFastBytes(): ByteArray = FileInputStream(this@readFastBytes).use { s ->
+	//println("READ: $this")
 	val out = ByteArray(this@readFastBytes.length().toInt())
 	var offset = 0
 	while (true) {

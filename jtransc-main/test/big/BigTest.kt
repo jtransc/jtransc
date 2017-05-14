@@ -30,6 +30,7 @@ import java.util.*
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
+		//Thread.sleep(5000L)
 		//KotlinPropertiesTest.main(args)
 
 		// Misc tests

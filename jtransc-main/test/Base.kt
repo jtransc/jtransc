@@ -112,8 +112,11 @@ open class Base {
 		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, configureInjector = configureInjector, treeShaking = treeShaking, backend = backend)
 	}
 
-	inline fun <reified T : Any> testNativeClass(expected: String, minimize: Boolean? = null, debug: Boolean? = null, noinline configureInjector: Injector.() -> Unit = {}, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null) {
-		Assert.assertEquals(normalize(expected.trimIndent()), normalize(runClass<T>(minimize = minimize, debug = debug, configureInjector = configureInjector, target = target, treeShaking = treeShaking, backend = backend).trim()))
+	inline fun <reified T : Any> testNativeClass(
+		expected: String, minimize: Boolean? = null, debug: Boolean? = null, noinline configureInjector: Injector.() -> Unit = {}, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null,
+		noinline transformerOut: (String) -> String = { it }
+	) {
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(transformerOut(runClass<T>(minimize = minimize, debug = debug, configureInjector = configureInjector, target = target, treeShaking = treeShaking, backend = backend).trim())))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {

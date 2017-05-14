@@ -3,14 +3,17 @@ package as3;
 import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscNativeClass;
+import com.jtransc.io.JTranscConsole;
 
 public class As3PureTest {
 	static public void main(String[] args) {
-		System.out.println(FlashSystemSystem.freeMemory);
+		//System.out.println(FlashSystemSystem.freeMemory);
 		FlashSystemSystem.gc();
 		FlashByteArray ba = FlashByteArrayUtils.create();
-		ba.length = 10024;
+		ba.length = 1024;
+		JTranscConsole.log(ba.length);
 		ba.clear();
+		JTranscConsole.log(ba.length);
 	}
 }
 

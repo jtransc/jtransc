@@ -670,7 +670,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun fixMethod(method: AstMethodRef): AstMethodRef = program[method]?.ref
 		?: invalidOp("Can't find method $method while generating $context")
 
-	val allAnnotationTypes = program.allAnnotations.flatMap { it.getAllDescendantAnnotations() }.map { it.type }.distinct().map { program[it.name] }.toSet()
+	val allAnnotationTypes = program.allAnnotations.flatMap { it.getAllDescendantAnnotations() }.filter { it.runtimeVisible }.map { it.type }.distinct().map { program[it.name] }.toSet()
 
 	val trapsByStart = hashMapOf<AstLabel, ArrayList<AstTrap>>()
 	val trapsByEnd = hashMapOf<AstLabel, ArrayList<AstTrap>>()

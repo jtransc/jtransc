@@ -251,7 +251,8 @@ class TreeShakingApi(
 	}
 
 	fun addAnnotations(annotations: AstAnnotationList, reason: String) {
-		for (annotation in annotations.list) {
+		//for (annotation in annotations.list) {
+		for (annotation in annotations.listRuntime) {
 			try {
 				for (ref in annotation.getRefTypesFqName()) {
 					addBasicClass(ref, "annotation $reason")

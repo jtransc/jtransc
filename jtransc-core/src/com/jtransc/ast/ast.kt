@@ -325,8 +325,8 @@ open class AstAnnotatedElement(
 	//val visible: Boolean get() = annotationsList.contains<JTranscVisible>() || !annotationsList.contains<JTranscInvisible>()
 	val visible: Boolean get() = extraVisible ?: !annotationsList.contains<JTranscInvisible>()
 	val invisible: Boolean get() = !visible
-	override val annotationsList = AstAnnotationList(elementRef, annotations)
-	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
+	override val annotationsList by lazy { AstAnnotationList(elementRef, annotations) }
+	val runtimeAnnotations by lazy { annotations.filter { it.runtimeVisible } }
 }
 
 val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
@@ -435,26 +435,18 @@ class AstClass(
 	}
 
 	fun add(field: AstField) {
-		if (finished) invalidOp("Finished class")
 		fields.add(field)
 		fieldsByInfo[field.refWithoutClass] = field
 		fieldsByName[field.name] = field
 	}
 
 	fun add(method: AstMethod) {
-		if (finished) invalidOp("Finished class")
 		methods.add(method)
 		if (method.name !in methodsByName) methodsByName[method.name] = arrayListOf()
 		val methodDesc = AstMethodWithoutClassRef(method.name, method.methodType)
 		methodsByName[method.name]?.add(method)
 		methodsByNameDescInterfaces[methodDesc] = method
 		methodsByNameDesc[methodDesc] = method
-	}
-
-	private var finished = false
-
-	fun finish() {
-		finished = true
 	}
 
 	//val dependencies: AstReferences = AstReferences()

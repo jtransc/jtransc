@@ -126,15 +126,19 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				when (data) {
 					null -> AstExpr.LITERAL(null)
 					is AstAnnotation -> {
-						val annotationType = program[data.type]
-						val annotationProxy = getAnnotationProxyClass(data.type)
-						val annotationProxyConstructor = annotationProxy.constructors.first()
-						val args = arrayListOf<Any?>()
-						for (m in annotationType!!.methods) {
-							val value = data.elements[m.name] ?: m.defaultTag
-							args += value
+						if (data.runtimeVisible) {
+							val annotationType = program[data.type]
+							val annotationProxy = getAnnotationProxyClass(data.type)
+							val annotationProxyConstructor = annotationProxy.constructors.first()
+							val args = arrayListOf<Any?>()
+							for (m in annotationType!!.methods) {
+								val value = data.elements[m.name] ?: m.defaultTag
+								args += value
+							}
+							AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, args.map { toAnnotationExpr(it, temps, builder) })
+						} else {
+							AstExpr.LITERAL(null)
 						}
-						AstExpr.NEW_WITH_CONSTRUCTOR(annotationProxyConstructor.ref, args.map { toAnnotationExpr(it, temps, builder) })
 					}
 					is AstFieldWithoutTypeRef -> toAnnotationExpr(program[data.containingClass].locateField(data.name)!!.ref, temps, builder)
 					is AstFieldRef -> AstExpr.FIELD_STATIC_ACCESS(data)

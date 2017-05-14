@@ -32,18 +32,23 @@ class As3Test : Base() {
 	override val DEFAULT_TARGET = As3Target()
 
 	@Ignore
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM2, transformerOut = { it.replace("\r", "") })
 	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = false, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 
 	@Ignore
 	@Test fun test2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 
 	@Ignore
-	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	@Test fun testBig() {
+		//testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+		testClass<BigTest>(minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	}
 
 
 
 	@Test fun as3PureTest() = testNativeClass<As3PureTest>("""
-		-
-	""", minimize = true, debug = true, target = As3Target())
+		1024
+		0
+	""", minimize = false, debug = true, backend = BuildBackend.ASM2, target = As3Target(), transformerOut = { it.replace("\r", "") })
 }
