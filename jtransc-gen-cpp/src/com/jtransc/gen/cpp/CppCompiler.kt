@@ -71,7 +71,7 @@ object CppCompiler {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
-			cmdAndArgs += "-std=c++0x"
+			cmdAndArgs += "-std=c++11" 
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
