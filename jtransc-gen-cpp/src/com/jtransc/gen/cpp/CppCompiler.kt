@@ -40,11 +40,11 @@ object CppCompiler {
 		}
 		cmdAndArgs.add("-I${commonFolder}/jni-headers/")
 		cmdAndArgs.add("-I${commonFolder}/bdwgc/include/")
-		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgccpp.a")
-		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgc.a")
+		cmdAndArgs.add("-${commonFolder}/bdwgc/.libs/libgccpp.a")
+		cmdAndArgs.add("-${commonFolder}/bdwgc/.libs/libgc.a")
 		cmdAndArgs.add("-I${commonFolder}/boost/compiled-libs/include/")
-		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
-		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
+		cmdAndArgs.add("-${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
+		cmdAndArgs.add("-${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
 	}
 
 	object CLANG : BaseCompiler("clang++") {
