@@ -44,9 +44,8 @@ class As3Test : Base() {
 		//testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 		testClass<BigTest>(minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 	}
-
-
-
+	
+	@Ignore
 	@Test fun as3PureTest() = testNativeClass<As3PureTest>("""
 		1024
 		0
