@@ -1,5 +1,5 @@
 language: java
-dist: trusty
+#dist: trusty # Causes problems with mono? Check
 #d:
 #- dmd
 #haxe:
