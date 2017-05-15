@@ -66,16 +66,8 @@ import java.lang.reflect.Field;
 })
 public class Object {
 	@JTranscInvisible
-	static private int $$lastId = 0;
-
-	@JTranscInvisible
 	public int $$id;
 
-	public Object() {
-		$$id = $$lastId++;
-	}
-
-	//@JTranscKeep
 	public boolean equals(Object obj) {
 		return (this == obj);
 	}

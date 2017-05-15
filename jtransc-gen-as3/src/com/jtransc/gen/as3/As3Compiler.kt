@@ -7,10 +7,6 @@ import com.jtransc.vfs.LocalVfs
 import org.intellij.lang.annotations.Language
 import java.io.File
 
-// @TODO: Should check that mm.cfg:
-// http://help.adobe.com/en_US/air/build/WSfffb011ac560372f-6fa6d7e0128cca93d31-8000.html
-// Note: If your trace() statements do not display on the console, ensure that you have not specified ErrorReportingEnable or TraceOutputFileEnable in the mm.cfg file.
-// For more information on the platform-specific location of this file, see Editing the mm.cfg file.
 object As3Compiler {
 	val AIRSDK_HOME by lazy {
 		System.getenv("AIRSDK_HOME") ?: System.getenv("AIRSDK") ?: invalidOp("AIRSDK_HOME or AIRSDK environment variables not defined")
@@ -34,6 +30,9 @@ object As3Compiler {
 	val SWF_COMPILER by lazy { "${AIRSDK_BIN}mxmlc" }
 	val ADL by lazy { "${AIRSDK_BIN}adl" }
 
+	// http://help.adobe.com/en_US/air/build/WSfffb011ac560372f-6fa6d7e0128cca93d31-8000.html
+	// Note: If your trace() statements do not display on the console, ensure that you have not specified ErrorReportingEnable or TraceOutputFileEnable in the mm.cfg file.
+	// For more information on the platform-specific location of this file, see Editing the mm.cfg file.
 	fun <T> useAdl(callback: () -> T): T {
 		for (file in MM_CFG_FILES) {
 			val jtransc = File(file.absolutePath + ".jtransc")

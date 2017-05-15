@@ -128,20 +128,22 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
 		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
+
 		for (lit in getGlobalStrings()) {
-			line("__gshared $StringFqName ${lit.name};")
+			line("__gshared $StringFqName ${lit.name} = N.strLitEscape(${lit.str.dquote()});")
 		}
-		line("static void __initStrings()") {
-			for (lit in getGlobalStrings()) {
-				// STRINGLIT_
-				line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
-			}
-		}
+		//line("static void __initStrings()") {
+		//	for (lit in getGlobalStrings()) {
+		//		// STRINGLIT_
+		//		line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
+		//	}
+		//}
+
 		val entryPointFqName = program.entrypoint
 		val entryPointClass = program[entryPointFqName]
 		line("int main(string[] args)") {
 			line("N.init();")
-			line("__initStrings();")
+			//line("__initStrings();")
 			line(genStaticConstructorsSorted())
 			//line(buildStaticInit(entryPointFqName))
 			val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.STRING)))]
@@ -319,4 +321,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
+
 }

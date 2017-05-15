@@ -53,3 +53,5 @@ jtransc-main/program.haxe.js
 jtransc-main/program.haxe.noanalyzer.js
 *.properties-e
 *.xml-e
+/benchmark/program.exe
+/benchmark/program.obj

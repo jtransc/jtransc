@@ -136,14 +136,10 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 			line("package") {
 				line("public class Bootstrap") {
 					for (lit in getGlobalStrings()) {
-						line("static public var ${lit.name}: $StringFqName;")
+						line("static public var ${lit.name}: $StringFqName = N.strLitEscape(${lit.str.quote()});")
 					}
 
 					line("static public function init():void") {
-						for (lit in getGlobalStrings()) {
-							// STRINGLIT_
-							line("Bootstrap.${lit.name} = N.strLitEscape(${lit.str.quote()});")
-						}
 					}
 				}
 			}
@@ -161,6 +157,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		return result.copy(indenter = Indenter {
 			line("package") {
 				line("import Int64;")
+				line("import avm2.intrinsics.memory.*;")
 				for (header in clazz.annotationsList.getHeadersForTarget(targetName)) {
 					line(header)
 				}
@@ -267,8 +264,27 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.get($index))"
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.set($index, $value);"
+	override fun N_i2b(str: String) = "avm2.intrinsics.memory.sxi8($str)"
+	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
+	override fun N_i2s(str: String) = "avm2.intrinsics.memory.sxi16($str)"
+
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
+		// avm2.intrinsics.memory.sxi8
+		// avm2.intrinsics.memory.sxi16
+		return when (elementType) {
+			//AstType.BYTE -> "((($array.data[$index])<<24)>>24)"
+			//AstType.CHAR -> "((($array.data[$index]))&0xFFFF)"
+			//AstType.SHORT -> "((($array.data[$index])<<16)>>16)"
+			AstType.BYTE -> N_i2b("$array.data[$index]")
+			AstType.CHAR -> N_i2c("$array.data[$index]")
+			AstType.SHORT -> N_i2s("$array.data[$index]")
+			else -> "($array.data[$index])"
+		}
+		//return "$array.get($index)"
+	}
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
+		return "$array.data[$index] = $value;"
+	}
 
 	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
 		return "JA_I${staticAccessOperator}T(new<int>[ " + e.values.joinToString(",") + " ])"
@@ -291,6 +307,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val FloatType = "Number"
 	override val DoubleType = "Number"
 	override val LongType = "Int64"
+
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 

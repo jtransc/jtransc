@@ -138,13 +138,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(classesStr)
 		line("class Bootstrap") {
 			for (lit in getGlobalStrings()) {
-				line("static public $StringFqName ${lit.name};")
-			}
-			line("static public void __initStrings()") {
-				for (lit in getGlobalStrings()) {
-					// STRINGLIT_
-					line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
-				}
+				line("static public $StringFqName ${lit.name} = N.strLitEscape(${lit.str.dquote()});")
 			}
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
@@ -152,7 +146,6 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("try {")
 				indent {
 					line("N.init();")
-					line("__initStrings();")
 					line(genStaticConstructorsSorted())
 					//line(buildStaticInit(entryPointFqName))
 					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.Companion.STRING)))]
@@ -172,11 +165,13 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
+
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		if (elementType is AstType.Primitive) {
-			return "$array[$index] = (${elementType.targetName})$value;"
+			return "$array.data[$index] = (${elementType.targetName})$value;"
 		} else {
-			return "$array[$index] = (${AstType.OBJECT.targetName})$value;"
+			return "$array.data[$index] = (${AstType.OBJECT.targetName})$value;"
 		}
 	}
 
@@ -415,4 +410,5 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
 }

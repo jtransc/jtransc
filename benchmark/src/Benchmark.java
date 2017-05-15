@@ -115,6 +115,38 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("write byte[]", new Task() {
+			@Override
+			public int run() {
+				byte[] array = new byte[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (byte)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("write short[]", new Task() {
+			@Override
+			public int run() {
+				short[] array = new short[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (short)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("write char[]", new Task() {
+			@Override
+			public int run() {
+				char[] array = new char[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (char)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
 
 		benchmark("write int[]", new Task() {
 			@Override
@@ -131,6 +163,17 @@ public class Benchmark {
 			@Override
 			public int run() {
 				float[] array = new float[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = n * 1000;
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("write double[]", new Task() {
+			@Override
+			public int run() {
+				double[] array = new double[1000000];
 				for (int n = 0; n < 1000000; n++) {
 					array[n] = n * 1000;
 				}

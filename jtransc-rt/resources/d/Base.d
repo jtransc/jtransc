@@ -68,11 +68,11 @@ class JA_Template(U) : JA_0 {
 	override int itemLen() { return U.sizeof; }
 	override int length() { return alen(data); }
 
-	U get(int index) { return data[index]; }
-	void set(int index, U value) { data[index] = value; }
+	pragma(inline) U get(int index) { return data[index]; }
+	pragma(inline) void set(int index, U value) { data[index] = value; }
 
-	U opIndex(int i) { return data[i]; }
-	void opIndexAssign(U v, int i) { data[i] = v; }
+	pragma(inline) U opIndex(int i) { return data[i]; }
+	pragma(inline) void opIndexAssign(U v, int i) { data[i] = v; }
 }
 
 class JA_I : JA_Template!(int) {

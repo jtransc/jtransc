@@ -565,7 +565,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genExprCallBaseInstance(e2: AstExpr.CALL_INSTANCE, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		return "${e2.obj.genNotNull()}$methodAccess(${args.joinToString(", ")})"
+		//if (method.isInstanceInit) {
+		//	return "${e2.obj.value.withoutCasts().genNotNull()}$methodAccess(${args.joinToString(", ")})"
+		//} else {
+			return "${e2.obj.genNotNull()}$methodAccess(${args.joinToString(", ")})"
+		//}
 	}
 
 	fun convertToTarget(expr: AstExpr.Box): String = convertToTarget(expr.type, expr.genExpr())

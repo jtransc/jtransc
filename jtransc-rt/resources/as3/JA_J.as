@@ -8,7 +8,7 @@ public class JA_J extends JA_0 {
 		for (var n: int = 0; n < length; n++) data[n] = Int64.zero;
 	}
 
-	public function set(index: int, value: Int64): void {
+	public final function set(index: int, value: Int64): void {
 		data[index] = value;
 	}
 
