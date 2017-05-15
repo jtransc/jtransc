@@ -38,25 +38,27 @@ class AstLocalTyper : AstTransformer() {
 
 	override fun transform(stm: AstStm.SET_LOCAL): AstStm {
 		val expr = transform(stm.expr)
+		val info = stm.local.info
 		if (expr is AstExpr.CAST) {
 			//println("ASSIGN CASTED!")
-			val info = stm.local.info
 			info.types += expr.subject.type
 			info.casts += expr
 			info.setLocals += stm
 			return stm
+		} else {
+			info.valid = false
 		}
 		return super.transform(stm)
 	}
 
 	override fun transformAndFinish(body: AstBody) {
-		//if (body.methodRef.name == "intToBigEndian") {
-		//	println("++++")
-		//}
+		//if (body.methodRef.name == "java8Test2Main") println("++++")
 
-		return super.transformAndFinish(body)
+		super.transformAndFinish(body)
 
-		for (info in locals.values.filter { it.valid && (it.types.size == 1) }) {
+		//if (body.methodRef.name == "java8Test2Main") println("++++")
+
+		for (info in locals.values.filter { it.valid && (it.types.size == 1) && it.types.first().isReference() }) {
 			val oldLocal = info.local
 			val newType = info.types.first()
 			val newLocal = oldLocal.copy(type = newType)
@@ -69,7 +71,9 @@ class AstLocalTyper : AstTransformer() {
 			}
 
 			for (setLocal in info.setLocals) {
+				//setLocal.replaceWith(newLocal.setTo(setLocal.expr.value.withoutCasts().castTo(newType)))
 				setLocal.replaceWith(newLocal.setTo(setLocal.expr.value.withoutCasts().castTo(newType)))
+				//setLocal.replaceWith(newLocal.setTo(setLocal.expr.value.withoutCasts().castToUnoptimized(newType)))
 			}
 
 			//if (body.methodRef.name == "intToBigEndian") {

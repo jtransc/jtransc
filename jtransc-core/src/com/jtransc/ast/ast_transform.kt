@@ -9,7 +9,7 @@ fun AstMethod.transformInplace(transform: BuilderBase.(AstElement) -> AstElement
 				if (stm != null) {
 					val transformedStm = base.transform(stm)
 					if (stm != transformedStm) {
-						stm.box.value = transformedStm as AstStm
+						stm.replaceWith(transformedStm as AstStm)
 					}
 				}
 			}
@@ -19,7 +19,7 @@ fun AstMethod.transformInplace(transform: BuilderBase.(AstElement) -> AstElement
 				if (expr != null) {
 					val transformedExpr = base.transform(expr)
 					if (expr != transformedExpr) {
-						expr.box.value = transformedExpr as AstExpr
+						expr.replaceWith(transformedExpr as AstExpr)
 					}
 				}
 			}

@@ -1,3 +1,4 @@
+import big.BigTest
 import big.HelloWorldTest
 import big.MiniHelloWorldTest
 import com.jtransc.BuildBackend
@@ -39,6 +40,8 @@ class DTest : Base() {
 	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)
 
 	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = false, target = DTarget(), log = false)
+
+	@Test fun testBig() = testClass<BigTest>(minimize = false, target = DTarget(), log = false)
 
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss

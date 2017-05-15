@@ -67,7 +67,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val languageRequiresDefaultInSwitch = true
 	override val defaultGenStmSwitchHasBreaks = true
 	override val allowRepeatMethodsInInterfaceChain = false
-	override val floatHasFPrefix: Boolean = false
+	override val floatHasFSuffix: Boolean = false
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",

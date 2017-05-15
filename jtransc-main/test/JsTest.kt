@@ -29,10 +29,13 @@ import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import javatest.net.URLEncoderDecoderTest
+import javatest.utils.KotlinInheritanceTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug110
+import jtransc.java8.Java8Test
+import jtransc.java8.Java8Test2
 import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -48,7 +51,13 @@ class JsTest : Base() {
 
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 
+	@Test fun testJavaEightJs() = testClass<Java8Test>(minimize = false, target = JsTarget(), log = false)
+
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
+
+	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, target = JsTarget(), log = false)
+
+	@Test fun testTwoJavaEightTwoJs() = testClass<Java8Test2>(minimize = false, target = JsTarget(), log = false)
 
 	@Test fun testURLEncoderDecoder() = testClass<URLEncoderDecoderTest>(minimize = false, target = JsTarget(), log = false, treeShaking = true)
 

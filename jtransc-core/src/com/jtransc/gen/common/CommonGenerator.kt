@@ -53,7 +53,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val classFileExtension = ""
 	open val allowRepeatMethodsInInterfaceChain = true
 	open val localVarPrefix = ""
-	open val floatHasFPrefix = true
+	open val floatHasFSuffix = true
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -1758,7 +1758,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is Boolean -> if (v) "true" else "false"
 		is String -> v.escapeString
 		is Long -> N_lnew(v)
-		is Float -> if (v.isInfinite()) if (v < 0) FloatNegativeInfinityString else FloatPositiveInfinityString else if (v.isNaN()) FloatNanString else if (floatHasFPrefix) "${v}f" else "$v"
+		is Float -> if (v.isInfinite()) if (v < 0) FloatNegativeInfinityString else FloatPositiveInfinityString else if (v.isNaN()) FloatNanString else if (floatHasFSuffix) "${v}f" else "$v"
 		is Double -> if (v.isInfinite()) if (v < 0) DoubleNegativeInfinityString else DoublePositiveInfinityString else if (v.isNaN()) if (v < 0) "-$DoubleNanString" else DoubleNanString else "$v"
 		is Int -> when (v) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"

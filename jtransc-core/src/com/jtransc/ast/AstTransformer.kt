@@ -315,6 +315,7 @@ open class AstTransformer {
 	open fun transform(expr: AstExpr.INVOKE_DYNAMIC_METHOD): AstExpr {
 		transform(expr.methodInInterfaceRef)
 		transform(expr.methodToConvertRef)
+		for (arg in expr.startArgs) transform(arg)
 		return expr
 	}
 

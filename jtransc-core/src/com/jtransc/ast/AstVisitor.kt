@@ -286,6 +286,7 @@ open class AstVisitor {
 	open fun visit(expr: AstExpr.INVOKE_DYNAMIC_METHOD) {
 		visit(expr.methodInInterfaceRef)
 		visit(expr.methodToConvertRef)
+		for (arg in expr.startArgs) visit(arg)
 	}
 
 	open fun visit(expr: AstExpr.LOCAL) {

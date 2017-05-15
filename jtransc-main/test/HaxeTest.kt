@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
@@ -34,6 +35,8 @@ class HaxeTest : Base() {
 	@Test fun testBigSwitchIssue103() = testClass<Issue103>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
 
 	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
+
+	@Test fun testBig() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true

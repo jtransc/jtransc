@@ -61,7 +61,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
-	override val floatHasFPrefix: Boolean = true
+	override val floatHasFSuffix: Boolean = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -326,4 +326,5 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
 
+	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "cast(${e.type.targetName})J__exception__"
 }

@@ -62,7 +62,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
-	override val floatHasFPrefix = true
+	override val floatHasFSuffix = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -355,6 +355,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 			line(stm.catch.genStm())
 		}
 	}
+
+	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "(${e.type.targetName})J__exception__"
 
 	//override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
 	override fun N_c_ushr(l: String, r: String) = "N.iushr($l, $r)"
