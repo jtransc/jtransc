@@ -1,6 +1,7 @@
 package com.jtransc.gen.cpp
 
 import com.jtransc.JTranscSystem
+import com.jtransc.JTranscVersion
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
 import com.jtransc.vfs.LocalVfs
@@ -11,8 +12,8 @@ object CppCompiler {
 	interface Compiler
 
 	val CPP_COMMON_FOLDER by lazy {
-		//println(System.getProperty("user.home") + "/.jtransc/cpp")
-		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp")
+		val jtranscVersion = JTranscVersion.getVersion().replace('.', '_');
+		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp/" + jtranscVersion)
 		folder.mkdirs()
 		LocalVfs(folder)
 	}
@@ -21,36 +22,47 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		CPP_COMMON_FOLDER
-
-		val compiler = listOf(CLANG, GPP).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
+		val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, debug, libs)
+	}
+
+	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>) {
+		val commonFolder = CPP_COMMON_FOLDER.realpathOS
+
+		when {
+			JTranscSystem.isWindows() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/win32/")
+			JTranscSystem.isLinux() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/linux")
+			JTranscSystem.isMac() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/mac")
+			else -> {
+				System.err.println("Unkown OS detected: Aborting.")
+				System.exit(-1)
+			}
+		}
+		cmdAndArgs.add("-I${commonFolder}/jni-headers/")
+		cmdAndArgs.add("-I${commonFolder}/boost/compiled-libs/include/")
+		cmdAndArgs.add("-I${commonFolder}/bdwgc/include/")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgccpp.a")
+		cmdAndArgs.add("${commonFolder}/bdwgc/.libs/libgc.a")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_thread.a")
+		cmdAndArgs.add("${commonFolder}/boost/compiled-libs/lib/libboost_system.a")
 	}
 
 	object CLANG : BaseCompiler("clang++") {
 		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "clang++"
-			cmdAndArgs += "-std=c++0x"
+			cmdAndArgs += "-std=c++11"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O0"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
-			//cmdAndArgs += "-Lgclibs"
-			//cmdAndArgs += "-static"
-			//cmdAndArgs += "libgc.dylib"
-			//cmdAndArgs += "libgccpp.dylib"
-			cmdAndArgs += "-Imac"
-			cmdAndArgs += "-I/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/include/"
-			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgc.dylib"
-			cmdAndArgs += "/Users/simon/Documents/workspace_mars/libbdwgc/bdwgc/.libs/libgccpp.dylib"
-			cmdAndArgs += "-I/Users/simon/boost/test_libs/include/"
-			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_thread.a"
-			cmdAndArgs += "/Users/simon/boost/test_libs/lib/libboost_system.a"
+			addCommonCmdArgs(cmdAndArgs)
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}
@@ -61,12 +73,15 @@ object CppCompiler {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
-			cmdAndArgs += "-std=c++0x"
+			cmdAndArgs += "-std=c++11"
 			if (debug) cmdAndArgs += "-g"
 			cmdAndArgs += if (debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-frtti"
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += programFile.absolutePath
+			addCommonCmdArgs(cmdAndArgs)
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}
