@@ -60,7 +60,7 @@ final public class CRC32 implements Checksum {
 	}
 
 	public void update(byte[] buf, int index, int len) {
-		int[] crc_table = CRC32.crc_table;
+		//int[] crc_table = CRC32.crc_table;
 		int c = ~v;
 		while (--len >= 0) {
 			c = crc_table[(c ^ buf[index++]) & 0xff] ^ (c >>> 8);

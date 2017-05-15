@@ -38,6 +38,9 @@ class HaxeTest : Base() {
 
 	@Test fun testBig() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
 
+	@Ignore
+	@Test fun testBigCpp() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "cpp", log = null)
+
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
 		true
@@ -71,9 +74,5 @@ class HaxeTest : Base() {
 		main__Ljava_lang_String__V
 		_jt___hello
 		JTranscReinterpretArrays:
-		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
-		floats:2 : [0.0, 0.0]
-		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
-		floats:2 : [1.0, -1.0]
 	""", target = HaxeTarget(), minimize = false)
 }

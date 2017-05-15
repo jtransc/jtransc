@@ -1,11 +1,22 @@
 import haxe.io.UInt8Array;
 import haxe.io.Bytes;
 import haxe.io.BytesData;
+import haxe.ds.Vector;
+
+#if cpp
+import cpp.Int8;
+import cpp.Pointer;
+import cpp.NativeArray;
+
+typedef __JA_Z_Item = Vector<Int8>;
+#else
+typedef __JA_Z_Item = Bytes;
+#end
 
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_Z extends JA_B {
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
-    public function new(length:Int, data: UInt8Array = null) {
+    public function new(length:Int, data: __JA_Z_Item = null) {
         super(length, data);
         this.desc = "[Z";
     }

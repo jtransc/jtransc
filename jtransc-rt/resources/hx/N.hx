@@ -24,7 +24,11 @@ typedef JavaLong = {% CLASS java.lang.Long %}
 typedef JavaFloat = {% CLASS java.lang.Float %}
 typedef JavaDouble = {% CLASS java.lang.Double %}
 
+// https://haxe.io/roundups/wwx/c++-magic/
 {{ HAXE_CLASS_ANNOTATIONS }}
+#if cpp
+@:headerClassCode('inline static int _i2b(int v) { return (char)v; }; inline static int _i2s(int v) { return (short)v; }; inline static int _i2c(int v) { return (unsigned short)v; };')
+#end
 class N {
 	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
@@ -107,21 +111,27 @@ class N {
 		#end
 	}
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function i2z(v:Int):Bool return v != 0;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function i2b(v:Int):Int return (v << _shift(8)) >> _shift(8);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function i2c(v:Int):Int return v & 0xFFFF;
+	#if cpp
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2b(v:Int):Int return ((v << 24) >> 24);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2s(v:Int):Int return ((v << 16) >> 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2c(v:Int):Int return ((v) & 0xFFFF);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v;
+	#elseif (js || flash)
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2b(v:Int):Int return ((v << 24) >> 24);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2s(v:Int):Int return ((v << 16) >> 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2c(v:Int):Int return v & 0xFFFF;
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v | 0;
+	#else
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static private function _signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2b(v:Int):Int return _signExtend(v, 8);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2s(v:Int):Int return _signExtend(v, 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2c(v:Int):Int return v & 0xFFFF;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i(v:Int):Int32 return _signExtend(v, 32);
+	#end
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2z(v:Int):Bool return v != 0;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function haxeStringArrayToJavaArray(strs:Array<String>):JA_L {
@@ -148,14 +158,6 @@ class N {
 	#else
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function imul(a:Int32, b:Int32):Int32 return a * b;
-	#end
-
-	#if (js || cpp || flash)
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function i(v:Int):Int32 return v | 0;
-	#else
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function i(v:Int):Int32 return (v << _shift(32)) >> _shift(32);
 	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -194,21 +196,14 @@ class N {
 	static public function umod(a:Int32, b:Int32):Int32 return ((a % b) + b) % b;
 
 	#if php
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
 	#else
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function ishl(a:Int32, b:Int32):Int32 return a << b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function ishl(a:Int32, b:Int32):Int32 return a << b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
 	#end
 
 	// Long operators
@@ -550,25 +545,13 @@ class N {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function arraycopy(src:JavaObject, srcPos:Int, dest:JavaObject, destPos:Int, length:Int) {
-		if (Std.is(src, JA_L)) {
-			JA_L.copy(cast(src, JA_L), cast(dest, JA_L), srcPos, destPos, length);
-		} else if (Std.is(src, JA_B)) {
-			 JA_B.copy(cast(src, JA_B), cast(dest, JA_B), srcPos, destPos, length);
-		 } else if (Std.is(src, JA_I)) {
-			JA_I.copy(cast(src, JA_I), cast(dest, JA_I), srcPos, destPos, length);
-		} else if (Std.is(src, JA_J)) {
-			JA_J.copy(cast(src, JA_J), cast(dest, JA_J), srcPos, destPos, length);
-		} else if (Std.is(src, JA_F)) {
-			JA_F.copy(cast(src, JA_F), cast(dest, JA_F), srcPos, destPos, length);
-		} else if (Std.is(src, JA_D)) {
-			JA_D.copy(cast(src, JA_D), cast(dest, JA_D), srcPos, destPos, length);
-		} else if (Std.is(src, JA_S)) {
-			 JA_S.copy(cast(src, JA_S), cast(dest, JA_S), srcPos, destPos, length);
-		} else if (Std.is(src, JA_C)) {
-			JA_C.copy(cast(src, JA_C), cast(dest, JA_C), srcPos, destPos, length);
+		var srcArray = cast(src, JA_0);
+		if (srcArray != null) {
+			srcArray.copyTo(srcPos, cast(dest, JA_0), destPos, length);
 		} else {
-			trace("arraycopy failed unsupported array type! " + src + ", " + dest);
-			throw "arraycopy failed unsupported array type! " + src + ", " + dest;
+			var str = "arraycopy failed unsupported array type! " + src + ", " + dest;
+			trace(str);
+			throw str;
 		}
 	}
 

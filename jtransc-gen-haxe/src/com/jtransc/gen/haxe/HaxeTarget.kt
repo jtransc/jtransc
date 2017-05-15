@@ -29,6 +29,7 @@ import com.jtransc.vfs.*
 import java.io.File
 import java.util.*
 
+// https://haxe.io/roundups/wwx/c++-magic/
 class HaxeTarget : GenTargetDescriptor() {
 	override val priority = 1000
 	override val name = "haxe"
@@ -405,9 +406,27 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i2z(str: String) = "(($str)!=0)"
-	override fun N_i2b(str: String) = "N.i2b($str)"
-	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
-	override fun N_i2s(str: String) = "N.i2s($str)"
+
+	val inlineCasts = subtarget != "php"
+
+	//override fun N_i2b(str: String) = "N.i2b($str)"
+	override fun N_i2b(str: String) = if (subtarget == "cpp") {
+		"NE.i2b($str)"
+	} else {
+		if (inlineCasts) "(($str) << 24 >> 24)" else "N.i2b($str)"
+	}
+	override fun N_i2c(str: String) = if (subtarget == "cpp") {
+		"NE.i2c($str)"
+	} else {
+		if (inlineCasts) "(($str) & 0xFFFF)" else "N.i2c($str)"
+	}
+	override fun N_i2s(str: String) = if (subtarget == "cpp") {
+		//"(untyped __cpp__('((int)(short)({0}))', $str))"
+		"NE.i2s($str)"
+	} else {
+		if (inlineCasts) "(($str) << 16 >> 16)" else "N.i2s($str)"
+	}
+
 	override fun N_f2i(str: String) = "Std.int($str)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.intToLong($str)"
@@ -727,6 +746,11 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				{{ entryPointFile }}
 				{% if debug %}
 					-debug
+				{% else %}
+					-D
+					no-debug
+					-D
+					unsafe
 				{% end %}
 				{{ actualSubtarget.cmdSwitch }}
 				{{ outputFile }}

@@ -1,27 +1,44 @@
-import haxe.io.Int32Array;
-import haxe.io.Bytes;
+import haxe.io.*;
 import haxe.ds.Vector;
+import haxe.Int32;
+
+#if cpp
+import cpp.Int32;
+import cpp.Pointer;
+import cpp.NativeArray;
+typedef __JA_I_Item = Vector<Int32>;
+#elseif flash
+typedef __JA_I_Item = Vector<Int>;
+#else
+typedef __JA_I_Item = Int32Array;
+#end
 
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_I extends JA_0 {
 	{{ HAXE_FIELD_ANNOTATIONS }}
-	public var data:Int32Array = null;
+	public var data:__JA_I_Item = null;
+
+	#if cpp
+	{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:Pointer<Int32> = null;
+	#end
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
-    public function new(length:Int, data:Int32Array = null) {
+    public function new(length:Int, data:__JA_I_Item = null) {
         super();
-        if (data == null) data = new Int32Array(length); else length = data.length;
+        if (data == null) {
+        	data = new __JA_I_Item(length);
+		} else {
+			length = data.length;
+		}
         this.data = data;
         this.length = length;
         this.desc = "[I";
+		#if cpp
+		ptr = NativeArray.address(data.toData(), 0);
+		#end
     }
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	override public function getElementBytesSize():Int return 4;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	override public function getArrayBufferView() return data.view;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    public function getTypedArray() return data;
+	{{ HAXE_METHOD_ANNOTATIONS }} override public function getElementBytesSize():Int return 4;
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function fromArray(items:Array<Dynamic>) {
@@ -31,13 +48,9 @@ class JA_I extends JA_0 {
         return out;
     }
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function T(items:Array<Dynamic>) {
-    	return fromArray(items);
-    }
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T(items:Array<Dynamic>) return fromArray(items);
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    override public function getBytes() return data.view.buffer;
+	{{ HAXE_METHOD_ANNOTATIONS }} override public function getBytes(): Bytes throw 'getBytes';
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function fromBytes(bytes:Bytes) {
@@ -48,10 +61,14 @@ class JA_I extends JA_0 {
         return out;
     }
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    inline public function get(index:Int):Int return this.data[checkBounds(index)];
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    inline public function set(index:Int, value:Int):Void this.data[checkBounds(index)] = value;
+	#if cpp
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):Int return ptr[checkBounds(index)];
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:Int):Void ptr[checkBounds(index)] = value;
+	#else
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):Int return this.data[checkBounds(index)];
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:Int):Void this.data[checkBounds(index)] = value;
+	#end
+
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	override public function getDynamic(index:Int):Dynamic return get(index);
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -76,11 +93,17 @@ class JA_I extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_I, to:JA_I, fromPos:Int, toPos:Int, length:Int) {
+		#if (sys || flash)
+		Vector.blit(from.data, fromPos, to.data, toPos, length);
+		#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 	    }
+		#end
     }
+
+    {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_I), srcPos, dstPos, length); }
 }

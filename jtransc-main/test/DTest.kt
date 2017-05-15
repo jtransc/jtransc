@@ -50,9 +50,5 @@ class DTest : Base() {
 
 	@Test fun testMixed() = testNativeClass<JTranscDNativeMixedTest>("""
 		JTranscReinterpretArrays:
-		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
-		floats:2 : [0.0, 0.0]
-		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
-		floats:2 : [1.0, -1.0]
 	""", target = DTarget(), minimize = false)
 }

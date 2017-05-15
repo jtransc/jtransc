@@ -1,4 +1,5 @@
 class HaxePolyfills {
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function install() {
 		#if js
 		untyped __js__("

@@ -3,11 +3,8 @@ import haxe.Int64;
 
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_J extends JA_0 {
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	public var data:Vector<Int64> = null;
-
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static private var ZERO = Int64.make(0,0);
+	{{ HAXE_FIELD_ANNOTATIONS }} public var data:Vector<Int64> = null;
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var ZERO = Int64.make(0,0);
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
     public function new(length:Int) {
@@ -76,4 +73,6 @@ class JA_J extends JA_0 {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 	    }
     }
+
+    {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_J), srcPos, dstPos, length); }
 }

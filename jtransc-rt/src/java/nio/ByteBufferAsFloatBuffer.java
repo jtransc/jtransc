@@ -139,16 +139,16 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
     public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
         byteBuffer.limit(limit * SizeOf.FLOAT);
 		byteBuffer.position(position * SizeOf.FLOAT);
-		if (JTranscArrays.nativeReinterpretSupported() && byteBuffer.isNativeOrder) {
-			float[] dst = JTranscArrays.nativeReinterpretAsFloat(byteBuffer.array());
-			System.arraycopy(src, srcOffset, dst, position, floatCount);
-		} else {
+		//if (JTranscArrays.nativeReinterpretSupported() && byteBuffer.isNativeOrder) {
+		//	float[] dst = JTranscArrays.nativeReinterpretAsFloat(byteBuffer.array());
+		//	System.arraycopy(src, srcOffset, dst, position, floatCount);
+		//} else {
 			int offset = position * SizeOf.FLOAT;
 			for (int n = 0; n < floatCount; n++) {
 				byteBuffer.putFloat(offset, src[srcOffset + n]);
 				offset += 4;
 			}
-		}
+		//}
 		position += floatCount;
         return this;
     }
