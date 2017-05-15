@@ -415,4 +415,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "(J__exception__ as ${e.type.targetName})"
 }

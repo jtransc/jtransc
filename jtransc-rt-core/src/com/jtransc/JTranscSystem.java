@@ -126,6 +126,7 @@ public class JTranscSystem {
 		if (isNeko()) return "neko";
 		if (isPhp()) return "php";
 		if (isPython()) return "python";
+		if (isAs3()) return "as3";
 		return "unknown";
 	}
 
@@ -221,6 +222,11 @@ public class JTranscSystem {
 
 	@HaxeMethodBody(target = "python", value = "return true;")
 	public static boolean isPython() {
+		return FALSE;
+	}
+
+	@JTranscMethodBody(target = "as3", value = "return true;")
+	public static boolean isAs3() {
 		return FALSE;
 	}
 
