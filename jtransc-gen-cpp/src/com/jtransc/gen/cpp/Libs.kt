@@ -1,9 +1,11 @@
 package com.jtransc.gen.cpp
 
+import com.jtransc.JTranscSystem
 import com.jtransc.ast.AstProgram
 import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.vfs.ExecOptions
+import com.jtransc.vfs.get
 import org.rauschig.jarchivelib.ArchiveFormat
 import org.rauschig.jarchivelib.ArchiverFactory
 import org.rauschig.jarchivelib.CompressionType
@@ -50,7 +52,8 @@ object Libs {
 	}
 
 	fun installRequiredLibs(program: AstProgram) {
-		installBdwgc()
+		val cppCommonFolder = CppCompiler.CPP_COMMON_FOLDER.realfile
+		if (!File(cppCommonFolder, "bdwgc/.libs/").exists()) installBdwgc()
 		installBoost()
 		copyJniHeaders(program)
 	}
@@ -91,17 +94,20 @@ object Libs {
 
 		libaDestDir[0].renameTo(File(bdwgcDir, "libatomic_ops"))
 
-		File(bdwgcDir, "autogen.sh").setExecutable(true)
-		runCommand(bdwgcDir, "./autogen.sh", Collections.emptyList())
+		if (JTranscSystem.isWindows()) {
+			runCommand(bdwgcDir, "cmake", listOf(bdwgcDir.absolutePath))
+			runCommand(bdwgcDir, "cmake", listOf("--build", bdwgcDir.absolutePath, "--config", "Release"))
+			bdwgcDir[".libs"].mkdirs()
+			bdwgcDir["Release"].copyRecursively(bdwgcDir[".libs"])
+		} else {
+			bdwgcDir["autogen.sh"].setExecutable(true)
+			runCommand(bdwgcDir, "./autogen.sh", listOf())
 
+			bdwgcDir["configure"].setExecutable(true)
+			runCommand(bdwgcDir, "./configure", listOf("--enable-cplusplus"))
 
-		File(bdwgcDir, "configure").setExecutable(true)
-		runCommand(bdwgcDir, "./configure", mutableListOf("--enable-cplusplus"))
-
-
-		runCommand(bdwgcDir, "make", mutableListOf("-j"))
-
-
+			runCommand(bdwgcDir, "make", listOf("-j"))
+		}
 	}
 
 	fun installBoost() {

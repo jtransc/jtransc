@@ -146,6 +146,7 @@ So others could generate that without JVM and others could generate other target
 __WINDOWS__
 - Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v7.1.0 -> x68_64-posix-seh Revision 0
 - Add "path/to/mingw64" to `PATH` environment variable
+- Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
 __MAC__
 - Install Xcode 8.3.2
