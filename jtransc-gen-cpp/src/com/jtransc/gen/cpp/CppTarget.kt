@@ -912,9 +912,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	//	return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
 	//}
 
-	override val NegativeInfinityString = "-INFINITY"
-	override val PositiveInfinityString = "INFINITY"
-	override val NanString = "NAN"
+	override val DoubleNegativeInfinityString = "-INFINITY"
+	override val DoublePositiveInfinityString = "INFINITY"
+	override val DoubleNanString = "NAN"
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")

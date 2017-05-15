@@ -62,6 +62,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
+	override val floatHasFPrefix = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -362,10 +363,14 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
 	}
 
-	override val NegativeInfinityString = "Double.NegativeInfinity"
-	override val PositiveInfinityString = "Double.PositiveInfinity"
+	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
+	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
 	//override val NanString = "Double.NaN"
-	override val NanString = "N.DoubleNaN"
+	override val DoubleNanString = "N.DoubleNaN"
+
+	override val FloatNegativeInfinityString = "Single.NegativeInfinity"
+	override val FloatPositiveInfinityString = "Single.PositiveInfinity"
+	override val FloatNanString = "N.FloatNaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 
@@ -376,12 +381,6 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 			return genExpr2(this)
 		}
 	}
-
-	override fun escapedConstant(v: Any?): String = when (v) {
-		is Float -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) NanString else "${v}f"
-		else -> super.escapedConstant(v)
-	}
-
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {
@@ -410,5 +409,10 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, new ${stm.elementType.targetName}[] { ${stm.values.map { it.genExpr() }.joinToString(", ")} });")
+	}
+
 
 }

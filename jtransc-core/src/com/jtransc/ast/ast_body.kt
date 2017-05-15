@@ -170,6 +170,8 @@ open class AstStm : AstElement, Cloneable<AstStm> {
 
 	class SET_ARRAY_LITERALS(array: AstExpr, val startIndex: Int, val values: List<AstExpr.Box>) : AstStm() {
 		val array = array.box
+		val arrayType get() = array.type.asArray()
+		val elementType get() = arrayType.element
 	}
 
 	class SET_FIELD_STATIC(val field: AstFieldRef, expr: AstExpr) : AstStm() {

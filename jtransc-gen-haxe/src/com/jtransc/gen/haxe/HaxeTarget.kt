@@ -699,9 +699,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val DoubleArrayType = "JA_D"
 	override val ObjectArrayType = "JA_L"
 
-	override val NegativeInfinityString = "Math.NEGATIVE_INFINITY"
-	override val PositiveInfinityString = "Math.POSITIVE_INFINITY"
-	override val NanString = "Math.NaN"
+	override val DoubleNegativeInfinityString = "Math.NEGATIVE_INFINITY"
+	override val DoublePositiveInfinityString = "Math.POSITIVE_INFINITY"
+	override val DoubleNanString = "Math.NaN"
 
 	///////////////////////////
 

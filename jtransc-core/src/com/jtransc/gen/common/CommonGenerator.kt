@@ -53,6 +53,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val classFileExtension = ""
 	open val allowRepeatMethodsInInterfaceChain = true
 	open val localVarPrefix = ""
+	open val floatHasFPrefix = true
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
@@ -1725,9 +1726,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FloatArrayType = "JA_F"
 	open val DoubleArrayType = "JA_D"
 	open val ObjectArrayType = "JA_L"
-	open val NegativeInfinityString = "-Infinity"
-	open val PositiveInfinityString = "Infinity"
-	open val NanString = "NaN"
+	open val DoubleNegativeInfinityString = "-Infinity"
+	open val DoublePositiveInfinityString = "Infinity"
+	open val DoubleNanString = "NaN"
+
+	open val FloatNegativeInfinityString get() = DoubleNegativeInfinityString
+	open val FloatPositiveInfinityString get() = DoublePositiveInfinityString
+	open val FloatNanString get() = DoubleNanString
 
 //////////////////////////////////////////////////
 // Constants
@@ -1753,8 +1758,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is Boolean -> if (v) "true" else "false"
 		is String -> v.escapeString
 		is Long -> N_lnew(v)
-		is Float -> v.toDouble().escapedConstant
-		is Double -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) if (v < 0) "-$NanString" else NanString else "$v"
+		is Float -> if (v.isInfinite()) if (v < 0) FloatNegativeInfinityString else FloatPositiveInfinityString else if (v.isNaN()) FloatNanString else if (floatHasFPrefix) "${v}f" else "$v"
+		is Double -> if (v.isInfinite()) if (v < 0) DoubleNegativeInfinityString else DoublePositiveInfinityString else if (v.isNaN()) if (v < 0) "-$DoubleNanString" else DoubleNanString else "$v"
 		is Int -> when (v) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
 			else -> "$v"

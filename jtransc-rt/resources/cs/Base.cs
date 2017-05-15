@@ -6,6 +6,7 @@ using System;
 
 class N {
 	//public static readonly double DoubleNaN = 0.0d / 0.0;
+	public static readonly float FloatNaN = intBitsToFloat(0x7FF80000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
 	static public {% CLASS com.jtransc.JTranscWrapped %} wrap(object item) {
@@ -207,6 +208,10 @@ class JA_Template<T> : JA_0 {
 	override public int copyTo(JA_0 target, int src, int dst, int len) {
 		Array.Copy(this.data, src, ((JA_Template<T>)target).data, dst, len);
 		return len;
+	}
+
+	public void setArraySlice(int index, T[] data) {
+		Array.Copy(data, 0, this.data, index, data.Length);
 	}
 
 	public T this[int i] { get { return data[i]; } set { data[i] = value; } }

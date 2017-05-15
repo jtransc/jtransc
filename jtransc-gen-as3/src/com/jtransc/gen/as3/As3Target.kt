@@ -391,9 +391,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", [${e.counts.map { it.genExpr() }.joinToString(", ")}])"
 	}
 
-	override val NegativeInfinityString = "Number.NEGATIVE_INFINITY"
-	override val PositiveInfinityString = "Number.POSITIVE_INFINITY"
-	override val NanString = "N.NaN"
+	override val DoubleNegativeInfinityString = "Number.NEGATIVE_INFINITY"
+	override val DoublePositiveInfinityString = "Number.POSITIVE_INFINITY"
+	override val DoubleNanString = "N.NaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 

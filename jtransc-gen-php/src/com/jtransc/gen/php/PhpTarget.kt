@@ -367,10 +367,10 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
 	}
 
-	override val NegativeInfinityString = "Double.NegativeInfinity"
-	override val PositiveInfinityString = "Double.PositiveInfinity"
+	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
+	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
 	//override val NanString = "Double.NaN"
-	override val NanString = "N.DoubleNaN"
+	override val DoubleNanString = "N.DoubleNaN"
 
 	override val String.escapeString: String get() = "Bootstrap::\$STRINGLIT_${allocString(currentClass, this)}"
 

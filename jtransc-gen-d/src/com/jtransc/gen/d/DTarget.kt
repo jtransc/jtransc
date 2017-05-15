@@ -285,9 +285,9 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override val NegativeInfinityString = "-double.infinity"
-	override val PositiveInfinityString = "double.infinity"
-	override val NanString = "double.nan"
+	override val DoubleNegativeInfinityString = "-double.infinity"
+	override val DoublePositiveInfinityString = "double.infinity"
+	override val DoubleNanString = "double.nan"
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 
