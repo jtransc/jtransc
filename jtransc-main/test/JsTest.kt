@@ -107,10 +107,6 @@ class JsTest : Base() {
 		Error !(10 < 10)
 		ok
 		JTranscReinterpretArrays:
-		bytes:8 : [0, 0, 0, 0, 0, 0, 0, 0]
-		floats:2 : [0.0, 0.0]
-		bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
-		floats:2 : [1.0, -1.0]
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
