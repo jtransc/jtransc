@@ -95,6 +95,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
 	val MAX_SWITCH_SIZE = 10
+	override val floatHasFPrefix: Boolean = false
 
 	//val unreflective = "@:unreflective"
 	val unreflective = ""

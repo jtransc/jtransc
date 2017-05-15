@@ -61,6 +61,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
+	override val floatHasFPrefix: Boolean = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",

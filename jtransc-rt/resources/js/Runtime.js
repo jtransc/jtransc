@@ -1150,11 +1150,8 @@ N.getByteArray = function(v) {
 
 N.clone = function(obj) {
 	if (obj == null) return null;
-
 	var temp = Object.create(obj);
-
-	temp['{% FIELD java.lang.Object:$$id %}'] = {% SFIELD java.lang.Object:$$lastId %}++;
-
+	temp['{% FIELD java.lang.Object:$$id %}'] = 0;
 	return temp;
 };
 

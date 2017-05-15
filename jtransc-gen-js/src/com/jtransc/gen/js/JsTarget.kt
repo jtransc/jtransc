@@ -73,6 +73,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 	override val stringPoolType = StringPool.Type.GLOBAL
+	override val floatHasFPrefix: Boolean = false
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
