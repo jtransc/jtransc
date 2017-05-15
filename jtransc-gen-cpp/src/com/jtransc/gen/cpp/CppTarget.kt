@@ -235,6 +235,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		)
 
 		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
+		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)

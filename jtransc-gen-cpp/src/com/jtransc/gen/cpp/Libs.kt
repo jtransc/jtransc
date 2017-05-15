@@ -69,6 +69,14 @@ object Libs {
 		)
 	}
 
+	val libFolders by lazy {
+		listOf(
+			cppCommonFolder["bdwgc"][".libs"],
+			cppCommonFolder["boost"]["compiled-libs"]
+
+		)
+	}
+
 	fun installRequiredLibs(program: AstProgram) {
 		installBdwgc()
 		installBoost()
