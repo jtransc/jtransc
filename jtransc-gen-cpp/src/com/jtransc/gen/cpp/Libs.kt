@@ -43,28 +43,29 @@ object Libs {
 		sourceURL.openStream().use({ `in` -> Files.copy(`in`, destFile.toPath(), StandardCopyOption.REPLACE_EXISTING) })
 	}
 
-	fun areRequiredLibsInstalled(): Boolean {
-		val cppCommonFolder = CppCompiler.CPP_COMMON_FOLDER.realfile
-		if (!File(cppCommonFolder, "boost/compiled-libs/").exists()) return false
-		if (!File(cppCommonFolder, "bdwgc/.libs/").exists()) return false
-		if (!File(cppCommonFolder, "jni-headers/jni.h").exists()) return false
-		return true
-	}
+	val cppCommonFolder get() = CppCompiler.CPP_COMMON_FOLDER.realfile
+
+	fun areRequiredLibsInstalled(): Boolean = listOf(
+		cppCommonFolder["boost/compiled-libs/"],
+		cppCommonFolder["bdwgc/.libs/"],
+		cppCommonFolder["jni-headers/jni.h"]
+	).all { it.exists() }
 
 	fun installRequiredLibs(program: AstProgram) {
-		val cppCommonFolder = CppCompiler.CPP_COMMON_FOLDER.realfile
-		if (!File(cppCommonFolder, "bdwgc/.libs/").exists()) installBdwgc()
+		installBdwgc()
 		installBoost()
 		copyJniHeaders(program)
 	}
 
 	fun installBdwgc() {
+		if (cppCommonFolder["bdwgc/.libs/"].exists()) return // Already compiled
+
 		// Boehm conservative garbage collector and libatomics
-		val bdwgcDir = File(sdkDir, "bdwgc");
+		val bdwgcDir = File(sdkDir, "bdwgc")
 		//gc
-		val bdwgcDestZip = File(sdkDir, "gc.zip");
+		val bdwgcDestZip = File(sdkDir, "gc.zip")
 		downloadFile(URL("https://github.com/ivmai/bdwgc/archive/gc7_6_0.zip"), bdwgcDestZip)
-		unzip(bdwgcDestZip, sdkDir);
+		unzip(bdwgcDestZip, sdkDir)
 		val bdwgcDestDir = sdkDir.listFiles { dir, name -> name.startsWith("bdwgc") && dir.isDirectory } // find the unzipped folder
 		if (bdwgcDestDir == null) {
 			System.err.println("Unzipped directory for gc files couldn't be found. Probably unzipping failed")
@@ -79,9 +80,9 @@ object Libs {
 
 
 		//libatomics
-		val libaDestZip = File(bdwgcDir, "libatomic_ops.zip");
+		val libaDestZip = File(bdwgcDir, "libatomic_ops.zip")
 		downloadFile(URL("https://github.com/intrigus/libatomic_ops/archive/master.zip"), libaDestZip)
-		unzip(libaDestZip, bdwgcDir);
+		unzip(libaDestZip, bdwgcDir)
 		val libaDestDir = bdwgcDir.listFiles { dir, name -> name.startsWith("libatomic_ops") && !name.endsWith(".zip") } // find the unzipped folder
 		if (libaDestDir == null) {
 			System.err.println("Unzipped directory for gc files couldn't be found. Probably unzipping failed")
@@ -111,13 +112,15 @@ object Libs {
 	}
 
 	fun installBoost() {
-		val boostDir = File(sdkDir, "boost");
+		if (cppCommonFolder["boost/compiled-libs/"].exists()) return // Already compiled
+
+		val boostDir = File(sdkDir, "boost")
 		boostDir.ensureExists()
 
 		//boost
-		val boostDestZip = File(boostDir, "boost.zip");
+		val boostDestZip = File(boostDir, "boost.zip")
 		downloadFile(URL("https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz"), boostDestZip)
-		untar(boostDestZip, boostDir);
+		untar(boostDestZip, boostDir)
 		val boostDestDir = boostDir.listFiles { dir, name -> name.startsWith("boost") && !name.endsWith(".zip") && !name.endsWith(".gz") } // find the unzipped folder
 		if (boostDestDir == null) {
 			System.err.println("Unzipped directory for boost files couldn't be found. Probably unzipping failed")
@@ -128,12 +131,20 @@ object Libs {
 			System.exit(-1)
 		}
 
-		File(boostDestDir[0], "bootstrap.sh").setExecutable(true)
-		runCommand(boostDestDir[0], "./bootstrap.sh", mutableListOf("--prefix=${sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
+		val boostDestDir0 = boostDestDir[0]
 
+		if (JTranscSystem.isWindows()) {
+			runCommand(boostDestDir0, "cmd", mutableListOf("/c", "bootstrap.bat", "--prefix=${sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
+			runCommand(boostDestDir0, "b2.exe", mutableListOf("install"))
+			boostDir["compiled-libs"].mkdirs()
+			boostDestDir0["stage/lib"].copyRecursively(boostDir["compiled-libs"])
+		} else {
+			boostDestDir0["bootstrap.sh"].setExecutable(true)
+			runCommand(boostDestDir0, "./bootstrap.sh", mutableListOf("--prefix=${sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
 
-		File(boostDestDir[0], "b2").setExecutable(true)
-		runCommand(boostDestDir[0], "./b2", mutableListOf("install"))
+			boostDestDir0["b2"].setExecutable(true)
+			runCommand(boostDestDir0, "./b2", mutableListOf("install"))
+		}
 	}
 
 	fun copyJniHeaders(program: AstProgram) {
