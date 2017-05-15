@@ -6,6 +6,9 @@ include_directories({{ folder|escape }})
 {% for folder in CPP_LIB_FOLDERS %}
 link_directories({{ folder|escape }})
 {% end %}
+
+add_definitions(-DGC_NOT_DLL=1)
+
 add_executable(program program.cpp)
 
-target_link_libraries(program gcmt-dll)
+target_link_libraries(program gc-lib)
