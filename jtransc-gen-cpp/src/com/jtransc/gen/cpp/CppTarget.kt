@@ -96,6 +96,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val staticAccessOperator: String = "::"
 	override val instanceAccessOperator: String = "->"
 
+	//override fun copyFilesExtra(output: SyncVfsFile) {
+	//	output["CMakeLists.txt"] = Indenter {
+	//		line("cmake_minimum_required(VERSION 2.8.9)")
+	//		line("project (program)")
+	//		line("add_executable(program program.cpp)")
+	//	}
+	//}
+
 	override fun compile(): ProcessResult2 {
 		if (!Libs.areRequiredLibsInstalled()) {
 			System.err.println("Required libs(boost, bdwgc and jni-headers) couldn't be found.")
@@ -139,7 +147,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	fun generateTypeTableFooter() = Indenter.gen {
-		var objectClassId = program["java.lang.Object".fqname].classId
+		val objectClassId = program["java.lang.Object".fqname].classId
 		for (clazz in ordereredClasses) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int[${ids.size}]{${ids.joinToString(", ")}} };")
@@ -225,6 +233,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			"JA_D" to "double",
 			"JA_L" to "JAVA_OBJECT"
 		)
+
+		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)
@@ -328,6 +338,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		injector.mapInstance(ConfigCppOutput(output[outputFile]))
 
 		println(output[outputFile].realpathOS)
+
+		copyFiles(output)
 	}
 
 	val AstClass.cppName: String get() = this.name.targetName

@@ -613,9 +613,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	class PrependAppend(val prepend: String, val append: String)
 
+	open fun copyFilesExtra(output: SyncVfsFile) {
+
+	}
+
 	fun copyFiles(output: SyncVfsFile): PrependAppend {
 		val resourcesVfs = program.resourcesVfs
 		val copyFiles = getFilesToCopy(targetName.name)
+
+		copyFilesExtra(output)
 
 		//println(copyFiles)
 		val copyFilesTrans = copyFiles.filter { it.src.isNotEmpty() && it.dst.isNotEmpty() }.map {

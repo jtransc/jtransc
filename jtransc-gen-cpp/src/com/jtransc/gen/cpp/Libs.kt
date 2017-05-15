@@ -2,7 +2,6 @@ package com.jtransc.gen.cpp
 
 import com.jtransc.JTranscSystem
 import com.jtransc.ast.AstProgram
-import com.jtransc.io.ProcessResult2
 import com.jtransc.io.ProcessUtils
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.get
@@ -50,6 +49,25 @@ object Libs {
 		cppCommonFolder["bdwgc/.libs/"],
 		cppCommonFolder["jni-headers/jni.h"]
 	).all { it.exists() }
+
+	val JNI_PLATFORM by lazy {
+		when {
+			JTranscSystem.isWindows() -> "win32"
+			JTranscSystem.isMac() -> "mac"
+			JTranscSystem.isLinux() -> "linux"
+			else -> "linux"
+		}
+	}
+
+	val includeFolders by lazy {
+		listOf(
+			cppCommonFolder["jni-headers"],
+			cppCommonFolder["jni-headers"][JNI_PLATFORM],
+			cppCommonFolder["bdwgc"]["include"],
+			cppCommonFolder["boost"]["boost_1_64_0"]
+
+		)
+	}
 
 	fun installRequiredLibs(program: AstProgram) {
 		installBdwgc()
