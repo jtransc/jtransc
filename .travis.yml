@@ -24,7 +24,7 @@ before_install:
 - jdk_switcher use oraclejdk8
 - sudo apt-key update
 - sudo apt-get update -qq
-#- sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 - sudo apt-get update; sudo apt-get install gcc-4.8 g++-4.8
 - sudo update-alternatives --remove-all gcc
 - sudo update-alternatives --remove-all g++
@@ -53,6 +53,7 @@ before_script:
 - export PATH=$HAXEPATH:$PATH
 - ls -la $PWD
 - ls -la $PWD/haxe-3.4.2
+- g++ --version || true
 - which java || true
 - java -version || true
 - which haxe || true
