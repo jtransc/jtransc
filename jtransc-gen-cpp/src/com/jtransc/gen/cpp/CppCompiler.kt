@@ -62,6 +62,7 @@ object CppCompiler {
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs)
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}
@@ -80,6 +81,7 @@ object CppCompiler {
 			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs)
+			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 			for (lib in libs) cmdAndArgs += "-l$lib"
 			return cmdAndArgs
 		}
