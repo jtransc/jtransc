@@ -120,7 +120,7 @@ So others could generate that without JVM and others could generate other target
 - DMD2 or GDC or LDC (Verified dmd-2.074.0)
 
 ### For C++ target:
-- Clang++ or g++
+- Clang++ or g++ (At least gcc 4.8)
 
 ### Verified on Windows 10.0.15063 and macOS Sierra 10.12.4
 
