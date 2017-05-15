@@ -9,7 +9,6 @@ import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
-import com.jtransc.ast.transform.reduceSwitch
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
@@ -97,8 +96,13 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	val MAX_SWITCH_SIZE = 10
 	override val floatHasFSuffix: Boolean = false
 
-	//val unreflective = "@:unreflective"
-	val unreflective = ""
+	val nostack = if (debugVersion) "" else "@:noStack"
+	val unreflective = "@:unreflective"
+
+	val CLASS_ANNOTATIONS = "$unreflective"
+	val FIELD_ANNOTATIONS = "$unreflective"
+	val CONSTRUCTOR_ANNOTATIONS = "$nostack $unreflective"
+	val METHOD_ANNOTATIONS = "$nostack $unreflective"
 
 	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
@@ -510,7 +514,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				val inline = if (method.isInline) "inline " else ""
 				val rettype = if (method.methodVoidReturnThis) method.containingClass.astType else method.methodType.ret
 				val decl = try {
-					"$unreflective $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetName}".trim()
+					"$METHOD_ANNOTATIONS $static $visibility $inline $override function ${method.targetName}/*${method.name}*/(${margs.joinToString(", ")}):${rettype.targetName}".trim()
 				} catch (e: RuntimeException) {
 					println("@TODO abstract interface not referenced: ${method.containingClass.fqname} :: ${method.name} : $e")
 					throw e
@@ -526,7 +530,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 						try {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
-							val str : String = "${clazz.name}.${method.name} :: ${method.desc}: No method body".replace('$', '_');
+							val str: String = "${clazz.name}.${method.name} :: ${method.desc}: No method body".replace('$', '_');
 							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';") }.toString().template())
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
@@ -542,10 +546,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		fun addClassInit(clazz: AstClass) = Indenter.gen {
 			for (e in getClassStrings(clazz.name)) {
-				line("$unreflective static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
+				line("$FIELD_ANNOTATIONS static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
 
-			line("$unreflective static public function SI()") {
+			line("$METHOD_ANNOTATIONS static public function SI()") {
 				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.strLit(${e.str.quote()});")
 				if (clazz.hasStaticInit) {
 					val methodName = clazz.staticInitMethod!!.targetName
@@ -584,7 +588,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 					if (isRootObject) {
 						line("public var _CLASS_ID__HX:Int;")
 					}
-					line("$unreflective public function new()") {
+					line("$CONSTRUCTOR_ANNOTATIONS public function new()") {
 						line(if (isRootObject) "" else "super();")
 						line("this._CLASS_ID__HX = ${clazz.classId};")
 					}
@@ -606,8 +610,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 
 				if (isRootObject) {
-					line("$unreflective public function toString():String { return N.toNativeString(this.$toStringTargetName()); }")
-					line("$unreflective public function hashCode():Int { return this.$hashCodeTargetName(); }")
+					line("$METHOD_ANNOTATIONS public function toString():String { return N.toNativeString(this.$toStringTargetName()); }")
+					line("$METHOD_ANNOTATIONS public function hashCode():Int { return this.$hashCodeTargetName(); }")
 				}
 
 				if (!isInterface) {
@@ -621,8 +625,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (isInterface) {
-				line("$unreflective class ${simpleClassName}_IFields") {
-					line("$unreflective public function new() {}")
+				line("$CLASS_ANNOTATIONS class ${simpleClassName}_IFields") {
+					line("$CONSTRUCTOR_ANNOTATIONS public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
 					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))
@@ -743,6 +747,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		params["buildFolder"] = srcFolder.parent.realpathOS
 		params["haxeExtraFlags"] = program.haxeExtraFlags(settings)
 		params["haxeExtraDefines"] = program.haxeExtraDefines(settings)
+		params["HAXE_CLASS_ANNOTATIONS"] = CLASS_ANNOTATIONS
+		params["HAXE_FIELD_ANNOTATIONS"] = FIELD_ANNOTATIONS
+		params["HAXE_CONSTRUCTOR_ANNOTATIONS"] = CONSTRUCTOR_ANNOTATIONS
+		params["HAXE_METHOD_ANNOTATIONS"] = METHOD_ANNOTATIONS
 	}
 
 	//override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
