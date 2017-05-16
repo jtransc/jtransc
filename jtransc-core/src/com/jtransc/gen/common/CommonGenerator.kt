@@ -1801,7 +1801,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 //////////////////////////////////////////////////
 
 	val AstType.targetName: String get() = getTypeTargetName(this, ref = false)
-	val AstType.targetNameRef: String get() = getTypeTargetName(this, ref = true)
+	open val AstType.targetNameRef: String get() = getTypeTargetName(this, ref = true)
+	//open val AstType.targetNameRefBounds: String get() = getTypeTargetName(this, ref = true)
 
 	fun getTypeTargetName(type: AstType, ref: Boolean): String {
 		val type = type.resolve()

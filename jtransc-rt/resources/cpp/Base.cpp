@@ -152,6 +152,8 @@ struct N { public:
 	inline static int64_t d2j(double v);
 	static void log(std::wstring str);
 	static void log(JAVA_OBJECT str);
+
+	{% if ENABLE_TYPING %}
 	static p_java_lang_String str(char *str);
 	static p_java_lang_String str(const wchar_t *str, int len);
 	static p_java_lang_String str(std::wstring str);
@@ -160,6 +162,17 @@ struct N { public:
 	static p_JA_L strArray(std::vector<std::wstring> strs);
 	static p_JA_L strArray(std::vector<std::string> strs);
 	static p_JA_L strEmptyArray();
+	{% else %}
+	static JAVA_OBJECT str(char *str);
+	static JAVA_OBJECT str(const wchar_t *str, int len);
+	static JAVA_OBJECT str(std::wstring str);
+	static JAVA_OBJECT str(std::string str);
+	static JAVA_OBJECT strArray(int count, wchar_t **strs);
+	static JAVA_OBJECT strArray(std::vector<std::wstring> strs);
+	static JAVA_OBJECT strArray(std::vector<std::string> strs);
+	static JAVA_OBJECT strEmptyArray();
+	{% end %}
+
 	static std::wstring istr2(JAVA_OBJECT obj);
 	static std::string istr3(JAVA_OBJECT obj);
 	static JAVA_OBJECT dummyMethodClass();
@@ -242,14 +255,14 @@ struct JA_0 : public java_lang_Object { public:
 	static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len) {
 		::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);
 	}
-	JAVA_OBJECT toBoolArray();
-	JAVA_OBJECT toByteArray();
-	JAVA_OBJECT toCharArray();
-	JAVA_OBJECT toShortArray();
-	JAVA_OBJECT toIntArray();
-	JAVA_OBJECT toLongArray();
-	JAVA_OBJECT toFloatArray();
-	JAVA_OBJECT toDoubleArray();
+	//JAVA_OBJECT toBoolArray();
+	//JAVA_OBJECT toByteArray();
+	//JAVA_OBJECT toCharArray();
+	//JAVA_OBJECT toShortArray();
+	//JAVA_OBJECT toIntArray();
+	//JAVA_OBJECT toLongArray();
+	//JAVA_OBJECT toFloatArray();
+	//JAVA_OBJECT toDoubleArray();
 };
 
 template <class T>
@@ -373,14 +386,14 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	}
 };
 
-JAVA_OBJECT JA_0::toBoolArray  () { return new JA_Z((void *)getStartPtr(), bytesLength() / 1); };
-JAVA_OBJECT JA_0::toByteArray  () { return new JA_B((void *)getStartPtr(), bytesLength() / 1); };
-JAVA_OBJECT JA_0::toCharArray  () { return new JA_C((void *)getStartPtr(), bytesLength() / 2); };
-JAVA_OBJECT JA_0::toShortArray () { return new JA_S((void *)getStartPtr(), bytesLength() / 2); };
-JAVA_OBJECT JA_0::toIntArray   () { return new JA_I((void *)getStartPtr(), bytesLength() / 4); };
-JAVA_OBJECT JA_0::toLongArray  () { return new JA_J((void *)getStartPtr(), bytesLength() / 8); };
-JAVA_OBJECT JA_0::toFloatArray () { return new JA_F((void *)getStartPtr(), bytesLength() / 4); };
-JAVA_OBJECT JA_0::toDoubleArray() { return new JA_D((void *)getStartPtr(), bytesLength() / 8); };
+//JAVA_OBJECT JA_0::toBoolArray  () { return new JA_Z((void *)getStartPtr(), bytesLength() / 1); };
+//JAVA_OBJECT JA_0::toByteArray  () { return new JA_B((void *)getStartPtr(), bytesLength() / 1); };
+//JAVA_OBJECT JA_0::toCharArray  () { return new JA_C((void *)getStartPtr(), bytesLength() / 2); };
+//JAVA_OBJECT JA_0::toShortArray () { return new JA_S((void *)getStartPtr(), bytesLength() / 2); };
+//JAVA_OBJECT JA_0::toIntArray   () { return new JA_I((void *)getStartPtr(), bytesLength() / 4); };
+//JAVA_OBJECT JA_0::toLongArray  () { return new JA_J((void *)getStartPtr(), bytesLength() / 8); };
+//JAVA_OBJECT JA_0::toFloatArray () { return new JA_F((void *)getStartPtr(), bytesLength() / 4); };
+//JAVA_OBJECT JA_0::toDoubleArray() { return new JA_D((void *)getStartPtr(), bytesLength() / 8); };
 
 
 {{ ARRAY_HEADERS_POST }}
@@ -518,8 +531,10 @@ int64_t N::d2j(double v) { return (int64_t)v; }
 //	return out.get()->sptr();
 //}
 
-p_java_lang_String N::str(const wchar_t *str, int len) {
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::str(const wchar_t *str, int len) {
 	p_java_lang_String out = new {% CLASS java.lang.String %}();
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
@@ -530,31 +545,36 @@ p_java_lang_String N::str(const wchar_t *str, int len) {
 	}
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
 
-p_java_lang_String N::str(std::wstring str) {
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::str(std::wstring str) {
 	int len = str.length();
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
 
-p_java_lang_String N::str(std::string s) {
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::str(std::string s) {
 	//if (s == NULL) return SOBJ(NULL);
 	std::wstring ws(s.begin(), s.end());
 	return N::str(ws);
 };
 
-p_java_lang_String N::str(char *s) {
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::str(char *s) {
 	if (s == NULL) return NULL;
 	int len = strlen(s);
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
@@ -562,32 +582,40 @@ p_java_lang_String N::str(char *s) {
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
 
-p_JA_L N::strArray(int count, wchar_t **strs) {
+{% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
+N::strArray(int count, wchar_t **strs) {
 	p_JA_L out = new JA_L(count, L"[java/lang/String;");
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
-p_JA_L N::strArray(std::vector<std::wstring> strs) {
+{% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
+N::strArray(std::vector<std::wstring> strs) {
 	int len = strs.size();
 	p_JA_L out = new JA_L(len, L"[java/lang/String;");
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
-p_JA_L N::strArray(std::vector<std::string> strs) {
+{% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
+N::strArray(std::vector<std::string> strs) {
 	int len = strs.size();
 	p_JA_L out = new JA_L(len, L"[Ljava/lang/String;");
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
-	return out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
-p_JA_L N::strEmptyArray() {
+{% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
+N::strEmptyArray() {
 	p_JA_L out = new JA_L(0, L"Ljava/lang/String;");
-	return out;
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
 std::wstring N::istr2(JAVA_OBJECT obj) {
