@@ -304,6 +304,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_iushr(l: String, r: String) = "N.iushr($l, $r)"
 
 	override fun N_lnew(value: Long): String = "$value"
+	override fun N_lneg(str: String): String = "N.lneg($str)"
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
@@ -350,7 +351,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val DoubleNegativeInfinityString = "double.NEGATIVE_INFINITY"
 	override val DoublePositiveInfinityString = "double.INFINITY"
-	override val DoubleNanString = "double.NAN"
+	override val DoubleNanString = "N.DOUBLE_NAN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 

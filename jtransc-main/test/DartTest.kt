@@ -27,6 +27,5 @@ class DartTest : Base() {
 	//@Ignore
 	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 
-	@Ignore
 	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 }

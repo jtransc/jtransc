@@ -8,17 +8,18 @@ class N {
 	static final int32 MIN_INT32 = -2147483648;
 	static final int32 MAX_INT32 = 2147483647;
 
-	static Int8List _tempI8 = new Int8List(8);
-	static Float32List _tempF32 = _tempI8.buffer.asFloat32List();
-	static Int32List _tempI32 = _tempI8.buffer.asInt32List();
-	static Float64List _tempF64 = _tempI8.buffer.asFloat64List();
-	static Int64List _tempI64 = _tempI8.buffer.asInt64List();
+	static final int64 MIN_INT64 = -9223372036854775808;
+	static final int64 MAX_INT64 = 9223372036854775807;
+
+	static final double DOUBLE_NAN = longBitsToDouble(0x7FF8000000000000);
+
+	static final Int8List _tempI8 = new Int8List(8);
+	static final Float32List _tempF32 = _tempI8.buffer.asFloat32List();
+	static final Int32List _tempI32 = _tempI8.buffer.asInt32List();
+	static final Float64List _tempF64 = _tempI8.buffer.asFloat64List();
+	static final Int64List _tempI64 = _tempI8.buffer.asInt64List();
 
 	static void init() {
-	}
-
-	static {% CLASS java.lang.Class %} resolveClass(String name) {
-		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 	}
 
 	// FAILS
@@ -27,12 +28,10 @@ class N {
 	//static double F(int v) { _tempF32[0] = v.toDouble(); return _tempF32[0]; }
 	//static double D(int v) { _tempF64[0] = v.toDouble(); return _tempF64[0]; }
 
-	static int32  I(int v) { var out = new Int32List(1); out[0] = v.toInt(); return out[0]; }
-	static int64  L(int v) { var out = new Int64List(1); out[0] = v.toInt(); return out[0]; }
-	static double F(int v) { var out = new Float32List(1); out[0] = v.toDouble(); return out[0]; }
-	static double D(int v) { var out = new Float64List(1); out[0] = v.toDouble(); return out[0]; }
-
-
+	static int32  I(int v) { Int32List   out = new Int32List(1)  ; out[0] = v.toInt(); return out[0]; }
+	static int64  L(int v) { Int64List   out = new Int64List(1)  ; out[0] = v.toInt(); return out[0]; }
+	static double F(int v) { Float32List out = new Float32List(1); out[0] = v.toDouble(); return out[0]; }
+	static double D(int v) { Float64List out = new Float64List(1); out[0] = v.toDouble(); return out[0]; }
 
 	static int32 ineg(int32 r) {
 		if (r == MIN_INT32) return MIN_INT32;
@@ -42,42 +41,23 @@ class N {
 	static int32 isub(int32 l, int32 r) { return I(I(l) - I(r)); }
 	static int32 imul(int32 l, int32 r) { return I(I(l) * I(r)); }
 	static int32 idiv(int32 l, int32 r) { return I(I(l) ~/ I(r)); }
-	static int32 irem(int32 l, int32 r) { return I((I(l) % I(r)).toInt()); }
+	static int32 irem(int32 l, int32 r) { return I((I(l).remainder(I(r)))); }
 
 	static int32 iand(int32 l, int32 r) { return I(I(l) & I(r)); }
 	static int32 ixor(int32 l, int32 r) { return I(I(l) ^ I(r)); }
 	static int32 ior(int32 l, int32 r) { return I(I(l) | I(r)); }
 
 	static int32 FIXSHIFT(int32 r) {
-		return I(r) & 0x1F;
+		if (r < 0) {
+			return (32 - (I(-r) & 0x1F)) & 0x1F;
+		} else {
+			return I(r) & 0x1F;
+		}
 	}
 
-	static int32 FIXSHIFT2(int32 r) {
-		//return 32 - (I(r) & 0x1F);
-		return (I(r) & 0x1F);
-	}
-
-	static int32 ishl(int32 l, int32 r) {
-		if (r >= 0) {
-			return I(I(l) << FIXSHIFT(r));
-		} else {
-			return I(I(l) >> FIXSHIFT2(r));
-		}
-	}
-	static int32 ishr(int32 l, int32 r) {
-		if (r >= 0) {
-			return I(I(l) >> FIXSHIFT(r));
-		} else {
-			return I(I(l) << FIXSHIFT2(r));
-		}
-	}
-	static int32 iushr(int32 l, int32 r) {
-		if (r >= 0) {
-			return I((I(l).toInt() & 0xffffffff) >> FIXSHIFT(r));
-		} else {
-			return I((I(l).toInt() & 0xffffffff) << FIXSHIFT2(r));
-		}
-	}
+	static int32 ishl(int32 l, int32 r) { return I(I(l) << FIXSHIFT(r)); }
+	static int32 ishr(int32 l, int32 r) { return I(I(l) >> FIXSHIFT(r)); }
+	static int32 iushr(int32 l, int32 r) { return I((I(l).toInt() & 0xffffffff) >> FIXSHIFT(r)); }
 
 	static void fillSecureRandomBytes(Int8List data) {
 		var random = new Math.Random.secure();
@@ -85,10 +65,14 @@ class N {
 	}
 
 	//static int64 lnew(int32 high, int32 low) { return (high << 32) | low; }
+	static int64 lneg(int64 v) {
+		if (v == MIN_INT64) return MIN_INT64;
+		return L(-v);
+	}
 	static int64 ladd(int64 l, int64 r) { return L(L(l) + L(r)); }
 	static int64 lsub(int64 l, int64 r) { return L(L(l) - L(r)); }
 	static int64 lmul(int64 l, int64 r) { return L(L(l) * L(r)); }
-	static int64 lrem(int64 l, int64 r) { return L(L(l) % L(r)); }
+	static int64 lrem(int64 l, int64 r) { return L(L(l).remainder(L(r))); }
 	static int64 ldiv(int64 l, int64 r) { return L(L(l) ~/ L(r)); }
 	static int64 lxor(int64 l, int64 r) { return L(L(l) ^ L(r)); }
 	static int64 lor (int64 l, int64 r) { return L(L(l) | L(r)); }
@@ -167,6 +151,10 @@ class N {
 		JA_L o = new JA_L(len, "[Ljava/lang/String;");
 		for (int n = 0; n < len; n++) o[n] = N.str(strs[n]);
 		return o;
+	}
+
+	static {% CLASS java.lang.Class %} resolveClass(String name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 	}
 
 	static void monitorEnter({% CLASS java.lang.Object %} o) {

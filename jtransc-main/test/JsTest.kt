@@ -146,8 +146,8 @@ class JsTest : Base() {
 		OK
 	""", minimize = true, target = JsTarget())
 
-	@Test fun testPlainJs() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
-	@Test fun testPlainJsMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
+	@Test fun testBig() = testClass<BigTest>(minimize = false, target = JsTarget(), log = false)
+	@Test fun testBigMin() = testClass<BigTest>(minimize = true, target = JsTarget(), log = false)
 	@Test fun testBigIO() = testClass<BigIOTest>(minimize = true, target = JsTarget(), log = false, treeShaking = true)
 
 	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, target = JsTarget(), log = false)
