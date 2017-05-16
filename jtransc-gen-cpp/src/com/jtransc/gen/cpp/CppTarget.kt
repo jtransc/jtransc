@@ -209,13 +209,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		for (prefix in bodyPrefixes) line(prefix)
 	}
 
-	override fun genBodyTrapsPrefix(): Indenter = indent { line("JAVA_OBJECT J__exception__ = null;") }
+	override fun genBodyTrapsPrefix(): Indenter = indent { line("p_java_lang_Object J__exception__ = null;") }
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH): Indenter = Indenter.gen {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (JAVA_OBJECT J__i__exception__)") {
+		line("catch (p_java_lang_Object J__i__exception__)") {
 			line("J__exception__ = J__i__exception__;")
 			line(stm.catch.genStm())
 		}
@@ -231,7 +231,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			"JA_J" to "int64_t",
 			"JA_F" to "float",
 			"JA_D" to "double",
-			"JA_L" to "JAVA_OBJECT"
+			"JA_L" to "p_java_lang_Object"
 		)
 
 		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
@@ -260,6 +260,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			// {{ CLASS_REFERENCES }}
 			for (clazz in ordereredClasses.filter { !it.isNative }) {
 				line(writeClassRef(clazz))
+			}
+			for (clazz in ordereredClasses.filter { !it.isNative }) {
+				line(writeClassRefPtr(clazz))
 			}
 		}
 
@@ -344,6 +347,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	val AstClass.cppName: String get() = this.name.targetName
+	val AstClass.cppNameRef: String get() = "p_" + this.name.targetName
 	val AstType.REF.cppName: String get() = this.name.targetName
 	val AstType.cppString: String get() = getTypeStringForCpp(this)
 	val AstType.underlyingCppString: String get() = getUnderlyingType(this)
@@ -368,9 +372,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
 			//	line("""printf("Exception: %p\n", (void*)s);""")
 			//}
-			line("catch (JAVA_OBJECT s)") {
+			line("catch (p_java_lang_Object s)") {
 				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
-				line("""std::wcout << L"ERROR JAVA_OBJECT " << N::istr2(s->$toStringMethod()) << L"\n";""")
+				line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
 			}
 			//line("catch (...)") {
 			//	line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
@@ -382,6 +386,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeClassRef(clazz: AstClass): Indenter = Indenter.gen {
 		setCurrentClass(clazz)
 		line("struct ${clazz.cppName};")
+	}
+
+	fun writeClassRefPtr(clazz: AstClass): Indenter = Indenter.gen {
+		setCurrentClass(clazz)
+		line("typedef ${clazz.cppName}* ${clazz.cppNameRef};")
 	}
 
 	fun writeClassHeader(clazz: AstClass): Indenter = Indenter.gen {
@@ -930,7 +939,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		AstType.LONG -> "int64_t"
 		AstType.FLOAT -> "float"
 		AstType.DOUBLE -> "double"
-		is AstType.Reference -> "JAVA_OBJECT"
+		is AstType.Reference -> "p_java_lang_Object"
 		else -> "AstType_cppString_UNIMPLEMENTED($this)"
 	}
 
