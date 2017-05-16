@@ -74,7 +74,7 @@ public class JTranscCrypto {
 			//@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
 			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
 			@JTranscMethodBody(target = "as3", value = "N.fillSecureRandomBytes(p0.data);"),
-
+			@JTranscMethodBody(target = "dart", value = "N.fillSecureRandomBytes(p0.data);"),
 		})
 		@SuppressWarnings("all")
 		public void fillSecureRandomBytes(byte[] data) {

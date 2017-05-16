@@ -242,6 +242,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
 		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
+		@JTranscMethodBody(target = "dart", value = "return N.str('dart');"),
 	})
 	static private String getOSRaw() {
 		if (JTranscSystem.isJTransc()) {

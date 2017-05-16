@@ -612,10 +612,14 @@ public class MiscTest {
 
 
 				System.out.print("(");
+				System.out.print(v1);
+				System.out.print(",");
+				System.out.print(v2);
+				System.out.print(",<<");
 				System.out.print(v1 << v2);
-				System.out.print(",");
+				System.out.print(",>>");
 				System.out.print(v1 >> v2);
-				System.out.print(",");
+				System.out.print(",>>>");
 				System.out.print(v1 >>> v2);
 				System.out.print("):");
 			}

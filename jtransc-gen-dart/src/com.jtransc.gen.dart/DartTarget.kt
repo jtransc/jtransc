@@ -131,19 +131,19 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
 			line("static void Main(List<string> args)") {
-				line("try {")
-				indent {
+				//line("try {")
+				//indent {
 					line("N.init();")
 					line(genStaticConstructorsSorted())
 					//line(buildStaticInit(entryPointFqName))
 					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.Companion.STRING)))]
 					line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
-				}
-				line("} catch (e) {")
-				indent {
-					line("print(e);")
-				}
-				line("}")
+				//}
+				//line("} catch (e) {")
+				//indent {
+				//	line("print(e);")
+				//}
+				//line("}")
 			}
 		}
 	}
@@ -216,8 +216,8 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_f2d(str: String) = "(+($str))"
-	override fun N_d2f(str: String) = "(+($str))"
+	override fun N_f2d(str: String) = "(($str))"
+	override fun N_d2f(str: String) = "(($str))"
 
 	override fun N_is(a: String, b: String): String = "(($a) is $b)"
 
@@ -277,31 +277,33 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(super.genBody2WithFeatures(method, body))
 	}
 
-	//override fun N_i(str: String) = "((int)($str))"
-	override fun N_i(str: String) = "($str)"
-
-	//override fun N_f2i(str: String) = "((int)($str))"
-	override fun N_d2i(str: String) = "(($str)|0)"
+	override fun N_i(str: String) = "N.i($str)"
+	override fun N_f2i(str: String) = "N.f2i($str)"
+	override fun N_d2i(str: String) = "N.d2i($str)"
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"
 
-	//override fun N_i2f(str: String) = "((float)($str))"
-	//override fun N_i2d(str: String) = "((double)($str))"
+	override fun N_i2f(str: String) = "N.i2f($str)"
+	override fun N_i2d(str: String) = "N.i2d($str)"
 
-	//override fun N_l2f(str: String) = "((float)($str))"
-	//override fun N_l2d(str: String) = "((double)($str))"
+	override fun N_l2f(str: String) = "N.l2f($str)"
+	override fun N_l2d(str: String) = "N.l2f($str)"
 
-	override fun N_i2f(str: String) = "(+($str))"
-	override fun N_i2d(str: String) = "(+($str))"
-
-	override fun N_l2f(str: String) = "(+($str))"
-	override fun N_l2d(str: String) = "(+($str))"
-
+	override fun N_ineg(str: String): String = "N.ineg($str)"
+	override fun N_iadd(l: String, r: String): String = "N.iadd($l, $r)"
+	override fun N_isub(l: String, r: String): String = "N.isub($l, $r)"
+	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
+	override fun N_iand(l: String, r: String): String = "N.iand($l, $r)"
+	override fun N_ior(l: String, r: String): String = "N.ior($l, $r)"
+	override fun N_ixor(l: String, r: String): String = "N.ixor($l, $r)"
+	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
+	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"
+	override fun N_iushr(l: String, r: String) = "N.iushr($l, $r)"
 
-	//override fun N_lnew(value: Long): String = "(${value}L)"
+	override fun N_lnew(value: Long): String = "$value"
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
@@ -330,29 +332,25 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 			line(stm.trystm.genStm())
 		}
 		line("catch (J__i__exception__)") {
-			line("J__exception__ = J__i__exception__.t;")
+			line("J__exception__ = (J__i__exception__ is WrappedThrowable) ? J__i__exception__.t : J__i__exception__;")
 			line(stm.catch.genStm())
 		}
 	}
+
+	override fun genStmRethrow(stm: AstStm.RETHROW) = Indenter("""rethrow;""")
 
 	//override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "(${e.type.targetName})J__exception__"
 	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
 	//override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
-	override fun N_c_ushr(l: String, r: String) = "N.iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", [${e.counts.map { it.genExpr() }.joinToString(", ")}])"
 	}
 
-	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
-	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
-	//override val NanString = "Double.NaN"
-	override val DoubleNanString = "N.DoubleNaN"
-
-	override val FloatNegativeInfinityString = "Single.NegativeInfinity"
-	override val FloatPositiveInfinityString = "Single.PositiveInfinity"
-	override val FloatNanString = "N.FloatNaN"
+	override val DoubleNegativeInfinityString = "double.NEGATIVE_INFINITY"
+	override val DoublePositiveInfinityString = "double.INFINITY"
+	override val DoubleNanString = "double.NAN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 
@@ -363,6 +361,10 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 			return genExpr2(this)
 		}
 	}
+
+	override fun N_i2b(str: String) = "N.i2b($str)"
+	override fun N_i2s(str: String) = "N.i2s($str)"
+	override fun N_i2c(str: String) = "N.i2c($str)"
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {
@@ -379,16 +381,11 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	//}
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		return "base$methodAccess(${args.joinToString(", ")})"
+		return "super$methodAccess(${args.joinToString(", ")})"
 	}
 
-	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
-		line("N.monitorEnter(" + stm.expr.genExpr() + ");")
-	}
-
-	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
-		line("N.monitorExit(" + stm.expr.genExpr() + ");")
-	}
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = Indenter("N.monitorEnter(" + stm.expr.genExpr() + ");")
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = Indenter("N.monitorExit(" + stm.expr.genExpr() + ");")
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 

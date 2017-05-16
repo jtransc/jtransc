@@ -22,6 +22,7 @@ public class JTranscClock {
 			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
 			@JTranscMethodBody(target = "cs", value = "return N.getTime();"),
 			@JTranscMethodBody(target = "as3", value = "return new Date().time;"), // Optimize this to avoid allocations (using just one new Date().time + getTimer())!
+			@JTranscMethodBody(target = "dart", value = "return new DateTime.now().millisecondsSinceEpoch;"),
 		})
 		public double fastTime() {
 			if (parent != null) {

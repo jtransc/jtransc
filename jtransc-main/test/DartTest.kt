@@ -1,3 +1,4 @@
+import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.dart.DartTarget
 import jtransc.micro.MicroHelloWorld
@@ -25,4 +26,7 @@ class DartTest : Base() {
 
 	//@Ignore
 	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+
+	@Ignore
+	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 }

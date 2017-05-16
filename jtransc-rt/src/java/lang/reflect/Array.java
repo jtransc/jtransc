@@ -30,6 +30,7 @@ public final class Array {
 	@JTranscMethodBody(target = "d", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "cs", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "as3", value = "return new JA_L(p0, N.istr(p1));")
+	@JTranscMethodBody(target = "dart", value = "return new JA_L(p0, N.istr(p1));")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;
 
 	public static Object newInstance(Class<?> type, int length) throws NegativeArraySizeException {
@@ -62,6 +63,7 @@ public final class Array {
 	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).length;")
 	@JTranscMethodBody(target = "cs", value = "return ((JA_0)p0).length;")
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_0).length;")
+	@JTranscMethodBody(target = "dart", value = "return p0.length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 	@HaxeMethodBody("return cast(p0, JA_L).getDynamic(p1);")
@@ -70,6 +72,7 @@ public final class Array {
 	@JTranscMethodBody(target = "d", value = "return (cast(JA_L)p0)[p1];")
 	@JTranscMethodBody(target = "cs", value = "return ((JA_L)p0)[p1];")
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_L).data[p1];")
+	@JTranscMethodBody(target = "dart", value = "return p0.data[p1];")
 	native private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
     public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
@@ -124,6 +127,7 @@ public final class Array {
 	@JTranscMethodBody(target = "d", value = "(cast(JA_L)p0)[p1] = p2;")
 	@JTranscMethodBody(target = "cs", value = "((JA_L)p0)[p1] = p2;")
 	@JTranscMethodBody(target = "as3", value = "(p0 as JA_L).data[p1] = p2;")
+	@JTranscMethodBody(target = "dart", value = "p0.data[p1] = p2;")
 	native private static void setInstance(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
 	public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {

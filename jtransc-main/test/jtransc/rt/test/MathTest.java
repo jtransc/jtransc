@@ -41,25 +41,25 @@ public class MathTest {
 	static private void zeros() {
 		System.out.println("zeros:");
 		int[] ints = {-1,0,Integer.MIN_VALUE,Integer.MAX_VALUE,77777777,0x1234567,0x1,0x7,0x77,0x777,0x7777,0x77777,0x777777,0x7777777,0x77777777};
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", ints[n]);
+		System.out.print("ints:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", ints[n]);
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.numberOfLeadingZeros(ints[n]));
+		System.out.print("numberOfLeadingZeros:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.numberOfLeadingZeros(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.numberOfTrailingZeros(ints[n]));
+		System.out.print("numberOfTrailingZeros:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.numberOfTrailingZeros(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.bitCount(ints[n]));
+		System.out.print("bitCount:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.bitCount(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.rotateLeft(ints[n], 7));
+		System.out.print("rotateLeft:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.rotateLeft(ints[n], 7));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.rotateRight(ints[n], 7));
+		System.out.print("rotateRight:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.rotateRight(ints[n], 7));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.reverse(ints[n]));
+		System.out.print("reverse:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.reverse(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.reverseBytes(ints[n]));
+		System.out.print("reverseBytes:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.reverseBytes(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.signum(ints[n]));
+		System.out.print("signum:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.signum(ints[n]));
 		System.out.println();
-		for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.highestOneBit(ints[n]));
+		System.out.print("highestOneBit:"); for (int n = 0; n < ints.length; n++) System.out.printf("%d,", Integer.highestOneBit(ints[n]));
 		System.out.println();
 	}
 
