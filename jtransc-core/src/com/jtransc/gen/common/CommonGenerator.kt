@@ -473,7 +473,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 		val isNativeCall = refMethodClass.isNative
 
-		fun processArg(it: AstExpr.Box) = processCallArg(it.value, if (isNativeCall) convertToTarget(it) else it.genExpr())
+		fun processArg(arg: AstExpr.Box, targetType: AstType) = processCallArg(arg.value, if (isNativeCall) convertToTarget(arg) else arg.genExpr(), targetType)
+		fun processArg(arg: AstExpr.Box) = processArg(arg, arg.type)
 
 		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)
 
@@ -541,7 +542,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			}
 			return out
 		} else {
-			val processedArgs = args.map { processArg(it) }
+			val processedArgs = method.type.argTypes.zip(args).map { processArg(it.second, it.first) }
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
 				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
@@ -555,7 +556,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun quoteString(str: String) = str.quote()
 
-	open fun processCallArg(e: AstExpr, str: String): String = str
+	open fun processCallArg(e: AstExpr, str: String, targetType: AstType): String = str
 
 	open fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		return "super$methodAccess(${args.joinToString(", ")})"
@@ -1722,6 +1723,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FloatType = "float"
 	open val DoubleType = "double"
 	open val LongType = "long"
+
 	open val BaseArrayType = "JA_0"
 	open val BoolArrayType = "JA_Z"
 	open val ByteArrayType = "JA_B"
@@ -1732,6 +1734,18 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FloatArrayType = "JA_F"
 	open val DoubleArrayType = "JA_D"
 	open val ObjectArrayType = "JA_L"
+
+	open val BaseArrayTypeRef get() = BaseArrayType
+	open val BoolArrayTypeRef get() = BoolArrayType
+	open val ByteArrayTypeRef get() = ByteArrayType
+	open val CharArrayTypeRef get() = CharArrayType
+	open val ShortArrayTypeRef get() = ShortArrayType
+	open val IntArrayTypeRef get() = IntArrayType
+	open val LongArrayTypeRef get() = LongArrayType
+	open val FloatArrayTypeRef get() = FloatArrayType
+	open val DoubleArrayTypeRef get() = DoubleArrayType
+	open val ObjectArrayTypeRef get() = ObjectArrayType
+
 	open val DoubleNegativeInfinityString = "-Infinity"
 	open val DoublePositiveInfinityString = "Infinity"
 	open val DoubleNanString = "NaN"
@@ -1786,9 +1800,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 // Type names
 //////////////////////////////////////////////////
 
-	val AstType.targetName: String get() = getTypeTargetName(this)
+	val AstType.targetName: String get() = getTypeTargetName(this, ref = false)
+	val AstType.targetNameRef: String get() = getTypeTargetName(this, ref = true)
 
-	open fun getTypeTargetName(type: AstType): String {
+	fun getTypeTargetName(type: AstType, ref: Boolean): String {
 		val type = type.resolve()
 		return when (type) {
 			is AstType.NULL -> NullType
@@ -1811,18 +1826,18 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				if (clazz.nativeName != null) {
 					imports += FqName(clazz.nativeName!!)
 				}
-				clazz.nativeName ?: type.name.targetName
+				clazz.nativeName ?: if (ref) type.name.targetNameRef else type.name.targetName
 			}
 			is AstType.ARRAY -> when (type.element) {
-				is AstType.BOOL -> BoolArrayType
-				is AstType.BYTE -> ByteArrayType
-				is AstType.CHAR -> CharArrayType
-				is AstType.SHORT -> ShortArrayType
-				is AstType.INT -> IntArrayType
-				is AstType.LONG -> LongArrayType
-				is AstType.FLOAT -> FloatArrayType
-				is AstType.DOUBLE -> DoubleArrayType
-				else -> ObjectArrayType
+				is AstType.BOOL -> if (ref) BoolArrayTypeRef else BoolArrayType
+				is AstType.BYTE -> if (ref) ByteArrayTypeRef else ByteArrayType
+				is AstType.CHAR -> if (ref) CharArrayTypeRef else CharArrayType
+				is AstType.SHORT -> if (ref) ShortArrayTypeRef else ShortArrayType
+				is AstType.INT -> if (ref) IntArrayTypeRef else IntArrayType
+				is AstType.LONG -> if (ref) LongArrayTypeRef else LongArrayType
+				is AstType.FLOAT -> if (ref) FloatArrayTypeRef else FloatArrayType
+				is AstType.DOUBLE -> if (ref) DoubleArrayTypeRef else DoubleArrayType
+				else -> if (ref) ObjectArrayTypeRef else ObjectArrayType
 			}
 			else -> throw RuntimeException("Not supported native type $this")
 		}
@@ -1842,6 +1857,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val imports = hashSetOf<FqName>()
 
+	open val FqName.targetNameRef: String get() = this.targetName
 	open val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	open val FqName.targetClassFqName: String get() = this.targetName
 	open val FqName.targetSimpleName: String get() = this.simpleName

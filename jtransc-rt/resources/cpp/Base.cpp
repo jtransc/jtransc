@@ -121,6 +121,7 @@ struct N { public:
 	static JAVA_OBJECT resolveClass(std::wstring str);
 	inline static int64_t lnew(int high, int low);
 	static bool is(JAVA_OBJECT obj, int type);
+	template<typename T> inline static bool is(T* obj, int type) { return is((JAVA_OBJECT)obj, type); }
 	static bool isArray(JAVA_OBJECT obj);
 	static bool isArray(JAVA_OBJECT obj, std::wstring desc);
 	static bool isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
@@ -151,21 +152,21 @@ struct N { public:
 	inline static int64_t d2j(double v);
 	static void log(std::wstring str);
 	static void log(JAVA_OBJECT str);
-	static JAVA_OBJECT str(char *str);
-	static JAVA_OBJECT str(const wchar_t *str, int len);
-	static JAVA_OBJECT str(std::wstring str);
-	static JAVA_OBJECT str(std::string str);
-	static JAVA_OBJECT strArray(int count, wchar_t **strs);
-	static JAVA_OBJECT strArray(std::vector<std::wstring> strs);
-	static JAVA_OBJECT strArray(std::vector<std::string> strs);
-	static JAVA_OBJECT strEmptyArray();
+	static p_java_lang_String str(char *str);
+	static p_java_lang_String str(const wchar_t *str, int len);
+	static p_java_lang_String str(std::wstring str);
+	static p_java_lang_String str(std::string str);
+	static p_JA_L strArray(int count, wchar_t **strs);
+	static p_JA_L strArray(std::vector<std::wstring> strs);
+	static p_JA_L strArray(std::vector<std::string> strs);
+	static p_JA_L strEmptyArray();
 	static std::wstring istr2(JAVA_OBJECT obj);
 	static std::string istr3(JAVA_OBJECT obj);
 	static JAVA_OBJECT dummyMethodClass();
 	static void throwNpe(const wchar_t *position);
-	static JAVA_OBJECT ensureNpe(JAVA_OBJECT obj, const wchar_t *position);
+	template<typename T> static T ensureNpe(T obj, const wchar_t *position);
 	static void throwNpe();
-	static JAVA_OBJECT ensureNpe(JAVA_OBJECT obj);
+	template<typename T> static T ensureNpe(T obj);
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
 
 	static int strLen(JAVA_OBJECT obj);
@@ -517,75 +518,75 @@ int64_t N::d2j(double v) { return (int64_t)v; }
 //	return out.get()->sptr();
 //}
 
-JAVA_OBJECT N::str(const wchar_t *str, int len) {
-	JAVA_OBJECT out = new {% CLASS java.lang.String %}();
-	JA_C *array = new JA_C(len);
-	JAVA_OBJECT arrayobj = array;
+p_java_lang_String N::str(const wchar_t *str, int len) {
+	p_java_lang_String out = new {% CLASS java.lang.String %}();
+	p_JA_C array = new JA_C(len);
+	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	if (sizeof(wchar_t) == sizeof(uint16_t)) {
 		::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	} else {
 		for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
 	}
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
+	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out;
 };
 
-JAVA_OBJECT N::str(std::wstring str) {
+p_java_lang_String N::str(std::wstring str) {
 	int len = str.length();
-	JAVA_OBJECT out(new {% CLASS java.lang.String %}());
-	JA_C *array = new JA_C(len);
-	JAVA_OBJECT arrayobj = array;
+	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	p_JA_C array = new JA_C(len);
+	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
+	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out;
 };
 
-JAVA_OBJECT N::str(std::string s) {
+p_java_lang_String N::str(std::string s) {
 	//if (s == NULL) return SOBJ(NULL);
 	std::wstring ws(s.begin(), s.end());
 	return N::str(ws);
 };
 
-JAVA_OBJECT N::str(char *s) {
+p_java_lang_String N::str(char *s) {
 	if (s == NULL) return NULL;
 	int len = strlen(s);
-	JAVA_OBJECT out(new {% CLASS java.lang.String %}());
-	JA_C *array = new JA_C(len);
-	JAVA_OBJECT arrayobj = array;
+	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	p_JA_C array = new JA_C(len);
+	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	//::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
-	GET_OBJECT({% CLASS java.lang.String %}, out)->{% FIELD java.lang.String:value %} = arrayobj;
+	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return out;
 };
 
-JAVA_OBJECT N::strArray(int count, wchar_t **strs) {
-	JA_L* out = new JA_L(count, L"[java/lang/String;");
+p_JA_L N::strArray(int count, wchar_t **strs) {
+	p_JA_L out = new JA_L(count, L"[java/lang/String;");
 	for (int n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
 	return out;
 }
 
-JAVA_OBJECT N::strArray(std::vector<std::wstring> strs) {
+p_JA_L N::strArray(std::vector<std::wstring> strs) {
 	int len = strs.size();
-	JA_L* out = new JA_L(len, L"[java/lang/String;");
+	p_JA_L out = new JA_L(len, L"[java/lang/String;");
 	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return out;
 }
 
-JAVA_OBJECT N::strArray(std::vector<std::string> strs) {
+p_JA_L N::strArray(std::vector<std::string> strs) {
 	int len = strs.size();
-	JA_L* out = new JA_L(len, L"[Ljava/lang/String;");
+	p_JA_L out = new JA_L(len, L"[Ljava/lang/String;");
 	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return out;
 }
 
-JAVA_OBJECT N::strEmptyArray() {
-	JA_L* out = new JA_L(0, L"Ljava/lang/String;");
+p_JA_L N::strEmptyArray() {
+	p_JA_L out = new JA_L(0, L"Ljava/lang/String;");
 	return out;
 }
 
@@ -635,7 +636,8 @@ void N::throwNpe(const wchar_t* position) {
 	throw {% CONSTRUCTOR java.lang.NullPointerException:()V %}();
 }
 
-JAVA_OBJECT N::ensureNpe(JAVA_OBJECT obj, const wchar_t* position) {
+template<typename T>
+T N::ensureNpe(T obj, const wchar_t* position) {
 	#ifdef CHECK_NPE
 	if (obj == NULL) N::throwNpe(position);
 	#endif
@@ -646,7 +648,8 @@ void N::throwNpe() {
 	N::throwNpe(L"unknown");
 }
 
-JAVA_OBJECT N::ensureNpe(JAVA_OBJECT obj) {
+template<typename T>
+T N::ensureNpe(T obj) {
 	#ifdef CHECK_NPE
 	if (obj == NULL) N::throwNpe();
 	#endif

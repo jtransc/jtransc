@@ -274,6 +274,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val ARRAY_TYPES = Indenter.gen {
 			// {{ ARRAY_TYPES }}
 			for (name in arrayTypes.map { it.first }) line("struct $name;")
+			for (name in arrayTypes.map { it.first }) line("typedef $name* p_$name;")
 		}
 
 		val ARRAY_HEADERS_PRE = Indenter.gen {
@@ -302,7 +303,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val STRINGS = Indenter.gen {
 			val globalStrings = getGlobalStrings()
-			line("static JAVA_OBJECT ${globalStrings.map { it.name }.joinToString(", ")};")
+			line("static p_java_lang_String ${globalStrings.map { it.name }.joinToString(", ")};")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
 					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
@@ -347,10 +348,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	val AstClass.cppName: String get() = this.name.targetName
-	val AstClass.cppNameRef: String get() = "p_" + this.name.targetName
+	val AstClass.cppNameRef: String get() = this.name.targetNameRef
+	override val FqName.targetNameRef: String get() = "p_" + this.targetName
 	val AstType.REF.cppName: String get() = this.name.targetName
-	val AstType.cppString: String get() = getTypeStringForCpp(this)
-	val AstType.underlyingCppString: String get() = getUnderlyingType(this)
+	val AstType.underlyingCppString: String get() = this.targetNameRef
 
 	fun writeMain(): Indenter = Indenter.gen {
 		line("int main(int argc, char *argv[])") {
@@ -419,7 +420,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			for (field in clazz.fields) {
 				val normalStatic = if (field.isStatic) "static " else ""
 				val add = ""
-				val btype = field.type.cppString
+				val btype = field.type.targetNameRef
 				val type = if (btype == "SOBJ" && field.isWeak) "WOBJ" else btype
 				line("$normalStatic$type ${field.targetName}$add;")
 			}
@@ -446,20 +447,20 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 			for (method in clazz.methods) {
 				val type = method.methodType
-				val argsString = type.args.map { it.type.cppString + " " + it.name }.joinToString(", ")
+				val argsString = type.args.map { it.type.targetNameRef + " " + it.name }.joinToString(", ")
 				val zero = if (clazz.isInterface && !method.isStatic) " = 0" else ""
 				val inlineNone = if (method.isInline) "inline " else ""
 				val virtualStatic = if (method.isStatic) "static " else "virtual "
-				line("$inlineNone$virtualStatic${method.returnTypeWithThis.cppString} ${method.targetName}($argsString)$zero;")
+				line("$inlineNone$virtualStatic${method.returnTypeWithThis.targetNameRef} ${method.targetName}($argsString)$zero;")
 			}
 			for (parentMethod in directImplementing.flatMap { it.methods }) {
 				val type = parentMethod.methodType
 				val returnStr = if (type.retVoid) "" else "return "
-				val argsString = type.args.map { it.type.cppString + " " + it.name }.joinToString(", ")
+				val argsString = type.args.map { it.type.targetNameRef + " " + it.name }.joinToString(", ")
 				val argsCallString = type.args.map { it.name }.joinToString(", ")
 				val callingMethod = clazz.getMethodInAncestors(parentMethod.ref.withoutClass)
 				if (callingMethod != null) {
-					line("virtual ${parentMethod.returnTypeWithThis.cppString} ${parentMethod.targetName}($argsString) { $returnStr this->${callingMethod.targetName}($argsCallString); }")
+					line("virtual ${parentMethod.returnTypeWithThis.targetNameRef} ${parentMethod.targetName}($argsString) { $returnStr this->${callingMethod.targetName}($argsCallString); }")
 				}
 			}
 			line("static bool SI_once;")
@@ -520,7 +521,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeField(field: AstField): Indenter = Indenter.gen {
 		val clazz = field.containingClass
 		if (field.isStatic) {
-			line("${field.type.cppString} ${clazz.cppName}::${field.targetName} = 0;")
+			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = 0;")
 		}
 	}
 
@@ -539,9 +540,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val clazz = method.containingClass
 		val type = method.methodType
 
-		val argsString = type.args.map { it.type.cppString + " " + it.name }.joinToString(", ")
+		val argsString = type.args.map { it.type.targetNameRef + " " + it.name }.joinToString(", ")
 
-		line("${method.returnTypeWithThis.cppString} ${clazz.cppName}::${method.targetName}($argsString)") {
+		line("${method.returnTypeWithThis.targetNameRef} ${clazz.cppName}::${method.targetName}($argsString)") {
 			if (method.name == "finalize") {
 				//line("""std::cout << "myfinalizer\n"; """);
 			}
@@ -593,7 +594,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 
 	fun genJniMethod(method: AstMethod) = Indenter.gen {
-		var mangledJniFunctionName: String
+		val mangledJniFunctionName: String
 		//if (method.isOverloaded) {
 		//	mangledJniFunctionName = JniUtils.mangleLongJavaMethod(method);
 		//} else {
@@ -683,24 +684,21 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			isThrowable(type) -> return "jthrowable"
 			else -> return "jobject"
 		}
-
-
 	}
 
+	override fun processCallArg(e: AstExpr, str: String, targetType: AstType) = "((" + targetType.targetNameRef + ")(" + str + "))"
 
-	override fun processCallArg(e: AstExpr, str: String) = "((" + e.type.cppString + ")(" + str + "))"
-
-	override val AstLocal.decl: String get() = "${this.type.cppString} ${this.targetName} = ${this.type.nativeDefaultString};"
+	override val AstLocal.decl: String get() = "${this.type.targetNameRef} ${this.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()})->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
 		val getMethod = if (context.useUnsafeArrays) "get" else "fastGet"
-		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME)))->$getMethod($index)"
+		return "((${arrayType.targetNameRef})(N::ensureNpe($array, FUNCTION_NAME)))->$getMethod($index)"
 	}
 
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		val setMethod = if (context.useUnsafeArrays) "set" else "fastSet"
-		return "((${getUnderlyingType(arrayType)})(N::ensureNpe($array, FUNCTION_NAME)))->$setMethod($index, $value);"
+		return "((${arrayType.targetNameRef})(N::ensureNpe($array, FUNCTION_NAME)))->$setMethod($index, $value);"
 	}
 
 	private fun isThisOrThisWithCast(e: AstExpr): Boolean {
@@ -717,9 +715,17 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	private fun getPtr(clazz: AstClass, objStr: String): String {
 		if (clazz.isInterface) {
-			return "(dynamic_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			return "(dynamic_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
 		} else {
-			return "(static_cast<${clazz.cppName}*>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			if (clazz.name.targetName == JAVA_LANG_OBJECT) {
+				return "((p_java_lang_Object)($objStr))"
+				//return "($objStr)"
+				//return "(dynamic_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			} else {
+				return "(static_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			}
+			//return "(static_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			//return "((${clazz.cppNameRef})(N::ensureNpe($objStr, FUNCTION_NAME)))"
 		}
 	}
 
@@ -791,7 +797,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_obj_ne(l: String, r: String) = "(($l) != ($r))"
 
 	override fun genStmSetFieldStaticActual(stm: AstStm.SET_FIELD_STATIC, left: String, field: AstFieldRef, right: String): Indenter = indent {
-		line("$left = (${field.type.cppString})($right);")
+		line("$left = (${field.type.targetNameRef})($right);")
 	}
 
 	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID): Indenter = Indenter.gen {
@@ -799,7 +805,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genStmReturnValue(stm: AstStm.RETURN): Indenter = Indenter.gen {
-		line("return (${context.method.returnTypeWithThis.cppString})${stm.retval.genExpr()};")
+		line("return (${context.method.returnTypeWithThis.targetNameRef})${stm.retval.genExpr()};")
 	}
 
 	override fun N_is(a: String, b: AstType.Reference): String = when (b) {
@@ -822,13 +828,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		} else {
 			buildInstanceField("((${stm.field.containingTypeRef.underlyingCppString})N::ensureNpe(" + stm.left.genExpr() + ", FUNCTION_NAME))", fixField(stm.field))
 		}
-		val right2 = "(${stm.field.type.cppString})((${stm.field.type.cppString})(" + stm.expr.genExpr() + "))"
+		val right2 = "(${stm.field.type.targetNameRef})((${stm.field.type.targetNameRef})(" + stm.expr.genExpr() + "))"
 
 		return "$left2 = $right2;"
 	}
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String): String {
-		return "$localName = (${stm.local.type.cppString})($exprStr);"
+		return "$localName = (${stm.local.type.targetNameRef})($exprStr);"
 	}
 
 	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
@@ -861,24 +867,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprNew(e: AstExpr.NEW): String = "" + super.genExprNew(e) + ""
 
-	fun getUnderlyingType(type: AstType): String {
-		return when (type) {
-			is AstType.ARRAY -> when (type.element) {
-				AstType.BOOL -> BoolArrayType
-				AstType.BYTE -> ByteArrayType
-				AstType.CHAR -> CharArrayType
-				AstType.SHORT -> ShortArrayType
-				AstType.INT -> IntArrayType
-				AstType.LONG -> LongArrayType
-				AstType.FLOAT -> FloatArrayType
-				AstType.DOUBLE -> DoubleArrayType
-				else -> ObjectArrayType
-			} + "*"
-			is AstType.REF -> "${type.name.targetName}*"
-			else -> type.cppString
-		}
-	}
-
 	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
 		//line("try {")
 		//_indent()
@@ -910,7 +898,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		val values = stm.values.map { it.genExpr() }
 		line("") {
-			line("const ${stm.array.type.elementType.cppString} ARRAY_LITERAL[${values.size}] = { ${values.joinToString(", ")} };")
+			line("const ${stm.array.type.elementType.targetNameRef} ARRAY_LITERAL[${values.size}] = { ${values.joinToString(", ")} };")
 			line("((${stm.array.type.underlyingCppString})((" + stm.array.genExpr() + ")))->setArray(${stm.startIndex}, ${values.size}, ARRAY_LITERAL);")
 		}
 	}
@@ -929,19 +917,27 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) "::$name" else "->$name"
 
-	fun getTypeStringForCpp(type: AstType): String = when (type) {
-		AstType.VOID -> "void"
-		AstType.BOOL -> "int8_t"
-		AstType.BYTE -> "int8_t"
-		AstType.CHAR -> "uint16_t"
-		AstType.SHORT -> "int16_t"
-		AstType.INT -> "int32_t"
-		AstType.LONG -> "int64_t"
-		AstType.FLOAT -> "float"
-		AstType.DOUBLE -> "double"
-		is AstType.Reference -> "p_java_lang_Object"
-		else -> "AstType_cppString_UNIMPLEMENTED($this)"
-	}
+	override val NullType = "p_java_lang_Object"
+	override val VoidType = "void"
+	override val BoolType = "int8_t"
+	override val IntType = "int32_t"
+	override val ShortType = "int16_t"
+	override val CharType = "uint16_t"
+	override val ByteType = "int8_t"
+	override val FloatType = "float"
+	override val DoubleType = "double"
+	override val LongType = "int64_t"
+
+	override val BaseArrayTypeRef = "p_JA_0"
+	override val BoolArrayTypeRef = "p_JA_Z"
+	override val ByteArrayTypeRef = "p_JA_B"
+	override val CharArrayTypeRef = "p_JA_C"
+	override val ShortArrayTypeRef = "p_JA_S"
+	override val IntArrayTypeRef = "p_JA_I"
+	override val LongArrayTypeRef = "p_JA_J"
+	override val FloatArrayTypeRef = "p_JA_F"
+	override val DoubleArrayTypeRef = "p_JA_D"
+	override val ObjectArrayTypeRef = "p_JA_L"
 
 //override val FieldRef.targetName: String get() {
 //	val fieldRef = this
