@@ -1,10 +1,10 @@
 # CHANGELOG
 
-## 0.5.17 (WIP)
+## 0.6.0 (WIP)
 
 ### New features
-- AS3 target (BigTest passes)
 - @Intrigus: C++ target with GC
+- AS3 target (BigTest passes)
 - Prevent generating runtime invisible annotations
 
 ### Changes
