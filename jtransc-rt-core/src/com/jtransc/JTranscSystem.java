@@ -121,6 +121,13 @@ public class JTranscSystem {
 	})
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
+		if (isHaxe()) {
+			if (isJs()) return "haxe-js";
+			if (isAs3()) return "haxe-as3";
+			if (isNeko()) return "haxe-neko";
+			if (isCpp()) return "haxe-cpp";
+			return "haxe";
+		}
 		if (isSwf()) return "swf";
 		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
@@ -129,6 +136,7 @@ public class JTranscSystem {
 		if (isPython()) return "python";
 		if (isAs3()) return "as3";
 		if (isDart()) return "dart";
+		if (isCpp()) return "cpp";
 		return "unknown";
 	}
 

@@ -829,11 +829,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("$left = (${field.type.targetNameRef})($right);")
 	}
 
-	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID): Indenter = Indenter.gen {
+	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter = Indenter.gen {
 		line(if (context.method.methodVoidReturnThis) "return " + genExprThis() + ";" else "return;")
 	}
 
-	override fun genStmReturnValue(stm: AstStm.RETURN): Indenter = Indenter.gen {
+	override fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean): Indenter = Indenter.gen {
 		line("return (${context.method.returnTypeWithThis.targetNameRef})${stm.retval.genExpr()};")
 	}
 
@@ -909,15 +909,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		//	line("throw e;")
 		//}
 		//line("}")
-	}
-
-	override fun genStmThrow(stm: AstStm.THROW): Indenter = Indenter.gen {
-		//line("""std::wcout << L"THROWING! ${context.clazz}:${context.method.name}" << L"\n";""")
-		line(super.genStmThrow(stm))
-	}
-
-	override fun genStmRethrow(stm: AstStm.RETHROW): Indenter {
-		return super.genStmRethrow(stm)
 	}
 
 	override fun genStmLine(stm: AstStm.LINE) = indent {

@@ -8,6 +8,8 @@ import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
+import com.jtransc.ast.feature.method.OptimizeFeature
+import com.jtransc.ast.feature.method.SimdFeature
 import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
@@ -108,16 +110,71 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
 	companion object {
-		//const val ENABLE_HXCPP_GOTO_HACK = true
-		const val ENABLE_HXCPP_GOTO_HACK = false
+		const val ENABLE_HXCPP_GOTO_HACK = true
+		//const val ENABLE_HXCPP_GOTO_HACK = false
 	}
 
+	override val FqName.targetName: String get() = this.targetClassFqName
+	//override val FqName.targetName: String get() = this.targetClassFqName.replace('.', '_').replace('$', '_')
+
 	val subtarget = injector.get<ConfigSubtarget>().subtarget
-	override val methodFeatures = if (ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))) {
-		super.methodFeatures + setOf(SwitchFeature::class.java, GotosFeature::class.java)
+
+	val usingGotoHack = ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))
+
+	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
+	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = if (usingGotoHack) {
+		(FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java)
 	} else {
-		super.methodFeatures + setOf(SwitchFeature::class.java)
+		FEATURE_FOR_FUNCTION_WITH_TRAPS
 	}
+
+	override fun genGoto(label: AstLabel): String = "untyped __cpp__('goto ${label.name};');"
+	override fun genLabel(label: AstLabel): String = "untyped __cpp__('${label.name}:;');"
+
+	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter {
+		val res = super.genStmReturnVoid(stm, last)
+		if (usingGotoHack && !last) {
+			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+		} else {
+			return res
+		}
+	}
+
+	override fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean): Indenter {
+		val res = super.genStmReturnValue(stm, last)
+		if (usingGotoHack && !last) {
+			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+		} else {
+			return res
+		}
+	}
+
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean): Indenter {
+		val res = super.genStmThrow(stm, last)
+		if (usingGotoHack && !last) {
+			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+		} else {
+			return res
+		}
+	}
+
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean): Indenter {
+		val res = Indenter("""throw J__i__exception__;""")
+		if (usingGotoHack && !last) {
+			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+		} else {
+			return res
+		}
+	}
+
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
+		if (body.traps.isNotEmpty()) {
+			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITH_TRAPS, settings, types).genBody()
+		} else {
+			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITHOUT_TRAPS, settings, types).genBody()
+		}
+	}
+
 	override val keywords = super.keywords + setOf(
 		//////////////////////
 		"haxe", "Dynamic", "Void", "java", "package", "import",
@@ -362,8 +419,6 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("""throw J__i__exception__;""") }
-
 	override val AstLocal.decl: String get() = "var ${this.targetName}: ${this.type.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("var J__exception__:Dynamic = null;") }
@@ -415,11 +470,13 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	} else {
 		if (inlineCasts) "(($str) << 24 >> 24)" else "N.i2b($str)"
 	}
+
 	override fun N_i2c(str: String) = if (subtarget == "cpp") {
 		"NE.i2c($str)"
 	} else {
 		if (inlineCasts) "(($str) & 0xFFFF)" else "N.i2c($str)"
 	}
+
 	override fun N_i2s(str: String) = if (subtarget == "cpp") {
 		//"(untyped __cpp__('((int)(short)({0}))', $str))"
 		"NE.i2s($str)"
@@ -672,8 +729,6 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
 		return clazz.name.targetClassFqName + suffix
 	}
-
-	override val FqName.targetName: String get() = this.targetClassFqName
 
 	override fun buildTemplateClass(clazz: FqName): String = clazz.targetClassFqName
 

@@ -200,7 +200,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("throw J__i__exception__;") }
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = indent { line("throw J__i__exception__;") }
 
 	override fun genBodyLocals(locals: List<AstLocal>) = indent {
 		if (locals.isNotEmpty()) {

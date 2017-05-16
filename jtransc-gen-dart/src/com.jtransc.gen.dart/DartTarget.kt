@@ -239,9 +239,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()}).length"
-	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
-
-	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
 		if (clazz.isJavaLangObject) {
@@ -349,7 +347,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genStmRethrow(stm: AstStm.RETHROW) = Indenter("""rethrow;""")
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("""rethrow;""")
 
 	//override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "(${e.type.targetName})J__exception__"
 	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"

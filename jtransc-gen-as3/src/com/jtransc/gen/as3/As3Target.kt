@@ -315,9 +315,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_c(str: String, from: AstType, to: AstType) = "(($str) as ${to.targetName})"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as $BaseArrayType).length"
-	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
-	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
+	override fun genLabel(label: AstLabel) = "${label.name}:"
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
 		if (clazz.isJavaLangObject) {
