@@ -128,6 +128,7 @@ public class JTranscSystem {
 		if (isPhp()) return "php";
 		if (isPython()) return "python";
 		if (isAs3()) return "as3";
+		if (isDart()) return "dart";
 		return "unknown";
 	}
 
@@ -228,6 +229,11 @@ public class JTranscSystem {
 
 	@JTranscMethodBody(target = "as3", value = "return true;")
 	public static boolean isAs3() {
+		return FALSE;
+	}
+
+	@JTranscMethodBody(target = "dart", value = "return true;")
+	public static boolean isDart() {
 		return FALSE;
 	}
 
