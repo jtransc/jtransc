@@ -64,6 +64,7 @@ public class System {
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "as3", value = "N.arraycopy(p0, p1, p2, p3, p4);")
+	@JTranscMethodBody(target = "dart", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
 		boolean overlapping = (src == dest && destPos > srcPos);
 		if (src instanceof boolean[]) arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length, overlapping);

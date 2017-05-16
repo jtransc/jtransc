@@ -28,36 +28,42 @@ class N {
 	//static double F(int v) { _tempF32[0] = v.toDouble(); return _tempF32[0]; }
 	//static double D(int v) { _tempF64[0] = v.toDouble(); return _tempF64[0]; }
 
-	static int32  I(int v) { Int32List   out = new Int32List(1)  ; out[0] = v.toInt(); return out[0]; }
-	static int64  L(int v) { Int64List   out = new Int64List(1)  ; out[0] = v.toInt(); return out[0]; }
-	static double F(int v) { Float32List out = new Float32List(1); out[0] = v.toDouble(); return out[0]; }
-	static double D(int v) { Float64List out = new Float64List(1); out[0] = v.toDouble(); return out[0]; }
+	//static int32  I(int v) { Int32List   out = new Int32List(1)  ; out[0] = v.toInt(); return out[0]; }
+	//static int64  L(int v) { Int64List   out = new Int64List(1)  ; out[0] = v.toInt(); return out[0]; }
+	//static double F(int v) { Float32List out = new Float32List(1); out[0] = v.toDouble(); return out[0]; }
+	//static double D(int v) { Float64List out = new Float64List(1); out[0] = v.toDouble(); return out[0]; }
+
+	// https://github.com/dart-lang/fixnum/blob/master/lib/src/int32.dart
+	static int32  I(int v) { return (v & 0x7fffffff) - (v & 0x80000000); }
+	static int64  L(int v) { return (v & 0x7fffffffffffffff) - (v & 0x8000000000000000); }
+	static double F(int v) { return v.toDouble(); }
+	static double D(int v) { return v.toDouble(); }
 
 	static int32 ineg(int32 r) {
 		if (r == MIN_INT32) return MIN_INT32;
 		return I(-r);
 	}
-	static int32 iadd(int32 l, int32 r) { return I(I(l) + I(r)); }
-	static int32 isub(int32 l, int32 r) { return I(I(l) - I(r)); }
-	static int32 imul(int32 l, int32 r) { return I(I(l) * I(r)); }
-	static int32 idiv(int32 l, int32 r) { return I(I(l) ~/ I(r)); }
-	static int32 irem(int32 l, int32 r) { return I((I(l).remainder(I(r)))); }
 
-	static int32 iand(int32 l, int32 r) { return I(I(l) & I(r)); }
-	static int32 ixor(int32 l, int32 r) { return I(I(l) ^ I(r)); }
-	static int32 ior(int32 l, int32 r) { return I(I(l) | I(r)); }
+	static int32 iadd(int32 l, int32 r) { return I(l + r); }
+	static int32 isub(int32 l, int32 r) { return I(l - r); }
+	static int32 imul(int32 l, int32 r) { return I(l * r); }
+	static int32 idiv(int32 l, int32 r) { return I(l ~/ r); }
+	static int32 irem(int32 l, int32 r) { return I(l.remainder(r)); }
+	static int32 iand(int32 l, int32 r) { return I(l & r); }
+	static int32 ixor(int32 l, int32 r) { return I(l ^ r); }
+	static int32 ior(int32 l, int32 r) { return I(l | r); }
 
 	static int32 FIXSHIFT(int32 r) {
 		if (r < 0) {
-			return (32 - (I(-r) & 0x1F)) & 0x1F;
+			return (32 - ((-r) & 0x1F)) & 0x1F;
 		} else {
-			return I(r) & 0x1F;
+			return r & 0x1F;
 		}
 	}
 
-	static int32 ishl(int32 l, int32 r) { return I(I(l) << FIXSHIFT(r)); }
-	static int32 ishr(int32 l, int32 r) { return I(I(l) >> FIXSHIFT(r)); }
-	static int32 iushr(int32 l, int32 r) { return I((I(l).toInt() & 0xffffffff) >> FIXSHIFT(r)); }
+	static int32 ishl(int32 l, int32 r) { return I(l << FIXSHIFT(r)); }
+	static int32 ishr(int32 l, int32 r) { return I(l >> FIXSHIFT(r)); }
+	static int32 iushr(int32 l, int32 r) { return I((l & 0xffffffff) >> FIXSHIFT(r)); }
 
 	static void fillSecureRandomBytes(Int8List data) {
 		var random = new Math.Random.secure();
@@ -69,18 +75,18 @@ class N {
 		if (v == MIN_INT64) return MIN_INT64;
 		return L(-v);
 	}
-	static int64 ladd(int64 l, int64 r) { return L(L(l) + L(r)); }
-	static int64 lsub(int64 l, int64 r) { return L(L(l) - L(r)); }
-	static int64 lmul(int64 l, int64 r) { return L(L(l) * L(r)); }
-	static int64 lrem(int64 l, int64 r) { return L(L(l).remainder(L(r))); }
-	static int64 ldiv(int64 l, int64 r) { return L(L(l) ~/ L(r)); }
-	static int64 lxor(int64 l, int64 r) { return L(L(l) ^ L(r)); }
-	static int64 lor (int64 l, int64 r) { return L(L(l) | L(r)); }
-	static int64 land(int64 l, int64 r) { return L(L(l) & L(r)); }
-	static int64 lshl(int64 l, int64 r) { return L(L(l) << L(r)); }
-	static int64 lshr(int64 l, int64 r) { return L(L(l) >> L(r)); }
+	static int64 ladd(int64 l, int64 r) { return L(l + r); }
+	static int64 lsub(int64 l, int64 r) { return L(l - r); }
+	static int64 lmul(int64 l, int64 r) { return L(l * r); }
+	static int64 lrem(int64 l, int64 r) { return L(l.remainder(L(r))); }
+	static int64 ldiv(int64 l, int64 r) { return L(l ~/ r); }
+	static int64 lxor(int64 l, int64 r) { return L(l ^ r); }
+	static int64 lor (int64 l, int64 r) { return L(l | r); }
+	static int64 land(int64 l, int64 r) { return L(l & r); }
+	static int64 lshl(int64 l, int64 r) { return L(l << r); }
+	static int64 lshr(int64 l, int64 r) { return L(l >> r); }
 	static int64 lcmp(int64 l, int64 r) { return I((l < r) ? -1 : ((l > r) ? 1 : 0)); }
-	static int64 lushr(int64 l, int32 r) { return L((L(l) & 0xffffffffffffffff) >> r); }
+	static int64 lushr(int64 l, int32 r) { return L((l & 0xffffffffffffffff) >> r); }
 
 	static int32 cmp (double a, double b) { return (a < b) ? (-1) : ((a > b) ? (1) : 0); }
 	static int32 cmpl(double a, double b) { return (a.isNaN || b.isNaN) ? (-1) : N.cmp(a, b); }
@@ -91,29 +97,21 @@ class N {
 	static int64 doubleToLongBits(double v) { _tempF64[0] = v; return _tempI64[0]; }
 	static double longBitsToDouble(int64 v) { _tempI64[0] = v; return _tempF64[0]; }
 
-	static double i2f(int32 v) { return F(v.toDouble()); }
-	static double i2d(int32 v) { return D(v); }
-	static double l2f(int64 v) { return v; }
-	static double l2d(int64 v) { return v; }
-	static int32 z2i(bool v) { return v ? 1 : 0; }
-	static int64 d2j(double v) { return v; }
-	static int64 i2j(int32 v) { return v; }
+	static double i2f(int32 v) { return v.toDouble(); }
+	static double i2d(int32 v) { return v.toDouble(); }
+	static double l2f(int64 v) { return v.toDouble(); }
+	static double l2d(int64 v) { return v.toDouble(); }
+	static int32 z2i(bool v)   { return v ? 1 : 0; }
+	static int64 d2j(double v) { return L(v.toInt()); }
+	static int64 i2j(int32 v)  { return L(v.toInt()); }
 
 	static int32 i(int32 v) { return (v.toInt()); }
-	static int32 f2i(double v) { return I(v); }
-	static int32 d2i(double v) { return I(v); }
-	static int32 l2i(int32 v) { return I(v); }
-	static int32 i2b(int32 v) {
-		var out = new Int8List(1);
-		out[0] = v.toInt();
-		return out[0];
-	}
-	static int32 i2s(int32 v) {
-		var out = new Int16List(1);
-		out[0] = v.toInt();
-		return out[0];
-	}
-	static int64 i2c(int32 v) { return I(v.toInt() & 0xFFFF); }
+	static int32 f2i(double v) { return I(v.toInt()); }
+	static int32 d2i(double v) { return I(v.toInt()); }
+	static int32 l2i(int32 v) { return I(v.toInt()); }
+	static int32 i2b(int32 v) { return (v & 0x7F) - (v & 0x80); }
+	static int32 i2s(int32 v) { return (v & 0x7FFF) - (v & 0x8000); }
+	static int64 i2c(int32 v) { return (v & 0xFFFF); }
 
 	static String charArrayToString(JA_C array) {
 		return new String.fromCharCodes(array.data);
@@ -181,6 +179,11 @@ class N {
 	static {% CLASS java.lang.Long %}      boxLong  (long   v) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
 	static {% CLASS java.lang.Float %}     boxFloat (float  v) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }
 	static {% CLASS java.lang.Double %}    boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
+
+	static void arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dest, int destPos, int length) {
+		if (src is JA_0) return src.copyTo(dest, srcPos, destPos, length);
+		throw new Exception("Not implemented arraycopy for " + src);
+	}
 }
 
 class JA_0 extends {% CLASS java.lang.Object %} {
@@ -194,6 +197,10 @@ class JA_0 extends {% CLASS java.lang.Object %} {
 
 	void setArraySlice(int index, Array data) {
 		for (var n = 0; n < data.length; n++) this.data[index + n] = data[n];
+	}
+
+	void copyTo(JA_0 dest, int32 srcPos, int32 destPos, int32 length) {
+		dest.data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
 }
 
