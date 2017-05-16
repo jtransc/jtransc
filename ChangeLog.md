@@ -5,6 +5,7 @@
 ### New features
 - @Intrigus: C++ target with GC
 - AS3 target (BigTest passes)
+- Dart target (BigTest passes) (still requires some more optimizations)
 - Prevent generating runtime invisible annotations
 
 ### Changes
@@ -25,9 +26,7 @@
 - D put strings at compile-time since Object construction no longer require runtime
 - C# implemented genStmSetArrayLiterals reducing output size and startup time
 - Rework on Haxe arrays and casts specially in C++ for a major performance boost
-
-### Incubating
-- Dart target
+- Implemented Haxe-C++ goto hack for even better performance on loops
 
 ## 0.5.16
 
