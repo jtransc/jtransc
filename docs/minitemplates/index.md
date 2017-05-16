@@ -81,12 +81,15 @@ override public function onMouseUp(window:Window, x:Float, y:Float, button:Int):
 ## Available filters
 
 <pre>{% raw %}
+|length              - Evaluates to the length of a list or string
 |upper               - Uppercases the whole string
 |lower               - Lowercases the whole string
 |capitalize          - Uppercases the first character of the string and lowercases the rest
 |trim                - Strips starting and ending whitespace characters
 |join('separator')   - Joins something iterable with the specified separator
 |file_exists('file') - Evaluates to true in the case the specified file exists
+|quote               - Quotes a string "like \"this\""
+|escape              - Escapes a string (like quotes but without wrapping within "") like \"this\"
 {% endraw %}</pre>
 
 ## Available identifiers in templates
@@ -117,5 +120,12 @@ override public function onMouseUp(window:Window, x:Float, y:Float, button:Int):
 * `icon` - Path to icon file
 * `libraries` - List of target libraries to include
 * `extra` - Map<String, String> containing all the extra defined configurations
+* `JTRANSC_VERSION` - Version of JTransc eg. 0.6.0
+
+After building sources, inside for example HaxeCustomMain:
 * `entryPointFile` - File that holds the entrypoint
 * `entryPointClass` - Fully qualified name for the entry point class
+
+Specific targets can define custom template variables. To prevent them being outdated, please locate `CommonGenerator.params` field and find references:
+
+![](/minitemplates/CommonGenerator_params_references.png)

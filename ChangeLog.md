@@ -26,6 +26,9 @@
 - C# implemented genStmSetArrayLiterals reducing output size and startup time
 - Rework on Haxe arrays and casts specially in C++ for a major performance boost
 
+### Incubating
+- Dart target
+
 ## 0.5.16
 
 ...

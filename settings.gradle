@@ -16,6 +16,7 @@ include (
 	'jtransc-gen-php',
 	'jtransc-gen-js',
 	'jtransc-gen-as3',
+	'jtransc-gen-dart',
 	'jtransc-gradle-plugin',
 	'jtransc-annotations',
 	////'jtransc-intellij-plugin',

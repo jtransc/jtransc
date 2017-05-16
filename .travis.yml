@@ -42,8 +42,10 @@ install:
 #- sudo apt-get install wine1.6
 #- sudo apt-get -y install gdc # GDC D compiler
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
+- sudo sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
+- sudo sh -c 'curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
 - sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall d-apt-keyring && sudo apt-get update
-- sudo apt-get -y install dmd-bin
+- sudo apt-get -y install dmd-bin dart
 - wget http://haxe.org/website-content/downloads/3.4.2/downloads/haxe-3.4.2-linux64.tar.gz
 - tar xzf haxe-3.4.2-linux64.tar.gz
 - nvm install 4 || true

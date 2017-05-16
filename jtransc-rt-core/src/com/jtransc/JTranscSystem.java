@@ -78,6 +78,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "d", value = "return true;"),
 		@JTranscMethodBody(target = "cs", value = "return true;"),
 		@JTranscMethodBody(target = "as3", value = "return true;"),
+		@JTranscMethodBody(target = "dart", value = "return true;"),
 	})
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {

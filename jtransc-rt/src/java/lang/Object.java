@@ -41,6 +41,7 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")
+@JTranscAddFile(target = "dart", priority = -1, process = true, prependAppend = "dart/Base.dart")
 @JTranscAddFile(target = "php", priority = -1, process = true, prependAppend = "php/Base.php")
 @JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/CMakeLists.txt", dst = "CMakeLists.txt")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/_project.as3proj", dst = "_project.as3proj")

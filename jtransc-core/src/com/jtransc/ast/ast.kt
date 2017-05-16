@@ -341,6 +341,8 @@ class AstClass(
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
+
+	val implementingUnique by lazy {  implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
 	//var lastMethodId = 0
 	//var lastFieldId = 0
