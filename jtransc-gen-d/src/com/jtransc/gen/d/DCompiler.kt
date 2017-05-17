@@ -17,6 +17,7 @@ object DCompiler {
 				//return listOf(cmd!!, "-debug", "-gc", "-gx", programFile.absolutePath)
 				return listOf(cmd!!, "-debug", "-m64", programFile.absolutePath)
 			} else {
+				//return listOf(cmd!!, "-release", "-O", "-m64", "-inline", programFile.absolutePath)
 				return listOf(cmd!!, "-release", "-O", "-m64", programFile.absolutePath)
 			}
 		}

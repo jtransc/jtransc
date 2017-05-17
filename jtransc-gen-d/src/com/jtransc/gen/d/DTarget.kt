@@ -171,6 +171,15 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun genMethodDeclModifiers(method: AstMethod): String {
+		if (method.isInstanceInit) {
+			//return "pragma(inline, true)" + super.genMethodDeclModifiers(method)
+			return "pragma(inline) final " + super.genMethodDeclModifiers(method)
+		} else {
+			return super.genMethodDeclModifiers(method)
+		}
+	}
+
 	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
 		val CLASS = if (clazz.isInterface) "interface" else "class"
 		val iabstract = if (clazz.isAbstract) "abstract " else ""
@@ -200,7 +209,19 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
-	override fun N_c(str: String, from: AstType, to: AstType) = "(cast(${to.targetName})($str))"
+	override fun N_c(str: String, from: AstType, to: AstType):String {
+		if (str == "this") return "this"
+		//if (to is AstType.REF && to.fqname == "java.lang.Object" && from is AstType.Reference) return str
+
+		if (from is AstType.REF && to is AstType.REF) {
+			val fromClass = program[from]!!
+			val toClass = program[to]!!
+			if (toClass in fromClass.ancestors) return str
+			if (toClass in fromClass.allInterfacesInAncestors) return str
+		}
+
+		return "(cast(${to.targetName})($str))"
+	}
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(cast($BaseArrayType)${e.array.genNotNull()}).length"
 	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
@@ -302,6 +323,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun escapedConstant(v: Any?): String = when (v) {
 		is Double -> {
+			//val isVerySmall = (v in 0.0..4.940656e-324)
+			@Suppress("ConvertTwoComparisonsToRangeCheck")
 			val isVerySmall = (v >= 0.0 && v <= 4.940656e-324)
 			val representable = !isVerySmall
 			if (representable) {
