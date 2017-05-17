@@ -20,7 +20,10 @@ class AsyncIOTest {
 					completed = true
 				}
 
-				override fun resumeWithException(exception: Throwable) = exception.printStackTrace()
+				override fun resumeWithException(exception: Throwable) {
+					exception.printStackTrace()
+					completed = true
+				}
 			})
 			if (!JTranscSystem.hasEventLoop()) {
 				while (!completed) Thread.sleep(10L)

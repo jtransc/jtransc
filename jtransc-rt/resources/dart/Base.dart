@@ -164,6 +164,7 @@ class N {
 	}
 
 	static {% CLASS java.lang.RuntimeException %} runtimeException(String msg) {
+		print("runtimeException: '$msg'");
 		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
 	}
 
@@ -171,15 +172,17 @@ class N {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 	}
 
-	static futureToAsyncHandler(Future future, {% CLASS com.jtransc.async.JTranscAsyncHandler %} handler, transform) {
-		future.then(
-			(v) {
-				handler.{% METHOD com.jtransc.async.JTranscAsyncHandler:complete %}(transform(v), null);
-			},
-			onError: (e) {
+	static completeFuture({% CLASS com.jtransc.async.JTranscAsyncHandler %} handler, callback) {
+		(() async {
+			var result;
+			try {
+				result = await callback();
+			} catch (e) {
 				handler.{% METHOD com.jtransc.async.JTranscAsyncHandler:complete %}(null, N.runtimeException("$e"));
+				return;
 			}
-		);
+			handler.{% METHOD com.jtransc.async.JTranscAsyncHandler:complete %}(result, null);
+		})();
 	}
 
 	static void monitorEnter({% CLASS java.lang.Object %} o) {

@@ -27,32 +27,27 @@ object StdoutRouterStream : OutputStream() {
 		System.setOut(StdoutRouter)
 	}
 
-	private val routePerThread = ThreadLocal<OutputStream>()
+	private var os: OutputStream? = null
 
 	override fun write(b: Int) {
-		val os = routePerThread.get()
-		if (os != null) {
-			os.write(b)
-		} else {
-			defaultRoute.write(b)
+		synchronized(this) {
+			(os ?: defaultRoute).write(b)
 		}
 	}
 
 	override fun write(b: ByteArray?, off: Int, len: Int) {
-		val os = routePerThread.get()
-		if (os != null) {
-			os.write(b, off, len)
-		} else {
-			defaultRoute.write(b, off, len)
+		synchronized(this) {
+			(os ?: defaultRoute).write(b, off, len)
 		}
 	}
 
-	fun <TOutputStream : OutputStream> routeTemporally(out:TOutputStream, callback: () -> Unit): TOutputStream {
-		routePerThread.set(out)
+	fun <TOutputStream : OutputStream> routeTemporally(out: TOutputStream, callback: () -> Unit): TOutputStream {
+		val prev = synchronized(this) { this.os }
+		synchronized(this) { this.os = out }
 		try {
 			callback()
 		} finally {
-			routePerThread.set(null)
+			synchronized(this) { this.os = prev }
 		}
 		return out
 	}

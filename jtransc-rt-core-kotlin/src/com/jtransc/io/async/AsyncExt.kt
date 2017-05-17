@@ -19,14 +19,14 @@ suspend fun JTranscAsyncFile.open(mode: JTranscFileMode = JTranscFileMode.READ):
 
 suspend fun JTranscAsyncFile.readAll(): ByteArray {
 	return openUse {
-		readBytes(available().toInt())
+		readBytes(0L, length().toInt())
 	}
 }
 
 suspend fun JTranscAsyncFile.writeBytes(data: ByteArray): Unit {
 	openUse(JTranscFileMode.WRITE) {
 		setLength(0L)
-		write(data)
+		write(0L, data)
 	}
 }
 
@@ -39,19 +39,19 @@ suspend fun <T> JTranscAsyncFile.openUse(mode: JTranscFileMode = JTranscFileMode
 	}
 }
 
-suspend fun JTranscAsyncStream.write(out: ByteArray, offset: Int = 0, len: Int = out.size): Int = suspendCoroutine { this.writeAsync(out, offset, len, it.toJTranscAsyncHandler()) }
-suspend fun JTranscAsyncStream.read(out: ByteArray, offset: Int = 0, len: Int = out.size): Int = suspendCoroutine { this.readAsync(out, offset, len, it.toJTranscAsyncHandler()) }
+suspend fun JTranscAsyncStream.write(position: Long, out: ByteArray, offset: Int = 0, len: Int = out.size): Int = suspendCoroutine { this.writeAsync(position, out, offset, len, it.toJTranscAsyncHandler()) }
+suspend fun JTranscAsyncStream.read(position: Long, out: ByteArray, offset: Int = 0, len: Int = out.size): Int = suspendCoroutine { this.readAsync(position, out, offset, len, it.toJTranscAsyncHandler()) }
 suspend fun JTranscAsyncStream.close(): Int = suspendCoroutine { this.closeAsync(it.toJTranscAsyncHandler()) }
 
-suspend fun JTranscAsyncStream.position(): Long = suspendCoroutine { this.getPositionAsync(it.toJTranscAsyncHandler()) }
+//suspend fun JTranscAsyncStream.position(): Long = suspendCoroutine { this.getPositionAsync(it.toJTranscAsyncHandler()) }
 suspend fun JTranscAsyncStream.length(): Long = suspendCoroutine { this.getLengthAsync(it.toJTranscAsyncHandler()) }
-suspend fun JTranscAsyncStream.available(): Long = length() - position()
+//suspend fun JTranscAsyncStream.available(): Long = length() - position()
 
-suspend fun JTranscAsyncStream.setPosition(value: Long): Long = suspendCoroutine { this.setPositionAsync(value, it.toJTranscAsyncHandler()) }
+//suspend fun JTranscAsyncStream.setPosition(value: Long): Long = suspendCoroutine { this.setPositionAsync(value, it.toJTranscAsyncHandler()) }
 suspend fun JTranscAsyncStream.setLength(value: Long): Long = suspendCoroutine { this.setLengthAsync(value, it.toJTranscAsyncHandler()) }
 
-suspend fun JTranscAsyncStream.readBytes(count: Int): ByteArray {
+suspend fun JTranscAsyncStream.readBytes(position: Long, count: Int): ByteArray {
 	val out = ByteArray(count)
-	val size = read(out)
+	val size = read(position, out)
 	return out.copyOf(size)
 }

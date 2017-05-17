@@ -18,9 +18,11 @@ public class JTranscAsyncFileStream extends JTranscAsyncStream {
 
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "dart", value = {
-			"var that = this;",
 			"var mode = (N.istr(p2) == 'rw') ? FileMode.WRITE : FileMode.READ;",
-			"N.futureToAsyncHandler(new File(N.istr(p0)).open(mode: mode), p3, (RandomAccessFile raf) { that.raf = raf; return that; });",
+			"N.completeFuture(p3, () async {",
+			"	this.raf = await new File(N.istr(p0)).open(mode: mode);",
+			"	return this;",
+			"});",
 		})
 	})
 	public void openAsync(String path, int mode, String modestr, JTranscAsyncHandler<JTranscAsyncFileStream> callback) {
@@ -33,40 +35,37 @@ public class JTranscAsyncFileStream extends JTranscAsyncStream {
 	}
 
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.writeFrom(p0.data, p1, p1 + p2), p3, (v) { return N.boxInt(p2); });"),
+		@JTranscMethodBody(target = "dart", value = {
+			"N.completeFuture(p4, () async {",
+			"	await this.raf.setPosition(p0.toInt());",
+			"	await this.raf.writeFrom(p1.data, p2, p2 + p3);",
+			"	return N.boxInt(p3);",
+			"});",
+		}),
 	})
 	@Override
-	public void writeAsync(byte[] data, int offset, int size, JTranscAsyncHandler<Integer> callback) {
+	public void writeAsync(long position, byte[] data, int offset, int size, JTranscAsyncHandler<Integer> callback) {
+		syncStream.setPosition(position);
 		callback.complete(syncStream.write(data, offset, size), null);
 	}
 
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.readInto(p0.data, p1, p1 + p2), p3, (v) { return N.boxInt(v.toInt()); });"),
+		@JTranscMethodBody(target = "dart", value = {
+			"N.completeFuture(p4, () async {",
+			"	await this.raf.setPosition(p0.toInt());",
+			"	var count = await this.raf.readInto(p1.data, p2, p2 + p3);",
+			"	return N.boxInt(count);",
+			"});",
+		}),
 	})
 	@Override
-	public void readAsync(byte[] data, int offset, int size, JTranscAsyncHandler<Integer> callback) {
+	public void readAsync(long position, byte[] data, int offset, int size, JTranscAsyncHandler<Integer> callback) {
+		syncStream.setPosition(position);
 		callback.complete(syncStream.read(data, offset, size), null);
 	}
 
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.setPosition(p0.toInt()), p1, (v) { return N.boxLong(p0.toInt()); });"),
-	})
-	@Override
-	public void setPositionAsync(long position, JTranscAsyncHandler<Long> callback) {
-		syncStream.setPosition(position);
-		callback.complete(syncStream.getPosition(), null);
-	}
-
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.position(), p0, (v) { return N.boxLong(N.lnew(v)); });"),
-	})
-	@Override
-	public void getPositionAsync(JTranscAsyncHandler<Long> callback) {
-		callback.complete(syncStream.getPosition(), null);
-	}
-
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.truncate(p0.toInt()), p1, (v) { return N.boxLong(p0.toInt()); });"),
+		@JTranscMethodBody(target = "dart", value = "N.completeFuture(p1, () async { await this.raf.truncate(p0.toInt()); return N.boxLong(p0.toInt()); });"),
 	})
 	@Override
 	public void setLengthAsync(long length, JTranscAsyncHandler<Long> callback) {
@@ -75,7 +74,7 @@ public class JTranscAsyncFileStream extends JTranscAsyncStream {
 	}
 
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.length(), p0, (v) { return N.boxLong(N.lnew(v)); });"),
+		@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { var length = await this.raf.length(); return N.boxLong(N.lnew(length.toInt())); });"),
 	})
 	@Override
 	public void getLengthAsync(JTranscAsyncHandler<Long> callback) {
@@ -83,7 +82,7 @@ public class JTranscAsyncFileStream extends JTranscAsyncStream {
 	}
 
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.futureToAsyncHandler(this.raf.close(), p0, (v) { return N.boxInt(N.inew(0)); });"),
+		@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { await this.raf.close(); return N.boxInt(0); });"),
 	})
 	@Override
 	public void closeAsync(JTranscAsyncHandler<Integer> callback) {
