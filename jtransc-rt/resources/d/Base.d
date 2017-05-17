@@ -229,9 +229,9 @@ class N {
 	static public long lxor(long l, long r) { return l ^ r; }
 	static public long lor (long l, long r) { return l | r; }
 	static public long land(long l, long r) { return l & r; }
-	static public long lshl(long l, long r) { return l << r; }
-	static public long lshr(long l, long r) { return l >> r; }
-	static public long lushr(long l, long r) { return l >>> r; }
+	static public long lshl(long l, int r) { return l << r; }
+	static public long lshr(long l, int r) { return l >> r; }
+	static public long lushr(long l, int r) { return l >>> r; }
 	static public int  lcmp(long l, long r) { return (l < r) ? -1 : ((l > r) ? 1 : 0); }
 
 	static public int cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); }

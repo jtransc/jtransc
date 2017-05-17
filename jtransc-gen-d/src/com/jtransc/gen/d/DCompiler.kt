@@ -15,9 +15,9 @@ object DCompiler {
 			if (debug) {
 				// @TODO: DMD bug -gc allows to print good stacktraces but -gc makes compiler fail on large files
 				//return listOf(cmd!!, "-debug", "-gc", "-gx", programFile.absolutePath)
-				return listOf(cmd!!, "-debug", programFile.absolutePath)
+				return listOf(cmd!!, "-debug", "-m64", programFile.absolutePath)
 			} else {
-				return listOf(cmd!!, "-release", "-O", programFile.absolutePath)
+				return listOf(cmd!!, "-release", "-O", "-m64", programFile.absolutePath)
 			}
 		}
 	}

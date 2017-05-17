@@ -813,9 +813,11 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 					{{ flag.first }}
 					{{ flag.second }}
 				{% end %}
+				-D
+				HXCPP_M64
 				{% for define in haxeExtraDefines %}
 					-D
-					define
+					{{ define }}
 				{% end %}
 			""").invoke(params)
 		}
