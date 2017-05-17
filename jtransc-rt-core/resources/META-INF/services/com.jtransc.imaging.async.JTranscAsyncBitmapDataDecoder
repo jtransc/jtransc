@@ -1,0 +1,2 @@
+com.jtransc.imaging.async.impl.JTranscAsyncBitmapDataDecoderAwt # <target=java>
+com.jtransc.imaging.async.impl.JTranscAsyncBitmapDataDecoderHtml # <target=js>

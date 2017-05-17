@@ -119,6 +119,7 @@ class JsTest : _Base() {
 		2
 		0
 		true
+		1234567
 		Timeout!
 	""", minimize = false, treeShaking = true)
 

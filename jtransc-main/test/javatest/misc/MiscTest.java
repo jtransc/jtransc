@@ -580,9 +580,9 @@ public class MiscTest {
 
 	static private void testSimd() {
 		JTranscConsole.log("testSimd:");
-		MutableFloat32x4 a = new MutableFloat32x4(-1, -1, -1, -1);
-		MutableFloat32x4 b = new MutableFloat32x4(1, 1, 1, 1);
-		MutableFloat32x4 c = new MutableFloat32x4(1, 2, 3, 0);
+		MutableFloat32x4 a = MutableFloat32x4.create(-1, -1, -1, -1);
+		MutableFloat32x4 b = MutableFloat32x4.create(1, 1, 1, 1);
+		MutableFloat32x4 c = MutableFloat32x4.create(1, 2, 3, 0);
 		a.setToAdd(b, c);
 		System.out.println(a.toString());
 	}

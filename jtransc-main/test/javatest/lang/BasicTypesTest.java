@@ -20,6 +20,7 @@ public class BasicTypesTest {
 		swapTests();
 		checkNanInf();
 		conversionTests();
+		castNanInfinite();
 	}
 
 	private static void conversionTests(double v) {
@@ -403,5 +404,21 @@ public class BasicTypesTest {
 			System.out.print(",");
 		}
 		System.out.println();
+	}
+
+	static private void castNanInfinite() {
+		System.out.println((long)Double.NaN);
+		System.out.println((int)Double.NaN);
+		System.out.println((long)Double.POSITIVE_INFINITY);
+		System.out.println((int)Double.POSITIVE_INFINITY);
+		System.out.println((long)Double.NEGATIVE_INFINITY);
+		System.out.println((int)Double.NEGATIVE_INFINITY);
+
+		System.out.println((long)Float.NaN);
+		System.out.println((int)Float.NaN);
+		System.out.println((long)Float.POSITIVE_INFINITY);
+		System.out.println((int)Float.POSITIVE_INFINITY);
+		System.out.println((long)Float.NEGATIVE_INFINITY);
+		System.out.println((int)Float.NEGATIVE_INFINITY);
 	}
 }

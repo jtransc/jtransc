@@ -1,6 +1,7 @@
 package com.jtransc.io.async.impl;
 
 import com.jtransc.async.JTranscAsyncHandler;
+import com.jtransc.async.JTranscAsyncTools;
 import com.jtransc.io.JTranscFileMode;
 import com.jtransc.io.async.JTranscAsyncFileSystem;
 import com.jtransc.io.async.JTranscAsyncStream;
@@ -16,7 +17,7 @@ import java.nio.file.StandardOpenOption;
 public class JTranscAsyncFileSystemNIO extends JTranscAsyncFileSystem {
 	@Override
 	public void getLength(final String path, final JTranscAsyncHandler<Long> handler) {
-		runInThread(handler, new ThreadRun<Long>() {
+		JTranscAsyncTools.runInThread(handler, new JTranscAsyncTools.ThreadRun<Long>() {
 			@Override
 			public Long run() {
 				return new File(path).length();
@@ -26,7 +27,7 @@ public class JTranscAsyncFileSystemNIO extends JTranscAsyncFileSystem {
 
 	@Override
 	public void mkdir(final String path, final JTranscAsyncHandler<Boolean> handler) {
-		runInThread(handler, new ThreadRun<Boolean>() {
+		JTranscAsyncTools.runInThread(handler, new JTranscAsyncTools.ThreadRun<Boolean>() {
 			@Override
 			public Boolean run() {
 				new File(path).mkdir();
@@ -125,23 +126,4 @@ public class JTranscAsyncFileSystemNIO extends JTranscAsyncFileSystem {
 		}, null);
 	}
 
-	static private <T> void runInThread(final JTranscAsyncHandler<T> handler, final ThreadRun<T> run) {
-		new Thread() {
-			@Override
-			public void run() {
-				final T result;
-				try {
-					result = run.run();
-				} catch (Throwable t) {
-					handler.complete(null, t);
-					return;
-				}
-				handler.complete(result, null);
-			}
-		}.start();
-	}
-
-	interface ThreadRun<T> {
-		T run() throws Throwable;
-	}
 }

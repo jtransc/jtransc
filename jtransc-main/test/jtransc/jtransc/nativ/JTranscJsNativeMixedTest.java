@@ -26,10 +26,11 @@ public class JTranscJsNativeMixedTest {
 		customAnnotationTest();
 		MixedJsKotlin.main(args);
 		call(access(global("console"), "log"), 1);
-		JsDynamic.global("console").get("log").call(2);
+		JsDynamic.global("console").call("log", 2);
 		int res = JsDynamic.global("console").get("log").toInt();
 		System.out.println(res);
-		System.out.println(JsDynamic.global("Math").get("max").call(-4, -3).toInt() == -3);
+		System.out.println(JsDynamic.global("Math").call("max", -4, -3).toInt() == -3);
+		System.out.println(JsDynamic.global().get("Date").newInstance(1234567).call("getTime").toInt());
 	}
 
 	@JTranscCallSiteBody(target = "js", value = "global[#'0]")

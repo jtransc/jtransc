@@ -169,8 +169,8 @@ public class BenchmarkTest {
 		benchmark("simd mutable", new Task() {
 			@Override
 			public int run() {
-				MutableFloat32x4 a = new MutableFloat32x4();
-				MutableFloat32x4 b = new MutableFloat32x4(2f, 3f, 4f, 5f);
+				MutableFloat32x4 a = MutableFloat32x4.create();
+				MutableFloat32x4 b = MutableFloat32x4.create(2f, 3f, 4f, 5f);
 
 				for (int n = 0; n < 1000; n++) {
 					a.setToAdd(a, b);
@@ -197,13 +197,15 @@ public class BenchmarkTest {
 		benchmark("simd mutable matrix mult", new Task() {
 			@Override
 			public int run() {
-				MutableMatrixFloat32x4x4 a = new MutableMatrixFloat32x4x4().setTo(
+				MutableMatrixFloat32x4x4 a = MutableMatrixFloat32x4x4.create();
+				a.setTo(
 					1f, 9f, 1f, 7f,
 					3f, 2f, 4f, 5f,
 					3f, 7f, 3f, 3f,
 					3f, 8f, 4f, 4f
 				);
-				MutableMatrixFloat32x4x4 b = new MutableMatrixFloat32x4x4().setTo(
+				MutableMatrixFloat32x4x4 b = MutableMatrixFloat32x4x4.create();
+				b.setTo(
 					2f, 3f, 4f, 5f,
 					2f, 3f, 4f, 5f,
 					2f, 3f, 4f, 5f,

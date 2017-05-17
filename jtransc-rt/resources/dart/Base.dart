@@ -118,8 +118,8 @@ class N {
 	static int z2i(bool v)   { return v ? 1 : 0; }
 
 	static int i(int v) { return (v.toInt()); }
-	static int f2i(double v) { return I(v.toInt()); }
-	static int d2i(double v) { return I(v.toInt()); }
+	static int f2i(double v) { if (v.isNaN || !v.isFinite) return 0; return I(v.toInt()); }
+	static int d2i(double v) { if (v.isNaN || !v.isFinite) return 0; return I(v.toInt()); }
 
 	static int i2b(int v) { return (v & 0x7F) - (v & 0x80); }
 	static int i2s(int v) { return (v & 0x7FFF) - (v & 0x8000); }

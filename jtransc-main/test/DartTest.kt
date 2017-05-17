@@ -4,6 +4,7 @@ import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.dart.DartTarget
 import jtransc.ProcessTest
+import jtransc.jtransc.SimdTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -29,6 +30,8 @@ class DartTest : _Base() {
 
 	//@Ignore
 	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+
+	@Test fun testSimd() = testClass<SimdTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 
 	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 

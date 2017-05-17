@@ -294,6 +294,9 @@ class TreeShakingApi(
 			addTemplateReferences(methodBody.value, methodRef.containingClass, "methodBody=$newmethod")
 		}
 
+		val callSite = newmethod.annotationsList.getCallSiteBodiesForTarget(targetName)
+		if (callSite != null) addTemplateReferences(callSite, methodRef.containingClass, "methodBodyCallSite=$newmethod")
+
 		//if (methodRef.name == "_onKeyDownUp") {
 		//	val bodyDependencies = oldmethod.bodyDependencies
 		//	println(bodyDependencies)

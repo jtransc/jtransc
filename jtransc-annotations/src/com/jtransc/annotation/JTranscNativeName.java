@@ -25,4 +25,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 public @interface JTranscNativeName {
     String value();
+	String target() default "";
 }

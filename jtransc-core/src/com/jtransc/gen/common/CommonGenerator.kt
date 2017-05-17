@@ -539,7 +539,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					args2[id]
 				}
 				if (mustQuote.isNotEmpty()) quoteString(res) else res
-			}
+			}.template("JTranscCallSiteBody")
 			return out
 		} else {
 			val processedArgs = method.type.argTypes.zip(args).map { processArg(it.second, it.first) }
