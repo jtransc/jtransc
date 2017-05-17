@@ -1,15 +1,4 @@
-import com.jtransc.ConfigClassPaths
-import com.jtransc.JTranscBuild
-import com.jtransc.JTranscVersion
-import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstTypes
-import com.jtransc.ast.ConfigMinimizeNames
-import com.jtransc.ast.ConfigTreeShaking
-import com.jtransc.gen.js.JsTarget
-import com.jtransc.injector.Injector
-import org.junit.Test
-
-class ManualTests : Base() {
+class _ManualTests : _Base() {
 	//@Test fun test123() {
 	//	val classPaths = arrayListOf<String>()
 	//	classPaths.add("/Users/soywiz/Projects/jtransc-examples/tic-tac-toe-kotlin/build/classes/main")

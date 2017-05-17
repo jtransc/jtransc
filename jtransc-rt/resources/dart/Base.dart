@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:math' as Math;
+import 'dart:io';
 
 // JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
 
@@ -201,6 +202,28 @@ class N {
 	static void arraycopy({% CLASS java.lang.Object %} src, int srcPos, {% CLASS java.lang.Object %} dest, int destPos, int length) {
 		if (src is JA_0) return src.copyTo(dest, srcPos, destPos, length);
 		throw new Exception("Not implemented arraycopy for " + src.toString());
+	}
+
+	static JA_L getStackTrace(int skip) {
+		var st = StackTrace.current;
+		var lines = st.toString().split('\n');
+		var o = new JA_L(lines.length - skip, "[Ljava/lang/StackTraceElement;");
+		for (var n = 0; n < lines.length; n++) {
+			var line = lines[n];
+
+			// @TODO: Parse stacktrace elements
+			var clazz = line;
+			var method = '';
+			var file = '';
+			var lineNumber = 0;
+
+			if (n >= skip) {
+				o.data[n - skip] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
+					N.str(clazz), N.str(method), N.str(file), lineNumber
+				);
+			}
+		}
+		return o;
 	}
 }
 

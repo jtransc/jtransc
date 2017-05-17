@@ -1,6 +1,8 @@
+import big.BigIOTest
 import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.dart.DartTarget
+import jtransc.ProcessTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -21,11 +23,16 @@ import org.junit.Test
  * limitations under the License.
  */
 
-class DartTest : Base() {
+class DartTest : _Base() {
 	override val DEFAULT_TARGET = DartTarget()
 
 	//@Ignore
 	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 
 	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+
+	@Test fun testBigIO() = testClass<BigIOTest>(minimize = false, log = false, treeShaking = true)
+
+	@Ignore("Process not implemented yet!")
+	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false, treeShaking = true)
 }

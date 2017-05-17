@@ -26,7 +26,7 @@ import java.util.Map;
 @JTranscAddMembers(target = "d", value = {
 	"ProcessPipes pipes;"
 })
-public class JTranscProcessJsDHaxe extends JTranscProcess {
+public class JTranscProcessMulti extends JTranscProcess {
 	private JTranscWrapped processWrapped;
 
 	@HaxeMethodBodyPre("" +
@@ -60,7 +60,7 @@ public class JTranscProcessJsDHaxe extends JTranscProcess {
 	private String[] cmds;
 
 	static public class Creator {
-		public JTranscProcessJsDHaxe start(JTranscProcessJsDHaxe process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
+		public JTranscProcessMulti start(JTranscProcessMulti process, List<String> cmds, Map<String, String> environment, String dir, ProcessBuilder.Redirect stdin, ProcessBuilder.Redirect stdout, ProcessBuilder.Redirect stderr, boolean redirectErrorStream) {
 			process.cmds = cmds.toArray(new String[cmds.size()]);
 			if (JTranscSystem.isCpp() || JTranscSystem.isD()) {
 				process.__init();

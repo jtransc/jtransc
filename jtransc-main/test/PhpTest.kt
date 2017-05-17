@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.php.PhpTarget
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
 
-class PhpTest : Base() {
-	override val DEFAULT_TARGET: GenTargetDescriptor = PhpTarget()
+class PhpTest : _Base() {
+	override val DEFAULT_TARGET = PhpTarget()
 
 	@Ignore
 	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)

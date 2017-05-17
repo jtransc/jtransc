@@ -256,7 +256,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
 		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
-		@JTranscMethodBody(target = "dart", value = "return N.str('dart');"),
+		@JTranscMethodBody(target = "dart", value = "return N.str(Platform.operatingSystem);"),
 	})
 	static private String getOSRaw() {
 		if (JTranscSystem.isJTransc()) {
@@ -271,6 +271,7 @@ public class JTranscSystem {
 		if (os.startsWith("win")) return "windows";
 		if (os.startsWith("lin")) return "linux";
 		if (os.startsWith("mac") || os.startsWith("osx")) return "mac";
+		if (os.startsWith("fuch")) return "fuchsia";
 		return os;
 	}
 
@@ -299,6 +300,10 @@ public class JTranscSystem {
 		} else {
 			return System.getProperty("os.arch").contains("64");
 		}
+	}
+
+	public static boolean isFuchsia() {
+		return getOS().toLowerCase().startsWith("fuch");
 	}
 
 	public static boolean isWindows() {

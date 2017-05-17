@@ -251,7 +251,7 @@ public class System {
 	@JTranscMethodBody(target = "d", value = "return N.str(std.process.environment.get(N.istr2(p0)));")
 	@JTranscMethodBody(target = "cs", value = "return N.str(Environment.GetEnvironmentVariable(N.istr(p0)));")
 	@JTranscMethodBody(target = "as3", value = "return N.str(null);")
-	@JTranscMethodBody(target = "dart", value = "return N.str(null);")
+	@JTranscMethodBody(target = "dart", value = "return N.str(Platform.environment[N.istr(p0)]);")
 	public static String getenv(String name) {
 		return null;
 	}
@@ -269,6 +269,7 @@ public class System {
 	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
 	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
 	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
+	@JTranscMethodBody(target = "dart", value = "exit(p0);")
 	native public static void exit(int status);
 
 	public static void gc() {

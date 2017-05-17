@@ -34,6 +34,7 @@ object BigTest {
 		//KotlinPropertiesTest.main(args)
 
 		// Misc tests
+		Thread.sleep(1L);
 		StringsTest.main(args)
 		PropertiesTest.main(args);
 		BasicTypesTest.main(args)

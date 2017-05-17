@@ -140,7 +140,10 @@ public final class ProcessBuilder {
 
 	public Process start() throws IOException {
 		try {
-			JTranscProcess process = ServiceLoader.load(JTranscProcess.class).iterator().next();
+			ServiceLoader<JTranscProcess> load = ServiceLoader.load(JTranscProcess.class);
+			Iterator<JTranscProcess> iterator = load.iterator();
+			if (!iterator.hasNext()) throw new RuntimeException("Can't find JTranscProcess suitable implementation");
+			JTranscProcess process = iterator.next();
 			return process.start(
 				command,
 				environment,

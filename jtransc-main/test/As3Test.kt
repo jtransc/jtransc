@@ -1,16 +1,11 @@
 import as3.As3PureTest
 import big.BigTest
-import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
-import com.jtransc.gen.cs.CSharpTarget
-import com.jtransc.gen.js.JsTarget
 import javatest.misc.BenchmarkTest
-import jtransc.ExtraKeywordsTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
-import testservice.test.ServiceLoaderTest
 
 /*
  * Copyright 2016 Carlos Ballesteros Velasco
@@ -28,7 +23,7 @@ import testservice.test.ServiceLoaderTest
  * limitations under the License.
  */
 
-class As3Test : Base() {
+class As3Test : _Base() {
 	override val DEFAULT_TARGET = As3Target()
 
 	@Ignore

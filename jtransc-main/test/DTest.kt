@@ -1,11 +1,8 @@
 import big.BigTest
 import big.HelloWorldTest
-import big.MiniHelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.d.DTarget
-import com.jtransc.gen.js.JsTarget
 import issues.Issue100Double
-import javatest.misc.BenchmarkTest
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Test
@@ -28,27 +25,29 @@ import threading.ThreadingTest
  * limitations under the License.
  */
 
-class DTest : Base() {
-	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, target = DTarget(), log = false)
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = DTarget(), log = false)
+class DTest : _Base() {
+	override val DEFAULT_TARGET = DTarget()
 
-	@Test fun testMicroHelloWorldAsm1() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM)
+	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, log = false)
+	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
 
-	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
-	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, target = DTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
+	@Test fun testMicroHelloWorldAsm1() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
 
-	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, target = DTarget(), log = false)
+	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
+	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
-	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = false, target = DTarget(), log = false)
+	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, log = false)
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, target = DTarget(), log = false)
+	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = false, log = false)
+
+	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
 
 	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
 		TestServiceImpl1.test:ss
 		TestServiceD
-	""", target = DTarget(), minimize = false)
+	""", minimize = false)
 
 	@Test fun testMixed() = testNativeClass<JTranscDNativeMixedTest>("""
 		JTranscReinterpretArrays:
-	""", target = DTarget(), minimize = false)
+	""", minimize = false)
 }

@@ -25,21 +25,23 @@ import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
 
-class HaxeTest : Base() {
-	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = true)
+class HaxeTest : _Base() {
+	override val DEFAULT_TARGET = HaxeTarget()
 
-	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = true)
-	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null, treeShaking = false)
+	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, lang = "js", log = null, treeShaking = true)
 
-	@Test fun testEnumBugIssue94() = testClass<Issue94Enum>(minimize = false, target = HaxeTarget(), log = false, treeShaking = true)
-	@Test fun testBigSwitchIssue103() = testClass<Issue103>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
+	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass<HelloWorldTest>(minimize = false, lang = "js", log = null, treeShaking = true)
+	@Test fun testHelloWorldHaxeJs() = testClass<HelloWorldTest>(minimize = false, lang = "js", log = null, treeShaking = false)
 
-	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
+	@Test fun testEnumBugIssue94() = testClass<Issue94Enum>(minimize = false, log = false, treeShaking = true)
+	@Test fun testBigSwitchIssue103() = testClass<Issue103>(minimize = false, lang = "js", log = false, treeShaking = true)
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "js", log = null)
+	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, lang = "js", log = false, treeShaking = true)
+
+	@Test fun testBig() = testClass<BigTest>(minimize = false, lang = "js", log = null)
 
 	@Ignore
-	@Test fun testBigCpp() = testClass<BigTest>(minimize = false, target = HaxeTarget(), lang = "cpp", log = null)
+	@Test fun testBigCpp() = testClass<BigTest>(minimize = false, lang = "cpp", log = null)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
@@ -74,5 +76,5 @@ class HaxeTest : Base() {
 		main__Ljava_lang_String__V
 		_jt___hello
 		JTranscReinterpretArrays:
-	""", target = HaxeTarget(), minimize = false)
+	""", minimize = false)
 }

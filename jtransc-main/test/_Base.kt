@@ -32,7 +32,7 @@ import com.jtransc.vfs.parent
 import org.junit.Assert
 import java.io.File
 
-open class Base {
+open class _Base {
 	open val DEFAULT_TARGET: GenTargetDescriptor = JsTarget()
 
 	open val BACKEND = BuildBackend.ASM

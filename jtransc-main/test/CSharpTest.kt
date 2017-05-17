@@ -3,7 +3,6 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.cs.CSharpTarget
-import com.jtransc.gen.js.JsTarget
 import jtransc.ProcessTest
 import jtransc.micro.MicroHelloWorld
 import jtransc.staticinit.StaticInitTest
@@ -27,7 +26,7 @@ import testservice.test.ServiceLoaderTest
  * limitations under the License.
  */
 
-class CSharpTest : Base() {
+class CSharpTest : _Base() {
 	override val DEFAULT_TARGET = CSharpTarget()
 
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
@@ -48,4 +47,7 @@ class CSharpTest : Base() {
 
 	@Ignore("Not working fine yet")
 	@Test fun testBigIO() = testClass<BigIOTest>(minimize = false, log = false)
+
+	@Ignore("Not working fine yet")
+	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false)
 }

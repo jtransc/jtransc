@@ -49,8 +49,9 @@ public class JTranscClock {
 		}
 
 		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
-		@JTranscMethodBody(target = "cs", value = {
-			"System.Threading.Thread.Sleep((int)p0);"
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "cs", value = "System.Threading.Thread.Sleep((int)p0);"),
+			@JTranscMethodBody(target = "dart", value = "sleep(new Duration(milliseconds: p0.toInt()));"),
 		})
 		public void sleep(double ms) {
 			if (parent != null) {
