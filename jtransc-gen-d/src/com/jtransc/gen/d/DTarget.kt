@@ -172,12 +172,12 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genMethodDeclModifiers(method: AstMethod): String {
-		if (method.isInstanceInit) {
-			//return "pragma(inline, true)" + super.genMethodDeclModifiers(method)
-			return "pragma(inline) final " + super.genMethodDeclModifiers(method)
-		} else {
+		//if (method.isInstanceInit) {
+		//	//return "pragma(inline, true)" + super.genMethodDeclModifiers(method)
+		//	return "pragma(inline) final " + super.genMethodDeclModifiers(method)
+		//} else {
 			return super.genMethodDeclModifiers(method)
-		}
+		//}
 	}
 
 	override fun genClassDecl(clazz: AstClass, kind: MemberTypes): String {
@@ -210,7 +210,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FqName.targetSimpleName: String get() = this.targetName
 
 	override fun N_c(str: String, from: AstType, to: AstType):String {
-		if (str == "this") return "this"
+		//if (str == "this") return "this"
 		//if (to is AstType.REF && to.fqname == "java.lang.Object" && from is AstType.Reference) return str
 
 		if (from is AstType.REF && to is AstType.REF) {

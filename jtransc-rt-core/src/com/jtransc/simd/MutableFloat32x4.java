@@ -97,6 +97,17 @@ final public class MutableFloat32x4 {
 		setTo(l.x + r.x, l.y + r.y, l.z + r.z, l.w + r.w);
 	}
 
+	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "this.simd = SIMD.Float32x4.add(p0.simd, SIMD.Float32x4.mul(p1.simd, p2.simd));")
+	@JTranscCallSiteBody(target = "dart", value = "#@ = #0 + (#1 * #2);")
+	final public void setToAddMul(MutableFloat32x4 add, MutableFloat32x4 l, MutableFloat32x4 r) {
+		setTo(
+			add.x + l.x * r.x,
+			add.y + l.y * r.y,
+			add.z + l.z * r.z,
+			add.w + l.w * r.w
+		);
+	}
+
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "this.simd = SIMD.Float32x4.sub(p0.simd, p1.simd);")
 	@JTranscCallSiteBody(target = "dart", value = "#@ = #0 - #1;")
 	final public void setToSub(MutableFloat32x4 l, MutableFloat32x4 r) {
