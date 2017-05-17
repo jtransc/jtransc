@@ -909,8 +909,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val resultType = e.type.resolve()
 		val leftType = e.left.type.resolve()
 		val rightType = e.right.type.resolve()
-		val l = e.left.genExpr()
-		val r = e.right.genExpr()
+		val lv = e.left.value
+		val rv = e.right.value
+		val l = lv.genExpr()
+		val r = rv.genExpr()
 		val op = e.op
 
 		val commonType = leftType
@@ -961,9 +963,30 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				AstBinop.AND -> N_iand(l, r)
 				AstBinop.OR -> N_ior(l, r)
 				AstBinop.XOR -> N_ixor(l, r)
-				AstBinop.SHL -> N_ishl(l, r)
-				AstBinop.SHR -> N_ishr(l, r)
-				AstBinop.USHR -> N_iushr(l, r)
+				AstBinop.SHL -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_ishl_cst(l, rv2.valueAsInt)
+					} else {
+						N_ishl(l, r)
+					}
+				}
+				AstBinop.SHR -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_ishr_cst(l, rv2.valueAsInt)
+					} else {
+						N_ishr(l, r)
+					}
+				}
+				AstBinop.USHR -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_iushr_cst(l, rv2.valueAsInt)
+					} else {
+						N_iushr(l, r)
+					}
+				}
 				else -> invalid()
 			}
 			AstType.FLOAT -> when (op) {
@@ -1012,7 +1035,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			AstType.CHAR -> N_i2c(result)
 			AstType.SHORT -> N_i2s(result)
 			AstType.INT -> N_i(result)
-			AstType.LONG -> N_l2l(result)
+			AstType.LONG -> N_j2j(result)
 			AstType.FLOAT -> N_f2f(result)
 			AstType.DOUBLE -> N_d2d(result)
 			else -> invalid()
@@ -1295,14 +1318,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			}
 			is AstType.LONG -> {
 				when (to) {
-					is AstType.BOOL -> N_i2z(N_l2i(e))
-					is AstType.BYTE -> N_i2b(N_l2i(e))
-					is AstType.CHAR -> N_i2c(N_l2i(e))
-					is AstType.SHORT -> N_i2s(N_l2i(e))
-					is AstType.INT -> N_l2i(e)
-					is AstType.LONG -> N_l2l(e)
-					is AstType.FLOAT -> N_l2f(e)
-					is AstType.DOUBLE -> N_l2d(e)
+					is AstType.BOOL -> N_i2z(N_j2i(e))
+					is AstType.BYTE -> N_i2b(N_j2i(e))
+					is AstType.CHAR -> N_i2c(N_j2i(e))
+					is AstType.SHORT -> N_i2s(N_j2i(e))
+					is AstType.INT -> N_j2i(e)
+					is AstType.LONG -> N_j2j(e)
+					is AstType.FLOAT -> N_j2f(e)
+					is AstType.DOUBLE -> N_j2d(e)
 					else -> unhandled()
 				}
 			}
@@ -1403,10 +1426,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_d2i(str: String) = "(($str)|0)"
 	open protected fun N_f2j(str: String) = N_func("f2j", str)
 	open protected fun N_d2j(str: String) = N_func("d2j", str)
-	open protected fun N_l2i(str: String) = N_func("l2i", "$str")
-	open protected fun N_l2l(str: String) = "($str)"
-	open protected fun N_l2f(str: String) = N_func("l2f", "$str")
-	open protected fun N_l2d(str: String) = N_func("l2d", "$str")
+	open protected fun N_j2i(str: String) = N_func("l2i", "$str")
+	open protected fun N_j2j(str: String) = "($str)"
+	open protected fun N_j2f(str: String) = N_func("l2f", "$str")
+	open protected fun N_j2d(str: String) = N_func("l2d", "$str")
 	open protected fun N_getFunction(str: String) = N_func("getFunction", "$str")
 	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 	open protected fun N_lneg(str: String) = "-($str)"
@@ -1440,6 +1463,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_c_shr(l: String, r: String) = "($l >> $r)"
 	open protected fun N_c_ushr(l: String, r: String) = "($l >>> $r)"
 
+	open protected fun N_inew(value: Int) = "$value"
 	open protected fun N_iadd(l: String, r: String) = N_c_add(l, r)
 	open protected fun N_isub(l: String, r: String) = N_c_sub(l, r)
 	open protected fun N_imul(l: String, r: String) = N_c_mul(l, r)
@@ -1457,6 +1481,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_ishl(l: String, r: String) = N_c_shl(l, r)
 	open protected fun N_ishr(l: String, r: String) = N_c_shr(l, r)
 	open protected fun N_iushr(l: String, r: String) = N_c_ushr(l, r)
+
+	open protected fun N_ishl_cst(l: String, r: Int) = N_ishl(l, "$r")
+	open protected fun N_ishr_cst(l: String, r: Int) = N_ishr(l, "$r")
+	open protected fun N_iushr_cst(l: String, r: Int) = N_iushr(l, "$r")
 
 	open protected fun N_lnew(value: Long) = N_func("lnew", "${value.high}, ${value.low}")
 	open protected fun N_ladd(l: String, r: String) = N_func("ladd", "$l, $r")
@@ -1794,8 +1822,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
 			else -> "$v"
 		}
-		is Number -> "${v.toInt()}"
-		is Char -> "${v.toInt()}"
+		is Number -> N_inew(v.toInt())
+		is Char -> N_inew(v.toInt())
 		is AstType -> {
 			for (fqName in v.getRefClasses()) mutableBody.initClassRef(fqName, "class literal")
 			v.escapeType

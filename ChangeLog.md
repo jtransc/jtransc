@@ -5,7 +5,7 @@
 ### New features
 - @Intrigus: C++ target with GC
 - AS3 target (BigTest passes)
-- Dart target (BigTest passes) (still requires some more optimizations)
+- Dart target (BigTest passes)
 - Prevent generating runtime invisible annotations
 
 ### Changes

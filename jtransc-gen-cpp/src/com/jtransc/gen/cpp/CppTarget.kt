@@ -798,8 +798,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "((float)($str))"
 	override fun N_i2d(str: String) = "((double)($str))"
 
-	override fun N_l2f(str: String) = "((float)($str))"
-	override fun N_l2d(str: String) = "((double)($str))"
+	override fun N_j2f(str: String) = "((float)($str))"
+	override fun N_j2d(str: String) = "((double)($str))"
 
 	//override fun N_i(str: String) = "((int32_t)($str))"
 	override fun N_i(str: String) = str

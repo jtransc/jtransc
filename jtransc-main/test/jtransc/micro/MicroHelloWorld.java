@@ -11,6 +11,8 @@ public class MicroHelloWorld {
 	private int b = 11;
 
 	static public void main(String[] args) {
+		int vv = 773344;
+		JTranscConsole.log(vv << 16);
 		JTranscConsole.log(true);
 		JTranscConsole.log(a);
 		new MicroHelloWorld().demo();

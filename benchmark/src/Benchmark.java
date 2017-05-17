@@ -404,17 +404,19 @@ public class Benchmark {
 		//	}
 		//});
 
+		Random random = new Random(0L);
+		byte[] randomBytes = new byte[64 * 1024];
+		for (int n = 0; n < randomBytes.length; n++) randomBytes[n] = (byte) random.nextInt();
+
+
 		benchmark("compress java's Deflate", new Task() {
 			@Override
 			public int run() {
 				try {
-					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
 					byte[] out = new byte[128 * 1024];
-					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
 					Deflater deflater = new Deflater(9, false);
-					deflater.setInput(bytes, 0, bytes.length);
+					deflater.setInput(randomBytes, 0, randomBytes.length);
 					int result = deflater.deflate(out, 0, out.length, Deflater.FULL_FLUSH);
 					return result;
 				} catch (Throwable t) {
@@ -428,13 +430,10 @@ public class Benchmark {
 			@Override
 			public int run() {
 				try {
-					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
 					byte[] out = new byte[128 * 1024];
-					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
 					com.jtransc.compression.jzlib.Deflater deflater = new com.jtransc.compression.jzlib.Deflater(9, false);
-					deflater.setInput(bytes, 0, bytes.length, false);
+					deflater.setInput(randomBytes, 0, randomBytes.length, false);
 					deflater.setOutput(out, 0, out.length);
 					int result = deflater.deflate(3);
 					return result;

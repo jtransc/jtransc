@@ -233,7 +233,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val ByteType = "int"
 	override val FloatType = "double"
 	override val DoubleType = "double"
-	override val LongType = "int"
+	override val LongType = "Int64"
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
@@ -298,8 +298,9 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "N.i2f($str)"
 	override fun N_i2d(str: String) = "N.i2d($str)"
 
-	override fun N_l2f(str: String) = "N.l2f($str)"
-	override fun N_l2d(str: String) = "N.l2f($str)"
+	override fun N_j2i(str: String) = "N.j2i($str)"
+	override fun N_j2f(str: String) = "N.j2f($str)"
+	override fun N_j2d(str: String) = "N.j2f($str)"
 
 	override fun N_ineg(str: String): String = "N.ineg($str)"
 	override fun N_iadd(l: String, r: String): String = "N.I($l + $r)"
@@ -310,20 +311,29 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_iand(l: String, r: String): String = "N.I($l & $r)"
 	override fun N_ior(l: String, r: String): String = "N.I($l | $r)"
 	override fun N_ixor(l: String, r: String): String = "N.I($l ^ $r)"
+
 	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
 	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"
 	override fun N_iushr(l: String, r: String) = "N.iushr($l, $r)"
 
-	override fun N_lnew(value: Long): String = "N.L($value)"
+	override fun N_ishl_cst(l: String, r: Int): String = if (r in 0..31) "N.I($l << $r)" else N_ishl(l, "$r")
+	override fun N_ishr_cst(l: String, r: Int): String = if (r in 0..31) "N.I($l >> $r)" else N_ishr(l, "$r")
+	override fun N_iushr_cst(l: String, r: Int): String = if (r in 0..31) "N.iushr_opt($l, $r)" else N_iushr(l, "$r")
+
+	//override fun N_ishl(l: String, r: String): String = "N.I($l << $r)"
+	//override fun N_ishr(l: String, r: String): String = "N.I($l >> $r)"
+	//override fun N_iushr(l: String, r: String) = "N.iushr($l, $r)"
+
+	override fun N_lnew(value: Long): String = "N.lnew($value)"
 	override fun N_lneg(str: String): String = "N.lneg($str)"
-	override fun N_ladd(l: String, r: String): String = "N.L($l + $r)"
-	override fun N_lsub(l: String, r: String): String = "N.L($l - $r)"
-	override fun N_lmul(l: String, r: String): String = "N.L($l * $r)"
-	override fun N_ldiv(l: String, r: String): String = "N.L($l ~/ $r)"
-	override fun N_lrem(l: String, r: String): String = "N.L($l.remainder($r))"
-	override fun N_land(l: String, r: String): String = "N.L($l & $r)"
-	override fun N_lor(l: String, r: String): String = "N.L($l | $r)"
-	override fun N_lxor(l: String, r: String): String = "N.L($l ^ $r)"
+	override fun N_ladd(l: String, r: String): String = "N.ladd($l, $r)"
+	override fun N_lsub(l: String, r: String): String = "N.lsub($l, $r)"
+	override fun N_lmul(l: String, r: String): String = "N.lmul($l, $r)"
+	override fun N_ldiv(l: String, r: String): String = "N.ldiv($l, $r)"
+	override fun N_lrem(l: String, r: String): String = "N.lrem($l, $r)"
+	override fun N_land(l: String, r: String): String = "N.land($l, $r)"
+	override fun N_lor(l: String, r: String): String = "N.lor($l, $r)"
+	override fun N_lxor(l: String, r: String): String = "N.lxor($l, $r)"
 	override fun N_lshl(l: String, r: String): String = "N.lshl($l, $r)"
 	override fun N_lshr(l: String, r: String): String = "N.lshr($l, $r)"
 	override fun N_lushr(l: String, r: String) = "N.lushr($l, $r)"
@@ -388,6 +398,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2b(str: String) = "N.i2b($str)"
 	override fun N_i2s(str: String) = "N.i2s($str)"
 	override fun N_i2c(str: String) = "N.i2c($str)"
+	override fun N_i2j(str: String) = "N.i2j($str)"
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {

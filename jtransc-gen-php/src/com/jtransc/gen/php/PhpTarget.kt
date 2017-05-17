@@ -318,8 +318,8 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "(+($str))"
 	override fun N_i2d(str: String) = "(+($str))"
 
-	override fun N_l2f(str: String) = "(+($str))"
-	override fun N_l2d(str: String) = "(+($str))"
+	override fun N_j2f(str: String) = "(+($str))"
+	override fun N_j2d(str: String) = "(+($str))"
 
 	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
 

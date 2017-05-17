@@ -243,8 +243,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "(cast(float)($str))"
 	override fun N_i2d(str: String) = "(cast(double)($str))"
 
-	override fun N_l2f(str: String) = "(cast(float)($str))"
-	override fun N_l2d(str: String) = "(cast(double)($str))"
+	override fun N_j2f(str: String) = "(cast(float)($str))"
+	override fun N_j2d(str: String) = "(cast(double)($str))"
 
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
