@@ -1820,7 +1820,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is Double -> if (v.isInfinite()) if (v < 0) DoubleNegativeInfinityString else DoublePositiveInfinityString else if (v.isNaN()) if (v < 0) "-$DoubleNanString" else DoubleNanString else "$v"
 		is Int -> when (v) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
-			else -> "$v"
+			else -> N_inew(v.toInt())
 		}
 		is Number -> N_inew(v.toInt())
 		is Char -> N_inew(v.toInt())
