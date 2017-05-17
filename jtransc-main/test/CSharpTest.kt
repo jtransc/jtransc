@@ -1,3 +1,4 @@
+import big.AsyncIOTest
 import big.BigIOTest
 import big.BigTest
 import big.HelloWorldTest
@@ -50,4 +51,6 @@ class CSharpTest : _Base() {
 
 	@Ignore("Not working fine yet")
 	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false)
+
+	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
 }

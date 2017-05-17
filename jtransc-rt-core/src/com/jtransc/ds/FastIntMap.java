@@ -25,9 +25,7 @@ import com.jtransc.annotation.haxe.HaxeRemoveField;
 import java.util.HashMap;
 
 @JTranscInvisible
-@HaxeAddMembers({
-        "var _map = new Map<Int, Dynamic>();"
-})
+@HaxeAddMembers("var _map = new Map<Int, Dynamic>();")
 public class FastIntMap<T> {
     @HaxeRemoveField
     private HashMap<Integer, T> map;

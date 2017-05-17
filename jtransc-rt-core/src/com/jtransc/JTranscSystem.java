@@ -390,4 +390,8 @@ public class JTranscSystem {
 			throw new RuntimeException("Not expected JTransc: " + reason);
 		}
 	}
+
+	static public boolean hasEventLoop() {
+		return isDart() || isJs() || isAs3();
+	}
 }

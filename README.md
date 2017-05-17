@@ -122,6 +122,9 @@ So others could generate that without JVM and others could generate other target
 ### For C++ target:
 - Clang++ or g++ (At least gcc 4.8)
 
+### For Dart target:
+- Tested with Dart VM version: 1.23.0
+
 ### Verified on Windows 10.0.15063 and macOS Sierra 10.12.4
 
 #### Installing JDK
@@ -147,6 +150,9 @@ __WINDOWS__
 - Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v7.1.0 -> x68_64-posix-seh Revision 0
 - Add "path/to/mingw64" to `PATH` environment variable
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
+
+#### Installing Dart
+- [https://www.dartlang.org/install](https://www.dartlang.org/install)
 
 __MAC__
 - Install Xcode 8.3.2

@@ -7,6 +7,7 @@
 - AS3 target (BigTest passes)
 - Dart target (BigTest passes)
 - Prevent generating runtime invisible annotations
+- Added com.jtransc.io.async package to handle asynchronous I/O
 
 ### Changes
 - Some refactorings at CommonGenerator

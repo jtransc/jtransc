@@ -83,35 +83,28 @@ class N {
 
 	// LONG related
 
-	static Int64 lnew(int v) {
-		return new Int64(v);
-	}
+	static int inew(int v) { return v; }
 
-	static Int64 lneg(int v) {
-		if (v == MIN_INT64) return MIN_INT64;
-		return -v;
-	}
-	static Int64 ladd(Int64 l, Int64 r) { return (l + r); }
-	static Int64 lsub(Int64 l, Int64 r) { return (l - r); }
-	static Int64 lmul(Int64 l, Int64 r) { return (l * r); }
-	static Int64 lrem(Int64 l, Int64 r) { return (l.remainder(r)); }
-	static Int64 ldiv(Int64 l, Int64 r) { return (l ~/ r); }
-	static Int64 lxor(Int64 l, Int64 r) { return (l ^ r); }
-	static Int64 lor (Int64 l, Int64 r) { return (l | r); }
-	static Int64 land(Int64 l, Int64 r) { return (l & r); }
-	static Int64 lshl(Int64 l, int r) { return (l << r); }
-	static Int64 lshr(Int64 l, int r) { return (l >> r); }
-	static Int64 lushr(Int64 l, int r) { return l.shiftRightUnsigned(r); }
-
-	static int lcmp(Int64 l, Int64 r) { return l.compareTo(r); }
-
-	static double j2f(Int64 v) { return v.toDouble(); }
-	static double j2d(Int64 v) { return v.toDouble(); }
-	static int    j2i(Int64 v) { return v.toInt32_v(); }
-
-	static int i2j(int v)  { return new Int64(v.toInt()); }
-	static int d2j(double v) { return new Int64(v.toInt()); }
-	static int f2j(double v) { return new Int64(v.toInt()); }
+	static Int64  lnew(int v) { return new Int64(v); }
+	static Int64  lneg(int v) { return -v; }
+	static Int64  ladd(Int64 l, Int64 r) { return (l + r); }
+	static Int64  lsub(Int64 l, Int64 r) { return (l - r); }
+	static Int64  lmul(Int64 l, Int64 r) { return (l * r); }
+	static Int64  lrem(Int64 l, Int64 r) { return (l.remainder(r)); }
+	static Int64  ldiv(Int64 l, Int64 r) { return (l ~/ r); }
+	static Int64  lxor(Int64 l, Int64 r) { return (l ^ r); }
+	static Int64  lor (Int64 l, Int64 r) { return (l | r); }
+	static Int64  land(Int64 l, Int64 r) { return (l & r); }
+	static Int64  lshl(Int64 l, int r) { return (l << r); }
+	static Int64  lshr(Int64 l, int r) { return (l >> r); }
+	static Int64  lushr(Int64 l, int r) { return l.shiftRightUnsigned(r); }
+	static int    lcmp(Int64 l, Int64 r) { return l.compareTo(r); }
+	static double j2f(Int64  v) { return v.toDouble(); }
+	static double j2d(Int64  v) { return v.toDouble(); }
+	static int    j2i(Int64  v) { return v.toInt32_v(); }
+	static int    i2j(int    v) { return new Int64(v.toInt()); }
+	static int    d2j(double v) { return new Int64(v.toInt()); }
+	static int    f2j(double v) { return new Int64(v.toInt()); }
 
 	static Int64 doubleToLongBits(double v) { _tempF64[0] = v.toDouble(); return new Int64(_tempI64[0]); }
 	static double longBitsToDouble(Int64 v) { _tempI64[0] = v.toInt(); return _tempF64[0]; }
@@ -170,8 +163,23 @@ class N {
 		return o;
 	}
 
+	static {% CLASS java.lang.RuntimeException %} runtimeException(String msg) {
+		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	}
+
 	static {% CLASS java.lang.Class %} resolveClass(String name) {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+	}
+
+	static futureToAsyncHandler(Future future, {% CLASS com.jtransc.async.JTranscAsyncHandler %} handler, transform) {
+		future.then(
+			(v) {
+				handler.{% METHOD com.jtransc.async.JTranscAsyncHandler:complete %}(transform(v), null);
+			},
+			onError: (e) {
+				handler.{% METHOD com.jtransc.async.JTranscAsyncHandler:complete %}(null, N.runtimeException("$e"));
+			}
+		);
 	}
 
 	static void monitorEnter({% CLASS java.lang.Object %} o) {

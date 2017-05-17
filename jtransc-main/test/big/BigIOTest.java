@@ -1,6 +1,5 @@
 package big;
 
-import jtransc.ProcessTest;
 import jtransc.rt.test.JTranscZipTest;
 
 public class BigIOTest {

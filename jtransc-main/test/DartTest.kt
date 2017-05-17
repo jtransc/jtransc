@@ -1,3 +1,4 @@
+import big.AsyncIOTest
 import big.BigIOTest
 import big.BigTest
 import com.jtransc.BuildBackend
@@ -35,4 +36,6 @@ class DartTest : _Base() {
 
 	@Ignore("Process not implemented yet!")
 	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false, treeShaking = true)
+
+	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
 }

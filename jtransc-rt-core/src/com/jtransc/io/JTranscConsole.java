@@ -19,8 +19,6 @@ import com.jtransc.lang.Int64;
 	"}\n"
 })
 public class JTranscConsole {
-
-
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),

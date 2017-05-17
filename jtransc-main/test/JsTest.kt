@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import big.BigIOTest
-import big.BigTest
-import big.HelloWorldTest
-import big.NumberFormatTest2
+import big.*
 import com.jtransc.BuildBackend
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
@@ -158,4 +155,5 @@ class JsTest : _Base() {
 
 	@Test fun testMemberCollisionsTest() = testClass<MemberCollisionsTest>(minimize = false, log = false)
 
+	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
 }
