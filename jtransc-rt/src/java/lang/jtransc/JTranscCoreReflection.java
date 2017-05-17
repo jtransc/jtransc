@@ -140,7 +140,7 @@ public class JTranscCoreReflection {
 	@JTranscMethodBody(target = "d", value = "return N.str((cast(JA_0)p0).desc);")
 	@JTranscMethodBody(target = "cs", value = "return N.str(((JA_0)p0).desc);")
 	@JTranscMethodBody(target = "as3", value = "return N.str((p0 as JA_0).desc);")
-	@JTranscMethodBody(target = "dart", value = "return N.str(p0.desc);")
+	@JTranscMethodBody(target = "dart", value = "return N.str((p0 as JA_0).desc);")
 	native public static String getArrayDescriptor(Object o);
 
 	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")

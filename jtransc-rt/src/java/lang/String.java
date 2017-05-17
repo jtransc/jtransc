@@ -200,7 +200,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return Std.is(p0, {% CLASS java.lang.String %}) && (cast(p0, {% CLASS java.lang.String %})._str == this._str);")
 	@JTranscMethodBody(target = "js", value = "return N.is(p0, {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0);")
 	@JTranscMethodBody(target = "as3", value = "return (p0 is {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0 as {% CLASS java.lang.String %});")
-	@JTranscMethodBody(target = "dart", value = "return (p0 is {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0 as {% CLASS java.lang.String %});")
+	@JTranscMethodBody(target = "dart", value = "return (p0 is {% CLASS java.lang.String %}) && N.istr(this) == N.istr(p0);")
 	public boolean equals(Object anObject) {
 		if (this == anObject) return true;
 		if (!(anObject instanceof String)) return false;
@@ -642,7 +642,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return _getArray();")
 	@JTranscMethodBody(target = "js", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	@JTranscMethodBody(target = "as3", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
-	@JTranscMethodBody(target = "dart", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
+	@JTranscMethodBody(target = "dart", value = "if (this._arr == null) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	public char[] toCharArray() {
 		return Arrays.copyOf(this.value, this.value.length);
 	}
@@ -650,7 +650,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return _getArray();")
 	@JTranscMethodBody(target = "js", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	@JTranscMethodBody(target = "as3", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
-	@JTranscMethodBody(target = "dart", value = "if (!this._arr) this._arr = N.stringToCharArray(this._str); return this._arr;")
+	@JTranscMethodBody(target = "dart", value = "if (this._arr == null) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	public char[] getNativeCharArray() {
 		return this.value;
 	}

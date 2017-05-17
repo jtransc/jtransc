@@ -122,7 +122,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
 	@JTranscMethodBody(target = "as3", value = "var len: int = this._str.length; var reversed: String = ''; for (var n:int = 0; n < len; n++) reversed += this._str.substr(len - n - 1, 1); this._str = reversed; return this;")
-	@JTranscMethodBody(target = "dart", value = "var str = this._buffer.toString(); int32 len = str.length; this._buffer = new StringBuffer(); for (int32 n = 0; n < len; n++) this._buffer.write(str[len - n - 1]); return this;")
+	@JTranscMethodBody(target = "dart", value = "var str = this._buffer.toString(); int len = str.length; this._buffer = new StringBuffer(); for (int n = 0; n < len; n++) this._buffer.write(str[len - n - 1]); return this;")
 	public StringBuilder reverse() {
 		int len = length / 2;
 		for (int n = 0; n < len; n++) {

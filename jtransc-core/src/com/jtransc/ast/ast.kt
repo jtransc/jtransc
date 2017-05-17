@@ -575,7 +575,7 @@ class AstClass(
 	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
-	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
+	val thisAncestorsAndInterfaces: Set<AstClass> by lazy { (thisAndAncestors + allDirectInterfaces).toSet() }
 
 	val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
 }

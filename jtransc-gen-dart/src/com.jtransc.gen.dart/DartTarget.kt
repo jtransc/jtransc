@@ -130,7 +130,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
-			line("static void Main(List<string> args)") {
+			line("static void Main(List<String> args)") {
 				//line("try {")
 				//indent {
 					line("N.init();")
@@ -148,9 +148,12 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
+	//override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array as ${arrayType.targetNameRef}).data[$index]"
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array).data[$index]"
 
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
+		//val actualElementType = if (elementType is AstType.REF) elementType.
+		//return "($array as ${arrayType.targetNameRef}).data[$index] = $value;"
 		return "$array.data[$index] = $value;"
 	}
 
@@ -199,8 +202,8 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (kind.isStatic) {
 			return "class ${clazz.name.targetNameForStatic}"
 		} else {
-			val CLASS = if (clazz.isInterface) "class" else "class"
-			val iabstract = if (clazz.isAbstract) "abstract " else ""
+			val CLASS = "class"
+			val iabstract = if (clazz.isInterface || clazz.isAbstract) "abstract " else ""
 			val base = "$iabstract$CLASS ${clazz.name.targetSimpleName}"
 			val extends = if (clazz.extending != null) {
 				"extends " + clazz.extending!!.targetClassFqName
@@ -224,21 +227,18 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
 	override val BoolType = "bool"
-	override val IntType = "int32"
-	override val ShortType = "int32"
-	override val CharType = "int32"
-	override val ByteType = "int32"
+	override val IntType = "int"
+	override val ShortType = "int"
+	override val CharType = "int"
+	override val ByteType = "int"
 	override val FloatType = "double"
 	override val DoubleType = "double"
-	override val LongType = "int64"
+	override val LongType = "int"
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
-	//override fun N_c(str: String, from: AstType, to: AstType) = "((${to.targetName})($str))"
-	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
-
 	//override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
-	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()}).length"
+	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as JA_0).length"
 	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
@@ -252,10 +252,10 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("int32 __DART__CLASS_ID;")
-				line("${clazz.name.targetName}([int32 CLASS_ID = ${clazz.classId}]) { this.__DART__CLASS_ID = CLASS_ID; }")
+				line("int __DART__CLASS_ID;")
+				line("${clazz.name.targetName}([int CLASS_ID = ${clazz.classId}]) { this.__DART__CLASS_ID = CLASS_ID; }")
 			} else {
-				line("${clazz.name.targetName}([int32 CLASS_ID = ${clazz.classId}]) : super(CLASS_ID) { }")
+				line("${clazz.name.targetName}([int CLASS_ID = ${clazz.classId}]) : super(CLASS_ID) { }")
 			}
 		}
 		if (clazz.staticConstructor != null) {
@@ -275,9 +275,22 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(super.genBody2WithFeatures(method, body))
 	}
 
-	override fun N_i(str: String) = "N.i($str)"
+	//override fun N_i(str: String) = "N.i($str)"
+	override fun N_i(str: String) = "($str)"
 	override fun N_f2i(str: String) = "N.f2i($str)"
 	override fun N_d2i(str: String) = "N.d2i($str)"
+
+	override fun N_c(str: String, from: AstType, to: AstType): String {
+		if (to is AstType.REF && to.fqname == "java.lang.Object" && from is AstType.Reference) return str
+
+		if (from is AstType.REF && to is AstType.REF) {
+			val fromClass = program[from]!!
+			val toClass = program[to]!!
+			if (toClass in fromClass.ancestors) return str
+			if (toClass in fromClass.allInterfacesInAncestors) return str
+		}
+		return "($str as ${to.targetNameRef})"
+	}
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"
