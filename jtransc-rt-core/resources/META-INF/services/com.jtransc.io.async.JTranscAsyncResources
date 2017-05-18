@@ -1,0 +1,2 @@
+com.jtransc.io.async.impl.JTranscAsyncResourcesJVM # <target=java>
+com.jtransc.io.async.impl.JTranscAsyncResourcesDefault

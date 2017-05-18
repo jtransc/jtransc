@@ -185,6 +185,7 @@ public class Throwable implements Serializable {
 	}
 
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "this.error = new Error();"),
 		@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = StackTrace.current;"),
 		@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace();"),
 	})

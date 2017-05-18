@@ -2,6 +2,7 @@ package com.jtransc.io.async;
 
 import com.jtransc.async.JTranscAsyncHandler;
 import com.jtransc.io.JTranscFileMode;
+import com.jtransc.io.JTranscFileStat;
 
 import java.util.Arrays;
 
@@ -22,6 +23,10 @@ public class JTranscAsyncFile {
 
 	public void mkdirAsync(JTranscAsyncHandler<Boolean> handler) {
 		fs().mkdir(path, handler);
+	}
+
+	public void statAsync(JTranscAsyncHandler<JTranscFileStat> handler) {
+		fs().stat(path, handler);
 	}
 
 	public void openAsync(JTranscFileMode mode, JTranscAsyncHandler<JTranscAsyncStream> handler) {
