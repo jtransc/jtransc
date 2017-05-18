@@ -16,9 +16,9 @@ public class ProgramReflection {
 
 	// Static initialization for classes.
 	// Necessary due to existing getClass() method in code will generate static constructor.
-	static {
-		_ensure();
-	}
+	//static {
+	//	_ensure();
+	//}
 
 
 	static public ClassInfo[] _classInfos;

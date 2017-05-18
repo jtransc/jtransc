@@ -7,6 +7,9 @@ import java.util.*
 import com.jtransc.charset.*
 import j.ProgramReflection
 
+// @TODO: We should evaluate actual AST in order to do this properly (to handle branches properly)
+// @TODO: Before modifying this file, please provide tests to avoid future regressions and better
+// @TODO: work on this implementation
 fun genStaticInitOrder(program: AstProgram) {
 	//val classes = LinkedHashSet<AstType.REF>()
 	//val processed = LinkedHashSet<AstRef>()
@@ -27,6 +30,10 @@ fun genStaticInitOrder(program: AstProgram) {
 			val clazz = method.containingClass
 			val captured = capturedClass.add(clazz)
 			//println("Appeared $method")
+
+			// Totally ignore this class since it references all classes!
+			// @TODO: Think about this some more
+			if (clazz.fqname == "j.ProgramReflection") return
 
 			val refs = if (method.hasDependenciesInBody(targetName)) {
 				method.bodyDependencies.allSortedRefsStaticInit
@@ -79,13 +86,15 @@ fun genStaticInitOrder(program: AstProgram) {
 		}
 	}
 
-	// Should be added ProgramReflection first because getClass created static constructor and request Class
-	obj.visitClass(program[ProgramReflection::class.java.fqname])
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~ Should be added ProgramReflection first because getClass created static constructor and request Class
+	// @NOTE: We can't visit ProgramReflection since we don't know the order of execution
+	//obj.visitClass(program[ProgramReflection::class.java.fqname])
+
 	// Also should be added different charsets. We don't see them directly because they added as services
-	for (clazz in program.classes)
-		for (ancestor in clazz.ancestors)
-			if(ancestor.name == JTranscCharset::class.java.fqname)
-				obj.visitClass(program[clazz.name])
+	//for (clazz in program.classes)
+	//	for (ancestor in clazz.ancestors)
+	//		if(ancestor.name == JTranscCharset::class.java.fqname)
+	//			obj.visitClass(program[clazz.name])
 
 	obj.visitClass(mainClass)
 

@@ -38,6 +38,7 @@ import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
+import jtransc.staticinit.StaticInitTest2
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 import testservice.test.TestServiceJs2
@@ -74,6 +75,8 @@ class JsTest : _Base() {
 	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
 	@Test fun testMicroStaticInitTest() = testClass<StaticInitTest>(minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true)
+
+	@Test fun testMicroStaticInitTest2() = testClass<StaticInitTest2>(minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true)
 
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
 	@Test fun testBenchmarkTest() = testClass<BenchmarkTest>(minimize = false, log = false)
