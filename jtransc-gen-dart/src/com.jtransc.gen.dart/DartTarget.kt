@@ -240,7 +240,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as JA_0).length"
 	//override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw (${stm.value.genExpr()}).dartError;")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw (${stm.value.genExpr()}).${prepareThrow.targetName}().dartError;")
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
 		if (clazz.isJavaLangObject) {

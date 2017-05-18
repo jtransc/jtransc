@@ -2144,6 +2144,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.actualFqName: FqName get() = this
 	val AstClass.actualFqName: FqName get() = this.name.actualFqName
 
+	val prepareThrow by lazy {
+		program["java.lang.Throwable".fqname].getMethods("prepareThrow").first()
+	}
+
+
 //open fun getActualFqName(name: FqName): FqName {
 //	/*
 //	val realclass = if (name in program) program[name] else null

@@ -263,7 +263,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_c(str: String, from: AstType, to: AstType) = "((${to.targetName})($str))"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.value.genExpr()})).csException;")
+
+
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.value.genExpr()})).${prepareThrow.targetName}().csException;")
 
 	override fun genLabel(label: AstLabel) = "${label.name}:"
 

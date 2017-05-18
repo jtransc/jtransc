@@ -16,9 +16,7 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscAddMembers;
-import com.jtransc.annotation.JTranscAddMembersList;
-import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.io.JTranscConsole;
 
@@ -66,13 +64,6 @@ public class Throwable implements Serializable {
 		this.cause = cause;
 		this.enableSuppression = enableSuppression;
 		this.writableStackTrace = writableStackTrace;
-		init_int();
-	}
-
-	@JTranscMethodBody(target = "js", value = "this.error = new Error();")
-	@JTranscMethodBody(target = "dart", value = "this.dartError = new WrappedThrowable(this); currentStackTrace = StackTrace.current;")
-	@JTranscMethodBody(target = "cs", value = "this.csException = new WrappedThrowable(this); currentStackTrace = new System.Diagnostics.StackTrace();")
-	private void init_int() {
 	}
 
 	public String getMessage() {
@@ -178,7 +169,46 @@ public class Throwable implements Serializable {
 	private StackTraceElement[] stackTrace;
 
 	private void fillInStackTrace(int dummy) {
+		if (thrown) {
+			genStackTraceFromError();
+		} else {
+			genStackTrace();
+		}
 		setStackTrace(getStackTraceInternal());
+	}
+
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = this.dartError.stackTrace;"),
+		@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace(this.csException);"),
+	})
+	public void genStackTraceFromError() {
+	}
+
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = StackTrace.current;"),
+		@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace();"),
+	})
+	public void genStackTrace() {
+	}
+
+	private boolean thrown = false;
+
+	@JTranscKeep
+	public Throwable prepareThrow() {
+		if (!thrown) {
+			init_exception();
+		}
+		thrown = true;
+		return this;
+	}
+
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "this.error = new Error();"),
+		@JTranscMethodBody(target = "dart", value = "this.dartError = new WrappedThrowable(this);"),
+		@JTranscMethodBody(target = "cs", value = "this.csException = new WrappedThrowable(this);"),
+	})
+	private void init_exception() {
+
 	}
 
 	@HaxeMethodBody("return N.getStackTrace(1);")
@@ -186,7 +216,7 @@ public class Throwable implements Serializable {
 	@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(this.currentStackTrace, 1);")
 	@JTranscMethodBody(target = "dart", value = "return N.getStackTrace(this.currentStackTrace, 0);")
 	private StackTraceElement[] getStackTraceInternal() {
-		return new StackTraceElement[] {
+		return new StackTraceElement[]{
 			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1),
 			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1),
 			new StackTraceElement("DummyClass", "dummyMethod", "DummyClass.java", 1)
@@ -195,6 +225,7 @@ public class Throwable implements Serializable {
 
 	//private native Throwable fillInStackTrace(int dummy);
 	public StackTraceElement[] getStackTrace() {
+		genStackTrace();
 		return this.getStackTraceLazy().clone();
 	}
 
