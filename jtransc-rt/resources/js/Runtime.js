@@ -891,8 +891,9 @@ function stackTrace() {
     return err.stack.split('\n').slice(3);
 }
 
-N.getStackTrace = function(count) {
-	var traces = stackTrace()
+N.getStackTrace = function(error, count) {
+	//var traces = stackTrace()
+	var traces = error.stack.split('\n').slice(count);
 	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
 	for (var n = 0; n < traces.length; n++) {
 		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));

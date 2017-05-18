@@ -195,6 +195,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			line(stm.trystm.genStm())
 		}
 		line("catch (J__i__exception__)") {
+			//line("J__exception__ = J__i__exception__.native || J__i__exception__;")
 			line("J__exception__ = J__i__exception__;")
 			line(stm.catch.genStm())
 		}
@@ -454,4 +455,6 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun cleanMethodName(name: String): String = name
 
 	override val AstType.localDeclType: String get() = "var"
+
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.value.genExpr()};")
 }

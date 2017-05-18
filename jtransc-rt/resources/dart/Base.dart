@@ -140,21 +140,14 @@ class N {
 	}
 
 	static {% CLASS java.lang.String %} str(String str) {
-		//print("N.str($str)"); print(StackTrace.current);
 		if (str == null) return null;
 		var out = new {% CLASS java.lang.String %}();
 		out._str = str;
 		return out;
 	}
 
-	static {% CLASS java.lang.String %} strLitEscape(String str) {
-		return N.str(str);
-	}
-
-	static String istr({% CLASS java.lang.String %} o) {
-		//print("N.istr(...)");
-		return (o != null) ? o._str : null;
-	}
+	static {% CLASS java.lang.String %} strLitEscape(String str) { return N.str(str); }
+	static String istr({% CLASS java.lang.String %} o) { return (o != null) ? o._str : null; }
 
 	static JA_L strArray(List<String> strs) {
 		int len = strs.length;
@@ -215,8 +208,10 @@ class N {
 		throw new Exception("Not implemented arraycopy for " + src.toString());
 	}
 
-	static JA_L getStackTrace(int skip) {
-		var st = StackTrace.current;
+	//static JA_L getStackTrace(Error error, int skip) {
+	static JA_L getStackTrace(StackTrace st, int skip) {
+		//var st = StackTrace.current;
+		//var st = error.stackTrace;
 		var lines = st.toString().split('\n');
 		var o = new JA_L(lines.length - skip, "[Ljava/lang/StackTraceElement;");
 		for (var n = 0; n < lines.length; n++) {
@@ -381,9 +376,9 @@ class JA_L extends JA_0 {
 }
 
 class WrappedThrowable extends Error {
-	{% CLASS java.lang.Object %} t;
+	{% CLASS java.lang.Throwable %} t;
 
-	WrappedThrowable({% CLASS java.lang.Object %} t) {
+	WrappedThrowable({% CLASS java.lang.Throwable %} t) {
 		this.t = t;
 	}
 

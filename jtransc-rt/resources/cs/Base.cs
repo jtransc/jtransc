@@ -33,10 +33,11 @@ class N {
 		//Console.WriteLine(Console.OutputEncoding.CodePage);
 	}
 
-	static public JA_L getStackTrace(int skip) {
-		var st = new System.Diagnostics.StackTrace();
+	static public JA_L getStackTrace(System.Diagnostics.StackTrace st, int skip) {
+		//var st = new System.Diagnostics.StackTrace(exception);
+		//var st = exception.StackTrace;
 
-		var o = new JA_L(st.FrameCount, "[Ljava/lang/StackTraceElement;");
+		var o = new JA_L(st.FrameCount - skip, "[Ljava/lang/StackTraceElement;");
 
 		for (int n = 0; n < st.FrameCount; n++) {
 			var f = st.GetFrame(n);
@@ -44,9 +45,11 @@ class N {
 			var method = (f != null) ? ("" + f.GetMethod().Name) : "dummyMethod";
 			var file = (f != null) ? ("" + f.GetFileName()) : "Dummy.java";
 			var lineNumber = (f != null) ? f.GetFileLineNumber() : 0;
-			o[n] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
-				N.str(clazz), N.str(method), N.str(file), lineNumber
-			);
+			if (n >= skip) {
+				o[n - skip] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
+					N.str(clazz), N.str(method), N.str(file), lineNumber
+				);
+			}
 		}
 
 		return o;
@@ -268,10 +271,12 @@ class WrappedThrowable : Exception {
 
 	public WrappedThrowable({% CLASS java.lang.Throwable %} t) : base() {
 		this.t = ({% CLASS java.lang.Throwable %})t;
+		//this.t.csException = this;
 	}
 
 	public WrappedThrowable({% CLASS java.lang.Object %} t) : base() {
 		this.t = ({% CLASS java.lang.Throwable %})t;
+		//this.t.csException = this;
 	}
 }
 

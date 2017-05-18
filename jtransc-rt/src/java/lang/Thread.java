@@ -65,27 +65,7 @@ public class Thread implements Runnable {
 	}
 
 	public StackTraceElement[] getStackTrace() {
-		StackTraceElement[] stackTrace = _getStackTrace();
-		if ((stackTrace == null) || (stackTrace.length == 0)) {
-			return new StackTraceElement[]{
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1)
-			};
-		} else {
-			return stackTrace;
-		}
-	}
-
-	static private final StackTraceElement[] ST_NULL = null;
-
-	@HaxeMethodBody("return N.getStackTrace(2);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);"),
-		@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(2);"),
-	})
-	private StackTraceElement[] _getStackTrace() {
-		return null;
+		return new Throwable().getStackTrace();
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.yield();")
