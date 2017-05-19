@@ -202,7 +202,7 @@ object AstDependencyAnalyzer {
 					ana(stm.cond); ana(stm.strue); ana(stm.sfalse)
 				}
 				is AstStm.THROW -> {
-					ana(stm.value)
+					ana(stm.exception)
 				}
 				is AstStm.WHILE -> {
 					ana(stm.cond); ana(stm.iter)

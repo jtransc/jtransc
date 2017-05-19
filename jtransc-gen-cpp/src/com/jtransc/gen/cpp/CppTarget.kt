@@ -18,6 +18,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ExecOptions
@@ -137,14 +138,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val names = if (JTranscSystem.isWindows()) cmakeNames else unixNames
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = true))
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = false))
 		return ProcessResult2(result)
 	}
 
 	override val allowAssignItself = true
 	val lastClassId = program.classes.map { it.classId }.max() ?: 0
 
-	fun generateTypeTableHeader() = Indenter.gen {
+	fun generateTypeTableHeader() = Indenter {
 		line("struct TYPE_INFO", after2 = ";") {
 			line("const size_t size;")
 			line("const int* subtypes;")
@@ -153,7 +154,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int[1]{0}};")
 	}
 
-	fun generateTypeTableFooter() = Indenter.gen {
+	fun generateTypeTableFooter() = Indenter {
 		val objectClassId = program["java.lang.Object".fqname].classId
 		for (clazz in ordereredClasses) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
@@ -220,7 +221,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genBodyTrapsPrefix(): Indenter = indent { line("p_java_lang_Object J__exception__ = null;") }
 
-	override fun genStmTryCatch(stm: AstStm.TRY_CATCH): Indenter = Indenter.gen {
+	override fun genStmTryCatch(stm: AstStm.TRY_CATCH): Indenter = Indenter {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
@@ -251,7 +252,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		entryPointClass = FqName(mainClassFq.fqname)
 		entryPointFilePath = entryPointClass.targetFilePath
 
-		val HEADER = Indenter.gen {
+		val HEADER = Indenter {
 			// {{ HEADER }}
 			val resourcesVfs = program.resourcesVfs
 
@@ -266,7 +267,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 
 
-		val CLASS_REFERENCES = Indenter.gen {
+		val CLASS_REFERENCES = Indenter {
 			// {{ CLASS_REFERENCES }}
 			for (clazz in ordereredClasses.filter { !it.isNative }) {
 				line(writeClassRef(clazz))
@@ -276,32 +277,32 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 		}
 
-		val TYPE_TABLE_HEADERS = Indenter.gen {
+		val TYPE_TABLE_HEADERS = Indenter {
 			// {{ TYPE_TABLE_HEADERS }}
 			line(generateTypeTableHeader())
 		}
 
-		val ARRAY_TYPES = Indenter.gen {
+		val ARRAY_TYPES = Indenter {
 			// {{ ARRAY_TYPES }}
 			for (name in arrayTypes.map { it.first }) line("struct $name;")
 			for (name in arrayTypes.map { it.first }) line("typedef $name* p_$name;")
 		}
 
-		val ARRAY_HEADERS_PRE = Indenter.gen {
+		val ARRAY_HEADERS_PRE = Indenter {
 			// {{ ARRAY_HEADERS }}
 			for (clazz in ordereredClasses.filter { !it.isNative }.filter { it.fqname == "java.lang.Object" }) {
 				line(writeClassHeader(clazz))
 			}
 		}
 
-		val ARRAY_HEADERS_POST = Indenter.gen {
+		val ARRAY_HEADERS_POST = Indenter {
 			// {{ ARRAY_HEADERS }}
 			for (clazz in ordereredClasses.filter { !it.isNative }.filter { it.fqname != "java.lang.Object" }) {
 				line(writeClassHeader(clazz))
 			}
 		}
 
-		val impls = Indenter.gen {
+		val impls = Indenter {
 			for (clazz in ordereredClasses.filter { !it.isNative }) {
 				if (clazz.implCode != null) {
 					line(clazz.implCode!!)
@@ -311,7 +312,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 		}
 
-		val STRINGS = Indenter.gen {
+		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
 			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { it.name }.joinToString(", ")};")
 			line("void N::initStringPool()", after2 = ";") {
@@ -321,11 +322,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 		}
 
-		val CLASSES_IMPL = Indenter.gen { line(impls) }
-		val TYPE_TABLE_FOOTER = Indenter.gen { line(generateTypeTableFooter()) }
-		val MAIN = Indenter.gen { line(writeMain()) }
+		val CLASSES_IMPL = Indenter { line(impls) }
+		val TYPE_TABLE_FOOTER = Indenter { line(generateTypeTableFooter()) }
+		val MAIN = Indenter { line(writeMain()) }
 
-		val classesIndenter = Indenter.gen {
+		val classesIndenter = Indenter {
 			if (settings.debug) {
 				line("#define DEBUG 1")
 			} else {
@@ -362,7 +363,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FqName.targetNameRef: String get() = "p_" + this.targetName
 	val AstType.REF.cppName: String get() = this.name.targetName
 
-	fun writeMain(): Indenter = Indenter.gen {
+	fun writeMain(): Indenter = Indenter {
 		line("int main(int argc, char *argv[])") {
 			line("GC_INIT();") // http://www.hboehm.info/gc/simple_example.html
 			line("""TRACE_REGISTER("::main");""")
@@ -394,17 +395,17 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	fun writeClassRef(clazz: AstClass): Indenter = Indenter.gen {
+	fun writeClassRef(clazz: AstClass): Indenter = Indenter {
 		setCurrentClass(clazz)
 		line("struct ${clazz.cppName};")
 	}
 
-	fun writeClassRefPtr(clazz: AstClass): Indenter = Indenter.gen {
+	fun writeClassRefPtr(clazz: AstClass): Indenter = Indenter {
 		setCurrentClass(clazz)
 		line("typedef ${clazz.cppName}* ${clazz.cppNameRefCast};")
 	}
 
-	fun writeClassHeader(clazz: AstClass): Indenter = Indenter.gen {
+	fun writeClassHeader(clazz: AstClass): Indenter = Indenter {
 		setCurrentClass(clazz)
 		val directImplementing = clazz.allInterfacesInAncestors - (clazz.parentClass?.allInterfacesInAncestors ?: listOf())
 		val directExtendingAndImplementing = (clazz.parentClassList + directImplementing)
@@ -495,7 +496,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	@Suppress("LoopToCallChain")
-	fun writeClassImpl(clazz: AstClass): Indenter = Indenter.gen {
+	fun writeClassImpl(clazz: AstClass): Indenter = Indenter {
 		setCurrentClass(clazz)
 
 		for (field in clazz.fields) line(writeField(field))
@@ -528,14 +529,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("};")
 	}
 
-	fun writeField(field: AstField): Indenter = Indenter.gen {
+	fun writeField(field: AstField): Indenter = Indenter {
 		val clazz = field.containingClass
 		if (field.isStatic) {
 			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = 0;")
 		}
 	}
 
-	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
+	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
 	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java)
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
@@ -546,7 +547,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	fun writeMethod(method: AstMethod): Indenter = Indenter.gen {
+	fun writeMethod(method: AstMethod): Indenter = Indenter {
 		val clazz = method.containingClass
 		val type = method.methodType
 
@@ -567,7 +568,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			setCurrentMethod(method)
 			val body = method.body
 
-			fun genJavaBody() = Indenter.gen {
+			fun genJavaBody() = Indenter {
 				if (body != null) {
 					line(this@CppGenerator.genBody2WithFeatures(method, body))
 				} else {
@@ -603,7 +604,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 
-	fun genJniMethod(method: AstMethod) = Indenter.gen {
+	fun genJniMethod(method: AstMethod) = Indenter {
 		val mangledJniFunctionName: String
 		//if (method.isOverloaded) {
 		//	mangledJniFunctionName = JniUtils.mangleLongJavaMethod(method);
@@ -850,7 +851,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(if (context.method.methodVoidReturnThis) "return " + genExprThis() + ";" else "return;")
 	}
 
-	override fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean): Indenter = Indenter.gen {
+	override fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean): Indenter = Indenter {
 		line("return (${context.method.returnTypeWithThis.targetNameRef})${stm.retval.genExpr()};")
 	}
 
@@ -913,12 +914,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprNew(e: AstExpr.NEW): String = "" + super.genExprNew(e) + ""
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (SOBJ e) {")
 		//indent {
@@ -928,7 +929,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		//line("}")
 	}
 
-	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		val values = stm.values.map { it.genExpr() }
 		line("") {
 			line("const ${stm.array.type.elementType.targetNameRef} ARRAY_LITERAL[${values.size}] = { ${values.joinToString(", ")} };")
@@ -985,10 +986,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
-	override fun N_lnew(value: Long): String = when (value) {
-		Long.MIN_VALUE -> "(int64_t)(0x8000000000000000U)"
-		else -> "(int64_t)(${value}L)"
-	}
+	override fun N_lnew(value: Long): String = "(int64_t)(${value}ll)"
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
 

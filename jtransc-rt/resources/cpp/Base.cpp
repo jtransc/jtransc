@@ -11,6 +11,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <clocale>
 #include <csignal>
 //#include <chrono>
 //#include <thread>
@@ -1418,6 +1419,9 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 void N::startup() {
+	std::setlocale(LC_COLLATE, "en_US.UTF-8");
+	std::setlocale(LC_CTYPE, "en_US.UTF-8");
+
 	N::env.jni.functions = &jni;
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);

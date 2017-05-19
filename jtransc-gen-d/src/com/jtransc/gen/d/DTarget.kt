@@ -14,6 +14,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 import com.jtransc.vfs.*
@@ -113,7 +114,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		println(output)
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		var targetType = field.type.targetName
 		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
 		if (field.isStatic) targetType = "__gshared $targetType"
@@ -125,7 +126,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("$targetType ${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
 		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
@@ -155,7 +156,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"w" else "null"
 
-	override fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
+	override fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		val directMethods = clazz.methods
 		val interfaceMethods = clazz.allDirectInterfaces.flatMap { it.methods }
 		val actualMethods = (if (clazz.isInterface) directMethods else directMethods + interfaceMethods).filter { !it.isStatic }
@@ -224,9 +225,9 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(cast($BaseArrayType)${e.array.genNotNull()}).length"
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.exception.genExpr()});")
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			line("override public string toString()") {
 				line("return to!string(N.istr(" + buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false) + "()));")
@@ -275,7 +276,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		else -> "(cast(long)(${value}L))"
 	}
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Throwable(${message.quote()});")
 	}
@@ -283,12 +284,12 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (Throwable e) {")
 		//indent {

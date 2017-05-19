@@ -25,6 +25,7 @@ import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.*
@@ -360,7 +361,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		val entryPointSimpleName = entryPointClass.targetSimpleName
 		val entryPointPackage = entryPointFqName.packagePath
 
-		fun inits() = Indenter.gen {
+		fun inits() = Indenter {
 			line("HaxePolyfills.install();")
 			line("haxe.CallStack.callStack();")
 			line(genStaticConstructorsSorted())
@@ -529,9 +530,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
 			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody: Indenter = if ("" in bodiesmap) Indenter.gen { line(bodiesmap[""]!!) } else defaultContentGen()
+			val defaultbody: Indenter = if ("" in bodiesmap) Indenter { line(bodiesmap[""]!!) } else defaultContentGen()
 			val extrabodies = bodiesmap.filterKeys { it != "" }
-			Indenter.gen {
+			Indenter {
 				line(pre)
 				if (extrabodies.isEmpty()) {
 					line(defaultbody)
@@ -566,7 +567,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 
-		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter.gen {
+		fun writeField(field: AstField, isInterface: Boolean): Indenter = Indenter {
 			val static = if (field.isStatic) "static " else ""
 			val visibility = if (isInterface) " " else "public"
 			val fieldType = field.type
@@ -581,7 +582,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		fun writeMethod(method: AstMethod, isInterface: Boolean): Indenter {
 			setCurrentMethod(method)
-			return Indenter.gen {
+			return Indenter {
 				val static = if (method.isStatic) "static " else ""
 				val visibility = if (isInterface) " " else "public"
 				refs.add(method.methodType)
@@ -620,7 +621,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 		}
 
-		fun addClassInit(clazz: AstClass) = Indenter.gen {
+		fun addClassInit(clazz: AstClass) = Indenter {
 			for (e in getClassStrings(clazz.name)) {
 				line("$FIELD_ANNOTATIONS static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
@@ -634,7 +635,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 		}
 
-		val classCodeIndenter = Indenter.gen {
+		val classCodeIndenter = Indenter {
 			line("package ${clazz.name.targetGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")

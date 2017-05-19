@@ -14,6 +14,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -123,7 +124,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		println(output)
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		var targetType = field.type.targetName
 		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
 		if (field.isStatic) targetType = "static $targetType"
@@ -133,7 +134,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun quoteString(str: String) = str.dquote()
 
-	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
 		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
@@ -265,11 +266,11 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
 
 
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.value.genExpr()})).${prepareThrow.targetName}().csException;")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.exception.genExpr()})).${prepareThrow.targetName}().csException;")
 
 	override fun genLabel(label: AstLabel) = "${label.name}:"
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			line("override public string ToString()") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
@@ -326,7 +327,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_lnew(value: Long): String = "((long)(${value}L))"
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Exception(${message.dquote()});")
 	}
@@ -334,12 +335,12 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (Throwable e) {")
 		//indent {
@@ -414,7 +415,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, new ${stm.elementType.targetName}[] { ${stm.values.map { it.genExpr() }.joinToString(", ")} });")
 	}
 

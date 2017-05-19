@@ -109,7 +109,7 @@ object BigTest {
 		keepConstructorsTest()
 
 		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
-		println("readLine:" + BufferedReader(`is`).readLine())
+		println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
@@ -156,7 +156,7 @@ object NumberFormatTest {
 		for (i in ints) {
 			for (locale in locales) {
 				val s = NumberFormat.getIntegerInstance(locale).format(i.toLong())
-				println(locale.language + ":" + s)
+				println(locale.language + ":" + TestStringTools.escape(s))
 				if (s.length == 5) {
 					println(s[1].toInt())
 				}

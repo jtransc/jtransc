@@ -17,6 +17,8 @@
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
+import javatest.misc.ExecutionOrderTest
+import jtransc.java8.Java8Test
 import jtransc.jtransc.SimdTest
 import org.junit.Ignore
 import org.junit.Test
@@ -27,14 +29,20 @@ class CppTest : _Base() {
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
-	//@Ignore("Ignored until stabilized C++ target to avoid problems with travis")
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
+
+	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
+
+	@Ignore
+	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = true)
 
 	@Ignore
 	@Test fun testSimdTest() = testClass<SimdTest>(minimize = false, log = true, treeShaking = true, debug = false)
 
-	@Ignore("Must implement UndeterministicParameterEvaluationFeature to pass parameter evaluation order tests")
-	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = false)
+	@Ignore
+	@Test fun testExecutionOrder() = testClass<ExecutionOrderTest>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
+
+	@Ignore
+	@Test fun testJava8() = testClass<Java8Test>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:

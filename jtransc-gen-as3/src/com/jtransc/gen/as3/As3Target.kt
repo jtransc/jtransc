@@ -14,6 +14,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.lang.map
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
@@ -147,7 +148,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		val static = field.isStatic.map("static ", "")
 
 		line("public ${static}var ${field.targetName}: ${field.type.targetName} = ${field.type.getNull().escapedConstant};")
@@ -315,11 +316,11 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_c(str: String, from: AstType, to: AstType) = "(($str) as ${to.targetName})"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as $BaseArrayType).length"
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.exception.genExpr()});")
 
 	override fun genLabel(label: AstLabel) = "${label.name}:"
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			//line("override public function toString(): String") {
 			line("public function toString(): String") {
@@ -371,7 +372,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_lneg(str: String) = "N.lneg($str)"
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Error(${message.quote()});")
 	}

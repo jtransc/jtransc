@@ -3,11 +3,12 @@ package com.jtransc.ast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 
 //fun AstBody.dump() = dump(this)
 
 fun dump(types: AstTypes, body: AstBody): Indenter {
-	return Indenter.gen {
+	return Indenter {
 		for (local in body.locals) {
 			line(javaDump(body.types, local.type) + " " + local.name + ";")
 		}
@@ -20,7 +21,7 @@ fun dump(types: AstTypes, expr: AstStm.Box?): Indenter {
 }
 
 fun dump(types: AstTypes, stm: AstStm?): Indenter {
-	return Indenter.gen {
+	return Indenter {
 		when (stm) {
 			null -> {
 
@@ -54,7 +55,7 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			is AstStm.NOP -> line("NOP(${stm.reason})")
 			is AstStm.CONTINUE -> line("continue;")
 			is AstStm.BREAK -> line("break;")
-			is AstStm.THROW -> line("throw ${dump(types, stm.value)};")
+			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
 			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
 				line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }

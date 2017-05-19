@@ -25,6 +25,7 @@ import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
@@ -175,7 +176,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val indenterPerClass = hashMapOf<AstClass, Indenter>()
 
-	open fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	open fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		imports.clear()
 		val concatFilesTrans = copyFiles(output)
 
@@ -184,7 +185,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		line(concatFilesTrans.append)
 	}
 
-	open fun genSingleFileClassesWithoutAppends(output: SyncVfsFile): Indenter = Indenter.gen {
+	open fun genSingleFileClassesWithoutAppends(output: SyncVfsFile): Indenter = Indenter {
 		for (clazz in sortedClasses) {
 			val indenters = if (clazz.implCode != null) listOf(Indenter(clazz.implCode!!)) else genClass(clazz).map { it.indenter }
 			for (indenter in indenters) {
@@ -270,7 +271,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	protected open fun getClassInterfaces(clazz: AstClass): List<FqName> = clazz.implementing
 
-	open fun genClassBody(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
+	open fun genClassBody(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		val members = clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == targetName.name }.flatMap { it.value.toList() }.joinToString("\n")
 		line(gen(members, process = true))
 		line(genClassBodyFields(clazz, kind))
@@ -280,11 +281,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genClassBodyFields(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
+	open fun genClassBodyFields(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		for (f in clazz.fields) if (kind.check(f)) line(genField(f))
 	}
 
-	open fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter.gen {
+	open fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		val methodsWithoutClassToIgnore = if (clazz.isInterface && !allowRepeatMethodsInInterfaceChain) {
 			clazz.allInterfacesInAncestors.flatMap { it.methodsWithoutConstructors }.distinct().map { it.ref.withoutClass }.toSet()
 		} else {
@@ -302,11 +303,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	open fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		line(genSIMethodBody(clazz))
 	}
 
-	open fun genSIMethodBody(clazz: AstClass): Indenter = Indenter.gen {
+	open fun genSIMethodBody(clazz: AstClass): Indenter = Indenter {
 		//for (field in clazz.fields.filter { it.isStatic }) {
 		//	line("${field.buildField(static = true)};")
 		//}
@@ -315,7 +316,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genField(field: AstField): Indenter = Indenter.gen {
+	open fun genField(field: AstField): Indenter = Indenter {
 		val istatic = if (field.isStatic) "static " else ""
 		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValue};")
 	}
@@ -338,7 +339,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val AstMethod.actualRetType: AstType get() = if (this.isInstanceInit) this.containingClass.astType else this.methodType.ret
 
-	open fun genMethod(clazz: AstClass, method: AstMethod, mustPutBody: Boolean): Indenter = Indenter.gen {
+	open fun genMethod(clazz: AstClass, method: AstMethod, mustPutBody: Boolean): Indenter = Indenter {
 		currentMethod = method.ref
 		context.method = method
 
@@ -368,7 +369,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	open fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw ${quoteString(message)};")
 	}
@@ -740,7 +741,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			trapsByEnd.getOrPut(trap.end) { arrayListOf() } += trap
 		}
 
-		return Indenter.gen {
+		return Indenter {
 			@Suppress("LoopToCallChain", "Destructure")
 			for (local in body.locals) refs.add(local.type)
 
@@ -836,7 +837,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmContinue(stm: AstStm.CONTINUE) = Indenter.single("continue;")
 	open fun genStmBreak(stm: AstStm.BREAK) = Indenter.single("break;")
-	open fun genStmLabel(stm: AstStm.STM_LABEL): Indenter = Indenter.gen {
+	open fun genStmLabel(stm: AstStm.STM_LABEL): Indenter = Indenter {
 		if (stm.label in trapsByEnd) {
 			for (trap in trapsByEnd[stm.label]!!) line(genStmRawCatch(trap))
 		}
@@ -850,10 +851,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	fun genStmLabelCore(stm: AstStm.STM_LABEL) = genLabel(stm.label)
 
-	open fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	open fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 	}
 
-	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 	}
 
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
@@ -1179,7 +1180,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	inline protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter.gen(init)
+	inline protected fun indent(init: Indenter.() -> Unit): Indenter = Indenter(init)
 
 	open fun genStmSetArray(stm: AstStm.SET_ARRAY): Indenter {
 		val array = stm.array.genNotNull()
@@ -1195,7 +1196,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return Indenter(res)
 	}
 
-	open fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	open fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		var n = 0
 		for (v in stm.values) {
 			line(genStmSetArray(AstStm.SET_ARRAY(stm.array.value, (stm.startIndex + n).lit, v.value)))
@@ -1225,7 +1226,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
 	open fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("// MONITOR_EXIT") }
-	open fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.value.genExpr()};")
+	open fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.exception.genExpr()};")
 	open fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("""throw J__i__exception__;""")
 	open fun genStmStms(stm: AstStm.STMS) = indent {
 		val stms = stm.stms
@@ -1666,7 +1667,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val bodies = this.annotationsList.getBodiesForTarget(TargetName(target))
 
 		return bodies.associate { body ->
-			body.cond to Indenter.gen {
+			body.cond to Indenter {
 				for (line in body.lines) line(line.template("nativeBody"))
 			}
 		}

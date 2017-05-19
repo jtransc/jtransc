@@ -208,7 +208,7 @@ open class AstTransformer {
 	}
 
 	open fun transform(stm: AstStm.THROW): AstStm {
-		transform(stm.value)
+		transform(stm.exception)
 		return stm
 	}
 

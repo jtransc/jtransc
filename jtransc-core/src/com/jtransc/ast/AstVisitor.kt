@@ -209,7 +209,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(stm: AstStm.THROW) {
-		visit(stm.value)
+		visit(stm.exception)
 	}
 
 	open fun visit(stm: AstStm.RETHROW) {

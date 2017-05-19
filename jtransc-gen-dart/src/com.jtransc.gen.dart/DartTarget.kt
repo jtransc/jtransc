@@ -3,7 +3,6 @@ package com.jtransc.gen.dart
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
@@ -12,6 +11,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -111,7 +111,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		println(output)
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		var targetType = field.type.targetName
 		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
 		if (field.isStatic) targetType = "static $targetType"
@@ -121,7 +121,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun quoteString(str: String) = str.dquote()
 
-	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
 		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
@@ -134,11 +134,11 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static void Main(List<String> args)") {
 				//line("try {")
 				//indent {
-					line("N.init();")
-					line(genStaticConstructorsSorted())
-					//line(buildStaticInit(entryPointFqName))
-					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.Companion.STRING)))]
-					line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
+				line("N.init();")
+				line(genStaticConstructorsSorted())
+				//line(buildStaticInit(entryPointFqName))
+				val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.Companion.STRING)))]
+				line(buildMethod(mainMethod, static = true) + "(N.strArray(args));")
 				//}
 				//line("} catch (e) {")
 				//indent {
@@ -241,9 +241,9 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as JA_0).length"
 	//override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw (${stm.value.genExpr()}).${prepareThrow.targetName}().dartError;")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw (${stm.exception.genExpr()}).${prepareThrow.targetName}().dartError;")
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			line("String toString()") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
@@ -360,7 +360,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_lshr_cst(l: String, r: Int): String = "($l >> $r)"
 	override fun N_lushr_cst(l: String, r: Int) = "N.lushr_opt($l, $r)"
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Exception(${message.dquote()});")
 	}
@@ -368,12 +368,12 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (Throwable e) {")
 		//indent {
@@ -445,7 +445,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [ ${stm.values.map { it.genExpr() }.joinToString(", ")} ]);")
 	}
 

@@ -17,6 +17,7 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
@@ -140,14 +141,14 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			"mainMethod" to mainMethod
 		))
 
-		val strs = Indenter.gen {
+		val strs = Indenter {
 			val strs = getGlobalStrings()
 			val maxId = strs.maxBy { it.id }?.id ?: 0
 			line("SS = new Array($maxId);")
 			for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
 		}
 
-		val out = Indenter.gen {
+		val out = Indenter {
 			if (settings.debug) line("//# sourceMappingURL=$outputFileBaseName.map")
 			line(concatFilesTrans.prepend)
 			line(strs.toString())
@@ -288,7 +289,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 
-		val classCodeIndenter = Indenter.gen {
+		val classCodeIndenter = Indenter {
 			if (isAbstract) line("// ABSTRACT")
 
 			val classBase = clazz.name.targetName
@@ -361,7 +362,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			fun writeMethod(method: AstMethod): Indenter {
 				setCurrentMethod(method)
-				return Indenter.gen {
+				return Indenter {
 					refs.add(method.methodType)
 					val margs = method.methodType.args.map { it.name }
 
@@ -372,7 +373,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
-					fun renderBranch(actualBody: Indenter?) = Indenter.gen {
+					fun renderBranch(actualBody: Indenter?) = Indenter {
 						if (actualBody != null) {
 							line("$prefix = function(${margs.joinToString(", ")})", after2 = ";") {
 								line(actualBody)
@@ -383,7 +384,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 						}
 					}
 
-					fun renderBranches() = Indenter.gen {
+					fun renderBranches() = Indenter {
 						try {
 							val nativeBodies = method.getJsNativeBodies()
 							var javaBodyCacheDone: Boolean = false
@@ -442,7 +443,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		return listOf(ClassResult(SubClass(clazz, MemberTypes.ALL), classCodeIndenter))
 	}
 
-	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
 	}
 
@@ -454,5 +455,5 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val AstType.localDeclType: String get() = "var"
 
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.value.genExpr()};")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.exception.genExpr()};")
 }

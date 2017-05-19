@@ -16,6 +16,7 @@
 
 package com.jtransc.text
 
+import com.jtransc.text.Indenter.Companion
 import java.util.*
 
 object INDENTS {
@@ -46,12 +47,9 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 	val noIndentEmptyLines = true
 
 	companion object {
-		fun genString(init: Indenter.() -> Unit) = gen(init).toString()
+		fun genString(init: Indenter.() -> Unit) = this(init).toString()
 
-		val EMPTY = Indenter.gen { }
-
-		@Deprecated("", ReplaceWith("this(init)", "com.jtransc.text.Indenter.Companion"))
-		inline fun gen(init: Indenter.() -> Unit): Indenter = this(init)
+		val EMPTY = Indenter { }
 
 		inline operator fun invoke(init: Indenter.() -> Unit): Indenter {
 			val indenter = Indenter()

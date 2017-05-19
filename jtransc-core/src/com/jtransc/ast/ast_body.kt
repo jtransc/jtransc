@@ -114,7 +114,7 @@ interface Cloneable<T> {
 	fun clone(): T
 }
 
-open class AstStm : AstElement, Cloneable<AstStm> {
+sealed class AstStm : AstElement, Cloneable<AstStm> {
 	class Box(_value: AstStm) {
 		var value: AstStm = _value
 			get() = field
@@ -143,6 +143,7 @@ open class AstStm : AstElement, Cloneable<AstStm> {
 
 	class STMS(stms: List<AstStm>, dummy: Boolean) : AstStm() {
 		val stms = stms.map { it.box }
+		val stmsUnboxed get() = stms.map { it.value }
 	}
 
 	class NOP(val reason: String) : AstStm() {
@@ -211,8 +212,8 @@ open class AstStm : AstElement, Cloneable<AstStm> {
 	class RETURN_VOID() : AstStm() {
 	}
 
-	class THROW(value: AstExpr) : AstStm() {
-		val value = value.box
+	class THROW(exception: AstExpr) : AstStm() {
+		val exception = exception.box
 	}
 
 	class RETHROW() : AstStm()
@@ -416,8 +417,12 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		abstract val isSpecial: Boolean
 	}
 
-	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
-		val obj = obj.box
+	abstract class CALL_BASE_OBJECT : CALL_BASE() {
+		abstract val obj: AstExpr.Box
+	}
+
+	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE_OBJECT() {
+		override val obj = obj.box
 		override val args = args.map { it.box }
 
 		override val type = method.type.ret
@@ -430,8 +435,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	//	override val type = method.type.ret
 	//}
 
-	class CALL_SUPER(obj: AstExpr, val target: FqName, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
-		val obj = obj.box
+	class CALL_SUPER(obj: AstExpr, val target: FqName, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE_OBJECT() {
+		override val obj = obj.box
 		override val args = args.map { it.box }
 
 		override val type = method.type.ret
@@ -514,9 +519,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class INVOKE_DYNAMIC_METHOD(
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef,
-		var extraArgCount: Int
+		var extraArgCount: Int,
+		var startArgs: List<AstExpr> = listOf<AstExpr>()
 	) : AstExpr() {
-		var startArgs = listOf<AstExpr>()
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
@@ -762,6 +767,14 @@ operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(fie
 
 operator fun AstExpr.get(method: MethodRef) = MethodWithRef(this, method.ref)
 operator fun AstLocal.get(method: MethodRef) = MethodWithRef(this.expr, method.ref)
+
+val AstStm.stms: List<AstStm> get() {
+	return if (this is AstStm.STMS) {
+		this.stms.map { it.value }
+	} else {
+		listOf(this)
+	}
+}
 
 val Iterable<AstStm>.stms: AstStm get() = this.toList().stm()
 fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
