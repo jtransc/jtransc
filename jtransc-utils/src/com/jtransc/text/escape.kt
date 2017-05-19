@@ -38,6 +38,7 @@ fun String.uescape(): String {
 	for (n in 0 until this.length) {
 		val c = this[n]
 		when (c) {
+			0.toChar() -> out.append("\\0")
 			'\\' -> out.append("\\\\")
 			'"' -> out.append("\\\"")
 			'\n' -> out.append("\\n")

@@ -46,6 +46,11 @@ import testservice.test.TestServiceJs2
 class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
 
+	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
+	@Test fun testBigMin() = testClass<BigTest>(minimize = true, log = false)
+	@Test fun testBigIO() = testClass<BigIOTest>(minimize = true, log = false, treeShaking = true)
+	@Test fun testProcess() = testClass<ProcessTest>(minimize = true, log = false, treeShaking = true)
+
 	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, log = false, treeShaking = true)
 
 	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, log = false, treeShaking = true)
@@ -152,11 +157,6 @@ class JsTest : _Base() {
 	@Test fun extraRefsTest() = testNativeClass<ExtraRefsTest>("""
 		OK
 	""", minimize = true)
-
-	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
-	@Test fun testBigMin() = testClass<BigTest>(minimize = true, log = false)
-	@Test fun testBigIO() = testClass<BigIOTest>(minimize = true, log = false, treeShaking = true)
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = true, log = false, treeShaking = true)
 
 	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, log = false)
 
