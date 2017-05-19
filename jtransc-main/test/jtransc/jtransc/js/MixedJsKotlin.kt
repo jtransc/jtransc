@@ -21,7 +21,9 @@ object MixedJsKotlin {
 			println(stat)
 		}
 		//println(Pair<String, Any>("a", 10).javaClass.name)
-		consoleLog(global["JSON"].call("stringify", jsObject("a" to 10, "b" to "c", "c" to jsArray(1, 2, 3))))
+
+
+		//consoleLog(global["JSON"].call("stringify", jsObject("a" to 10, "b" to "c", "c" to jsArray(1, 2, 3))))
 		consoleLog(jsRequire("path").call("parse", "/hello/world/file.txt")["ext"])
 	}
 }

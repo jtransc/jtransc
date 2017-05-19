@@ -35,6 +35,16 @@ public class JTranscJsNativeMixedTest {
 
 		Global.global.console.log(1);
 		Global.global.console.log("hello");
+
+		JsDynamic obj = JsDynamic.newEmptyObject();
+		obj.set("test", 777);
+		Global.global.console.log(obj.get("test"));
+
+		JsDynamic array = JsDynamic.newEmptyArray();
+		array.set(0, 999);
+		Global.global.console.log(array.get(0));
+
+		Global.global.console.log(JsDynamic.raw("Math.max(1, 7 * 3)"));
 	}
 
 	@JTranscNativeName("global")
@@ -53,13 +63,13 @@ public class JTranscJsNativeMixedTest {
 
 	@JTranscNativeName("Console")
 	public abstract static class Console {
-		native public void log(@JTranscUnboxParam  Object a);
+		native public void log(@JTranscUnboxParam Object a);
 	}
 
-	@JTranscCallSiteBody(target = "js", value = "global[#'0]")
+	@JTranscCallSiteBody(target = "js", value = "global#.0")
 	static native private Object global(@JTranscLiteralParam String name);
 
-	@JTranscCallSiteBody(target = "js", value = "#0[#'1]")
+	@JTranscCallSiteBody(target = "js", value = "#0#.1")
 	static native private Object access(Object obj, @JTranscLiteralParam String name);
 
 	@JTranscCallSiteBody(target = "js", value = "#0(#1)")

@@ -530,6 +530,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val pparams = refMethod.getParamsWithAnnotationsBox(args)
 
 		if (callsiteBody != null) {
+			val args2Unquoted = arrayOfNulls<String>(pparams.size)
+
 			val args2 = pparams.map { arginfo ->
 				val index = arginfo.arg.index
 				val arg = arginfo.exprBox
@@ -538,16 +540,20 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					val lit = (arg.value as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: ${processArg(arg)} in $context")
 					lit.value.toString().template("JTranscLiteralParam")
 				} else if (paramAnnotations.contains<JTranscUnboxParam>()) {
-				val lit = (arg.value as? AstExpr.LITERAL)
-				if (lit != null) {
-					when (lit.value) {
-						is String -> quoteString(lit.value)
-						else -> unbox(arg)
+					val lit = (arg.value as? AstExpr.LITERAL)
+					if (lit != null) {
+						when (lit.value) {
+							is String -> {
+								args2Unquoted[index] = lit.value
+								quoteString(lit.value)
+							}
+						//is String -> lit.value
+							else -> unbox(arg)
+						}
+					} else {
+						unbox(arg)
 					}
 				} else {
-					unbox(arg)
-				}
-			} else {
 					processArg(arg)
 				}
 			}
@@ -557,16 +563,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				else -> ""
 			}
 
-			val out = Regex("#([',])?((@|\\d)+)").replace(callsiteBody) { mr ->
+			val out = Regex("#([',.:])?((@|\\d)+)").replace(callsiteBody) { mr ->
 				val mustQuote = mr.groupValues[1]
 				val rid = mr.groupValues[2]
-				val res = if (rid == "@") {
-					objStr
-				} else {
-					val id = rid.toInt()
-					args2[id]
+				val id = rid.toIntOrNull() ?: 0
+				val res = if (rid == "@") objStr else args2[id]
+				val res2 = if (rid != "@") args2Unquoted[id] ?: args2[id] else objStr
+				when (mustQuote) {
+					"'", "," -> quoteString(res2)
+					".", ":" -> {
+						access(res2, static = false, field = (mustQuote == "."))
+					}
+					else -> res
 				}
-				if (mustQuote.isNotEmpty()) quoteString(res) else res
 			}.template("JTranscCallSiteBody")
 			return out
 		} else {
