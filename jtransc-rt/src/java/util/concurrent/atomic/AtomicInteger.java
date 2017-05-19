@@ -36,22 +36,22 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 	//rel	Sink-load + sink-store barrier.
 	//seq	Fully sequenced (acquire + release).
 
-	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicLoad!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this.{% FIELD #CLASS:value %});")
+	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicLoad!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this{% IFIELD #CLASS:value %});")
 	public final int get() {
 		return value;
 	}
 
-	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
+	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.seq)(*cast(shared(int *))&this{% IFIELD #CLASS:value %}, p0);")
 	public final void set(int newValue) {
 		value = newValue;
 	}
 
-	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.raw)(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
+	@JTranscMethodBody(target = "d", value = "core.atomic.atomicStore!(core.atomic.MemoryOrder.raw)(*cast(shared(int *))&this{% IFIELD #CLASS:value %}, p0);")
 	public final void lazySet(int newValue) {
 		set(newValue);
 	}
 
-	@JTranscMethodBody(target = "d", value = "return core.atomic.cas(cast(shared(int *))&this.{% FIELD #CLASS:value %}, cast(const(int))p0, p1);")
+	@JTranscMethodBody(target = "d", value = "return core.atomic.cas(cast(shared(int *))&this{% IFIELD #CLASS:value %}, cast(const(int))p0, p1);")
 	public final boolean compareAndSet(int expect, int update) {
 		if (get() == expect) {
 			set(update);
@@ -61,7 +61,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 		}
 	}
 
-	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicOp!(\"+=\")(*cast(shared(int *))&this.{% FIELD #CLASS:value %}, p0);")
+	@JTranscMethodBody(target = "d", value = "return core.atomic.atomicOp!(\"+=\")(*cast(shared(int *))&this{% IFIELD #CLASS:value %}, p0);")
 	private int _addAndGet(int delta) {
 		return this.value = get() + delta;
 	}

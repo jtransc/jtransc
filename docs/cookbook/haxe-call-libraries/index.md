@@ -61,9 +61,9 @@ class WebSocketHaxe(url: String, subprotocols: Array<String>?) : WebSocket(url) 
 		} else {
 			this.ws = haxe.net.WebSocket.create(p0._str);
 		}
-		this.ws.onopen = function() { this.{% METHOD nova.net.ws.WebSocketHaxe:onConnectSend %}(); };
-		this.ws.onclose = function() { this.{% METHOD nova.net.ws.WebSocketHaxe:onDisconnectedSend %}(); };
-		this.ws.onmessageString = function(m:String) { this.{% METHOD nova.net.ws.WebSocketHaxe:onStringMessageSend %}(N.str(m)); };
+		this.ws.onopen = function() { this{% IMETHOD nova.net.ws.WebSocketHaxe:onConnectSend %}(); };
+		this.ws.onclose = function() { this{% IMETHOD nova.net.ws.WebSocketHaxe:onDisconnectedSend %}(); };
+		this.ws.onmessageString = function(m:String) { this{% IMETHOD nova.net.ws.WebSocketHaxe:onStringMessageSend %}(N.str(m)); };
 	""")
 	private fun ws_init(url: String, subprotocols: Array<String>?) {
 	}

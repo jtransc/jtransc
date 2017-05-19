@@ -83,7 +83,7 @@ public class AsynchronousServerSocketChannel implements AsynchronousChannel, Net
 	@JTranscMethodBody(target = "js", value = {
 		"var attachment = p0, handler = p1;",
 		"var handlers = this.handlers;",
-		"function fhandle(client) { handler['{% METHOD java.nio.channels.CompletionHandler:completed %}'](client, attachment); }",
+		"function fhandle(client) { handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}(client, attachment); }",
 		"if (this.clients.length != 0) { fhandle(this.clients.shift()); } else { this.handlers.push(fhandle); }"
 	})
 	public native <A> void accept(A attachment, CompletionHandler<AsynchronousSocketChannel, ? super A> handler);

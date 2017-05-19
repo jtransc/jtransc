@@ -294,21 +294,21 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxVoid(value:Dynamic):JavaVoid { return null; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.{% METHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean{% IMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxByte(value:Int):JavaByte { return JavaByte.{% METHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+	static public function boxByte(value:Int):JavaByte { return JavaByte{% IMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxShort(value:Int):JavaShort { return JavaShort.{% METHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+	static public function boxShort(value:Int):JavaShort { return JavaShort{% IMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter.{% METHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter{% IMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxInt(value:Int):JavaInteger { return JavaInteger.{% METHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+	static public function boxInt(value:Int):JavaInteger { return JavaInteger{% IMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxLong(value:Long):JavaLong { return JavaLong.{% METHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	static public function boxLong(value:Long):JavaLong { return JavaLong{% IMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat.{% METHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat{% IMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxDouble(value:Float64):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	static public function boxDouble(value:Float64):JavaDouble { return JavaDouble{% IMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxString(value:String):JavaString { return (value != null) ? JavaString.make(value) : null; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -319,21 +319,21 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).{% FIELD java.lang.Boolean:value:Z %}; }
+	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean){% IFIELD java.lang.Boolean:value:Z %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte).{% FIELD java.lang.Byte:value:B %}; }
+	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte){% IFIELD java.lang.Byte:value:B %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort).{% FIELD java.lang.Short:value:S %}; }
+	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort){% IFIELD java.lang.Short:value:S %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter).{% FIELD java.lang.Character:value:C %}; }
+	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter){% IFIELD java.lang.Character:value:C %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger).{% FIELD java.lang.Integer:value:I %}; }
+	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger){% IFIELD java.lang.Integer:value:I %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong).{% FIELD java.lang.Long:value:J %}; }
+	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong){% IFIELD java.lang.Long:value:J %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat).{% FIELD java.lang.Float:value:F %}; }
+	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat){% IFIELD java.lang.Float:value:F %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxDouble(value:JavaObject):Float64 { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
+	static public function unboxDouble(value:JavaObject):Float64 { return cast(value, JavaDouble){% IFIELD java.lang.Double:value:D %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxString(value:JavaObject):String { return cast(value, JavaString)._str; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -388,12 +388,12 @@ class N {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function hashMap(obj:Dynamic):{% CLASS java.util.HashMap %} {
-		var out = new {% CLASS java.util.HashMap %}().{% METHOD java.util.HashMap:<init>:()V %}();
+		var out = new {% CLASS java.util.HashMap %}(){% IMETHOD java.util.HashMap:<init>:()V %}();
 		var fields = Reflect.fields(obj);
 		for (n in 0 ... fields.length) {
 			var key = fields[n];
 			var value = Reflect.field(obj, key);
-			out.{% METHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
+			out{% IMETHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
 		}
 		return out;
 	}
@@ -402,11 +402,11 @@ class N {
 	static public function mapToObject(map:{% CLASS java.util.Map %}):Dynamic {
 		if (map == null) return null;
 		var obj = {};
-		var array = iteratorToArray(map.{% METHOD java.util.Map:entrySet %}().{% METHOD java.util.Set:iterator %}());
+		var array = iteratorToArray(map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}());
 		for (n in 0 ... array.length) {
 			var item = array[n];
-			var key:JavaObject = item.{% METHOD java.util.Map$Entry:getKey %}();
-			var value:JavaObject = item.{% METHOD java.util.Map$Entry:getValue %}();
+			var key:JavaObject = item{% IMETHOD java.util.Map$Entry:getKey %}();
+			var value:JavaObject = item{% IMETHOD java.util.Map$Entry:getValue %}();
 			Reflect.setField(obj, unbox(key), unbox(value));
 		}
 		return obj;
@@ -416,8 +416,8 @@ class N {
 	static public function iteratorToArray(it:{% CLASS java.util.Iterator %}):Array<Dynamic> {
 		if (it == null) return null;
 		var out = [];
-		while (it.{% METHOD java.util.Iterator:hasNext:()Z %}()) {
-			out.push(it.{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
+		while (it{% IMETHOD java.util.Iterator:hasNext:()Z %}()) {
+			out.push(it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
 		}
 		return out;
 	}
@@ -596,7 +596,7 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxWithType(clazz:JavaClass, value:Dynamic):JavaObject {
 		if (Std.is(value, JavaObject)) return cast value;
-		var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
+		var clazzName:String = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 		switch (clazzName) {
 			case 'void': return boxVoid(cast value);
@@ -615,7 +615,7 @@ class N {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxWithTypeWhenRequired(clazz:JavaClass, value:Dynamic):Dynamic {
-		var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
+		var clazzName:String = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 		switch (clazzName) {
 			case 'void'   : return null;

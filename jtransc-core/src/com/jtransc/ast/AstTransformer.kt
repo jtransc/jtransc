@@ -3,6 +3,7 @@ package com.jtransc.ast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
+// @TODO: Can just use AstVisitor?
 open class AstTransformer {
 	open fun finish() {
 	}

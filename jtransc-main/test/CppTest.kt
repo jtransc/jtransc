@@ -25,7 +25,7 @@ class CppTest : _Base() {
 	//override val TREESHAKING_TRACE: Boolean = false
 
 	//@Ignore("Ignored until stabilized C++ target to avoid problems with travis")
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true)
+	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:

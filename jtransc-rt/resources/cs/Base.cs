@@ -55,14 +55,14 @@ class N {
 		return o;
 	}
 
-	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
-	static public sbyte  unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% METHOD java.lang.Byte:byteValue %}(); }
-	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% METHOD java.lang.Short:shortValue %}(); }
-	static public ushort unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% METHOD java.lang.Character:charValue %}(); }
-	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% METHOD java.lang.Integer:intValue %}(); }
-	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% METHOD java.lang.Long:longValue %}(); }
-	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% METHOD java.lang.Float:floatValue %}(); }
-	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% METHOD java.lang.Double:doubleValue %}(); }
+	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i{% IMETHOD java.lang.Boolean:booleanValue %}(); }
+	static public sbyte  unboxByte  ({% CLASS java.lang.Byte %}      i) { return i{% IMETHOD java.lang.Byte:byteValue %}(); }
+	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i{% IMETHOD java.lang.Short:shortValue %}(); }
+	static public ushort unboxChar  ({% CLASS java.lang.Character %} i) { return i{% IMETHOD java.lang.Character:charValue %}(); }
+	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i{% IMETHOD java.lang.Integer:intValue %}(); }
+	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i{% IMETHOD java.lang.Long:longValue %}(); }
+	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i{% IMETHOD java.lang.Float:floatValue %}(); }
+	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i{% IMETHOD java.lang.Double:doubleValue %}(); }
 
 	static public {% CLASS java.lang.Object %}    boxVoid  (        ) { return null; }
 	static public {% CLASS java.lang.Boolean %}   boxBool  (bool   v) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
@@ -147,7 +147,7 @@ class N {
 
 	static public string istr({% CLASS java.lang.String %} s) {
 		if (s == null) return null;
-		JA_C chars = s.{% FIELD java.lang.String:value %};
+		JA_C chars = s{% IFIELD java.lang.String:value %};
 		int len = chars.length;
 		char[] cchars = new char[len];
 		for (int n = 0; n < len; n++) cchars[n] = (char)chars[n];

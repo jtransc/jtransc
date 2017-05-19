@@ -19,7 +19,7 @@ class JA_0 extends {% CLASS java.lang.Object %} {
 	private function checkBounds(index:Int):Int {
 		if (index < 0 || index >= length) {
 			trace('Index $index out of range 0..$length');
-			throw new {% CLASS java.lang.ArrayIndexOutOfBoundsException %}().{% METHOD java.lang.ArrayIndexOutOfBoundsException:<init>:(I)V %}(index);
+			throw new {% CLASS java.lang.ArrayIndexOutOfBoundsException %}(){% IMETHOD java.lang.ArrayIndexOutOfBoundsException:<init>:(I)V %}(index);
 		}
 		return index;
 	}

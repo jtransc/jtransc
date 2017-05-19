@@ -12,7 +12,7 @@ import kotlin.coroutines.experimental.startCoroutine
 
 class AsyncIOTest {
 	companion object {
-		private fun mainAsync(callback: suspend () -> Unit) {
+		private fun runBlocking(callback: suspend () -> Unit) {
 			var completed = false
 			callback.startCoroutine(object : Continuation<Unit> {
 				override val context: CoroutineContext = EmptyCoroutineContext
@@ -30,7 +30,7 @@ class AsyncIOTest {
 			}
 		}
 
-		@JvmStatic fun main(args: Array<String>) = mainAsync {
+		@JvmStatic fun main(args: Array<String>) = runBlocking {
 			val tmpfile = JTranscSystemProperties.tmpdir() + "/AsyncIOTest.bin"
 			JTranscAsyncFile(tmpfile).writeBytes(byteArrayOf(1, 2, 3, 4))
 			println(JTranscAsyncFile(tmpfile).readAll().toList())

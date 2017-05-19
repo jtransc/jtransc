@@ -172,7 +172,7 @@ fun <T1, T2, TR> jsFunction(v: Function2<T1, T2, TR>): JsDynamic? = v.toJsDynami
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function() {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function0:invoke %}());
 	};
 """)
 external fun <TR> Function0<TR>.toJsDynamic(): JsDynamic?
@@ -180,7 +180,7 @@ external fun <TR> Function0<TR>.toJsDynamic(): JsDynamic?
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function(p1) {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](N.box(p1)));
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function1:invoke %}(N.box(p1)));
 	};
 """)
 external fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic?
@@ -188,33 +188,33 @@ external fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic?
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function(p1, p2) {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](N.box(p1), N.box(p2)));
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function2:invoke %}(N.box(p1), N.box(p2)));
 	};
 """)
 external fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function() {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());};
+	return function() {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function0:invoke %}());};
 """)
 external fun <TR> jsFunctionRaw0(v: Function0<TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](p1));};
+	return function(p1) {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function1:invoke %}(p1));};
 """)
 external fun <TR> jsFunctionRaw1(v: Function1<JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](p1, p2));};
+	return function(p1, p2) {return N.unbox(p0[% IMETHOD kotlin.jvm.functions.Function2:invoke %}(p1, p2));};
 """)
 external fun <TR> jsFunctionRaw2(v: Function2<JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2, p3) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function3:invoke %}'](p1, p2, p3));};
+	return function(p1, p2, p3) {return N.unbox(p0[% IMETHOD kotlin.jvm.functions.Function3:invoke %}(p1, p2, p3));};
 """)
 external fun <TR> jsFunctionRaw3(v: Function3<JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2, p3, p4) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function4:invoke %}'](p1, p2, p3, p4));};
+	return function(p1, p2, p3, p4) {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function4:invoke %}(p1, p2, p3, p4));};
 """)
 external fun <TR> jsFunctionRaw4(v: Function4<JsDynamic?, JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
 

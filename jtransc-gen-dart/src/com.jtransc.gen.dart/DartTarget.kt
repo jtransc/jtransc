@@ -61,6 +61,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
 	override val floatHasFSuffix = false
+	override val GENERATE_LINE_NUMBERS = false
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",

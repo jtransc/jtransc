@@ -114,7 +114,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("public $static\$${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun buildStaticAccessName(name: String, field: Boolean): String = if (field) "$staticAccessOperator\$$name" else "$staticAccessOperator$name"
+	override fun staticAccess(name: String, field: Boolean): String = if (field) "$staticAccessOperator\$$name" else "$staticAccessOperator$name"
 
 	override fun quoteString(str: String) = str.dquote()
 

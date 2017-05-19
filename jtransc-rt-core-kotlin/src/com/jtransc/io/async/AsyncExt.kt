@@ -7,23 +7,14 @@ import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
 private fun <T> Continuation<T>.jt(): JTranscAsyncHandler<T> = JTranscAsyncHandler<T> { value, error ->
-	if (error != null) {
-		this@jt.resumeWithException(error)
-	} else {
-		this@jt.resume(value)
-	}
+	if (error != null) this@jt.resumeWithException(error) else this@jt.resume(value)
 }
 
 suspend fun JTranscAsyncFile.getLength(): Long = suspendCoroutine { this.getLengthAsync(it.jt()) }
 suspend fun JTranscAsyncFile.mkdir(): Boolean = suspendCoroutine { this.mkdirAsync(it.jt()) }
 suspend fun JTranscAsyncFile.stat(): JTranscFileStat = suspendCoroutine { this.statAsync(it.jt()) }
 suspend fun JTranscAsyncFile.open(mode: JTranscFileMode = JTranscFileMode.READ): JTranscAsyncStream = suspendCoroutine { this.openAsync(mode, it.jt()) }
-
-suspend fun JTranscAsyncFile.readAll(): ByteArray {
-	return openUse {
-		readBytes(0L, getLength().toInt())
-	}
-}
+suspend fun JTranscAsyncFile.readAll(): ByteArray = openUse { readBytes(0L, getLength().toInt()) }
 
 suspend fun JTranscAsyncFile.writeBytes(data: ByteArray): Unit {
 	openUse(JTranscFileMode.WRITE) {

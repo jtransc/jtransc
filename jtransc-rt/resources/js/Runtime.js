@@ -438,7 +438,7 @@ function __createJavaArrayBaseType() {
 	ARRAY.prototype = Object.create({% CLASS java.lang.Object %}.prototype);
 	ARRAY.prototype.constructor = ARRAY;
 
-	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
 		return N.resolveClass(this.desc);
 	};
 
@@ -452,13 +452,13 @@ function __createJavaArrayBaseType() {
 }
 
 function __addArrayJavaMethods(ARRAY) {
-	ARRAY.prototype['{% METHOD java.lang.Object:clone %}'] = ARRAY.prototype.clone;
+	ARRAY.prototype{% IMETHOD java.lang.Object:clone %} = ARRAY.prototype.clone;
 
-	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
 		return N.resolveClass(this.desc);
 	};
 
-	ARRAY.prototype['{% METHOD java.lang.Object:toString %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:toString %} = function() {
 		return N.str('ARRAY(' + this.desc + ')');
 	};
 }
@@ -1069,7 +1069,7 @@ N.boxWithType = function(clazz, value) {
 	if (value instanceof JA_0) return value;
 	if (value instanceof {% CLASS java.lang.Object %}) return value;
 
-	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
+	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 	switch (clazzName) {
 		case 'void'   : return N.boxVoid();
@@ -1088,7 +1088,7 @@ N.boxWithType = function(clazz, value) {
 };
 
 N.unboxWithTypeWhenRequired = function(clazz, value) {
-	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
+	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 	switch (clazzName) {
 		case 'void'   :
@@ -1152,7 +1152,7 @@ N.getByteArray = function(v) {
 N.clone = function(obj) {
 	if (obj == null) return null;
 	var temp = Object.create(obj);
-	temp['{% FIELD java.lang.Object:$$id %}'] = 0;
+	temp{% IFIELD java.lang.Object:$$id %} = 0;
 	return temp;
 };
 
@@ -1164,7 +1164,7 @@ N.EMPTY_FUNCTION = function() { }
 
 var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
-	return this ? N.istr(this['{% METHOD java.lang.Object:toString %}']()) : null;
+	return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}()) : null;
 };
 
 /* ## BODY ## */

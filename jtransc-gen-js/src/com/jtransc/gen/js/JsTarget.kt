@@ -62,13 +62,13 @@ class JsTarget() : GenTargetDescriptor() {
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
 fun hasSpecialChars(name: String): Boolean = !name.all(Char::isLetterDigitOrUnderscore)
-fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
 @Suppress("ConvertLambdaToReference")
 @Singleton
 class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 	override val ADD_UTF8_BOM = true
+	override val GENERATE_LINE_NUMBERS = false
 
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
@@ -77,6 +77,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
+
+	private fun commonAccess(name: String, field: Boolean): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
+	override fun staticAccess(name: String, field: Boolean): String = commonAccess(name, field)
+	override fun instanceAccess(name: String, field: Boolean): String = commonAccess(name, field)
 
 	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
 		val outputFile = injector.get<ConfigJavascriptOutput>().javascriptOutput
@@ -184,10 +188,6 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (sourceMap != null) output[outputFileBaseName + ".map"] = sourceMap
 
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
-	}
-
-	override fun genStmLine(stm: AstStm.LINE) = indent {
-		mark(stm)
 	}
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
@@ -309,7 +309,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("function $classBase()") {
 				for (field in allInstanceFieldsThis) {
 					val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-					line("this${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+					line("this${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 				}
 			}
 
@@ -318,7 +318,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			for (field in allInstanceFieldsProto) {
 				val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+				line("$classBase.prototype${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 			}
 
 			// @TODO: Move to genSIMethodBody
@@ -343,7 +343,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 					//line("$classBase.SI = N.EMPTY_FUNCTION;")
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+						line("${getMemberBase(field.isStatic)}${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 					}
 					if (clazz.staticConstructor != null) {
 						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
@@ -367,8 +367,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 					//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
 					//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
-					val nativeMemberName = buildMethod(method, false)
-					val prefix = "${getMemberBase(method.isStatic)}${accessStr(nativeMemberName)}"
+					val nativeMemberName = buildMethod(method, false, includeDot = false)
+					val prefix = "${getMemberBase(method.isStatic)}${instanceAccess(nativeMemberName, field = false)}"
 
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
@@ -447,8 +447,6 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
-
-	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = accessStr(name)
 
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 

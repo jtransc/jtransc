@@ -13,7 +13,7 @@ class Haxe extends haxe.io.Input {
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	override public function readByte():Int return this.i.{% METHOD java.io.InputStream:read:()I %}();
+	override public function readByte():Int return this.i{% IMETHOD java.io.InputStream:read:()I %}();
 }
 
 {{ HAXE_CLASS_ANNOTATIONS }}

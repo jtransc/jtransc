@@ -61,7 +61,7 @@ final public class JsDynamic {
 	@JTranscMethodBody(target = "js", value = {
 		"var handler = p0;",
 		"return function() {",
-		"	return N.unbox(handler['{% METHOD com.jtransc.target.js.JsDynamic$Function0:invoke %}']());",
+		"	return N.unbox(handler{% IMETHOD com.jtransc.target.js.JsDynamic$Function0:invoke %}());",
 		"};",
 	})
 	native public static Object func(Function0 func);
@@ -69,7 +69,7 @@ final public class JsDynamic {
 	@JTranscMethodBody(target = "js", value = {
 		"var handler = p0;",
 		"return function(p1) {",
-		"	return N.unbox(handler['{% METHOD com.jtransc.target.js.JsDynamic$Function1:invoke %}'](p1));",
+		"	return N.unbox(handler{% IMETHOD com.jtransc.target.js.JsDynamic$Function1:invoke %}(p1));",
 		"};",
 	})
 	native public static Object func(Function1 func);
@@ -77,7 +77,7 @@ final public class JsDynamic {
 	@JTranscMethodBody(target = "js", value = {
 		"var handler = p0;",
 		"return function(p1, p2) {",
-		"	return N.unbox(handler['{% METHOD com.jtransc.target.js.JsDynamic$Function2:invoke %}'](p1, p2));",
+		"	return N.unbox(handler{% IMETHOD com.jtransc.target.js.JsDynamic$Function2:invoke %}(p1, p2));",
 		"};",
 	})
 	native public static Object func(Function2 func);

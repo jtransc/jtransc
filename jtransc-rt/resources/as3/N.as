@@ -27,14 +27,14 @@ public class N {
 
 	static public function istr(s: {% CLASS java.lang.String %}): String { return (s != null) ? s._str : null; }
 
-	static public function unboxBool(v: {% CLASS java.lang.Boolean %}): Boolean { return v.{% FIELD java.lang.Boolean:value %}; }
-	static public function unboxByte(v: {% CLASS java.lang.Byte %}): int { return v.{% FIELD java.lang.Byte:value %}; }
-	static public function unboxChar(v: {% CLASS java.lang.Character %}): int { return v.{% FIELD java.lang.Character:value %}; }
-	static public function unboxShort(v: {% CLASS java.lang.Short %}): int { return v.{% FIELD java.lang.Short:value %}; }
-	static public function unboxInt(v: {% CLASS java.lang.Integer %}): int { return v.{% FIELD java.lang.Integer:value %}; }
-	static public function unboxLong(v: {% CLASS java.lang.Long %}): Int64 { return v.{% FIELD java.lang.Long:value %}; }
-	static public function unboxFloat(v: {% CLASS java.lang.Float %}): Number { return v.{% FIELD java.lang.Float:value %}; }
-	static public function unboxDouble(v: {% CLASS java.lang.Double %}): Number { return v.{% FIELD java.lang.Double:value %}; }
+	static public function unboxBool(v: {% CLASS java.lang.Boolean %}): Boolean { return v{% IFIELD java.lang.Boolean:value %}; }
+	static public function unboxByte(v: {% CLASS java.lang.Byte %}): int { return v{% IFIELD java.lang.Byte:value %}; }
+	static public function unboxChar(v: {% CLASS java.lang.Character %}): int { return v{% IFIELD java.lang.Character:value %}; }
+	static public function unboxShort(v: {% CLASS java.lang.Short %}): int { return v{% IFIELD java.lang.Short:value %}; }
+	static public function unboxInt(v: {% CLASS java.lang.Integer %}): int { return v{% IFIELD java.lang.Integer:value %}; }
+	static public function unboxLong(v: {% CLASS java.lang.Long %}): Int64 { return v{% IFIELD java.lang.Long:value %}; }
+	static public function unboxFloat(v: {% CLASS java.lang.Float %}): Number { return v{% IFIELD java.lang.Float:value %}; }
+	static public function unboxDouble(v: {% CLASS java.lang.Double %}): Number { return v{% IFIELD java.lang.Double:value %}; }
 
 	static public function boxBool(v: Boolean): {% CLASS java.lang.Boolean %} { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean;  %}(v); }
 	static public function boxByte(v: int): {% CLASS java.lang.Byte %}        { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte;  %}(v); }

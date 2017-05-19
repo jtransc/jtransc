@@ -6,6 +6,8 @@ import com.jtransc.error.invalidOp
 import java.util.*
 
 object CommonTagHandler {
+	val ALIASES = listOf("SINIT", "CONSTRUCTOR", "SMETHOD", "IMETHOD", "METHOD", "SFIELD", "IFIELD", "FIELD", "CLASS")
+
 	private fun getOrReplaceVar(name: String, params: HashMap<String, Any?>): String {
 		val out = if (name.startsWith("#")) {
 			params[name.substring(1)].toString()
@@ -23,9 +25,9 @@ object CommonTagHandler {
 	}
 	data class CONSTRUCTOR(override val ref: AstMethodRef, val method: AstMethod) : Result {
 	}
-	data class METHOD(override val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean) : Result {
+	data class METHOD(override val ref: AstMethodRef, val method: AstMethod, val isStatic: Boolean, val includeDot: Boolean) : Result {
 	}
-	data class FIELD(override val ref: AstFieldRef, val field: AstField, val isStatic: Boolean) : Result
+	data class FIELD(override val ref: AstFieldRef, val field: AstField, val isStatic: Boolean, val includeDot: Boolean) : Result
 	data class CLASS(val clazz: AstClass) : Result {
 		override val ref = clazz.ref
 	}
@@ -61,22 +63,25 @@ object CommonTagHandler {
 						CONSTRUCTOR(method.ref, method)
 					}
 				}
-				"SMETHOD", "METHOD" -> {
+				"SMETHOD", "METHOD", "IMETHOD" -> {
 					val isStatic = (tag == "SMETHOD")
+					val includeDot = (tag == "IMETHOD")
 					if (dataParts.size >= 3) {
 						val ref = AstMethodRef(clazz.name, dataParts[1], types.demangleMethod(dataParts[2]))
-						METHOD(ref, program[ref] ?: invalidOp("Can't find ref $ref"), isStatic)
+						METHOD(ref, program[ref] ?: invalidOp("Can't find ref $ref"), isStatic = isStatic, includeDot = includeDot)
 					} else {
 						val methods = clazz.getMethodsInAncestorsAndInterfaces(dataParts[1])
 						if (methods.isEmpty()) invalidOp("evalReference: Can't find method $desc2")
 						if (methods.size > 1) invalidOp("evalReference: Several signatures, please specify signature")
 						val method = methods.first()
-						METHOD(method.ref, method, isStatic)
+						METHOD(method.ref, method, isStatic = isStatic, includeDot = includeDot)
 					}
 				}
-				"SFIELD", "FIELD" -> {
+				"SFIELD", "FIELD", "IFIELD" -> {
 					val field = clazz.locateField(dataParts[1]) ?: invalidOp("evalReference: Can't find field $desc2")
-					FIELD(field.ref, field, isStatic = (tag == "SFIELD"))
+					val isStatic = (tag == "SFIELD")
+					val includeDot = (tag == "IFIELD")
+					FIELD(field.ref, field, isStatic = isStatic, includeDot = includeDot)
 				}
 				"CLASS" -> CLASS(clazz)
 				else -> invalidOp("evalReference: Unknown type!")

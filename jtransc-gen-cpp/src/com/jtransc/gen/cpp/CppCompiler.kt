@@ -4,12 +4,17 @@ import com.jtransc.JTranscSystem
 import com.jtransc.JTranscVersion
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
+import com.jtransc.io.ProcessUtils
+import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
+import com.jtransc.vfs.get
 import java.io.File
 
 object CppCompiler {
 	class Context(val desiredCompiler: String = "any")
 	interface Compiler
+
+	val CMAKE by lazy { ProcessUtils.which("cmake") }
 
 	val CPP_COMMON_FOLDER by lazy {
 		val jtranscVersion = JTranscVersion.getVersion().replace('.', '_');
@@ -22,8 +27,19 @@ object CppCompiler {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
-		val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
-		return compiler.genCommand(programFile, debug, libs)
+		if (JTranscSystem.isWindows()) {
+			val cmake = CMAKE ?: invalidOp("Can't find cmake in the path.")
+			val cmakeCache = programFile.parentFile["CMakeCache.txt"]
+			if (!cmakeCache.exists()) {
+				LocalVfs(cmakeCache.parentFile).exec(listOf(cmake, "."), ExecOptions(sysexec = true, fixencoding = false, passthru = true))
+			}
+			val config = if (debug) "Debug" else "Release"
+			//return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "-DCMAKE_GENERATOR_PLATFORM=x64", "--config", config)
+			return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "--config", config)
+		} else {
+			val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
+			return compiler.genCommand(programFile, debug, libs)
+		}
 	}
 
 	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>) {

@@ -67,14 +67,16 @@ public class System {
 	@JTranscMethodBody(target = "dart", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
 		boolean overlapping = (src == dest && destPos > srcPos);
-		if (src instanceof boolean[]) arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length, overlapping);
+		if (src instanceof boolean[])
+			arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length, overlapping);
 		else if (src instanceof byte[]) arraycopy((byte[]) src, srcPos, (byte[]) dest, destPos, length, overlapping);
 		else if (src instanceof char[]) arraycopy((char[]) src, srcPos, (char[]) dest, destPos, length, overlapping);
 		else if (src instanceof short[]) arraycopy((short[]) src, srcPos, (short[]) dest, destPos, length, overlapping);
 		else if (src instanceof int[]) arraycopy((int[]) src, srcPos, (int[]) dest, destPos, length, overlapping);
 		else if (src instanceof long[]) arraycopy((long[]) src, srcPos, (long[]) dest, destPos, length, overlapping);
 		else if (src instanceof float[]) arraycopy((float[]) src, srcPos, (float[]) dest, destPos, length, overlapping);
-		else if (src instanceof double[]) arraycopy((double[]) src, srcPos, (double[]) dest, destPos, length, overlapping);
+		else if (src instanceof double[])
+			arraycopy((double[]) src, srcPos, (double[]) dest, destPos, length, overlapping);
 		else arraycopy((Object[]) src, srcPos, (Object[]) dest, destPos, length, overlapping);
 	}
 
@@ -253,7 +255,7 @@ public class System {
 	@JTranscMethodBody(target = "as3", value = "return N.str(null);")
 	@JTranscMethodBody(target = "dart", value = "return N.str(Platform.environment[N.istr(p0)]);")
 	public static String getenv(String name) {
-		return null;
+		return getenv().get(name);
 	}
 
 	@HaxeMethodBody(target = "sys", value = "return N.hashMap(Sys.environment());")
@@ -263,26 +265,21 @@ public class System {
 		return new HashMap<>();
 	}
 
-	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")
-	@HaxeMethodBody(target = "js", value = "untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
-	@HaxeMethodBody("throw 'EXIT!';")
-	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
-	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
-	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
-	@JTranscMethodBody(target = "dart", value = "exit(p0);")
-	native public static void exit(int status);
+	public static void exit(int status) {
+		Runtime.getRuntime().exit(status);
+	}
 
 	public static void gc() {
-
+		Runtime.getRuntime().gc();
 	}
 
 	public static void runFinalization() {
-
+		Runtime.getRuntime().runFinalization();
 	}
 
 	@Deprecated
 	public static void runFinalizersOnExit(boolean value) {
-
+		Runtime.runFinalizersOnExit(value);
 	}
 
 	public static void load(String filename) {
@@ -290,6 +287,7 @@ public class System {
 	}
 
 	public static void loadLibrary(String libname) {
+		Runtime.getRuntime().loadLibrary(libname);
 	}
 
 	public static String mapLibraryName(String libname) {

@@ -7,7 +7,6 @@ import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyList;
-import com.jtransc.lang.Int64;
 
 @HaxeAddMembers({"" +
 	"static public function _log(p0:Dynamic) {\n" +
@@ -117,12 +116,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
 	})
 	static public void log(long v) {
-		if (JTranscSystem.isEmulatedLong()) {
-			Int64 internal = Int64.getInternal(v);
-			logLong(internal.high, internal.low);
-		} else {
-			logLong((int) (v >> 32), (int) (v >> 0));
-		}
+		logLong((int) (v >> 32), (int) (v >> 0));
 	}
 
 	static public void logLong(int high, int low) {

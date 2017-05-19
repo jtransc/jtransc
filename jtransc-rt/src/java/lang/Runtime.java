@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +26,12 @@ import java.io.OutputStream;
 import java.util.StringTokenizer;
 
 public class Runtime {
-	private static Runtime current = new Runtime();
+	private static Runtime current;
 
 	public static Runtime getRuntime() {
+		if (current == null) {
+			current = new Runtime();
+		}
 		return current;
 	}
 
@@ -35,16 +39,21 @@ public class Runtime {
 	private Runtime() {
 	}
 
-	public void exit(int status) {
-		System.exit(status);
-	}
+	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")
+	@HaxeMethodBody(target = "js", value = "untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
+	@HaxeMethodBody("throw 'EXIT!';")
+	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
+	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
+	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
+	@JTranscMethodBody(target = "dart", value = "exit(p0);")
+	native public void exit(int status);
 
 	native public void addShutdownHook(Thread hook);
 
 	native public boolean removeShutdownHook(Thread hook);
 
 	public void halt(int status) {
-		System.exit(status);
+		exit(status);
 	}
 
 	@Deprecated
@@ -82,18 +91,22 @@ public class Runtime {
 		return 1;
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return GC_get_free_bytes();")
 	public long freeMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
 	public long totalMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
 	public long maxMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return GC_gcollect();")
 	public void gc() {
 	}
 

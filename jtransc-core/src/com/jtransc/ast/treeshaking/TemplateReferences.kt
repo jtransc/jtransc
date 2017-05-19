@@ -27,9 +27,7 @@ fun _GetTemplateReferences(program: AstProgram, templateStr: String, currentClas
 		extraTags = listOf(
 			Minitemplate.Tag(
 				":programref:", setOf(), null,
-				aliases = listOf(
-					"SINIT", "CONSTRUCTOR", "SMETHOD", "METHOD", "SFIELD", "FIELD", "CLASS"
-				)
+				aliases = CommonTagHandler.ALIASES
 			) {
 				val tag = it.first().token.name
 				val desc = it.first().token.content

@@ -3,6 +3,7 @@ package com.jtransc.gen.cpp
 import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
+import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.annotation.JTranscAddMembersList
@@ -22,6 +23,7 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.text.uquote
+import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.LocalVfsEnsureDirs
 import com.jtransc.vfs.SyncVfsFile
@@ -74,6 +76,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	val ENABLE_TYPING = false
 
 	override val SINGLE_FILE: Boolean = true
+	override val GENERATE_LINE_NUMBERS = false
 
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
@@ -131,9 +134,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		val names = listOf("a.exe", "a", "a.out")
+		val cmakeFolder = if (debugVersion) "Debug" else "Release"
+		val cmakeNames = listOf("$cmakeFolder/program.exe")
+		val unixNames = listOf("a.exe", "a", "a.out")
+		val names = if (JTranscSystem.isWindows()) cmakeNames else unixNames
+
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(outFile.realpathOS)
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true))
 		return ProcessResult2(result)
 	}
 
@@ -360,6 +367,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	fun writeMain(): Indenter = Indenter.gen {
 		line("int main(int argc, char *argv[])") {
+			line("GC_INIT();") // http://www.hboehm.info/gc/simple_example.html
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
@@ -911,10 +919,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		//line("}")
 	}
 
-	override fun genStmLine(stm: AstStm.LINE) = indent {
-		mark(stm)
-	}
-
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
 		val values = stm.values.map { it.genExpr() }
 		line("") {
@@ -935,7 +939,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 //	}
 //}
 
-	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = if (static) "::$name" else "->$name"
+	override fun access(name: String, static: Boolean, field: Boolean): String = if (static) "::$name" else "->$name"
 
 	override val NullType = "p_java_lang_Object"
 	override val VoidType = "void"

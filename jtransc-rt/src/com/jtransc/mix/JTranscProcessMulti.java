@@ -94,7 +94,7 @@ public class JTranscProcessMulti extends JTranscProcess {
 
 
 	@JTranscMethodBody(target = "d", value = {
-		"this.pipes = pipeShell(escapeShellCommand(N.istrArray2(this.{% FIELD #CLASS:cmds %})));"
+		"this.pipes = pipeShell(escapeShellCommand(N.istrArray2(this{% IFIELD #CLASS:cmds %})));"
 	})
 	private void genPipes() {
 
@@ -138,14 +138,14 @@ public class JTranscProcessMulti extends JTranscProcess {
 
 	@Override
 	@HaxeMethodBody(target = "sys", value = "return this.process.exitCode();")
-	//@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:exitCode %};")
+	//@HaxeMethodBody("return this{% IFIELD com.jtransc.io.JTranscProcess:exitCode %};")
 	@JTranscMethodBody(target = "d", value = "return std.process.wait(this.pipes.pid);")
 	public int exitValue() {
 		return this.exitCode;
 	}
 
 	@HaxeMethodBody(target = "sys", value = "return this.process.getPid();")
-	//@HaxeMethodBody("return this.{% FIELD com.jtransc.io.JTranscProcess:pid %};")
+	//@HaxeMethodBody("return this{% IFIELD com.jtransc.io.JTranscProcess:pid %};")
 	@JTranscMethodBody(target = "d", value = "return this.pipes.pid.processID;")
 	public int pid() {
 		return this.pid;

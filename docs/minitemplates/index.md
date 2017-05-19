@@ -72,9 +72,9 @@ static public function init() {
 private function mouseInfo() return {% SFIELD com.jtransc.media.JTranscInput:mouseInfo %};
 
 override public function onMouseUp(window:Window, x:Float, y:Float, button:Int):Void {
-	mouseInfo().{% METHOD com.jtransc.media.JTranscInput$MouseInfo:setScreenXY %}(Std.int(x), Std.int(y));
-	mouseInfo().{% FIELD com.jtransc.media.JTranscInput$MouseInfo:buttons %} &= ~(1 << button);
-	inputImpl().{% METHOD com.jtransc.media.JTranscInput$Handler:onMouseUp %}(mouseInfo());
+	mouseInfo(){% IMETHOD com.jtransc.media.JTranscInput$MouseInfo:setScreenXY %}(Std.int(x), Std.int(y));
+	mouseInfo(){% IFIELD com.jtransc.media.JTranscInput$MouseInfo:buttons %} &= ~(1 << button);
+	inputImpl(){% IMETHOD com.jtransc.media.JTranscInput$Handler:onMouseUp %}(mouseInfo());
 }
 {% endraw %}</pre>
 

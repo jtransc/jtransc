@@ -4,6 +4,19 @@ import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 
 open class AstVisitor {
+	open fun visit(clazz: AstClass) {
+		for (field in clazz.fields) visit(field)
+		for (method in clazz.methods) visit(method)
+	}
+
+	open fun visit(field: AstField) {
+	}
+
+	open fun visit(method: AstMethod) {
+		val body = method.body
+		if (body != null) visit(body)
+	}
+
 	open fun visit(body: AstBody) {
 		visit(body.stm)
 	}

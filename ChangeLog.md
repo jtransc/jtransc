@@ -29,6 +29,10 @@
 - Rework on Haxe arrays and casts specially in C++ for a major performance boost
 - Implemented Haxe-C++ goto hack for even better performance on loops
 
+### Deprecations
+- Array casts are now deprecated and removed, because that requirement was slowing down some implementations. In the future we will explore other options. For now, please use Mem/FastMemory* classes.
+- Deprecated {% FIELD %} and {% METHOD %} (replaces to `NAME`) in favour of {% IFIELD %} and {% IMETHOD %} (replaces to `.NAME` or `['NAME']` in JS just when required and works with minification)
+
 ## 0.5.16
 
 ...
