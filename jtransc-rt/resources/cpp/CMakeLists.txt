@@ -11,4 +11,8 @@ add_definitions(-DGC_NOT_DLL=1)
 
 add_executable(program program.cpp)
 
+#add_compile_options(-std=c++11)
+
+set (CMAKE_CXX_STANDARD 11)
+
 target_link_libraries(program gc-lib)

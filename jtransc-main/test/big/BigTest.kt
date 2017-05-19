@@ -95,7 +95,7 @@ object BigTest {
 		// Java8 tests
 		//JTranscClinitNotStatic.main(args)
 		//DefaultMethodsTest.main(args)
-		//Java8Test.main(args)
+		Java8Test.main(args)
 
 		// Misc
 		Base64Test.main(args);

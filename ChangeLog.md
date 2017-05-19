@@ -1,13 +1,14 @@
 # CHANGELOG
 
-## 0.6.0 (WIP)
+## 0.6.0
 
 ### New features
-- @Intrigus: C++ target with GC
+- @Intrigus: C++ target with GC continuing the work on @dsp-omen that created the initial c++ target
 - AS3 target (BigTest passes)
 - Dart target (BigTest passes)
 - Prevent generating runtime invisible annotations
 - Added com.jtransc.io.async package to handle asynchronous I/O
+- Improved com.jtransc.js.JsDynamic
 
 ### Changes
 - Some refactorings at CommonGenerator
@@ -16,6 +17,7 @@
 ### Fixes
 - @SergeyLabutin - Static initialization fixes
 - @SergeyLabutin - Some thread work on Haxe/CPP
+- Handle template references inside `@JTranscCallSiteBody`
 
 ### Implemented features
 - @SergeyLabutin - Implemented Class.getGenericSuperclass
