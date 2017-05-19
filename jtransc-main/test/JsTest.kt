@@ -125,6 +125,9 @@ class JsTest : _Base() {
 		1234567
 		1
 		hello
+		777
+		999
+		21
 		Timeout!
 	""", minimize = false, treeShaking = true)
 
