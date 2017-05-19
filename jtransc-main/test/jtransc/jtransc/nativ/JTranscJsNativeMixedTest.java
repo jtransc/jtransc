@@ -2,6 +2,7 @@ package jtransc.jtransc.nativ;
 
 import com.jtransc.annotation.JTranscCallSiteBody;
 import com.jtransc.annotation.JTranscLiteralParam;
+import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.JTranscUnboxParam;
 import com.jtransc.target.Js;
 import com.jtransc.target.js.JsDynamic;
@@ -31,6 +32,28 @@ public class JTranscJsNativeMixedTest {
 		System.out.println(res);
 		System.out.println(JsDynamic.global("Math").call("max", -4, -3).toInt() == -3);
 		System.out.println(JsDynamic.global().get("Date").newInstance(1234567).call("getTime").toInt());
+
+		Global.global.console.log(1);
+		Global.global.console.log("hello");
+	}
+
+	@JTranscNativeName("global")
+	public abstract static class JsGlobal {
+		public Console console;
+		public String name;
+
+		//public native void alert(String s);
+		//public native void alert(int s);
+	}
+
+	@JTranscNativeName("global")
+	public static class Global {
+		public static JsGlobal global;
+	}
+
+	@JTranscNativeName("Console")
+	public abstract static class Console {
+		native public void log(@JTranscUnboxParam  Object a);
 	}
 
 	@JTranscCallSiteBody(target = "js", value = "global[#'0]")

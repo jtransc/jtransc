@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscRegisterCommandList
 import com.jtransc.annotation.JTranscRunCommand
 import com.jtransc.annotation.JTranscRunCommandList
 import com.jtransc.ast.AstProgram
+import com.jtransc.ast.getTypedList
 import com.jtransc.io.ProcessUtils
 import com.jtransc.log.log
 import com.jtransc.vfs.ExecOptions

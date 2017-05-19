@@ -92,7 +92,7 @@ class JsTest : _Base() {
 		))
 	})
 
-	@Test fun customRun() = testNativeClass<JTranscJsNativeMixedTest>("""
+	@Test fun nativeJsTest() = testNativeClass<JTranscJsNativeMixedTest>("""
 		17
 		-333
 		Services:
@@ -123,6 +123,8 @@ class JsTest : _Base() {
 		0
 		true
 		1234567
+		1
+		hello
 		Timeout!
 	""", minimize = false, treeShaking = true)
 

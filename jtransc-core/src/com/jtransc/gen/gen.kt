@@ -21,12 +21,12 @@ import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.ast.AstProgram
 import com.jtransc.ast.AstProgramFeature
 import com.jtransc.ast.ConfigCompile
+import com.jtransc.ast.getTypedList
 import com.jtransc.gen.common.CommonGenerator
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
-import com.jtransc.vfs.ProcessResult
 
 data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: String, val ext: String = sub) {
 	val fullName: String get() = "${descriptor.name}:$sub"
@@ -39,7 +39,7 @@ data class TargetName(val name: String) {
 	val secondary = parts.getOrElse(1) { "" }
 
 	companion object {
-		fun matches(target:String, pattern: String): Boolean {
+		fun matches(target: String, pattern: String): Boolean {
 			if (pattern == "") return true
 			if (pattern == "all") return true
 			return pattern == target
@@ -74,7 +74,7 @@ abstract class GenTargetDescriptor {
 
 	open val buildTargets = listOf<TargetBuildTarget>()
 
-	open val outputFile:String get() = "program.$sourceExtension"
+	open val outputFile: String get() = "program.$sourceExtension"
 
 	fun build(injector: Injector): JTranscBuild.Result {
 		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput

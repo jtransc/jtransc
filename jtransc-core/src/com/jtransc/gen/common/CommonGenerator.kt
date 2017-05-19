@@ -511,25 +511,43 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			return N_unboxRaw(processed)
 		}
 
+		fun processArg2(param: AstArgumentCallWithAnnotations): String {
+			val arg = param.exprBox
+			if (param.annotationList.contains<JTranscUnboxParam>()) {
+				val lit = (arg.value as? AstExpr.LITERAL)
+				return if (lit != null) {
+					when (lit.value) {
+						is String -> quoteString(lit.value)
+						else -> unbox(arg)
+					}
+				} else {
+					unbox(arg)
+				}
+			}
+			return processArg(param.exprBox, param.arg.type)
+		}
+
+		val pparams = refMethod.getParamsWithAnnotationsBox(args)
+
 		if (callsiteBody != null) {
-			val args2 = args.withIndex().map { arginfo ->
-				val index = arginfo.index
-				val arg = arginfo.value
+			val args2 = pparams.map { arginfo ->
+				val index = arginfo.arg.index
+				val arg = arginfo.exprBox
 				val paramAnnotations = refMethod.parameterAnnotationsList[index]
 				if (paramAnnotations.contains<JTranscLiteralParam>()) {
 					val lit = (arg.value as? AstExpr.LITERAL) ?: invalidOp("Used @JTranscLiteralParam without a literal: ${processArg(arg)} in $context")
 					lit.value.toString().template("JTranscLiteralParam")
 				} else if (paramAnnotations.contains<JTranscUnboxParam>()) {
-					val lit = (arg.value as? AstExpr.LITERAL)
-					if (lit != null) {
-						when (lit.value) {
-							is String -> quoteString(lit.value)
-							else -> unbox(arg)
-						}
-					} else {
-						unbox(arg)
+				val lit = (arg.value as? AstExpr.LITERAL)
+				if (lit != null) {
+					when (lit.value) {
+						is String -> quoteString(lit.value)
+						else -> unbox(arg)
 					}
 				} else {
+					unbox(arg)
+				}
+			} else {
 					processArg(arg)
 				}
 			}
@@ -552,7 +570,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			}.template("JTranscCallSiteBody")
 			return out
 		} else {
-			val processedArgs = method.type.argTypes.zip(args).map { processArg(it.second, it.first) }
+			val processedArgs = pparams.map { processArg2(it) }
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
 				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs, nonNativeCall)

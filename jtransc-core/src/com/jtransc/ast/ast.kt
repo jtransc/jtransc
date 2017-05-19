@@ -685,6 +685,11 @@ class AstField(
 	override fun toString() = "AstField(" + ref.toString() + ")"
 }
 
+data class AstArgumentWithAnnotations(val arg: AstArgument, val annotationList: AstAnnotationList)
+
+data class AstArgumentCallWithAnnotations(val arg: AstArgument, val annotationList: AstAnnotationList?, val expr: AstExpr) {
+	val exprBox = expr.box
+}
 
 class AstMethod(
 	containingClass: AstClass,
@@ -704,6 +709,10 @@ class AstMethod(
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
+
+	fun getParamsWithAnnotations() = methodType.args.map { AstArgumentWithAnnotations(it, parameterAnnotationsList[it.index]) }
+	fun getParamsWithAnnotations(args: List<AstExpr>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList[it.first.index], it.second) }
+	fun getParamsWithAnnotationsBox(args: List<AstExpr.Box>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList.getOrNull(it.first.index), it.second.value) }
 
 	init {
 		if (id < 0) {

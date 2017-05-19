@@ -107,18 +107,20 @@ fun AstAnnotation.getRefTypesFqName(): List<FqName> {
 class AstAnnotationList(val containerRef: AstRef, val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
 	val listRuntime by lazy { list.filter { it.runtimeVisible } }
-
-	inline fun <reified TItem : Any, reified TList : Any> getTypedList(field: KProperty1<TList, Array<TItem>>): List<TItem> {
-		val single = this.getTyped<TItem>()
-		val list = this.getTyped<TList>()
-		return listOf(single).filterNotNull() + (if (list != null) field.get(list).toList() else listOf())
-	}
-
-	inline fun <reified T : Any> getTyped(): T? = byClassName[T::class.java.name]?.firstOrNull()?.toObject<T>()
-	inline fun <reified T : Any> getAllTyped(): List<T> = byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf()
-	operator fun get(name: FqName): AstAnnotation? = byClassName[name.fqname]?.firstOrNull()
-	inline fun <reified T : Any> contains(): Boolean = T::class.java.name in byClassName
 }
+
+inline fun <reified TItem : Any, reified TList : Any> AstAnnotationList?.getTypedList(field: KProperty1<TList, Array<TItem>>): List<TItem> {
+	if (this == null) return listOf()
+	val single = this.getTyped<TItem>()
+	val list = this.getTyped<TList>()
+	return listOf(single).filterNotNull() + (if (list != null) field.get(list).toList() else listOf())
+}
+
+inline fun <reified T : Any> AstAnnotationList?.getTyped(): T? = if (this != null) byClassName[T::class.java.name]?.firstOrNull()?.toObject<T>() else null
+inline fun <reified T : Any> AstAnnotationList?.getAllTyped(): List<T> = if (this != null) byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf() else listOf()
+operator fun AstAnnotationList?.get(name: FqName): AstAnnotation? = if (this != null) byClassName[name.fqname]?.firstOrNull() else null
+
+inline fun <reified T : Any> AstAnnotationList?.contains(): Boolean = if (this != null) T::class.java.name in byClassName else false
 
 class NativeBody(val lines: List<String>, val cond: String = "") {
 	val value = lines.joinToString("\n")
