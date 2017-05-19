@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
+import jtransc.jtransc.SimdTest
+import org.junit.Ignore
 import org.junit.Test
 
 class CppTest : _Base() {
@@ -26,6 +29,12 @@ class CppTest : _Base() {
 
 	//@Ignore("Ignored until stabilized C++ target to avoid problems with travis")
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
+
+	@Ignore
+	@Test fun testSimdTest() = testClass<SimdTest>(minimize = false, log = true, treeShaking = true, debug = false)
+
+	@Ignore("Must implement UndeterministicParameterEvaluationFeature to pass parameter evaluation order tests")
+	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = false)
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:

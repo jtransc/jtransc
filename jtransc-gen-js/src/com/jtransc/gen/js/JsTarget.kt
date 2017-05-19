@@ -253,10 +253,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_d2f(str: String) = "Math.fround(+($str))"
 	override fun N_d2i(str: String) = "(($str)|0)"
 	override fun N_d2d(str: String) = "+($str)"
-	override fun N_j2i(str: String) = "N.l2i($str)"
+	override fun N_j2i(str: String) = "N.j2i($str)"
 	override fun N_j2j(str: String) = str
-	override fun N_j2f(str: String) = "Math.fround(N.l2d($str))"
-	override fun N_j2d(str: String) = "N.l2d($str)"
+	override fun N_j2f(str: String) = "Math.fround(N.j2d($str))"
+	override fun N_j2d(str: String) = "N.j2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 	override fun N_lneg(str: String) = "N.lneg($str)"

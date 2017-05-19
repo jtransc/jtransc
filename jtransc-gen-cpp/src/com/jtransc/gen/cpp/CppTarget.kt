@@ -8,10 +8,7 @@ import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.ast.*
-import com.jtransc.ast.feature.method.GotosFeature
-import com.jtransc.ast.feature.method.OptimizeFeature
-import com.jtransc.ast.feature.method.SimdFeature
-import com.jtransc.ast.feature.method.SwitchFeature
+import com.jtransc.ast.feature.method.*
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
@@ -78,8 +75,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 	override val GENERATE_LINE_NUMBERS = false
 
-	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
-	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
+	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
+	override val methodFeatures = methodFeaturesWithTraps + setOf(GotosFeature::class.java)
 	override val keywords = setOf(
 		"alignas", "alignof", "and", "and_eq", "asm", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto",
 		"bitand", "bitor", "bool", "break",
@@ -140,7 +137,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val names = if (JTranscSystem.isWindows()) cmakeNames else unixNames
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true))
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = false))
 		return ProcessResult2(result)
 	}
 
@@ -814,8 +811,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_idiv(l: String, r: String) = N_func("idiv", "$l, $r")
 	override fun N_irem(l: String, r: String) = N_func("irem", "$l, $r")
+	override fun N_ishl(l: String, r: String) = N_func("ishl", "$l, $r")
+	override fun N_ishr(l: String, r: String) = N_func("ishr", "$l, $r")
 	override fun N_iushr(l: String, r: String) = N_func("iushr", "$l, $r")
-	override fun N_frem(l: String, r: String) = "::fmod($l, $r)"
+	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 
 	override fun N_ladd(l: String, r: String) = "(($l) + ($r))"
@@ -823,9 +822,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_lmul(l: String, r: String) = "(($l) * ($r))"
 	override fun N_ldiv(l: String, r: String) = "N::ldiv($l, $r)"
 	override fun N_lrem(l: String, r: String) = "N::lrem($l, $r)"
-	override fun N_lshl(l: String, r: String) = "(($l) << ($r))"
-	override fun N_lshr(l: String, r: String) = "(($l) >> ($r))"
-	override fun N_lushr(l: String, r: String) = "(int64_t)((uint64_t)($l) >> ($r))"
+	override fun N_lshl(l: String, r: String) = N_func("lshl", "$l, $r")
+	override fun N_lshr(l: String, r: String) = N_func("lshr", "$l, $r")
+	override fun N_lushr(l: String, r: String) = N_func("lushr", "$l, $r")
 	override fun N_lor(l: String, r: String) = "(($l) | ($r))"
 	override fun N_lxor(l: String, r: String) = "(($l) ^ ($r))"
 	override fun N_land(l: String, r: String) = "(($l) & ($r))"
@@ -837,7 +836,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("$left = (${field.type.targetNameRef})($right);")
 	}
 
-	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter = Indenter.gen {
+	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter = Indenter {
 		line(if (context.method.methodVoidReturnThis) "return " + genExprThis() + ";" else "return;")
 	}
 
@@ -971,7 +970,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val DoubleNegativeInfinityString = "-INFINITY"
 	override val DoublePositiveInfinityString = "INFINITY"
-	override val DoubleNanString = "NAN"
+	override val DoubleNanString = "N::NAN_DOUBLE"
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")

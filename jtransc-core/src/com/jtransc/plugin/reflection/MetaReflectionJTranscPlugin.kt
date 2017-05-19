@@ -1,7 +1,6 @@
 package com.jtransc.plugin.reflection
 
 import com.jtransc.annotation.JTranscInvisibleExternal
-import com.jtransc.annotation.JTranscNativeClass
 import com.jtransc.annotation.haxe.HaxeRemoveField
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
@@ -17,16 +16,12 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override val priority: Int = Int.MAX_VALUE
 
 	fun AstClass.mustReflect(invisibleExternalSet: Set<String> = setOf()): Boolean {
-		return this.visible && (this.fqname !in invisibleExternalSet) && !this.annotationsList.contains<JTranscNativeClass>()
+		return this.visible && (this.fqname !in invisibleExternalSet) && (this.annotationsList.getNativeNameForTarget(targetName) == null)
 	}
 
-	fun AstMethod.mustReflect(): Boolean {
-		return this.visible
-	}
+	fun AstMethod.mustReflect(): Boolean = this.visible
 
-	fun AstField.mustReflect(): Boolean {
-		return this.visible && !this.annotationsList.contains<HaxeRemoveField>()
-	}
+	fun AstField.mustReflect(): Boolean = this.visible && !this.annotationsList.contains<HaxeRemoveField>()
 
 	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!

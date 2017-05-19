@@ -744,9 +744,9 @@ N.lushr = function(a, b) { return Int64.ushr(a, b); }
 N.lneg  = function(a) { return Int64.neg(a); }
 N.linv  = function(a) { return Int64.not(a); }
 
-N.l2i   = function(v) { return Int64.toInt(v); }
-N.l2f   = function(v) { return Int64.toFloat(v); }
-N.l2d   = function(v) { return Int64.toFloat(v); }
+N.j2i   = function(v) { return Int64.toInt(v); }
+N.j2f   = function(v) { return Int64.toFloat(v); }
+N.j2d   = function(v) { return Int64.toFloat(v); }
 
 N.cmp  = function(a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 N.cmpl = function(a, b) { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }

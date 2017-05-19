@@ -70,6 +70,7 @@ abstract class GenTargetDescriptor {
 	abstract fun getGenerator(injector: Injector): CommonGenerator
 	open fun getTargetByExtension(ext: String): String? = null
 	abstract val runningAvailable: Boolean
+	val targetName by lazy { TargetName(name) }
 
 	open val buildTargets = listOf<TargetBuildTarget>()
 

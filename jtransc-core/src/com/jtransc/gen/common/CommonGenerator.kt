@@ -59,7 +59,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
 	val program: AstProgram = injector.get()
-	val sortedClasses by lazy { program.classes.filter { !it.isNative }.sortedByExtending() }
+	val sortedClasses by lazy { program.classes.filter { it.mustGenerate }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
 	open val methodFeatures: Set<Class<out AstMethodFeature>> = setOf()
 	open val methodFeaturesWithTraps: Set<Class<out AstMethodFeature>> get() = methodFeatures
@@ -221,13 +221,17 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			//	MemberTypes.ALL, MemberTypes.INSTANCE -> FqName(clazz.name.targetName)
 			//	MemberTypes.STATIC -> FqName(clazz.name.targetNameForStatic)
 			//},
-			Indenter.gen {
+			Indenter {
+				val nativeName = clazz.nativeName
+				if (nativeName != null) line(singleLineComment("Native $nativeName"))
 				line(genClassDecl(clazz, type)) {
 					line(genClassBody(clazz, type))
 				}
 			}
 		)
 	}
+
+	open fun singleLineComment(text: String) = Indenter("// $text")
 
 	enum class MemberTypes(val isStatic: Boolean) {
 		ALL(false), INSTANCE(false), STATIC(true);
@@ -287,9 +291,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			setOf()
 		}
 
+		val nativeClass = clazz.isNative
 		for (m in clazz.methods) {
 			if (!kind.check(m)) continue
 			if (m.ref.withoutClass in methodsWithoutClassToIgnore) continue
+			//if (nativeClass && !m.annotationsList.nonNativeCall) continue
 
 			val mustPutBody = !clazz.isInterface || m.isStatic
 			line(genMethod(clazz, m, mustPutBody))
@@ -474,6 +480,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			mutableBody.initClassRef(clazz, "CALL_STATIC")
 		}
 		val isNativeCall = refMethodClass.isNative
+		//val nonNativeCall = if (isNativeCall) refMethod.annotationsList.nonNativeCall else false
+		val nonNativeCall = false
 
 		fun processArg(arg: AstExpr.Box, targetType: AstType) = processCallArg(arg.value, if (isNativeCall) convertToTarget(arg) else arg.genExpr(), targetType)
 		fun processArg(arg: AstExpr.Box) = processArg(arg, arg.type)
@@ -547,7 +555,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val processedArgs = method.type.argTypes.zip(args).map { processArg(it.second, it.first) }
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
-				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs, nonNativeCall)
 				is AstExpr.CALL_SUPER -> genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
 				is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
 				else -> invalidOp("Unexpected")
@@ -564,7 +572,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "super$methodAccess(${args.joinToString(", ")})"
 	}
 
-	open fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+	fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, nonNativeCall: Boolean): String {
+		if (nonNativeCall) {
+		}
 		return "${clazz.targetName}$methodAccess(${args.joinToString(", ")})"
 	}
 
@@ -720,13 +730,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			if (method.isClassOrInstanceInit) mutableBody.initClassRef(context.clazz.ref, "self")
 
 			for ((clazzRef, reasons) in mutableBody.referencedClasses) {
-				if (program[clazzRef.name].isNative) continue
+				if (!program[clazzRef.name].mustGenerate) continue
 				if (!method.isClassOrInstanceInit && (context.clazz.ref == clazzRef)) continue // Calling internal methods (which should be initialized already!)
 				line(genBodyStaticInitPrefix(clazzRef, reasons))
 			}
 			line(bodyContent)
 		}
 	}
+
+	val AstClass.nativeName get() = this.nativeNameForTarget(this@CommonGenerator.targetName)
 
 	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
 		val newClazz = program[stm.target.name]
@@ -1429,10 +1441,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_d2i(str: String) = "(($str)|0)"
 	open protected fun N_f2j(str: String) = N_func("f2j", str)
 	open protected fun N_d2j(str: String) = N_func("d2j", str)
-	open protected fun N_j2i(str: String) = N_func("l2i", "$str")
+	open protected fun N_j2i(str: String) = N_func("j2i", "$str")
 	open protected fun N_j2j(str: String) = "($str)"
-	open protected fun N_j2f(str: String) = N_func("l2f", "$str")
-	open protected fun N_j2d(str: String) = N_func("l2d", "$str")
+	open protected fun N_j2f(str: String) = N_func("j2f", "$str")
+	open protected fun N_j2d(str: String) = N_func("j2d", "$str")
 	open protected fun N_getFunction(str: String) = N_func("getFunction", "$str")
 	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 	open protected fun N_lneg(str: String) = "-($str)"
@@ -1841,6 +1853,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 // Type names
 //////////////////////////////////////////////////
 
+	enum class TypeType {
+		NORMAL, REF, STATIC_CALL
+	}
+
 	val AstType.targetName: String get() = getTypeTargetName(this, ref = false)
 	open val AstType.targetNameRef: String get() = getTypeTargetName(this, ref = true)
 	//open val AstType.targetNameRefBounds: String get() = getTypeTargetName(this, ref = true)
@@ -1865,10 +1881,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstType.LONG -> LongType
 			is AstType.REF -> {
 				val clazz = program[type.name]
-				if (clazz.nativeName != null) {
-					imports += FqName(clazz.nativeName!!)
-				}
-				clazz.nativeName ?: if (ref) type.name.targetNameRef else type.name.targetName
+				val nativeName = clazz.nativeName
+				if (nativeName != null) imports += FqName(clazz.nativeName!!)
+				nativeName ?: if (ref) type.name.targetNameRef else type.name.targetName
 			}
 			is AstType.ARRAY -> when (type.element) {
 				is AstType.BOOL -> if (ref) BoolArrayTypeRef else BoolArrayType
@@ -1910,6 +1925,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				imports += FqName(clazz.nativeName!!)
 				clazz.nativeName!!
 			}
+			else -> this.targetNameForStaticNonNative
+		}
+	}
+	open val FqName.targetNameForStaticNonNative: String get() {
+		val clazz = program[this]
+		return when {
 			(!clazz.isInterface || interfacesSupportStaticMembers) -> this.targetName
 			else -> this.targetName + "_IFields"
 		}
@@ -1933,7 +1954,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 		return if (realclass.isNative) {
 			// No cache
-			realmethod.nativeName ?: method.name
+			realmethod.nativeNameForTarget(this@CommonGenerator.targetName) ?: method.name
 		} else {
 			methodNames.getOrPut2(method.objectToCache) {
 				if (minimize && !realmethod.keepName) {
@@ -1996,7 +2017,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun getTargetMethodAccess(refMethod: AstMethod, static: Boolean): String = access(refMethod.targetName, static, field = false)
 	fun buildMethod(method: AstMethod, static: Boolean, includeDot: Boolean = false): String {
 		val clazzFqname = method.containingClass.name
-		val clazz = if (static) clazzFqname.targetNameForStatic else clazzFqname.targetName
+		//val nonNativeCall = method.annotationsList.nonNativeCall
+		val nonNativeCall = false
+		val clazz = when {
+			static && nonNativeCall -> clazzFqname.targetNameForStaticNonNative
+			static -> clazzFqname.targetNameForStatic
+			else -> clazzFqname.targetName
+		}
 		val name = method.targetName
 		return if (static) (clazz + access(name, static = true, field = false)) else if (includeDot) instanceAccess(name, field = false) else name
 	}
@@ -2030,7 +2057,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		//}
 
 		return if (realclass.isNative) {
-			realfield.nativeName ?: normalizedFieldName
+			realfield.nativeNameForTarget(this@CommonGenerator.targetName) ?: normalizedFieldName
 		} else {
 			fieldNames.getOrPut2(keyToUse) {
 				if (minimize && !realfield.keepName) {
@@ -2135,7 +2162,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun buildStaticInit(clazzName: FqName): String? = clazzName.targetName + access("SI", static = true, field = false) + "();"
 
-	open fun getClassesForStaticConstruction(): List<AstClass> = program.staticInitsSorted.map { program[it]!! }.filter { !it.isNative }
+	val AstClass?.isNative get() = this.isNativeForTarget(targetName)
+	//val AstClass.mustGenerate get() = !this.isNative || this.annotationsList.nonNativeCall
+	val AstClass.mustGenerate get() = !this.isNative
+
+	open fun getClassesForStaticConstruction(): List<AstClass> = program.staticInitsSorted.map { program[it]!! }.filter {
+		!it.isNative
+		//it.mustGenerate && !it.isNative
+	}
 
 	open fun genStaticConstructorsSortedLines(): List<String> {
 		return getClassesForStaticConstruction().map { "${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "();" }

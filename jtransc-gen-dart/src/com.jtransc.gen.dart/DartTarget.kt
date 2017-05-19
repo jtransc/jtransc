@@ -302,7 +302,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_j2i(str: String) = "N.j2i($str)"
 	override fun N_j2f(str: String) = "N.j2f($str)"
-	override fun N_j2d(str: String) = "N.j2f($str)"
+	override fun N_j2d(str: String) = "N.j2d($str)"
 
 	override fun N_ineg(str: String): String = "N.ineg($str)"
 	override fun N_iadd(l: String, r: String): String = "N.I($l + $r)"
@@ -351,11 +351,9 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_land(l: String, r: String): String = "($l&$r)"
 	override fun N_lor(l: String, r: String): String = "($l|$r)"
 	override fun N_lxor(l: String, r: String): String = "($l^$r)"
-	override fun N_lshl(l: String, r: String): String = "($l<<$r)"
-	override fun N_lshr(l: String, r: String): String = "($l>>$r)"
+	override fun N_lshl(l: String, r: String): String = "N.lshl($l, $r)"
+	override fun N_lshr(l: String, r: String): String = "N.lshr($l, $r)"
 	override fun N_lushr(l: String, r: String) = "N.lushr($l, $r)"
-
-
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"

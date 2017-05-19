@@ -5,7 +5,7 @@ import com.jtransc.annotation.*;
 /**
  * IMMUTABLE FLOAT32 x 4
  */
-//@JTranscNativeName(target = "dart", value = "Float32x4")
+@JTranscNativeName(target = "dart", value = "Float32x4")
 final public class Float32x4 {
 	static {
 		Simd.ref();
@@ -26,9 +26,7 @@ final public class Float32x4 {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+0, +0, +0, +0);"),
 	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "new Float32x4(0, 0, 0, 0)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(0, 0, 0, 0)")
 	static public Float32x4 create() {
 		return new Float32x4(0f, 0f, 0f, 0f);
 	}
@@ -36,9 +34,7 @@ final public class Float32x4 {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+p0, +p1, +p2, +p3);"),
 	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "new Float32x4(#0, #1, #2, #3)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(#0, #1, #2, #3)")
 	static public Float32x4 create(float x, float y, float z, float w) {
 		return new Float32x4(x, y, z, w);
 	}
@@ -46,9 +42,7 @@ final public class Float32x4 {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.add(p0, p1);"),
 	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0) + (#1))"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0) + (#1))")
 	static public Float32x4 add(Float32x4 l, Float32x4 r) {
 		return new Float32x4(l.x + r.x, l.y + r.y, l.z + r.z, l.w + r.w);
 	}
@@ -152,7 +146,8 @@ final public class Float32x4 {
 		R[3] = add(mul(xxxx(b3), a0), mul(yyyy(b3), a1), mul(zzzz(b3), a2), mul(wwww(b3), a3));
 	}
 
+	@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)")
 	static public String toString(Float32x4 v) {
-		return "Simd.Float32x4(" + getX(v) + ", " + getY(v) + ", " + getZ(v) + ", " + getW(v) + ")";
+		return Float32x4Utils.toStringInternal(v);
 	}
 }

@@ -50,11 +50,8 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 
 		val EMPTY = Indenter.gen { }
 
-		inline fun gen(init: Indenter.() -> Unit): Indenter {
-			val indenter = Indenter()
-			indenter.init()
-			return indenter
-		}
+		@Deprecated("", ReplaceWith("this(init)", "com.jtransc.text.Indenter.Companion"))
+		inline fun gen(init: Indenter.() -> Unit): Indenter = this(init)
 
 		inline operator fun invoke(init: Indenter.() -> Unit): Indenter {
 			val indenter = Indenter()

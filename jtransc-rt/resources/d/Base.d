@@ -214,10 +214,9 @@ class N {
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
 
-	static public int l2i(long v) { return cast(int)(v); }
-	static public double l2d(long v) { return cast(double)(v); }
+	static public int j2i(long v) { return cast(int)(v); }
+	static public double j2d(long v) { return cast(double)(v); }
 
-	static public long i2l(int v) { return v; }
 	static public long i2j(int v) { return v; }
 
 	static public long f2j(float v) { return cast(long)(v); }

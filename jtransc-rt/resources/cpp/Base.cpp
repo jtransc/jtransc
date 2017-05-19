@@ -109,6 +109,8 @@ struct Env {
 struct N { public:
 	static Env env;
 
+	static int64_t NAN_LONG;
+	static double NAN_DOUBLE;
 
 	static const int32_t MIN_INT32 = (int32_t)0x80000000;
 	static const int32_t MAX_INT32 = (int32_t)0x7FFFFFFF;
@@ -128,6 +130,8 @@ struct N { public:
 	static int cmp(double a, double b);
 	static int cmpl(double a, double b);
 	static int cmpg(double a, double b);
+	inline static int32_t ishl(int32_t a, int32_t b);
+	inline static int32_t ishr(int32_t a, int32_t b);
 	inline static int32_t iushr(int32_t a, int32_t b);
 	inline static int32_t idiv (int32_t a, int32_t b);
 	inline static int32_t irem (int32_t a, int32_t b);
@@ -144,10 +148,10 @@ struct N { public:
 	inline static int64_t lshr (int64_t a, int b);
 	inline static int64_t lushr(int64_t a, int b);
 	inline static int32_t z2i(int32_t v);
-	inline static float   l2f(int64_t v);
-	inline static double  l2d(int64_t v);
+	inline static float   j2f(int64_t v);
+	inline static double  j2d(int64_t v);
 	inline static int64_t i2j(int32_t v);
-	inline static int32_t l2i(int64_t v);
+	inline static int32_t j2i(int64_t v);
 	inline static int64_t f2j(float v);
 	inline static int64_t d2j(double v);
 	static void log(std::wstring str);
@@ -436,32 +440,28 @@ bool N::is(JAVA_OBJECT obj, int type) {
 	return false;
 };
 
-bool N::isArray(JAVA_OBJECT obj) {
-	return GET_OBJECT(JA_0, obj) != NULL;
-};
+bool N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != NULL; };
+bool N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != null) && (ptr->desc == desc); };
+bool N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
+int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
+int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
+int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1) : N::cmp(a, b); };
 
-bool N::isArray(JAVA_OBJECT obj, std::wstring desc) {
-	JA_0* ptr = GET_OBJECT(JA_0, obj);
-	return (ptr != null) && (ptr->desc == desc);
-};
+int64_t N::NAN_LONG = 0x7FF8000000000000L;
+double N::NAN_DOUBLE = *(double*)&(N::NAN_LONG);
 
-bool N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) {
-	throw error;
-};
+int FIXSHIFT(int r) {
+	if (r < 0) {
+		return (32 - ((-r) & 0x1F)) & 0x1F;
+	} else {
+		return r & 0x1F;
+	}
+}
 
-int N::cmp(double a, double b) {
-	return (a < b) ? (-1) : ((a > b) ? (+1) : 0);
-};
+int32_t N::ishl(int32_t a, int32_t b) { return (a << FIXSHIFT(b)); }
+int32_t N::ishr(int32_t a, int32_t b) { return (a >> FIXSHIFT(b)); }
+int32_t N::iushr(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> FIXSHIFT(b)); }
 
-int N::cmpl(double a, double b) {
-	return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b);
-};
-
-int N::cmpg(double a, double b) {
-	return (std::isnan(a) || std::isnan(b)) ? (+1) : N::cmp(a, b);
-};
-
-int32_t N::iushr(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> b); }
 int32_t N::idiv(int32_t a, int32_t b) {
 	if (a == 0) return 0;
 	if (b == 0) return 0; // CRASH
@@ -526,15 +526,26 @@ int64_t N::lrem (int64_t a, int64_t b) {
 int64_t N::land (int64_t a, int64_t b) { return a & b; }
 int64_t N::lor  (int64_t a, int64_t b) { return a | b; }
 int64_t N::lxor (int64_t a, int64_t b) { return a ^ b; }
-int64_t N::lshl (int64_t a, int b) { return a << b; }
-int64_t N::lshr (int64_t a, int b) { return a >> b; }
-int64_t N::lushr(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> b); }
+
+int LFIXSHIFT(int r) {
+	if (r < 0) {
+		return (64 - ((-r) & 0x3F)) & 0x3F;
+	} else {
+		return r & 0x3F;
+	}
+}
+
+int64_t N::lshl(int64_t a, int b) { return (a << LFIXSHIFT(b)); }
+int64_t N::lshr(int64_t a, int b) { return (a >> LFIXSHIFT(b)); }
+int64_t N::lushr(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> LFIXSHIFT(b)); }
 
 int32_t N::z2i(int32_t v) { return (v != 0) ? 1 : 0; }
-float   N::l2f(int64_t v) { return (float)v; }
-double  N::l2d(int64_t v) { return (double)v; }
 int64_t N::i2j(int32_t v) { return (int64_t)v; }
-int32_t N::l2i(int64_t v) { return (int32_t)v; }
+
+float   N::j2f(int64_t v) { return (float)v; }
+double  N::j2d(int64_t v) { return (double)v; }
+int32_t N::j2i(int64_t v) { return (int32_t)v; }
+
 int64_t N::f2j(float v) { return (int64_t)v; }
 int64_t N::d2j(double v) { return (int64_t)v; }
 

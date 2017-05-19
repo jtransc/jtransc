@@ -1,7 +1,5 @@
 package jtransc.jtransc;
 
-import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscNativeClass;
 import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -29,7 +27,7 @@ public class JTranscSystemTest {
 		intMap.get(0).flush();
 	}
 
-	@JTranscNativeClass("Simple.DynamicIntMap")
+	@JTranscNativeName("Simple.DynamicIntMap")
 	static public class IntMap<T> {
 		native public T get(int key);
 
@@ -48,9 +46,10 @@ public class JTranscSystemTest {
 		}
 	}
 
-	@JTranscNativeClass("Simple")
+	@JTranscNativeName("Simple")
 	static public class Simple {
 		native public void flush();
+
 		static public class Utils {
 			@HaxeMethodBody("return new Simple();")
 			native static public Simple create();

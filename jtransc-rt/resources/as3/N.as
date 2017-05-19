@@ -46,7 +46,7 @@ public class N {
 	static public function boxDouble(v: Number): {% CLASS java.lang.Double %} { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double;  %}(v); }
 
 	static public function z2i(v: Boolean): int { return v ? 1 : 0; }
-	static public function l2i(v: Int64): int { return v.low; }
+	static public function j2i(v: Int64): int { return v.low; }
 	static public function i2j(v: int): Int64 { return Int64.ofInt(v); }
 
 	static public function f2j(v: Number): Int64 { return Int64.ofFloat(v); }

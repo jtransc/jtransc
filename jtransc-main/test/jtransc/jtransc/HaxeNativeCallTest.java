@@ -1,6 +1,6 @@
 package jtransc.jtransc;
 
-import com.jtransc.annotation.JTranscNativeClass;
+import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 
-@HaxeAddMembers({"static public var mynativeField:Int = 123;" })
+@HaxeAddMembers({"static public var mynativeField:Int = 123;"})
 public class HaxeNativeCallTest {
 	static public void main(String[] args) {
 		byte[] bytes = new byte[]{1, 2, 3};
@@ -29,7 +29,7 @@ public class HaxeNativeCallTest {
 
 		System.out.println("FIELD:" + HaxeNativeCallTest.adler.get());
 
-		System.out.println("INPUT:" + HaxeAdler32.read(new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 })).get());
+		System.out.println("INPUT:" + HaxeAdler32.read(new ByteArrayInputStream(new byte[]{1, 2, 3, 4})).get());
 
 		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>"));
 		System.out.println(HaxeStringTools.htmlEscape("<hello>\"&\"</hello>", true));
@@ -38,7 +38,7 @@ public class HaxeNativeCallTest {
 
 	static private HaxeAdler32 adler;
 
-	@JTranscNativeClass("StringTools")
+	@JTranscNativeName("StringTools")
 	static private class HaxeStringTools {
 		native static String htmlEscape(String s);
 
@@ -50,7 +50,7 @@ public class HaxeNativeCallTest {
 		native static public HaxeAdler32 create();
 	}
 
-	@JTranscNativeClass("haxe.crypto.Adler32")
+	@JTranscNativeName("haxe.crypto.Adler32")
 	private static class HaxeAdler32 {
 		public HaxeAdler32() {
 		}

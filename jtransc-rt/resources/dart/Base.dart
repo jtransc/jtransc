@@ -66,6 +66,14 @@ class N {
 		}
 	}
 
+	static int LFIXSHIFT(int r) {
+		if (r < 0) {
+			return (64 - ((-r) & 0x3F)) & 0x3F;
+		} else {
+			return r & 0x3F;
+		}
+	}
+
 	static int ishl(int l, int r) { return I(l << FIXSHIFT(r)); }
 	static int ishr(int l, int r) { return I(l >> FIXSHIFT(r)); }
 	static int iushr(int l, int r) { return I((l & 0xffffffff) >> FIXSHIFT(r)); }
@@ -100,9 +108,9 @@ class N {
 	static Int64  lxor(Int64 l, Int64 r) { return (l ^ r); }
 	static Int64  lor (Int64 l, Int64 r) { return (l | r); }
 	static Int64  land(Int64 l, Int64 r) { return (l & r); }
-	static Int64  lshl(Int64 l, int r) { return (l << r); }
-	static Int64  lshr(Int64 l, int r) { return (l >> r); }
-	static Int64  lushr(Int64 l, int r) { return l.shiftRightUnsigned(r); }
+	static Int64  lshl(Int64 l, int r) { return (l << LFIXSHIFT(r)); }
+	static Int64  lshr(Int64 l, int r) { return (l >> LFIXSHIFT(r)); }
+	static Int64  lushr(Int64 l, int r) { return l.shiftRightUnsigned(LFIXSHIFT(r)); }
 	static int    lcmp(Int64 l, Int64 r) { return l.compareTo(r); }
 	static double j2f(Int64  v) { return v.toDouble(); }
 	static double j2d(Int64  v) { return v.toDouble(); }

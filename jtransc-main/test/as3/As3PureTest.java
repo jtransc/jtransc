@@ -2,7 +2,7 @@ package as3;
 
 import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscNativeClass;
+import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.io.JTranscConsole;
 
 public class As3PureTest {
@@ -17,7 +17,7 @@ public class As3PureTest {
 	}
 }
 
-@JTranscNativeClass("flash.system.System")
+@JTranscNativeName("flash.system.System")
 class FlashSystemSystem {
 	static public double freeMemory;
 
@@ -30,7 +30,7 @@ class FlashByteArrayUtils {
 	native static public FlashByteArray create();
 }
 
-@JTranscNativeClass("flash.utils.ByteArray")
+@JTranscNativeName("flash.utils.ByteArray")
 class FlashByteArray {
 	public FlashByteArray() {
 	}

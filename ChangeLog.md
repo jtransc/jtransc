@@ -11,6 +11,7 @@
 
 ### Changes
 - Some refactorings at CommonGenerator
+- `@JTranscNativeName` now supports a target field to have a class has different types on different targets
 
 ### Fixes
 - @SergeyLabutin - Static initialization fixes
@@ -32,6 +33,7 @@
 ### Deprecations
 - Array casts are now deprecated and removed, because that requirement was slowing down some implementations. In the future we will explore other options. For now, please use Mem/FastMemory* classes.
 - Deprecated {% FIELD %} and {% METHOD %} (replaces to `NAME`) in favour of {% IFIELD %} and {% IMETHOD %} (replaces to `.NAME` or `['NAME']` in JS just when required and works with minification)
+- Deprecated `@JTranscNativeClass` that was redundant due to `@JTranscNativeName`.
 
 ## 0.5.16
 

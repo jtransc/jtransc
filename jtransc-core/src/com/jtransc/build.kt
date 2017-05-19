@@ -36,7 +36,6 @@ import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
-import j.ProgramReflection
 import java.io.File
 import java.util.*
 
@@ -89,7 +88,8 @@ class JTranscBuild(
 	class Result(val process: ProcessResult2)
 
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
-		// @TODO: allow to add plugins from gradle
+		val targetName = target.targetName
+
 		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }
 		val pluginNames = plugins.map { it.javaClass.simpleName }
 
@@ -113,8 +113,12 @@ class JTranscBuild(
 			ConfigRun(run),
 			ConfigOutputPath(LocalVfs(File("$tempdir/out_ast"))),
 			ConfigMainClass(entryPoint),
-			TargetName(target.name)
+			targetName
 		)
+
+		for (plugin in plugins) {
+			plugin.initialize(injector)
+		}
 
 		when (backend) {
 			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst1>()

@@ -1,19 +1,12 @@
 package com.jtransc.simd;
 
-import com.jtransc.annotation.JTranscAddMembersList;
-import com.jtransc.annotation.JTranscCallSiteBody;
-import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.*;
 
-@JTranscAddMembersList({
-	//@JTranscAddMembers(target = "dart", value = "Float32x4 simd;"),
-})
+@JTranscNativeName(target = "dart", value = "Float32x4")
 final public class MutableFloat32x4 {
 	static {
 		Simd.ref();
 	}
-
-	static private final MutableFloat32x4 temp = create();
 
 	private float x;
 	private float y;
@@ -30,10 +23,12 @@ final public class MutableFloat32x4 {
 		return new MutableFloat32x4(x, y, z, v);
 	}
 
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(0.0, 0.0, 0.0, 0.0)")
 	static public MutableFloat32x4 create() {
 		return create(0f, 0f, 0f, 0f);
 	}
 
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(#0, #0, #0, #0)")
 	static public MutableFloat32x4 create(float v) {
 		return create(v, v, v, v);
 	}
@@ -131,11 +126,6 @@ final public class MutableFloat32x4 {
 		return this.getX() + this.getY() + this.getZ() + this.getW();
 	}
 
-	static public float getAddMul(MutableFloat32x4 l, MutableFloat32x4 r) {
-		temp.setToMul(l, r);
-		return temp.getSumAll();
-	}
-
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "this.simd = SIMD.Float32x4.swizzle(p0.simd, 0, 0, 0, 0);")
 	@JTranscCallSiteBody(target = "dart", value = "#@ = new Float32x4(#0.x, #0.x, #0.x, #0.x);")
 	public void setToXXXX(MutableFloat32x4 l) {
@@ -190,10 +180,10 @@ final public class MutableFloat32x4 {
 
 	public void setToMultiply(MutableFloat32x4 vector, MutableMatrixFloat32x4x4 matrix) {
 		this.setTo(
-			MutableFloat32x4.getAddMul(vector, matrix.getX()),
-			MutableFloat32x4.getAddMul(vector, matrix.getY()),
-			MutableFloat32x4.getAddMul(vector, matrix.getZ()),
-			MutableFloat32x4.getAddMul(vector, matrix.getW())
+			MutableFloat32x4Utils.getAddMul(vector, matrix.getX()),
+			MutableFloat32x4Utils.getAddMul(vector, matrix.getY()),
+			MutableFloat32x4Utils.getAddMul(vector, matrix.getZ()),
+			MutableFloat32x4Utils.getAddMul(vector, matrix.getW())
 		);
 	}
 
@@ -213,12 +203,8 @@ final public class MutableFloat32x4 {
 	}
 
 	@Override
-	@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.MutableFloat32x4:toStringInternal %}(#@)")
+	@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.MutableFloat32x4Utils:toStringInternal %}(#@)")
 	final public String toString() {
-		return toStringInternal(this);
-	}
-
-	final static private String toStringInternal(MutableFloat32x4 v) {
-		return "Simd.MutableFloat32x4(" + v.getX() + ", " + v.getY() + ", " + v.getZ() + ", " + v.getW() + ")";
+		return MutableFloat32x4Utils.toStringInternal(this);
 	}
 }

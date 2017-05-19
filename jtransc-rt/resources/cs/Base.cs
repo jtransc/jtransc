@@ -75,7 +75,7 @@ class N {
 	static public {% CLASS java.lang.Double %}    boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
-	static public int l2i(long v) { return (int)v; }
+	static public int j2i(long v) { return (int)v; }
 	static public long d2j(double v) { return (long)v; }
 	static public long i2j(int v) { return (long)v; }
 	static public long f2j(float v) { return (long)v; }

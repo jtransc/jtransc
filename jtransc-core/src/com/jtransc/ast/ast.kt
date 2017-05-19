@@ -453,9 +453,8 @@ class AstClass(
 
 	//val dependencies: AstReferences = AstReferences()
 	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
-	val nativeName: String? by lazy {
-		annotationsList.getTyped<JTranscNativeClass>()?.value ?: annotationsList.getTyped<JTranscNativeName>()?.value
-	}
+
+	fun nativeNameForTarget(targetName: TargetName) = annotationsList.getNativeNameForTarget(targetName)
 
 	val isNormal: Boolean get() = classType == AstClassType.CLASS
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
@@ -580,7 +579,7 @@ class AstClass(
 	val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
 }
 
-val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
+fun AstClass?.isNativeForTarget(targetName: TargetName): Boolean = (this?.nativeNameForTarget(targetName) != null)
 
 fun List<AstClass>.sortedByExtending(): List<AstClass> {
 	val list = this
@@ -654,8 +653,7 @@ open class AstMember(
 	elementRef: AstMemberRef,
 	annotations: List<AstAnnotation> = listOf()
 ) : AstAnnotatedElement(containingClass.program, elementRef, annotations), IUserData by UserData() {
-
-	val nativeName: String? by lazy { annotationsList.getTyped<JTranscNativeName>()?.value }
+	fun nativeNameForTarget(target: TargetName): String? = annotationsList.getNativeNameForTarget(target)
 }
 
 interface MethodRef {
