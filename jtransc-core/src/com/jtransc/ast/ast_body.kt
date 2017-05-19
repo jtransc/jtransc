@@ -388,6 +388,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = AstType.fromConstant(value)
 
 		val valueAsInt: Int get() = (value as Number).toInt()
+		val valueAsLong: Long get() = (value as Number).toLong()
 	}
 
 	class LITERAL_REFNAME(override val value: Any?) : LiteralExpr() {

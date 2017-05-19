@@ -111,6 +111,7 @@ class N {
 	static Int64  lshl(Int64 l, int r) { return (l << LFIXSHIFT(r)); }
 	static Int64  lshr(Int64 l, int r) { return (l >> LFIXSHIFT(r)); }
 	static Int64  lushr(Int64 l, int r) { return l.shiftRightUnsigned(LFIXSHIFT(r)); }
+	static Int64  lushr_opt(Int64 l, int r) { return l.shiftRightUnsigned(r); }
 	static int    lcmp(Int64 l, Int64 r) { return l.compareTo(r); }
 	static double j2f(Int64  v) { return v.toDouble(); }
 	static double j2d(Int64  v) { return v.toDouble(); }

@@ -137,7 +137,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val names = if (JTranscSystem.isWindows()) cmakeNames else unixNames
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = false))
+		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = true))
 		return ProcessResult2(result)
 	}
 
@@ -811,9 +811,19 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_idiv(l: String, r: String) = N_func("idiv", "$l, $r")
 	override fun N_irem(l: String, r: String) = N_func("irem", "$l, $r")
+
 	override fun N_ishl(l: String, r: String) = N_func("ishl", "$l, $r")
 	override fun N_ishr(l: String, r: String) = N_func("ishr", "$l, $r")
 	override fun N_iushr(l: String, r: String) = N_func("iushr", "$l, $r")
+
+	override fun N_ishl_cst(l: String, r: Int) = N_func("ishl_cst", "$l, $r")
+	override fun N_ishr_cst(l: String, r: Int) = N_func("ishr_cst", "$l, $r")
+	override fun N_iushr_cst(l: String, r: Int) = N_func("iushr_cst", "$l, $r")
+
+	override fun N_lshl_cst(l: String, r: Int) = N_func("lshl_cst", "$l, $r")
+	override fun N_lshr_cst(l: String, r: Int) = N_func("lshr_cst", "$l, $r")
+	override fun N_lushr_cst(l: String, r: Int) = N_func("lushr_cst", "$l, $r")
+
 	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 

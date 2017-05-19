@@ -74,13 +74,13 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
-	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::microseconds(p0));")
+	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
 	public static void sleep(long millis) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0) + dur!(\"nsecs\")(p1));")
-	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::microseconds(p0));")
+	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
 	//FIXME
 	public static void sleep(long millis, int nanos) throws InterruptedException {
 		JTranscSystem.sleep(millis);

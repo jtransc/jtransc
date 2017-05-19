@@ -133,6 +133,11 @@ struct N { public:
 	inline static int32_t ishl(int32_t a, int32_t b);
 	inline static int32_t ishr(int32_t a, int32_t b);
 	inline static int32_t iushr(int32_t a, int32_t b);
+
+	inline static int32_t ishl_cst(int32_t a, int32_t b);
+	inline static int32_t ishr_cst(int32_t a, int32_t b);
+	inline static int32_t iushr_cst(int32_t a, int32_t b);
+
 	inline static int32_t idiv (int32_t a, int32_t b);
 	inline static int32_t irem (int32_t a, int32_t b);
 	inline static int64_t lcmp (int64_t a, int64_t b);
@@ -144,9 +149,15 @@ struct N { public:
 	inline static int64_t land (int64_t a, int64_t b);
 	inline static int64_t lor  (int64_t a, int64_t b);
 	inline static int64_t lxor (int64_t a, int64_t b);
+
 	inline static int64_t lshl (int64_t a, int b);
 	inline static int64_t lshr (int64_t a, int b);
 	inline static int64_t lushr(int64_t a, int b);
+
+	inline static int64_t lshl_cst (int64_t a, int b);
+	inline static int64_t lshr_cst (int64_t a, int b);
+	inline static int64_t lushr_cst(int64_t a, int b);
+
 	inline static int32_t z2i(int32_t v);
 	inline static float   j2f(int64_t v);
 	inline static double  j2d(int64_t v);
@@ -215,6 +226,7 @@ struct N { public:
 	static JAVA_OBJECT  boxDouble(double v);
 
 	static double getTime();
+	static int64_t nanoTime();
 	static void startup();
 
 	static void initStringPool();
@@ -462,6 +474,10 @@ int32_t N::ishl(int32_t a, int32_t b) { return (a << FIXSHIFT(b)); }
 int32_t N::ishr(int32_t a, int32_t b) { return (a >> FIXSHIFT(b)); }
 int32_t N::iushr(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> FIXSHIFT(b)); }
 
+int32_t N::ishl_cst(int32_t a, int32_t b) { return (a << b); }
+int32_t N::ishr_cst(int32_t a, int32_t b) { return (a >> b); }
+int32_t N::iushr_cst(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> b); }
+
 int32_t N::idiv(int32_t a, int32_t b) {
 	if (a == 0) return 0;
 	if (b == 0) return 0; // CRASH
@@ -538,6 +554,10 @@ int LFIXSHIFT(int r) {
 int64_t N::lshl(int64_t a, int b) { return (a << LFIXSHIFT(b)); }
 int64_t N::lshr(int64_t a, int b) { return (a >> LFIXSHIFT(b)); }
 int64_t N::lushr(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> LFIXSHIFT(b)); }
+
+int64_t N::lshl_cst(int64_t a, int b) { return (a << b); }
+int64_t N::lshr_cst(int64_t a, int b) { return (a >> b); }
+int64_t N::lushr_cst(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> b); }
 
 int32_t N::z2i(int32_t v) { return (v != 0) ? 1 : 0; }
 int64_t N::i2j(int32_t v) { return (int64_t)v; }
@@ -753,11 +773,14 @@ std::vector<JAVA_OBJECT> N::getVectorOrEmpty(JAVA_OBJECT obj) {
 
 double N::getTime() {
 	using namespace std::chrono;
-    milliseconds ms = duration_cast< milliseconds >(
-        system_clock::now().time_since_epoch()
-    );
-
+    milliseconds ms = duration_cast<milliseconds>( system_clock::now().time_since_epoch() );
 	return (double)(int64_t)ms.count();
+};
+
+int64_t N::nanoTime() {
+	using namespace std::chrono;
+	auto time = duration_cast<nanoseconds>( high_resolution_clock::now().time_since_epoch() );
+	return (int64_t)time.count();
 };
 
 void SIGSEGV_handler(int signal) {

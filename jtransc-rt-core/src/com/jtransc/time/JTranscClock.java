@@ -38,7 +38,10 @@ public class JTranscClock {
 
 		//performance.now()
 		//process.hrtime()[1] / 1000000000.0
-		@JTranscMethodBody(target = "js", value = "return N.hrtime();")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "js", value = "return N.hrtime();"),
+			@JTranscMethodBody(target = "cpp", value = "return N::nanoTime();"),
+		})
 		public long nanoTime() {
 			if (JTranscSystem.isJTransc()) {
 				//return (long) hrtime();

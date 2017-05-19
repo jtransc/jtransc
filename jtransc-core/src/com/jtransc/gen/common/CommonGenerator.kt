@@ -946,6 +946,22 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		else -> this
 	}
 
+	private fun SHIFT_FIX_32(r: Int): Int {
+		if (r < 0) {
+			return (32 - ((-r) and 0x1F)) and 0x1F;
+		} else {
+			return r and 0x1F;
+		}
+	}
+
+	private fun SHIFT_FIX_64(r: Int): Int {
+		if (r < 0) {
+			return (64 - ((-r) and 0x3F)) and 0x3F;
+		} else {
+			return r and 0x3F;
+		}
+	}
+
 	open fun genExprBinop(e: AstExpr.BINOP): String {
 		val resultType = e.type.resolve()
 		val leftType = e.left.type.resolve()
@@ -983,9 +999,30 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				AstBinop.AND -> N_land(l, r)
 				AstBinop.OR -> N_lor(l, r)
 				AstBinop.XOR -> N_lxor(l, r)
-				AstBinop.SHL -> N_lshl(l, r)
-				AstBinop.SHR -> N_lshr(l, r)
-				AstBinop.USHR -> N_lushr(l, r)
+				AstBinop.SHL -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_lshl_cst(l, SHIFT_FIX_64(rv2.valueAsInt))
+					} else {
+						N_lshl(l, r)
+					}
+				}
+				AstBinop.SHR -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_lshr_cst(l, SHIFT_FIX_64(rv2.valueAsInt))
+					} else {
+						N_lshr(l, r)
+					}
+				}
+				AstBinop.USHR -> {
+					val rv2 = rv.withoutCasts()
+					if (rv2 is AstExpr.LITERAL) {
+						N_lushr_cst(l, SHIFT_FIX_64(rv2.valueAsInt))
+					} else {
+						N_lushr(l, r)
+					}
+				}
 				AstBinop.LCMP -> N_lcmp(l, r) // long,long -> int
 				else -> invalid()
 			}
@@ -1007,7 +1044,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				AstBinop.SHL -> {
 					val rv2 = rv.withoutCasts()
 					if (rv2 is AstExpr.LITERAL) {
-						N_ishl_cst(l, rv2.valueAsInt)
+						N_ishl_cst(l, SHIFT_FIX_32(rv2.valueAsInt))
 					} else {
 						N_ishl(l, r)
 					}
@@ -1015,7 +1052,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				AstBinop.SHR -> {
 					val rv2 = rv.withoutCasts()
 					if (rv2 is AstExpr.LITERAL) {
-						N_ishr_cst(l, rv2.valueAsInt)
+						N_ishr_cst(l, SHIFT_FIX_32(rv2.valueAsInt))
 					} else {
 						N_ishr(l, r)
 					}
@@ -1023,7 +1060,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				AstBinop.USHR -> {
 					val rv2 = rv.withoutCasts()
 					if (rv2 is AstExpr.LITERAL) {
-						N_iushr_cst(l, rv2.valueAsInt)
+						N_iushr_cst(l, SHIFT_FIX_32(rv2.valueAsInt))
 					} else {
 						N_iushr(l, r)
 					}
@@ -1543,9 +1580,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_land(l: String, r: String) = N_func("land", "$l, $r")
 	open protected fun N_lor(l: String, r: String) = N_func("lor", "$l, $r")
 	open protected fun N_lxor(l: String, r: String) = N_func("lxor", "$l, $r")
+
 	open protected fun N_lshl(l: String, r: String) = N_func("lshl", "$l, $r")
 	open protected fun N_lshr(l: String, r: String) = N_func("lshr", "$l, $r")
 	open protected fun N_lushr(l: String, r: String) = N_func("lushr", "$l, $r")
+
+	open protected fun N_lshl_cst(l: String, r: Int) = N_lshl(l, "$r")
+	open protected fun N_lshr_cst(l: String, r: Int) = N_lshr(l, "$r")
+	open protected fun N_lushr_cst(l: String, r: Int) = N_lushr(l, "$r")
+
 	open protected fun N_lcmp(l: String, r: String) = N_func("lcmp", "$l, $r")
 
 	open protected fun N_fadd(l: String, r: String) = N_fd_add(l, r)

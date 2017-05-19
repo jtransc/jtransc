@@ -318,9 +318,9 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"
 	override fun N_iushr(l: String, r: String) = "N.iushr($l, $r)"
 
-	override fun N_ishl_cst(l: String, r: Int): String = if (r in 0..31) "N.I($l << $r)" else N_ishl(l, "$r")
-	override fun N_ishr_cst(l: String, r: Int): String = if (r in 0..31) "N.I($l >> $r)" else N_ishr(l, "$r")
-	override fun N_iushr_cst(l: String, r: Int): String = if (r in 0..31) "N.iushr_opt($l, $r)" else N_iushr(l, "$r")
+	override fun N_ishl_cst(l: String, r: Int): String = "N.I($l << $r)"
+	override fun N_ishr_cst(l: String, r: Int): String = "N.I($l >> $r)"
+	override fun N_iushr_cst(l: String, r: Int): String = "N.iushr_opt($l, $r)"
 
 	//override fun N_ishl(l: String, r: String): String = "N.I($l << $r)"
 	//override fun N_ishr(l: String, r: String): String = "N.I($l >> $r)"
@@ -351,9 +351,14 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_land(l: String, r: String): String = "($l&$r)"
 	override fun N_lor(l: String, r: String): String = "($l|$r)"
 	override fun N_lxor(l: String, r: String): String = "($l^$r)"
+
 	override fun N_lshl(l: String, r: String): String = "N.lshl($l, $r)"
 	override fun N_lshr(l: String, r: String): String = "N.lshr($l, $r)"
 	override fun N_lushr(l: String, r: String) = "N.lushr($l, $r)"
+
+	override fun N_lshl_cst(l: String, r: Int): String = "($l << $r)"
+	override fun N_lshr_cst(l: String, r: Int): String = "($l >> $r)"
+	override fun N_lushr_cst(l: String, r: Int) = "N.lushr_opt($l, $r)"
 
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
