@@ -76,34 +76,34 @@ external operator fun JsDynamic?.set(key: Int, @JTranscUnboxParam value: Any?): 
 //external operator fun JsDynamic?.invoke(@JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?, @JTranscUnboxParam p6: Any?, @JTranscUnboxParam p7: Any?, @JTranscUnboxParam p8: Any?, @JTranscUnboxParam p9: Any?): JsDynamic?
 
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1]()")
+@JTranscCallSiteBody(target = "js", value = "#0[#1]()")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5, #6)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5, #6)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5, #6, #7)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5, #6, #7)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?, @JTranscUnboxParam p6: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5, #6, #7, #8)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5, #6, #7, #8)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?, @JTranscUnboxParam p6: Any?, @JTranscUnboxParam p7: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5, #6, #7, #8, #9)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5, #6, #7, #8, #9)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?, @JTranscUnboxParam p6: Any?, @JTranscUnboxParam p7: Any?, @JTranscUnboxParam p8: Any?): JsDynamic?
 
-@JTranscCallSiteBody(target = "js", value = "#0[#'1](#2, #3, #4, #5, #6, #7, #8, #9, #10)")
+@JTranscCallSiteBody(target = "js", value = "#0[#1](#2, #3, #4, #5, #6, #7, #8, #9, #10)")
 external fun JsDynamic?.call(@JTranscUnboxParam method: String, @JTranscUnboxParam p1: Any?, @JTranscUnboxParam p2: Any?, @JTranscUnboxParam p3: Any?, @JTranscUnboxParam p4: Any?, @JTranscUnboxParam p5: Any?, @JTranscUnboxParam p6: Any?, @JTranscUnboxParam p7: Any?, @JTranscUnboxParam p8: Any?, @JTranscUnboxParam p9: Any?): JsDynamic?
 
 @JTranscCallSiteBody(target = "js", value = "new (#0)()")
