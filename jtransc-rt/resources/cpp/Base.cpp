@@ -48,10 +48,10 @@ typedef double float64_t;
 // HEADERS + INCLUDES
 {{ HEADER }}
 
-//#define null ((void*)0)
 //#define Lnull ((wchar_t*)0)
 
 #define null 0
+//#define null ((void*)0)
 #define Lnull ((wchar_t*)0)
 
 int TRACE_INDENT = 0;
@@ -742,7 +742,7 @@ void N::writeChars(JAVA_OBJECT str, char *out, int maxlen) {
 	out[len] = 0;
 }
 
-JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return NULL; }
+JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)NULL; }
 int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
 int32_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
 int32_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
@@ -752,8 +752,8 @@ int64_t N::unboxLong(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Lon
 float   N::unboxFloat(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Float %}, obj)->{% SMETHOD java.lang.Float:floatValue %}(); }
 double  N::unboxDouble(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Double %}, obj)->{% SMETHOD java.lang.Double:doubleValue %}(); }
 
-JAVA_OBJECT N::boxVoid(void)       { return null; }
-JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return null; }
+JAVA_OBJECT N::boxVoid(void)       { return (JAVA_OBJECT)null; }
+JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return (JAVA_OBJECT)null; }
 JAVA_OBJECT N::boxBool(bool v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
 JAVA_OBJECT N::boxByte(int32_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
 JAVA_OBJECT N::boxShort(int32_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }

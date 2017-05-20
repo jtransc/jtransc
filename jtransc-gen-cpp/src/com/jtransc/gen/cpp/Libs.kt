@@ -126,6 +126,7 @@ object Libs {
 			runCommand(bdwgcDir, "cmake", listOf("--build", bdwgcDir.absolutePath, "--config", "Release"))
 			bdwgcDir[".libs"].mkdirs()
 			bdwgcDir["Release"].copyRecursively(bdwgcDir[".libs"])
+			bdwgcDir["Release"]["gc-lib.lib"].copyTo(bdwgcDir[".libs"]["gc.lib"])
 		} else {
 			bdwgcDir["autogen.sh"].setExecutable(true)
 			runCommand(bdwgcDir, "./autogen.sh", listOf())

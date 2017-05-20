@@ -798,7 +798,6 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBodyTrapsPrefix() = Indenter(AstLocal(0, "J__exception__", AstType.THROWABLE).decl)
 	open fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "J__exception__"
 
-
 	open val AstType.localDeclType: String get() = this.targetName
 
 	open val AstLocal.decl: String get() = "${this.type.localDeclType} ${this.targetName} = ${this.type.nativeDefaultString};"
@@ -1889,8 +1888,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 // Constants
 //////////////////////////////////////////////////
 
-	val AstType.nativeDefault: Any? get() = this.getNull()
-	val AstType.nativeDefaultString: String get() = this.getNull().escapedConstant
+	open val AstType.nativeDefault: Any? get() = this.getNull()
+	open val AstType.nativeDefaultString: String get() = this.nativeDefault.escapedConstant
 
 	fun Any?.escapedConstantOfType(type: AstType): String {
 		if (type == AstType.BOOL) {
