@@ -107,7 +107,7 @@ abstract class GenTargetDescriptor {
 				} else {
 					log.error("ERROR ($compileTime) (${result.exitValue})")
 				}
-				return JTranscBuild.Result(result)
+				return JTranscBuild.Result(result, generator)
 			} else {
 				log("Compiling...")
 				val (compileTime, compileResult) = measureTime { generator.compile() }
@@ -117,10 +117,10 @@ abstract class GenTargetDescriptor {
 					log.error("ERROR ($compileTime) ($compileResult)")
 				}
 
-				return JTranscBuild.Result(ProcessResult2(compileResult.exitValue))
+				return JTranscBuild.Result(ProcessResult2(compileResult.exitValue), generator)
 			}
 		}
-		return JTranscBuild.Result(ProcessResult2(0))
+		return JTranscBuild.Result(ProcessResult2(0), generator)
 	}
 
 	override fun toString(): String = this.javaClass.simpleName

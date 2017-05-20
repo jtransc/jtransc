@@ -45,10 +45,6 @@ public class ProgramReflection {
 				_classNames[info.id] = info.name;
 			}
 		}
-		// initialize static variables in other reflection classes
-		getConstructors(-1);
-		getFields(-1);
-		getMethods(-1);
 	}
 
 	static public void _ensureConstructors() {

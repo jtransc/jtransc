@@ -26,6 +26,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.TargetName
+import com.jtransc.gen.common.CommonGenerator
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
@@ -85,7 +86,7 @@ class JTranscBuild(
 	fun buildWithoutRunning() = _buildAndRun(captureRunOutput = false, run = false)
 	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true) = _buildAndRun(captureRunOutput = captureRunOutput, run = run)
 
-	class Result(val process: ProcessResult2)
+	class Result(val process: ProcessResult2, val generator: CommonGenerator)
 
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
 		val targetName = target.targetName

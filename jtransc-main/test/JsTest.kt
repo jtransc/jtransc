@@ -16,6 +16,7 @@
 
 import big.*
 import com.jtransc.BuildBackend
+import com.jtransc.gen.js.JsGenerator
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
@@ -40,6 +41,7 @@ import jtransc.micro.NanoHelloWorldTest
 import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
 import jtransc.staticinit.StaticInitTest2
+import org.junit.Assert
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 import testservice.test.TestServiceJs2
@@ -56,9 +58,14 @@ class JsTest : _Base() {
 	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	//@Test fun testNanoHelloWorldSize() {
-	//	val result = testClass<NanoHelloWorld>(minimize = false, log = false, treeShaking = true)
-	//}
+	@Test fun testNanoHelloWorldShouldReferenceGetMethods() {
+		val result = _action(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true), run = false)
+		val generator = result.generator as JsGenerator
+		val outputFile = generator.jsOutputFile
+		val output = outputFile.readString()
+		Assert.assertEquals(false, output.contains("getMethod"))
+		Assert.assertEquals(true, outputFile.size < 200 * 1024) // Size should be < 200 KB
+	}
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))
 

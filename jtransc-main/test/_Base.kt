@@ -81,14 +81,14 @@ open class _Base {
 	fun testClassNoLog(params: Params) {
 		println(params.clazz.name)
 		val expected = params.transformerOut(ClassUtils.callMain(params.clazz))
-		val result = params.transformerOut(runClass(params))
+		val result = params.transformerOut(action(params))
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
 	fun testNativeClass(expected: String, params: Params) {
-		Assert.assertEquals(normalize(expected.trimIndent()), normalize(params.transformerOut(runClass(params).trim())))
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(params.transformerOut(action(params).trim())))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -117,11 +117,11 @@ open class _Base {
 		val transformerOut: (String) -> String = { it }
 	)
 
-	fun runClass(params: Params): String {
-		return action(params)
+	fun action(params: Params): String {
+		return _action(params, run = true).process.outerr;
 	}
 
-	fun action(params: Params): String {
+	fun _action(params: Params, run: Boolean): JTranscBuild.Result {
 		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
@@ -142,7 +142,7 @@ open class _Base {
 		params.configureInjector(injector)
 
 		return log.setTempLogger({ v, l -> }) {
-			JTranscBuild(
+			val build = JTranscBuild(
 				injector = injector,
 				target = params.target ?: DEFAULT_TARGET,
 				entryPoint = params.clazz.name,
@@ -174,10 +174,10 @@ open class _Base {
 						projectRoot["jtransc-annotations/build/resources/main"].realpathOS
 					)
 				)
-			).buildAndRunCapturingOutput().process.outerr
+			)
+			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()
 		}
 	}
-
 
 
 	val types = ThreadLocal.withInitial { AstTypes() }

@@ -83,10 +83,11 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun staticAccess(name: String, field: Boolean): String = commonAccess(name, field)
 	override fun instanceAccess(name: String, field: Boolean): String = commonAccess(name, field)
 
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		val outputFile = injector.get<ConfigJavascriptOutput>().javascriptOutput
+	val jsOutputFile by lazy { injector.get<ConfigJavascriptOutput>().javascriptOutput }
 
-		log.info("Generated javascript at..." + outputFile.realpathOS)
+	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+
+		log.info("Generated javascript at..." + jsOutputFile.realpathOS)
 
 		if (run) {
 			val result = CommonGenCliCommands.runProgramCmd(
