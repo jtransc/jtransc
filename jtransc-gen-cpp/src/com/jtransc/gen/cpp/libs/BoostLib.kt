@@ -39,7 +39,6 @@ open class BoostLib : Lib("boost") {
 		}
 
 		val boostDestDir0 = boostDestDir[0]
-		copyWindowsLibs(boostDestDir0)
 
 		val prefix = listOf("--prefix=${Libs.sdkDir}/boost/compiled-libs/")
 		val withLibs = listOf("--with-thread", "--with-system", "--with-chrono")
@@ -48,7 +47,7 @@ open class BoostLib : Lib("boost") {
 			runCommand(boostDestDir0, "bootstrap.bat", listOf())
 			runCommand(boostDestDir0, boostDestDir0["b2.exe"].absolutePath, listOf("install") + prefix + withLibs)
 			boostDir["compiled-libs"].mkdirs()
-
+			copyWindowsLibs(boostDestDir0)
 		} else {
 			boostDestDir0["bootstrap.sh"].setExecutable(true)
 			runCommand(boostDestDir0, "./bootstrap.sh", listOf("--prefix=${Libs.sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))

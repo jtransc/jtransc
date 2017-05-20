@@ -9,6 +9,7 @@ import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
+import com.jtransc.ds.toHashMap
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
@@ -85,12 +86,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val context = AstGenContext()
 	val refs = References()
 
-	val targetLibraries by lazy {  program.getLibsFor(targetName)  }
-	val targetIncludes by lazy {  program.getIncludesFor(targetName)  }
-	val targetDefines by lazy {  program.getDefinesFor(targetName)  }
+	val targetLibraries by lazy { program.getLibsFor(targetName) }
+	val targetIncludes by lazy { program.getIncludesFor(targetName) }
+	val targetDefines by lazy { program.getDefinesFor(targetName) }
 
 	open val allTargetLibraries by lazy { targetLibraries + (injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()) }
-	open val allTargetDefines by lazy {  targetDefines  }
+	open val allTargetDefines by lazy { targetDefines }
 
 	val AstClass.nativeMembers by lazy { program.getMembersFor(targetName) }
 
@@ -1684,33 +1685,35 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
-		hashMapOf(
-			"CLASS" to "",
-			"outputFolder" to outputFile2.parent,
-			"outputFile" to outputFile2.absolutePath,
-			"outputFileBase" to outputFile2.name,
-			"release" to settings.release,
-			"debug" to !settings.release,
-			"releasetype" to if (settings.release) "release" else "debug",
-			"settings" to settings,
-			"title" to settings.title,
-			"name" to settings.name,
-			"package" to settings.package_,
-			"version" to settings.version,
-			"company" to settings.company,
-			"initialWidth" to settings.initialWidth,
-			"initialHeight" to settings.initialHeight,
-			"orientation" to settings.orientation.lowName,
-			"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive().filter { it.isFile }.map { it.file },
-			"embedResources" to settings.embedResources,
-			"assets" to settings.assets,
-			"hasIcon" to !settings.icon.isNullOrEmpty(),
-			"icon" to settings.icon,
-			"libraries" to settings.libraries,
-			"extra" to settings.extra,
-			"folders" to folders,
-			"JTRANSC_VERSION" to JTranscVersion.getVersion()
-		)
+		(
+			mapOf(
+				"CLASS" to "",
+				"outputFolder" to outputFile2.parent,
+				"outputFile" to outputFile2.absolutePath,
+				"outputFileBase" to outputFile2.name,
+				"release" to settings.release,
+				"debug" to !settings.release,
+				"releasetype" to if (settings.release) "release" else "debug",
+				"settings" to settings,
+				"title" to settings.title,
+				"name" to settings.name,
+				"package" to settings.package_,
+				"version" to settings.version,
+				"company" to settings.company,
+				"initialWidth" to settings.initialWidth,
+				"initialHeight" to settings.initialHeight,
+				"orientation" to settings.orientation.lowName,
+				"assetFiles" to MergeVfs(settings.assets.map { LocalVfs(it) }).listdirRecursive().filter { it.isFile }.map { it.file },
+				"embedResources" to settings.embedResources,
+				"assets" to settings.assets,
+				"hasIcon" to !settings.icon.isNullOrEmpty(),
+				"icon" to settings.icon,
+				"libraries" to settings.libraries,
+				"extra" to settings.extra,
+				"folders" to folders,
+				"JTRANSC_VERSION" to JTranscVersion.getVersion()
+			) + program.getTemplateVariables(targetName)
+			).toHashMap()
 	}
 
 	open fun setTemplateParamsAfterBuildingSource() {

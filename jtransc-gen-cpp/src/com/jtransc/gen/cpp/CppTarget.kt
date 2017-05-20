@@ -146,17 +146,17 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun generateTypeTableHeader() = Indenter {
 		line("struct TYPE_INFO", after2 = ";") {
 			line("const size_t size;")
-			line("const int* subtypes;")
+			line("const int32_t* subtypes;")
 		}
 		line("struct TYPE_TABLE { static const int count; static const TYPE_INFO TABLE[$lastClassId]; };")
-		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int[1]{0}};")
+		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int32_t[1]{0}};")
 	}
 
 	fun generateTypeTableFooter() = Indenter {
 		val objectClassId = program["java.lang.Object".fqname].classId
 		for (clazz in ordereredClassesMustGenerate) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
-			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int[${ids.size}]{${ids.joinToString(", ")}} };")
+			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
 		line("const int TYPE_TABLE::count = $lastClassId;")
@@ -169,7 +169,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				if (clazz != null && clazz.mustGenerate) {
 					line("${clazz.cppName}::TABLE_INFO,")
 				} else if (n == 1) { // Special case for the array base class, which is also an object
-					line("{ 1, new int[1]{$objectClassId} },")
+					line("{ 1, new int32_t[1]{$objectClassId} },")
 				} else {
 					line("TABLE_INFO_NULL,")
 				}

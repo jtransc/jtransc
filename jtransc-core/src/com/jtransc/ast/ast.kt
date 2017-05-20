@@ -1003,3 +1003,10 @@ fun AstProgram.getMembersFor(target: TargetName): List<CondMembers> = this.class
 	.filter { target.matches(it.target) }
 	.map { CondMembers(it.cond, it.value.toList()) }
 	.distinct()
+
+fun AstProgram.getTemplateVariables(target: TargetName): Map<String, List<String>> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
+	.filter { target.matches(it.target) }
+	.groupBy { it.variable }
+	.map { it.key to it.value.flatMap { it.list.toList() } }
+	.toMap()

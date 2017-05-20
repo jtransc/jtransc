@@ -11,7 +11,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
-#include <clocale>
+//#include <clocale>
 #include <csignal>
 //#include <chrono>
 //#include <thread>
@@ -384,8 +384,8 @@ struct JA_I : JA_Base<int32_t> {
 	JA_I(void* data, int size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
 
 	// @TODO: Try to move to JA_Base
-	static JA_I *fromVector(int *data, int count) {
-		return (JA_I * )(new JA_I(count))->setArray(0, count, (const int *)data);
+	static JA_I *fromVector(int32_t *data, int32_t count) {
+		return (JA_I * )(new JA_I(count))->setArray(0, count, (const int32_t *)data);
 	};
 
 	static JA_I *fromArgValues() { return (JA_I * )(new JA_I(0)); };
@@ -479,7 +479,7 @@ bool N::is(JAVA_OBJECT obj, int type) {
 	if (obj == nullptr) return false;
 	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__INSTANCE_CLASS_ID];
 	const size_t size = type_info.size;
-	const int* subtypes = type_info.subtypes;
+	const int32_t* subtypes = type_info.subtypes;
     for (size_t i = 0; i < size; i++){
     	if (subtypes[i] == type) return true;
     }
@@ -1458,8 +1458,8 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 void N::startup() {
-	std::setlocale(LC_COLLATE, "en_US.UTF-8");
-	std::setlocale(LC_CTYPE, "en_US.UTF-8");
+	//std::setlocale(LC_COLLATE, "en_US.UTF-8");
+	//std::setlocale(LC_CTYPE, "en_US.UTF-8");
 
 	N::env.jni.functions = &jni;
 	setvbuf(stdout, nullptr, _IONBF, 0);
