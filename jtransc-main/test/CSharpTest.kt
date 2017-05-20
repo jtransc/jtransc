@@ -30,27 +30,27 @@ import testservice.test.ServiceLoaderTest
 class CSharpTest : _Base() {
 	override val DEFAULT_TARGET = CSharpTarget()
 
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
+	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = CSharpTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
-	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss
 		TestServiceCS
-	""", minimize = false)
+	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, debug = false, log = false)
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
 
 	//@Test fun testMicroStaticInitTestAsm2() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM2, treeShaking = true)
-	@Test fun testMicroStaticInitTestAsm1() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true)
+	@Test fun testMicroStaticInitTestAsm1() = testClass(Params(clazz = StaticInitTest::class.java, minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true))
 
 
 	@Ignore("Not working fine yet")
-	@Test fun testBigIO() = testClass<BigIOTest>(minimize = false, log = false)
+	@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = false, log = false))
 
 	@Ignore("Not working fine yet")
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false)
+	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = false, log = false))
 
-	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
 }

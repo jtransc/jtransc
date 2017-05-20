@@ -28,17 +28,20 @@ import org.junit.Test
 class DartTest : _Base() {
 	override val DEFAULT_TARGET = DartTarget()
 
-	//@Ignore
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
-	@Test fun testSimd() = testClass<SimdTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Ignore
+	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
-	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Ignore
+	@Test fun testSimd() = testClass(Params(clazz = SimdTest::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
-	@Test fun testBigIO() = testClass<BigIOTest>(minimize = false, log = false, treeShaking = true)
+	@Ignore
+	@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Ignore("Process not implemented yet!")
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
+	@Ignore
+	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
 }

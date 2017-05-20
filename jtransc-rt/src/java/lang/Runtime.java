@@ -106,6 +106,7 @@ public class Runtime {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
+	@JTranscMethodBody(target = "as3", value = "return flash.system.System.gc();")
 	@JTranscMethodBody(target = "cpp", value = "return GC_gcollect();")
 	public void gc() {
 	}

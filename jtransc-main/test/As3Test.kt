@@ -28,21 +28,18 @@ class As3Test : _Base() {
 
 	@Ignore
 	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
-	@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM2, transformerOut = { it.replace("\r", "") })
+	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
 	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = false, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
 
 	@Ignore
-	@Test fun test2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	@Test fun test2() = testClass(Params(clazz = BenchmarkTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
 
 	@Ignore
-	@Test fun testBig() {
-		//testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
-		testClass<BigTest>(minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
-	}
-	
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
+
 	@Ignore
-	@Test fun as3PureTest() = testNativeClass<As3PureTest>("""
+	@Test fun as3PureTest() = testNativeClass("""
 		1024
 		0
-	""", minimize = false, debug = true, backend = BuildBackend.ASM2, target = As3Target(), transformerOut = { it.replace("\r", "") })
+	""", Params(clazz = As3PureTest::class.java, minimize = false, debug = true, backend = BuildBackend.ASM, target = As3Target(), transformerOut = { it.replace("\r", "") }))
 }

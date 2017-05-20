@@ -23,5 +23,5 @@ class PhpTest : _Base() {
 	override val DEFAULT_TARGET = PhpTarget()
 
 	@Ignore
-	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true)
+	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
 }

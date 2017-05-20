@@ -29,25 +29,25 @@ class DTest : _Base() {
 	override val DEFAULT_TARGET = DTarget()
 
 	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, log = false)
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
+	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
 
-	@Test fun testMicroHelloWorldAsm1() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Test fun testMicroHelloWorldAsm1() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
-	@Test fun testThreading() = testClass<ThreadingTest>(minimize = false, log = false)
+	@Test fun testThreading() = testClass(Params(clazz = ThreadingTest::class.java, minimize = false, log = false))
 
-	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = false, log = false)
+	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false))
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 
-	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss
 		TestServiceD
-	""", minimize = false)
+	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
 
-	@Test fun testMixed() = testNativeClass<JTranscDNativeMixedTest>("""
+	@Test fun testMixed() = testNativeClass("""
 		JTranscReinterpretArrays:
-	""", minimize = false)
+	""", Params(clazz = JTranscDNativeMixedTest::class.java, minimize = false))
 }

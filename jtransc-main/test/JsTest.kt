@@ -20,7 +20,7 @@ import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
-import javatest.ExtendedCharsets
+import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
@@ -36,6 +36,7 @@ import jtransc.java8.Java8Test2
 import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
+import jtransc.micro.NanoHelloWorld
 import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
 import jtransc.staticinit.StaticInitTest2
@@ -46,58 +47,60 @@ import testservice.test.TestServiceJs2
 class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
 
-	@Test fun testBig() = testClass<BigTest>(minimize = false, log = false)
-	@Test fun testBigMin() = testClass<BigTest>(minimize = true, log = false)
-	@Test fun testBigIO() = testClass<BigIOTest>(minimize = true, log = false, treeShaking = true)
-	@Test fun testProcess() = testClass<ProcessTest>(minimize = true, log = false, treeShaking = true)
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
+	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
+	@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = true, log = false, treeShaking = true))
+	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = true, log = false, treeShaking = true))
+	@Test fun testJTranscBug110() = testClass(Params(clazz = JTranscBug110::class.java, minimize = false, log = false, treeShaking = true))
+	@Test fun testScriptEngine() = testClass(Params(clazz = ScriptEngineTest::class.java, minimize = false, log = false, treeShaking = true))
+	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
+	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, log = false, treeShaking = true)
+	//@Test fun testNanoHelloWorldSize() {
+	//	val result = testClass<NanoHelloWorld>(minimize = false, log = false, treeShaking = true)
+	//}
 
-	@Test fun testScriptEngine() = testClass<ScriptEngineTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))
 
-	@Test fun testJavaEightJs() = testClass<Java8Test>(minimize = false, log = false)
+	@Test fun testKotlinInheritanceTestJs() = testClass(Params(clazz = KotlinInheritanceTest::class.java, minimize = false, log = false))
 
-	@Test fun testMicroHelloWorld() = testClass<MicroHelloWorld>(minimize = true, log = false, treeShaking = true)
+	@Test fun testTwoJavaEightTwoJs() = testClass(Params(clazz = Java8Test2::class.java, minimize = false, log = false))
 
-	@Test fun testKotlinInheritanceTestJs() = testClass<KotlinInheritanceTest>(minimize = false, log = false)
-
-	@Test fun testTwoJavaEightTwoJs() = testClass<Java8Test2>(minimize = false, log = false)
-
-	@Test fun testURLEncoderDecoder() = testClass<URLEncoderDecoderTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testURLEncoderDecoder() = testClass(Params(clazz = URLEncoderDecoderTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, log = true, treeShaking = true, debug = true)
-	@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, log = false, treeShaking = true)
+	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
 
-	@Test fun testIssue105() = testClass<Issue105>(minimize = false, log = false, treeShaking = true)
+	@Test fun testIssue105() = testClass(Params(clazz = Issue105::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testExtendedCharsets() = testClass<ExtendedCharsets>(minimize = false, log = false, treeShaking = true)
+	@Test fun testExtendedCharsets() = testClass(Params(clazz = ExtendedCharsetsTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testMessageDigestTest() = testClass<MessageDigestTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testMessageDigestTest() = testClass(Params(clazz = MessageDigestTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<HelloWorldTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 
-	@Test fun testMicroStaticInitTest() = testClass<StaticInitTest>(minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true)
+	@Test fun testMicroStaticInitTest() = testClass(Params(clazz = StaticInitTest::class.java, minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true))
 
-	@Test fun testMicroStaticInitTest2() = testClass<StaticInitTest2>(minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true)
+	@Test fun testMicroStaticInitTest2() = testClass(Params(clazz = StaticInitTest2::class.java, minimize = false, log = false, backend = BuildBackend.ASM, treeShaking = true))
 
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = false)
-	@Test fun testBenchmarkTest() = testClass<BenchmarkTest>(minimize = false, log = false)
+	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
+	@Test fun testBenchmarkTest() = testClass(Params(clazz = BenchmarkTest::class.java, minimize = false, log = false))
 
-	@Test fun testServiceLoaderTest() = testNativeClass<ServiceLoaderTest>("""
+	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss
 		TestServiceJs10
-	""", minimize = false, configureInjector = {
+	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false, configureInjector = {
 		mapInstance(ConfigServiceLoader(
 			classesToSkip = listOf(
 				TestServiceJs2::class.java.name
 			)
 		))
-	})
+	}))
 
-	@Test fun nativeJsTest() = testNativeClass<JTranscJsNativeMixedTest>("""
+	@Test fun nativeJsTest() = testNativeClass("""
 		17
 		-333
 		Services:
@@ -134,15 +137,15 @@ class JsTest : _Base() {
 		999
 		21
 		Timeout!
-	""", minimize = false, treeShaking = true)
+	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
-	@Test fun referencesTest() = testNativeClass<MethodBodyReferencesTest>("""
+	@Test fun referencesTest() = testNativeClass("""
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
-	""", minimize = true, treeShaking = false)
+	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
 
-	@Test fun extraKeywordsJs() = testNativeClass<ExtraKeywordsTest>("""
+	@Test fun extraKeywordsJs() = testNativeClass("""
 		1
 		2
 		3
@@ -152,17 +155,17 @@ class JsTest : _Base() {
 		7
 		8
 		9
-	""", minimize = true)
+	""", Params(clazz = ExtraKeywordsTest::class.java, minimize = true))
 
-	@Test fun extraRefsTest() = testNativeClass<ExtraRefsTest>("""
+	@Test fun extraRefsTest() = testNativeClass("""
 		OK
-	""", minimize = true)
+	""", Params(clazz = ExtraRefsTest::class.java, minimize = true))
 
-	@Test fun testNumberFormatTest2() = testClass<NumberFormatTest2>(minimize = false, log = false)
+	@Test fun testNumberFormatTest2() = testClass(Params(clazz = NumberFormatTest2::class.java, minimize = false, log = false))
 
-	@Test fun testTryFinallyCheck() = testClass<TryFinallyCheck>(minimize = false, log = false)
+	@Test fun testTryFinallyCheck() = testClass(Params(clazz = TryFinallyCheck::class.java, minimize = false, log = false))
 
-	@Test fun testMemberCollisionsTest() = testClass<MemberCollisionsTest>(minimize = false, log = false)
+	@Test fun testMemberCollisionsTest() = testClass(Params(clazz = MemberCollisionsTest::class.java, minimize = false, log = false))
 
-	@Test fun testAsyncIO() = testClass<AsyncIOTest>(minimize = false, log = false, treeShaking = true)
+	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
 }

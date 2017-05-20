@@ -59,25 +59,9 @@ open class _Base {
 		if (!DEBUG) log.logger = { content, level -> }
 	}
 
-	inline fun <reified T : Any> testClass(
-		minimize: Boolean? = null,
-		lang: String = "js",
-		analyze: Boolean? = null,
-		target: GenTargetDescriptor? = null,
-		debug: Boolean? = null,
-		log: Boolean? = null,
-		treeShaking: Boolean? = null,
-		backend: BuildBackend? = null,
-		noinline transformer: (String) -> String = { it },
-		noinline transformerOut: (String) -> String = { it }
-	) {
-		com.jtransc.log.log.setTempLogger({ content, level -> if (log ?: DEBUG) println(content) }) {
-			testClass(
-				minimize = minimize, analyze = analyze, lang = lang,
-				backend = backend,
-				clazz = T::class.java, transformer = transformer, transformerOut = transformerOut,
-				target = target, debug = debug, treeShaking = treeShaking
-			)
+	fun testClass(params: Params) {
+		com.jtransc.log.log.setTempLogger({ content, level -> if (params.log ?: DEBUG) println(content) }) {
+			testClassNoLog(params)
 		}
 	}
 
@@ -94,30 +78,17 @@ open class _Base {
 		File("target/test-classes").absolutePath
 	)
 
-	fun <T : Any> testClass(
-		minimize: Boolean? = null, analyze: Boolean? = null, lang: String, clazz: Class<T>, debug: Boolean? = null, target: GenTargetDescriptor? = null,
-		backend: BuildBackend? = null,
-		treeShaking: Boolean? = null,
-		transformer: (String) -> String,
-		transformerOut: (String) -> String
-	) {
-		println(clazz.name)
-		val expected = transformer(ClassUtils.callMain(clazz))
-		val result = transformerOut(runClass(clazz, minimize = minimize, analyze = analyze, lang = lang, target = target, debug = debug, treeShaking = treeShaking, backend = backend))
+	fun testClassNoLog(params: Params) {
+		println(params.clazz.name)
+		val expected = params.transformerOut(ClassUtils.callMain(params.clazz))
+		val result = params.transformerOut(runClass(params))
 		Assert.assertEquals(normalize(expected), normalize(result))
 	}
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	inline fun <reified T : Any> runClass(minimize: Boolean? = null, analyze: Boolean? = null, lang: String = "js", noinline configureInjector: Injector.() -> Unit = {},debug: Boolean? = null, backend: BuildBackend? = null, target: GenTargetDescriptor? = null, treeShaking: Boolean? = null): String {
-		return runClass(T::class.java, minimize = minimize, analyze = analyze, lang = lang, debug = debug, target = target, configureInjector = configureInjector, treeShaking = treeShaking, backend = backend)
-	}
-
-	inline fun <reified T : Any> testNativeClass(
-		expected: String, minimize: Boolean? = null, debug: Boolean? = null, noinline configureInjector: Injector.() -> Unit = {}, target: GenTargetDescriptor? = null, backend: BuildBackend? = null, treeShaking: Boolean? = null,
-		noinline transformerOut: (String) -> String = { it }
-	) {
-		Assert.assertEquals(normalize(expected.trimIndent()), normalize(transformerOut(runClass<T>(minimize = minimize, debug = debug, configureInjector = configureInjector, target = target, treeShaking = treeShaking, backend = backend).trim())))
+	fun testNativeClass(expected: String, params: Params) {
+		Assert.assertEquals(normalize(expected.trimIndent()), normalize(params.transformerOut(runClass(params).trim())))
 	}
 
 	fun locateProjectRoot(): SyncVfsFile {
@@ -132,15 +103,25 @@ open class _Base {
 		return current
 	}
 
-	fun <T : Any> runClass(
-		clazz: Class<T>, lang: String, minimize: Boolean?,
-		analyze: Boolean?, debug: Boolean? = null,
-		treeShaking: Boolean? = null,
-		backend: BuildBackend? = null,
-		configureInjector: (Injector) -> Unit = {},
-		//target: GenTargetDescriptor = HaxeTarget
-		target: GenTargetDescriptor? = null
-	): String {
+	data class Params(
+		val clazz: Class<*>,
+		val lang: String? = null,
+		val minimize: Boolean? = null,
+		val analyze: Boolean? = null,
+		val debug: Boolean? = DEBUG,
+		val treeShaking: Boolean? = null,
+		val backend: BuildBackend? = null,
+		val configureInjector: Injector.() -> Unit = {},
+		val target: GenTargetDescriptor? = null,
+		val log: Boolean? = null,
+		val transformerOut: (String) -> String = { it }
+	)
+
+	fun runClass(params: Params): String {
+		return action(params)
+	}
+
+	fun action(params: Params): String {
 		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
@@ -151,29 +132,30 @@ open class _Base {
 		val pid = 0
 
 		injector.mapInstances(
-			backend ?: BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
+			params.backend ?: BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
 		)
 
 		injector.mapImpl<AstTypes, AstTypes>()
-		injector.mapInstance(ConfigMinimizeNames(minimize ?: MINIMIZE))
-		injector.mapInstance(ConfigTreeShaking(treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
+		injector.mapInstance(ConfigMinimizeNames(params.minimize ?: MINIMIZE))
+		injector.mapInstance(ConfigTreeShaking(params.treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
 
-		configureInjector(injector)
+		params.configureInjector(injector)
 
 		return log.setTempLogger({ v, l -> }) {
 			JTranscBuild(
 				injector = injector,
-				target = target ?: DEFAULT_TARGET,
-				entryPoint = clazz.name,
-				output = "program.haxe.$lang", subtarget = "$lang",
+				target = params.target ?: DEFAULT_TARGET,
+				entryPoint = params.clazz.name,
+				output = "program.${params.lang}",
+				subtarget = params.lang ?: "js",
 				//output = "program.haxe.cpp", subtarget = "cpp",
 				targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/${pid}_$threadId",
 				settings = AstBuildSettings(
 					jtranscVersion = JTranscVersion.getVersion(),
-					debug = debug ?: DEBUG,
+					debug = params.debug ?: DEBUG,
 					relooper = RELOOPER,
 					//relooper = false,
-					analyzer = analyze ?: ANALYZER,
+					analyzer = params.analyze ?: ANALYZER,
 					rtAndRtCore = listOf(
 						projectRoot["jtransc-rt/target/classes"].realpathOS,
 						projectRoot["jtransc-rt/build/classes/main"].realpathOS,
@@ -195,6 +177,8 @@ open class _Base {
 			).buildAndRunCapturingOutput().process.outerr
 		}
 	}
+
+
 
 	val types = ThreadLocal.withInitial { AstTypes() }
 }

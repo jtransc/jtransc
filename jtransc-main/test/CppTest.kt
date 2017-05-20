@@ -30,20 +30,20 @@ class CppTest : _Base() {
 	//override val TREESHAKING_TRACE: Boolean = false
 
 
-	@Test fun testBigTest() = testClass<BigTest>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
+	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	@Ignore
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = true)
+	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
 	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
 
 	@Ignore
-	@Test fun testSimdTest() = testClass<SimdTest>(minimize = false, log = true, treeShaking = true, debug = false)
+	@Test fun testSimdTest() = testClass(Params(clazz = SimdTest::class.java, minimize = false, log = true, treeShaking = true, debug = false))
 
 	@Ignore
-	@Test fun testExecutionOrder() = testClass<ExecutionOrderTest>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
+	@Test fun testExecutionOrder() = testClass(Params(clazz = ExecutionOrderTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	@Ignore
-	@Test fun testJava8() = testClass<Java8Test>(minimize = false, log = false, treeShaking = true, debug = true) // debug=true makes builds much faster
+	@Test fun testJava8() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:
