@@ -86,7 +86,10 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 			val expr = this
 			return when (expr) {
 				is AstExpr.LITERAL -> expr
-				is AstExpr.LOCAL -> stms.buildLocalExpr { expr }
+				is AstExpr.LOCAL -> {
+					//stms.buildLocalExpr { expr }
+					expr
+				}
 				is AstExpr.PARAM -> expr
 				is AstExpr.THIS -> expr
 				is AstExpr.NEW -> expr
@@ -99,25 +102,27 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 				is AstExpr.ARRAY_ACCESS -> {
 					val array = expr.array.processExpr(stms)
 					val index = expr.index.processExpr(stms)
-					stms.buildLocalExpr { AstExpr.ARRAY_ACCESS(array, index) }
+					//stms.buildLocalExpr { AstExpr.ARRAY_ACCESS(array, index) }
+					AstExpr.ARRAY_ACCESS(array, index)
 				}
 				is AstExpr.INSTANCE_OF -> {
 					val l = expr.expr.processExpr(stms)
-					stms.buildLocalExpr {
-						AstExpr.INSTANCE_OF(l, expr.checkType)
-					}
+					//stms.buildLocalExpr { AstExpr.INSTANCE_OF(l, expr.checkType) }
+					AstExpr.INSTANCE_OF(l, expr.checkType)
 				}
 				is AstExpr.ARRAY_LENGTH -> {
 					AstExpr.ARRAY_LENGTH(expr.array.processExpr(stms))
 				}
 				is AstExpr.FIELD_INSTANCE_ACCESS -> {
 					val l = expr.expr.processExpr(stms)
-					stms.buildLocalExpr { AstExpr.FIELD_INSTANCE_ACCESS(expr.field, l) }
+					//stms.buildLocalExpr { AstExpr.FIELD_INSTANCE_ACCESS(expr.field, l) }
+					AstExpr.FIELD_INSTANCE_ACCESS(expr.field, l)
 				}
 				is AstExpr.BINOP -> {
 					val l = expr.left.processExpr(stms)
 					val r = expr.right.processExpr(stms)
-					stms.buildLocalExpr { AstExpr.BINOP(expr.type, l, expr.op, r) }
+					//stms.buildLocalExpr { AstExpr.BINOP(expr.type, l, expr.op, r) }
+					AstExpr.BINOP(expr.type, l, expr.op, r)
 				}
 				is AstExpr.UNOP -> {
 					//val r = expr.right.processExpr(stms)
@@ -125,6 +130,9 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					AstExpr.UNOP(expr.op, expr.right.processExpr(stms))
 				}
 				is AstExpr.CAST -> {
+					expr.subject.processExpr(stms).castTo(expr.type)
+					//expr.processExpr(stms)
+					/*
 					val subjectWithoutCasts = expr.subject.value.withoutCasts()
 					if (subjectWithoutCasts is AstExpr.LITERAL || subjectWithoutCasts is AstExpr.LocalExpr) {
 						expr
@@ -132,6 +140,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 						val subject = expr.subject.processExpr(stms)
 						stms.buildLocalExpr { subject.castTo(expr.type) }
 					}
+					*/
 				}
 				is AstExpr.CALL_BASE -> {
 					val method = expr.method
