@@ -989,3 +989,9 @@ fun AstProgram.getIncludesFor(target: TargetName): List<String> = this.classes
 	.filter { target.matches(it.target) }
 	.flatMap { it.value.toList() }
 	.distinct()
+
+fun AstProgram.getDefinesFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddDefinesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()

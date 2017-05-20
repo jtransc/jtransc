@@ -85,13 +85,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val context = AstGenContext()
 	val refs = References()
 
-	val targetLibraries by lazy {
-		program.getLibsFor(targetName)
-	}
-
-	val targetIncludes by lazy {
-		program.getIncludesFor(targetName)
-	}
+	val targetLibraries by lazy {  program.getLibsFor(targetName)  }
+	val targetIncludes by lazy {  program.getIncludesFor(targetName)  }
+	val targetDefines by lazy {  program.getDefinesFor(targetName)  }
 
 	open fun writeProgramAndFiles(): Unit {
 		if (SINGLE_FILE) {

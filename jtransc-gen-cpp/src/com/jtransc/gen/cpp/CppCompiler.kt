@@ -23,7 +23,13 @@ object CppCompiler {
 		LocalVfs(folder)
 	}
 
-	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf(), includeFolders: List<String> = listOf(), libsFolders: List<String> = listOf()): List<String> {
+	fun genCommand(
+		programFile: File, debug: Boolean = false,
+		libs: List<String> = listOf(),
+		includeFolders: List<String> = listOf(),
+		libsFolders: List<String> = listOf(),
+		defines: List<String> = listOf()
+	): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
@@ -38,42 +44,31 @@ object CppCompiler {
 			return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "--config", config)
 		} else {
 			val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
-			return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders))
+			return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders, defines))
 		}
 	}
 
 	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>, config: BaseCompiler.Config) {
-		val commonFolder = CPP_COMMON_FOLDER.realpathOS
-
-		when {
-			JTranscSystem.isWindows() -> cmdAndArgs.add("-I$commonFolder/jni-headers/win32/")
-			JTranscSystem.isLinux() -> cmdAndArgs.add("-I$commonFolder/jni-headers/linux")
-			JTranscSystem.isMac() -> cmdAndArgs.add("-I$commonFolder/jni-headers/mac")
-			else -> {
-				System.err.println("Unkown OS detected: Aborting.")
-				System.exit(-1)
-			}
-		}
-		//cmdAndArgs.add("-I$commonFolder/jni-headers/")
+		for (define in config.defines) cmdAndArgs += "-D$define"
 		for (includeFolder in config.includeFolders) cmdAndArgs += "-I$includeFolder"
 		for (libFolder in config.libsFolders) cmdAndArgs += "-L$libFolder"
-		if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 		for (lib in config.libs) cmdAndArgs += "-l$lib"
+		//if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
+		cmdAndArgs += "-fexceptions"
+		cmdAndArgs += "-frtti"
+		cmdAndArgs += "-std=c++11"
+		cmdAndArgs += if (config.debug) "-O0" else "-O3"
+		if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
+		if (config.debug) cmdAndArgs += "-g"
 	}
 
 	object CLANG : BaseCompiler("clang++") {
 		override fun genCommand(programFile: File, config: Config): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "clang++"
-			cmdAndArgs += "-std=c++11"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
-			if (config.debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (config.debug) "-O0" else "-O3"
-			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
-			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
-			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs, config)
 			return cmdAndArgs
@@ -85,40 +80,9 @@ object CppCompiler {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
-			cmdAndArgs += "-std=c++11"
-			if (config.debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (config.debug) "-O0" else "-O3"
-			cmdAndArgs += "-fexceptions"
-			cmdAndArgs += "-frtti"
-			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += programFile.absolutePath
 			addCommonCmdArgs(cmdAndArgs, config)
 			return cmdAndArgs
 		}
-	}
-}
-
-object MsVcCompiler {
-	val COMMON_TOOLS_ENVS = listOf(
-		"VS140COMNTOOLS",
-		"VS120COMNTOOLS",
-		"VS110COMNTOOLS",
-		"VS100COMNTOOLS"
-	)
-
-	fun detect(context: CppCompiler.Context) {
-		val commonTools = COMMON_TOOLS_ENVS.map { System.getenv(it) }.filterNotNull().firstOrNull()
-
-	}
-}
-
-object CygwinGccCompiler {
-	private val POSSIBLE_GCC = listOf(
-		"C:/cygwin64/bin/gcc.exe",
-		"C:/cygwin/bin/gcc.exe"
-	)
-
-	fun detect(context: CppCompiler.Context) {
-		//File()
 	}
 }

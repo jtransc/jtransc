@@ -125,7 +125,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			debug = settings.debug,
 			libs = targetLibraries + injector.get<ConfigLibraries>().libs,
 			includeFolders = Libs.includeFolders.map { it.absolutePath },
-			libsFolders = Libs.libFolders.map { it.absolutePath }
+			libsFolders = Libs.libFolders.map { it.absolutePath },
+			defines = targetDefines
 		)
 	}
 
@@ -243,11 +244,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			"JA_L" to "p_java_lang_Object"
 		)
 
-		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
-		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
 		this.params["ENABLE_TYPING"] = ENABLE_TYPING
+		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
+		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
 		this.params["CPP_LIBS"] = targetLibraries
 		this.params["CPP_INCLUDES"] = targetIncludes
+		this.params["CPP_DEFINES"] = targetDefines
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)
