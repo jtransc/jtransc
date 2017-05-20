@@ -1,12 +1,9 @@
 package com.jtransc.gen.cpp
 
-import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
-import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddHeaderList
-import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.*
 import com.jtransc.error.invalidOp
@@ -20,6 +17,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
+import com.jtransc.text.substr
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
@@ -98,6 +96,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val staticAccessOperator: String = "::"
 	override val instanceAccessOperator: String = "->"
 
+	override val allTargetLibraries by lazy { Libs.libs + super.allTargetLibraries }
+	override val allTargetDefines by lazy { Libs.extraDefines + super.allTargetDefines }
+
 	//override fun copyFilesExtra(output: SyncVfsFile) {
 	//	output["CMakeLists.txt"] = Indenter {
 	//		line("cmake_minimum_required(VERSION 2.8.9)")
@@ -123,10 +124,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//programFile = File(configOutputFile.output),
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
-			libs = targetLibraries + injector.get<ConfigLibraries>().libs,
+			libs = allTargetLibraries,
 			includeFolders = Libs.includeFolders.map { it.absolutePath },
 			libsFolders = Libs.libFolders.map { it.absolutePath },
-			defines = targetDefines
+			defines = allTargetDefines
 		)
 	}
 
@@ -229,6 +230,18 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	fun Indenter.condWrapper(cond: String, callback: Indenter.() -> Unit) {
+		if (cond.isNotEmpty()) {
+			if (cond.startsWith("!")) line("#ifndef ${cond.substring(1)}") else line("#ifdef $cond")
+			indent {
+				callback()
+			}
+			line("#endif")
+		} else {
+			callback()
+		}
+	}
+
 	override fun writeClasses(output: SyncVfsFile) {
 		val arrayTypes = listOf(
 			"JA_B" to "int8_t",
@@ -245,9 +258,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		this.params["ENABLE_TYPING"] = ENABLE_TYPING
 		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
 		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
-		this.params["CPP_LIBS"] = targetLibraries
+		this.params["CPP_LIBS"] = allTargetLibraries
 		this.params["CPP_INCLUDES"] = targetIncludes
-		this.params["CPP_DEFINES"] = targetDefines
+		this.params["CPP_DEFINES"] = allTargetDefines
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)
@@ -259,7 +272,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			for (clazz in program.classes) {
 				for (includes in clazz.annotationsList.getTypedList(JTranscAddHeaderList::value).filter { it.target == "cpp" }) {
-					for (header in includes.value) line(header)
+					condWrapper(includes.cond) {
+						for (header in includes.value) line(header)
+					}
 				}
 				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }.filter { it.prepend.isNotEmpty() }) {
 					line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
@@ -421,8 +436,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		line("struct ${clazz.cppName}${if (parts.isNotEmpty()) " : $parts " else " "} { public:")
 		indent {
-			for (member in clazz.annotationsList.getTypedList(JTranscAddMembersList::value).filter { it.target == "cpp" }.flatMap { it.value.toList() }) {
-				line(member)
+			for (memberCond in clazz.nativeMembers) {
+				condWrapper(memberCond.cond) {
+					lines(memberCond.members)
+				}
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
@@ -584,7 +601,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			if (nonDefaultBodies.isNotEmpty()) {
 				for ((cond, nbody) in nonDefaultBodies) {
-					line("#ifdef $cond")
+					if (cond.startsWith("!")) line("#ifndef ${cond.substring(1)}") else line("#ifdef $cond")
 					indent {
 						line(nbody)
 					}
@@ -1018,9 +1035,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 //	return getClassNameAllocator(ref.containingClass).allocate(ref) { "F_" + normalizeName(ref.name + "_" + ref.type.mangle()) }
 //}
 
-	override val DoubleNegativeInfinityString = "-INFINITY"
-	override val DoublePositiveInfinityString = "INFINITY"
+	override val DoubleNegativeInfinityString = "-N::INFINITY_DOUBLE"
+	override val DoublePositiveInfinityString = "N::INFINITY_DOUBLE"
 	override val DoubleNanString = "N::NAN_DOUBLE"
+
+	override val FloatNegativeInfinityString = "-N::INFINITY_FLOAT"
+	override val FloatPositiveInfinityString = "N::INFINITY_FLOAT"
+	override val FloatNanString = "N::NAN_FLOAT"
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")

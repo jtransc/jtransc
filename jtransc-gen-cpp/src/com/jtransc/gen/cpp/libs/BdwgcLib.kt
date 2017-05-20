@@ -7,14 +7,14 @@ import java.io.File
 import java.net.URL
 import java.util.*
 
-object BdwgcLib : Lib("bdwgc") {
+open class BdwgcLib : Lib("bdwgc") {
 	override val alreadyInstalled: Boolean get() = Libs.cppCommonFolder["bdwgc/.libs/"].exists()
 	override val libFolders: List<File> = listOf(Libs.cppCommonFolder["bdwgc"][".libs"])
 	override val includeFolders: List<File> = listOf(Libs.cppCommonFolder["bdwgc"]["include"])
+	override val libs: List<String> = listOf("gc")
+	override val extraDefines: List<String> = listOf("GC_NOT_DLL=1", "USE_BOEHM_GC=1")
 
 	override fun install(resourcesVfs: SyncVfsFile) {
-		if (Libs.cppCommonFolder["bdwgc/.libs/"].exists()) return // Already compiled
-
 		// Boehm conservative garbage collector and libatomics
 		val bdwgcDir = File(Libs.sdkDir, "bdwgc")
 		//gc

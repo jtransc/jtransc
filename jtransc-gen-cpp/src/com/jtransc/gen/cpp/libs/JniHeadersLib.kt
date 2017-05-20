@@ -6,7 +6,7 @@ import com.jtransc.vfs.ensureExists
 import com.jtransc.vfs.get
 import java.io.File
 
-object JniHeadersLib : Lib("jni-headers") {
+open class JniHeadersLib : Lib("jni-headers") {
 	val JNI_PLATFORM by lazy {
 		when {
 			JTranscSystem.isWindows() -> "win32"

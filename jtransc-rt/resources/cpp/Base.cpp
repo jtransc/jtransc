@@ -21,14 +21,14 @@
 #include <{{ include }}>
 {% end %}
 
-#ifdef NO_GC
+#ifdef USE_BOEHM_GC
+	#include <gc_cpp.h>
+#else
 	struct gc {
 	};
 	void  GC_INIT() { }
 	void* GC_MALLOC(int size) { return malloc(size); }
 	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
-#else
-	#include <gc_cpp.h>
 #endif
 
 extern "C" {
@@ -60,51 +60,28 @@ typedef double float64_t;
 
 int TRACE_INDENT = 0;
 
-typedef struct {
-	int32_t x;
-	int32_t y;
-} Int32x2;
+typedef struct { int32_t x, y; } Int32x2;
+typedef struct { float32_t x, y, z, w; } Float32x4;
+typedef struct { Float32x4 x, y, z, w; } Float32x4x4;
 
-inline Int32x2 Int32x2_i(int x, int y) {
-	return {x, y};
-}
-
-typedef struct {
-	float32_t x;
-	float32_t y;
-	float32_t z;
-	float32_t w;
-} Float32x4;
-
-typedef struct {
-	Float32x4 x;
-	Float32x4 y;
-	Float32x4 z;
-	Float32x4 w;
-} Float32x4x4;
-
+inline Int32x2 Int32x2_i(int x, int y) { return {x, y}; }
 inline Float32x4 Float32x4_i() { return {0, 0, 0, 0}; }
 inline Float32x4 Float32x4_i(float x, float y, float z, float w) { return {x, y, z, w}; }
 
 inline Float32x4x4 Float32x4x4_i() { return { Float32x4_i(), Float32x4_i(), Float32x4_i(), Float32x4_i() }; }
 inline Float32x4x4 Float32x4x4_i(Float32x4 x, Float32x4 y, Float32x4 z, Float32x4 w) { return { x, y, z, w }; }
 
-inline Float32x4 operator-(const Float32x4& l){ return {-l.x, -l.y, -l.z, -l.w}; };
-inline Float32x4 operator+(const Float32x4& l, const Float32x4& r){ return {l.x+r.x, l.y+r.y, l.z+r.z, l.w+r.w}; };
-inline Float32x4 operator-(const Float32x4& l, const Float32x4& r){ return {l.x-r.x, l.y-r.y, l.z-r.z, l.w-r.w}; };
-inline Float32x4 operator*(const Float32x4& l, const Float32x4& r){ return {l.x*r.x, l.y*r.y, l.z*r.z, l.w*r.w}; };
-inline Float32x4 operator/(const Float32x4& l, const Float32x4& r){ return {l.x/r.x, l.y/r.y, l.z/r.z, l.w/r.w}; };
-inline Float32x4 operator*(const Float32x4& l, float r){ return {l.x*r, l.y*r, l.z*r, l.w*r}; };
+inline Float32x4 operator-(const Float32x4& l) { return {-l.x, -l.y, -l.z, -l.w}; };
+inline Float32x4 operator+(const Float32x4& l, const Float32x4& r) { return {l.x+r.x, l.y+r.y, l.z+r.z, l.w+r.w}; };
+inline Float32x4 operator-(const Float32x4& l, const Float32x4& r) { return {l.x-r.x, l.y-r.y, l.z-r.z, l.w-r.w}; };
+inline Float32x4 operator*(const Float32x4& l, const Float32x4& r) { return {l.x*r.x, l.y*r.y, l.z*r.z, l.w*r.w}; };
+inline Float32x4 operator/(const Float32x4& l, const Float32x4& r) { return {l.x/r.x, l.y/r.y, l.z/r.z, l.w/r.w}; };
+inline Float32x4 operator*(const Float32x4& l, float r) { return {l.x*r, l.y*r, l.z*r, l.w*r}; };
 
-inline float sum(const Float32x4& l){ return {l.x+l.y+l.z+l.w}; };
-inline Float32x4 abs(const Float32x4& l){ return {abs(l.x), abs(l.y), abs(l.z), abs(l.w)}; };
-
-inline float min(float l, float r){ return (l < r) ? l : r; };
-inline float max(float l, float r){ return (l > r) ? l : r; };
-
-inline Float32x4 min(const Float32x4& l, const Float32x4& r){ return {min(l.x, r.x), min(l.y, r.y), min(l.z, r.z), min(l.w, r.w)}; };
-inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return {max(l.x, r.x), max(l.y, r.y), max(l.z, r.z), max(l.w, r.w)}; };
-
+inline float     sum(const Float32x4& l) { return l.x + l.y + l.z + l.w; };
+inline Float32x4 abs(const Float32x4& l) { return { std::fabs(l.x), std::fabs(l.y), std::fabs(l.z), std::fabs(l.w)}; };
+inline Float32x4 min(const Float32x4& l, const Float32x4& r){ return { std::fmin(l.x, r.x), std::fmin(l.y, r.y), std::fmin(l.z, r.z), std::fmin(l.w, r.w)}; };
+inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return { std::fmax(l.x, r.x), std::fmax(l.y, r.y), std::fmax(l.z, r.z), std::fmax(l.w, r.w)}; };
 
 struct CLASS_TRACE { public:
 	const char* text;
@@ -163,6 +140,11 @@ struct N { public:
 
 	static int64_t NAN_LONG;
 	static double NAN_DOUBLE;
+	static double INFINITY_DOUBLE;
+
+	static int32_t NAN_INT;
+	static float NAN_FLOAT;
+	static float INFINITY_FLOAT;
 
 	static const int32_t MIN_INT32 = (int32_t)0x80000000;
 	static const int32_t MAX_INT32 = (int32_t)0x7FFFFFFF;
@@ -513,6 +495,12 @@ int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1)
 
 int64_t N::NAN_LONG = 0x7FF8000000000000L;
 double N::NAN_DOUBLE = *(double*)&(N::NAN_LONG);
+
+int32_t N::NAN_INT = 0x7FF80000;
+float N::NAN_FLOAT = *(float*)&(N::NAN_INT);
+
+double N::INFINITY_DOUBLE = (double)INFINITY;
+float N::INFINITY_FLOAT = (float)INFINITY;
 
 int FIXSHIFT(int r) {
 	if (r < 0) {

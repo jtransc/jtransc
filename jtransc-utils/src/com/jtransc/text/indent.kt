@@ -87,6 +87,10 @@ class Indenter(private val actions: ArrayList<Action> = arrayListOf<Indenter.Act
 		return this
 	}
 
+	fun lines(strs: List<String>): Indenter = this.apply {
+		for (str in strs) line(str)
+	}
+
 	inline fun line(str: String, callback: () -> Unit): Indenter {
 		line(if (str.isEmpty()) "{" else "$str {")
 		indent(callback)

@@ -24,6 +24,8 @@ open class Lib(val name: String) {
 	open fun install(resourcesVfs: SyncVfsFile) = Unit
 	open val includeFolders: List<File> = listOf()
 	open val libFolders: List<File> = listOf()
+	open val libs: List<String> = listOf()
+	open val extraDefines: List<String> = listOf()
 
 	protected fun unzip(zip: File, targetFile: File) {
 		val archiver = ArchiverFactory.createArchiver(ArchiveFormat.ZIP)
@@ -36,7 +38,7 @@ open class Lib(val name: String) {
 	}
 
 	protected fun runCommand(currentDir: File, command: String, args: List<String>) {
-		val result = ProcessUtils.run(currentDir, command, args, ExecOptions(passthru = true))
+		val result = ProcessUtils.run(currentDir, command, args, ExecOptions(passthru = true, sysexec = true))
 		if (!result.success) {
 			throw RuntimeException("success=${result.success}\nexitCode=${result.exitValue}\noutput='${result.out}'\nerror='${result.err}'")
 		}

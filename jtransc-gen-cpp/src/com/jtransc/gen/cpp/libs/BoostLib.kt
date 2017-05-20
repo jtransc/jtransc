@@ -1,6 +1,8 @@
 package com.jtransc.gen.cpp.libs
 
 import com.jtransc.JTranscSystem
+import com.jtransc.error.ignoreErrors
+import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.ensureExists
 import com.jtransc.vfs.get
@@ -8,16 +10,18 @@ import java.io.File
 import java.net.URL
 import java.util.*
 
-object BoostLib : Lib("boost") {
+open class BoostLib : Lib("boost") {
 	override val alreadyInstalled: Boolean get() = Libs.cppCommonFolder["boost/compiled-libs/"].exists()
+	//override val alreadyInstalled: Boolean get() = false
 
 	override val libFolders: List<File> = listOf(Libs.cppCommonFolder["bdwgc"][".libs"], Libs.cppCommonFolder["boost"]["compiled-libs"])
 	override val includeFolders: List<File> = listOf(Libs.cppCommonFolder["bdwgc"]["include"], Libs.cppCommonFolder["boost"]["boost_1_64_0"])
+	override val libs: List<String> = listOf("boost_thread", "boost_system")
+	override val extraDefines: List<String> = listOf("USE_BOOST=1")
+
+	val boostDir by lazy { Libs.sdkDir["boost"] }
 
 	override fun install(resourcesVfs: SyncVfsFile) {
-		if (Libs.cppCommonFolder["boost/compiled-libs/"].exists()) return // Already compiled
-
-		val boostDir = File(Libs.sdkDir, "boost")
 		boostDir.ensureExists()
 
 		//boost
@@ -35,18 +39,36 @@ object BoostLib : Lib("boost") {
 		}
 
 		val boostDestDir0 = boostDestDir[0]
+		copyWindowsLibs(boostDestDir0)
+
+		val prefix = listOf("--prefix=${Libs.sdkDir}/boost/compiled-libs/")
+		val withLibs = listOf("--with-thread", "--with-system", "--with-chrono")
 
 		if (JTranscSystem.isWindows()) {
-			runCommand(boostDestDir0, "cmd", mutableListOf("/c", "bootstrap.bat", "--prefix=${Libs.sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
-			runCommand(boostDestDir0, boostDestDir0["b2.exe"].absolutePath, mutableListOf("install"))
+			runCommand(boostDestDir0, "bootstrap.bat", listOf())
+			runCommand(boostDestDir0, boostDestDir0["b2.exe"].absolutePath, listOf("install") + prefix + withLibs)
 			boostDir["compiled-libs"].mkdirs()
-			boostDestDir0["stage/lib"].copyRecursively(boostDir["compiled-libs"])
+
 		} else {
 			boostDestDir0["bootstrap.sh"].setExecutable(true)
-			runCommand(boostDestDir0, "./bootstrap.sh", mutableListOf("--prefix=${Libs.sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
+			runCommand(boostDestDir0, "./bootstrap.sh", listOf("--prefix=${Libs.sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
 
 			boostDestDir0["b2"].setExecutable(true)
-			runCommand(boostDestDir0, "./b2", mutableListOf("install"))
+			runCommand(boostDestDir0, "./b2", listOf("install") + prefix + withLibs)
+		}
+	}
+
+	private fun copyWindowsLibs(boostDestDir0: File) {
+		ignoreErrors { boostDir["compiled-libs"].mkdirs() }
+		try {
+			boostDestDir0["stage/lib"].copyRecursively(boostDir["compiled-libs"])
+		} catch (e: Throwable) {
+		}
+		val compiledLibs = LocalVfs(boostDir["compiled-libs"])
+		val files = LocalVfs(boostDestDir0["bin.v2"]).listdirRecursive().filter { it.isFile }
+		for (file in files.filter { it.name.contains(".lib") || it.name.contains(".a") || it.name.contains(".la") }) {
+
+			file.file.copyTo(compiledLibs[file.name])
 		}
 	}
 }
