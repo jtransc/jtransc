@@ -63,16 +63,18 @@ object Libs {
 		listOf(
 			cppCommonFolder["jni-headers"],
 			cppCommonFolder["jni-headers"][JNI_PLATFORM],
-			cppCommonFolder["bdwgc"]["include"],
-			cppCommonFolder["boost"]["boost_1_64_0"]
+			cppCommonFolder["bdwgc"]["include"]
+			//cppCommonFolder["bdwgc"]["include"],
+			//cppCommonFolder["boost"]["boost_1_64_0"]
 
 		)
 	}
 
 	val libFolders by lazy {
 		listOf(
-			cppCommonFolder["bdwgc"][".libs"],
-			cppCommonFolder["boost"]["compiled-libs"]
+			cppCommonFolder["bdwgc"][".libs"]
+			//cppCommonFolder["bdwgc"][".libs"],
+			//cppCommonFolder["boost"]["compiled-libs"]
 
 		)
 	}
