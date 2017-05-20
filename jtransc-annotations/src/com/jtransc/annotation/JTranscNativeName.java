@@ -24,4 +24,5 @@ import java.lang.annotation.*;
 public @interface JTranscNativeName {
     String value();
 	String target() default "";
+	String defaultValue() default "";
 }

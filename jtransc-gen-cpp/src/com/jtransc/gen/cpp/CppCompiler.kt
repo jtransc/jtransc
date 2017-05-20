@@ -23,7 +23,7 @@ object CppCompiler {
 		LocalVfs(folder)
 	}
 
-	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf()): List<String> {
+	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf(), includeFolders: List<String> = listOf(), libsFolders: List<String> = listOf()): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 
@@ -38,11 +38,11 @@ object CppCompiler {
 			return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "--config", config)
 		} else {
 			val compiler = listOf(GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (g++ or clang), please install one of them and put in the path.")
-			return compiler.genCommand(programFile, debug, libs)
+			return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders))
 		}
 	}
 
-	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>) {
+	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>, config: BaseCompiler.Config) {
 		val commonFolder = CPP_COMMON_FOLDER.realpathOS
 
 		when {
@@ -54,51 +54,51 @@ object CppCompiler {
 				System.exit(-1)
 			}
 		}
-		cmdAndArgs.add("-I$commonFolder/jni-headers/")
-		cmdAndArgs.add("-I$commonFolder/boost/compiled-libs/include/")
-		cmdAndArgs.add("-I$commonFolder/bdwgc/include/")
-		cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgccpp.a")
-		cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgc.a")
+		//cmdAndArgs.add("-I$commonFolder/jni-headers/")
+		//cmdAndArgs.add("-I$commonFolder/boost/compiled-libs/include/")
+		//cmdAndArgs.add("-I$commonFolder/bdwgc/include/")
+		//cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgccpp.a")
+		//cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgc.a")
 		cmdAndArgs.add("$commonFolder/boost/compiled-libs/lib/libboost_thread.a")
 		cmdAndArgs.add("$commonFolder/boost/compiled-libs/lib/libboost_system.a")
+		for (includeFolder in config.includeFolders) cmdAndArgs += "-I$includeFolder"
+		for (libFolder in config.libsFolders) cmdAndArgs += "-L$libFolder"
+		if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
+		for (lib in config.libs) cmdAndArgs += "-l$lib"
 	}
 
 	object CLANG : BaseCompiler("clang++") {
-		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+		override fun genCommand(programFile: File, config: Config): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "clang++"
 			cmdAndArgs += "-std=c++11"
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
-			if (debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (debug) "-O0" else "-O3"
+			if (config.debug) cmdAndArgs += "-g"
+			cmdAndArgs += if (config.debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += "-frtti"
 			cmdAndArgs += programFile.absolutePath
-			addCommonCmdArgs(cmdAndArgs)
-			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
-			for (lib in libs) cmdAndArgs += "-l$lib"
+			addCommonCmdArgs(cmdAndArgs, config)
 			return cmdAndArgs
 		}
 	}
 
 	object GPP : BaseCompiler("g++") {
-		override fun genCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
+		override fun genCommand(programFile: File, config: Config): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += "g++"
 			cmdAndArgs += "-w"
 			cmdAndArgs += "-std=c++11"
-			if (debug) cmdAndArgs += "-g"
-			cmdAndArgs += if (debug) "-O0" else "-O3"
+			if (config.debug) cmdAndArgs += "-g"
+			cmdAndArgs += if (config.debug) "-O0" else "-O3"
 			cmdAndArgs += "-fexceptions"
 			cmdAndArgs += "-frtti"
 			if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 			cmdAndArgs += programFile.absolutePath
-			addCommonCmdArgs(cmdAndArgs)
-			if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
-			for (lib in libs) cmdAndArgs += "-l$lib"
+			addCommonCmdArgs(cmdAndArgs, config)
 			return cmdAndArgs
 		}
 	}

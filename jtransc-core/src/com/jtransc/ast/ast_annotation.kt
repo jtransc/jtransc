@@ -1,6 +1,7 @@
 package com.jtransc.ast
 
 import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.annotation.JTranscNativeName
 import com.jtransc.gen.TargetName
 import com.jtransc.log.log
 import com.jtransc.org.objectweb.asm.Type
@@ -142,8 +143,8 @@ fun AstAnnotationList.getHeadersForTarget(targetName: TargetName): List<String> 
 	return this.getTypedList(com.jtransc.annotation.JTranscAddHeaderList::value).filter { targetName.matches(it.target) }.flatMap { it.value.toList() }
 }
 
-fun AstAnnotationList.getNativeNameForTarget(targetName: TargetName): String? {
-	return this.getTypedList(com.jtransc.annotation.JTranscNativeNameList::value).filter { targetName.matches(it.target) }.map { it.value }.firstOrNull()
+fun AstAnnotationList.getNativeNameForTarget(targetName: TargetName): JTranscNativeName? {
+	return this.getTypedList(com.jtransc.annotation.JTranscNativeNameList::value).filter { targetName.matches(it.target) }.map { it }.firstOrNull()
 }
 
 //val AstAnnotationList.nonNativeCall get() = this.contains<JTranscNonNative>()

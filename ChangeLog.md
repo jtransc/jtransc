@@ -4,6 +4,8 @@
 
 - Added `@JTranscAddIncludes` annotations
 - Honor `@JTranscAddLibraries` and `@JTranscAddIncludes` annotations in C++ target
+- Initial support of class `@JTranscNativeName` types in C++. Implemented Int32x4 SIMD to check. Works even without ENABLE_TYPING enabled.
+- Fxied compilation in windows (b2.exe not executing)
 
 ## 0.6.0
 

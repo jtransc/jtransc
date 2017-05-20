@@ -654,7 +654,7 @@ open class AstMember(
 	elementRef: AstMemberRef,
 	annotations: List<AstAnnotation> = listOf()
 ) : AstAnnotatedElement(containingClass.program, elementRef, annotations), IUserData by UserData() {
-	fun nativeNameForTarget(target: TargetName): String? = annotationsList.getNativeNameForTarget(target)
+	fun nativeNameForTarget(target: TargetName): String? = annotationsList.getNativeNameForTarget(target)?.value
 }
 
 interface MethodRef {

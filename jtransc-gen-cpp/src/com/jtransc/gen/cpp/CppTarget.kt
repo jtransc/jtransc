@@ -27,7 +27,6 @@ import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 import java.util.*
 
-
 const val CHECK_ARRAYS = true
 const val TRACING = false
 const val TRACING_JUST_ENTER = false
@@ -132,7 +131,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//programFile = File(configOutputFile.output),
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
-			libs = targetLibraries + injector.get<ConfigLibraries>().libs
+			libs = targetLibraries + injector.get<ConfigLibraries>().libs,
+			includeFolders = Libs.includeFolders.map { it.absolutePath },
+			libsFolders = Libs.libFolders.map { it.absolutePath }
 		)
 	}
 
@@ -161,7 +162,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	fun generateTypeTableFooter() = Indenter {
 		val objectClassId = program["java.lang.Object".fqname].classId
-		for (clazz in ordereredClasses) {
+		for (clazz in ordereredClassesMustGenerate) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
@@ -173,10 +174,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			@Suppress("LoopToCallChain")
 			for (n in 0 until lastClassId) {
 				val clazz = classesById[n]
-				if (clazz != null) {
+				if (clazz != null && clazz.mustGenerate) {
 					line("${clazz.cppName}::TABLE_INFO,")
 				} else if (n == 1) { // Special case for the array base class, which is also an object
-					line("{ 1, new int[1]{${objectClassId}} },")
+					line("{ 1, new int[1]{$objectClassId} },")
 				} else {
 					line("TABLE_INFO_NULL,")
 				}
@@ -209,6 +210,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		out.toList()
 	}
 
+	val ordereredClassesMustGenerate by lazy { ordereredClasses.filter { it.mustGenerate } }
 	var prefixTempId = 0
 	val bodyPrefixes = arrayListOf<String>()
 
@@ -276,10 +278,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val CLASS_REFERENCES = Indenter {
 			// {{ CLASS_REFERENCES }}
-			for (clazz in ordereredClasses.filter { !it.isNative }) {
+			for (clazz in ordereredClassesMustGenerate) {
 				line(writeClassRef(clazz))
 			}
-			for (clazz in ordereredClasses.filter { !it.isNative }) {
+			for (clazz in ordereredClassesMustGenerate) {
 				line(writeClassRefPtr(clazz))
 			}
 		}
@@ -706,7 +708,19 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun processCallArg(e: AstExpr, str: String, targetType: AstType) = doArgCast(targetType, str)
 
-	override val AstLocal.decl: String get() = "${this.type.targetNameRef} ${this.targetName} = (${this.type.targetNameRef})${this.type.nativeDefaultString};"
+	override val AstLocal.decl: String get() {
+		if (this.type is AstType.REF) {
+			val clazz = program[this.type as AstType.REF]!!
+			if (clazz.isNative) {
+				val nativeInfo = clazz.nativeNameInfo
+				if (nativeInfo != null && nativeInfo.defaultValue.isNotEmpty()) {
+					return "${this.type.targetNameRef} ${this.targetName} = ${nativeInfo.defaultValue};"
+				}
+			}
+		}
+
+		return "${this.type.targetNameRef} ${this.targetName} = (${this.type.targetNameRef})${this.type.nativeDefaultString};"
+	}
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()})->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
@@ -808,13 +822,20 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override val AstType.targetNameRef: String get() {
-		return if (ENABLE_TYPING) {
-			getTypeTargetName(this, ref = true)
+		if (ENABLE_TYPING) {
+			return getTypeTargetName(this, ref = true)
 		} else {
 			if (this is AstType.Reference) {
-				"p_java_lang_Object"
+				if (this is AstType.REF) {
+					val clazz = program[this]!!
+					val nativeName = clazz.nativeName
+					if (nativeName != null) {
+						return nativeName
+					}
+				}
+				return "p_java_lang_Object"
 			} else {
-				getTypeTargetName(this, ref = true)
+				return getTypeTargetName(this, ref = true)
 			}
 		}
 	}

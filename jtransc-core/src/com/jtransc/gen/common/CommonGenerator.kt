@@ -4,10 +4,7 @@ import com.jtransc.ConfigLibraries
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
 import com.jtransc.JTranscVersion
-import com.jtransc.annotation.JTranscAddMembersList
-import com.jtransc.annotation.JTranscInvisibleExternal
-import com.jtransc.annotation.JTranscLiteralParam
-import com.jtransc.annotation.JTranscUnboxParam
+import com.jtransc.annotation.*
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
@@ -773,7 +770,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	val AstClass.nativeName get() = this.nativeNameForTarget(this@CommonGenerator.targetName)
+	val AstClass.nativeNameInfo: JTranscNativeName? get() = this.nativeNameForTarget(this@CommonGenerator.targetName)
+	val AstClass.nativeName: String? get() = this.nativeNameInfo?.value
 
 	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
 		val newClazz = program[stm.target.name]

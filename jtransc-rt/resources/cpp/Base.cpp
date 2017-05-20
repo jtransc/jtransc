@@ -56,6 +56,16 @@ typedef double float64_t;
 
 int TRACE_INDENT = 0;
 
+typedef struct {
+	int32_t x;
+	int32_t y;
+} Int32x2;
+
+Int32x2 Int32x2_i(int x, int y) {
+	Int32x2 v = {x, y};
+	return v;
+}
+
 struct CLASS_TRACE { public:
 	const char* text;
 	static void print_indent() { for (int n = 0; n < TRACE_INDENT; n++) putchar(' '); };
