@@ -525,7 +525,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("""TRACE_REGISTER("${clazz.cppName}::SI");""")
 			for (field in clazz.fields.filter { it.isStatic }) {
 				if (field.isStatic) {
-					val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
+					val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else field.type.nativeDefaultString
 					line("${clazz.cppName}::${field.targetName} = $cst;")
 				}
 			}
@@ -541,7 +541,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeField(field: AstField): Indenter = Indenter {
 		val clazz = field.containingClass
 		if (field.isStatic) {
-			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = 0;")
+			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
 		}
 	}
 
@@ -708,19 +708,21 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun processCallArg(e: AstExpr, str: String, targetType: AstType) = doArgCast(targetType, str)
 
-	override val AstLocal.decl: String get() {
-		if (this.type is AstType.REF) {
-			val clazz = program[this.type as AstType.REF]!!
-			if (clazz.isNative) {
-				val nativeInfo = clazz.nativeNameInfo
-				if (nativeInfo != null && nativeInfo.defaultValue.isNotEmpty()) {
-					return "${this.type.targetNameRef} ${this.targetName} = ${nativeInfo.defaultValue};"
+	override val AstType.nativeDefaultString: String
+		get() {
+			if (this is AstType.REF) {
+				val clazz = program[this]!!
+				if (clazz.isNative) {
+					val nativeInfo = clazz.nativeNameInfo
+					if (nativeInfo != null && nativeInfo.defaultValue.isNotEmpty()) {
+						return nativeInfo.defaultValue
+					}
 				}
 			}
+			return this.nativeDefault.escapedConstant
 		}
 
-		return "${this.type.targetNameRef} ${this.targetName} = (${this.type.targetNameRef})${this.type.nativeDefaultString};"
-	}
+	override val AstLocal.decl: String get() = "${this.type.targetNameRef} ${this.targetName} = (${this.type.targetNameRef})${this.type.nativeDefaultString};"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "((JA_0*)${e.array.genNotNull()})->length"
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {

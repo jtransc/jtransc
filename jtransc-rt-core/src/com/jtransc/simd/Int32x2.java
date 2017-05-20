@@ -1,10 +1,8 @@
 package com.jtransc.simd;
 
-import com.jtransc.annotation.JTranscCallSiteBody;
-import com.jtransc.annotation.JTranscCallSiteBodyList;
-import com.jtransc.annotation.JTranscNativeName;
-import com.jtransc.annotation.JTranscNativeNameList;
+import com.jtransc.annotation.*;
 
+@JTranscInvisible
 @JTranscNativeNameList({
 	@JTranscNativeName(target = "dart", value = "Int32x4"),
 	@JTranscNativeName(target = "cpp", value = "Int32x2", defaultValue = "Int32x2_i(0, 0)"),

@@ -61,10 +61,46 @@ typedef struct {
 	int32_t y;
 } Int32x2;
 
-Int32x2 Int32x2_i(int x, int y) {
-	Int32x2 v = {x, y};
-	return v;
+inline Int32x2 Int32x2_i(int x, int y) {
+	return {x, y};
 }
+
+typedef struct {
+	float32_t x;
+	float32_t y;
+	float32_t z;
+	float32_t w;
+} Float32x4;
+
+typedef struct {
+	Float32x4 x;
+	Float32x4 y;
+	Float32x4 z;
+	Float32x4 w;
+} Float32x4x4;
+
+inline Float32x4 Float32x4_i() { return {0, 0, 0, 0}; }
+inline Float32x4 Float32x4_i(float x, float y, float z, float w) { return {x, y, z, w}; }
+
+inline Float32x4x4 Float32x4x4_i() { return { Float32x4_i(), Float32x4_i(), Float32x4_i(), Float32x4_i() }; }
+inline Float32x4x4 Float32x4x4_i(Float32x4 x, Float32x4 y, Float32x4 z, Float32x4 w) { return { x, y, z, w }; }
+
+inline Float32x4 operator-(const Float32x4& l){ return {-l.x, -l.y, -l.z, -l.w}; };
+inline Float32x4 operator+(const Float32x4& l, const Float32x4& r){ return {l.x+r.x, l.y+r.y, l.z+r.z, l.w+r.w}; };
+inline Float32x4 operator-(const Float32x4& l, const Float32x4& r){ return {l.x-r.x, l.y-r.y, l.z-r.z, l.w-r.w}; };
+inline Float32x4 operator*(const Float32x4& l, const Float32x4& r){ return {l.x*r.x, l.y*r.y, l.z*r.z, l.w*r.w}; };
+inline Float32x4 operator/(const Float32x4& l, const Float32x4& r){ return {l.x/r.x, l.y/r.y, l.z/r.z, l.w/r.w}; };
+inline Float32x4 operator*(const Float32x4& l, float r){ return {l.x*r, l.y*r, l.z*r, l.w*r}; };
+
+inline float sum(const Float32x4& l){ return {l.x+l.y+l.z+l.w}; };
+inline Float32x4 abs(const Float32x4& l){ return {abs(l.x), abs(l.y), abs(l.z), abs(l.w)}; };
+
+inline float min(float l, float r){ return (l < r) ? l : r; };
+inline float max(float l, float r){ return (l > r) ? l : r; };
+
+inline Float32x4 min(const Float32x4& l, const Float32x4& r){ return {min(l.x, r.x), min(l.y, r.y), min(l.z, r.z), min(l.w, r.w)}; };
+inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return {max(l.x, r.x), max(l.y, r.y), max(l.z, r.z), max(l.w, r.w)}; };
+
 
 struct CLASS_TRACE { public:
 	const char* text;

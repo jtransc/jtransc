@@ -1,5 +1,8 @@
 package com.jtransc.simd;
 
+import com.jtransc.annotation.JTranscInvisible;
+
+@JTranscInvisible
 final public class MutableFloat32x4Utils {
 	static private final MutableFloat32x4 temp = MutableFloat32x4.create();
 

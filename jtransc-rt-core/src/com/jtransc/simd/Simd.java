@@ -1,9 +1,11 @@
 package com.jtransc.simd;
 
 import com.jtransc.annotation.JTranscAddFile;
+import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
 
+@JTranscInvisible
 @JTranscAddFile(target = "js", priority = -2000, prepend = "js/SimdPolyfill.js")
 final public class Simd {
 	static public void ref() {

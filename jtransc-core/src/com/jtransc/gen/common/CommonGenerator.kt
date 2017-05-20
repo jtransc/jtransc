@@ -491,7 +491,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		fun processArg(arg: AstExpr.Box, targetType: AstType) = processCallArg(arg.value, if (isNativeCall) convertToTarget(arg) else arg.genExpr(), targetType)
 		fun processArg(arg: AstExpr.Box) = processArg(arg, arg.type)
 
-		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)
+		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)?.template("JTranscCallSiteBody")
 
 		fun unbox(arg: AstExpr.Box): String {
 			val processed = processArg(arg)
@@ -581,7 +581,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 					}
 					else -> res
 				}
-			}.template("JTranscCallSiteBody")
+			}
 			return out
 		} else {
 			val processedArgs = pparams.map { processArg2(it) }
@@ -1887,7 +1887,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 //////////////////////////////////////////////////
 
 	open val AstType.nativeDefault: Any? get() = this.getNull()
-	open val AstType.nativeDefaultString: String get() = this.nativeDefault.escapedConstant
+	open val AstType.nativeDefaultString: String get() {
+		return this.nativeDefault.escapedConstant
+	}
 
 	fun Any?.escapedConstantOfType(type: AstType): String {
 		if (type == AstType.BOOL) {
