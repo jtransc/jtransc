@@ -58,12 +58,6 @@ typedef double float64_t;
 // HEADERS + INCLUDES
 {{ HEADER }}
 
-//#define Lnull ((wchar_t*)0)
-
-#define null 0
-//#define null ((void*)0)
-#define Lnull ((wchar_t*)0)
-
 int TRACE_INDENT = 0;
 
 typedef struct {
@@ -323,7 +317,7 @@ struct JA_0 : public java_lang_Object { public:
 	}
 
 	static void* alloc(bool pointers, int len, int esize) {
-		void * result = NULL;
+		void * result = nullptr;
 		int bytesSize = esize * (len + 1);
 		if (pointers) {
 			result = (void*)GC_MALLOC(bytesSize);
@@ -500,7 +494,7 @@ int64_t N::lnew(int high, int low) {
 };
 
 bool N::is(JAVA_OBJECT obj, int type) {
-	if (obj == NULL) return false;
+	if (obj == nullptr) return false;
 	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__INSTANCE_CLASS_ID];
 	const size_t size = type_info.size;
 	const int* subtypes = type_info.subtypes;
@@ -510,8 +504,8 @@ bool N::is(JAVA_OBJECT obj, int type) {
 	return false;
 };
 
-bool N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != NULL; };
-bool N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != null) && (ptr->desc == desc); };
+bool N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
+bool N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
 bool N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
 int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
 int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
@@ -665,14 +659,14 @@ N::str(std::wstring str) {
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::string s) {
-	//if (s == NULL) return SOBJ(NULL);
+	//if (s == nullptr) return SOBJ(nullptr);
 	std::wstring ws(s.begin(), s.end());
 	return N::str(ws);
 };
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(char *s) {
-	if (s == NULL) return NULL;
+	if (s == nullptr) return nullptr;
 	int len = strlen(s);
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
@@ -756,7 +750,7 @@ void N::log(JAVA_OBJECT obj) {
 
 JAVA_OBJECT N::dummyMethodClass() {
 	throw "Not supported java8 method references";
-	return NULL;
+	return nullptr;
 }
 
 void N::throwNpe(const wchar_t* position) {
@@ -768,7 +762,7 @@ void N::throwNpe(const wchar_t* position) {
 template<typename T>
 T N::ensureNpe(T obj, const wchar_t* position) {
 	#ifdef CHECK_NPE
-	if (obj == NULL) N::throwNpe(position);
+	if (obj == nullptr) N::throwNpe(position);
 	#endif
 	return obj;
 }
@@ -780,7 +774,7 @@ void N::throwNpe() {
 template<typename T>
 T N::ensureNpe(T obj) {
 	#ifdef CHECK_NPE
-	if (obj == NULL) N::throwNpe();
+	if (obj == nullptr) N::throwNpe();
 	#endif
 	return obj;
 }
@@ -798,7 +792,7 @@ void N::writeChars(JAVA_OBJECT str, char *out, int maxlen) {
 	out[len] = 0;
 }
 
-JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)NULL; }
+JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
 int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
 int32_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
 int32_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
@@ -808,8 +802,8 @@ int64_t N::unboxLong(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Lon
 float   N::unboxFloat(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Float %}, obj)->{% SMETHOD java.lang.Float:floatValue %}(); }
 double  N::unboxDouble(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Double %}, obj)->{% SMETHOD java.lang.Double:doubleValue %}(); }
 
-JAVA_OBJECT N::boxVoid(void)       { return (JAVA_OBJECT)null; }
-JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return (JAVA_OBJECT)null; }
+JAVA_OBJECT N::boxVoid(void)       { return (JAVA_OBJECT)nullptr; }
+JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return (JAVA_OBJECT)nullptr; }
 JAVA_OBJECT N::boxBool(bool v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
 JAVA_OBJECT N::boxByte(int32_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
 JAVA_OBJECT N::boxShort(int32_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
@@ -823,7 +817,7 @@ JAVA_OBJECT N::boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:
 
 std::vector<JAVA_OBJECT> N::getVectorOrEmpty(JAVA_OBJECT obj) {
 	auto array = GET_OBJECT(JA_L, obj);
-	if (array == NULL)  return std::vector<JAVA_OBJECT>(0);
+	if (array == nullptr)  return std::vector<JAVA_OBJECT>(0);
 	return array->getVector();
 };
 
@@ -878,7 +872,7 @@ JAVA_OBJECT jtvmNewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
 	auto buffer = std::make_shared<{% CLASS java.nio.ByteBuffer %}>({% CONSTRUCTOR java.nio.ByteBuffer:([BZ)V %}(byteArray, (int8_t)true)).get()->sptr();
 	std::cerr << "N::jtvmNewDirectByteBuffer after alloc";
 	return buffer.get();*/
-	//return null;
+	//return nullptr;
 }
 
 jobject JNICALL NewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
@@ -1195,205 +1189,205 @@ jboolean JNICALL IsInstanceOf(JNIEnv *env, jobject obj, jclass clazz){
 
 const struct JNINativeInterface_ jni = {
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 	&GetVersion,
 
-	NULL,
+	nullptr,
 	&FindClass,
 
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,//&NewObject,
-	NULL,//&NewObjectV,
-	NULL,//&NewObjectA,
+	nullptr,
+	nullptr,//&NewObject,
+	nullptr,//&NewObjectV,
+	nullptr,//&NewObjectA,
 
 	&GetObjectClass,
 	&IsInstanceOf,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 
-	&GetArrayLength/*NULL*/,
+	&GetArrayLength/*nullptr*/,
 
-	NULL,
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
+	nullptr,
 
 	&NewBooleanArray,
     &NewByteArray,
@@ -1439,33 +1433,33 @@ const struct JNINativeInterface_ jni = {
     &SetFloatArrayRegion,
     &SetDoubleArrayRegion,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
-	NULL,
-    NULL,
+	nullptr,
+    nullptr,
 
 	&GetPrimitiveArrayCritical,
     &ReleasePrimitiveArrayCritical,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
-	NULL,
+	nullptr,
+	nullptr,
 
-	NULL,
+	nullptr,
 
 	&NewDirectByteBuffer,
 	&GetDirectBufferAddress,
 	&GetDirectBufferCapacity,
 
-	NULL
+	nullptr
 };
 
 
@@ -1480,8 +1474,8 @@ void N::startup() {
 	std::setlocale(LC_CTYPE, "en_US.UTF-8");
 
 	N::env.jni.functions = &jni;
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
+	setvbuf(stdout, nullptr, _IONBF, 0);
+	setvbuf(stderr, nullptr, _IONBF, 0);
 	std::signal(SIGSEGV, SIGSEGV_handler);
 	std::signal(SIGFPE, SIGFPE_handler);
 

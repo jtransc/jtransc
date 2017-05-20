@@ -127,7 +127,7 @@ public class JTranscCoreReflection {
 
 	@HaxeMethodBody("return (p0 != null) ? Std.is(p0, JA_0) : false;")
 	@JTranscMethodBody(target = "js", value = "return p0 ? (p0 instanceof JA_0) : false;")
-	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0) != null;")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0) != nullptr;")
 	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0) !is null;")
 	@JTranscMethodBody(target = "cs", value = "return p0 is JA_0;")
 	@JTranscMethodBody(target = "as3", value = "return p0 is JA_0;")

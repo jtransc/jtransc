@@ -219,7 +219,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	val JAVA_LANG_STRING_FQ = AstType.REF("java.lang.String")
 
-	override fun genBodyTrapsPrefix(): Indenter = indent { line("p_java_lang_Object J__exception__ = (p_java_lang_Object)null;") }
+	override fun genBodyTrapsPrefix(): Indenter = indent { line("p_java_lang_Object J__exception__ = (p_java_lang_Object)nullptr;") }
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH): Indenter = Indenter {
 		line("try") {
@@ -608,11 +608,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 
 	fun genJniMethod(method: AstMethod) = Indenter {
-		val mangledJniFunctionName: String
 		//if (method.isOverloaded) {
 		//	mangledJniFunctionName = JniUtils.mangleLongJavaMethod(method);
 		//} else {
-		mangledJniFunctionName = JniUtils.mangleShortJavaMethod(method);
+		//val mangledJniFunctionName = JniUtils.mangleShortJavaMethod(method);
 		//}
 
 		val sb = StringBuilder(30)
@@ -634,21 +633,21 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val sb2 = StringBuilder(30)
 		for (i in method.methodType.args.indices) {
-			val arg = method.methodType.args[i].type;
+			val arg = method.methodType.args[i].type
 			if (arg is AstType.REF) {
-				sb2.append(", ((${referenceToNativeType(arg)})((SOBJ)");
-				sb2.append("p${i}");
-				sb2.append(").get())");
+				sb2.append(", ((${referenceToNativeType(arg)})((SOBJ)")
+				sb2.append("p$i")
+				sb2.append(").get())")
 			} else if (arg is AstType.ARRAY) {
-				sb2.append(", ((${arrayToNativeType(arg)})((SOBJ)");
-				sb2.append("p${i}");
-				sb2.append(").get())");
+				sb2.append(", ((${arrayToNativeType(arg)})((SOBJ)")
+				sb2.append("p$i")
+				sb2.append(").get())")
 			} else {
-				sb2.append(", p${i}");
+				sb2.append(", p${i}")
 			}
 
 		}
-		line("return fptr(N::getJniEnv(), NULL ${sb2.toString()});")
+		line("return fptr(N::getJniEnv(), NULL $sb2);")
 		//line("JNI: \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";")
 	}
 
@@ -747,8 +746,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	private fun getPtr(clazz: AstClass, objStr: String, npe: Boolean = true): String {
 		// http://www.cplusplus.com/doc/tutorial/typecasting/
-		if (objStr == "null") {
-			return "(${clazz.cppNameRefCast})(null)"
+		if (objStr == "null" || objStr == "nullptr") {
+			return "(${clazz.cppNameRefCast})(nullptr)"
 		}
 		if (clazz.isInterface) {
 			if (npe) {
@@ -801,21 +800,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "${refMethodClass.ref.cppName}::${superMethod.targetName}(${args.joinToString(", ")})"
 	}
 
-	override fun genExprThis(e: AstExpr.THIS): String {
-		return genExprThis()
-	}
-
-	fun genExprThis(): String {
-		return "this" //->sptr()"
-	}
-
-	override fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter {
-		return super.genStmSetFieldInstance(stm)
-	}
-
-	override fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {
-		return "N::dummyMethodClass()"
-	}
+	override fun genExprThis(e: AstExpr.THIS): String = genExprThis()
+	fun genExprThis(): String = "this" //->sptr()"
+	override fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String = "N::dummyMethodClass()"
 
 	override val AstType.targetNameRef: String get() {
 		if (ENABLE_TYPING) {
@@ -1070,4 +1057,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstMethodRef.objectToCache: Any get() = this
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun escapedConstant(v: Any?): String = when (v) {
+		null -> "nullptr"
+		else -> super.escapedConstant(v)
+	}
 }
