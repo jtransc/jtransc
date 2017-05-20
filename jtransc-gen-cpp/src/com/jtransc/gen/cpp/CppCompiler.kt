@@ -10,9 +10,6 @@ import com.jtransc.vfs.get
 import java.io.File
 
 object CppCompiler {
-	class Context(val desiredCompiler: String = "any")
-	interface Compiler
-
 	val CPP_COMMON_FOLDER by lazy {
 		val jtranscVersion = JTranscVersion.getVersion().replace('.', '_');
 		val folder = File(System.getProperty("user.home") + "/.jtransc/cpp/" + jtranscVersion)
@@ -56,7 +53,8 @@ object CppCompiler {
 			}
 			val cfg = if (config.debug) "Debug" else "Release"
 			//return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "-DCMAKE_GENERATOR_PLATFORM=x64", "--config", config)
-			return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "--config", cfg)
+			//return listOf(cmake) + listOf("--build", ".", "--target", "ALL_BUILD", "--config", cfg)
+			return listOf(cmake) + listOf("--build", ".", "--config", cfg)
 		}
 	}
 

@@ -4,6 +4,10 @@ set (CMAKE_CXX_STANDARD 11)
 #add_compile_options(-std=c++11)
 add_definitions(-DNO_GC=1)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 project (program)
 
 {% for folder in CPP_INCLUDE_FOLDERS %}

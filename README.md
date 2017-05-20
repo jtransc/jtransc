@@ -17,7 +17,7 @@ You can find documentation at the [wiki](http://docs.jtransc.com/).
 There are a lot of technologies in order to convert languages into other ones. For example, convert Java into JavaScript.
 Or even Kotlin already targets JavaScript. So why using JTransc?
 
-### Mixed code:
+### Mixed input code:
 
 One reason is that JTransc allows mixed projects. You can use Java libraries with Kotlin code for example.
 
@@ -27,7 +27,7 @@ Instead of using several technologies. JTransc allows you to target to several p
 
 ### Consistency:
 
-Using just one technology guarantees consistency between targets. For example, Kotlin JS doesn't support full Java collections.
+Using just one technology guarantees consistency between targets. For example, Kotlin JS doesn't support full Java reflection.
 
 ### Native:
 
@@ -37,6 +37,12 @@ Instead of generating C++ and then using emscripten or other technologies, JTran
 
 Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript facilities.
 Like JavaScript String, Array and so on.
+
+### Treeshaking
+
+Instead of generating huge projects including everything, or having complex proguard configuration files.
+JTransc includes treeshaking in a simple way. You can use annotations to keep methods, classes and fields or another annotations.
+It works for all targets and it is fully integrated in the workflow.
 
 # Support this project
 

@@ -132,9 +132,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val cmakeFolder = if (debugVersion) "Debug" else "Release"
-		val cmakeNames = listOf("$cmakeFolder/program.exe")
-		val unixNames = listOf("a.exe", "a", "a.out")
-		val names = if (JTranscSystem.isWindows()) cmakeNames else unixNames
+		val names = listOf("$cmakeFolder/program.exe", "program", "a.exe", "a", "a.out")
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = false))
