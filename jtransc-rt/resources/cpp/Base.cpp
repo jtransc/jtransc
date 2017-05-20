@@ -21,7 +21,7 @@
 #include <{{ include }}>
 {% end %}
 
-#ifdef USE_BOEHM_GC
+#if (defined(USE_BOEHM_GC) && !defined(DISABLE_BOEHM_GC))
 	#include <gc_cpp.h>
 #else
 	struct gc {
