@@ -45,6 +45,7 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "dart", priority = -1, process = true, src = "dart/pubspec.yaml", dst = "pubspec.yaml")
 @JTranscAddFile(target = "php", priority = -1, process = true, prependAppend = "php/Base.php")
 @JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/CMakeLists.txt", dst = "CMakeLists.txt")
+@JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/combined_jni.h", dst = "jni.h")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/_project.as3proj", dst = "_project.as3proj")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/N.as", dst = "N.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.as", dst = "Main.as")
@@ -64,11 +65,8 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/WrappedThrowable.as", dst = "WrappedThrowable.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
 @JTranscAddLibraries(target = "cpp", value = "gc")
-@JTranscAddIncludes(target = "cpp", value = "gc_cpp.h")
 @JTranscAddDefines(target = "cpp", value = "GC_NOT_DLL=1")
-@JTranscAddMembers(target = "d", value = {
-	"core.sync.mutex.Mutex __d_mutex = null;",
-})
+@JTranscAddMembers(target = "d", value = "core.sync.mutex.Mutex __d_mutex = null;")
 public class Object {
 	@JTranscInvisible
 	public int $$id;

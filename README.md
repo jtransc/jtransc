@@ -12,6 +12,32 @@ JTRANSC
 
 You can find documentation at the [wiki](http://docs.jtransc.com/).
 
+# Why using JTransc?
+
+There are a lot of technologies in order to convert languages into other ones. For example, convert Java into JavaScript.
+Or even Kotlin already targets JavaScript. So why using JTransc?
+
+### Mixed code:
+
+One reason is that JTransc allows mixed projects. You can use Java libraries with Kotlin code for example.
+
+### Multiple targets:
+
+Instead of using several technologies. JTransc allows you to target to several places.
+
+### Consistency:
+
+Using just one technology guarantees consistency between targets. For example, Kotlin JS doesn't support full Java collections.
+
+### Native:
+
+Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform.
+
+### Native facilities:
+
+Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript facilities.
+Like JavaScript String, Array and so on.
+
 # Support this project
 
 Along JTransc, I'm writting a set of libraries to be able to use JTransc.
@@ -19,6 +45,9 @@ Along JTransc, I'm writting a set of libraries to be able to use JTransc.
 [https://github.com/soywiz/korlibs](https://github.com/soywiz/korlibs)
 
 Kotlin Game Engine that uses JTransc for multiplatform: [https://github.com/soywiz/korge](https://github.com/soywiz/korge)
+
+
+JTransc
 
 # What is this?
 

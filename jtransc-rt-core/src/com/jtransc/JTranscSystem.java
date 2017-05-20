@@ -115,7 +115,7 @@ public class JTranscSystem {
 	@SuppressWarnings("all")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(\"cpp\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");"),
 	})

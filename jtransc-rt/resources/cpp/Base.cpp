@@ -21,6 +21,16 @@
 #include <{{ include }}>
 {% end %}
 
+#ifdef NO_GC
+	struct gc {
+	};
+	void  GC_INIT() { }
+	void* GC_MALLOC(int size) { return malloc(size); }
+	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
+#else
+	#include <gc_cpp.h>
+#endif
+
 extern "C" {
 	#include <stdio.h>
 	#include <wchar.h>

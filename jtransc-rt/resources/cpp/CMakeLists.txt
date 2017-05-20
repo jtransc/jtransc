@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
+set (CMAKE_CXX_STANDARD 11)
+#add_compile_options(-std=c++11)
+add_definitions(-DNO_GC=1)
+
 project (program)
 
 {% for folder in CPP_INCLUDE_FOLDERS %}
@@ -15,10 +19,6 @@ add_definitions(-D{{ define }})
 {% end %}
 
 add_executable(program program.cpp)
-
-#add_compile_options(-std=c++11)
-
-set (CMAKE_CXX_STANDARD 11)
 
 {% for lib in CPP_LIBS %}
 target_link_libraries(program {{ lib }})
