@@ -20,6 +20,7 @@ import com.jtransc.gen.cpp.CppTarget
 import javatest.misc.ExecutionOrderTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.SimdTest
+import jtransc.micro.NanoHelloWorldTest
 import org.junit.Ignore
 import org.junit.Test
 
@@ -31,6 +32,9 @@ class CppTest : _Base() {
 
 
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
+
+	@Ignore
+	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
 
 	@Ignore
 	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))

@@ -28,7 +28,11 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					is AstStm.GOTO -> out += stm
 					is AstStm.RETURN -> out += AstStm.RETURN(stm.retval.processExpr(out))
 					is AstStm.STMS -> out += stm.stmsUnboxed.processStm().stms
-					is AstStm.STM_EXPR -> out += AstStm.STM_EXPR(stm.expr.processExpr(out))
+					is AstStm.STM_EXPR -> {
+						val expr = stm.expr.processExpr(out);
+						val dummy = (expr is AstExpr.LITERAL && expr.value == null)
+						if (!dummy) out += AstStm.STM_EXPR(expr)
+					}
 					is AstStm.IF -> out += AstStm.IF(stm.cond.processExpr(out), stm.strue.value.processStm())
 					is AstStm.IF_ELSE -> out += AstStm.IF_ELSE(stm.cond.processExpr(out), stm.strue.value.processStm(), stm.sfalse.value.processStm())
 					is AstStm.IF_GOTO -> out += AstStm.IF_GOTO(stm.label, stm.cond.processExpr(out))

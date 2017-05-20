@@ -36,7 +36,7 @@ import jtransc.java8.Java8Test2
 import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
-import jtransc.micro.NanoHelloWorld
+import jtransc.micro.NanoHelloWorldTest
 import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
 import jtransc.staticinit.StaticInitTest2
@@ -54,7 +54,7 @@ class JsTest : _Base() {
 	@Test fun testJTranscBug110() = testClass(Params(clazz = JTranscBug110::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testScriptEngine() = testClass(Params(clazz = ScriptEngineTest::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
-	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
+	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Test fun testNanoHelloWorldSize() {
 	//	val result = testClass<NanoHelloWorld>(minimize = false, log = false, treeShaking = true)
