@@ -14,6 +14,7 @@ import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
+import com.jtransc.gen.cpp.libs.Libs
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
@@ -106,16 +107,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	//}
 
 	override fun compile(): ProcessResult2 {
-		if (!Libs.areRequiredLibsInstalled()) {
-			System.err.println("Required libs(boost, bdwgc and jni-headers) couldn't be found.")
-			System.err.println("Trying to install them now.")
-			try {
-				Libs.installRequiredLibs(program)
-			} catch(e: Exception) {
-				System.err.println("Failed to install required libs.")
-				throw e;
-			}
-		}
+		Libs.installIfRequired(program.resourcesVfs)
 		return super.compile()
 	}
 
