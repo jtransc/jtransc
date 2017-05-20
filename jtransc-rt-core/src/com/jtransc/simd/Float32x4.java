@@ -166,7 +166,10 @@ final public class Float32x4 {
 		R[3] = add(mul(xxxx(b3), a0), mul(yyyy(b3), a1), mul(zzzz(b3), a2), mul(wwww(b3), a3));
 	}
 
-	@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)")
+	@JTranscCallSiteBodyList({
+		@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)"),
+		@JTranscCallSiteBody(target = "cpp", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)"),
+	})
 	static public String toString(Float32x4 v) {
 		return Float32x4Utils.toStringInternal(v);
 	}
