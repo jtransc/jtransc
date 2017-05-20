@@ -1,7 +1,7 @@
 package jtransc.jtransc;
 
 import com.jtransc.JTranscArrays;
-import com.jtransc.simd.Int32x2;
+import com.jtransc.simd.MutableInt32x2;
 import com.jtransc.simd.MutableFloat32x4;
 import com.jtransc.simd.MutableMatrixFloat32x4x4;
 
@@ -60,9 +60,9 @@ public class SimdTest {
 	}
 
 	static private void testInt32x2() {
-		Int32x2 v = Int32x2.create();
-		Int32x2 a = Int32x2.create(1, 2);
-		Int32x2 b = Int32x2.create(10, 20);
+		MutableInt32x2 v = MutableInt32x2.create();
+		MutableInt32x2 a = MutableInt32x2.create(1, 2);
+		MutableInt32x2 b = MutableInt32x2.create(10, 20);
 		v.setToAdd(a, b);
 		System.out.println(a.getX());
 		System.out.println(a.getY());

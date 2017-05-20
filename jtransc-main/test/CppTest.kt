@@ -34,6 +34,7 @@ class CppTest : _Base() {
 
 	@Ignore
 	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = true)
+	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
 
 	@Ignore
 	@Test fun testSimdTest() = testClass<SimdTest>(minimize = false, log = true, treeShaking = true, debug = false)
