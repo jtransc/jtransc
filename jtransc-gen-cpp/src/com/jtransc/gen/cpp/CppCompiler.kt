@@ -46,21 +46,15 @@ object CppCompiler {
 		val commonFolder = CPP_COMMON_FOLDER.realpathOS
 
 		when {
-			JTranscSystem.isWindows() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/win32/")
-			JTranscSystem.isLinux() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/linux")
-			JTranscSystem.isMac() -> cmdAndArgs.add("-I${commonFolder}/jni-headers/mac")
+			JTranscSystem.isWindows() -> cmdAndArgs.add("-I$commonFolder/jni-headers/win32/")
+			JTranscSystem.isLinux() -> cmdAndArgs.add("-I$commonFolder/jni-headers/linux")
+			JTranscSystem.isMac() -> cmdAndArgs.add("-I$commonFolder/jni-headers/mac")
 			else -> {
 				System.err.println("Unkown OS detected: Aborting.")
 				System.exit(-1)
 			}
 		}
 		//cmdAndArgs.add("-I$commonFolder/jni-headers/")
-		//cmdAndArgs.add("-I$commonFolder/boost/compiled-libs/include/")
-		//cmdAndArgs.add("-I$commonFolder/bdwgc/include/")
-		//cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgccpp.a")
-		//cmdAndArgs.add("$commonFolder/bdwgc/.libs/libgc.a")
-		cmdAndArgs.add("$commonFolder/boost/compiled-libs/lib/libboost_thread.a")
-		cmdAndArgs.add("$commonFolder/boost/compiled-libs/lib/libboost_system.a")
 		for (includeFolder in config.includeFolders) cmdAndArgs += "-I$includeFolder"
 		for (libFolder in config.libsFolders) cmdAndArgs += "-L$libFolder"
 		if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
