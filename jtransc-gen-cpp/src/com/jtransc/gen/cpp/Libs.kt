@@ -32,7 +32,7 @@ object Libs {
 
 
 	private fun runCommand(currentDir: File, command: String, args: List<String>) {
-		val result = ProcessUtils.run(currentDir, command, args, ExecOptions())
+		val result = ProcessUtils.run(currentDir, command, args, ExecOptions(passthru = true))
 		if (!result.success) {
 			throw RuntimeException("success=${result.success}\nexitCode=${result.exitValue}\noutput='${result.out}'\nerror='${result.err}'")
 		}
@@ -161,7 +161,7 @@ object Libs {
 
 		if (JTranscSystem.isWindows()) {
 			runCommand(boostDestDir0, "cmd", mutableListOf("/c", "bootstrap.bat", "--prefix=${sdkDir}/boost/compiled-libs/", "--with-libraries=thread,system,chrono"))
-			runCommand(boostDestDir0, "b2.exe", mutableListOf("install"))
+			runCommand(boostDestDir0, boostDestDir0["b2.exe"].absolutePath, mutableListOf("install"))
 			boostDir["compiled-libs"].mkdirs()
 			boostDestDir0["stage/lib"].copyRecursively(boostDir["compiled-libs"])
 		} else {

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.1 (WIP)
+
+- Added `@JTranscAddIncludes` annotations
+- Honor `@JTranscAddLibraries` and `@JTranscAddIncludes` annotations in C++ target
+
 ## 0.6.0
 
 ### New features

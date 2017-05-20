@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.1)
 project (program)
 {% for folder in CPP_INCLUDE_FOLDERS %}
 include_directories({{ folder|escape }})
@@ -15,4 +15,6 @@ add_executable(program program.cpp)
 
 set (CMAKE_CXX_STANDARD 11)
 
-target_link_libraries(program gc-lib)
+{% for lib in CPP_LIBS %}
+target_link_libraries(program {{ lib }})
+{% end %}

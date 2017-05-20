@@ -25,7 +25,6 @@ import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
@@ -88,6 +87,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val types: AstTypes = program.types
 	val context = AstGenContext()
 	val refs = References()
+
+	val targetLibraries by lazy {
+		program.getLibsFor(targetName)
+	}
+
+	val targetIncludes by lazy {
+		program.getIncludesFor(targetName)
+	}
 
 	open fun writeProgramAndFiles(): Unit {
 		if (SINGLE_FILE) {

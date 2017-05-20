@@ -18,7 +18,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ExecOptions
@@ -127,7 +126,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//programFile = File(configOutputFile.output),
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
-			libs = injector.get<ConfigLibraries>().libs
+			libs = targetLibraries + injector.get<ConfigLibraries>().libs
 		)
 	}
 
@@ -247,6 +246,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
 		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
 		this.params["ENABLE_TYPING"] = ENABLE_TYPING
+		this.params["CPP_LIBS"] = targetLibraries
+		this.params["CPP_INCLUDES"] = targetIncludes
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)

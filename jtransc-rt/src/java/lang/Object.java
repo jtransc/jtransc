@@ -64,6 +64,8 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/WrappedThrowable.as", dst = "WrappedThrowable.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
 //@JTranscAddLibraries(target = "cpp", value = {"gc"})
+@JTranscAddLibraries(target = "cpp", value = "gc-lib")
+@JTranscAddIncludes(target = "cpp", value = "gc_cpp.h")
 @JTranscAddMembers(target = "d", value = {
 	"core.sync.mutex.Mutex __d_mutex = null;",
 })

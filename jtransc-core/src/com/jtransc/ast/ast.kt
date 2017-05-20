@@ -30,6 +30,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
+import com.jtransc.lang.Extra
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.text.quote
@@ -170,7 +171,7 @@ class AstProgram(
 	val configEntrypoint: ConfigEntryPoint,
 	val types: AstTypes,
 	val injector: Injector
-) : IUserData by UserData(), AstResolver, LocateRightClass {
+) : IUserData by UserData(), AstResolver, LocateRightClass, Extra by Extra.Mixin() {
 	val resourcesVfs = configResourcesVfs.resourcesVfs
 	val entrypoint = configEntrypoint.entrypoint
 	var lastClassId = 0
@@ -342,7 +343,7 @@ class AstClass(
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
 
-	val implementingUnique by lazy {  implementing.distinct() }
+	val implementingUnique by lazy { implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
 	//var lastMethodId = 0
 	//var lastFieldId = 0
@@ -976,3 +977,15 @@ fun AstType.simplify(): AstType = when (this) {
 	}
 	else -> this
 }
+
+fun AstProgram.getLibsFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddLibrariesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()
+
+fun AstProgram.getIncludesFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddIncludesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()

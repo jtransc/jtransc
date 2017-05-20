@@ -17,8 +17,9 @@
 //#include <thread>
 #include "jni.h"
 
-
-#include "gc_cpp.h"
+{% for include in CPP_INCLUDES %}
+#include <{{ include }}>
+{% end %}
 
 extern "C" {
 	#include <stdio.h>
