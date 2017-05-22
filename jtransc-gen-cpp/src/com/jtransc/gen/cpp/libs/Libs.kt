@@ -15,10 +15,10 @@ import java.nio.file.StandardCopyOption
 import java.util.*
 
 object Libs {
-	val LIBS = ServiceLoader.load(Lib::class.java).toList()
+	//val LIBS = ServiceLoader.load(Lib::class.java).toList()
 	//val LIBS = listOf(BoostLib(), BdwgcLib(), JniHeadersLib())
-	//val LIBS = listOf(BdwgcLib, JniHeadersLib)
-	//val LIBS = listOf(BdwgcLib)
+	//val LIBS = listOf(BdwgcLib(), JniHeadersLib())
+	val LIBS = listOf(BdwgcLib())
 
 	val cppCommonFolder get() = CppCompiler.CPP_COMMON_FOLDER.realfile
 	val sdkDir = CppCompiler.CPP_COMMON_FOLDER.realfile

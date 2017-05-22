@@ -18,6 +18,7 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
 import javatest.misc.ExecutionOrderTest
+import jtransc.bug.JTranscBug127
 import jtransc.java8.Java8Test
 import jtransc.jtransc.SimdTest
 import jtransc.micro.NanoHelloWorldTest
@@ -35,6 +36,9 @@ class CppTest : _Base() {
 
 	@Ignore
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Ignore
 	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))

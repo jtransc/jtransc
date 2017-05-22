@@ -386,8 +386,11 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
+		//line("on TypeError catch (e)") {
+		//	line("print('TypeError! CATCHED');")
+		//}
 		line("catch (J__i__exception__)") {
-			line("J__exception__ = (J__i__exception__ is WrappedThrowable) ? J__i__exception__.t : J__i__exception__;")
+			line("J__exception__ = N.getJavaException(J__i__exception__);")
 			line(stm.catch.genStm())
 		}
 	}
@@ -449,5 +452,10 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [ ${stm.values.map { it.genExpr() }.joinToString(", ")} ]);")
 	}
 
-
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		if (from == to) return e;
+		if (from is AstType.NULL) return e
+		//return "N.CHECK_CAST($e, ${to.targetNameRef})"
+		return "(($e) as ${to.targetNameRef})"
+	}
 }

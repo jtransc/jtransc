@@ -49,6 +49,22 @@ class N {
 		return I(-r);
 	}
 
+	//static CHECK_CAST(i, clazz) {
+	//	if (i == null) return null;
+	//	if (!(i is clazz)) {
+	//		throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %}());
+	//	}
+	//	return i;
+	//}
+
+	static getJavaException(ee) {
+		if (ee is WrappedThrowable) return ee.t;
+		if (ee is CastError) return {% CONSTRUCTOR java.lang.ClassCastException:()V %}();
+		return ee;
+		//return new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %}());
+	}
+
+
 	static int iadd(int l, int r) { return I(l + r); }
 	static int isub(int l, int r) { return I(l - r); }
 	static int imul(int l, int r) { return I(l * r); }

@@ -17,7 +17,6 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
-import com.jtransc.text.substr
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
@@ -428,6 +427,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val parts = if (clazz.isInterface) {
 			""
+			//"public java_lang_Object"
 		} else if (clazz.fqname == "java.lang.Object") {
 			"public gc"
 		} else {
@@ -471,9 +471,24 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 					}
 				}
 			}
-			if (clazz.fqname == "java.util.Set") {
-				println(clazz.fqname)
+
+			if (clazz.isInterface) {
+				line("virtual p_java_lang_Object __getObj() = 0;")
+				line("virtual void* __getInterface(int classId) = 0;")
+			} else {
+				line("virtual ${JAVA_LANG_OBJECT_REF.targetNameRef} __getObj() { return (${JAVA_LANG_OBJECT_REF.targetNameRef})this; }")
+				line("virtual void* __getInterface(int classId)") {
+					if (clazz.allInterfacesInAncestors.isNotEmpty()) {
+						line("switch (classId)") {
+							for (ifc in clazz.allInterfacesInAncestors) {
+								line("case ${ifc.classId}: return (void*)(${ifc.ref.targetNameRefCast})this;")
+							}
+						}
+					}
+					line("return nullptr;")
+				}
 			}
+
 			for (method in clazz.methods) {
 				val type = method.methodType
 				val argsString = type.args.map { it.type.targetNameRef + " " + it.name }.joinToString(", ")
@@ -1081,4 +1096,24 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		null -> "nullptr"
 		else -> super.escapedConstant(v)
 	}
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		if (from == to) return e;
+		if (from is AstType.NULL) return e
+		if (from is AstType.Reference && to is AstType.REF) {
+			val toCls = program[to]!!
+			if (toCls.isInterface) {
+				return "(CC_CHECK_UNTYPED($e, ${toCls.classId}))"
+				//return e
+			} else {
+				return "(CC_CHECK_CLASS<${getTypeTargetName(to, ref = true)}>($e, ${toCls.classId}))"
+				//return e
+			}
+			//}
+		}
+		return "(CC_CHECK_GENERIC<${getTypeTargetName(to, ref = true)}>($e))"
+		//return e
+	}
+
+
 }

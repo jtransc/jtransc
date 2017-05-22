@@ -9,6 +9,21 @@ class N {
 	public static readonly float FloatNaN = intBitsToFloat(0x7FF80000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
+	//static public TOut CHECK_CAST<TOut, TIn>(TIn i) where TIn : class where TOut : class {
+	//	if (i == null) return null;
+	//	if (!(i is TOut)) {
+	//		throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %}());
+	//	}
+    //    return (TOut)(object)i;
+    //}
+
+	static public {% CLASS java.lang.Throwable %} getJavaException(Exception ee) {
+		if (ee is WrappedThrowable) return ((WrappedThrowable)ee).t;
+		if (ee is InvalidCastException) return {% CONSTRUCTOR java.lang.ClassCastException:()V %}();
+		//throw ee;
+		return null;
+	}
+
 	static public {% CLASS com.jtransc.JTranscWrapped %} wrap(object item) {
 		if (item == null) return null;
 		return {% CLASS com.jtransc.JTranscWrapped %}.wrap(item);

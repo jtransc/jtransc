@@ -268,6 +268,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.exception.genExpr()})).${prepareThrow.targetName}().csException;")
 
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean): Indenter = Indenter("throw;")
+
 	override fun genLabel(label: AstLabel) = "${label.name}:"
 
 	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
@@ -353,8 +355,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (WrappedThrowable J__i__exception__)") {
-			line("J__exception__ = J__i__exception__.t;")
+		line("catch (Exception J__i__exception__)") {
+			line("J__exception__ = N.getJavaException(J__i__exception__);")
+			line("if (J__exception__ == null) throw;")
 			line(stm.catch.genStm())
 		}
 	}
@@ -419,5 +422,10 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, new ${stm.elementType.targetName}[] { ${stm.values.map { it.genExpr() }.joinToString(", ")} });")
 	}
 
-
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		if (from == to) return e;
+		if (from is AstType.NULL) return e
+		//return "N.CHECK_CAST<${to.targetNameRef}, ${from.targetNameRef}>($e)"
+		return "((${to.targetNameRef})($e))"
+	}
 }

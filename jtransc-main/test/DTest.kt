@@ -3,8 +3,10 @@ import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.d.DTarget
 import issues.Issue100Double
+import jtransc.bug.JTranscBug127
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.micro.MicroHelloWorld
+import org.junit.Ignore
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 import threading.ThreadingTest
@@ -40,7 +42,10 @@ class DTest : _Base() {
 
 	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false))
 
-	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, debug = true))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
 
 	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss

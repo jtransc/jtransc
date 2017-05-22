@@ -5,6 +5,7 @@ import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.cs.CSharpTarget
 import jtransc.ProcessTest
+import jtransc.bug.JTranscBug127
 import jtransc.micro.MicroHelloWorld
 import jtransc.staticinit.StaticInitTest
 import org.junit.Ignore
@@ -41,6 +42,9 @@ class CSharpTest : _Base() {
 	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
 
 	//@Test fun testMicroStaticInitTestAsm2() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM2, treeShaking = true)
 	@Test fun testMicroStaticInitTestAsm1() = testClass(Params(clazz = StaticInitTest::class.java, minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true))

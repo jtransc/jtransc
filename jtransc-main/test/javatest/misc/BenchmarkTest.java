@@ -166,6 +166,7 @@ public class BenchmarkTest {
 			}
 		});
 
+		/*
 		benchmark("simd mutable", new Task() {
 			@Override
 			public int run() {
@@ -219,6 +220,7 @@ public class BenchmarkTest {
 				return (int) a.getSumAll();
 			}
 		});
+		*/
 
 
 		benchmark("StringBuilder", new Task() {

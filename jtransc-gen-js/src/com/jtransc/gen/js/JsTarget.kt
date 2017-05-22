@@ -364,9 +364,9 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("$classBase.SI = function(){};")
 			}
 
-			val relatedTypesIds = clazz.getAllRelatedTypes().map { it.classId }
-			line("$classBase.prototype.\$\$CLASS_ID = ${clazz.classId};")
-			line("$classBase.prototype.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
+			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
+			line("$classBase.prototype.\$\$CLASS_ID = $classBase.\$\$CLASS_ID = ${clazz.classId};")
+			line("$classBase.prototype.\$\$CLASS_IDS = $classBase.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
 
 			//renderFields(clazz.fields);
 

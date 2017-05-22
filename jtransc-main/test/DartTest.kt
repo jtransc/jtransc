@@ -4,6 +4,7 @@ import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.dart.DartTarget
 import jtransc.ProcessTest
+import jtransc.bug.JTranscBug127
 import jtransc.jtransc.SimdTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -44,4 +45,7 @@ class DartTest : _Base() {
 
 	@Ignore
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
 }

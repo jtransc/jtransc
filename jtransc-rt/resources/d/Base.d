@@ -45,6 +45,8 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 	public JA_J toLongArray  () { return new JA_J((cast(long   *)ptr)[0..bytesLength / long.sizeof]); }
 	public JA_F toFloatArray () { return new JA_F((cast(float  *)ptr)[0..bytesLength / float.sizeof]); }
 	public JA_D toDoubleArray() { return new JA_D((cast(double *)ptr)[0..bytesLength / double.sizeof]); }
+
+
 }
 
 class JA_Template(U) : JA_0 {
@@ -175,6 +177,8 @@ class N {
 	static immutable public int MAX_INT32 = 0x7FFFFFFF;
 	static immutable public long MIN_INT64 = 0x8000000000000000L;
 	static immutable public long MAX_INT64 = 0x7FFFFFFFFFFFFFFFL;
+
+
 
 	static public {% CLASS java.lang.Class %} resolveClass(wstring name) {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
@@ -367,11 +371,21 @@ class N {
 		prepareMutex(obj);
 		obj.__d_mutex.unlock();
 	}
+
 }
 
 T ensureNotNull(T)(T v) {
 	if (v is null) throw new WrappedThrowable({% CONSTRUCTOR java.lang.NullPointerException:()V %});
 	return v;
+}
+
+TOut checkCast(TOut, TIn)(TIn i) {
+	if (i is null) return null;
+	TOut o = cast(TOut)i;
+	if (o is null) {
+		throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %});
+	}
+	return o;
 }
 
 /* ## BODY ## */

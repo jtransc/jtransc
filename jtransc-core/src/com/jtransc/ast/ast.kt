@@ -569,7 +569,7 @@ class AstClass(
 		}
 	}
 
-	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).distinct()
+	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).toSet()
 
 	fun getAllRelatedTypesIdsWithout0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull()
 	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)

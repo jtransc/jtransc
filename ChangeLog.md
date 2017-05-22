@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.6.1 (WIP)
+## 0.6.2 (WIP)
+
+- Proper behaviour of checkcast opcode
+- [CPP] Embed `bdwgc.zip` to ensure we have the library and the right format and version.
+
+## 0.6.1
 
 - Added `@JTranscAddIncludes` and `@JTranscAddDefines` annotations
 - Honor `@JTranscAddLibraries` and `@JTranscAddIncludes` annotations in C++ target

@@ -23,16 +23,14 @@ import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import com.jtransc.vfs.node.FileNode
 import com.jtransc.vfs.node.FileNodeTree
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
+import java.io.*
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.*
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 
 data class SyncVfsStat(
 	val file: SyncVfsFile,
@@ -439,6 +437,11 @@ fun CompressedVfs(file: File): SyncVfsFile {
 
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
 fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
+fun ZipVfs(content: ByteArray): SyncVfsFile {
+	val tempFile = createTempFile("jtransc-zip")
+	tempFile.writeBytes(content)
+	return ZipSyncVfs(ZipFile(tempFile)).root()
+}
 fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = RootLocalVfs().access(path).jail()

@@ -351,4 +351,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
 
 	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "cast(${e.type.targetName})J__exception__"
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		return "checkCast!(${to.targetNameRef})($e)"
+	}
 }

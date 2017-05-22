@@ -385,6 +385,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	var entryPointClass = FqName("EntryPointClass")
 	var entryPointFilePath = "EntryPointFile"
 
+	val JAVA_LANG_OBJECT_CLASS by lazy { program["java.lang.Object".fqname]!! }
+	val JAVA_LANG_OBJECT_REF by lazy { AstType.REF("java.lang.Object") }
 	val JAVA_LANG_OBJECT by lazy { nativeName<java.lang.Object>() }
 	val JAVA_LANG_CLASS by lazy { nativeName<java.lang.Class<*>>() }
 	val JAVA_LANG_STRING by lazy { nativeName<java.lang.String>() }
@@ -1318,7 +1320,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genExprCast(e: AstExpr.CAST): String = genExprCast(e.subject.genExpr(), e.from, e.to)
-	open fun genExprCheckCast(e: AstExpr.CHECK_CAST): String = genExprCastChecked(e.subject.genExpr(), e.from.asRef(), e.to.asRef())
+	open fun genExprCheckCast(e: AstExpr.CHECK_CAST): String = genExprCastChecked(e.subject.genExpr(), e.from.asReference(), e.to.asReference())
 
 	open fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String = N_c(e, from, to)
 

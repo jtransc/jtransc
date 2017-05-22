@@ -773,14 +773,14 @@ N.hrtime = function() {
 N.is = function(i, clazz) {
 	if (i instanceof clazz) return true;
 	if (i == null) return false;
-	if (typeof i.$JS$CLASS_ID$ === 'undefined') return false;
-	return (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined");
+	if (typeof i.$$CLASS_IDS === 'undefined') return false;
+	return i.$$CLASS_IDS.indexOf(clazz.$$CLASS_ID) >= 0;
 };
 
 N.checkCast = function(i, clazz) {
-	if (i === null) return null;
+	if (i == null) return null;
 	if (clazz === null) throw new Error('Internal error N.checkCast');
-	//if (!N.is(i, clazz)) throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:()V %}(N.str('Invalid conversion')));
+	if (!N.is(i, clazz)) throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
 	return i;
 };
 
