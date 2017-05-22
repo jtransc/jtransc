@@ -100,6 +100,7 @@ open class AstVisitor {
 			is AstExpr.FIELD_STATIC_ACCESS -> visit(expr)
 			is AstExpr.INSTANCE_OF -> visit(expr)
 			is AstExpr.CAST -> visit(expr)
+			is AstExpr.CHECK_CAST -> visit(expr)
 			is AstExpr.NEW -> visit(expr)
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> visit(expr)
 			is AstExpr.NEW_ARRAY -> visit(expr)
@@ -368,6 +369,11 @@ open class AstVisitor {
 	}
 
 	open fun visit(expr: AstExpr.CAST) {
+		visit(expr.subject)
+		visit(expr.type)
+	}
+
+	open fun visit(expr: AstExpr.CHECK_CAST) {
 		visit(expr.subject)
 		visit(expr.type)
 	}

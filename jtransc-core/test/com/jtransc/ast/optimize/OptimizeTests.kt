@@ -25,15 +25,15 @@ class OptimizeTests {
 	}
 
 	@Test fun test3() {
-		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.EQ, 1.lit).optimize(flags).exprDump(types))
-		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.NE, 0.lit).optimize(flags).exprDump(types))
+		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, dummy = true), AstBinop.EQ, 1.lit).optimize(flags).exprDump(types))
+		Assert.assertEquals("test", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, dummy = true), AstBinop.NE, 0.lit).optimize(flags).exprDump(types))
 
-		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.EQ, 0.lit).optimize(flags).exprDump(types))
-		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, true), AstBinop.NE, 1.lit).optimize(flags).exprDump(types))
+		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, dummy = true), AstBinop.EQ, 0.lit).optimize(flags).exprDump(types))
+		Assert.assertEquals("(!test)", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(AstExpr.LOCAL(AstLocal(0, "test", AstType.BOOL)), AstType.INT, dummy = true), AstBinop.NE, 1.lit).optimize(flags).exprDump(types))
 	}
 
 	@Test fun test4() {
-		Assert.assertEquals("true", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(true.lit, AstType.INT, true), AstBinop.EQ, 1.lit).optimize(flags).exprDump(types))
+		Assert.assertEquals("true", AstExpr.BINOP(AstType.BOOL, AstExpr.CAST(true.lit, AstType.INT, dummy = true), AstBinop.EQ, 1.lit).optimize(flags).exprDump(types))
 		Assert.assertEquals("false", build { 0.lit.castTo(BOOL) }.optimize(flags).exprDump(types))
 		Assert.assertEquals("true", build { 1.lit.castTo(BOOL) }.optimize(flags).exprDump(types))
 	}

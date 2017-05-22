@@ -477,13 +477,19 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = AstType.BOOL
 	}
 
-	class CAST constructor(expr: AstExpr, val to: AstType, val dummy: Boolean) : AstExpr() {
+	abstract class BaseCast(expr: AstExpr, val to: AstType) : AstExpr() {
 		val subject = expr.box
 		val from: AstType get() = subject.type
 
 		override val type = to
+	}
 
-		override fun clone(): AstExpr = CAST(subject.value.clone(), to, true)
+	class CAST internal constructor(expr: AstExpr, to: AstType, dummy: Boolean) : BaseCast(expr, to) {
+		override fun clone(): AstExpr = CAST(subject.value.clone(), to, dummy = true)
+	}
+
+	class CHECK_CAST internal constructor(expr: AstExpr, to: AstType, dummy: Boolean) : BaseCast(expr, to) {
+		override fun clone(): AstExpr = CHECK_CAST(subject.value.clone(), to, dummy = true)
 	}
 
 	class NEW(val target: AstType.REF) : AstExpr() {
@@ -563,7 +569,7 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.BINOP -> this.left.isPure() && this.right.isPure()
 	is AstExpr.UNOP -> this.right.isPure()
 	is AstExpr.CALL_BASE -> false // we would have to check call pureness
-	is AstExpr.CAST -> this.subject.isPure()
+	is AstExpr.BaseCast -> this.subject.isPure()
 	is AstExpr.FIELD_INSTANCE_ACCESS -> this.expr.isPure()
 	is AstExpr.INSTANCE_OF -> this.expr.isPure()
 	is AstExpr.TERNARY -> this.cond.isPure() && this.etrue.isPure() && this.efalse.isPure()
@@ -585,8 +591,9 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	}
 }
 
-fun AstExpr.castToUnoptimized(type: AstType): AstExpr = AstExpr.CAST(this, type, true)
 fun AstExpr.castTo(type: AstType): AstExpr = this.castToInternal(type)
+fun AstExpr.castToUnoptimized(type: AstType): AstExpr = AstExpr.CAST(this, type, dummy = true)
+fun AstExpr.checkedCastTo(type: AstType): AstExpr = AstExpr.CHECK_CAST(this, type, dummy = true)
 
 fun AstExpr.withoutCast(): AstExpr = when (this) {
 	is AstExpr.CAST -> this.subject.value

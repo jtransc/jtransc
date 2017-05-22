@@ -32,6 +32,7 @@ import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug110
+import jtransc.bug.JTranscBug127
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2
 import jtransc.jtransc.js.ScriptEngineTest
@@ -42,6 +43,7 @@ import jtransc.ref.MethodBodyReferencesTest
 import jtransc.staticinit.StaticInitTest
 import jtransc.staticinit.StaticInitTest2
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import testservice.test.ServiceLoaderTest
 import testservice.test.TestServiceJs2
@@ -57,6 +59,9 @@ class JsTest : _Base() {
 	@Test fun testScriptEngine() = testClass(Params(clazz = ScriptEngineTest::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testNanoHelloWorldShouldReferenceGetMethods() {
 		val result = _action(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true), run = false)

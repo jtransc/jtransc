@@ -163,7 +163,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			//line(buildStaticInit(mainClassFq))
 			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = buildMethod(mainMethod2, static = true)
-			line("$mainCall(N.strArray(N.args()));")
+			line("try {")
+			indent {
+				line("$mainCall(N.strArray(N.args()));")
+			}
+			line("} catch (e) {")
+			indent {
+				line("console.error(e);")
+				line("console.error(e.stack);")
+			}
+			line("}")
 			line(concatFilesTrans.append)
 		}
 
@@ -198,7 +207,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 		line("catch (J__i__exception__)") {
 			//line("J__exception__ = J__i__exception__.native || J__i__exception__;")
-			line("J__exception__ = J__i__exception__;")
+			line("J__exception__ = J__i__exception__.javaThrowable || J__i__exception__;")
 			line(stm.catch.genStm())
 		}
 	}
@@ -456,5 +465,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val AstType.localDeclType: String get() = "var"
 
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.exception.genExpr()};")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedError(${stm.exception.genExpr()});")
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		return "N.checkCast($e, ${to.targetNameRef})"
+	}
+
 }

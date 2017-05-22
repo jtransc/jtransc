@@ -528,7 +528,7 @@ private class BasicBlockBuilder(
 		when (i.opcode) {
 			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
-			Opcodes.CHECKCAST -> stackPush(stackPop().castTo(type))
+			Opcodes.CHECKCAST -> stackPush(stackPop().checkedCastTo(type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType.Reference))
 			else -> invalidOp("$i")
 		}

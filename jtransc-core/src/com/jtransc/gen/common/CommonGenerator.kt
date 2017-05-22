@@ -447,6 +447,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.LITERAL -> genExprLiteral(e)
 		is AstExpr.LITERAL_REFNAME -> genExprLiteralRefName(e)
 		is AstExpr.CAST -> genExprCast(e)
+		is AstExpr.CHECK_CAST -> genExprCheckCast(e)
 		is AstExpr.PARAM -> genExprParam(e)
 		is AstExpr.LOCAL -> genExprLocal(e)
 		is AstExpr.TYPED_LOCAL -> genExprTypedLocal(e)
@@ -1317,6 +1318,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genExprCast(e: AstExpr.CAST): String = genExprCast(e.subject.genExpr(), e.from, e.to)
+	open fun genExprCheckCast(e: AstExpr.CHECK_CAST): String = genExprCastChecked(e.subject.genExpr(), e.from.asRef(), e.to.asRef())
+
+	open fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String = N_c(e, from, to)
 
 	open fun genExprCast(e: String, from: AstType, to: AstType): String {
 		refs.add(from)
@@ -1418,7 +1422,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstType.REF, is AstType.ARRAY, is AstType.GENERIC -> {
 				when (to) {
 					FUNCTION_REF -> N_getFunction(e)
-					else -> N_c(e, from, to)
+					else -> {
+
+						N_c(e, from, to)
+					}
 				}
 			}
 			is AstType.NULL -> "$e"

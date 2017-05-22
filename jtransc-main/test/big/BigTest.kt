@@ -34,6 +34,7 @@ object BigTest {
 		//KotlinPropertiesTest.main(args)
 
 		// Misc tests
+		JTranscBug127.main(args);
 		Thread.sleep(1L);
 		StringsTest.main(args)
 		PropertiesTest.main(args);

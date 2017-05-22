@@ -1,7 +1,7 @@
 var _global = (typeof window !== "undefined") ? window : global;
 
 if ('á'.charCodeAt(0) != 225) {
-	throw 'Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html';
+	throw new Error('Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html');
 }
 
 // Polyfills
@@ -286,7 +286,7 @@ Int64.divMod = function(dividend, divisor) {
 	if(divisor.high == 0) {
 		switch(divisor.low) {
 		case 0:
-			throw new js__$Boot_HaxeError("divide by zero");
+			throw new Error("divide by zero");
 			break;
 		case 1:
 			return { quotient : Int64.make(dividend.high,dividend.low), modulus : Int64.ofInt(0)};
@@ -777,6 +777,13 @@ N.is = function(i, clazz) {
 	return (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined");
 };
 
+N.checkCast = function(i, clazz) {
+	if (i === null) return null;
+	if (clazz === null) throw new Error('Internal error N.checkCast');
+	//if (!N.is(i, clazz)) throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:()V %}(N.str('Invalid conversion')));
+	return i;
+};
+
 N.isClassId = function(i, classId) {
 	if (i == null) return false;
 	if (!i.$$CLASS_IDS) return false;
@@ -1166,6 +1173,20 @@ var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
 	return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}()) : null;
 };
+
+function WrappedError(javaThrowable) {
+	this.constructor.prototype.__proto__ = Error.prototype;
+	Error.captureStackTrace(this, this.constructor);
+	this.name = this.constructor.name;
+	this.javaThrowable = javaThrowable;
+	try {
+		this.message = (javaThrowable != null) ? (('' + javaThrowable) || 'JavaError') : 'JavaError';
+	} catch (e) {
+		this.message = 'JavaErrorWithoutValidMessage';
+	}
+}
+
+//process.on('uncaughtException', function (exception) { console.error(exception); });
 
 /* ## BODY ## */
 

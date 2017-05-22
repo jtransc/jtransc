@@ -85,6 +85,7 @@ open class AstTransformer {
 			is AstExpr.FIELD_STATIC_ACCESS -> transform(expr)
 			is AstExpr.INSTANCE_OF -> transform(expr)
 			is AstExpr.CAST -> transform(expr)
+			is AstExpr.CHECK_CAST -> transform(expr)
 			is AstExpr.NEW -> transform(expr)
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> transform(expr)
 			is AstExpr.NEW_ARRAY -> transform(expr)
@@ -400,6 +401,12 @@ open class AstTransformer {
 	}
 
 	open fun transform(cast: AstExpr.CAST): AstExpr {
+		transform(cast.subject)
+		transform(cast.type)
+		return cast
+	}
+
+	open fun transform(cast: AstExpr.CHECK_CAST): AstExpr {
 		transform(cast.subject)
 		transform(cast.type)
 		return cast

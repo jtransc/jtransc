@@ -52,7 +52,8 @@ object AstDependencyAnalyzer {
 		fun ana(expr: AstExpr?) {
 			if (expr == null) return
 			when (expr) {
-				is AstExpr.CAST -> {
+				is AstExpr.BaseCast -> {
+				//is AstExpr.CAST -> {
 					ana(expr.from)
 					ana(expr.to)
 					ana(expr.subject)

@@ -73,7 +73,7 @@ interface TIR : Iterable<TIR> {
 		override fun toStmString() = "$dst = $op $r;"
 	}
 
-	data class CONV(override val dst: Local, val src: Operand, val dstType: AstType) : TIR by Mixin(), Def {
+	data class CONV(override val dst: Local, val src: Operand, val dstType: AstType, val checked: Boolean) : TIR by Mixin(), Def {
 		override fun toStmString() = "$dst = ($dstType)$src;"
 	}
 

@@ -146,6 +146,9 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					}
 					*/
 				}
+				is AstExpr.CHECK_CAST -> {
+					expr.subject.processExpr(stms).checkedCastTo(expr.type)
+				}
 				is AstExpr.CALL_BASE -> {
 					val method = expr.method
 					val isSpecial = expr.isSpecial

@@ -190,6 +190,11 @@ fun AstType.asArray(): AstType.ARRAY {
 	return this
 }
 
+fun AstType.asRef(): AstType.Reference {
+	if (this !is AstType.Reference) invalidOp("$this is not AstType.Reference")
+	return this
+}
+
 fun ARRAY(type: AstType) = AstType.ARRAY(type)
 
 @Singleton
