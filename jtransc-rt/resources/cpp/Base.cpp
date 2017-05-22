@@ -22,7 +22,8 @@
 {% end %}
 
 #if (defined(USE_BOEHM_GC) && !defined(DISABLE_BOEHM_GC))
-	#include <gc_cpp.h>
+	//#include <gc_cpp.h>
+	#include "gc_cpp.h"
 #else
 	struct gc {
 	};
@@ -109,9 +110,6 @@ struct CLASS_TRACE { public:
 //typedef std::weak_ptr<java_lang_Object> WOBJ;
 typedef java_lang_Object* JAVA_OBJECT;
 
-
-
-
 // generateTypeTableHeader()
 {{ TYPE_TABLE_HEADERS }}
 
@@ -145,50 +143,6 @@ struct Env {
 // 	if (t == nullptr) return nullptr;
 // 	return t->__toVoid();
 //}
-
-template<typename T> p_java_lang_Object CC_GET_OBJ(T t) {
- 	if (t == nullptr) return nullptr;
- 	return t->__getObj();
-}
-
-template<typename TTo, typename TFrom> TTo CC_CHECK_CLASS(TFrom i, int typeId) {
- 	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
-	}
- 	TTo result = dynamic_cast<TTo>(i);
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
- 	return result;
-}
-
-template<typename T> T CC_CHECK_UNTYPED(T i, int typeId) {
- 	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	return i;
-}
-
-template<typename TTo, typename TFrom> TTo CC_CHECK_INTERFACE(TFrom i, int typeId) {
- 	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
-	}
- 	TTo result = static_cast<TTo>(i->__getInterface(typeId));
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
- 	return result;
-}
-
-template<typename TTo, typename TFrom> TTo CC_CHECK_GENERIC(TFrom i) {
- 	if (i == nullptr) return nullptr;
- 	TTo result = dynamic_cast<TTo>(i);
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
- 	return result;
-}
 
 /*
 template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from, const char *to) {
@@ -308,6 +262,12 @@ struct N { public:
 	static void throwNpe();
 	template<typename T> static T ensureNpe(T obj);
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
+
+	template<typename T> static p_java_lang_Object CC_GET_OBJ(T t);
+	template<typename TTo, typename TFrom> TTo static CC_CHECK_CLASS(TFrom i, int typeId);
+	template<typename T> T static CC_CHECK_UNTYPED(T i, int typeId);
+	template<typename TTo, typename TFrom> TTo static CC_CHECK_INTERFACE(TFrom i, int typeId);
+	template<typename TTo, typename TFrom> TTo static CC_CHECK_GENERIC(TFrom i);
 
 	static int strLen(JAVA_OBJECT obj);
 	static int strCharAt(JAVA_OBJECT obj, int n);
@@ -856,6 +816,52 @@ void N::writeChars(JAVA_OBJECT str, char *out, int maxlen) {
 	}
 	out[len] = 0;
 }
+
+
+template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
+ 	if (t == nullptr) return nullptr;
+ 	return t->__getObj();
+}
+
+template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int typeId) {
+ 	if (i == nullptr) return nullptr;
+	if (!N::is(i, typeId)) {
+		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+	}
+ 	TTo result = dynamic_cast<TTo>(i);
+ 	if (result == nullptr) {
+		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+ 	}
+ 	return result;
+}
+
+template<typename T> T N::CC_CHECK_UNTYPED(T i, int typeId) {
+ 	if (i == nullptr) return nullptr;
+	if (!N::is(i, typeId)) throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+ 	return i;
+}
+
+template<typename TTo, typename TFrom> TTo N::CC_CHECK_INTERFACE(TFrom i, int typeId) {
+ 	if (i == nullptr) return nullptr;
+	if (!N::is(i, typeId)) {
+		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+	}
+ 	TTo result = static_cast<TTo>(i->__getInterface(typeId));
+ 	if (result == nullptr) {
+		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+ 	}
+ 	return result;
+}
+
+template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
+ 	if (i == nullptr) return nullptr;
+ 	TTo result = dynamic_cast<TTo>(i);
+ 	if (result == nullptr) {
+		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+ 	}
+ 	return result;
+}
+
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
 int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }

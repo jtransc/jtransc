@@ -1061,7 +1061,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
-	override fun N_lnew(value: Long): String = "(int64_t)(${value}ll)"
+	override fun N_lnew(value: Long): String {
+		//return if (value == Long.MIN_VALUE) {
+			return "(int64_t)(${value}ll)"
+		//} else {
+		//	"(int64_t)(0x8000000000000000ULL)"
+		//}
+	}
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
 
@@ -1103,15 +1109,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (from is AstType.Reference && to is AstType.REF) {
 			val toCls = program[to]!!
 			if (toCls.isInterface) {
-				return "(CC_CHECK_UNTYPED($e, ${toCls.classId}))"
+				return "(N::CC_CHECK_UNTYPED($e, ${toCls.classId}))"
 				//return e
 			} else {
-				return "(CC_CHECK_CLASS<${getTypeTargetName(to, ref = true)}>($e, ${toCls.classId}))"
+				return "(N::CC_CHECK_CLASS<${getTypeTargetName(to, ref = true)}>($e, ${toCls.classId}))"
 				//return e
 			}
 			//}
 		}
-		return "(CC_CHECK_GENERIC<${getTypeTargetName(to, ref = true)}>($e))"
+		return "(N::CC_CHECK_GENERIC<${getTypeTargetName(to, ref = true)}>($e))"
 		//return e
 	}
 
