@@ -126,7 +126,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return if (cmdAndArgs.isEmpty()) {
 			ProcessResult2(0)
 		} else {
-			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true, fixencoding = fixencoding))
+			val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(cmdAndArgs, ExecOptions(sysexec = true, fixencoding = fixencoding, passthru = true))
 			if (!result.success) {
 				throw RuntimeException("success=${result.success} exitCode=${result.exitCode} output='${result.outputString}' error='${result.errorString}' folder=${configTargetFolder.targetFolder.realpathOS} command='$cmdAndArgsStr'")
 			}

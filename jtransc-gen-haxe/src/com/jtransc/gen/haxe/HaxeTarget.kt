@@ -111,8 +111,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
 	companion object {
-		const val ENABLE_HXCPP_GOTO_HACK = true
-		//const val ENABLE_HXCPP_GOTO_HACK = false
+		//const val ENABLE_HXCPP_GOTO_HACK = true
+		const val ENABLE_HXCPP_GOTO_HACK = false // @TODO: If last statement is a goto. Add return null; or return; at the end
 	}
 
 	override val FqName.targetName: String get() = this.targetClassFqName
@@ -838,6 +838,13 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 
 	override val AstType.localDeclType: String get() = "var"
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		if (from == to) return e;
+		if (from is AstType.NULL) return e
+		return "N.CHECK_CAST($e, ${to.targetNameRef})"
+	}
+
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

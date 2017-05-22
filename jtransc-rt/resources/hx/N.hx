@@ -723,4 +723,23 @@ class N {
 
 		return createStackItem(className, methodName, fileName, line);
 	}
+
+	public static function CHECK_CAST<TIn, TOut>(i : TIn, cls : Class<TOut>) : TOut {
+		if (i == null) return null;
+		//trace('CHECK_CAST:' + i + ' : ' + cls);
+        if (Std.is(i, cls)) {
+			//trace('a');
+            var res: TOut = cast i;
+            if (res == null) {
+            	//trace('b');
+				throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str("Class cast error"));
+            }
+            //trace('c');
+            return res;
+        } else {
+        	//trace('d');
+			throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str("Class cast error"));
+        }
+        return null;
+    }
 }

@@ -13,26 +13,26 @@ public class JTranscBug127 {
 	static public void testNonNull(Object test) {
 		try {
 			Integer t = (Integer) test;
-			System.out.println("BAD. Expected exception.");
+			System.out.println("No exception");
 			System.out.println(t);
 		} catch (ClassCastException e) {
-			System.out.println("Good. Exception catched.");
+			System.out.println("ClassCastException");
 		}
 
 		try {
 			List t = (List) test;
-			System.out.println("BAD. Expected exception.");
+			System.out.println("No exception");
 			System.out.println(t);
 		} catch (ClassCastException e) {
-			System.out.println("Good. Exception catched.");
+			System.out.println("ClassCastException");
 		}
 
 		try {
 			byte[] t = (byte[]) test;
-			System.out.println("BAD. Expected exception.");
+			System.out.println("No exception");
 			System.out.println(Arrays.toString(t));
 		} catch (ClassCastException e) {
-			System.out.println("Good. Exception catched.");
+			System.out.println("ClassCastException");
 		}
 	}
 }

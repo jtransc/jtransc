@@ -3,6 +3,7 @@ import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
 import javatest.misc.BenchmarkTest
+import jtransc.bug.JTranscBug127
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -42,4 +43,7 @@ class As3Test : _Base() {
 		1024
 		0
 	""", Params(clazz = As3PureTest::class.java, minimize = false, debug = true, backend = BuildBackend.ASM, target = As3Target(), transformerOut = { it.replace("\r", "") }))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true, transformerOut = { it.replace("\r", "") }))
 }

@@ -167,5 +167,13 @@ public class N {
 	}
 
 	static public var NaN: Number = longBitsToDouble(Int64.make(0x7FF80000, 0x00000000));
+	static public function CHECK_CAST(a: *, clazz: *): * {
+		if (a == null) return null;
+		var out: * = a as clazz;
+		if (out == null) {
+			throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str("Class cast error")));
+		}
+		return out;
+	}
 }
 }

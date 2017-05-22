@@ -20,6 +20,7 @@ import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
 import issues.Issue94Enum
 import jtransc.bug.JTranscBug110
+import jtransc.bug.JTranscBug127
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -41,7 +42,7 @@ class HaxeTest : _Base() {
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "js", log = null))
 
 	@Ignore
-	@Test fun testBigCpp() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "cpp", log = null))
+	@Test fun testBigCpp() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
 
 	@Test fun haxeNativeCallTest() = testNativeClass("""
 		true
@@ -77,4 +78,7 @@ class HaxeTest : _Base() {
 		_jt___hello
 		JTranscReinterpretArrays:
 	""", Params(clazz = JTranscHaxeNativeMixedTest::class.java, minimize = false))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, lang = "js", debug = true))
 }
