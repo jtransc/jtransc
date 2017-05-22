@@ -5,8 +5,7 @@ JTRANSC
 
 [![Maven Version](https://img.shields.io/github/tag/jtransc/jtransc.svg?style=flat&label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jtransc-maven-plugin%22)
 [![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
-[![irc](https://img.shields.io/badge/irc:%20chat.freenode.net-%23jtransc-green.svg)](http://webchat.freenode.net/?channels=#jtransc)
-[![Join the JTransc Community on Slack](http://jtransc-slack.herokuapp.com/badge.svg)](http://jtransc-slack.herokuapp.com/)
+[![gitter](https://img.shields.io/gitter/room/jtransc/general.svg)](https://gitter.im/jtransc/general)
 
 # Documentation
 

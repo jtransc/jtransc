@@ -95,18 +95,15 @@ cache:
   - "$HOME/.m2"
   - "$HOME/.gradle"
   - "$HOME/.jtransc"
+
 notifications:
-  irc:
-    channels:
-    - chat.freenode.net#jtransc
-    on_success: never
-    on_failure: always
-  slack:
-    rooms:
-      secure: fDqxbvhCKZqXrl6oCcgsAUQQmjcUO3jaakR6pE3rY2GjUcwv7gFPA3VJNYBDe6EEq9nyYA4xJC+8IY/6OPm9kZh8/MLdosiJ7X2+FBo90Eo1hIpPAsJ8Vb5V1dY8jO7Luv2Drd+kwkwtNtLDxbdL3YOuAITYtKehQa1KRhkMuqIu4yFd5yApTzynsyBRypo0Hn4wTXCgB6s1Ch/TCuDDCAaHvPE5nXuJkhRvuZXI04EjpK/WIy2GK4VdYxojy+s6GMrhg++VjgzJuZvIbgkYb8ks5LmlCnK6DI96zSYes6L+ExWPVeUnMDMEH6M+9313I9d7nQBjO4z/Fk11W19KDQ6Z5CM7knm8n7mQ/CVF9vat1xo131ZvDYBzxT5zBzo6jaGYGE7CAdryfF/Gs3IUyWDKSJiBPa3FXhErVsg80sqQ+hK48a1hqh+RnsQ6wsH7y/cJBAQNf2c+Q/IFdpIIUu2a+iFEPTfco+U0DPfxQIaVjoGVIBCHE+E1jRTK0IeEqwxog03Cwcjq20FDhhnaiFYIRURjwDs+gWWpmBRDI1yi7+WAQzis0yoeapsan5/B9km2mEQqQnirL8zMNv4rJ/Ra6PgSmXs/GpYe1yjXa30SZSa4NKY/ySodYNZ3iMPSyocTrA0uC2d9/WhSZAIC9Av3VHg1Zh34sNBDX1S32w0=
-    on_success: never
-    on_failure: always
-    on_start: never
+webhooks:
+  urls:
+	- secure: "jTXtftO3t28zsQyTs7ZkKAms3qYvP4BuhWP2PjDJlM7cMRtRc3tJX/S9useSOnlu9CgKb3tEWuUIlHYdbQWitf4Z1SgBZa6Lskjkiac+gsN88rC3XqoHsrfGdGO/q0My+8MzvOU85ljjrEd07GmhKf6tsYI7c/thY3AQ2Pb6SRZP8tk9jnW2BTKgLrpU0IxuvnGCXBLLtrF8rbw6r1uRqODeE9yy1P6t3HTFR1abzmmMkuBsMGgyw3KE86n+hjH6L0xj+SIRhWyihzVqTTjIkDkqXdkOCd6IJIdAE0lRpUSBPi14oLAEWllDEhvUTieKeUUfzHDLXJjF36ZcEJCGCFuyJRCVmVGLVhcIASxhKZmovQGw7xxM70tLyeCYV+KMDiG9qsJPwr64Vhoo7lhve/buyVFuytIW88RIY42WBFEHWcry9Kj4m0XIDTGgwUtU3pOF64aRWkSLe6gvsKbW2dhxlNY0KQ2Swht5wdyU0AII4f5T7FOiEjo3Yus4Nc+C+qALkl2X2Hd03wf50ztDjCnejlghmWVtGV8r7peOkCBSip8DMHaWSv42in02IYc5qGAmFPTVSGVHRG6nCviiX4mv0PTF5yu2DfTHfOpyX+CltRRHH/O1SIRUVSq2YC6AEKBadB6Y4CMKsOoOyGIV8p1TL6VnI52BtcgGXF+ZrmQ="
+  on_success: change  # options: [always|never|change] default: always
+  on_failure: always  # options: [always|never|change] default: always
+  on_start: never     # options: [always|never|change] default: always
+
 #matrix:
 #  include:
 #    - os: linux
