@@ -23,14 +23,21 @@
 
 #if (defined(USE_BOEHM_GC) && !defined(DISABLE_BOEHM_GC))
 	//#include <gc_cpp.h>
-	#include "gc_cpp.h"
+	//#include "gc_cpp.h"
+	#include "gc.h"
 #else
-	struct gc {
-	};
 	void  GC_INIT() { }
 	void* GC_MALLOC(int size) { return malloc(size); }
 	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
 #endif
+
+struct gc {
+	void* operator new(std::size_t sz) {
+		//std::printf("global op new called, size = %zu\n",sz);
+		return GC_MALLOC(sz);
+	}
+};
+
 
 extern "C" {
 	#include <stdio.h>
