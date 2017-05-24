@@ -17,6 +17,7 @@
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
+import issues.issue125.Issue125
 import issues.Issue94Enum
 import jtransc.bug.JTranscBug110
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
@@ -34,6 +35,8 @@ class HaxeTest : Base() {
 	@Test fun testBigSwitchIssue103() = testClass<Issue103>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
 
 	@Test fun testJTranscBug110() = testClass<JTranscBug110>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
+
+	@Test fun testDescentIssue125() = testClass<Issue125>(minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true)
 
 	@Test fun haxeNativeCallTest() = testNativeClass<JTranscHaxeNativeMixedTest>("""
 		true
