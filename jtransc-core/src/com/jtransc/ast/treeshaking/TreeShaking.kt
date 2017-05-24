@@ -198,6 +198,10 @@ class TreeShakingApi(
 	}
 
 	fun addField(fieldRef: AstFieldRef, reason: String) {
+		_addFieldFinal(fieldRef.resolve(program).ref, reason)
+	}
+
+	private fun _addFieldFinal(fieldRef: AstFieldRef, reason: String) {
 		if (fieldRef in processed) return
 		if (SHAKING_TRACE) println("addField: $fieldRef. Reason: $reason")
 		processed += fieldRef
@@ -251,6 +255,10 @@ class TreeShakingApi(
 	}
 
 	fun addMethod(methodRef: AstMethodRef, reason: String) {
+		_addMethodFinal(methodRef.resolve(program).ref, reason)
+	}
+
+	private fun _addMethodFinal(methodRef: AstMethodRef, reason: String) {
 		if (methodRef in processed) return
 		if (SHAKING_TRACE) println("methodRef: $methodRef. Reason: $reason")
 		processed += methodRef
