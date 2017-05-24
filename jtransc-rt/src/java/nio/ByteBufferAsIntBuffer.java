@@ -16,6 +16,9 @@
 
 package java.nio;
 
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscMethodBody;
+
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
@@ -33,6 +36,7 @@ import java.nio.internal.ByteBufferAs;
  * </p>
  *
  */
+@JTranscAddMembers(target = "cpp", value = "int* tarray;")
 final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
     final ByteBuffer byteBuffer;
@@ -48,9 +52,15 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
+        init(byteBuffer.array());
     }
 
-    @Override
+	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.buffer);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int *)(GET_OBJECT(JA_B, p0)->_data);")
+	private void init(byte[] data) {
+	}
+
+	@Override
     public IntBuffer asReadOnlyBuffer() {
         ByteBufferAsIntBuffer buf = new ByteBufferAsIntBuffer(byteBuffer.asReadOnlyBuffer());
         buf.limit = limit;
@@ -86,10 +96,12 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     @Override
     public int get() {
         if (position == limit) throw new BufferUnderflowException();
-        return byteBuffer.getInt(position++ * SizeOf.INT);
+        return get(position++);
     }
 
     @Override
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
     public int get(int index) {
         checkIndex(index);
         return byteBuffer.getInt(index * SizeOf.INT);
@@ -133,12 +145,12 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 
     @Override
     public IntBuffer put(int c) {
-        if (position == limit) throw new BufferOverflowException();
-        byteBuffer.putInt(position++ * SizeOf.INT, c);
-        return this;
+        return put(position++, c);
     }
 
     @Override
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
     public IntBuffer put(int index, int c) {
         checkIndex(index);
         byteBuffer.putInt(index * SizeOf.INT, c);
