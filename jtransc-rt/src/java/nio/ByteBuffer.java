@@ -210,32 +210,12 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		return this;
 	}
 
-	public ByteBuffer putChar(char value) {
-		putChar(position, value);
-		position += SizeOf.SHORT;
-		return this;
-	}
-
-	public ByteBuffer putDouble(double value) {
-		return putLong(Double.doubleToRawLongBits(value));
-	}
-
 	public ByteBuffer putDouble(int index, double value) {
 		return putLong(index, Double.doubleToRawLongBits(value));
 	}
 
-	public ByteBuffer putFloat(float value) {
-		return putInt(Float.floatToRawIntBits(value));
-	}
-
 	public ByteBuffer putFloat(int index, float value) {
 		return putInt(index, Float.floatToRawIntBits(value));
-	}
-
-	public ByteBuffer putInt(int value) {
-		putInt(position, value);
-		position += SizeOf.SHORT;
-		return this;
 	}
 
 	public ByteBuffer putInt(int index, int value) {
@@ -252,12 +232,6 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		return this;
 	}
 
-	public ByteBuffer putLong(long value) {
-		putLong(position, value);
-		position += SizeOf.SHORT;
-		return this;
-	}
-
 	public ByteBuffer putShort(int index, short value) {
 		_checkWritable();
 		checkIndex(index, SizeOf.SHORT);
@@ -265,11 +239,7 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		return this;
 	}
 
-	public ByteBuffer putShort(short value) {
-		putShort(position, value);
-		position += SizeOf.SHORT;
-		return this;
-	}
+
 
 	public ByteBuffer slice() {
 		return new ByteBuffer(remaining(), backingArray, arrayOffset + position, isReadOnly);
@@ -375,10 +345,6 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		throw new RuntimeException("Not implemented");
 	}
 
-	public ByteBuffer put(byte b) {
-		return put(position++, b);
-	}
-
 	public ByteBuffer put(int index, byte b) {
 		_checkWritable();
 		checkIndex(index);
@@ -471,5 +437,43 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		checkIndex(index, SizeOf.DOUBLE);
 		return Memory.peekDouble(backingArray, arrayOffset + index, isLittleEndian);
 	}
+
+
+	public ByteBuffer put(byte b) {
+		return put(position++, b);
+	}
+
+	public ByteBuffer putChar(char value) {
+		putChar(position, value);
+		position += SizeOf.CHAR;
+		return this;
+	}
+
+	public ByteBuffer putShort(short value) {
+		putShort(position, value);
+		position += SizeOf.SHORT;
+		return this;
+	}
+
+	public ByteBuffer putInt(int value) {
+		putInt(position, value);
+		position += SizeOf.INT;
+		return this;
+	}
+
+	public ByteBuffer putLong(long value) {
+		putLong(position, value);
+		position += SizeOf.LONG;
+		return this;
+	}
+
+	public ByteBuffer putFloat(float value) {
+		return putInt(Float.floatToRawIntBits(value));
+	}
+
+	public ByteBuffer putDouble(double value) {
+		return putLong(Double.doubleToRawLongBits(value));
+	}
+
 
 }

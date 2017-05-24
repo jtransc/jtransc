@@ -44,7 +44,7 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         init(byteBuffer.array());
     }
 
-	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.buffer);")
+	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data);")
 	private void init(byte[] data) {
 	}
