@@ -94,7 +94,7 @@ cache:
   directories:
   - "$HOME/.m2"
   - "$HOME/.gradle"
-  - "$HOME/.jtransc"
+#  - "$HOME/.jtransc"
 
 notifications:
   webhooks:
