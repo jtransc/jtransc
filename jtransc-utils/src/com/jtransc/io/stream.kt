@@ -1,5 +1,6 @@
 package com.jtransc.io
 
+import com.jtransc.error.invalidOp
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -71,6 +72,7 @@ fun InputStream.readExactBytes(size: Int): ByteArray {
 	var remaining = size
 	while (remaining > 0) {
 		val read = this.read(out, offset, remaining)
+		if (read <= 0) invalidOp("Can't read all bytes exactly")
 		remaining -= read
 		offset += read
 	}

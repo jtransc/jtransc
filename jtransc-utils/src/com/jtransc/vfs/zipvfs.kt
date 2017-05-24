@@ -3,17 +3,21 @@ package com.jtransc.vfs
 import com.jtransc.io.indexOf
 import com.jtransc.io.ra.RASlice
 import com.jtransc.io.ra.RAStream
+import com.jtransc.io.readAvailableChunk
+import com.jtransc.io.readExactBytes
 import com.jtransc.util.getBits
 import com.jtransc.util.open
 import com.jtransc.util.toIntClamp
 import com.jtransc.util.toUInt
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
 import java.util.zip.Inflater
+import java.util.zip.InflaterInputStream
 
-fun ZipVfs(file: String, zipFile: SyncVfsFile? = null) = ZipVfs(File(file).open(), zipFile)
-fun ZipVfs(file: File, zipFile: SyncVfsFile? = null) = ZipVfs(file.open(), zipFile)
+fun ZipVfs(file: File) = ZipVfs(file.open(), LocalVfs(file))
+fun ZipVfs(file: String) = ZipVfs(File(file))
 fun ZipVfs(data: ByteArray, zipFile: SyncVfsFile? = null) = ZipVfs(data.open(), zipFile)
 
 fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
@@ -131,16 +135,47 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 			}
 		}
 		files[""] = ZipEntry(path = "", compressionMethod = 0, isDirectory = true, time = DosFileDateTime(0, 0), inode = 0L, offset = 0, headerEntry = byteArrayOf().open(), compressedSize = 0L, uncompressedSize = 0L)
+
+		//for (folder in files) println(folder)
 		Unit
 	}
 
 	class Impl : SyncVfs() {
 		val vfs = this
+		override val absolutePath: String get() = zipFile?.realpathOS ?: ""
 
 		override fun read(path: String): ByteArray {
-			return open(path).readAvailableBytes()
+			val entry = files[path.normalizeName()] ?: throw FileNotFoundException("Path: '$path'")
+			val base = entry.headerEntry.slice()
+			return base.run {
+				if (this.available < 16) throw IllegalStateException("Chunk to small to be a ZIP chunk")
+				if (readS32_BE() != 0x504B_0304) throw IllegalStateException("Not a zip file")
+				val version = readU16_LE()
+				val flags = readU16_LE()
+				val compressionType = readU16_LE()
+				val fileTime = readU16_LE()
+				val fileDate = readU16_LE()
+				val crc = readS32_LE()
+				val compressedSize = readS32_LE()
+				val uncompressedSize = readS32_LE()
+				val fileNameLength = readU16_LE()
+				val extraLength = readU16_LE()
+				val name = readStringz(fileNameLength, Charsets.UTF_8)
+				val extra = readBytesExact(extraLength)
+				val compressedData = readBytesExact(entry.compressedSize.toInt())
+
+				when (entry.compressionMethod) {
+				// Uncompressed
+					0 -> compressedData
+				// Deflate
+					8 -> //InflaterInputStream(ByteArrayInputStream(compressedData), Inflater(true)).readBytes()
+						InflaterInputStream(ByteArrayInputStream(compressedData), Inflater(true)).readExactBytes(entry.compressedSize.toInt())
+					else -> TODO("Not implemented zip method ${entry.compressionMethod}")
+				}
+			}
 		}
 
+		/*
 		private fun open(path: String): RAStream {
 			val entry = files[path.normalizeName()] ?: throw FileNotFoundException("Path: '$path'")
 			val base = entry.headerEntry.slice()
@@ -170,6 +205,7 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 				}
 			}
 		}
+		*/
 
 		override fun stat(path: String): SyncVfsStat {
 			return files[path.normalizeName()].toStat(this@Impl[path])
@@ -200,7 +236,7 @@ private class DosFileDateTime(var time: Int, var date: Int) {
 
 fun SyncVfsFile.openAsZip() = ZipVfs(this.read().open(), this)
 
-
+/*
 class InflateRAStream(val base: RASlice, val inflater: Inflater, val uncompressedSize: Long? = null) : RAStream() {
 	override fun write(position: Long, ref: ByteArray?, pos: Int, len: Int) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -220,3 +256,4 @@ class InflateRAStream(val base: RASlice, val inflater: Inflater, val uncompresse
 		inflater.end()
 	}
 }
+*/
