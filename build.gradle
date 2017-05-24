@@ -186,5 +186,5 @@ task updateVersion() {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '3.5'
+	gradleVersion = '3.4.1'
 }
