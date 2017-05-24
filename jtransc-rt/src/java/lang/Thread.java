@@ -21,6 +21,7 @@ import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.thread.JTranscThreading;
 
 import java.util.HashMap;
@@ -198,7 +199,9 @@ public class Thread implements Runnable {
 
 	native public final void setPriority(int newPriority);
 
-	native public final int getPriority();
+	public final int getPriority() {
+		return NORM_PRIORITY;
+	}
 
 	public final synchronized void setName(String name) {
 		this.name = name;
@@ -232,6 +235,7 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "d", value = "this.thread.isDaemon = p0;")
 	native public final void setDaemon(boolean on);
 
+	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
 	native public final boolean isDaemon();
 
