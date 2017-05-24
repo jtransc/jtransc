@@ -92,8 +92,8 @@ script:
 - popd
 cache:
   directories:
-  - "$HOME/.m2"
-  - "$HOME/.gradle"
+#  - "$HOME/.m2"
+#  - "$HOME/.gradle"
 #  - "$HOME/.jtransc"
 
 notifications:

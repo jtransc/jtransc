@@ -14,7 +14,6 @@ class BdwgcZipTest {
 		gzzip.copyTreeTo(mem)
 		Assert.assertEquals(378, mem.listdirRecursive().count())
 		Assert.assertEquals(8479, gzzip["bdwgc/CMakeLists.txt"].readString().length)
-
 	}
 
 	@Test

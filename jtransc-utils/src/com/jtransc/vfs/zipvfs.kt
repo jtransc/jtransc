@@ -169,7 +169,7 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 					0 -> compressedData
 				// Deflate
 					8 -> //InflaterInputStream(ByteArrayInputStream(compressedData), Inflater(true)).readBytes()
-						InflaterInputStream(ByteArrayInputStream(compressedData), Inflater(true)).readExactBytes(entry.compressedSize.toInt())
+						InflaterInputStream(ByteArrayInputStream(compressedData), Inflater(true)).readExactBytes(entry.uncompressedSize.toInt())
 					else -> TODO("Not implemented zip method ${entry.compressionMethod}")
 				}
 			}
