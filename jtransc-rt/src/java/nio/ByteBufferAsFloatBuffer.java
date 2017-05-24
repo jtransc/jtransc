@@ -26,10 +26,12 @@ import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-@JTranscAddMembers(target = "cpp", value = "float* tarray;")
-final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
+@JTranscAddMembers(target = "cpp", value = "int32_t* iarray = nullptr;")
+class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 
     final ByteBuffer byteBuffer;
+	final byte[] bytes;
+	final boolean isLittleEndian;
 
     static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
@@ -42,11 +44,13 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
-        init(byteBuffer.array());
+		this.isLittleEndian = byteBuffer.isLittleEndian;
+		this.bytes = byteBuffer.array();
+		init(byteBuffer.array());
     }
 
-    @JTranscMethodBody(target = "js", value = "this.tarray = new Float32Array(p0.buffer);")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray = (float *)(GET_OBJECT(JA_B, p0)->_data);")
+    @JTranscMethodBody(target = "js", value = "this.iarray = new Int32Array(p0.buffer);")
+	@JTranscMethodBody(target = "cpp", value = "this->iarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data);")
     private void init(byte[] data) {
 	}
 
@@ -90,14 +94,6 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
     }
 
     @Override
-	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
-	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
-    public float get(int index) {
-        checkIndex(index);
-        return byteBuffer.getFloat(index * SizeOf.FLOAT);
-    }
-
-    @Override
     public FloatBuffer get(float[] dst, int dstOffset, int floatCount) {
         byteBuffer.limit(limit * SizeOf.FLOAT);
         byteBuffer.position(position * SizeOf.FLOAT);
@@ -138,29 +134,40 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
         return put(position++, c);
     }
 
-    @Override
-	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@Override
+	public float get(int index) {
+		return Float.intBitsToFloat(_getInt(index));
+	}
+
+	@Override
     public FloatBuffer put(int index, float c) {
-        checkIndex(index);
-        byteBuffer.putFloat(index * SizeOf.FLOAT, c);
+    	_putInt(index, Float.floatToIntBits(c));
         return this;
     }
 
-    @Override
+	@JTranscMethodBody(target = "js", value = "this.iarray[p0] = p1;")
+	@JTranscMethodBody(target = "cpp", value = "this->iarray[p0] = p1;")
+    protected void _putInt(int index, int c) {
+		checkIndex(index);
+		byteBuffer.putInt(index * SizeOf.INT, c);
+	}
+
+	@JTranscMethodBody(target = "js", value = "return this.iarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->iarray[p0];")
+	protected int _getInt(int index) {
+		checkIndex(index);
+		return byteBuffer.getInt(index * SizeOf.INT);
+	}
+
+	@Override
     public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
         byteBuffer.limit(limit * SizeOf.FLOAT);
 		byteBuffer.position(position * SizeOf.FLOAT);
-		//if (JTranscArrays.nativeReinterpretSupported() && byteBuffer.isNativeOrder) {
-		//	float[] dst = JTranscArrays.nativeReinterpretAsFloat(byteBuffer.array());
-		//	System.arraycopy(src, srcOffset, dst, position, floatCount);
-		//} else {
-			int offset = position * SizeOf.FLOAT;
-			for (int n = 0; n < floatCount; n++) {
-				byteBuffer.putFloat(offset, src[srcOffset + n]);
-				offset += 4;
-			}
-		//}
+		int offset = position * SizeOf.FLOAT;
+		for (int n = 0; n < floatCount; n++) {
+			byteBuffer.putFloat(offset, src[srcOffset + n]);
+			offset += 4;
+		}
 		position += floatCount;
         return this;
     }
@@ -178,5 +185,21 @@ final class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs 
 	@Override
 	public ByteBuffer getByteBuffer() {
 		return byteBuffer;
+	}
+
+	static public class Reversed extends ByteBufferAsFloatBuffer {
+		Reversed(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		protected void _putInt(int index, int c) {
+			super._putInt(index, Integer.reverseBytes(c));
+		}
+
+		@Override
+		protected int _getInt(int index) {
+			return Integer.reverseBytes(super._getInt(index));
+		}
 	}
 }

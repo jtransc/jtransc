@@ -18,45 +18,36 @@ package java.nio;
 
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
+import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-/**
- * This class wraps a byte buffer to be a int buffer.
- * <p>
- * Implementation notice:
- * <ul>
- * <li>After a byte buffer instance is wrapped, it becomes privately owned by
- * the adapter. It must NOT be accessed outside the adapter any more.</li>
- * <li>The byte buffer's position and limit are NOT linked with the adapter.
- * The adapter extends Buffer, thus has its own position and limit.</li>
- * </ul>
- * </p>
- *
- */
-@JTranscAddMembers(target = "cpp", value = "int* tarray;")
-final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
-
+@JTranscAddMembers(target = "cpp", value = "int32_t* tarray = nullptr;")
+class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
+	final byte[] bytes;
+	final boolean isLittleEndian;
 
     static IntBuffer asIntBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsIntBuffer(slice);
+        return byteBuffer.isNativeOrder ? new ByteBufferAsIntBuffer(slice) : new ByteBufferAsIntBuffer.Reversed(slice);
     }
 
-    private ByteBufferAsIntBuffer(ByteBuffer byteBuffer) {
+    ByteBufferAsIntBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.INT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
         this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
+        this.isLittleEndian = byteBuffer.isLittleEndian;
+        this.bytes = byteBuffer.array();
         init(byteBuffer.array());
     }
 
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.buffer);")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data);")
 	private void init(byte[] data) {
 	}
 
@@ -100,14 +91,6 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     }
 
     @Override
-	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
-	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
-    public int get(int index) {
-        checkIndex(index);
-        return byteBuffer.getInt(index * SizeOf.INT);
-    }
-
-    @Override
     public IntBuffer get(int[] dst, int dstOffset, int intCount) {
         byteBuffer.limit(limit * SizeOf.INT);
         byteBuffer.position(position * SizeOf.INT);
@@ -148,15 +131,6 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         return put(position++, c);
     }
 
-    @Override
-	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
-    public IntBuffer put(int index, int c) {
-        checkIndex(index);
-        byteBuffer.putInt(index * SizeOf.INT, c);
-        return this;
-    }
-
     //@Override
     //public IntBuffer put(int[] src, int srcOffset, int intCount) {
     //    byteBuffer.limit(limit * SizeOf.INT);
@@ -180,4 +154,39 @@ final class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 	public ByteBuffer getByteBuffer() {
 		return byteBuffer;
 	}
+
+	@Override
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	public int get(int index) {
+		checkIndex(index);
+		//return byteBuffer.getInt(index * SizeOf.INT);
+		return Memory.peekAlignedInt(bytes, index, isLittleEndian);
+	}
+
+	@Override
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	public IntBuffer put(int index, int c) {
+		checkIndex(index);
+		Memory.pokeInt(bytes, index * SizeOf.INT, c, isLittleEndian);
+		return this;
+	}
+
+	static public class Reversed extends ByteBufferAsIntBuffer {
+		Reversed(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		public int get(int index) {
+			return Integer.reverseBytes(super.get(index));
+		}
+
+		@Override
+		public IntBuffer put(int index, int c) {
+			return super.put(index, Integer.reverseBytes(c));
+		}
+	}
+
 }

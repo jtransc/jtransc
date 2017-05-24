@@ -25,6 +25,7 @@ import java.nio.internal.SizeOf;
 public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	ByteOrder order;
 	boolean isNativeOrder;
+	boolean isLittleEndian;
 
 	public final byte[] backingArray;
 	final int arrayOffset;
@@ -185,6 +186,7 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		if (byteOrder == null) byteOrder = ByteOrder.LITTLE_ENDIAN;
 		order = byteOrder;
 		isNativeOrder = byteOrder == ByteOrder.nativeOrder();
+		isLittleEndian = byteOrder ==  ByteOrder.LITTLE_ENDIAN;
 		return this;
 	}
 
@@ -204,16 +206,13 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	public ByteBuffer putChar(int index, char value) {
 		_checkWritable();
 		checkIndex(index, SizeOf.CHAR);
-		Memory.pokeShort(backingArray, arrayOffset + index, (short) value, order);
+		Memory.pokeShort(backingArray, arrayOffset + index, (short) value, isLittleEndian);
 		return this;
 	}
 
 	public ByteBuffer putChar(char value) {
-		_checkWritable();
-		int newPosition = position + SizeOf.CHAR;
-		if (newPosition > limit) throw new BufferOverflowException();
-		Memory.pokeShort(backingArray, arrayOffset + position, (short) value, order);
-		position = newPosition;
+		putChar(position, value);
+		position += SizeOf.SHORT;
 		return this;
 	}
 
@@ -234,50 +233,41 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	}
 
 	public ByteBuffer putInt(int value) {
-		_checkWritable();
-		int newPosition = position + SizeOf.INT;
-		if (newPosition > limit) throw new BufferOverflowException();
-		Memory.pokeInt(backingArray, arrayOffset + position, value, order);
-		position = newPosition;
+		putInt(position, value);
+		position += SizeOf.SHORT;
 		return this;
 	}
 
 	public ByteBuffer putInt(int index, int value) {
 		_checkWritable();
 		checkIndex(index, SizeOf.INT);
-		Memory.pokeInt(backingArray, arrayOffset + index, value, order);
+		Memory.pokeInt(backingArray, arrayOffset + index, value, isLittleEndian);
 		return this;
 	}
 
 	public ByteBuffer putLong(int index, long value) {
 		_checkWritable();
 		checkIndex(index, SizeOf.LONG);
-		Memory.pokeLong(backingArray, arrayOffset + index, value, order);
+		Memory.pokeLong(backingArray, arrayOffset + index, value, isLittleEndian);
 		return this;
 	}
 
 	public ByteBuffer putLong(long value) {
-		_checkWritable();
-		int newPosition = position + SizeOf.LONG;
-		if (newPosition > limit) throw new BufferOverflowException();
-		Memory.pokeLong(backingArray, arrayOffset + position, value, order);
-		position = newPosition;
+		putLong(position, value);
+		position += SizeOf.SHORT;
 		return this;
 	}
 
 	public ByteBuffer putShort(int index, short value) {
 		_checkWritable();
 		checkIndex(index, SizeOf.SHORT);
-		Memory.pokeShort(backingArray, arrayOffset + index, value, order);
+		Memory.pokeShort(backingArray, arrayOffset + index, value, isLittleEndian);
 		return this;
 	}
 
 	public ByteBuffer putShort(short value) {
-		_checkWritable();
-		int newPosition = position + SizeOf.SHORT;
-		if (newPosition > limit) throw new BufferOverflowException();
-		Memory.pokeShort(backingArray, arrayOffset + position, value, order);
-		position = newPosition;
+		putShort(position, value);
+		position += SizeOf.SHORT;
 		return this;
 	}
 
@@ -385,88 +375,8 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		throw new RuntimeException("Not implemented");
 	}
 
-	public final byte get() {
-		if (position == limit) throw new BufferUnderflowException();
-		return backingArray[arrayOffset + position++];
-	}
-
-	public final byte get(int index) {
-		checkIndex(index);
-		return backingArray[arrayOffset + index];
-	}
-
-	public final char getChar() {
-		int newPosition = position + SizeOf.CHAR;
-		if (newPosition > limit) throw new BufferUnderflowException();
-		char result = (char) Memory.peekShort(backingArray, arrayOffset + position, order);
-		position = newPosition;
-		return result;
-	}
-
-	public final char getChar(int index) {
-		checkIndex(index, SizeOf.CHAR);
-		return (char) Memory.peekShort(backingArray, arrayOffset + index, order);
-	}
-
-	public final double getDouble() {
-		return Double.longBitsToDouble(getLong());
-	}
-	public final double getDouble(int index) {
-		return Double.longBitsToDouble(getLong(index));
-	}
-	public final float getFloat() {
-		return Float.intBitsToFloat(getInt());
-	}
-	public final float getFloat(int index) {
-		return Float.intBitsToFloat(getInt(index));
-	}
-
-	public final int getInt() {
-		int newPosition = position + SizeOf.INT;
-		if (newPosition > limit) throw new BufferUnderflowException();
-		int result = Memory.peekInt(backingArray, arrayOffset + position, order);
-		position = newPosition;
-		return result;
-	}
-
-	public final int getInt(int index) {
-		checkIndex(index, SizeOf.INT);
-		return Memory.peekInt(backingArray, arrayOffset + index, order);
-	}
-
-	public final long getLong() {
-		int newPosition = position + SizeOf.LONG;
-		if (newPosition > limit) throw new BufferUnderflowException();
-		long result = Memory.peekLong(backingArray, arrayOffset + position, order);
-		position = newPosition;
-		return result;
-	}
-
-	public final long getLong(int index) {
-		checkIndex(index, SizeOf.LONG);
-		return Memory.peekLong(backingArray, arrayOffset + index, order);
-	}
-
-	public final short getShort() {
-		int newPosition = position + SizeOf.SHORT;
-		if (newPosition > limit) throw new BufferUnderflowException();
-		short result = Memory.peekShort(backingArray, arrayOffset + position, order);
-		position = newPosition;
-		return result;
-	}
-
-	public final short getShort(int index) {
-		checkIndex(index, SizeOf.SHORT);
-		return Memory.peekShort(backingArray, arrayOffset + index, order);
-	}
-
 	public ByteBuffer put(byte b) {
-		_checkWritable();
-		if (position == limit) {
-			throw new BufferOverflowException();
-		}
-		backingArray[arrayOffset + position++] = b;
-		return this;
+		return put(position++, b);
 	}
 
 	public ByteBuffer put(int index, byte b) {
@@ -476,23 +386,90 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		return this;
 	}
 
-	//public ByteBuffer put(byte[] src, int srcOffset, int byteCount) {
-	//	JTranscArrays.checkOffsetAndCount(src.length, srcOffset, byteCount);
-	//	if (byteCount > remaining()) {
-	//		throw new BufferOverflowException();
-	//	}
-	//	for (int i = srcOffset; i < srcOffset + byteCount; ++i) {
-	//		put(src[i]);
-	//	}
-	//	return this;
-	//}
-
 	public ByteBuffer put(byte[] src, int srcOffset, int byteCount) {
 		_checkWritable();
 		checkPutBounds(1, src.length, srcOffset, byteCount);
 		System.arraycopy(src, srcOffset, backingArray, arrayOffset + position, byteCount);
 		position += byteCount;
 		return this;
+	}
+
+	public final byte get() {
+		return get(position++);
+	}
+
+	public final char getChar() {
+		char out = getChar(position);
+		position += SizeOf.CHAR;
+		return out;
+	}
+
+	public final short getShort() {
+		short out = getShort(position);
+		position += SizeOf.SHORT;
+		return out;
+	}
+
+	public final int getInt() {
+		int out = getInt(position);
+		position += SizeOf.INT;
+		return out;
+	}
+
+	public final long getLong() {
+		long out = getLong(position);
+		position += SizeOf.LONG;
+		return out;
+	}
+
+	public final float getFloat() {
+		float out = getFloat(position);
+		position += SizeOf.FLOAT;
+		return out;
+	}
+
+	public final double getDouble() {
+		double out = getDouble(position);
+		position += SizeOf.DOUBLE;
+		return out;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+
+
+	public final byte get(int index) {
+		checkIndex(index);
+		return backingArray[arrayOffset + index];
+	}
+
+	public final char getChar(int index) {
+		checkIndex(index, SizeOf.CHAR);
+		return (char) Memory.peekShort(backingArray, arrayOffset + index, isLittleEndian);
+	}
+
+	public final short getShort(int index) {
+		checkIndex(index, SizeOf.SHORT);
+		return Memory.peekShort(backingArray, arrayOffset + index, isLittleEndian);
+	}
+
+	public final int getInt(int index) {
+		checkIndex(index, SizeOf.INT);
+		return Memory.peekInt(backingArray, arrayOffset + index, isLittleEndian);
+	}
+
+	public final long getLong(int index) {
+		checkIndex(index, SizeOf.LONG);
+		return Memory.peekLong(backingArray, arrayOffset + index, isLittleEndian);
+	}
+
+	public final float getFloat(int index) {
+		checkIndex(index, SizeOf.FLOAT);
+		return Memory.peekFloat(backingArray, arrayOffset + index, isLittleEndian);
+	}
+
+	public final double getDouble(int index) {
+		checkIndex(index, SizeOf.DOUBLE);
+		return Memory.peekDouble(backingArray, arrayOffset + index, isLittleEndian);
 	}
 
 }

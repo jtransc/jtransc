@@ -192,13 +192,13 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
     private void readAndVerifyDataDescriptor(int inB, int out) throws IOException {
         if (hasDD) {
             Streams.readFully(in, hdrBuf, 0, EXTHDR);
-            int sig = Memory.peekInt(hdrBuf, 0, ByteOrder.LITTLE_ENDIAN);
+            int sig = Memory.peekInt(hdrBuf, 0, true);
             if (sig != (int) EXTSIG) {
                 throw new ZipException(String.format("unknown format (EXTSIG=%x)", sig));
             }
-            currentEntry.crc = ((long) Memory.peekInt(hdrBuf, EXTCRC, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
-            currentEntry.compressedSize = ((long) Memory.peekInt(hdrBuf, EXTSIZ, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
-            currentEntry.size = ((long) Memory.peekInt(hdrBuf, EXTLEN, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
+            currentEntry.crc = ((long) Memory.peekInt(hdrBuf, EXTCRC, true)) & 0xffffffffL;
+            currentEntry.compressedSize = ((long) Memory.peekInt(hdrBuf, EXTSIZ, true)) & 0xffffffffL;
+            currentEntry.size = ((long) Memory.peekInt(hdrBuf, EXTLEN, true)) & 0xffffffffL;
         }
         if (currentEntry.crc != crc.getValue()) {
             throw new ZipException("CRC mismatch");
@@ -222,7 +222,7 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
 
         // Read the signature to see whether there's another local file header.
         Streams.readFully(in, hdrBuf, 0, 4);
-        int hdr = Memory.peekInt(hdrBuf, 0, ByteOrder.LITTLE_ENDIAN);
+        int hdr = Memory.peekInt(hdrBuf, 0, true);
         if (hdr == CENSIG) {
             entriesEnd = true;
             return null;
@@ -248,9 +248,9 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
         int ceCompressionMethod = peekShort(LOCHOW - LOCVER);
         long ceCrc = 0, ceCompressedSize = 0, ceSize = -1;
         if (!hasDD) {
-            ceCrc = ((long) Memory.peekInt(hdrBuf, LOCCRC - LOCVER, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
-            ceCompressedSize = ((long) Memory.peekInt(hdrBuf, LOCSIZ - LOCVER, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
-            ceSize = ((long) Memory.peekInt(hdrBuf, LOCLEN - LOCVER, ByteOrder.LITTLE_ENDIAN)) & 0xffffffffL;
+            ceCrc = ((long) Memory.peekInt(hdrBuf, LOCCRC - LOCVER, true)) & 0xffffffffL;
+            ceCompressedSize = ((long) Memory.peekInt(hdrBuf, LOCSIZ - LOCVER, true)) & 0xffffffffL;
+            ceSize = ((long) Memory.peekInt(hdrBuf, LOCLEN - LOCVER, true)) & 0xffffffffL;
         }
         int nameLength = peekShort(LOCNAM - LOCVER);
         if (nameLength == 0) {
@@ -283,7 +283,7 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
     }
 
     private int peekShort(int offset) {
-        return Memory.peekShort(hdrBuf, offset, ByteOrder.LITTLE_ENDIAN) & 0xffff;
+        return Memory.peekShort(hdrBuf, offset, true) & 0xffff;
     }
 
     /**

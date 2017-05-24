@@ -207,6 +207,9 @@ struct N { public:
 	inline static int32_t ishr(int32_t a, int32_t b);
 	inline static int32_t iushr(int32_t a, int32_t b);
 
+	static int32_t bswap32(int32_t a);
+	//static int64_t bswap64(int64_t a);
+
 	inline static int32_t ishl_cst(int32_t a, int32_t b);
 	inline static int32_t ishr_cst(int32_t a, int32_t b);
 	inline static int32_t iushr_cst(int32_t a, int32_t b);
@@ -869,6 +872,10 @@ template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
  	return result;
 }
 
+int32_t N::bswap32(int32_t a) {
+	return (a & 0x000000ff) << 24 | (a & 0x0000ff00) << 8 | (a & 0x00ff0000) >> 8 | (a & 0xff000000) >> 24;
+
+}
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
 int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }

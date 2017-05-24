@@ -97,7 +97,7 @@ public class GZIPInputStream extends InflaterInputStream {
         super(is, new Inflater(true), size);
         byte[] header = new byte[10];
         readFully(header, 0, header.length);
-        short magic = Memory.peekShort(header, 0, ByteOrder.LITTLE_ENDIAN);
+        short magic = Memory.peekShortLE(header, 0);
         if (magic != (short) GZIP_MAGIC) {
             throw new IOException(String.format("unknown format (magic number %x)", magic));
         }
@@ -111,7 +111,7 @@ public class GZIPInputStream extends InflaterInputStream {
             if (hcrc) {
                 crc.update(header, 0, 2);
             }
-            int length = Memory.peekShort(header, 0, ByteOrder.LITTLE_ENDIAN) & 0xffff;
+            int length = Memory.peekShortLE(header, 0) & 0xffff;
             while (length > 0) {
                 int max = length > buf.length ? buf.length : length;
                 int result = in.read(buf, 0, max);
@@ -132,7 +132,7 @@ public class GZIPInputStream extends InflaterInputStream {
         }
         if (hcrc) {
             readFully(header, 0, 2);
-            short crc16 = Memory.peekShort(header, 0, ByteOrder.LITTLE_ENDIAN);
+            short crc16 = Memory.peekShortLE(header, 0);
             if ((short) crc.getValue() != crc16) {
                 throw new IOException("CRC mismatch");
             }
@@ -187,10 +187,10 @@ public class GZIPInputStream extends InflaterInputStream {
         System.arraycopy(buf, len - size, b, 0, copySize);
         readFully(b, copySize, trailerSize - copySize);
 
-        if (Memory.peekInt(b, 0, ByteOrder.LITTLE_ENDIAN) != (int) crc.getValue()) {
+        if (Memory.peekIntLE(b, 0) != (int) crc.getValue()) {
             throw new IOException("CRC mismatch");
         }
-        if (Memory.peekInt(b, 4, ByteOrder.LITTLE_ENDIAN) != inf.getTotalOut()) {
+        if (Memory.peekIntLE(b, 4) != inf.getTotalOut()) {
             throw new IOException("Size mismatch");
         }
     }
