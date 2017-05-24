@@ -16,11 +16,9 @@
 
 package java.nio;
 
-import com.jtransc.JTranscArrays;
 import com.jtransc.annotation.JTranscAddMembers;
-import com.jtransc.annotation.JTranscMethod;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.mem.BytesWrite;
+import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
@@ -31,20 +29,19 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
-	final boolean isLittleEndian;
 
     static FloatBuffer asFloatBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsFloatBuffer(slice);
-    }
+		boolean isLittleEndian = byteBuffer.isLittleEndian;
+		return isLittleEndian ? new ByteBufferAsFloatBuffer(slice) : new ByteBufferAsFloatBuffer.BE(slice);
+
+	}
 
     ByteBufferAsFloatBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.FLOAT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
-		this.isLittleEndian = byteBuffer.isLittleEndian;
 		this.bytes = byteBuffer.array();
 		init(byteBuffer.array());
     }
@@ -145,20 +142,6 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
         return this;
     }
 
-	@JTranscMethodBody(target = "js", value = "this.iarray[p0] = p1;")
-	@JTranscMethodBody(target = "cpp", value = "this->iarray[p0] = p1;")
-    protected void _putInt(int index, int c) {
-		checkIndex(index);
-		byteBuffer.putInt(index * SizeOf.INT, c);
-	}
-
-	@JTranscMethodBody(target = "js", value = "return this.iarray[p0];")
-	@JTranscMethodBody(target = "cpp", value = "return this->iarray[p0];")
-	protected int _getInt(int index) {
-		checkIndex(index);
-		return byteBuffer.getInt(index * SizeOf.INT);
-	}
-
 	@Override
     public FloatBuffer put(float[] src, int srcOffset, int floatCount) {
         byteBuffer.limit(limit * SizeOf.FLOAT);
@@ -187,8 +170,24 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		return byteBuffer;
 	}
 
-	static public class Reversed extends ByteBufferAsFloatBuffer {
-		Reversed(ByteBuffer byteBuffer) {
+	@JTranscMethodBody(target = "js", value = "this.iarray[p0] = p1;")
+	@JTranscMethodBody(target = "cpp", value = "this->iarray[p0] = p1;")
+	protected void _putInt(int index, int c) {
+		checkIndex(index);
+		//byteBuffer.putInt(index * SizeOf.INT, c);
+		Memory.pokeInt(bytes, index, c, true);
+		//return Memory.peekAlignedFloatLE(bytes, index);
+	}
+
+	@JTranscMethodBody(target = "js", value = "return this.iarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->iarray[p0];")
+	protected int _getInt(int index) {
+		checkIndex(index);
+		return Memory.peekAlignedIntLE(bytes, index);
+	}
+
+	static public class BE extends ByteBufferAsFloatBuffer {
+		BE(ByteBuffer byteBuffer) {
 			super(byteBuffer);
 		}
 
