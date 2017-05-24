@@ -1,4 +1,4 @@
-package issues.issue125;
+package issues.issue130;
 
 public class Impl_0 {
 	public void printMe(String s) {
