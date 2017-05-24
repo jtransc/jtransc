@@ -30,16 +30,12 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 @:headerClassCode('inline static int _i2b(int v) { return (char)v; }; inline static int _i2s(int v) { return (short)v; }; inline static int _i2c(int v) { return (unsigned short)v; };')
 #end
 class N {
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static private var MIN_INT64 = haxe.Int64.make(0x80000000, 0x00000000);
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static public var MIN_INT32:Int32 = -2147483648;
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static private var M2P32_DBL = Math.pow(2, 32);
-	{{ HAXE_FIELD_ANNOTATIONS }}
-	static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var MIN_INT64 = haxe.Int64.make(0x80000000, 0x00000000);
+	{{ HAXE_FIELD_ANNOTATIONS }} static public var MIN_INT32:Int32 = -2147483648;
+	{{ HAXE_FIELD_ANNOTATIONS }} static public var MAX_INT32:Int32 = 2147483647;
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var M2P32_DBL = Math.pow(2, 32);
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function intToLong(v:Int):Long {
@@ -65,21 +61,13 @@ class N {
         return strLitCache[str];
     }
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function strLitEscape(str:String):{% CLASS java.lang.String %} return strLit(str);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function strLitEscape(str:String):{% CLASS java.lang.String %} return strLit(str);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function isNegativeZero(x:Float) return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public inline function c<T, S> (value:T, c:Class<S>):S return cast value;
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
-
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function isNegativeZero(x:Float) return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
-
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public inline function c<T, S> (value:T, c:Class<S>):S return cast value;
 	//static public inline function c<T, S> (value:T, c:Class<S>):S return (value != null) ? cast value : null;
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -169,31 +157,61 @@ class N {
 		#end
 	}
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function int(v:Float):Int return f2i(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function int(v:Float):Int return f2i(v);
 
 	//static public function int(value:Int):JavaInteger return boxInt(value);
 	//static public function long(value:Int64):JavaLong return boxLong(value);
 	//static public function float(value:Float32):JavaFloat return boxFloat(value);
 	//static public function double(value:Float64):JavaDouble return boxDouble(value);
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function z2i(v:Bool):Int return v ? 1 : 0;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function z2i(v:Bool):Int return v ? 1 : 0;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float64):haxe.Int64 return haxe.Int64.fromFloat(v);
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function d2j(v:Float64):haxe.Int64 return haxe.Int64.fromFloat(v);
+	static public function idiv(a:Int32, b:Int32):Int32 {
+		if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT32 && b == -1) { // CRASH TOO
+    		return N.MIN_INT32; // CRASH TOO?
+    	}
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function idiv(a:Int, b:Int):Int {
 		#if cpp return untyped __cpp__("(({0})/({1}))", a, b);
 		#else return Std.int(a / b);
 		#end
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function umod(a:Int32, b:Int32):Int32 return ((a % b) + b) % b;
+	static public function irem(a:Int32, b:Int32): Int32 {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT32 && b == -1) { // CRASH TOO
+    		return 0; // CRASH TOO?
+    	}
+    	return a % b;
+    }
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function ldiv(a:Int64, b:Int64):Int64 {
+		if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
+    		return N.MIN_INT64; // CRASH TOO?
+    	}
+		return a / b;
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function lrem(a:Int64, b:Int64): Int64 {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
+    		return 0; // CRASH TOO?
+    	}
+    	return a % b;
+    }
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function umod(a:Int32, b:Int32):Int32 return ((a % b) + b) % b;
 
 	#if php
 	{{ HAXE_METHOD_ANNOTATIONS }} static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
@@ -207,66 +225,34 @@ class N {
 	#end
 
 	// Long operators
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function llow(a:Int64):Int return a.low;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lhigh(a:Int64):Int return a.high;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ladd(a:Int64, b:Int64):Int64 return a + b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lsub(a:Int64, b:Int64):Int64 return a - b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lmul(a:Int64, b:Int64):Int64 return a * b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ldiv(a:Int64, b:Int64):Int64 return a / b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lrem(a:Int64, b:Int64):Int64 return a % b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lband(a:Int64, b:Int64):Int64 return a & b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lbor(a:Int64, b:Int64):Int64 return a | b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function land(a:Int64, b:Int64):Int64 return a & b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lor(a:Int64, b:Int64):Int64 return a | b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lxor(a:Int64, b:Int64):Int64 return a ^ b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lshl(a:Int64, b:Int):Int64 return a << b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lshr(a:Int64, b:Int):Int64 return a >> b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lushr(a:Int64, b:Int):Int64 return a >>> b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function leq(a:Int64, b:Int64) return a == b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lne(a:Int64, b:Int64) return a != b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lge(a:Int64, b:Int64) return a >= b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lle(a:Int64, b:Int64) return a <= b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function llt(a:Int64, b:Int64) return a < b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lgt(a:Int64, b:Int64) return a > b;
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(a:Int64):Int return a.low;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(a:Int64):Int return a.high;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ladd(a:Int64, b:Int64):Int64 return a + b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lsub(a:Int64, b:Int64):Int64 return a - b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lmul(a:Int64, b:Int64):Int64 return a * b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lband(a:Int64, b:Int64):Int64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lbor(a:Int64, b:Int64):Int64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function land(a:Int64, b:Int64):Int64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lor(a:Int64, b:Int64):Int64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lxor(a:Int64, b:Int64):Int64 return a ^ b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshl(a:Int64, b:Int):Int64 return a << b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshr(a:Int64, b:Int):Int64 return a >> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lushr(a:Int64, b:Int):Int64 return a >>> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function leq(a:Int64, b:Int64) return a == b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lne(a:Int64, b:Int64) return a != b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lge(a:Int64, b:Int64) return a >= b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lle(a:Int64, b:Int64) return a <= b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llt(a:Int64, b:Int64) return a < b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lgt(a:Int64, b:Int64) return a > b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
 
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ?  1 : cmp(a, b); }
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ?  1 : cmp(a, b); }
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function getTime():Float {

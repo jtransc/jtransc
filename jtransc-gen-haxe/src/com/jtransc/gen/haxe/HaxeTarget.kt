@@ -1,9 +1,6 @@
 package com.jtransc.gen.haxe
 
-import com.jtransc.ConfigOutputFile
-import com.jtransc.ConfigSubtarget
-import com.jtransc.ConfigTargetDirectory
-import com.jtransc.JTranscVersion
+import com.jtransc.*
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
@@ -324,17 +321,34 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		if (!outputFile2.exists()) {
-			return ProcessResult2(-1, "file $outputFile2 doesn't exist")
-		}
+		if (!outputFile2.exists()) return ProcessResult2(-1, "file $outputFile2 doesn't exist")
+
 		val fileSize = outputFile2.length()
 		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
 		val parentDir = outputFile2.parentFile
 
-		val runner = actualSubtarget!!.interpreter
-		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+		val platformExeSuffix = when {
+			JTranscSystem.isWindows() -> ".exe"
+			else -> ""
+		}
 
-		log.info("Running: $runner ${arguments.joinToString(" ")}")
+		val releaseDebugSuffix = when {
+			debugVersion -> "-debug"
+			else -> "-release"
+		}
+
+		val runner = when {
+			isCpp -> outputFile2.absolutePath + actualSubtarget!!.interpreterSuffix + "/" + _getHaxeFqName(entryPointClass).simpleName + "$releaseDebugSuffix$platformExeSuffix"
+			else -> actualSubtarget!!.interpreter
+		}
+
+		val arguments = when {
+			isCpp -> listOf()
+			else -> listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+		}
+
+		//log.info("Running: $runner ${arguments.joinToString(" ")}")
+		println("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
 			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
 		}
@@ -521,6 +535,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.targetName})"
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
+	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
+	override fun N_ldiv(l: String, r: String): String = "N.ldiv($l, $r)"
+	override fun N_lrem(l: String, r: String): String = "N.lrem($l, $r)"
 	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
 	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
 	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"

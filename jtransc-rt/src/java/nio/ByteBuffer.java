@@ -22,7 +22,7 @@ import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
-public final class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
+public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	ByteOrder order;
 	boolean isNativeOrder;
 

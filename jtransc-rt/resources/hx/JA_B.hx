@@ -3,32 +3,18 @@ import haxe.io.Bytes;
 import haxe.io.BytesData;
 import haxe.ds.Vector;
 
-#if cpp
-import cpp.Int8;
-import cpp.Pointer;
-import cpp.NativeArray;
-
-typedef __JA_B_Item = Vector<Int8>;
-#else
-typedef __JA_B_Item = Bytes;
-#end
-
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_B extends JA_0 {
-	{{ HAXE_FIELD_ANNOTATIONS }} public var data:__JA_B_Item = null;
+	{{ HAXE_FIELD_ANNOTATIONS }} public var data:Bytes = null;
 	#if cpp
-	{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:Pointer<Int8> = null;
+	{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:cpp.Pointer<cpp.Int8> = null;
 	#end
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
-    public function new(length:Int, data: __JA_B_Item = null) {
+    public function new(length:Int, data: Bytes = null) {
         super();
         if (data == null) {
-	        #if cpp
-        		data = new __JA_B_Item(length);
-        	#else
-        		data = Bytes.alloc(length);
-        	#end
+       		data = Bytes.alloc(length);
 		} else {
         	length = data.length;
         }
@@ -36,23 +22,12 @@ class JA_B extends JA_0 {
         this.length = length;
         this.desc = "[B";
         #if cpp
-        	ptr = NativeArray.address(data.toData(), 0);
+        	ptr = cpp.NativeArray.address(data.getData(), 0).reinterpret();
 		#end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }} override public function getElementBytesSize():Int return 1;
-
-	{{ HAXE_METHOD_ANNOTATIONS }}
-    override public function getBytes():Bytes {
-    	#if cpp
-    	var out = Bytes.alloc(length);
-    	for (n in 0 ... out.length) out.set(n, data.get(n));
-    	return out;
-    	#else
-		return data;
-		#end
-    }
-
+	{{ HAXE_METHOD_ANNOTATIONS }} override public function getBytes():Bytes return data;
 	{{ HAXE_METHOD_ANNOTATIONS }} public function getBytesData():BytesData return getBytes().getData();
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
