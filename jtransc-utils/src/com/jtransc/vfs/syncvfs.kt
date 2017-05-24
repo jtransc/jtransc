@@ -39,7 +39,8 @@ data class SyncVfsStat(
 	val isDirectory: Boolean,
 	val isSymlink: Boolean,
 	val exists: Boolean,
-	val mode: FileMode
+	val mode: FileMode,
+	val inode: Long = 0L
 ) {
 	val name: String get() = file.name
 	val path: String get() = file.path
@@ -212,6 +213,8 @@ data class ExecOptions(
 
 open class SyncVfs {
 	final fun root() = SyncVfsFile(this, "")
+
+	operator fun get(path: String) = root()[path]
 
 	open val absolutePath: String = ""
 	open fun read(path: String): ByteArray {
@@ -434,7 +437,7 @@ fun CompressedVfs(file: File): SyncVfsFile {
 	}
 }
 
-
+/*
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
 fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
 fun ZipVfs(content: ByteArray): SyncVfsFile {
@@ -442,6 +445,8 @@ fun ZipVfs(content: ByteArray): SyncVfsFile {
 	tempFile.writeBytes(content)
 	return ZipSyncVfs(ZipFile(tempFile)).root()
 }
+*/
+
 fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = RootLocalVfs().access(path).jail()
