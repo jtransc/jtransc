@@ -10,7 +10,7 @@ class Relooper(val types: AstTypes) {
 		val edges = arrayListOf<Edge>()
 		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + edges.map { it.dst }
 
-		override fun toString(): String = dump(types, AstStmUtils.stms(body)).toString().trim()
+		override fun toString(): String = dump(types, body.stm()).toString().trim()
 	}
 
 	class Edge(val dst: Node, val cond: AstExpr) {
@@ -72,7 +72,7 @@ class Relooper(val types: AstTypes) {
 		lookup = scgraph.assertAcyclic().createCommonDescendantLookup()
 		processedCount = IntArray(scgraph.size)
 
-		return AstStmUtils.stms(renderInternal(entry2, -1))
+		return renderInternal(entry2, -1).stm()
 		/*
 		println(entry)
 		println(entry2)
@@ -124,11 +124,11 @@ class Relooper(val types: AstTypes) {
 				if (common in targets) {
 					//val type1 = targets.indexOfFirst { it != common }
 					//stms += AstStm.IF(cond.not(), AstStmUtils.stms(branches[type1]))
-					stms += AstStm.IF(cond.not(), AstStmUtils.stms(branches[0]))
+					stms += AstStm.IF(cond.not(), branches[0].stm())
 				}
 				// IF-ELSE
 				else {
-					stms += AstStm.IF_ELSE(cond.not(), AstStmUtils.stms(branches[0]), AstStmUtils.stms(branches[1]))
+					stms += AstStm.IF_ELSE(cond.not(), branches[0].stm(), branches[1].stm())
 				}
 				stms += renderInternal(common, endnode)
 			}

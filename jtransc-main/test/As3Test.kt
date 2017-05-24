@@ -1,11 +1,12 @@
+import as3.As3PureTest
 import big.BigTest
-import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
-import com.jtransc.gen.cs.CSharpTarget
+import javatest.misc.BenchmarkTest
+import jtransc.bug.JTranscBug127
 import jtransc.micro.MicroHelloWorld
+import org.junit.Ignore
 import org.junit.Test
-import testservice.test.ServiceLoaderTest
 
 /*
  * Copyright 2016 Carlos Ballesteros Velasco
@@ -23,8 +24,26 @@ import testservice.test.ServiceLoaderTest
  * limitations under the License.
  */
 
-class As3Test : Base() {
+class As3Test : _Base() {
 	override val DEFAULT_TARGET = As3Target()
 
-	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM)
+	@Ignore
+	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
+	//@Test fun testMicroHelloWorldAsm() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = false, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") })
+
+	@Ignore
+	@Test fun test2() = testClass(Params(clazz = BenchmarkTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
+
+	@Ignore
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
+
+	@Ignore
+	@Test fun as3PureTest() = testNativeClass("""
+		1024
+		0
+	""", Params(clazz = As3PureTest::class.java, minimize = false, debug = true, backend = BuildBackend.ASM, target = As3Target(), transformerOut = { it.replace("\r", "") }))
+
+	@Ignore
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true, transformerOut = { it.replace("\r", "") }))
 }

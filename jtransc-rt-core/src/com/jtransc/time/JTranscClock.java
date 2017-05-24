@@ -21,6 +21,8 @@ public class JTranscClock {
 			@JTranscMethodBody(target = "js", value = "return N.getTime();"),
 			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
 			@JTranscMethodBody(target = "cs", value = "return N.getTime();"),
+			@JTranscMethodBody(target = "as3", value = "return new Date().time;"), // Optimize this to avoid allocations (using just one new Date().time + getTimer())!
+			@JTranscMethodBody(target = "dart", value = "return new DateTime.now().millisecondsSinceEpoch.toDouble();"),
 		})
 		public double fastTime() {
 			if (parent != null) {
@@ -36,7 +38,10 @@ public class JTranscClock {
 
 		//performance.now()
 		//process.hrtime()[1] / 1000000000.0
-		@JTranscMethodBody(target = "js", value = "return N.hrtime();")
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "js", value = "return N.hrtime();"),
+			@JTranscMethodBody(target = "cpp", value = "return N::nanoTime();"),
+		})
 		public long nanoTime() {
 			if (JTranscSystem.isJTransc()) {
 				//return (long) hrtime();
@@ -47,8 +52,9 @@ public class JTranscClock {
 		}
 
 		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
-		@JTranscMethodBody(target = "cs", value = {
-			"System.Threading.Thread.Sleep((int)p0);"
+		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "cs", value = "System.Threading.Thread.Sleep((int)p0);"),
+			@JTranscMethodBody(target = "dart", value = "sleep(new Duration(milliseconds: p0.toInt()));"),
 		})
 		public void sleep(double ms) {
 			if (parent != null) {

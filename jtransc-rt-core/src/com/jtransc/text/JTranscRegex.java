@@ -129,7 +129,7 @@ public class JTranscRegex {
 		"" +
 			"public function _find() {\n" +
 			"\tvar r = this._ereg;\n" +
-			"\tthis._matches = r.matchSub(this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text:Ljava/lang/String; %}._str, this._offset);\n" +
+			"\tthis._matches = r.matchSub(this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text:Ljava/lang/String; %}._str, this._offset);\n" +
 			"\tif (this._matches) {\n" +
 			"\t\tvar rpos = r.matchedPos();\n" +
 			"\t\tthis._matchPos = rpos.pos;\n" +
@@ -167,9 +167,9 @@ public class JTranscRegex {
 
 		@HaxeMethodBody("" +
 			"var opts = '';\n" +
-			"var flags = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:flags %};\n" +
-			"var pattern = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:pattern %};\n" +
-			"var text = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text %};\n" +
+			"var flags = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:flags %};\n" +
+			"var pattern = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:pattern %};\n" +
+			"var text = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text %};\n" +
 			"if ((flags & 0x02) != 0) opts += 'i';\n" +
 			"if ((flags & 0x08) != 0) opts += 'm';\n" +
 			//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
@@ -181,7 +181,7 @@ public class JTranscRegex {
 		)
 		@JTranscMethodBody(target = "js", value = {
 			"this._ereg = new RegExp(N.istr(this._pattern), N.istr(this._flagsString + 'g'));",
-			"var flags = this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:flags %};",
+			"var flags = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:flags %};",
 			"var opts = '';",
 			"if ((flags & 0x02) != 0) opts += 'i';",
 			"if ((flags & 0x08) != 0) opts += 'm';",
@@ -259,8 +259,8 @@ public class JTranscRegex {
 		@HaxeMethodBody("return N.str(new EReg(this._pattern, p1 ? (this._opts + 'g') : (this._opts)).replace(this._text, p0._str));")
 		@JTranscMethodBody(target = "js", value = {
 			"var opts = p1 ? (this._opts + 'g') : (this._opts);",
-			"var text = N.istr(this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:text %});",
-			"var pattern = N.istr(this.{% FIELD com.jtransc.text.JTranscRegex$Matcher:pattern %});",
+			"var text = N.istr(this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text %});",
+			"var pattern = N.istr(this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:pattern %});",
 			"return N.str(text.replace(new RegExp(pattern, opts), N.istr(p0)));"
 		})
 		native private String replaceFirstAll(String replacement, boolean all);

@@ -20,6 +20,10 @@ const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
 fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
+	val methodType = types.demangleMethod(method.desc)
+	val methodInstructions = method.instructions
+	val methodRef = AstMethodRef(clazz.name, method.name, methodType)
+
 	//val DEBUG = method.name == "paramOrderSimple"
 	if (DEBUG) {
 		println("--------------------------------------------------------------------")
@@ -81,13 +85,13 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		bb?.stms ?: listOf()
 	}
 
-	val optimizedStms = AstStm.STMS(optimize(prefix.stms + body2, labels.referencedLabels))
+	val optimizedStms = optimize(prefix.stms + body2, labels.referencedLabels).stm()
 
 	val out = AstBody(
 		types,
 		optimizedStms,
 		types.demangleMethod(method.desc),
-		locals.locals.values.toList(),
+		//locals.locals.values.toList(),
 		tryCatchBlocks.map {
 			AstTrap(
 				start = labels.label(it.start),
@@ -96,7 +100,8 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				exception = types.REF_INT3(it.type) ?: AstType.THROWABLE
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = hasDynamicInvoke)
+		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = hasDynamicInvoke),
+		methodRef = methodRef
 	).optimize()
 
 	return out
@@ -149,7 +154,7 @@ fun createFunctionPrefix(clazz: AstType.REF, method: MethodNode, locals: Locals,
 	for (arg in (if (!isStatic) listOf(AstExpr.THIS(clazz.name)) else listOf()) + methodType.args.map { AstExpr.PARAM(it) }) {
 		//setLocalAtIndex(idx, AstExpr.PARAM(arg))
 		val local = locals.local(fixType(arg.type), idx)
-		stms.add(AstStmUtils.set(local, arg))
+		stms.add(local.setTo(arg))
 		val info = localPair(idx, arg.type, "l")
 		localsOutput[info] = local
 		idx++
@@ -235,13 +240,7 @@ fun fixType(type: AstType): AstType {
 	}
 }
 
-fun nameType(type: AstType): String {
-	if (type is AstType.Primitive) {
-		return type.chstring
-	} else {
-		return "A"
-	}
-}
+fun nameType(type: AstType): String = (type as? AstType.Primitive)?.chstring ?: "A"
 
 // http://stackoverflow.com/questions/4324321/java-local-variables-how-do-i-get-a-variable-name-or-type-using-its-index
 private class BasicBlockBuilder(
@@ -285,21 +284,9 @@ private class BasicBlockBuilder(
 		//}
 	}
 
-	fun stackPush(e: AstExpr) {
-		stack.push(e)
-	}
-
-	fun stackPush(e: AstLocal) {
-		stack.push(AstExprUtils.localRef(e))
-	}
-
-	//fun stackPushList(e: List<AstExpr>) {
-	//	for (i in e) stackPush(i)
-	//}
-
-	fun stackPushListLocal(e: List<AstLocal>) {
-		for (i in e) stackPush(i)
-	}
+	fun stackPush(e: AstExpr) = run { stack.push(e) }
+	fun stackPush(e: AstLocal) = run { stack.push(AstExprUtils.localRef(e)) }
+	fun stackPushListLocal(e: List<AstLocal>) = run { for (i in e) stackPush(i) }
 
 	fun stackPop(): AstExpr {
 		if (stack.isEmpty()) {
@@ -318,7 +305,7 @@ private class BasicBlockBuilder(
 	fun stmSet(local: AstLocal, value: AstExpr): Boolean {
 		//if (value is AstExpr.REF && value.expr is AstExpr.LOCAL && (value.expr as AstExpr.LOCAL).local == local) return false
 		if (value is AstExpr.LOCAL && value.local == local) return false
-		stmAdd(AstStmUtils.set(local, value))
+		stmAdd(local.setTo(value))
 		return true
 	}
 
@@ -336,19 +323,19 @@ private class BasicBlockBuilder(
 		val ref = fix(AstFieldRef(types.REF_INT2(i.owner).fqname.fqname, i.name, types.demangle(i.desc)))
 		when (i.opcode) {
 			Opcodes.GETSTATIC -> {
-				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_STATIC_ACCESS(ref), ref.type))
+				stackPush(AstExpr.FIELD_STATIC_ACCESS(ref).castTo(ref.type))
 			}
 			Opcodes.GETFIELD -> {
-				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
-				stackPush(AstExprUtils.fastcast(AstExpr.FIELD_INSTANCE_ACCESS(ref, obj), ref.type))
+				val obj = stackPop().castTo(ref.containingTypeRef)
+				stackPush(AstExpr.FIELD_INSTANCE_ACCESS(ref, obj).castTo(ref.type))
 			}
 			Opcodes.PUTSTATIC -> {
-				stmAdd(AstStm.SET_FIELD_STATIC(ref, AstExprUtils.fastcast(stackPop(), ref.type)))
+				stmAdd(AstStm.SET_FIELD_STATIC(ref, stackPop().castTo(ref.type)))
 			}
 			Opcodes.PUTFIELD -> {
 				val param = stackPop()
-				val obj = AstExprUtils.fastcast(stackPop(), ref.containingTypeRef)
-				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, AstExprUtils.fastcast(param, ref.type)))
+				val obj = stackPop().castTo(ref.containingTypeRef)
+				stmAdd(AstStm.SET_FIELD_INSTANCE(ref, obj, param.castTo(ref.type)))
 			}
 			else -> invalidOp
 		}
@@ -359,9 +346,6 @@ private class BasicBlockBuilder(
 	fun optimize(e: AstExpr.BINOP): AstExpr {
 		return e
 	}
-
-	fun cast(expr: AstExpr, to: AstType) = AstExprUtils.cast(expr, to)
-	fun fastcast(expr: AstExpr, to: AstType) = AstExprUtils.fastcast(expr, to)
 
 	fun pushBinop(type: AstType, op: AstBinop) {
 		val r = stackPop()
@@ -376,14 +360,15 @@ private class BasicBlockBuilder(
 	fun arrayLoad(type: AstType): Unit {
 		val index = stackPop()
 		val array = stackPop()
-		stackPush(AstExpr.ARRAY_ACCESS(fastcast(array, AstType.ARRAY(type)), fastcast(index, AstType.INT)))
+		stackPush(AstExpr.ARRAY_ACCESS(array.castTo(AstType.ARRAY(type)), index.castTo(AstType.INT)))
 	}
 
 	fun arrayStore(elementType: AstType): Unit {
 		val expr = stackPop()
 		val index = stackPop()
 		val array = stackPop()
-		stmAdd(AstStm.SET_ARRAY(fastcast(array, AstType.ARRAY(elementType)), fastcast(index, AstType.INT), fastcast(expr, elementType)))
+		val arrayTyped = array.castTo(AstType.ARRAY(elementType))
+		stmAdd(AstStm.SET_ARRAY(arrayTyped, index.castTo(AstType.INT), expr.castTo(elementType)))
 	}
 
 	private var stackPopToLocalsItemsCount = 0
@@ -422,11 +407,11 @@ private class BasicBlockBuilder(
 				//stmAdd(AstStm.NOP)
 				Unit
 			}
-			Opcodes.ACONST_NULL -> stackPush(AstExpr.LITERAL(null))
-			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush(AstExpr.LITERAL((op - Opcodes.ICONST_0).toInt()))
-			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.LCONST_0).toLong()))
-			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush(AstExpr.LITERAL((op - Opcodes.FCONST_0).toFloat()))
-			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush(AstExpr.LITERAL((op - Opcodes.DCONST_0).toDouble()))
+			Opcodes.ACONST_NULL -> stackPush(null.lit)
+			in Opcodes.ICONST_M1..Opcodes.ICONST_5 -> stackPush((op - Opcodes.ICONST_0).toInt().lit)
+			in Opcodes.LCONST_0..Opcodes.LCONST_1 -> stackPush((op - Opcodes.LCONST_0).toLong().lit)
+			in Opcodes.FCONST_0..Opcodes.FCONST_2 -> stackPush((op - Opcodes.FCONST_0).toFloat().lit)
+			in Opcodes.DCONST_0..Opcodes.DCONST_1 -> stackPush((op - Opcodes.DCONST_0).toDouble().lit)
 			in Opcodes.IALOAD..Opcodes.SALOAD -> arrayLoad(PTYPES[op - Opcodes.IALOAD])
 			in Opcodes.IASTORE..Opcodes.SASTORE -> arrayStore(PTYPES[op - Opcodes.IASTORE])
 			Opcodes.POP -> {
@@ -508,13 +493,13 @@ private class BasicBlockBuilder(
 			in Opcodes.IOR..Opcodes.LOR -> pushBinop(PTYPES[op - Opcodes.IOR], AstBinop.OR)
 			in Opcodes.IXOR..Opcodes.LXOR -> pushBinop(PTYPES[op - Opcodes.IXOR], AstBinop.XOR)
 
-			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(fastcast(stackPop(), AstType.LONG))
-			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(fastcast(stackPop(), AstType.FLOAT))
-			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(fastcast(stackPop(), AstType.DOUBLE))
-			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(fastcast(stackPop(), AstType.INT))
-			Opcodes.I2B -> stackPush(fastcast(stackPop(), AstType.BYTE))
-			Opcodes.I2C -> stackPush(fastcast(stackPop(), AstType.CHAR))
-			Opcodes.I2S -> stackPush(fastcast(stackPop(), AstType.SHORT))
+			Opcodes.I2L, Opcodes.F2L, Opcodes.D2L -> stackPush(stackPop().castTo(AstType.LONG))
+			Opcodes.I2F, Opcodes.L2F, Opcodes.D2F -> stackPush(stackPop().castTo(AstType.FLOAT))
+			Opcodes.I2D, Opcodes.L2D, Opcodes.F2D -> stackPush(stackPop().castTo(AstType.DOUBLE))
+			Opcodes.L2I, Opcodes.F2I, Opcodes.D2I -> stackPush(stackPop().castTo(AstType.INT))
+			Opcodes.I2B -> stackPush(stackPop().castTo(AstType.BYTE))
+			Opcodes.I2C -> stackPush(stackPop().castTo(AstType.CHAR))
+			Opcodes.I2S -> stackPush(stackPop().castTo(AstType.SHORT))
 
 			Opcodes.LCMP -> pushBinop(AstType.INT, AstBinop.LCMP)
 			Opcodes.FCMPL -> pushBinop(AstType.FLOAT, AstBinop.CMPL)
@@ -532,7 +517,7 @@ private class BasicBlockBuilder(
 	fun handleMultiArray(i: MultiANewArrayInsnNode) {
 		when (i.opcode) {
 			Opcodes.MULTIANEWARRAY -> {
-				stackPush(AstExpr.NEW_ARRAY(types.REF_INT(i.desc) as AstType.ARRAY, (0 until i.dims).map { stackPop() }.reversed()))
+				stackPush(AstExpr.NEW_ARRAY(types.REF_INT(i.desc).asArray(), (0 until i.dims).map { stackPop() }.reversed()))
 			}
 			else -> invalidOp("$i")
 		}
@@ -541,9 +526,9 @@ private class BasicBlockBuilder(
 	fun handleType(i: TypeInsnNode) {
 		val type = types.REF_INT(i.desc)
 		when (i.opcode) {
-			Opcodes.NEW -> stackPush(fastcast(AstExpr.NEW(type as AstType.REF), AstType.OBJECT))
+			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
-			Opcodes.CHECKCAST -> stackPush(cast(stackPop(), type))
+			Opcodes.CHECKCAST -> stackPush(stackPop().checkedCastTo(type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType.Reference))
 			else -> invalidOp("$i")
 		}
@@ -584,16 +569,16 @@ private class BasicBlockBuilder(
 	fun handleLdc(i: LdcInsnNode) {
 		val cst = i.cst
 		when (cst) {
-			is Int, is Float, is Long, is Double, is String -> stackPush(AstExpr.LITERAL(cst))
-			is Type -> stackPush(AstExpr.LITERAL(types.REF_INT(cst.internalName)))
+			is Int, is Float, is Long, is Double, is String -> stackPush(cst.lit)
+			is Type -> stackPush(types.REF_INT(cst.internalName).lit)
 			else -> invalidOp
 		}
 	}
 
 	fun handleInt(i: IntInsnNode) {
 		when (i.opcode) {
-			Opcodes.BIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toByte()))
-			Opcodes.SIPUSH -> stackPush(AstExpr.LITERAL(i.operand.toShort()))
+			Opcodes.BIPUSH -> stackPush(i.operand.toByte().lit)
+			Opcodes.SIPUSH -> stackPush(i.operand.toShort().lit)
 			Opcodes.NEWARRAY -> {
 				val type = when (i.operand) {
 					Opcodes.T_BOOLEAN -> AstType.BOOL
@@ -618,22 +603,14 @@ private class BasicBlockBuilder(
 		val methodRef = fix(AstMethodRef(clazz.fqname.fqname, i.name, types.demangleMethod(i.desc)))
 		val isSpecial = i.opcode == Opcodes.INVOKESPECIAL
 
-		val args = methodRef.type.args.reversed().map { fastcast(stackPop(), it.type) }.reversed()
+		val args = methodRef.type.args.reversed().map { stackPop().castTo(it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
-		when (i.opcode) {
-			Opcodes.INVOKESTATIC -> {
-				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
-			}
-			Opcodes.INVOKEVIRTUAL, Opcodes.INVOKEINTERFACE, Opcodes.INVOKESPECIAL -> {
-				if (obj!!.type !is AstType.REF) {
-					//invalidOp("Obj must be an object $obj, but was ${obj.type}")
-				}
-				val obj1 = fastcast(obj, methodRef.containingClassType)
-				val obj2 = if (i.opcode != Opcodes.INVOKESPECIAL) obj1 else AstExprUtils.fastcast(obj1, methodRef.containingClassType)
-				stackPush(AstExpr.CALL_INSTANCE(obj2, methodRef, args, isSpecial))
-			}
-			else -> invalidOp
+		if (obj != null) {
+			val cobj = obj.castTo(methodRef.containingClassType)
+			stackPush(AstExpr.CALL_INSTANCE(cobj, methodRef, args, isSpecial))
+		} else {
+			stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
 		}
 
 		if (methodRef.type.retVoid) {
@@ -650,15 +627,15 @@ private class BasicBlockBuilder(
 			i.bsmArgs.map {
 				when (it) {
 					is Type -> when (it.sort) {
-						Type.METHOD -> AstExpr.LITERAL(types.demangleMethod(it.descriptor))
+						Type.METHOD -> types.demangleMethod(it.descriptor).lit
 						else -> noImpl("${it.sort} : $it")
 					}
 					is Handle -> {
 						val kind = AstMethodHandle.Kind.fromId(it.tag)
 						val type = types.demangleMethod(it.desc)
-						AstExpr.LITERAL(AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind))
+						AstMethodHandle(type, AstMethodRef(FqName.fromInternal(it.owner), it.name, type), kind).lit
 					}
-					else -> AstExpr.LITERAL(it)
+					else -> it.lit
 				}
 			}
 		)
@@ -671,7 +648,7 @@ private class BasicBlockBuilder(
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = locals.local(AstType.INT, i.`var`)
-		stmSet(local, AstExprUtils.localRef(local) + AstExpr.LITERAL(i.incr))
+		stmSet(local, AstExprUtils.localRef(local) + i.incr.lit)
 	}
 
 	fun handleLineNumber(i: LineNumberNode) {
@@ -753,7 +730,7 @@ private class BasicBlockBuilder(
 						in Opcodes.IRETURN..Opcodes.ARETURN -> {
 							val ret = stackPop()
 							dumpExprs()
-							stmAdd(AstStm.RETURN(fastcast(ret, this.methodType.ret)))
+							stmAdd(AstStm.RETURN(ret.castTo(this.methodType.ret)))
 							next = null
 							break@loop
 						}
@@ -776,11 +753,11 @@ private class BasicBlockBuilder(
 				is JumpInsnNode -> {
 					when (op) {
 						in Opcodes.IFEQ..Opcodes.IFLE -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], AstExpr.LITERAL(0)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFEQ], 0.lit), labels.label(i.label))
 							//addJump(null, labels.label(i.next))
 						}
 						in Opcodes.IFNULL..Opcodes.IFNONNULL -> {
-							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], AstExpr.LITERAL(null)), labels.label(i.label))
+							addJump(AstExprUtils.BINOP(AstType.BOOL, stackPop(), CTYPES[op - Opcodes.IFNULL], null.lit), labels.label(i.label))
 						}
 						in Opcodes.IF_ICMPEQ..Opcodes.IF_ACMPNE -> {
 							val r = stackPop()

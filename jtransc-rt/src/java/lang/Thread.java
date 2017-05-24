@@ -18,28 +18,22 @@ package java.lang;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddHeader;
+import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscMethodBodyList;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.thread.JTranscThreading;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@JTranscAddMembers(target = "d", value = {
-	"static {% CLASS java.lang.Thread %} _dCurrentThread;",
-	"Thread thread;",
+@JTranscAddMembers(target = "d", value = "static {% CLASS java.lang.Thread %} _dCurrentThread; Thread thread;")
+@JTranscAddHeader(target = "cpp", cond = "USE_BOOST", value = {
+	"#include <boost/thread.hpp>",
+	"#include <boost/chrono.hpp>",
 })
-
-@JTranscAddHeader(target = "cpp", value = {
-	"#include <boost/thread.hpp>"
-})
-
-@JTranscAddMembers(target = "cpp", value = {
-	"boost::thread t_;"
-})
-
+@JTranscAddIncludes(target = "cpp", value = "thread")
+@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "boost::thread t_;")
+@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "std::thread t_;")
 public class Thread implements Runnable {
 	public final static int MIN_PRIORITY = 1;
 	public final static int NORM_PRIORITY = 5;
@@ -65,42 +59,24 @@ public class Thread implements Runnable {
 	}
 
 	public StackTraceElement[] getStackTrace() {
-		StackTraceElement[] stackTrace = _getStackTrace();
-		if ((stackTrace == null) || (stackTrace.length == 0)) {
-			return new StackTraceElement[]{
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1),
-				new StackTraceElement("Dummy", "dummy", "Dummy.java", 1)
-			};
-		} else {
-			return stackTrace;
-		}
-	}
-
-	static private final StackTraceElement[] ST_NULL = null;
-
-	@HaxeMethodBody("return N.getStackTrace(2);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.getStackTrace(2);"),
-		@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(2);"),
-	})
-	private StackTraceElement[] _getStackTrace() {
-		return null;
+		return new Throwable().getStackTrace();
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.yield();")
-	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::yield();")
+	@JTranscMethodBody(target = "cpp", value = "std::this_thread::yield();")
 	public static void yield() {
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
-	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::microseconds(p0));")
+	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
+	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	public static void sleep(long millis) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0) + dur!(\"nsecs\")(p1));")
-	@JTranscMethodBody(target = "cpp", value = "boost::this_thread::sleep_for(boost::chrono::microseconds(p0));")
+	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
+	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	//FIXME
 	public static void sleep(long millis, int nanos) throws InterruptedException {
 		JTranscSystem.sleep(millis);
@@ -160,8 +136,8 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = "this.thread.start();")
-	@JTranscMethodBody(target = "cpp", value = "t_ = boost::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
-
+	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "t_ = std::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
+	@JTranscMethodBody(target = "cpp", value = "t_ = std::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
 	public synchronized void start() {
 		JTranscThreading.impl.start(this);
 	}

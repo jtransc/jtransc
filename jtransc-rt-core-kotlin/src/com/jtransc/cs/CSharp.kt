@@ -26,6 +26,6 @@ object CSharp {
 	@JTranscCallSiteBody(target = "cs", value = "#0")
 	@JvmStatic external fun <T> raw(@JTranscLiteralParam str: String): T
 
-	@JTranscMethodBody(target = "cs", value = "System.Threading.Tasks.Task.Run(() => { p0.{% METHOD kotlin.jvm.functions.Function0:invoke %}(); });")
+	@JTranscMethodBody(target = "cs", value = "System.Threading.Tasks.Task.Run(() => { p0{% IMETHOD kotlin.jvm.functions.Function0:invoke %}(); });")
 	@JvmStatic external fun runTask(callback: () -> Unit): Unit
 }

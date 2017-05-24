@@ -127,13 +127,10 @@ public class Arrays {
         public <T> T[] toArray(T[] contents) {
             int size = size();
             if (size > contents.length) {
-                Class<?> ct = contents.getClass().getComponentType();
-                contents = (T[]) Array.newInstance(ct, size);
+                contents = newInstance(contents, size);
             }
             System.arraycopy(a, 0, contents, 0, size);
-            if (size < contents.length) {
-                contents[size] = null;
-            }
+            if (size < contents.length) contents[size] = null;
             return contents;
         }
     }
@@ -2037,7 +2034,7 @@ public class Arrays {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
-        T[] result = (T[]) Array.newInstance(original.getClass().getComponentType(), resultLength);
+        T[] result = (T[]) newInstance(original, resultLength);
         System.arraycopy(original, start, result, 0, copyLength);
         return result;
     }
@@ -2130,5 +2127,10 @@ public class Arrays {
 
 	static public <T extends Comparable<? super T>> void parallelSort(T[] v, int start, int end, Comparator<T> comparator) {
 		sort(v, start, end, comparator);
+	}
+
+	// Custom bodies for all targets to prevent including java.lang.Class from here
+	private static <T> T[] newInstance(T[] baseType, int size) {
+		return (T[]) Array.newInstance(baseType.getClass().getComponentType(), size);
 	}
 }

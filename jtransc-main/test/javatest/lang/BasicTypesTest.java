@@ -1,11 +1,14 @@
 package javatest.lang;
 
+import com.jtransc.io.JTranscConsole;
+
 /**
  * Created by mike on 4/11/15.
  */
 public class BasicTypesTest {
 
 	public static void main(String[] args) throws Throwable {
+		showInts();
 		compareInts();
 		parseTests();
 		compareNans();
@@ -17,6 +20,7 @@ public class BasicTypesTest {
 		swapTests();
 		checkNanInf();
 		conversionTests();
+		castNanInfinite();
 	}
 
 	private static void conversionTests(double v) {
@@ -284,9 +288,20 @@ public class BasicTypesTest {
 		System.out.println((double)Long.MAX_VALUE < 0.0);
 	}
 
+	private static void showInts() {
+		System.out.println("showInts:");
+		for (int a : ints) {
+			System.out.println(Integer.toString(a, 2));
+			System.out.println(Integer.toString(a, 8));
+			System.out.println(Integer.toString(a, 16));
+			System.out.println(Integer.toString(a, 20));
+		}
+	}
+
+	static private int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
+
 	private static void compareInts() {
 		System.out.println("compareInts:");
-		int[] ints = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -9999, -2, -1, 0, +1, +2, 9999, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
 		for (int a : ints) {
 			for (int b : ints) {
 				System.out.print(Integer.compare(a, b));
@@ -315,12 +330,14 @@ public class BasicTypesTest {
 		float[] floats = new float[]{0f, -1f, +1f, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, -Float.NaN};
 		double[] doubles = new double[]{0.0, -1.0, +1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, -Double.NaN};
 		System.out.println("compareNans.float:");
+		//for (float v : floats) JTranscConsole.log(v);
 		for (float l : floats) {
 			System.out.print(l + ": ");
 			for (float r : floats) System.out.print(", " + Float.compare(l, r));
 			System.out.println();
 		}
 		System.out.println("compareNans.double:");
+		//for (double v : doubles) JTranscConsole.log(v);
 		for (double l : doubles) {
 			System.out.print(l + ": ");
 			for (double r : doubles) System.out.print(", " + Double.compare(l, r));
@@ -387,5 +404,21 @@ public class BasicTypesTest {
 			System.out.print(",");
 		}
 		System.out.println();
+	}
+
+	static private void castNanInfinite() {
+		System.out.println((long)Double.NaN);
+		System.out.println((int)Double.NaN);
+		System.out.println((long)Double.POSITIVE_INFINITY);
+		System.out.println((int)Double.POSITIVE_INFINITY);
+		System.out.println((long)Double.NEGATIVE_INFINITY);
+		System.out.println((int)Double.NEGATIVE_INFINITY);
+
+		System.out.println((long)Float.NaN);
+		System.out.println((int)Float.NaN);
+		System.out.println((long)Float.POSITIVE_INFINITY);
+		System.out.println((int)Float.POSITIVE_INFINITY);
+		System.out.println((long)Float.NEGATIVE_INFINITY);
+		System.out.println((int)Float.NEGATIVE_INFINITY);
 	}
 }

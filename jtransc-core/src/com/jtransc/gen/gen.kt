@@ -21,12 +21,12 @@ import com.jtransc.annotation.JTranscAddLibrariesList
 import com.jtransc.ast.AstProgram
 import com.jtransc.ast.AstProgramFeature
 import com.jtransc.ast.ConfigCompile
+import com.jtransc.ast.getTypedList
 import com.jtransc.gen.common.CommonGenerator
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.time.measureTime
-import com.jtransc.vfs.ProcessResult
 
 data class GenTargetSubDescriptor(val descriptor: GenTargetDescriptor, val sub: String, val ext: String = sub) {
 	val fullName: String get() = "${descriptor.name}:$sub"
@@ -39,7 +39,7 @@ data class TargetName(val name: String) {
 	val secondary = parts.getOrElse(1) { "" }
 
 	companion object {
-		fun matches(target:String, pattern: String): Boolean {
+		fun matches(target: String, pattern: String): Boolean {
 			if (pattern == "") return true
 			if (pattern == "all") return true
 			return pattern == target
@@ -70,10 +70,11 @@ abstract class GenTargetDescriptor {
 	abstract fun getGenerator(injector: Injector): CommonGenerator
 	open fun getTargetByExtension(ext: String): String? = null
 	abstract val runningAvailable: Boolean
+	val targetName by lazy { TargetName(name) }
 
 	open val buildTargets = listOf<TargetBuildTarget>()
 
-	open val outputFile:String get() = "program.$sourceExtension"
+	open val outputFile: String get() = "program.$sourceExtension"
 
 	fun build(injector: Injector): JTranscBuild.Result {
 		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput
@@ -106,7 +107,7 @@ abstract class GenTargetDescriptor {
 				} else {
 					log.error("ERROR ($compileTime) (${result.exitValue})")
 				}
-				return JTranscBuild.Result(result)
+				return JTranscBuild.Result(result, generator)
 			} else {
 				log("Compiling...")
 				val (compileTime, compileResult) = measureTime { generator.compile() }
@@ -116,10 +117,10 @@ abstract class GenTargetDescriptor {
 					log.error("ERROR ($compileTime) ($compileResult)")
 				}
 
-				return JTranscBuild.Result(ProcessResult2(compileResult.exitValue))
+				return JTranscBuild.Result(ProcessResult2(compileResult.exitValue), generator)
 			}
 		}
-		return JTranscBuild.Result(ProcessResult2(0))
+		return JTranscBuild.Result(ProcessResult2(0), generator)
 	}
 
 	override fun toString(): String = this.javaClass.simpleName

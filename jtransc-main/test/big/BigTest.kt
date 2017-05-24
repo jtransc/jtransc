@@ -6,10 +6,7 @@ import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
 import issues.Issue94Enum
 import javatest.*
-import javatest.lang.AtomicTest
-import javatest.lang.BasicTypesTest
-import javatest.lang.StringsTest
-import javatest.lang.SystemTest
+import javatest.lang.*
 import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
 import javatest.sort.CharCharMapTest
@@ -33,10 +30,15 @@ import java.util.*
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
+		//Thread.sleep(5000L)
 		//KotlinPropertiesTest.main(args)
 
 		// Misc tests
+		JTranscBug127.main(args);
+		Thread.sleep(1L);
 		StringsTest.main(args)
+		PropertiesTest.main(args);
+		BasicTypesTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
 		AtomicTest.main(args);
@@ -59,7 +61,6 @@ object BigTest {
 		JTranscNioTest.main(args)
 		JTranscArithmeticTest.main(args)
 		MathTest.main(args)
-		BasicTypesTest.main(args)
 		DateTest.main(args)
 		AtomicTest.main(args)
 		JTranscBug12Test.main(args)
@@ -95,11 +96,10 @@ object BigTest {
 		// Java8 tests
 		//JTranscClinitNotStatic.main(args)
 		//DefaultMethodsTest.main(args)
-		//Java8Test.main(args)
+		Java8Test.main(args)
 
 		// Misc
 		Base64Test.main(args);
-		JTranscZipTest.main(args)
 		CharCharMapTest.main(args);
 
 		// Regex
@@ -110,7 +110,7 @@ object BigTest {
 		keepConstructorsTest()
 
 		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
-		println("readLine:" + BufferedReader(`is`).readLine())
+		println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
@@ -157,7 +157,7 @@ object NumberFormatTest {
 		for (i in ints) {
 			for (locale in locales) {
 				val s = NumberFormat.getIntegerInstance(locale).format(i.toLong())
-				println(locale.language + ":" + s)
+				println(locale.language + ":" + TestStringTools.escape(s))
 				if (s.length == 5) {
 					println(s[1].toInt())
 				}

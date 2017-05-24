@@ -12,9 +12,12 @@ import com.jtransc.text.readUntil
 import java.io.Serializable
 import java.util.*
 
-interface AstType {
-	abstract class Primitive(underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int) : AstType {
-		val underlyingClass: FqName = underlyingClassStr.fqname
+open class AstType {
+	abstract class Primitive(
+		underlyingClassStr: String, val ch: Char, val shortName: String, val byteSize: Int, val priority: Int,
+		val subsets: Set<Primitive> = setOf()
+	) : AstType() {
+		//val underlyingClass: FqName = underlyingClassStr.fqname
 		val CLASSTYPE = REF(underlyingClassStr)
 		val chstring = "$ch"
 		override fun hashCode() = ch.toInt()
@@ -25,33 +28,34 @@ interface AstType {
 		}
 
 		override fun toString() = shortName
+		fun canHold(other: Primitive) = other in subsets
 	}
 
-	interface Reference : AstType
+	open class Reference : AstType()
 
-	data class UNKNOWN(val reason: String) : Reference
+	data class UNKNOWN(val reason: String) : Reference()
 
-	object NULL : Reference
+	object NULL : Reference()
 
-	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8)
+	object VOID : Primitive("java.lang.Void", 'V', "void", 0, priority = 8, subsets = setOf())
 
-	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1, priority = 7)
+	object BOOL : Primitive("java.lang.Boolean", 'Z', "bool", 1, priority = 7, subsets = setOf())
 
-	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1, priority = 6)
+	object BYTE : Primitive("java.lang.Byte", 'B', "byte", 1, priority = 6, subsets = setOf(BOOL))
 
-	object CHAR : Primitive("java.lang.Character", 'C', "char", 2, priority = 5)
+	object CHAR : Primitive("java.lang.Character", 'C', "char", 2, priority = 5, subsets = setOf(BOOL))
 
-	object SHORT : Primitive("java.lang.Short", 'S', "short", 2, priority = 4)
+	object SHORT : Primitive("java.lang.Short", 'S', "short", 2, priority = 4, subsets = setOf(BOOL, BYTE))
 
-	object INT : Primitive("java.lang.Integer", 'I', "int", 4, priority = 3)
+	object INT : Primitive("java.lang.Integer", 'I', "int", 4, priority = 3, subsets = setOf(BOOL, BYTE, CHAR, SHORT))
 
-	object LONG : Primitive("java.lang.Long", 'J', "long", 8, priority = 2)
+	object LONG : Primitive("java.lang.Long", 'J', "long", 8, priority = 2, subsets = setOf(BOOL, BYTE, CHAR, SHORT, INT))
 
-	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4, priority = 1)
+	object FLOAT : Primitive("java.lang.Float", 'F', "float", 4, priority = 1, subsets = setOf(BOOL, BYTE, CHAR, SHORT))
 
-	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0)
+	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0, subsets = setOf(BOOL, BYTE, CHAR, SHORT, INT))
 
-	data class REF(val name: FqName) : Reference, AstRef {
+	data class REF(val name: FqName) : Reference(), AstRef {
 		constructor(name: String) : this(FqName(name))
 
 		init {
@@ -75,11 +79,11 @@ interface AstType {
 
 	//object NULL : REF("java.lang.Object")
 
-	data class ARRAY(val element: AstType) : Reference {
+	data class ARRAY(val element: AstType) : Reference() {
 		override fun toString() = "$element[]"
 	}
 
-	data class COMMON(val elements: HashSet<AstType>) : AstType {
+	data class COMMON(val elements: HashSet<AstType>) : AstType() {
 		constructor(first: AstType) : this(HashSet()) {
 			add(first)
 		}
@@ -100,11 +104,11 @@ interface AstType {
 		override fun toString() = "COMMON($elements)"
 	}
 
-	data class MUTABLE(var ref: AstType) : AstType {
+	data class MUTABLE(var ref: AstType) : AstType() {
 		override fun toString() = "MUTABLE($ref)"
 	}
 
-	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference {
+	data class GENERIC(val type: AstType.REF, val suffixes: List<GENERIC_SUFFIX>, val dummy: Boolean) : Reference() {
 		constructor(type: AstType.REF, params: List<AstType>) : this(type, listOf(GENERIC_SUFFIX(null, params)), true)
 
 		val params0: List<AstType> get() = suffixes[0].params!!
@@ -112,18 +116,18 @@ interface AstType {
 
 	data class GENERIC_SUFFIX(val id: String?, val params: List<AstType>?)
 
-	data class TYPE_PARAMETER(val id: String) : AstType
+	data class TYPE_PARAMETER(val id: String) : AstType()
 
-	object GENERIC_STAR : AstType
+	object GENERIC_STAR : AstType()
 
-	object GENERIC_ITEM : AstType
+	object GENERIC_ITEM : AstType()
 
-	data class GENERIC_DESCRIPTOR(val element: AstType, val types: List<Pair<String, AstType>>) : AstType
+	data class GENERIC_DESCRIPTOR(val element: AstType, val types: List<Pair<String, AstType>>) : AstType()
 
-	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType
-	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType
+	data class GENERIC_LOWER_BOUND(val element: AstType) : AstType()
+	data class GENERIC_UPPER_BOUND(val element: AstType) : AstType()
 
-	data class METHOD(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType {
+	data class METHOD(val ret: AstType, val args: List<AstArgument>, val dummy: Boolean, val paramTypes: List<Pair<String, AstType>> = listOf()) : AstType() {
 		val argCount: Int get() = argTypes.size
 
 		constructor(ret: AstType, argTypes: List<AstType>, paramTypes: List<Pair<String, AstType>> = listOf()) : this(ret, argTypes.toArguments(), true, paramTypes)
@@ -181,6 +185,21 @@ interface AstType {
 	}
 }
 
+fun AstType.asArray(): AstType.ARRAY {
+	if (this !is AstType.ARRAY) invalidOp("$this is not AstType.ARRAY")
+	return this
+}
+
+fun AstType.asReference(): AstType.Reference {
+	if (this !is AstType.Reference) invalidOp("$this is not AstType.Reference")
+	return this
+}
+
+fun AstType.asREF(): AstType.REF {
+	if (this !is AstType.REF) invalidOp("$this is not AstType.REF")
+	return this
+}
+
 fun ARRAY(type: AstType) = AstType.ARRAY(type)
 
 @Singleton
@@ -189,40 +208,20 @@ class AstTypes {
 
 	fun fromConstant(value: Any?): AstType = AstType.fromConstant(value)
 
-
 	fun ARRAY(element: AstType, count: Int): AstType.ARRAY = if (count <= 1) AstType.ARRAY(element) else ARRAY(AstType.ARRAY(element), count - 1)
 
-	fun REF_INT(internalName: String): AstType {
-		if (internalName.startsWith("[")) {
-			return demangle(internalName)
-		} else {
-			return REF_INT2(internalName)
-		}
-	}
+	fun REF_INT(internalName: String): AstType = if (internalName.startsWith("[")) demangle(internalName) else REF_INT2(internalName)
 
-	fun REF_INT2(internalName: String): AstType.REF {
-		return AstType.REF(internalName.replace('/', '.'))
-	}
-
+	fun REF_INT2(internalName: String): AstType.REF = AstType.REF(internalName.replace('/', '.'))
 	fun REF_INT3(internalName: String?): AstType.REF? = if (internalName != null) REF_INT2(internalName) else null
 
-	fun demangle(desc: String): AstType {
-		if (desc !in AstTypeDemangleCache) {
-			AstTypeDemangleCache[desc] = this.readOne(StrReader(desc))
-		}
-		return AstTypeDemangleCache[desc]!!
-	}
-
-	fun demangleMethod(text: String): AstType.METHOD {
-		return demangle(text) as AstType.METHOD
-	}
+	fun demangle(desc: String): AstType = AstTypeDemangleCache.getOrPut(desc) { this.readOne(StrReader(desc)) }
+	fun demangleMethod(text: String): AstType.METHOD = demangle(text) as AstType.METHOD
 
 	fun <T : AstType> build(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
 
-	fun unify(a: AstType, b: AstType): AstType {
-		// @TODO: implement unification
-		return a
-	}
+	// @TODO: implement unification
+	fun unify(a: AstType, b: AstType): AstType = a
 
 	// http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-TypeVariableSignature
 	fun readOne(reader: StrReader): AstType {
@@ -334,77 +333,67 @@ class AstTypes {
 
 }
 
-fun _castLiteral(value: Int, to: AstType): Any? {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		//is AstType.Reference -> null
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Int, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+//is AstType.Reference -> null
+	else -> invalidOp("Can't cast $value to $to")
 }
 
 fun <T> Class<T>.ref() = AstType.REF(this.name)
 
-fun _castLiteral(value: Long, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Long, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun _castLiteral(value: Float, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Float, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun _castLiteral(value: Double, to: AstType): Any {
-	return when (to) {
-		AstType.BOOL -> value.toBool()
-		AstType.BYTE -> value.toByte()
-		AstType.CHAR -> value.toChar()
-		AstType.SHORT -> value.toShort()
-		AstType.INT -> value.toInt()
-		AstType.LONG -> value.toLong()
-		AstType.FLOAT -> value.toFloat()
-		AstType.DOUBLE -> value.toDouble()
-		else -> invalidOp("Can't cast $value to $to")
-	}
+fun _castLiteral(value: Double, to: AstType): Any = when (to) {
+	AstType.BOOL -> value.toBool()
+	AstType.BYTE -> value.toByte()
+	AstType.CHAR -> value.toChar()
+	AstType.SHORT -> value.toShort()
+	AstType.INT -> value.toInt()
+	AstType.LONG -> value.toLong()
+	AstType.FLOAT -> value.toFloat()
+	AstType.DOUBLE -> value.toDouble()
+	else -> invalidOp("Can't cast $value to $to")
 }
 
-fun castLiteral(value: Boolean, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Byte, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Char, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Short, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Int, to: AstType): Any? = _castLiteral(value.toInt(), to)
-fun castLiteral(value: Long, to: AstType): Any? = _castLiteral(value.toLong(), to)
-fun castLiteral(value: Float, to: AstType): Any? = _castLiteral(value.toFloat(), to)
-fun castLiteral(value: Double, to: AstType): Any? = _castLiteral(value.toDouble(), to)
+fun Boolean.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Byte.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Char.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Short.castTo(to: AstType) = _castLiteral(this.toInt(), to)
+fun Int.castTo(to: AstType) = _castLiteral(this, to)
+fun Long.castTo(to: AstType) = _castLiteral(this, to)
+fun Float.castTo(to: AstType) = _castLiteral(this, to)
+fun Double.castTo(to: AstType) = _castLiteral(this, to)
 
-fun Iterable<AstType>.toArguments(): List<AstArgument> {
-	return this.mapIndexed { i, v -> AstArgument(i, v) }
-}
+fun Iterable<AstType>.toArguments(): List<AstArgument> = this.mapIndexed { i, v -> AstArgument(i, v) }
 
 fun AstType.getNull(): Any? = when (this) {
 	is AstType.VOID -> null
@@ -479,7 +468,7 @@ data class FqName(val fqname: String) : Serializable {
 
 	override fun hashCode(): Int = fqname.hashCode()
 
-	override fun equals(that: Any?): Boolean = this.fqname == (that as? FqName)?.fqname
+	override fun equals(other: Any?): Boolean = this.fqname == (other as? FqName)?.fqname
 
 	fun append(s: String): FqName = FqName(this.fqname + s)
 }
@@ -488,6 +477,11 @@ val Class<*>.fqname: FqName get() = FqName(this.name)
 val String.fqname: FqName get() = FqName(this)
 val FqName.ref: AstType.REF get() = AstType.REF(this)
 
+fun AstType.isPrimitive() = (this is AstType.Primitive)
+fun AstType.isNotPrimitive() = (this !is AstType.Primitive)
+fun AstType.isReference() = (this is AstType.Reference)
+fun AstType.isREF() = (this is AstType.REF)
+fun AstType.isArray() = (this is AstType.ARRAY)
 fun AstType.isFloating() = (this == AstType.FLOAT) || (this == AstType.DOUBLE)
 fun AstType.isLongOrDouble() = (this == AstType.LONG) || (this == AstType.DOUBLE)
 

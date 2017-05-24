@@ -14,6 +14,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -62,6 +63,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
+	override val floatHasFSuffix = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -122,7 +124,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		println(output)
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		var targetType = field.type.targetName
 		//if (field.modifiers.isVolatile) targetType = "shared($targetType)"
 		if (field.isStatic) targetType = "static $targetType"
@@ -132,19 +134,13 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun quoteString(str: String) = str.dquote()
 
-	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
-		val classesStr = super.genClasses(output)
+		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
 		line("class Bootstrap") {
 			for (lit in getGlobalStrings()) {
-				line("static public $StringFqName ${lit.name};")
-			}
-			line("static public void __initStrings()") {
-				for (lit in getGlobalStrings()) {
-					// STRINGLIT_
-					line("${lit.name} = N.strLitEscape(${lit.str.dquote()});")
-				}
+				line("static public $StringFqName ${lit.name} = N.strLitEscape(${lit.str.dquote()});")
 			}
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
@@ -152,7 +148,6 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("try {")
 				indent {
 					line("N.init();")
-					line("__initStrings();")
 					line(genStaticConstructorsSorted())
 					//line(buildStaticInit(entryPointFqName))
 					val mainMethod = entryPointClass[AstMethodRef(entryPointFqName, "main", AstType.METHOD(AstType.VOID, ARRAY(AstType.Companion.STRING)))]
@@ -172,11 +167,13 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
+
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		if (elementType is AstType.Primitive) {
-			return "$array[$index] = (${elementType.targetName})$value;"
+			return "$array.data[$index] = (${elementType.targetName})$value;"
 		} else {
-			return "$array[$index] = (${AstType.OBJECT.targetName})$value;"
+			return "$array.data[$index] = (${AstType.OBJECT.targetName})$value;"
 		}
 	}
 
@@ -201,6 +198,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 					'\t' -> out.append("\\t")
 				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
 				//in '\u0020'..'\u00ff' -> out.append(c)
+					in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '$', '&' -> out.append(c)
 					else -> out.append("\\u" + "%04x".format(c.toInt()))
 				}
 			}
@@ -217,7 +215,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		} else {
 			var mods = super.genMethodDeclModifiers(method)
 			if (method.isStatic && (method.isOverriding || method.isClassInit)) mods += "new "
-			if (!method.isStatic && !method.targetIsOverriding) mods += "virtual "
+			if (!method.isStatic && !method.targetIsOverriding && !method.isInstanceInit) mods += "virtual "
 			mods += "public "
 			return mods
 		}
@@ -266,11 +264,15 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_c(str: String, from: AstType, to: AstType) = "((${to.targetName})($str))"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
-	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 
-	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ((java_lang_Throwable)(${stm.exception.genExpr()})).${prepareThrow.targetName}().csException;")
+
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean): Indenter = Indenter("throw;")
+
+	override fun genLabel(label: AstLabel) = "${label.name}:"
+
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			line("override public string ToString()") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
@@ -317,8 +319,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "((float)($str))"
 	override fun N_i2d(str: String) = "((double)($str))"
 
-	override fun N_l2f(str: String) = "((float)($str))"
-	override fun N_l2d(str: String) = "((double)($str))"
+	override fun N_j2f(str: String) = "((float)($str))"
+	override fun N_j2d(str: String) = "((double)($str))"
 
 	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
 
@@ -327,7 +329,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_lnew(value: Long): String = "((long)(${value}L))"
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Exception(${message.dquote()});")
 	}
@@ -335,12 +337,12 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (Throwable e) {")
 		//indent {
@@ -353,22 +355,30 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (WrappedThrowable J__i__exception__)") {
-			line("J__exception__ = J__i__exception__.t;")
+		line("catch (Exception J__i__exception__)") {
+			line("J__exception__ = N.getJavaException(J__i__exception__);")
+			line("if (J__exception__ == null) throw;")
 			line(stm.catch.genStm())
 		}
 	}
 
-	override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "(${e.type.targetName})J__exception__"
+
+	//override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun N_c_ushr(l: String, r: String) = "N.iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
 	}
 
-	override val NegativeInfinityString = "Double.NegativeInfinity"
-	override val PositiveInfinityString = "Double.PositiveInfinity"
+	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
+	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
 	//override val NanString = "Double.NaN"
-	override val NanString = "N.DoubleNaN"
+	override val DoubleNanString = "N.DoubleNaN"
+
+	override val FloatNegativeInfinityString = "Single.NegativeInfinity"
+	override val FloatPositiveInfinityString = "Single.PositiveInfinity"
+	override val FloatNanString = "N.FloatNaN"
 
 	override val String.escapeString: String get() = "Bootstrap.STRINGLIT_${allocString(currentClass, this)}"
 
@@ -379,12 +389,6 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 			return genExpr2(this)
 		}
 	}
-
-	override fun escapedConstant(v: Any?): String = when (v) {
-		is Float -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) NanString else "${v}f"
-		else -> super.escapedConstant(v)
-	}
-
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {
@@ -413,4 +417,15 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
+		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, new ${stm.elementType.targetName}[] { ${stm.values.map { it.genExpr() }.joinToString(", ")} });")
+	}
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		if (from == to) return e;
+		if (from is AstType.NULL) return e
+		//return "N.CHECK_CAST<${to.targetNameRef}, ${from.targetNameRef}>($e)"
+		return "((${to.targetNameRef})($e))"
+	}
 }

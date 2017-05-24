@@ -2,9 +2,19 @@ package com.jtransc.plugin
 
 import com.jtransc.ast.*
 import com.jtransc.ast.treeshaking.TreeShakingApi
+import com.jtransc.gen.TargetName
+import com.jtransc.injector.Injector
 
 abstract class JTranscPlugin {
 	open val priority: Int = 0
+
+	protected lateinit var injector: Injector
+	protected lateinit var targetName: TargetName
+
+	fun initialize(injector: Injector) {
+		this.injector = injector
+		this.targetName = injector.get()
+	}
 
 	open fun onStartBuilding(program: AstProgram): Unit {
 	}

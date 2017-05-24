@@ -137,5 +137,5 @@ IO.Stream.prototype.getLength = function() {
 
 IO.Stream.prototype.setLength = function(v) {
 	this.length = v;
-	this.fd.setLength(v);
+	fs.ftruncateSync(this.fd, v);
 };

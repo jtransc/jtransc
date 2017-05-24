@@ -29,19 +29,19 @@ final public class FastMemory4Int {
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return N.idiv(this.{% FIELD com.jtransc.FastMemory4Int:mem %}._length, 4);")
+    @HaxeMethodBody("return N.idiv(this{% IFIELD com.jtransc.FastMemory4Int:mem %}._length, 4);")
 	final public int getLength() {
 		return mem.getLength() / 4;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return this.{% FIELD com.jtransc.FastMemory4Int:mem %}.intData.get(p0);")
+    @HaxeMethodBody("return this{% IFIELD com.jtransc.FastMemory4Int:mem %}.intData.get(p0);")
 	final public int get(int index) {
 		return mem.getAlignedInt32(index);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("this.{% FIELD com.jtransc.FastMemory4Int:mem %}.intData.set(p0, p1);")
+    @HaxeMethodBody("this{% IFIELD com.jtransc.FastMemory4Int:mem %}.intData.set(p0, p1);")
 	final public void set(int index, int value) {
 		mem.setAlignedInt32(index, value);
 	}

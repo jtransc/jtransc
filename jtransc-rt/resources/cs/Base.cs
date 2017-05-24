@@ -6,7 +6,23 @@ using System;
 
 class N {
 	//public static readonly double DoubleNaN = 0.0d / 0.0;
+	public static readonly float FloatNaN = intBitsToFloat(0x7FF80000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
+
+	//static public TOut CHECK_CAST<TOut, TIn>(TIn i) where TIn : class where TOut : class {
+	//	if (i == null) return null;
+	//	if (!(i is TOut)) {
+	//		throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %}());
+	//	}
+    //    return (TOut)(object)i;
+    //}
+
+	static public {% CLASS java.lang.Throwable %} getJavaException(Exception ee) {
+		if (ee is WrappedThrowable) return ((WrappedThrowable)ee).t;
+		if (ee is InvalidCastException) return {% CONSTRUCTOR java.lang.ClassCastException:()V %}();
+		//throw ee;
+		return null;
+	}
 
 	static public {% CLASS com.jtransc.JTranscWrapped %} wrap(object item) {
 		if (item == null) return null;
@@ -16,6 +32,10 @@ class N {
 	static public object unwrap({% CLASS java.lang.Object %} item) {
 		if (item == null) return null;
 		return {% CLASS com.jtransc.JTranscWrapped %}.unwrap(({% CLASS com.jtransc.JTranscWrapped %})item);
+	}
+
+	static public int iushr(int l, int r) {
+		return (int)(((uint)l) >> r);
 	}
 
 	//static public int MIN_INT32 = Int32.MinValue;
@@ -28,10 +48,11 @@ class N {
 		//Console.WriteLine(Console.OutputEncoding.CodePage);
 	}
 
-	static public JA_L getStackTrace(int skip) {
-		var st = new System.Diagnostics.StackTrace();
+	static public JA_L getStackTrace(System.Diagnostics.StackTrace st, int skip) {
+		//var st = new System.Diagnostics.StackTrace(exception);
+		//var st = exception.StackTrace;
 
-		var o = new JA_L(st.FrameCount, "[Ljava/lang/StackTraceElement;");
+		var o = new JA_L(st.FrameCount - skip, "[Ljava/lang/StackTraceElement;");
 
 		for (int n = 0; n < st.FrameCount; n++) {
 			var f = st.GetFrame(n);
@@ -39,22 +60,24 @@ class N {
 			var method = (f != null) ? ("" + f.GetMethod().Name) : "dummyMethod";
 			var file = (f != null) ? ("" + f.GetFileName()) : "Dummy.java";
 			var lineNumber = (f != null) ? f.GetFileLineNumber() : 0;
-			o[n] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
-				N.str(clazz), N.str(method), N.str(file), lineNumber
-			);
+			if (n >= skip) {
+				o[n - skip] = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
+					N.str(clazz), N.str(method), N.str(file), lineNumber
+				);
+			}
 		}
 
 		return o;
 	}
 
-	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
-	static public sbyte  unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% METHOD java.lang.Byte:byteValue %}(); }
-	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% METHOD java.lang.Short:shortValue %}(); }
-	static public ushort unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% METHOD java.lang.Character:charValue %}(); }
-	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% METHOD java.lang.Integer:intValue %}(); }
-	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% METHOD java.lang.Long:longValue %}(); }
-	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% METHOD java.lang.Float:floatValue %}(); }
-	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% METHOD java.lang.Double:doubleValue %}(); }
+	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i{% IMETHOD java.lang.Boolean:booleanValue %}(); }
+	static public sbyte  unboxByte  ({% CLASS java.lang.Byte %}      i) { return i{% IMETHOD java.lang.Byte:byteValue %}(); }
+	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i{% IMETHOD java.lang.Short:shortValue %}(); }
+	static public ushort unboxChar  ({% CLASS java.lang.Character %} i) { return i{% IMETHOD java.lang.Character:charValue %}(); }
+	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i{% IMETHOD java.lang.Integer:intValue %}(); }
+	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i{% IMETHOD java.lang.Long:longValue %}(); }
+	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i{% IMETHOD java.lang.Float:floatValue %}(); }
+	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i{% IMETHOD java.lang.Double:doubleValue %}(); }
 
 	static public {% CLASS java.lang.Object %}    boxVoid  (        ) { return null; }
 	static public {% CLASS java.lang.Boolean %}   boxBool  (bool   v) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
@@ -67,7 +90,7 @@ class N {
 	static public {% CLASS java.lang.Double %}    boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
-	static public int l2i(long v) { return (int)v; }
+	static public int j2i(long v) { return (int)v; }
 	static public long d2j(double v) { return (long)v; }
 	static public long i2j(int v) { return (long)v; }
 	static public long f2j(float v) { return (long)v; }
@@ -139,7 +162,7 @@ class N {
 
 	static public string istr({% CLASS java.lang.String %} s) {
 		if (s == null) return null;
-		JA_C chars = s.{% FIELD java.lang.String:value %};
+		JA_C chars = s{% IFIELD java.lang.String:value %};
 		int len = chars.length;
 		char[] cchars = new char[len];
 		for (int n = 0; n < len; n++) cchars[n] = (char)chars[n];
@@ -205,6 +228,10 @@ class JA_Template<T> : JA_0 {
 		return len;
 	}
 
+	public void setArraySlice(int index, T[] data) {
+		Array.Copy(data, 0, this.data, index, data.Length);
+	}
+
 	public T this[int i] { get { return data[i]; } set { data[i] = value; } }
 }
 
@@ -255,10 +282,16 @@ class JA_L : JA_Template<{% CLASS java.lang.Object %}> {
 class JA_Z : JA_B  { public JA_Z(sbyte[] data, string desc = "[Z") : base(data, desc) { } public JA_Z(int size, string desc = "[Z") : base(size, desc) { } }
 
 class WrappedThrowable : Exception {
-	public {% CLASS java.lang.Object %} t;
+	public {% CLASS java.lang.Throwable %} t;
+
+	public WrappedThrowable({% CLASS java.lang.Throwable %} t) : base() {
+		this.t = ({% CLASS java.lang.Throwable %})t;
+		//this.t.csException = this;
+	}
 
 	public WrappedThrowable({% CLASS java.lang.Object %} t) : base() {
-		this.t = t;
+		this.t = ({% CLASS java.lang.Throwable %})t;
+		//this.t.csException = this;
 	}
 }
 

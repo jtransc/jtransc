@@ -2,6 +2,7 @@ package com.jtransc.annotation;
 
 import java.lang.annotation.*;
 
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Repeatable(value = JTranscRegisterCommandList.class)
 public @interface JTranscRegisterCommand {

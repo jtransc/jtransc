@@ -1,10 +1,8 @@
 package example
 
-import com.jtransc.async.syncWait
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.debugger.v8.NodeJS
 import com.jtransc.debugger.v8.V8JTranscDebugger
-import com.jtransc.debugger.v8.cmdRequestScriptsAsync
 import com.jtransc.io.ProcessUtils
 import java.io.File
 
@@ -53,7 +51,7 @@ class V8Example {
 					startedDebugger(it as V8JTranscDebugger)
 				}
 
-				fun startedDebugger(debugger: JTranscDebugger){
+				fun startedDebugger(debugger: JTranscDebugger) {
 					//for (script in debugger.socket.cmdRequestScripts().syncWait()) {
 					//	println("SCRIPT: $script")
 					//}

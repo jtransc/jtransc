@@ -5,12 +5,43 @@ JTRANSC
 
 [![Maven Version](https://img.shields.io/github/tag/jtransc/jtransc.svg?style=flat&label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jtransc-maven-plugin%22)
 [![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
-[![irc](https://img.shields.io/badge/irc:%20chat.freenode.net-%23jtransc-green.svg)](http://webchat.freenode.net/?channels=#jtransc)
-[![Join the JTransc Community on Slack](http://jtransc-slack.herokuapp.com/badge.svg)](http://jtransc-slack.herokuapp.com/)
+[![gitter](https://img.shields.io/gitter/room/jtransc/general.svg)](https://gitter.im/jtransc/general)
 
 # Documentation
 
 You can find documentation at the [wiki](http://docs.jtransc.com/).
+
+# Why using JTransc?
+
+There are a lot of technologies in order to convert languages into other ones. For example, convert Java into JavaScript.
+Or even Kotlin already targets JavaScript. So why using JTransc?
+
+### Mixed input code:
+
+One reason is that JTransc allows mixed projects. You can use Java libraries with Kotlin code for example.
+
+### Multiple targets:
+
+Instead of using several technologies. JTransc allows you to target to several places.
+
+### Consistency:
+
+Using just one technology guarantees consistency between targets. For example, Kotlin JS doesn't support full Java reflection.
+
+### Native:
+
+Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform.
+
+### Native facilities:
+
+Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript facilities.
+Like JavaScript String, Array and so on.
+
+### Treeshaking
+
+Instead of generating huge projects including everything, or having complex proguard configuration files.
+JTransc includes treeshaking in a simple way. You can use annotations to keep methods, classes and fields or another annotations.
+It works for all targets and it is fully integrated in the workflow.
 
 # Support this project
 
@@ -19,6 +50,9 @@ Along JTransc, I'm writting a set of libraries to be able to use JTransc.
 [https://github.com/soywiz/korlibs](https://github.com/soywiz/korlibs)
 
 Kotlin Game Engine that uses JTransc for multiplatform: [https://github.com/soywiz/korge](https://github.com/soywiz/korge)
+
+
+JTransc
 
 # What is this?
 
@@ -64,7 +98,7 @@ This is the preferred way of using JTransc. You can include it from maven centra
 
 ```
 plugins {
-  id "com.jtransc" version "0.5.16"
+  id "com.jtransc" version "0.6.1"
 }
 ```
 
@@ -120,7 +154,10 @@ So others could generate that without JVM and others could generate other target
 - DMD2 or GDC or LDC (Verified dmd-2.074.0)
 
 ### For C++ target:
-- Clang++ or g++
+- Clang++ or g++ (At least gcc 4.8)
+
+### For Dart target:
+- Tested with Dart VM version: 1.23.0
 
 ### Verified on Windows 10.0.15063 and macOS Sierra 10.12.4
 
@@ -146,6 +183,10 @@ So others could generate that without JVM and others could generate other target
 __WINDOWS__
 - Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v7.1.0 -> x68_64-posix-seh Revision 0
 - Add "path/to/mingw64" to `PATH` environment variable
+- Install cmake [https://cmake.org/download/](https://cmake.org/download/)
+
+#### Installing Dart
+- [https://www.dartlang.org/install](https://www.dartlang.org/install)
 
 __MAC__
 - Install Xcode 8.3.2

@@ -1,11 +1,13 @@
 package big;
 
+import com.jtransc.compression.jzlib.CRC32;
 import com.jtransc.reflection.JTranscReflection;
 import javatest.utils.Base64Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class HelloWorldTest {
 	static private final boolean FINAL_TRUE = true;
@@ -27,11 +29,33 @@ public class HelloWorldTest {
 		System.out.println(intArrayClass);
 		//System.out.println("Java " + System.getProperty("java.version"));
 
+		Integer[] ints = new Integer[5];
+		System.out.println(ints[0]);
+		ints[0] = 10;
+		System.out.println(ints[0]);
+
+		String concatenation = "Concatenation";
+		System.out.println("String " + concatenation);
+
+		int[] data = new int[] {1,2,3,4,5};
+		System.out.println(data[3]);
+
+		CRC32 crc32 = new CRC32();
+		crc32.reset();
+		System.out.println(crc32.getValue());
+
+		System.out.println("[1]");
 		ArrayList<Integer> items = new ArrayList<>();
+		System.out.println("[2]");
 		items.add(10);
+		System.out.println("[3]");
 		items.add(20);
 		items.add(30);
-		items.addAll(Arrays.asList(40, 50, 60));
+		System.out.println("[4]");
+		List<Integer> integers = Arrays.asList(40, 50, 60);
+		System.out.println("[5]");
+		items.addAll(integers);
+		System.out.println("[6]");
 
 		for (Integer item : items) {
 			System.out.println(item);

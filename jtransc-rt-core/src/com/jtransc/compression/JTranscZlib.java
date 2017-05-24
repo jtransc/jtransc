@@ -12,9 +12,7 @@ import java.util.zip.Inflater;
 
 @JTranscInvisible
 public class JTranscZlib {
-	@HaxeMethodBody(target = "sys", value = "" +
-		"return true;"
-	)
+	@HaxeMethodBody(target = "sys", value = "return true;")
 	static private boolean hasNativeInflate() {
 		//return JTranscSystem.usingJTransc() && JTranscSystem.isSys();
 		return false;

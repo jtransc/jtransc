@@ -3,11 +3,12 @@ package com.jtransc.ast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 
 //fun AstBody.dump() = dump(this)
 
 fun dump(types: AstTypes, body: AstBody): Indenter {
-	return Indenter.gen {
+	return Indenter {
 		for (local in body.locals) {
 			line(javaDump(body.types, local.type) + " " + local.name + ";")
 		}
@@ -20,7 +21,7 @@ fun dump(types: AstTypes, expr: AstStm.Box?): Indenter {
 }
 
 fun dump(types: AstTypes, stm: AstStm?): Indenter {
-	return Indenter.gen {
+	return Indenter {
 		when (stm) {
 			null -> {
 
@@ -54,7 +55,7 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			is AstStm.NOP -> line("NOP(${stm.reason})")
 			is AstStm.CONTINUE -> line("continue;")
 			is AstStm.BREAK -> line("break;")
-			is AstStm.THROW -> line("throw ${dump(types, stm.value)};")
+			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
 			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
 				line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
@@ -90,6 +91,10 @@ fun dump(types: AstTypes, expr: AstExpr.Box?): String {
 
 fun AstExpr?.exprDump(types: AstTypes) = dump(types, this)
 
+fun List<AstStm>.dump(types: AstTypes) = dump(types, this.stm())
+fun AstStm.dump(types: AstTypes) = dump(types, this)
+fun AstExpr.dump(types: AstTypes) = dump(types, this)
+
 fun dump(types: AstTypes, expr: AstExpr?): String {
 	return when (expr) {
 		null -> ""
@@ -110,9 +115,10 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.ARRAY_ACCESS -> dump(types, expr.array) + "[" + dump(types, expr.index) + "]"
 		is AstExpr.FIELD_INSTANCE_ACCESS -> dump(types, expr.expr) + "." + expr.field.name
 		is AstExpr.FIELD_STATIC_ACCESS -> "" + expr.clazzName + "." + expr.field.name
-		is AstExpr.CAST -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.expr) + ")"
+		is AstExpr.BaseCast -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.subject) + ")"
 		is AstExpr.INSTANCE_OF -> "(" + dump(types, expr.expr) + " instance of " + javaDump(types, expr.checkType) + ")"
 		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
+		is AstExpr.NEW_WITH_CONSTRUCTOR -> dump(types, AstExpr.CALL_INSTANCE(AstExpr.NEW(expr.type), expr.constructor, expr.args.map { it.value }, isSpecial = false))
 		is AstExpr.TERNARY -> dump(types, expr.cond) + " ? " + dump(types, expr.etrue) + " : " + dump(types, expr.efalse)
 	//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(types, it) }.joinToString(", ") + "]"

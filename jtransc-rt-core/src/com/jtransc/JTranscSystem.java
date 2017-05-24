@@ -77,6 +77,8 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "return true;"),
 		@JTranscMethodBody(target = "cs", value = "return true;"),
+		@JTranscMethodBody(target = "as3", value = "return true;"),
+		@JTranscMethodBody(target = "dart", value = "return true;"),
 	})
 	@SuppressWarnings("all")
 	static public boolean usingJTransc() {
@@ -113,18 +115,28 @@ public class JTranscSystem {
 	@SuppressWarnings("all")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(\"cpp\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");"),
 	})
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
+		if (isHaxe()) {
+			if (isJs()) return "haxe-js";
+			if (isAs3()) return "haxe-as3";
+			if (isNeko()) return "haxe-neko";
+			if (isCpp()) return "haxe-cpp";
+			return "haxe";
+		}
 		if (isSwf()) return "swf";
 		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
 		if (isNeko()) return "neko";
 		if (isPhp()) return "php";
 		if (isPython()) return "python";
+		if (isAs3()) return "as3";
+		if (isDart()) return "dart";
+		if (isCpp()) return "cpp";
 		return "unknown";
 	}
 
@@ -223,6 +235,16 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
+	@JTranscMethodBody(target = "as3", value = "return true;")
+	public static boolean isAs3() {
+		return FALSE;
+	}
+
+	@JTranscMethodBody(target = "dart", value = "return true;")
+	public static boolean isDart() {
+		return FALSE;
+	}
+
 	@HaxeMethodBodyList({
 		@HaxeMethodBody(target = "sys", value = "return N.str(Sys.systemName());"),
 		@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));"),
@@ -233,9 +255,15 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
+		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
+		@JTranscMethodBody(target = "dart", value = "return N.str(Platform.operatingSystem);"),
 	})
 	static private String getOSRaw() {
-		return System.getProperty("os.name");
+		if (JTranscSystem.isJTransc()) {
+			throw new RuntimeException("getOSRaw()");
+		} else {
+			return System.getProperty("os.name");
+		}
 	}
 
 	static public String getOS() {
@@ -243,6 +271,7 @@ public class JTranscSystem {
 		if (os.startsWith("win")) return "windows";
 		if (os.startsWith("lin")) return "linux";
 		if (os.startsWith("mac") || os.startsWith("osx")) return "mac";
+		if (os.startsWith("fuch")) return "fuchsia";
 		return os;
 	}
 
@@ -271,6 +300,10 @@ public class JTranscSystem {
 		} else {
 			return System.getProperty("os.arch").contains("64");
 		}
+	}
+
+	public static boolean isFuchsia() {
+		return getOS().toLowerCase().startsWith("fuch");
 	}
 
 	public static boolean isWindows() {
@@ -326,7 +359,11 @@ public class JTranscSystem {
 		return System.getenv("java.home");
 	}
 
-	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "js", value = "return true;"),
+		@JTranscMethodBody(target = "php", value = "return true;"),
+		@JTranscMethodBody(target = "as3", value = "return true;"),
+	})
 	public static boolean isEmulatedLong() {
 		return FALSE;
 	}
@@ -352,5 +389,9 @@ public class JTranscSystem {
 		if (JTranscSystem.isJTransc()) {
 			throw new RuntimeException("Not expected JTransc: " + reason);
 		}
+	}
+
+	static public boolean hasEventLoop() {
+		return isDart() || isJs() || isAs3();
 	}
 }

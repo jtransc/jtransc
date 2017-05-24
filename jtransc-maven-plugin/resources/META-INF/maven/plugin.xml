@@ -7,7 +7,7 @@
   <description>Maven plugin for JVM AOT compiler currently generating Haxe, with initial focus on kotlin and games.</description>
   <groupId>com.jtransc</groupId>
   <artifactId>jtransc-maven-plugin</artifactId>
-  <!--jtransc--><version>0.5.16</version>
+  <!--jtransc--><version>0.6.1</version>
   <goalPrefix>jtransc</goalPrefix>
   <isolatedRealm>false</isolatedRealm>
   <inheritedByDefault>true</inheritedByDefault>
@@ -284,49 +284,49 @@
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib</artifactId>
       <type>jar</type>
-      <version>1.1.0</version>
+      <version>1.1.2-3</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-runtime</artifactId>
       <type>jar</type>
-      <version>1.1.0</version>
+      <version>1.1.2-3</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-core</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-utils</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-asm</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-rt-core</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-main</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.jtransc</groupId>
       <artifactId>jtransc-gen-haxe</artifactId>
       <type>jar</type>
-		<!--jtransc--><version>0.5.16</version>
+		<!--jtransc--><version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
@@ -536,13 +536,13 @@
       <groupId>org.eclipse.aether</groupId>
       <artifactId>aether-api</artifactId>
       <type>jar</type>
-      <version>1.1.0</version>
+      <version>1.1.2-3</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.aether</groupId>
       <artifactId>aether-util</artifactId>
       <type>jar</type>
-      <version>1.1.0</version>
+      <version>1.1.2-3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>

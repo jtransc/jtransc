@@ -2,7 +2,7 @@ package java.lang.jtransc;
 
 public class JTranscStrings {
 	static public char[] getData(String str) {
-		return str.value;
+		return str.getNativeCharArray();
 	}
 
 	static public boolean equals(char[] a, int aoffset, char[] b, int boffset, int len) {

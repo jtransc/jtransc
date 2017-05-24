@@ -26,6 +26,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.GenTargetSubDescriptor
 import com.jtransc.gen.TargetName
+import com.jtransc.gen.common.CommonGenerator
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
@@ -36,7 +37,6 @@ import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergedLocalAndJars
 import com.jtransc.vfs.SyncVfsFile
-import j.ProgramReflection
 import java.io.File
 import java.util.*
 
@@ -86,10 +86,11 @@ class JTranscBuild(
 	fun buildWithoutRunning() = _buildAndRun(captureRunOutput = false, run = false)
 	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true) = _buildAndRun(captureRunOutput = captureRunOutput, run = run)
 
-	class Result(val process: ProcessResult2)
+	class Result(val process: ProcessResult2, val generator: CommonGenerator)
 
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
-		// @TODO: allow to add plugins from gradle
+		val targetName = target.targetName
+
 		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }
 		val pluginNames = plugins.map { it.javaClass.simpleName }
 
@@ -113,8 +114,12 @@ class JTranscBuild(
 			ConfigRun(run),
 			ConfigOutputPath(LocalVfs(File("$tempdir/out_ast"))),
 			ConfigMainClass(entryPoint),
-			TargetName(target.name)
+			targetName
 		)
+
+		for (plugin in plugins) {
+			plugin.initialize(injector)
+		}
 
 		when (backend) {
 			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst1>()

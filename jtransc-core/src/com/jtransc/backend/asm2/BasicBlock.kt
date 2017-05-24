@@ -278,7 +278,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 			Opcodes.CHECKCAST -> {
 				val obj = pop()
 				val dst = createTemp(type)
-				add(TIR.CONV(dst, obj, type))
+				add(TIR.CONV(dst, obj, type, checked = true))
 				push(dst)
 			}
 			Opcodes.INSTANCEOF -> {
@@ -291,7 +291,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	}
 
 	fun decodeMultiANewArrayNode(n: MultiANewArrayInsnNode) {
-		val arrayType = types.REF_INT(n.desc) as AstType.ARRAY
+		val arrayType = types.REF_INT(n.desc).asArray()
 		val dst = createTemp(arrayType)
 		add(TIR.NEWARRAY(dst, arrayType, (0 until n.dims).map { pop() }.reversed()))
 		push(dst)
@@ -633,7 +633,7 @@ class BasicBlock(val types: AstTypes, val blockContext: BlockContext, val clazz:
 	fun conv(dstType: AstType) {
 		val srcVar = pop()
 		val dst = createTemp(dstType)
-		add(TIR.CONV(dst, srcVar, dstType))
+		add(TIR.CONV(dst, srcVar, dstType, checked = false))
 		push(dst)
 	}
 

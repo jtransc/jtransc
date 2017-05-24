@@ -411,7 +411,6 @@ public class JTranscBits {
 	@JTranscInline
 	@HaxeMethodBodyList({
 		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend1(p0);"),
-		@HaxeMethodBody("return N.signExtend(p0, 1);"),
 	})
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;

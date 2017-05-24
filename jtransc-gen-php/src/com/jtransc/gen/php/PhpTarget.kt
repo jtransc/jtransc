@@ -13,6 +13,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -61,6 +62,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
+	override val localVarPrefix = "\""
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -108,17 +110,17 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		println(output)
 	}
 
-	override fun genField(field: AstField): Indenter = Indenter.gen {
+	override fun genField(field: AstField): Indenter = Indenter {
 		val static = if (field.isStatic) "static " else ""
 		line("public $static\$${field.targetName} = ${field.type.getNull().escapedConstant};")
 	}
 
-	override fun buildStaticAccessName(name: String, field: Boolean): String = if (field) "$staticAccessOperator\$$name" else "$staticAccessOperator$name"
+	override fun staticAccess(name: String, field: Boolean): String = if (field) "$staticAccessOperator\$$name" else "$staticAccessOperator$name"
 
 	override fun quoteString(str: String) = str.dquote()
 
-	override fun genClasses(output: SyncVfsFile): Indenter = Indenter.gen {
-		val classesStr = super.genClasses(output)
+	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
+		val classesStr = super.genSingleFileClasses(output)
 		line(classesStr)
 		line("class Bootstrap") {
 			for (lit in getGlobalStrings()) {
@@ -196,7 +198,6 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstLocal.decl: String get() = "\$${this.targetName} = ${this.type.nativeDefaultString};"
 
 	override fun genExprParam(e: AstExpr.PARAM) = "\$" + e.argument.targetName
-	override fun genExprLocal(e: AstExpr.LOCAL) = "\$" + e.local.targetName
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String) = "\$$localName = $exprStr;"
 
@@ -272,11 +273,11 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun N_c(str: String, from: AstType, to: AstType) = "((${to.targetName})($str))"
 
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()})->length"
-	override fun genStmThrow(stm: AstStm.THROW) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.exception.genExpr()});")
 
-	override fun genStmLabelCore(stm: AstStm.STM_LABEL) = "${stm.label.name}:"
+	override fun genLabel(label: AstLabel) = "${label.name}:"
 
-	override fun genSIMethod(clazz: AstClass): Indenter = Indenter.gen {
+	override fun genSIMethod(clazz: AstClass): Indenter = Indenter {
 		if (clazz.isJavaLangObject) {
 			line("public function __toString()") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
@@ -318,15 +319,15 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2f(str: String) = "(+($str))"
 	override fun N_i2d(str: String) = "(+($str))"
 
-	override fun N_l2f(str: String) = "(+($str))"
-	override fun N_l2d(str: String) = "(+($str))"
+	override fun N_j2f(str: String) = "(+($str))"
+	override fun N_j2d(str: String) = "(+($str))"
 
 	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
 
 	override fun N_idiv(l: String, r: String): String = "N::idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N::irem($l, $r)"
 
-	override fun genMissingBody(method: AstMethod): Indenter = Indenter.gen {
+	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Exception(${message.dquote()});")
 	}
@@ -334,12 +335,12 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 	//override val MethodRef.targetNameBase: String get() = "${this.ref.name}"
 
-	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()
 	}
 
-	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter.gen {
+	override fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 		//_unindent()
 		//line("} catch (Throwable e) {")
 		//indent {
@@ -367,10 +368,10 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
 	}
 
-	override val NegativeInfinityString = "Double.NegativeInfinity"
-	override val PositiveInfinityString = "Double.PositiveInfinity"
+	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
+	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
 	//override val NanString = "Double.NaN"
-	override val NanString = "N.DoubleNaN"
+	override val DoubleNanString = "N.DoubleNaN"
 
 	override val String.escapeString: String get() = "Bootstrap::\$STRINGLIT_${allocString(currentClass, this)}"
 

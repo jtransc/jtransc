@@ -13,8 +13,17 @@ import java.util.zip.ZipFile;
 @SuppressWarnings("ConstantConditions")
 public class JTranscZipTest {
 	static public void main(String[] args) throws IOException {
-		testFs();
-		testZip();
+		try {
+			testFs();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+
+		try {
+			testZip();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
 	}
 
 	static private void testFs() {

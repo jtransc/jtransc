@@ -68,18 +68,28 @@ object ProcessUtils {
 		var err = ""
 		var outerr = ""
 		//redirect: Boolean, env: Map<String, String> = mapOf()
+
+		fun String.fix(): String {
+			return if (options.fixLineEndings) {
+				//this.replace("\r\n", "\n").replace('\r', '\n')
+				this.replace("\r", "")
+			} else {
+				this
+			}
+		}
+
 		val exitValue = run2(currentDir, command, args, object : ProcessHandler() {
 			override fun onStarted() {
 			}
 
 			override fun onOutputData(data: String) {
-				if (options.redirect) System.out.print(data)
+				if (options.passthru) System.out.print(data.fix())
 				out += data
 				outerr += data
 			}
 
 			override fun onErrorData(data: String) {
-				if (options.redirect) System.err.print(data)
+				if (options.passthru) System.err.print(data.fix())
 				err += data
 				outerr += data
 			}

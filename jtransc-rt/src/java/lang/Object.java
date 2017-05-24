@@ -26,7 +26,7 @@ import java.lang.reflect.Field;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 @HaxeAddFilesTemplate(base = "hx", value = {
-	"hx/N.hx", "hx/Float32.hx", "hx/Float64.hx",
+	"hx/N.hx", "hx/NE.hx", "hx/Float32.hx", "hx/Float64.hx",
 	"hx/JA_0.hx", "hx/JA_B.hx", "hx/JA_C.hx", "hx/JA_D.hx", "hx/JA_F.hx", "hx/JA_I.hx", "hx/JA_J.hx", "hx/JA_L.hx", "hx/JA_S.hx", "hx/JA_Z.hx",
 	"hx/HaxePolyfills.hx", "hx/HaxeDynamicLoad.hx", "hx/HaxeIO.hx", "hx/HaxeNativeWrapper.hx",
 })
@@ -41,7 +41,13 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")
+@JTranscAddFile(target = "dart", priority = -1, process = true, prependAppend = "dart/Base.dart")
+@JTranscAddFile(target = "dart", priority = -1, process = true, src = "dart/pubspec.yaml", dst = "pubspec.yaml")
 @JTranscAddFile(target = "php", priority = -1, process = true, prependAppend = "php/Base.php")
+@JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/CMakeLists.txt", dst = "CMakeLists.txt")
+@JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/combined_jni.h", dst = "jni.h")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/_project.as3proj", dst = "_project.as3proj")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/N.as", dst = "N.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.as", dst = "Main.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_0.as", dst = "JA_0.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_Z.as", dst = "JA_Z.as")
@@ -53,25 +59,16 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_F.as", dst = "JA_F.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_D.as", dst = "JA_D.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/JA_L.as", dst = "JA_L.as")
-@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/N.as", dst = "N.as")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Int32.as", dst = "Int32.as")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Int64.as", dst = "Int64.as")
+@JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/DivModResult.as", dst = "DivModResult.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/WrappedThrowable.as", dst = "WrappedThrowable.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
-//@JTranscAddLibraries(target = "cpp", value = {"gc"})
-@JTranscAddMembers(target = "d", value = {
-	"core.sync.mutex.Mutex __d_mutex = null;",
-})
+@JTranscAddMembers(target = "d", value = "core.sync.mutex.Mutex __d_mutex = null;")
 public class Object {
-	@JTranscInvisible
-	static private int $$lastId = 0;
-
 	@JTranscInvisible
 	public int $$id;
 
-	public Object() {
-		$$id = $$lastId++;
-	}
-
-	//@JTranscKeep
 	public boolean equals(Object obj) {
 		return (this == obj);
 	}

@@ -14,28 +14,44 @@
  * limitations under the License.
  */
 
-import android.AndroidArgsTest
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
-import com.jtransc.gen.d.DTarget
-import javatest.misc.MiscTest
-import jtransc.ProcessTest
-import jtransc.WrappedTest
-import jtransc.jtransc.nativ.JTranscCppNativeMixedTest
-import jtransc.jtransc.nativ.JTranscDNativeMixedTest
-import jtransc.rt.test.JTranscReflectionTest
-import jtransc.rt.test.ProxyTest
+import javatest.misc.ExecutionOrderTest
+import jtransc.bug.JTranscBug127
+import jtransc.java8.Java8Test
+import jtransc.jtransc.SimdTest
+import jtransc.micro.NanoHelloWorldTest
 import org.junit.Ignore
 import org.junit.Test
-import threading.ThreadingTest
 
-class CppTest : Base() {
+class CppTest : _Base() {
+	override val DEFAULT_TARGET = CppTarget()
+
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
-	@Ignore("Ignored until stabilized C++ target to avoid problems with travis")
-	@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, target = CppTarget(), log = true, treeShaking = true)
+
+	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
+
+	@Ignore
+	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, treeShaking = true, debug = true))
+
+	@Ignore
+	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
+	//@Test fun testHelloWorld() = testClass<HelloWorldTest>(minimize = false, log = true, treeShaking = true, debug = false)
+
+	@Ignore
+	@Test fun testSimdTest() = testClass(Params(clazz = SimdTest::class.java, minimize = false, log = true, treeShaking = true, debug = false))
+
+	@Ignore
+	@Test fun testExecutionOrder() = testClass(Params(clazz = ExecutionOrderTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
+
+	@Ignore
+	@Test fun testJava8() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:
@@ -43,6 +59,6 @@ class CppTest : Base() {
 	//	floats:2 : [0.0, 0.0]
 	//	bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
 	//	floats:2 : [1.0, -1.0]
-	//""", target = CppTarget(), minimize = false)
+	//""", minimize = false)
 
 }

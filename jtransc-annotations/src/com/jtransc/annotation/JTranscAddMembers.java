@@ -14,4 +14,6 @@ public @interface JTranscAddMembers {
 	String target();
 
 	String[] value();
+
+	String cond() default "";
 }

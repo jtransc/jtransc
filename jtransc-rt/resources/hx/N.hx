@@ -24,19 +24,34 @@ typedef JavaLong = {% CLASS java.lang.Long %}
 typedef JavaFloat = {% CLASS java.lang.Float %}
 typedef JavaDouble = {% CLASS java.lang.Double %}
 
+// https://haxe.io/roundups/wwx/c++-magic/
+{{ HAXE_CLASS_ANNOTATIONS }}
+#if cpp
+@:headerClassCode('inline static int _i2b(int v) { return (char)v; }; inline static int _i2s(int v) { return (short)v; }; inline static int _i2c(int v) { return (unsigned short)v; };')
+#end
 class N {
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var MIN_INT64 = haxe.Int64.make(0x80000000, 0x00000000);
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static public var MIN_INT32:Int32 = -2147483648;
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var M2P32_DBL = Math.pow(2, 32);
+	{{ HAXE_FIELD_ANNOTATIONS }}
+	static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function intToLong(v:Int):Long {
 		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
 	}
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function floatToLong(v:Float64):Long {
 		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 	}
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longToInt(v:Int64):Int { return v.low; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longToFloat(v:Int64):Float64 {
 		if (v < 0) return (v == MIN_INT64) ? -9223372036854775808.0 : -longToFloat(-v);
 		var lowf:Float64 = cast v.low;
@@ -44,24 +59,30 @@ class N {
 		return lowf + highf * M2P32_DBL;
 	}
 
-	static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
-
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function strLit(str:String):{% CLASS java.lang.String %} {
     	if (!strLitCache.exists(str)) strLitCache[str] = {% CLASS java.lang.String %}.make(str);
         return strLitCache[str];
     }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function strLitEscape(str:String):{% CLASS java.lang.String %} return strLit(str);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function str(str:String):JavaString return (str != null) ? JavaString.make(str) : null;
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function istr(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function i_str(str:{% CLASS java.lang.String %}):String return (str != null) ? str._str : null;
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function isNegativeZero(x:Float) return x == 0 && 1 / x == Math.NEGATIVE_INFINITY;
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public inline function c<T, S> (value:T, c:Class<S>):S return cast value;
 	//static public inline function c<T, S> (value:T, c:Class<S>):S return (value != null) ? cast value : null;
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static inline private function _shift(count:Int) {
 		#if php
 			return untyped __php__("PHP_INT_SIZE") * 8 - count;
@@ -70,6 +91,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function arrayInsert(array: Array<Dynamic>, index:Int, value: Dynamic): Void {
 		#if flash
 			var arr: Dynamic = array;
@@ -79,6 +101,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function arrayIterator(arr: Array<Dynamic>) : Iterator<Dynamic> {
 		#if flash
 			var cur = 0;
@@ -88,43 +111,56 @@ class N {
 		#end
 	}
 
-	static public function signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
-	static public function i2z(v:Int):Bool return v != 0;
-	static public function i2b(v:Int):Int return (v << _shift(8)) >> _shift(8);
-	static public function i2s(v:Int):Int return (v << _shift(16)) >> _shift(16);
-	static public function i2c(v:Int):Int return v & 0xFFFF;
+	#if cpp
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2b(v:Int):Int return ((v << 24) >> 24);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2s(v:Int):Int return ((v << 16) >> 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2c(v:Int):Int return ((v) & 0xFFFF);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v;
+	#elseif (js || flash)
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2b(v:Int):Int return ((v << 24) >> 24);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2s(v:Int):Int return ((v << 16) >> 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2c(v:Int):Int return v & 0xFFFF;
+	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v | 0;
+	#else
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static private function _signExtend(v:Int, bits:Int):Int return (v << _shift(bits)) >> _shift(bits);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2b(v:Int):Int return _signExtend(v, 8);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2s(v:Int):Int return _signExtend(v, 16);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2c(v:Int):Int return v & 0xFFFF;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i(v:Int):Int32 return _signExtend(v, 32);
+	#end
 
-	static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
-	static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2z(v:Int):Bool return v != 0;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function wrap(value:Dynamic):JtranscWrapped return JtranscWrapped.wrap(value);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function toNativeString(str:JavaString):String return (str != null) ? str._str : null;
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function haxeStringArrayToJavaArray(strs:Array<String>):JA_L {
 		var out = [];
 		for (s in strs) out.push(N.str(s));
 		return JA_L.fromArray(out, '[Ljava/lang/String;');
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function toNativeStrArray(strs:JA_L):Array<String> {
 		var list = strs.toArray();
 		return [for (s in 0 ... list.length) toNativeString(cast list[s])];
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function toNativeUnboxedArray(strs:JA_L):Array<Dynamic> {
 		var list = strs.toArray();
 		return [for (s in 0 ... list.length) unbox(cast list[s])];
 	}
 
 	#if js
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function imul(a:Int32, b:Int32):Int32 return untyped __js__("Math.imul({0}, {1})", a, b);
 	#else
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function imul(a:Int32, b:Int32):Int32 return a * b;
 	#end
 
-	#if (js || cpp || flash)
-	inline static public function i(v:Int):Int32 return v | 0;
-	#else
-	static public function i(v:Int):Int32 return (v << _shift(32)) >> _shift(32);
-	#end
-
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function f2i(v:Float):Int {
 		#if cpp
 		return untyped __cpp__("((int)({0}))", v);
@@ -133,6 +169,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function int(v:Float):Int return f2i(v);
 
 	//static public function int(value:Int):JavaInteger return boxInt(value);
@@ -140,62 +177,98 @@ class N {
 	//static public function float(value:Float32):JavaFloat return boxFloat(value);
 	//static public function double(value:Float64):JavaDouble return boxDouble(value);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function z2i(v:Bool):Int return v ? 1 : 0;
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function d2j(v:Float64):haxe.Int64 return haxe.Int64.fromFloat(v);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function idiv(a:Int, b:Int):Int {
 		#if cpp return untyped __cpp__("(({0})/({1}))", a, b);
 		#else return Std.int(a / b);
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function umod(a:Int32, b:Int32):Int32 return ((a % b) + b) % b;
 
 	#if php
-	static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
-	static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
-	static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
-	static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static private function fixshift(v:Int32):Int32 return (v >= 0) ? (v) : umod(32 + v, 32);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ishl(a:Int32, b:Int32):Int32 return a << fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ishr(a:Int32, b:Int32):Int32 return a >> fixshift(b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function iushr(a:Int32, b:Int32):Int32 return a >>> fixshift(b);
 	#else
-	inline static public function ishl(a:Int32, b:Int32):Int32 return a << b;
-	inline static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
-	inline static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function ishl(a:Int32, b:Int32):Int32 return a << b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function ishr(a:Int32, b:Int32):Int32 return a >> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function iushr(a:Int32, b:Int32):Int32 return a >>> b;
 	#end
 
 	// Long operators
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function llow(a:Int64):Int return a.low;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lhigh(a:Int64):Int return a.high;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function ladd(a:Int64, b:Int64):Int64 return a + b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lsub(a:Int64, b:Int64):Int64 return a - b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lmul(a:Int64, b:Int64):Int64 return a * b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function ldiv(a:Int64, b:Int64):Int64 return a / b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lrem(a:Int64, b:Int64):Int64 return a % b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lband(a:Int64, b:Int64):Int64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lbor(a:Int64, b:Int64):Int64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function land(a:Int64, b:Int64):Int64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lor(a:Int64, b:Int64):Int64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lxor(a:Int64, b:Int64):Int64 return a ^ b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lshl(a:Int64, b:Int):Int64 return a << b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lshr(a:Int64, b:Int):Int64 return a >> b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lushr(a:Int64, b:Int):Int64 return a >>> b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function leq(a:Int64, b:Int64) return a == b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lne(a:Int64, b:Int64) return a != b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lge(a:Int64, b:Int64) return a >= b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lle(a:Int64, b:Int64) return a <= b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function llt(a:Int64, b:Int64) return a < b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lgt(a:Int64, b:Int64) return a > b;
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ?  1 : cmp(a, b); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static inline public function eq(a:Dynamic, b:Dynamic):Bool { return a == b; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static inline public function ne(a:Dynamic, b:Dynamic):Bool { return a != b; }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function getTime():Float {
 		#if js return untyped __js__('Date.now()');
 		#elseif sys return Sys.time() * 1000;
@@ -203,6 +276,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function resolveClass(name:String):{% CLASS java.lang.Class %} {
 		if (name == null) {
 			trace('resolveClass:name:null');
@@ -217,51 +291,83 @@ class N {
 		return result;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxVoid(value:Dynamic):JavaVoid { return null; }
-	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean.{% METHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-	static public function boxByte(value:Int):JavaByte { return JavaByte.{% METHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-	static public function boxShort(value:Int):JavaShort { return JavaShort.{% METHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter.{% METHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-	static public function boxInt(value:Int):JavaInteger { return JavaInteger.{% METHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-	static public function boxLong(value:Long):JavaLong { return JavaLong.{% METHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat.{% METHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-	static public function boxDouble(value:Float64):JavaDouble { return JavaDouble.{% METHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxBool(value:Bool):JavaBoolean { return JavaBoolean{% IMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxByte(value:Int):JavaByte { return JavaByte{% IMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxShort(value:Int):JavaShort { return JavaShort{% IMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxChar(value:Int):JavaCharacter { return JavaCharacter{% IMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxInt(value:Int):JavaInteger { return JavaInteger{% IMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxLong(value:Long):JavaLong { return JavaLong{% IMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat{% IMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function boxDouble(value:Float64):JavaDouble { return JavaDouble{% IMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxString(value:String):JavaString { return (value != null) ? JavaString.make(value) : null; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxByteArray(value:Bytes):JA_B { return JA_B.fromBytes(value); }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxVoid(value:JavaObject):Void { return cast null; }
-	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean).{% FIELD java.lang.Boolean:value:Z %}; }
-	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte).{% FIELD java.lang.Byte:value:B %}; }
-	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort).{% FIELD java.lang.Short:value:S %}; }
-	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter).{% FIELD java.lang.Character:value:C %}; }
-	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger).{% FIELD java.lang.Integer:value:I %}; }
-	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong).{% FIELD java.lang.Long:value:J %}; }
-	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat).{% FIELD java.lang.Float:value:F %}; }
-	static public function unboxDouble(value:JavaObject):Float64 { return cast(value, JavaDouble).{% FIELD java.lang.Double:value:D %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean){% IFIELD java.lang.Boolean:value:Z %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte){% IFIELD java.lang.Byte:value:B %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort){% IFIELD java.lang.Short:value:S %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxChar(value:JavaObject):Int { return cast(value, JavaCharacter){% IFIELD java.lang.Character:value:C %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger){% IFIELD java.lang.Integer:value:I %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong){% IFIELD java.lang.Long:value:J %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat){% IFIELD java.lang.Float:value:F %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function unboxDouble(value:JavaObject):Float64 { return cast(value, JavaDouble){% IFIELD java.lang.Double:value:D %}; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxString(value:JavaObject):String { return cast(value, JavaString)._str; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxWrapped(value:JavaObject):Dynamic { return cast(value, JtranscWrapped)._wrapped; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxByteArray(value:JavaObject):Bytes { return cast(value, JA_B).getBytes(); }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function swap32(p0:Int32):Int32 { return ((p0 >>> 24)) | ((p0 >> 8) & 0xFF00) | ((p0 << 8) & 0xFF0000) | ((p0 << 24)); }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function swap16(p0:Int32):Int32 { return ((((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)) << 16) >> 16; }
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function swap16u(p0:Int32):Int32 { return (((p0 & 0xFF00) >> 8) | ((p0 & 0xFF) << 8)); }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public inline function throwRuntimeException(msg:String) {
 		throw {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
 	}
 
 	#if debug
+		{{ HAXE_METHOD_ANNOTATIONS }}
 		static public function checkNotNull<T>(item:T):T {
 			if (item == null) throw {% CONSTRUCTOR java.lang.NullPointerException:()V %}();
 			return item;
 		}
 	#else
+		{{ HAXE_METHOD_ANNOTATIONS }}
 		static inline public function checkNotNull<T>(item:T):T {
 			return item;
 		}
 	#end
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function isNode():Bool {
 		#if js
 		return untyped __js__("typeof process != 'undefined'");
@@ -270,6 +376,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function getStackTrace(skip:Int):JA_L {
 		var out = [];
 		var callStack = CallStack.callStack();
@@ -279,47 +386,52 @@ class N {
 		return JA_L.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function hashMap(obj:Dynamic):{% CLASS java.util.HashMap %} {
-		var out = new {% CLASS java.util.HashMap %}().{% METHOD java.util.HashMap:<init>:()V %}();
+		var out = new {% CLASS java.util.HashMap %}(){% IMETHOD java.util.HashMap:<init>:()V %}();
 		var fields = Reflect.fields(obj);
 		for (n in 0 ... fields.length) {
 			var key = fields[n];
 			var value = Reflect.field(obj, key);
-			out.{% METHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
+			out{% IMETHOD java.util.HashMap:put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; %}(box(key), box(value));
 		}
 		return out;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function mapToObject(map:{% CLASS java.util.Map %}):Dynamic {
 		if (map == null) return null;
 		var obj = {};
-		var array = iteratorToArray(map.{% METHOD java.util.Map:entrySet %}().{% METHOD java.util.Set:iterator %}());
+		var array = iteratorToArray(map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}());
 		for (n in 0 ... array.length) {
 			var item = array[n];
-			var key:JavaObject = item.{% METHOD java.util.Map$Entry:getKey %}();
-			var value:JavaObject = item.{% METHOD java.util.Map$Entry:getValue %}();
+			var key:JavaObject = item{% IMETHOD java.util.Map$Entry:getKey %}();
+			var value:JavaObject = item{% IMETHOD java.util.Map$Entry:getValue %}();
 			Reflect.setField(obj, unbox(key), unbox(value));
 		}
 		return obj;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function iteratorToArray(it:{% CLASS java.util.Iterator %}):Array<Dynamic> {
 		if (it == null) return null;
 		var out = [];
-		while (it.{% METHOD java.util.Iterator:hasNext:()Z %}()) {
-			out.push(it.{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
+		while (it{% IMETHOD java.util.Iterator:hasNext:()Z %}()) {
+			out.push(it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
 		}
 		return out;
 	}
 
 	// BOX alias
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function strArray(strs:Array<String>):JA_L {
 		var out = new JA_L(strs.length, "[Ljava.lang.String;");
 		for (n in 0 ... strs.length) out.set(n, str(strs[n]));
 		return out;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function byteArrayToString(chars:JA_B, start:Int = 0, count:Int = -1, charset:String = "UTF-8"):String {
 		if (count < 0) count = chars.length;
 		var end = start + count;
@@ -329,6 +441,7 @@ class N {
 		return out.toString();
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function byteArrayWithHiToString(chars:JA_B, start:Int, count:Int, hi:Int):String {
 		if (count < 0) count = chars.length;
 		var end = start + count;
@@ -338,12 +451,14 @@ class N {
 		return out.toString();
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function haxeIteratorToArray<T>(iterator: Iterator<T>):Array<T> {
 		var out = [];
 		for (v in iterator) out.push(v);
 		return out;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function charArrayToString(chars:JA_C, start:Int = 0, count:Int = 999999999):String {
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
@@ -352,6 +467,7 @@ class N {
 		return out.toString();
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function intArrayToString(chars:JA_I, start:Int = 0, count:Int = 999999999):String {
 		var end = start + count;
 		end = Std.int(Math.min(end, chars.length));
@@ -360,6 +476,7 @@ class N {
 		return out.toString();
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function stringToCharArray(str:String):JA_C {
 		#if (js || flash || java || cs)
 		var out = new JA_C(str.length);
@@ -373,14 +490,17 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function getFunction(obj:Dynamic):Dynamic { return obj._execute; }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function toArray(obj:Dynamic):Vector<Dynamic> {
 		var out = new Vector(obj.length);
 		for (n in 0 ... obj.length) out[n] = obj[n];
 		return out;
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public inline function debugger() {
 		#if js
 		untyped __js__("console.trace('debugger;');");
@@ -405,6 +525,7 @@ class N {
 	//	return resolveClass(getClassDescriptor(object));
 	//}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function newInstance(javaInternalClassName:String) {
 		if (javaInternalClassName == null) trace('N.newInstance::javaInternalClassName == null');
 		var clazz = Type.resolveClass(javaInternalClassName);
@@ -413,6 +534,7 @@ class N {
 		return Type.createInstance(clazz, []);
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function newEmptyInstance(javaInternalClassName:String) {
 		if (javaInternalClassName == null) trace('N.newEmptyInstance::javaInternalClassName == null');
 		var clazz = Type.resolveClass(javaInternalClassName);
@@ -421,29 +543,19 @@ class N {
 		return Type.createEmptyInstance(clazz);
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function arraycopy(src:JavaObject, srcPos:Int, dest:JavaObject, destPos:Int, length:Int) {
-		if (Std.is(src, JA_L)) {
-			JA_L.copy(cast(src, JA_L), cast(dest, JA_L), srcPos, destPos, length);
-		} else if (Std.is(src, JA_B)) {
-			 JA_B.copy(cast(src, JA_B), cast(dest, JA_B), srcPos, destPos, length);
-		 } else if (Std.is(src, JA_I)) {
-			JA_I.copy(cast(src, JA_I), cast(dest, JA_I), srcPos, destPos, length);
-		} else if (Std.is(src, JA_J)) {
-			JA_J.copy(cast(src, JA_J), cast(dest, JA_J), srcPos, destPos, length);
-		} else if (Std.is(src, JA_F)) {
-			JA_F.copy(cast(src, JA_F), cast(dest, JA_F), srcPos, destPos, length);
-		} else if (Std.is(src, JA_D)) {
-			JA_D.copy(cast(src, JA_D), cast(dest, JA_D), srcPos, destPos, length);
-		} else if (Std.is(src, JA_S)) {
-			 JA_S.copy(cast(src, JA_S), cast(dest, JA_S), srcPos, destPos, length);
-		} else if (Std.is(src, JA_C)) {
-			JA_C.copy(cast(src, JA_C), cast(dest, JA_C), srcPos, destPos, length);
+		var srcArray = cast(src, JA_0);
+		if (srcArray != null) {
+			srcArray.copyTo(srcPos, cast(dest, JA_0), destPos, length);
 		} else {
-			trace("arraycopy failed unsupported array type! " + src + ", " + dest);
-			throw "arraycopy failed unsupported array type! " + src + ", " + dest;
+			var str = "arraycopy failed unsupported array type! " + src + ", " + dest;
+			trace(str);
+			throw str;
 		}
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function args():Array<String> {
 		#if sys return Sys.args();
 		#elseif js if (untyped __js__("typeof process !== 'undefined' && process.argv")) return untyped __js__("process.argv.slice(2)"); else return [];
@@ -451,8 +563,10 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public inline function cast2<T, S> (value:T, c:Class<S>):S return N.c(value, c);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function box(value:Dynamic):JavaObject {
 		if (Std.is(value, Int)) return boxInt(cast value);
 		if (Std.is(value, Float)) return boxFloat(cast value);
@@ -463,6 +577,7 @@ class N {
 		return JtranscWrapped.wrap(value);
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unbox(value:JavaObject):Dynamic {
 		if (Std.is(value, JavaBoolean)) return unboxBool(value);
 		if (Std.is(value, JavaByte)) return unboxByte(value);
@@ -478,9 +593,10 @@ class N {
 		throw 'Was not able to unbox "$value"';
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxWithType(clazz:JavaClass, value:Dynamic):JavaObject {
 		if (Std.is(value, JavaObject)) return cast value;
-		var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
+		var clazzName:String = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 		switch (clazzName) {
 			case 'void': return boxVoid(cast value);
@@ -497,8 +613,9 @@ class N {
 		throwRuntimeException("Don't know how to box '" + clazzName + "' with value '" + value + "'");
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxWithTypeWhenRequired(clazz:JavaClass, value:Dynamic):Dynamic {
-		var clazzName:String = N.istr(clazz.{% FIELD java.lang.Class:name %});
+		var clazzName:String = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 		switch (clazzName) {
 			case 'void'   : return null;
@@ -515,34 +632,44 @@ class N {
 		return value;
 	};
 
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var _tempBytes = haxe.io.Bytes.alloc(8);
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var _tempF32 = haxe.io.Float32Array.fromBytes(_tempBytes);
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var _tempI32 = haxe.io.Int32Array.fromBytes(_tempBytes);
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	static private var _tempF64 = haxe.io.Float64Array.fromBytes(_tempBytes);
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function intBitsToFloat(value: Int): Float32 {
 		#if js _tempI32[0] = value; return _tempF32[0];
 		#else return haxe.io.FPHelper.i32ToFloat(value);
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function floatToIntBits(value: Float32): Int {
 		#if js _tempF32[0] = value; return _tempI32[0];
 		#else return haxe.io.FPHelper.floatToI32(value); #end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longBitsToDouble(value: Int64): Float64 {
 		#if js _tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
 		#else return haxe.io.FPHelper.i64ToDouble(value.low, value.high); #end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function doubleToLongBits(value: Float64):Int64 {
 		#if js _tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
 		#else return haxe.io.FPHelper.doubleToI64(value); #end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function newException(msg:String) return {% CONSTRUCTOR java.lang.Exception:(Ljava/lang/String;)V %}(N.str(msg));
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public inline function rethrow(J__i__exception__:Dynamic) {
 		#if js
 			#if (haxe_ver >= 3.3)
@@ -558,6 +685,7 @@ class N {
 		#end
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function createStackItem(className:String, methodName:String, fileName:String, line:Int):{% CLASS java.lang.StackTraceElement %} {
 		return {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
 			N.str(className),
@@ -567,6 +695,7 @@ class N {
 		);
 	}
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function convertStackItem(i):{% CLASS java.lang.StackTraceElement %} {
 		var className = "DummyClass";
 		var methodName = "dummyMethod";
@@ -594,4 +723,23 @@ class N {
 
 		return createStackItem(className, methodName, fileName, line);
 	}
+
+	public static function CHECK_CAST<TIn, TOut>(i : TIn, cls : Class<TOut>) : TOut {
+		if (i == null) return null;
+		//trace('CHECK_CAST:' + i + ' : ' + cls);
+        if (Std.is(i, cls)) {
+			//trace('a');
+            var res: TOut = cast i;
+            if (res == null) {
+            	//trace('b');
+				throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str("Class cast error"));
+            }
+            //trace('c');
+            return res;
+        } else {
+        	//trace('d');
+			throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str("Class cast error"));
+        }
+        return null;
+    }
 }

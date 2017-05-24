@@ -38,16 +38,19 @@ fun String.uescape(): String {
 	for (n in 0 until this.length) {
 		val c = this[n]
 		when (c) {
+			0.toChar() -> out.append("\\0")
 			'\\' -> out.append("\\\\")
 			'"' -> out.append("\\\"")
 			'\n' -> out.append("\\n")
 			'\r' -> out.append("\\r")
 			'\t' -> out.append("\\t")
-			else -> if (c.isPrintable()) {
-				out.append(c)
-			} else {
-				out.append("\\u" + "%04x".format(c.toInt()))
-			}
+			//else -> if (c.isPrintable()) {
+			//	out.append(c)
+			//} else {
+			//	out.append("\\u" + "%04x".format(c.toInt()))
+			//}
+			in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '&' -> out.append(c)
+			else -> out.append("\\u" + "%04x".format(c.toInt()))
 		}
 	}
 	return out.toString()

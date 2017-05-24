@@ -79,7 +79,7 @@ public class StringsTest {
 	}
 
 	static public void zeroTest() {
-		String a = "abcdefg\0A\0B\0C\0";
+		String a = "STRZERO:abcdefg\0A\0B\0C\0\u0000\u0001\u0002\u0003\uffff\u7f7f\u007f\u00ff";
 		JTranscConsole.log("StringsTest.zeroTest:");
 		JTranscConsole.log(a.length());
 		for (int n = 0; n < a.length(); n++) JTranscConsole.log((int)a.charAt(n));

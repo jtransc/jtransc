@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import com.jtransc.ast.AstType
 import com.jtransc.ast.AstTypes
 import com.jtransc.ast.mangle
 import org.junit.Assert
@@ -22,7 +21,7 @@ import org.junit.Test
 
 class MangleTest {
 	val types = AstTypes()
-	private fun testMangle(info:String) = Assert.assertEquals(info, types.demangle(info).mangle())
+	private fun testMangle(info: String) = Assert.assertEquals(info, types.demangle(info).mangle())
 
 	@Test
 	fun testName() {
@@ -32,7 +31,7 @@ class MangleTest {
 
 	@Test
 	fun test2() {
-		data class Test(val a:Int)
+		data class Test(val a: Int)
 		println(Test::class.java.declaredMethods.map { it.name })
 		println(Test::class.java.declaredConstructors.map { it.name })
 	}

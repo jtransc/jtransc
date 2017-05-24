@@ -17,6 +17,7 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
+import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
@@ -62,25 +63,31 @@ class JsTarget() : GenTargetDescriptor() {
 data class ConfigJavascriptOutput(val javascriptOutput: SyncVfsFile)
 
 fun hasSpecialChars(name: String): Boolean = !name.all(Char::isLetterDigitOrUnderscore)
-fun accessStr(name: String): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 
 @Suppress("ConvertLambdaToReference")
 @Singleton
 class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 	override val ADD_UTF8_BOM = true
+	override val GENERATE_LINE_NUMBERS = false
 
 	override val methodFeatures = super.methodFeatures + setOf(SwitchFeature::class.java)
 	override val keywords = super.keywords + setOf("name", "constructor", "prototype", "__proto__", "G", "N", "S", "SS", "IO")
 	override val stringPoolType = StringPool.Type.GLOBAL
+	override val floatHasFSuffix: Boolean = false
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
 
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
-		val outputFile = injector.get<ConfigJavascriptOutput>().javascriptOutput
+	private fun commonAccess(name: String, field: Boolean): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
+	override fun staticAccess(name: String, field: Boolean): String = commonAccess(name, field)
+	override fun instanceAccess(name: String, field: Boolean): String = commonAccess(name, field)
 
-		log.info("Generated javascript at..." + outputFile.realpathOS)
+	val jsOutputFile by lazy { injector.get<ConfigJavascriptOutput>().javascriptOutput }
+
+	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+
+		log.info("Generated javascript at..." + jsOutputFile.realpathOS)
 
 		if (run) {
 			val result = CommonGenCliCommands.runProgramCmd(
@@ -104,7 +111,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val classesIndenter = arrayListOf<Indenter>()
 
-		classesIndenter += genClassesWithoutAppends(output)
+		classesIndenter += genSingleFileClassesWithoutAppends(output)
 
 		val SHOW_SIZE_REPORT = true
 		if (SHOW_SIZE_REPORT) {
@@ -135,14 +142,14 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			"mainMethod" to mainMethod
 		))
 
-		val strs = Indenter.gen {
+		val strs = Indenter {
 			val strs = getGlobalStrings()
 			val maxId = strs.maxBy { it.id }?.id ?: 0
 			line("SS = new Array($maxId);")
 			for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
 		}
 
-		val out = Indenter.gen {
+		val out = Indenter {
 			if (settings.debug) line("//# sourceMappingURL=$outputFileBaseName.map")
 			line(concatFilesTrans.prepend)
 			line(strs.toString())
@@ -156,7 +163,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			//line(buildStaticInit(mainClassFq))
 			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 			val mainCall = buildMethod(mainMethod2, static = true)
-			line("$mainCall(N.strArray(N.args()));")
+			line("try {")
+			indent {
+				line("$mainCall(N.strArray(N.args()));")
+			}
+			line("} catch (e) {")
+			indent {
+				line("console.error(e);")
+				line("console.error(e.stack);")
+			}
+			line("}")
 			line(concatFilesTrans.append)
 		}
 
@@ -185,21 +201,18 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
 	}
 
-	override fun genStmLine(stm: AstStm.LINE) = indent {
-		mark(stm)
-	}
-
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
 		line("catch (J__i__exception__)") {
-			line("J__exception__ = J__i__exception__;")
+			//line("J__exception__ = J__i__exception__.native || J__i__exception__;")
+			line("J__exception__ = J__i__exception__.javaThrowable || J__i__exception__;")
 			line(stm.catch.genStm())
 		}
 	}
 
-	override fun genStmRethrow(stm: AstStm.RETHROW) = indent { line("throw J__i__exception__;") }
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = indent { line("throw J__i__exception__;") }
 
 	override fun genBodyLocals(locals: List<AstLocal>) = indent {
 		if (locals.isNotEmpty()) {
@@ -251,10 +264,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_d2f(str: String) = "Math.fround(+($str))"
 	override fun N_d2i(str: String) = "(($str)|0)"
 	override fun N_d2d(str: String) = "+($str)"
-	override fun N_l2i(str: String) = "N.l2i($str)"
-	override fun N_l2l(str: String) = "($str)"
-	override fun N_l2f(str: String) = "Math.fround(N.l2d($str))"
-	override fun N_l2d(str: String) = "N.l2d($str)"
+	override fun N_j2i(str: String) = "N.j2i($str)"
+	override fun N_j2j(str: String) = str
+	override fun N_j2f(str: String) = "Math.fround(N.j2d($str))"
+	override fun N_j2d(str: String) = "N.j2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
 	override fun N_lneg(str: String) = "N.lneg($str)"
@@ -277,7 +290,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> = this.getNativeBodies(target = "js")
 
-	override fun genClass(clazz: AstClass): Indenter {
+	override fun genClass(clazz: AstClass): List<ClassResult> {
 		setCurrentClass(clazz)
 
 		val isAbstract = (clazz.classType == AstClassType.ABSTRACT)
@@ -286,7 +299,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (!clazz.extending?.fqname.isNullOrEmpty()) refs.add(AstType.REF(clazz.extending!!))
 		for (impl in clazz.implementing) refs.add(AstType.REF(impl))
 
-		val classCodeIndenter = Indenter.gen {
+		val classCodeIndenter = Indenter {
 			if (isAbstract) line("// ABSTRACT")
 
 			val classBase = clazz.name.targetName
@@ -307,7 +320,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("function $classBase()") {
 				for (field in allInstanceFieldsThis) {
 					val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-					line("this${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+					line("this${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 				}
 			}
 
@@ -316,7 +329,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			for (field in allInstanceFieldsProto) {
 				val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-				line("$classBase.prototype${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+				line("$classBase.prototype${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 			}
 
 			// @TODO: Move to genSIMethodBody
@@ -341,7 +354,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 					//line("$classBase.SI = N.EMPTY_FUNCTION;")
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-						line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
+						line("${getMemberBase(field.isStatic)}${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 					}
 					if (clazz.staticConstructor != null) {
 						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
@@ -351,26 +364,26 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("$classBase.SI = function(){};")
 			}
 
-			val relatedTypesIds = clazz.getAllRelatedTypes().map { it.classId }
-			line("$classBase.prototype.\$\$CLASS_ID = ${clazz.classId};")
-			line("$classBase.prototype.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
+			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
+			line("$classBase.prototype.\$\$CLASS_ID = $classBase.\$\$CLASS_ID = ${clazz.classId};")
+			line("$classBase.prototype.\$\$CLASS_IDS = $classBase.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
 
 			//renderFields(clazz.fields);
 
 			fun writeMethod(method: AstMethod): Indenter {
 				setCurrentMethod(method)
-				return Indenter.gen {
+				return Indenter {
 					refs.add(method.methodType)
 					val margs = method.methodType.args.map { it.name }
 
 					//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
 					//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
-					val nativeMemberName = buildMethod(method, false)
-					val prefix = "${getMemberBase(method.isStatic)}${accessStr(nativeMemberName)}"
+					val nativeMemberName = buildMethod(method, false, includeDot = false)
+					val prefix = "${getMemberBase(method.isStatic)}${instanceAccess(nativeMemberName, field = false)}"
 
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
-					fun renderBranch(actualBody: Indenter?) = Indenter.gen {
+					fun renderBranch(actualBody: Indenter?) = Indenter {
 						if (actualBody != null) {
 							line("$prefix = function(${margs.joinToString(", ")})", after2 = ";") {
 								line(actualBody)
@@ -381,7 +394,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 						}
 					}
 
-					fun renderBranches() = Indenter.gen {
+					fun renderBranches() = Indenter {
 						try {
 							val nativeBodies = method.getJsNativeBodies()
 							var javaBodyCacheDone: Boolean = false
@@ -437,20 +450,25 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
 		}
 
-		return classCodeIndenter
+		return listOf(ClassResult(SubClass(clazz, MemberTypes.ALL), classCodeIndenter))
 	}
 
-	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter.gen {
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
-
-	override fun buildAccessName(name: String, static: Boolean, field: Boolean): String = accessStr(name)
 
 	override val FqName.targetName: String get() = classNames.getOrPut2(this) { if (minimize) allocClassName() else this.fqname.replace('.', '_') }
 
 	override fun cleanMethodName(name: String): String = name
 
 	override val AstType.localDeclType: String get() = "var"
+
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedError(${stm.exception.genExpr()});")
+
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		return "N.checkCast($e, ${to.targetNameRef})"
+	}
+
 }

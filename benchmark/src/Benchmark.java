@@ -115,6 +115,38 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("write byte[]", new Task() {
+			@Override
+			public int run() {
+				byte[] array = new byte[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (byte)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("write short[]", new Task() {
+			@Override
+			public int run() {
+				short[] array = new short[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (short)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("write char[]", new Task() {
+			@Override
+			public int run() {
+				char[] array = new char[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = (char)(n * 1000);
+				}
+				return (int) array[7];
+			}
+		});
 
 		benchmark("write int[]", new Task() {
 			@Override
@@ -138,13 +170,37 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("String Builder", new Task() {
+		benchmark("write double[]", new Task() {
+			@Override
+			public int run() {
+				double[] array = new double[1000000];
+				for (int n = 0; n < 1000000; n++) {
+					array[n] = n * 1000;
+				}
+				return (int) array[7];
+			}
+		});
+
+		benchmark("String Builder 1", new Task() {
 			@Override
 			public int run() {
 				StringBuilder out = new StringBuilder();
 
 				for (int n = 0; n < 100000; n++) {
 					out.append(n);
+				}
+
+				return (int)out.toString().hashCode();
+			}
+		});
+
+		benchmark("String Builder 2", new Task() {
+			@Override
+			public int run() {
+				StringBuilder out = new StringBuilder();
+
+				for (int n = 0; n < 100000; n++) {
+					out.append("a");
 				}
 
 				return (int)out.toString().hashCode();
@@ -216,11 +272,24 @@ public class Benchmark {
 			}
         });
 
-
-		benchmark("StringBuilder", new Task() {
+		benchmark("StringBuilder1", new Task() {
 			@Override
 			public int run() {
 				StringBuilder sb = new StringBuilder();
+				for (int n = 0; n < 100000; n++) {
+					sb.append("hello");
+					sb.append('w');
+					sb.append("orld");
+				}
+				return sb.toString().length();
+			}
+		});
+
+		benchmark("StringBuilder2", new Task() {
+			@Override
+			public int run() {
+				StringBuilder sb = new StringBuilder();
+				sb.ensureCapacity(1000000);
 				for (int n = 0; n < 100000; n++) {
 					sb.append("hello");
 					sb.append('w');
@@ -288,11 +357,25 @@ public class Benchmark {
 		byte[] hexData = new byte[hexDataChar.length];
 		for (int n = 0; n < hexDataChar.length; n++) hexData[n] = (byte) hexDataChar[n];
 
-		benchmark("CRC32", new Task() {
+		benchmark("Java's CRC32", new Task() {
 			@Override
 			public int run() {
 				int out = 0;
 				CRC32 crc32 = new CRC32();
+				for (int n = 0; n < 10000; n++) {
+					crc32.reset();
+					crc32.update(hexData, 0, hexData.length);
+					out += crc32.getValue();
+				}
+				return out;
+			}
+		});
+
+		benchmark("jzlib's CRC32", new Task() {
+			@Override
+			public int run() {
+				int out = 0;
+				com.jtransc.compression.jzlib.CRC32 crc32 = new com.jtransc.compression.jzlib.CRC32();
 				for (int n = 0; n < 10000; n++) {
 					crc32.reset();
 					crc32.update(hexData, 0, hexData.length);
@@ -321,19 +404,20 @@ public class Benchmark {
 		//	}
 		//});
 
-		benchmark("compress jzlib", new Task() {
+		Random random = new Random(0L);
+		byte[] randomBytes = new byte[64 * 1024];
+		for (int n = 0; n < randomBytes.length; n++) randomBytes[n] = (byte) random.nextInt();
+
+
+		benchmark("compress java's Deflate", new Task() {
 			@Override
 			public int run() {
 				try {
-					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
 					byte[] out = new byte[128 * 1024];
-					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
-					com.jtransc.compression.jzlib.Deflater deflater = new com.jtransc.compression.jzlib.Deflater(9, false);
-					deflater.setInput(bytes, 0, bytes.length, false);
-					deflater.setOutput(out, 0, out.length);
-					int result = deflater.deflate(3);
+					Deflater deflater = new Deflater(9, false);
+					deflater.setInput(randomBytes, 0, randomBytes.length);
+					int result = deflater.deflate(out, 0, out.length, Deflater.FULL_FLUSH);
 					return result;
 				} catch (Throwable t) {
 					t.printStackTrace();
@@ -342,18 +426,16 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("compress java's Deflate", new Task() {
+		benchmark("compress jzlib", new Task() {
 			@Override
 			public int run() {
 				try {
-					Random random = new Random(0L);
-					byte[] bytes = new byte[64 * 1024];
 					byte[] out = new byte[128 * 1024];
-					for (int n = 0; n < bytes.length; n++) bytes[n] = (byte) random.nextInt();
 
-					Deflater deflater = new Deflater(9, false);
-					deflater.setInput(bytes, 0, bytes.length);
-					int result = deflater.deflate(out, 0, out.length, Deflater.FULL_FLUSH);
+					com.jtransc.compression.jzlib.Deflater deflater = new com.jtransc.compression.jzlib.Deflater(9, false);
+					deflater.setInput(randomBytes, 0, randomBytes.length, false);
+					deflater.setOutput(out, 0, out.length);
+					int result = deflater.deflate(3);
 					return result;
 				} catch (Throwable t) {
 					t.printStackTrace();

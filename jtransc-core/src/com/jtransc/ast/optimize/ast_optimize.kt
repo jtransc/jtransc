@@ -1,7 +1,6 @@
 package com.jtransc.ast.optimize
 
 import com.jtransc.ast.*
-import com.jtransc.lang.toBool
 import com.jtransc.log.log
 
 //const val DEBUG = false
@@ -40,7 +39,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 				if ((left is AstExpr.CAST) && (right is AstExpr.LITERAL)) {
 					if (left.from == AstType.BOOL && left.to == AstType.INT && right.value is Int) {
 						//println("optimize")
-						val leftExpr = left.expr.value
+						val leftExpr = left.subject.value
 						val toZero = right.value == 0
 						val equals = expr.op == AstBinop.EQ
 
@@ -94,7 +93,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			if (local.writes.size == 1) {
 				val write = local.writes[0]
 				var writeExpr2 = write.expr.value
-				while (writeExpr2 is AstExpr.CAST) writeExpr2 = writeExpr2.expr.value
+				while (writeExpr2 is AstExpr.CAST) writeExpr2 = writeExpr2.subject.value
 				val writeExpr = writeExpr2
 				//println("Single write: $local = $writeExpr")
 				when (writeExpr) {
@@ -115,28 +114,28 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		super.visit(body)
 
 		// REMOVE UNUSED VARIABLES
-		body.locals = body.locals.filter { it.isUsed }
+		//body.locals = body.locals.filter { it.isUsed }
 
-		val unoptstms = (body.stm as AstStm.STMS).stms.map { it.value }
+		val unoptstms = body.stm.expand()
 		//if (unoptstms.any { it is AstStm.NOP }) {
 		//	println("done")
 		//}
 		val optstms = unoptstms.filter { it !is AstStm.NOP }
-		body.stm = AstStm.STMS(optstms)
+		body.stm = optstms.stm()
 
 		//if (unoptstms.any { it is AstStm.NOP }) {
 		//	println("done")
 		//}
 
-		val stms = (body.stm as AstStm.STMS).stms
+		val stms = body.stm.expand().map { it.box }
 		var n = 0
 		while (n < stms.size) {
 			val startStmIndex = n
 			val abox = stms[n++]
 			val a = abox.value
-			if ((a is AstStm.SET_ARRAY) && (a.index.value is AstExpr.LITERAL) && (a.array.value is AstExpr.CAST) && ((a.array.value as AstExpr.CAST).expr.value is AstExpr.LOCAL)) {
+			if ((a is AstStm.SET_ARRAY) && (a.index.value is AstExpr.LITERAL) && (a.array.value is AstExpr.CAST) && ((a.array.value as AstExpr.CAST).subject.value is AstExpr.LOCAL)) {
 				val exprs = arrayListOf<AstExpr.Box>()
-				val alocal = ((a.array.value as AstExpr.CAST).expr.value as AstExpr.LOCAL).local
+				val alocal = ((a.array.value as AstExpr.CAST).subject.value as AstExpr.LOCAL).local
 				val baseindex = (a.index.value as AstExpr.LITERAL).value as Int
 				var lastindex = baseindex
 				exprs += a.expr
@@ -144,8 +143,8 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 					val bbox = stms[n++]
 					val b = bbox.value
 
-					if ((b is AstStm.SET_ARRAY) && (b.index.value is AstExpr.LITERAL) && (b.array.value is AstExpr.CAST) && ((b.array.value as AstExpr.CAST).expr.value is AstExpr.LOCAL)) {
-						val blocal = ((b.array.value as AstExpr.CAST).expr.value as AstExpr.LOCAL).local
+					if ((b is AstStm.SET_ARRAY) && (b.index.value is AstExpr.LITERAL) && (b.array.value is AstExpr.CAST) && ((b.array.value as AstExpr.CAST).subject.value is AstExpr.LOCAL)) {
+						val blocal = ((b.array.value as AstExpr.CAST).subject.value as AstExpr.LOCAL).local
 						val nextindex = (b.index.value as AstExpr.LITERAL).value as Int
 
 						if (alocal == blocal && nextindex == lastindex + 1) {
@@ -274,62 +273,9 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		// Dummy cast
 		if (expr is AstExpr.CAST && stm.local.type == expr.from) {
 			val exprBox = expr.box
-			exprBox.value = expr.expr.value
+			exprBox.value = expr.subject.value
 			AstAnnotateExpressions.visitExprWithStm(stm, exprBox)
 			return
-		}
-	}
-
-	override fun visit(expr: AstExpr.CAST) {
-		super.visit(expr)
-
-		val castTo = expr.to
-		val child = expr.expr.value
-
-		val box = expr.box
-
-		//println("${expr.expr.type} -> ${expr.to}")
-
-		// DUMMY CAST
-		if (expr.expr.type == castTo) {
-			box.value = expr.expr.value
-			visit(box)
-			return
-		}
-
-		// DOUBLE CAST
-		if (child is AstExpr.CAST) {
-			val cast1 = expr
-			val cast2 = child
-			if ((cast1.type is AstType.REF) && (cast2.type is AstType.REF)) {
-				cast1.expr.value = cast2.expr.value
-				visit(box)
-			}
-			//if ((cast1.type is AstType.INT) && (cast2.type is AstType.SHORT)) {
-			//	cast1.expr.value = cast2.expr.value
-			//	visit(box)
-			//}
-			return
-		}
-
-		// CAST LITERAL
-		if (child is AstExpr.LITERAL) {
-			val literalValue = child.value
-			if (literalValue is Number) {
-				val box2 = expr.box
-				when (castTo) {
-					AstType.BOOL -> box2.value = AstExpr.LITERAL(literalValue.toBool())
-					AstType.BYTE -> box2.value = AstExpr.LITERAL(literalValue.toByte())
-					AstType.SHORT -> box2.value = AstExpr.LITERAL(literalValue.toShort())
-					AstType.CHAR -> box2.value = AstExpr.LITERAL(literalValue.toInt().toChar())
-					AstType.INT -> box2.value = AstExpr.LITERAL(literalValue.toInt())
-					AstType.LONG -> box2.value = AstExpr.LITERAL(literalValue.toLong())
-					AstType.FLOAT -> box2.value = AstExpr.LITERAL(literalValue.toFloat())
-					AstType.DOUBLE -> box2.value = AstExpr.LITERAL(literalValue.toDouble())
-				}
-				AstAnnotateExpressions.visitExprWithStm(stm, box2)
-				return
-			}
 		}
 	}
 
@@ -354,7 +300,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 			local.local.writes.remove(strue)
 			local.local.writes.remove(sfalse)
 
-			val newset = AstStm.SET_LOCAL(local, AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value, types))
+			val newset = local.setTo(AstExpr.TERNARY(cond, strue.expr.value, sfalse.expr.value, types))
 			stm.box.value = newset
 			local.local.writes.add(newset)
 		}
@@ -364,7 +310,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		// Remove unnecessary cast
 		while (stm.expr.value is AstExpr.CAST) {
 			//println(stm.expr.value)
-			stm.expr.value = (stm.expr.value as AstExpr.CAST).expr.value
+			stm.expr.value = (stm.expr.value as AstExpr.CAST).subject.value
 		}
 		super.visit(stm)
 		if (stm.expr.value.isPure()) {
@@ -373,34 +319,6 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 	}
 }
 
-fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
-
-fun AstExpr.isPure(): Boolean = when (this) {
-	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds
-	is AstExpr.ARRAY_LENGTH -> true // Can cause null pointer
-	is AstExpr.BINOP -> this.left.isPure() && this.right.isPure()
-	is AstExpr.UNOP -> this.right.isPure()
-	is AstExpr.CALL_BASE -> false // we would have to check call pureness
-	is AstExpr.CAST -> this.expr.isPure()
-	is AstExpr.FIELD_INSTANCE_ACCESS -> this.expr.isPure()
-	is AstExpr.INSTANCE_OF -> this.expr.isPure()
-	is AstExpr.TERNARY -> this.cond.isPure() && this.etrue.isPure() && this.efalse.isPure()
-	is AstExpr.CAUGHT_EXCEPTION -> true
-	is AstExpr.FIELD_STATIC_ACCESS -> true
-	is AstExpr.LITERAL -> true
-	is AstExpr.LOCAL -> true
-	is AstExpr.NEW -> false
-	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
-	is AstExpr.NEW_ARRAY -> true
-	is AstExpr.INTARRAY_LITERAL -> true
-	is AstExpr.STRINGARRAY_LITERAL -> true
-	is AstExpr.PARAM -> true
-	is AstExpr.THIS -> true
-	else -> {
-		println("Warning: Unhandled expr $this to check pureness")
-		false
-	}
-}
 
 object AstAnnotateExpressions : AstVisitor() {
 	private var stm: AstStm? = null
@@ -421,20 +339,37 @@ object AstAnnotateExpressions : AstVisitor() {
 	}
 }
 
+val OPTIMIZATIONS = listOf(
+	{ AstCastOptimizer() }
+)
+
+val STM_OPTIMIZATIONS = listOf(
+	{ AstLocalTyper() }
+)
+
 fun AstBody.optimize() = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(this.flags).visit(this)
+	for (opt in OPTIMIZATIONS) opt().transformAndFinish(this)
+	for (opt in STM_OPTIMIZATIONS) opt().transformAndFinish(this)
+	invalidate()
 }
 
 fun AstStm.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(flags).visit(this)
+	for (opt in OPTIMIZATIONS) opt().transformAndFinish(this)
+	for (opt in STM_OPTIMIZATIONS) opt().transformAndFinish(this)
 }
+
+fun AstExpr.Box.optimize(types: AstTypes, strictfp: Boolean = true) = this.optimize(AstBodyFlags(types, strictfp))
 
 fun AstExpr.Box.optimize(flags: AstBodyFlags) = this.apply {
 	AstAnnotateExpressions.visit(this)
 	AstOptimizer(flags).visit(this)
+	for (opt in OPTIMIZATIONS) opt().transformAndFinish(this)
 }
 
-fun AstStm.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
-fun AstExpr.optimize(flags: AstBodyFlags) = this.let { this.box.optimize(flags).value }
+fun AstStm.optimize(types: AstTypes, strictfp: Boolean = true): AstStm = this.let { this.box.optimize(AstBodyFlags(types, strictfp)).value }
+fun AstStm.optimize(flags: AstBodyFlags): AstStm = this.let { this.box.optimize(flags).value }
+fun AstExpr.optimize(flags: AstBodyFlags): AstExpr = this.let { this.box.optimize(flags).value }

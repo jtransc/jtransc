@@ -21,6 +21,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 			Filter("lower") { subject, args -> Dynamic.toString(subject).toLowerCase() },
 			Filter("trim") { subject, args -> Dynamic.toString(subject).trim() },
 			Filter("quote") { subject, args -> Dynamic.toString(subject).quote() },
+			Filter("escape") { subject, args -> Dynamic.toString(subject).escape() },
 			Filter("join") { subject, args -> Dynamic.toIterable(subject).map { Dynamic.toString(it) }.joinToString(Dynamic.toString(args[0])) },
 			Filter("file_exists") { subject, args -> File(Dynamic.toString(subject)).exists() }
 		)

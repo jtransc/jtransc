@@ -3,29 +3,47 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import kotlin.reflect.KProperty
 
-data class AstBody(
+data class AstBody constructor(
 	val types: AstTypes,
 	var stm: AstStm,
 	var type: AstType.METHOD,
-	var locals: List<AstLocal>,
 	val traps: List<AstTrap>,
-	val flags: AstBodyFlags
-)
+	val flags: AstBodyFlags,
+	val methodRef: AstMethodRef
+) {
+	private var _locals: List<AstLocal>? = null
 
-fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD): AstBody {
-	val locals = hashSetOf<AstLocal>()
-	(object : AstVisitor() {
-		override fun visit(local: AstLocal) {
-			locals += local
+	val locals: List<AstLocal> get() {
+		if (_locals == null) {
+			val locals = hashSetOf<AstLocal>()
+			(object : AstVisitor() {
+				override fun visit(local: AstLocal) {
+					locals += local
+				}
+			}).visit(stm)
+			_locals = locals.toList()
 		}
-	}).visit(stm)
-	return AstBody(types, stm, desc, locals.toList(), listOf(), AstBodyFlags(false, types))
+		return _locals!!
+	}
+
+	fun invalidateLocals() {
+		_locals = null
+	}
+
+	fun invalidate() {
+		invalidateLocals()
+	}
+}
+
+fun AstBody(types: AstTypes, stm: AstStm, desc: AstType.METHOD, methodRef: AstMethodRef): AstBody {
+	return AstBody(types, stm, desc, listOf(), AstBodyFlags(types, false), methodRef = methodRef)
 }
 
 data class AstBodyFlags(
-	val strictfp: Boolean,
 	val types: AstTypes,
+	val strictfp: Boolean = true,
 	val hasDynamicInvoke: Boolean = false
 )
 
@@ -75,13 +93,12 @@ data class AstLocal(val index: Int, override val name: String, val type: AstType
 
 	override fun toString() = "AstLocal:$name:$type(w:$writesCount,r:$readCount)"
 
+	// @TODO: Move this to ast_optimize in an attached object
 	val writes = arrayListOf<AstStm.SET_LOCAL>()
 	val reads = arrayListOf<AstExpr.LOCAL>()
-
 	val writesCount: Int get() = writes.size // @TODO: In SSA this should be one
 	val readCount: Int get() = reads.size
 	val isUsed: Boolean get() = (writesCount != 0) || (readCount != 0)
-
 	fun write(set: AstStm.SET_LOCAL) = run { writes += set }
 	fun read(ref: AstExpr.LOCAL) = run { reads += ref }
 }
@@ -89,10 +106,7 @@ data class AstLocal(val index: Int, override val name: String, val type: AstType
 fun AstType.local(name: String, index: Int = 0) = AstExpr.LOCAL(AstLocal(index, name, this))
 
 data class AstTrap(val start: AstLabel, val end: AstLabel, val handler: AstLabel, val exception: AstType.REF)
-
-data class AstLabel(val name: String) {
-
-}
+data class AstLabel(val name: String)
 
 interface AstElement
 
@@ -100,15 +114,20 @@ interface Cloneable<T> {
 	fun clone(): T
 }
 
-open class AstStm() : AstElement, Cloneable<AstStm> {
+sealed class AstStm : AstElement, Cloneable<AstStm> {
 	class Box(_value: AstStm) {
 		var value: AstStm = _value
 			get() = field
 			set(value) {
-				field.box = AstStm.Box(field)
-				field = value
-				field.box = this
+				if (field !== value) {
+					field.box = AstStm.Box(field)
+					field = value
+					field.box = this
+				}
 			}
+
+		fun replaceWith(stm: AstStm) = run { this.value = stm }
+		fun replaceWith(stm: AstStm.Box) = run { this.value = stm.value }
 
 		init {
 			_value.box = this
@@ -117,12 +136,14 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	var box: AstStm.Box = AstStm.Box(this)
 
+	fun replaceWith(stm: AstStm) = this.box.replaceWith(stm)
+	fun replaceWith(stm: AstStm.Box) = this.box.replaceWith(stm)
+
 	override fun clone(): AstStm = noImpl("AstStm.clone: $this")
 
-	class STMS(stms: List<AstStm>) : AstStm() {
-		constructor(vararg stms: AstStm) : this(stms.toList())
-
+	class STMS(stms: List<AstStm>, dummy: Boolean) : AstStm() {
 		val stms = stms.map { it.box }
+		val stmsUnboxed get() = stms.map { it.value }
 	}
 
 	class NOP(val reason: String) : AstStm() {
@@ -137,12 +158,12 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 		val expr = expr.box
 	}
 
-	class SET_LOCAL(val local: AstExpr.LOCAL, expr: AstExpr) : AstStm() {
+	class SET_LOCAL constructor(val local: AstExpr.LOCAL, expr: AstExpr, dummy: Boolean) : AstStm() {
 		val expr = expr.box
 		override fun toString(): String = "SET_LOCAL($local = $expr)"
 	}
 
-	class SET_ARRAY(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
+	class SET_ARRAY constructor(array: AstExpr, index: AstExpr, expr: AstExpr) : AstStm() {
 		val array = array.box
 		val index = index.box
 		val expr = expr.box
@@ -150,6 +171,8 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 
 	class SET_ARRAY_LITERALS(array: AstExpr, val startIndex: Int, val values: List<AstExpr.Box>) : AstStm() {
 		val array = array.box
+		val arrayType get() = array.type.asArray()
+		val elementType get() = arrayType.element
 	}
 
 	class SET_FIELD_STATIC(val field: AstFieldRef, expr: AstExpr) : AstStm() {
@@ -189,8 +212,8 @@ open class AstStm() : AstElement, Cloneable<AstStm> {
 	class RETURN_VOID() : AstStm() {
 	}
 
-	class THROW(value: AstExpr) : AstStm() {
-		val value = value.box
+	class THROW(exception: AstExpr) : AstStm() {
+		val exception = exception.box
 	}
 
 	class RETHROW() : AstStm()
@@ -277,10 +300,15 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class Box(_value: AstExpr) {
 		var value: AstExpr = _value
 			set(value) {
-				field.box = AstExpr.Box(field)
-				field = value
-				field.box = this
+				if (field !== value) {
+					field.box = AstExpr.Box(field)
+					field = value
+					field.box = this
+				}
 			}
+
+		fun replaceWith(expr: AstExpr) = run { this.value = expr }
+		fun replaceWith(expr: AstExpr.Box) = run { this.value = expr.value }
 
 		init {
 			_value.box = this
@@ -293,6 +321,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 
 	var box: AstExpr.Box = AstExpr.Box(this)
 	var stm: AstStm? = null
+
+	fun replaceWith(expr: AstExpr) = this.box.replaceWith(expr)
+	fun replaceWith(expr: AstExpr.Box) = this.box.replaceWith(expr)
 
 	abstract val type: AstType
 
@@ -315,13 +346,16 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override fun clone(): AstExpr.THIS = THIS(ref)
 	}
 
-	class LOCAL(val local: AstLocal) : LocalExpr() {
+	abstract class LOCAL_BASE(val local: AstLocal, override val type: AstType) : LocalExpr() {
 		override val name: String get() = local.name
-		override val type = local.type
 
 		override fun clone(): AstExpr.LOCAL = LOCAL(local)
-		override fun toString(): String = "LOCAL($local)"
+		override fun toString(): String = if (local.type == type) "LOCAL($local)" else "LOCAL($local as $type)"
 	}
+
+	class TYPED_LOCAL(local: AstLocal, type: AstType) : LOCAL_BASE(local, type)
+
+	class LOCAL(local: AstLocal) : LOCAL_BASE(local, local.type)
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
@@ -351,8 +385,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 	*/
 
-	class LITERAL(override val value: Any?) : LiteralExpr() {
+	class LITERAL constructor(override val value: Any?, dummy: Boolean) : LiteralExpr() {
 		override val type = AstType.fromConstant(value)
+
+		val valueAsInt: Int get() = (value as Number).toInt()
+		val valueAsLong: Long get() = (value as Number).toLong()
 	}
 
 	class LITERAL_REFNAME(override val value: Any?) : LiteralExpr() {
@@ -380,8 +417,12 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		abstract val isSpecial: Boolean
 	}
 
-	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
-		val obj = obj.box
+	abstract class CALL_BASE_OBJECT : CALL_BASE() {
+		abstract val obj: AstExpr.Box
+	}
+
+	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE_OBJECT() {
+		override val obj = obj.box
 		override val args = args.map { it.box }
 
 		override val type = method.type.ret
@@ -394,8 +435,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	//	override val type = method.type.ret
 	//}
 
-	class CALL_SUPER(obj: AstExpr, val target: FqName, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
-		val obj = obj.box
+	class CALL_SUPER(obj: AstExpr, val target: FqName, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE_OBJECT() {
+		override val obj = obj.box
 		override val args = args.map { it.box }
 
 		override val type = method.type.ret
@@ -436,13 +477,19 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = AstType.BOOL
 	}
 
-	class CAST(expr: AstExpr, val to: AstType) : AstExpr() {
-		val expr = expr.box
-		val from: AstType get() = expr.type
+	abstract class BaseCast(expr: AstExpr, val to: AstType) : AstExpr() {
+		val subject = expr.box
+		val from: AstType get() = subject.type
 
 		override val type = to
+	}
 
-		override fun clone(): AstExpr = CAST(expr.value.clone(), to)
+	class CAST internal constructor(expr: AstExpr, to: AstType, dummy: Boolean) : BaseCast(expr, to) {
+		override fun clone(): AstExpr = CAST(subject.value.clone(), to, dummy = true)
+	}
+
+	class CHECK_CAST internal constructor(expr: AstExpr, to: AstType, dummy: Boolean) : BaseCast(expr, to) {
+		override fun clone(): AstExpr = CHECK_CAST(subject.value.clone(), to, dummy = true)
 	}
 
 	class NEW(val target: AstType.REF) : AstExpr() {
@@ -478,9 +525,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	class INVOKE_DYNAMIC_METHOD(
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef,
-		var extraArgCount: Int
+		var extraArgCount: Int,
+		var startArgs: List<AstExpr> = listOf<AstExpr>()
 	) : AstExpr() {
-		var startArgs = listOf<AstExpr>()
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
@@ -497,22 +544,107 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 }
 
-object AstStmUtils {
-	fun set(local: AstLocal, value: AstExpr): AstStm.SET_LOCAL {
-		val stm = AstStm.SET_LOCAL(AstExpr.LOCAL(local), AstExprUtils.fastcast(value, local.type))
-		local.write(stm)
-		return stm
-	}
+fun AstExpr.LOCAL.setTo(value: AstExpr): AstStm.SET_LOCAL {
+	val stm = AstStm.SET_LOCAL(this, value.castTo(this.type), dummy = true)
+	this.local.write(stm)
+	return stm
+}
 
-	fun stms(stms: List<AstStm>): AstStm = when (stms.size) {
-		0 -> AstStm.NOP("empty stm")
-		1 -> stms[0]
-		else -> AstStm.STMS(stms)
-	//else -> AstStm.STMS(stms.flatMap { if (it is AstStm.STMS) it.stms.map { it.value } else listOf(it) })
+fun AstLocal.setTo(value: AstExpr): AstStm.SET_LOCAL = AstExpr.LOCAL(this).setTo(value)
+
+fun stms(vararg stms: AstStm) = stms.toList().stm()
+
+fun List<AstStm>.stm() = when (this.size) {
+	0 -> AstStm.NOP("empty stm")
+	1 -> this[0]
+	else -> AstStm.STMS(this, dummy = true)
+//else -> AstStm.STMS(stms.flatMap { if (it is AstStm.STMS) it.stms.map { it.value } else listOf(it) })
+}
+
+fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
+
+fun AstExpr.isPure(): Boolean = when (this) {
+	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds
+	is AstExpr.ARRAY_LENGTH -> true // Can cause null pointer
+	is AstExpr.BINOP -> this.left.isPure() && this.right.isPure()
+	is AstExpr.UNOP -> this.right.isPure()
+	is AstExpr.CALL_BASE -> false // we would have to check call pureness
+	is AstExpr.BaseCast -> this.subject.isPure()
+	is AstExpr.FIELD_INSTANCE_ACCESS -> this.expr.isPure()
+	is AstExpr.INSTANCE_OF -> this.expr.isPure()
+	is AstExpr.TERNARY -> this.cond.isPure() && this.etrue.isPure() && this.efalse.isPure()
+	is AstExpr.CAUGHT_EXCEPTION -> true
+	is AstExpr.FIELD_STATIC_ACCESS -> true
+	is AstExpr.LITERAL -> true
+	is AstExpr.LOCAL -> true
+	is AstExpr.TYPED_LOCAL -> true
+	is AstExpr.NEW -> false
+	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
+	is AstExpr.NEW_ARRAY -> true
+	is AstExpr.INTARRAY_LITERAL -> true
+	is AstExpr.STRINGARRAY_LITERAL -> true
+	is AstExpr.PARAM -> true
+	is AstExpr.THIS -> true
+	else -> {
+		println("Warning: Unhandled expr $this to check pureness")
+		false
 	}
 }
 
-fun AstExpr.castTo(type: AstType): AstExpr = AstExprUtils.cast(this, type)
+fun AstExpr.castTo(type: AstType): AstExpr = this.castToInternal(type)
+fun AstExpr.castToUnoptimized(type: AstType): AstExpr = AstExpr.CAST(this, type, dummy = true)
+fun AstExpr.checkedCastTo(type: AstType): AstExpr = AstExpr.CHECK_CAST(this, type, dummy = true)
+
+fun AstExpr.withoutCast(): AstExpr = when (this) {
+	is AstExpr.CAST -> this.subject.value
+	else -> this
+}
+
+fun AstExpr.withoutCasts(): AstExpr = when (this) {
+	is AstExpr.CAST -> this.subject.value.withoutCasts()
+	else -> this
+}
+
+fun AstExpr.castToInternal(type: AstType): AstExpr {
+	val expr = this
+	if (expr.type == type) return expr
+	val exprType = expr.type.simplify()
+	val to = type.simplify()
+	if (exprType == to) return expr
+
+	return when (expr) {
+	//is AstExpr.LOCAL_BASE -> AstExpr.TYPED_LOCAL(expr.local, to)
+		is AstExpr.LITERAL -> {
+			val value = expr.value
+			when (value) {
+				null -> expr.castToUnoptimized(to)
+				is String -> expr.castToUnoptimized(to)
+				is AstType -> expr.castToUnoptimized(to)
+				is Boolean -> value.castTo(to).lit
+				is Byte -> value.castTo(to).lit
+				is Char -> value.castTo(to).lit
+				is Short -> value.castTo(to).lit
+				is Int -> value.castTo(to).lit
+				is Long -> value.castTo(to).lit
+				is Float -> value.castTo(to).lit
+				is Double -> value.castTo(to).lit
+				else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
+			}
+		}
+		is AstExpr.CAST -> {
+			if (expr.to is AstType.Primitive) {
+				if (to is AstType.Primitive && expr.to.canHold(to)) {
+					expr.subject.value.castTo(to)
+				} else {
+					expr.castToUnoptimized(to)
+				}
+			} else {
+				expr.subject.value.castTo(to)
+			}
+		}
+		else -> expr.castToUnoptimized(to)
+	}
+}
 
 object AstExprUtils {
 	fun localRef(local: AstLocal): AstExpr.LOCAL {
@@ -520,41 +652,6 @@ object AstExprUtils {
 		//val refExpr = AstExpr.REF(localExpr)
 		local.read(localExpr)
 		return localExpr
-	}
-
-	fun cast(expr: AstExpr, _to: AstType): AstExpr {
-		val exprType = expr.type.simplify()
-		val to = _to.simplify()
-		if (exprType == to) return expr
-
-		if (expr is AstExpr.LITERAL) {
-			val value = expr.value
-			when (value) {
-				null -> Unit
-				is String -> Unit
-				is AstType -> Unit
-				is Boolean -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Byte -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Char -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Short -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Int -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Long -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Float -> return AstExpr.LITERAL(castLiteral(value, to))
-				is Double -> return AstExpr.LITERAL(castLiteral(value, to))
-				else -> invalidOp("Unhandled '$value' : ${value.javaClass}")
-			}
-		}
-		return AstExpr.CAST(expr, to)
-	}
-
-	// Can cast nulls
-	fun fastcast(expr: AstExpr, to: AstType): AstExpr {
-		// LITERAL + IMMEDIATE = IMMEDIATE casted
-		if (expr.type != to) {
-			return AstExpr.CAST(expr, to)
-		} else {
-			return expr
-		}
 	}
 
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
@@ -589,21 +686,21 @@ object AstExprUtils {
 		//if (obj is AstExpr.THIS && ((obj.type as AstType.REF).name != method.containingClass)) {
 		if ((obj.type as AstType.REF).name != method.containingClass) {
 			//if (caller == "<init>" && ((obj.type as AstType.REF).name != method.containingClass)) {
-			return AstExpr.CALL_SUPER(cast(obj, method.containingClassType), method.containingClass, method, args, isSpecial = true)
+			return AstExpr.CALL_SUPER(obj.castTo(method.containingClassType), method.containingClass, method, args, isSpecial = true)
 		} else {
-			return AstExpr.CALL_INSTANCE(cast(obj, method.containingClassType), method, args, isSpecial = true)
+			return AstExpr.CALL_INSTANCE(obj.castTo(method.containingClassType), method, args, isSpecial = true)
 		}
 	}
 
 	fun BINOP(type: AstType, l: AstExpr, op: AstBinop, r: AstExpr): AstExpr.BINOP {
 		if (l.type == AstType.BOOL && r.type == AstType.BOOL) {
-			if (op == AstBinop.AND) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BAND, cast(r, AstType.BOOL))
-			if (op == AstBinop.OR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.BOR, cast(r, AstType.BOOL))
-			if (op == AstBinop.XOR) return AstExpr.BINOP(AstType.BOOL, cast(l, AstType.BOOL), AstBinop.NE, cast(r, AstType.BOOL))
+			if (op == AstBinop.AND) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.BAND, r.castTo(AstType.BOOL))
+			if (op == AstBinop.OR) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.BOR, r.castTo(AstType.BOOL))
+			if (op == AstBinop.XOR) return AstExpr.BINOP(AstType.BOOL, l.castTo(AstType.BOOL), AstBinop.NE, r.castTo(AstType.BOOL))
 		} else if (l.type == AstType.BOOL) {
-			return AstExpr.BINOP(type, cast(l, r.type), op, r)
+			return AstExpr.BINOP(type, l.castTo(r.type), op, r)
 		} else if (r.type == AstType.BOOL) {
-			return AstExpr.BINOP(type, l, op, cast(r, l.type))
+			return AstExpr.BINOP(type, l, op, r.castTo(l.type))
 		}
 		return AstExpr.BINOP(type, l, op, r)
 	}
@@ -626,117 +723,134 @@ object AstExprUtils {
 	}
 }
 
+open class BuilderBase(val types: AstTypes) {
+	val BOOL get() = AstType.BOOL
+	val BYTE get() = AstType.BYTE
+	val SHORT get() = AstType.SHORT
+	val CHAR get() = AstType.CHAR
+	val INT get() = AstType.INT
+	val LONG get() = AstType.LONG
+	val FLOAT get() = AstType.FLOAT
+	val DOUBLE get() = AstType.DOUBLE
+	val OBJECT get() = AstType.OBJECT
+	val CLASS get() = AstType.CLASS
+	val STRING get() = AstType.STRING
+	val NULL get() = null.lit
+}
+
+fun AstType.array() = AstType.ARRAY(this)
+fun AstType.ARRAY.newArray(size: AstExpr) = AstExpr.NEW_ARRAY(this, listOf(size))
+fun AstType.ARRAY.newArray(size: Int) = this.newArray(size.lit)
+
+fun AstMethodRef.newInstance(vararg args: AstExpr) = AstExpr.NEW_WITH_CONSTRUCTOR(this, args.toList())
+
+fun AstType.REF.constructor(methodType: AstType.METHOD): AstMethodRef = AstMethodRef(this.name, "<init>", methodType)
+fun AstType.REF.constructor(vararg args: AstType): AstMethodRef = AstMethodRef(this.name, "<init>", AstType.METHOD(AstType.VOID, args.toList()))
+fun AstType.REF.method(methodName: String, methodType: AstType.METHOD): AstMethodRef = AstMethodRef(this.name, methodName, methodType)
+
+operator fun AstExpr.invoke(method: AstMethodRef, vararg args: AstExpr): AstExpr = AstExpr.CALL_INSTANCE(this, method, args.toList(), isSpecial = false)
+operator fun AstLocal.invoke(method: AstMethodRef, vararg args: AstExpr): AstExpr = this.expr.invoke(method, *args)
+
+val Any?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this, dummy = true)
+
+val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
+val AstLocal.expr: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
+val AstArgument.expr: AstExpr.PARAM get() = AstExpr.PARAM(this)
+
 operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
 operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
+operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
+infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
+infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 
-open class BuilderBase(val types: AstTypes) {
-	val BOOL = AstType.BOOL
-	val BYTE = AstType.BYTE
-	val SHORT = AstType.SHORT
-	val CHAR = AstType.CHAR
-	val INT = AstType.INT
-	val LONG = AstType.LONG
-	val FLOAT = AstType.FLOAT
-	val DOUBLE = AstType.DOUBLE
-	val OBJECT = AstType.OBJECT
-	val CLASS = AstType.CLASS
-	val STRING = AstType.STRING
+operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 
-	fun ARRAY(element: AstType) = AstType.ARRAY(element)
+operator fun AstMethod.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
+operator fun AstMethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
 
-	fun NEW_ARRAY(element: AstType.ARRAY, size: AstExpr) = AstExpr.NEW_ARRAY(element, listOf(size))
+operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
+operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)
 
-	val NULL: AstExpr get() = AstExpr.LITERAL(null)
+operator fun AstExpr.get(method: MethodRef) = MethodWithRef(this, method.ref)
+operator fun AstLocal.get(method: MethodRef) = MethodWithRef(this.expr, method.ref)
 
-	val Boolean.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Byte.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Short.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Char.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val AstType.REF.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Int.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Long.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Float.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val Double.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-	val String?.lit: AstExpr.LITERAL get() = AstExpr.LITERAL(this)
-
-	val AstLocal.local: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
-	val AstLocal.expr: AstExpr.LOCAL get() = AstExprUtils.localRef(this)
-	val AstArgument.expr: AstExpr.PARAM get() = AstExpr.PARAM(this)
-
-	operator fun AstExpr.plus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.ADD, that)
-	operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.SUB, that)
-	operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
-	infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
-	infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
-
-	fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
-	fun AstExpr.castTo(type: AstType) = AstExpr.CAST(this, type)
-	fun AstExpr.castTo(type: AstClass) = AstExpr.CAST(this, type.ref)
-	fun AstExpr.castTo(type: FqName) = AstExpr.CAST(this, AstType.REF(type))
-
-	operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
-	operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
-
-	operator fun AstMethod.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
-	operator fun AstMethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
-
-	fun cast(expr: AstExpr, toType: AstType): AstExpr = if (expr.type == toType) expr else AstExpr.CAST(expr, toType)
-	fun AstExpr.toType(toType: AstType): AstExpr = if (this.type == toType) this else AstExpr.CAST(this, toType)
-
-	operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
-	operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)
-
-	operator fun AstExpr.get(method: AstMethod) = MethodWithRef(this, method.ref)
-	operator fun AstExpr.get(method: AstMethodRef) = MethodWithRef(this, method)
+val AstStm.stms: List<AstStm> get() {
+	return if (this is AstStm.STMS) {
+		this.stms.map { it.value }
+	} else {
+		listOf(this)
+	}
 }
+
+val Iterable<AstStm>.stms: AstStm get() = this.toList().stm()
+fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 
 class MethodWithRef(val obj: AstExpr, val method: AstMethodRef) {
 	operator fun invoke(vararg args: AstExpr) = AstExpr.CALL_INSTANCE(obj, method, args.toList())
 }
 
-class AstSwitchBuilder(types: AstTypes) : BuilderBase(types) {
-	var default: AstStm = AstStm.STMS()
-	val cases = arrayListOf<Pair<Int, AstStm>>()
+inline fun <T> AstTypes.build2(callback: AstBuilder2.() -> T) = AstBuilder2(this, AstBuilderBodyCtx()).run { callback() }
+inline fun AstTypes.buildStms(callback: AstBuilder2.() -> Unit) = AstBuilder2(this, AstBuilderBodyCtx()).apply { callback() }.stms
+inline fun AstTypes.buildStm(callback: AstBuilder2.() -> Unit) = this.buildStms(callback).stm()
 
-	inline fun CASE(subject: Int, callback: AstBuilder2.() -> Unit) {
-		cases += subject to AstBuilder2(types).apply { this.callback() }.genstm()
-	}
-
-	inline fun DEFAULT(callback: AstBuilder2.() -> Unit) {
-		default = AstBuilder2(types).apply { this.callback() }.genstm()
-	}
+class AstBuilderBodyCtx {
+	var localId = 0
 }
 
-inline fun <T> AstTypes.build2(callback: AstBuilder2.() -> T) = AstBuilder2(this).run { callback() }
-
-class AstBuilder2(types: AstTypes) : BuilderBase(types) {
+class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(types) {
 	val temps = TempAstLocalFactory()
 	val stms = arrayListOf<AstStm>()
 
-	fun SET(local: AstLocal, expr: AstExpr) {
-		stms += AstStmUtils.set(local, expr)
+	inner class LOCAL(val type: AstType) {
+		var local: AstLocal? = null
+
+		operator fun getValue(thisRef: Any?, property: KProperty<*>): AstLocal {
+			if (local == null) local = AstLocal(ctx.localId++, property.name, type)
+			return local!!
+		}
 	}
 
-	fun SET(local: AstExpr.LOCAL, expr: AstExpr) {
-		stms += AstStmUtils.set(local.local, expr)
+	fun SET(local: AstLocal, expr: AstExpr) = run { stms += local.setTo(expr) }
+	fun SET(local: AstExpr.LOCAL, expr: AstExpr) = run { stms += local.local.setTo(expr) }
+	fun SET_ARRAY(local: AstLocal, index: AstExpr, value: AstExpr) = run { stms += AstStm.SET_ARRAY(local.local, index, value) }
+	fun STM() = run { stms += listOf<AstStm>().stm() }
+	fun STM(stm: AstStm) = run { stms += stm }
+	fun STM(expr: AstExpr) = run { stms += AstStm.STM_EXPR(expr) }
+
+	class IfElseBuilder(val IF: AstStm.IF, val IF_INDEX: Int, val stms: ArrayList<AstStm>, val types: AstTypes, val ctx: AstBuilderBodyCtx) {
+		infix fun ELSE(callback: AstBuilder2.() -> Unit) {
+			val body = AstBuilder2(types, ctx)
+			body.callback()
+			if (stms[IF_INDEX] != IF) invalidOp("Internal problem IF/IF_INDEX")
+			stms[IF_INDEX] = AstStm.IF_ELSE(IF.cond.value, IF.strue.value, body.genstm())
+		}
 	}
 
-	fun SET_ARRAY(local: AstLocal, index: AstExpr, value: AstExpr) {
-		stms += AstStm.SET_ARRAY(local.local, index, value)
+	class AstSwitchBuilder(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(types) {
+		var default: AstStm = listOf<AstStm>().stm()
+		val cases = arrayListOf<Pair<Int, AstStm>>()
+
+		inline fun CASE(subject: Int, callback: AstBuilder2.() -> Unit) {
+			cases += subject to AstBuilder2(types, ctx).apply { this.callback() }.genstm()
+		}
+
+		inline fun DEFAULT(callback: AstBuilder2.() -> Unit) {
+			default = AstBuilder2(types, ctx).apply { this.callback() }.genstm()
+		}
 	}
 
-	fun STM(stm: AstStm) {
-		stms += stm
-	}
-
-	fun STM(expr: AstExpr) {
-		stms += AstStm.STM_EXPR(expr)
-	}
-
-	inline fun IF(cond: AstExpr, callback: AstBuilder2.() -> Unit) {
-		val body = AstBuilder2(types)
+	inline fun IF(cond: AstExpr, callback: AstBuilder2.() -> Unit): IfElseBuilder {
+		val body = AstBuilder2(types, ctx)
 		body.callback()
-		stms += AstStm.IF(cond, body.genstm())
+		val IF = AstStm.IF(cond, body.genstm())
+		val IF_INDEX = stms.size
+		stms += IF
+		return IfElseBuilder(IF, IF_INDEX, stms, types, ctx)
+	}
+
+	inline fun WHILE(cond: AstExpr, callback: AstBuilder2.() -> Unit) {
+		stms += AstStm.WHILE(cond, AstBuilder2(types, ctx).apply(callback).genstm())
 	}
 
 	inline fun FOR(local: AstLocal, start: Int, until: Int, callback: AstBuilder2.() -> Unit) {
@@ -745,23 +859,23 @@ class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 		SET(local, start.lit)
 		stms += AstStm.STM_LABEL(forStartLabel)
 		stms += AstStm.IF_GOTO(forEndLabel, local.expr ge until.lit)
-		stms += AstBuilder2(types).apply { callback() }.genstm()
+		stms += AstBuilder2(types, ctx).apply { callback() }.genstm()
 		SET(local, local.expr + 1.lit)
 		stms += AstStm.GOTO(forStartLabel)
 		stms += AstStm.STM_LABEL(forEndLabel)
 	}
 
 	inline fun SWITCH(subject: AstExpr, callback: AstSwitchBuilder.() -> Unit) {
-		val cases = AstSwitchBuilder(types).apply { this.callback() }
+		val cases = AstSwitchBuilder(types, ctx).apply { this.callback() }
 		stms += AstStm.SWITCH(subject, cases.default, cases.cases)
 	}
 
 	fun CREATE_ARRAY(arrayType: AstType.ARRAY, items: List<AstExpr>): AstExpr {
 		if (items.isEmpty()) {
-			return NEW_ARRAY(arrayType, 0.lit)
+			return arrayType.newArray(0.lit)
 		} else {
 			val temp = temps.create(arrayType)
-			SET(temp, NEW_ARRAY(arrayType, items.size.lit))
+			SET(temp, arrayType.newArray(items.size.lit))
 			for ((index, item) in items.withIndex()) {
 				SET_ARRAY(temp, index.lit, item)
 			}
@@ -773,7 +887,7 @@ class AstBuilder2(types: AstTypes) : BuilderBase(types) {
 	fun RETURN(value: AstExpr) = Unit.apply { stms += AstStm.RETURN(value) }
 	fun RETURN(value: AstLocal) = Unit.apply { stms += AstStm.RETURN(value.expr) }
 
-	fun genstm(): AstStm = AstStm.STMS(stms)
+	fun genstm(): AstStm = stms.stm()
 }
 
 class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val kind: Kind) {
@@ -795,6 +909,3 @@ class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val
 	}
 
 }
-
-val Iterable<AstStm>.stms: AstStm get() = AstStm.STMS(this.toList())
-fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)

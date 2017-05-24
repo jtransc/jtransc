@@ -170,9 +170,7 @@ public class MiscTest {
 		testSwitch2(5050);
 		testSwitch2(3);
 
-		Reader r = new Reader();
-		executionOrderTest(r, 10);
-		executionOrderTest(r, 11);
+		ExecutionOrderTest.main(args);
 
 		testBoolArray();
 
@@ -277,7 +275,7 @@ public class MiscTest {
 		testMod(ints);
 
 		//JTranscSystem.debugger();
-		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678};
+		long[] longs = {0, 1, Long.MAX_VALUE, -1, Long.MIN_VALUE, 0x12345678, 0x123456789ABCDEF1L, -0x123456789ABCDEF1L};
 
 		testPrintLong(longs);
 		testNegLong(longs);
@@ -487,7 +485,7 @@ public class MiscTest {
 		System.out.println("testSeedUniquifier:");
 		seedUniquifier = 8682522807148012L;
 		System.out.println(seedUniquifier);
-		System.out.println(seedUniquifier());
+		JTranscConsole.log(seedUniquifier());
 	}
 
 	static private void testIdentityHashCode() {
@@ -507,7 +505,7 @@ public class MiscTest {
 		JTranscConsole.log(o.z);
 		JTranscConsole.log(o.b);
 		JTranscConsole.log(o.s);
-		JTranscConsole.log(o.c);
+		JTranscConsole.log((int)o.c);
 		JTranscConsole.log(o.i);
 		JTranscConsole.log(o.i2);
 		JTranscConsole.log(o.i3);
@@ -522,7 +520,7 @@ public class MiscTest {
 		JTranscConsole.log(DefaultValuesClassStatic.z);
 		JTranscConsole.log(DefaultValuesClassStatic.b);
 		JTranscConsole.log(DefaultValuesClassStatic.s);
-		JTranscConsole.log(DefaultValuesClassStatic.c);
+		JTranscConsole.log((int)DefaultValuesClassStatic.c);
 		JTranscConsole.log(DefaultValuesClassStatic.i);
 		System.out.println(DefaultValuesClassStatic.j);
 		System.out.println(DefaultValuesClassStatic.f);
@@ -580,9 +578,9 @@ public class MiscTest {
 
 	static private void testSimd() {
 		JTranscConsole.log("testSimd:");
-		MutableFloat32x4 a = new MutableFloat32x4(-1, -1, -1, -1);
-		MutableFloat32x4 b = new MutableFloat32x4(1, 1, 1, 1);
-		MutableFloat32x4 c = new MutableFloat32x4(1, 2, 3, 0);
+		MutableFloat32x4 a = MutableFloat32x4.create(-1, -1, -1, -1);
+		MutableFloat32x4 b = MutableFloat32x4.create(1, 1, 1, 1);
+		MutableFloat32x4 c = MutableFloat32x4.create(1, 2, 3, 0);
 		a.setToAdd(b, c);
 		System.out.println(a.toString());
 	}
@@ -612,10 +610,14 @@ public class MiscTest {
 
 
 				System.out.print("(");
+				System.out.print(v1);
+				System.out.print(",");
+				System.out.print(v2);
+				System.out.print(",<<");
 				System.out.print(v1 << v2);
-				System.out.print(",");
+				System.out.print(",>>");
 				System.out.print(v1 >> v2);
-				System.out.print(",");
+				System.out.print(",>>>");
 				System.out.print(v1 >>> v2);
 				System.out.print("):");
 			}
@@ -698,149 +700,6 @@ public class MiscTest {
 		for (int n = 0; n < test.length; n++) System.out.print(test[n]);
 		System.out.println();
 		System.out.println("END!");
-	}
-
-	private void executionOrderTest(Reader r, int version) {
-		System.out.println("MiscTest.executionOrderTest:");
-		System.out.println(new TextFieldInfo(
-			r.i16(),
-			r.str(),
-			r.str(),
-			new Rectangle(r.i32(), r.i32(), r.i32(), r.i32()),
-			r.str(),
-			r.i32(),
-			r.i32(),
-			r.bool(),
-			r.bool(),
-			setMultiline(r.bool()),
-			(version >= 11) ? true : false,
-			(version >= 11) ? r.bool() : multiline,
-			(version >= 11) ? r.f32() : 0.0,
-			(version >= 11) ? r.f32() : 0.0,
-			(version >= 11) ? r.f32() : 0.0,
-			(version >= 11) ? r.f32() : 0.0,
-			r.str(),
-			false
-		));
-		System.out.println(r.index);
-	}
-
-	private boolean multiline = false;
-
-	private boolean setMultiline(boolean input) {
-		this.multiline = input;
-		return input;
-	}
-
-	static class Reader {
-		int index = 0;
-
-		private short i16() {
-			return (short) index++;
-		}
-
-		private String str() {
-			return "str" + index++;
-		}
-
-		private boolean bool() {
-			return (index++ % 2) != 0;
-		}
-
-		private int i32() {
-			return index++;
-		}
-
-		private float f32() {
-			return index++;
-		}
-	}
-
-	static class TextFieldInfo {
-		short i;
-		String str;
-		String str1;
-		Rectangle rectangle;
-		String str2;
-		int i1;
-		int i2;
-		boolean bool;
-		boolean bool1;
-		boolean b;
-		boolean b1;
-		boolean b2;
-		double v;
-		double v1;
-		double v2;
-		double v3;
-		String str3;
-		boolean b3;
-
-		public TextFieldInfo(short i, String str, String str1, Rectangle rectangle, String str2, int i1, int i2, boolean bool, boolean bool1, boolean b, boolean b1, boolean b2, double v, double v1, double v2, double v3, String str3, boolean b3) {
-			this.i = i;
-			this.str = str;
-			this.str1 = str1;
-			this.rectangle = rectangle;
-			this.str2 = str2;
-			this.i1 = i1;
-			this.i2 = i2;
-			this.bool = bool;
-			this.bool1 = bool1;
-			this.b = b;
-			this.b1 = b1;
-			this.b2 = b2;
-			this.v = v;
-			this.v1 = v1;
-			this.v2 = v2;
-			this.v3 = v3;
-			this.str3 = str3;
-			this.b3 = b3;
-		}
-
-		@Override
-		public String toString() {
-			return "TextFieldInfo{" +
-				"i=" + i +
-				", str='" + str + '\'' +
-				", str1='" + str1 + '\'' +
-				", rectangle=" + rectangle +
-				", str2='" + str2 + '\'' +
-				", i1=" + i1 +
-				", i2=" + i2 +
-				", bool=" + bool +
-				", bool1=" + bool1 +
-				", b=" + b +
-				", b1=" + b1 +
-				", b2=" + b2 +
-				", v=" + v +
-				", v1=" + v1 +
-				", v2=" + v2 +
-				", v3=" + v3 +
-				", str3='" + str3 + '\'' +
-				", b3=" + b3 +
-				'}';
-		}
-	}
-
-	static class Rectangle {
-		public int x, y, width, height;
-
-		public Rectangle(int x, int y, int width, int height) {
-			this.x = x;
-			this.y = y;
-			this.width = width;
-			this.height = height;
-		}
-
-		@Override
-		public String toString() {
-			return "Rectangle{" +
-				"x=" + x +
-				", y=" + y +
-				", width=" + width +
-				", height=" + height +
-				'}';
-		}
 	}
 
 	private void testSwitch(int b) {

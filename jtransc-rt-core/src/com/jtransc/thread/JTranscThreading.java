@@ -20,7 +20,7 @@ public class JTranscThreading {
 			return _isSupported();
 		}
 
-		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Thread.create(function():Void{p0.{% METHOD java.lang.Runnable:run %}();});")
+		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Thread.create(function():Void{p0{% IMETHOD java.lang.Runnable:run %}();});")
 		public void start(Thread thread) {
 			if (parent != null) {
 				parent.start(thread);

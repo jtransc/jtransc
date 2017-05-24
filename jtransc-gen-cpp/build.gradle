@@ -5,4 +5,5 @@ targetCompatibility = 1.6
 
 dependencies {
 	compile project(':jtransc-core')
+	compile "org.rauschig:jarchivelib:0.7.1"
 }

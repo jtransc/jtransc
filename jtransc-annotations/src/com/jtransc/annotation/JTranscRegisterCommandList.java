@@ -1,9 +1,8 @@
 package com.jtransc.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface JTranscRegisterCommandList {
 	JTranscRegisterCommand[] value() default {};

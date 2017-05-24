@@ -30,6 +30,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
+import com.jtransc.lang.Extra
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.text.quote
@@ -170,7 +171,7 @@ class AstProgram(
 	val configEntrypoint: ConfigEntryPoint,
 	val types: AstTypes,
 	val injector: Injector
-) : IUserData by UserData(), AstResolver, LocateRightClass {
+) : IUserData by UserData(), AstResolver, LocateRightClass, Extra by Extra.Mixin() {
 	val resourcesVfs = configResourcesVfs.resourcesVfs
 	val entrypoint = configEntrypoint.entrypoint
 	var lastClassId = 0
@@ -325,8 +326,8 @@ open class AstAnnotatedElement(
 	//val visible: Boolean get() = annotationsList.contains<JTranscVisible>() || !annotationsList.contains<JTranscInvisible>()
 	val visible: Boolean get() = extraVisible ?: !annotationsList.contains<JTranscInvisible>()
 	val invisible: Boolean get() = !visible
-	override val annotationsList = AstAnnotationList(elementRef, annotations)
-	val runtimeAnnotations = annotations.filter { it.runtimeVisible }
+	override val annotationsList by lazy { AstAnnotationList(elementRef, annotations) }
+	val runtimeAnnotations by lazy { annotations.filter { it.runtimeVisible } }
 }
 
 val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
@@ -341,6 +342,8 @@ class AstClass(
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
+
+	val implementingUnique by lazy { implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
 	//var lastMethodId = 0
 	//var lastFieldId = 0
@@ -435,14 +438,12 @@ class AstClass(
 	}
 
 	fun add(field: AstField) {
-		if (finished) invalidOp("Finished class")
 		fields.add(field)
 		fieldsByInfo[field.refWithoutClass] = field
 		fieldsByName[field.name] = field
 	}
 
 	fun add(method: AstMethod) {
-		if (finished) invalidOp("Finished class")
 		methods.add(method)
 		if (method.name !in methodsByName) methodsByName[method.name] = arrayListOf()
 		val methodDesc = AstMethodWithoutClassRef(method.name, method.methodType)
@@ -451,17 +452,10 @@ class AstClass(
 		methodsByNameDesc[methodDesc] = method
 	}
 
-	private var finished = false
-
-	fun finish() {
-		finished = true
-	}
-
 	//val dependencies: AstReferences = AstReferences()
 	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
-	val nativeName: String? by lazy {
-		annotationsList.getTyped<JTranscNativeClass>()?.value ?: annotationsList.getTyped<JTranscNativeName>()?.value
-	}
+
+	fun nativeNameForTarget(targetName: TargetName) = annotationsList.getNativeNameForTarget(targetName)
 
 	val isNormal: Boolean get() = classType == AstClassType.CLASS
 	val isInterface: Boolean get() = classType == AstClassType.INTERFACE
@@ -575,18 +569,18 @@ class AstClass(
 		}
 	}
 
-	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).distinct()
+	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).toSet()
 
 	fun getAllRelatedTypesIdsWithout0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull()
 	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
-	val thisAncestorsAndInterfaces: List<AstClass> by lazy { thisAndAncestors + allDirectInterfaces }
+	val thisAncestorsAndInterfaces: Set<AstClass> by lazy { (thisAndAncestors + allDirectInterfaces).toSet() }
 
 	val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
 }
 
-val AstClass?.isNative: Boolean get() = (this?.nativeName != null)
+fun AstClass?.isNativeForTarget(targetName: TargetName): Boolean = (this?.nativeNameForTarget(targetName) != null)
 
 fun List<AstClass>.sortedByExtending(): List<AstClass> {
 	val list = this
@@ -660,8 +654,7 @@ open class AstMember(
 	elementRef: AstMemberRef,
 	annotations: List<AstAnnotation> = listOf()
 ) : AstAnnotatedElement(containingClass.program, elementRef, annotations), IUserData by UserData() {
-
-	val nativeName: String? by lazy { annotationsList.getTyped<JTranscNativeName>()?.value }
+	fun nativeNameForTarget(target: TargetName): String? = annotationsList.getNativeNameForTarget(target)?.value
 }
 
 interface MethodRef {
@@ -693,6 +686,11 @@ class AstField(
 	override fun toString() = "AstField(" + ref.toString() + ")"
 }
 
+data class AstArgumentWithAnnotations(val arg: AstArgument, val annotationList: AstAnnotationList)
+
+data class AstArgumentCallWithAnnotations(val arg: AstArgument, val annotationList: AstAnnotationList?, val expr: AstExpr) {
+	val exprBox = expr.box
+}
 
 class AstMethod(
 	containingClass: AstClass,
@@ -712,6 +710,10 @@ class AstMethod(
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
+
+	fun getParamsWithAnnotations() = methodType.args.map { AstArgumentWithAnnotations(it, parameterAnnotationsList[it.index]) }
+	fun getParamsWithAnnotations(args: List<AstExpr>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList[it.first.index], it.second) }
+	fun getParamsWithAnnotationsBox(args: List<AstExpr.Box>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList.getOrNull(it.first.index), it.second.value) }
 
 	init {
 		if (id < 0) {
@@ -734,15 +736,15 @@ class AstMethod(
 	val hasBody: Boolean get() = body != null
 
 	fun replaceBody(stmGen: () -> AstStm) {
-		this.generateBody = { AstBody(types, stmGen(), methodType) }
+		this.generateBody = { AstBody(types, stmGen(), methodType, ref) }
 		calculatedBodyDependencies = null
 		generatedBody = false
 	}
 
 	fun replaceBodyOpt(stmGen: () -> AstStm) {
 		this.generateBody = {
-			val body = AstBody(types, stmGen(), methodType)
-			AstOptimizer(AstBodyFlags(false, types)).visit(body)
+			val body = AstBody(types, stmGen(), methodType, ref)
+			AstOptimizer(AstBodyFlags(types, false)).visit(body)
 			body
 		}
 		calculatedBodyDependencies = null
@@ -751,10 +753,10 @@ class AstMethod(
 
 	fun replaceBodyOptBuild(stmGen: AstBuilder2.(args: List<AstArgument>) -> Unit) {
 		this.generateBody = {
-			val builder = AstBuilder2(types)
+			val builder = AstBuilder2(types, AstBuilderBodyCtx())
 			builder.stmGen(methodType.args)
-			val body = AstBody(types, builder.genstm(), methodType)
-			AstOptimizer(AstBodyFlags(false, types)).visit(body)
+			val body = AstBody(types, builder.genstm(), methodType, ref)
+			AstOptimizer(AstBodyFlags(types, false)).visit(body)
 			body
 		}
 		calculatedBodyDependencies = null
@@ -762,7 +764,7 @@ class AstMethod(
 	}
 
 	fun replaceBody(stm: AstStm) {
-		this.generateBody = { AstBody(types, stm, methodType) }
+		this.generateBody = { AstBody(types, stm, methodType, ref) }
 		calculatedBodyDependencies = null
 		generatedBody = false
 	}
@@ -975,3 +977,36 @@ fun AstType.simplify(): AstType = when (this) {
 	}
 	else -> this
 }
+
+fun AstProgram.getLibsFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddLibrariesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()
+
+fun AstProgram.getIncludesFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddIncludesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()
+
+fun AstProgram.getDefinesFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddDefinesList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()
+
+data class CondMembers(val cond: String, val members: List<String>)
+
+fun AstProgram.getMembersFor(target: TargetName): List<CondMembers> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddMembersList::value) }
+	.filter { target.matches(it.target) }
+	.map { CondMembers(it.cond, it.value.toList()) }
+	.distinct()
+
+fun AstProgram.getTemplateVariables(target: TargetName): Map<String, List<String>> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
+	.filter { target.matches(it.target) }
+	.groupBy { it.variable }
+	.map { it.key to it.value.flatMap { it.list.toList() } }
+	.toMap()

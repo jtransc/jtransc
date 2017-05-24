@@ -2,6 +2,7 @@ package jtransc.jtransc.nativ;
 
 import com.jtransc.annotation.JTranscCallSiteBody;
 import com.jtransc.annotation.JTranscLiteralParam;
+import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.JTranscUnboxParam;
 import com.jtransc.target.Js;
 import com.jtransc.target.js.JsDynamic;
@@ -26,16 +27,49 @@ public class JTranscJsNativeMixedTest {
 		customAnnotationTest();
 		MixedJsKotlin.main(args);
 		call(access(global("console"), "log"), 1);
-		JsDynamic.global("console").get("log").call(2);
+		JsDynamic.global("console").call("log", 2);
 		int res = JsDynamic.global("console").get("log").toInt();
 		System.out.println(res);
-		System.out.println(JsDynamic.global("Math").get("max").call(-4, -3).toInt() == -3);
+		System.out.println(JsDynamic.global("Math").call("max", -4, -3).toInt() == -3);
+		System.out.println(JsDynamic.global().get("Date").newInstance(1234567).call("getTime").toInt());
+
+		Global.global.console.log(1);
+		Global.global.console.log("hello");
+
+		JsDynamic obj = JsDynamic.newEmptyObject();
+		obj.set("test", 777);
+		Global.global.console.log(obj.get("test"));
+
+		JsDynamic array = JsDynamic.newEmptyArray();
+		array.set(0, 999);
+		Global.global.console.log(array.get(0));
+
+		Global.global.console.log(JsDynamic.raw("Math.max(1, 7 * 3)"));
 	}
 
-	@JTranscCallSiteBody(target = "js", value = "global[#'0]")
+	@JTranscNativeName("global")
+	public abstract static class JsGlobal {
+		public Console console;
+		public String name;
+
+		//public native void alert(String s);
+		//public native void alert(int s);
+	}
+
+	@JTranscNativeName("global")
+	public static class Global {
+		public static JsGlobal global;
+	}
+
+	@JTranscNativeName("Console")
+	public abstract static class Console {
+		native public void log(@JTranscUnboxParam Object a);
+	}
+
+	@JTranscCallSiteBody(target = "js", value = "global#.0")
 	static native private Object global(@JTranscLiteralParam String name);
 
-	@JTranscCallSiteBody(target = "js", value = "#0[#'1]")
+	@JTranscCallSiteBody(target = "js", value = "#0#.1")
 	static native private Object access(Object obj, @JTranscLiteralParam String name);
 
 	@JTranscCallSiteBody(target = "js", value = "#0(#1)")

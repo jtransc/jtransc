@@ -24,7 +24,7 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 		annotations = listOf(),
 		parameterAnnotations = listOf(),
 		modifiers = AstModifiers(AstModifiers.ACC_PUBLIC or if (isStatic) AstModifiers.ACC_STATIC else 0),
-		generateBody = { AstBody(types, AstBuilder2(types).apply { body(desc.args) }.genstm(), desc) },
+		generateBody = { AstBody(types, AstBuilder2(types, AstBuilderBodyCtx()).apply { body(desc.args) }.genstm(), desc, AstMethodRef(clazz.name, name, desc)) },
 		defaultTag = null,
 		signature = desc.mangle(),
 		genericSignature = null,

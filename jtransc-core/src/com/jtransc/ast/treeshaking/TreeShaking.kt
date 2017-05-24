@@ -11,36 +11,22 @@ import com.jtransc.gen.TargetName
 import com.jtransc.plugin.JTranscPlugin
 import java.util.*
 
-class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
-	val childrenList = hashMapOf<AstClass, ArrayList<AstClass>>()
+fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
+	// The unshaked program should be cached, in a per class basis, since it doesn't have information about other classes.
 
-	fun getChildren(clazz: AstClass): ArrayList<AstClass> {
-		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [1]")
-		return childrenList.getOrPut(clazz) { arrayListOf() }
-	}
+	val shaking = TreeShakingApi(program, target, trace, plugins)
+	shaking.addMethod(shaking.main.ref, "<ENTRY>")
+//shaking.addMethod(program[FqName("java.lang.reflect.InvocationHandler")].getMethods("invoke").first().ref, "<ENTRY>")
 
-	fun getDescendants(clazz: AstClass): List<AstClass> {
-		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [2]")
-		return getChildren(clazz) + getChildren(clazz).flatMap { getChildren(it) }
-	}
-
-	fun getDescendantsAndAncestors(clazz: AstClass): List<AstClass> {
-		return getDescendants(clazz).flatMap { it.thisAncestorsAndInterfaces }
-	}
-
-	fun add(clazz: AstClass) {
-		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [3]")
-		if (SHAKING_TRACE) println("  :: $clazz :: ${clazz.extending} :: ${clazz.implementing}")
-		if (clazz.extending != null) getChildren(program[clazz.extending]) += clazz
-		for (impl in clazz.implementing) getChildren(program[impl]) += clazz
-	}
-
-	fun dump() {
-		for ((clazz, children) in childrenList) {
-			println("* $clazz")
-			println("  - $children")
+	when (target) {
+	// HACK
+		"cpp" -> {
+			val filecontent = program.resourcesVfs["cpp/Base.cpp"].readString()
+			shaking.addTemplateReferences(filecontent, "java.lang.Object".fqname, templateReason = "<base target>: cpp/Base.cpp")
 		}
 	}
+
+	return shaking.newprogram;
 }
 
 class TreeShakingApi(
@@ -198,7 +184,7 @@ class TreeShakingApi(
 			//for (file in newclazz.annotationsList.getAllTyped<JTranscAddFile>()) {
 			for (file in newclazz.annotationsList.getTypedList(JTranscAddFileList::value)) {
 				if (file.process && TargetName.matches(file.target, target)) {
-					val possibleFiles = listOf(file.prepend, file.append, file.prependAppend)
+					val possibleFiles = listOf(file.prepend, file.append, file.prependAppend, file.src)
 					for (pf in possibleFiles.filter { !it.isNullOrEmpty() }) {
 						val filecontent = program.resourcesVfs[pf].readString()
 						addTemplateReferences(filecontent, fqname, templateReason = "JTranscAddFileList: $pf")
@@ -251,7 +237,8 @@ class TreeShakingApi(
 	}
 
 	fun addAnnotations(annotations: AstAnnotationList, reason: String) {
-		for (annotation in annotations.list) {
+		//for (annotation in annotations.list) {
+		for (annotation in annotations.listRuntime) {
 			try {
 				for (ref in annotation.getRefTypesFqName()) {
 					addBasicClass(ref, "annotation $reason")
@@ -306,6 +293,9 @@ class TreeShakingApi(
 		for (methodBody in newmethod.annotationsList.getBodiesForTarget(targetName)) {
 			addTemplateReferences(methodBody.value, methodRef.containingClass, "methodBody=$newmethod")
 		}
+
+		val callSite = newmethod.annotationsList.getCallSiteBodiesForTarget(targetName)
+		if (callSite != null) addTemplateReferences(callSite, methodRef.containingClass, "methodBodyCallSite=$newmethod")
 
 		//if (methodRef.name == "_onKeyDownUp") {
 		//	val bodyDependencies = oldmethod.bodyDependencies
@@ -407,20 +397,35 @@ class TreeShakingApi(
 	}
 }
 
-fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
-	// The unshaked program should be cached, in a per class basis, since it doesn't have information about other classes.
 
-	val shaking = TreeShakingApi(program, target, trace, plugins)
-	shaking.addMethod(shaking.main.ref, "<ENTRY>")
-//shaking.addMethod(program[FqName("java.lang.reflect.InvocationHandler")].getMethods("invoke").first().ref, "<ENTRY>")
+class ClassTree(val SHAKING_TRACE: Boolean, val program: AstProgram) {
+	val childrenList = hashMapOf<AstClass, ArrayList<AstClass>>()
 
-	when (target) {
-	// HACK
-		"cpp" -> {
-			val filecontent = program.resourcesVfs["cpp/Base.cpp"].readString()
-			shaking.addTemplateReferences(filecontent, "java.lang.Object".fqname, templateReason = "<base target>: cpp/Base.cpp")
-		}
+	fun getChildren(clazz: AstClass): ArrayList<AstClass> {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [1]")
+		return childrenList.getOrPut(clazz) { arrayListOf() }
 	}
 
-	return shaking.newprogram;
+	fun getDescendants(clazz: AstClass): List<AstClass> {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [2]")
+		return getChildren(clazz) + getChildren(clazz).flatMap { getChildren(it) }
+	}
+
+	fun getDescendantsAndAncestors(clazz: AstClass): List<AstClass> {
+		return getDescendants(clazz).flatMap { it.thisAncestorsAndInterfaces }
+	}
+
+	fun add(clazz: AstClass) {
+		if (clazz.program != program) invalidOp("TreeShaking Internal Error: Invalid program [3]")
+		if (SHAKING_TRACE) println("  :: $clazz :: ${clazz.extending} :: ${clazz.implementing}")
+		if (clazz.extending != null) getChildren(program[clazz.extending]) += clazz
+		for (impl in clazz.implementing) getChildren(program[impl]) += clazz
+	}
+
+	fun dump() {
+		for ((clazz, children) in childrenList) {
+			println("* $clazz")
+			println("  - $children")
+		}
+	}
 }

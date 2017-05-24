@@ -16,13 +16,13 @@
 
 package com.jtransc.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
+@Repeatable(value = JTranscNativeNameList.class)
 public @interface JTranscNativeName {
     String value();
+	String target() default "";
+	String defaultValue() default "";
 }

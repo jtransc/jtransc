@@ -45,6 +45,8 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 	public JA_J toLongArray  () { return new JA_J((cast(long   *)ptr)[0..bytesLength / long.sizeof]); }
 	public JA_F toFloatArray () { return new JA_F((cast(float  *)ptr)[0..bytesLength / float.sizeof]); }
 	public JA_D toDoubleArray() { return new JA_D((cast(double *)ptr)[0..bytesLength / double.sizeof]); }
+
+
 }
 
 class JA_Template(U) : JA_0 {
@@ -68,11 +70,11 @@ class JA_Template(U) : JA_0 {
 	override int itemLen() { return U.sizeof; }
 	override int length() { return alen(data); }
 
-	U get(int index) { return data[index]; }
-	void set(int index, U value) { data[index] = value; }
+	pragma(inline) U get(int index) { return data[index]; }
+	pragma(inline) void set(int index, U value) { data[index] = value; }
 
-	U opIndex(int i) { return data[i]; }
-	void opIndexAssign(U v, int i) { data[i] = v; }
+	pragma(inline) U opIndex(int i) { return data[i]; }
+	pragma(inline) void opIndexAssign(U v, int i) { data[i] = v; }
 }
 
 class JA_I : JA_Template!(int) {
@@ -158,10 +160,14 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 }
 
 class WrappedThrowable : Throwable {
-	public {% CLASS java.lang.Object %} t;
-	this({% CLASS java.lang.Object %} t) {
+	public {% CLASS java.lang.Throwable %} t;
+	this({% CLASS java.lang.Throwable %} t) {
 		super("WrappedThrowable:" ~ t.toString());
 		this.t = t;
+	}
+	this({% CLASS java.lang.Object %} t) {
+		super("WrappedThrowable:" ~ t.toString());
+		this.t = cast({% CLASS java.lang.Throwable %})(t);
 	}
 }
 
@@ -171,6 +177,8 @@ class N {
 	static immutable public int MAX_INT32 = 0x7FFFFFFF;
 	static immutable public long MIN_INT64 = 0x8000000000000000L;
 	static immutable public long MAX_INT64 = 0x7FFFFFFFFFFFFFFFL;
+
+
 
 	static public {% CLASS java.lang.Class %} resolveClass(wstring name) {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
@@ -201,7 +209,7 @@ class N {
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
 		if (jstrObj is null) return null;
 		auto jstr = cast({% CLASS java.lang.String %})jstrObj;
-		return to!wstring(jstr.{% FIELD java.lang.String:value %}.data);
+		return to!wstring(jstr{% IFIELD java.lang.String:value %}.data);
 	}
 
 	static public string istr2({% CLASS java.lang.Object %} jstrObj) {
@@ -210,10 +218,9 @@ class N {
 
 	static public int z2i(bool v) { return v ? 1 : 0; }
 
-	static public int l2i(long v) { return cast(int)(v); }
-	static public double l2d(long v) { return cast(double)(v); }
+	static public int j2i(long v) { return cast(int)(v); }
+	static public double j2d(long v) { return cast(double)(v); }
 
-	static public long i2l(int v) { return v; }
 	static public long i2j(int v) { return v; }
 
 	static public long f2j(float v) { return cast(long)(v); }
@@ -225,23 +232,23 @@ class N {
 	static public long lxor(long l, long r) { return l ^ r; }
 	static public long lor (long l, long r) { return l | r; }
 	static public long land(long l, long r) { return l & r; }
-	static public long lshl(long l, long r) { return l << r; }
-	static public long lshr(long l, long r) { return l >> r; }
-	static public long lushr(long l, long r) { return l >>> r; }
+	static public long lshl(long l, int r) { return l << r; }
+	static public long lshr(long l, int r) { return l >> r; }
+	static public long lushr(long l, int r) { return l >>> r; }
 	static public int  lcmp(long l, long r) { return (l < r) ? -1 : ((l > r) ? 1 : 0); }
 
 	static public int cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); }
 	static public int cmpl(double a, double b) { return (isNaN(a) || isNaN(b)) ? (-1) : N.cmp(a, b); }
 	static public int cmpg(double a, double b) { return (isNaN(a) || isNaN(b)) ? (+1) : N.cmp(a, b); }
 
-	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i.{% METHOD java.lang.Boolean:booleanValue %}(); }
-	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i.{% METHOD java.lang.Byte:byteValue %}(); }
-	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i.{% METHOD java.lang.Short:shortValue %}(); }
-	static public wchar  unboxChar  ({% CLASS java.lang.Character %} i) { return i.{% METHOD java.lang.Character:charValue %}(); }
-	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i.{% METHOD java.lang.Integer:intValue %}(); }
-	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i.{% METHOD java.lang.Long:longValue %}(); }
-	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i.{% METHOD java.lang.Float:floatValue %}(); }
-	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i.{% METHOD java.lang.Double:doubleValue %}(); }
+	static public bool   unboxBool  ({% CLASS java.lang.Boolean %}   i) { return i{% IMETHOD java.lang.Boolean:booleanValue %}(); }
+	static public byte   unboxByte  ({% CLASS java.lang.Byte %}      i) { return i{% IMETHOD java.lang.Byte:byteValue %}(); }
+	static public short  unboxShort ({% CLASS java.lang.Short %}     i) { return i{% IMETHOD java.lang.Short:shortValue %}(); }
+	static public wchar  unboxChar  ({% CLASS java.lang.Character %} i) { return i{% IMETHOD java.lang.Character:charValue %}(); }
+	static public int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i{% IMETHOD java.lang.Integer:intValue %}(); }
+	static public long   unboxLong  ({% CLASS java.lang.Long %}      i) { return i{% IMETHOD java.lang.Long:longValue %}(); }
+	static public float  unboxFloat ({% CLASS java.lang.Float %}     i) { return i{% IMETHOD java.lang.Float:floatValue %}(); }
+	static public double unboxDouble({% CLASS java.lang.Double %}    i) { return i{% IMETHOD java.lang.Double:doubleValue %}(); }
 
 
 	static public {% CLASS java.lang.Object %}    boxVoid  (        ) { return null; }
@@ -364,11 +371,21 @@ class N {
 		prepareMutex(obj);
 		obj.__d_mutex.unlock();
 	}
+
 }
 
 T ensureNotNull(T)(T v) {
 	if (v is null) throw new WrappedThrowable({% CONSTRUCTOR java.lang.NullPointerException:()V %});
 	return v;
+}
+
+TOut checkCast(TOut, TIn)(TIn i) {
+	if (i is null) return null;
+	TOut o = cast(TOut)i;
+	if (o is null) {
+		throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:()V %});
+	}
+	return o;
 }
 
 /* ## BODY ## */

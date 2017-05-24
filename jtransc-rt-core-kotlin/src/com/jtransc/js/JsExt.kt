@@ -3,6 +3,7 @@
 package com.jtransc.js
 
 import com.jtransc.annotation.JTranscCallSiteBody
+import com.jtransc.annotation.JTranscLiteralParam
 import com.jtransc.annotation.JTranscMethodBody
 import com.jtransc.annotation.JTranscUnboxParam
 
@@ -13,10 +14,12 @@ class JsBoundedMethod(val obj: JsDynamic?, val methodName: String) {
 }
 
 val global: JsDynamic
-	@JTranscMethodBody(target = "js", value = "return (typeof(window) != 'undefined') ? window : global;")
+	//@JTranscMethodBody(target = "js", value = "return (typeof(window) != 'undefined') ? window : global;")
+	@JTranscCallSiteBody(target = "js", value = "_global")
 	get() = throw RuntimeException()
 
 val window: JsDynamic
+	//@JTranscCallSiteBody(target = "js", value = "window")
 	@JTranscCallSiteBody(target = "js", value = "window")
 	get() = throw RuntimeException()
 
@@ -24,7 +27,7 @@ val console: JsDynamic get() = global["console"]!!
 
 val document: JsDynamic get() = global["document"]!!
 
-@JTranscCallSiteBody(target = "js", value = "#0[#1]")
+@JTranscCallSiteBody(target = "js", value = "#0#.1")
 external operator fun JsDynamic?.get(@JTranscUnboxParam key: String): JsDynamic?
 
 @JTranscCallSiteBody(target = "js", value = "#0[#1]")
@@ -34,11 +37,11 @@ fun JsDynamic?.getMethod(key: String): JsBoundedMethod = JsBoundedMethod(this, k
 
 fun JsDynamic?.method(key: String): JsBoundedMethod = JsBoundedMethod(this, key)
 
-@JTranscCallSiteBody(target = "js", value = "#0[#1] = #2;")
+@JTranscCallSiteBody(target = "js", value = "#0#.1 = #2;")
 external operator fun JsDynamic?.set(@JTranscUnboxParam key: String, @JTranscUnboxParam value: Any?): Unit
 
 @JTranscCallSiteBody(target = "js", value = "#0[#1] = #2;")
-external operator fun JsDynamic?.set(@JTranscUnboxParam key: Int, @JTranscUnboxParam value: Any?): Unit
+external operator fun JsDynamic?.set(key: Int, @JTranscUnboxParam value: Any?): Unit
 
 // invoke is unsafe, because it could be split in several statements and method name not bound to object
 
@@ -172,7 +175,7 @@ fun <T1, T2, TR> jsFunction(v: Function2<T1, T2, TR>): JsDynamic? = v.toJsDynami
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function() {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function0:invoke %}());
 	};
 """)
 external fun <TR> Function0<TR>.toJsDynamic(): JsDynamic?
@@ -180,7 +183,7 @@ external fun <TR> Function0<TR>.toJsDynamic(): JsDynamic?
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function(p1) {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](N.box(p1)));
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function1:invoke %}(N.box(p1)));
 	};
 """)
 external fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic?
@@ -188,33 +191,33 @@ external fun <T1, TR> Function1<T1, TR>.toJsDynamic(): JsDynamic?
 @JTranscMethodBody(target = "js", value = """
 	var handler = p0;
 	return function(p1, p2) {
-		return N.unbox(handler['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](N.box(p1), N.box(p2)));
+		return N.unbox(handler{% IMETHOD kotlin.jvm.functions.Function2:invoke %}(N.box(p1), N.box(p2)));
 	};
 """)
 external fun <T1, T2, TR> Function2<T1, T2, TR>.toJsDynamic(): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function() {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function0:invoke %}']());};
+	return function() {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function0:invoke %}());};
 """)
 external fun <TR> jsFunctionRaw0(v: Function0<TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function1:invoke %}'](p1));};
+	return function(p1) {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function1:invoke %}(p1));};
 """)
 external fun <TR> jsFunctionRaw1(v: Function1<JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function2:invoke %}'](p1, p2));};
+	return function(p1, p2) {return N.unbox(p0[% IMETHOD kotlin.jvm.functions.Function2:invoke %}(p1, p2));};
 """)
 external fun <TR> jsFunctionRaw2(v: Function2<JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2, p3) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function3:invoke %}'](p1, p2, p3));};
+	return function(p1, p2, p3) {return N.unbox(p0[% IMETHOD kotlin.jvm.functions.Function3:invoke %}(p1, p2, p3));};
 """)
 external fun <TR> jsFunctionRaw3(v: Function3<JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
 @JTranscMethodBody(target = "js", value = """
-	return function(p1, p2, p3, p4) {return N.unbox(p0['{% METHOD kotlin.jvm.functions.Function4:invoke %}'](p1, p2, p3, p4));};
+	return function(p1, p2, p3, p4) {return N.unbox(p0{% IMETHOD kotlin.jvm.functions.Function4:invoke %}(p1, p2, p3, p4));};
 """)
 external fun <TR> jsFunctionRaw4(v: Function4<JsDynamic?, JsDynamic?, JsDynamic?, JsDynamic?, TR>): JsDynamic?
 
@@ -279,6 +282,9 @@ external fun jsGetAssetStats(): Array<JsAssetStat>
 external fun jsObject(vararg items: Pair<String, Any?>): JsDynamic?
 
 fun jsObject(map: Map<String, Any?>): JsDynamic? = jsObject(*map.map { it.key to it.value }.toTypedArray())
+
+@JTranscCallSiteBody(target = "js", value = "#0")
+external fun jsRaw(@JTranscLiteralParam str: String): JsDynamic?
 
 @JTranscCallSiteBody(target = "js", value = "require(#0)")
 external fun jsRequire(@JTranscUnboxParam name: String): JsDynamic?

@@ -1,7 +1,9 @@
 package j;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -14,9 +16,9 @@ public class ProgramReflection {
 
 	// Static initialization for classes.
 	// Necessary due to existing getClass() method in code will generate static constructor.
-	static {
-		_ensure();
-	}
+	//static {
+	//	_ensure();
+	//}
 
 
 	static public ClassInfo[] _classInfos;
@@ -43,10 +45,6 @@ public class ProgramReflection {
 				_classNames[info.id] = info.name;
 			}
 		}
-		// initialize static variables in other reflection classes
-		getConstructors(-1);
-		getFields(-1);
-		getMethods(-1);
 	}
 
 	static public void _ensureConstructors() {

@@ -120,7 +120,9 @@ class GotosFeature : AstMethodFeature() {
 		}
 
 		try {
-			return AstBody(types, relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null, body.type, body.locals, body.traps, body.flags)
+			return body.copy(
+				stm = relooper.render(bblist[0].node!!)?.optimize(body.flags) ?: return null
+			)
 		} catch (e: RelooperException) {
 			//println("RelooperException: ${e.message}")
 			return null
@@ -132,7 +134,7 @@ class GotosFeature : AstMethodFeature() {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
 		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
-		val locals = body.locals.toCollection(arrayListOf<AstLocal>())
+		//val locals = body.locals.toCollection(arrayListOf<AstLocal>())
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
 
 		//val gotostate = AstLocal(-1, "_gotostate", AstType.INT)
@@ -164,13 +166,13 @@ class GotosFeature : AstMethodFeature() {
 					val cases = arrayListOf<Pair<Int, AstStm>>()
 
 					fun flush() {
-						cases.add(Pair(stateIndex2, AstStm.STMS(stateStms)))
+						cases.add(Pair(stateIndex2, stateStms.stm()))
 						stateIndex2 = -1
 						stateStms = arrayListOf<AstStm>()
 					}
 
 					fun simulateGotoLabel(index: Int) = listOf(
-						AstStm.SET_LOCAL(gotostate, AstExpr.LITERAL(index)),
+						gotostate.setTo(index.lit),
 						AstStm.CONTINUE()
 					)
 
@@ -192,7 +194,7 @@ class GotosFeature : AstMethodFeature() {
 							is AstStm.IF_GOTO -> {
 								stateStms.add(AstStm.IF(
 									s.cond.value,
-									AstStm.STMS(simulateGotoLabel(s.label))
+									simulateGotoLabel(s.label).stm()
 								))
 							}
 							is AstStm.GOTO -> {
@@ -202,9 +204,9 @@ class GotosFeature : AstMethodFeature() {
 								//throw NotImplementedError("Must implement switch goto ")
 								stateStms.add(AstStm.SWITCH(
 									s.subject.value,
-									AstStm.STMS(simulateGotoLabel(s.default)),
+									simulateGotoLabel(s.default).stm(),
 									s.cases.map {
-										Pair(it.first, AstStm.STMS(simulateGotoLabel(it.second)))
+										Pair(it.first, simulateGotoLabel(it.second).stm())
 									}
 								))
 							}
@@ -218,20 +220,22 @@ class GotosFeature : AstMethodFeature() {
 
 					fun extraReturn() = when (body.type.ret) {
 						is AstType.VOID -> AstStm.RETURN_VOID()
-						is AstType.BOOL -> AstStm.RETURN(AstExpr.LITERAL(false))
-						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(AstExpr.LITERAL(0))
-						is AstType.LONG -> AstStm.RETURN(AstExpr.LITERAL(0L))
-						is AstType.FLOAT -> AstStm.RETURN(AstExpr.LITERAL(0f))
-						is AstType.DOUBLE -> AstStm.RETURN(AstExpr.LITERAL(0.0))
-						else -> AstStm.RETURN(AstExpr.LITERAL(null))
+						is AstType.BOOL -> AstStm.RETURN(false.lit)
+						is AstType.BYTE, is AstType.SHORT, is AstType.CHAR, is AstType.INT -> AstStm.RETURN(0.lit)
+						is AstType.LONG -> AstStm.RETURN(0L.lit)
+						is AstType.FLOAT -> AstStm.RETURN(0f.lit)
+						is AstType.DOUBLE -> AstStm.RETURN(0.0.lit)
+						else -> AstStm.RETURN(null.lit)
 					}
 
-					val plainWhile = AstStm.STMS(
-						AstStm.WHILE(AstExpr.LITERAL(true),
-							AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
-						),
-						extraReturn()
-					)
+					val plainWhile =
+						listOf(
+							AstStm.WHILE(true.lit,
+								AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
+							),
+							extraReturn()
+						).stm()
+
 
 					if (traps.isEmpty()) {
 						plainWhile
@@ -244,20 +248,20 @@ class GotosFeature : AstMethodFeature() {
 
 							AstStm.IF(
 								//(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								(gotostate ge AstExpr.LITERAL(startState)) band (gotostate lt AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								AstStm.STMS(simulateGotoLabel(handlerState))
+								(gotostate ge startState.lit) band (gotostate lt endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
+								simulateGotoLabel(handlerState).stm()
 							)
 						}
 
-						AstStm.STMS(
-							AstStm.WHILE(AstExpr.LITERAL(true),
-								AstStm.TRY_CATCH(plainWhile, AstStm.STMS(
+						listOf(
+							AstStm.WHILE(true.lit,
+								AstStm.TRY_CATCH(plainWhile, stms(
 									checkTraps.stms,
 									AstStm.RETHROW()
 								))
 							),
 							extraReturn()
-						)
+						).stm()
 					}
 				}
 			}
@@ -266,11 +270,9 @@ class GotosFeature : AstMethodFeature() {
 
 		stm = strip(stm)
 
-		if (hasLabels) {
-			locals.add(gotostate.local)
-		}
+		//if (hasLabels) locals.add(gotostate.local)
 
-		return AstBody(types, stm, body.type, locals, traps, body.flags)
+		return body.copy(types = types, stm = stm, traps = traps)
 	}
 
 }

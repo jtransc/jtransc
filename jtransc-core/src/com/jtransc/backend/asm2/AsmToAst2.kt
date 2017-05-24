@@ -1,9 +1,7 @@
 package com.jtransc.backend.asm2
 
 import com.jtransc.ast.*
-import com.jtransc.ast.optimize.optimize
 import com.jtransc.backend.BaseAsmToAst
-import com.jtransc.backend.asm1.disasm
 import com.jtransc.backend.isStatic
 import com.jtransc.ds.cast
 import com.jtransc.ds.hasFlag
@@ -71,6 +69,7 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	//val body = BasicBlockBuilder(types)
 	val methodType = types.demangleMethod(method.desc)
 	val methodInstructions = method.instructions
+	val methodRef = AstMethodRef(clazz.name, method.name, methodType)
 
 	val referencedLabels = hashSetOf<Label>()
 
@@ -157,11 +156,11 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 	val tryCatchBlocks = method.tryCatchBlocks.cast<TryCatchBlockNode>()
 
 	return AstBody(
-		types,
-		AstStm.STMS(outStms),
-		methodType,
-		tirToStm.locals.values.toList(),
-		tryCatchBlocks.map {
+		types = types,
+		stm = outStms.stm(),
+		type = methodType,
+		//tirToStm.locals.values.toList(),
+		traps = tryCatchBlocks.map {
 			AstTrap(
 				start = context.label(it.start),
 				end = context.label(it.end),
@@ -169,7 +168,8 @@ fun AsmToAstMethodBody2(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 				exception = if (it.type != null) types.REF_INT2(it.type) else AstType.OBJECT
 			)
 		},
-		AstBodyFlags(strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), types = types, hasDynamicInvoke = context.hasInvokeDynamic)
+		flags = AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = context.hasInvokeDynamic),
+		methodRef = methodRef
 	)//.optimize()
 }
 

@@ -1,7 +1,7 @@
 var _global = (typeof window !== "undefined") ? window : global;
 
 if ('á'.charCodeAt(0) != 225) {
-	throw 'Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html';
+	throw new Error('Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html');
 }
 
 // Polyfills
@@ -286,7 +286,7 @@ Int64.divMod = function(dividend, divisor) {
 	if(divisor.high == 0) {
 		switch(divisor.low) {
 		case 0:
-			throw new js__$Boot_HaxeError("divide by zero");
+			throw new Error("divide by zero");
 			break;
 		case 1:
 			return { quotient : Int64.make(dividend.high,dividend.low), modulus : Int64.ofInt(0)};
@@ -438,7 +438,7 @@ function __createJavaArrayBaseType() {
 	ARRAY.prototype = Object.create({% CLASS java.lang.Object %}.prototype);
 	ARRAY.prototype.constructor = ARRAY;
 
-	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
 		return N.resolveClass(this.desc);
 	};
 
@@ -452,13 +452,13 @@ function __createJavaArrayBaseType() {
 }
 
 function __addArrayJavaMethods(ARRAY) {
-	ARRAY.prototype['{% METHOD java.lang.Object:clone %}'] = ARRAY.prototype.clone;
+	ARRAY.prototype{% IMETHOD java.lang.Object:clone %} = ARRAY.prototype.clone;
 
-	ARRAY.prototype['{% METHOD java.lang.Object:getClass %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
 		return N.resolveClass(this.desc);
 	};
 
-	ARRAY.prototype['{% METHOD java.lang.Object:toString %}'] = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:toString %} = function() {
 		return N.str('ARRAY(' + this.desc + ')');
 	};
 }
@@ -744,9 +744,9 @@ N.lushr = function(a, b) { return Int64.ushr(a, b); }
 N.lneg  = function(a) { return Int64.neg(a); }
 N.linv  = function(a) { return Int64.not(a); }
 
-N.l2i   = function(v) { return Int64.toInt(v); }
-N.l2f   = function(v) { return Int64.toFloat(v); }
-N.l2d   = function(v) { return Int64.toFloat(v); }
+N.j2i   = function(v) { return Int64.toInt(v); }
+N.j2f   = function(v) { return Int64.toFloat(v); }
+N.j2d   = function(v) { return Int64.toFloat(v); }
 
 N.cmp  = function(a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 N.cmpl = function(a, b) { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
@@ -773,8 +773,15 @@ N.hrtime = function() {
 N.is = function(i, clazz) {
 	if (i instanceof clazz) return true;
 	if (i == null) return false;
-	if (typeof i.$JS$CLASS_ID$ === 'undefined') return false;
-	return (typeof clazz.$$instanceOf[i.$JS$CLASS_ID$] !== "undefined");
+	if (typeof i.$$CLASS_IDS === 'undefined') return false;
+	return i.$$CLASS_IDS.indexOf(clazz.$$CLASS_ID) >= 0;
+};
+
+N.checkCast = function(i, clazz) {
+	if (i == null) return null;
+	if (clazz === null) throw new Error('Internal error N.checkCast');
+	if (!N.is(i, clazz)) throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+	return i;
 };
 
 N.isClassId = function(i, classId) {
@@ -891,8 +898,9 @@ function stackTrace() {
     return err.stack.split('\n').slice(3);
 }
 
-N.getStackTrace = function(count) {
-	var traces = stackTrace()
+N.getStackTrace = function(error, count) {
+	//var traces = stackTrace()
+	var traces = error.stack.split('\n').slice(count);
 	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
 	for (var n = 0; n < traces.length; n++) {
 		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
@@ -1068,7 +1076,7 @@ N.boxWithType = function(clazz, value) {
 	if (value instanceof JA_0) return value;
 	if (value instanceof {% CLASS java.lang.Object %}) return value;
 
-	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
+	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 	switch (clazzName) {
 		case 'void'   : return N.boxVoid();
@@ -1087,7 +1095,7 @@ N.boxWithType = function(clazz, value) {
 };
 
 N.unboxWithTypeWhenRequired = function(clazz, value) {
-	var clazzName = N.istr(clazz['{% FIELD java.lang.Class:name %}']);
+	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
 
 	switch (clazzName) {
 		case 'void'   :
@@ -1150,11 +1158,8 @@ N.getByteArray = function(v) {
 
 N.clone = function(obj) {
 	if (obj == null) return null;
-
 	var temp = Object.create(obj);
-
-	temp['{% FIELD java.lang.Object:$$id %}'] = {% SFIELD java.lang.Object:$$lastId %}++;
-
+	temp{% IFIELD java.lang.Object:$$id %} = 0;
 	return temp;
 };
 
@@ -1166,8 +1171,22 @@ N.EMPTY_FUNCTION = function() { }
 
 var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
-	return this ? N.istr(this['{% METHOD java.lang.Object:toString %}']()) : null;
+	return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}()) : null;
 };
+
+function WrappedError(javaThrowable) {
+	this.constructor.prototype.__proto__ = Error.prototype;
+	Error.captureStackTrace(this, this.constructor);
+	this.name = this.constructor.name;
+	this.javaThrowable = javaThrowable;
+	try {
+		this.message = (javaThrowable != null) ? (('' + javaThrowable) || 'JavaError') : 'JavaError';
+	} catch (e) {
+		this.message = 'JavaErrorWithoutValidMessage';
+	}
+}
+
+//process.on('uncaughtException', function (exception) { console.error(exception); });
 
 /* ## BODY ## */
 
