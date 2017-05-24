@@ -28,20 +28,18 @@ import java.nio.internal.ByteBufferAs;
 class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
-	final boolean isLittleEndian;
 
     static IntBuffer asIntBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return byteBuffer.isNativeOrder ? new ByteBufferAsIntBuffer(slice) : new ByteBufferAsIntBuffer.Reversed(slice);
+		boolean isLittleEndian = byteBuffer.isLittleEndian;
+        return isLittleEndian ? new ByteBufferAsIntBuffer(slice) : new ByteBufferAsIntBuffer.BE(slice);
     }
 
     ByteBufferAsIntBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.INT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
-        this.isLittleEndian = byteBuffer.isLittleEndian;
         this.bytes = byteBuffer.array();
         init(byteBuffer.array());
     }
@@ -161,7 +159,7 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 	public int get(int index) {
 		checkIndex(index);
 		//return byteBuffer.getInt(index * SizeOf.INT);
-		return Memory.peekAlignedInt(bytes, index, isLittleEndian);
+		return Memory.peekAlignedIntLE(bytes, index);
 	}
 
 	@Override
@@ -169,12 +167,12 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
 	public IntBuffer put(int index, int c) {
 		checkIndex(index);
-		Memory.pokeInt(bytes, index * SizeOf.INT, c, isLittleEndian);
+		Memory.pokeInt(bytes, index * SizeOf.INT, c, true);
 		return this;
 	}
 
-	static public class Reversed extends ByteBufferAsIntBuffer {
-		Reversed(ByteBuffer byteBuffer) {
+	static public class BE extends ByteBufferAsIntBuffer {
+		BE(ByteBuffer byteBuffer) {
 			super(byteBuffer);
 		}
 

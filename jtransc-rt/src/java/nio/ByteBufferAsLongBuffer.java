@@ -47,7 +47,6 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
         super(byteBuffer.capacity() / SizeOf.LONG);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override

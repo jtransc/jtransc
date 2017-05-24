@@ -47,7 +47,6 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
         super(byteBuffer.capacity() / SizeOf.CHAR);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override

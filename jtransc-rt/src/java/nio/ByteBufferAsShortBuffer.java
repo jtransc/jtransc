@@ -46,7 +46,6 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
         super(byteBuffer.capacity() / SizeOf.SHORT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override

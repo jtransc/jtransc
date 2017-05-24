@@ -49,7 +49,6 @@ final class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferA
         super(byteBuffer.capacity() / SizeOf.DOUBLE);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-        this.effectiveDirectAddress = byteBuffer.effectiveDirectAddress;
     }
 
     @Override
