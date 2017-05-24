@@ -93,7 +93,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val allTargetLibraries by lazy { targetLibraries + (injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()) }
 	open val allTargetDefines by lazy { targetDefines }
 
-	val AstClass.nativeMembers by lazy { program.getMembersFor(targetName) }
+	val AstClass.nativeMembers get() = this.getMembersFor(targetName)
 
 	open fun writeProgramAndFiles(): Unit {
 		if (SINGLE_FILE) {
@@ -413,7 +413,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		this.stm = stm
 		return when (stm) {
 			is AstStm.STM_LABEL -> genStmLabel(stm)
-			is AstStm.GOTO -> genStmGoto(stm)
+			is AstStm.GOTO -> genStmGoto(stm, last)
 			is AstStm.IF_GOTO -> genStmIfGoto(stm)
 			is AstStm.SWITCH_GOTO -> genStmSwitchGoto(stm)
 			is AstStm.NOP -> genStmNop(stm)
@@ -593,7 +593,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
 				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs, nonNativeCall)
-				is AstExpr.CALL_SUPER -> genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				is AstExpr.CALL_SUPER -> {
+					genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				}
 				is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
 				else -> invalidOp("Unexpected")
 			}
@@ -823,15 +825,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
 		line("switch (${stm.subject.genExpr()})") {
-			for ((value, label) in stm.cases) line("case $value: ${genGoto(label)}")
-			line("default: ${genGoto(stm.default)}")
+			for ((value, label) in stm.cases) line("case $value: ${genGoto(label, false)}")
+			line("default: ${genGoto(stm.default, false)}")
 		}
 	}
 
-	open fun genStmIfGoto(stm: AstStm.IF_GOTO): Indenter = Indenter.single("if (${stm.cond.genExpr()}) " + genGoto(stm.label))
-	open fun genStmGoto(stm: AstStm.GOTO): Indenter = Indenter.single(genGoto(stm.label))
+	open fun genStmIfGoto(stm: AstStm.IF_GOTO): Indenter = Indenter.single("if (${stm.cond.genExpr()}) " + genGoto(stm.label, false))
+	open fun genStmGoto(stm: AstStm.GOTO, last: Boolean): Indenter = Indenter.single(genGoto(stm.label, last))
 
-	open fun genGoto(label: AstLabel) = "goto ${label.name};"
+	open fun genGoto(label: AstLabel, last: Boolean) = "goto ${label.name};"
 
 	open fun genStmSetFieldInstance(stm: AstStm.SET_FIELD_INSTANCE): Indenter = indent {
 		val left = buildInstanceField(stm.left.genExpr(), fixField(stm.field))

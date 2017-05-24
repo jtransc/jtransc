@@ -16,11 +16,13 @@
 
 import big.*
 import com.jtransc.BuildBackend
+import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsGenerator
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
+import issues.issue130.Issue130
 import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
@@ -62,6 +64,9 @@ class JsTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testNanoHelloWorldShouldReferenceGetMethods() {
 		val result = _action(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true), run = false)

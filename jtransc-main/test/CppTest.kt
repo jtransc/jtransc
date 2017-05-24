@@ -17,6 +17,7 @@
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.cpp.CppTarget
+import issues.issue130.Issue130
 import javatest.misc.ExecutionOrderTest
 import jtransc.bug.JTranscBug127
 import jtransc.java8.Java8Test
@@ -52,6 +53,9 @@ class CppTest : _Base() {
 
 	@Ignore
 	@Test fun testJava8() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
+
+	@Ignore("Already included in BigTest")
+	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Test fun testMixed() = testNativeClass<JTranscCppNativeMixedTest>("""
 	//	JTranscReinterpretArrays:
