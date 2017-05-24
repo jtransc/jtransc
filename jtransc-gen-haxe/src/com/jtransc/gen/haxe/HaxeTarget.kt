@@ -1,9 +1,6 @@
 package com.jtransc.gen.haxe
 
-import com.jtransc.ConfigOutputFile
-import com.jtransc.ConfigSubtarget
-import com.jtransc.ConfigTargetDirectory
-import com.jtransc.JTranscVersion
+import com.jtransc.*
 import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
@@ -25,7 +22,6 @@ import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.time.measureProcess
 import com.jtransc.vfs.*
@@ -94,14 +90,25 @@ class HaxeTarget : GenTargetDescriptor() {
 
 @Singleton
 class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
+	val subtarget = injector.get<ConfigSubtarget>().subtarget
 	override val SINGLE_FILE: Boolean = false
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
 	val MAX_SWITCH_SIZE = 10
 	override val floatHasFSuffix: Boolean = false
 
-	val nostack = if (debugVersion) "" else "@:noStack"
-	val unreflective = "@:unreflective"
+	val isCpp = subtarget in setOf("cpp", "windows", "linux", "mac", "android")
+
+	val nostack = when {
+		debugVersion -> ""
+		isCpp -> "@:noStack"
+		else -> ""
+	}
+
+	val unreflective = when {
+		isCpp -> "@:unreflective"
+		else -> ""
+	}
 
 	val CLASS_ANNOTATIONS = "$unreflective"
 	val FIELD_ANNOTATIONS = "$unreflective"
@@ -118,8 +125,6 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FqName.targetName: String get() = this.targetClassFqName
 	//override val FqName.targetName: String get() = this.targetClassFqName.replace('.', '_').replace('$', '_')
 
-	val subtarget = injector.get<ConfigSubtarget>().subtarget
-
 	val usingGotoHack = ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))
 
 	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
@@ -129,7 +134,18 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		FEATURE_FOR_FUNCTION_WITH_TRAPS
 	}
 
-	override fun genGoto(label: AstLabel): String = "untyped __cpp__('goto ${label.name};');"
+	override fun genGoto(label: AstLabel, last: Boolean): String {
+		val res = "untyped __cpp__('goto ${label.name};');"
+		if (last) {
+			if (currentMethod.type.retVoid) {
+				return "{ $res return; }";
+			} else {
+				return "{ $res return ${currentMethod.type.ret.nativeDefaultString}; }";
+			}
+		}
+		return res
+	}
+
 	override fun genLabel(label: AstLabel): String = "untyped __cpp__('${label.name}:;');"
 
 	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter {
@@ -305,17 +321,34 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
-		if (!outputFile2.exists()) {
-			return ProcessResult2(-1, "file $outputFile2 doesn't exist")
-		}
+		if (!outputFile2.exists()) return ProcessResult2(-1, "file $outputFile2 doesn't exist")
+
 		val fileSize = outputFile2.length()
 		log("run: ${outputFile2.absolutePath} ($fileSize bytes)")
 		val parentDir = outputFile2.parentFile
 
-		val runner = actualSubtarget!!.interpreter
-		val arguments = listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+		val platformExeSuffix = when {
+			JTranscSystem.isWindows() -> ".exe"
+			else -> ""
+		}
 
-		log.info("Running: $runner ${arguments.joinToString(" ")}")
+		val releaseDebugSuffix = when {
+			debugVersion -> "-debug"
+			else -> "-release"
+		}
+
+		val runner = when {
+			isCpp -> outputFile2.absolutePath + actualSubtarget!!.interpreterSuffix + "/" + _getHaxeFqName(entryPointClass).simpleName + "$releaseDebugSuffix$platformExeSuffix"
+			else -> actualSubtarget!!.interpreter
+		}
+
+		val arguments = when {
+			isCpp -> listOf()
+			else -> listOf(outputFile2.absolutePath + actualSubtarget.interpreterSuffix)
+		}
+
+		//log.info("Running: $runner ${arguments.joinToString(" ")}")
+		println("Running: $runner ${arguments.joinToString(" ")}")
 		return measureProcess("Running") {
 			ProcessUtils.run(parentDir, runner, arguments, options = ExecOptions(passthru = redirect))
 		}
@@ -502,6 +535,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "N.c($str, ${to.targetName})"
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
+	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
+	override fun N_ldiv(l: String, r: String): String = "N.ldiv($l, $r)"
+	override fun N_lrem(l: String, r: String): String = "N.lrem($l, $r)"
 	override fun N_imul(l: String, r: String): String = "N.imul($l, $r)"
 	override fun N_ishl(l: String, r: String): String = "N.ishl($l, $r)"
 	override fun N_ishr(l: String, r: String): String = "N.ishr($l, $r)"
@@ -529,8 +565,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			val pre = method.annotationsList.getTyped<HaxeMethodBodyPre>()?.value ?: ""
 			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
-			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody: Indenter = if ("" in bodiesmap) Indenter { line(bodiesmap[""]!!) } else defaultContentGen()
+			fun String.doTemplate() = this.toString().template()
+
+			val bodiesmap = bodies.map { it.target to it.value.doTemplate() }.toMap()
+			val defaultbody: Indenter = if ("" in bodiesmap) Indenter(bodiesmap[""]!!.doTemplate()) else defaultContentGen()
 			val extrabodies = bodiesmap.filterKeys { it != "" }
 			Indenter {
 				line(pre)
@@ -608,7 +646,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
 							val str: String = "${clazz.name}.${method.name} :: ${method.desc}: No method body".replace('$', '_');
-							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';") }.toString().template())
+							line(method.getHaxeNativeBody {
+								rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';")
+							})
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							//e.printStackTrace()
@@ -845,6 +885,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "N.CHECK_CAST($e, ${to.targetNameRef})"
 	}
 
+	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+		return "super$methodAccess(${args.joinToString(", ")})"
+	}
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

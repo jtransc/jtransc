@@ -3,6 +3,7 @@ import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.d.DTarget
 import issues.Issue100Double
+import issues.issue130.Issue130
 import jtransc.bug.JTranscBug127
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -46,6 +47,9 @@ class DTest : _Base() {
 
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss

@@ -709,6 +709,8 @@ class AstMethod(
 	override val ref: AstMethodRef = AstMethodRef(containingClass.name, name, methodType)
 	//val isOverriding: Boolean = overridingMethod != null,
 ) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
+
+
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
 
 	fun getParamsWithAnnotations() = methodType.args.map { AstArgumentWithAnnotations(it, parameterAnnotationsList[it.index]) }
@@ -998,8 +1000,7 @@ fun AstProgram.getDefinesFor(target: TargetName): List<String> = this.classes
 
 data class CondMembers(val cond: String, val members: List<String>)
 
-fun AstProgram.getMembersFor(target: TargetName): List<CondMembers> = this.classes
-	.flatMap { it.annotationsList.getTypedList(JTranscAddMembersList::value) }
+fun AstClass.getMembersFor(target: TargetName): List<CondMembers> = this.annotationsList.getTypedList(JTranscAddMembersList::value)
 	.filter { target.matches(it.target) }
 	.map { CondMembers(it.cond, it.value.toList()) }
 	.distinct()

@@ -1091,7 +1091,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	fun getNativeName(field: FieldRef): String {
-		return getClassNameAllocator(field.ref.containingClass).allocate(field.ref) { "F_" + normalizeName(field.ref.name + "_" + field.ref.type.mangle(), NameKind.FIELD) }
+		val clazz = field.ref.getClass(program)
+		val actualField = clazz[field.ref]
+		return getClassNameAllocator(actualField.ref.containingClass).allocate(actualField.ref) { "F_" + normalizeName(actualField.ref.name + "_" + clazz.fqname + "_" + actualField.ref.type.mangle(), NameKind.FIELD) }
 	}
 
 	override val AstMethodRef.objectToCache: Any get() = this

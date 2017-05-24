@@ -357,6 +357,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	@HaxeMethodBody("return N.swap32(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return N::bswap32(p0);")
 	public static int reverseBytes(int value) {
 		return ((value >>> 24)) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000) | ((value << 24));
 	}

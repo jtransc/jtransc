@@ -4,6 +4,7 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.cs.CSharpTarget
+import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
 import jtransc.micro.MicroHelloWorld
@@ -43,12 +44,14 @@ class CSharpTest : _Base() {
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
 
+	@Ignore("Already included in BigTest")
+	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
+
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
 
 	//@Test fun testMicroStaticInitTestAsm2() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM2, treeShaking = true)
 	@Test fun testMicroStaticInitTestAsm1() = testClass(Params(clazz = StaticInitTest::class.java, minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true))
-
 
 	@Ignore("Not working fine yet")
 	@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = false, log = false))

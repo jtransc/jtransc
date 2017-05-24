@@ -147,8 +147,8 @@ public final class UUID implements Serializable, Comparable<UUID> {
 	}
 
 	private static UUID makeUuid(byte[] hash, int version) {
-		long msb = Memory.peekLong(hash, 0, ByteOrder.BIG_ENDIAN);
-		long lsb = Memory.peekLong(hash, 8, ByteOrder.BIG_ENDIAN);
+		long msb = Memory.peekLong(hash, 0, false);
+		long lsb = Memory.peekLong(hash, 8, false);
 		// Set the version field.
 		msb &= ~(0xfL << 12);
 		msb |= ((long) version) << 12;

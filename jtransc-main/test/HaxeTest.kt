@@ -18,8 +18,8 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
-import issues.issue130.Issue130
 import issues.Issue94Enum
+import issues.issue130.Issue130
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
@@ -40,7 +40,8 @@ class HaxeTest : _Base() {
 
 	@Test fun testJTranscBug110() = testClass(Params(clazz = JTranscBug110::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
-	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, target = HaxeTarget(), lang = "js", log = false, treeShaking = true))
+	@Ignore("Already included in BigTest")
+	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "js", log = null))
 

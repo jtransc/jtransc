@@ -5,6 +5,7 @@ import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
 import issues.Issue94Enum
+import issues.issue130.Issue130
 import javatest.*
 import javatest.lang.*
 import javatest.misc.BenchmarkTest
@@ -130,6 +131,8 @@ object BigTest {
 		Issue100Double.main(args)
 
 		CaseInsensitiveOrder.main(args);
+
+		Issue130.main(args);
 
 		System.out.println(String.format("%d%%", 100))
 	}

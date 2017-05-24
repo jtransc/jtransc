@@ -1,5 +1,6 @@
 package com.jtransc.ast
 
+import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import kotlin.reflect.KProperty1
 
@@ -10,6 +11,10 @@ interface AstMemberRef : AstRef {
 	val name: String
 	val memberType: AstType
 }
+
+fun AstMemberRef.getClass(program: AstProgram) = program[classRef]!!
+fun AstMethodRef.getMethod(program: AstProgram) = program[this]
+fun AstFieldRef.getField(program: AstProgram) = program[this]
 
 inline fun <reified T1 : Any, reified T2 : Any> KProperty1<T1, T2>.ast(): AstFieldRef {
 	return AstFieldRef(T1::class.java.name.fqname, this.name, T2::class.java.ast())
@@ -34,6 +39,8 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 	val containingTypeRef = AstType.REF(containingClass)
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 	override fun toString() = "AstFieldRef(${containingClass.fqname},$name,${type.mangle()})"
+	//fun resolve(program: AstProgram): AstField = program[containingClass][this]
+	fun resolve(program: AstProgram): AstField = program[this]
 }
 
 data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef, MethodRef {
@@ -52,9 +59,8 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 
 	val allClassRefs: List<AstType.REF> by lazy { type.getRefClasses() + classRef }
 
-	fun resolve(program: AstProgram): AstMethod {
-		return program[containingClass][this]
-	}
+	//fun resolve(program: AstProgram): AstMethod = program[containingClass].getMethodInAncestorsAndInterfaces(this.withoutClass) ?: invalidOp("Can't resolve method $this")
+	fun resolve(program: AstProgram): AstMethod = program[this]!!
 
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 
