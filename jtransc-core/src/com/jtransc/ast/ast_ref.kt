@@ -11,6 +11,10 @@ interface AstMemberRef : AstRef {
 	val memberType: AstType
 }
 
+fun AstMemberRef.getClass(program: AstProgram) = program[classRef]!!
+fun AstMethodRef.getMethod(program: AstProgram) = program[this]
+fun AstFieldRef.getField(program: AstProgram) = program[this]
+
 inline fun <reified T1 : Any, reified T2 : Any> KProperty1<T1, T2>.ast(): AstFieldRef {
 	return AstFieldRef(T1::class.java.name.fqname, this.name, T2::class.java.ast())
 }
