@@ -41,20 +41,24 @@ public class JTranscNioTest {
 
 	static private void test2() {
 		System.out.println("JTranscNioTest.test2:");
-		ByteBuffer buffer = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
-		buffer.putInt(0, 0x3F800000);
-		FloatBuffer floatBuffer = buffer.asFloatBuffer();
-		IntBuffer intBuffer = buffer.asIntBuffer();
-		ShortBuffer shortBuffer = buffer.asShortBuffer();
-		System.out.println(floatBuffer.get(0));
-		System.out.println(intBuffer.get(0));
-		System.out.println(shortBuffer.get(0));
-		System.out.println(shortBuffer.get(1));
+		for (ByteOrder byteOrder : new ByteOrder[]{ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN, ByteOrder.nativeOrder()}) {
+			ByteBuffer buffer = ByteBuffer.allocate(16).order(byteOrder);
+			buffer.putInt(0, 0x3F800000);
+			FloatBuffer floatBuffer = buffer.asFloatBuffer();
+			IntBuffer intBuffer = buffer.asIntBuffer();
+			ShortBuffer shortBuffer = buffer.asShortBuffer();
+			System.out.println("Endian:" + byteOrder);
+			System.out.println("FLOAT:" + floatBuffer.get(0));
+			System.out.println("INT:" + intBuffer.get(0));
+			System.out.println("SHORT[0]:" + shortBuffer.get(0));
+			System.out.println("SHORT[1]:" + shortBuffer.get(1));
+		}
 	}
 
 	static private void test3() {
 		System.out.println("JTranscNioTest.test3:");
 		for (ByteOrder byteOrder : new ByteOrder[]{ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN, ByteOrder.nativeOrder()}) {
+			System.out.println("JTranscNioTest.test3(" + byteOrder + "):");
 			ByteBuffer buffer = ByteBuffer.allocate(512).order(byteOrder);
 			ShortBuffer shortBuffer = buffer.asShortBuffer();
 			IntBuffer intBuffer = buffer.asIntBuffer();
