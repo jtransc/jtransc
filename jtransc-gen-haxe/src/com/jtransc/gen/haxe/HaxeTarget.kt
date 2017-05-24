@@ -548,8 +548,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			val pre = method.annotationsList.getTyped<HaxeMethodBodyPre>()?.value ?: ""
 			val post = method.annotationsList.getTyped<HaxeMethodBodyPost>()?.value ?: ""
 
-			val bodiesmap = bodies.map { it.target to it.value }.toMap()
-			val defaultbody: Indenter = if ("" in bodiesmap) Indenter { line(bodiesmap[""]!!) } else defaultContentGen()
+			fun String.doTemplate() = this.toString().template()
+
+			val bodiesmap = bodies.map { it.target to it.value.doTemplate() }.toMap()
+			val defaultbody: Indenter = if ("" in bodiesmap) Indenter(bodiesmap[""]!!.doTemplate()) else defaultContentGen()
 			val extrabodies = bodiesmap.filterKeys { it != "" }
 			Indenter {
 				line(pre)
@@ -627,7 +629,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 							// @TODO: Do not hardcode this!
 							if (method.name == "throwParameterIsNullException") line("N.debugger();")
 							val str: String = "${clazz.name}.${method.name} :: ${method.desc}: No method body".replace('$', '_');
-							line(method.getHaxeNativeBody { rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';") }.toString().template())
+							line(method.getHaxeNativeBody {
+								rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';")
+							})
 							if (method.methodVoidReturnThis) line("return this;")
 						} catch (e: Throwable) {
 							//e.printStackTrace()
