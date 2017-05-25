@@ -2270,9 +2270,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genStaticConstructorsSorted() = indent {
-		for (line in genStaticConstructorsSortedLines()) {
-			line(line)
-		}
+		for (line in genStaticConstructorsSortedLines()) line(line)
 	}
 
 	open val FqName.actualFqName: FqName get() = this
