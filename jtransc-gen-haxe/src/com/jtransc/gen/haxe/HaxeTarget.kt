@@ -207,6 +207,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		"hx",
 		"z", // used for package
 		"N", // used for Haxe Natives
+		"NE", // used for Haxe C++ Natives
 		"SI", // STATIC INIT
 		"SII", // STATIC INIT INITIALIZED
 		"HAXE_CLASS_INIT", // Information about the class
