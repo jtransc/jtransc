@@ -428,6 +428,16 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		vfs[entryPointFilePath] = gen(customMain ?: plainMain)
 	}
 
+	fun genStringPopulation(): List<String> {
+		return getClassesForStaticConstruction().map { "${it.name.targetNameForStatic}" + access("STRS", static = true, field = false) + "();" }
+	}
+
+	override fun genStaticConstructorsSorted() = indent {
+		for (line in genStringPopulation()) line(line)
+		line(super.genStaticConstructorsSorted())
+	}
+
+
 	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
 		val get = when (elementType) {
 			AstType.BOOL -> "getBool"
@@ -664,14 +674,17 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		fun addClassInit(clazz: AstClass) = Indenter {
 			for (e in getClassStrings(clazz.name)) {
+				//line("$FIELD_ANNOTATIONS static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 				line("$FIELD_ANNOTATIONS static private var ${getStringId(e.id)}:$JAVA_LANG_STRING;")
 			}
 
-			line("$METHOD_ANNOTATIONS static public function SI()") {
+			line("$METHOD_ANNOTATIONS static public function STRS()") {
 				for (e in getClassStrings(clazz.name)) line("${getStringId(e.id)} = N.strLit(${e.str.quote()});")
+			}
+
+			line("$METHOD_ANNOTATIONS static public function SI()") {
 				if (clazz.hasStaticInit) {
-					val methodName = clazz.staticInitMethod!!.targetName
-					line("$methodName();")
+					line("${clazz.staticInitMethod!!.targetName}();")
 				}
 			}
 		}
