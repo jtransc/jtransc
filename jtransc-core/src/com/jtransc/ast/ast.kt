@@ -998,6 +998,12 @@ fun AstProgram.getDefinesFor(target: TargetName): List<String> = this.classes
 	.flatMap { it.value.toList() }
 	.distinct()
 
+fun AstProgram.getImportsFor(target: TargetName): List<String> = this.classes
+	.flatMap { it.annotationsList.getTypedList(JTranscAddImportsList::value) }
+	.filter { target.matches(it.target) }
+	.flatMap { it.value.toList() }
+	.distinct()
+
 data class CondMembers(val cond: String, val members: List<String>)
 
 fun AstClass.getMembersFor(target: TargetName): List<CondMembers> = this.annotationsList.getTypedList(JTranscAddMembersList::value)

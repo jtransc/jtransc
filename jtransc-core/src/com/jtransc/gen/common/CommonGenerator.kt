@@ -90,6 +90,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val targetLibraries by lazy { program.getLibsFor(targetName) }
 	val targetIncludes by lazy { program.getIncludesFor(targetName) }
+	val targetImports by lazy { program.getImportsFor(targetName) }
 	val targetDefines by lazy { program.getDefinesFor(targetName) }
 
 	open val allTargetLibraries by lazy { targetLibraries + (injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()) }
@@ -1724,6 +1725,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				"libraries" to settings.libraries,
 				"extra" to settings.extra,
 				"folders" to folders,
+				"TARGET_IMPORTS" to targetImports,
+				"TARGET_INCLUDES" to targetIncludes,
+				"TARGET_LIBRARIES" to targetLibraries,
+				"TARGET_DEFINES" to targetDefines,
 				"JTRANSC_VERSION" to JTranscVersion.getVersion()
 			) + program.getTemplateVariables(targetName)
 			).toHashMap()
