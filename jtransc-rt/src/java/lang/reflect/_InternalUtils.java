@@ -43,6 +43,8 @@ class _InternalUtils {
 
 	static Type parseType(MStringReader sr, Type owner) {
 		char c = sr.read();
+		//System.out.println("parseType:sr=" + sr.str + ":owner=" + owner.getTypeName());
+		//System.out.println("parseType:sr=" + sr.str);
 		switch (c) {
 			case '(':
 				Type[] args = parseTypes(sr, owner);
@@ -69,9 +71,6 @@ class _InternalUtils {
 				return Integer.TYPE;
 			case 'J':
 				return Long.TYPE;
-			case 'T': //Special case for T[]
-				Class<?> enumValue = Class_forName0("java.lang.Object");
-				return new ArrayType(enumValue);
 			case '[':
 				int start = sr.offset - 1;
 				Type type = parseType(sr, owner);
@@ -84,45 +83,30 @@ class _InternalUtils {
 					return new ArrayType(type);
 				}
 			case 'L':
-				int startOffset = sr.offset;
-				boolean generic = false;
-				while (true) {
-					char cn = sr.read();
-					if (cn == ';' || cn == '<') {
-						if (cn == '<') generic = true;
-						break;
-					}
-				}
-				int endOffset = sr.offset - 1;
+			case 'T':
+				boolean generic = (c == 'T');
+				String fqname = sr.readUntil(';', '<', false).replace('/', '.');
 
-				String fqname = sr.str.substring(startOffset, endOffset).replace('/', '.');
+				// @TODO: This should properly create a Type object?
+				Type base = generic ? Class_forName0("java.lang.Object") : Class_forName0(fqname);
 
-				Class<?> base = Class_forName0(fqname);
-				if (generic) {
-					int genericStart = sr.offset;
-					int diamondCount = 1;
-					while (sr.hasMore()) {
-						char cn = sr.read();
-						if (cn == '<') diamondCount++;
-						if (cn == '>') {
-							diamondCount--;
-							if (diamondCount <= 0) break;
-						}
-					}
-					int genericEnd = sr.offset - 1;
-					sr.expect(';');
-					String genericParamsStr = sr.str.substring(genericStart, genericEnd);
-					//System.out.println("genericParamsStr: " + genericParamsStr);
-					Type[] paramTypes = parseTypes(genericParamsStr, owner);
-					for (Type pt : paramTypes) {
-						if (pt == null)
-							throw new RuntimeException("Can't find one or more classes in '" + genericParamsStr + "'");
-					}
-					return new ParameterizedTypeImpl(paramTypes, base, owner);
+				if (sr.peek() == '<') {
+					base = parseTypeGeneric(base, sr, owner);
 				}
+				sr.expect(';');
 				return base;
 		}
-		throw new Error("Can't parse type '" + c + "'");
+		throw new Error("Can't parse type '" + c + "' of " + sr.str);
+	}
+
+	static Type parseTypeGeneric(Type base, MStringReader sr, Type owner) {
+		sr.expect('<');
+		ArrayList<Type> paramTypes = new ArrayList<>();
+		while (sr.hasMore() && sr.peek() != '>') {
+			paramTypes.add(parseType(sr, owner));
+		}
+		sr.expect('>');
+		return new ParameterizedTypeImpl(paramTypes.toArray(new Type[paramTypes.size()]), base, owner);
 	}
 
 	static Type[] parseTypes(String str, Type owner) {

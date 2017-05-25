@@ -2,8 +2,8 @@ package issues.issue136;
 
 import java.util.HashMap;
 
-public class SomeClass<G, Z>{
+public class SomeExtClass<G, Z>{
+	G[] mass;
     Z point;
     HashMap<G, Z> map;
-    G[] mass;
 }
