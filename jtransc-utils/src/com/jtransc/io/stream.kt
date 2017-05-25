@@ -68,13 +68,11 @@ fun InputStream.readAvailableChunk(): ByteArray {
 
 fun InputStream.readExactBytes(size: Int): ByteArray {
 	val out = ByteArray(size)
-	var offset = 0
-	var remaining = size
-	while (remaining > 0) {
-		val read = this.read(out, offset, remaining)
+	var pos = 0
+	while (pos < size) {
+		val read = this.read(out, pos, size - pos)
 		if (read <= 0) invalidOp("Can't read all bytes exactly")
-		remaining -= read
-		offset += read
+		pos += read
 	}
 	return out
 }
