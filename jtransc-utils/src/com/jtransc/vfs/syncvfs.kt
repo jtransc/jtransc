@@ -39,7 +39,8 @@ data class SyncVfsStat(
 	val isDirectory: Boolean,
 	val isSymlink: Boolean,
 	val exists: Boolean,
-	val mode: FileMode
+	val mode: FileMode,
+	val inode: Long = 0L
 ) {
 	val name: String get() = file.name
 	val path: String get() = file.path
@@ -212,6 +213,8 @@ data class ExecOptions(
 
 open class SyncVfs {
 	final fun root() = SyncVfsFile(this, "")
+
+	operator fun get(path: String) = root()[path]
 
 	open val absolutePath: String = ""
 	open fun read(path: String): ByteArray {
@@ -434,7 +437,7 @@ fun CompressedVfs(file: File): SyncVfsFile {
 	}
 }
 
-
+/*
 fun ZipVfs(path: String): SyncVfsFile = ZipSyncVfs(ZipFile(path)).root()
 fun ZipVfs(file: File): SyncVfsFile = ZipSyncVfs(ZipFile(file)).root()
 fun ZipVfs(content: ByteArray): SyncVfsFile {
@@ -442,6 +445,8 @@ fun ZipVfs(content: ByteArray): SyncVfsFile {
 	tempFile.writeBytes(content)
 	return ZipSyncVfs(ZipFile(tempFile)).root()
 }
+*/
+
 fun ResourcesVfs(clazz: Class<*>): SyncVfsFile = ResourcesSyncVfs(clazz).root()
 @Deprecated("Use File instead", ReplaceWith("LocalVfs(File(path))", "java.io.File"))
 fun LocalVfs(path: String): SyncVfsFile = RootLocalVfs().access(path).jail()
@@ -625,98 +630,6 @@ private class ResourcesSyncVfs(val clazz: Class<*>) : SyncVfs() {
 	override fun read(path: String): ByteArray {
 		return classLoader.getResourceAsStream(path).readBytes()
 	}
-}
-
-private class ZipSyncVfs(val zip: ZipFile) : SyncVfs() {
-	constructor(path: String) : this(ZipFile(path))
-
-	constructor(file: File) : this(ZipFile(file))
-
-	override val absolutePath: String = zip.name + "#"
-
-	override fun read(path: String): ByteArray {
-		val entry = zip.getEntry(path) ?: throw FileNotFoundException(path)
-		val inputStream = zip.getInputStream(entry)
-		return inputStream.readExactBytes(entry.size.toInt())
-	}
-
-	class Node(val zip: ZipSyncVfs, val name: String, val parent: Node? = null) {
-		val path: String = (if (parent != null) "${parent.path}/$name" else name).trim('/')
-		var entry: ZipEntry? = null
-		val root: Node = parent?.root ?: this
-
-		val stat: SyncVfsStat by lazy {
-			SyncVfsStat(
-				file = SyncVfsFile(zip, path),
-				size = entry?.size ?: 0,
-				mtime = Date(entry?.time ?: 0),
-				isDirectory = entry?.isDirectory ?: true,
-				isSymlink = false,
-				exists = true,
-				mode = FileMode.FULL_ACCESS
-			)
-		}
-
-		init {
-			parent?.children?.put(name, this)
-		}
-
-		val children = hashMapOf<String, Node>()
-
-		fun createChild(name: String): Node {
-			return Node(zip, name, this)
-		}
-
-		fun access(path: String, create: Boolean = false): Node {
-			var current = if (path.startsWith("/")) root else this
-			for (part in path.trim('/').split('/')) {
-				when (part) {
-					"", "." -> Unit
-					".." -> current = current.parent ?: current
-					else -> {
-						var childNode = current.children[part]
-						if (childNode == null && create) {
-							childNode = Node(zip, part, current)
-						}
-						current = childNode!!
-					}
-				}
-			}
-			return current
-		}
-	}
-
-	private val rootNode = Node(this, "")
-
-	init {
-		val cache = hashMapOf<String, Node>()
-		for (e in zip.entries()) {
-			val normalizedName = e.name.trim('/')
-			val (path, name) = normalizedName.splitLast('/')
-			//println("$path :: $name")
-			if (path !in cache) {
-				cache[path] = rootNode.access(path, create = true)
-			}
-			//println(cache[path]?.path)
-			cache[path]!!.createChild(name).apply {
-				this.entry = e
-			}
-		}
-	}
-
-	override fun listdir(path: String): Iterable<SyncVfsStat> {
-		return rootNode.access(path).children.values.map { it.stat }
-	}
-
-	override fun stat(path: String): SyncVfsStat {
-		return try {
-			rootNode.access(path).stat
-		} catch (e: Throwable) {
-			SyncVfsStat.notExists(SyncVfsFile(this, path))
-		}
-	}
-
-	override fun toString(): String = "ZipSyncVfs(${this.zip.name})"
 }
 
 fun SyncVfsFile.getUnmergedFiles(): List<SyncVfsFile> {

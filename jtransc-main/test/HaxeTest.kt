@@ -45,6 +45,8 @@ class HaxeTest : _Base() {
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "js", log = null))
 
+	@Test fun testBigMinimized() = testClass(Params(clazz = BigTest::class.java, minimize = true, lang = "js", log = null))
+
 	@Ignore
 	@Test fun testBigCpp() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
 

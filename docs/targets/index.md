@@ -107,13 +107,5 @@ Currently the supported target is [Haxe](/targets/haxe), which by itself targets
             <td><strong>Not yet</strong></td>
             <td></td>
         </tr>
-        <tr>
-            <td>Tizen</td>
-            <td>Tizen executable</td>
-            <td><code>runTizen</code>, <code>distTizen</code></td>
-            <td><code>haxelib install hxcpp</code>, <code>haxelib run lime setup tizen</code></td>
-            <td><strong>Not yet</strong></td>
-            <td></td>
-        </tr>
     </tbody>
 </table>

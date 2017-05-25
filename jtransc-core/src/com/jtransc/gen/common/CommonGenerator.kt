@@ -26,6 +26,7 @@ import com.jtransc.text.Indenter
 import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
+import com.jtransc.util.toIntOrNull2
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
 import com.jtransc.vfs.MergeVfs
@@ -577,7 +578,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val out = Regex("#([',.:])?((@|\\d)+)").replace(callsiteBody) { mr ->
 				val mustQuote = mr.groupValues[1]
 				val rid = mr.groupValues[2]
-				val id = rid.toIntOrNull() ?: 0
+				val id = rid.toIntOrNull2() ?: 0
 				val res = if (rid == "@") objStr else args2[id]
 				val res2 = if (rid != "@") args2Unquoted[id] ?: args2[id] else objStr
 				when (mustQuote) {

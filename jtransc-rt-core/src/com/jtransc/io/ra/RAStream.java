@@ -109,6 +109,18 @@ abstract public class RAStream {
 		return Arrays.copyOf(out, readed);
 	}
 
+	public byte[] readBytesExact(int count) {
+		byte[] out = new byte[count];
+		int pos = 0;
+		while (pos < count) {
+			int readed = read(out, pos, out.length - pos);
+			if (readed <= 0) break;
+			pos += readed;
+		}
+		if (pos < count) throw new RuntimeException("Can't read bytes " + count + " just able to read " + pos);
+		return out;
+	}
+
 	public byte[] readBytes(long count) {
 		return readBytes((int)count);
 	}
@@ -135,6 +147,10 @@ abstract public class RAStream {
 		return out;
 	}
 
+	public RASlice slice() {
+		return new RASlice(this, 0L, length());
+	}
+
 	public RASlice slice(long start, long end) {
 		return new RASlice(this, start, end);
 	}
@@ -148,7 +164,7 @@ abstract public class RAStream {
 	}
 
 	public byte[] readAvailableBytes() {
-		return readBytes((int)getAvailable());
+		return readBytesExact((int)getAvailable());
 	}
 
 	abstract public void setLength(long length);
