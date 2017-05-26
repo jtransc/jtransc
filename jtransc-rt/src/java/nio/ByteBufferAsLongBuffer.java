@@ -166,8 +166,8 @@ abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs
 	}
 
 	@Override
-	@HaxeMethodBody("this.tarray.set(p0 * 2 + 0, p0.low); this.tarray.set(p0 * 2 + 1, p0.high); return this;")
-	@JTranscMethodBody(target = "js", value = "this.tarray[p0 * 2 + 0] = p0.low; this.tarray[p0 * 2 + 1] = p0.high; return this;")
+	@HaxeMethodBody("this.tarray.set(p0 * 2 + 0, p1.low); this.tarray.set(p0 * 2 + 1, p1.high); return this;")
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0 * 2 + 0] = p1.low; this.tarray[p0 * 2 + 1] = p1.high; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1.toInt(); return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((long *)ptr)[p0] = p1; } } return this;")

@@ -176,7 +176,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		return this;
 	}
 
-	@HaxeMethodBody("return this.farray.get(p0);")
+	@HaxeMethodBody("return this.iarray.get(p0);")
 	@JTranscMethodBody(target = "js", value = "return this.iarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.iarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->iarray[p0];")
@@ -186,7 +186,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		return Memory.peekAlignedIntLE(bytes, index);
 	}
 
-	@HaxeMethodBody("this.farray.set(p0, p1); return this;")
+	@HaxeMethodBody("this.iarray.set(p0, p1); return this;")
 	@JTranscMethodBody(target = "js", value = "this.iarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.iarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->iarray[p0] = p1; return this;")
