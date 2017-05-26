@@ -335,7 +335,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val releaseDebugSuffix = when {
 			debugVersion -> "-debug"
-			else -> "-release"
+			//else -> "-release"
+			else -> ""
 		}
 
 		val runner = when {

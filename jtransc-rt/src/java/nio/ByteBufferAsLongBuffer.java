@@ -16,42 +16,44 @@
 
 package java.nio;
 
+import libcore.io.Memory;
+
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-/**
- * This class wraps a byte buffer to be a long buffer.
- * <p>
- * Implementation notice:
- * <ul>
- * <li>After a byte buffer instance is wrapped, it becomes privately owned by
- * the adapter. It must NOT be accessed outside the adapter any more.</li>
- * <li>The byte buffer's position and limit are NOT linked with the adapter.
- * The adapter extends Buffer, thus has its own position and limit.</li>
- * </ul>
- * </p>
- *
- */
-final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
-
+abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
+	final byte[] bytes;
 
     static LongBuffer asLongBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsLongBuffer(slice);
+		return create(slice, byteBuffer.isLittleEndian);
     }
 
-    private ByteBufferAsLongBuffer(ByteBuffer byteBuffer) {
+	static private ByteBufferAsLongBuffer create(ByteBuffer byteBuffer, boolean isLittleEndian) {
+		return isLittleEndian ? new ByteBufferAsLongBuffer.LE(byteBuffer) : new ByteBufferAsLongBuffer.BE(byteBuffer);
+	}
+
+	private ByteBufferAsLongBuffer createWithSameOrder(ByteBuffer byteBuffer) {
+		return create(byteBuffer, order() == ByteOrder.LITTLE_ENDIAN);
+	}
+
+	private ByteBufferAsLongBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.LONG);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
-    }
+		this.bytes = byteBuffer.array();
+		init(byteBuffer.array());
+	}
+
+	private void init(byte[] data) {
+	}
 
     @Override
     public LongBuffer asReadOnlyBuffer() {
-        ByteBufferAsLongBuffer buf = new ByteBufferAsLongBuffer(byteBuffer.asReadOnlyBuffer());
+        ByteBufferAsLongBuffer buf = (ByteBufferAsLongBuffer) byteBuffer.asReadOnlyBuffer().asLongBuffer();
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -75,7 +77,7 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
     @Override
     public LongBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsLongBuffer buf = new ByteBufferAsLongBuffer(bb);
+        ByteBufferAsLongBuffer buf = createWithSameOrder(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -86,21 +88,6 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
     public long get() {
         if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getLong(position++ * SizeOf.LONG);
-    }
-
-    @Override
-    public long get(int index) {
-        checkIndex(index);
-        return byteBuffer.getLong(index * SizeOf.LONG);
-    }
-
-    @Override
-    public LongBuffer get(long[] dst, int dstOffset, int longCount) {
-        byteBuffer.limit(limit * SizeOf.LONG);
-        byteBuffer.position(position * SizeOf.LONG);
-		((ByteBuffer) byteBuffer).get(dst, dstOffset, longCount);
-        this.position += longCount;
-        return this;
     }
 
     @Override
@@ -130,37 +117,21 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
         return false;
     }
 
-    @Override
-    public LongBuffer put(long c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
-        byteBuffer.putLong(position++ * SizeOf.LONG, c);
-        return this;
-    }
-
-    @Override
-    public LongBuffer put(int index, long c) {
-        checkIndex(index);
-        byteBuffer.putLong(index * SizeOf.LONG, c);
-        return this;
-    }
-
-    //@Override
-    //public LongBuffer put(long[] src, int srcOffset, int longCount) {
-    //    byteBuffer.limit(limit * SizeOf.LONG);
-    //    byteBuffer.position(position * SizeOf.LONG);
-    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, longCount);
-    //    this.position += longCount;
-    //    return this;
-    //}
+	@Override
+	public LongBuffer put(long c) {
+		if (position == limit) {
+			throw new BufferOverflowException();
+		}
+		byteBuffer.putLong(position++ * SizeOf.LONG, c);
+		return this;
+	}
 
     @Override
     public LongBuffer slice() {
         byteBuffer.limit(limit * SizeOf.LONG);
         byteBuffer.position(position * SizeOf.LONG);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        LongBuffer result = new ByteBufferAsLongBuffer(bb);
+        LongBuffer result = createWithSameOrder(bb);
         byteBuffer.clear();
         return result;
     }
@@ -168,5 +139,39 @@ final class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs {
 	@Override
 	public ByteBuffer getByteBuffer() {
 		return byteBuffer;
+	}
+
+	final static public class LE extends ByteBufferAsLongBuffer {
+		LE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		public long get(int index) {
+			return Memory.peekAlignedLongLE(bytes, index);
+		}
+
+		@Override
+		public LongBuffer put(int index, long c) {
+			Memory.pokeAlignedLongLE(bytes, index, c);
+			return this;
+		}
+	}
+
+	final static public class BE extends ByteBufferAsLongBuffer {
+		BE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		public long get(int index) {
+			return Memory.peekAlignedLongBE(bytes, index);
+		}
+
+		@Override
+		public LongBuffer put(int index, long c) {
+			Memory.pokeAlignedLongBE(bytes, index, c);
+			return this;
+		}
 	}
 }

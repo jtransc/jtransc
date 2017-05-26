@@ -16,41 +16,55 @@
 
 package java.nio;
 
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import libcore.io.Memory;
+
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-/**
- * This class wraps a byte buffer to be a short buffer.
- * <p>
- * Implementation notice:
- * <ul>
- * <li>After a byte buffer instance is wrapped, it becomes privately owned by
- * the adapter. It must NOT be accessed outside the adapter any more.</li>
- * <li>The byte buffer's position and limit are NOT linked with the adapter.
- * The adapter extends Buffer, thus has its own position and limit.</li>
- * </ul>
- * </p>
- */
-final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
-
+@HaxeAddMembers("public var tarray:haxe.io.UInt16Array = null;")
+@JTranscAddMembers(target = "dart", value = "Int16List tarray;")
+@JTranscAddMembers(target = "cpp", value = "int16_t* tarray = nullptr;")
+class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
+	final byte[] bytes;
 
     static ShortBuffer asShortBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsShortBuffer(slice);
+		return create(slice, byteBuffer.isLittleEndian);
     }
+
+	static private ByteBufferAsShortBuffer create(ByteBuffer byteBuffer, boolean isLittleEndian) {
+		return isLittleEndian ? new ByteBufferAsShortBuffer.LE(byteBuffer) : new ByteBufferAsShortBuffer.BE(byteBuffer);
+	}
+
+	private ByteBufferAsShortBuffer createWithSameOrder(ByteBuffer byteBuffer) {
+		return create(byteBuffer, order() == ByteOrder.LITTLE_ENDIAN);
+	}
 
     private ByteBufferAsShortBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.SHORT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
+		this.bytes = byteBuffer.array();
+        init(byteBuffer.array());
     }
 
-    @Override
+	@HaxeMethodBody("this.tarray = haxe.io.UInt16Array.fromBytes(p0.data);")
+	@JTranscMethodBody(target = "js", value = "this.tarray = new Int16Array(p0.data.buffer);")
+	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int16List.view(p0.data.buffer);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int16_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	private void init(byte[] data) {
+	}
+
+	@Override
     public ShortBuffer asReadOnlyBuffer() {
-        ByteBufferAsShortBuffer buf = new ByteBufferAsShortBuffer(byteBuffer.asReadOnlyBuffer());
+        ByteBufferAsShortBuffer buf = (ByteBufferAsShortBuffer) byteBuffer.asReadOnlyBuffer().asShortBuffer();
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -88,21 +102,6 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
     }
 
     @Override
-    public short get(int index) {
-        checkIndex(index);
-        return byteBuffer.getShort(index * SizeOf.SHORT);
-    }
-
-    @Override
-    public ShortBuffer get(short[] dst, int dstOffset, int shortCount) {
-        byteBuffer.limit(limit * SizeOf.SHORT);
-        byteBuffer.position(position * SizeOf.SHORT);
-        ((ByteBuffer) byteBuffer).get(dst, dstOffset, shortCount);
-        this.position += shortCount;
-        return this;
-    }
-
-    @Override
     public boolean isDirect() {
         return byteBuffer.isDirect();
     }
@@ -137,22 +136,6 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
     }
 
     @Override
-    public ShortBuffer put(int index, short c) {
-        checkIndex(index);
-        byteBuffer.putShort(index * SizeOf.SHORT, c);
-        return this;
-    }
-
-    //@Override
-    //public ShortBuffer put(short[] src, int srcOffset, int shortCount) {
-    //    byteBuffer.limit(limit * SizeOf.SHORT);
-    //    byteBuffer.position(position * SizeOf.SHORT);
-    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, shortCount);
-    //    this.position += shortCount;
-    //    return this;
-    //}
-
-    @Override
     public ShortBuffer slice() {
         byteBuffer.limit(limit * SizeOf.SHORT);
         byteBuffer.position(position * SizeOf.SHORT);
@@ -166,4 +149,46 @@ final class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs 
 	public ByteBuffer getByteBuffer() {
 		return byteBuffer;
 	}
+
+	@Override
+	@HaxeMethodBody("return N.i2s(this.tarray.get(p0));")
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	public short get(int index) {
+		return Memory.peekAlignedShortLE(bytes, index);
+	}
+
+	@Override
+	@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	public ShortBuffer put(int index, short c) {
+		Memory.pokeAlignedShortLE(bytes, index, c);
+		return this;
+	}
+
+	final static public class LE extends ByteBufferAsShortBuffer {
+		LE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+	}
+
+	final static public class BE extends ByteBufferAsShortBuffer {
+		BE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		public short get(int index) {
+			return Short.reverseBytes(super.get(index));
+		}
+
+		@Override
+		public ShortBuffer put(int index, short c) {
+			return super.put(index, Short.reverseBytes(c));
+		}
+	}
+
 }

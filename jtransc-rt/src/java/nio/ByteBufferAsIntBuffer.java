@@ -18,25 +18,36 @@ package java.nio;
 
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
+@HaxeAddMembers("public var tarray:haxe.io.Int32Array = null;")
+@JTranscAddMembers(target = "dart", value = "Int32List tarray;")
 @JTranscAddMembers(target = "cpp", value = "int32_t* tarray = nullptr;")
-class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
+abstract class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
 
     static IntBuffer asIntBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-		boolean isLittleEndian = byteBuffer.isLittleEndian;
-        return isLittleEndian ? new ByteBufferAsIntBuffer(slice) : new ByteBufferAsIntBuffer.BE(slice);
+        return create(slice, byteBuffer.isLittleEndian);
     }
 
-    ByteBufferAsIntBuffer(ByteBuffer byteBuffer) {
+	static private ByteBufferAsIntBuffer create(ByteBuffer byteBuffer, boolean isLittleEndian) {
+		return isLittleEndian ? new ByteBufferAsIntBuffer.LE(byteBuffer) : new ByteBufferAsIntBuffer.BE(byteBuffer);
+	}
+
+	private ByteBufferAsIntBuffer createWithSameOrder(ByteBuffer byteBuffer) {
+		return create(byteBuffer, order() == ByteOrder.LITTLE_ENDIAN);
+	}
+
+	ByteBufferAsIntBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.INT);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
@@ -44,14 +55,16 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         init(byteBuffer.array());
     }
 
+	@HaxeMethodBody("this.tarray = haxe.io.Int32Array.fromBytes(p0.data);")
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.data.buffer);")
+	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int32List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data);")
 	private void init(byte[] data) {
 	}
 
 	@Override
     public IntBuffer asReadOnlyBuffer() {
-        ByteBufferAsIntBuffer buf = new ByteBufferAsIntBuffer(byteBuffer.asReadOnlyBuffer());
+        ByteBufferAsIntBuffer buf = (ByteBufferAsIntBuffer) byteBuffer.asReadOnlyBuffer().asIntBuffer();
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -75,7 +88,7 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     @Override
     public IntBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsIntBuffer buf = new ByteBufferAsIntBuffer(bb);
+        ByteBufferAsIntBuffer buf = createWithSameOrder(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -86,15 +99,6 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     public int get() {
         if (position == limit) throw new BufferUnderflowException();
         return get(position++);
-    }
-
-    @Override
-    public IntBuffer get(int[] dst, int dstOffset, int intCount) {
-        byteBuffer.limit(limit * SizeOf.INT);
-        byteBuffer.position(position * SizeOf.INT);
-        ((ByteBuffer) byteBuffer).get(dst, dstOffset, intCount);
-        this.position += intCount;
-        return this;
     }
 
     @Override
@@ -129,21 +133,12 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
         return put(position++, c);
     }
 
-    //@Override
-    //public IntBuffer put(int[] src, int srcOffset, int intCount) {
-    //    byteBuffer.limit(limit * SizeOf.INT);
-    //    byteBuffer.position(position * SizeOf.INT);
-    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, intCount);
-    //    this.position += intCount;
-    //    return this;
-    //}
-
     @Override
     public IntBuffer slice() {
         byteBuffer.limit(limit * SizeOf.INT);
         byteBuffer.position(position * SizeOf.INT);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        IntBuffer result = new ByteBufferAsIntBuffer(bb);
+        IntBuffer result = createWithSameOrder(bb);
         byteBuffer.clear();
         return result;
     }
@@ -153,38 +148,51 @@ class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 		return byteBuffer;
 	}
 
-	@Override
-	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
-	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
-	public int get(int index) {
-		checkIndex(index);
-		//return byteBuffer.getInt(index * SizeOf.INT);
-		return Memory.peekAlignedIntLE(bytes, index);
+
+	final static public class LE extends ByteBufferAsIntBuffer {
+		LE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+
+		@Override
+		@HaxeMethodBody("return this.tarray.get(p0);")
+		@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+		@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
+		@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+		public int get(int index) {
+			checkIndex(index);
+			//return byteBuffer.getInt(index * SizeOf.INT);
+			return Memory.peekAlignedIntLE(bytes, index);
+		}
+
+		@Override
+		@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+		@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+		@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
+		@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+		public IntBuffer put(int index, int c) {
+			checkIndex(index);
+			Memory.pokeAlignedIntLE(bytes, index, c);
+			return this;
+		}
 	}
 
-	@Override
-	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
-	public IntBuffer put(int index, int c) {
-		checkIndex(index);
-		Memory.pokeInt(bytes, index * SizeOf.INT, c, true);
-		return this;
-	}
-
-	static public class BE extends ByteBufferAsIntBuffer {
+	final static public class BE extends ByteBufferAsIntBuffer {
 		BE(ByteBuffer byteBuffer) {
 			super(byteBuffer);
 		}
 
 		@Override
 		public int get(int index) {
-			return Integer.reverseBytes(super.get(index));
+			return Memory.peekAlignedIntBE(bytes, index);
 		}
 
 		@Override
 		public IntBuffer put(int index, int c) {
-			return super.put(index, Integer.reverseBytes(c));
+			checkIndex(index);
+			Memory.pokeAlignedInt(bytes, index, c, false);
+			return this;
 		}
 	}
-
 }
