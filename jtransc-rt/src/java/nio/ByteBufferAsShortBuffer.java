@@ -29,6 +29,7 @@ import java.nio.internal.ByteBufferAs;
 @HaxeAddMembers("public var tarray:haxe.io.UInt16Array = null;")
 @JTranscAddMembers(target = "dart", value = "Int16List tarray;")
 @JTranscAddMembers(target = "cpp", value = "int16_t* tarray = nullptr;")
+@JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
 class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
@@ -59,6 +60,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int16Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int16List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int16_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = p0.u(); }")
 	private void init(byte[] data) {
 	}
 
@@ -155,6 +157,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { return ((short *)ptr)[p0]; } }")
 	public short get(int index) {
 		return Memory.peekAlignedShortLE(bytes, index);
 	}
@@ -164,6 +167,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((short *)ptr)[p0] = p1; } } return this;")
 	public ShortBuffer put(int index, short c) {
 		Memory.pokeAlignedShortLE(bytes, index, c);
 		return this;

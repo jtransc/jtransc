@@ -16,11 +16,20 @@
 
 package java.nio;
 
+import com.jtransc.JTranscBits;
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 import libcore.io.Memory;
 
 import java.nio.internal.ByteBufferAs;
 import java.nio.internal.SizeOf;
 
+@HaxeAddMembers("public var tarray:haxe.io.Float64Array = null;")
+@JTranscAddMembers(target = "dart", value = "Float64List tarray;")
+@JTranscAddMembers(target = "cpp", value = "float64_t* tarray = nullptr;")
+@JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
 abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBufferAs {
 	final ByteBuffer byteBuffer;
 	final byte[] bytes;
@@ -47,6 +56,11 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 		init(byteBuffer.array());
 	}
 
+	@HaxeMethodBody("this.tarray = haxe.io.Float64Array.fromBytes(p0.data);")
+	@JTranscMethodBody(target = "js", value = "this.tarray = new Float64Array(p0.data.buffer);")
+	@JTranscMethodBody(target = "dart", value = "this.tarray = new Float64List.view(p0.data.buffer);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (float64_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = (byte[])(Array)p0.data; }")
 	private void init(byte[] data) {
 	}
 
@@ -62,9 +76,7 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 
 	@Override
 	public DoubleBuffer compact() {
-		if (byteBuffer.isReadOnly()) {
-			throw new ReadOnlyBufferException();
-		}
+		if (byteBuffer.isReadOnly()) throw new ReadOnlyBufferException();
 		byteBuffer.limit(limit * SizeOf.DOUBLE);
 		byteBuffer.position(position * SizeOf.DOUBLE);
 		byteBuffer.compact();
@@ -143,20 +155,39 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 		return byteBuffer;
 	}
 
+	@Override
+	@HaxeMethodBody("return this.tarray.get(p0);")
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { return ((double *)ptr)[p0]; } }")
+	public double get(int index) {
+		return Memory.peekAlignedDoubleLE(bytes, index);
+	}
+
+	@Override
+	@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((double *)ptr)[p0] = p1; } } return this;")
+	public DoubleBuffer put(int index, double c) {
+		Memory.pokeAlignedDoubleLE(bytes, index, c);
+		return this;
+	}
+
+	public long getLong(int index) {
+		return Memory.peekAlignedLongLE(bytes, index);
+	}
+
+	public DoubleBuffer putLong(int index, long c) {
+		Memory.pokeAlignedLongLE(bytes, index, c);
+		return this;
+	}
+
 	final static public class LE extends ByteBufferAsDoubleBuffer {
 		LE(ByteBuffer byteBuffer) {
 			super(byteBuffer);
-		}
-
-		@Override
-		public double get(int index) {
-			return Memory.peekAlignedDoubleLE(bytes, index);
-		}
-
-		@Override
-		public DoubleBuffer put(int index, double c) {
-			Memory.pokeAlignedDoubleLE(bytes, index, c);
-			return this;
 		}
 	}
 
@@ -167,13 +198,12 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 
 		@Override
 		public double get(int index) {
-			return Memory.peekAlignedDoubleBE(bytes, index);
+			return Double.longBitsToDouble(Long.reverseBytes(getLong(index)));
 		}
 
 		@Override
 		public DoubleBuffer put(int index, double c) {
-			Memory.pokeAlignedDoubleBE(bytes, index, c);
-			return this;
+			return putLong(index, JTranscBits.reverseBytes(Double.doubleToRawLongBits(c)));
 		}
 	}
 }

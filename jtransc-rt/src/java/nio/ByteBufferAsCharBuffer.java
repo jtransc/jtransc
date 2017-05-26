@@ -29,6 +29,7 @@ import java.nio.internal.ByteBufferAs;
 @HaxeAddMembers("public var tarray:haxe.io.UInt16Array = null;")
 @JTranscAddMembers(target = "dart", value = "Uint16List tarray;")
 @JTranscAddMembers(target = "cpp", value = "uint16_t* tarray = nullptr;")
+@JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
 abstract class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
@@ -59,6 +60,7 @@ abstract class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Uint16Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Uint16List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (uint16_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = p0.u(); }")
 	private void init(byte[] data) {
 	}
 
@@ -164,6 +166,7 @@ abstract class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs
 	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { return ((ushort *)ptr)[p0]; } }")
 	public char get(int index) {
 		return Memory.peekAlignedCharLE(bytes, index);
 	}
@@ -173,6 +176,7 @@ abstract class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs
 	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((ushort *)ptr)[p0] = p1; } } return this;")
 	public CharBuffer put(int index, char c) {
 		Memory.pokeAlignedCharLE(bytes, index, c);
 		return this;

@@ -504,4 +504,28 @@ public class JTranscBits {
 				(_0 << 8) | (_1 << 0)
 		);
 	}
+
+	static public char reverseBytes(char value) {
+		return Character.reverseBytes(value);
+	}
+
+	static public short reverseBytes(short value) {
+		return Short.reverseBytes(value);
+	}
+
+	static public int reverseBytes(int value) {
+		return Integer.reverseBytes(value);
+	}
+
+	static public long reverseBytes(long value) {
+		return Long.reverseBytes(value);
+	}
+
+	//static public double reverseBytes(double value) {
+	//	return Double.longBitsToDouble(Long.reverseBytes(Double.doubleToRawLongBits(value)));
+	//}
+//
+	//static public float reverseBytes(float value) {
+	//	return Float.floatToRawIntBits(Integer.reverseBytes(Float.floatToRawIntBits(value)));
+	//}
 }

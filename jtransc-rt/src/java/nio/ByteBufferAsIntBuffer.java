@@ -29,6 +29,7 @@ import java.nio.internal.ByteBufferAs;
 @HaxeAddMembers("public var tarray:haxe.io.Int32Array = null;")
 @JTranscAddMembers(target = "dart", value = "Int32List tarray;")
 @JTranscAddMembers(target = "cpp", value = "int32_t* tarray = nullptr;")
+@JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
 abstract class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
 	final byte[] bytes;
@@ -59,6 +60,7 @@ abstract class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int32List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = p0.u(); }")
 	private void init(byte[] data) {
 	}
 
@@ -148,33 +150,33 @@ abstract class ByteBufferAsIntBuffer extends IntBuffer implements ByteBufferAs {
 		return byteBuffer;
 	}
 
+	@Override
+	@HaxeMethodBody("return this.tarray.get(p0);")
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { return ((int *)ptr)[p0]; } }")
+	public int get(int index) {
+		checkIndex(index);
+		//return byteBuffer.getInt(index * SizeOf.INT);
+		return Memory.peekAlignedIntLE(bytes, index);
+	}
+
+	@Override
+	@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((int *)ptr)[p0] = p1;; } } return this;")
+	public IntBuffer put(int index, int c) {
+		checkIndex(index);
+		Memory.pokeAlignedIntLE(bytes, index, c);
+		return this;
+	}
 
 	final static public class LE extends ByteBufferAsIntBuffer {
 		LE(ByteBuffer byteBuffer) {
 			super(byteBuffer);
-		}
-
-
-		@Override
-		@HaxeMethodBody("return this.tarray.get(p0);")
-		@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
-		@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
-		@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
-		public int get(int index) {
-			checkIndex(index);
-			//return byteBuffer.getInt(index * SizeOf.INT);
-			return Memory.peekAlignedIntLE(bytes, index);
-		}
-
-		@Override
-		@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
-		@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
-		@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
-		@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
-		public IntBuffer put(int index, int c) {
-			checkIndex(index);
-			Memory.pokeAlignedIntLE(bytes, index, c);
-			return this;
 		}
 	}
 
