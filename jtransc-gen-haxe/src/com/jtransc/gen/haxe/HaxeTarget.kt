@@ -42,9 +42,9 @@ class HaxeTarget : GenTargetDescriptor() {
 	override val buildTargets: List<TargetBuildTarget> = listOf(
 		TargetBuildTarget("haxeJs", "haxe:js", "program.js", minimizeNames = true),
 		TargetBuildTarget("swf", "haxe:swf", "program.swf"),
-		TargetBuildTarget("haxeCpp", "haxe:cpp", "program.exe"),
-		TargetBuildTarget("neko", "haxe:neko", "program.n"),
-		TargetBuildTarget("php", "haxe:php", "program.php")
+		TargetBuildTarget("haxecpp", "haxe:cpp", "program.exe"),
+		TargetBuildTarget("haxephp", "haxe:php", "program.php"),
+		TargetBuildTarget("neko", "haxe:neko", "program.n")
 	)
 
 	override fun getGenerator(injector: Injector): CommonGenerator {

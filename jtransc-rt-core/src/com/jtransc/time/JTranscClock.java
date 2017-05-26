@@ -18,6 +18,7 @@ public class JTranscClock {
 
 		@HaxeMethodBody("return N.getTime();")
 		@JTranscMethodBodyList({
+			@JTranscMethodBody(target = "php", value = "return N::getTime();"),
 			@JTranscMethodBody(target = "js", value = "return N.getTime();"),
 			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
 			@JTranscMethodBody(target = "cs", value = "return N.getTime();"),
@@ -32,7 +33,7 @@ public class JTranscClock {
 			if (JTranscSystem.isJTransc()) {
 				throw new RuntimeException("Not implemented JTranscSystem.fastTime()");
 			} else {
-				return System.currentTimeMillis();
+				return ((double)System.nanoTime() / 1000000.0);
 			}
 		}
 

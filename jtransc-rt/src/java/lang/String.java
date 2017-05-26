@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 //@JTranscAddMembers(target = "cpp", value = {
 //	""
 //})
+//@JTranscAddMembers(target = "php", value = { "public $_str = null;", })
 @JTranscAddMembers(target = "as3", value = {
 	"public var _str: String = null;",
 	"public var _arr: JA_C = null;",
