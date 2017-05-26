@@ -1,6 +1,7 @@
 package jtransc.rt.test;
 
 import com.jtransc.JTranscBits;
+import com.jtransc.util.JTranscHex;
 
 import java.nio.*;
 
@@ -10,6 +11,7 @@ public class JTranscNioTest {
 		test2();
 		test2b();
 		test3();
+		testViewsPutIndex();
 	}
 
 	static private void test1() {
@@ -74,6 +76,33 @@ public class JTranscNioTest {
 				System.out.println("DOUBLE:" + doubleBuffer.get(n));
 				System.out.println("INT[0]:" + intBuffer.get(n * 2 + 0));
 				System.out.println("INT[1]:" + intBuffer.get(n * 2 + 1));
+			}
+		}
+	}
+
+	static private void testViewsPutIndex() {
+		System.out.println("JTranscNioTest.test2:");
+		for (ByteOrder byteOrder : new ByteOrder[]{ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN, ByteOrder.nativeOrder()}) {
+			for (int n = 0; n < 2; n++) {
+				final int len = 64;
+				ByteBuffer buffer = ByteBuffer.allocate(len).order(byteOrder);
+				ShortBuffer shortBuffer = buffer.asShortBuffer();
+				CharBuffer charBuffer = buffer.asCharBuffer();
+				IntBuffer intBuffer = buffer.asIntBuffer();
+				LongBuffer longBuffer = buffer.asLongBuffer();
+				FloatBuffer floatBuffer = buffer.asFloatBuffer();
+				DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+				buffer.put(1, (byte)0x77);
+				shortBuffer.put(1, (short)0x12345);
+				charBuffer.put(2, (char)0x12345);
+				intBuffer.put(3, 0x12345789);
+				floatBuffer.put(4, (float)1.0);
+				longBuffer.put(5, 0x12345789ABCDEF1L);
+				doubleBuffer.put(6, 1.0);
+				byte[] out = new byte[len];
+				buffer.position(0);
+				buffer.get(out, 0, len);
+				System.out.println(byteOrder + ":" + JTranscHex.encode(out));
 			}
 		}
 	}

@@ -132,6 +132,7 @@ public class JTranscCoreReflection {
 	@JTranscMethodBody(target = "cs", value = "return p0 is JA_0;")
 	@JTranscMethodBody(target = "as3", value = "return p0 is JA_0;")
 	@JTranscMethodBody(target = "dart", value = "return p0 is JA_0;")
+	@JTranscMethodBody(target = "php", value = "return $p0 instanceof JA_0;")
 	native public static boolean isArray(Object o);
 
 	@HaxeMethodBody("return (p0 != null) ? N.str(cast(p0, JA_0).desc) : null;")
@@ -141,6 +142,7 @@ public class JTranscCoreReflection {
 	@JTranscMethodBody(target = "cs", value = "return N.str(((JA_0)p0).desc);")
 	@JTranscMethodBody(target = "as3", value = "return N.str((p0 as JA_0).desc);")
 	@JTranscMethodBody(target = "dart", value = "return N.str((p0 as JA_0).desc);")
+	@JTranscMethodBody(target = "php", value = "return N::str($p0->desc);")
 	native public static String getArrayDescriptor(Object o);
 
 	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")
@@ -150,6 +152,7 @@ public class JTranscCoreReflection {
 	@JTranscMethodBody(target = "cs", value = "return p0.__CS__CLASS_ID;")
 	@JTranscMethodBody(target = "as3", value = "return p0.__AS3__CLASS_ID;")
 	@JTranscMethodBody(target = "dart", value = "return p0.__DART__CLASS_ID;")
+	@JTranscMethodBody(target = "php", value = "return $p0->__DART__CLASS_ID;")
 	static public int getClassId(Object obj) {
 		return -1;
 	}

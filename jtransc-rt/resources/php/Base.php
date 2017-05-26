@@ -3,9 +3,16 @@
 // JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
 
 class N {
+	const MIN_INT32 = -2147483648;
+	const MAX_INT32 = 2147483647;
+
 	static function init() {
 	}
 
+	static public function iushr($a, $b) {
+	    if ($b == 0) return $a;
+        return ($a >> $b) & ~(1 << (8 * PHP_INT_SIZE - 1) >> ($b - 1));
+	}
 	static public function irem($a, $b) { return $a % $b; }
 	static public function idiv($a, $b) { return floor($a / $b); } // intdiv
 
@@ -19,6 +26,11 @@ class N {
 	static function strLitEscape($str) {
 		return N::str($str);
 	}
+
+	static function resolveClass($name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N::str($name));
+	}
+
 
 	// @TODO: Use native strings
 	// @TODO: Unicode (use utf-8?)
@@ -39,6 +51,21 @@ class N {
 	static public function strArray($array) {
 		return JA_L::create(array_map(function($v) { return N::str($v); }, $array), 'Ljava/lang/String;');
 	}
+}
+
+class TypedBuffer {
+	public $data = null;
+
+	public function __construct($size) {
+		$this->data = str_repeat(chr(0), $size);
+	}
+
+	public function getByte($n) { return ord($this->data[$n]); }
+	public function getChar($n) { return unpack("S", substr($this->data, $n, 2))[0]; }
+	public function getShort($n) { return unpack("s", substr($this->data, $n, 2))[0]; }
+	public function getInt($n) { return unpack("i", substr($this->data, $n, 4))[0]; }
+	public function getFloat($n) { return unpack("f", substr($this->data, $n, 4))[0]; }
+	public function getDouble($n) { return unpack("d", substr($this->data, $n, 8))[0]; }
 }
 
 class JA_0 extends {% CLASS java.lang.Object %} {
@@ -76,6 +103,13 @@ class JA_S extends JA_0 {
 
 class JA_I extends JA_0 {
 	public function __construct($length) { parent::__construct($length, '[I', 0); }
+
+	static public function T($array) {
+		$len = count($array);
+		$out = new JA_I($len);
+		for ($n = 0; $n < $len; $n++) $out->set($n, $array[$n]);
+		return $out;
+	}
 }
 
 class JA_J extends JA_0 {
