@@ -38,7 +38,7 @@ import java.lang.reflect.Field;
 @HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
 @HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
 @HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
-@JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Runtime.js")
+@JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Base.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")
 @JTranscAddFile(target = "dart", priority = -1, process = true, prependAppend = "dart/Base.dart")
