@@ -66,6 +66,7 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	@HaxeMethodBody("return Math.isNaN(p0);")
+	@JTranscMethodBody(target = "php", value = "return is_nan($p0);")
 	@JTranscMethodBody(target = "js", value = "return isNaN(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.isNaN(p0);")
@@ -75,6 +76,7 @@ public final class Double extends Number implements Comparable<Double> {
 	native public static boolean isNaN(double v);
 
 	@HaxeMethodBody("return Math.isFinite(p0);")
+	@JTranscMethodBody(target = "php", value = "return is_finite($p0);")
 	@JTranscMethodBody(target = "js", value = "return isFinite(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")

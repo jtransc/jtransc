@@ -20,6 +20,7 @@ import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -34,6 +35,7 @@ public class JTranscConsole {
 	}
 
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -47,6 +49,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? L\"true\" : L\"false\");"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -59,6 +62,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -72,6 +76,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -85,6 +90,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(String.fromCharCode(p0));")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -98,6 +104,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%d\", p0); std.stdio.stdout.flush();"),
@@ -125,6 +132,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
@@ -137,6 +145,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
@@ -153,6 +162,7 @@ public class JTranscConsole {
 		@HaxeMethodBody("trace('' + p0);"),
 	})
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
 		@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),

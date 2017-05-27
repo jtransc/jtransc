@@ -724,7 +724,7 @@ N.irem = function(a, b) { return (a % b) | 0; };
 N.linit = function() {
 };
 N.lnew = function(high, low) { return Int64.make(high, low); };
-N.lnewFloat = function(float) { return Int64.ofFloat(float); };
+N.lnewFloat = function(v) { return Int64.ofFloat(v); };
 N.ltoFloat = function(v) { return Int64.toFloat(v); };
 N.llow  = function(v) { return v.low; }
 N.lhigh = function(v) { return v.high; }

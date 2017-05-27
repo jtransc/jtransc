@@ -136,6 +136,11 @@ public class JTranscBits {
 		return makeShort(bytes[0], bytes[1]);
 	}
 
+	public static void writeCharBE(byte[] out, int offset, char value) {
+		out[offset + 0] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 1] = (byte) ((value >>> 0) & 0xFF);
+	}
+
 	public static void writeShortBE(byte[] out, int offset, short value) {
 		out[offset + 0] = (byte) ((value >>> 8) & 0xFF);
 		out[offset + 1] = (byte) ((value >>> 0) & 0xFF);
@@ -161,6 +166,19 @@ public class JTranscBits {
 		out[offset + 7] = (byte) (l >>> 0);
 	}
 
+	public static void writeFloatBE(byte[] out, int offset, float value) {
+		writeIntBE(out, offset, Float.floatToRawIntBits(value));
+	}
+
+	public static void writeDoubleBE(byte[] out, int offset, double value) {
+		writeLongBE(out, offset, Double.doubleToRawLongBits(value));
+	}
+
+	public static void writeCharLE(byte[] out, int offset, char value) {
+		out[offset + 1] = (byte) ((value >>> 8) & 0xFF);
+		out[offset + 0] = (byte) ((value >>> 0) & 0xFF);
+	}
+
 	public static void writeShortLE(byte[] out, int offset, short value) {
 		out[offset + 1] = (byte) ((value >>> 8) & 0xFF);
 		out[offset + 0] = (byte) ((value >>> 0) & 0xFF);
@@ -171,6 +189,10 @@ public class JTranscBits {
 		out[offset + 2] = (byte) ((value >>> 16) & 0xFF);
 		out[offset + 1] = (byte) ((value >>> 8) & 0xFF);
 		out[offset + 0] = (byte) ((value >>> 0) & 0xFF);
+	}
+
+	public static void writeFloatLE(byte[] out, int offset, float value) {
+		writeIntLE(out, offset, Float.floatToRawIntBits(value));
 	}
 
 	public static void writeLongLE(byte[] out, int offset, long value) {
@@ -184,6 +206,10 @@ public class JTranscBits {
 		out[offset + 2] = (byte) (l >>> 16);
 		out[offset + 1] = (byte) (l >>> 8);
 		out[offset + 0] = (byte) (l >>> 0);
+	}
+
+	public static void writeDoubleLE(byte[] out, int offset, double value) {
+		writeLongLE(out, offset, Double.doubleToRawLongBits(value));
 	}
 
 	public static void writeShortBE(byte[] out, short value) {
@@ -210,6 +236,14 @@ public class JTranscBits {
 		writeLongLE(out, 0, value);
 	}
 
+	public static void writeFloatLE(byte[] out, float value) {
+		writeFloatLE(out, 0, value);
+	}
+
+	public static void writeDoubleLE(byte[] out, double value) {
+		writeDoubleLE(out, 0, value);
+	}
+
 	public static void writeShort(byte[] out, short value) {
 		writeShortBE(out, value);
 	}
@@ -230,6 +264,14 @@ public class JTranscBits {
 		}
 	}
 
+	public static void writeChar(byte[] out, int offset, char value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeShortLE(out, offset, (short) value);
+		} else {
+			writeShortBE(out, offset, (short) value);
+		}
+	}
+
 	public static void writeInt(byte[] out, int offset, int value, boolean isLittleEndian) {
 		if (isLittleEndian) {
 			writeIntLE(out, offset, value);
@@ -238,11 +280,27 @@ public class JTranscBits {
 		}
 	}
 
+	public static void writeFloat(byte[] out, int offset, float value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeIntLE(out, offset, Float.floatToRawIntBits(value));
+		} else {
+			writeIntBE(out, offset, Float.floatToRawIntBits(value));
+		}
+	}
+
 	public static void writeLong(byte[] out, int offset, long value, boolean isLittleEndian) {
 		if (isLittleEndian) {
 			writeLongLE(out, offset, value);
 		} else {
 			writeLongBE(out, offset, value);
+		}
+	}
+
+	public static void writeDouble(byte[] out, int offset, double value, boolean isLittleEndian) {
+		if (isLittleEndian) {
+			writeLongLE(out, offset, Double.doubleToRawLongBits(value));
+		} else {
+			writeLongBE(out, offset, Double.doubleToRawLongBits(value));
 		}
 	}
 
@@ -446,4 +504,28 @@ public class JTranscBits {
 				(_0 << 8) | (_1 << 0)
 		);
 	}
+
+	static public char reverseBytes(char value) {
+		return Character.reverseBytes(value);
+	}
+
+	static public short reverseBytes(short value) {
+		return Short.reverseBytes(value);
+	}
+
+	static public int reverseBytes(int value) {
+		return Integer.reverseBytes(value);
+	}
+
+	static public long reverseBytes(long value) {
+		return Long.reverseBytes(value);
+	}
+
+	//static public double reverseBytes(double value) {
+	//	return Double.longBitsToDouble(Long.reverseBytes(Double.doubleToRawLongBits(value)));
+	//}
+//
+	//static public float reverseBytes(float value) {
+	//	return Float.floatToRawIntBits(Integer.reverseBytes(Float.floatToRawIntBits(value)));
+	//}
 }

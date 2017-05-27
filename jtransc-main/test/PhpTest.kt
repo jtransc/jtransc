@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import com.jtransc.gen.php.PhpTarget
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -24,4 +25,7 @@ class PhpTest : _Base() {
 
 	@Ignore
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore
+	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true))
 }

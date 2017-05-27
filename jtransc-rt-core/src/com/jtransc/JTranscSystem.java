@@ -73,6 +73,7 @@ public class JTranscSystem {
 
 	@HaxeMethodBody("return true;")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "return true;"),
 		@JTranscMethodBody(target = "js", value = "return true;"),
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "return true;"),
@@ -114,6 +115,7 @@ public class JTranscSystem {
 
 	@SuppressWarnings("all")
 	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "return N::str('php');"),
 		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
@@ -260,7 +262,7 @@ public class JTranscSystem {
 	})
 	static private String getOSRaw() {
 		if (JTranscSystem.isJTransc()) {
-			throw new RuntimeException("getOSRaw()");
+			return "unknown-os";
 		} else {
 			return System.getProperty("os.name");
 		}

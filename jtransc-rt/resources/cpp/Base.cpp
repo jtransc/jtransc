@@ -26,6 +26,9 @@
 	//#include "gc_cpp.h"
 	#include "gc.h"
 #else
+	//void  GC_set_no_dls(int v) { }
+    //void  GC_set_all_interior_pointers(int v) { }
+    //void  GC_set_finalize_on_demand(int v) { }
 	void  GC_INIT() { }
 	void* GC_MALLOC(int size) { return malloc(size); }
 	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
@@ -1555,6 +1558,11 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 void N::startup() {
+	//GC_set_no_dls(1);
+	//GC_set_all_interior_pointers(1);
+	//GC_set_finalize_on_demand(0);
+	GC_INIT();
+
 	//std::setlocale(LC_COLLATE, "en_US.UTF-8");
 	//std::setlocale(LC_CTYPE, "en_US.UTF-8");
 

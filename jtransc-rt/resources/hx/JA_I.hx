@@ -93,7 +93,7 @@ class JA_I extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_I, to:JA_I, fromPos:Int, toPos:Int, length:Int) {
-		#if (sys || flash)
+		#if (cpp || flash)
 		Vector.blit(from.data, fromPos, to.data, toPos, length);
 		#else
     	if (from == to && toPos > fromPos) {

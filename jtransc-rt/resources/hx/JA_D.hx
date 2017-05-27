@@ -2,10 +2,6 @@ import haxe.io.*;
 import haxe.ds.Vector;
 
 #if (sys || flash)
-import cpp.Pointer;
-import cpp.NativeArray;
-typedef __JA_D_Item = Vector<Float64>;
-#elseif flash
 typedef __JA_D_Item = Vector<Float64>;
 #else
 typedef __JA_D_Item = Float64Array;
@@ -17,7 +13,7 @@ class JA_D extends JA_0 {
     public var data:__JA_D_Item = null;
 
 	#if cpp
-	{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:Pointer<Float64> = null;
+	{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:cpp.Pointer<Float64> = null;
 	#end
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
@@ -28,7 +24,7 @@ class JA_D extends JA_0 {
         this.length = length;
         this.desc = "[D";
 		#if cpp
-		ptr = NativeArray.address(data.toData(), 0);
+		ptr = cpp.NativeArray.address(data.toData(), 0);
 		#end
     }
 

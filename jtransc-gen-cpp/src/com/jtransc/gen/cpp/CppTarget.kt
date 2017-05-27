@@ -380,7 +380,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	fun writeMain(): Indenter = Indenter {
 		line("int main(int argc, char *argv[])") {
-			line("GC_INIT();") // http://www.hboehm.info/gc/simple_example.html
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")

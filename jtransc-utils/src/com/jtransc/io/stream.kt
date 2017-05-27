@@ -63,7 +63,7 @@ fun InputStream.readAvailableChunk(): ByteArray {
 	if (this.available() <= 0) return EmptyByteArray
 	val out = ByteArray(this.available())
 	val readed = this.read(out, 0, out.size)
-	return out.sliceArray(0 until readed)
+	return out.copyOf(readed)
 }
 
 fun InputStream.readExactBytes(size: Int): ByteArray {

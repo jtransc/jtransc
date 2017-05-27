@@ -1,9 +1,12 @@
+// JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
+
 import 'dart:typed_data';
 import 'dart:math' as Math;
 import 'dart:io';
 //import 'dart:developer' as debugger;
-
-// JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
+{% for import in TARGET_IMPORTS %}
+import '{{ import }}';
+{% end %}
 
 main() {
 	Bootstrap.Main(new List(0));

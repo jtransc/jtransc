@@ -16,42 +16,57 @@
 
 package java.nio;
 
+import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
+import libcore.io.Memory;
+
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-/**
- * This class wraps a byte buffer to be a char buffer.
- * <p>
- * Implementation notice:
- * <ul>
- * <li>After a byte buffer instance is wrapped, it becomes privately owned by
- * the adapter. It must NOT be accessed outside the adapter any more.</li>
- * <li>The byte buffer's position and limit are NOT linked with the adapter.
- * The adapter extends Buffer, thus has its own position and limit.</li>
- * </ul>
- * </p>
- *
- */
-final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
-
+@HaxeAddMembers("public var tarray:haxe.io.UInt16Array = null;")
+@JTranscAddMembers(target = "dart", value = "Uint16List tarray;")
+@JTranscAddMembers(target = "cpp", value = "uint16_t* tarray = nullptr;")
+@JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
+abstract class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     final ByteBuffer byteBuffer;
+	final byte[] bytes;
 
     static CharBuffer asCharBuffer(ByteBuffer byteBuffer) {
         ByteBuffer slice = byteBuffer.slice();
         slice.order(byteBuffer.order());
-        return new ByteBufferAsCharBuffer(slice);
+		return create(slice, byteBuffer.isLittleEndian);
     }
 
-    private ByteBufferAsCharBuffer(ByteBuffer byteBuffer) {
+    static private ByteBufferAsCharBuffer create(ByteBuffer byteBuffer, boolean isLittleEndian) {
+		return isLittleEndian ? new ByteBufferAsCharBuffer.LE(byteBuffer) : new ByteBufferAsCharBuffer.BE(byteBuffer);
+	}
+
+	private ByteBufferAsCharBuffer createWithSameOrder(ByteBuffer byteBuffer) {
+		return create(byteBuffer, order() == ByteOrder.LITTLE_ENDIAN);
+	}
+
+	private ByteBufferAsCharBuffer(ByteBuffer byteBuffer) {
         super(byteBuffer.capacity() / SizeOf.CHAR);
         this.byteBuffer = byteBuffer;
         this.byteBuffer.clear();
+		this.bytes = byteBuffer.array();
+		init(byteBuffer.array());
     }
 
-    @Override
+	@HaxeMethodBody("this.tarray = haxe.io.UInt16Array.fromBytes(p0.data);")
+	@JTranscMethodBody(target = "js", value = "this.tarray = new Uint16Array(p0.data.buffer);")
+	@JTranscMethodBody(target = "dart", value = "this.tarray = new Uint16List.view(p0.data.buffer);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (uint16_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = p0.u(); }")
+	private void init(byte[] data) {
+	}
+
+	@Override
     public CharBuffer asReadOnlyBuffer() {
-        ByteBufferAsCharBuffer buf = new ByteBufferAsCharBuffer(byteBuffer.asReadOnlyBuffer());
+        ByteBufferAsCharBuffer buf = createWithSameOrder(byteBuffer.asReadOnlyBuffer());
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -75,7 +90,7 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     @Override
     public CharBuffer duplicate() {
         ByteBuffer bb = byteBuffer.duplicate().order(byteBuffer.order());
-        ByteBufferAsCharBuffer buf = new ByteBufferAsCharBuffer(bb);
+        ByteBufferAsCharBuffer buf = createWithSameOrder(bb);
         buf.limit = limit;
         buf.position = position;
         buf.mark = mark;
@@ -86,21 +101,6 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
     public char get() {
         if (position == limit) throw new BufferUnderflowException();
         return byteBuffer.getChar(position++ * SizeOf.CHAR);
-    }
-
-    @Override
-    public char get(int index) {
-        checkIndex(index);
-        return byteBuffer.getChar(index * SizeOf.CHAR);
-    }
-
-    @Override
-    public CharBuffer get(char[] dst, int dstOffset, int charCount) {
-        byteBuffer.limit(limit * SizeOf.CHAR);
-        byteBuffer.position(position * SizeOf.CHAR);
-        ((ByteBuffer) byteBuffer).get(dst, dstOffset, charCount);
-        this.position += charCount;
-        return this;
     }
 
     @Override
@@ -132,35 +132,18 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
 
     @Override
     public CharBuffer put(char c) {
-        if (position == limit) {
-            throw new BufferOverflowException();
-        }
+        if (position == limit) throw new BufferOverflowException();
         byteBuffer.putChar(position++ * SizeOf.CHAR, c);
         return this;
     }
 
-    @Override
-    public CharBuffer put(int index, char c) {
-        checkIndex(index);
-        byteBuffer.putChar(index * SizeOf.CHAR, c);
-        return this;
-    }
-
-    //@Override
-    //public CharBuffer put(char[] src, int srcOffset, int charCount) {
-    //    byteBuffer.limit(limit * SizeOf.CHAR);
-    //    byteBuffer.position(position * SizeOf.CHAR);
-    //    ((ByteBuffer) byteBuffer).put(src, srcOffset, charCount);
-    //    this.position += charCount;
-    //    return this;
-    //}
 
     @Override
     public CharBuffer slice() {
         byteBuffer.limit(limit * SizeOf.CHAR);
         byteBuffer.position(position * SizeOf.CHAR);
         ByteBuffer bb = byteBuffer.slice().order(byteBuffer.order());
-        CharBuffer result = new ByteBufferAsCharBuffer(bb);
+        CharBuffer result = createWithSameOrder(bb);
         byteBuffer.clear();
         return result;
     }
@@ -176,5 +159,48 @@ final class ByteBufferAsCharBuffer extends CharBuffer implements ByteBufferAs {
 	@Override
 	public ByteBuffer getByteBuffer() {
 		return byteBuffer;
+	}
+
+	@Override
+	@HaxeMethodBody("return N.i2s(this.tarray.get(p0));")
+	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { return ((ushort *)ptr)[p0]; } }")
+	public char get(int index) {
+		return Memory.peekAlignedCharLE(bytes, index);
+	}
+
+	@Override
+	@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")
+	@JTranscMethodBody(target = "cs", value = "unsafe { fixed (byte* ptr = this.tarray) { ((ushort *)ptr)[p0] = p1; } } return this;")
+	public CharBuffer put(int index, char c) {
+		Memory.pokeAlignedCharLE(bytes, index, c);
+		return this;
+	}
+
+	final static public class LE extends ByteBufferAsCharBuffer {
+		LE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+    }
+
+	final static public class BE extends ByteBufferAsCharBuffer {
+		BE(ByteBuffer byteBuffer) {
+			super(byteBuffer);
+		}
+
+		@Override
+		public char get(int index) {
+			return Character.reverseBytes(super.get(index));
+		}
+
+		@Override
+		public CharBuffer put(int index, char c) {
+			return super.put(index, Character.reverseBytes(c));
+		}
 	}
 }

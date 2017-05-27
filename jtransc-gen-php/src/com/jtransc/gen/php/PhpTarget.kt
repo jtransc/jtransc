@@ -62,7 +62,8 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
-	override val localVarPrefix = "\""
+	override val localVarPrefix = "\$"
+	override val floatHasFSuffix: Boolean = false
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -362,7 +363,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_c_ushr(l: String, r: String) = "(int)(((uint)($l)) >> $r)"
+	override fun N_iushr(l: String, r: String) = "N::iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
