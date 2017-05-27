@@ -21,18 +21,14 @@
 #include <{{ include }}>
 {% end %}
 
-#if (defined(USE_BOEHM_GC) && !defined(DISABLE_BOEHM_GC))
-	//#define GC_DEBUG
-	//#include <gc_cpp.h>
-	//#include "gc_cpp.h"
-	#include "gc.h"
+//#ifndef USE_PORTABLE_GC
+//#define USE_PORTABLE_GC
+//#endif
+
+#ifdef USE_PORTABLE_GC
+#	include "GC_portable.cpp"
 #else
-	//void  GC_set_no_dls(int v) { }
-    //void  GC_set_all_interior_pointers(int v) { }
-    //void  GC_set_finalize_on_demand(int v) { }
-	void  GC_INIT() { }
-	void* GC_MALLOC(int size) { return malloc(size); }
-	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
+#	include "GC_boehm.cpp"
 #endif
 
 struct gc {
