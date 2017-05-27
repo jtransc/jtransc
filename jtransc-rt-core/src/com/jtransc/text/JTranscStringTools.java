@@ -69,7 +69,7 @@ public class JTranscStringTools {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "return N::str('' + $p0);"),
 		@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));"),
-		@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%.16g\", p0); return N::str(std::wstring(temp));"),
+		@JTranscMethodBody(target = "cpp", value = "wchar_t temp[32] = {0}; swprintf(temp, sizeof(temp), L\"%.16g\", p0); return N::str(temp);"),
 		@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));"),
 		@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);"),

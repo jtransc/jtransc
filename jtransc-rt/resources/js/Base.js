@@ -17,7 +17,7 @@ Array.prototype.includes = Array.prototype.includes || (function(searchElement /
 		k = len + n;
 		if (k < 0) k = 0;
 	}
-	for (;k < len; k++) if (searchElement === O[k]) return true;
+	for (;k < len; ++k) if (searchElement === O[k]) return true;
 	return false;
 });
 
@@ -35,7 +35,7 @@ Array.prototype.map = Array.prototype.map || (function(callback, thisArg) {
 			mappedValue = callback.call(T, kValue, k, O);
 			A[k] = mappedValue;
 		}
-		k++;
+		++k;
 	}
 	return A;
 });
@@ -152,7 +152,7 @@ Int64.ofFloat = function(f) {
 		var curr = rest % 2;
 		rest = rest / 2;
 		if (curr >= 1) result = Int64.add(result, Int64.shl(Int64.ofInt(1), i));
-		i++;
+		++i;
 	}
 
 	return neg ? Int64.neg(result) : result;
@@ -171,7 +171,7 @@ Int64.ofString = function(sParam) {
 	}
 	var len = s.length;
 
-	for (var i = 0; i < len; i++) {
+	for (var i = 0; i < len; ++i) {
 		var digitInt = s.charCodeAt(len - 1 - i) - '0'.code;
 
 		if (digitInt < 0 || digitInt > 9) throw "NumberFormatError";
@@ -426,7 +426,7 @@ var SS = [];
 function __buildStrings() {
 	var len = SS.length
 	S.length = len;
-	for (var n = 0; n < len; n++) S[n] = N.str(SS[n]);
+	for (var n = 0; n < len; ++n) S[n] = N.str(SS[n]);
 }
 
 var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_J, JA_F, JA_D, JA_L;
@@ -444,7 +444,7 @@ function __createJavaArrayBaseType() {
 
 	ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
 		var len = array.length;
-		for (var n = 0; n < len; n++) this.data[startIndex + n] = array[n];
+		for (var n = 0; n < len; ++n) this.data[startIndex + n] = array[n];
 	};
 
 
@@ -481,11 +481,11 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 	if (desc == '[J') {
 		ARRAY.prototype.init = function() {
 			var zero = N.lnew(0, 0);
-			for (var n = 0; n < this.length; n++) this.set(n, zero);
+			for (var n = 0; n < this.length; ++n) this.set(n, zero);
 		};
 		ARRAY.prototype.clone = function() {
 			var out = new ARRAY(this.length);
-			for (var n = 0; n < this.length; n++) out.set(n, this.get(n));
+			for (var n = 0; n < this.length; ++n) out.set(n, this.get(n));
 			return out;
 		};
 	} else {
@@ -521,7 +521,7 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 
 	ARRAY.prototype.toArray = function() {
     	var out = new Array(this.length);
-    	for (var n = 0; n < out.length; n++) out[n] = this.get(n);
+    	for (var n = 0; n < out.length; ++n) out[n] = this.get(n);
     	return out;
     };
 
@@ -535,6 +535,23 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 	//	this.data.set(new type(array), startIndex);
 	//};
 
+	//JA_0 dest, int srcPos, int destPos, int length
+	if (desc == '[J') {
+		ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
+			var srcData = this.data;
+			var destData = dest.data;
+			if (overlapping) {
+				for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
+			} else {
+				for (var n = 0; n < length; ++n) destData[destPos + n] = srcData[srcPos + n];
+			}
+		};
+	} else {
+		ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
+			dest.data.set(new type(this.data.buffer, srcPos * elementBytesSize, length), destPos);
+		};
+	}
+
 	__addArrayJavaMethods(ARRAY);
 
 	return ARRAY;
@@ -545,7 +562,7 @@ function __createGenericArrayType() {
 		this.desc = desc;
 		this.data = new Array(size);
 		this.length = size;
-		for (var n = 0; n < size; n++) this.data[n] = null;
+		for (var n = 0; n < size; ++n) this.data[n] = null;
 	};
 
 	ARRAY.prototype = Object.create(JA_0.prototype);
@@ -557,14 +574,14 @@ function __createGenericArrayType() {
 		var out = new ARRAY(size, desc);
 		var outData = out.data;
 		var jarrayData = jarray.data;
-		for (var n = 0; n < size; n++) outData[n] = jarrayData[start + n];
+		for (var n = 0; n < size; ++n) outData[n] = jarrayData[start + n];
 		return out;
 	};
 
 	ARRAY.fromArray = function(array, desc) {
 		if (array == null) return null;
 		var out = new JA_L(array.length, desc);
-		for (var n = 0; n < out.length; n++) out.set(n, array[n]);
+		for (var n = 0; n < out.length; ++n) out.set(n, array[n]);
 		return out;
 	};
 
@@ -582,12 +599,23 @@ function __createGenericArrayType() {
 
 	ARRAY.prototype.clone = function() {
 		var out = new JA_L(this.length, this.desc);
-		for (var n = 0; n < this.length; n++) out.set(n, this.get(n));
+		for (var n = 0; n < this.length; ++n) out.set(n, this.get(n));
 		return out;
 	};
 
 	ARRAY.prototype.toArray = function() {
 		return this.data;
+	};
+
+	//JA_0 dest, int srcPos, int destPos, int length
+	ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
+		var srcData = this.data;
+		var destData = dest.data;
+		if (overlapping) {
+			for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
+		} else {
+			for (var n = 0; n < length; ++n) destData[destPos + n] = srcData[srcPos + n];
+		}
 	};
 
 	__addArrayJavaMethods(ARRAY);
@@ -602,9 +630,11 @@ function __createJavaArrays() {
 	JA_C = __createJavaArrayType('[C', Uint16Array, 2);  // Character Array
 	JA_S = __createJavaArrayType('[S', Int16Array, 2);   // Short Array
 	JA_I = __createJavaArrayType('[I', Int32Array, 4);   // Int Array
-	JA_J = __createJavaArrayType('[J', Array);        // Long Array
 	JA_F = __createJavaArrayType('[F', Float32Array, 4); // Float Array
 	JA_D = __createJavaArrayType('[D', Float64Array, 8); // Double Array
+
+	// Specially handled
+	JA_J = __createJavaArrayType('[J', Array, 1);        // Long Array
 
 	JA_L =__createGenericArrayType(); // Generic Array
 
@@ -614,7 +644,7 @@ function __createJavaArrays() {
 		var out = new JA_L(sizes[0], desc);
 		var sizes2 = sizes.slice(1);
 		var desc2 = desc.substr(1);
-		for (var n = 0; n < out.length; n++) {
+		for (var n = 0; n < out.length; ++n) {
 			out.set(n, JA_L.createMultiSure(sizes2, desc2));
 		}
 		return out;
@@ -637,14 +667,14 @@ function __createJavaArrays() {
 	JA_L.fromArray1 = function(items, desc) {
 		if (items == null) return null;
 		var out = JA_L.create(items.length, desc);
-		for (var n = 0; n < items.length; n++) out.set(n, items[n]);
+		for (var n = 0; n < items.length; ++n) out.set(n, items[n]);
 		return out;
 	}
 
 	JA_L.fromArray2 = function(items, desc) {
 		if (items == null) return null;
 		var out = new JA_L(items.length, desc);
-		for (var n = 0; n < items.length; n++) out.set(n, JA_L.fromArray1(items[n], desc.substr(1)));
+		for (var n = 0; n < items.length; ++n) out.set(n, JA_L.fromArray1(items[n], desc.substr(1)));
 		return out;
 	};
 }
@@ -821,7 +851,7 @@ N.strLitEscape = function(str) {
 N.strArray = function(strs) {
 	if (strs == null) return null;
 	var out = new JA_L(strs.length, '[Ljava/lang/String;');
-	for (var n = 0; n < strs.length; n++) {
+	for (var n = 0; n < strs.length; ++n) {
 		out.set(n, N.str(strs[n]));
 	}
 	return out;
@@ -867,7 +897,7 @@ N.byteArrayToString = N.intArrayToString = N.charArrayToString = function(array,
 	if (encoding === undefined) encoding = 'UTF-8';
 	// @TODO: Handle encodings!
 	var out = '';
-	for (var n = offset; n < offset + length; n++) {
+	for (var n = offset; n < offset + length; ++n) {
 		out += String.fromCharCode(array.get(n));
 	}
 	return out;
@@ -875,7 +905,7 @@ N.byteArrayToString = N.intArrayToString = N.charArrayToString = function(array,
 
 N.stringToCharArray = function(str) {
 	var out = new JA_C(str.length);
-	for (var n = 0; n < str.length; n++) out.set(n, str.charCodeAt(n));
+	for (var n = 0; n < str.length; ++n) out.set(n, str.charCodeAt(n));
 	return out;
 };
 
@@ -902,90 +932,16 @@ N.getStackTrace = function(error, count) {
 	//var traces = stackTrace()
 	var traces = error.stack.split('\n').slice(count);
 	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
-	for (var n = 0; n < traces.length; n++) {
+	for (var n = 0; n < traces.length; ++n) {
 		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
 	}
 	return out;
 };
 
-N._arraycopyArray = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	if (overlapping) {
-		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
-	} else {
-		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
-	}
-}
-
-N._arraycopyGeneric = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	if (overlapping) {
-		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
-	} else {
-		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
-	}
-}
-
-N._arraycopyTyped_B = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Int8Array(srcData.buffer, srcPos * 1, length), destPos);
-}
-
-N._arraycopyTyped_C = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Uint16Array(srcData.buffer, srcPos * 2, length), destPos);
-}
-
-N._arraycopyTyped_S = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Int16Array(srcData.buffer, srcPos * 2, length), destPos);
-}
-
-N._arraycopyTyped_I = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Int32Array(srcData.buffer, srcPos * 4, length), destPos);
-}
-
-N._arraycopyTyped_F = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Float32Array(srcData.buffer, srcPos * 4, length), destPos);
-}
-
-N._arraycopyTyped_D = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	destData.set(new Float64Array(srcData.buffer, srcPos * 8, length), destPos);
-}
-
-N._arraycopyTyped_J = function(srcData, srcPos, destData, destPos, length, overlapping) {
-	if (overlapping) {
-		for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
-	} else {
-		for (var n = 0; n < length; n++) destData[destPos + n] = srcData[srcPos + n];
-	}
-}
-
 N.arraycopy = function(src, srcPos, dest, destPos, length) {
-	if (length < 0 || srcPos < 0 || destPos < 0 || srcPos + length > src.length || destPos + length > dest.length) {
-		N.throwRuntimeException('N.arraycopy out of bounds');
-	}
-
-	var srcData = src.data;
-	var destData = dest.data;
+	//if (length < 0 || srcPos < 0 || destPos < 0 || srcPos + length > src.length || destPos + length > dest.length) N.throwRuntimeException('N.arraycopy out of bounds');
 	var overlapping = src == dest && (destPos > srcPos);
-
-	if (src instanceof JA_L) {
-		N._arraycopyArray(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_Z) {
-		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_B) {
-		N._arraycopyTyped_B(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_S) {
-		N._arraycopyTyped_S(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_C) {
-		N._arraycopyTyped_C(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_I) {
-		N._arraycopyTyped_I(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_F) {
-		N._arraycopyTyped_F(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_D) {
-		N._arraycopyTyped_D(srcData, srcPos, destData, destPos, length, overlapping);
-	} else if (src instanceof JA_J) {
-		N._arraycopyTyped_J(srcData, srcPos, destData, destPos, length, overlapping);
-	} else {
-		N._arraycopyGeneric(srcData, srcPos, destData, destPos, length, overlapping);
-	}
+	src.copyTo(dest, srcPos, destPos, length, overlapping);
 };
 
 N.isInstanceOfClass = function(obj, javaClass) {
@@ -1010,7 +966,7 @@ N.fillSecureRandomBytes = function(array) {
 		window.crypto.getRandomValues(buf);
 	}
 
-	for (var n = 0; n < array.length; n++) array.set(n, buf[n]);
+	for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 };
 
 N.boxVoid = function(value) { return null; }
@@ -1144,7 +1100,7 @@ N.sort = function(array, start, end, comparator) {
 			return comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
 		});
 	}
-	for (var n = 0; n < slice.length; n++) array[start + n] = slice[n];
+	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
 };
 
 N.getByteArray = function(v) {

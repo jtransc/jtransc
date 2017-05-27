@@ -329,7 +329,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
-			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { it.name }.joinToString(", ")};")
+			line("static void* STRINGS_START = nullptr;")
+			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { "${it.name} = nullptr" }.joinToString(", ")};")
+			line("static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
 					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
