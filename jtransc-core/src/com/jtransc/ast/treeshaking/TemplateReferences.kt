@@ -7,20 +7,28 @@ import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.template.Minitemplate
 import java.util.*
 
-fun GetTemplateReferencesRefs(program: AstProgram, templateStr: String, currentClass: FqName): List<AstRef> {
-	return GetTemplateReferences(program, templateStr, currentClass).map { it.ref }
+enum class TRefReason {
+	UNKNOWN, TREESHAKING, STATIC
 }
 
-fun GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName): List<CommonTagHandler.Result> {
-	return _GetTemplateReferences(program, templateStr, currentClass, classes = false)
+class TRefConfig(
+	val reason: TRefReason = TRefReason.UNKNOWN
+)
+
+fun GetTemplateReferencesRefs(program: AstProgram, templateStr: String, currentClass: FqName, config: TRefConfig): List<AstRef> {
+	return GetTemplateReferences(program, templateStr, currentClass, config = config).map { it.ref }
 }
 
-fun GetClassTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName): List<FqName> {
-	return _GetTemplateReferences(program, templateStr, currentClass, classes = true).map { (it as CommonTagHandler.CLASS_REF).clazz }
+fun GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName, config: TRefConfig): List<CommonTagHandler.Result> {
+	return _GetTemplateReferences(program, templateStr, currentClass, classes = false, config = config)
+}
+
+fun GetClassTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName, config: TRefConfig): List<FqName> {
+	return _GetTemplateReferences(program, templateStr, currentClass, classes = true, config = config).map { (it as CommonTagHandler.CLASS_REF).clazz }
 }
 
 
-fun _GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName, classes: Boolean): List<CommonTagHandler.Result> {
+fun _GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName, classes: Boolean, config: TRefConfig): List<CommonTagHandler.Result> {
 	val refs = arrayListOf<CommonTagHandler.Result>()
 	val params: HashMap<String, Any?> = hashMapOf("CLASS" to currentClass.fqname)
 	val template = Minitemplate(templateStr, Minitemplate.Config(

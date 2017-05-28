@@ -7,6 +7,7 @@
     * [<i class="fa fa-terminal" aria-hidden="true"></i> Command line](/usage/commandline)
     * [intelliJ plugin](/usage/intellij)
 * [<i class="fa fa-code-fork" aria-hidden="true"></i> Architecture](/architecture)
+* [<i class="fa fa-plug" aria-hidden="true"></i> Static Initialization](/static_init)
 * [<i class="fa fa-plug" aria-hidden="true"></i> Minitemplates](/minitemplates)
 * [<i class="fa fa-plug" aria-hidden="true"></i> Plugins](/plugins)
 * [<i class="fa fa-bookmark" aria-hidden="true"></i> jtransc-rt-core](/jtransc-rt-core)

@@ -22,59 +22,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 
-/**
- * Transforms a sequence of 16-bit Java characters to a byte sequence in some encoding.
- *
- * <p>The input character sequence is a {@link java.nio.CharBuffer CharBuffer} and the
- * output byte sequence is a {@link java.nio.ByteBuffer ByteBuffer}.
- *
- * <p>Use {@link #encode(CharBuffer)} to encode an entire {@code CharBuffer} to a
- * new {@code ByteBuffer}, or {@link #encode(CharBuffer, ByteBuffer, boolean)} for more
- * control. When using the latter method, the entire operation proceeds as follows:
- * <ol>
- * <li>Invoke {@link #reset()} to reset the encoder if this instance has been used before.</li>
- * <li>Invoke {@link #encode(CharBuffer, ByteBuffer, boolean) encode} with the {@code endOfInput}
- * parameter set to false until additional input is not needed (as signaled by the return value).
- * The input buffer must be filled and the output buffer must be flushed between invocations.
- * <p>The {@link #encode(CharBuffer, ByteBuffer, boolean) encode} method will
- * convert as many characters as possible, and the process won't stop until the
- * input buffer has been exhausted, the output buffer has been filled, or an
- * error has occurred. A {@link CoderResult CoderResult} instance will be
- * returned to indicate the current state. The caller should fill the input buffer, flush
- * the output buffer, or recovering from an error and try again, accordingly.
- * </li>
- * <li>Invoke {@link #encode(CharBuffer, ByteBuffer, boolean) encode} for the last time with
- * {@code endOfInput} set to true.</li>
- * <li>Invoke {@link #flush(ByteBuffer)} to flush remaining output.</li>
- * </ol>
- *
- * <p>There are two classes of encoding error: <i>malformed input</i>
- * signifies that the input character sequence is not legal, while <i>unmappable character</i>
- * signifies that the input is legal but cannot be mapped to a byte sequence (because the charset
- * cannot represent the character, for example).
- *
- * <p>Errors can be handled in three ways. The default is to
- * {@link CodingErrorAction#REPORT report} the error to the caller. The alternatives are to
- * {@link CodingErrorAction#IGNORE ignore} the error or {@link CodingErrorAction#REPLACE replace}
- * the problematic input with the byte sequence returned by {@link #replacement}. The disposition
- * for each of the two kinds of error can be set independently using the {@link #onMalformedInput}
- * and {@link #onUnmappableCharacter} methods.
- *
- * <p>The default replacement bytes depend on the charset but can be overridden using the
- * {@link #replaceWith} method.
- *
- * <p>This class is abstract and encapsulates many common operations of the
- * encoding process for all charsets. Encoders for a specific charset should
- * extend this class and need only to implement the
- * {@link #encodeLoop(CharBuffer, ByteBuffer) encodeLoop} method for basic
- * encoding. If a subclass maintains internal state, it should also override the
- * {@link #implFlush(ByteBuffer) implFlush} and {@link #implReset() implReset} methods.
- *
- * <p>This class is not thread-safe.
- *
- * @see java.nio.charset.Charset
- * @see java.nio.charset.CharsetDecoder
- */
 public abstract class CharsetEncoder {
 	private static final int RESET = 0;
 	private static final int ONGOING = 1;
@@ -90,8 +37,9 @@ public abstract class CharsetEncoder {
 
 	private int state = RESET;
 
-	private CodingErrorAction malformedInputAction = CodingErrorAction.REPORT;
-	private CodingErrorAction unmappableCharacterAction = CodingErrorAction.REPORT;
+	static private CoderResult dummyCR = CoderResult.OVERFLOW;
+	static private CodingErrorAction malformedInputAction = CodingErrorAction.REPORT;
+	static private CodingErrorAction unmappableCharacterAction = CodingErrorAction.REPORT;
 
 	// decoder instance for this encoder's charset, used for replacement value checking
 	private CharsetDecoder decoder;

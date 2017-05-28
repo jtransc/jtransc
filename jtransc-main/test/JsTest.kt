@@ -22,6 +22,7 @@ import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
+import issues.Issue135
 import issues.issue130.Issue130
 import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
@@ -61,6 +62,8 @@ class JsTest : _Base() {
 	@Test fun testScriptEngine() = testClass(Params(clazz = ScriptEngineTest::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testStaticInitIssue135() = testClass(Params(clazz = Issue135::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Ignore("Already included in BigTest")
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, treeShaking = true))

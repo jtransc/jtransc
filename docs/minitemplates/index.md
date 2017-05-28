@@ -56,6 +56,8 @@ Also you can reference variables available in its current context. Inside the `f
 {% CLASS fqname.to.Class %}                   - Replaces with the fully qualified name of the class.
 {% METHOD fqname.to.Class:name:descriptor %}  - Replaces with the method name.
 {% FIELD fqname.to.Class:name:descriptor %}   - Replaces with the field name.
+{% IMETHOD fqname.to.Class:name:descriptor %}  - Replaces with '.' plus the method name (in the case of javascript can be replaced with 'name' too).
+{% IFIELD fqname.to.Class:name:descriptor %}   - Replaces with '.' plus the field name (in the case of javascript can be replaced with 'name' too).
 {% SMETHOD fqname.to.Class:name:descriptor %} - It is a shortcut for CLASS + METHOD tags for calling static methods.
 {% SFIELD fqname.to.Class:name:descriptor %}  - It is a shortcut for CLASS + FIELD tags for accessing static fields.
 {% endraw %}</pre>

@@ -88,7 +88,7 @@ public class JTranscConsole {
 		log(Short.toString(v));
 	}
 
-	@HaxeMethodBody("_log(String.fromCharCode(p0));")
+	@HaxeMethodBody("_log(N.ichar(p0));")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),

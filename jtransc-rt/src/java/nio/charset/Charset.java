@@ -95,6 +95,7 @@ public abstract class Charset implements Comparable<Charset> {
 	}
 
 	public static Charset defaultCharset() {
+		Class<CoderResult> dummy1 = CoderResult.class;
 		if (_default == null) _default = forName(JTranscCharset.defaultCharset().getCannonicalName());
 		return _default;
 	}

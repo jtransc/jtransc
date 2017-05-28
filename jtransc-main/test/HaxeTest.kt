@@ -22,6 +22,7 @@ import issues.Issue135
 import issues.Issue94Enum
 import issues.issue130.Issue130
 import issues.issue136.Issue136
+import javatest.haxe.HaxeStringBuilderTestIssue138
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
@@ -44,8 +45,6 @@ class HaxeTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
-
-	@Test fun testStaticInitIssue135() = testClass(Params(clazz = Issue135::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
 	@Test fun testGetGenericType() = testClass(Params(clazz = Issue136::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
@@ -93,4 +92,13 @@ class HaxeTest : _Base() {
 
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, lang = "js", debug = true))
+
+	// WORKS
+	//@Ignore
+	//@Test fun testHaxeStringBuilderTestIssue138() = testClass(Params(clazz = HaxeStringBuilderTestIssue138::class.java, minimize = false, log = false, lang = "js", debug = true))
+
+	// FAILS
+	@Ignore
+	@Test fun testHaxeStringBuilderTestIssue138() = testClass(Params(clazz = HaxeStringBuilderTestIssue138::class.java, minimize = false, log = false, lang = "cpp", debug = true))
+
 }

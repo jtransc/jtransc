@@ -9,9 +9,10 @@ import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.plugin.JTranscPluginGroup
 import java.util.*
 
-fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: List<JTranscPlugin>): AstProgram {
+fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: JTranscPluginGroup): AstProgram {
 	// The unshaked program should be cached, in a per class basis, since it doesn't have information about other classes.
 
 	val shaking = TreeShakingApi(program, target, trace, plugins)
@@ -33,7 +34,7 @@ class TreeShakingApi(
 	val oldprogram: AstProgram,
 	val target: String,
 	val trace: Boolean,
-	val plugins: List<JTranscPlugin>
+	val plugins: JTranscPluginGroup
 ) {
 	val program = oldprogram
 	val targetName = TargetName(target)
@@ -59,8 +60,10 @@ class TreeShakingApi(
 	}.map { it.name }.toSet()
 	// oldclazz.annotationsList.list.any { it.type.name in classesWithKeepConstructors })
 
+	val config = TRefConfig(TRefReason.TREESHAKING)
+
 	fun addTemplateReferences(template: String, currentClass: FqName, templateReason: String) {
-		val refs = GetTemplateReferences(oldprogram, template, currentClass)
+		val refs = GetTemplateReferences(oldprogram, template, currentClass, config)
 		val reason = "template $templateReason"
 		for (ref in refs) {
 			if (SHAKING_TRACE) println("TEMPLATEREF: $ref")
@@ -129,7 +132,7 @@ class TreeShakingApi(
 			val oldclazz = program[fqname]
 			val newclazz = _addMiniBasicClass(fqname)
 
-			for (plugin in plugins) plugin.onTreeShakingAddBasicClass(this, fqname, oldclazz, newclazz)
+			plugins.onTreeShakingAddBasicClass(this, fqname, oldclazz, newclazz)
 
 			for (impl in oldclazz.implementing) addBasicClass(impl, reason = "implementing $fqname")
 			if (oldclazz.extending != null) addBasicClass(oldclazz.extending, reason = "extending $fqname")
@@ -231,7 +234,7 @@ class TreeShakingApi(
 		)
 		newclazz.add(newfield)
 
-		for (plugin in plugins) plugin.onTreeShakingAddField(this, oldfield, newfield)
+		plugins.onTreeShakingAddField(this, oldfield, newfield)
 
 		addAnnotations(newfield.annotationsList, reason = "field $fieldRef")
 
@@ -286,7 +289,7 @@ class TreeShakingApi(
 
 		newclazz.add(newmethod)
 
-		for (plugin in plugins) plugin.onTreeShakingAddMethod(this, oldmethod, newmethod)
+		plugins.onTreeShakingAddMethod(this, oldmethod, newmethod)
 
 		for (ref in methodRef.type.getRefTypesFqName()) addBasicClass(ref, reason = "$methodRef")
 

@@ -477,6 +477,17 @@ class N {
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function ichar(code: Int): String {
+		#if cpp
+			var out = new haxe.Utf8();
+			out.addChar(code);
+			return out.toString();
+		#else
+			return String.fromCharCode(code);
+		#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function getFunction(obj:Dynamic):Dynamic { return obj._execute; }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
