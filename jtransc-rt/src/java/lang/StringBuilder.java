@@ -26,12 +26,12 @@ import java.util.Arrays;
 
 // @TODO: Optimize using arrays
 @HaxeAddMembers({
-	"public var buffer2:StringBuf = new StringBuf();",
+	"public var buffer2:MyStringBuf = new MyStringBuf();",
 	"public var str2:String = null;",
 	"public function add(str:String) { this.str2 = null; buffer2.add(str); return this; }",
-	"public function addChar(c:Int) { this.str2 = null; buffer2.add(String.fromCharCode(c)); return this; }",
+	"public function addChar(c:Int) { this.str2 = null; buffer2.addChar(c); return this; }",
 	"public function getStr() { if (this.str2 == null) this.str2 = buffer2.toString(); return this.str2; }",
-	"public function setStr(str:String) { this.str2 = str; buffer2 = new StringBuf(); buffer2.add(str); return this; }",
+	"public function setStr(str:String) { this.str2 = str; buffer2 = new MyStringBuf(); buffer2.add(str); return this; }",
 })
 @JTranscAddMembers(target = "as3", value = "public var _str: String = '';")
 @JTranscAddMembers(target = "dart", value = "StringBuffer _buffer = new StringBuffer();")
@@ -151,8 +151,8 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 	//@Override
 	@HaxeMethodBody("return this.addChar(p0);")
-	@JTranscMethodBody(target = "js", value = "this._str += String.fromCharCode(p0); return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str += String.fromCharCode(p0); return this;")
+	@JTranscMethodBody(target = "js", value = "this._str += N.ichar(p0); return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str += N.ichar(p0); return this;")
 	@JTranscMethodBody(target = "dart", value = "this._buffer.write(N.ichar(p0)); return this;")
 	public StringBuilder append(char v) {
 		//JTranscConsole.log("append.char:");
