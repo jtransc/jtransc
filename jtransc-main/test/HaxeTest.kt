@@ -18,6 +18,7 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
+import issues.Issue135
 import issues.Issue94Enum
 import issues.issue130.Issue130
 import issues.issue136.Issue136
@@ -43,6 +44,8 @@ class HaxeTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
+
+	@Test fun testStaticInitIssue135() = testClass(Params(clazz = Issue135::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
 	@Test fun testGetGenericType() = testClass(Params(clazz = Issue136::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
