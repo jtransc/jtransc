@@ -14,6 +14,7 @@ public class ThreadPoolExecutor implements ExecutorService {
 	private static final int EX_STOP       = 2;
 	private static final int EX_SHUTDOWN   = 3;
 
+	private static final int MAX_POOL_SIZE = Integer.MAX_VALUE / 2;
 
 	private int state = EX_WORKING;
 	private int poolSize;
@@ -22,7 +23,7 @@ public class ThreadPoolExecutor implements ExecutorService {
 	private ThreadFactory factory;
 	private RejectedExecutionHandler rejectHandler;
 
-	private Task[] taskPool;
+	private ArrayList<Task> taskPool;
 
 	public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
 		this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, null, null);
@@ -37,17 +38,22 @@ public class ThreadPoolExecutor implements ExecutorService {
 	}
 
 	public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) {
+		if (corePoolSize < 0 ||
+			maximumPoolSize <= 0 ||
+			maximumPoolSize < corePoolSize)
+				throw new IllegalArgumentException();
 		poolSize = corePoolSize;
-		maxPoolSize = Math.max(maximumPoolSize, corePoolSize);
+		maxPoolSize = Math.min(maximumPoolSize, MAX_POOL_SIZE);
 		this.workQueue = workQueue == null ? new LinkedBlockingDeque<>() : workQueue;
 		factory = threadFactory == null ? new Executors.DefaultThreadFactory() : threadFactory;
 		rejectHandler = handler;
 
-		taskPool = new Task[maxPoolSize];
+		taskPool = new ArrayList<>();
 		for (int i = 0; i < poolSize; i++){
-			taskPool[i] = new Task();
+			taskPool.add(new Task());
 		}
 	}
+
 	@Override
 	public void shutdown() {
 		state = EX_SHUTDOWN;
@@ -56,9 +62,9 @@ public class ThreadPoolExecutor implements ExecutorService {
 	@Override
 	public List<Runnable> shutdownNow() {
 		state = EX_SHUTDOWN;
-		for (int i = 0; i < poolSize; i ++) {
-			if (taskPool[i].state == TASK_RUNNING)
-				taskPool[i].state = TASK_STOPPING;
+		for (Task t : taskPool) {
+			if (t.state == TASK_RUNNING)
+				t.state = TASK_STOPPING;
 		}
 		List<Runnable> l;
 		synchronized (workQueue) {
@@ -159,9 +165,16 @@ public class ThreadPoolExecutor implements ExecutorService {
 	}
 
 	private void execute(){
-		for (int i = 0; i < poolSize; i ++){
-			if (taskPool[i].state != TASK_WAITING) continue;
-			factory.newThread(taskPool[i]).start();
+		for (Task t : taskPool){
+			if (t.state == TASK_WAITING){
+				factory.newThread(t).start();
+				return;
+			}
+		}
+		if (poolSize < maxPoolSize) {
+			poolSize++;
+			taskPool.add(new Task());
+			execute();
 		}
 	}
 
