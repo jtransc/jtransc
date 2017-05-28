@@ -21,17 +21,14 @@
 #include <{{ include }}>
 {% end %}
 
-#if (defined(USE_BOEHM_GC) && !defined(DISABLE_BOEHM_GC))
-	//#include <gc_cpp.h>
-	//#include "gc_cpp.h"
-	#include "gc.h"
+//#ifndef USE_PORTABLE_GC
+//#define USE_PORTABLE_GC
+//#endif
+
+#ifdef USE_PORTABLE_GC
+#	include "GC_portable.cpp"
 #else
-	//void  GC_set_no_dls(int v) { }
-    //void  GC_set_all_interior_pointers(int v) { }
-    //void  GC_set_finalize_on_demand(int v) { }
-	void  GC_INIT() { }
-	void* GC_MALLOC(int size) { return malloc(size); }
-	void* GC_MALLOC_ATOMIC(int size) { return malloc(size); }
+#	include "GC_boehm.cpp"
 #endif
 
 struct gc {
@@ -248,7 +245,7 @@ struct N { public:
 	static void log(JAVA_OBJECT str);
 
 	{% if ENABLE_TYPING %}
-	static p_java_lang_String str(char *str);
+	static p_java_lang_String str(const char *str);
 	static p_java_lang_String str(const wchar_t *str, int len);
 	static p_java_lang_String str(std::wstring str);
 	static p_java_lang_String str(std::string str);
@@ -257,7 +254,7 @@ struct N { public:
 	static p_JA_L strArray(std::vector<std::string> strs);
 	static p_JA_L strEmptyArray();
 	{% else %}
-	static JAVA_OBJECT str(char *str);
+	static JAVA_OBJECT str(const char *str);
 	static JAVA_OBJECT str(const wchar_t *str, int len);
 	static JAVA_OBJECT str(std::wstring str);
 	static JAVA_OBJECT str(std::string str);
@@ -393,14 +390,14 @@ struct JA_Base : JA_0 {
 	T *getStartPtr() { return (T *)_data; }
 
 	#ifdef CHECK_ARRAYS
-		inline void fastSet(int offset, T v) { checkBounds(offset); ((T*)(this->_data))[offset] = v; };
-		inline T fastGet(int offset) { checkBounds(offset); return ((T*)(this->_data))[offset]; }
+		void fastSet(int offset, T v) { checkBounds(offset); ((T*)(this->_data))[offset] = v; };
+		T fastGet(int offset) { checkBounds(offset); return ((T*)(this->_data))[offset]; }
 	#else
-		inline void fastSet(int offset, T v) { ((T*)(this->_data))[offset] = v; };
-		inline T fastGet(int offset) { return ((T*)(this->_data))[offset]; }
+		void fastSet(int offset, T v) { ((T*)(this->_data))[offset] = v; };
+		T fastGet(int offset) { return ((T*)(this->_data))[offset]; }
 	#endif
 
-	inline JA_Base<T> *init(int offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
+	JA_Base<T> *init(int offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
 
 	void set(int offset, T v) { checkBounds(offset); fastSet(offset, v); };
 	T get(int offset) { checkBounds(offset); return fastGet(offset); };
@@ -703,7 +700,7 @@ N::str(std::string s) {
 };
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
-N::str(char *s) {
+N::str(const char *s) {
 	if (s == nullptr) return nullptr;
 	int len = strlen(s);
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
@@ -830,6 +827,9 @@ void N::writeChars(JAVA_OBJECT str, char *out, int maxlen) {
 	out[len] = 0;
 }
 
+void __throwCLASSCAST() {
+	throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str(L"Class cast error"));
+}
 
 template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
  	if (t == nullptr) return nullptr;
@@ -838,40 +838,30 @@ template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
 
 template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int typeId) {
  	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
-	}
+	if (!N::is(i, typeId)) __throwCLASSCAST();
  	TTo result = dynamic_cast<TTo>(i);
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
+ 	if (result == nullptr) __throwCLASSCAST();
  	return result;
 }
 
 template<typename T> T N::CC_CHECK_UNTYPED(T i, int typeId) {
  	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
+	if (!N::is(i, typeId)) __throwCLASSCAST();
  	return i;
 }
 
 template<typename TTo, typename TFrom> TTo N::CC_CHECK_INTERFACE(TFrom i, int typeId) {
  	if (i == nullptr) return nullptr;
-	if (!N::is(i, typeId)) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
-	}
+	if (!N::is(i, typeId)) __throwCLASSCAST();
  	TTo result = static_cast<TTo>(i->__getInterface(typeId));
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
+ 	if (result == nullptr) __throwCLASSCAST();
  	return result;
 }
 
 template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
  	if (i == nullptr) return nullptr;
  	TTo result = dynamic_cast<TTo>(i);
- 	if (result == nullptr) {
-		throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error"));
- 	}
+ 	if (result == nullptr) __throwCLASSCAST();
  	return result;
 }
 
@@ -1558,10 +1548,15 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 void N::startup() {
-	//GC_set_no_dls(1);
-	//GC_set_all_interior_pointers(1);
-	//GC_set_finalize_on_demand(0);
+	GC_set_no_dls(0);
+	GC_set_dont_precollect(1);
+	//GC_set_all_interior_pointers(0);
 	GC_INIT();
+
+	GC_clear_roots();
+	GC_add_roots(&STRINGS_START, &STRINGS_END);
+
+	//GC_set_finalize_on_demand(0);
 
 	//std::setlocale(LC_COLLATE, "en_US.UTF-8");
 	//std::setlocale(LC_CTYPE, "en_US.UTF-8");

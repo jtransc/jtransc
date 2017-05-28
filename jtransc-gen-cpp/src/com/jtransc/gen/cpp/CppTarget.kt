@@ -329,7 +329,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
-			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { it.name }.joinToString(", ")};")
+			line("static void* STRINGS_START = nullptr;")
+			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { "${it.name} = nullptr" }.joinToString(", ")};")
+			line("static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
 					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
@@ -383,6 +385,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
+				for (clazz in ordereredClasses) {
+					val fields = clazz.fields.filter { it.isStatic }
+					for (field in fields) {
+						line("GC_ADD_ROOT_SINGLE(&${clazz.ref.targetName}::${field.ref.targetName});")
+					}
+				}
 				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
@@ -1062,7 +1070,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_lnew(value: Long): String {
 		//return if (value == Long.MIN_VALUE) {
-			return "(int64_t)(${value}ll)"
+		return "(int64_t)(${value}ll)"
 		//} else {
 		//	"(int64_t)(0x8000000000000000ULL)"
 		//}
