@@ -802,7 +802,7 @@ class AstMethod(
 	// @TODO: Use hasDependenciesInBody?
 	val bodyDependencies: AstReferences get() {
 		if (calculatedBodyDependencies == null) {
-			calculatedBodyDependencies = AstDependencyAnalyzer.analyze(containingClass.program, body, name)
+			calculatedBodyDependencies = AstDependencyAnalyzer.analyze(containingClass.program, body, name, AstDependencyAnalyzer.Config(AstDependencyAnalyzer.Reason.STATIC))
 		}
 		return calculatedBodyDependencies!!
 	}

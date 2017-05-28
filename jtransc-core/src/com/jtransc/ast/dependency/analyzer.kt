@@ -21,29 +21,54 @@ import com.jtransc.error.noImpl
 
 // @TODO: Use generic visitor!
 object AstDependencyAnalyzer {
-	@JvmStatic fun analyze(program: AstProgram, body: AstBody?, name: String? = null): AstReferences {
-		return AstDependencyAnalyzerGen(program, body, name).references
+	enum class Reason { UNKNWON, STATIC }
+
+	class Config(
+		val reason: Reason = Reason.UNKNWON,
+		val methodHandler: (AstExpr.CALL_BASE, AstDependencyAnalyzerGen) -> Unit = { b, d -> }
+	)
+
+	@JvmStatic fun analyze(program: AstProgram, body: AstBody?, name: String? = null, config: Config): AstReferences {
+		return AstDependencyAnalyzerGen(program, body, name, config = config).references
 	}
 
-	private class AstDependencyAnalyzerGen(program: AstProgram, body: AstBody?, name: String? = null) {
+	class AstDependencyAnalyzerGen(program: AstProgram, val body: AstBody?, val name: String? = null, val config: Config) {
+		val methodHandler = config.methodHandler
+		val ignoreExploring = hashSetOf<AstRef>()
 		val allSortedRefs = linkedSetOf<AstRef>()
 		val allSortedRefsStaticInit = linkedSetOf<AstRef>()
 		val types = hashSetOf<FqName>()
 		val fields = hashSetOf<AstFieldRef>()
 		val methods = hashSetOf<AstMethodRef>()
 
+		fun ignoreExploring(ref: AstRef) {
+			ignoreExploring += ref
+		}
+
+		fun flow() {
+			if (config.reason == Reason.STATIC) {
+				//println("Conditional execution in ${body?.methodRef ?: $name}")
+			}
+		}
+
 		fun ana(method: AstMethodRef) {
+			if (method in ignoreExploring) return
 			allSortedRefs.add(method)
 			methods.add(method)
 		}
+
 		fun ana(field: AstFieldRef) {
+			if (field in ignoreExploring) return
 			allSortedRefs.add(field)
 			fields.add(field)
 		}
+
 		fun ana(type: AstType) {
+			//if (type in ignoreExploring) return
 			allSortedRefs.addAll(type.getRefTypes())
 			types.addAll(type.getRefTypesFqName())
 		}
+
 		fun ana(types: List<AstType>) = types.forEach { ana(it) }
 
 		fun ana(expr: AstExpr.Box?) = ana(expr?.value)
@@ -53,7 +78,7 @@ object AstDependencyAnalyzer {
 			if (expr == null) return
 			when (expr) {
 				is AstExpr.BaseCast -> {
-				//is AstExpr.CAST -> {
+					//is AstExpr.CAST -> {
 					ana(expr.from)
 					ana(expr.to)
 					ana(expr.subject)
@@ -94,6 +119,7 @@ object AstDependencyAnalyzer {
 					ana(expr.right)
 				}
 				is AstExpr.CALL_BASE -> {
+					methodHandler(expr, this)
 					ana(expr.method.type)
 					for (arg in expr.args) ana(arg)
 					ana(expr.method)
@@ -127,16 +153,16 @@ object AstDependencyAnalyzer {
 							ana(value)
 							allSortedRefsStaticInit += value.getRefClasses()
 						}
-						//null -> Unit
-						//is Void, is String -> Unit
-						//is Boolean, is Byte, is Char, is Short, is Int, is Long -> Unit
-						//is Float, is Double -> Unit
+					//null -> Unit
+					//is Void, is String -> Unit
+					//is Boolean, is Byte, is Char, is Short, is Int, is Long -> Unit
+					//is Float, is Double -> Unit
 						is AstMethodHandle -> {
 							ana(value.type)
 							ana(value.methodRef)
 							allSortedRefsStaticInit += value.methodRef
 						}
-						//else -> invalidOp("Literal: ${expr.value}")
+					//else -> invalidOp("Literal: ${expr.value}")
 					}
 				}
 				is AstExpr.LOCAL -> Unit
@@ -171,11 +197,7 @@ object AstDependencyAnalyzer {
 			when (stm) {
 				is AstStm.STMS -> for (s in stm.stms) ana(s)
 				is AstStm.STM_EXPR -> ana(stm.expr)
-				is AstStm.CONTINUE -> Unit
-				is AstStm.BREAK -> Unit
 				is AstStm.STM_LABEL -> Unit
-				is AstStm.IF_GOTO -> ana(stm.cond)
-				is AstStm.GOTO -> Unit
 				is AstStm.MONITOR_ENTER -> ana(stm.expr)
 				is AstStm.MONITOR_EXIT -> ana(stm.expr)
 				is AstStm.SET_LOCAL -> ana(stm.expr)
@@ -196,28 +218,16 @@ object AstDependencyAnalyzer {
 				}
 				is AstStm.RETURN -> ana(stm.retval)
 				is AstStm.RETURN_VOID -> Unit
-				is AstStm.IF -> {
-					ana(stm.cond); ana(stm.strue);
-				}
-				is AstStm.IF_ELSE -> {
-					ana(stm.cond); ana(stm.strue); ana(stm.sfalse)
-				}
+
 				is AstStm.THROW -> {
 					ana(stm.exception)
 				}
-				is AstStm.WHILE -> {
-					ana(stm.cond); ana(stm.iter)
-				}
+				is AstStm.CONTINUE -> Unit
+				is AstStm.BREAK -> Unit
+
 				is AstStm.TRY_CATCH -> {
 					ana(stm.trystm);
 					ana(stm.catch)
-				}
-				is AstStm.SWITCH_GOTO -> {
-					ana(stm.subject)
-				}
-				is AstStm.SWITCH -> {
-					ana(stm.subject); ana(stm.default)
-					for (catch in stm.cases) ana(catch.second)
 				}
 				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
 					ana(stm.target)
@@ -227,6 +237,36 @@ object AstDependencyAnalyzer {
 				}
 				is AstStm.LINE -> Unit
 				is AstStm.NOP -> Unit
+
+				is AstStm.SWITCH_GOTO -> {
+					flow()
+					ana(stm.subject)
+				}
+				is AstStm.SWITCH -> {
+					flow()
+					ana(stm.subject); ana(stm.default)
+					for (catch in stm.cases) ana(catch.second)
+				}
+				is AstStm.IF_GOTO -> {
+					flow()
+					ana(stm.cond)
+				}
+				is AstStm.GOTO -> {
+					flow()
+				}
+				is AstStm.IF -> {
+					flow()
+					ana(stm.cond); ana(stm.strue);
+				}
+				is AstStm.IF_ELSE -> {
+					flow()
+					ana(stm.cond); ana(stm.strue); ana(stm.sfalse)
+				}
+				is AstStm.WHILE -> {
+					flow()
+					ana(stm.cond); ana(stm.iter)
+				}
+
 				else -> noImpl("Not implemented STM $stm")
 			}
 		}

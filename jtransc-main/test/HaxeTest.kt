@@ -45,8 +45,6 @@ class HaxeTest : _Base() {
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
-	@Test fun testStaticInitIssue135() = testClass(Params(clazz = Issue135::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
-
 	@Test fun testGetGenericType() = testClass(Params(clazz = Issue136::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "js", log = null))

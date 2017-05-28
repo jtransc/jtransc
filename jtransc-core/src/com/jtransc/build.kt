@@ -32,6 +32,8 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.plugin.JTranscPluginGroup
+import com.jtransc.plugin.toGroup
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
 import com.jtransc.vfs.LocalVfs
@@ -91,18 +93,9 @@ class JTranscBuild(
 	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
 		val targetName = target.targetName
 
-		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }
-		val pluginNames = plugins.map { it.javaClass.simpleName }
-
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
-		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
-		//for (cp in classPaths2) log("ClassPath: $cp")
-
-		val initialClasses = listOf(
-			"j.ProgramReflection", // @TODO: This shouldn't be necessary. But haxe target requires it or strings are not initialized when generating reflection types.
-			entryPoint.fqname.fqname
-		)
+		val initialClasses = listOf(entryPoint.fqname.fqname)
 
 		injector.mapInstances(
 			ConfigClassPaths(classPaths2),
@@ -117,9 +110,14 @@ class JTranscBuild(
 			targetName
 		)
 
-		for (plugin in plugins) {
-			plugin.initialize(injector)
-		}
+		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }.toGroup(injector)
+		val pluginNames = plugins.plugins.map { it.javaClass.simpleName }
+
+		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
+		//for (cp in classPaths2) log("ClassPath: $cp")
+
+
+		plugins.initialize(injector)
 
 		when (backend) {
 			BuildBackend.ASM -> injector.mapImpl<AstClassGenerator, AsmToAst1>()
@@ -131,9 +129,7 @@ class JTranscBuild(
 			generateProgram(plugins)
 		}
 
-		for (plugin in plugins) {
-			plugin.processBeforeTreeShaking(programBase)
-		}
+		plugins.processBeforeTreeShaking(programBase)
 
 		val configTreeShaking = injector.get<ConfigTreeShaking>()
 		val program = if (configTreeShaking.treeShaking) {
@@ -142,9 +138,7 @@ class JTranscBuild(
 			programBase
 		}
 
-		for (plugin in plugins) {
-			plugin.processAfterTreeShaking(program)
-		}
+		plugins.processAfterTreeShaking(program)
 
 		injector.mapInstance(program)
 		injector.mapInstance(program, AstResolver::class.java)
@@ -160,13 +154,13 @@ class JTranscBuild(
 		for (featureClass in MissingFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onMissing(program, settings, types)
 		for (featureClass in SupportedFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onSupported(program, settings, types)
 
-		genStaticInitOrder(program)
+		genStaticInitOrder(program, plugins)
 
 		//val programDced = measureProcess("Simplifying AST") { SimpleDCE(program, programDependencies) }
 		return target.build(injector)
 	}
 
-	fun generateProgram(plugins: List<JTranscPlugin>): AstProgram {
+	fun generateProgram(plugins: JTranscPluginGroup): AstProgram {
 		val injector: Injector = injector.get()
 		val configClassNames: ConfigInitialClasses = injector.get()
 		val configMainClass: ConfigMainClass = injector.get()
@@ -195,11 +189,11 @@ class JTranscBuild(
 		val targetName = TargetName(target.name)
 
 		val (elapsed) = measureTime {
-			for (plugin in plugins) plugin.onStartBuilding(program)
+			plugins.onStartBuilding(program)
 
 			while (true) {
 				if (!program.hasClassToGenerate()) {
-					for (plugin in plugins) plugin.onAfterAllClassDiscovered(program)
+					plugins.onAfterAllClassDiscovered(program)
 
 					if (!program.hasClassToGenerate()) {
 						break;
@@ -207,7 +201,7 @@ class JTranscBuild(
 				}
 				val className = program.readClassToGenerate()
 
-				for (plugin in plugins) plugin.onAfterClassDiscovered(className, program)
+				plugins.onAfterClassDiscovered(className, program)
 
 				val time = measureTime {
 					try {

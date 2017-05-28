@@ -1,10 +1,12 @@
 package com.jtransc.plugin.service
 
 import com.jtransc.ast.*
+import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
 import com.jtransc.log.log
 import com.jtransc.plugin.JTranscPlugin
+import com.jtransc.service.JTranscService
 import com.jtransc.vfs.getUnmergedFiles
 import java.util.*
 
@@ -14,6 +16,8 @@ import java.util.*
 class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 	val servicesToImpls = hashMapOf<String, List<String>>()
 	val referencedServices = arrayListOf<String>()
+
+	val SERVICE_LOADER_FQ = "java.util.ServiceLoader".fqname
 
 	override fun onStartBuilding(program: AstProgram) {
 		val targetName = program.injector.get<TargetName>()
@@ -102,5 +106,39 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 
 	override fun processAfterTreeShaking(program: AstProgram) {
 		//println(servicesFolders)
+	}
+
+	val serviceClassNames = setOf(JTranscService::class.java.name.fqname, ServiceLoader::class.java.name.fqname)
+	val serviceLoadMethodNames = setOf("load", "loadInstalled", "loadFromSystemProperty", "getFirst")
+
+	override fun onStaticInitHandleMethodCall(program: AstProgram, ast: AstExpr.CALL_BASE, body: AstBody?, da: AstDependencyAnalyzer.AstDependencyAnalyzerGen) {
+		if (ast is AstExpr.CALL_STATIC) {
+			if (ast.method.classRef.name in serviceClassNames && ast.method.name in serviceLoadMethodNames) {
+				val firstArg = ast.args.firstOrNull()?.value
+				val classRef = (firstArg as? AstExpr.LITERAL)?.value as? AstType.REF
+
+				if (classRef != null) {
+					for (name in servicesToImpls[classRef.fqname] ?: listOf()) {
+						val clazz = program[name.fqname]
+						val cc = clazz.constructors.firstOrNull { it.methodType.argCount == 0 }
+						val ccRef = cc?.ref
+						if (ccRef != null) {
+							//println("Exploring: $ccRef")
+							da.ana(ccRef)
+						}
+						val sc = clazz.staticConstructor
+						val scRef = sc?.ref
+						if (scRef != null) {
+							//println("Exploring: $scRef")
+							da.ana(scRef)
+						}
+						da.ana(clazz.ref)
+					}
+					da.ignoreExploring(ast.method)
+				} else {
+					println("WARNING: Calling statically ServiceLoader/JTranscService without a constant class ${ast.method} : ${ast.args} inside ${body?.methodRef}. This may lead to static initialization problems.")
+				}
+			}
+		}
 	}
 }
