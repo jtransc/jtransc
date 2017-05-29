@@ -6,6 +6,7 @@ import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
 import issues.Issue94Enum
 import issues.issue130.Issue130
+import issues.issue146.Issue146
 import javatest.*
 import javatest.lang.*
 import javatest.misc.BenchmarkTest
@@ -17,7 +18,6 @@ import javatest.utils.CopyTest
 import javatest.utils.DateTest
 import jtransc.WrappedTest
 import jtransc.bug.*
-import jtransc.java8.DefaultMethodsTest
 import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
@@ -35,14 +35,14 @@ object BigTest {
 		//KotlinPropertiesTest.main(args)
 
 		// Misc tests
-		JTranscBug127.main(args);
-		Thread.sleep(1L);
+		JTranscBug127.main(args)
+		Thread.sleep(1L)
 		StringsTest.main(args)
-		PropertiesTest.main(args);
+		PropertiesTest.main(args)
 		BasicTypesTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
-		AtomicTest.main(args);
+		AtomicTest.main(args)
 		FastMemoryTest.main(args)
 		FastMemoryTest.main(args)
 		MultidimensionalArrayTest.main(args)
@@ -50,7 +50,7 @@ object BigTest {
 		//KotlinInheritanceTest.main(args)
 		SimdTest.main(args)
 		MiscTest.main(args)
-		BenchmarkTest.main(args);
+		BenchmarkTest.main(args)
 
 		// Suite tests
 		JTranscBugWithStaticInits.main(args)
@@ -100,8 +100,8 @@ object BigTest {
 		Java8Test.main(args)
 
 		// Misc
-		Base64Test.main(args);
-		CharCharMapTest.main(args);
+		Base64Test.main(args)
+		CharCharMapTest.main(args)
 
 		// Regex
 		javatest.utils.regex.RegexTest.main(args)
@@ -115,7 +115,7 @@ object BigTest {
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
-		NumberFormatTest.main(args);
+		NumberFormatTest.main(args)
 
 		//NumberFormatTest2.main(args);
 
@@ -130,9 +130,10 @@ object BigTest {
 		Issue94Enum.main(args)
 		Issue100Double.main(args)
 
-		CaseInsensitiveOrder.main(args);
+		CaseInsensitiveOrder.main(args)
 
-		Issue130.main(args);
+		Issue130.main(args)
+		Issue146.main(args)
 
 		System.out.println(String.format("%d%%", 100))
 	}
@@ -249,7 +250,7 @@ private class CaseInsensitiveOrder {
 	companion object {
 		@JvmStatic fun main(args: Array<String>) {
 			val tm = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER)
-			tm["Ab"] = "hello";
+			tm["Ab"] = "hello"
 			println(tm["ab"])
 			println(tm["aB"])
 			println(tm["Ab"])
