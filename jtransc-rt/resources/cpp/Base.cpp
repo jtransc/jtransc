@@ -1548,13 +1548,21 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 void N::startup() {
+	/*
 	GC_set_no_dls(0);
 	GC_set_dont_precollect(1);
+	*/
+
 	//GC_set_all_interior_pointers(0);
 	GC_INIT();
 
+	/*
 	GC_clear_roots();
 	GC_add_roots(&STRINGS_START, &STRINGS_END);
+	{% for ptr in CPP_GLOBAL_POINTERS %}
+	GC_ADD_ROOT_SINGLE({{ ptr }});
+	{% end %}
+	*/
 
 	//GC_set_finalize_on_demand(0);
 

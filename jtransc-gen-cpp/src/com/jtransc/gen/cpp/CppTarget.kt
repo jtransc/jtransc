@@ -260,6 +260,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		this.params["CPP_LIBS"] = allTargetLibraries
 		this.params["CPP_INCLUDES"] = targetIncludes
 		this.params["CPP_DEFINES"] = allTargetDefines
+		this.params["CPP_GLOBAL_POINTERS"] = ordereredClasses.flatMap { it.fields.filter { it.isStatic } }.map { "&${it.containingClass.ref.targetName}::${it.ref.targetName}" }
 
 		val mainClassFq = program.entrypoint
 		entryPointClass = FqName(mainClassFq.fqname)
@@ -385,12 +386,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("""TRACE_REGISTER("::main");""")
 			line("try") {
 				line("N::startup();")
-				for (clazz in ordereredClasses) {
-					val fields = clazz.fields.filter { it.isStatic }
-					for (field in fields) {
-						line("GC_ADD_ROOT_SINGLE(&${clazz.ref.targetName}::${field.ref.targetName});")
-					}
-				}
 				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 

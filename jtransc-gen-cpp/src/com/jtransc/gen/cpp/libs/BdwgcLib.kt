@@ -49,7 +49,7 @@ open class BdwgcLib : Lib("bdwgc") {
 			runCommand(bdwgcDir, "./autogen.sh", listOf())
 
 			bdwgcDir["configure"].setExecutable(true)
-			runCommand(bdwgcDir, "./configure", listOf("--enable-cplusplus"))
+			runCommand(bdwgcDir, "./configure", listOf("--enable-cplusplus", "--enable-static", "--disable-shared"))
 
 			runCommand(bdwgcDir, "make", listOf("-j"))
 		}
