@@ -34,7 +34,7 @@ public class JTranscCharsetSingleByte extends JTranscCharset {
 	}
 
 	@Override
-	final public void decode(byte[] in, int offset, int len, StringBuilder out) {
+	final public void decode(byte[] in, int offset, int len, JTranscCharBuffer out) {
 		for (int n = 0; n < len; n++) {
 			int b = in[offset + n] & 0xFF;
 			out.append(decode.charAt(b));

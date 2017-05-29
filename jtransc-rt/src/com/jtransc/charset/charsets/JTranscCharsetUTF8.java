@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
 
 public class JTranscCharsetUTF8 extends JTranscCharset {
@@ -39,7 +40,7 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
 	}
 
 	@Override
-	public void decode(byte[] in, int offset, int len, StringBuilder out) {
+	public void decode(byte[] in, int offset, int len, JTranscCharBuffer out) {
 		int i = offset;
 		int end = offset + len;
 		while (i < end) {
@@ -65,7 +66,7 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
 				}
 				case 14: {
 					// 1110 xxxx  10xx xxxx  10xx xxxx
-					out.append((char) (((c & 0x0F) << 12) | ((in[i++] & 0x3F) << 6) | ((in[i++] & 0x3F) << 0)));
+					out.append((char) (((c & 0x0F) << 12) | ((in[i++] & 0x3F) << 6) | (in[i++] & 0x3F)));
 					break;
 				}
 			}
@@ -101,7 +102,7 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
 				case 14: {
 					// 1110 xxxx  10xx xxxx  10xx xxxx
 					if(in.hasRemaining()) {
-						out.append((char) (((c & 0x0F) << 12) | ((in.get() & 0x3F) << 6) | ((in.get() & 0x3F) << 0)));
+						out.append((char) (((c & 0x0F) << 12) | ((in.get() & 0x3F) << 6) | (in.get() & 0x3F)));
 					}
 					break;
 				}
