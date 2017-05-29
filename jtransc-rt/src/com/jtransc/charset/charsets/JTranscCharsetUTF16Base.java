@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
 
 abstract class JTranscCharsetUTF16Base extends JTranscCharset {
@@ -22,17 +23,17 @@ abstract class JTranscCharsetUTF16Base extends JTranscCharset {
 		for (int n = 0; n < len; n++) {
 			char c = in[offset + n];
 			if (littleEndian) {
-				out.write((c >>> 0) & 0xFF);
+				out.write(c & 0xFF);
 				out.write((c >>> 8) & 0xFF);
 			} else {
 				out.write((c >>> 8) & 0xFF);
-				out.write((c >>> 0) & 0xFF);
+				out.write(c & 0xFF);
 			}
 		}
 	}
 
 	@Override
-	public void decode(byte[] in, int offset, int len, StringBuilder out) {
+	public void decode(byte[] in, int offset, int len, JTranscCharBuffer out) {
 		for (int n = 0; n < len; n += 2) {
 			out.append((char)JTranscBits.readInt16(in, offset + n, littleEndian));
 		}

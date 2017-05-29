@@ -46,7 +46,7 @@ abstract public class JTranscCharset {
 
 	abstract public void encode(char[] in, int offset, int len, ByteArrayOutputStream out);
 
-	abstract public void decode(byte[] in, int offset, int len, StringBuilder out);
+	abstract public void decode(byte[] in, int offset, int len, JTranscCharBuffer out);
 
 	abstract public void decode(ByteBuffer in, CharBuffer out);
 
@@ -58,7 +58,7 @@ abstract public class JTranscCharset {
 	}
 
 	public final String decode(byte[] data, int offset, int len) {
-		StringBuilder out = new StringBuilder((int) (data.length / avgBytesPerCharacter()));
+		JTranscCharBuffer out = new JTranscCharBuffer((int) (data.length / avgBytesPerCharacter()));
 		decode(data, offset, len, out);
 		return out.toString();
 	}
