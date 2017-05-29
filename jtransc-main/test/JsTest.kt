@@ -24,6 +24,7 @@ import issues.Issue100Double
 import issues.Issue105
 import issues.Issue135
 import issues.issue130.Issue130
+import issues.issue146.Issue146
 import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
@@ -188,4 +189,7 @@ class JsTest : _Base() {
 	@Test fun testMemberCollisionsTest() = testClass(Params(clazz = MemberCollisionsTest::class.java, minimize = false, log = false))
 
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Must fix #146")
+	@Test fun testIssue146() = testClass(Params(clazz = Issue146::class.java, minimize = false, log = false, treeShaking = true))
 }

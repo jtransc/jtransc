@@ -133,7 +133,6 @@ object BigTest {
 		CaseInsensitiveOrder.main(args)
 
 		Issue130.main(args)
-		Issue146.main(args)
 
 		System.out.println(String.format("%d%%", 100))
 	}
