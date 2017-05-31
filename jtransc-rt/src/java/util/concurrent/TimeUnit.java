@@ -30,7 +30,7 @@ public enum TimeUnit {
 	}
 
 	private long _convert(long duration, long constant) {
-		return duration * constant / this.value;
+		return duration * this.value / constant;
 	}
 
 	public long toNanos(long duration) {
