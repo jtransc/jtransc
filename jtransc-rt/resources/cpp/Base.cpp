@@ -866,25 +866,27 @@ template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
  	return result;
 }
 
+
+#ifndef __has_builtin
+  #define __has_builtin(x) 0
+#endif
+
 #if defined(__GNUC__)
 	#define JT_HAS_INTRINSIC_BSWAP64
 	#define JT_HAS_INTRINSIC_BSWAP32
 	#define JT_HAS_INTRINSIC_BSWAP16
 #endif
 
-#ifdef __has_builtin
-	#if __has_builtin(__builtin_bswap64)
-		#undef JT_HAS_INTRINSIC_BSWAP64
-		#define JT_HAS_INTRINSIC_BSWAP64
-	#endif
-	#if __has_builtin(__builtin_bswap32)
-		#undef JT_HAS_INTRINSIC_BSWAP32
-		#define JT_HAS_INTRINSIC_BSWAP32
-	#endif
-	#if __has_builtin(__builtin_bswap16)
-		#undef JT_HAS_INTRINSIC_BSWAP16
-		#define JT_HAS_INTRINSIC_BSWAP16
-	#endif
+#if __has_builtin(__builtin_bswap64)
+	#define JT_HAS_INTRINSIC_BSWAP64
+#endif
+
+#if __has_builtin(__builtin_bswap32)
+	#define JT_HAS_INTRINSIC_BSWAP32
+#endif
+
+#if __has_builtin(__builtin_bswap16)
+	#define JT_HAS_INTRINSIC_BSWAP16
 #endif
 
 // https://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
