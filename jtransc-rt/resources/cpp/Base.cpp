@@ -207,8 +207,9 @@ struct N { public:
 	inline static int32_t ishr(int32_t a, int32_t b);
 	inline static int32_t iushr(int32_t a, int32_t b);
 
-	static int32_t bswap32(int32_t a);
-	//static int64_t bswap64(int64_t a);
+	inline static int64_t bswap64(int64_t a);
+	inline static int32_t bswap32(int32_t a);
+	inline static int16_t bswap16(int16_t a);
 
 	inline static int32_t ishl_cst(int32_t a, int32_t b);
 	inline static int32_t ishr_cst(int32_t a, int32_t b);
@@ -865,9 +866,73 @@ template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
  	return result;
 }
 
-int32_t N::bswap32(int32_t a) {
-	return (a & 0x000000ff) << 24 | (a & 0x0000ff00) << 8 | (a & 0x00ff0000) >> 8 | (a & 0xff000000) >> 24;
 
+#ifndef __has_builtin
+  #define __has_builtin(x) 0
+#endif
+
+// https://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
+// https://msdn.microsoft.com/es-es/library/b0084kay.aspx
+#ifdef _MSC_VER
+	#include <intrin.h>
+
+	#define JT_HAS_INTRINSIC_BSWAP64
+	#define JT_HAS_INTRINSIC_BSWAP32
+	#define JT_HAS_INTRINSIC_BSWAP16
+
+	// Unification
+	#define __builtin_bswap16 _byteswap_ushort
+	#define __builtin_bswap32 _byteswap_ulong
+	#define __builtin_bswap64 _byteswap_uint64
+
+#else
+
+	#if defined(__GNUC__) || __has_builtin(__builtin_bswap64)
+		#define JT_HAS_INTRINSIC_BSWAP64
+	#endif
+
+	#if defined(__GNUC__) || __has_builtin(__builtin_bswap32)
+		#define JT_HAS_INTRINSIC_BSWAP32
+	#endif
+
+	#if defined(__GNUC__) || __has_builtin(__builtin_bswap16)
+		#define JT_HAS_INTRINSIC_BSWAP16
+	#endif
+
+#endif
+
+int16_t N::bswap16(int16_t a) {
+	#ifdef JT_HAS_INTRINSIC_BSWAP16
+		return __builtin_bswap16(a);
+	#else
+		return ((a & 0xff) << 8) | ((a & 0xff00) >> 8);
+	#endif
+}
+
+int32_t N::bswap32(int32_t a) {
+	#ifdef JT_HAS_INTRINSIC_BSWAP32
+		return __builtin_bswap32(a);
+	#else
+		return (a & 0x000000ff) << 24 | (a & 0x0000ff00) << 8 | (a & 0x00ff0000) >> 8 | (a & 0xff000000) >> 24;
+	#endif
+}
+
+// https://linux.die.net/man/3/htobe64
+int64_t N::bswap64(int64_t a) {
+	#ifdef JT_HAS_INTRINSIC_BSWAP64
+		return __builtin_bswap64(a);
+	#else
+		return
+			((a << 56) & 0xff00000000000000UL) |
+			((a << 40) & 0x00ff000000000000UL) |
+			((a << 24) & 0x0000ff0000000000UL) |
+			((a <<  8) & 0x000000ff00000000UL) |
+			((a >>  8) & 0x00000000ff000000UL) |
+			((a >> 24) & 0x0000000000ff0000UL) |
+			((a >> 40) & 0x000000000000ff00UL) |
+			((a >> 56) & 0x00000000000000ffUL)
+		;
+	#endif
 }
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }

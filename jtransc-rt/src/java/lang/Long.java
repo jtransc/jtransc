@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.internal.JTranscCType;
 
 public final class Long extends Number implements Comparable<Long> {
@@ -310,6 +311,7 @@ public final class Long extends Number implements Comparable<Long> {
 		return (int) ((v >> 63) | (-v >>> 63));
 	}
 
+	@JTranscMethodBody(target = "cpp", value = "return N::bswap64(p0);")
 	public static long reverseBytes(long v) {
 		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
 		// http://graphics.stanford.edu/~seander/bithacks.html
