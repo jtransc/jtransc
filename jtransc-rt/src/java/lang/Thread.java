@@ -233,7 +233,8 @@ public class Thread implements Runnable {
 	native public static void dumpStack();
 
 	@JTranscMethodBody(target = "d", value = "this.thread.isDaemon = p0;")
-	native public final void setDaemon(boolean on);
+	public final void setDaemon(boolean on) {
+	}
 
 	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
