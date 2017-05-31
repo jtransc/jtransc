@@ -464,6 +464,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public static final int BYTES = SIZE / Byte.SIZE;
 
 	@HaxeMethodBody("return N.swap16(p0) & 0xFFFF;")
+	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
 	public static char reverseBytes(char ch) {
 		return (char) (((ch & 0xFF00) >> 8) | (ch << 8));
 	}

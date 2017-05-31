@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings({"UnnecessaryUnboxing", "unchecked", "WeakerAccess", "unused", "UnnecessaryBoxing"})
@@ -124,6 +125,7 @@ public final class Short extends Number implements Comparable<Short> {
 	}
 
 	@HaxeMethodBody("return N.swap16(p0);")
+	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
 	public static short reverseBytes(short value) {
 		return (short) (((value & 0xFF00) >> 8) | ((value & 0xFF) << 8));
 	}
