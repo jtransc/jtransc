@@ -1,9 +1,46 @@
 # CHANGELOG
 
-## 0.6.2 (WIP)
+## 0.6.2
 
-- Proper behaviour of checkcast opcode
+Optimizations:
+- [ALL] Optimized ByteBufferAs* in most targets with faster reading similar to JT's FastMemory
+- [ALL] Proper behaviour of checkcast opcode
+- [HAXE] JA_B and JA_Z now are backed by haxe.io.Bytes that will allow to do some optimizations
+- [HAXE] Should help with https://github.com/jtransc/gdx-backend-jtransc/issues/41 Update to 0.6.0 (dropped reinterpret arrays) and  https://github.com/jtransc/gdx-backend-jtransc/pull/42 / https://github.com/jtransc/gdx-backend-jtransc/pull/43
+- [CPP] @Intrigus: Use intrinsics for byte swappings
+
+Fixes:
+- [ALL] Fixed a bug in treeshaking creating extra methods that broke `super` functionality and makes code bigger
+- [HAXE] Fixed indentation of the output classes
+- [HAXE] Fixed haxe division + remainder (both integer and long, at least in C++ with edge cases)
+- [HAXE] Fixed being able to execute c++ executables directly (at least in windows)
+- [HAXE] Fixed com.jtransc.FastMemory in haxe-cpp
+- [ALL] Some static init fixes + documentation about static initialization issues
+- [HAXE-CPP] @SergeyLabutin Fixed StringBuilder with unicode characters in Haxe-C++
+- [PHP] Some PHP issues. Still not passing big test and extremely slow due to lack of typed arrays
+- [ALL] Fix static initialization problem with charsets (static initialization + ServiceLoader a bit tricky)
+- [ALL] @SergeyLabutin `TimeUnit.convert` fix
+
+New features:
+- [ALL] @SergeyLabutin: Implemented ThreadPoolExecutor
+- [ALL] @SergeyLabutin: Implemented ScheduledThreadPoolExecutor
+- [DART] Allow add extra imports externally
+
+Changes:
+- [ALL] Passthru target compiler output
+- [CPP] Allow setting GC roots manually by the GC implementation
 - [CPP] Embed `bdwgc.zip` to ensure we have the library and the right format and version.
+- [CPP] Configurable GC
+- [ALL] Changed ZIP reader to be consistent between platforms/Java VMs
+- [TIZEN] Remove from documentation since not supported by Lime anymore
+
+Minor:
+- [JS] Do not use float to avoid issues with Closure Optimizer
+- [JS] Some refactorings
+- [GITTER] Unified chat `slack/irc -> gitter`
+- [TRAVIS] Reduce mono dependencies
+- [TRAVIS] Disabled travis cache
+
 
 ## 0.6.1
 
