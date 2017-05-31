@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.6.3 (WIP)
+
 ## 0.6.2
 
 Optimizations:
