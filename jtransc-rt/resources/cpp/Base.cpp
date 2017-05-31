@@ -866,8 +866,15 @@ template<typename TTo, typename TFrom> TTo N::CC_CHECK_GENERIC(TFrom i) {
 }
 
 int32_t N::bswap32(int32_t a) {
-	return (a & 0x000000ff) << 24 | (a & 0x0000ff00) << 8 | (a & 0x00ff0000) >> 8 | (a & 0xff000000) >> 24;
-
+#if defined(__has_builtin) && __has_builtin(__builtin_bswap32)
+ 	return __builtin_bswap32(a);
+#elif defined(__GNUC__)
+ 	return __builtin_bswap32(a);
+//#elif defined(_MSC_VER)
+// 	return _byteswap_ulong(a);
+#else
+ 	return (a & 0x000000ff) << 24 | (a & 0x0000ff00) << 8 | (a & 0x00ff0000) >> 8 | (a & 0xff000000) >> 24;
+#endif
 }
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
