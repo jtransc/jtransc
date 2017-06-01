@@ -16,7 +16,6 @@
 
 import big.*
 import com.jtransc.BuildBackend
-import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsGenerator
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
@@ -25,6 +24,7 @@ import issues.Issue105
 import issues.Issue135
 import issues.issue130.Issue130
 import issues.issue146.Issue146
+import issues.issue158.Issue158
 import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
@@ -192,4 +192,7 @@ class JsTest : _Base() {
 
 	@Ignore("Must fix #146")
 	@Test fun testIssue146() = testClass(Params(clazz = Issue146::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Must fix #158")
+	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
 }
