@@ -13,7 +13,7 @@ import j.ProgramReflection
  * This class aims to create classes to perform reflection on available classes
  */
 class MetaReflectionJTranscPlugin : JTranscPlugin() {
-	override val priority: Int = Int.MAX_VALUE - 10
+	override val priority: Int = Int.MAX_VALUE - 1000
 
 	fun AstClass.mustReflect(invisibleExternalSet: Set<String> = setOf()): Boolean {
 		return this.visible && (this.fqname !in invisibleExternalSet) && (this.annotationsList.getNativeNameForTarget(targetName) == null)

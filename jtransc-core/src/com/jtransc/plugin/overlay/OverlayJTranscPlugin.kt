@@ -4,7 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
 
 class OverlayJTranscPlugin : JTranscPlugin() {
-	override val priority: Int = Int.MAX_VALUE
+	override val priority: Int = Int.MAX_VALUE - 999
 
 	override fun processAfterTreeShaking(program: AstProgram) {
 		val nativeClassesWithOverlays = program.classes
@@ -27,6 +27,9 @@ class OverlayJTranscPlugin : JTranscPlugin() {
 			)
 			program.add(overlayClass)
 			for (method in overlayMethods) {
+				// We shouldn't transform call-site bodies
+				if (method.annotationsList.getCallSiteBodyForTarget(targetName) != null) continue
+
 				if (method.isStatic) {
 					val overlayMethod = AstMethod(
 						containingClass = overlayClass,

@@ -500,7 +500,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		fun processArg(arg: AstExpr.Box, targetType: AstType) = processCallArg(arg.value, if (isNativeCall) convertToTarget(arg) else arg.genExpr(), targetType)
 		fun processArg(arg: AstExpr.Box) = processArg(arg, arg.type)
 
-		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)?.template("JTranscCallSiteBody")
+		val callsiteBody = refMethod.annotationsList.getCallSiteBodyForTarget(targetName)?.template("JTranscCallSiteBody")
 
 		fun unbox(arg: AstExpr.Box): String {
 			val processed = processArg(arg)
