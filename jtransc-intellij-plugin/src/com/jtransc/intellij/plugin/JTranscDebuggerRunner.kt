@@ -35,6 +35,7 @@ import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.debugger.v8.NodeJS
 import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.io.ProcessUtils
+import com.jtransc.io.ProcessHandler
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -189,7 +190,7 @@ class JTranscDebugProcess(session: XDebugSession, val file: File, val executionR
 	var debugger: JTranscDebugger? = null
 
 	init {
-		NodeJS.debug2Async(file, object : ProcessUtils.ProcessHandler() {
+		NodeJS.debug2Async(file, object : ProcessHandler() {
 			override fun onStarted() {
 				println("Started!")
 			}

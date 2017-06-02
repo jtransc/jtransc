@@ -68,13 +68,13 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			}
 			is AstStm.SWITCH -> {
 				line("switch (${dump(types, stm.subject)})") {
-					for ((index, case) in stm.cases) line("case $index: ${dump(types, case)}")
+					for ((indices, case) in stm.cases) line("case ${indices.joinToString(", ")}: ${dump(types, case)}")
 					line("default: ${dump(types, stm.default)}")
 				}
 			}
 			is AstStm.SWITCH_GOTO -> {
 				line("switch (${dump(types, stm.subject)})") {
-					for ((index, case) in stm.cases) line("case $index: goto $case;")
+					for ((indices, case) in stm.cases) line("case ${indices.joinToString(", ")}: goto $case;")
 					line("default: goto ${stm.default};")
 				}
 			}

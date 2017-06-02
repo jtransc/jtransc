@@ -87,6 +87,14 @@ open class JTranscGradleExtension(val project: Project) {
 		skipServiceLoaderClasses.add(serviceLoader)
 	}
 
+	fun param(key: String, value: String?) {
+		extra[key] = value
+	}
+
+	fun param(key: String) {
+		param(key, "true")
+	}
+
 	/*
 	Alias for:
 

@@ -23,7 +23,6 @@ import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.util.toIntOrNull2
@@ -54,6 +53,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val allowRepeatMethodsInInterfaceChain = true
 	open val localVarPrefix = ""
 	open val floatHasFSuffix = true
+	open val casesWithCommas = false
 
 	open val GENERATE_LINE_NUMBERS = true
 
@@ -70,6 +70,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val minimize: Boolean = configMinimizeNames?.minimizeNames ?: false
 
 	val settings: AstBuildSettings = injector.get()
+	val extraParams = settings.extra
 	val debugVersion: Boolean = settings.debug
 	val folders: CommonGenFolders = injector.get()
 
@@ -828,9 +829,17 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
 		line("switch (${stm.subject.genExpr()})") {
-			for ((value, label) in stm.cases) line("case $value: ${genGoto(label, false)}")
+			for ((values, label) in stm.cases) {
+				line("${buildMultipleCase(values)} ${genGoto(label, false)}")
+			}
 			line("default: ${genGoto(stm.default, false)}")
 		}
+	}
+
+	open fun buildMultipleCase(cases: List<Int>): String = if (casesWithCommas) {
+		"case " + cases.joinToString(",") + ":"
+	} else {
+		cases.map { "case $it:" }.joinToString(" ")
 	}
 
 	open fun genStmIfGoto(stm: AstStm.IF_GOTO): Indenter = Indenter("if (${stm.cond.genExpr()}) " + genGoto(stm.label, false))
@@ -875,16 +884,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
 			line("switch (${stm.subject.genExpr()})") {
 				for (case in stm.cases) {
-					val value = case.first
+					val values = case.first
 					val caseStm = case.second
 					if (caseStm.value.isSingleStm()) {
-						if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) {
-							line("case $value: " + caseStm.genStm().toString().trim())
-						} else {
-							line("case $value: " + caseStm.genStm().toString().trim() + " break;")
-						}
+						val append = if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) "" else "break;"
+						line(buildMultipleCase(values) + caseStm.genStm().toString().trim() + " " + append)
 					} else {
-						line("case $value:")
+						line(buildMultipleCase(values))
 						indent {
 							line(caseStm.genStm())
 							if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")

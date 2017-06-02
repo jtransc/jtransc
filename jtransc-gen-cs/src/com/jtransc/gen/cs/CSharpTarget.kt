@@ -14,7 +14,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -97,8 +96,10 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val fixencoding = false
 
+	val csharpCompiler = CSharpCompiler()
+
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
-		return CSharpCompiler.genCommand(programFile, debug, libs)
+		return csharpCompiler.genCommand(programFile, debug, libs, extraParams)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

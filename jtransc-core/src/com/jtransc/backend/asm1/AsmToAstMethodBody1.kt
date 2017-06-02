@@ -783,7 +783,7 @@ private class BasicBlockBuilder(
 					stmAdd(AstStm.SWITCH_GOTO(
 						stackPop(),
 						labels.ref(labels.label(i.dflt)),
-						i.keys.cast<Int>().zip(labels2.map { labels.ref(labels.label(it)) })
+						i.keys.cast<Int>().zip(labels2.map { labels.ref(labels.label(it)) }).groupByLabel()
 					))
 					next = i.dflt
 					outgoing.addAll(labels2)
@@ -794,7 +794,7 @@ private class BasicBlockBuilder(
 					stmAdd(AstStm.SWITCH_GOTO(
 						stackPop(),
 						labels.ref(labels.label(i.dflt)),
-						(i.min..i.max).zip(labels2.map { labels.ref(labels.label(it)) })
+						(i.min..i.max).zip(labels2.map { labels.ref(labels.label(it)) }).groupByLabel()
 					))
 					next = i.dflt
 					outgoing.addAll(labels2)
@@ -836,6 +836,7 @@ private class BasicBlockBuilder(
 			outgoing = outgoing
 		)
 	}
+
 }
 
 fun AbstractInsnNode.disasm() = JvmOpcode.disasm(this)

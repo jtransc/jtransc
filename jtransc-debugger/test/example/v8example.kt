@@ -3,7 +3,7 @@ package example
 import com.jtransc.debugger.JTranscDebugger
 import com.jtransc.debugger.v8.NodeJS
 import com.jtransc.debugger.v8.V8JTranscDebugger
-import com.jtransc.io.ProcessUtils
+import com.jtransc.io.ProcessHandler
 import java.io.File
 
 class V8Example {
@@ -20,7 +20,7 @@ class V8Example {
 				}
 
 				@Volatile var debugger: V8JTranscDebugger? = null
-				val debuggerPromise = NodeJS.debug2Async(testjsFile, object : ProcessUtils.ProcessHandler() {
+				val debuggerPromise = NodeJS.debug2Async(testjsFile, object : ProcessHandler() {
 					override fun onStarted() {
 						println("Started!")
 					}

@@ -96,6 +96,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	val configHaxeAddSubtarget: ConfigHaxeAddSubtarget? = injector.getOrNull()
 	val MAX_SWITCH_SIZE = 10
 	override val floatHasFSuffix: Boolean = false
+	override val casesWithCommas = true
 
 	val isCpp = subtarget in setOf("cpp", "windows", "linux", "mac", "android")
 
