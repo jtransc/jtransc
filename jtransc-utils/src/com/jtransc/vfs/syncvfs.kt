@@ -18,6 +18,7 @@ package com.jtransc.vfs
 
 import com.jtransc.env.OS
 import com.jtransc.error.*
+import com.jtransc.io.ProcessUtils
 import com.jtransc.io.readExactBytes
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
@@ -79,6 +80,17 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	fun remove(): Unit = vfs.remove(path)
 	fun removeIfExists(): Unit = if (exists) remove() else Unit
 
+	companion object {
+		val pathSeparator by lazy { System.getProperty("path.separator") ?: ":" }
+		val fileSeparator by lazy { System.getProperty("file.separator") ?: "/" }
+	}
+
+	fun getPaths(): List<String> {
+		val env = getenv("PATH") ?: ""
+		return env.split(pathSeparator)
+	}
+
+	fun getenv(key: String): String? = vfs.getenv(key)
 	fun exec(cmdAndArgs: List<String>, options: ExecOptions = ExecOptions()): ProcessResult = vfs.exec(path, cmdAndArgs.first(), cmdAndArgs.drop(1), options)
 	fun exec(cmd: String, args: List<String>, options: ExecOptions): ProcessResult = vfs.exec(path, cmd, args, options)
 	fun exec(cmd: String, args: List<String>, env: Map<String, String> = mapOf()): ProcessResult = exec(cmd, args, ExecOptions(passthru = false, env = env))
@@ -241,6 +253,10 @@ open class SyncVfs {
 		throw NotImplementedException()
 	}
 
+	open fun getenv(key: String): String? {
+		return System.getenv(key)
+	}
+
 	open fun exec(path: String, cmd: String, args: List<String>, options: ExecOptions): ProcessResult {
 		throw NotImplementedException()
 	}
@@ -302,7 +318,7 @@ fun FileNode.toSyncStat(vfs: SyncVfs, path: String): SyncVfsStat {
 }
 
 
-private class _MemoryVfs : BaseTreeVfs(FileNodeTree()) {
+open class _MemoryVfs : BaseTreeVfs(FileNodeTree()) {
 }
 
 private class _LocalVfs : SyncVfs() {

@@ -70,6 +70,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val minimize: Boolean = configMinimizeNames?.minimizeNames ?: false
 
 	val settings: AstBuildSettings = injector.get()
+	val extraParams = settings.extra
 	val debugVersion: Boolean = settings.debug
 	val folders: CommonGenFolders = injector.get()
 
