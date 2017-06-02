@@ -5,3 +5,4 @@ com.jtransc.plugin.proxy.ProxyJTranscPlugin
 com.jtransc.plugin.reflection.MetaReflectionJTranscPlugin
 com.jtransc.plugin.enum.EnumJTranscPlugin
 com.jtransc.plugin.lang.IncludeSingleConstructorsJTranscPlugin
+com.jtransc.plugin.overlay.OverlayJTranscPlugin

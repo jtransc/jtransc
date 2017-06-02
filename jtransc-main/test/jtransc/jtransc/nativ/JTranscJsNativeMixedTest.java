@@ -45,6 +45,8 @@ public class JTranscJsNativeMixedTest {
 		Global.global.console.log(array.get(0));
 
 		Global.global.console.log(JsDynamic.raw("Math.max(1, 7 * 3)"));
+		Console.logHelloWorldStatic();
+		//Global.global.console.logHelloWorld();
 	}
 
 	@JTranscNativeName("global")
@@ -64,6 +66,14 @@ public class JTranscJsNativeMixedTest {
 	@JTranscNativeName("Console")
 	public abstract static class Console {
 		native public void log(@JTranscUnboxParam Object a);
+
+		static public void logHelloWorldStatic() {
+			Global.global.console.log("HELLO WORLD");
+		}
+
+		public void logHelloWorld() {
+			log("HELLO WORLD");
+		}
 	}
 
 	@JTranscCallSiteBody(target = "js", value = "global#.0")

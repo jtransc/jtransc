@@ -87,7 +87,9 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		}
 	}
 
-	override fun visit(body: AstBody) {
+	override fun visit(body: AstBody?) {
+		if (body == null) return
+
 		// @TODO: this should be easier when having the SSA form
 		for (local in body.locals) {
 			if (local.writes.size == 1) {

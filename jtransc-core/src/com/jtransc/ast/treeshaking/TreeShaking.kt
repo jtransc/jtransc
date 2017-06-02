@@ -280,8 +280,7 @@ class TreeShakingApi(
 			modifiers = oldmethod.modifiers,
 			generateBody = oldmethod.generateBody,
 			bodyRef = oldmethod.bodyRef,
-			parameterAnnotations = oldmethod.parameterAnnotations,
-			types = newprogram.types
+			parameterAnnotations = oldmethod.parameterAnnotations
 		)
 		//println("    -> ${oldmethod.dependencies.classes}")
 

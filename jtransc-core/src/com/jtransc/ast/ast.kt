@@ -342,6 +342,7 @@ class AstClass(
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
+	val types get() = program.types
 
 	val implementingUnique by lazy { implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
@@ -451,6 +452,9 @@ class AstClass(
 		methodsByNameDescInterfaces[methodDesc] = method
 		methodsByNameDesc[methodDesc] = method
 	}
+
+	operator fun plusAssign(e: AstField) = add(e)
+	operator fun plusAssign(e: AstMethod) = add(e)
 
 	//val dependencies: AstReferences = AstReferences()
 	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
@@ -692,7 +696,7 @@ data class AstArgumentCallWithAnnotations(val arg: AstArgument, val annotationLi
 	val exprBox = expr.box
 }
 
-class AstMethod(
+class AstMethod constructor(
 	containingClass: AstClass,
 	val id: Int = containingClass.program.lastMethodId++,
 	name: String,
@@ -705,11 +709,14 @@ class AstMethod(
 	var generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
-	val types: AstTypes,
 	override val ref: AstMethodRef = AstMethodRef(containingClass.name, name, methodType)
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
-
+) : AstMember(
+	containingClass, name, methodType,
+	if (genericSignature != null) containingClass.types.demangleMethod(genericSignature) else methodType,
+	modifiers.isStatic, modifiers.visibility, ref, annotations
+), MethodRef {
+	val types: AstTypes get() = program.types
 
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
 
