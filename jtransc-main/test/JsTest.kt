@@ -193,6 +193,5 @@ class JsTest : _Base() {
 	@Ignore("Must fix #146")
 	@Test fun testIssue146() = testClass(Params(clazz = Issue146::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Ignore("Must fix #158")
 	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
 }

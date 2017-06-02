@@ -410,7 +410,6 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	private FastStringMap<Field> _fieldsByName;
 	private FastStringMap<Field> _declaredFieldsByName;
-
 	private Field[] _allFields = null;
 	private Field[] _accessibleFields = null;
 
@@ -458,12 +457,41 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return field;
 	}
 
-	public Method[] getMethods() throws SecurityException {
-		return this.getDeclaredMethods(); // @TODO: Filter just public! + ancestors
+	//private FastStringMap<Method> _methodsByName;
+	//private FastStringMap<Method> _declaredMethodsByName;
+	private Method[] _allMethods = null;
+	private Method[] _accessibleMethods = null;
+
+	private Method[] getAllMethods() throws SecurityException {
+		if (_allMethods == null) {
+			ArrayList<Method> allMethods = new ArrayList<>();
+			Collections.addAll(allMethods, getDeclaredMethods());
+			if (getSuperclass() != null) {
+				Collections.addAll(allMethods, getSuperclass().getMethods());
+			}
+			_allMethods = allMethods.toArray(new Method[0]);
+		}
+		return _allMethods;
 	}
 
-	public Annotation[] getAnnotations() {
-		return this.getDeclaredAnnotations(); // @TODO: Filter just public!
+	public Method[] getMethods() throws SecurityException {
+		if (_accessibleMethods == null) {
+			ArrayList<Method> accessibleMethods = new ArrayList<>();
+			for (Method method : getAllMethods()) {
+				if (method.isAccessible()) accessibleMethods.add(method);
+			}
+			_accessibleMethods = accessibleMethods.toArray(new Method[0]);
+		}
+		return _accessibleMethods;
+	}
+
+	public Method _getMethod(boolean declared, String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
+		for (Method m : declared ? getDeclaredMethods() : getMethods()) {
+			if (Objects.equals(m.getName(), name) && Arrays.equals(m.getParameterTypes(), parameterTypes)) {
+				return m;
+			}
+		}
+		throw new NoSuchMethodException(name);
 	}
 
 	public Constructor<?>[] getConstructors() throws SecurityException {
@@ -471,7 +499,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Method getMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
-		return getDeclaredMethod(name, parameterTypes);
+		return _getMethod(false, name, parameterTypes);
 	}
 
 	public Constructor<T> getConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
@@ -479,12 +507,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public Method getDeclaredMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
-		for (Method m : getDeclaredMethods()) {
-			if (Objects.equals(m.getName(), name) && Arrays.equals(m.getParameterTypes(), parameterTypes)) {
-				return m;
-			}
-		}
-		throw new NoSuchMethodException(name);
+		return _getMethod(true, name, parameterTypes);
 	}
 
 	public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
@@ -500,6 +523,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		throw new NoSuchMethodException("Can't find constructor of class " + this.getName() + " with parameters " + Arrays.asList(parameterTypes));
 	}
 
+	// Annotations
+	public Annotation[] getAnnotations() {
+		return this.getDeclaredAnnotations(); // @TODO: Filter just public!
+	}
 
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getDeclaredAnnotation(annotationClass) != null;
