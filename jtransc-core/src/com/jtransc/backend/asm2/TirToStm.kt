@@ -103,7 +103,11 @@ class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, v
 					val t1 = tir.l.expr.type
 					stms += AstStm.IF_GOTO(tir.label.ast, AstExpr.BINOP(AstType.BOOL, tir.l.expr, tir.op, tir.r.expr.castTo(t1)))
 				}
-				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(tir.subject.expr, tir.deflt.ast, tir.cases.map { it.key to it.value.ast })
+				is TIR.SWITCH_GOTO -> stms += AstStm.SWITCH_GOTO(
+					tir.subject.expr,
+					tir.deflt.ast,
+					tir.cases.entries.groupBy { it.value }.map { it.value.map { it.key } to it.key.ast }
+				)
 				is TIR.RET -> {
 					//if (methodType.ret == AstType.REF("j.ClassInfo")) {
 					//	println("go!")
