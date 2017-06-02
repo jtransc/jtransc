@@ -121,13 +121,24 @@ public class Object {
 		return getClass().getName() + "@" + Integer.toHexString(this.hashCode());
 	}
 
+	private static final long SAMPLING_STEP = 50;
+	private long waitTimeout;
 	public final void notify() {
+		waitTimeout = 0;
 	}
 
 	public final void notifyAll() {
+		waitTimeout = 0;
 	}
 
 	public final void wait(long timeout) throws InterruptedException {
+		if (timeout < 0)
+			throw new IllegalArgumentException("timeout is negative");
+		waitTimeout = timeout == 0 ? Long.MAX_VALUE : timeout;
+		while (waitTimeout > 0){
+			waitTimeout -= SAMPLING_STEP;
+			Thread.sleep(SAMPLING_STEP);
+		}
 	}
 
 	public final void wait(long timeout, int nanos) throws InterruptedException {
