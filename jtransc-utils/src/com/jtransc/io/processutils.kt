@@ -38,6 +38,19 @@ data class ProcessResult2(val exitValue: Int, val out: String = "", val err: Str
 
 object ProcessUtils : ProcessUtilsBase(RootLocalVfs())
 
+open class ProcessHandler(val parent: ProcessHandler? = null) {
+	open fun onStarted(): Unit = parent?.onStarted() ?: Unit
+	open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit
+	open fun onErrorData(data: String): Unit = parent?.onErrorData(data) ?: Unit
+	open fun onCompleted(exitValue: Int): Unit = parent?.onCompleted(exitValue) ?: Unit
+}
+
+object RedirectOutputHandler : ProcessHandler() {
+	override fun onOutputData(data: String) = System.out.print(data)
+	override fun onErrorData(data: String) = System.err.print(data)
+	override fun onCompleted(exitValue: Int) = Unit
+}
+
 open class ProcessUtilsBase(val rootVfs: SyncVfsFile) {
 	//val defaultCharset = Charset.forName("UTF-8")
 	val defaultCharset = if (OS.isWindows) Charset.forName("UTF-8") else Charset.defaultCharset()
@@ -115,19 +128,6 @@ open class ProcessUtilsBase(val rootVfs: SyncVfsFile) {
 
 	fun runAndRedirect(currentDir: File, commandAndArgs: List<String>, env: Map<String, String> = mapOf()): ProcessResult2 {
 		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), options = ExecOptions(sysexec = true).copy(passthru = true, env = env))
-	}
-
-	open class ProcessHandler(val parent: ProcessHandler? = null) {
-		open fun onStarted(): Unit = parent?.onStarted() ?: Unit
-		open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit
-		open fun onErrorData(data: String): Unit = parent?.onErrorData(data) ?: Unit
-		open fun onCompleted(exitValue: Int): Unit = parent?.onCompleted(exitValue) ?: Unit
-	}
-
-	object RedirectOutputHandler : ProcessHandler() {
-		override fun onOutputData(data: String) = System.out.print(data)
-		override fun onErrorData(data: String) = System.err.print(data)
-		override fun onCompleted(exitValue: Int) = Unit
 	}
 
 	val pathSeparator by lazy { System.getProperty("path.separator") ?: ":" }
