@@ -1102,9 +1102,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun escapedConstant(v: Any?): String = when (v) {
+	override fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		null -> "nullptr"
-		else -> super.escapedConstant(v)
+		else -> super.escapedConstant(v, place)
 	}
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {

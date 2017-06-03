@@ -328,7 +328,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genField(field: AstField): Indenter = Indenter {
 		val istatic = if (field.isStatic) "static " else ""
-		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValue};")
+		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValueField};")
 	}
 
 	open fun genMetodDecl(method: AstMethod): String {
@@ -1930,8 +1930,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	val Any?.escapedConstant: String get() = escapedConstant(this)
-	open fun escapedConstant(v: Any?): String = when (v) {
+	enum class ConstantPlace { ANY, LOCAL, PARAM, FIELD }
+
+	val Any?.escapedConstant: String get() = escapedConstant(this, ConstantPlace.ANY)
+	val Any?.escapedConstantLocal: String get() = escapedConstant(this, ConstantPlace.LOCAL)
+	val Any?.escapedConstantParam: String get() = escapedConstant(this, ConstantPlace.PARAM)
+	val Any?.escapedConstantField: String get() = escapedConstant(this, ConstantPlace.FIELD)
+
+	open fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		null -> "null"
 		is Boolean -> if (v) "true" else "false"
 		is String -> v.escapeString
@@ -2237,6 +2243,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
+	val AstField.escapedConstantValueField: String get() = this.constantValueOrNativeDefault.escapedConstantField
+	val AstField.escapedConstantValueLocal: String get() = this.constantValueOrNativeDefault.escapedConstantLocal
 	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForStatic + buildAccessName(program[this.ref], static = true)
 	inline fun <reified T : Any, R> KMutableProperty1<T, R>.getTargetName(): String = this.locate(program).targetName
 

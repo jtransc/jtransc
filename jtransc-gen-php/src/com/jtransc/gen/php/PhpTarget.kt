@@ -13,7 +13,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -113,7 +112,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genField(field: AstField): Indenter = Indenter {
 		val static = if (field.isStatic) "static " else ""
-		line("public $static\$${field.targetName} = ${field.type.getNull().escapedConstant};")
+		line("public $static\$${field.targetName} = ${field.type.getNull().escapedConstantField};")
 	}
 
 	override fun staticAccess(name: String, field: Boolean): String = if (field) "$staticAccessOperator\$$name" else "$staticAccessOperator$name"
@@ -186,7 +185,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 					'\t' -> out.append("\\t")
 				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
 				//in '\u0020'..'\u00ff' -> out.append(c)
-					//else -> out.append("\\u" + "%04x".format(c.toInt()))
+				//else -> out.append("\\u" + "%04x".format(c.toInt()))
 					else -> out.append(c)
 				}
 			}
@@ -202,7 +201,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String) = "\$$localName = $exprStr;"
 
-	override val AstArgument.decl: String get() = "\$${this.targetName}"
+	override val AstArgument.decl: String get() = "${this.type.targetNameNullable} \$${this.targetName}"
 
 	override fun genMetodDecl(method: AstMethod): String {
 		val args = method.methodType.args.map { it.decl }
@@ -258,16 +257,18 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_is(a: String, b: String): String = "(($a) instanceof $b)"
 
+	//override val FqName.targetName: String get() = "?" + super.targetName
+
 	override val NullType by lazy { AstType.OBJECT.targetName }
 	override val VoidType = "void"
 	override val BoolType = "bool"
 	override val IntType = "int"
-	override val ShortType = "short"
-	override val CharType = "ushort"
-	override val ByteType = "sbyte"
+	override val ShortType = "int"
+	override val CharType = "int"
+	override val ByteType = "int"
 	override val FloatType = "float"
-	override val DoubleType = "double"
-	override val LongType = "long"
+	override val DoubleType = "float"
+	override val LongType = "Int64"
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
@@ -287,18 +288,23 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 
 		if (!clazz.isInterface) {
-			if (clazz.isJavaLangObject) {
-				line("public \$__PHP__CLASS_ID;")
-				line("public function __construct(\$CLASS_ID = ${clazz.classId}) { \$this->__PHP__CLASS_ID = \$CLASS_ID; }")
-			} else {
-				line("public function __construct(\$CLASS_ID = ${clazz.classId}) { parent::__construct(\$CLASS_ID); }")
+			if (clazz.isJavaLangObject) line("public \$__PHP__CLASS_ID;")
+			line("public function __construct(\$CLASS_ID = ${clazz.classId})") {
+				if (clazz.isJavaLangObject) {
+					line("\$this->__PHP__CLASS_ID = \$CLASS_ID;")
+				} else {
+					line("parent::__construct(\$CLASS_ID);")
+				}
+				for (field in clazz.fieldsInstance) {
+					line("\$this->${field.targetName} = ${field.escapedConstantValueLocal};")
+				}
 			}
 		}
 		if (clazz.staticConstructor != null) {
 			line("static public function SI()") {
 				val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
-				for (field in clazz.fields.filter { it.isStatic }) {
-					line("$clazzName::\$${field.targetName} = ${field.escapedConstantValue};")
+				for (field in clazz.fieldsStatic) {
+					line("$clazzName::\$${field.targetName} = ${field.escapedConstantValueLocal};")
 				}
 				line(genSIMethodBody(clazz))
 			}
@@ -311,8 +317,9 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(super.genBody2WithFeatures(method, body))
 	}
 
-	override fun N_i(str: String) = "($str)"
-	override fun N_d2i(str: String) = "(($str)|0)"
+	//override fun N_i(str: String) = "(($str)|0)"
+	override fun N_i(str: String) = "((int)($str))"
+	override fun N_d2i(str: String) = N_i(str)
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"
@@ -384,13 +391,18 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun escapedConstant(v: Any?): String = when (v) {
+	override fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 	//is Float -> if (v.isInfinite()) if (v < 0) NegativeInfinityString else PositiveInfinityString else if (v.isNaN()) NanString else "${v}f"
-		is Long -> "null"
-		else -> super.escapedConstant(v)
+	//is Long -> "null"
+		is Long -> {
+			if (place == ConstantPlace.FIELD) "null" else "Int64::make(${(v shr 32).toInt()}, ${(v shr 0).toInt()})"
+		}
+		else -> super.escapedConstant(v, place)
 	}
 
 	override fun getClassInterfaces(clazz: AstClass): List<FqName> = clazz.implementingNormalized
+
+	val AstType.targetNameNullable get() = if (this.isReference()) "?$targetName" else targetName
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {

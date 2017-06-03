@@ -370,6 +370,8 @@ class AstClass(
 	val classType: AstClassType = modifiers.classType
 	val visibility: AstVisibility = modifiers.visibility
 	val fields = arrayListOf<AstField>()
+	val fieldsStatic get() = fields.filter { it.isStatic }
+	val fieldsInstance get() = fields.filter { !it.isStatic }
 	val methods = arrayListOf<AstMethod>()
 	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
 	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
