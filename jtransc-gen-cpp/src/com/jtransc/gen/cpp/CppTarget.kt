@@ -1064,11 +1064,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun N_lnew(value: Long): String {
-		//return if (value == Long.MIN_VALUE) {
-		return "(int64_t)(${value}ll)"
-		//} else {
-		//	"(int64_t)(0x8000000000000000ULL)"
-		//}
+		if (value == Long.MIN_VALUE) {
+			//return "(int64_t)(0x8000000000000000L"
+			return "(int64_t)(-${Long.MAX_VALUE}LL - 1)"
+		} else {
+			return "(int64_t)(${value}LL)"
+		}
 	}
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
