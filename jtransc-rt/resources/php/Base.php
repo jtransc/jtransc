@@ -2,17 +2,42 @@
 
 // JTransc {{ JTRANSC_VERSION }} : https://github.com/jtransc/jtransc
 
-if (version_compare(phpversion(), '7.1.0', '<')) die('Requires PHP 7.1 or higher');
+// php program.php
+// hhvm -v Eval.EnableHipHopSyntax=true program.php
+if (defined('HHVM_VERSION')) {
+	// @TODO: Check minimum HHVM_VERSION
+} else {
+	if (version_compare(phpversion(), '7.1.0', '<')) die('Requires PHP 7.1 or higher but was ' . phpversion());
+}
+
+ob_implicit_flush(true);
 
 // http://hhvm.com/blog/713/hhvm-optimization-tips
 
+set_error_handler('exceptions_error_handler');
+
+function exceptions_error_handler($severity, $message, $filename, $lineno) {
+  //if (error_reporting() == 0) return;
+  //if (error_reporting() & $severity) {
+    throw new ErrorException($message, 0, $severity, $filename, $lineno);
+  //}
+}
+
 const PHP_INT_BITS_SIZE = PHP_INT_SIZE * 8;
 
-class N {
+final class N {
 	const MIN_INT32 = -2147483648;
 	const MAX_INT32 = 2147483647;
 
 	static function init() {
+	}
+
+	static public function utf16_to_utf8(string $str) : string {
+		return mb_convert_encoding($str, 'UTF-8', 'UTF-16LE');
+	}
+
+	static public function utf8_to_utf16(string $str) : string {
+		return mb_convert_encoding($str, 'UTF-16LE', 'UTF-8');
 	}
 
 	static public function iushr(int $a, int $b) : int {
@@ -20,7 +45,7 @@ class N {
         return ($a >> $b) & ~(1 << (8 * PHP_INT_SIZE - 1) >> ($b - 1));
 	}
 	static public function irem(int $a, int $b) : int { return $a % $b; }
-	static public function idiv(int $a, int $b) : int { return floor($a / $b); } // intdiv
+	static public function idiv(int $a, int $b) : int { return intdiv($a, $b); } // intdiv
 
 	static public function i(int $v) { return $v | 0; }
 
@@ -29,13 +54,16 @@ class N {
 	static public function z2i($v) : int { return $v ? 1 : 0; }
 	static public function i2c(int $v) : int { return $v & 0xFFFF; }
 	static public function i2b(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 8)) >> PHP_INT_BITS_SIZE; }
+	static public function i2s(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 16)) >> PHP_INT_BITS_SIZE; }
 	static public function d2j(float $v) : Int64 { return Int64::ofFloat($v); }
+	static public function j2d(Int64 $v) : float { return Int64::toFloat($v); }
 
 	static public function sx8(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 8)) >> PHP_INT_BITS_SIZE; }
 	static public function sx16(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 16)) >> PHP_INT_BITS_SIZE; }
 	static public function sx32(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 32)) >> PHP_INT_BITS_SIZE; }
 
 	static function lnew (int   $h, int   $l) : Int64 { return Int64::make($h, $l); }
+	static function lneg (Int64 $l) : Int64 { return Int64::neg($l); }
 	static function lsub (Int64 $l, Int64 $r) : Int64 { return Int64::sub($l, $r); }
 	static function ladd (Int64 $l, Int64 $r) : Int64 { return Int64::add($l, $r); }
 	static function lmul (Int64 $l, Int64 $r) : Int64 { return Int64::mul($l, $r); }
@@ -44,6 +72,9 @@ class N {
 	static function lshl (Int64 $l, int   $r) : Int64 { return Int64::shl($l, $r); }
 	static function lshr (Int64 $l, int   $r) : Int64 { return Int64::shr($l, $r); }
 	static function lushr(Int64 $l, int   $r) : Int64 { return Int64::ushr($l, $r); }
+	static function land (Int64 $l, Int64 $r) : Int64 { return Int64::and($l, $r); }
+	static function lxor (Int64 $l, Int64 $r) : Int64 { return Int64::xor($l, $r); }
+	static function lor  (Int64 $l, Int64 $r) : Int64 { return Int64::or($l, $r); }
 
 	static function lcmp (Int64 $l, Int64 $r) : int   { return Int64::compare($l, $r); }
 
@@ -51,85 +82,161 @@ class N {
 	static function cmpl($a, $b) { return (is_nan($a) || is_nan($b)) ? (-1) : N::cmp($a, $b); }
 	static function cmpg($a, $b) { return (is_nan($a) || is_nan($b)) ? (1) : N::cmp($a, $b); }
 
-	static function strLitEscape($str) {
-		return N::str($str);
-	}
-
 	static function monitorEnter($v) { }
 	static function monitorExit($v) { }
 
-	static function resolveClass($name) {
+	static function resolveClass(string $name) {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N::str($name));
 	}
 
-	static public function getTime() {
+	static public function getTime() : float {
 		//return time() * 1000 + (microtime(false) / 1000);
-		return (microtime(true) / 1000000);
+		return (microtime(true) * 1000);
 	}
 
-
-	// @TODO: Use native strings
-	// @TODO: Unicode (use utf-8?)
-	static function str($str) {
-		$len = strlen($str);
+	static function str(string $str): {% CLASS java.lang.String %} {
+		// UTF-8 string
+		$rstr = N::utf8_to_utf16($str);
+		$len = (int)(strlen($rstr) / 2);
 		$chars = new JA_C($len);
-		for ($n = 0; $n < $len; $n++) $chars->set($n, ord(substr($str, $n, 1)));
+		$chars->data = TypedBuffer::fromString($rstr);
+		//for ($n = 0; $n < $len; $n++) {
+		//	$low = ord($rstr[$n * 2 + 0]) & 0xFF;
+		//	$high = ord($rstr[$n * 2 + 1]) & 0xFF;
+		//	$chars->set($n, ($high << 8) | $low);
+		//}
 		return {% CONSTRUCTOR java.lang.String:([C)V %}($chars);
 	}
 
-	static function istr($str) {
-		$out = '';
-		$len = $str->{% METHOD java.lang.String:length %}();
-		for ($n = 0; $n < $len; $n++) $out .= chr($str->{% METHOD java.lang.String:charAt %}($n));
-		return $out;
+	static function istr({% CLASS java.lang.String%} $str) : string {
+		if ($str == null) return null;
+		//$out = '';
+		//$len = $str->{% METHOD java.lang.String:length %}();
+		//for ($n = 0; $n < $len; $n++) $out .= chr($str->{% METHOD java.lang.String:charAt %}($n));
+		//return N::utf16_to_utf8($out);
+		if ($str->_str == null) {
+			$str->_str = N::utf16_to_utf8($str->{% FIELD java.lang.String:value %}->data->data);
+		}
+		return $str->_str;
 	}
 
-	static public function strArray($array) {
-		return JA_L::create(array_map(function($v) { return N::str($v); }, $array), 'Ljava/lang/String;');
+	static public function strArray(array $array) : JA_L {
+		return JA_L::create(array_map(function($v) { return N::str($v); }, $array), '[Ljava/lang/String;');
+	}
+
+	static public function arraycopy({% CLASS java.lang.Object %} $src, int $srcPos, {% CLASS java.lang.Object %} $dst, int $dstPos, int $len) : void {
+		if ($src instanceof JA_Typed) {
+			$esize = $src->esize; $src->data->copyTo($dst->data, $srcPos * $esize, $dstPos * $esize, $len * $esize); //echo "$srcPos, $dstPos, $len, $esize\n";
+			//$overlapping = ($src === $dst && $dstPos > $srcPos);
+			//if ($overlapping) {
+			//	$n = $len;
+			//	while (--$n >= 0) $dst->set($dstPos + $n, $src->get($srcPos + $n));
+			//} else {
+			//	for ($n = 0; $n < $len; $n++) $dst->set($dstPos + $n, $src->get($srcPos + $n));
+			//}
+		} else if ($src instanceof JA_Array) {
+			$overlapping = ($src === $dst && $dstPos > $srcPos);
+			if ($overlapping) {
+				$n = $len;
+				while (--$n >= 0) $dst->set($dstPos + $n, $src->get($srcPos + $n));
+			} else {
+				for ($n = 0; $n < $len; $n++) $dst->set($dstPos + $n, $src->get($srcPos + $n));
+			}
+		} else {
+			throw new Exception("Invalid array");
+		}
+	}
+
+	static public $tempBuffer;
+
+	static public function longBitsToDouble(Int64 $v) : float {
+		N::$tempBuffer->set32(0, $v->low);
+		N::$tempBuffer->set32(4, $v->high);
+		return N::$tempBuffer->getF64(0);
+	}
+
+	static public function doubleToLongBits(float $v) : Int64 {
+		N::$tempBuffer->setF64(0, $v);
+		$low = N::$tempBuffer->getS32(0);
+		$high = N::$tempBuffer->getS32(4);
+		return Int64::make($high, $low);
+	}
+
+
+	static public function intBitsToFloat(int $v) : float {
+		N::$tempBuffer->set32(0, $v);
+		return N::$tempBuffer->getF32(0);
+	}
+
+	static public function floatToIntBits(float $v) : int {
+		N::$tempBuffer->setF32(0, $v);
+		return N::$tempBuffer->getS32(0);
 	}
 }
 
+N::$tempBuffer = TypedBuffer::alloc(16);
 
+// @TODO: Critical Performance. All arrays uses this. So this must be as fast as possible. Specially aligned* methods.
 final class TypedBuffer {
+	public $length = 0;
 	public $data = null;
 
-	public function __construct(int $size) { $this->data = str_repeat(chr(0), $size); }
-	public function getU8 (int $n) : int { return ord($this->data[$n]); }
-	public function getU16(int $n) : int { return $this->getU8($n) | ($this->getU8($n + 1) << 8); }
-	public function getU32(int $n) : int {
-		$a = $this->data;
-		return ord($a[$n + 0]) | ord($a[$n + 1]) << 8 | ord($a[$n + 2]) << 16 | ord($a[$n + 3]) << 24;
+	public function __construct(string $data) { $this->data = $data; $this->length = strlen($data); }
+
+	static public function alloc(int $size) { return new TypedBuffer(str_repeat(chr(0), $size)); }
+	static public function allocRepeat(string $base, int $size) { return new TypedBuffer(str_repeat($base, $size)); }
+	static public function fromString(string $data) { return new TypedBuffer($data); }
+
+	public function getAllBytes() { return $this->data; }
+	public function getRangeBytes(int $start, int $len) { return substr($this->data, $start, $len); }
+
+	public function putBytes(string $bytes, int $offset) : void {
+		$len = strlen($bytes);
+		for ($n = 0; $n < $len; $n++) $this->data[$offset + $n] = $bytes[$n];
 	}
+
+	public function copyTo(TypedBuffer $dstBuffer, int $srcPos, int $dstPos, int $len) : void {
+		$overlapping = ($this === $dstBuffer && $dstPos > $srcPos);
+		if ($overlapping) {
+			$n = $len;
+			while (--$n >= 0) $dstBuffer->data[$dstPos + $n] = $this->data[$srcPos + $n];
+		} else {
+			for ($n = 0; $n < $len; $n++) $dstBuffer->data[$dstPos + $n] = $this->data[$srcPos + $n];
+		}
+	}
+
+	public function checkIndex(int $n) { if ($n > $this->length) throw new Exception("Index out of bounds $n of {$this->length}"); }
+
+	public function getU8 (int   $n) : int   { $this->checkIndex($n + 1); return (ord($this->data[$n]) & 0xFF); }
+	public function getU16(int   $n) : int   { $this->checkIndex($n + 2); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8)) & 0xFFFF; }
+	public function getU32(int   $n) : int   { $this->checkIndex($n + 4); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8) | (ord($this->data[$n + 2]) << 16) | (ord($this->data[$n + 3]) << 24)); }
+	public function getF32(float $n) : float { $this->checkIndex($n + 4); return unpack("f", substr($this->data, $n, 4))[1]; }
+	public function getF64(float $n) : float { $this->checkIndex($n + 8); return unpack("d", substr($this->data, $n, 8))[1]; }
+
+	public function set8 (int $n, int $v) : void { $this->data[$n + 0] = chr($v & 0xFF); }
+	public function set16(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); }
+	public function set32(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); $this->data[$n + 2] = chr(($v >> 16) & 0xFF); $this->data[$n + 3] = chr(($v >> 24) & 0xFF); }
+	public function setF32(int $n, float $v) : void { $s = pack('f', $v); for ($m = 0; $m < 4; $m++) $this->data[$n + $m] = $s[$m]; }
+	public function setF64(int $n, float $v) : void { $s = pack('d', $v); for ($m = 0; $m < 8; $m++) $this->data[$n + $m] = $s[$m]; }
 
 	public function getS8 (int $n) : int { return N::sx8($this->getU8($n)); }
 	public function getS16(int $n) : int { return N::sx16($this->getU16($n)); }
-	public function getS32(int $n) : int { return $this->getU32($n) | 0; }
+	public function getS32(int $n) : int { return (int)$this->getU32($n); }
 
-	public function getF32(float $n) : float { return unpack("f", substr($this->data, $n, 4))[1]; }
-	public function getF64(float $n) : float { return unpack("d", substr($this->data, $n, 8))[1]; }
-
-	public function set8 (int $n, int $v) : void { $this->data[$n + 0] = chr($v); }
-	public function set16(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); }
-	public function set32(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); $this->data[$n + 2] = chr(($v >> 16) & 0xFF); $this->data[$n + 3] = chr(($v >> 24) & 0xFF); }
-
-	public function setF32(int $n, float $v) : void {
-		$s = pack('f', $v);
-		$this->data[$n + 0] = $s[0];
-		$this->data[$n + 1] = $s[1];
-		$this->data[$n + 2] = $s[2];
-		$this->data[$n + 3] = $s[3];
-	}
-	public function setF64(int $n, float $v) : void {
-		$s = pack('d', $v);
-		$this->data[$n + 0] = $s[0];
-		$this->data[$n + 1] = $s[1];
-		$this->data[$n + 2] = $s[2];
-		$this->data[$n + 3] = $s[3];
-		$this->data[$n + 4] = $s[4];
-		$this->data[$n + 5] = $s[5];
-		$this->data[$n + 6] = $s[6];
-		$this->data[$n + 7] = $s[7];
-	}
+	// @TODO: Best performance required:
+	public function alignedgetU8 (int $n) : int   { return $this->getU8 ($n * 1); }
+	public function alignedgetU16(int $n) : int   { return $this->getU16($n * 2); }
+	public function alignedgetU32(int $n) : int   { return $this->getU32($n * 4); }
+	public function alignedgetS8 (int $n) : int   { return $this->getS8 ($n * 1); }
+	public function alignedgetS16(int $n) : int   { return $this->getS16($n * 2); }
+	public function alignedgetS32(int $n) : int   { return $this->getS32($n * 4); }
+	public function alignedgetF32(int $n) : float { return $this->getF32($n * 4); }
+	public function alignedgetF64(int $n) : float { return $this->getF64($n * 8); }
+	public function alignedset8  (int $n, int   $v) : void { $this->set8  ($n * 1, $v); }
+	public function alignedset16 (int $n, int   $v) : void { $this->set16 ($n * 2, $v); }
+	public function alignedset32 (int $n, int   $v) : void { $this->set32 ($n * 4, $v); }
+	public function alignedsetF32(int $n, float $v) : void { $this->setF32($n * 4, $v); }
+	public function alignedsetF64(int $n, float $v) : void { $this->setF64($n * 8, $v); }
 }
 
 abstract class JA_0 extends {% CLASS java.lang.Object %} {
@@ -140,21 +247,27 @@ abstract class JA_0 extends {% CLASS java.lang.Object %} {
 		$this->length = $length;
 		$this->desc = $desc;
 	}
+
+	public function __toString() {
+		return $this->desc;
+	}
 }
 
 abstract class JA_Typed extends JA_0 {
 	public $data = null;
+	public $esize = 0;
 
-	public function __construct($length, $isize, $desc) {
+	public function __construct(int $length, int $esize, string $repeat, string $desc) {
 		parent::__construct($length, $desc);
-		$this->data = new TypedBuffer($length * $isize);
+		$this->esize = $esize;
+		$this->data = TypedBuffer::allocRepeat($repeat, $length);
 	}
 }
 
 class JA_Array extends JA_0 {
 	public $data = null;
 
-	public function __construct(int $length, $desc, $default = 0) {
+	public function __construct(int $length, string $desc, $default = 0) {
 		parent::__construct($length, $desc);
 		$this->data = array_fill(0, $length, $default);
 	}
@@ -166,31 +279,31 @@ class JA_Array extends JA_0 {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class JA_B extends JA_Typed {
-	public function __construct($length, $desc = '[B') { parent::__construct($length, 1, $desc); }
-	public function set(int $index, int $value) : void { $this->data->set8($index * 1, $value); }
-	public function get(int $index) : int { return $this->data->getS8($index * 1); }
+	public function __construct($length, $desc = '[B') { parent::__construct($length, 1, "\0", $desc); }
+	public function set(int $index, int $value) : void { $this->data->alignedset8($index, $value); }
+	public function get(int $index) : int { return $this->data->alignedgetS8($index); }
 }
 
 class JA_Z extends JA_B {
 	public function __construct(int $length) { parent::__construct($length, '[Z'); }
-	public function set(int $index, int $value) : void { $this->data->set8($index * 1, (int)$value); }
-	public function get(int $index) : int { return (boolean)$this->data->getS8($index * 1); }
+	public function set(int $index, int $value) : void { $this->data->alignedset8($index, (int)$value); }
+	public function get(int $index) : int { return (boolean)$this->data->alignedgetS8($index); }
 }
 
 final class JA_C extends JA_Typed {
-	public function __construct(int $length) { parent::__construct($length, 2, '[C'); }
-	public function set(int $index, int $value) : void { $this->data->set16($index * 2, $value); }
-	public function get(int $index) : int { return $this->data->getU16($index * 2); }
+	public function __construct(int $length) { parent::__construct($length, 2, "\0\0", '[C'); }
+	public function set(int $index, int $value) : void { $this->data->alignedset16($index, $value); }
+	public function get(int $index) : int { return $this->data->alignedgetU16($index); }
 }
 
 final class JA_S extends JA_Typed {
-	public function __construct(int $length) { parent::__construct($length, 2, '[S'); }
-	public function set(int $index, int $value) : void { $this->data->set16($index * 2, $value); }
-	public function get(int $index) : int { return $this->data->getS16($index * 2); }
+	public function __construct(int $length) { parent::__construct($length, 2, "\0\0", '[S'); }
+	public function set(int $index, int $value) : void { $this->data->alignedset16($index, $value); }
+	public function get(int $index) : int { return $this->data->alignedgetS16($index); }
 }
 
 final class JA_I extends JA_Typed {
-	public function __construct(int $length) { parent::__construct($length, 4, '[I'); }
+	public function __construct(int $length) { parent::__construct($length, 4, "\0\0\0\0", '[I'); }
 
 	static public function T($array) {
 		$len = count($array);
@@ -199,20 +312,20 @@ final class JA_I extends JA_Typed {
 		return $out;
 	}
 
-	public function set(int $index, int $value) : void { $this->data->set32($index * 4, $value); }
-	public function get(int $index) : int { return $this->data->getS32($index * 4); }
+	public function set(int $index, int $value) : void { $this->data->alignedset32($index, $value); }
+	public function get(int $index) : int { return $this->data->alignedgetS32($index); }
 }
 
 final class JA_F extends JA_Typed {
-	public function __construct(int $length) { parent::__construct($length, 4, '[F'); }
-	public function set(int $index, float $value) : void { $this->data->setF32($index * 4, $value); }
-	public function get(int $index) : float { return $this->data->getF32($index * 4); }
+	public function __construct(int $length) { parent::__construct($length, 4, pack('f', 0.0), '[F'); }
+	public function set(int $index, float $value) : void { $this->data->alignedsetF32($index, $value); }
+	public function get(int $index) : float { return $this->data->alignedgetF32($index); }
 }
 
 final class JA_D extends JA_Typed {
-	public function __construct(int $length) { parent::__construct($length, 8, '[D'); }
-	public function set(int $index, float $value) : void { $this->data->setF64($index * 8, $value); }
-	public function get(int $index) : float { return $this->data->getF64($index * 8); }
+	public function __construct(int $length) { parent::__construct($length, 8, pack('d', 0.0), '[D'); }
+	public function set(int $index, float $value) : void { $this->data->alignedsetF64($index, $value); }
+	public function get(int $index) : float { return $this->data->alignedgetF64($index); }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,12 +334,11 @@ final class JA_J extends JA_Array {
 	public function __construct(int $length) { parent::__construct($length, '[J', 0, Int64::$zero); }
 }
 
-
 final class JA_L extends JA_Array {
 	public function __construct(int $length, string $desc) { parent::__construct($length, $desc, null); }
 
-	static function create($items, string $desc) {
-		$count = sizeof($items);
+	static function create(array $items, string $desc) : JA_L {
+		$count = count($items);
 		$out = new JA_L($count, $desc);
 		for ($n = 0; $n < $count; $n++) $out->set($n, $items[$n]);
 		return $out;
@@ -234,8 +346,12 @@ final class JA_L extends JA_Array {
 }
 
 class WrappedThrowable extends Exception {
-}
+	public $t;
 
+	public function __construct($t) { $this->t = $t; }
+
+	//public function __toString() { return '' . $this->t; }
+}
 
 final class DivModResult {
 	public $quotient;
@@ -275,8 +391,14 @@ final class Int32 {
 		}
 	}
 
-	static public function mul($a, $b) {
-		return $a * $b;
+	static public function mul(int $a, int $b) : int {
+		$ah = ($a >> 16) & 0xffff;
+		$al = $a & 0xffff;
+		$bh = ($b >> 16) & 0xffff;
+		$bl = $b & 0xffff;
+		// the shift by 0 fixes the sign on the high part
+		// the final |0 converts the unsigned value into a signed value
+		return (($al * $bl) + ((($ah * $bl + $al * $bh) << 16))|0);
 	}
 }
 

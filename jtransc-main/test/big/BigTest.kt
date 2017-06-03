@@ -2,6 +2,7 @@ package big
 
 import android.AndroidArgsTest
 import com.jtransc.annotation.JTranscKeepConstructors
+import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
 import issues.Issue94Enum
@@ -33,10 +34,12 @@ object BigTest {
 	@JvmStatic fun main(args: Array<String>) {
 		//Thread.sleep(5000L)
 		//KotlinPropertiesTest.main(args)
+		JTranscConsole.log("BigTest:")
 
 		// Misc tests
-		JTranscBug127.main(args)
+		JTranscConsole.log("sleep[1]")
 		Thread.sleep(1L)
+		JTranscConsole.log("/sleep[1]")
 		StringsTest.main(args)
 		PropertiesTest.main(args)
 		BasicTypesTest.main(args)
@@ -133,6 +136,8 @@ object BigTest {
 		CaseInsensitiveOrder.main(args)
 
 		Issue130.main(args)
+
+		JTranscBug127.main(args)
 
 		System.out.println(String.format("%d%%", 100))
 	}

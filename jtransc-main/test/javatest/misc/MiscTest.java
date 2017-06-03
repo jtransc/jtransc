@@ -118,7 +118,7 @@ public class MiscTest {
 		testDefaultValuesStatic();
 		testShifts();
 		mapTest();
-		arrayListTest();
+		ArrayListTest.arrayListTest();
 		stringConstructTest();
 		inheritanceTest();
 		accessStaticConstantTest();
@@ -1013,28 +1013,6 @@ public class MiscTest {
 		System.out.println("systemPropertiesTest:");
 		System.out.println("java.runtime.name:" + (System.getProperty("java.runtime.name") != null));
 		System.out.println("path.separator:" + (System.getProperty("path.separator") != null));
-	}
-
-	static private void arrayListTest() {
-		ArrayList<String> list = new ArrayList<String>();
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(list.size());
-		list.add("A");
-		sb.append(list.get(0));
-		sb.append(list.size());
-		list.add("B");
-		list.add("C");
-		sb.append(list.size());
-		list.ensureCapacity(5);
-		sb.append(list.size());
-		list.trimToSize();
-		sb.append(list.size());
-
-		Collections.reverse(list);
-		for (String item : list) sb.append(item);
-
-		System.out.println("ArrayList:" + sb.toString());
 	}
 
 	static private void mapTest() {

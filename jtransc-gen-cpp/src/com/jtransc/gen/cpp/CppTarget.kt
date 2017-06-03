@@ -899,6 +899,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 
+	override fun N_lneg(str: String) = "(-($str))"
+	override fun N_linv(str: String) = "(~($str))"
+
 	override fun N_ladd(l: String, r: String) = "(($l) + ($r))"
 	override fun N_lsub(l: String, r: String) = "(($l) - ($r))"
 	override fun N_lmul(l: String, r: String) = "(($l) * ($r))"

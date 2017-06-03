@@ -4,6 +4,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsole;
 
 public class JTranscClock {
 	static public Impl impl = new Impl(null) {
@@ -56,6 +57,7 @@ public class JTranscClock {
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "cs", value = "System.Threading.Thread.Sleep((int)p0);"),
 			@JTranscMethodBody(target = "dart", value = "sleep(new Duration(milliseconds: p0.toInt()));"),
+			@JTranscMethodBody(target = "php", value = "usleep($p0 * 1000);"),
 		})
 		public void sleep(double ms) {
 			if (parent != null) {
@@ -65,8 +67,10 @@ public class JTranscClock {
 			if (JTranscSystem.isJTransc()) {
 				double start = JTranscSystem.fastTime();
 				// Spinlock/Busywait!
+				//JTranscConsole.log(start);
 				while (true) {
 					double current = JTranscSystem.fastTime();
+					//JTranscConsole.log(current);
 					if ((current - start) >= ms) break;
 				}
 			} else {

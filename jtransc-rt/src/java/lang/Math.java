@@ -160,6 +160,7 @@ public final class Math {
 	@JTranscMethodBody(target = "cs", value = "return Math.Ceiling(p0);")
 	@JTranscMethodBody(target = "as3", value = "return Math.ceil(p0);")
 	@JTranscMethodBody(target = "dart", value = "return (p0).ceil();")
+	@JTranscMethodBody(target = "php", value = "return ceil($p0);")
 	native public static double ceil(double a);
 
 	@JTranscInline
@@ -170,6 +171,7 @@ public final class Math {
 	@JTranscMethodBody(target = "cs", value = "return Math.Floor(p0);")
 	@JTranscMethodBody(target = "as3", value = "return Math.floor(p0);")
 	@JTranscMethodBody(target = "dart", value = "return (p0).floor();")
+	@JTranscMethodBody(target = "floor", value = "return floor($p0);")
 	native public static double floor(double a);
 
 	//@HaxeMethodBody("return Math.rint(p0);")

@@ -65,99 +65,100 @@ public class System {
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "as3", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "dart", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
-		boolean overlapping = (src == dest && destPos > srcPos);
+	@JTranscMethodBody(target = "php", value = "N::arraycopy($p0, $p1, $p2, $p3, $p4);")
+	public static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int length) {
+		boolean overlapping = (src == dst && dstPos > srcPos);
 		if (src instanceof boolean[])
-			arraycopy((boolean[]) src, srcPos, (boolean[]) dest, destPos, length, overlapping);
-		else if (src instanceof byte[]) arraycopy((byte[]) src, srcPos, (byte[]) dest, destPos, length, overlapping);
-		else if (src instanceof char[]) arraycopy((char[]) src, srcPos, (char[]) dest, destPos, length, overlapping);
-		else if (src instanceof short[]) arraycopy((short[]) src, srcPos, (short[]) dest, destPos, length, overlapping);
-		else if (src instanceof int[]) arraycopy((int[]) src, srcPos, (int[]) dest, destPos, length, overlapping);
-		else if (src instanceof long[]) arraycopy((long[]) src, srcPos, (long[]) dest, destPos, length, overlapping);
-		else if (src instanceof float[]) arraycopy((float[]) src, srcPos, (float[]) dest, destPos, length, overlapping);
+			arraycopy((boolean[]) src, srcPos, (boolean[]) dst, dstPos, length, overlapping);
+		else if (src instanceof byte[]) arraycopy((byte[]) src, srcPos, (byte[]) dst, dstPos, length, overlapping);
+		else if (src instanceof char[]) arraycopy((char[]) src, srcPos, (char[]) dst, dstPos, length, overlapping);
+		else if (src instanceof short[]) arraycopy((short[]) src, srcPos, (short[]) dst, dstPos, length, overlapping);
+		else if (src instanceof int[]) arraycopy((int[]) src, srcPos, (int[]) dst, dstPos, length, overlapping);
+		else if (src instanceof long[]) arraycopy((long[]) src, srcPos, (long[]) dst, dstPos, length, overlapping);
+		else if (src instanceof float[]) arraycopy((float[]) src, srcPos, (float[]) dst, dstPos, length, overlapping);
 		else if (src instanceof double[])
-			arraycopy((double[]) src, srcPos, (double[]) dest, destPos, length, overlapping);
-		else arraycopy((Object[]) src, srcPos, (Object[]) dest, destPos, length, overlapping);
+			arraycopy((double[]) src, srcPos, (double[]) dst, dstPos, length, overlapping);
+		else arraycopy((Object[]) src, srcPos, (Object[]) dst, dstPos, length, overlapping);
 	}
 
-	static private void arraycopy(boolean[] src, int srcPos, boolean[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(byte[] src, int srcPos, byte[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(char[] src, int srcPos, char[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(short[] src, int srcPos, short[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(int[] src, int srcPos, int[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(int[] src, int srcPos, int[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(long[] src, int srcPos, long[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(long[] src, int srcPos, long[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(float[] src, int srcPos, float[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(float[] src, int srcPos, float[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(double[] src, int srcPos, double[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(double[] src, int srcPos, double[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 
-	static private void arraycopy(Object[] src, int srcPos, Object[] dest, int destPos, int length, boolean overlapping) {
+	static private void arraycopy(Object[] src, int srcPos, Object[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
-			while (--n >= 0) dest[destPos + n] = src[srcPos + n];
+			while (--n >= 0) dst[dstPos + n] = src[srcPos + n];
 		} else {
-			for (int n = 0; n < length; n++) dest[destPos + n] = src[srcPos + n];
+			for (int n = 0; n < length; n++) dst[dstPos + n] = src[srcPos + n];
 		}
 	}
 

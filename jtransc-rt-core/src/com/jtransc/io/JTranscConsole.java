@@ -18,6 +18,13 @@ import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 	"}\n"
 })
 public class JTranscConsole {
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "echo N::utf16_to_utf8($p0->data->data), \"\\n\";"),
+	})
+	static public void log(char[] v) {
+		log(new String(v));
+	}
+
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
@@ -89,7 +96,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(N.ichar(p0));")
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
+		@JTranscMethodBody(target = "php", value = "echo chr($p0), \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%lc\\n\", (wchar_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
@@ -170,11 +177,6 @@ public class JTranscConsole {
 	static public void error(Object msg) {
 		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
-	}
-
-	@JTranscKeep
-	static public void logString(String v) {
-		log(v);
 	}
 
 	static public void logOrError(Object msg, boolean error) {

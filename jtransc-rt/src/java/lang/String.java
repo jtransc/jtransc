@@ -48,10 +48,8 @@ import java.util.regex.Pattern;
 	"public var _arr: JA_C = null;",
 	"public function __initFromAs3(str: String): void { this._str = str; } ",
 })
-@JTranscAddMembers(target = "dart", value = {
-	"String _str = null;",
-	"JA_C _arr = null;",
-})
+@JTranscAddMembers(target = "dart", value = "String _str = null; JA_C _arr = null;")
+@JTranscAddMembers(target = "php", value = "public $_str = null;")
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
 	public char[] value;
 

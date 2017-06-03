@@ -370,8 +370,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_idiv(l: String, r: String): String = "N.idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N.irem($l, $r)"
 
-	override fun N_lneg(str: String) = "N.lneg($str)"
-
 	override fun genMissingBody(method: AstMethod): Indenter = Indenter {
 		val message = "Missing body ${method.containingClass.name}.${method.name}${method.desc}"
 		line("throw new Error(${message.quote()});")

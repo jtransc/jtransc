@@ -343,6 +343,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_lnew(value: Long): String = "N.lnew($value)"
 	override fun N_lneg(str: String): String = "(-($str))"
+	override fun N_linv(str: String): String = "(~($str))"
 	override fun N_ladd(l: String, r: String): String = "($l+$r)"
 	override fun N_lsub(l: String, r: String): String = "($l-$r)"
 	override fun N_lmul(l: String, r: String): String = "($l*$r)"

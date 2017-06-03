@@ -11,6 +11,10 @@ public class MicroHelloWorld {
 	private int b = 11;
 
 	static public void main(String[] args) {
+		char[] chars = {'a', 'b', 'c'};
+		JTranscConsole.log(chars);
+		JTranscConsole.log("MICRO_HELLO_WORLD");
+
 		int vv = 773344;
 		JTranscConsole.log(vv << 16);
 		JTranscConsole.log(true);

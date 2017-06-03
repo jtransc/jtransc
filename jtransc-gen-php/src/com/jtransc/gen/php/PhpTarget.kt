@@ -58,11 +58,14 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val instanceAccessOperator: String = "->"
 
 	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	//override val methodFeatures = setOf(SwitchFeature::class.java)
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
 	override val localVarPrefix = "\$"
 	override val floatHasFSuffix: Boolean = false
+
+	override val GENERATE_LINE_NUMBERS = false
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -129,12 +132,12 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static public function __initStrings()") {
 				for (lit in getGlobalStrings()) {
 					// STRINGLIT_
-					line("Bootstrap::\$${lit.name} = N::strLitEscape(${lit.str.dquote()});")
+					line("Bootstrap::\$${lit.name} = N::str(${lit.str.dquote()});")
 				}
 			}
 			val entryPointFqName = program.entrypoint
 			val entryPointClass = program[entryPointFqName]
-			line("static public function main(\$args)") {
+			line("static public function main(array \$args)") {
 				line("try {")
 				indent {
 					line("N::init();")
@@ -146,17 +149,17 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 				line("} catch (WrappedThrowable \$e) {")
 				indent {
-					line("echo \$e->t;")
-					line("echo \$e;")
+					line("echo \$e->t, \"\\n\";")
+					line("echo \$e, \"\\n\";")
 				}
-				line("} catch (Exception \$e) {")
+				line("} catch (Throwable \$e) {")
 				indent {
-					line("echo \$e;")
+					line("echo \$e, \"\\n\";")
 				}
 				line("}")
 			}
 		}
-		line("Bootstrap::main(array());")
+		line("Bootstrap::main([]);")
 	}
 
 	//override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array[$index] = $value;"
@@ -173,23 +176,24 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	fun String?.dquote(): String {
 		if (this != null) {
+			val bb = this.toByteArray(Charsets.UTF_8)
 			val out = StringBuilder()
-			for (n in 0 until this.length) {
-				val c = this[n]
+
+			for (b in bb) {
+				val c = b.toChar()
 				when (c) {
+					'\u0000' -> out.append("\\0")
 					'\\' -> out.append("\\\\")
-					'\'' -> out.append("\\\'")
+				//'\'' -> out.append("\\\'")
 					'"' -> out.append("\\\"")
-					'\n' -> out.append("\\n")
-					'\r' -> out.append("\\r")
-					'\t' -> out.append("\\t")
-				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
-				//in '\u0020'..'\u00ff' -> out.append(c)
-				//else -> out.append("\\u" + "%04x".format(c.toInt()))
-					else -> out.append(c)
+					'$' -> out.append("\\\$")
+					in ' '..'~' -> out.append(c)
+					else -> out.append("\\x%02x".format(c.toInt() and 0xFF))
 				}
+
 			}
-			return "'" + out.toString() + "'"
+
+			return "\"" + out.toString() + "\""
 		} else {
 			return "null"
 		}
@@ -252,8 +256,9 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 
-	override fun N_f2d(str: String) = "(+($str))"
-	override fun N_d2f(str: String) = "(+($str))"
+	override fun N_f2d(str: String) = "((double)($str))"
+	override fun N_d2f(str: String) = "((double)($str))"
+	override fun N_d2j(str: String) = "N::d2j($str)"
 
 	override fun N_is(a: String, b: String): String = "(($a) instanceof $b)"
 
@@ -283,7 +288,9 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (clazz.isJavaLangObject) {
 			line("public function __toString()") {
 				val toStringMethodName = buildMethod(clazz.getMethodWithoutOverrides("toString")!!, static = false)
-				line("return N::istr(\$this->$toStringMethodName());")
+				//line("try { return N::istr(\$this->$toStringMethodName()); } catch (Throwable \$t) { return '__toString.ERROR:' . \$t; }")
+				line("try { return N::istr(\$this->$toStringMethodName()); } catch (WrappedThrowable \$t) { echo \$t->t; return '__toString.ERROR:' . \$t; } catch (Throwable \$t) { echo \$t; return '__toString.ERROR:' . \$t; }")
+				//line("return N::istr(\$this->$toStringMethodName());")
 			}
 		}
 
@@ -319,16 +326,17 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i(str: String) = "((int)($str))"
+
 	override fun N_d2i(str: String) = N_i(str)
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"
 
-	override fun N_i2f(str: String) = "(+($str))"
-	override fun N_i2d(str: String) = "(+($str))"
+	override fun N_i2f(str: String) = "((double)($str))"
+	override fun N_i2d(str: String) = "((double)($str))"
 
-	override fun N_j2f(str: String) = "(+($str))"
-	override fun N_j2d(str: String) = "(+($str))"
+	override fun N_j2f(str: String) = "(N::j2d($str))"
+	override fun N_j2d(str: String) = "(N::j2d($str))"
 
 	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
 
@@ -364,11 +372,13 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("try") {
 			line(stm.trystm.genStm())
 		}
-		line("catch (JavaWrappedException \$J__i__exception__)") {
+		line("catch (WrappedThrowable \$J__i__exception__)") {
 			line("\$J__exception__ = \$J__i__exception__->t;")
 			line(stm.catch.genStm())
 		}
 	}
+
+	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("throw \$J__i__exception__;")
 
 	override fun N_iushr(l: String, r: String) = "N::iushr($l, $r)"
 
@@ -376,10 +386,9 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
 	}
 
-	override val DoubleNegativeInfinityString = "Double.NegativeInfinity"
-	override val DoublePositiveInfinityString = "Double.PositiveInfinity"
-	//override val NanString = "Double.NaN"
-	override val DoubleNanString = "N.DoubleNaN"
+	override val DoubleNegativeInfinityString = "-INF"
+	override val DoublePositiveInfinityString = "INF"
+	override val DoubleNanString = "NAN"
 
 	override val String.escapeString: String get() = "Bootstrap::\$STRINGLIT_${allocString(currentClass, this)}"
 
@@ -432,4 +441,17 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
+
+	override fun genStmContinue(stm: AstStm.CONTINUE) = indent {
+		var count = 1;
+		for (n in flowBlocks.size - 1 downTo 0) {
+			if (flowBlocks[n] == FlowKind.SWITCH) {
+				count++
+			} else {
+				break
+			}
+		}
+		line("continue $count;")
+	}
+
 }
