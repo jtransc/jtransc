@@ -13,6 +13,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -386,9 +387,13 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", [${e.counts.map { it.genExpr() }.joinToString(", ")}])"
 	}
 
-	override val DoubleNegativeInfinityString = "-INF"
-	override val DoublePositiveInfinityString = "INF"
-	override val DoubleNanString = "NAN"
+	override val DoubleNegativeInfinityString = "N::\$DOUBLE_NEGATIVE_INFINITY"
+	override val DoublePositiveInfinityString = "N::\$DOUBLE_POSITIVE_INFINITY"
+	override val DoubleNanString = "N::\$DOUBLE_NAN"
+
+	override val FloatNegativeInfinityString = "N::\$FLOAT_NEGATIVE_INFINITY"
+	override val FloatPositiveInfinityString = "N::\$FLOAT_POSITIVE_INFINITY"
+	override val FloatNanString = "N::\$FLOAT_NAN"
 
 	override val String.escapeString: String get() = "Bootstrap::\$STRINGLIT_${allocString(currentClass, this)}"
 
@@ -454,4 +459,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("continue $count;")
 	}
 
+	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
+		return "N::checkcast($e, ${to.targetName.quote()})"
+	}
 }

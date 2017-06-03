@@ -43,6 +43,7 @@ public class JTranscClock {
 		@JTranscMethodBodyList({
 			@JTranscMethodBody(target = "js", value = "return N.hrtime();"),
 			@JTranscMethodBody(target = "cpp", value = "return N::nanoTime();"),
+			@JTranscMethodBody(target = "php", value = "return N::nanoTime();"),
 		})
 		public long nanoTime() {
 			if (JTranscSystem.isJTransc()) {

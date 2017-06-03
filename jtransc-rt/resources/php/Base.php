@@ -30,6 +30,14 @@ const PHP_INT_BITS_SIZE_M24 = PHP_INT_BITS_SIZE - 24;
 const PHP_INT_BITS_SIZE_M32 = PHP_INT_BITS_SIZE - 32;
 
 final class N {
+	static public $DOUBLE_NAN;
+	static public $DOUBLE_NEGATIVE_INFINITY;
+	static public $DOUBLE_POSITIVE_INFINITY;
+
+	static public $FLOAT_NAN;
+	static public $FLOAT_NEGATIVE_INFINITY;
+	static public $FLOAT_POSITIVE_INFINITY;
+
 	const MIN_INT32 = -2147483648;
 	const MAX_INT32 = 2147483647;
 
@@ -118,8 +126,11 @@ final class N {
 	}
 
 	static public function getTime() : float {
-		//return time() * 1000 + (microtime(false) / 1000);
 		return (microtime(true) * 1000);
+	}
+
+	static public function nanoTime() : Int64 {
+		return N::lmul(N::d2j((microtime(true) * 1000000)), Int64::ofInt(1000));
 	}
 
 	static function str(string $str): {% CLASS java.lang.String %} {
@@ -154,14 +165,9 @@ final class N {
 
 	static public function arraycopy({% CLASS java.lang.Object %} $src, int $srcPos, {% CLASS java.lang.Object %} $dst, int $dstPos, int $len) : void {
 		if ($src instanceof JA_Typed) {
-			$esize = $src->esize; $src->data->copyTo($dst->data, $srcPos * $esize, $dstPos * $esize, $len * $esize); //echo "$srcPos, $dstPos, $len, $esize\n";
-			//$overlapping = ($src === $dst && $dstPos > $srcPos);
-			//if ($overlapping) {
-			//	$n = $len;
-			//	while (--$n >= 0) $dst->set($dstPos + $n, $src->get($srcPos + $n));
-			//} else {
-			//	for ($n = 0; $n < $len; $n++) $dst->set($dstPos + $n, $src->get($srcPos + $n));
-			//}
+			$esize = $src->esize;
+			$src->data->copyTo($dst->data, $srcPos * $esize, $dstPos * $esize, $len * $esize);
+			//echo "$srcPos, $dstPos, $len, $esize\n";
 		} else if ($src instanceof JA_Array) {
 			$overlapping = ($src === $dst && $dstPos > $srcPos);
 			if ($overlapping) {
@@ -200,9 +206,48 @@ final class N {
 		N::$tempBuffer->setF32(0, $v);
 		return N::$tempBuffer->getS32(0);
 	}
+
+	static public function  unboxBool  ({% CLASS java.lang.Boolean %}   $i) : bool   { return $i{% IMETHOD java.lang.Boolean:booleanValue %}(); }
+	static public function  unboxByte  ({% CLASS java.lang.Byte %}      $i) : int    { return $i{% IMETHOD java.lang.Byte:byteValue %}(); }
+	static public function  unboxShort ({% CLASS java.lang.Short %}     $i) : int    { return $i{% IMETHOD java.lang.Short:shortValue %}(); }
+	static public function  unboxChar  ({% CLASS java.lang.Character %} $i) : int    { return $i{% IMETHOD java.lang.Character:charValue %}(); }
+	static public function  unboxInt   ({% CLASS java.lang.Integer %}   $i) : int    { return $i{% IMETHOD java.lang.Integer:intValue %}(); }
+	static public function  unboxLong  ({% CLASS java.lang.Long %}      $i) : Int64  { return $i{% IMETHOD java.lang.Long:longValue %}(); }
+	static public function  unboxFloat ({% CLASS java.lang.Float %}     $i) : float  { return $i{% IMETHOD java.lang.Float:floatValue %}(); }
+	static public function  unboxDouble({% CLASS java.lang.Double %}    $i) : float  { return $i{% IMETHOD java.lang.Double:doubleValue %}(); }
+
+	static public function boxVoid  (         ) : {% CLASS java.lang.Object %}    { return null; }
+	static public function boxBool  (bool   $v) : {% CLASS java.lang.Boolean %}   { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}($v); }
+	static public function boxByte  (int    $v) : {% CLASS java.lang.Byte %}      { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}($v); }
+	static public function boxShort (int    $v) : {% CLASS java.lang.Short %}     { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}($v); }
+	static public function boxChar  (int    $v) : {% CLASS java.lang.Character %} { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}($v); }
+	static public function boxInt   (int    $v) : {% CLASS java.lang.Integer %}   { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}($v); }
+	static public function boxLong  (Int64  $v) : {% CLASS java.lang.Long %}      { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}($v); }
+	static public function boxFloat (float  $v) : {% CLASS java.lang.Float %}     { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}($v); }
+	static public function boxDouble(float  $v) : {% CLASS java.lang.Double %}    { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}($v); }
+
+	static public function fillSecureRandomBytes(TypedBuffer $buffer) {
+		$buffer->putBytes(random_bytes($buffer->length), 0);
+	}
+
+	static public function checkcast($v, string $classname) {
+		if ($v == null) return null;
+		if (!is_a($v, $classname)) {
+			throw new WrappedThrowable({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str("Class cast error. Object '$classname'")));
+		}
+		return $v;
+	}
 }
 
 N::$tempBuffer = TypedBuffer::alloc(16);
+
+N::$DOUBLE_NAN = N::longBitsToDouble(Int64::make((int)0x7FF80000, (int)0x00000000));
+N::$DOUBLE_NEGATIVE_INFINITY = -INF;
+N::$DOUBLE_POSITIVE_INFINITY = +INF;
+
+N::$FLOAT_NAN = N::intBitsToFloat((int)0x7FC00000);
+N::$FLOAT_NEGATIVE_INFINITY = -INF;
+N::$FLOAT_POSITIVE_INFINITY = +INF;
 
 // @TODO: Critical Performance. All arrays uses this. So this must be as fast as possible. Specially aligned* methods.
 final class TypedBuffer {
@@ -218,7 +263,7 @@ final class TypedBuffer {
 	public function getAllBytes() { return $this->data; }
 	public function getRangeBytes(int $start, int $len) { return substr($this->data, $start, $len); }
 
-	public function putBytes(string $bytes, int $offset) : void {
+	public function putBytes(string $bytes, int $offset = 0) : void {
 		$len = strlen($bytes);
 		for ($n = 0; $n < $len; $n++) $this->data[$offset + $n] = $bytes[$n];
 	}
