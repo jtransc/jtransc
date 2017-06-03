@@ -30,8 +30,8 @@ class OverlayJTranscPlugin : JTranscPlugin() {
 				// We shouldn't transform call-site bodies
 				if (method.annotationsList.getCallSiteBodyForTarget(targetName) != null) continue
 
-				if (method.isStatic) {
-					val overlayMethod = AstMethod(
+				val overlayMethod = if (method.isStatic) {
+					AstMethod(
 						containingClass = overlayClass,
 						id = program.lastMethodId++,
 						name = method.name,
@@ -42,15 +42,42 @@ class OverlayJTranscPlugin : JTranscPlugin() {
 						defaultTag = method.defaultTag,
 						modifiers = method.modifiers,
 						generateBody = method.generateBody,
-						bodyRef = method.bodyRef,
-						parameterAnnotations = method.parameterAnnotations,
-						ref = AstMethodRef(overlayClass.name, method.name, method.methodType)
+						//bodyRef = method.bodyRef,
+						parameterAnnotations = method.parameterAnnotations
 					)
-					methodToOverlayMethod[method.ref] = overlayMethod.ref
-					overlayClass += overlayMethod
 				} else {
-					println("WARNING: Not supported instance overlay methods yet!")
+					//println("WARNING: Not supported instance overlay methods yet!")
+					val thisArg = AstArgument(0, overlayClass.ref, "_jt_ov_this", false)
+					val newParams = method.methodType.args.map { AstArgument(it.index + 1, it.type, it.name, it.optional) }
+					val ovArgTypes = listOf(thisArg) + newParams
+					val newMethodType = AstType.METHOD(ovArgTypes, method.returnTypeWithThis, method.methodType.paramTypes)
+
+					AstMethod(
+						containingClass = overlayClass,
+						id = program.lastMethodId++,
+						name = method.name,
+						methodType = newMethodType,
+						annotations = method.annotations,
+						signature = method.signature,
+						genericSignature = method.genericSignature,
+						defaultTag = method.defaultTag,
+						modifiers = method.modifiers.with(AstModifiers.ACC_STATIC),
+						generateBody = {
+							val body = method.generateBody()
+							body?.visit(object : AstVisitor() {
+								override fun visit(expr: AstExpr.THIS) = expr.replaceWith(AstExpr.PARAM(thisArg))
+								override fun visit(expr: AstExpr.PARAM) = expr.replaceWith(AstExpr.PARAM(newParams[expr.argument.index]))
+							})
+							body
+						},
+						//bodyRef = method.bodyRef,
+						parameterAnnotations = method.parameterAnnotations
+					)
 				}
+
+				methodToOverlayMethod[method.ref] = overlayMethod.ref
+				overlayClass += overlayMethod
+
 			}
 		}
 
@@ -58,13 +85,13 @@ class OverlayJTranscPlugin : JTranscPlugin() {
 			val methodReplacer = object : AstVisitor() {
 				override fun visit(expr: AstExpr.CALL_BASE) {
 					super.visit(expr)
-					val overlayMethod = methodToOverlayMethod[expr.method]
-					if (overlayMethod != null) {
-						if (expr is AstExpr.CALL_STATIC) {
-							expr.replaceWith(AstExpr.CALL_STATIC(overlayMethod, expr.args.map { it.value }, expr.isSpecial))
-						} else {
-							println("WARNING: Not supported instance overlay methods yet!")
-						}
+					val overlayMethod = methodToOverlayMethod[expr.method] ?: return
+					if (expr is AstExpr.CALL_STATIC) {
+						expr.replaceWith(AstExpr.CALL_STATIC(overlayMethod, expr.args.map { it.value }, expr.isSpecial))
+					} else if (expr is AstExpr.CALL_INSTANCE) {
+						expr.replaceWith(AstExpr.CALL_STATIC(overlayMethod, listOf(expr.obj.value) + expr.args.map { it.value }, expr.isSpecial))
+					} else {
+						println("Unsupported overlay call (no static, no instance) to $expr")
 					}
 				}
 			}

@@ -906,6 +906,9 @@ data class AstModifiers(val acc: Int) {
 		AstClassType.CLASS
 	}
 
+	fun with(flags: Int) = AstModifiers(this.acc or flags)
+	fun without(flags: Int) = AstModifiers(this.acc and flags.inv())
+
 	fun withVisibility(visibility: AstVisibility) = AstModifiers(
 		(acc clearFlags (ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE)) or when (visibility) {
 			AstVisibility.PUBLIC -> ACC_PUBLIC

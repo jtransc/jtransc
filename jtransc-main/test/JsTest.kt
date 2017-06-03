@@ -159,7 +159,8 @@ class JsTest : _Base() {
 		777
 		999
 		21
-		HELLO WORLD
+		HELLO WORLD1demo
+		HELLO WORLD2test
 		Timeout!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
