@@ -226,6 +226,8 @@ class N {
 	static public long f2j(float v) { return cast(long)(v); }
 	static public long d2j(double v) { return cast(long)(v); }
 
+	static public long lneg(long l) { return -l; }
+	static public long linv(long l) { return ~l; }
 	static public long ladd(long l, long r) { return l + r; }
 	static public long lsub(long l, long r) { return l - r; }
 	static public long lmul(long l, long r) { return l * r; }
