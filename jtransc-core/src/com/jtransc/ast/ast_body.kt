@@ -655,26 +655,35 @@ object AstExprUtils {
 	}
 
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
-		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
-			bootstrapMethodRef.name == "metafactory"
+		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory"
 			) {
-			val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
-			val interfaceMethodType = literals[0].value as AstType.METHOD
-			val methodHandle = literals[1].value as AstMethodHandle
-			val methodType = literals[2].type
+			when (bootstrapMethodRef.name) {
+				"metafactory" -> {
+					val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
+					val interfaceMethodType = literals[0].value as AstType.METHOD
+					val methodHandle = literals[1].value as AstMethodHandle
+					val methodType = literals[2].type
 
-			val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
-			val methodToConvertRef = methodHandle.methodRef
+					val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+					val methodToConvertRef = methodHandle.methodRef
 
-			val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
+					val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
 
-			return AstExpr.INVOKE_DYNAMIC_METHOD(
-				methodFromRef,
-				methodToConvertRef,
-				methodToConvertRef.type.argCount - methodFromRef.type.argCount
-			)
+					return AstExpr.INVOKE_DYNAMIC_METHOD(
+						methodFromRef,
+						methodToConvertRef,
+						methodToConvertRef.type.argCount - methodFromRef.type.argCount
+					)
+				}
+				"altMetafactory" -> {
+					noImpl("Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!")
+				}
+				else -> {
+					noImpl("Unknown DynamicInvoke with LambdaMetafactory.${bootstrapMethodRef.name}!")
+				}
+			}
 		} else {
-			noImpl("Not supported DynamicInvoke yet!")
+			noImpl("Not supported DynamicInvoke without LambdaMetafactory yet for class ${bootstrapMethodRef.containingClass.fqname}!")
 		}
 	}
 

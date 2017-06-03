@@ -295,10 +295,10 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 
 		if (!clazz.isInterface) {
-			if (clazz.isJavaLangObject) line("public \$__PHP__CLASS_ID;")
+			if (clazz.isJavaLangObject) line("public \$__JT__CLASS_ID;")
 			line("public function __construct(\$CLASS_ID = ${clazz.classId})") {
 				if (clazz.isJavaLangObject) {
-					line("\$this->__PHP__CLASS_ID = \$CLASS_ID;")
+					line("\$this->__JT__CLASS_ID = \$CLASS_ID;")
 				} else {
 					line("parent::__construct(\$CLASS_ID);")
 				}
@@ -307,16 +307,14 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 			}
 		}
-		if (clazz.staticConstructor != null) {
-			line("static public function SI()") {
-				val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
-				for (field in clazz.fieldsStatic) {
-					line("$clazzName::\$${field.targetName} = ${field.escapedConstantValueLocal};")
-				}
+		line("static public function SI()") {
+			val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
+			for (field in clazz.fieldsStatic) {
+				line("$clazzName::\$${field.targetName} = ${field.escapedConstantValueLocal};")
+			}
+			if (clazz.staticConstructor != null) {
 				line(genSIMethodBody(clazz))
 			}
-		} else {
-			line("static public function SI() { }")
 		}
 	}
 
@@ -380,10 +378,12 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("throw \$J__i__exception__;")
 
+	override fun N_ishl(l: String, r: String) = "N::ishl($l, $r)"
+	override fun N_ishr(l: String, r: String) = "N::ishr($l, $r)"
 	override fun N_iushr(l: String, r: String) = "N::iushr($l, $r)"
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", ${e.counts.map { it.genExpr() }.joinToString(", ")})"
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(\"$desc\", [${e.counts.map { it.genExpr() }.joinToString(", ")}])"
 	}
 
 	override val DoubleNegativeInfinityString = "-INF"

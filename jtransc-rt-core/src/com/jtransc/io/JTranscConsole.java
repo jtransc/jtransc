@@ -27,7 +27,7 @@ public class JTranscConsole {
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
+		@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log('' + p0);"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),

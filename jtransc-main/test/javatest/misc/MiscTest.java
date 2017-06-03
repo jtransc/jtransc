@@ -523,6 +523,7 @@ public class MiscTest {
 		JTranscConsole.log((int)DefaultValuesClassStatic.c);
 		JTranscConsole.log(DefaultValuesClassStatic.i);
 		System.out.println(DefaultValuesClassStatic.j);
+		System.out.println(DefaultValuesClassStatic.j2);
 		System.out.println(DefaultValuesClassStatic.f);
 		System.out.println(DefaultValuesClassStatic.d);
 		JTranscConsole.log(DefaultValuesClassStatic.obj);
@@ -555,6 +556,7 @@ public class MiscTest {
 		static public float f;
 		static public double d;
 		static public Object obj;
+		static public long j2 = 7;
 	}
 
 	static private void testTestSpecialIdentifiers() {

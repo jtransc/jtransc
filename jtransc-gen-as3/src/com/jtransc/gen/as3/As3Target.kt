@@ -331,8 +331,8 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("public var __AS3__CLASS_ID: int;")
-				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { this.__AS3__CLASS_ID = CLASS_ID; }")
+				line("public var __JT__CLASS_ID: int;")
+				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { this.__JT__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("public function ${clazz.name.targetName}(CLASS_ID: int = ${clazz.classId}) { super(CLASS_ID); }")
 			}

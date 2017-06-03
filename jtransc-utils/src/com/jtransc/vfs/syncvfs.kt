@@ -26,6 +26,7 @@ import com.jtransc.vfs.node.FileNode
 import com.jtransc.vfs.node.FileNodeTree
 import java.io.*
 import java.net.URL
+import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
 import java.util.zip.GZIPInputStream
@@ -500,7 +501,7 @@ fun GetClassJar(clazz: Class<*>): File {
 	val result = regex.find(classUrl.path)!!
 	val jarPath = result.groups[1]!!.value
 
-	return File(jarPath)
+	return File(URLDecoder.decode(jarPath, Charsets.UTF_8.name()))
 }
 
 fun MemoryVfsBin(vararg files: Pair<String, ByteArray>): SyncVfsFile {

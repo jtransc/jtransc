@@ -1,9 +1,5 @@
 package com.jtransc;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscMethodBodyList;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-
 import java.util.Arrays;
 
 public class JTranscArrays {

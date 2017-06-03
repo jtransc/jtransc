@@ -24,6 +24,10 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
 }
 
 const PHP_INT_BITS_SIZE = PHP_INT_SIZE * 8;
+const PHP_INT_BITS_SIZE_M8 = PHP_INT_BITS_SIZE - 8;
+const PHP_INT_BITS_SIZE_M16 = PHP_INT_BITS_SIZE - 16;
+const PHP_INT_BITS_SIZE_M24 = PHP_INT_BITS_SIZE - 24;
+const PHP_INT_BITS_SIZE_M32 = PHP_INT_BITS_SIZE - 32;
 
 final class N {
 	const MIN_INT32 = -2147483648;
@@ -40,27 +44,51 @@ final class N {
 		return mb_convert_encoding($str, 'UTF-16LE', 'UTF-8');
 	}
 
-	static public function iushr(int $a, int $b) : int {
-	    if ($b == 0) return $a;
-        return ($a >> $b) & ~(1 << (8 * PHP_INT_SIZE - 1) >> ($b - 1));
+	static public function FIXSHIFT(int $r) : int {
+		if ($r < 0) {
+			return (32 - ((-$r) & 0x1F)) & 0x1F;
+		} else {
+			return $r & 0x1F;
+		}
 	}
-	static public function irem(int $a, int $b) : int { return $a % $b; }
-	static public function idiv(int $a, int $b) : int { return intdiv($a, $b); } // intdiv
 
-	static public function i(int $v) { return $v | 0; }
+	static public function LFIXSHIFT(int $r) : int {
+		if ($r < 0) {
+			return (64 - ((-$r) & 0x3F)) & 0x3F;
+		} else {
+			return $r & 0x3F;
+		}
+	}
+
+	static public function ishl(int $a, int $b) : int { return $a << N::FIXSHIFT($b); }
+	static public function ishr(int $a, int $b) : int { return $a >> N::FIXSHIFT($b); }
+
+	static public function iushr(int $a, int $b) : int {
+	    $b = N::FIXSHIFT($b);
+	    if ($b == 0) return $a;
+        return ($a >> $b) & ~(1 << (PHP_INT_BITS_SIZE - 1) >> ($b - 1));
+	}
+
+	static public function irem(int $a, int $b) : int { return $a % $b; }
+	static public function idiv(int $a, int $b) : int {
+		if ($a == PHP_INT_MIN && $b == -1) return -2147483648;
+		return intdiv($a, $b);
+	}
+
+	static public function i(int $v) { return ($v << PHP_INT_BITS_SIZE_M32) >> PHP_INT_BITS_SIZE_M32; }
 
 	static public function i2j(int $v) : Int64 { return Int64::ofInt($v); }
 	static public function j2i(Int64 $v) : int { return $v->low; }
 	static public function z2i($v) : int { return $v ? 1 : 0; }
 	static public function i2c(int $v) : int { return $v & 0xFFFF; }
-	static public function i2b(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 8)) >> PHP_INT_BITS_SIZE; }
-	static public function i2s(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 16)) >> PHP_INT_BITS_SIZE; }
+	static public function i2b(int $v) : int { return (($v & 0xFF) << (PHP_INT_BITS_SIZE_M8)) >> PHP_INT_BITS_SIZE_M8; }
+	static public function i2s(int $v) : int { return (($v & 0xFFFF) << (PHP_INT_BITS_SIZE_M16)) >> PHP_INT_BITS_SIZE_M16; }
 	static public function d2j(float $v) : Int64 { return Int64::ofFloat($v); }
 	static public function j2d(Int64 $v) : float { return Int64::toFloat($v); }
 
-	static public function sx8(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 8)) >> PHP_INT_BITS_SIZE; }
-	static public function sx16(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 16)) >> PHP_INT_BITS_SIZE; }
-	static public function sx32(int $v) : int { return ($v << (PHP_INT_BITS_SIZE - 32)) >> PHP_INT_BITS_SIZE; }
+	static public function sx8(int $v) : int { return ($v << PHP_INT_BITS_SIZE_M8) >> PHP_INT_BITS_SIZE_M8; }
+	static public function sx16(int $v) : int { return ($v << PHP_INT_BITS_SIZE_M16) >> PHP_INT_BITS_SIZE_M16; }
+	static public function sx32(int $v) : int { return ($v << PHP_INT_BITS_SIZE_M32) >> PHP_INT_BITS_SIZE_M32; }
 
 	static function lnew (int   $h, int   $l) : Int64 { return Int64::make($h, $l); }
 	static function lneg (Int64 $l) : Int64 { return Int64::neg($l); }
@@ -121,7 +149,7 @@ final class N {
 	}
 
 	static public function strArray(array $array) : JA_L {
-		return JA_L::create(array_map(function($v) { return N::str($v); }, $array), '[Ljava/lang/String;');
+		return JA_L::fromArray(array_map(function($v) { return N::str($v); }, $array), '[Ljava/lang/String;');
 	}
 
 	static public function arraycopy({% CLASS java.lang.Object %} $src, int $srcPos, {% CLASS java.lang.Object %} $dst, int $dstPos, int $len) : void {
@@ -213,7 +241,7 @@ final class TypedBuffer {
 	public function getF32(float $n) : float { $this->checkIndex($n + 4); return unpack("f", substr($this->data, $n, 4))[1]; }
 	public function getF64(float $n) : float { $this->checkIndex($n + 8); return unpack("d", substr($this->data, $n, 8))[1]; }
 
-	public function set8 (int $n, int $v) : void { $this->data[$n + 0] = chr($v & 0xFF); }
+	public function set8 (int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); }
 	public function set16(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); }
 	public function set32(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); $this->data[$n + 2] = chr(($v >> 16) & 0xFF); $this->data[$n + 3] = chr(($v >> 24) & 0xFF); }
 	public function setF32(int $n, float $v) : void { $s = pack('f', $v); for ($m = 0; $m < 4; $m++) $this->data[$n + $m] = $s[$m]; }
@@ -267,7 +295,7 @@ abstract class JA_Typed extends JA_0 {
 class JA_Array extends JA_0 {
 	public $data = null;
 
-	public function __construct(int $length, string $desc, $default = 0) {
+	public function __construct(int $length, string $desc, $default = null) {
 		parent::__construct($length, $desc);
 		$this->data = array_fill(0, $length, $default);
 	}
@@ -331,17 +359,47 @@ final class JA_D extends JA_Typed {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 final class JA_J extends JA_Array {
-	public function __construct(int $length) { parent::__construct($length, '[J', 0, Int64::$zero); }
+	public function __construct(int $length) { parent::__construct($length, '[J', Int64::$zero); }
 }
 
 final class JA_L extends JA_Array {
 	public function __construct(int $length, string $desc) { parent::__construct($length, $desc, null); }
 
-	static function create(array $items, string $desc) : JA_L {
+	static function fromArray(array $items, string $desc) : JA_L {
 		$count = count($items);
 		$out = new JA_L($count, $desc);
 		for ($n = 0; $n < $count; $n++) $out->set($n, $items[$n]);
 		return $out;
+	}
+
+	static function createMultiSure(string $desc, array $sizes) : JA_0 {
+		return JA_L::_createMultiSure($desc, 0, $sizes);
+	}
+
+	static function _createMultiSure(string $desc, int $index, array $sizes) : JA_0 {
+		if (substr($desc, 0, 1) != "[") return null;
+		if ($index >= count($sizes) - 1) return JA_L::create($sizes[$index], $desc);
+		$len = $sizes[$index];
+		$o = new JA_L($len, $desc);
+		$desc2 = substr($desc, 1);
+		for ($n = 0; $n < $len; $n++) {
+			$o->data[$n] = JA_L::_createMultiSure($desc2, $index + 1, $sizes);
+		}
+		return $o;
+	}
+
+	static function create(int $size, string $desc) {
+		switch ($desc) {
+			case "[Z": return new JA_Z($size);
+			case "[B": return new JA_B($size);
+			case "[C": return new JA_C($size);
+			case "[S": return new JA_S($size);
+			case "[I": return new JA_I($size);
+			case "[J": return new JA_J($size);
+			case "[F": return new JA_F($size);
+			case "[D": return new JA_D($size);
+			default: return new JA_L($size, $desc);
+		}
 	}
 }
 
@@ -545,7 +603,7 @@ final class Int64 {
 				$i = $r->quotient;
 			}
 		}
-		if ($neg) $str = "-" . $str;
+		if ($neg) $str = "-$str";
 		return $str;
 	}
 
@@ -553,7 +611,7 @@ final class Int64 {
 		if ($divisor->high == 0) {
 			switch ($divisor->low) {
 				case 0: throw new Exception("divide by zero");
-				case 1: return new DivModResult(Int64::make(dividend.high, dividend.low), Int64::ofInt(0));
+				case 1: return new DivModResult(Int64::make($dividend->high, $dividend->low), Int64::ofInt(0));
 			}
 		}
 		$divSign = Int64::isNeg($dividend) != Int64::isNeg($divisor);

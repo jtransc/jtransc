@@ -114,6 +114,10 @@ public class FilterInputStream extends InputStream {
         return in.read();
     }
 
+	public int read(byte b[]) throws IOException {
+		return read(b, 0, b.length);
+	}
+
     @Override public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
         return in.read(buffer, byteOffset, byteCount);
     }

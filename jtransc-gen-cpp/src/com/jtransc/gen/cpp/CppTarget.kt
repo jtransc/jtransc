@@ -445,7 +445,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
-				line("int __INSTANCE_CLASS_ID;")
+				line("int __JT__CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
@@ -457,15 +457,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			val decl = if (clazz.parentClass != null) {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__INSTANCE_CLASS_ID)"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__JT__CLASS_ID)"
 			} else {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId})"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId})"
 			}
 
 			line(decl) {
 				if (!clazz.isInterface) {
 					if (clazz.parentClass == null) {
-						line("this->__INSTANCE_CLASS_ID = __INSTANCE_CLASS_ID;")
+						line("this->__JT__CLASS_ID = __JT__CLASS_ID;")
 					}
 					for (field in clazz.fields.filter { !it.isStatic }) {
 						val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"

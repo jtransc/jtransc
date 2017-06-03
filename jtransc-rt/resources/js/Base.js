@@ -803,8 +803,8 @@ N.hrtime = function() {
 N.is = function(i, clazz) {
 	if (i instanceof clazz) return true;
 	if (i == null) return false;
-	if (typeof i.$$CLASS_IDS === 'undefined') return false;
-	return i.$$CLASS_IDS.indexOf(clazz.$$CLASS_ID) >= 0;
+	if (typeof i.__JT__CLASS_ID === 'undefined') return false;
+	return i.__JT__CLASS_ID.indexOf(clazz.__JT__CLASS_ID) >= 0;
 };
 
 N.checkCast = function(i, clazz) {
@@ -816,8 +816,8 @@ N.checkCast = function(i, clazz) {
 
 N.isClassId = function(i, classId) {
 	if (i == null) return false;
-	if (!i.$$CLASS_IDS) return false;
-	return i.$$CLASS_IDS.indexOf(classId) >= 0;
+	if (!i.__JT__CLASS_ID) return false;
+	return i.__JT__CLASS_ID.indexOf(classId) >= 0;
 };
 
 N.istr = function(str) {

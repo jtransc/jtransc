@@ -339,7 +339,7 @@ struct JA_0 : public java_lang_Object { public:
 	int elementSize;
 	std::wstring desc;
 	JA_0(bool pointers, void* data, int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
-		this->__INSTANCE_CLASS_ID = 1;
+		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 	}
 
@@ -525,7 +525,7 @@ int64_t N::lnew(int high, int low) {
 
 bool N::is(JAVA_OBJECT obj, int type) {
 	if (obj == nullptr) return false;
-	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__INSTANCE_CLASS_ID];
+	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__JT__CLASS_ID];
 	const size_t size = type_info.size;
 	const int32_t* subtypes = type_info.subtypes;
     for (size_t i = 0; i < size; i++){

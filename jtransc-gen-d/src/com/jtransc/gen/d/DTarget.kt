@@ -236,8 +236,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("public int __D__CLASS_ID;")
-				line("this(int CLASS_ID = ${clazz.classId}) { this.__D__CLASS_ID = CLASS_ID; }")
+				line("public int __JT__CLASS_ID;")
+				line("this(int CLASS_ID = ${clazz.classId}) { this.__JT__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("this(int CLASS_ID = ${clazz.classId}) { super(CLASS_ID); }")
 			}

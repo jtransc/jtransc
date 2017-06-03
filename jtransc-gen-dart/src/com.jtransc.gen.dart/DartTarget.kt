@@ -254,8 +254,8 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("int __DART__CLASS_ID;")
-				line("${clazz.name.targetName}([int CLASS_ID = ${clazz.classId}]) { this.__DART__CLASS_ID = CLASS_ID; }")
+				line("int __JT__CLASS_ID;")
+				line("${clazz.name.targetName}([int CLASS_ID = ${clazz.classId}]) { this.__JT__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("${clazz.name.targetName}([int CLASS_ID = ${clazz.classId}]) : super(CLASS_ID) { }")
 			}

@@ -719,11 +719,11 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			line(declaration) {
 				if (!isInterface) {
 					if (isRootObject) {
-						line("public var _CLASS_ID__HX:Int;")
+						line("public var __JT__CLASS_ID:Int;")
 					}
 					line("$CONSTRUCTOR_ANNOTATIONS public function new()") {
 						line(if (isRootObject) "" else "super();")
-						line("this._CLASS_ID__HX = ${clazz.classId};")
+						line("this.__JT__CLASS_ID = ${clazz.classId};")
 					}
 				}
 
