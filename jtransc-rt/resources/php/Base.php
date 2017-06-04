@@ -24,10 +24,354 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
 }
 
 const PHP_INT_BITS_SIZE = PHP_INT_SIZE * 8;
+const PHP_INT_BITS_SIZE_M1 = PHP_INT_BITS_SIZE - 1;
 const PHP_INT_BITS_SIZE_M8 = PHP_INT_BITS_SIZE - 8;
 const PHP_INT_BITS_SIZE_M16 = PHP_INT_BITS_SIZE - 16;
 const PHP_INT_BITS_SIZE_M24 = PHP_INT_BITS_SIZE - 24;
 const PHP_INT_BITS_SIZE_M32 = PHP_INT_BITS_SIZE - 32;
+
+final class Int32 {
+	static public function sx32(int $v) { return ($v << PHP_INT_BITS_SIZE_M32) >> PHP_INT_BITS_SIZE_M32; }
+
+	static public function compare(int $a, int $b): int {
+		$a |= 0;
+		$b |= 0;
+		if ($a == $b) {
+			return 0;
+		} else if ($a > $b) {
+			return 1;
+		} else {
+			return -1;
+		}
+	}
+
+	static public function ucompare(int $a, int $b): int {
+		if ($a < 0) {
+			if($b < 0) {
+				return ~$b - ~$a | 0;
+			} else {
+				return 1;
+			}
+		}
+		if ($b < 0) {
+			return -1;
+		} else {
+			return $a - $b | 0;
+		}
+	}
+
+	static public function mul(int $a, int $b) : int {
+		if (PHP_INT_SIZE == 4) {
+			$ah = ($a >> 16) & 0xffff;
+			$al = $a & 0xffff;
+			$bh = ($b >> 16) & 0xffff;
+			$bl = $b & 0xffff;
+			// the shift by 0 fixes the sign on the high part
+			// the final |0 converts the unsigned value into a signed value
+			return (($al * $bl) + ((($ah * $bl + $al * $bh) << 16))|0);
+		} else {
+			return ($a * $b)|0;
+		}
+	}
+
+	static public function iushr(int $a, int $b) : int {
+		if ($b == 0) return $a;
+		return ($a >> $b) & ~(1 << (PHP_INT_BITS_SIZE - 1) >> ($b - 1));
+	}
+}
+
+final class DivModResult {
+	public $quotient;
+	public $modulus;
+
+	public function __construct(Int64 $quotient, Int64 $modulus) {
+		$this->quotient = $quotient;
+		$this->modulus = $modulus;
+	}
+}
+
+final class Int64 {
+	static public $MAX_INT64;
+	static public $MIN_INT64;
+	static public $zero;
+	static public $one;
+	static public $MIN_VALUE;
+	static public $MAX_VALUE;
+
+	public $high = 0;
+	public $low = 0;
+
+	public function __construct(int $high, int $low) {
+		$this->high = Int32::sx32($high);
+		$this->low = Int32::sx32($low);
+		//var_dump($high);
+		//var_dump($low);
+	}
+
+	static public function make(int $high, int $low) : Int64 {
+		if ($high == 0) {
+			if ($low == 0) return Int64::$zero;
+			if ($low == 1) return Int64::$one;
+		}
+		return new Int64($high, $low);
+	}
+
+	static public function ofInt(int $value): Int64 {
+		return Int64::make($value >> PHP_INT_BITS_SIZE_M1, $value);
+	}
+
+	static public function ofFloat(float $f) : Int64 {
+		if ($f == 0) return Int64::$zero;
+
+		$v0 = $f % 0x10000; $f = floor($f / 0x10000);
+		$v1 = $f % 0x10000; $f = floor($f / 0x10000);
+		$v2 = $f % 0x10000; $f = floor($f / 0x10000);
+		$v3 = $f % 0x10000; $f = floor($f / 0x10000);
+
+		$low = ($v0 & 0xFFFF) | ($v1 << 16);
+		$high = ($v2 & 0xFFFF) | ($v3 << 16);
+
+		return Int64::make($high, $low);
+	}
+
+	static public function ofString(string $sParam, int $ibase = 10) : Int64 {
+		$base = Int64::ofInt($ibase);
+		$current = Int64::ofInt(0);
+		$multiplier = Int64::ofInt(1);
+		$sIsNegative = false;
+
+		$s = trim($sParam);
+		if (substr($s, 0, 1) == '-') {
+			$sIsNegative = true;
+			$s = substr($s, 1, strlen($s));
+		}
+		$len = strlen($s);
+
+		for ($i = 0; $i < $len; $i++) {
+			$digitInt = ord(substr($s, $len - 1 - $i, 1)) - ord('0');
+			if ($digitInt < 0 || $digitInt > 9) throw new Exception("NumberFormatError: Invalid digit");
+			$digit = Int64::ofInt($digitInt);
+			$current = Int64::add($current, Int64::mul($multiplier, $digit));
+			$multiplier = Int64::mul($multiplier, $base);
+		}
+		return $sIsNegative ? Int64::neg($current) : $current;
+	}
+
+	static public function toInt(Int64 $a) : int {
+		return $a->low;
+	}
+
+	static public function toFloat(Int64 $v) : float {
+		if (Int64::isNeg($v)) {
+			return Int64::eq($v, Int64::$MIN_INT64) ? -9223372036854775808.0 : -Int64::toFloat(Int64::neg($v));
+		} else {
+			$lowf = $v->low;
+			$highf = $v->high;
+			return $lowf + $highf * pow(2, 32);
+		}
+	}
+
+	static public function isNeg(Int64 $a) : bool { return $a->high < 0; }
+	static public function isZero(Int64 $a) : bool { return $a->high == 0 && $a->low == 0; }
+	static public function isNotZero(Int64 $a) : bool { return $a->high != 0 || $a->low != 0; }
+
+// Comparisons
+
+	static private function Integer_compare(int $a, int $b) : int { return Int32::compare($a, $b); }
+	static private function Integer_compareUnsigned(int $a, int $b) : int { return Int32::ucompare($a, $b); }
+
+	static public function compare(Int64 $a, Int64 $b) : int {
+		$v = $a->high - $b->high;
+		if ($v == 0) $v = Int64::Integer_compareUnsigned($a->low, $b->low);
+		return ($a->high < 0) ? (($b->high < 0) ? $v : -1) : (($b->high >= 0) ? $v : 1);
+	}
+
+	static public function ucompare(Int64 $a, Int64 $b) : int {
+		$v = Int64::Integer_compareUnsigned($a->high, $b->high);
+		return ($v != 0) ? $v : Int64::Integer_compareUnsigned($a->low, $b->low);
+	}
+
+	static public function eq(Int64 $a, Int64 $b) : bool { return ($a->high == $b->high) && ($a->low == $b->low); }
+	static public function ne(Int64 $a, Int64 $b) : bool { return ($a->high != $b->high) || ($a->low != $b->low); }
+	static public function lt(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) < 0; }
+	static public function le(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) <= 0; }
+	static public function gt(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) > 0; }
+	static public function ge(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) >= 0; }
+
+	// Strings
+	public function toString(): string {
+		$i = $this;
+		if (Int64::isZero($i)) return "0";
+		$str = "";
+		$neg = false;
+		if (Int64::isNeg($i)) {
+			$neg = true;
+			// $i = -$i; cannot negate here as --9223372036854775808 = -9223372036854775808
+		}
+		$ten = Int64::ofInt(10);
+		while (Int64::isNotZero($i)) {
+			$r = Int64::divMod($i, $ten);
+			if (Int64::isNeg($r->modulus)) {
+				$str = Int64::neg($r->modulus)->low . $str;
+				$i = Int64::neg($r->quotient);
+			} else {
+				$str = $r->modulus->low . $str;
+				$i = $r->quotient;
+			}
+		}
+		if ($neg) $str = "-$str";
+		return $str;
+	}
+
+	public function __toString(): string {
+		return $this->toString();
+	}
+
+	static public function divMod(Int64 $dividend, Int64 $divisor) : DivModResult {
+		if ($divisor->high == 0) {
+			switch ($divisor->low) {
+				case 0: throw new Exception("divide by zero");
+				case 1: return new DivModResult(Int64::make($dividend->high, $dividend->low), Int64::ofInt(0));
+			}
+		}
+		$divSign = Int64::isNeg($dividend) != Int64::isNeg($divisor);
+		$modulus = Int64::isNeg($dividend) ? Int64::neg($dividend) : Int64::make($dividend->high, $dividend->low);
+		$divisor = Int64::abs($divisor);
+
+		$quotient = Int64::ofInt(0);
+		$mask = Int64::ofInt(1);
+		while (!Int64::isNeg($divisor)) {
+			$cmp = Int64::ucompare($divisor, $modulus);
+			$divisor = Int64::shl($divisor, 1);
+			$mask = Int64::shl($mask, 1);
+			if ($cmp >= 0) break;
+		}
+		while (Int64::ne($mask, Int64::ofInt(0))) {
+			if (Int64::ucompare($modulus, $divisor) >= 0) {
+				$quotient = Int64::or($quotient, $mask);
+				$modulus = Int64::sub($modulus, $divisor);
+			}
+			$mask = Int64::ushr($mask, 1);
+			$divisor = Int64::ushr($divisor, 1);
+		}
+		if ($divSign) $quotient = Int64::neg($quotient);
+		if (Int64::isNeg($dividend)) $modulus = Int64::neg($modulus);
+		return new DivModResult($quotient, $modulus);
+	}
+
+	static public function neg(Int64 $x): Int64 {
+		$high = (~$x->high)|0;
+		$low = (-$x->low)|0;
+		if ($low == 0) $high = ($high + 1)|0;
+		return Int64::make($high, $low);
+	}
+
+	static public function add(Int64 $a, Int64 $b): Int64 {
+		$high = ($a->high + $b->high)|0;
+		$low  = ($a->low + $b->low)|0;
+		if (Int64::Integer_compareUnsigned($low, $a->low) < 0) {
+			$high = ($high + 1)|0;
+		}
+		return Int64::make($high, $low);
+	}
+
+	static public function sub(Int64 $a, Int64 $b) : Int64 {
+		$high = ($a->high - $b->high)|0;
+		$low = ($a->low - $b->low)|0;
+		if (Int64::Integer_compareUnsigned($a->low, $b->low) < 0) {
+			$high = ($high - 1)|0;
+		}
+		return Int64::make($high, $low);
+	}
+
+	static public function mul(Int64 $a, Int64 $b) : Int64 {
+		$al = $a->low & 65535;
+		$ah = Int32::iushr($a->low, 16);
+		$bl = $b->low & 65535;
+		$bh = Int32::iushr($b->low, 16);
+		$p00 = Int32::mul($al, $bl);
+		$p10 = Int32::mul($ah, $bl);
+		$p01 = Int32::mul($al, $bh);
+		$p11 = Int32::mul($ah, $bh);
+		$low = $p00;
+		$high = ($p11 + Int32::iushr($p01, 16) | 0) + Int32::iushr($p10, 16) | 0;
+		$p01 = $p01 << 16;
+		$low = $p00 + $p01 | 0;
+		if (Int32::ucompare($low, $p01) < 0) $high = $high + 1 | 0;
+		$p10 = $p10 << 16;
+		$low = $low + $p10 | 0;
+		if (Int32::ucompare($low, $p10) < 0) $high = $high + 1 | 0;
+		$high = $high + (Int32::mul($a->low, $b->high) + Int32::mul($a->high, $b->low) | 0) | 0;
+		return Int64::make($high, $low);
+
+	}
+
+	static public function div(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->quotient; }
+	static public function mod(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->modulus; }
+	static public function rem(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->modulus; }
+
+	// BIT-WISE
+	static public function not(Int64 $x) : Int64 { return Int64::make(~$x->high, ~$x->low); }
+
+	static public function and(Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high & $b->high, $a->low & $b->low); }
+	static public function or (Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high | $b->high, $a->low | $b->low); }
+	static public function xor(Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high ^ $b->high, $a->low ^ $b->low); }
+
+	static public function shl(Int64 $a, int $b) : Int64 {
+		$b &= 63;
+		if ($b == 0) {
+			return Int64::make($a->high, $a->low);
+		} else if ($b < 32) {
+			return Int64::make($a->high << $b | Int32::iushr($a->low, 32 - $b), $a->low << $b);
+		} else {
+			return Int64::make($a->low << $b - 32, 0);
+		}
+	}
+
+	static public function shr(Int64 $a, int $b) : Int64 {
+		$b &= 63;
+		if ($b == 0) {
+			return Int64::make($a->high, $a->low);
+		} else if ($b < 32) {
+			return Int64::make($a->high >> $b, $a->high << 32 - $b | Int32::iushr($a->low, $b));
+		} else {
+			return Int64::make($a->high >> 31, $a->high >> $b - 32);
+		}
+	}
+
+	static public function ushr(Int64 $a, int $b) : Int64 {
+		$b &= 63;
+		if ($b == 0) {
+			return Int64::make($a->high, $a->low);
+		} else if ($b < 32) {
+			return Int64::make(Int32::iushr($a->high, $b), $a->high << 32 - $b | Int32::iushr($a->low, $b));
+		} else {
+			return Int64::make(0, Int32::iushr($a->high, $b - 32));
+		}
+	}
+
+	static public function sign(Int64 $a) : int {
+		if (Int64::isNeg($a)) return -1;
+		if (Int64::isNotZero($a)) return +1;
+		return 0;
+	}
+
+	static public function abs(Int64 $a) : Int64 {
+		return Int64::isNeg($a) ? Int64::neg($a) : $a;
+	}
+
+	static public function getInternal(Int64 $value) : Int64 {
+		return $value;
+	}
+
+}
+
+Int64::$MAX_INT64 = new Int64(0x7FFFFFFF|0, 0xFFFFFFFF|0);
+Int64::$MIN_INT64 = new Int64(0x80000000|0, 0x00000000|0);
+Int64::$zero = new Int64(0, 0);
+Int64::$one = new Int64(0, 1);
+Int64::$MIN_VALUE = Int64::$MIN_INT64;
+Int64::$MAX_VALUE = Int64::$MAX_INT64;
 
 final class N {
 	static public $DOUBLE_NAN;
@@ -78,6 +422,7 @@ final class N {
 	}
 
 	static public function irem(int $a, int $b) : int { return $a % $b; }
+	static public function imul(int $a, int $b) : int { return Int32::mul($a, $b); }
 	static public function idiv(int $a, int $b) : int {
 		if ($a == PHP_INT_MIN && $b == -1) return -2147483648;
 		return intdiv($a, $b);
@@ -125,12 +470,31 @@ final class N {
 		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N::str($name));
 	}
 
-	static public function getTime() : float {
-		return (microtime(true) * 1000);
+	static public function _getTime() : float {
+		return floor(microtime(true) * 1000);
+
+		//list($frac, $seconds) = explode(' ', microtime(false));
+		//$ms = floor($frac * 1000);
+		//$secs = floor($seconds * 1000);
+		//return floor($secs + $ms);
+
+		//$info = gettimeofday(false);
+		//$ms1 = floor($info['sec'] * 1000);
+		//$ms2 = floor($info['usec'] / 1000);
+		//return floor($ms1 + $ms2);
 	}
 
+	static public function getTime() : float {
+		$time = N::_getTime();
+		//echo $time, ' :: ', Int64::ofString('' . $time)->toString(), ' :: ', N::d2j($time)->toString(), "\n";
+		return $time;
+	}
+
+	static public $startTime;
+
 	static public function nanoTime() : Int64 {
-		return N::lmul(N::d2j((microtime(true) * 1000000)), Int64::ofInt(1000));
+		$elapsedMs = N::_getTime() - N::$startTime;
+		return N::lmul(N::d2j(round($elapsedMs * 1000)), Int64::ofInt(1000));
 	}
 
 	static function str(string $str): {% CLASS java.lang.String %} {
@@ -239,6 +603,8 @@ final class N {
 	}
 }
 
+N::$startTime = N::_getTime();
+
 N::$tempBuffer = TypedBuffer::alloc(16);
 
 N::$DOUBLE_NAN = N::longBitsToDouble(Int64::make((int)0x7FF80000, (int)0x00000000));
@@ -280,11 +646,11 @@ final class TypedBuffer {
 
 	public function checkIndex(int $n) { if ($n > $this->length) throw new Exception("Index out of bounds $n of {$this->length}"); }
 
-	public function getU8 (int   $n) : int   { $this->checkIndex($n + 1); return (ord($this->data[$n]) & 0xFF); }
-	public function getU16(int   $n) : int   { $this->checkIndex($n + 2); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8)) & 0xFFFF; }
-	public function getU32(int   $n) : int   { $this->checkIndex($n + 4); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8) | (ord($this->data[$n + 2]) << 16) | (ord($this->data[$n + 3]) << 24)); }
-	public function getF32(float $n) : float { $this->checkIndex($n + 4); return unpack("f", substr($this->data, $n, 4))[1]; }
-	public function getF64(float $n) : float { $this->checkIndex($n + 8); return unpack("d", substr($this->data, $n, 8))[1]; }
+	public function getU8 (int $n) : int   { $this->checkIndex($n + 1); return (ord($this->data[$n]) & 0xFF); }
+	public function getU16(int $n) : int   { $this->checkIndex($n + 2); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8)) & 0xFFFF; }
+	public function getU32(int $n) : int   { $this->checkIndex($n + 4); return (ord($this->data[$n + 0]) | (ord($this->data[$n + 1]) << 8) | (ord($this->data[$n + 2]) << 16) | (ord($this->data[$n + 3]) << 24)); }
+	public function getF32(int $n) : float { $this->checkIndex($n + 4); return unpack("f", substr($this->data, $n, 4))[1]; }
+	public function getF64(int $n) : float { $this->checkIndex($n + 8); return unpack("d", substr($this->data, $n, 8))[1]; }
 
 	public function set8 (int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); }
 	public function set16(int $n, int $v) : void { $this->data[$n + 0] = chr(($v >> 0) & 0xFF); $this->data[$n + 1] = chr(($v >> 8) & 0xFF); }
@@ -455,347 +821,5 @@ class WrappedThrowable extends Exception {
 
 	//public function __toString() { return '' . $this->t; }
 }
-
-final class DivModResult {
-	public $quotient;
-	public $modulus;
-
-	public function __construct(Int64 $quotient, Int64 $modulus) {
-		$this->quotient = $quotient;
-		$this->modulus = $modulus;
-	}
-}
-
-final class Int32 {
-	static public function compare(int $a, int $b): int {
-		$a |= 0;
-		$b |= 0;
-		if ($a == $b) {
-			return 0;
-		} else if ($a > $b) {
-			return 1;
-		} else {
-			return -1;
-		}
-	}
-
-	static public function ucompare(int $a, int $b): int {
-		if ($a < 0) {
-			if($b < 0) {
-				return ~$b - ~$a | 0;
-			} else {
-				return 1;
-			}
-		}
-		if ($b < 0) {
-			return -1;
-		} else {
-			return $a - $b | 0;
-		}
-	}
-
-	static public function mul(int $a, int $b) : int {
-		$ah = ($a >> 16) & 0xffff;
-		$al = $a & 0xffff;
-		$bh = ($b >> 16) & 0xffff;
-		$bl = $b & 0xffff;
-		// the shift by 0 fixes the sign on the high part
-		// the final |0 converts the unsigned value into a signed value
-		return (($al * $bl) + ((($ah * $bl + $al * $bh) << 16))|0);
-	}
-}
-
-final class Int64 {
-	static public $MAX_INT64;
-	static public $MIN_INT64;
-	static public $zero;
-	static public $one;
-	static public $MIN_VALUE;
-	static public $MAX_VALUE;
-
-	public $high = 0;
-	public $low = 0;
-
-	public function __construct(int $high, int $low) {
-		$this->high = $high;
-		$this->low = $low;
-		//var_dump($high);
-		//var_dump($low);
-	}
-
-	static public function make(int $high, int $low) : Int64 {
-		if ($high == 0) {
-			if ($low == 0) return Int64::$zero;
-			if ($low == 1) return Int64::$one;
-		}
-		return new Int64($high, $low);
-	}
-
-	static public function ofInt(int $value): Int64 {
-		return Int64::make($value >> 31, $value);
-	}
-
-	static public function ofFloat(float $f) : Int64 {
-		if (is_nan($f) || !is_finite($f)) throw new Exception("Number is NaN or Infinite");
-		$noFractions = $f - ($f % 1);
-		// 2^53-1 and -2^53: these are parseable without loss of precision
-		if ($noFractions > 9007199254740991.0) throw new Exception("Conversion overflow");
-		if ($noFractions < -9007199254740991.0) throw new Exception("Conversion underflow");
-
-		$result = Int64::ofInt(0);
-		$neg = $noFractions < 0;
-		$rest = $neg ? -$noFractions : $noFractions;
-
-		$i = 0;
-		while ($rest >= 1) {
-			$curr = $rest % 2;
-			$rest = $rest / 2;
-			if ($curr >= 1) $result = Int64::add($result, Int64::shl(Int64::ofInt(1), $i));
-			$i++;
-		}
-
-		return $neg ? Int64::neg($result) : $result;
-	}
-
-	static public function ofString(string $sParam) : Int64 {
-		$base = Int64::ofInt(10);
-		$current = Int64::ofInt(0);
-		$multiplier = Int64::ofInt(1);
-		$sIsNegative = false;
-
-		$s = trim($sParam);
-		if ($s->charAt(0) == '-') {
-			$sIsNegative = true;
-			$s = substr($s, 1, strlen($s));
-		}
-		$len = strlen(s);
-
-		for ($i = 0; $i < $len; $i++) {
-			$digitInt = intval(substr($s, $len - 1 - $i, 1));
-
-			$digit = Int64::ofInt($digitInt);
-			if ($sIsNegative) {
-				$current = Int64::sub($current, Int64::mul($multiplier, $digit));
-				if (!Int64::isNeg($current)) throw new Exception("NumberFormatError: Underflow");
-			} else {
-				$current = Int64::add($current, Int64::mul($multiplier, $digit));
-				if (Int64::isNeg($current)) throw new Exception("NumberFormatError: Overflow");
-			}
-			$multiplier = Int64::mul($multiplier, $base);
-		}
-		return $current;
-	}
-
-	static public function toInt(Int64 $a) : int {
-		return $a->low;
-	}
-
-	static public function toFloat(Int64 $v) : float {
-		if (Int64::isNeg($v)) {
-			return Int64::eq($v, Int64::$MIN_INT64) ? -9223372036854775808.0 : -Int64::toFloat(Int64::neg($v));
-		} else {
-			$lowf = $v->low;
-			$highf = $v->high;
-			return $lowf + $highf * pow(2, 32);
-		}
-	}
-
-	static public function isNeg(Int64 $a) : bool { return $a->high < 0; }
-	static public function isZero(Int64 $a) : bool { return $a->high == 0 && $a->low == 0; }
-	static public function isNotZero(Int64 $a) : bool { return $a->high != 0 || $a->low != 0; }
-
-// Comparisons
-
-	static private function Integer_compare(int $a, int $b) : int { return Int32::compare($a, $b); }
-	static private function Integer_compareUnsigned(int $a, int $b) : int { return Int32::ucompare($a, $b); }
-
-	static public function compare(Int64 $a, Int64 $b) : int {
-		$v = $a->high - $b->high;
-		if ($v == 0) $v = Int64::Integer_compareUnsigned($a->low, $b->low);
-		return ($a->high < 0) ? (($b->high < 0) ? $v : -1) : (($b->high >= 0) ? $v : 1);
-	}
-
-	static public function ucompare(Int64 $a, Int64 $b) : int {
-		$v = Int64::Integer_compareUnsigned($a->high, $b->high);
-		return ($v != 0) ? $v : Int64::Integer_compareUnsigned($a->low, $b->low);
-	}
-
-	static public function eq(Int64 $a, Int64 $b) : bool { return ($a->high == $b->high) && ($a->low == $b->low); }
-	static public function ne(Int64 $a, Int64 $b) : bool { return ($a->high != $b->high) || ($a->low != $b->low); }
-	static public function lt(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) < 0; }
-	static public function le(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) <= 0; }
-	static public function gt(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) > 0; }
-	static public function ge(Int64 $a, Int64 $b) : bool { return Int64::compare($a, $b) >= 0; }
-
-	// Strings
-	public function toString(): string {
-		$i = $this;
-		if (Int64::isZero($i)) return "0";
-		$str = "";
-		$neg = false;
-		if (Int64::isNeg($i)) {
-			$neg = true;
-			// i = -i; cannot negate here as --9223372036854775808 = -9223372036854775808
-		}
-		$ten = Int64::ofInt(10);
-		while (Int64::isNotZero(i)) {
-			$r = Int64::divMod($i, $ten);
-			if (Int64::isNeg($r->modulus)) {
-				$str = Int64::neg($r->modulus)->low + $str;
-				$i = Int64::neg($r->quotient);
-			} else {
-				$str = $r->modulus->low + $str;
-				$i = $r->quotient;
-			}
-		}
-		if ($neg) $str = "-$str";
-		return $str;
-	}
-
-	static public function divMod(Int64 $dividend, Int64 $divisor) : DivModResult {
-		if ($divisor->high == 0) {
-			switch ($divisor->low) {
-				case 0: throw new Exception("divide by zero");
-				case 1: return new DivModResult(Int64::make($dividend->high, $dividend->low), Int64::ofInt(0));
-			}
-		}
-		$divSign = Int64::isNeg($dividend) != Int64::isNeg($divisor);
-		$modulus = Int64::isNeg($dividend) ? Int64::neg($dividend) : Int64::make($dividend->high, $dividend->low);
-		$divisor = Int64::abs($divisor);
-
-		$quotient = Int64::ofInt(0);
-		$mask = Int64::ofInt(1);
-		while (!Int64::isNeg($divisor)) {
-			$cmp = Int64::ucompare($divisor, $modulus);
-			$divisor = Int64::shl($divisor, 1);
-			$mask = Int64::shl($mask, 1);
-			if ($cmp >= 0) break;
-		}
-		while (Int64::ne($mask, Int64::ofInt(0))) {
-			if (Int64::ucompare($modulus, $divisor) >= 0) {
-				$quotient = Int64::or($quotient, $mask);
-				$modulus = Int64::sub($modulus, $divisor);
-			}
-			$mask = Int64::ushr($mask, 1);
-			$divisor = Int64::ushr($divisor, 1);
-		}
-		if ($divSign) $quotient = Int64::neg($quotient);
-		if (Int64::isNeg($dividend)) $modulus = Int64::neg($modulus);
-		return new DivModResult($quotient, $modulus);
-	}
-
-	static public function neg(Int64 $x): Int64 {
-		$high = (~$x->high)|0;
-		$low = (-$x->low)|0;
-		if ($low == 0) $high = ($high + 1)|0;
-		return Int64::make($high, $low);
-	}
-
-	static public function add(Int64 $a, Int64 $b): Int64 {
-		$high = ($a->high + $b->high)|0;
-		$low  = ($a->low + $b->low)|0;
-		if (Int64::Integer_compareUnsigned($low, $a->low) < 0) {
-			$high = ($high + 1)|0;
-		}
-		return Int64::make($high, $low);
-	}
-
-	static public function sub(Int64 $a, Int64 $b) : Int64 {
-		$high = ($a->high - $b->high)|0;
-		$low = ($a->low - $b->low)|0;
-		if (Int64::Integer_compareUnsigned($a->low, $b->low) < 0) {
-			$high = ($high - 1)|0;
-		}
-		return Int64::make($high, $low);
-	}
-
-	static public function mul(Int64 $a, Int64 $b) : Int64 {
-		$al = $a->low & 65535;
-		$ah = N::iushr($a->low, 16);
-		$bl = $b->low & 65535;
-		$bh = N::iushr($b->low, 16);
-		$p00 = Int32::mul($al, $bl);
-		$p10 = Int32::mul($ah, $bl);
-		$p01 = Int32::mul($al, $bh);
-		$p11 = Int32::mul($ah, $bh);
-		$low = $p00;
-		$high = ($p11 + N::iushr($p01, 16) | 0) + N::iushr($p10, 16) | 0;
-		$p01 = $p01 << 16;
-		$low = $p00 + $p01 | 0;
-		if (Int32::ucompare($low, $p01) < 0) $high = $high + 1 | 0;
-		$p10 = $p10 << 16;
-		$low = $low + $p10 | 0;
-		if (Int32::ucompare($low, $p10) < 0) $high = $high + 1 | 0;
-		$high = $high + (Int32::mul($a->low, $b->high) + Int32::mul($a->high, $b->low) | 0) | 0;
-		return Int64::make($high, $low);
-
-	}
-
-	static public function div(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->quotient; }
-	static public function mod(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->modulus; }
-	static public function rem(Int64 $a, Int64 $b) : Int64 { return Int64::divMod($a, $b)->modulus; }
-
-	// BIT-WISE
-	static public function not(Int64 $x) : Int64 { return Int64::make(~$x->high, ~$x->low); }
-
-	static public function and(Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high & $b->high, $a->low & $b->low); }
-	static public function or (Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high | $b->high, $a->low | $b->low); }
-	static public function xor(Int64 $a, Int64 $b) : Int64 { return Int64::make($a->high ^ $b->high, $a->low ^ $b->low); }
-
-	static public function shl(Int64 $a, int $b) : Int64 {
-		$b &= 63;
-		if ($b == 0) {
-			return Int64::make($a->high, $a->low);
-		} else if ($b < 32) {
-			return Int64::make($a->high << $b | N::iushr($a->low, 32 - $b), $a->low << $b);
-		} else {
-			return Int64::make($a->low << $b - 32, 0);
-		}
-	}
-
-	static public function shr(Int64 $a, int $b) : Int64 {
-		$b &= 63;
-		if ($b == 0) {
-			return Int64::make($a->high, $a->low);
-		} else if ($b < 32) {
-			return Int64::make($a->high >> $b, $a->high << 32 - $b | N::iushr($a->low, $b));
-		} else {
-			return Int64::make($a->high >> 31, $a->high >> $b - 32);
-		}
-	}
-
-	static public function ushr(Int64 $a, int $b) : Int64 {
-		$b &= 63;
-		if ($b == 0) {
-			return Int64::make($a->high, $a->low);
-		} else if ($b < 32) {
-			return Int64::make(N::iushr($a->high, $b), $a->high << 32 - $b | N::iushr($a->low, $b));
-		} else {
-			return Int64::make(0, N::iushr($a->high, $b - 32));
-		}
-	}
-
-	static public function sign(Int64 $a) : int {
-		if (Int64::isNeg($a)) return -1;
-		if (Int64::isNotZero($a)) return +1;
-		return 0;
-	}
-
-	static public function abs(Int64 $a) : Int64 {
-		return Int64::isNeg($a) ? Int64::neg($a) : $a;
-	}
-
-	static public function getInternal(Int64 $value) : Int64 {
-		return $value;
-	}
-
-}
-
-Int64::$MAX_INT64 = new Int64(0x7FFFFFFF|0, 0xFFFFFFFF|0);
-Int64::$MIN_INT64 = new Int64(0x80000000|0, 0x00000000|0);
-Int64::$zero = new Int64(0, 0);
-Int64::$one = new Int64(0, 1);
-Int64::$MIN_VALUE = Int64::$MIN_INT64;
-Int64::$MAX_VALUE = Int64::$MAX_INT64;
 
 /* ## BODY ## */

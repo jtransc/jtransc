@@ -339,6 +339,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun N_c_div(l: String, r: String) = "unchecked($l / $r)"
 
+	override fun N_imul(l: String, r: String): String = "N::imul($l, $r)"
 	override fun N_idiv(l: String, r: String): String = "N::idiv($l, $r)"
 	override fun N_irem(l: String, r: String): String = "N::irem($l, $r)"
 

@@ -544,7 +544,7 @@ int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1)
 int64_t N::NAN_LONG = 0x7FF8000000000000L;
 double N::NAN_DOUBLE = *(double*)&(N::NAN_LONG);
 
-int32_t N::NAN_INT = 0x7FF80000;
+int32_t N::NAN_INT = 0x7FC00000;
 float N::NAN_FLOAT = *(float*)&(N::NAN_INT);
 
 double N::INFINITY_DOUBLE = (double)INFINITY;

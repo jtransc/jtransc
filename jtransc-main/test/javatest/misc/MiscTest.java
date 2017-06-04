@@ -432,8 +432,12 @@ public class MiscTest {
 			e.printStackTrace();
 		}
 		long end = System.currentTimeMillis();
+		long elapsed = (end - start);
 		System.out.println(start >= 1460000000000L);
-		System.out.println((end - start) >= (100 - 10));
+		System.out.println(elapsed >= (100 - 10));
+		//System.out.println(start);
+		//System.out.println(end);
+		//System.out.println((end - start));
 	}
 
 	private void testNanoTime() {
@@ -447,6 +451,9 @@ public class MiscTest {
 		long end = System.nanoTime();
 		long elapsed = (end - start)  / 1000000L;
 		System.out.println(elapsed >= (100 - 10));
+		//System.out.println(start);
+		//System.out.println(end);
+		//System.out.println(elapsed);
 	}
 
 	private void testCrypto() {
