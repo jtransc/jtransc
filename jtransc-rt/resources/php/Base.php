@@ -629,7 +629,7 @@ final class TypedBuffer {
 	public function getAllBytes() { return $this->data; }
 	public function getRangeBytes(int $start, int $len) { return substr($this->data, $start, $len); }
 
-	public function putBytes(string $bytes, int $offset = 0) : void {
+	public function putBytes(string $bytes, int $offset) : void {
 		$len = strlen($bytes);
 		for ($n = 0; $n < $len; $n++) $this->data[$offset + $n] = $bytes[$n];
 	}
