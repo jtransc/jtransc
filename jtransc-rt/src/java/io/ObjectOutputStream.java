@@ -645,6 +645,10 @@ public class ObjectOutputStream extends OutputStream implements ObjectOutput, Ob
         primitiveTypes.write(buffer, offset, length);
     }
 
+	public void write(byte[] buf) throws IOException {
+		write(buf, 0, buf.length);
+	}
+
     /**
      * Writes a single byte to the target stream. Only the least significant
      * byte of the integer {@code value} is written to the stream. Blocks until

@@ -163,10 +163,10 @@ class GotosFeature : AstMethodFeature() {
 					val stms = stm.stms
 					var stateIndex2 = 0
 					var stateStms = arrayListOf<AstStm>()
-					val cases = arrayListOf<Pair<Int, AstStm>>()
+					val cases = arrayListOf<Pair<List<Int>, AstStm>>()
 
 					fun flush() {
-						cases.add(Pair(stateIndex2, stateStms.stm()))
+						cases.add(Pair(listOf(stateIndex2), stateStms.stm()))
 						stateIndex2 = -1
 						stateStms = arrayListOf<AstStm>()
 					}

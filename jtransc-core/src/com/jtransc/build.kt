@@ -257,7 +257,6 @@ class JTranscBuild(
 		genericSignature = methodType.mangle(),
 		defaultTag = null,
 		bodyRef = bodyRef,
-		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility),
-		types = types
+		modifiers = AstModifiers.withFlags(AstModifiers.ACC_NATIVE, if (isStatic) AstModifiers.ACC_STATIC else 0).withVisibility(visibility)
 	)
 }

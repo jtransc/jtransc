@@ -4,14 +4,14 @@ import com.jtransc.ast.*
 import org.junit.Assert
 import org.junit.Test
 
-class ConvertSwitchIntoIfRangesTEst {
+class ConvertSwitchIntoIfRangesTest {
 	@Test
 	fun name() {
 		val types = AstTypes()
 		val SUBJECT = AstExpr.LOCAL(AstLocal(0, "demo", AstType.INT))
 		val labels = (0 until 10).map { AstLabel("label$it") }
 
-		val switchGoto = AstStm.SWITCH_GOTO(SUBJECT, labels[0], (0 until 10).map { it to labels[it] })
+		val switchGoto = AstStm.SWITCH_GOTO(SUBJECT, labels[0], (0 until 10).map { it to labels[it] }.groupByLabel())
 		val reduced = switchGoto.reduceSwitch(maxChunkSize = 3)
 		Assert.assertEquals(
 			"""

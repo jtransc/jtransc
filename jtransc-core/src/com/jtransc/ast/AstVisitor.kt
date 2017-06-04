@@ -17,7 +17,8 @@ open class AstVisitor {
 		if (body != null) visit(body)
 	}
 
-	open fun visit(body: AstBody) {
+	open fun visit(body: AstBody?) {
+		if (body == null) return
 		visit(body.stm)
 	}
 
@@ -409,4 +410,8 @@ open class AstVisitor {
 		visit(expr.etrue)
 		visit(expr.efalse)
 	}
+}
+
+fun AstBody.visit(visitor: AstVisitor) {
+	visitor.visit(this)
 }

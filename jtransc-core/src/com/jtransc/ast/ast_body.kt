@@ -228,7 +228,7 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 	class CONTINUE() : AstStm()
 
 	// SwitchFeature
-	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<Int, AstStm>>) : AstStm() {
+	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<List<Int>, AstStm>>) : AstStm() {
 		val subject = subject.box
 		val default = default.box
 		val cases = cases.map { it.first to it.second.box }
@@ -238,7 +238,7 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 
 	class STM_LABEL(val label: AstLabel) : AstStm()
 
-	class SWITCH_GOTO(subject: AstExpr, val default: AstLabel, val cases: List<Pair<Int, AstLabel>>) : AstStm() {
+	class SWITCH_GOTO(subject: AstExpr, val default: AstLabel, val cases: List<Pair<List<Int>, AstLabel>>) : AstStm() {
 		val subject = subject.box
 	}
 
@@ -655,26 +655,35 @@ object AstExprUtils {
 	}
 
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
-		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory" &&
-			bootstrapMethodRef.name == "metafactory"
+		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory"
 			) {
-			val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
-			val interfaceMethodType = literals[0].value as AstType.METHOD
-			val methodHandle = literals[1].value as AstMethodHandle
-			val methodType = literals[2].type
+			when (bootstrapMethodRef.name) {
+				"metafactory" -> {
+					val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
+					val interfaceMethodType = literals[0].value as AstType.METHOD
+					val methodHandle = literals[1].value as AstMethodHandle
+					val methodType = literals[2].type
 
-			val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
-			val methodToConvertRef = methodHandle.methodRef
+					val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+					val methodToConvertRef = methodHandle.methodRef
 
-			val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
+					val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
 
-			return AstExpr.INVOKE_DYNAMIC_METHOD(
-				methodFromRef,
-				methodToConvertRef,
-				methodToConvertRef.type.argCount - methodFromRef.type.argCount
-			)
+					return AstExpr.INVOKE_DYNAMIC_METHOD(
+						methodFromRef,
+						methodToConvertRef,
+						methodToConvertRef.type.argCount - methodFromRef.type.argCount
+					)
+				}
+				"altMetafactory" -> {
+					noImpl("Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!")
+				}
+				else -> {
+					noImpl("Unknown DynamicInvoke with LambdaMetafactory.${bootstrapMethodRef.name}!")
+				}
+			}
 		} else {
-			noImpl("Not supported DynamicInvoke yet!")
+			noImpl("Not supported DynamicInvoke without LambdaMetafactory yet for class ${bootstrapMethodRef.containingClass.fqname}!")
 		}
 	}
 
@@ -829,11 +838,13 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 
 	class AstSwitchBuilder(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(types) {
 		var default: AstStm = listOf<AstStm>().stm()
-		val cases = arrayListOf<Pair<Int, AstStm>>()
+		val cases = arrayListOf<Pair<List<Int>, AstStm>>()
 
-		inline fun CASE(subject: Int, callback: AstBuilder2.() -> Unit) {
+		inline fun CASE(subject: List<Int>, callback: AstBuilder2.() -> Unit) {
 			cases += subject to AstBuilder2(types, ctx).apply { this.callback() }.genstm()
 		}
+
+		inline fun CASE(subject: Int, callback: AstBuilder2.() -> Unit) = CASE(listOf(subject), callback)
 
 		inline fun DEFAULT(callback: AstBuilder2.() -> Unit) {
 			default = AstBuilder2(types, ctx).apply { this.callback() }.genstm()
@@ -907,5 +918,11 @@ class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val
 			fun fromId(id: Int) = table[id]!!
 		}
 	}
-
 }
+
+fun List<Pair<Int, AstLabel>>.groupByLabel() = this.groupBy { it.second }.map { it.value.map { it.first } to it.key }
+fun List<Pair<Int, AstStm>>.groupByLabelStm() = this.groupBy { it.second }.map { it.value.map { it.first } to it.key }
+
+fun List<Pair<List<Int>, AstLabel>>.flatCases() = this.flatMap { (cases, label) -> cases.map { it to label } }
+fun List<Pair<List<Int>, AstStm.Box>>.flatCasesStmBox() = this.flatMap { (cases, stm) -> cases.map { it to stm } }
+

@@ -16,7 +16,6 @@
 
 import big.*
 import com.jtransc.BuildBackend
-import com.jtransc.gen.haxe.HaxeTarget
 import com.jtransc.gen.js.JsGenerator
 import com.jtransc.gen.js.JsTarget
 import com.jtransc.plugin.service.ConfigServiceLoader
@@ -25,6 +24,7 @@ import issues.Issue105
 import issues.Issue135
 import issues.issue130.Issue130
 import issues.issue146.Issue146
+import issues.issue158.Issue158
 import javatest.ExtendedCharsetsTest
 import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
@@ -54,6 +54,7 @@ import testservice.test.TestServiceJs2
 
 class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
+	//override val TREESHAKING_TRACE = true
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
@@ -78,7 +79,8 @@ class JsTest : _Base() {
 		val outputFile = generator.jsOutputFile
 		val output = outputFile.readString()
 		Assert.assertEquals(false, output.contains("getMethod"))
-		Assert.assertEquals(true, outputFile.size < 200 * 1024) // Size should be < 200 KB
+		println("OutputSize: ${outputFile.size}")
+		Assert.assertEquals(true, outputFile.size < 220 * 1024) // Size should be < 220 KB
 	}
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))
@@ -157,6 +159,8 @@ class JsTest : _Base() {
 		777
 		999
 		21
+		HELLO WORLD1demo
+		HELLO WORLD2test
 		Timeout!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
@@ -192,4 +196,6 @@ class JsTest : _Base() {
 
 	@Ignore("Must fix #146")
 	@Test fun testIssue146() = testClass(Params(clazz = Issue146::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
 }

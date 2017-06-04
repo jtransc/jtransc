@@ -118,7 +118,7 @@ public class MiscTest {
 		testDefaultValuesStatic();
 		testShifts();
 		mapTest();
-		arrayListTest();
+		ArrayListTest.arrayListTest();
 		stringConstructTest();
 		inheritanceTest();
 		accessStaticConstantTest();
@@ -432,8 +432,12 @@ public class MiscTest {
 			e.printStackTrace();
 		}
 		long end = System.currentTimeMillis();
+		long elapsed = (end - start);
 		System.out.println(start >= 1460000000000L);
-		System.out.println((end - start) >= (100 - 10));
+		System.out.println(elapsed >= (100 - 10));
+		//System.out.println(start);
+		//System.out.println(end);
+		//System.out.println((end - start));
 	}
 
 	private void testNanoTime() {
@@ -447,6 +451,9 @@ public class MiscTest {
 		long end = System.nanoTime();
 		long elapsed = (end - start)  / 1000000L;
 		System.out.println(elapsed >= (100 - 10));
+		//System.out.println(start);
+		//System.out.println(end);
+		//System.out.println(elapsed);
 	}
 
 	private void testCrypto() {
@@ -523,6 +530,7 @@ public class MiscTest {
 		JTranscConsole.log((int)DefaultValuesClassStatic.c);
 		JTranscConsole.log(DefaultValuesClassStatic.i);
 		System.out.println(DefaultValuesClassStatic.j);
+		System.out.println(DefaultValuesClassStatic.j2);
 		System.out.println(DefaultValuesClassStatic.f);
 		System.out.println(DefaultValuesClassStatic.d);
 		JTranscConsole.log(DefaultValuesClassStatic.obj);
@@ -555,6 +563,7 @@ public class MiscTest {
 		static public float f;
 		static public double d;
 		static public Object obj;
+		static public long j2 = 7;
 	}
 
 	static private void testTestSpecialIdentifiers() {
@@ -1013,28 +1022,6 @@ public class MiscTest {
 		System.out.println("systemPropertiesTest:");
 		System.out.println("java.runtime.name:" + (System.getProperty("java.runtime.name") != null));
 		System.out.println("path.separator:" + (System.getProperty("path.separator") != null));
-	}
-
-	static private void arrayListTest() {
-		ArrayList<String> list = new ArrayList<String>();
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(list.size());
-		list.add("A");
-		sb.append(list.get(0));
-		sb.append(list.size());
-		list.add("B");
-		list.add("C");
-		sb.append(list.size());
-		list.ensureCapacity(5);
-		sb.append(list.size());
-		list.trimToSize();
-		sb.append(list.size());
-
-		Collections.reverse(list);
-		for (String item : list) sb.append(item);
-
-		System.out.println("ArrayList:" + sb.toString());
 	}
 
 	static private void mapTest() {

@@ -14,6 +14,7 @@ public class RAFile extends RAStream {
 
 	public RAFile(File file) {
 		try {
+			//this.file = new RandomAccessFile(new File(file.getAbsolutePath().replace("%20", " ")), "r");
 			this.file = new RandomAccessFile(file, "r");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

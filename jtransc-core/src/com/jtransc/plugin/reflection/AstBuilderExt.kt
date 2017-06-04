@@ -27,8 +27,7 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 		generateBody = { AstBody(types, AstBuilder2(types, AstBuilderBodyCtx()).apply { body(desc.args) }.genstm(), desc, AstMethodRef(clazz.name, name, desc)) },
 		defaultTag = null,
 		signature = desc.mangle(),
-		genericSignature = null,
-		types = types
+		genericSignature = null
 	)
 	clazz.add(method)
 	return method

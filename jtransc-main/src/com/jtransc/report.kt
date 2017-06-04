@@ -1,23 +1,20 @@
 package com.jtransc
 
+import com.jtransc.annotation.haxe.HaxeMethodBody
+import com.jtransc.ast.*
+import com.jtransc.backend.toAst
 import com.jtransc.ds.diff
 import com.jtransc.ds.hasAnyFlags
 import com.jtransc.ds.hasFlag
-import com.jtransc.backend.toAst
 import com.jtransc.maven.MavenLocalRepository
-import com.jtransc.vfs.GetClassJar
-import com.jtransc.vfs.MergedLocalAndJars
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.ZipVfs
-import com.jtransc.JTranscVersion
-import com.jtransc.annotation.haxe.HaxeMethodBody
-import com.jtransc.ast.*
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
 import com.jtransc.org.objectweb.asm.tree.AnnotationNode
 import com.jtransc.org.objectweb.asm.tree.ClassNode
 import com.jtransc.org.objectweb.asm.tree.FieldNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
+import com.jtransc.vfs.*
+import java.util.function.BiConsumer
 
 class JTranscRtReport {
 	val types = AstTypes()
@@ -29,18 +26,21 @@ class JTranscRtReport {
 	}
 
 	val jtranscVersion = JTranscVersion.getVersion()
-	val javaRt = ZipVfs(GetClassJar(String::class.java))
+	val javaRt = MergeVfs(listOf(
+		ZipVfs(GetClassJar(String::class.java)),
+		ZipVfs(GetClassJar(BiConsumer::class.java))
+	))
 	val jtranscRt = MergedLocalAndJars(MavenLocalRepository.locateJars("com.jtransc:jtransc-rt:$jtranscVersion"))
 
 	fun report() {
-		reportPackage("java", listOf("java.rmi", "java.sql", "java.beans", "java.awt", "java.applet"))
+		reportPackage("java", listOf("java.rmi", "java.sql", "java.beans", "java.awt", "java.applet", "java/applet", "sun", "javax", "com/sun", "com.sun", "jdk"))
 		reportNotImplementedNatives("java")
 	}
 
 	fun reportPackage(packageName: String, ignoreSet: List<String>) {
 		val ignoreSetNormalized = ignoreSet.map { it.replace('.', '/') }
 		val packagePath = packageName.replace('.', '/')
-		fileList@for (e in javaRt[packagePath].listdirRecursive().filter { it.name.endsWith(".class") }) {
+		fileList@ for (e in javaRt[packagePath].listdirRecursive().filter { it.name.endsWith(".class") }) {
 			//for (e.file)
 			for (base in ignoreSetNormalized) {
 				if (e.file.path.startsWith(base)) {
@@ -53,23 +53,27 @@ class JTranscRtReport {
 
 	fun reportNotImplementedNatives(packageName: String) {
 		val packagePath = packageName.replace('.', '/')
-		fileList@for (e in jtranscRt[packagePath].listdirRecursive().filter { it.name.endsWith(".class") }) {
+		fileList@ for (e in jtranscRt[packagePath].listdirRecursive().filter { it.name.endsWith(".class") }) {
 			val clazz = readClass(e.file.readBytes())
 			val nativeMethodsWithoutBody = clazz.methods.filterIsInstance<MethodNode>()
 				.filter { it.access hasFlag Opcodes.ACC_NATIVE }
 
 			if (nativeMethodsWithoutBody.isNotEmpty()) {
-				println("${clazz.name} (native without body):")
-				for (method in nativeMethodsWithoutBody.filter { method ->
-					if (method.invisibleAnnotations != null) {
-						!AstAnnotationList(
-							AstMethodRef(clazz.name.fqname, method.name, types.demangleMethod(method.desc)),
-							method.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
-					} else {
-						true
+				println("CLASS ${clazz.name} (native without body):")
+				try {
+					for (method in nativeMethodsWithoutBody.filter { method ->
+						if (method.invisibleAnnotations != null) {
+							!AstAnnotationList(
+								AstMethodRef(FqName.fromInternal(clazz.name), method.name, types.demangleMethod(method.desc)),
+								method.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
+						} else {
+							true
+						}
+					}) {
+						println(" - ${method.name} : ${method.desc}")
 					}
-				}) {
-					println(" - ${method.name} : ${method.desc}")
+				} catch (e: Throwable) {
+					e.printStackTrace()
 				}
 			}
 		}

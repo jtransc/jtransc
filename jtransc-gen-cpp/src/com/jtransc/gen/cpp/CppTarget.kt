@@ -445,7 +445,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
-				line("int32_t __INSTANCE_CLASS_ID;")
+				line("int32_t __JT__CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
@@ -457,15 +457,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			val decl = if (clazz.parentClass != null) {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__INSTANCE_CLASS_ID)"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__JT__CLASS_ID)"
 			} else {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId})"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId})"
 			}
 
 			line(decl) {
 				if (!clazz.isInterface) {
 					if (clazz.parentClass == null) {
-						line("this->__INSTANCE_CLASS_ID = __INSTANCE_CLASS_ID;")
+						line("this->__JT__CLASS_ID = __JT__CLASS_ID;")
 					}
 					for (field in clazz.fields.filter { !it.isStatic }) {
 						val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
@@ -899,6 +899,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 
+	override fun N_lneg(str: String) = "(-($str))"
+	override fun N_linv(str: String) = "(~($str))"
+
 	override fun N_ladd(l: String, r: String) = "(($l) + ($r))"
 	override fun N_lsub(l: String, r: String) = "(($l) - ($r))"
 	override fun N_lmul(l: String, r: String) = "(($l) * ($r))"
@@ -1103,9 +1106,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun escapedConstant(v: Any?): String = when (v) {
+	override fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		null -> "nullptr"
-		else -> super.escapedConstant(v)
+		else -> super.escapedConstant(v, place)
 	}
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {

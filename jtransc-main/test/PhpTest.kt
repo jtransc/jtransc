@@ -16,6 +16,9 @@
 
 import big.BigTest
 import com.jtransc.gen.php.PhpTarget
+import javatest.misc.ArrayListTest
+import javatest.misc.MiscTest
+import javatest.misc.TryFinallyCheck
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -24,8 +27,14 @@ class PhpTest : _Base() {
 	override val DEFAULT_TARGET = PhpTarget()
 
 	@Ignore
-	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
+	@Test fun MicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Ignore
-	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true))
+	@Test fun BigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore
+	@Test fun ArrayListTest() = testClass(Params(clazz = ArrayListTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore
+	@Test fun TryFinallyCheck() = testClass(Params(clazz = TryFinallyCheck::class.java, minimize = false, log = false, treeShaking = true))
 }

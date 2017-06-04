@@ -1,7 +1,6 @@
 package com.jtransc.ast.transform
 
 import com.jtransc.ast.*
-import com.jtransc.org.objectweb.asm.Label
 
 private fun <TCase> reduceSwitchGeneric(
 	subject: AstExpr,
@@ -49,13 +48,13 @@ private fun <TCase> reduceSwitchGeneric(
 }
 
 fun AstStm.SWITCH_GOTO.reduceSwitch(maxChunkSize: Int = 10): AstStm {
-	return reduceSwitchGeneric<AstLabel>(subject.value, this.default, this.cases, maxChunkSize) { newSubject, default, cases ->
-		AstStm.SWITCH_GOTO(newSubject, default, cases).reduceSwitch(maxChunkSize)
+	return reduceSwitchGeneric<AstLabel>(subject.value, this.default, this.cases.flatCases(), maxChunkSize) { newSubject, default, cases ->
+		AstStm.SWITCH_GOTO(newSubject, default, cases.groupByLabel()).reduceSwitch(maxChunkSize)
 	} ?: this
 }
 
 fun AstStm.SWITCH.reduceSwitch(maxChunkSize: Int = 10): AstStm {
-	return reduceSwitchGeneric<AstStm.Box>(subject.value, this.default, this.cases, maxChunkSize) { newSubject, default, cases ->
-		AstStm.SWITCH(newSubject, default.value, cases.map { it.first to it.second.value }).reduceSwitch(maxChunkSize)
+	return reduceSwitchGeneric<AstStm.Box>(subject.value, this.default, this.cases.flatCasesStmBox(), maxChunkSize) { newSubject, default, cases ->
+		AstStm.SWITCH(newSubject, default.value, cases.map { it.first to it.second.value }.groupByLabelStm()).reduceSwitch(maxChunkSize)
 	} ?: this
 }

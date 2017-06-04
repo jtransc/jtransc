@@ -22,6 +22,8 @@ import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.ProcessResult
+import com.jtransc.vfs.RootLocalVfs
+import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -34,7 +36,22 @@ data class ProcessResult2(val exitValue: Int, val out: String = "", val err: Str
 	constructor(pr: ProcessResult) : this(pr.exitCode, pr.outputString, pr.errorString, pr.outputString + pr.errorString)
 }
 
-object ProcessUtils {
+object ProcessUtils : ProcessUtilsBase(RootLocalVfs())
+
+open class ProcessHandler(val parent: ProcessHandler? = null) {
+	open fun onStarted(): Unit = parent?.onStarted() ?: Unit
+	open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit
+	open fun onErrorData(data: String): Unit = parent?.onErrorData(data) ?: Unit
+	open fun onCompleted(exitValue: Int): Unit = parent?.onCompleted(exitValue) ?: Unit
+}
+
+object RedirectOutputHandler : ProcessHandler() {
+	override fun onOutputData(data: String) = System.out.print(data)
+	override fun onErrorData(data: String) = System.err.print(data)
+	override fun onCompleted(exitValue: Int) = Unit
+}
+
+open class ProcessUtilsBase(val rootVfs: SyncVfsFile) {
 	//val defaultCharset = Charset.forName("UTF-8")
 	val defaultCharset = if (OS.isWindows) Charset.forName("UTF-8") else Charset.defaultCharset()
 	//val defaultCharset = Charset.forName("ISO-8859-1")
@@ -113,25 +130,11 @@ object ProcessUtils {
 		return run(currentDir, commandAndArgs.first(), commandAndArgs.drop(1), options = ExecOptions(sysexec = true).copy(passthru = true, env = env))
 	}
 
-	open class ProcessHandler(val parent: ProcessHandler? = null) {
-		open fun onStarted(): Unit = parent?.onStarted() ?: Unit
-		open fun onOutputData(data: String): Unit = parent?.onOutputData(data) ?: Unit
-		open fun onErrorData(data: String): Unit = parent?.onErrorData(data) ?: Unit
-		open fun onCompleted(exitValue: Int): Unit = parent?.onCompleted(exitValue) ?: Unit
-	}
-
-	object RedirectOutputHandler : ProcessHandler() {
-		override fun onOutputData(data: String) = System.out.print(data)
-		override fun onErrorData(data: String) = System.err.print(data)
-		override fun onCompleted(exitValue: Int) = Unit
-	}
-
 	val pathSeparator by lazy { System.getProperty("path.separator") ?: ":" }
 	val fileSeparator by lazy { System.getProperty("file.separator") ?: "/" }
 
 	fun getPaths(): List<String> {
-		val env = System.getenv("PATH") ?: ""
-		return env.split(pathSeparator)
+		return rootVfs.getPaths()
 	}
 
 	fun locateCommandSure(name: String): String = locateCommand(name) ?: invalidOp("Can't find command $name in path")
@@ -142,7 +145,7 @@ object ProcessUtils {
 		for (ext in if (JTranscSystem.isWindows()) listOf(".exe", ".cmd", ".bat", "") else listOf("")) {
 			for (path in getPaths()) {
 				val fullPath = "$path$fileSeparator$name$ext"
-				if (File(fullPath).exists()) return fullPath
+				if (rootVfs[fullPath].exists) return fullPath
 			}
 		}
 		return null
@@ -215,6 +218,16 @@ object ProcessUtils {
 		Thread {
 			run2(currentDir, command, args, handler, charset)
 		}.start()
+	}
+
+	fun findCommandInPathsOrNull(folders: List<String>, cmd: String): String? {
+		for (folder in folders) {
+			val files = listOf(rootVfs[folder]["$cmd.exe"], rootVfs[folder]["$cmd.cmd"], rootVfs[folder]["$cmd.bat"])
+			for (file in files) {
+				if (file.exists) return folder
+			}
+		}
+		return null
 	}
 }
 

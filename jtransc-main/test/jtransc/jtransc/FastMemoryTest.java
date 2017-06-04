@@ -46,7 +46,9 @@ public class FastMemoryTest {
 
 	private static void testCopyReinterpret() {
 		JTranscConsole.log("testCopyReinterpret:");
-		byte[] data = JTranscArrays.copyReinterpret(new int[]{0x12345678, 0x33332222});
+		int[] array = {0x12345678, 0x33332222};
+		byte[] data = JTranscArrays.copyReinterpret(array);
+		System.out.println(Arrays.toString(array));
 		System.out.println(Arrays.toString(data));
 	}
 

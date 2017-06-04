@@ -135,7 +135,7 @@ fun AstAnnotationList.getBodiesForTarget(targetName: TargetName): List<NativeBod
 	return this.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }.map { NativeBody(it.value.toList(), it.cond) } + extra
 }
 
-fun AstAnnotationList.getCallSiteBodiesForTarget(targetName: TargetName): String? {
+fun AstAnnotationList.getCallSiteBodyForTarget(targetName: TargetName): String? {
 	return this.getTypedList(com.jtransc.annotation.JTranscCallSiteBodyList::value).filter { targetName.matches(it.target) }.map { it.value.joinToString("\n") }.firstOrNull()
 }
 

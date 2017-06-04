@@ -236,8 +236,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("public int __D__CLASS_ID;")
-				line("this(int CLASS_ID = ${clazz.classId}) { this.__D__CLASS_ID = CLASS_ID; }")
+				line("public int __JT__CLASS_ID;")
+				line("this(int CLASS_ID = ${clazz.classId}) { this.__JT__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("this(int CLASS_ID = ${clazz.classId}) { super(CLASS_ID); }")
 			}
@@ -322,20 +322,20 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun escapedConstant(v: Any?): String = when (v) {
+	override fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		is Double -> {
 			//val isVerySmall = (v in 0.0..4.940656e-324)
 			@Suppress("ConvertTwoComparisonsToRangeCheck")
 			val isVerySmall = (v >= 0.0 && v <= 4.940656e-324)
 			val representable = !isVerySmall
 			if (representable) {
-				super.escapedConstant(v)
+				super.escapedConstant(v, place)
 			} else {
 				"N.longBitsToDouble(cast(long)0x" + java.lang.Long.toHexString(java.lang.Double.doubleToRawLongBits(v)) + "UL)"
 			}
 			//"N.longBitsToDouble(" + java.lang.Double.doubleToRawLongBits(v) + "L)"
 		}
-		else -> super.escapedConstant(v)
+		else -> super.escapedConstant(v, place)
 	}
 
 	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {

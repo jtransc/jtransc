@@ -54,6 +54,14 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		newAssets += folders.map { File(project.buildFile.parentFile, it) }
 	}
 
+	fun param(key: String, value: String?) {
+		extra[key] = value
+	}
+
+	fun param(key: String) {
+		param(key, "true")
+	}
+
 	open protected fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
 		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")

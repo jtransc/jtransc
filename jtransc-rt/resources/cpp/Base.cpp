@@ -339,7 +339,7 @@ struct JA_0 : public java_lang_Object { public:
 	int8_t elementSize;
 	std::wstring desc;
 	JA_0(bool pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
-		this->__INSTANCE_CLASS_ID = 1;
+		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 	}
 
@@ -525,7 +525,7 @@ int64_t N::lnew(int32_t high, int32_t low) {
 
 bool N::is(JAVA_OBJECT obj, int32_t type) {
 	if (obj == nullptr) return false;
-	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__INSTANCE_CLASS_ID];
+	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__JT__CLASS_ID];
 	const size_t size = type_info.size;
 	const int32_t* subtypes = type_info.subtypes;
     for (size_t i = 0; i < size; i++){
@@ -544,7 +544,7 @@ int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1)
 int64_t N::NAN_LONG = 0x7FF8000000000000L;
 double N::NAN_DOUBLE = *(double*)&(N::NAN_LONG);
 
-int32_t N::NAN_INT = 0x7FF80000;
+int32_t N::NAN_INT = 0x7FC00000;
 float N::NAN_FLOAT = *(float*)&(N::NAN_INT);
 
 double N::INFINITY_DOUBLE = (double)INFINITY;
