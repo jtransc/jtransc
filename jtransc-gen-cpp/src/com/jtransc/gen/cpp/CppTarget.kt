@@ -147,7 +147,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const size_t size;")
 			line("const int32_t* subtypes;")
 		}
-		line("struct TYPE_TABLE { static const int count; static const TYPE_INFO TABLE[$lastClassId]; };")
+		line("struct TYPE_TABLE { static const int32_t count; static const TYPE_INFO TABLE[$lastClassId]; };")
 		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int32_t[1]{0}};")
 	}
 
@@ -158,7 +158,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
-		line("const int TYPE_TABLE::count = $lastClassId;")
+		line("const int32_t TYPE_TABLE::count = $lastClassId;")
 		line("const TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			val classesById = program.classes.map { it.classId to it }.toMap()
 
@@ -445,7 +445,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
-				line("int __INSTANCE_CLASS_ID;")
+				line("int32_t __INSTANCE_CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
