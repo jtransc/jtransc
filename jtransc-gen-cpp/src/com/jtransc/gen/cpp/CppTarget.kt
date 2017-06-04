@@ -147,7 +147,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const size_t size;")
 			line("const int32_t* subtypes;")
 		}
-		line("struct TYPE_TABLE { static const int count; static const TYPE_INFO TABLE[$lastClassId]; };")
+		line("struct TYPE_TABLE { static const int32_t count; static const TYPE_INFO TABLE[$lastClassId]; };")
 		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int32_t[1]{0}};")
 	}
 
@@ -158,7 +158,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
-		line("const int TYPE_TABLE::count = $lastClassId;")
+		line("const int32_t TYPE_TABLE::count = $lastClassId;")
 		line("const TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			val classesById = program.classes.map { it.classId to it }.toMap()
 
@@ -445,7 +445,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
-				line("int __JT__CLASS_ID;")
+				line("int32_t __JT__CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
@@ -1067,11 +1067,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun N_lnew(value: Long): String {
-		//return if (value == Long.MIN_VALUE) {
-		return "(int64_t)(${value}ll)"
-		//} else {
-		//	"(int64_t)(0x8000000000000000ULL)"
-		//}
+		if (value == Long.MIN_VALUE) {
+			//return "(int64_t)(0x8000000000000000L"
+			return "(int64_t)(-${Long.MAX_VALUE}LL - 1)"
+		} else {
+			return "(int64_t)(${value}LL)"
+		}
 	}
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
