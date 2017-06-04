@@ -62,6 +62,7 @@ extern "C" {
 
 typedef float float32_t;
 typedef double float64_t;
+typedef int8_t JT_BOOL;
 
 // HEADERS + INCLUDES
 {{ HEADER }}
@@ -195,11 +196,11 @@ struct N { public:
 	//static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 	static JAVA_OBJECT resolveClass(std::wstring str);
 	inline static int64_t lnew(int32_t high, int32_t low);
-	static bool is(JAVA_OBJECT obj, int32_t type);
+	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
 	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
-	static bool isArray(JAVA_OBJECT obj);
-	static bool isArray(JAVA_OBJECT obj, std::wstring desc);
-	static bool isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
+	static JT_BOOL isArray(JAVA_OBJECT obj);
+	static JT_BOOL isArray(JAVA_OBJECT obj, std::wstring desc);
+	static JT_BOOL isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
 	static int cmp(double a, double b);
 	static int cmpl(double a, double b);
 	static int cmpg(double a, double b);
@@ -288,10 +289,10 @@ struct N { public:
 	static void writeChars(JAVA_OBJECT str, char *out, int32_t len);
 
 	static JAVA_OBJECT    unboxVoid(JAVA_OBJECT obj);
-	static int32_t unboxBool(JAVA_OBJECT obj);
-	static int32_t unboxByte(JAVA_OBJECT obj);
-	static int32_t unboxShort(JAVA_OBJECT obj);
-	static int32_t unboxChar(JAVA_OBJECT obj);
+	static JT_BOOL unboxBool(JAVA_OBJECT obj);
+	static int8_t unboxByte(JAVA_OBJECT obj);
+	static int16_t unboxShort(JAVA_OBJECT obj);
+	static uint16_t unboxChar(JAVA_OBJECT obj);
 	static int32_t unboxInt(JAVA_OBJECT obj);
 	static int64_t unboxLong(JAVA_OBJECT obj);
 	static float   unboxFloat(JAVA_OBJECT obj);
@@ -299,10 +300,10 @@ struct N { public:
 
 	static JAVA_OBJECT  boxVoid(void);
 	static JAVA_OBJECT  boxVoid(JAVA_OBJECT v);
-	static JAVA_OBJECT  boxBool(bool v);
-	static JAVA_OBJECT  boxByte(int32_t v);
-	static JAVA_OBJECT  boxShort(int32_t v);
-	static JAVA_OBJECT  boxChar(int32_t v);
+	static JAVA_OBJECT  boxBool(JT_BOOL v);
+	static JAVA_OBJECT  boxByte(int8_t v);
+	static JAVA_OBJECT  boxShort(int16_t v);
+	static JAVA_OBJECT  boxChar(uint16_t v);
 	static JAVA_OBJECT  boxInt(int32_t v);
 	static JAVA_OBJECT  boxLong(int64_t v);
 	static JAVA_OBJECT  boxFloat(float v);
@@ -338,15 +339,15 @@ struct JA_0 : public java_lang_Object { public:
 	int32_t length;
 	int8_t elementSize;
 	std::wstring desc;
-	JA_0(bool pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
 		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 	}
 
-	JA_0(bool pointers, int32_t len, int8_t esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
+	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
 	}
 
-	static void* alloc(bool pointers, int32_t len, int8_t esize) {
+	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
 		if (pointers) {
@@ -377,9 +378,9 @@ struct JA_0 : public java_lang_Object { public:
 
 template <class T>
 struct JA_Base : JA_0 {
-	JA_Base(bool pointers, int32_t size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, int32_t size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
 	};
-	JA_Base(bool pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
 	};
 	inline void checkBounds(int32_t offset) {
 		if (offset < 0 || offset >= length) {
@@ -523,7 +524,7 @@ int64_t N::lnew(int32_t high, int32_t low) {
 	return (((int64_t)high) << 32) | (((int64_t)low) << 0);
 };
 
-bool N::is(JAVA_OBJECT obj, int32_t type) {
+JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 	if (obj == nullptr) return false;
 	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__JT__CLASS_ID];
 	const size_t size = type_info.size;
@@ -534,9 +535,9 @@ bool N::is(JAVA_OBJECT obj, int32_t type) {
 	return false;
 };
 
-bool N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-bool N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
-bool N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
+JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
+JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
+JT_BOOL N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
 int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
 int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
 int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1) : N::cmp(a, b); };
@@ -937,10 +938,10 @@ int64_t N::bswap64(int64_t a) {
 }
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
-int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
-int32_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
-int32_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
-int32_t N::unboxChar(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Character %}, obj)->{% SMETHOD java.lang.Character:charValue %}(); }
+JT_BOOL N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
+int8_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
+int16_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
+uint16_t N::unboxChar(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Character %}, obj)->{% SMETHOD java.lang.Character:charValue %}(); }
 int32_t N::unboxInt(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Integer %}, obj)->{% SMETHOD java.lang.Integer:intValue %}(); }
 int64_t N::unboxLong(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Long %}, obj)->{% SMETHOD java.lang.Long:longValue %}(); }
 float   N::unboxFloat(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Float %}, obj)->{% SMETHOD java.lang.Float:floatValue %}(); }
@@ -948,10 +949,10 @@ double  N::unboxDouble(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.D
 
 JAVA_OBJECT N::boxVoid(void)       { return (JAVA_OBJECT)nullptr; }
 JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return (JAVA_OBJECT)nullptr; }
-JAVA_OBJECT N::boxBool(bool v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
-JAVA_OBJECT N::boxByte(int32_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
-JAVA_OBJECT N::boxShort(int32_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
-JAVA_OBJECT N::boxChar(int32_t v)  { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
+JAVA_OBJECT N::boxBool(JT_BOOL v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
+JAVA_OBJECT N::boxByte(int8_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
+JAVA_OBJECT N::boxShort(int16_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
+JAVA_OBJECT N::boxChar(uint16_t v)  { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
 JAVA_OBJECT N::boxInt(int32_t v)   { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(v); }
 JAVA_OBJECT N::boxLong(int64_t v)  { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
 JAVA_OBJECT N::boxFloat(float v)   { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }
