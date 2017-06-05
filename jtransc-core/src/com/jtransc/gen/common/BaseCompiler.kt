@@ -13,6 +13,7 @@ abstract class BaseCompiler(val cmdName: String) {
 		val libs: List<String> = listOf(),
 		val includeFolders: List<String> = listOf(),
 		val libsFolders: List<String> = listOf(),
-		val defines: List<String> = listOf()
+		val defines: List<String> = listOf(),
+		val extraVars: Map<String, List<String>>
 	)
 }

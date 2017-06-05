@@ -1,6 +1,7 @@
 package big
 
 import android.AndroidArgsTest
+import com.jtransc.annotation.JTranscAddTemplateVars
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
@@ -29,6 +30,7 @@ import java.io.InputStreamReader
 import java.text.NumberFormat
 import java.util.*
 
+//@JTranscAddTemplateVars(target = "cpp", variable = "CMAKE_ARGS", list = arrayOf("--help"))
 object BigTest {
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {

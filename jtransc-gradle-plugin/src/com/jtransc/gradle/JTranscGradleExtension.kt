@@ -6,6 +6,7 @@ import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import org.gradle.api.Project
 import java.io.File
 
+@Suppress("unused")
 open class JTranscGradleExtension(val project: Project) {
 	companion object {
 		@JvmStatic val NAME = "jtransc"
@@ -51,6 +52,7 @@ open class JTranscGradleExtension(val project: Project) {
 	}
 
 	var extra = hashMapOf<String?, String?>()
+	var extraVars = hashMapOf<String, ArrayList<String>>()
 	var libraries = arrayListOf<String>()
 	var assets = arrayListOf<String>()
 	val newAssets = arrayListOf<File>()
@@ -79,21 +81,12 @@ open class JTranscGradleExtension(val project: Project) {
 	var treeshakingTrace: Boolean? = null
 	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
-	fun assets(vararg folders: String) {
-		newAssets += folders.map { File(project.buildFile.parentFile, it) }
-	}
-
-	fun skipServiceLoader(serviceLoader: String) {
-		skipServiceLoaderClasses.add(serviceLoader)
-	}
-
-	fun param(key: String, value: String?) {
-		extra[key] = value
-	}
-
-	fun param(key: String) {
-		param(key, "true")
-	}
+	fun assets(vararg folders: String) = run { newAssets += folders.map { File(project.buildFile.parentFile, it) } }
+	fun skipServiceLoader(serviceLoader: String) = skipServiceLoaderClasses.add(serviceLoader)
+	fun param(key: String, value: String?) = run { extra[key] = value }
+	fun param(key: String) = param(key, "true")
+	fun appendVar(key: String, value: List<String>) = extraVars.getOrPut(key) { arrayListOf() }.addAll(value)
+	fun appendVar(key: String, value: String) = extraVars.getOrPut(key) { arrayListOf() }.add(value)
 
 	/*
 	Alias for:

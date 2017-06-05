@@ -126,7 +126,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			libs = allTargetLibraries,
 			includeFolders = Libs.includeFolders.map { it.absolutePath },
 			libsFolders = Libs.libFolders.map { it.absolutePath },
-			defines = allTargetDefines
+			defines = allTargetDefines,
+			extraVars = extraVars
 		)
 	}
 

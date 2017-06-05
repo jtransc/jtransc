@@ -95,7 +95,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val defaultGenStmSwitchHasBreaks = true
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
-		return DCompiler.genCommand(programFile, debug, libs)
+		return DCompiler.genCommand(programFile, debug, libs, extraVars)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {

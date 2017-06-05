@@ -69,6 +69,7 @@ data class AstBuildSettings(
 	val relooper: Boolean = false,
 	val analyzer: Boolean = false,
 	val extra: Map<String?, String?> = mapOf(),
+	val extraVars: Map<String, List<String>> = mapOf(),
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(BaseRuntimeArtifactsForVersion(jtranscVersion).toListString())
 ) {
 	companion object {
@@ -1023,9 +1024,9 @@ fun AstClass.getMembersFor(target: TargetName): List<CondMembers> = this.annotat
 	.map { CondMembers(it.cond, it.value.toList()) }
 	.distinct()
 
-fun AstProgram.getTemplateVariables(target: TargetName): Map<String, List<String>> = this.classes
+fun AstProgram.getTemplateVariables(target: TargetName, extraVars: Map<String, List<String>> = mapOf()): Map<String, List<String>> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
 	.filter { target.matches(it.target) }
 	.groupBy { it.variable }
-	.map { it.key to it.value.flatMap { it.list.toList() } }
+	.map { (key, value) -> key to (value.flatMap { it.list.toList() } + (extraVars[key] ?: listOf())) }
 	.toMap()

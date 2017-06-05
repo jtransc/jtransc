@@ -71,6 +71,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val settings: AstBuildSettings = injector.get()
 	val extraParams = settings.extra
+	val extraVars by lazy { program.getTemplateVariables(targetName, settings.extraVars) }
 	val debugVersion: Boolean = settings.debug
 	val folders: CommonGenFolders = injector.get()
 
@@ -122,7 +123,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
-		)
+			)
 
 		val cmdAndArgsStr = cmdAndArgs.joinToString(" ")
 
@@ -1758,8 +1759,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				"TARGET_LIBRARIES" to targetLibraries,
 				"TARGET_DEFINES" to targetDefines,
 				"JTRANSC_VERSION" to JTranscVersion.getVersion()
-			) + program.getTemplateVariables(targetName)
-			).toHashMap()
+			) + extraVars
+			)
+			.toHashMap()
 	}
 
 	open fun setTemplateParamsAfterBuildingSource() {
