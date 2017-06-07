@@ -7,6 +7,7 @@ import com.jtransc.gradle.JTranscGradleExtension
 import com.jtransc.gradle.get
 import com.jtransc.gradle.getIfExists
 import com.jtransc.injector.Injector
+import com.jtransc.lang.mergeMapListWith
 import com.jtransc.log.log
 import com.jtransc.plugin.service.ConfigServiceLoader
 import org.gradle.api.DefaultTask
@@ -14,6 +15,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSetContainer
 import java.io.File
 
+@Suppress("unused")
 open class AbstractJTranscGradleTask : DefaultTask() {
 	var target: String? = null
 	var outputFile: String? = null
@@ -35,6 +37,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var initialWidth: Int? = null
 	var initialHeight: Int? = null
 	var extra = hashMapOf<String?, String?>()
+	var extraVars = hashMapOf<String, ArrayList<String>>()
 	var assets = arrayListOf<String>()
 	val newAssets = arrayListOf<File>()
 	var libraries = arrayListOf<String>()
@@ -45,22 +48,13 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var title: String? = null
 	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
-	fun skipServiceLoader(serviceLoader: String) {
-		skipServiceLoaderClasses.add(serviceLoader)
-	}
+	fun skipServiceLoader(serviceLoader: String) = skipServiceLoaderClasses.add(serviceLoader)
 	val types: AstTypes = AstTypes()
-
-	fun assets(vararg folders: String) {
-		newAssets += folders.map { File(project.buildFile.parentFile, it) }
-	}
-
-	fun param(key: String, value: String?) {
-		extra[key] = value
-	}
-
-	fun param(key: String) {
-		param(key, "true")
-	}
+	fun assets(vararg folders: String) = run { newAssets += folders.map { File(project.buildFile.parentFile, it) } }
+	fun param(key: String, value: String?) = run { extra[key] = value }
+	fun param(key: String) = param(key, "true")
+	fun appendVar(key: String, value: List<String>) = extraVars.getOrPut(key) { arrayListOf() }.addAll(value)
+	fun appendVar(key: String, value: String) = extraVars.getOrPut(key) { arrayListOf() }.add(value)
 
 	open protected fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
@@ -124,6 +118,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			relooper = relooper ?: extension.relooper ?: default.relooper,
 			analyzer = analyzer ?: extension.analyzer ?: default.analyzer,
 			extra = extra + extension.extra,
+			extraVars = extraVars.mergeMapListWith(extension.extraVars),
 			rtAndRtCore = runtimeConfiguration.files.map { it.absolutePath }
 		)
 

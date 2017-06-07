@@ -8,7 +8,6 @@ import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.TargetName
-import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.plugin.JTranscPluginGroup
 import java.util.*
 
@@ -280,8 +279,7 @@ class TreeShakingApi(
 			modifiers = oldmethod.modifiers,
 			generateBody = oldmethod.generateBody,
 			bodyRef = oldmethod.bodyRef,
-			parameterAnnotations = oldmethod.parameterAnnotations,
-			types = newprogram.types
+			parameterAnnotations = oldmethod.parameterAnnotations
 		)
 		//println("    -> ${oldmethod.dependencies.classes}")
 
@@ -305,7 +303,7 @@ class TreeShakingApi(
 			addTemplateReferences(methodBody.value, methodRef.containingClass, "methodBody=$newmethod")
 		}
 
-		val callSite = newmethod.annotationsList.getCallSiteBodiesForTarget(targetName)
+		val callSite = newmethod.annotationsList.getCallSiteBodyForTarget(targetName)
 		if (callSite != null) addTemplateReferences(callSite, methodRef.containingClass, "methodBodyCallSite=$newmethod")
 
 		//if (methodRef.name == "_onKeyDownUp") {

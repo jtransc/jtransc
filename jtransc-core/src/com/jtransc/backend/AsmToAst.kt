@@ -63,7 +63,6 @@ abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
 			genericSignature = method.signature,
 			defaultTag = AstAnnotationValue(method.annotationDefault, visible = true, types = types),
 			modifiers = mods,
-			types = types,
 			generateBody = {
 				if (mods.isConcrete) {
 					try {

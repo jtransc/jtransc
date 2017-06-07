@@ -14,7 +14,8 @@ public class MathTest {
 		cbrt();
 		rint();
 		nanInf();
-		copySign();
+		rawBitsFloat();
+		rawBitsDouble();
 		mathTest();
 		intDouble();
 	}
@@ -139,18 +140,38 @@ public class MathTest {
 		System.out.println();
 	}
 
-	static private void copySign() {
-		System.out.println("copySign:");
-		double[] doubles = new double[]{0, -128, 6, Double.NaN, -Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
+	static private void rawBitsFloat() {
+		System.out.println("rawBitsFloat:");
+		float[] values = new float[]{0, -128, 6, Float.NaN, -Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY};
 
-		for (double a : doubles) {
+		for (float a : values) {
+			System.out.print(a);
+			System.out.printf("=%08X,", Float.floatToRawIntBits(a));
+		}
+		System.out.println();
+		System.out.println("rawBitsFloat+copySign:");
+		for (float a : values) {
+			for (float b : values) {
+				float d = Math.copySign(a, b);
+				System.out.print(d);
+				System.out.printf("=%08X,", Float.floatToRawIntBits(d));
+			}
+			System.out.println();
+		}
+	}
+
+	static private void rawBitsDouble() {
+		System.out.println("rawBitsDouble:");
+		double[] values = new double[]{0, -128, 6, Double.NaN, -Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
+
+		for (double a : values) {
 			System.out.print(a);
 			System.out.printf("=%016X,", Double.doubleToRawLongBits(a));
 		}
 		System.out.println();
-
-		for (double a : doubles) {
-			for (double b : doubles) {
+		System.out.println("rawBitsDouble+copySign:");
+		for (double a : values) {
+			for (double b : values) {
 				double d = Math.copySign(a, b);
 				System.out.print(d);
 				System.out.printf("=%016X,", Double.doubleToRawLongBits(d));

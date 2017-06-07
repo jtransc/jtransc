@@ -62,6 +62,7 @@ extern "C" {
 
 typedef float float32_t;
 typedef double float64_t;
+typedef int8_t JT_BOOL;
 
 // HEADERS + INCLUDES
 {{ HEADER }}
@@ -72,7 +73,7 @@ typedef struct { int32_t x, y; } Int32x2;
 typedef struct { float32_t x, y, z, w; } Float32x4;
 typedef struct { Float32x4 x, y, z, w; } Float32x4x4;
 
-inline Int32x2 Int32x2_i(int x, int y) { return {x, y}; }
+inline Int32x2 Int32x2_i(int32_t x, int32_t y) { return {x, y}; }
 inline Float32x4 Float32x4_i() { return {0, 0, 0, 0}; }
 inline Float32x4 Float32x4_i(float x, float y, float z, float w) { return {x, y, z, w}; }
 
@@ -194,12 +195,12 @@ struct N { public:
 	//static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
 	//static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 	static JAVA_OBJECT resolveClass(std::wstring str);
-	inline static int64_t lnew(int high, int low);
-	static bool is(JAVA_OBJECT obj, int type);
-	template<typename T> inline static bool is(T* obj, int type) { return is((JAVA_OBJECT)obj, type); }
-	static bool isArray(JAVA_OBJECT obj);
-	static bool isArray(JAVA_OBJECT obj, std::wstring desc);
-	static bool isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
+	inline static int64_t lnew(int32_t high, int32_t low);
+	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
+	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
+	static JT_BOOL isArray(JAVA_OBJECT obj);
+	static JT_BOOL isArray(JAVA_OBJECT obj, std::wstring desc);
+	static JT_BOOL isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
 	static int cmp(double a, double b);
 	static int cmpl(double a, double b);
 	static int cmpg(double a, double b);
@@ -247,19 +248,19 @@ struct N { public:
 
 	{% if ENABLE_TYPING %}
 	static p_java_lang_String str(const char *str);
-	static p_java_lang_String str(const wchar_t *str, int len);
+	static p_java_lang_String str(const wchar_t *str, int32_t len);
 	static p_java_lang_String str(std::wstring str);
 	static p_java_lang_String str(std::string str);
-	static p_JA_L strArray(int count, wchar_t **strs);
+	static p_JA_L strArray(int32_t count, wchar_t **strs);
 	static p_JA_L strArray(std::vector<std::wstring> strs);
 	static p_JA_L strArray(std::vector<std::string> strs);
 	static p_JA_L strEmptyArray();
 	{% else %}
 	static JAVA_OBJECT str(const char *str);
-	static JAVA_OBJECT str(const wchar_t *str, int len);
+	static JAVA_OBJECT str(const wchar_t *str, int32_t len);
 	static JAVA_OBJECT str(std::wstring str);
 	static JAVA_OBJECT str(std::string str);
-	static JAVA_OBJECT strArray(int count, wchar_t **strs);
+	static JAVA_OBJECT strArray(int32_t count, wchar_t **strs);
 	static JAVA_OBJECT strArray(std::vector<std::wstring> strs);
 	static JAVA_OBJECT strArray(std::vector<std::string> strs);
 	static JAVA_OBJECT strEmptyArray();
@@ -275,23 +276,23 @@ struct N { public:
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
 
 	template<typename T> static p_java_lang_Object CC_GET_OBJ(T t);
-	template<typename TTo, typename TFrom> TTo static CC_CHECK_CLASS(TFrom i, int typeId);
-	template<typename T> T static CC_CHECK_UNTYPED(T i, int typeId);
-	template<typename TTo, typename TFrom> TTo static CC_CHECK_INTERFACE(TFrom i, int typeId);
+	template<typename TTo, typename TFrom> TTo static CC_CHECK_CLASS(TFrom i, int32_t typeId);
+	template<typename T> T static CC_CHECK_UNTYPED(T i, int32_t typeId);
+	template<typename TTo, typename TFrom> TTo static CC_CHECK_INTERFACE(TFrom i, int32_t typeId);
 	template<typename TTo, typename TFrom> TTo static CC_CHECK_GENERIC(TFrom i);
 
-	static int strLen(JAVA_OBJECT obj);
-	static int strCharAt(JAVA_OBJECT obj, int n);
+	static int32_t strLen(JAVA_OBJECT obj);
+	static uint16_t strCharAt(JAVA_OBJECT obj, int32_t n);
 
-	static int identityHashCode(JAVA_OBJECT obj);
+	static int32_t identityHashCode(JAVA_OBJECT obj);
 
-	static void writeChars(JAVA_OBJECT str, char *out, int len);
+	static void writeChars(JAVA_OBJECT str, char *out, int32_t len);
 
 	static JAVA_OBJECT    unboxVoid(JAVA_OBJECT obj);
-	static int32_t unboxBool(JAVA_OBJECT obj);
-	static int32_t unboxByte(JAVA_OBJECT obj);
-	static int32_t unboxShort(JAVA_OBJECT obj);
-	static int32_t unboxChar(JAVA_OBJECT obj);
+	static JT_BOOL unboxBool(JAVA_OBJECT obj);
+	static int8_t unboxByte(JAVA_OBJECT obj);
+	static int16_t unboxShort(JAVA_OBJECT obj);
+	static uint16_t unboxChar(JAVA_OBJECT obj);
 	static int32_t unboxInt(JAVA_OBJECT obj);
 	static int64_t unboxLong(JAVA_OBJECT obj);
 	static float   unboxFloat(JAVA_OBJECT obj);
@@ -299,10 +300,10 @@ struct N { public:
 
 	static JAVA_OBJECT  boxVoid(void);
 	static JAVA_OBJECT  boxVoid(JAVA_OBJECT v);
-	static JAVA_OBJECT  boxBool(bool v);
-	static JAVA_OBJECT  boxByte(int32_t v);
-	static JAVA_OBJECT  boxShort(int32_t v);
-	static JAVA_OBJECT  boxChar(int32_t v);
+	static JAVA_OBJECT  boxBool(JT_BOOL v);
+	static JAVA_OBJECT  boxByte(int8_t v);
+	static JAVA_OBJECT  boxShort(int16_t v);
+	static JAVA_OBJECT  boxChar(uint16_t v);
 	static JAVA_OBJECT  boxInt(int32_t v);
 	static JAVA_OBJECT  boxLong(int64_t v);
 	static JAVA_OBJECT  boxFloat(float v);
@@ -335,20 +336,20 @@ struct N { public:
 
 struct JA_0 : public java_lang_Object { public:
 	void *_data;
-	int length;
-	int elementSize;
+	int32_t length;
+	int8_t elementSize;
 	std::wstring desc;
-	JA_0(bool pointers, void* data, int len, int esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
-		this->__INSTANCE_CLASS_ID = 1;
+	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 	}
 
-	JA_0(bool pointers, int len, int esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
+	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
 	}
 
-	static void* alloc(bool pointers, int len, int esize) {
+	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
-		int bytesSize = esize * (len + 1);
+		int64_t bytesSize = esize * (len + 1);
 		if (pointers) {
 			result = (void*)GC_MALLOC(bytesSize);
 		} else {
@@ -359,10 +360,10 @@ struct JA_0 : public java_lang_Object { public:
 	}
 
 	~JA_0() { /*::free(_data);*/ }
-	void *getOffsetPtr(int offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
+	void *getOffsetPtr(int32_t offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
 	void *getStartPtr() { return getOffsetPtr(0); }
-	int bytesLength() { return length * elementSize; }
-	static void copy(JA_0* src, int srcpos, JA_0* dst, int dstpos, int len) {
+	int64_t bytesLength() { return length * elementSize; }
+	static void copy(JA_0* src, int32_t srcpos, JA_0* dst, int32_t dstpos, int32_t len) {
 		::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);
 	}
 	//JAVA_OBJECT toBoolArray();
@@ -377,11 +378,11 @@ struct JA_0 : public java_lang_Object { public:
 
 template <class T>
 struct JA_Base : JA_0 {
-	JA_Base(bool pointers, int size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, int32_t size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
 	};
-	JA_Base(bool pointers, void* data, int size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
 	};
-	inline void checkBounds(int offset) {
+	inline void checkBounds(int32_t offset) {
 		if (offset < 0 || offset >= length) {
 			std::wstringstream os;
 			os << L"Out of bounds " << offset << L" " << length;
@@ -391,45 +392,45 @@ struct JA_Base : JA_0 {
 	T *getStartPtr() { return (T *)_data; }
 
 	#ifdef CHECK_ARRAYS
-		void fastSet(int offset, T v) { checkBounds(offset); ((T*)(this->_data))[offset] = v; };
-		T fastGet(int offset) { checkBounds(offset); return ((T*)(this->_data))[offset]; }
+		void fastSet(int32_t offset, T v) { checkBounds(offset); ((T*)(this->_data))[offset] = v; };
+		T fastGet(int32_t offset) { checkBounds(offset); return ((T*)(this->_data))[offset]; }
 	#else
-		void fastSet(int offset, T v) { ((T*)(this->_data))[offset] = v; };
-		T fastGet(int offset) { return ((T*)(this->_data))[offset]; }
+		void fastSet(int32_t offset, T v) { ((T*)(this->_data))[offset] = v; };
+		T fastGet(int32_t offset) { return ((T*)(this->_data))[offset]; }
 	#endif
 
-	JA_Base<T> *init(int offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
+	JA_Base<T> *init(int32_t offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
 
-	void set(int offset, T v) { checkBounds(offset); fastSet(offset, v); };
-	T get(int offset) { checkBounds(offset); return fastGet(offset); };
+	void set(int32_t offset, T v) { checkBounds(offset); fastSet(offset, v); };
+	T get(int32_t offset) { checkBounds(offset); return fastGet(offset); };
 
-	void fill(int from, int to, T v) { checkBounds(from); checkBounds(to - 1); T* data = (T*)this->_data; for (int n = from; n < to; n++) data[n] = v; };
+	void fill(int32_t from, int32_t to, T v) { checkBounds(from); checkBounds(to - 1); T* data = (T*)this->_data; for (int32_t n = from; n < to; n++) data[n] = v; };
 
-	JA_Base<T> *setArray(int start, int size, const T *arrays) {
-		for (int n = 0; n < size; n++) this->set(start + n, arrays[n]);
+	JA_Base<T> *setArray(int32_t start, int32_t size, const T *arrays) {
+		for (int32_t n = 0; n < size; n++) this->set(start + n, arrays[n]);
 		return this;
 	};
 };
 
 struct JA_B : JA_Base<int8_t> {
-	JA_B(int size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
-	JA_B(void* data, int size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
+	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
+	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
 };
 struct JA_Z : public JA_B {
-	JA_Z(int size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
-	JA_Z(void* data, int size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
+	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
+	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
 };
 struct JA_S : JA_Base<int16_t> {
-	JA_S(int size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
-	JA_S(void* data, int size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
+	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
+	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
 };
 struct JA_C : JA_Base<uint16_t> {
-	JA_C(int size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
-	JA_C(void* data, int size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
+	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
+	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
 };
 struct JA_I : JA_Base<int32_t> {
-	JA_I(int size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
-	JA_I(void* data, int size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
+	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
+	JA_I(void* data, int32_t size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
 
 	// @TODO: Try to move to JA_Base
 	static JA_I *fromVector(int32_t *data, int32_t count) {
@@ -437,32 +438,32 @@ struct JA_I : JA_Base<int32_t> {
 	};
 
 	static JA_I *fromArgValues() { return (JA_I * )(new JA_I(0)); };
-	static JA_I *fromArgValues(int a0) { return (JA_I * )(new JA_I(1))->init(0, a0); };
-	static JA_I *fromArgValues(int a0, int a1) { return (JA_I * )(new JA_I(2))->init(0, a0)->init(1, a1); };
-	static JA_I *fromArgValues(int a0, int a1, int a2) { return (JA_I * )(new JA_I(3))->init(0, a0)->init(1, a1)->init(2, a2); };
-	static JA_I *fromArgValues(int a0, int a1, int a2, int a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
+	static JA_I *fromArgValues(int32_t a0) { return (JA_I * )(new JA_I(1))->init(0, a0); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1) { return (JA_I * )(new JA_I(2))->init(0, a0)->init(1, a1); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2) { return (JA_I * )(new JA_I(3))->init(0, a0)->init(1, a1)->init(2, a2); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
 };
 struct JA_J : JA_Base<int64_t> {
-	JA_J(int size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
-	JA_J(void* data, int size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
+	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
+	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
 };
 struct JA_F : JA_Base<float> {
-	JA_F(int size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
-	JA_F(void* data, int size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
+	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
+	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
 };
 struct JA_D : JA_Base<double> {
-	JA_D(int size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
-	JA_D(void* data, int size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
+	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
+	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
 };
 struct JA_L : JA_Base<JAVA_OBJECT> {
-	JA_L(int size, std::wstring desc) : JA_Base(true, size, desc) { };
-	JA_L(void* data, int size, std::wstring desc) : JA_Base(true, data, size, desc) { };
+	JA_L(int32_t size, std::wstring desc) : JA_Base(true, size, desc) { };
+	JA_L(void* data, int32_t size, std::wstring desc) : JA_Base(true, data, size, desc) { };
 
 	std::vector<JAVA_OBJECT> getVector() {
-		int len = this->length;
+		int32_t len = this->length;
 		std::vector<JAVA_OBJECT> out(len);
-		for (int n = 0; n < len; n++) out[n] = this->fastGet(n);
+		for (int32_t n = 0; n < len; n++) out[n] = this->fastGet(n);
 		return out;
 	}
 
@@ -489,7 +490,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		auto out = new JA_L(size, desc);
 		auto subdesc = desc.substr(1);
 		auto subsizes = std::vector<int32_t>(sizes.begin() + 1, sizes.end());
-		for (int n = 0; n < size; n++) {
+		for (int32_t n = 0; n < size; n++) {
 			out->set(n, createMultiSure(subdesc, subsizes));
 		}
 		return out;
@@ -519,13 +520,13 @@ JAVA_OBJECT N::resolveClass(std::wstring str) {
 	return {% SMETHOD java.lang.Class:forName0 %}(N::str(str));
 };
 
-int64_t N::lnew(int high, int low) {
+int64_t N::lnew(int32_t high, int32_t low) {
 	return (((int64_t)high) << 32) | (((int64_t)low) << 0);
 };
 
-bool N::is(JAVA_OBJECT obj, int type) {
+JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 	if (obj == nullptr) return false;
-	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__INSTANCE_CLASS_ID];
+	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__JT__CLASS_ID];
 	const size_t size = type_info.size;
 	const int32_t* subtypes = type_info.subtypes;
     for (size_t i = 0; i < size; i++){
@@ -534,9 +535,9 @@ bool N::is(JAVA_OBJECT obj, int type) {
 	return false;
 };
 
-bool N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-bool N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
-bool N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
+JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
+JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
+JT_BOOL N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
 int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
 int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
 int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1) : N::cmp(a, b); };
@@ -544,7 +545,7 @@ int N::cmpg(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (+1)
 int64_t N::NAN_LONG = 0x7FF8000000000000L;
 double N::NAN_DOUBLE = *(double*)&(N::NAN_LONG);
 
-int32_t N::NAN_INT = 0x7FF80000;
+int32_t N::NAN_INT = 0x7FC00000;
 float N::NAN_FLOAT = *(float*)&(N::NAN_INT);
 
 double N::INFINITY_DOUBLE = (double)INFINITY;
@@ -663,7 +664,7 @@ int64_t N::d2j(double v) { return (int64_t)v; }
 //}
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
-N::str(const wchar_t *str, int len) {
+N::str(const wchar_t *str, int32_t len) {
 	p_java_lang_String out = new {% CLASS java.lang.String %}();
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
@@ -672,7 +673,7 @@ N::str(const wchar_t *str, int len) {
 	if (sizeof(wchar_t) == sizeof(uint16_t)) {
 		::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	} else {
-		for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
+		for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
 	}
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
@@ -681,13 +682,13 @@ N::str(const wchar_t *str, int len) {
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::wstring str) {
-	int len = str.length();
+	int32_t len = str.length();
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
-	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
+	for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -703,42 +704,42 @@ N::str(std::string s) {
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(const char *s) {
 	if (s == nullptr) return nullptr;
-	int len = strlen(s);
+	int32_t len = strlen(s);
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	//::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
-	for (int n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
+	for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)s[n];
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
-N::strArray(int count, wchar_t **strs) {
+N::strArray(int32_t count, wchar_t **strs) {
 	p_JA_L out = new JA_L(count, L"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	for (int n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
+	for (int32_t n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(std::vector<std::wstring> strs) {
-	int len = strs.size();
+	int32_t len = strs.size();
 	p_JA_L out = new JA_L(len, L"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
+	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(std::vector<std::string> strs) {
-	int len = strs.size();
+	int32_t len = strs.size();
 	p_JA_L out = new JA_L(len, L"[Ljava/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	for (int n = 0; n < len; n++) out->set(n, N::str(strs[n]));
+	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
@@ -750,27 +751,27 @@ N::strEmptyArray() {
 }
 
 std::wstring N::istr2(JAVA_OBJECT obj) {
-	int len = N::strLen(obj);
+	int32_t len = N::strLen(obj);
 	std::wstring s;
 	s.reserve(len);
-	for (int n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
+	for (int32_t n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
 	return s;
 }
 
 std::string N::istr3(JAVA_OBJECT obj) {
-	int len = N::strLen(obj);
+	int32_t len = N::strLen(obj);
 	std::string s;
 	s.reserve(len);
-	for (int n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
+	for (int32_t n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
 	return s;
 }
 
-int N::strLen(JAVA_OBJECT obj) {
+int32_t N::strLen(JAVA_OBJECT obj) {
 	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
 	return str->{% METHOD java.lang.String:length %}();
 }
 
-int N::strCharAt(JAVA_OBJECT obj, int n) {
+uint16_t N::strCharAt(JAVA_OBJECT obj, int32_t n) {
 	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
 	return str->{% METHOD java.lang.String:charAt %}(n);
 }
@@ -816,13 +817,14 @@ T N::ensureNpe(T obj) {
 }
 
 
-int N::identityHashCode(JAVA_OBJECT obj) {
+int32_t N::identityHashCode(JAVA_OBJECT obj) {
 	return (int32_t)(size_t)(void *)(obj);
 }
 
-void N::writeChars(JAVA_OBJECT str, char *out, int maxlen) {
-	int len = std::min(N::strLen(str), maxlen - 1);
-	for (int n = 0; n < len; n++) {
+//TODO signature of *out?
+void N::writeChars(JAVA_OBJECT str, char *out, int32_t maxlen) {
+	int32_t len = std::min(N::strLen(str), maxlen - 1);
+	for (int32_t n = 0; n < len; n++) {
 		out[n] = N::strCharAt(str, n);
 	}
 	out[len] = 0;
@@ -837,7 +839,7 @@ template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
  	return t->__getObj();
 }
 
-template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int typeId) {
+template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int32_t typeId) {
  	if (i == nullptr) return nullptr;
 	if (!N::is(i, typeId)) __throwCLASSCAST();
  	TTo result = dynamic_cast<TTo>(i);
@@ -845,13 +847,13 @@ template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int typeId
  	return result;
 }
 
-template<typename T> T N::CC_CHECK_UNTYPED(T i, int typeId) {
+template<typename T> T N::CC_CHECK_UNTYPED(T i, int32_t typeId) {
  	if (i == nullptr) return nullptr;
 	if (!N::is(i, typeId)) __throwCLASSCAST();
  	return i;
 }
 
-template<typename TTo, typename TFrom> TTo N::CC_CHECK_INTERFACE(TFrom i, int typeId) {
+template<typename TTo, typename TFrom> TTo N::CC_CHECK_INTERFACE(TFrom i, int32_t typeId) {
  	if (i == nullptr) return nullptr;
 	if (!N::is(i, typeId)) __throwCLASSCAST();
  	TTo result = static_cast<TTo>(i->__getInterface(typeId));
@@ -936,10 +938,10 @@ int64_t N::bswap64(int64_t a) {
 }
 
 JAVA_OBJECT    N::unboxVoid(JAVA_OBJECT obj) { return (JAVA_OBJECT)nullptr; }
-int32_t N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
-int32_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
-int32_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
-int32_t N::unboxChar(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Character %}, obj)->{% SMETHOD java.lang.Character:charValue %}(); }
+JT_BOOL N::unboxBool(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Boolean %}, obj)->{% SMETHOD java.lang.Boolean:booleanValue %}(); }
+int8_t N::unboxByte(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Byte %}, obj)->{% SMETHOD java.lang.Byte:byteValue %}(); }
+int16_t N::unboxShort(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Short %}, obj)->{% SMETHOD java.lang.Short:shortValue %}(); }
+uint16_t N::unboxChar(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Character %}, obj)->{% SMETHOD java.lang.Character:charValue %}(); }
 int32_t N::unboxInt(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Integer %}, obj)->{% SMETHOD java.lang.Integer:intValue %}(); }
 int64_t N::unboxLong(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Long %}, obj)->{% SMETHOD java.lang.Long:longValue %}(); }
 float   N::unboxFloat(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.Float %}, obj)->{% SMETHOD java.lang.Float:floatValue %}(); }
@@ -947,10 +949,10 @@ double  N::unboxDouble(JAVA_OBJECT obj) { return GET_OBJECT({% CLASS java.lang.D
 
 JAVA_OBJECT N::boxVoid(void)       { return (JAVA_OBJECT)nullptr; }
 JAVA_OBJECT N::boxVoid(JAVA_OBJECT v)     { return (JAVA_OBJECT)nullptr; }
-JAVA_OBJECT N::boxBool(bool v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
-JAVA_OBJECT N::boxByte(int32_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
-JAVA_OBJECT N::boxShort(int32_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
-JAVA_OBJECT N::boxChar(int32_t v)  { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
+JAVA_OBJECT N::boxBool(JT_BOOL v)     { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(v); }
+JAVA_OBJECT N::boxByte(int8_t v)  { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(v); }
+JAVA_OBJECT N::boxShort(int16_t v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
+JAVA_OBJECT N::boxChar(uint16_t v)  { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
 JAVA_OBJECT N::boxInt(int32_t v)   { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(v); }
 JAVA_OBJECT N::boxLong(int64_t v)  { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
 JAVA_OBJECT N::boxFloat(float v)   { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }

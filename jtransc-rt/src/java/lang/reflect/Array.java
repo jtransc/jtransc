@@ -65,7 +65,7 @@ public final class Array {
 	@JTranscMethodBody(target = "cs", value = "return ((JA_0)p0).length;")
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_0).length;")
 	@JTranscMethodBody(target = "dart", value = "return (p0 as JA_0).length;")
-	@JTranscMethodBody(target = "php", value = "$p0->length;")
+	@JTranscMethodBody(target = "php", value = "return $p0->length;")
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 	@HaxeMethodBody("return cast(p0, JA_L).getDynamic(p1);")
@@ -75,7 +75,7 @@ public final class Array {
 	@JTranscMethodBody(target = "cs", value = "return ((JA_L)p0)[p1];")
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_L).data[p1];")
 	@JTranscMethodBody(target = "dart", value = "return (p0 as JA_L).data[p1];")
-	@JTranscMethodBody(target = "php", value = "return $p0->data[$p1];")
+	@JTranscMethodBody(target = "php", value = "return $p0->get($p1);")
 	private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((Object[])array)[index];
 	}

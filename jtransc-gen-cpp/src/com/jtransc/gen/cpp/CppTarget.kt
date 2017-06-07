@@ -126,13 +126,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			libs = allTargetLibraries,
 			includeFolders = Libs.includeFolders.map { it.absolutePath },
 			libsFolders = Libs.libFolders.map { it.absolutePath },
-			defines = allTargetDefines
+			defines = allTargetDefines,
+			extraVars = extraVars
 		)
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val cmakeFolder = if (debugVersion) "Debug" else "Release"
-		val names = listOf("$cmakeFolder/program.exe", "program", "a.exe", "a", "a.out")
+		//val names = listOf("bin/$cmakeFolder/program.exe", "bin/$cmakeFolder/program", "bin/$cmakeFolder/a", "bin/$cmakeFolder/a.out", "program", "a.exe", "a", "a.out")
+		val names = listOf("$cmakeFolder/program.exe", "$cmakeFolder/program", "$cmakeFolder/a", "$cmakeFolder/a.out", "program", "a.exe", "a", "a.out")
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 		val result = LocalVfs(File(configTargetFolder.targetFolder.realpathOS)).exec(listOf(outFile.realpathOS), options = ExecOptions(passthru = redirect, sysexec = false, fixLineEndings = true, fixencoding = false))
@@ -147,7 +149,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const size_t size;")
 			line("const int32_t* subtypes;")
 		}
-		line("struct TYPE_TABLE { static const int count; static const TYPE_INFO TABLE[$lastClassId]; };")
+		line("struct TYPE_TABLE { static const int32_t count; static const TYPE_INFO TABLE[$lastClassId]; };")
 		line("const TYPE_INFO TABLE_INFO_NULL = {1, new int32_t[1]{0}};")
 	}
 
@@ -158,7 +160,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
-		line("const int TYPE_TABLE::count = $lastClassId;")
+		line("const int32_t TYPE_TABLE::count = $lastClassId;")
 		line("const TYPE_INFO TYPE_TABLE::TABLE[$lastClassId] =", after2 = ";") {
 			val classesById = program.classes.map { it.classId to it }.toMap()
 
@@ -445,7 +447,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			if (clazz.fqname == "java.lang.Object") {
-				line("int __INSTANCE_CLASS_ID;")
+				line("int32_t __JT__CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
@@ -457,15 +459,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			val decl = if (clazz.parentClass != null) {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__INSTANCE_CLASS_ID)"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId}) : ${clazz.parentClass?.cppName}(__JT__CLASS_ID)"
 			} else {
-				"${clazz.cppName}(int __INSTANCE_CLASS_ID = ${clazz.classId})"
+				"${clazz.cppName}(int __JT__CLASS_ID = ${clazz.classId})"
 			}
 
 			line(decl) {
 				if (!clazz.isInterface) {
 					if (clazz.parentClass == null) {
-						line("this->__INSTANCE_CLASS_ID = __INSTANCE_CLASS_ID;")
+						line("this->__JT__CLASS_ID = __JT__CLASS_ID;")
 					}
 					for (field in clazz.fields.filter { !it.isStatic }) {
 						val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else "0"
@@ -899,6 +901,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 
+	override fun N_lneg(str: String) = "(-($str))"
+	override fun N_linv(str: String) = "(~($str))"
+
 	override fun N_ladd(l: String, r: String) = "(($l) + ($r))"
 	override fun N_lsub(l: String, r: String) = "(($l) - ($r))"
 	override fun N_lmul(l: String, r: String) = "(($l) * ($r))"
@@ -1064,11 +1069,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun N_lnew(value: Long): String {
-		//return if (value == Long.MIN_VALUE) {
-		return "(int64_t)(${value}ll)"
-		//} else {
-		//	"(int64_t)(0x8000000000000000ULL)"
-		//}
+		if (value == Long.MIN_VALUE) {
+			//return "(int64_t)(0x8000000000000000L"
+			return "(int64_t)(-${Long.MAX_VALUE}LL - 1)"
+		} else {
+			return "(int64_t)(${value}LL)"
+		}
 	}
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
@@ -1102,9 +1108,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun escapedConstant(v: Any?): String = when (v) {
+	override fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		null -> "nullptr"
-		else -> super.escapedConstant(v)
+		else -> super.escapedConstant(v, place)
 	}
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {

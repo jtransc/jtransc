@@ -227,6 +227,8 @@ class N {
 	// Long operators
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(a:Int64):Int return a.low;
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(a:Int64):Int return a.high;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lneg(a:Int64):Int64 return -a;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function linv(a:Int64):Int64 return ~a;
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function ladd(a:Int64, b:Int64):Int64 return a + b;
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lsub(a:Int64, b:Int64):Int64 return a - b;

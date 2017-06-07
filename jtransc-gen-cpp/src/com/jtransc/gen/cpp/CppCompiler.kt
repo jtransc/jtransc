@@ -22,12 +22,13 @@ object CppCompiler {
 		libs: List<String> = listOf(),
 		includeFolders: List<String> = listOf(),
 		libsFolders: List<String> = listOf(),
-		defines: List<String> = listOf()
+		defines: List<String> = listOf(),
+		extraVars: Map<String, List<String>>
 	): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
 		val compiler = listOf(CMAKE, GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (cmake, g++ or clang), please install one of them and put in the path.")
-		return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders, defines))
+		return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders, defines, extraVars))
 	}
 
 	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>, config: BaseCompiler.Config) {
@@ -54,7 +55,8 @@ object CppCompiler {
 			val cfg = if (config.debug) "Debug" else "Release"
 			//return listOf(cmake, "--build", ".", "--target", "ALL_BUILD", "-DCMAKE_GENERATOR_PLATFORM=x64", "--config", config)
 			//return listOf(cmake) + listOf("--build", ".", "--target", "ALL_BUILD", "--config", cfg)
-			return listOf(cmake) + listOf("--build", ".", "--config", cfg)
+			val args = config.extraVars["CMAKE_ARGS"] ?: listOf()
+			return listOf(cmake) + listOf("--build", ".", "--config", cfg) + args
 		}
 	}
 

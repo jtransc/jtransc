@@ -20,6 +20,7 @@ import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.jtransc.JTranscStrings;
 import java.util.Arrays;
@@ -203,6 +204,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	@JTranscMethodBody(target = "as3", value = "this._str += p0; return this;")
 	@JTranscMethodBody(target = "dart", value = "this._buffer.write(p0); return this;")
 	public StringBuilder append(int v) {
+		//return append(Integer.toString(v));
 		ensureCapacity(this.length + 11);
 		this.length += IntegerTools.writeInt(this.buffer, this.length, v, 10);
 		return this;

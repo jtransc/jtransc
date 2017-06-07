@@ -270,8 +270,6 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_j2d(str: String) = "N.j2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
-	override fun N_lneg(str: String) = "N.lneg($str)"
-	override fun N_linv(str: String) = "N.linv($str)"
 	override fun N_ineg(str: String) = "-($str)"
 	override fun N_iinv(str: String) = "~($str)"
 	override fun N_fneg(str: String) = "-($str)"
@@ -365,8 +363,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
-			line("$classBase.prototype.\$\$CLASS_ID = $classBase.\$\$CLASS_ID = ${clazz.classId};")
-			line("$classBase.prototype.\$\$CLASS_IDS = $classBase.\$\$CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
+			line("$classBase.prototype.__JT__CLASS_ID = $classBase.__JT__CLASS_ID = ${clazz.classId};")
+			line("$classBase.prototype.__JT__CLASS_IDS = $classBase.__JT__CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
 
 			//renderFields(clazz.fields);
 

@@ -145,14 +145,14 @@ public class JTranscCoreReflection {
 	@JTranscMethodBody(target = "php", value = "return N::str($p0->desc);")
 	native public static String getArrayDescriptor(Object o);
 
-	@HaxeMethodBody(value = "return p0._CLASS_ID__HX;")
-	@JTranscMethodBody(target = "js", value = "return p0.$$CLASS_ID;")
-	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__INSTANCE_CLASS_ID;")
-	@JTranscMethodBody(target = "d", value = "return p0.__D__CLASS_ID;")
-	@JTranscMethodBody(target = "cs", value = "return p0.__CS__CLASS_ID;")
-	@JTranscMethodBody(target = "as3", value = "return p0.__AS3__CLASS_ID;")
-	@JTranscMethodBody(target = "dart", value = "return p0.__DART__CLASS_ID;")
-	@JTranscMethodBody(target = "php", value = "return $p0->__DART__CLASS_ID;")
+	@HaxeMethodBody(value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "js", value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "d", value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "cs", value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "as3", value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "dart", value = "return p0.__JT__CLASS_ID;")
+	@JTranscMethodBody(target = "php", value = "return $p0->__JT__CLASS_ID;")
 	static public int getClassId(Object obj) {
 		return -1;
 	}

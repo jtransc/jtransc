@@ -6,7 +6,7 @@ using System;
 
 class N {
 	//public static readonly double DoubleNaN = 0.0d / 0.0;
-	public static readonly float FloatNaN = intBitsToFloat(0x7FF80000);
+	public static readonly float FloatNaN = intBitsToFloat(0x7FC00000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
 	//static public TOut CHECK_CAST<TOut, TIn>(TIn i) where TIn : class where TOut : class {
@@ -95,6 +95,8 @@ class N {
 	static public long i2j(int v) { return (long)v; }
 	static public long f2j(float v) { return (long)v; }
 
+	static public long lneg (long l) { return -l; }
+	static public long linv (long l) { return ~l; }
 	static public long ladd (long l, long r) { return l + r; }
 	static public long lsub (long l, long r) { return l - r; }
 	static public long lmul (long l, long r) { return l * r; }

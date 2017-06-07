@@ -71,6 +71,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val settings: AstBuildSettings = injector.get()
 	val extraParams = settings.extra
+	val extraVars by lazy { program.getTemplateVariables(targetName, settings.extraVars) }
 	val debugVersion: Boolean = settings.debug
 	val folders: CommonGenFolders = injector.get()
 
@@ -122,7 +123,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
-		)
+			)
 
 		val cmdAndArgsStr = cmdAndArgs.joinToString(" ")
 
@@ -328,7 +329,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genField(field: AstField): Indenter = Indenter {
 		val istatic = if (field.isStatic) "static " else ""
-		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValue};")
+		line("$istatic${field.type.targetName} ${field.targetName} = ${field.escapedConstantValueField};")
 	}
 
 	open fun genMetodDecl(method: AstMethod): String {
@@ -500,7 +501,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		fun processArg(arg: AstExpr.Box, targetType: AstType) = processCallArg(arg.value, if (isNativeCall) convertToTarget(arg) else arg.genExpr(), targetType)
 		fun processArg(arg: AstExpr.Box) = processArg(arg, arg.type)
 
-		val callsiteBody = refMethod.annotationsList.getCallSiteBodiesForTarget(targetName)?.template("JTranscCallSiteBody")
+		val callsiteBody = refMethod.annotationsList.getCallSiteBodyForTarget(targetName)?.template("JTranscCallSiteBody")
 
 		fun unbox(arg: AstExpr.Box): String {
 			val processed = processArg(arg)
@@ -827,12 +828,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		line("$left = $right;")
 	}
 
-	open fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
-		line("switch (${stm.subject.genExpr()})") {
-			for ((values, label) in stm.cases) {
-				line("${buildMultipleCase(values)} ${genGoto(label, false)}")
+	fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
+		flowBlock(FlowKind.SWITCH) {
+			line("switch (${stm.subject.genExpr()})") {
+				for ((values, label) in stm.cases) {
+					line("${buildMultipleCase(values)} ${genGoto(label, false)}")
+				}
+				line("default: ${genGoto(stm.default, false)}")
 			}
-			line("default: ${genGoto(stm.default, false)}")
 		}
 	}
 
@@ -880,28 +883,43 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 	}
 
+	enum class FlowKind { SWITCH, WHILE }
+
+	val flowBlocks = ArrayList<FlowKind>()
+
+	inline fun <T> flowBlock(kind: FlowKind, callback: () -> T): T {
+		try {
+			flowBlocks += kind
+			return callback()
+		} finally {
+			flowBlocks.removeAt(flowBlocks.size - 1)
+		}
+	}
+
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
-		if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
-			line("switch (${stm.subject.genExpr()})") {
-				for (case in stm.cases) {
-					val values = case.first
-					val caseStm = case.second
-					if (caseStm.value.isSingleStm()) {
-						val append = if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) "" else "break;"
-						line(buildMultipleCase(values) + caseStm.genStm().toString().trim() + " " + append)
-					} else {
-						line(buildMultipleCase(values))
-						indent {
-							line(caseStm.genStm())
-							if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+		flowBlock(FlowKind.SWITCH) {
+			if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
+				line("switch (${stm.subject.genExpr()})") {
+					for (case in stm.cases) {
+						val values = case.first
+						val caseStm = case.second
+						if (caseStm.value.isSingleStm()) {
+							val append = if (!defaultGenStmSwitchHasBreaks || caseStm.value.lastStm().isBreakingFlow()) "" else "break;"
+							line(buildMultipleCase(values) + caseStm.genStm().toString().trim() + " " + append)
+						} else {
+							line(buildMultipleCase(values))
+							indent {
+								line(caseStm.genStm())
+								if (defaultGenStmSwitchHasBreaks && !caseStm.value.lastStm().isBreakingFlow()) line("break;")
+							}
 						}
 					}
-				}
-				if (languageRequiresDefaultInSwitch || !stm.default.value.isEmpty()) {
-					line("default:")
-					indent {
-						line(stm.default.genStm())
-						if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+					if (languageRequiresDefaultInSwitch || !stm.default.value.isEmpty()) {
+						line("default:")
+						indent {
+							line(stm.default.genStm())
+							if (defaultGenStmSwitchHasBreaks && !stm.default.value.lastStm().isBreakingFlow()) line("break;")
+						}
 					}
 				}
 			}
@@ -1259,9 +1277,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmExpr(stm: AstStm.STM_EXPR) = Indenter("${stm.expr.genExpr()};")
 	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean) = Indenter(if (context.method.methodVoidReturnThis) "return " + genExprThis(AstExpr.THIS("Dummy".fqname)) + ";" else "return;")
 	open fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean) = Indenter("return ${stm.retval.genExpr()};")
-	open fun genStmWhile(stm: AstStm.WHILE) = indent {
-		line("while (${stm.cond.genExpr()})") {
-			line(stm.iter.genStm())
+	fun genStmWhile(stm: AstStm.WHILE) = indent {
+		flowBlock(FlowKind.WHILE) {
+			line("while (${stm.cond.genExpr()})") {
+				line(stm.iter.genStm())
+			}
 		}
 	}
 
@@ -1538,13 +1558,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_j2d(str: String) = N_func("j2d", "$str")
 	open protected fun N_getFunction(str: String) = N_func("getFunction", "$str")
 	open protected fun N_c(str: String, from: AstType, to: AstType) = "($str)"
-	open protected fun N_lneg(str: String) = "-($str)"
 	open protected fun N_ineg(str: String) = "-($str)"
 	open protected fun N_fneg(str: String) = "-($str)"
 	open protected fun N_dneg(str: String) = "-($str)"
 	open protected fun N_iinv(str: String) = "~($str)"
-	open protected fun N_linv(str: String) = "~($str)"
 	open protected fun N_znot(str: String) = "!($str)"
+
 
 	open protected fun N_zand(l: String, r: String) = "($l && $r)"
 	open protected fun N_zor(l: String, r: String) = "($l || $r)"
@@ -1593,6 +1612,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_iushr_cst(l: String, r: Int) = N_iushr(l, "$r")
 
 	open protected fun N_lnew(value: Long) = N_func("lnew", "${value.high}, ${value.low}")
+
+	open protected fun N_lneg(str: String) = N_func("lneg", "$str")
+	open protected fun N_linv(str: String) = N_func("linv", "$str")
+
 	open protected fun N_ladd(l: String, r: String) = N_func("ladd", "$l, $r")
 	open protected fun N_lsub(l: String, r: String) = N_func("lsub", "$l, $r")
 	open protected fun N_lmul(l: String, r: String) = N_func("lmul", "$l, $r")
@@ -1736,8 +1759,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				"TARGET_LIBRARIES" to targetLibraries,
 				"TARGET_DEFINES" to targetDefines,
 				"JTRANSC_VERSION" to JTranscVersion.getVersion()
-			) + program.getTemplateVariables(targetName)
-			).toHashMap()
+			) + extraVars
+			)
+			.toHashMap()
 	}
 
 	open fun setTemplateParamsAfterBuildingSource() {
@@ -1930,8 +1954,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	val Any?.escapedConstant: String get() = escapedConstant(this)
-	open fun escapedConstant(v: Any?): String = when (v) {
+	enum class ConstantPlace { ANY, LOCAL, PARAM, FIELD }
+
+	val Any?.escapedConstant: String get() = escapedConstant(this, ConstantPlace.ANY)
+	val Any?.escapedConstantLocal: String get() = escapedConstant(this, ConstantPlace.LOCAL)
+	val Any?.escapedConstantParam: String get() = escapedConstant(this, ConstantPlace.PARAM)
+	val Any?.escapedConstantField: String get() = escapedConstant(this, ConstantPlace.FIELD)
+
+	open fun escapedConstant(v: Any?, place: ConstantPlace): String = when (v) {
 		null -> "null"
 		is Boolean -> if (v) "true" else "false"
 		is String -> v.escapeString
@@ -2237,6 +2267,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	val AstField.constantValueOrNativeDefault: Any? get() = if (this.hasConstantValue) this.constantValue else this.type.nativeDefault
 	val AstField.escapedConstantValue: String get() = this.constantValueOrNativeDefault.escapedConstant
+	val AstField.escapedConstantValueField: String get() = this.constantValueOrNativeDefault.escapedConstantField
+	val AstField.escapedConstantValueLocal: String get() = this.constantValueOrNativeDefault.escapedConstantLocal
 	val FieldRef.nativeStaticText: String get() = this.ref.containingTypeRef.name.targetNameForStatic + buildAccessName(program[this.ref], static = true)
 	inline fun <reified T : Any, R> KMutableProperty1<T, R>.getTargetName(): String = this.locate(program).targetName
 

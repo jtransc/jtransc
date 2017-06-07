@@ -58,6 +58,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "cs", value = "return Double.Parse(N.istr(p0), System.Globalization.CultureInfo.InvariantCulture);")
 	@JTranscMethodBody(target = "as3", value = "return parseFloat(N.istr(p0));")
 	@JTranscMethodBody(target = "dart", value = "return num.parse(N.istr(p0));")
+	@JTranscMethodBody(target = "php", value = "return (float)(N::istr($p0));")
 	native private static double _parseDouble(String value);
 
 	public static double parseDouble(String value) {
@@ -159,6 +160,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "cs", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "as3", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "php", value = "return N::doubleToLongBits($p0);")
 	native public static long doubleToLongBits(double value);
 
 	@HaxeMethodBody("return N.doubleToLongBits(p0);")
@@ -168,6 +170,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "cs", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "as3", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.doubleToLongBits(p0);")
+	@JTranscMethodBody(target = "php", value = "return N::doubleToLongBits($p0);")
 	native public static long doubleToRawLongBits(double value);
 
 	@HaxeMethodBody("return N.longBitsToDouble(p0);")
@@ -177,6 +180,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "cs", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "as3", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.longBitsToDouble(p0);")
+	@JTranscMethodBody(target = "php", value = "return N::longBitsToDouble($p0);")
 	public static native double longBitsToDouble(long bits);
 
 	public int compareTo(Double that) {

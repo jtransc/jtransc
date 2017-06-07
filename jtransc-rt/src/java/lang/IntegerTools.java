@@ -1,5 +1,7 @@
 package java.lang;
 
+import com.jtransc.io.JTranscConsole;
+
 class IntegerTools {
 	static public int countDigits(int i, int radix) {
 		if (radix == 10) return countDigits10(i);

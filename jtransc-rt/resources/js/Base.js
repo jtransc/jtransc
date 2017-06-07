@@ -158,37 +158,6 @@ Int64.ofFloat = function(f) {
 	return neg ? Int64.neg(result) : result;
 };
 
-Int64.ofString = function(sParam) {
-	var base = Int64.ofInt(10);
-	var current = Int64.ofInt(0);
-	var multiplier = Int64.ofInt(1);
-	var sIsNegative = false;
-
-	var s = String(sParam).trim();
-	if (s.charAt(0) == "-") {
-		sIsNegative = true;
-		s = s.substring(1, s.length);
-	}
-	var len = s.length;
-
-	for (var i = 0; i < len; ++i) {
-		var digitInt = s.charCodeAt(len - 1 - i) - '0'.code;
-
-		if (digitInt < 0 || digitInt > 9) throw "NumberFormatError";
-
-		var digit = Int64.ofInt(digitInt);
-		if (sIsNegative) {
-			current = Int64.sub(current, Int64.mul(multiplier, digit));
-			if (!Int64.isNeg(current)) throw "NumberFormatError: Underflow";
-		} else {
-			current = Int64.add(current, Int64.mul(multiplier, digit));
-			if (Int64.isNeg(current)) throw "NumberFormatError: Overflow";
-		}
-		multiplier = Int64.mul(multiplier, base);
-	}
-	return current;
-};
-
 Int64.prototype.toString = function() {
 	var i = this;
 	if (Int64.isZero(i)) return "0";
@@ -803,21 +772,23 @@ N.hrtime = function() {
 N.is = function(i, clazz) {
 	if (i instanceof clazz) return true;
 	if (i == null) return false;
-	if (typeof i.$$CLASS_IDS === 'undefined') return false;
-	return i.$$CLASS_IDS.indexOf(clazz.$$CLASS_ID) >= 0;
+	if (typeof i.__JT__CLASS_ID === 'undefined') return false;
+	return i.__JT__CLASS_IDS.indexOf(clazz.__JT__CLASS_ID) >= 0;
 };
 
 N.checkCast = function(i, clazz) {
 	if (i == null) return null;
 	if (clazz === null) throw new Error('Internal error N.checkCast');
-	if (!N.is(i, clazz)) throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+	if (!N.is(i, clazz)) {
+		throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+	}
 	return i;
 };
 
 N.isClassId = function(i, classId) {
 	if (i == null) return false;
-	if (!i.$$CLASS_IDS) return false;
-	return i.$$CLASS_IDS.indexOf(classId) >= 0;
+	if (!i.__JT__CLASS_IDS) return false;
+	return i.__JT__CLASS_IDS.indexOf(classId) >= 0;
 };
 
 N.istr = function(str) {

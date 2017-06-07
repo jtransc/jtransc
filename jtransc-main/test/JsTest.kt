@@ -54,6 +54,7 @@ import testservice.test.TestServiceJs2
 
 class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
+	//override val TREESHAKING_TRACE = true
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
@@ -158,6 +159,8 @@ class JsTest : _Base() {
 		777
 		999
 		21
+		HELLO WORLD1demo
+		HELLO WORLD2test
 		Timeout!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 

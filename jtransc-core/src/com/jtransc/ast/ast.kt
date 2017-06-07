@@ -69,6 +69,7 @@ data class AstBuildSettings(
 	val relooper: Boolean = false,
 	val analyzer: Boolean = false,
 	val extra: Map<String?, String?> = mapOf(),
+	val extraVars: Map<String, List<String>> = mapOf(),
 	val rtAndRtCore: List<String> = MavenLocalRepository.locateJars(BaseRuntimeArtifactsForVersion(jtranscVersion).toListString())
 ) {
 	companion object {
@@ -342,6 +343,7 @@ class AstClass(
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
+	val types get() = program.types
 
 	val implementingUnique by lazy { implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
@@ -369,6 +371,8 @@ class AstClass(
 	val classType: AstClassType = modifiers.classType
 	val visibility: AstVisibility = modifiers.visibility
 	val fields = arrayListOf<AstField>()
+	val fieldsStatic get() = fields.filter { it.isStatic }
+	val fieldsInstance get() = fields.filter { !it.isStatic }
 	val methods = arrayListOf<AstMethod>()
 	val methodsWithoutConstructors: List<AstMethod> by lazy { methods.filter { !it.isClassOrInstanceInit } }
 	val constructors: List<AstMethod> get() = methods.filter { it.isInstanceInit }
@@ -451,6 +455,9 @@ class AstClass(
 		methodsByNameDescInterfaces[methodDesc] = method
 		methodsByNameDesc[methodDesc] = method
 	}
+
+	operator fun plusAssign(e: AstField) = add(e)
+	operator fun plusAssign(e: AstMethod) = add(e)
 
 	//val dependencies: AstReferences = AstReferences()
 	val implCode by lazy { annotationsList.getTyped<JTranscNativeClassImpl>()?.value }
@@ -692,7 +699,7 @@ data class AstArgumentCallWithAnnotations(val arg: AstArgument, val annotationLi
 	val exprBox = expr.box
 }
 
-class AstMethod(
+class AstMethod constructor(
 	containingClass: AstClass,
 	val id: Int = containingClass.program.lastMethodId++,
 	name: String,
@@ -705,11 +712,14 @@ class AstMethod(
 	var generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
-	val types: AstTypes,
 	override val ref: AstMethodRef = AstMethodRef(containingClass.name, name, methodType)
 	//val isOverriding: Boolean = overridingMethod != null,
-) : AstMember(containingClass, name, methodType, if (genericSignature != null) types.demangleMethod(genericSignature) else methodType, modifiers.isStatic, modifiers.visibility, ref, annotations), MethodRef {
-
+) : AstMember(
+	containingClass, name, methodType,
+	if (genericSignature != null) containingClass.types.demangleMethod(genericSignature) else methodType,
+	modifiers.isStatic, modifiers.visibility, ref, annotations
+), MethodRef {
+	val types: AstTypes get() = program.types
 
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
 
@@ -899,6 +909,9 @@ data class AstModifiers(val acc: Int) {
 		AstClassType.CLASS
 	}
 
+	fun with(flags: Int) = AstModifiers(this.acc or flags)
+	fun without(flags: Int) = AstModifiers(this.acc and flags.inv())
+
 	fun withVisibility(visibility: AstVisibility) = AstModifiers(
 		(acc clearFlags (ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE)) or when (visibility) {
 			AstVisibility.PUBLIC -> ACC_PUBLIC
@@ -1011,9 +1024,9 @@ fun AstClass.getMembersFor(target: TargetName): List<CondMembers> = this.annotat
 	.map { CondMembers(it.cond, it.value.toList()) }
 	.distinct()
 
-fun AstProgram.getTemplateVariables(target: TargetName): Map<String, List<String>> = this.classes
+fun AstProgram.getTemplateVariables(target: TargetName, extraVars: Map<String, List<String>> = mapOf()): Map<String, List<String>> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
 	.filter { target.matches(it.target) }
 	.groupBy { it.variable }
-	.map { it.key to it.value.flatMap { it.list.toList() } }
+	.map { (key, value) -> key to (value.flatMap { it.list.toList() } + (extraVars[key] ?: listOf())) }
 	.toMap()

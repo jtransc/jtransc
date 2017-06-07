@@ -283,8 +283,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		if (!clazz.isInterface) {
 			if (clazz.isJavaLangObject) {
-				line("public int __CS__CLASS_ID;")
-				line("public ${clazz.name.targetName}(int CLASS_ID = ${clazz.classId}) { this.__CS__CLASS_ID = CLASS_ID; }")
+				line("public int __JT__CLASS_ID;")
+				line("public ${clazz.name.targetName}(int CLASS_ID = ${clazz.classId}) { this.__JT__CLASS_ID = CLASS_ID; }")
 			} else {
 				line("public ${clazz.name.targetName}(int CLASS_ID = ${clazz.classId}) : base(CLASS_ID) { }")
 			}
