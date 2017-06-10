@@ -195,8 +195,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val keywords = super.keywords + setOf(
 		//////////////////////
-		"haxe", "Dynamic", "Void", "java", "package", "import",
-		"class", "interface", "extends", "implements",
+		"std", "Std", "STD", "NEW", "EOF", "haxe", "java", "Dynamic", "Void", "package", "import",
+		"class", "interface", "extends", "implements", "new",
 		"internal", "private", "protected", "final",
 		"function", "var", "const",
 		"if", "else", "switch", "case", "default",
