@@ -24,6 +24,8 @@ public class ClassInfo {
 	@JTranscInvisible
 	public int[] related;
 
+	static private int[] EMPTY_INT_ARRAY = new int[0];
+
 	public ClassInfo(int id, String internalName, String name, int modifiers, int parent, int[] interfaces, int[] related) {
 		if (internalName == null) internalName = name;
 		this.id = id;
@@ -31,8 +33,8 @@ public class ClassInfo {
 		this.name = name;
 		this.modifiers = modifiers;
 		this.parent = parent;
-		this.interfaces = interfaces;
-		this.related = related;
+		this.interfaces = (interfaces != null) ? interfaces : EMPTY_INT_ARRAY;
+		this.related = (related != null) ? related : EMPTY_INT_ARRAY;
 	}
 
 	@JTranscKeep

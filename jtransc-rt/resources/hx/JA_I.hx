@@ -16,6 +16,9 @@ typedef __JA_I_Item = Int32Array;
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_I extends JA_0 {
 	{{ HAXE_FIELD_ANNOTATIONS }}
+    static public var T0cst = new JA_I(0);
+
+	{{ HAXE_FIELD_ANNOTATIONS }}
 	public var data:__JA_I_Item = null;
 
 	#if cpp
@@ -43,12 +46,26 @@ class JA_I extends JA_0 {
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function fromArray(items:Array<Dynamic>) {
         if (items == null) return null;
+        if (items.length == 0) return T0cst;
         var out = new JA_I(items.length);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function T(items:Array<Dynamic>) return fromArray(items);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T0() return T0cst;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T1(a: Int) return fromArray([a]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T2(a: Int, b: Int) return fromArray([a, b]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T3(a: Int, b: Int, c: Int) return fromArray([a, b, c]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T4(a: Int, b: Int, c: Int, d: Int) return fromArray([a, b, c, d]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T5(a: Int, b: Int, c: Int, d: Int, e: Int) return fromArray([a, b, c, d, e]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T6(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int) return fromArray([a, b, c, d, e, f]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T7(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int) return fromArray([a, b, c, d, e, f, g]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T8(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int) return fromArray([a, b, c, d, e, f, g, h]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T9(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int) return fromArray([a, b, c, d, e, f, g, h, i]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T10(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int) return fromArray([a, b, c, d, e, f, g, h, i, j]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T11(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: Int) return fromArray([a, b, c, d, e, f, g, h, i, j, k]);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function T12(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int, j: Int, k: Int, l: Int) return fromArray([a, b, c, d, e, f, g, h, i, j, k, l]);
 
 	{{ HAXE_METHOD_ANNOTATIONS }} override public function getBytes(): Bytes throw 'getBytes';
 

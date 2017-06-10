@@ -695,7 +695,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("package ${clazz.name.targetGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")
-			var declaration = "$classType $simpleClassName"
+			var declaration = "$classType $simpleClassName/*${clazz.name}*/"
 			if (isInterface) {
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("extends")
 			} else {
@@ -903,6 +903,15 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		return "super$methodAccess(${args.joinToString(", ")})"
+	}
+
+	override fun genExprIntArrayLit(e: AstExpr.INTARRAY_LITERAL): String {
+		val size = e.values.size
+		return when {
+			size == 0 -> "JA_I${staticAccessOperator}T0cst"
+			size <= 12 -> "JA_I${staticAccessOperator}T$size(" + e.values.joinToString(",") + ")"
+			else -> "JA_I${staticAccessOperator}T([" + e.values.joinToString(",") + "])"
+		}
 	}
 }
 
