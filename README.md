@@ -144,7 +144,7 @@ So others could generate that without JVM and others could generate other target
 ### For the Haxe target:
 - Haxe 3.4.2
 - NekoVM 2.1.0
-- Lime 5.0.3
+- Lime 5.1.0
 - hxcpp 3.4.64
 
 ### For Node.JS running:
@@ -168,7 +168,7 @@ So others could generate that without JVM and others could generate other target
 #### Installing Haxe
 - Install [Haxe](https://haxe.org/download/) from here via installer
 - Set path to haxelib running "haxelib setup" command
-- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.0.3`
+- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.1.0`
 - Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.64`
 - Run `haxelib run lime setup`
 
@@ -185,8 +185,10 @@ __WINDOWS__
 - Add "path/to/mingw64" to `PATH` environment variable
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
-#### Installing Dart
-- [https://www.dartlang.org/install](https://www.dartlang.org/install)
-
 __MAC__
 - Install Xcode 8.3.2
+- Related to pure C++ target on mac: `brew install automake libtool`
+- Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
+
+#### Installing Dart
+- [https://www.dartlang.org/install](https://www.dartlang.org/install)
