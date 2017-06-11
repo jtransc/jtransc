@@ -38,6 +38,32 @@ struct gc {
 	}
 };
 
+#ifdef _WIN32
+	#ifdef _WIN64
+		const char *JT_OS = "Windows 64";
+	#else
+		const char *JT_OS = "Windows 32";
+	#endif
+#elif __APPLE__
+    #include "TargetConditionals.h"
+    #if TARGET_IPHONE_SIMULATOR
+		const char *JT_OS = "iOS Simulator";
+    #elif TARGET_OS_IPHONE
+		const char *JT_OS = "iOS Device";
+    #elif TARGET_OS_MAC
+		const char *JT_OS = "MacOSX";
+    #else
+		const char *JT_OS = "Apple Unknown";
+    #endif
+#elif __linux__
+	const char *JT_OS = "Linux";
+#elif __unix__
+	const char *JT_OS = "Unix";
+#elif defined(_POSIX_VERSION)
+	const char *JT_OS = "Posix";
+#else
+	const char *JT_OS = "Unknown";
+#endif
 
 extern "C" {
 	#include <stdio.h>

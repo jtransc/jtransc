@@ -15,6 +15,8 @@ plugins {
 	id "com.jfrog.bintray" version "1.7.3"
 }
 
+apply plugin: 'idea'
+
 //tasks.withType(Test) {
 //	scanForTestClasses = false
 //	include "**/*Test.class" // whatever Ant pattern matches your test class files
@@ -88,4 +90,16 @@ if ("$jtranscVersion".endsWith("-snapshot")) {
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '3.4.1'
+}
+
+idea {
+	module {
+		excludeDirs = [
+			file(".gradle"), file(".idea"),
+			file("docs"), file("benchmark"),
+			file("examples"), file("extra"),
+			file("gradle"), file("inception"),
+			file("jtransc-intellij-plugin"), file("jtransc-main-run")
+		]
+	}
 }
