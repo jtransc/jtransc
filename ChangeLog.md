@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.6.3
+## 0.6.3 (2017-06-11)
 
 New features:
 - [PHP] Requires PHP 7.1. PHP target now passes big tests though it is slower than other targets
@@ -24,7 +24,7 @@ Misc:
 - Now snapshots versions are published by travis to bintray: https://dl.bintray.com/jtransc/jtransc/com/jtransc/
 
 
-## 0.6.2
+## 0.6.2 (2017-05-31)
 
 Optimizations:
 - [ALL] Optimized ByteBufferAs* in most targets with faster reading similar to JT's FastMemory
@@ -66,7 +66,7 @@ Minor:
 - [TRAVIS] Disabled travis cache
 
 
-## 0.6.1
+## 0.6.1 (2017-05-21)
 
 - Added `@JTranscAddIncludes` and `@JTranscAddDefines` annotations
 - Honor `@JTranscAddLibraries` and `@JTranscAddIncludes` annotations in C++ target
@@ -76,7 +76,7 @@ Minor:
 - Initial support of class `@JTranscNativeName` types in C++. Implemented Int32x4 SIMD to check. Works even without ENABLE_TYPING enabled.
 - Fxied compilation in windows (b2.exe not executing)
 
-## 0.6.0
+## 0.6.0 (2017-05-20)
 
 ### New features
 - @Intrigus: C++ target with GC continuing the work on @dsp-omen that created the initial c++ target
@@ -113,6 +113,30 @@ Minor:
 - Deprecated {% FIELD %} and {% METHOD %} (replaces to `NAME`) in favour of {% IFIELD %} and {% IMETHOD %} (replaces to `.NAME` or `['NAME']` in JS just when required and works with minification)
 - Deprecated `@JTranscNativeClass` that was redundant due to `@JTranscNativeName`.
 
-## 0.5.16
+## 0.5.16 (2017-05-08)
+
+...
+
+## 0.5.0 (2016-12-04)
+
+...
+
+## 0.4.0 (2016-09-16)
+
+...
+
+## 0.3.0 (2016-06-20)
+
+...
+
+## 0.2.0 (2016-04-22)
+
+...
+
+## 0.1.0 (2016-02-24)
+
+...
+
+## First public commit (2016-02-08)
 
 ...
