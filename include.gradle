@@ -114,20 +114,23 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 //println("uploadArchives!: ${project.name}")
 }
 
+def gitVersion = "git describe".execute().text.trim()
+
 publishing {
 	publications {
 		MyPublication(MavenPublication) {
 			from components.java
 			groupId project.group
 			artifactId project.name
-			version "$project.version"
+			version gitVersion
+			//version "$project.version"
 		}
 	}
 }
 
 bintray {
-	user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER']
-	key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_KEY']
+	user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_USER']
+	key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_KEY']
 
 	publications = ['MyPublication']
 
@@ -139,6 +142,7 @@ bintray {
 		userOrg = 'jtransc'
 		repo = 'jtransc'
 		name = 'jtransc'
+		//name = rootProject.name
 		licenses = ['Apache-2.0']
 		vcsUrl = 'https://github.com/jtransc/jtransc.git'
 	}

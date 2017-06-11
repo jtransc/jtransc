@@ -30,6 +30,7 @@ allprojects { project ->
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
 	apply plugin: 'java'
+	apply plugin: 'com.jfrog.bintray'
 
 	def version = "${jtranscVersion}"
 
@@ -83,8 +84,6 @@ if ("$jtranscVersion".endsWith("-snapshot")) {
 } else {
 	travisDeploy.dependsOn('releaseTask')
 }
-
-
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '3.4.1'

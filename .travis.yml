@@ -64,6 +64,7 @@ script:
 - mvn package
 - node target/jtransc-js/program.js
 - popd
+- jdk_switcher use oraclejdk8
 - ./gradlew travisDeploy # deploy
 cache:
   directories: 
