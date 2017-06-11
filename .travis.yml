@@ -1,34 +1,14 @@
 language: java
-#dist: trusty # Causes problems with mono hanging
-#d:
-#- dmd
-#haxe:
-#- development
 node_js:
 - '4'
 jdk:
 - oraclejdk8
-
-#before_install:
-#- if [ "$TRAVIS_OS_NAME" == "linux" ]; then jdk_switcher use oraclejdk8; fi
-#- if [ "$TRAVIS_OS_NAME" == 'osx']; then "wget --no-cookies --no-check-certificate --header \"Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jdk-8u66-macosx-x64.dmg" && hdiutil mount jdk-8u66-macosx-x64.dmg && sudo installer -pkg /Volumes/JDK\ 8\ Update\ 66/JDK\ 8\ Update\ 66.pkg -target LocalSystem; fi
-#- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get update -qq; fi
-#install:
-#- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo add-apt-repository ppa:ondrej/php -y; fi
-#- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get -y update; fi
-#- if [ "$TRAVIS_OS_NAME" == "linux" ]; sudo apt-get -y install php5.6 php5.6-mbstring; fi
-#- mvn clean --settings settings.xml
-#- nvm install 4 || true
-#- nvm use 4 || true
-
 before_install:
 - jdk_switcher use oraclejdk8
 - sudo apt-key update
 - sudo apt-get update -qq
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get update; sudo apt-get install -y gcc-4.8 g++-4.8
-#- sudo update-alternatives --remove-all gcc
-#- sudo update-alternatives --remove-all g++
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
 - sudo update-alternatives --config gcc
@@ -37,25 +17,22 @@ before_install:
 - export PATH="$HOME/usr/bin:$PATH"
 - wget https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.sh
 - chmod +x cmake-3.7.2-Linux-x86_64.sh
-- ./cmake-3.7.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
-
+- "./cmake-3.7.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license"
 install:
-#- sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get -y update
-#- sudo apt-get -y install php7.1 php7.1-mbstring
 - sudo apt-get -y install mono-runtime mono-mcs
-#- sudo apt-get install wine1.6
-#- sudo apt-get -y install gdc # GDC D compiler
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
-- sudo sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
-- sudo sh -c 'curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
-- sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall d-apt-keyring && sudo apt-get update
+- sudo sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
+  add -'
+- sudo sh -c 'curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list
+  > /etc/apt/sources.list.d/dart_stable.list'
+- sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall
+  d-apt-keyring && sudo apt-get update
 - sudo apt-get -y install dmd-bin dart
 - wget http://haxe.org/website-content/downloads/3.4.2/downloads/haxe-3.4.2-linux64.tar.gz
 - tar xzf haxe-3.4.2-linux64.tar.gz
 - nvm install 4 || true
 - nvm use 4 || true
-
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.4.2/std
 - export HAXEPATH=$PWD/haxe-3.4.2
@@ -71,43 +48,33 @@ before_script:
 - nvm --version || true
 - which node || true
 - node --version || true
-#- php --version || true
 - dmd --version || true
-- ./gradlew --version
-
+- "./gradlew --version"
 script:
 - jdk_switcher use oraclejdk8
-- ./gradlew -s -i check install
-#- ./gradlew check install
+- "./gradlew -s -i check install"
 - jdk_switcher use oraclejdk7
 - pushd jtransc-main-run/example
 - "./run"
 - popd
 - pushd jtransc-main-run/example-gradle
-- ../../gradlew runPlainJs && node build/jtransc-js/program.js
+- "../../gradlew runPlainJs && node build/jtransc-js/program.js"
 - popd
 - pushd jtransc-maven-plugin/example
 - mvn package
 - node target/jtransc-js/program.js
 - popd
 cache:
-  directories:
-#  - "$HOME/.m2"
-#  - "$HOME/.gradle"
-#  - "$HOME/.jtransc"
-
+  directories: 
+deploy:
+  provider: script
+  script: ./gradlew travisDeploy
 notifications:
   webhooks:
     urls:
-      -  secure: "jTXtftO3t28zsQyTs7ZkKAms3qYvP4BuhWP2PjDJlM7cMRtRc3tJX/S9useSOnlu9CgKb3tEWuUIlHYdbQWitf4Z1SgBZa6Lskjkiac+gsN88rC3XqoHsrfGdGO/q0My+8MzvOU85ljjrEd07GmhKf6tsYI7c/thY3AQ2Pb6SRZP8tk9jnW2BTKgLrpU0IxuvnGCXBLLtrF8rbw6r1uRqODeE9yy1P6t3HTFR1abzmmMkuBsMGgyw3KE86n+hjH6L0xj+SIRhWyihzVqTTjIkDkqXdkOCd6IJIdAE0lRpUSBPi14oLAEWllDEhvUTieKeUUfzHDLXJjF36ZcEJCGCFuyJRCVmVGLVhcIASxhKZmovQGw7xxM70tLyeCYV+KMDiG9qsJPwr64Vhoo7lhve/buyVFuytIW88RIY42WBFEHWcry9Kj4m0XIDTGgwUtU3pOF64aRWkSLe6gvsKbW2dhxlNY0KQ2Swht5wdyU0AII4f5T7FOiEjo3Yus4Nc+C+qALkl2X2Hd03wf50ztDjCnejlghmWVtGV8r7peOkCBSip8DMHaWSv42in02IYc5qGAmFPTVSGVHRG6nCviiX4mv0PTF5yu2DfTHfOpyX+CltRRHH/O1SIRUVSq2YC6AEKBadB6Y4CMKsOoOyGIV8p1TL6VnI52BtcgGXF+ZrmQ="
-    on_success: change  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: never     # options: [always|never|change] default: always
-
-#matrix:
-#  include:
-#    - os: linux
-#      dist: trusty
-#      sudo: required
-#    #- os: osx
-#    #  osx_image: xcode7.2
+    - secure: jTXtftO3t28zsQyTs7ZkKAms3qYvP4BuhWP2PjDJlM7cMRtRc3tJX/S9useSOnlu9CgKb3tEWuUIlHYdbQWitf4Z1SgBZa6Lskjkiac+gsN88rC3XqoHsrfGdGO/q0My+8MzvOU85ljjrEd07GmhKf6tsYI7c/thY3AQ2Pb6SRZP8tk9jnW2BTKgLrpU0IxuvnGCXBLLtrF8rbw6r1uRqODeE9yy1P6t3HTFR1abzmmMkuBsMGgyw3KE86n+hjH6L0xj+SIRhWyihzVqTTjIkDkqXdkOCd6IJIdAE0lRpUSBPi14oLAEWllDEhvUTieKeUUfzHDLXJjF36ZcEJCGCFuyJRCVmVGLVhcIASxhKZmovQGw7xxM70tLyeCYV+KMDiG9qsJPwr64Vhoo7lhve/buyVFuytIW88RIY42WBFEHWcry9Kj4m0XIDTGgwUtU3pOF64aRWkSLe6gvsKbW2dhxlNY0KQ2Swht5wdyU0AII4f5T7FOiEjo3Yus4Nc+C+qALkl2X2Hd03wf50ztDjCnejlghmWVtGV8r7peOkCBSip8DMHaWSv42in02IYc5qGAmFPTVSGVHRG6nCviiX4mv0PTF5yu2DfTHfOpyX+CltRRHH/O1SIRUVSq2YC6AEKBadB6Y4CMKsOoOyGIV8p1TL6VnI52BtcgGXF+ZrmQ=
+    on_success: change
+    on_failure: always
+    on_start: never
+env:
+  secure: vOwXPyLMudJnMghI90mIRwydYwoyUo4LC/UqZwlk9YVLk6x9CRrZpZwXsQXnbvo0COJ3wZ71lxeaE1z6bqedEHwFE2So514yDv1t9lVZDY5qoS426hDXmOPOF4Wu40c/wE6/dhB09Ul4EqoWxfS9psyNrdVEhTRoyYmK0kTDy+HzC2/9PSW9OjM5s91d5S0O6EigbqGAXLkK/NhiUJTaCCU34T5PGpL6lwCHcMajcCp2lFqJ6lNv7clYNJi6cbRKcianMlPoTTsxbOUwO6+29jeqPWeBE+Yral16GVFabdF5mVsK9B8JRRH/kcZEW/8nr2YRpxK76qp/OWyK0nJKejuyOjp710VUPxSt19WLbR7tRBYRL6ojut7uNJLOzPaS+nmjQNwb/cYUMfZOeoDqufc4ioYFF990/st4OfRyqVca/YB3wmC94SkNz/dMXB7x/B4FD0pbl0JNdA5EEk4wF/8+bylvG+T8bY8sz4EzGbFsUkcuf4a0e07fALaMyVN70nOYSlTWuxB0o+5C4geMElpUOn1cpvfXL6urD3mwhXWwb2vOtk7EaiQibSrZTBPLoAVPK6GwL+SlgpaMFXJwYy6wRyIXciqQhKg1QFCpuGD1/0hhXxh3yR/YtB38dIoCZ/nAR7VccEqSOFJwDl62YKsYUkhOhYrg7PIGgJBgfkw=

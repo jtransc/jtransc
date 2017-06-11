@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply plugin: 'kotlin'
 
@@ -111,3 +112,4 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 
 //println("uploadArchives!: ${project.name}")
 }
+
