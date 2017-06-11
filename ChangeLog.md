@@ -1,6 +1,28 @@
 # CHANGELOG
 
-## 0.6.3 (WIP)
+## 0.6.3
+
+New features:
+- [PHP] Requires PHP 7.1. PHP target now passes big tests though it is slower than other targets
+- [GRADLE] Added appendVar support. Check: fdd58dbe26203703adfc64484c5a575f17dddb9f
+
+Fixes:
+- [ALL] Class.getMethod and getDeclaredMethod correct behaviour
+- [HAXE-CPP] @SergeyLabutin - Implemented Object.wait
+- [CPP+C#] Fixed float NAN
+- [CPP] @intrigus Consistency and warnings fixes in ++ target
+- [HAXE] Missing keywords
+
+Improvements:
+- [C#] Allow specify C# compiler. Check issue #156
+- [ALL] Reduced output size combining several switch cases in one.
+- [ALL] Support overlay methods in native methods
+- [ALL] Simplify generating ClassInfo for reflection
+- [HAXE] Improved integer array literal for small counts
+
+Misc:
+- Now snapshots versions are published by travis to bintray: https://dl.bintray.com/jtransc/jtransc/com/jtransc/
+
 
 ## 0.6.2
 
