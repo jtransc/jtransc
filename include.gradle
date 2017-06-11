@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
 apply plugin: 'kotlin'
 
@@ -113,3 +114,32 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 //println("uploadArchives!: ${project.name}")
 }
 
+publishing {
+	publications {
+		MyPublication(MavenPublication) {
+			from components.java
+			groupId project.group
+			artifactId project.name
+			version "$project.version"
+		}
+	}
+}
+
+bintray {
+	user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER']
+	key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_KEY']
+
+	publications = ['MyPublication']
+
+	dryRun = false
+	publish = true
+	override = true
+
+	pkg {
+		userOrg = 'jtransc'
+		repo = 'jtransc'
+		name = 'jtransc'
+		licenses = ['Apache-2.0']
+		vcsUrl = 'https://github.com/jtransc/jtransc.git'
+	}
+}

@@ -84,24 +84,7 @@ if ("$jtranscVersion".endsWith("-snapshot")) {
 	travisDeploy.dependsOn('releaseTask')
 }
 
-bintray {
-	user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER']
-	key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_KEY']
 
-	configurations = ['archives']
-
-	dryRun = false
-	publish = true
-	override = true
-
-	pkg {
-		repo = 'jtransc'
-		name = 'jtransc'
-		userOrg = 'jtransc'
-		licenses = ['Apache-2.0']
-		vcsUrl = 'https://github.com/jtransc/jtransc.git'
-	}
-}
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '3.4.1'

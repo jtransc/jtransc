@@ -64,11 +64,9 @@ script:
 - mvn package
 - node target/jtransc-js/program.js
 - popd
+- ./gradlew travisDeploy # deploy
 cache:
   directories: 
-deploy:
-  provider: script
-  script: ./gradlew travisDeploy
 notifications:
   webhooks:
     urls:
