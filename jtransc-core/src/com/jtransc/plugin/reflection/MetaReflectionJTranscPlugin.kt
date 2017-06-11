@@ -300,6 +300,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			for (oldClass in visibleClasses.sortedBy { it.classId }) {
 				val classId = oldClass.classId
+				val directInterfaces = oldClass.directInterfaces
+				val relatedTypes = oldClass.getAllRelatedTypesIdsWithout0AtEnd()
 				//println("CLASS: ${oldClass.fqname}")
 				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
 					classId.lit,
@@ -307,8 +309,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					oldClass.fqname.lit,
 					oldClass.modifiers.acc.lit,
 					(oldClass.parentClass?.classId ?: -1).lit,
-					AstExpr.INTARRAY_LITERAL(oldClass.directInterfaces.map { it.classId }),
-					AstExpr.INTARRAY_LITERAL(oldClass.getAllRelatedTypesIdsWithout0AtEnd())
+					if (directInterfaces.isNotEmpty()) AstExpr.INTARRAY_LITERAL(directInterfaces.map { it.classId }) else null.lit,
+					if (relatedTypes.isNotEmpty()) AstExpr.INTARRAY_LITERAL(relatedTypes) else null.lit
 				))
 			}
 			RETURN(out.local)
