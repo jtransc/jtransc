@@ -1,0 +1,42 @@
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "com.jtransc:jtransc-gradle-plugin:$jtranscVersion"
+	}
+}
+
+apply plugin: "java"
+apply plugin: 'scala'
+apply plugin: 'application'
+apply plugin: 'jtransc'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.scala-lang:scala-library:2.11.1'
+}
+
+mainClassName = "HelloWorld"
+
+jtransc {
+	treeshaking = true
+	minimizeNames = false
+}
+
+sourceSets {
+	main {
+		scala {
+			srcDirs = ['src']
+		}
+	}
+	test {
+		scala {
+			srcDirs = ['test']
+		}
+	}
+}
