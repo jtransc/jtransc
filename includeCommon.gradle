@@ -14,16 +14,17 @@ if (!props.has("gitVersion")) {
 	}
 }
 
-//println(props.get("gitVersion"))
-
 publishing {
 	publications {
 		MyPublication(MavenPublication) {
 			from components.java
 			groupId project.group
 			artifactId project.name
-			version props.get("gitVersion")
-			//version "$project.version"
+			if ("$project.version".endsWith("-SNAPSHOT")) {
+				version props.get("gitVersion")
+			} else {
+				version "$project.version"
+			}
 		}
 	}
 }
@@ -36,7 +37,9 @@ bintray {
 
 	dryRun = false
 	publish = true
-	override = true
+	if ("$project.version".endsWith("-SNAPSHOT")) {
+		override = true
+	}
 
 	pkg {
 		userOrg = 'jtransc'
