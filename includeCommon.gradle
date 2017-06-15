@@ -14,17 +14,15 @@ if (!props.has("gitVersion")) {
 	}
 }
 
+def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
+
 publishing {
 	publications {
 		MyPublication(MavenPublication) {
 			from components.java
 			groupId project.group
 			artifactId project.name
-			if ("$project.version".endsWith("-SNAPSHOT")) {
-				version props.get("gitVersion")
-			} else {
-				version "$project.version"
-			}
+			version publicationVersion
 		}
 	}
 }
