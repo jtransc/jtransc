@@ -730,7 +730,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
 		val actualFeatures = if (body.traps.isNotEmpty()) methodFeaturesWithTraps else methodFeatures
 		val transformedBody = features.apply(method, body, actualFeatures, settings, types)
-		plugins.onAfterAppledMethodBodyFeature(method, transformedBody)
+		plugins.onAfterAppliedMethodBodyFeature(method, transformedBody)
 		return transformedBody.genBody()
 	}
 

@@ -47,7 +47,7 @@ abstract class JTranscPlugin {
 	open fun onAfterAppliedClassFeatures(program: AstProgram) {
 	}
 
-	open fun onAfterAppledMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
+	open fun onAfterAppliedMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
 	}
 }
 
@@ -92,8 +92,8 @@ class JTranscPluginGroup(val plugins: Iterable<JTranscPlugin>) : JTranscPlugin()
 		for (plugin in plugins) plugin.onAfterAppliedClassFeatures(program)
 	}
 
-	override fun onAfterAppledMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
-		for (plugin in plugins) plugin.onAfterAppledMethodBodyFeature(method, transformedBody)
+	override fun onAfterAppliedMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
+		for (plugin in plugins) plugin.onAfterAppliedMethodBodyFeature(method, transformedBody)
 	}
 }
 
