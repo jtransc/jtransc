@@ -73,8 +73,9 @@ open class _Base {
 
 	val testClassesPaths = listOf(
 		File("build/classes/test").absolutePath,
+		File("build/classes/java/test").absolutePath,
+		File("build/classes/kotlin/test").absolutePath,
 		File("build/resources/test").absolutePath,
-		//File("build/kotlin-classes/test").absolutePath,
 		File("target/test-classes").absolutePath
 	)
 
@@ -166,9 +167,15 @@ open class _Base {
 							"$it/build/classes/main",
 							"$it/build/resources/main",
 							"$it/build/classes/java/main",
-							"$it/build/classes/kotlin/main"
+							"$it/build/classes/kotlin/main",
+							"$it/build/classes/java/test",
+							"$it/build/classes/kotlin/test"
 						)
-					}.map { projectRoot[it].realpathOS }
+					}.map {
+						projectRoot[it].realpathOS
+					}
+						.filter { File(it).exists() }
+						//.map { it.apply { println(it) } }
 				)
 			)
 			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()
