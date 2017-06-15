@@ -43,6 +43,12 @@ abstract class JTranscPlugin {
 
 	open fun onStaticInitHandleMethodCall(program: AstProgram, ast: AstExpr.CALL_BASE, body: AstBody?, da: AstDependencyAnalyzer.AstDependencyAnalyzerGen) {
 	}
+
+	open fun onAfterAppliedClassFeatures(program: AstProgram) {
+	}
+
+	open fun onAfterAppledMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
+	}
 }
 
 class JTranscPluginGroup(val plugins: Iterable<JTranscPlugin>) : JTranscPlugin() {
@@ -80,6 +86,14 @@ class JTranscPluginGroup(val plugins: Iterable<JTranscPlugin>) : JTranscPlugin()
 
 	override fun onStaticInitHandleMethodCall(program: AstProgram, ast: AstExpr.CALL_BASE, body: AstBody?, da: AstDependencyAnalyzer.AstDependencyAnalyzerGen) {
 		for (plugin in plugins) plugin.onStaticInitHandleMethodCall(program, ast, body, da)
+	}
+
+	override fun onAfterAppliedClassFeatures(program: AstProgram) {
+		for (plugin in plugins) plugin.onAfterAppliedClassFeatures(program)
+	}
+
+	override fun onAfterAppledMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
+		for (plugin in plugins) plugin.onAfterAppledMethodBodyFeature(method, transformedBody)
 	}
 }
 

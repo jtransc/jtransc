@@ -319,10 +319,6 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		line(super.genBody2WithFeatures(method, body))
-	}
-
 	//override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i(str: String) = "((int)($str))"
 

@@ -71,8 +71,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 	override val GENERATE_LINE_NUMBERS = false
 
-	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
-	override val methodFeatures = methodFeaturesWithTraps + setOf(GotosFeature::class.java)
+//	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
+//	override val methodFeatures = methodFeaturesWithTraps + setOf(GotosFeature::class.java)
+
+	override val methodFeaturesWithTraps = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
+	override val methodFeatures = (methodFeaturesWithTraps + GotosFeature::class.java)
+
 	override val keywords = setOf(
 		"alignas", "alignof", "and", "and_eq", "asm", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto",
 		"bitand", "bitor", "bool", "break",
@@ -570,17 +574,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val clazz = field.containingClass
 		if (field.isStatic) {
 			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
-		}
-	}
-
-	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
-	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = (FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java)
-
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
-		if (body.traps.isNotEmpty()) {
-			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITH_TRAPS, settings, types).genBody()
-		} else {
-			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITHOUT_TRAPS, settings, types).genBody()
 		}
 	}
 

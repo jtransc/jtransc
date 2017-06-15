@@ -21,6 +21,7 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.lang.high
 import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
+import com.jtransc.plugin.JTranscPluginGroup
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.isLetterDigitOrUnderscore
@@ -58,6 +59,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val GENERATE_LINE_NUMBERS = true
 
 	val configTargetFolder: ConfigTargetFolder = injector.get()
+	val plugins: JTranscPluginGroup = injector.get()
 	val program: AstProgram = injector.get()
 	val sortedClasses by lazy { program.classes.filter { it.mustGenerate }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
@@ -726,11 +728,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
 
 	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
-		if (body.traps.isNotEmpty()) {
-			return features.apply(method, body, methodFeaturesWithTraps, settings, types).genBody()
-		} else {
-			return features.apply(method, body, methodFeatures, settings, types).genBody()
-		}
+		val actualFeatures = if (body.traps.isNotEmpty()) methodFeaturesWithTraps else methodFeatures
+		val transformedBody = features.apply(method, body, actualFeatures, settings, types)
+		plugins.onAfterAppledMethodBodyFeature(method, transformedBody)
+		return transformedBody.genBody()
 	}
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!

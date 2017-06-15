@@ -90,6 +90,11 @@ class HaxeTarget : GenTargetDescriptor() {
 
 @Singleton
 class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
+	companion object {
+		//const val ENABLE_HXCPP_GOTO_HACK = true
+		const val ENABLE_HXCPP_GOTO_HACK = false // @TODO: If last statement is a goto. Add return null; or return; at the end
+	}
+
 	val subtarget = injector.get<ConfigSubtarget>().subtarget
 	override val SINGLE_FILE: Boolean = false
 	val haxeConfigMergedAssetsFolder: HaxeConfigMergedAssetsFolder? = injector.getOrNull()
@@ -97,6 +102,15 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	val MAX_SWITCH_SIZE = 10
 	override val floatHasFSuffix: Boolean = false
 	override val casesWithCommas = true
+
+	val usingGotoHack = ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))
+
+	override val methodFeaturesWithTraps = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
+	override val methodFeatures = if (usingGotoHack) {
+		(methodFeaturesWithTraps + GotosFeature::class.java)
+	} else {
+		methodFeaturesWithTraps
+	}
 
 	val isCpp = subtarget in setOf("cpp", "windows", "linux", "mac", "android")
 
@@ -118,22 +132,8 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val outputFile2 = File(super.outputFile2.parentFile, "program.${configHaxeAddSubtarget?.subtarget?.extension ?: "out"}")
 
-	companion object {
-		//const val ENABLE_HXCPP_GOTO_HACK = true
-		const val ENABLE_HXCPP_GOTO_HACK = false // @TODO: If last statement is a goto. Add return null; or return; at the end
-	}
-
 	override val FqName.targetName: String get() = this.targetClassFqName
 	//override val FqName.targetName: String get() = this.targetClassFqName.replace('.', '_').replace('$', '_')
-
-	val usingGotoHack = ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))
-
-	val FEATURE_FOR_FUNCTION_WITH_TRAPS = setOf(OptimizeFeature::class.java, SwitchFeature::class.java, SimdFeature::class.java)
-	val FEATURE_FOR_FUNCTION_WITHOUT_TRAPS = if (usingGotoHack) {
-		(FEATURE_FOR_FUNCTION_WITH_TRAPS + GotosFeature::class.java)
-	} else {
-		FEATURE_FOR_FUNCTION_WITH_TRAPS
-	}
 
 	override fun genGoto(label: AstLabel, last: Boolean): String {
 		val res = "untyped __cpp__('goto ${label.name};');"
@@ -182,14 +182,6 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			return Indenter("if (untyped __cpp__('true')) " + res.toString())
 		} else {
 			return res
-		}
-	}
-
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
-		if (body.traps.isNotEmpty()) {
-			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITH_TRAPS, settings, types).genBody()
-		} else {
-			return features.apply(method, body, FEATURE_FOR_FUNCTION_WITHOUT_TRAPS, settings, types).genBody()
 		}
 	}
 

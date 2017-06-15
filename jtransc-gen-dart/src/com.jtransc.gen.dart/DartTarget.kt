@@ -273,10 +273,6 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		line(super.genBody2WithFeatures(method, body))
-	}
-
 	//override fun N_i(str: String) = "N.i($str)"
 	override fun N_i(str: String) = "($str)"
 	override fun N_f2i(str: String) = "N.f2i($str)"
