@@ -65,7 +65,11 @@ script:
 - node target/jtransc-js/program.js
 - popd
 - jdk_switcher use oraclejdk8
-- ./gradlew travisDeploy # deploy
+deploy:
+  - provider: script
+    script: ./gradlew travisDeploy # deploy
+    on:
+      branch: master
 cache:
   directories: 
 notifications:

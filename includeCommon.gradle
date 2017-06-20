@@ -4,17 +4,13 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
 
-def props = rootProject.extensions.getExtraProperties()
+//println("publicationVersion: $publicationVersion")
 
-if (!props.has("gitVersion")) {
-	try {
-		props.set("gitVersion", "git describe".execute().text.trim())
-	} catch (Throwable) {
-		props.set("gitVersion", "${jtranscVersion}")
-	}
+if (publicationVersion.isEmpty()) {
+	println("git describe --tags")
+	println("git describe --tags".execute().text.trim())
+	throw new Exception("gitVersion is empty")
 }
-
-def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
 
 publishing {
 	publications {
@@ -35,9 +31,12 @@ bintray {
 
 	dryRun = false
 	publish = true
-	if ("$project.version".endsWith("-SNAPSHOT")) {
+	//println(actualJtranscVersion)
+	if (actualJtranscVersion.endsWith("-SNAPSHOT")) {
 		override = true
 	}
+
+	//println(publishing.publications[0].version)
 
 	pkg {
 		userOrg = 'jtransc'
