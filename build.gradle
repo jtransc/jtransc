@@ -22,6 +22,23 @@ apply plugin: 'idea'
 //	include "**/*Test.class" // whatever Ant pattern matches your test class files
 //}
 
+def props = rootProject.ext
+
+if (!props.has("publicationVersion")) {
+	//println("CALC publicationVersion")
+	props.set("publicationVersion", "")
+	if (jtranscVersion.endsWith("-SNAPSHOT")) {
+		try {
+			props.set("publicationVersion", "git describe --tags".execute().text.trim())
+		} catch (Throwable e) {
+			e.printStackTrace()
+		}
+	} else {
+		props.set("publicationVersion", jtranscVersion)
+	}
+}
+
+String publicationVersion = ("" + props.get("publicationVersion")).trim()
 
 allprojects { project ->
 	//task hello << {task ->
@@ -37,8 +54,10 @@ allprojects { project ->
 
 	project.ext.kotlin_version = kotlinVersion
 	project.ext.group = "com.jtransc"
-	project.ext.jtranscVersion = "${jtranscVersion}"
-
+	//project.ext.jtranscVersion = "${jtranscVersion}"
+	project.ext.actualJtranscVersion = "${jtranscVersion}"
+	project.ext.jtranscVersion = "${publicationVersion}"
+	project.ext.publicationVersion = "${publicationVersion}"
 
 
 	//apply from: '../include.gradle'
@@ -82,7 +101,7 @@ task snapshotTask() {
 task releaseTask() {
 }
 
-if ("$jtranscVersion".endsWith("-snapshot")) {
+if ("$jtranscVersion".endsWith("-SNAPSHOT")) {
 	travisDeploy.dependsOn('snapshotTask')
 } else {
 	travisDeploy.dependsOn('releaseTask')
