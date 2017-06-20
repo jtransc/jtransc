@@ -4,25 +4,13 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
 
-def props = rootProject.extensions.getExtraProperties()
-
-if (!props.has("gitVersion")) {
-	try {
-		props.set("gitVersion", "git describe".execute().text.trim())
-	} catch (Throwable) {
-		props.set("gitVersion", "${jtranscVersion}")
-	}
-}
-
-def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
-
 publishing {
 	publications {
 		MyPublication(MavenPublication) {
 			from components.java
 			groupId project.group
 			artifactId project.name
-			version publicationVersion
+			version "git describe".execute().text.trim()
 		}
 	}
 }
