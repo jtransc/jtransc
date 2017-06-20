@@ -9,12 +9,19 @@ def props = rootProject.extensions.getExtraProperties()
 if (!props.has("gitVersion")) {
 	try {
 		props.set("gitVersion", "git describe --tags".execute().text.trim())
-	} catch (Throwable) {
-		props.set("gitVersion", "${jtranscVersion}")
+	} catch (Throwable e) {
+		e.printStackTrace()
+		props.set("gitVersion", "")
 	}
 }
 
-def publicationVersion = props.get("gitVersion")
+String publicationVersion = ("" + props.get("gitVersion")).trim()
+
+if (publicationVersion.isEmpty()) {
+	println("git describe --tags")
+	println("git describe --tags".execute().text.trim())
+	throw new Exception("gitVersion is empty")
+}
 
 //println("publicationVersion: $publicationVersion")
 
