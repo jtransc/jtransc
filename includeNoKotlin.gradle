@@ -35,7 +35,7 @@ dependencies {
 	testCompile 'junit:junit:4.12'
 }
 
-if (System.getenv("JTRANCS_DEPLOY") != null) {
+if (System.getenv("JTRANSC_DEPLOY") != null) {
 	task javadoc2(type: Javadoc) {
 		failOnError = false
 	}
@@ -65,7 +65,7 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 			mavenDeployer {
 				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-				repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+				repository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
 					authentication(userName: sonatypeUsername, password: sonatypePassword)
 				}
 

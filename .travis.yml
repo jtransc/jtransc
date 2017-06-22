@@ -52,6 +52,7 @@ before_script:
 - "./gradlew --version"
 script:
 - jdk_switcher use oraclejdk8
+- export JTRANSC_DEPLOY=1
 - "./gradlew -s -i check install uploadArchives"
 - jdk_switcher use oraclejdk7
 - pushd jtransc-main-run/example
