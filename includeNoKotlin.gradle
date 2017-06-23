@@ -70,7 +70,8 @@ if (System.getenv("JTRANSC_DEPLOY") != null) {
 				}
 				repository(url: (version.endsWith("-SNAPSHOT")) ? "https://oss.sonatype.org/content/repositories/snapshots/"
                                                                 : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-					authentication(userName: sonatypeUsername, password: sonatypePassword)
+					authentication(userName: rootProject.properties['sonatypeUsername'] ?: System.getenv("SONATYPE_USERNAME"),
+								   password: rootProject.properties['sonatypePassword'] ?: System.getenv("SONATYPE_PASSWORD"))
 				}
 
 				pom.project {
