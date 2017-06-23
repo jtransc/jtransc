@@ -35,7 +35,7 @@ dependencies {
 	testCompile 'junit:junit:4.12'
 }
 
-if (System.getenv("JTRANCS_DEPLOY") != null) {
+if (System.getenv("JTRANSC_DEPLOY") != null) {
 	task javadoc2(type: Javadoc) {
 		failOnError = false
 	}
@@ -56,17 +56,22 @@ if (System.getenv("JTRANCS_DEPLOY") != null) {
 		archives sourcesJar
 	}
 
-	signing {
-		sign configurations.archives
+	if(!version.endsWith("-SNAPSHOT")){
+		signing {
+			sign configurations.archives
+		}
 	}
 
 	uploadArchives {
 		repositories {
 			mavenDeployer {
-				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-				repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-					authentication(userName: sonatypeUsername, password: sonatypePassword)
+				if(!version.endsWith("-SNAPSHOT")){
+					beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+				}
+				repository(url: (version.endsWith("-SNAPSHOT")) ? "https://oss.sonatype.org/content/repositories/snapshots/"
+                                                                : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+					authentication(userName: rootProject.properties['sonatypeUsername'] ?: System.getenv("SONATYPE_USERNAME"),
+								   password: rootProject.properties['sonatypePassword'] ?: System.getenv("SONATYPE_PASSWORD"))
 				}
 
 				pom.project {
