@@ -65,7 +65,6 @@ script:
 - node target/jtransc-js/program.js
 - popd
 - jdk_switcher use oraclejdk8
-- ./gradlew travisDeploy # deploy
 cache:
   directories: 
 notifications:
@@ -75,5 +74,3 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
-env:
-  secure: vOwXPyLMudJnMghI90mIRwydYwoyUo4LC/UqZwlk9YVLk6x9CRrZpZwXsQXnbvo0COJ3wZ71lxeaE1z6bqedEHwFE2So514yDv1t9lVZDY5qoS426hDXmOPOF4Wu40c/wE6/dhB09Ul4EqoWxfS9psyNrdVEhTRoyYmK0kTDy+HzC2/9PSW9OjM5s91d5S0O6EigbqGAXLkK/NhiUJTaCCU34T5PGpL6lwCHcMajcCp2lFqJ6lNv7clYNJi6cbRKcianMlPoTTsxbOUwO6+29jeqPWeBE+Yral16GVFabdF5mVsK9B8JRRH/kcZEW/8nr2YRpxK76qp/OWyK0nJKejuyOjp710VUPxSt19WLbR7tRBYRL6ojut7uNJLOzPaS+nmjQNwb/cYUMfZOeoDqufc4ioYFF990/st4OfRyqVca/YB3wmC94SkNz/dMXB7x/B4FD0pbl0JNdA5EEk4wF/8+bylvG+T8bY8sz4EzGbFsUkcuf4a0e07fALaMyVN70nOYSlTWuxB0o+5C4geMElpUOn1cpvfXL6urD3mwhXWwb2vOtk7EaiQibSrZTBPLoAVPK6GwL+SlgpaMFXJwYy6wRyIXciqQhKg1QFCpuGD1/0hhXxh3yR/YtB38dIoCZ/nAR7VccEqSOFJwDl62YKsYUkhOhYrg7PIGgJBgfkw=
