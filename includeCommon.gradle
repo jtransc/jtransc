@@ -1,0 +1,50 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'signing'
+
+def props = rootProject.extensions.getExtraProperties()
+
+if (!props.has("gitVersion")) {
+	try {
+		props.set("gitVersion", "git describe".execute().text.trim())
+	} catch (Throwable) {
+		props.set("gitVersion", "${jtranscVersion}")
+	}
+}
+
+def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
+
+publishing {
+	publications {
+		MyPublication(MavenPublication) {
+			from components.java
+			groupId project.group
+			artifactId project.name
+			version publicationVersion
+		}
+	}
+}
+
+bintray {
+	user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_USER']
+	key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_KEY']
+
+	publications = ['MyPublication']
+
+	dryRun = false
+	publish = true
+	if ("$project.version".endsWith("-SNAPSHOT")) {
+		override = true
+	}
+
+	pkg {
+		userOrg = 'jtransc'
+		repo = 'jtransc'
+		name = 'jtransc'
+		//name = rootProject.name
+		licenses = ['Apache-2.0']
+		vcsUrl = 'https://github.com/jtransc/jtransc.git'
+	}
+}

@@ -7,6 +7,6 @@ import org.gradle.api.tasks.TaskAction
 open class JTranscGradleReport : DefaultTask() {
 	@Suppress("unused")
 	@TaskAction open fun task() {
-		JTranscRtReport.main(arrayOf())
+		JTranscRtReport.main(arrayOf<String>())
 	}
 }

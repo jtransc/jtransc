@@ -113,6 +113,8 @@ class JTranscBuild(
 		val plugins = ServiceLoader.load(JTranscPlugin::class.java).toList().sortedBy { it.priority }.toGroup(injector)
 		val pluginNames = plugins.plugins.map { it.javaClass.simpleName }
 
+		injector.mapInstance(plugins)
+
 		log("AllBuild.build(): language=$target, subtarget=$subtarget, entryPoint=$entryPoint, output=$output, targetDirectory=$targetDirectory, plugins=$pluginNames")
 		//for (cp in classPaths2) log("ClassPath: $cp")
 
@@ -153,6 +155,8 @@ class JTranscBuild(
 
 		for (featureClass in MissingFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onMissing(program, settings, types)
 		for (featureClass in SupportedFeatureClasses) AllPluginFeaturesMap[featureClass]!!.onSupported(program, settings, types)
+
+		plugins.onAfterAppliedClassFeatures(program)
 
 		genStaticInitOrder(program, plugins)
 

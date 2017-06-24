@@ -73,8 +73,9 @@ open class _Base {
 
 	val testClassesPaths = listOf(
 		File("build/classes/test").absolutePath,
+		File("build/classes/java/test").absolutePath,
+		File("build/classes/kotlin/test").absolutePath,
 		File("build/resources/test").absolutePath,
-		//File("build/kotlin-classes/test").absolutePath,
 		File("target/test-classes").absolutePath
 	)
 
@@ -157,28 +158,29 @@ open class _Base {
 					//relooper = false,
 					analyzer = params.analyze ?: ANALYZER,
 					rtAndRtCore = listOf(
-						projectRoot["jtransc-rt/target/classes"].realpathOS,
-						projectRoot["jtransc-rt/build/classes/main"].realpathOS,
-						projectRoot["jtransc-rt/build/resources/main"].realpathOS,
-						projectRoot["jtransc-rt-core/target/classes"].realpathOS,
-						projectRoot["jtransc-rt-core/build/classes/main"].realpathOS,
-						projectRoot["jtransc-rt-core/build/resources/main"].realpathOS,
-						projectRoot["jtransc-rt-core-kotlin/target/classes"].realpathOS,
-						projectRoot["jtransc-rt-core-kotlin/build/classes/main"].realpathOS,
-						projectRoot["jtransc-rt-core-kotlin/build/resources/main"].realpathOS,
-						projectRoot["jtransc-rt-extended-charsets/target/classes"].realpathOS,
-						projectRoot["jtransc-rt-extended-charsets/build/classes/main"].realpathOS,
-						projectRoot["jtransc-rt-extended-charsets/build/resources/main"].realpathOS,
-						projectRoot["jtransc-annotations/target/classes"].realpathOS,
-						projectRoot["jtransc-annotations/build/classes/main"].realpathOS,
-						projectRoot["jtransc-annotations/build/resources/main"].realpathOS
-					)
+						"jtransc-rt", "jtransc-rt-core",
+						"jtransc-rt-core-kotlin", "jtransc-rt-extended-charsets",
+						"jtransc-annotations"
+					).flatMap {
+						listOf(
+							"$it/target/classes",
+							"$it/build/classes/main",
+							"$it/build/resources/main",
+							"$it/build/classes/java/main",
+							"$it/build/classes/kotlin/main",
+							"$it/build/classes/java/test",
+							"$it/build/classes/kotlin/test"
+						)
+					}.map {
+						projectRoot[it].realpathOS
+					}
+						.filter { File(it).exists() }
+						//.map { it.apply { println(it) } }
 				)
 			)
 			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()
 		}
 	}
-
 
 	val types = ThreadLocal.withInitial { AstTypes() }
 }

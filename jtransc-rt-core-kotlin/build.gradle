@@ -1,3 +1,4 @@
+apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
 apply plugin: "kotlin" // or apply plugin: "kotlin2js" if targeting JavaScript

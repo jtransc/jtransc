@@ -1,3 +1,13 @@
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "com.jtransc:jtransc-gradle-plugin:$jtranscVersion"
+	}
+}
+
 apply plugin: "java"
 apply plugin: 'application'
 apply plugin: "jtransc"
@@ -7,16 +17,6 @@ mainClassName = "Benchmark"
 sourceSets.main {
 	java {
 		srcDirs = ['src']
-	}
-}
-
-buildscript {
-	repositories {
-		mavenLocal()
-		mavenCentral()
-	}
-	dependencies {
-		classpath "com.jtransc:jtransc-gradle-plugin:$jtranscVersion"
 	}
 }
 
@@ -30,5 +30,6 @@ dependencies {
 }
 
 jtransc {
+	minimizeNames = true
 	treeshaking = true
 }

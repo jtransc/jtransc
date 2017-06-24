@@ -254,7 +254,7 @@ public class JTranscSystem {
 	})
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"unknown\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(JT_OS);"),
 		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
 		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),

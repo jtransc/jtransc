@@ -1,6 +1,7 @@
 package com.jtransc.ffi;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMeta;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -148,14 +149,17 @@ public class JTranscFFI {
 	static public class Loader {
 		@HaxeMeta("@:noStack")
 		@HaxeMethodBody("return HaxeDynamicLoad.dlopen(p0._str);")
+		@JTranscMethodBody(target = "cpp", value = "return dlopen(N::istr3(p0));")
 		static native public long dlopen(String name);
 
 		@HaxeMeta("@:noStack")
 		@HaxeMethodBody("return HaxeDynamicLoad.dlsym(p0, p1._str);")
+		@JTranscMethodBody(target = "cpp", value = "return dlsym(p0, N::istr3(p1));")
 		static native public long dlsym(long handle, String name);
 
 		@HaxeMeta("@:noStack")
 		@HaxeMethodBody("return HaxeDynamicLoad.dlclose(p0);")
+		@JTranscMethodBody(target = "cpp", value = "return dlclose(p0);")
 		static native public int dlclose(long handle);
 	}
 }
