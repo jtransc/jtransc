@@ -32,6 +32,7 @@ import java.util.*
 
 //@JTranscAddTemplateVars(target = "cpp", variable = "CMAKE_ARGS", list = arrayOf("--help"))
 object BigTest {
+	val i = arrayOf(9.0F, 2.0F)
 	@Throws(Throwable::class)
 	@JvmStatic fun main(args: Array<String>) {
 		//Thread.sleep(5000L)
@@ -115,8 +116,8 @@ object BigTest {
 
 		keepConstructorsTest()
 
-		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
-		println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
+		// val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
+		// println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
@@ -142,6 +143,8 @@ object BigTest {
 		JTranscBug127.main(args)
 
 		System.out.println(String.format("%d%%", 100))
+
+		System.out.println(i[0] % i[1]);
 	}
 
 	private fun servicesTest() {
