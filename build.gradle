@@ -58,6 +58,8 @@ task updateVersion() {
 		println "Updating jtransc to version '$newversion'"
 		println "Updating kotlin to version '$kotlin_version'"
 
+		def isSnapshot = "$newversion".endsWith("-SNAPSHOT")
+
 		// JTransc version
 		sed("jtransc-rt-core/src/com/jtransc/JTranscVersion.java", 'static private final String version = "(.*)"', "static private final String version = \"$newversion\"")
 		sed("gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
@@ -69,7 +71,11 @@ task updateVersion() {
 		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/plugin-help.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
 		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
 		sed("jtransc-maven-plugin/resources/META-INF/maven/plugin.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
-		sed("README.md", 'id "com.jtransc" version "(.*)"', "id \"com.jtransc\" version \"$newversion\"")
+
+		// JTransc non-snapshot versions
+		if (!isSnapshot) {
+			sed("README.md", 'id "com.jtransc" version "(.*)"', "id \"com.jtransc\" version \"$newversion\"")
+		}
 
 		// Kotlin version
 		sed("jtransc-utils/src/com/jtransc/KotlinVersion.kt", 'val KotlinVersion = "(.*)"', "val KotlinVersion = \"$kotlin_version\"")
