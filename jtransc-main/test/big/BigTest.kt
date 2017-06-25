@@ -116,8 +116,8 @@ object BigTest {
 
 		keepConstructorsTest()
 
-		// val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
-		// println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
+		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
+		println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
