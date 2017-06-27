@@ -526,7 +526,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef,
 		var extraArgCount: Int,
-		var startArgs: List<AstExpr> = listOf<AstExpr>()
+		var startArgs: List<AstExpr.Box> = listOf<AstExpr.Box>()
 	) : AstExpr() {
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
@@ -543,6 +543,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type: AstType = types.unify(etrue.type, efalse.type)
 	}
 }
+
+val List<AstExpr.Box>.exprs: List<AstExpr> get() = this.map { it.value }
+val List<AstExpr>.boxes: List<AstExpr.Box> get() = this.map { it.box }
 
 fun AstExpr.LOCAL.setTo(value: AstExpr): AstStm.SET_LOCAL {
 	val stm = AstStm.SET_LOCAL(this, value.castTo(this.type), dummy = true)
