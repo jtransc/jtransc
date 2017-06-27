@@ -341,11 +341,11 @@ object AstAnnotateExpressions : AstVisitor() {
 	}
 }
 
-val OPTIMIZATIONS = listOf(
+val OPTIMIZATIONS = listOf<() -> AstTransformer>(
 	{ AstCastOptimizer() }
 )
 
-val STM_OPTIMIZATIONS = listOf(
+val STM_OPTIMIZATIONS = listOf<() -> AstTransformer>(
 	{ AstLocalTyper() }
 )
 

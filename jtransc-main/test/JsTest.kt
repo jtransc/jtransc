@@ -37,6 +37,7 @@ import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
+import jtransc.java8.InnerLambdaTest
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2
 import jtransc.jtransc.js.ScriptEngineTest
@@ -198,4 +199,6 @@ class JsTest : _Base() {
 	@Test fun testIssue146() = testClass(Params(clazz = Issue146::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testInnerLambda() = testClass(Params(clazz = InnerLambdaTest::class.java, minimize = false, log = false, treeShaking = true))
 }

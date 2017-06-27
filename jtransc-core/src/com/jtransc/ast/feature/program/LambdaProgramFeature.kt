@@ -55,7 +55,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 							}
 						}
 
-						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startArgs)
+						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startArgs.exprs)
 					}
 					else -> it
 				}
