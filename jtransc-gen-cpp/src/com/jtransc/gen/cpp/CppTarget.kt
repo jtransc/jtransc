@@ -891,7 +891,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_lshr_cst(l: String, r: Int) = N_func("lshr_cst", "$l, $r")
 	override fun N_lushr_cst(l: String, r: Int) = N_func("lushr_cst", "$l, $r")
 
-	override fun N_frem(l: String, r: String) = "::frem($l, $r)"
+	override fun N_frem(l: String, r: String) = "::fmod($l, $r)"
 	override fun N_drem(l: String, r: String) = "::fmod($l, $r)"
 
 	override fun N_lneg(str: String) = "(-($str))"

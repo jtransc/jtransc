@@ -7,6 +7,8 @@ import com.jtransc.text.Indenter.Companion
 
 //fun AstBody.dump() = dump(this)
 
+fun AstBody.dump(types: AstTypes) = dump(types, this)
+
 fun dump(types: AstTypes, body: AstBody): Indenter {
 	return Indenter {
 		for (local in body.locals) {
@@ -131,6 +133,9 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 				is AstExpr.CALL_STATIC -> expr.clazz.fqname + "." + expr.method.name + "($argsString)"
 				else -> invalidOp
 			}
+		}
+		is AstExpr.INVOKE_DYNAMIC_METHOD -> {
+			"invokeDynamic(${expr.extraArgCount}, ${expr.methodInInterfaceRef}, ${expr.methodToConvertRef})(${expr.startArgs.map { dump(types, it) }.joinToString(", ")})"
 		}
 		else -> noImpl("$expr")
 	}

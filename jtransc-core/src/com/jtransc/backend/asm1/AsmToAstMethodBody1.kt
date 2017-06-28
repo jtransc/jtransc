@@ -102,9 +102,11 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		},
 		AstBodyFlags(types = types, strictfp = method.access.hasFlag(Opcodes.ACC_STRICT), hasDynamicInvoke = hasDynamicInvoke),
 		methodRef = methodRef
-	).optimize()
+	)
 
-	return out
+	val outOptimized = out.optimize()
+
+	return outOptimized
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {
@@ -641,7 +643,7 @@ private class BasicBlockBuilder(
 		)
 		if (dynamicResult is AstExpr.INVOKE_DYNAMIC_METHOD) {
 			// dynamicResult.startArgs = stackPopToLocalsCount(dynamicResult.extraArgCount).map { AstExpr.LOCAL(it) }.reversed()
-			dynamicResult.startArgs = (0 until dynamicResult.extraArgCount).map { stackPop() }.reversed()
+			dynamicResult.startArgs = (0 until dynamicResult.extraArgCount).map { stackPop().box }.reversed()
 		}
 		stackPush(dynamicResult)
 	}
