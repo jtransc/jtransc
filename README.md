@@ -189,7 +189,7 @@ __MAC__
 - Install Xcode 8.3.2
 - Related to pure C++ target on mac: `brew install automake libtool`
 - Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
-- For upload on iPhone/iPad from command line `npm install ios-deploy`
+- For upload on iPhone/iPad from command line `sudo npm install -g ios-deploy --unsafe-perm --allow-root`
 
 #### Installing Dart
 - [https://www.dartlang.org/install](https://www.dartlang.org/install)
