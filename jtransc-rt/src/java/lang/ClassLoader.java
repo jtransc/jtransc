@@ -190,12 +190,12 @@ public abstract class ClassLoader {
 		}
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "return ptr_to_jlong(N::jtvmLoadDynamicLibraray(N::istr3(p0).c_str()));")
+	//@JTranscMethodBody(target = "cpp", value = "return ptr_to_jlong(N::jtvmLoadDynamicLibraray(N::istr3(p0).c_str()));")
 	private static long loadLibrarayCpp(String filename) {
 		return 0L;
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "N::jtvmUnLoadDynamicLibraray(jlong_to_ptr(p0));")
+	//@JTranscMethodBody(target = "cpp", value = "N::jtvmUnLoadDynamicLibraray(jlong_to_ptr(p0));")
 	private static void unLoadLibrarayCpp(long handle) {
 	}
 }
