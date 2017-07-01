@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 0.6.4 (2017-07-01)
+
+New features:
+- [ALL] Plugins are now able to process classes after applied features
+- [ALL] @SergeyLabutin Added additional missing settings to CommonGenerator
+
+Fixes:
+- [CPP] Fixed float REM opcode on C++
+- [ALL] Fixed INVOKE_DYNAMIC_METHOD with additional expressions + optimizer (problems with inner lambdas)
+- [GRADLE] Fixes gradle `appendVar` when no annotation was provided already
+
+Improvements:
+- [JS] Now compiler strips .0 trailings on double literals to reduce output size
+
+Cleanups:
+- [ALL] Unified body features on all targets
+- [CPP] Removed ClassLoader C++ specialized code. Since this is not going to work at least with the current reflection library.
+
+Misc:
+- [HAXE] Updated lime to 0.5.1
+- [ALL] Updated to kotlin 1.1.3
+
 ## 0.6.3 (2017-06-11)
 
 New features:

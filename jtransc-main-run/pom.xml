@@ -22,7 +22,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.jtransc</groupId>
-	<!--jtransc--><version>0.6.4-SNAPSHOT</version>
+	<!--jtransc--><version>0.6.4</version>
 	<artifactId>jtransc-main-run</artifactId>
 
 	<dependencies>
