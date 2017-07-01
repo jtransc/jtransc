@@ -2,7 +2,9 @@ package com.jtransc.lang
 
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.noImpl
+import com.jtransc.util.toDoubleOrNull2
 import java.lang.reflect.Array
+import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
@@ -47,7 +49,9 @@ object Dynamic {
 		return when (it) {
 			null -> 0.0
 			is Number -> it.toDouble()
-			else -> it.toString().toDouble()
+			else -> {
+				it.toString().toDoubleOrNull2() ?: 0.0
+			}
 		}
 	}
 
@@ -70,6 +74,25 @@ object Dynamic {
 			is Iterable<*> -> it
 			is CharSequence -> it.toList()
 			else -> listOf<Any?>()
+		}
+	}
+
+	fun toMap(it: Any?): Map<*, *> {
+		return when (it) {
+			null -> mapOf<Any?, Any?>()
+			is Iterable<*> -> it.withIndex().map { it.index to it.value }.toMap()
+			is Map<*, *> -> it
+			else -> {
+				val out = hashMapOf<String, Any?>()
+				for (field in it.javaClass.fields.filter { !Modifier.isStatic(it.modifiers) }) {
+					field.isAccessible = true
+					out[field.name] = field.get(it)
+				}
+				//for (method in it.javaClass.methods.filter { it.name.startsWith("get") && it.parameterCount == 0 }) {
+				//	out[method.name] = method.invoke(it)
+				//}
+				out
+			}
 		}
 	}
 

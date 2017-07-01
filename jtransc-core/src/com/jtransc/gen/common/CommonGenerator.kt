@@ -18,14 +18,17 @@ import com.jtransc.gen.MinimizedNames
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
+import com.jtransc.json.Json
 import com.jtransc.lang.high
 import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
+import com.jtransc.log.log
 import com.jtransc.plugin.JTranscPluginGroup
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
+import com.jtransc.text.substr
 import com.jtransc.util.toIntOrNull2
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
@@ -55,6 +58,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val localVarPrefix = ""
 	open val floatHasFSuffix = true
 	open val casesWithCommas = false
+	open val optionalDoubleDummyDecimals = false
 
 	open val GENERATE_LINE_NUMBERS = true
 
@@ -1729,7 +1733,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
-		(
+		val result = (
 			mapOf(
 				"CLASS" to "",
 				"outputFolder" to outputFile2.parent,
@@ -1767,7 +1771,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			) + extraVars
 			)
 			.toHashMap()
+		log.info("TEMPLATE VARS:")
+		log.info(Json.encode(result))
+		log.info("extraVars:")
+		log.info(Json.encode(extraVars))
+		result
 	}
+
 
 	open fun setTemplateParamsAfterBuildingSource() {
 		params["entryPointFile"] = entryPointFilePath
@@ -1972,7 +1982,14 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is String -> v.escapeString
 		is Long -> N_lnew(v)
 		is Float -> if (v.isInfinite()) if (v < 0) FloatNegativeInfinityString else FloatPositiveInfinityString else if (v.isNaN()) FloatNanString else if (floatHasFSuffix) "${v}f" else "$v"
-		is Double -> if (v.isInfinite()) if (v < 0) DoubleNegativeInfinityString else DoublePositiveInfinityString else if (v.isNaN()) if (v < 0) "-$DoubleNanString" else DoubleNanString else "$v"
+		is Double -> {
+			val out = if (v.isInfinite()) if (v < 0) DoubleNegativeInfinityString else DoublePositiveInfinityString else if (v.isNaN()) if (v < 0) "-$DoubleNanString" else DoubleNanString else "$v"
+			if (optionalDoubleDummyDecimals && out.endsWith(".0")) {
+				out.substr(0, -2)
+			} else {
+				out
+			}
+		}
 		is Int -> when (v) {
 			Int.MIN_VALUE -> "N${staticAccessOperator}MIN_INT32"
 			else -> N_inew(v.toInt())
