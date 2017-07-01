@@ -76,6 +76,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val stringPoolType = StringPool.Type.GLOBAL
 	override val floatHasFSuffix: Boolean = false
 
+	override val optionalDoubleDummyDecimals = true
+
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
 
