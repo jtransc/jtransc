@@ -18,9 +18,11 @@ import com.jtransc.gen.MinimizedNames
 import com.jtransc.gen.TargetName
 import com.jtransc.injector.Injector
 import com.jtransc.io.ProcessResult2
+import com.jtransc.json.Json
 import com.jtransc.lang.high
 import com.jtransc.lang.low
 import com.jtransc.lang.putIfAbsentJre7
+import com.jtransc.log.log
 import com.jtransc.plugin.JTranscPluginGroup
 import com.jtransc.template.Minitemplate
 import com.jtransc.text.Indenter
@@ -1729,7 +1731,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
-		(
+		val result = (
 			mapOf(
 				"CLASS" to "",
 				"outputFolder" to outputFile2.parent,
@@ -1767,7 +1769,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			) + extraVars
 			)
 			.toHashMap()
+		log.info("TEMPLATE VARS:")
+		log.info(Json.encode(result))
+		log.info("extraVars:")
+		log.info(Json.encode(extraVars))
+		result
 	}
+
 
 	open fun setTemplateParamsAfterBuildingSource() {
 		params["entryPointFile"] = entryPointFilePath

@@ -23,6 +23,7 @@ import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ast.optimize.AstOptimizer
 import com.jtransc.ds.cast
 import com.jtransc.ds.clearFlags
+import com.jtransc.ds.combinedWith
 import com.jtransc.ds.hasFlag
 import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.firstMapOrNull
@@ -1024,9 +1025,14 @@ fun AstClass.getMembersFor(target: TargetName): List<CondMembers> = this.annotat
 	.map { CondMembers(it.cond, it.value.toList()) }
 	.distinct()
 
-fun AstProgram.getTemplateVariables(target: TargetName, extraVars: Map<String, List<String>> = mapOf()): Map<String, List<String>> = this.classes
-	.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
-	.filter { target.matches(it.target) }
-	.groupBy { it.variable }
-	.map { (key, value) -> key to (value.flatMap { it.list.toList() } + (extraVars[key] ?: listOf())) }
-	.toMap()
+
+fun AstProgram.getTemplateVariables(target: TargetName, extraVars: Map<String, List<String>> = mapOf()): Map<String, List<String>> {
+	val annotationsExtraVars = this.classes
+		.flatMap { it.annotationsList.getTypedList(JTranscAddTemplateVarsList::value) }
+		.filter { target.matches(it.target) }
+		.groupBy { it.variable }
+		.map { (key, value) -> key to value.flatMap { it.list.toList() } }
+		.toMap()
+
+	return annotationsExtraVars.combinedWith(extraVars)
+}
