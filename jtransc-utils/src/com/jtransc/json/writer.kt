@@ -39,7 +39,7 @@ fun JsonWriter.writeValue(value: Any?): JsonWriter = this.apply {
 		is String -> writeString(value)
 		is Double -> writeNumber(value)
 		is Number -> writeNumber(value.toDouble())
-		else -> throw JsonWriterException("Don't know how to serialize $value")
+		else -> writeObject(com.jtransc.lang.Dynamic.toMap(value))
 	}
 }
 
