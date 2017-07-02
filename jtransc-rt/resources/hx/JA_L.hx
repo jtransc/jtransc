@@ -10,6 +10,7 @@ class JA_L extends JA_0 {
         super();
         this.data = new Vector<{% CLASS java.lang.Object %}>(length);
         this.length = length;
+        this.elementShift = -1; // Unknown
         this.desc = desc;
     }
 
@@ -83,12 +84,16 @@ class JA_L extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_L, to:JA_L, fromPos:Int, toPos:Int, length:Int) {
+		#if (sys || flash)
+		Vector.blit(from.data, fromPos, to.data, toPos, length);
+		#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
         	for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
+		#end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

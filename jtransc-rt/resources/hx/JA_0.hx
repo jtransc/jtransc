@@ -3,7 +3,12 @@ import haxe.io.*;
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_0 extends {% CLASS java.lang.Object %} {
     {{ HAXE_FIELD_ANNOTATIONS }} public var length:Int = 0;
+    {{ HAXE_FIELD_ANNOTATIONS }} public var elementShift:Int = -1;
     {{ HAXE_FIELD_ANNOTATIONS }} public var desc:String;
+
+	#if cpp
+	{{ HAXE_FIELD_ANNOTATIONS }} public var rawPtr:cpp.RawPointer<cpp.UInt8> = null;
+	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	override public function {% METHOD java.lang.Object:toString:()Ljava/lang/String; %}() {

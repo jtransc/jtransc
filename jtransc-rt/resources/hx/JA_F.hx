@@ -26,6 +26,7 @@ class JA_F extends JA_0 {
 		}
 		this.data = data;
         this.length = length;
+        this.elementShift = 2;
         this.desc = "[F";
 		#if cpp
 		this.ptr = cpp.NativeArray.address(data.toData(), 0);

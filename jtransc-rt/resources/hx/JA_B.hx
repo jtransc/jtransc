@@ -20,9 +20,12 @@ class JA_B extends JA_0 {
         }
         this.data = data;
         this.length = length;
+        this.elementShift = 0;
         this.desc = "[B";
         #if cpp
         	ptr = cpp.NativeArray.address(data.getData(), 0).reinterpret();
+        	rawPtr = ptr.rawCast();
+        	//trace('rawPtr: $rawPtr');
 		#end
     }
 

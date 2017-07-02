@@ -31,9 +31,11 @@ class JA_S extends JA_0 {
 		}
         this.data = data;
         this.length = length;
+        this.elementShift = 1;
         this.desc = "[S";
 		#if cpp
-		this.ptr = NativeArray.address(data.toData(), 0);
+			this.ptr = NativeArray.address(data.toData(), 0);
+        	rawPtr = ptr.rawCast();
 		#end
     }
 

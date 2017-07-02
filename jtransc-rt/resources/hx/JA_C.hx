@@ -34,6 +34,7 @@ class JA_C extends JA_0 {
 		}
         this.data = data;
         this.length = length;
+        this.elementShift = 1;
         this.desc = "[C";
 		#if cpp
 		ptr = NativeArray.address(data.toData(), 0);

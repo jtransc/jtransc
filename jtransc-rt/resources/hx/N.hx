@@ -30,6 +30,13 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 	inline static int _i2b(int v) { return (char)v; };
 	inline static int _i2s(int v) { return (short)v; };
 	inline static int _i2c(int v) { return (unsigned short)v; };
+	inline static void _memcpy(unsigned char *dst, int dstPos, unsigned char *src, int srcPos, int shift, int count) {
+		::memcpy(
+			&dst[dstPos << shift],
+			&src[srcPos << shift],
+			count << shift
+		);
+	};
 ')
 #end
 class N {
@@ -40,9 +47,11 @@ class N {
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var M2P32_DBL = Math.pow(2, 32);
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
-	//#if cpp
-	//@:native("::memset") static public function memset(ptr: Pointer<):Int;
-	//#end
+	#if cpp
+		//@:native("::memset") static public function memset(ptr: cpp.Pointer<cpp.Void>):Int;
+		@:native("N_obj::_memcpy") static public function memcpy(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, elementSize: Int, count: Int):Void {
+		}
+	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function intToLong(v:Int):NativeInt64 {
@@ -107,9 +116,9 @@ class N {
 	}
 
 	#if cpp
-	@:native("N_obj::_i2b") static public function i2b(v:Int):Int;
-	@:native("N_obj::_i2s") static public function i2s(v:Int):Int;
-	@:native("N_obj::_i2c") static public function i2c(v:Int):Int;
+	@:native("N_obj::_i2b") static public function i2b(v:Int):Int return ((v << 24) >> 24);
+	@:native("N_obj::_i2s") static public function i2s(v:Int):Int return ((v << 16) >> 16);
+	@:native("N_obj::_i2c") static public function i2c(v:Int):Int return v & 0xFFFF;
 	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v;
 	#elseif (js || flash)
 	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2b(v:Int):Int return ((v << 24) >> 24);
@@ -575,8 +584,16 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function arraycopy(src:JavaObject, srcPos:Int, dest:JavaObject, destPos:Int, length:Int) {
 		var srcArray = cast(src, JA_0);
-		if (srcArray != null) {
-			srcArray.copyTo(srcPos, cast(dest, JA_0), destPos, length);
+		var dstArray = cast(dest, JA_0);
+		var elementShift = srcArray.elementShift;
+		if (srcArray != null && dstArray != null) {
+			#if cpp
+				if (srcArray.rawPtr != null && elementShift >= 0) {
+					memcpy(dstArray.rawPtr, destPos, srcArray.rawPtr, srcPos, elementShift, length);
+					return;
+				}
+			#end
+			srcArray.copyTo(srcPos, dstArray, destPos, length);
 		} else {
 			var str = "arraycopy failed unsupported array type! " + src + ", " + dest;
 			trace(str);

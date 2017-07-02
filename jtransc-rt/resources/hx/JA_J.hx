@@ -24,6 +24,7 @@ class JA_J extends JA_0 {
         var zero = ZERO;
         for (n in 0 ... length) this.data[n] = zero;
         this.length = length;
+        this.elementShift = 3;
         this.desc = "[J";
 		//#if cpp ptr = NativeArray.address(data.toData(), 0); #end
     }

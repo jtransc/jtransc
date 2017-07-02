@@ -22,6 +22,7 @@ class JA_D extends JA_0 {
         if (data == null) data = new __JA_D_Item(length); else length = data.length;
         this.data = data;
         this.length = length;
+		this.elementShift = 3;
         this.desc = "[D";
 		#if cpp
 		ptr = cpp.NativeArray.address(data.toData(), 0);
