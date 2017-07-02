@@ -37,10 +37,12 @@ install:
 - nvm use 4 || true
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.4.2/std
+- export HAXELIB_PATH =$PWD/haxe-3.4.2/lib
 - export LD_LIBRARY_PATH=$PWD/neko-2.1.0-linux64
 - export NEKOPATH=$PWD/neko-2.1.0-linux64
 - export HAXEPATH=$PWD/haxe-3.4.2
 - export PATH=$HAXEPATH:$PATH
+- haxelib setup $HAXELIB_PATH
 - ls -la $PWD
 - ls -la $PWD/haxe-3.4.2
 - g++ --version || true
