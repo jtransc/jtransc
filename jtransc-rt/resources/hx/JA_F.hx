@@ -29,7 +29,8 @@ class JA_F extends JA_0 {
         this.elementShift = 2;
         this.desc = "[F";
 		#if cpp
-		this.ptr = cpp.NativeArray.address(data.toData(), 0);
+			this.ptr = cpp.NativeArray.address(data.toData(), 0);
+	       	rawPtr = ptr.rawCast();
 		#end
     }
 
@@ -72,7 +73,7 @@ class JA_F extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	public function fill(from: Int, to: Int, value: Float32) {
-		for (n in from ... to) set(n, value);
+		N.memsetN4f(this.rawPtr, from, to - from, value);
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

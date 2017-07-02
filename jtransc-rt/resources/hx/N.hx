@@ -37,6 +37,21 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 			count << shift
 		);
 	};
+
+	inline static void _memset_N2(unsigned char *dst, int dstPos, int count, int value) {
+		short *ptr = &(((short *)dst)[dstPos]);
+		for (int n = 0; n < count; n++) ptr[n] = (short)value;
+	};
+
+	inline static void _memset_N4(unsigned char *dst, int dstPos, int count, int value) {
+		int *ptr = &(((int *)dst)[dstPos]);
+		for (int n = 0; n < count; n++) ptr[n] = (int)value;
+	};
+
+	inline static void _memset_N4f(unsigned char *dst, int dstPos, int count, float value) {
+		float *ptr = &(((float *)dst)[dstPos]);
+		for (int n = 0; n < count; n++) ptr[n] = (int)value;
+	};
 ')
 #end
 class N {
@@ -48,9 +63,10 @@ class N {
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
 	#if cpp
-		//@:native("::memset") static public function memset(ptr: cpp.Pointer<cpp.Void>):Int;
-		@:native("N_obj::_memcpy") static public function memcpy(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, elementSize: Int, count: Int):Void {
-		}
+		@:native("N_obj::_memcpy") static public function memcpy(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, src: cpp.RawPointer<cpp.UInt8>, srcPos: Int, shift: Int, count: Int):Void return;
+		@:native("N_obj::_memset_N2") static public function memsetN2(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
+		@:native("N_obj::_memset_N4") static public function memsetN4(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
+		@:native("N_obj::_memset_N4f") static public function memsetN4f(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Float):Void return;
 	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

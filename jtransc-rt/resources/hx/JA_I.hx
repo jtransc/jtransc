@@ -112,7 +112,7 @@ class JA_I extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	public function fill(from: Int, to: Int, value: Int) {
-		for (n in from ... to) set(n, value);
+		N.memsetN4(this.rawPtr, from, to - from, value);
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
