@@ -80,12 +80,16 @@ class JA_C extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_C, to:JA_C, fromPos:Int, toPos:Int, length:Int) {
+		#if (cpp || flash)
+		Vector.blit(from.data, fromPos, to.data, toPos, length);
+		#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
+		#end
     }
 
     {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_C), srcPos, dstPos, length); }

@@ -88,12 +88,16 @@ class JA_B extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_B, to:JA_B, fromPos:Int, toPos:Int, length:Int) {
+    	#if cpp
+    	to.data.blit(toPos, from.data, fromPos, length);
+    	#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
+		#end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_B), srcPos, dstPos, length); }
