@@ -42,5 +42,5 @@ ENDIF()
 add_executable(program program.cpp)
 
 {% for lib in CPP_LIBS %}
-target_link_libraries(program {{ lib }})
+target_link_libraries(program pthread {{ lib }})
 {% end %}
