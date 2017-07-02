@@ -757,7 +757,7 @@ public class Arrays {
         }
     }
 
-	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3 ? 1 : 0);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_Z, p0)->fill(p1, p2, p3);")
     public static void fill(boolean[] array, int start, int end, boolean value) {
         Arrays.checkStartAndEnd(array.length, start, end);

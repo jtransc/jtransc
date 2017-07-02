@@ -119,7 +119,9 @@ open class _Base {
 	)
 
 	fun action(params: Params): String {
-		return _action(params, run = true).process.outerr;
+		val process = _action(params, run = true).process
+		if (!process.success) throw RuntimeException("Process exited with ${process.exitValue}")
+		return process.outerr;
 	}
 
 	fun _action(params: Params, run: Boolean): JTranscBuild.Result {
