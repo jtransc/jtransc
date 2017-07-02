@@ -41,7 +41,7 @@ before_script:
 - export LD_LIBRARY_PATH=$PWD/neko-2.1.0-linux64
 - export NEKOPATH=$PWD/neko-2.1.0-linux64
 - export HAXEPATH=$PWD/haxe-3.4.2
-- export PATH=$HAXEPATH:$PATH
+- export PATH=$HAXEPATH:$NEKOPATH:$PATH
 - haxelib setup $HAXELIB_PATH
 - haxelib install hxcpp
 - ls -la $PWD
@@ -51,6 +51,8 @@ before_script:
 - java -version || true
 - which haxe || true
 - haxe -version || true
+- which neko || true
+- neko -version || true
 - which nvm || true
 - nvm --version || true
 - which node || true
