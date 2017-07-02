@@ -434,10 +434,7 @@ struct JA_Base : JA_0 {
 		constexpr int32_t typesize = sizeof(T);
 		checkBounds(from);
 		checkBounds(to - 1);
-		if (typesize == 1) {
-			// @TODO: This should be an specialized template AFAIK to avoid cast problems.
-			::memset((void *)this->_data, (int)(void *)v, (int32_t)(to - from));
-		} else if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
+		if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
 			int32_t* data = (int32_t*)this->_data;
 			int32_t from32 = from * 2;
 			int32_t to32 = to * 2;
@@ -464,6 +461,12 @@ struct JA_Base : JA_0 {
 struct JA_B : JA_Base<int8_t> {
 	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
 	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
+
+	void fill(int32_t from, int32_t to, int8_t v) {
+		checkBounds(from);
+		checkBounds(to - 1);
+		::memset((void *)this->_data, v, (to - from));
+	}
 };
 struct JA_Z : public JA_B {
 	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
