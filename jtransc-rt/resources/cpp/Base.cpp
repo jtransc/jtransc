@@ -435,7 +435,8 @@ struct JA_Base : JA_0 {
 		checkBounds(from);
 		checkBounds(to - 1);
 		if (typesize == 1) {
-			::memset((void *)this->_data, (int)v, to - from);
+			// @TODO: This should be an specialized template AFAIK to avoid cast problems.
+			::memset((void *)this->_data, (int)(void *)v, (int32_t)(to - from));
 		} else if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
 			int32_t* data = (int32_t*)this->_data;
 			int32_t from32 = from * 2;
