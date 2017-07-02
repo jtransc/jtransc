@@ -66,6 +66,11 @@ class JA_D extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Float64) {
+		for (n in from ... to) set(n, value);
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_D, to:JA_D, fromPos:Int, toPos:Int, length:Int) {
 		#if (sys || flash)
 		Vector.blit(from.data, fromPos, to.data, toPos, length);

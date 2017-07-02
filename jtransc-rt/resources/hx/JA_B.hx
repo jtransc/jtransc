@@ -87,6 +87,11 @@ class JA_B extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Int) {
+		data.fill(from, to - from, value);
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_B, to:JA_B, fromPos:Int, toPos:Int, length:Int) {
     	#if cpp
     	to.data.blit(toPos, from.data, fromPos, length);

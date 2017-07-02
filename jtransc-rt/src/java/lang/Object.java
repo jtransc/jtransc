@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 @SuppressWarnings({"WeakerAccess", "unused"})
 @HaxeAddFilesTemplate(base = "hx", value = {
 	"hx/MyStringBuf.hx",
-	"hx/N.hx", "hx/NE.hx", "hx/Float32.hx", "hx/Float64.hx",
+	"hx/N.hx", "hx/Float32.hx", "hx/Float64.hx", "hx/NativeInt64.hx",
 	"hx/JA_0.hx", "hx/JA_B.hx", "hx/JA_C.hx", "hx/JA_D.hx", "hx/JA_F.hx", "hx/JA_I.hx", "hx/JA_J.hx", "hx/JA_L.hx", "hx/JA_S.hx", "hx/JA_Z.hx",
 	"hx/HaxePolyfills.hx", "hx/HaxeDynamicLoad.hx", "hx/HaxeIO.hx", "hx/HaxeNativeWrapper.hx",
 })

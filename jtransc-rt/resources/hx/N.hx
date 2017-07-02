@@ -1,7 +1,7 @@
 package ;
 
 import haxe.ds.Vector;
-import haxe.Int64;
+import NativeInt64;
 import haxe.Int32;
 import haxe.io.Bytes;
 import Lambda;
@@ -9,7 +9,6 @@ import haxe.CallStack;
 
 using Lambda;
 
-typedef Long = Int64;
 typedef JavaVoid = {% CLASS java.lang.Void %}
 typedef JavaClass = {% CLASS java.lang.Class %}
 typedef JavaString = {% CLASS java.lang.String %}
@@ -27,31 +26,39 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 // https://haxe.io/roundups/wwx/c++-magic/
 {{ HAXE_CLASS_ANNOTATIONS }}
 #if cpp
-@:headerClassCode('inline static int _i2b(int v) { return (char)v; }; inline static int _i2s(int v) { return (short)v; }; inline static int _i2c(int v) { return (unsigned short)v; };')
+@:headerClassCode('
+	inline static int _i2b(int v) { return (char)v; };
+	inline static int _i2s(int v) { return (short)v; };
+	inline static int _i2c(int v) { return (unsigned short)v; };
+')
 #end
 class N {
-	{{ HAXE_FIELD_ANNOTATIONS }} static private var MAX_INT64 = haxe.Int64.make(0x7FFFFFFF, 0xFFFFFFFF);
-	{{ HAXE_FIELD_ANNOTATIONS }} static private var MIN_INT64 = haxe.Int64.make(0x80000000, 0x00000000);
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var MAX_INT64 = N.lnew(0x7FFFFFFF, 0xFFFFFFFF);
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var MIN_INT64 = N.lnew(0x80000000, 0x00000000);
 	{{ HAXE_FIELD_ANNOTATIONS }} static public var MIN_INT32:Int32 = -2147483648;
 	{{ HAXE_FIELD_ANNOTATIONS }} static public var MAX_INT32:Int32 = 2147483647;
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var M2P32_DBL = Math.pow(2, 32);
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var strLitCache = new Map<String, {% CLASS java.lang.String %}>();
 
+	//#if cpp
+	//@:native("::memset") static public function memset(ptr: Pointer<):Int;
+	//#end
+
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function intToLong(v:Int):Long {
-		return haxe.Int64.make(((v & 0x80000000) != 0) ? -1 : 0, v);
+	inline static public function intToLong(v:Int):NativeInt64 {
+		return N.lnew(((v & 0x80000000) != 0) ? -1 : 0, v);
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	inline static public function floatToLong(v:Float64):Long {
-		return haxe.Int64.make(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+	inline static public function floatToLong(v:Float64):NativeInt64 {
+		return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function longToInt(v:Int64):Int { return v.low; }
+	static public function longToInt(v:NativeInt64):Int { return N.llow(v); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function longToFloat(v:Int64):Float64 {
+	static public function longToFloat(v:NativeInt64):Float64 {
 		if (v < 0) return (v == MIN_INT64) ? -9223372036854775808.0 : -longToFloat(-v);
-		var lowf:Float64 = cast v.low;
-		var highf:Float64 = cast v.high;
+		var lowf:Float64 = cast N.llow(v);
+		var highf:Float64 = cast N.lhigh(v);
 		return lowf + highf * M2P32_DBL;
 	}
 
@@ -100,9 +107,9 @@ class N {
 	}
 
 	#if cpp
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2b(v:Int):Int return ((v << 24) >> 24);
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2s(v:Int):Int return ((v << 16) >> 16);
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function i2c(v:Int):Int return ((v) & 0xFFFF);
+	@:native("N_obj::_i2b") static public function i2b(v:Int):Int;
+	@:native("N_obj::_i2s") static public function i2s(v:Int):Int;
+	@:native("N_obj::_i2c") static public function i2c(v:Int):Int;
 	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i(v:Int):Int32 return v;
 	#elseif (js || flash)
 	{{ HAXE_METHOD_ANNOTATIONS }} static inline public function i2b(v:Int):Int return ((v << 24) >> 24);
@@ -160,13 +167,13 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function int(v:Float):Int return f2i(v);
 
 	//static public function int(value:Int):JavaInteger return boxInt(value);
-	//static public function long(value:Int64):JavaLong return boxLong(value);
+	//static public function long(value:NativeInt64):JavaLong return boxLong(value);
 	//static public function float(value:Float32):JavaFloat return boxFloat(value);
 	//static public function double(value:Float64):JavaDouble return boxDouble(value);
 
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function z2i(v:Bool):Int return v ? 1 : 0;
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float64):haxe.Int64 return haxe.Int64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):NativeInt64 return NativeInt64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float64):NativeInt64 return NativeInt64.fromFloat(v);
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function idiv(a:Int32, b:Int32):Int32 {
@@ -192,7 +199,7 @@ class N {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ldiv(a:Int64, b:Int64):Int64 {
+	static public function ldiv(a:NativeInt64, b:NativeInt64):NativeInt64 {
 		if (a == 0) return 0;
     	if (b == 0) return 0; // CRASH
     	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
@@ -202,7 +209,7 @@ class N {
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lrem(a:Int64, b:Int64): Int64 {
+	static public function lrem(a:NativeInt64, b:NativeInt64): NativeInt64 {
     	if (a == 0) return 0;
     	if (b == 0) return 0; // CRASH
     	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
@@ -225,31 +232,54 @@ class N {
 	#end
 
 	// Long operators
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(a:Int64):Int return a.low;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(a:Int64):Int return a.high;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lneg(a:Int64):Int64 return -a;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function linv(a:Int64):Int64 return ~a;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):Int64 return haxe.Int64.make(a, b);
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function ladd(a:Int64, b:Int64):Int64 return a + b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lsub(a:Int64, b:Int64):Int64 return a - b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lmul(a:Int64, b:Int64):Int64 return a * b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lband(a:Int64, b:Int64):Int64 return a & b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lbor(a:Int64, b:Int64):Int64 return a | b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function land(a:Int64, b:Int64):Int64 return a & b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lor(a:Int64, b:Int64):Int64 return a | b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lxor(a:Int64, b:Int64):Int64 return a ^ b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshl(a:Int64, b:Int):Int64 return a << b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshr(a:Int64, b:Int):Int64 return a >> b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lushr(a:Int64, b:Int):Int64 return a >>> b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function leq(a:Int64, b:Int64) return a == b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lne(a:Int64, b:Int64) return a != b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lge(a:Int64, b:Int64) return a >= b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lle(a:Int64, b:Int64) return a <= b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function llt(a:Int64, b:Int64) return a < b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lgt(a:Int64, b:Int64) return a > b;
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function llcmp(a:Int64, b:Int64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
 
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function lcmp(a:Int64, b:Int64):Int return N.llcmp(a, b);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):NativeInt64 {
+		//#if cpp
+		//return (cast(b, NativeInt64) << 32) | (cast(a, NativeInt64) << 0);
+		//#else
+		return NativeInt64.make(a, b);
+		//#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(v: NativeInt64): Int {
+		//#if cpp
+		//return (v >> 0) & 0xFFFFFFFF;
+		//#else
+		return v.low;
+		//#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(v: NativeInt64): Int {
+		//#if cpp
+		//return (v >> 32) & 0xFFFFFFFF;
+		//#else
+		return v.high;
+		//#end
+	}
+
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lneg(a:NativeInt64):NativeInt64 return -a;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function linv(a:NativeInt64):NativeInt64 return ~a;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function ladd(a:NativeInt64, b:NativeInt64):NativeInt64 return a + b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lsub(a:NativeInt64, b:NativeInt64):NativeInt64 return a - b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lmul(a:NativeInt64, b:NativeInt64):NativeInt64 return a * b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lband(a:NativeInt64, b:NativeInt64):NativeInt64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lbor(a:NativeInt64, b:NativeInt64):NativeInt64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function land(a:NativeInt64, b:NativeInt64):NativeInt64 return a & b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lor(a:NativeInt64, b:NativeInt64):NativeInt64 return a | b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lxor(a:NativeInt64, b:NativeInt64):NativeInt64 return a ^ b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshl(a:NativeInt64, b:Int):NativeInt64 return a << b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lshr(a:NativeInt64, b:Int):NativeInt64 return a >> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lushr(a:NativeInt64, b:Int):NativeInt64 return a >>> b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function leq(a:NativeInt64, b:NativeInt64) return a == b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lne(a:NativeInt64, b:NativeInt64) return a != b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lge(a:NativeInt64, b:NativeInt64) return a >= b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lle(a:NativeInt64, b:NativeInt64) return a <= b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llt(a:NativeInt64, b:NativeInt64) return a < b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lgt(a:NativeInt64, b:NativeInt64) return a > b;
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function llcmp(a:NativeInt64, b:NativeInt64) return llt(a, b) ? -1 : (lgt(a, b) ? 1 : 0);
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function lcmp(a:NativeInt64, b:NativeInt64):Int return N.llcmp(a, b);
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmp(a:Float, b:Float):Int { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmpl(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ? -1 : cmp(a, b); }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function cmpg(a:Float, b:Float):Int { return (Math.isNaN(a) || Math.isNaN(b)) ?  1 : cmp(a, b); }
@@ -292,7 +322,7 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxInt(value:Int):JavaInteger { return JavaInteger{% IMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function boxLong(value:Long):JavaLong { return JavaLong{% IMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	static public function boxLong(value:NativeInt64):JavaLong { return JavaLong{% IMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function boxFloat(value:Float32):JavaFloat { return JavaFloat{% IMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -317,7 +347,7 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxInt(value:JavaObject):Int { return cast(value, JavaInteger){% IFIELD java.lang.Integer:value:I %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function unboxLong(value:JavaObject):Long { return cast(value, JavaLong){% IFIELD java.lang.Long:value:J %}; }
+	static public function unboxLong(value:JavaObject):NativeInt64 { return cast(value, JavaLong){% IFIELD java.lang.Long:value:J %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function unboxFloat(value:JavaObject):Float32 { return cast(value, JavaFloat){% IFIELD java.lang.Float:value:F %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -569,7 +599,7 @@ class N {
 	static public function box(value:Dynamic):JavaObject {
 		if (Std.is(value, Int)) return boxInt(cast value);
 		if (Std.is(value, Float)) return boxFloat(cast value);
-		if (Int64.is(value)) return boxLong(cast value);
+		if (NativeInt64.is(value)) return boxLong(cast value);
 		if (Std.is(value, String)) return str(cast value);
 		if ((value == null) || Std.is(value, JavaObject)) return value;
 		if (Std.is(value, haxe.io.Bytes)) return JA_B.fromBytes(value);
@@ -654,15 +684,15 @@ class N {
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function longBitsToDouble(value: Int64): Float64 {
+	static public function longBitsToDouble(value: NativeInt64): Float64 {
 		#if js _tempI32[0] = value.low; _tempI32[1] = value.high; return _tempF64[0];
-		#else return haxe.io.FPHelper.i64ToDouble(value.low, value.high); #end
+		#else return haxe.io.FPHelper.i64ToDouble(N.llow(value), N.lhigh(value)); #end
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function doubleToLongBits(value: Float64):Int64 {
-		#if js _tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return haxe.Int64.make(i1, i2);
-		#else return haxe.io.FPHelper.doubleToI64(value); #end
+	static public function doubleToLongBits(value: Float64):NativeInt64 {
+		#if js _tempF64[0] = value; var i1 = _tempI32[1]; var i2 = _tempI32[0]; return N.lnew(i1, i2);
+		#else return cast haxe.io.FPHelper.doubleToI64(value); #end
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

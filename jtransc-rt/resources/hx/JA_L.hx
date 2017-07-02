@@ -3,12 +3,12 @@ import haxe.ds.Vector;
 {{ HAXE_CLASS_ANNOTATIONS }}
 class JA_L extends JA_0 {
 	{{ HAXE_FIELD_ANNOTATIONS }}
-    public var data:Vector<Dynamic> = null;
+    public var data:Vector<{% CLASS java.lang.Object %}> = null;
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
     public function new(length:Int, desc:String) {
         super();
-        this.data = new Vector<Dynamic>(length);
+        this.data = new Vector<{% CLASS java.lang.Object %}>(length);
         this.length = length;
         this.desc = desc;
     }
@@ -17,12 +17,20 @@ class JA_L extends JA_0 {
     static public function fromArray(items:Array<Dynamic>, desc:String):JA_L {
         if (items == null) return null;
         var out = new JA_L(items.length, desc);
+        for (n in 0 ... items.length) out.set(n, cast items[n]);
+        return out;
+    }
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+    static public function fromObjectArray(items:Array<{% CLASS java.lang.Object %}>, desc:String):JA_L {
+        if (items == null) return null;
+        var out = new JA_L(items.length, desc);
         for (n in 0 ... items.length) out.set(n, items[n]);
         return out;
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function fromArray1(items:Array<Dynamic>, desc:String):JA_0 {
+    static public function fromArray1(items:Array<{% CLASS java.lang.Object %}>, desc:String):JA_0 {
         if (items == null) return null;
         var out = create(items.length, desc);
         for (n in 0 ... items.length) out.setDynamic(n, items[n]);
@@ -30,7 +38,7 @@ class JA_L extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function fromArray2(items:Array<Array<Dynamic>>, desc:String) {
+    static public function fromArray2(items:Array<Array<{% CLASS java.lang.Object %}>>, desc:String) {
         if (items == null) return null;
         var out = new JA_L(items.length, desc);
         for (n in 0 ... items.length) out.set(n, fromArray1(items[n], desc.substr(1)));
@@ -38,17 +46,17 @@ class JA_L extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    override public function toArray():Array<Dynamic> return data.toArray();
+    override public function toArray():Array<{% CLASS java.lang.Object %}> return data.toArray();
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function toArrayOrEmpty(v:JA_L):Array<Dynamic> {
+    static public function toArrayOrEmpty(v:JA_L):Array<{% CLASS java.lang.Object %}> {
     	return (v != null) ? v.toArray() : [];
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    public function get(index:Int):Dynamic return this.data[checkBounds(index)];
+    public function get(index:Int):{% CLASS java.lang.Object %} return this.data[checkBounds(index)];
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    public function set(index:Int, value:Dynamic):Void this.data[checkBounds(index)] = value;
+    public function set(index:Int, value:{% CLASS java.lang.Object %}):Void this.data[checkBounds(index)] = value;
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	override public function getDynamic(index:Int):Dynamic return get(index);
@@ -67,6 +75,11 @@ class JA_L extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     public override function clone() return fromArray(this.data.toArray(), this.desc);
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: {% CLASS java.lang.Object %}) {
+		for (n in from ... to) set(n, value);
+	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_L, to:JA_L, fromPos:Int, toPos:Int, length:Int) {

@@ -430,7 +430,29 @@ struct JA_Base : JA_0 {
 	void set(int32_t offset, T v) { checkBounds(offset); fastSet(offset, v); };
 	T get(int32_t offset) { checkBounds(offset); return fastGet(offset); };
 
-	void fill(int32_t from, int32_t to, T v) { checkBounds(from); checkBounds(to - 1); T* data = (T*)this->_data; for (int32_t n = from; n < to; n++) data[n] = v; };
+	void fill(int32_t from, int32_t to, T v) {
+		constexpr int32_t typesize = sizeof(T);
+		checkBounds(from);
+		checkBounds(to - 1);
+		if (typesize == 1) {
+			::memset((void *)this->_data, (int)v, to - from);
+		} else if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
+			int32_t* data = (int32_t*)this->_data;
+			int32_t from32 = from * 2;
+			int32_t to32 = to * 2;
+			int32_t* src = (int32_t *)&v;
+			int32_t v1 = src[0];
+			int32_t v2 = src[1];
+			int32_t n = from;
+			while (n < to) {
+				data[n++] = v1;
+				data[n++] = v2;
+			}
+		} else {
+			T* data = (T*)this->_data;
+			for (int32_t n = from; n < to; n++) data[n] = v;
+		}
+	};
 
 	JA_Base<T> *setArray(int32_t start, int32_t size, const T *arrays) {
 		for (int32_t n = 0; n < size; n++) this->set(start + n, arrays[n]);
