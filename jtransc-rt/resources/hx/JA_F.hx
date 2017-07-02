@@ -73,7 +73,11 @@ class JA_F extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	public function fill(from: Int, to: Int, value: Float32) {
-		N.memsetN4f(this.rawPtr, from, to - from, value);
+		#if cpp
+			N.memsetN4f(this.rawPtr, from, to - from, value);
+		#else
+			for (n in from ... to) set(n, value);
+		#end
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

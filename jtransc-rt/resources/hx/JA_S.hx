@@ -79,7 +79,11 @@ class JA_S extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	public function fill(from: Int, to: Int, value: Int) {
+		#if cpp
 		N.memsetN2(this.rawPtr, from, to - from, value);
+		#else
+		for (n in from ... to) set(n, value);
+		#end
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
