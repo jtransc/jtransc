@@ -441,8 +441,8 @@ struct JA_Base : JA_0 {
 			int32_t* src = (int32_t *)&v;
 			int32_t v1 = src[0];
 			int32_t v2 = src[1];
-			int32_t n = from;
-			while (n < to) {
+			int32_t n = from32;
+			while (n < to32) {
 				data[n++] = v1;
 				data[n++] = v2;
 			}
@@ -465,7 +465,7 @@ struct JA_B : JA_Base<int8_t> {
 	void fill(int32_t from, int32_t to, int8_t v) {
 		checkBounds(from);
 		checkBounds(to - 1);
-		::memset((void *)this->_data, v, (to - from));
+		::memset((void *)(&((int8_t *)this->_data)[from]), v, (to - from));
 	}
 };
 struct JA_Z : public JA_B {
@@ -588,7 +588,16 @@ JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 };
 
 JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
+JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) {
+	JA_0* ptr = GET_OBJECT(JA_0, obj);
+	JT_BOOL result = (ptr != nullptr) && (ptr->desc == desc);
+	if (!result) {
+		if (desc.substr(0, 2) == L"[L") {
+			return GET_OBJECT(JA_L, obj) != nullptr;
+		}
+	}
+	return result;
+};
 JT_BOOL N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
 int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
 int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
