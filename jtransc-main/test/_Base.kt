@@ -120,7 +120,7 @@ open class _Base {
 
 	fun action(params: Params): String {
 		val process = _action(params, run = true).process
-		if (!process.success) throw RuntimeException("Process exited with ${process.exitValue}")
+		//if (!process.success) throw RuntimeException("Process exited with ${process.exitValue}")
 		return process.outerr;
 	}
 

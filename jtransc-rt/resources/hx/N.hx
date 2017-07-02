@@ -48,9 +48,39 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 		for (int n = 0; n < count; n++) ptr[n] = (int)value;
 	};
 
+	inline static void _memset_N8(unsigned char *dst, int dstPos, int count, long long int value) {
+		long long int *ptr = &(((long long int *)dst)[dstPos]);
+		for (int n = 0; n < count; n++) ptr[n] = (long long int)value;
+	};
+
 	inline static void _memset_N4f(unsigned char *dst, int dstPos, int count, float value) {
 		float *ptr = &(((float *)dst)[dstPos]);
-		for (int n = 0; n < count; n++) ptr[n] = (int)value;
+		for (int n = 0; n < count; n++) ptr[n] = (float)value;
+	};
+
+	inline static long long int _ldivRaw(long long int a, long long int b) {
+		return a / b;
+	};
+
+	inline static long long int _lnew(int high, int low) {
+		//printf("long long int: %d\\n", sizeof(long long int));
+		return (((long long int)high) << 32) | (((long long int)low) & 0xFFFFFFFFLL);
+	};
+
+	inline static int _llow(long long int v) {
+		return (int)(v >> 0);
+	};
+
+	inline static int _lhigh(long long int v) {
+		return (int)(v >> 32);
+	};
+
+	inline static long long int _f2j(float v) {
+		return (long long int)v;
+	};
+
+	inline static long long int _d2j(double v) {
+		return (long long int)v;
 	};
 ')
 #end
@@ -66,6 +96,7 @@ class N {
 		@:native("N_obj::_memcpy") static public function memcpy(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, src: cpp.RawPointer<cpp.UInt8>, srcPos: Int, shift: Int, count: Int):Void return;
 		@:native("N_obj::_memset_N2") static public function memsetN2(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
 		@:native("N_obj::_memset_N4") static public function memsetN4(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
+		@:native("N_obj::_memset_N8") static public function memsetN8(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: NativeInt64):Void return;
 		@:native("N_obj::_memset_N4f") static public function memsetN4f(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Float):Void return;
 	#end
 
@@ -82,8 +113,8 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longToFloat(v:NativeInt64):Float64 {
 		if (v < 0) return (v == MIN_INT64) ? -9223372036854775808.0 : -longToFloat(-v);
-		var lowf:Float64 = cast N.llow(v);
-		var highf:Float64 = cast N.lhigh(v);
+		var lowf:Float64 = N.llow(v);
+		var highf:Float64 = N.lhigh(v);
 		return lowf + highf * M2P32_DBL;
 	}
 
@@ -197,16 +228,12 @@ class N {
 	//static public function double(value:Float64):JavaDouble return boxDouble(value);
 
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function z2i(v:Bool):Int return v ? 1 : 0;
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):NativeInt64 return NativeInt64.fromFloat(v);
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float64):NativeInt64 return NativeInt64.fromFloat(v);
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function idiv(a:Int32, b:Int32):Int32 {
 		if (a == 0) return 0;
     	if (b == 0) return 0; // CRASH
-    	if (a == N.MIN_INT32 && b == -1) { // CRASH TOO
-    		return N.MIN_INT32; // CRASH TOO?
-    	}
+    	if (a == N.MIN_INT32 && b == -1) return N.MIN_INT32; // CRASH TOO?
 
 		#if cpp return untyped __cpp__("(({0})/({1}))", a, b);
 		#else return Std.int(a / b);
@@ -217,29 +244,7 @@ class N {
 	static public function irem(a:Int32, b:Int32): Int32 {
     	if (a == 0) return 0;
     	if (b == 0) return 0; // CRASH
-    	if (a == N.MIN_INT32 && b == -1) { // CRASH TOO
-    		return 0; // CRASH TOO?
-    	}
-    	return a % b;
-    }
-
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function ldiv(a:NativeInt64, b:NativeInt64):NativeInt64 {
-		if (a == 0) return 0;
-    	if (b == 0) return 0; // CRASH
-    	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
-    		return N.MIN_INT64; // CRASH TOO?
-    	}
-		return a / b;
-	}
-
-	{{ HAXE_METHOD_ANNOTATIONS }}
-	static public function lrem(a:NativeInt64, b:NativeInt64): NativeInt64 {
-    	if (a == 0) return 0;
-    	if (b == 0) return 0; // CRASH
-    	if (a == N.MIN_INT64 && b == -1) { // CRASH TOO
-    		return 0; // CRASH TOO?
-    	}
+    	if (a == N.MIN_INT32 && b == -1) return 0; // CRASH TOO?
     	return a % b;
     }
 
@@ -258,14 +263,32 @@ class N {
 
 	// Long operators
 
+	static public function isNativeInt64(type: Dynamic): Bool {
+		//#if cpp
+		//// Can't know for sure?
+		////return Std.is(type, NativeInt64);
+		//return false;
+		//#else
+		return NativeInt64.is(type);
+		//#end
+	}
+
+
+	//#if cpp
+	//@:native("N_obj::_lnew")
+	//#end
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):NativeInt64 {
 		//#if cpp
-		//return (cast(b, NativeInt64) << 32) | (cast(a, NativeInt64) << 0);
+		////return (cast(b, NativeInt64) << 32) | (cast(a, NativeInt64) << 0);
+		//return 0;
 		//#else
 		return NativeInt64.make(a, b);
 		//#end
 	}
 
+	//#if cpp
+	//@:native("N_obj::_llow")
+	//#end
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(v: NativeInt64): Int {
 		//#if cpp
 		//return (v >> 0) & 0xFFFFFFFF;
@@ -274,6 +297,9 @@ class N {
 		//#end
 	}
 
+	//#if cpp
+	//@:native("N_obj::_lhigh")
+	//#end
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(v: NativeInt64): Int {
 		//#if cpp
 		//return (v >> 32) & 0xFFFFFFFF;
@@ -282,6 +308,37 @@ class N {
 		//#end
 	}
 
+
+	//#if cpp
+	//@:native("N_obj::_f2j") {{ HAXE_METHOD_ANNOTATIONS }} static public function f2j(v:Float32):NativeInt64 return -1;
+	//@:native("N_obj::_d2j") {{ HAXE_METHOD_ANNOTATIONS }} static public function d2j(v:Float64):NativeInt64 return -1;
+	//#else
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):NativeInt64 return NativeInt64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float32):NativeInt64 return NativeInt64.fromFloat(v);
+	//#end
+
+	//#if cpp
+    //@:native("N_obj::_ldivRaw") static public function ldivRaw(a:NativeInt64, b:NativeInt64):NativeInt64 return 0;
+	//#else
+    //static public function ldivRaw(a:NativeInt64, b:NativeInt64):NativeInt64 return a / b;
+    //#end
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function ldiv(a:NativeInt64, b:NativeInt64):NativeInt64 {
+		if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT64 && b == -1) return N.MIN_INT64; // CRASH TOO?
+		//return ldivRaw(a, b);
+		return a / b;
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function lrem(a:NativeInt64, b:NativeInt64): NativeInt64 {
+    	if (a == 0) return 0;
+    	if (b == 0) return 0; // CRASH
+    	if (a == N.MIN_INT64 && b == -1) return 0; // CRASH TOO?
+    	return a % b;
+    }
 
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lneg(a:NativeInt64):NativeInt64 return -a;
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function linv(a:NativeInt64):NativeInt64 return ~a;
@@ -632,7 +689,7 @@ class N {
 	static public function box(value:Dynamic):JavaObject {
 		if (Std.is(value, Int)) return boxInt(cast value);
 		if (Std.is(value, Float)) return boxFloat(cast value);
-		if (NativeInt64.is(value)) return boxLong(cast value);
+		if (isNativeInt64(value)) return boxLong(cast value);
 		if (Std.is(value, String)) return str(cast value);
 		if ((value == null) || Std.is(value, JavaObject)) return value;
 		if (Std.is(value, haxe.io.Bytes)) return JA_B.fromBytes(value);
