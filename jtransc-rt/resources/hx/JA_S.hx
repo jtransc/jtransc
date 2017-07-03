@@ -31,9 +31,11 @@ class JA_S extends JA_0 {
 		}
         this.data = data;
         this.length = length;
+        this.elementShift = 1;
         this.desc = "[S";
 		#if cpp
-		this.ptr = NativeArray.address(data.toData(), 0);
+			this.ptr = NativeArray.address(data.toData(), 0);
+        	rawPtr = ptr.rawCast();
 		#end
     }
 
@@ -76,13 +78,26 @@ class JA_S extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Int) {
+		#if cpp
+		N.memsetN2(this.rawPtr, from, to - from, value);
+		#else
+		for (n in from ... to) set(n, value);
+		#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_S, to:JA_S, fromPos:Int, toPos:Int, length:Int) {
+		#if (cpp || flash)
+		Vector.blit(from.data, fromPos, to.data, toPos, length);
+		#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 	    }
+	    #end
     }
 
     {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_S), srcPos, dstPos, length); }

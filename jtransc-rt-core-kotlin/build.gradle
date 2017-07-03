@@ -11,3 +11,9 @@ dependencies {
 	compile project(':jtransc-rt-core')
 	compile project(':jtransc-annotations')
 }
+
+kotlin {
+	experimental {
+		coroutines "enable"
+	}
+}

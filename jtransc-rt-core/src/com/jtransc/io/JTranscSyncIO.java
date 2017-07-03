@@ -590,9 +590,7 @@ public class JTranscSyncIO {
 			int available = (int) (getLength() - getPosition());
 			if (available <= 0) return -1;
 			int toRead = Math.min(available, size);
-			for (int n = 0; n < toRead; n++) {
-				data[offset + n] = this.data[this.position + n];
-			}
+			System.arraycopy(this.data, this.position, data, offset, toRead);
 			this.position += toRead;
 			return toRead;
 		}

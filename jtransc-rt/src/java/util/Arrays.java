@@ -18,6 +18,7 @@
 package java.util;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.mem.FastMemByte;
 
 import java.io.Serializable;
@@ -693,6 +694,7 @@ public class Arrays {
 		fill(array, 0, array.length, value);
 	}
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_B, p0)->fill(p1, p2, p3);")
 	public static void fill(byte[] array, int start, int end, byte value) {
 		Arrays.checkStartAndEnd(array.length, start, end);
@@ -701,6 +703,7 @@ public class Arrays {
 		}
 	}
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_S, p0)->fill(p1, p2, p3);")
 	public static void fill(short[] array, int start, int end, short value) {
 		Arrays.checkStartAndEnd(array.length, start, end);
@@ -709,6 +712,7 @@ public class Arrays {
 		}
 	}
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_C, p0)->fill(p1, p2, p3);")
 	public static void fill(char[] array, int start, int end, char value) {
 		Arrays.checkStartAndEnd(array.length, start, end);
@@ -717,6 +721,7 @@ public class Arrays {
 		}
 	}
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_I, p0)->fill(p1, p2, p3);")
 	public static void fill(int[] array, int start, int end, int value) {
 		Arrays.checkStartAndEnd(array.length, start, end);
@@ -725,6 +730,7 @@ public class Arrays {
 		}
 	}
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_J, p0)->fill(p1, p2, p3);")
     public static void fill(long[] array, int start, int end, long value) {
         Arrays.checkStartAndEnd(array.length, start, end);
@@ -733,6 +739,7 @@ public class Arrays {
         }
     }
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_F, p0)->fill(p1, p2, p3);")
     public static void fill(float[] array, int start, int end, float value) {
         Arrays.checkStartAndEnd(array.length, start, end);
@@ -741,6 +748,7 @@ public class Arrays {
         }
     }
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_D, p0)->fill(p1, p2, p3);")
     public static void fill(double[] array, int start, int end, double value) {
         Arrays.checkStartAndEnd(array.length, start, end);
@@ -749,6 +757,7 @@ public class Arrays {
         }
     }
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3 ? 1 : 0);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_Z, p0)->fill(p1, p2, p3);")
     public static void fill(boolean[] array, int start, int end, boolean value) {
         Arrays.checkStartAndEnd(array.length, start, end);
@@ -757,6 +766,7 @@ public class Arrays {
         }
     }
 
+	@HaxeMethodBody(value = "p0.fill(p1, p2, p3);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT(JA_L, p0)->fill(p1, p2, p3);")
     public static void fill(Object[] array, int start, int end, Object value) {
         Arrays.checkStartAndEnd(array.length, start, end);

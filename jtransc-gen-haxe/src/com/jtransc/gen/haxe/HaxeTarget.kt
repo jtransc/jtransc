@@ -505,20 +505,23 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun N_i2b(str: String) = "N.i2b($str)"
 	override fun N_i2b(str: String) = if (subtarget == "cpp") {
-		"NE.i2b($str)"
+		//"NE.i2b($str)"
+		"N.i2b($str)"
 	} else {
 		if (inlineCasts) "(($str) << 24 >> 24)" else "N.i2b($str)"
 	}
 
 	override fun N_i2c(str: String) = if (subtarget == "cpp") {
-		"NE.i2c($str)"
+		//"NE.i2c($str)"
+		"N.i2c($str)"
 	} else {
 		if (inlineCasts) "(($str) & 0xFFFF)" else "N.i2c($str)"
 	}
 
 	override fun N_i2s(str: String) = if (subtarget == "cpp") {
 		//"(untyped __cpp__('((int)(short)({0}))', $str))"
-		"NE.i2s($str)"
+		//"NE.i2s($str)"
+		"N.i2s($str)"
 	} else {
 		if (inlineCasts) "(($str) << 16 >> 16)" else "N.i2s($str)"
 	}
@@ -533,7 +536,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_d2f(str: String) = "(($str))"
 	override fun N_d2d(str: String) = "($str)"
 	override fun N_d2i(str: String) = "Std.int($str)"
-	override fun N_j2i(str: String) = "(($str).low)"
+	override fun N_j2i(str: String) = "(N.llow($str))"
 	override fun N_j2j(str: String) = "($str)"
 	override fun N_j2f(str: String) = "N.longToFloat($str)"
 	override fun N_j2d(str: String) = "N.longToFloat($str)"

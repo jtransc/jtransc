@@ -20,9 +20,12 @@ class JA_B extends JA_0 {
         }
         this.data = data;
         this.length = length;
+        this.elementShift = 0;
         this.desc = "[B";
         #if cpp
         	ptr = cpp.NativeArray.address(data.getData(), 0).reinterpret();
+        	rawPtr = ptr.rawCast();
+        	//trace('rawPtr: $rawPtr');
 		#end
     }
 
@@ -47,13 +50,7 @@ class JA_B extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function fromBytes(bytes:Bytes) {
-        if (bytes == null) return null;
-        var out = new JA_B(bytes.length);
-        var bytesData = bytes.getData();
-        for (n in 0 ... bytes.length) out.set(n, Bytes.fastGet(bytesData, n));
-        return out;
-    }
+    static public function fromBytes(bytes:Bytes) return (bytes == null) ? null : new JA_B(bytes.length, bytes);
 
 	#if cpp
 	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):Int return ptr[checkBounds(index)];
@@ -87,13 +84,22 @@ class JA_B extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Int) {
+		data.fill(from, to - from, value);
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_B, to:JA_B, fromPos:Int, toPos:Int, length:Int) {
+    	#if cpp
+    	to.data.blit(toPos, from.data, fromPos, length);
+    	#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
+		#end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_B), srcPos, dstPos, length); }

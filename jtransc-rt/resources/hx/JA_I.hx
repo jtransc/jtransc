@@ -35,9 +35,11 @@ class JA_I extends JA_0 {
 		}
         this.data = data;
         this.length = length;
+        this.elementShift = 2;
         this.desc = "[I";
 		#if cpp
-		ptr = NativeArray.address(data.toData(), 0);
+			ptr = NativeArray.address(data.toData(), 0);
+	       	rawPtr = ptr.rawCast();
 		#end
     }
 
@@ -107,6 +109,15 @@ class JA_I extends JA_0 {
         copy(this, out, 0, 0, length);
         return out;
     }
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Int) {
+		#if cpp
+			N.memsetN4(this.rawPtr, from, to - from, value);
+		#else
+			for (n in from ... to) set(n, value);
+		#end
+	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_I, to:JA_I, fromPos:Int, toPos:Int, length:Int) {

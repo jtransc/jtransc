@@ -18,6 +18,7 @@ import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
 import javatest.utils.CopyTest
 import javatest.utils.DateTest
+import javatest.utils.FillTest
 import jtransc.WrappedTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
@@ -48,6 +49,7 @@ object BigTest {
 		BasicTypesTest.main(args)
 		SystemTest.main(args)
 		CopyTest.main(args)
+		FillTest.main(args)
 		AtomicTest.main(args)
 		FastMemoryTest.main(args)
 		FastMemoryTest.main(args)

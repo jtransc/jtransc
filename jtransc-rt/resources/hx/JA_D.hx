@@ -22,6 +22,7 @@ class JA_D extends JA_0 {
         if (data == null) data = new __JA_D_Item(length); else length = data.length;
         this.data = data;
         this.length = length;
+		this.elementShift = 3;
         this.desc = "[D";
 		#if cpp
 		ptr = cpp.NativeArray.address(data.toData(), 0);
@@ -64,6 +65,11 @@ class JA_D extends JA_0 {
         copy(this, out, 0, 0, length);
         return out;
     }
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function fill(from: Int, to: Int, value: Float64) {
+		for (n in from ... to) set(n, value);
+	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_D, to:JA_D, fromPos:Int, toPos:Int, length:Int) {

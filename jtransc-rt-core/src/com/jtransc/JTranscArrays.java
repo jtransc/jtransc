@@ -111,7 +111,7 @@ public class JTranscArrays {
 		if (array instanceof float[]) return Arrays.toString((float[]) array);
 		if (array instanceof double[]) return Arrays.toString((double[]) array);
 		if (array instanceof Object[]) return Arrays.toString((Object[]) array);
-		return array.toString();
+		return array.toString() + "???????" + array.getClass().isArray();
 	}
 
 	static public String toStringCharsAsInts(Object array) {

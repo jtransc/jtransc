@@ -30,13 +30,20 @@ install:
   d-apt-keyring && sudo apt-get update
 - sudo apt-get -y install dmd-bin dart
 - wget http://haxe.org/website-content/downloads/3.4.2/downloads/haxe-3.4.2-linux64.tar.gz
+- wget http://nekovm.org/media/neko-2.1.0-linux64.tar.gz
 - tar xzf haxe-3.4.2-linux64.tar.gz
+- tar xzf neko-2.1.0-linux64.tar.gz
 - nvm install 4 || true
 - nvm use 4 || true
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.4.2/std
+- export HAXELIB_PATH=$PWD/haxe-3.4.2/lib
+- export LD_LIBRARY_PATH=$PWD/neko-2.1.0-linux64
+- export NEKOPATH=$PWD/neko-2.1.0-linux64
 - export HAXEPATH=$PWD/haxe-3.4.2
-- export PATH=$HAXEPATH:$PATH
+- export PATH=$HAXEPATH:$NEKOPATH:$PATH
+- haxelib setup $HAXELIB_PATH
+- haxelib install hxcpp
 - ls -la $PWD
 - ls -la $PWD/haxe-3.4.2
 - g++ --version || true
@@ -44,6 +51,8 @@ before_script:
 - java -version || true
 - which haxe || true
 - haxe -version || true
+- which neko || true
+- neko -version || true
 - which nvm || true
 - nvm --version || true
 - which node || true

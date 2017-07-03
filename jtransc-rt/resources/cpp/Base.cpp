@@ -430,7 +430,27 @@ struct JA_Base : JA_0 {
 	void set(int32_t offset, T v) { checkBounds(offset); fastSet(offset, v); };
 	T get(int32_t offset) { checkBounds(offset); return fastGet(offset); };
 
-	void fill(int32_t from, int32_t to, T v) { checkBounds(from); checkBounds(to - 1); T* data = (T*)this->_data; for (int32_t n = from; n < to; n++) data[n] = v; };
+	void fill(int32_t from, int32_t to, T v) {
+		constexpr int32_t typesize = sizeof(T);
+		checkBounds(from);
+		checkBounds(to - 1);
+		if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
+			int32_t* data = (int32_t*)this->_data;
+			int32_t from32 = from * 2;
+			int32_t to32 = to * 2;
+			int32_t* src = (int32_t *)&v;
+			int32_t v1 = src[0];
+			int32_t v2 = src[1];
+			int32_t n = from32;
+			while (n < to32) {
+				data[n++] = v1;
+				data[n++] = v2;
+			}
+		} else {
+			T* data = (T*)this->_data;
+			for (int32_t n = from; n < to; n++) data[n] = v;
+		}
+	};
 
 	JA_Base<T> *setArray(int32_t start, int32_t size, const T *arrays) {
 		for (int32_t n = 0; n < size; n++) this->set(start + n, arrays[n]);
@@ -441,6 +461,12 @@ struct JA_Base : JA_0 {
 struct JA_B : JA_Base<int8_t> {
 	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
 	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
+
+	void fill(int32_t from, int32_t to, int8_t v) {
+		checkBounds(from);
+		checkBounds(to - 1);
+		::memset((void *)(&((int8_t *)this->_data)[from]), v, (to - from));
+	}
 };
 struct JA_Z : public JA_B {
 	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
@@ -562,7 +588,16 @@ JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 };
 
 JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) { JA_0* ptr = GET_OBJECT(JA_0, obj); return (ptr != nullptr) && (ptr->desc == desc); };
+JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) {
+	JA_0* ptr = GET_OBJECT(JA_0, obj);
+	JT_BOOL result = (ptr != nullptr) && (ptr->desc == desc);
+	if (!result) {
+		if (desc.substr(0, 2) == L"[L") {
+			return GET_OBJECT(JA_L, obj) != nullptr;
+		}
+	}
+	return result;
+};
 JT_BOOL N::isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char * error) { throw error; };
 int N::cmp(double a, double b) { return (a < b) ? (-1) : ((a > b) ? (+1) : 0); };
 int N::cmpl(double a, double b) { return (std::isnan(a) || std::isnan(b)) ? (-1) : N::cmp(a, b); };
