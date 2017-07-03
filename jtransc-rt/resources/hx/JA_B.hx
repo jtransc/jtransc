@@ -50,13 +50,7 @@ class JA_B extends JA_0 {
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-    static public function fromBytes(bytes:Bytes) {
-        if (bytes == null) return null;
-        var out = new JA_B(bytes.length);
-        var bytesData = bytes.getData();
-        for (n in 0 ... bytes.length) out.set(n, Bytes.fastGet(bytesData, n));
-        return out;
-    }
+    static public function fromBytes(bytes:Bytes) return (bytes == null) ? null : new JA_B(bytes.length, bytes);
 
 	#if cpp
 	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):Int return ptr[checkBounds(index)];
