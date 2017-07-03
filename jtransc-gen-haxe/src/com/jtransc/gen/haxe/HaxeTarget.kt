@@ -818,7 +818,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val IntType = "Int"
 	override val FloatType = "Float32"
 	override val DoubleType = "Float64"
-	override val LongType = "NativeInt64"
+	override val LongType = "haxe.Int64"
 	override val BaseArrayType = "JA_0"
 	override val BoolArrayType = "JA_Z"
 	override val ByteArrayType = "JA_B"

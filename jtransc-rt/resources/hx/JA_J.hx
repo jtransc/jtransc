@@ -13,8 +13,8 @@ class JA_J extends JA_0 {
 		{{ HAXE_FIELD_ANNOTATIONS }} public var data:Vector<Int> = null;
 		{{ HAXE_FIELD_ANNOTATIONS }} public var ptr:Pointer<Int> = null;
 	#else
-		{{ HAXE_FIELD_ANNOTATIONS }} public var data:Vector<NativeInt64> = null;
-		{{ HAXE_FIELD_ANNOTATIONS }} static public var ZERO:NativeInt64 = 0;
+		{{ HAXE_FIELD_ANNOTATIONS }} public var data:Vector<haxe.Int64> = null;
+		{{ HAXE_FIELD_ANNOTATIONS }} static public var ZERO:haxe.Int64 = 0;
 	#end
 
 	{{ HAXE_CONSTRUCTOR_ANNOTATIONS }}
@@ -28,7 +28,7 @@ class JA_J extends JA_0 {
 			ptr = NativeArray.address(data.toData(), 0);
 			rawPtr = ptr.rawCast();
 		#else
-	        this.data = new Vector<NativeInt64>(length * 2);
+	        this.data = new Vector<haxe.Int64>(length * 2);
 			for (n in 0 ... length) data.set(n, ZERO);
 		#end
     }
@@ -49,21 +49,21 @@ class JA_J extends JA_0 {
 	#if cpp
 	// Little Endian!!!!
 
-	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):NativeInt64 {
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):haxe.Int64 {
 		var i = checkBounds(index) * 2;
 		var low = ptr[i + 0];
 		var high = ptr[i + 1];
-		return NativeInt64.make(high, low);
+		return haxe.Int64.make(high, low);
 	}
 
-	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:NativeInt64):Void {
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:haxe.Int64):Void {
 		var i = checkBounds(index) * 2;
 		ptr[i + 0] = value.low;
 		ptr[i + 1] = value.high;
 	}
 	#else
-	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):NativeInt64 { return this.data[checkBounds(index)]; }
-	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:NativeInt64):Void { this.data[checkBounds(index)] = value; }
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function get(index:Int):haxe.Int64 { return this.data[checkBounds(index)]; }
+	{{ HAXE_METHOD_ANNOTATIONS }} inline public function set(index:Int, value:haxe.Int64):Void { this.data[checkBounds(index)] = value; }
 	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -94,7 +94,7 @@ class JA_J extends JA_0 {
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
-	public function fill(from: Int, to: Int, value: NativeInt64) {
+	public function fill(from: Int, to: Int, value: haxe.Int64) {
 		#if cpp
 			N.memsetN8(this.rawPtr, from, to - from, value);
 		#else
