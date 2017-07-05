@@ -172,6 +172,20 @@ So others could generate that without JVM and others could generate other target
 - Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.64`
 - Run `haxelib run lime setup`
 
+######https://github.com/openfl/lime/issues/831
+- Run `lime setup android`
+first time install and wait Out of Memory, it's download and install sdk. After unzip ndk and run again.
+Note: you can try install manually from [NDK page](https://developer.android.com/ndk/downloads/index.html)
+```
+Download and install the Android SDK? [y/n/a] ? n
+Download and install the Android NDK? [y/n/a] ? n
+Download and install the Java JDK? [y/n/a] ? n
+
+Path to Android SDK [C:\tools\android-sdk]:
+Path to Android NDK []: C:\tools\android-ndk
+Path to Java JDK [C:\Program Files\Java\jdk1.8.0_131]:
+```
+
 #### Installing Node.JS
 - Install [NodeJS + npm](https://nodejs.org/en/)
 
