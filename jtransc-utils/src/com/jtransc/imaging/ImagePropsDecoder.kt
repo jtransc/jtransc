@@ -72,9 +72,11 @@ object SVGImagePropsDecoder : ImagePropsDecoder {
 }
 
 object PNGImagePropsDecoder : ImagePropsDecoder {
+	private val IHDRBytes = "IHDR".toByteArray(Charsets.UTF_8)
+
 	override fun tryDecodeHeader(s: InputStream): ImageInfo? {
 		val info = s.readUpToBytes(0x100)
-		val index = info.indexOf(byteArrayOf('I'.toByte(), 'H'.toByte(), 'D'.toByte(), 'R'.toByte()))
+		val index = info.indexOf(IHDRBytes)
 		if (index < 0) return null
 		val hs = info.open()
 		hs.position = index.toLong() + 4
