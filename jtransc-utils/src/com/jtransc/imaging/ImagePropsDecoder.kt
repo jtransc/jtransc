@@ -5,6 +5,7 @@ import com.jtransc.io.readUpToBytes
 import com.jtransc.util.open
 import com.jtransc.util.toIntOrNull2
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.InputStream
 
 data class ImageInfo(
@@ -23,6 +24,10 @@ interface ImagePropsDecoder {
 			SVGImagePropsDecoder,
 			GIFImagePropsDecoder
 		)
+
+		fun tryDecodeHeader(file: File): ImageInfo? {
+			return tryDecodeHeader(file.readBytes())
+		}
 
 		fun tryDecodeHeader(data: ByteArray): ImageInfo? {
 			for (decoder in decoders) {

@@ -1,6 +1,7 @@
 package com.jtransc.template
 
 import com.jtransc.text.captureStdout
+import com.jtransc.vfs.getResourceBytes
 import org.junit.Assert
 import org.junit.Test
 
@@ -19,7 +20,7 @@ class MinitemplateTest {
 	}
 
 	@Test fun testDebug() {
-		var result:String? = null
+		var result: String? = null
 		val stdout = captureStdout {
 			result = Minitemplate("a {% debug 'hello ' + name %} b")(mapOf("name" to "world"))
 		}
@@ -73,6 +74,7 @@ class MinitemplateTest {
 
 	@Test fun testAccessGetter() {
 		val success = "success!"
+
 		class Test1 {
 			val a: String get() = "$success"
 		}
@@ -81,7 +83,7 @@ class MinitemplateTest {
 	}
 
 	@Test fun testCustomTag() {
-		class CustomNode(val text:String) : Minitemplate.BlockNode {
+		class CustomNode(val text: String) : Minitemplate.BlockNode {
 			override fun eval(context: Minitemplate.Context) = Unit.apply { context.write("CUSTOM($text)") }
 		}
 
@@ -95,5 +97,14 @@ class MinitemplateTest {
 		)
 	}
 
-	data class Person(val name:String, val surname:String)
+	@Test fun testImageInfoFilter() {
+		val resourceBytes = this.javaClass.classLoader.getResourceBytes("jtransc-icon.png")
+		Assert.assertEquals("32,32,32",
+			Minitemplate("{% set image = resourceBytes|image_info %}{{ image.width }},{{ image.height }},{{ image.bitsPerPixel }}")(mapOf(
+				"resourceBytes" to resourceBytes
+			))
+		)
+	}
+
+	data class Person(val name: String, val surname: String)
 }
