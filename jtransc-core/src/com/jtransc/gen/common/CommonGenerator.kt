@@ -1,9 +1,6 @@
 package com.jtransc.gen.common
 
-import com.jtransc.ConfigLibraries
-import com.jtransc.ConfigOutputFile
-import com.jtransc.ConfigTargetDirectory
-import com.jtransc.JTranscVersion
+import com.jtransc.*
 import com.jtransc.annotation.*
 import com.jtransc.ast.*
 import com.jtransc.ast.template.CommonTagHandler
@@ -1767,7 +1764,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				"TARGET_INCLUDES" to targetIncludes,
 				"TARGET_LIBRARIES" to targetLibraries,
 				"TARGET_DEFINES" to targetDefines,
-				"JTRANSC_VERSION" to JTranscVersion.getVersion()
+				"JTRANSC_VERSION" to JTranscVersion.getVersion(),
+				"JTRANSC_OS" to JTranscSystem.getOS()
 			) + extraVars
 			)
 			.toHashMap()
