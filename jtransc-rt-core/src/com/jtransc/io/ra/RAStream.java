@@ -39,8 +39,12 @@ abstract public class RAStream {
 
 	private byte[] scratch = new byte[8];
 
+	public int readU8() {
+		return readS8() & 0xFF;
+	}
+
 	public int readU8_LE() {
-		return readS8_LE() & 0xFF;
+		return readU8();
 	}
 
 	public int readU8_BE() {
@@ -64,8 +68,7 @@ abstract public class RAStream {
 	}
 
 	public byte readS8_LE() {
-		this.read(scratch, 0, SizeOf.BYTE);
-		return scratch[0];
+		return readS8();
 	}
 
 	public short readS16_LE() {
@@ -83,9 +86,13 @@ abstract public class RAStream {
 		return JTranscBits.readInt64LE(scratch, 0);
 	}
 
-	public byte readS8_BE() {
+	public byte readS8() {
 		this.read(scratch, 0, SizeOf.BYTE);
 		return scratch[0];
+	}
+
+	public byte readS8_BE() {
+		return readS8();
 	}
 
 	public short readS16_BE() {

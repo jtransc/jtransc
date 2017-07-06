@@ -66,6 +66,12 @@ fun InputStream.readAvailableChunk(): ByteArray {
 	return out.copyOf(readed)
 }
 
+fun InputStream.readUpToBytes(size: Int): ByteArray {
+	val out = ByteArray(size)
+	val read = this.read(out, 0, size)
+	return Arrays.copyOf(out, read)
+}
+
 fun InputStream.readExactBytes(size: Int): ByteArray {
 	val out = ByteArray(size)
 	var pos = 0

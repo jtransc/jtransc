@@ -19,6 +19,13 @@ package com.jtransc.lang
 import com.jtransc.vfs.UTF8
 import java.nio.charset.Charset
 
+fun <T> Class<T>.getResourceBytes(path:String):ByteArray? {
+	return try {
+		this.getResourceAsStream(path).readBytes()
+	} catch (t:Throwable) {
+		null
+	}
+}
 fun <T> Class<T>.getResourceAsString(path:String, charset: Charset = UTF8):String? {
 	return try {
 		this.getResourceAsStream(path).readBytes().toString(charset)
