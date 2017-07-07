@@ -394,31 +394,32 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 				fun handle(tag: Tag, token: Token.TTag): BlockNode {
 					val parts = arrayListOf<TagPart>()
 					var currentToken = token
-					val children = arrayListOf<BlockNode>()
+					val mutableChildren = arrayListOf<BlockNode>()
 
 					fun emitPart() {
-						parts += TagPart(currentToken, BlockNode.group(children))
+						val clonedChildren = mutableChildren.toList()
+						parts += TagPart(currentToken, BlockNode.group(clonedChildren))
 					}
 
 					loop@ while (!tr.eof) {
 						val it = tr.read()
 						when (it) {
-							is Token.TLiteral -> children += BlockNode.TEXT(it.content)
-							is Token.TExpr -> children += BlockNode.EXPR(ExprNode.parse(it.content))
+							is Token.TLiteral -> mutableChildren += BlockNode.TEXT(it.content)
+							is Token.TExpr -> mutableChildren += BlockNode.EXPR(ExprNode.parse(it.content))
 							is Token.TTag -> {
 								when (it.name) {
 									tag.end -> break@loop
 									in tag.nextList -> {
 										emitPart()
 										currentToken = it
-										children.clear()
+										mutableChildren.clear()
 									}
 									else -> {
 										val newtag = config.tags[it.name] ?: invalidOp("Can't find tag ${it.name}")
 										if (newtag.end != null) {
-											children += handle(newtag, it)
+											mutableChildren += handle(newtag, it)
 										} else {
-											children += newtag.buildNode(listOf(TagPart(it, BlockNode.TEXT(""))))
+											mutableChildren += newtag.buildNode(listOf(TagPart(it, BlockNode.TEXT(""))))
 										}
 									}
 								}
