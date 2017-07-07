@@ -163,6 +163,11 @@ So others could generate that without JVM and others could generate other target
 
 #### Installing JDK
 - Install [JDK8](http://www.oracle.com/technetwork/java/javase/downloads/)
+- Setup $JAVA_HOME
+```
+echo "export JAVA_HOME=$(/usr/libexec/java_home)" >> ~/.bash_profile
+source ~/.bash_profile
+```
 - Install [Android SDK Tools](https://developer.android.com/studio/index.html)
 - Setup Android SDK with install NDK.
 
