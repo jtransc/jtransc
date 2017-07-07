@@ -397,7 +397,7 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 					val children = arrayListOf<BlockNode>()
 
 					fun emitPart() {
-						parts += TagPart(currentToken, BlockNode.group(children))
+						parts += TagPart(currentToken, BlockNode.group(children.toList()))
 					}
 
 					loop@ while (!tr.eof) {

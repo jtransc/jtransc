@@ -31,6 +31,7 @@ class MinitemplateTest {
 	@Test fun testSimpleIf() {
 		Assert.assertEquals("true", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 1)))
 		Assert.assertEquals("false", Minitemplate("{% if cond %}true{% else %}false{% end %}")(mapOf("cond" to 0)))
+		Assert.assertEquals("false", Minitemplate("{% if cond %}true{% else %}false{% end %}")(null))
 		Assert.assertEquals("true", Minitemplate("{% if cond %}true{% end %}")(mapOf("cond" to 1)))
 		Assert.assertEquals("", Minitemplate("{% if cond %}true{% end %}")(mapOf("cond" to 0)))
 	}
@@ -70,6 +71,11 @@ class MinitemplateTest {
 
 	@Test fun testSet() {
 		Assert.assertEquals("1,2,3", Minitemplate("{% set a = [1,2,3] %}{{ a|join(',') }}")(null))
+	}
+
+	@Test fun testIfElse() {
+		Assert.assertEquals(" return true; ", Minitemplate("{% if extra.showFPS %} return {{ extra.showFPS }}; {% else %} return false; {% end %}").invoke(mapOf("extra" to mapOf("showFPS" to "true"))))
+		Assert.assertEquals(" return true; ", Minitemplate("{% if extra.showFPS %} return {{ extra.showFPS }}; {% end %}{% if !extra.showFPS %} return false; {% end %}")(mapOf("extra" to mapOf("showFPS" to "true"))))
 	}
 
 	@Test fun testAccessGetter() {
