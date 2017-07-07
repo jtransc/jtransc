@@ -4,3 +4,4 @@ JTransc is available thanks to the work of:
 - DSP Omen
 - Intrigus
 - Sergey Labutin
+- fxjshm
