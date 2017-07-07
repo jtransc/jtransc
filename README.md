@@ -164,6 +164,7 @@ So others could generate that without JVM and others could generate other target
 #### Installing JDK
 - Install [JDK8](http://www.oracle.com/technetwork/java/javase/downloads/)
 - Install [Android SDK Tools](https://developer.android.com/studio/index.html)
+- Setup Android SDK with install NDK.
 
 #### Installing Haxe
 - Install [Haxe](https://haxe.org/download/) from here via installer
@@ -174,8 +175,7 @@ So others could generate that without JVM and others could generate other target
 
 ######https://github.com/openfl/lime/issues/831
 - Run `lime setup android`
-first time install and wait Out of Memory, it's download and install sdk. After unzip ndk and run again.
-Note: you can try install manually from [NDK page](https://developer.android.com/ndk/downloads/index.html)
+If try install you gain Out of Memory, choose manual mode.
 ```
 Download and install the Android SDK? [y/n/a] ? n
 Download and install the Android NDK? [y/n/a] ? n
