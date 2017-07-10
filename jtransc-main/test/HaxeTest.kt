@@ -25,6 +25,7 @@ import issues.issue136.Issue136
 import javatest.haxe.HaxeStringBuilderTestIssue138
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
+import jtransc.jtransc.nativ.JTranscHaxeNativeCondition
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -88,6 +89,25 @@ class HaxeTest : _Base() {
 		_jt___hello
 		JTranscReinterpretArrays:
 	""", Params(clazz = JTranscHaxeNativeMixedTest::class.java, minimize = false))
+
+	@Test fun haxeNativeConditionDefaults() = testNativeClass("""
+		false
+		false
+		-1
+		-1
+	""", Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false))
+
+	@Test fun haxeNativeConditionSet() = testNativeClass("""
+		true
+		true
+		1000
+		1000
+	""", Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false, extra = mapOf(
+		//"showFps" to "true", // wrong, case sensitive
+		"showFPS" to "true",
+		"fps" to "1000"
+	)))
+
 
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, lang = "js", debug = true))

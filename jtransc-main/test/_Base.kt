@@ -109,6 +109,7 @@ open class _Base {
 		val lang: String? = null,
 		val minimize: Boolean? = null,
 		val analyze: Boolean? = null,
+		val extra: Map<String?, String?>? = null,
 		val debug: Boolean? = DEBUG,
 		val treeShaking: Boolean? = null,
 		val backend: BuildBackend? = null,
@@ -158,6 +159,7 @@ open class _Base {
 					debug = params.debug ?: DEBUG,
 					relooper = RELOOPER,
 					//relooper = false,
+					extra = params.extra ?: mapOf(),
 					analyzer = params.analyze ?: ANALYZER,
 					rtAndRtCore = listOf(
 						"jtransc-rt", "jtransc-rt-core",
@@ -177,7 +179,7 @@ open class _Base {
 						projectRoot[it].realpathOS
 					}
 						.filter { File(it).exists() }
-						//.map { it.apply { println(it) } }
+					//.map { it.apply { println(it) } }
 				)
 			)
 			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()

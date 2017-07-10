@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 0.6.5 (2017-07-07)
+
+Improvements:
+- [HAXE] [HAXE-CPP] Greatly improved performance of System.arraycopy and System.fill
+- [HAXE-CPP] Improved performance of Object[] arrays
+- [CPP] Improved performance of fill for 64-bit types (long and double) in 32-bit builds
+
+Fixes:
+- [TEMPLATES] Fixed if+else minitemplates
+
+Missing API:
+- @fxjshm: Added UnsupportedClassVersionError
+
+Misc:
+- [HAXE-CPP] Enabled travis-ci automated testing for haxe-cpp target
+- @SergeyLabutin Documentation for Android Target in readme
+- Updated Kotlin to 1.1.3-2
+- Added JTRANSC_OS to templates
+- Added `|image_info` minitemplate filter to get width and height from images from a byte array, File or String path
+
 ## 0.6.4 (2017-07-01)
 
 New features:
