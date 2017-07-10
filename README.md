@@ -191,6 +191,18 @@ Path to Android NDK []: C:\tools\android-ndk
 Path to Java JDK [C:\Program Files\Java\jdk1.8.0_131]:
 ```
 
+#### Setup AppleTV
+- Run `lime rebuild hxcpp tvos`
+- Remove stable lime `haxelib remove lime`
+- Install lime from GitHub `git clone --recursive https://github.com/openfl/lime`
+```
+haxelib dev lime lime
+haxelib install format
+lime rebuild mac
+lime rebuild ios
+lime rebuild tvos
+```
+
 #### Installing Node.JS
 - Install [NodeJS + npm](https://nodejs.org/en/)
 
