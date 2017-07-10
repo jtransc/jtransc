@@ -163,7 +163,15 @@ So others could generate that without JVM and others could generate other target
 
 #### Installing JDK
 - Install [JDK8](http://www.oracle.com/technetwork/java/javase/downloads/)
+- Setup $JAVA_HOME
+This sample, but maybe not working for you, be careful
+```
+echo "export JAVA_HOME=$(/usr/libexec/java_home)" >> ~/.bash_profile
+source ~/.bash_profile
+```
+
 - Install [Android SDK Tools](https://developer.android.com/studio/index.html)
+- Setup Android SDK with install NDK.
 
 #### Installing Haxe
 - Install [Haxe](https://haxe.org/download/) from here via installer
@@ -174,8 +182,7 @@ So others could generate that without JVM and others could generate other target
 
 ######https://github.com/openfl/lime/issues/831
 - Run `lime setup android`
-first time install and wait Out of Memory, it's download and install sdk. After unzip ndk and run again.
-Note: you can try install manually from [NDK page](https://developer.android.com/ndk/downloads/index.html)
+If try install you gain Out of Memory, choose manual mode.
 ```
 Download and install the Android SDK? [y/n/a] ? n
 Download and install the Android NDK? [y/n/a] ? n
@@ -184,6 +191,18 @@ Download and install the Java JDK? [y/n/a] ? n
 Path to Android SDK [C:\tools\android-sdk]:
 Path to Android NDK []: C:\tools\android-ndk
 Path to Java JDK [C:\Program Files\Java\jdk1.8.0_131]:
+```
+
+#### Setup AppleTV
+- Run `lime rebuild hxcpp tvos`
+- Remove stable lime `haxelib remove lime`
+- Install lime from GitHub `git clone --recursive https://github.com/openfl/lime`
+```
+haxelib dev lime lime
+haxelib install format
+lime rebuild mac
+lime rebuild ios
+lime rebuild tvos
 ```
 
 #### Installing Node.JS
