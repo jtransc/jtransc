@@ -1091,7 +1091,8 @@ N.clone = function(obj) {
 };
 
 N.methodWithoutBody = function(name) {
-	throw 'Method not implemented: native or abstract: ' + name;
+	if ((typeof console) !== 'undefined' && (typeof console.error) !== 'undefined') console.error('Method not implemented: native or abstract: ', name);
+	throw N.createRuntimeException('Method not implemented: native or abstract: ' + name);
 };
 
 N.EMPTY_FUNCTION = function() { }

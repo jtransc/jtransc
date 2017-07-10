@@ -168,7 +168,16 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	native public Class<?> getDeclaringClass() throws SecurityException;
 
-	native public Class<?> getEnclosingClass() throws SecurityException;
+	public Class<?> getEnclosingClass() throws SecurityException {
+		final String name = this.name;
+		int lastIndex = name.lastIndexOf('$');
+		if (lastIndex < 0) {
+			//return this;
+			return null;
+		} else {
+			return forName0(name.substring(0, lastIndex));
+		}
+	}
 
 	native public Class<?>[] getClasses();
 
@@ -331,22 +340,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	private boolean isLocalOrAnonymousClass() {
-		return getEnclosingMethodInfo() != null;
+		return this.name.indexOf('$') >= 0;
 	}
 
 	public boolean isMemberClass() {
 		return getSimpleBinaryName() != null && !isLocalOrAnonymousClass();
 	}
-
-	native private Object getEnclosingMethodInfo();
-	//private EnclosingMethodInfo getEnclosingMethodInfo() {
-	//	Object[] enclosingInfo = getEnclosingMethod0();
-	//	if (enclosingInfo == null)
-	//		return null;
-	//	else {
-	//		return new EnclosingMethodInfo(enclosingInfo);
-	//	}
-	//}
 
 	private String getSimpleBinaryName() {
 		Class<?> enclosingClass = getEnclosingClass();
