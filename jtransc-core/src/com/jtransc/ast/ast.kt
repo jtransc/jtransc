@@ -319,9 +319,9 @@ open class AstAnnotatedElement(
 	var extraKeep: Boolean? = null
 	var extraVisible: Boolean? = null
 	val keep: Boolean get() {
-		if (extraKeep ?: annotationsList.contains<JTranscKeep>()) return true
+		if (extraKeep ?: annotationsList.containsKeepAnnotations()) return true
 		for (annotation in annotationsList.list) {
-			if (annotation.getAnnotationAnnotations(program).contains<JTranscKeep>()) return true
+			if (annotation.getAnnotationAnnotations(program).containsKeepAnnotations()) return true
 		}
 		return false
 	}

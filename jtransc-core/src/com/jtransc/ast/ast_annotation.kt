@@ -1,5 +1,6 @@
 package com.jtransc.ast
 
+import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscMethodBodyList
 import com.jtransc.annotation.JTranscNativeName
 import com.jtransc.gen.TargetName
@@ -121,7 +122,12 @@ inline fun <reified T : Any> AstAnnotationList?.getTyped(): T? = if (this != nul
 inline fun <reified T : Any> AstAnnotationList?.getAllTyped(): List<T> = if (this != null) byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf() else listOf()
 operator fun AstAnnotationList?.get(name: FqName): AstAnnotation? = if (this != null) byClassName[name.fqname]?.firstOrNull() else null
 
-inline fun <reified T : Any> AstAnnotationList?.contains(): Boolean = if (this != null) T::class.java.name in byClassName else false
+inline fun <reified T : Any> AstAnnotationList?.contains(): Boolean = containsByFqname(T::class.java.name)
+
+fun AstAnnotationList?.containsByFqname(name: String): Boolean = if (this != null) name in byClassName else false
+fun AstAnnotationList?.containsKeepAnnotations(): Boolean {
+	return contains<JTranscKeep>() || containsByFqname("org.junit.Test")
+}
 
 class NativeBody(val lines: List<String>, val cond: String = "") {
 	val value = lines.joinToString("\n")

@@ -1,6 +1,5 @@
 package com.jtransc.injector
 
-import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.error.invalidOp
 import java.lang.reflect.InvocationTargetException

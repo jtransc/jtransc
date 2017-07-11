@@ -1,7 +1,6 @@
 package com.jtransc.gen.haxe
 
 import com.jtransc.*
-import com.jtransc.annotation.JTranscKeep
 import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
@@ -328,7 +327,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val releaseDebugSuffix = when {
 			debugVersion -> "-debug"
-			//else -> "-release"
+		//else -> "-release"
 			else -> ""
 		}
 
@@ -621,7 +620,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			val defaultValue: Any? = if (field.hasConstantValue) field.constantValue else fieldType.nativeDefault
 			val fieldName = field.targetName
 			if (!field.annotationsList.contains<HaxeRemoveField>()) {
-				val keep = if (field.annotationsList.contains<JTranscKeep>()) "@:keep " else ""
+				val keep = if (field.annotationsList.containsKeepAnnotations()) "@:keep " else ""
 				line("$keep$static$visibility var $fieldName:${fieldType.targetName} = ${defaultValue.escapedConstantOfType(fieldType)};")
 			}
 		}
