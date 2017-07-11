@@ -95,7 +95,7 @@ public class Runtime {
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_free_bytes();")
 	@JTranscMethodBody(target = "php", value = "return N::d2j((float)0.0);")
 	public long freeMemory() {
-		return totalMemory() - useMemory();
+		return totalMemory() - _usedMemory();
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
@@ -113,7 +113,7 @@ public class Runtime {
 	}
 
 	@HaxeMethodBody(target = "cpp", value = "return cpp.vm.Gc.memInfo(2);")
-	public static long useMemory() {
+	private static long _usedMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
