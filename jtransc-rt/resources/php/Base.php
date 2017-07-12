@@ -524,7 +524,7 @@ final class N {
 	}
 
 	static public function strArray(array $array) : JA_L {
-		return JA_L::fromArray(array_map(function($v) { return N::str($v); }, $array), '[Ljava/lang/String;');
+		return JA_L::fromArray('[Ljava/lang/String;', array_map(function($v) { return N::str($v); }, $array));
 	}
 
 	static public function arraycopy({% CLASS java.lang.Object %} $src, int $srcPos, {% CLASS java.lang.Object %} $dst, int $dstPos, int $len) : void {
@@ -782,6 +782,12 @@ final class JA_L extends JA_Array {
 		for ($n = 0; $n < $count; $n++) $out->set($n, $items[$n]);
 		return $out;
 	}
+
+	static function T0(string $desc) : JA_L { return JA_L::fromArray($desc, []); }
+	static function T1(string $desc, $a) : JA_L { return JA_L::fromArray($desc, [$a]); }
+	static function T2(string $desc, $a, $b) : JA_L { return JA_L::fromArray($desc, [$a, $b]); }
+	static function T3(string $desc, $a, $b, $c) : JA_L { return JA_L::fromArray($desc, [$a, $b, $c]); }
+	static function T4(string $desc, $a, $b, $c, $d) : JA_L { return JA_L::fromArray($desc, [$a, $b, $c, $d]); }
 
 	static function createMultiSure(string $desc, array $sizes) : JA_0 {
 		return JA_L::_createMultiSure($desc, 0, $sizes);
