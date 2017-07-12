@@ -467,18 +467,46 @@ struct JA_B : JA_Base<int8_t> {
 		checkBounds(to - 1);
 		::memset((void *)(&((int8_t *)this->_data)[from]), v, (to - from));
 	}
+
+	static JA_B* fromArray(std::wstring desc, std::vector<int8_t> array) {
+		auto len = array.size();
+		auto out = new JA_B(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_Z : public JA_B {
 	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
 	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
+
+	static JA_Z* fromArray(std::wstring desc, std::vector<int8_t> array) {
+		auto len = array.size();
+		auto out = new JA_Z(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_S : JA_Base<int16_t> {
 	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
 	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
+
+	static JA_S* fromArray(std::wstring desc, std::vector<int16_t> array) {
+		auto len = array.size();
+		auto out = new JA_S(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_C : JA_Base<uint16_t> {
 	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
 	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
+
+	static JA_C* fromArray(std::wstring desc, std::vector<uint16_t> array) {
+		auto len = array.size();
+		auto out = new JA_C(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_I : JA_Base<int32_t> {
 	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
@@ -495,18 +523,45 @@ struct JA_I : JA_Base<int32_t> {
 	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2) { return (JA_I * )(new JA_I(3))->init(0, a0)->init(1, a1)->init(2, a2); };
 	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
+	static JA_I* fromArray(std::wstring desc, std::vector<int32_t> array) {
+		auto len = array.size();
+		auto out = new JA_I(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_J : JA_Base<int64_t> {
 	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
 	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
+
+	static JA_J* fromArray(std::wstring desc, std::vector<int64_t> array) {
+		auto len = array.size();
+		auto out = new JA_F(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_F : JA_Base<float> {
 	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
 	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
+
+	static JA_F* fromArray(std::wstring desc, std::vector<float> array) {
+		auto len = array.size();
+		auto out = new JA_F(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_D : JA_Base<double> {
 	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
 	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
+
+	static JA_D* fromArray(std::wstring desc, std::vector<double> array) {
+		auto len = array.size();
+		auto out = new JA_D(len);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		return out;
+	}
 };
 struct JA_L : JA_Base<JAVA_OBJECT> {
 	JA_L(int32_t size, std::wstring desc) : JA_Base(true, size, desc) { };
@@ -545,6 +600,13 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		for (int32_t n = 0; n < size; n++) {
 			out->set(n, createMultiSure(subdesc, subsizes));
 		}
+		return out;
+	}
+
+	static JA_L* fromArray(std::wstring desc, std::vector<JAVA_OBJECT> array) {
+		auto len = array.size();
+		auto out = new JA_L(len, desc);
+		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };

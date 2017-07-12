@@ -941,13 +941,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "JA_I${staticAccessOperator}T([" + e.values.joinToString(",") + "])"
 	}
 
+	open val ARRAY_SUPPORT_SHORTCUTS = true
+	open val ARRAY_OPEN_SYMBOL = "["
+	open val ARRAY_CLOSE_SYMBOL = "]"
+
 	open fun genExprObjectArrayLit(e: AstExpr.OBJECTARRAY_LITERAL): String {
 		val count = e.values.size
-		return when (count) {
-			in 0..4 -> "JA_L${staticAccessOperator}T$count(" + e.kind.mangle().quote() + ", " + e.values.map { genExpr2(it) }.joinToString(", ") + ")"
-			else -> "JA_L${staticAccessOperator}fromArray(" + e.kind.mangle().quote() + ", [" + e.values.map { genExpr2(it) }.joinToString(",") + "])"
+		return when {
+			ARRAY_SUPPORT_SHORTCUTS && (count in 0..4) -> "JA_L${staticAccessOperator}T$count(" + e.kind.mangle().quote() + ", " + e.values.map { genExpr2(it) }.joinToString(", ") + ")"
+			else -> "JA_L${staticAccessOperator}fromArray(" + pquote(e.kind.mangle()) + ", $ARRAY_OPEN_SYMBOL" + e.values.map { genExpr2(it) }.joinToString(",") + "$ARRAY_CLOSE_SYMBOL)"
 		}
 	}
+
+	open fun pquote(str: String) = str.quote()
 
 	open fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {

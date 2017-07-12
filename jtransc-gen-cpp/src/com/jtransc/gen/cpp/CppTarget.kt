@@ -7,7 +7,6 @@ import com.jtransc.annotation.JTranscAddHeaderList
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.*
 import com.jtransc.error.invalidOp
-import com.jtransc.error.noImpl
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
@@ -70,6 +69,10 @@ class CppTarget : GenTargetDescriptor() {
 class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 	override val GENERATE_LINE_NUMBERS = false
+
+	override val ARRAY_SUPPORT_SHORTCUTS = false
+	override val ARRAY_OPEN_SYMBOL = "{"
+	override val ARRAY_CLOSE_SYMBOL = "}"
 
 //	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java, UndeterministicParameterEvaluationFeature::class.java)
 //	override val methodFeatures = methodFeaturesWithTraps + setOf(GotosFeature::class.java)
@@ -966,9 +969,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genExprObjectArrayLit(e: AstExpr.OBJECTARRAY_LITERAL): String {
-		noImpl("C++ genExprStringArrayLit")
-	}
+	//override fun genExprObjectArrayLit(e: AstExpr.OBJECTARRAY_LITERAL): String {
+	//	noImpl("C++ genExprStringArrayLit")
+	//}
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
@@ -1060,6 +1063,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
+
+	override fun pquote(str: String): String = "L" + str.uquote()
 
 	override fun N_lnew(value: Long): String {
 		if (value == Long.MIN_VALUE) {

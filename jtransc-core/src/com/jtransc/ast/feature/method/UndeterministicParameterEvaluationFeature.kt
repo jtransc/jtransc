@@ -98,6 +98,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 				is AstExpr.THIS -> expr
 				is AstExpr.NEW -> expr
 				is AstExpr.INTARRAY_LITERAL -> expr
+				is AstExpr.OBJECTARRAY_LITERAL -> AstExpr.OBJECTARRAY_LITERAL(expr.values.map { it.processExpr(stms) }, expr.kind)
 				is AstExpr.NEW_ARRAY -> {
 					val length = expr.counts.map { it.processExpr(stms) }
 					stms.buildLocalExpr { AstExpr.NEW_ARRAY(expr.arrayType, length) }
