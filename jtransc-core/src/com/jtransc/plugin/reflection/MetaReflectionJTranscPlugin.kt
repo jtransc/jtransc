@@ -167,11 +167,15 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val annotations = clazz.runtimeAnnotations
 					if (annotations.isNotEmpty() && "java.lang.annotation.Annotation".fqname !in clazz.implementing) {
 						CASE(clazz.classId) {
-							SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-							for ((index, annotation) in annotations.withIndex()) {
-								SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-							}
-							RETURN(outLocal)
+							RETURN(ANNOTATION_ARRAY.newLiteralArray(
+								annotations.map { toAnnotationExpr(it, temps, this) }
+							))
+
+							//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
+							//for ((index, annotation) in annotations.withIndex()) {
+							//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+							//}
+							//RETURN(outLocal)
 						}
 					}
 				}
@@ -195,11 +199,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 									val annotations = field.runtimeAnnotations
 									if (annotations.isNotEmpty()) {
 										CASE(field.id) {
-											SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-											for ((index, annotation) in annotations.withIndex()) {
-												SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-											}
-											RETURN(outLocal)
+											RETURN(ANNOTATION_ARRAY.newLiteralArray(
+												annotations.map { toAnnotationExpr(it, temps, this) }
+											))
+											//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
+											//for ((index, annotation) in annotations.withIndex()) {
+											//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+											//}
+											//RETURN(outLocal)
 										}
 									}
 								}
@@ -227,11 +234,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 									val annotations = method.runtimeAnnotations
 									if (annotations.isNotEmpty()) {
 										CASE(method.id) {
-											SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-											for ((index, annotation) in annotations.withIndex()) {
-												SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-											}
-											RETURN(outLocal)
+											RETURN(ANNOTATION_ARRAY.newLiteralArray(
+												annotations.map { toAnnotationExpr(it, temps, this) }
+											))
+											//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
+											//for ((index, annotation) in annotations.withIndex()) {
+											//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+											//}
+											//RETURN(outLocal)
 										}
 									}
 								}
@@ -264,11 +274,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 													val annotations = method.parameterAnnotations[argIndex]
 													if (annotations.isNotEmpty()) {
 														CASE(argIndex) {
-															SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-															for ((index, annotation) in annotations.withIndex()) {
-																SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-															}
-															RETURN(outLocal)
+															RETURN(ANNOTATION_ARRAY.newLiteralArray(
+																annotations.map { toAnnotationExpr(it, temps, this) }
+															))
+															//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
+															//for ((index, annotation) in annotations.withIndex()) {
+															//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
+															//}
+															//RETURN(outLocal)
 														}
 													}
 												}

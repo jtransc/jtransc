@@ -776,7 +776,7 @@ final class JA_J extends JA_Array {
 final class JA_L extends JA_Array {
 	public function __construct(int $length, string $desc) { parent::__construct($length, $desc, null); }
 
-	static function fromArray(array $items, string $desc) : JA_L {
+	static function fromArray(string $desc, array $items) : JA_L {
 		$count = count($items);
 		$out = new JA_L($count, $desc);
 		for ($n = 0; $n < $count; $n++) $out->set($n, $items[$n]);

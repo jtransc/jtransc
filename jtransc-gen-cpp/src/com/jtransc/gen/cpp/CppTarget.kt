@@ -966,7 +966,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genExprStringArrayLit(e: AstExpr.STRINGARRAY_LITERAL): String {
+	override fun genExprObjectArrayLit(e: AstExpr.OBJECTARRAY_LITERAL): String {
 		noImpl("C++ genExprStringArrayLit")
 	}
 

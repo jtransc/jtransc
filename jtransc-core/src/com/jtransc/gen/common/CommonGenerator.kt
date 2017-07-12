@@ -126,7 +126,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			programFile = configTargetFolder.targetFolder[configOutputFile.output].realfile,
 			debug = settings.debug,
 			libs = injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()
-			)
+		)
 
 		val cmdAndArgsStr = cmdAndArgs.joinToString(" ")
 
@@ -473,7 +473,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.NEW_WITH_CONSTRUCTOR -> genExprNewWithConstructor(e)
 		is AstExpr.NEW_ARRAY -> genExprNewArray(e)
 		is AstExpr.INTARRAY_LITERAL -> genExprIntArrayLit(e)
-		is AstExpr.STRINGARRAY_LITERAL -> genExprStringArrayLit(e)
+		is AstExpr.OBJECTARRAY_LITERAL -> genExprObjectArrayLit(e)
 		is AstExpr.CALL_BASE -> genExprCallBase(e)
 		is AstExpr.INVOKE_DYNAMIC_METHOD -> genExprMethodClass(e)
 		else -> noImpl("Expression $e")
@@ -941,8 +941,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "JA_I${staticAccessOperator}T([" + e.values.joinToString(",") + "])"
 	}
 
-	open fun genExprStringArrayLit(e: AstExpr.STRINGARRAY_LITERAL): String {
-		return "JA_J${staticAccessOperator}fromArray([" + e.values.joinToString(",") + "], \"Ljava/lang/String;\")"
+	open fun genExprObjectArrayLit(e: AstExpr.OBJECTARRAY_LITERAL): String {
+		val count = e.values.size
+		return when (count) {
+			in 0..4 -> "JA_L${staticAccessOperator}T$count(" + e.kind.mangle().quote() + ", " + e.values.map { genExpr2(it) }.joinToString(", ") + ")"
+			else -> "JA_L${staticAccessOperator}fromArray(" + e.kind.mangle().quote() + ", [" + e.values.map { genExpr2(it) }.joinToString(",") + "])"
+		}
 	}
 
 	open fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
