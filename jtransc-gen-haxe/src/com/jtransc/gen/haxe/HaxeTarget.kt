@@ -908,6 +908,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			else -> "JA_I${staticAccessOperator}T([" + e.values.joinToString(",") + "])"
 		}
 	}
+
+	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
+		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
+	}
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

@@ -134,5 +134,10 @@ class JA_L extends JA_0 {
     	return cast(createMulti(sizes, desc), JA_L);
     }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function setArraySlice(startIndex: Int, array: Array<{% CLASS java.lang.Object %}>) {
+		for (n in 0...array.length) this.set(startIndex + n, array[n]);
+	}
+
     {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_L), srcPos, dstPos, length); }
 }
