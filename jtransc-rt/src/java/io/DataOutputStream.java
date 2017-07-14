@@ -181,6 +181,8 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
 	}
 
 	public final void writeUTF(String str) throws IOException {
-		write(str.getBytes(StandardCharsets.UTF_8));
+		byte[] data = str.getBytes(StandardCharsets.UTF_8);
+		writeShort(data.length);
+		write(data);
 	}
 }
