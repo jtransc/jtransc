@@ -1,7 +1,7 @@
 version: '{build}'
 os: Windows Server 2012
 install:
-  - cmd: cinst -y php
+  - cmd: cinst -y php || ver>nul
   #- cmd: cinst -y haxe
   #- cmd: cinst -y maven
   - cmd: curl -o c:\tools\haxe.zip http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-win.zip
