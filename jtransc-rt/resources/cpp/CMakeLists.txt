@@ -41,6 +41,12 @@ ENDIF()
 
 add_executable(program program.cpp)
 
+if(UNIX AND NOT APPLE)
+	set(ADDITIONAL_LIBRARIES pthread)
+else()
+	set(ADDITIONAL_LIBRARIES "")
+endif()
+
 {% for lib in CPP_LIBS %}
-target_link_libraries(program {{ lib }})
+target_link_libraries(program ${ADDITIONAL_LIBRARIES} {{ lib }})
 {% end %}
