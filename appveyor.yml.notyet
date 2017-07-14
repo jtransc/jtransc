@@ -6,7 +6,7 @@ install:
   #- cmd: cinst -y maven
   - cmd: cinst -y 7zip
   - cmd: curl -o c:\tools\haxe.zip http://haxe.org/website-content/downloads/3.3.0-rc.1/downloads/haxe-3.3.0-rc.1-win.zip
-  - cmd: 7za -y x haxe.zip -oc:\tools
+  - cmd: 7z -y x haxe.zip -oc:\tools
   - cmd: copy c:\tools\php\php.ini-production c:\tools\php\php.ini
   - cmd: echo date.timezone="UTC" >> c:\tools\php\php.ini
   - echo extension_dir=ext >> c:\tools\php\php.ini
