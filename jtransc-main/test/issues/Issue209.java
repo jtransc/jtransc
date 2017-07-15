@@ -11,8 +11,6 @@ public class Issue209 {
     static{
         assert TRUE;
         assert !FALSE;
-        System.out.println(TRUE);
-        System.out.println(FALSE);
     }
 
     static public void main(String[] args) {
