@@ -4,6 +4,7 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.cs.CSharpTarget
+import issues.Issue209
 import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
@@ -60,4 +61,6 @@ class CSharpTest : _Base() {
 	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = false, log = false))
 
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testIssue209() = testClass(Params(clazz = Issue209::class.java, minimize = false, debug = false, log = false, treeShaking = false))
 }

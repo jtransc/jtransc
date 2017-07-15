@@ -146,6 +146,7 @@ object BigTest {
 
 		System.out.println(String.format("%d%%", 100))
 
+		// check float mod
 		System.out.println(i[0] % i[1]);
 	}
 
