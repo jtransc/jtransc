@@ -62,5 +62,5 @@ class CSharpTest : _Base() {
 
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testIssue209() = testClass(Params(clazz = Issue209::class.java, minimize = false, debug = false, log = false, treeShaking = false))
+	@Test fun testIssue209() = testClass(Params(clazz = Issue209::class.java, minimize = false, debug = false, log = false, treeShaking = true))
 }
