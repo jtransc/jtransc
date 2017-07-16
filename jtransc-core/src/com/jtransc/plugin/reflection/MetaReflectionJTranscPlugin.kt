@@ -33,6 +33,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		val ProgramReflectionClass = program[ProgramReflection::class.java.fqname]
 
 		val annotationFqname = "java.lang.annotation.Annotation".fqname
+		val annotationType = AstType.REF(annotationFqname)
 		val classesForAnnotations = hashMapOf<AstType.REF, AstClass>()
 
 		fun getAnnotationProxyClass(annotationType: AstType.REF): AstClass {
@@ -194,23 +195,25 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val fields = clazz.fields.filter { it.mustReflect() }
 					if (fields.flatMap { it.runtimeAnnotations }.isNotEmpty()) {
 						CASE(clazz.classId) {
-							SWITCH(fieldIdArg.expr) {
-								for (field in fields) {
-									val annotations = field.runtimeAnnotations
-									if (annotations.isNotEmpty()) {
-										CASE(field.id) {
-											RETURN(ANNOTATION_ARRAY.newLiteralArray(
-												annotations.map { toAnnotationExpr(it, temps, this) }
-											))
-											//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-											//for ((index, annotation) in annotations.withIndex()) {
-											//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-											//}
-											//RETURN(outLocal)
+							val classId = clazz.classId
+							val perClassMethod = ProgramReflectionClass.createMethod("getFieldAnnotations$classId", AstType.METHOD(AstType.ARRAY(annotationType), AstType.INT), isStatic = true) { args ->
+								val (fieldIdArgIn) = args
+								SWITCH(fieldIdArgIn.expr) {
+									for (field in fields) {
+										val annotations = field.runtimeAnnotations
+										if (annotations.isNotEmpty()) {
+											CASE(field.id) {
+												RETURN(ANNOTATION_ARRAY.newLiteralArray(
+													annotations.map { toAnnotationExpr(it, temps, this) }
+												))
+											}
 										}
 									}
 								}
+								RETURN(NULL)
 							}
+
+							RETURN(perClassMethod.invoke(fieldIdArg.expr))
 						}
 					}
 				}

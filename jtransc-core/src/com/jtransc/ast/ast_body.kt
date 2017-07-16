@@ -898,9 +898,9 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 		}
 	}
 
-	fun RETURN() = Unit.apply { stms += AstStm.RETURN_VOID() }
-	fun RETURN(value: AstExpr) = Unit.apply { stms += AstStm.RETURN(value) }
-	fun RETURN(value: AstLocal) = Unit.apply { stms += AstStm.RETURN(value.expr) }
+	fun RETURN() = run { stms += AstStm.RETURN_VOID() }
+	fun RETURN(value: AstExpr) = run { stms += AstStm.RETURN(value) }
+	fun RETURN(value: AstLocal) = run { stms += AstStm.RETURN(value.expr) }
 
 	fun genstm(): AstStm = stms.stm()
 }
