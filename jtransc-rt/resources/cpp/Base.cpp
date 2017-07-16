@@ -469,9 +469,9 @@ struct JA_B : JA_Base<int8_t> {
 	}
 
 	static JA_B* fromArray(std::wstring desc, std::vector<int8_t> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_B(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -480,9 +480,9 @@ struct JA_Z : public JA_B {
 	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
 
 	static JA_Z* fromArray(std::wstring desc, std::vector<int8_t> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_Z(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -491,9 +491,9 @@ struct JA_S : JA_Base<int16_t> {
 	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
 
 	static JA_S* fromArray(std::wstring desc, std::vector<int16_t> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_S(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -502,9 +502,9 @@ struct JA_C : JA_Base<uint16_t> {
 	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
 
 	static JA_C* fromArray(std::wstring desc, std::vector<uint16_t> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_C(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -524,9 +524,9 @@ struct JA_I : JA_Base<int32_t> {
 	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
 	static JA_I* fromArray(std::wstring desc, std::vector<int32_t> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_I(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -535,9 +535,9 @@ struct JA_J : JA_Base<int64_t> {
 	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
 
 	static JA_J* fromArray(std::wstring desc, std::vector<int64_t> array) {
-		auto len = array.size();
-		auto out = new JA_F(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		auto len = (int32_t)array.size();
+		auto out = new JA_J(len);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -546,9 +546,9 @@ struct JA_F : JA_Base<float> {
 	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
 
 	static JA_F* fromArray(std::wstring desc, std::vector<float> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_F(len);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
@@ -604,9 +604,9 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	}
 
 	static JA_L* fromArray(std::wstring desc, std::vector<JAVA_OBJECT> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_L(len, desc);
-		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
+		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
