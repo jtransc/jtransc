@@ -42,7 +42,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
 	@JTranscMethodBody(target = "as3", value = "return N.str((p0|0).toString(p1));")
-	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
+	//@JTranscMethodBody(target = "cpp", value = "char16_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::u16string(temp));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(p0.toRadixString(p1));")
 	//@JTranscMethodBody(target = "php", value = "return N::str(base_convert(\"$p0\", 10, $p1));")
 	public static String toString(int i, int radix) {

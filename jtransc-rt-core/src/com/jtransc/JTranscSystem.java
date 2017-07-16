@@ -117,7 +117,7 @@ public class JTranscSystem {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "return N::str('php');"),
 		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(u\"cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");"),
 	})
@@ -281,7 +281,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('x86');")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('x86');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(u\"x86\");"),
 	})
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
@@ -344,7 +344,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('jtransc-haxe');")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(u\"jtransc-cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");"),
 	})
 	public static String getRuntimeName() {
@@ -354,7 +354,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("return N.str('/jtransc-haxe');")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");"),
+		@JTranscMethodBody(target = "cpp", value = "return N::str(u\"/\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"/\");"),
 	})
 	public static String getJavaHome() {
