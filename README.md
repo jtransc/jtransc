@@ -11,10 +11,16 @@ JTRANSC
 
 You can find documentation at the [wiki](http://docs.jtransc.com/).
 
+# What is this?
+
+JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
+into a target programming language / executable bundling all the required dependencies in a single file or folder, without requiring
+a jitter or an external runtime.
+
 # Why using JTransc?
 
-There are a lot of technologies in order to convert languages into other ones. For example, convert Java into JavaScript.
-Or even Kotlin already targets JavaScript. So why using JTransc?
+There are a lot of technologies in order to convert languages into other ones. For example, converting Java into JavaScript.
+Or KotlinJS Kotlin backend that already targets JavaScript. So why using JTransc?
 
 ### Mixed input code:
 
@@ -22,7 +28,7 @@ One reason is that JTransc allows mixed projects. You can use Java libraries wit
 
 ### Multiple targets:
 
-Instead of using several technologies. JTransc allows you to target to several places.
+Instead of using several technologies, JTransc allows you to target to several languages and platforms.
 
 ### Consistency:
 
@@ -30,11 +36,11 @@ Using just one technology guarantees consistency between targets. For example, K
 
 ### Native:
 
-Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform.
+Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform. For example: when targeting JS you will use native JS best-in-class GC instead of a GC emulated in C++ & emscripten. And no need to know a proper heap size beforehand targeting JS.
 
 ### Native facilities:
 
-Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript facilities.
+Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript/AS3/Dart... facilities.
 Like JavaScript String, Array and so on.
 
 ### Treeshaking
@@ -51,14 +57,16 @@ Along JTransc, I'm writting a set of libraries to be able to use JTransc.
 
 Kotlin Game Engine that uses JTransc for multiplatform: [https://github.com/soywiz/korge](https://github.com/soywiz/korge)
 
+Also there is a GDX backend using JTransc+Haxe: [https://github.com/jtransc/gdx-backend-jtransc](https://github.com/jtransc/gdx-backend-jtransc)
 
 JTransc
 
-# What is this?
+# Detailed: What is this?
 
 JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
-into a target executable bundling all the required dependencies in a single file, without requiring
+into a target programming language / executable bundling all the required dependencies in a single file or folder, without requiring
 a jitter or an external runtime.
+
 At the beginning it generated as3 and javascript, but right now there are several targets: Javascript, Haxe, C++, and D.
 Haxe itself allow to target several other languages: JS, AS3, C++, C#, Java, PHP and Python.
 This in turn allows running the program on different platforms such as desktop, browsers and mobile.
