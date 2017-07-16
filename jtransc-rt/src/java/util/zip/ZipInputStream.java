@@ -23,8 +23,8 @@ import libcore.io.Streams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
-import java.nio.ByteOrder;
-import java.nio.charset.ModifiedUtf8;
+
+import com.jtransc.charset.ModifiedUtf8;
 import java.util.Arrays;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -88,8 +88,6 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
     private final CRC32 crc = new CRC32();
 
     private byte[] nameBuf = new byte[256];
-
-    private char[] charBuf = new char[256];
 
     /**
      * Constructs a new {@code ZipInputStream} to read zip entries from the given input stream.
@@ -262,10 +260,9 @@ public class ZipInputStream extends InflaterInputStream implements ZipConstants 
             nameBuf = new byte[nameLength];
             // The bytes are modified UTF-8, so the number of chars will always be less than or
             // equal to the number of bytes. It's fine if this buffer is too long.
-            charBuf = new char[nameLength];
         }
         Streams.readFully(in, nameBuf, 0, nameLength);
-        currentEntry = createZipEntry(ModifiedUtf8.decode(nameBuf, charBuf, 0, nameLength));
+        currentEntry = createZipEntry(ModifiedUtf8.decode(nameBuf, 0, nameLength));
         currentEntry.time = ceLastModifiedTime;
         currentEntry.modDate = ceLastModifiedDate;
         currentEntry.setMethod(ceCompressionMethod);
