@@ -96,7 +96,7 @@ object AstDependencyAnalyzer {
 					//for (c in expr.values) ana(c)
 					ana(expr.arrayType)
 				}
-				is AstExpr.STRINGARRAY_LITERAL -> {
+				is AstExpr.OBJECTARRAY_LITERAL -> {
 					//for (c in expr.values) ana(c)
 					ana(expr.arrayType)
 					allSortedRefsStaticInit += AstType.STRING

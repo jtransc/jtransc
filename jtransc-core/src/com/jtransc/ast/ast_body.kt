@@ -512,7 +512,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val type = arrayType
 	}
 
-	class STRINGARRAY_LITERAL(val values: List<String>) : AstExpr() {
+	class OBJECTARRAY_LITERAL(val values: List<AstExpr>, val kind: AstType) : AstExpr() {
 		val arrayType: AstType.ARRAY = AstType.ARRAY(AstType.STRING)
 		override val type = arrayType
 	}
@@ -585,7 +585,7 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
 	is AstExpr.NEW_ARRAY -> true
 	is AstExpr.INTARRAY_LITERAL -> true
-	is AstExpr.STRINGARRAY_LITERAL -> true
+	is AstExpr.OBJECTARRAY_LITERAL -> true
 	is AstExpr.PARAM -> true
 	is AstExpr.THIS -> true
 	else -> {
@@ -753,6 +753,7 @@ open class BuilderBase(val types: AstTypes) {
 fun AstType.array() = AstType.ARRAY(this)
 fun AstType.ARRAY.newArray(size: AstExpr) = AstExpr.NEW_ARRAY(this, listOf(size))
 fun AstType.ARRAY.newArray(size: Int) = this.newArray(size.lit)
+fun AstType.ARRAY.newLiteralArray(items: List<AstExpr>) = AstExpr.OBJECTARRAY_LITERAL(items, this)
 
 fun AstMethodRef.newInstance(vararg args: AstExpr) = AstExpr.NEW_WITH_CONSTRUCTOR(this, args.toList())
 
@@ -897,9 +898,9 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 		}
 	}
 
-	fun RETURN() = Unit.apply { stms += AstStm.RETURN_VOID() }
-	fun RETURN(value: AstExpr) = Unit.apply { stms += AstStm.RETURN(value) }
-	fun RETURN(value: AstLocal) = Unit.apply { stms += AstStm.RETURN(value.expr) }
+	fun RETURN() = run { stms += AstStm.RETURN_VOID() }
+	fun RETURN(value: AstExpr) = run { stms += AstStm.RETURN(value) }
+	fun RETURN(value: AstLocal) = run { stms += AstStm.RETURN(value.expr) }
 
 	fun genstm(): AstStm = stms.stm()
 }

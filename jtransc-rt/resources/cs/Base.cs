@@ -250,6 +250,14 @@ class JA_F : JA_Template<float>  { public JA_F(float[]  data, string desc = "[F"
 class JA_D : JA_Template<double> { public JA_D(double[] data, string desc = "[D") : base(data, desc) { } public JA_D(int size, string desc = "[D") : base(size, desc) { } }
 class JA_L : JA_Template<{% CLASS java.lang.Object %}> {
 	public JA_L({% CLASS java.lang.Object %}[] data, string desc) : base(data, desc) { } public JA_L(int size, string desc) : base(size, desc) { }
+
+	static public JA_L fromArray(string desc, {% CLASS java.lang.Object %}[] data) { return new JA_L(data, desc); }
+	static public JA_L T0(string desc) { return new JA_L(new {% CLASS java.lang.Object %}[]{}, desc); }
+	static public JA_L T1(string desc, {% CLASS java.lang.Object %} a) { return new JA_L(new[]{ a }, desc); }
+	static public JA_L T2(string desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b) { return new JA_L(new[]{ a, b }, desc); }
+	static public JA_L T3(string desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c) { return new JA_L(new[]{ a, b, c }, desc); }
+	static public JA_L T4(string desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c, {% CLASS java.lang.Object %} d) { return new JA_L(new[]{ a, b, c, d }, desc); }
+
 	static public JA_0 createMultiSure(string desc, params int[] sizes) {
 		return _createMultiSure(desc, 0, sizes);
 	}

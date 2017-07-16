@@ -106,7 +106,7 @@ open class AstVisitor {
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> visit(expr)
 			is AstExpr.NEW_ARRAY -> visit(expr)
 			is AstExpr.INTARRAY_LITERAL -> visit(expr)
-			is AstExpr.STRINGARRAY_LITERAL -> visit(expr)
+			is AstExpr.OBJECTARRAY_LITERAL -> visit(expr)
 			is AstExpr.TERNARY -> visit(expr)
 			else -> noImpl("$expr")
 		}
@@ -400,7 +400,7 @@ open class AstVisitor {
 		//visitExprs(expr.values)
 	}
 
-	open fun visit(expr: AstExpr.STRINGARRAY_LITERAL) {
+	open fun visit(expr: AstExpr.OBJECTARRAY_LITERAL) {
 		visit(expr.arrayType)
 		//visitExprs(expr.values)
 	}

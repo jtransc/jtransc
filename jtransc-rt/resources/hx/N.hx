@@ -163,7 +163,7 @@ class N {
 	static public function haxeStringArrayToJavaArray(strs:Array<String>):JA_L {
 		var out = [];
 		for (s in strs) out.push(N.str(s));
-		return JA_L.fromArray(out, '[Ljava/lang/String;');
+		return JA_L.fromArray('[Ljava/lang/String;', out);
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
@@ -372,7 +372,7 @@ class N {
 		for (n in 0 ... callStack.length) {
 			out.push(convertStackItem(callStack[n]));
 		}
-		return JA_L.fromArray(out.slice(skip), "[Ljava.lang.StackTraceElement;");
+		return JA_L.fromArray("[Ljava.lang.StackTraceElement;", out.slice(skip));
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

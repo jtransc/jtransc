@@ -90,7 +90,7 @@ open class AstTransformer {
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> transform(expr)
 			is AstExpr.NEW_ARRAY -> transform(expr)
 			is AstExpr.INTARRAY_LITERAL -> transform(expr)
-			is AstExpr.STRINGARRAY_LITERAL -> transform(expr)
+			is AstExpr.OBJECTARRAY_LITERAL -> transform(expr)
 			is AstExpr.TERNARY -> transform(expr)
 			else -> noImpl("$expr")
 		}
@@ -437,7 +437,7 @@ open class AstTransformer {
 		return expr
 	}
 
-	open fun transform(expr: AstExpr.STRINGARRAY_LITERAL): AstExpr {
+	open fun transform(expr: AstExpr.OBJECTARRAY_LITERAL): AstExpr {
 		transform(expr.arrayType)
 		//visitExprs(expr.values)
 		return expr
