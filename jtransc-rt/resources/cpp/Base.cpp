@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <locale>
+#include <memory>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -220,12 +222,12 @@ struct N { public:
 
 	//static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
 	//static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
-	static JAVA_OBJECT resolveClass(std::wstring str);
+	static JAVA_OBJECT resolveClass(std::u16string str);
 	inline static int64_t lnew(int32_t high, int32_t low);
 	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
 	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
 	static JT_BOOL isArray(JAVA_OBJECT obj);
-	static JT_BOOL isArray(JAVA_OBJECT obj, std::wstring desc);
+	static JT_BOOL isArray(JAVA_OBJECT obj, std::u16string desc);
 	static JT_BOOL isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
 	static int cmp(double a, double b);
 	static int cmpl(double a, double b);
@@ -269,34 +271,35 @@ struct N { public:
 	inline static int32_t j2i(int64_t v);
 	inline static int64_t f2j(float v);
 	inline static int64_t d2j(double v);
-	static void log(std::wstring str);
+	static std::wstring toWide(std::u16string s);
+	static void log(std::u16string str);
 	static void log(JAVA_OBJECT str);
 
 	{% if ENABLE_TYPING %}
 	static p_java_lang_String str(const char *str);
-	static p_java_lang_String str(const wchar_t *str, int32_t len);
-	static p_java_lang_String str(std::wstring str);
+	static p_java_lang_String str(const char16_t *str, int32_t len);
+	static p_java_lang_String str(std::u16string str);
 	static p_java_lang_String str(std::string str);
-	static p_JA_L strArray(int32_t count, wchar_t **strs);
-	static p_JA_L strArray(std::vector<std::wstring> strs);
+	static p_JA_L strArray(int32_t count, char16_t **strs);
+	static p_JA_L strArray(std::vector<std::u16string> strs);
 	static p_JA_L strArray(std::vector<std::string> strs);
 	static p_JA_L strEmptyArray();
 	{% else %}
 	static JAVA_OBJECT str(const char *str);
-	static JAVA_OBJECT str(const wchar_t *str, int32_t len);
-	static JAVA_OBJECT str(std::wstring str);
+	static JAVA_OBJECT str(const char16_t *str, int32_t len);
+	static JAVA_OBJECT str(std::u16string str);
 	static JAVA_OBJECT str(std::string str);
-	static JAVA_OBJECT strArray(int32_t count, wchar_t **strs);
-	static JAVA_OBJECT strArray(std::vector<std::wstring> strs);
+	static JAVA_OBJECT strArray(int32_t count, char16_t **strs);
+	static JAVA_OBJECT strArray(std::vector<std::u16string> strs);
 	static JAVA_OBJECT strArray(std::vector<std::string> strs);
 	static JAVA_OBJECT strEmptyArray();
 	{% end %}
 
-	static std::wstring istr2(JAVA_OBJECT obj);
+	static std::u16string istr2(JAVA_OBJECT obj);
 	static std::string istr3(JAVA_OBJECT obj);
 	static JAVA_OBJECT dummyMethodClass();
-	static void throwNpe(const wchar_t *position);
-	template<typename T> static T ensureNpe(T obj, const wchar_t *position);
+	static void throwNpe(const char16_t *position);
+	template<typename T> static T ensureNpe(T obj, const char16_t *position);
 	static void throwNpe();
 	template<typename T> static T ensureNpe(T obj);
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
@@ -364,13 +367,13 @@ struct JA_0 : public java_lang_Object { public:
 	void *_data;
 	int32_t length;
 	int8_t elementSize;
-	std::wstring desc;
-	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+	std::u16string desc;
+	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::u16string d) : length(len), elementSize(esize), desc(d) {
 		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 	}
 
-	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
+	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::u16string d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
 	}
 
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
@@ -404,13 +407,13 @@ struct JA_0 : public java_lang_Object { public:
 
 template <class T>
 struct JA_Base : JA_0 {
-	JA_Base(JT_BOOL pointers, int32_t size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, int32_t size, std::u16string desc) : JA_0(pointers, size, sizeof(T), desc) {
 	};
-	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::u16string desc) : JA_0(pointers, data, size, sizeof(T), desc) {
 	};
 	inline void checkBounds(int32_t offset) {
 		if (offset < 0 || offset >= length) {
-			std::wstringstream os;
+			std::stringstream os;
 			os << L"Out of bounds " << offset << L" " << length;
 			throw os.str();
 		}
@@ -459,8 +462,8 @@ struct JA_Base : JA_0 {
 };
 
 struct JA_B : JA_Base<int8_t> {
-	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
-	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
+	JA_B(int32_t size, std::u16string desc = u"[B") : JA_Base(false, size, desc) { };
+	JA_B(void* data, int32_t size, std::u16string desc = u"[B") : JA_Base(false, data, size, desc) { };
 
 	void fill(int32_t from, int32_t to, int8_t v) {
 		checkBounds(from);
@@ -469,20 +472,20 @@ struct JA_B : JA_Base<int8_t> {
 	}
 };
 struct JA_Z : public JA_B {
-	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
-	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
+	JA_Z(int32_t size, std::u16string desc = u"[Z") : JA_B(size, desc) { };
+	JA_Z(void* data, int32_t size, std::u16string desc = u"[Z") : JA_B(data, size, desc) { };
 };
 struct JA_S : JA_Base<int16_t> {
-	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
-	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
+	JA_S(int32_t size, std::u16string desc = u"[S") : JA_Base(false, size, desc) { };
+	JA_S(void* data, int32_t size, std::u16string desc = u"[S") : JA_Base(false, data, size, desc) { };
 };
 struct JA_C : JA_Base<uint16_t> {
-	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
-	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
+	JA_C(int32_t size, std::u16string desc = u"[C") : JA_Base(false, size, desc) { };
+	JA_C(void* data, int32_t size, std::u16string desc = u"[C") : JA_Base(false, data, size, desc) { };
 };
 struct JA_I : JA_Base<int32_t> {
-	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
-	JA_I(void* data, int32_t size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
+	JA_I(int32_t size, std::u16string desc = u"[I") : JA_Base(false, size, desc) { };
+	JA_I(void* data, int32_t size, std::u16string desc = u"[I") : JA_Base(false, data, size, desc) { };
 
 	// @TODO: Try to move to JA_Base
 	static JA_I *fromVector(int32_t *data, int32_t count) {
@@ -497,20 +500,20 @@ struct JA_I : JA_Base<int32_t> {
 
 };
 struct JA_J : JA_Base<int64_t> {
-	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
-	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
+	JA_J(int32_t size, std::u16string desc = u"[J") : JA_Base(false, size, desc) { };
+	JA_J(void* data, int32_t size, std::u16string desc = u"[J") : JA_Base(false, data, size, desc) { };
 };
 struct JA_F : JA_Base<float> {
-	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
-	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
+	JA_F(int32_t size, std::u16string desc = u"[F") : JA_Base(false, size, desc) { };
+	JA_F(void* data, int32_t size, std::u16string desc = u"[F") : JA_Base(false, data, size, desc) { };
 };
 struct JA_D : JA_Base<double> {
-	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
-	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
+	JA_D(int32_t size, std::u16string desc = u"[D") : JA_Base(false, size, desc) { };
+	JA_D(void* data, int32_t size, std::u16string desc = u"[D") : JA_Base(false, data, size, desc) { };
 };
 struct JA_L : JA_Base<JAVA_OBJECT> {
-	JA_L(int32_t size, std::wstring desc) : JA_Base(true, size, desc) { };
-	JA_L(void* data, int32_t size, std::wstring desc) : JA_Base(true, data, size, desc) { };
+	JA_L(int32_t size, std::u16string desc) : JA_Base(true, size, desc) { };
+	JA_L(void* data, int32_t size, std::u16string desc) : JA_Base(true, data, size, desc) { };
 
 	std::vector<JAVA_OBJECT> getVector() {
 		int32_t len = this->length;
@@ -519,21 +522,21 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		return out;
 	}
 
-	static JA_0* createMultiSure(std::wstring desc, std::vector<int32_t> sizes) {
-		if (sizes.size() == 0) throw L"Multiarray with zero sizes";
+	static JA_0* createMultiSure(std::u16string desc, std::vector<int32_t> sizes) {
+		if (sizes.size() == 0) throw u"Multiarray with zero sizes";
 
 		int32_t size = sizes[0];
 
 		if (sizes.size() == 1) {
-			if (desc == std::wstring(L"[Z")) return new JA_Z(size);
-			if (desc == std::wstring(L"[B")) return new JA_B(size);
-			if (desc == std::wstring(L"[S")) return new JA_S(size);
-			if (desc == std::wstring(L"[C")) return new JA_C(size);
-			if (desc == std::wstring(L"[I")) return new JA_I(size);
-			if (desc == std::wstring(L"[J")) return new JA_J(size);
-			if (desc == std::wstring(L"[F")) return new JA_F(size);
-			if (desc == std::wstring(L"[D")) return new JA_D(size);
-			throw L"Invalid multiarray";
+			if (desc == std::u16string(u"[Z")) return new JA_Z(size);
+			if (desc == std::u16string(u"[B")) return new JA_B(size);
+			if (desc == std::u16string(u"[S")) return new JA_S(size);
+			if (desc == std::u16string(u"[C")) return new JA_C(size);
+			if (desc == std::u16string(u"[I")) return new JA_I(size);
+			if (desc == std::u16string(u"[J")) return new JA_J(size);
+			if (desc == std::u16string(u"[F")) return new JA_F(size);
+			if (desc == std::u16string(u"[D")) return new JA_D(size);
+			throw u"Invalid multiarray";
 		}
 
 		// std::vector<decltype(myvector)::value_type>(myvector.begin()+N, myvector.end()).swap(myvector);
@@ -568,7 +571,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 
 // N IMPLS
 
-JAVA_OBJECT N::resolveClass(std::wstring str) {
+JAVA_OBJECT N::resolveClass(std::u16string str) {
 	return {% SMETHOD java.lang.Class:forName0 %}(N::str(str));
 };
 
@@ -588,11 +591,11 @@ JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 };
 
 JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) {
+JT_BOOL N::isArray(JAVA_OBJECT obj, std::u16string desc) {
 	JA_0* ptr = GET_OBJECT(JA_0, obj);
 	JT_BOOL result = (ptr != nullptr) && (ptr->desc == desc);
 	if (!result) {
-		if (desc.substr(0, 2) == L"[L") {
+		if (desc.substr(0, 2) == u"[L") {
 			return GET_OBJECT(JA_L, obj) != nullptr;
 		}
 	}
@@ -719,30 +722,26 @@ int32_t N::j2i(int64_t v) { return (int32_t)v; }
 int64_t N::f2j(float v) { return (int64_t)v; }
 int64_t N::d2j(double v) { return (int64_t)v; }
 
-//SOBJ N::strLiteral(wchar_t *ptr, int len) {
+//SOBJ N::strLiteral(char16_t *ptr, int len) {
 //	SOBJ out(new {% CLASS java.lang.String %}());
 //	return out.get()->sptr();
 //}
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
-N::str(const wchar_t *str, int32_t len) {
+N::str(const char16_t *str, int32_t len) {
 	p_java_lang_String out = new {% CLASS java.lang.String %}();
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	p_JA_C array = new JA_C(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
-	if (sizeof(wchar_t) == sizeof(uint16_t)) {
-		::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
-	} else {
-		for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
-	}
+	::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
 	out->{% FIELD java.lang.String:value %} = arrayobj;
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
-N::str(std::wstring str) {
+N::str(std::u16string str) {
 	int32_t len = str.length();
 	p_java_lang_String out(new {% CLASS java.lang.String %}());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
@@ -758,7 +757,7 @@ N::str(std::wstring str) {
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::string s) {
 	//if (s == nullptr) return SOBJ(nullptr);
-	std::wstring ws(s.begin(), s.end());
+	std::u16string ws(s.begin(), s.end());
 	return N::str(ws);
 };
 
@@ -779,17 +778,17 @@ N::str(const char *s) {
 };
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
-N::strArray(int32_t count, wchar_t **strs) {
-	p_JA_L out = new JA_L(count, L"[java/lang/String;");
+N::strArray(int32_t count, char16_t **strs) {
+	p_JA_L out = new JA_L(count, u"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	for (int32_t n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
+	for (int32_t n = 0; n < count; n++) out->set(n, N::str(std::u16string(strs[n])));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
-N::strArray(std::vector<std::wstring> strs) {
+N::strArray(std::vector<std::u16string> strs) {
 	int32_t len = strs.size();
-	p_JA_L out = new JA_L(len, L"[java/lang/String;");
+	p_JA_L out = new JA_L(len, u"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -798,7 +797,7 @@ N::strArray(std::vector<std::wstring> strs) {
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(std::vector<std::string> strs) {
 	int32_t len = strs.size();
-	p_JA_L out = new JA_L(len, L"[Ljava/lang/String;");
+	p_JA_L out = new JA_L(len, u"[Ljava/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -806,14 +805,14 @@ N::strArray(std::vector<std::string> strs) {
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strEmptyArray() {
-	p_JA_L out = new JA_L(0, L"Ljava/lang/String;");
+	p_JA_L out = new JA_L(0, u"Ljava/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
 
-std::wstring N::istr2(JAVA_OBJECT obj) {
+std::u16string N::istr2(JAVA_OBJECT obj) {
 	int32_t len = N::strLen(obj);
-	std::wstring s;
+	std::u16string s;
 	s.reserve(len);
 	for (int32_t n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
 	return s;
@@ -837,8 +836,14 @@ uint16_t N::strCharAt(JAVA_OBJECT obj, int32_t n) {
 	return str->{% METHOD java.lang.String:charAt %}(n);
 }
 
-void N::log(std::wstring str) {
-	std::wcout << str << L"\n";
+std::wstring N::toWide(std::u16string s) {
+	return std::wstring(s.begin(), s.end()); // @TODO: is this slow? Also surrogate pairs should be translated into proper codepoints.
+}
+
+void N::log(std::u16string str) {
+	//for (int n = 0; n < str.length(); n++) std::wcout << (wchar_t)str[n];
+	//std::wcout << L"\n";
+	std::wcout << N::toWide(str) << L"\n";
 	fflush(stdout);
 }
 
@@ -851,14 +856,14 @@ JAVA_OBJECT N::dummyMethodClass() {
 	return nullptr;
 }
 
-void N::throwNpe(const wchar_t* position) {
+void N::throwNpe(const char16_t* position) {
 	TRACE_REGISTER("N::throwNpe()");
-	std::wcout << L"N::throwNpe():" << std::wstring(position) << L"\n";
+	std::wcout << L"N::throwNpe():" << N::toWide(std::u16string(position)) << L"\n";
 	throw {% CONSTRUCTOR java.lang.NullPointerException:()V %}();
 }
 
 template<typename T>
-T N::ensureNpe(T obj, const wchar_t* position) {
+T N::ensureNpe(T obj, const char16_t* position) {
 	#ifdef CHECK_NPE
 	if (obj == nullptr) N::throwNpe(position);
 	#endif
@@ -866,7 +871,7 @@ T N::ensureNpe(T obj, const wchar_t* position) {
 }
 
 void N::throwNpe() {
-	N::throwNpe(L"unknown");
+	N::throwNpe(u"unknown");
 }
 
 template<typename T>
@@ -892,7 +897,7 @@ void N::writeChars(JAVA_OBJECT str, char *out, int32_t maxlen) {
 }
 
 void __throwCLASSCAST() {
-	throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str(L"Class cast error"));
+	throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str(u"Class cast error"));
 }
 
 template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
@@ -1043,12 +1048,12 @@ int64_t N::nanoTime() {
 
 void SIGSEGV_handler(int signal) {
 	std::wcout << L"invalid memory access (segmentation fault)\n";
-	throw L"invalid memory access (segmentation fault)";
+	throw u"invalid memory access (segmentation fault)";
 };
 
 void SIGFPE_handler(int signal) {
 	std::wcout << L"erroneous arithmetic operation such as divide by zero\n";
-	throw L"erroneous arithmetic operation such as divide by zero";
+	throw u"erroneous arithmetic operation such as divide by zero";
 };
 
 //SIGTERM	termination request, sent to the program
@@ -1072,8 +1077,8 @@ JAVA_OBJECT jtvmNewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
 
 	/*auto byteArray = SOBJ(new JA_B(address, capacity));
 	std::cerr << "N::jtvmNewDirectByteBuffer after byte array";
-	//std::shared_ptr<JA_L> out(new JA_L(count, L"[java/lang/String;"));
-    //for (int n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
+	//std::shared_ptr<JA_L> out(new JA_L(count, u"[java/lang/String;"));
+    //for (int n = 0; n < count; n++) out->set(n, N::str(std::u16string(strs[n])));
     //return out.get()->sptr();
 	auto buffer = std::make_shared<{% CLASS java.nio.ByteBuffer %}>({% CONSTRUCTOR java.nio.ByteBuffer:([BZ)V %}(byteArray, (int8_t)true)).get()->sptr();
 	std::cerr << "N::jtvmNewDirectByteBuffer after alloc";

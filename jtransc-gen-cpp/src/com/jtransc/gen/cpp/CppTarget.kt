@@ -89,7 +89,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		"register", "reinterpret_cast", "requires", "return",
 		"short", "signed", "sizeof", "static", "static_assert", "static_cast", "struct", "switch", "synchronized",
 		"template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename",
-		"union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while",
+		"union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "char16_t", "while",
 		"xor", "xor_eq", "override", "final", "transaction_safe", "transaction_safe_dynamic",
 		// Macro
 		"if", "elif", "else", "endif", "defined", "ifdef", "ifndef",
@@ -341,7 +341,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
-					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
+					line("""${gs.name} = N::str(u${gs.str.uquote()}, ${gs.str.length});""")
 				}
 			}
 		}
@@ -400,6 +400,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("catch (char const *s)") {
 				line("""std::cout << "ERROR char const* " << s << "\n";""")
 			}
+			line("catch (std::u16string s)") {
+				line("""std::wcout << L"ERROR std::u16string " << N::toWide(s) << L"\n";""")
+			}
 			line("catch (std::wstring s)") {
 				line("""std::wcout << L"ERROR std::wstring " << s << L"\n";""")
 			}
@@ -409,7 +412,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//}
 			line("catch (p_java_lang_Object s)") {
 				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
-				line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
+				line("""std::wcout << L"ERROR p_java_lang_Object " << N::toWide(N::istr2(s->$toStringMethod())) << L"\n";""")
 			}
 			//line("catch (...)") {
 			//	line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
@@ -592,7 +595,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				//line("""SOBJ _this(this);""")
 			}
 
-			line("""const wchar_t *FUNCTION_NAME = L"${method.containingClass.name}::${method.name}::${method.desc}";""")
+			line("""const char16_t *FUNCTION_NAME = u"${method.containingClass.name}::${method.name}::${method.desc}";""")
 			line("""TRACE_REGISTER(FUNCTION_NAME);""")
 
 			setCurrentMethod(method)
@@ -656,7 +659,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("typedef ${toNativeType(method.methodType.ret)} (JNICALL *func_ptr_t)(${standardJniArgumentString + nativeParameterString});")
 		line("static void* nativePointer = NULL;")
 		//{% CLASS ${method.containingClass.fqname} %}
-		line("func_ptr_t fptr = (func_ptr_t)N::jtvmResolveNative(N::resolveClass(L\"${method.containingClass.fqname}\"), \"${JniUtils.mangleShortJavaMethod(method)}\", \"${JniUtils.mangleLongJavaMethod(method)}\", &nativePointer);")
+		line("func_ptr_t fptr = (func_ptr_t)N::jtvmResolveNative(N::resolveClass(u\"${method.containingClass.fqname}\"), \"${JniUtils.mangleShortJavaMethod(method)}\", \"${JniUtils.mangleLongJavaMethod(method)}\", &nativePointer);")
 
 		val sb2 = StringBuilder(30)
 		for (i in method.methodType.args.indices) {
@@ -926,7 +929,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun N_is(a: String, b: AstType.Reference): String = when (b) {
 		is AstType.REF -> N_func("is", "($a), ${program[b.name].classId}")
-		is AstType.ARRAY -> N_func("isArray", "($a), L${b.mangle().quote()}")
+		is AstType.ARRAY -> N_func("isArray", "($a), u${b.mangle().quote()}")
 		else -> N_func("isUnknown", """$a, "Unsupported $b"""")
 	}
 
@@ -972,14 +975,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"new $ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\")"
+			"new $ObjectArrayType(${e.counts[0].genExpr()}, u\"$desc\")"
 		} else {
 			"new ${e.type.targetName}(${e.counts[0].genExpr()})"
 		}
 	}
 
 	override fun createArrayMultisure(e: AstExpr.NEW_ARRAY, desc: String): String {
-		return "$ObjectArrayType${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
+		return "$ObjectArrayType${staticAccessOperator}createMultiSure(u\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
 	override fun genExprNew(e: AstExpr.NEW): String = "" + super.genExprNew(e) + ""
@@ -1059,7 +1062,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FloatNanString = "N::NAN_FLOAT"
 
 	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
-	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
+	override val AstType.escapeType: String get() = N_func("resolveClass", "u${this.mangle().uquote()}")
 
 	override fun N_lnew(value: Long): String {
 		if (value == Long.MIN_VALUE) {
