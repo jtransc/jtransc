@@ -271,7 +271,7 @@ struct N { public:
 	inline static int32_t j2i(int64_t v);
 	inline static int64_t f2j(float v);
 	inline static int64_t d2j(double v);
-	static std::wstring N::toWide(std::u16string s);
+	static std::wstring toWide(std::u16string s);
 	static void log(std::u16string str);
 	static void log(JAVA_OBJECT str);
 
