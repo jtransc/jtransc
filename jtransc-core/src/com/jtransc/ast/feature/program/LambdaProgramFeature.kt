@@ -63,7 +63,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 		}
 
 		for (clazz in program.classes.toList()) {
-			for (method in clazz.methods.filter { it.body?.flags?.hasDynamicInvoke ?: false }) {
+			for (method in clazz.methods.toList().filter { it.body?.flags?.hasDynamicInvoke ?: false }) {
 				processMethodWithDynamic(method)
 			}
 		}

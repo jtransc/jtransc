@@ -103,5 +103,10 @@ class JA_C extends JA_0 {
 		#end
     }
 
+	{{ HAXE_METHOD_ANNOTATIONS }}
+	public function setArraySlice(startIndex: Int, array: Array<Int>) {
+		for (n in 0...array.length) this.set(startIndex + n, array[n]);
+	}
+
     {{ HAXE_METHOD_ANNOTATIONS }} override public function copyTo(srcPos: Int, dst: JA_0, dstPos: Int, length: Int) { copy(this, cast(dst, JA_C), srcPos, dstPos, length); }
 }
