@@ -13,6 +13,7 @@ import javatest.*
 import javatest.lang.*
 import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
+import javatest.nio.ModifiedUtf8Test
 import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
@@ -147,6 +148,8 @@ object BigTest {
 		System.out.println(String.format("%d%%", 100))
 
 		System.out.println(i[0] % i[1]);
+
+		ModifiedUtf8Test.main(args);
 	}
 
 	private fun servicesTest() {

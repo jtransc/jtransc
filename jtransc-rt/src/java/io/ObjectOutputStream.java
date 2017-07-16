@@ -21,8 +21,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.nio.ByteOrder;
-import java.nio.charset.ModifiedUtf8;
+
+import com.jtransc.charset.ModifiedUtf8;
 import libcore.io.Memory;
 import java.nio.internal.SizeOf;
 import java.util.List;
