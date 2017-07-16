@@ -9,7 +9,6 @@
 #include <string>
 #include <locale>
 #include <memory>
-#include <codecvt>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -838,9 +837,7 @@ uint16_t N::strCharAt(JAVA_OBJECT obj, int32_t n) {
 }
 
 std::wstring N::toWide(std::u16string s) {
-	std::wstring_convert<std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>, wchar_t> conv;
-	std::wstring ws = conv.from_bytes(reinterpret_cast<const char*> (&s[0]), reinterpret_cast<const char*> (&s[0] + s.size()));
-	return ws;
+	return std::wstring(s.begin(), s.end()); // @TODO: is this slow? Also surrogate pairs should be translated into proper codepoints.
 }
 
 void N::log(std::u16string str) {
