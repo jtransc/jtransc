@@ -288,10 +288,20 @@ class JA_B extends JA_0 {
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_B).data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
+	static JA_B fromArray(String desc, List data) {
+		var out = new JA_B(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_Z extends JA_B {
 	JA_Z(int length, [String desc = '[Z']) : super(length, desc) { }
+	static JA_Z fromArray(String desc, List data) {
+		var out = new JA_Z(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_C extends JA_0 {
@@ -303,6 +313,11 @@ class JA_C extends JA_0 {
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_C).data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
+	static JA_C fromArray(String desc, List data) {
+		var out = new JA_C(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_S extends JA_0 {
@@ -313,6 +328,11 @@ class JA_S extends JA_0 {
 	}
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_S).data.setRange(destPos, destPos + length, this.data, srcPos);
+	}
+	static JA_S fromArray(String desc, List data) {
+		var out = new JA_S(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
 	}
 }
 
@@ -330,6 +350,11 @@ class JA_I extends JA_0 {
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_I).data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
+	static JA_I fromArray(String desc, List data) {
+		var out = new JA_I(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_F extends JA_0 {
@@ -340,6 +365,11 @@ class JA_F extends JA_0 {
 	}
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_F).data.setRange(destPos, destPos + length, this.data, srcPos);
+	}
+	static JA_F fromArray(String desc, List data) {
+		var out = new JA_F(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
 	}
 }
 
@@ -352,6 +382,12 @@ class JA_D extends JA_0 {
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_D).data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
+
+	static JA_D fromArray(String desc, List data) {
+		var out = new JA_D(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_J extends JA_0 {
@@ -363,11 +399,29 @@ class JA_J extends JA_0 {
 	void copyTo(JA_0 dest, int srcPos, int destPos, int length) {
 		(dest as JA_J).data.setRange(destPos, destPos + length, this.data, srcPos);
 	}
+
+	static JA_J fromArray(String desc, List data) {
+		var out = new JA_J(data.length);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
 }
 
 class JA_L extends JA_0 {
 	List data;
 	JA_L(int length, String desc) : super(length, desc) { data = new List.filled(length, null); }
+
+	static JA_L fromArray(String desc, List data) {
+		var out = new JA_L(data.length, desc);
+		for (var n = 0; n < data.length; n++) out.data[n] = data[n];
+		return out;
+	}
+
+	static JA_L T0(String desc) { return JA_L.fromArray(desc, []); }
+	static JA_L T1(String desc, a) { return JA_L.fromArray(desc, [a]); }
+	static JA_L T2(String desc, a, b) { return JA_L.fromArray(desc, [a, b]); }
+	static JA_L T3(String desc, a, b, c) { return JA_L.fromArray(desc, [a, b, c]); }
+	static JA_L T4(String desc, a, b, c, d) { return JA_L.fromArray(desc, [a, b, c, d]); }
 
 	static JA_0 createMultiSure(String desc, List<int> sizes) {
 		return _createMultiSure(desc, 0, sizes);

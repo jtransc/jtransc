@@ -55,5 +55,20 @@ public class JA_L extends JA_0 {
 		}
 		return o;
 	}
+
+	static public function fromArray(desc: String, data: Array): JA_L {
+		var len: int = data.length;
+		var o: JA_L = new JA_L(len, desc);
+		for (var n: int = 0; n < len; n++) {
+			o.data[n] = data[n];
+		}
+		return o;
+	}
+
+	static public function T0(desc: String): JA_L { return fromArray(desc, []); }
+	static public function T1(desc: String, a:*): JA_L { return fromArray(desc, [a]); }
+	static public function T2(desc: String, a:*, b:*): JA_L { return fromArray(desc, [a, b]); }
+	static public function T3(desc: String, a:*, b:*, c:*): JA_L { return fromArray(desc, [a, b, c]); }
+	static public function T4(desc: String, a:*, b:*, c:*, d:*): JA_L { return fromArray(desc, [a, b, c, d]); }
 }
 }
