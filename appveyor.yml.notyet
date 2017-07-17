@@ -3,10 +3,14 @@ os: Windows Server 2012
 install:
   - cmd: cinst -y php || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
   - cmd: cinst -y haxe
+  - cmd: haxelib setup C:\Users\appveyor\haxelib
+  - cmd: haxelib install lime
+  - cmd: haxelib run lime setup
   #- cmd: cinst -y maven
   #- cmd: cinst -y 7zip
   #- cmd: curl -o haxe.zip https://github.com/HaxeFoundation/haxe/releases/download/3.4.2/haxe-3.4.2-win.zip
   #- cmd: 7z -y x haxe.zip -oc:\tools
+  - cmd: cinst -y dmd
   - cmd: copy c:\tools\php71\php.ini-production c:\tools\php71\php.ini /Y
   - cmd: echo date.timezone="UTC" >> c:\tools\php71\php.ini
   - cmd: echo extension_dir=ext >> c:\tools\php71\php.ini
@@ -33,3 +37,11 @@ test_script:
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
+after_build: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
+# upload test results via rest-api
+  - ps: |
+        $wc = New-Object 'System.Net.WebClient'
+        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |
+        Foreach-Object {
+            $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))
+        }
