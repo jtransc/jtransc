@@ -4,7 +4,6 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.cs.CSharpTarget
-import issues.Issue209
 import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
