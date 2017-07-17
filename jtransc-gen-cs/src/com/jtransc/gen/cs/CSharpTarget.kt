@@ -29,6 +29,9 @@ class CSharpTarget : GenTargetDescriptor() {
 	override val runningAvailable = true
 	override val programFeatures: Set<Class<AstProgramFeature>> = setOf()
 
+	open val ARRAY_OPEN_SYMBOL = "new [] {"
+	open val ARRAY_CLOSE_SYMBOL = "}"
+
 	override val buildTargets: List<TargetBuildTarget> = listOf(
 		TargetBuildTarget("cs", "cs", "program.cs", minimizeNames = false)
 	)

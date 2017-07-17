@@ -131,6 +131,19 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 	this(int len, wstring desc) { super(len, desc); }
 	this({% CLASS java.lang.Object %}[] data, wstring desc) { super(data, desc); }
 
+	static JA_L fromArray(wstring desc, {% CLASS java.lang.Object %}[] data) {
+		auto len = cast(int)data.length;
+		auto o = new JA_L(len, desc);
+		for (auto n = 0; n < len; n++) o.data[n] = data[n];
+		return o;
+	}
+
+	static JA_L T0(wstring desc) { return fromArray(desc, []); }
+	static JA_L T1(wstring desc, {% CLASS java.lang.Object %} a) { return fromArray(desc, [a]); }
+	static JA_L T2(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b) { return fromArray(desc, [a, b]); }
+	static JA_L T3(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c) { return fromArray(desc, [a, b, c]); }
+	static JA_L T4(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c, {% CLASS java.lang.Object %} d) { return fromArray(desc, [a, b, c, d]); }
+
 	static JA_0 createMultiSure(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;
 		if (sizes.length == 1) return JA_L.create(sizes[0], desc);

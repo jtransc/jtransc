@@ -547,16 +547,18 @@ function __createGenericArrayType() {
 		return out;
 	};
 
-	ARRAY.fromArray = function(array, desc) {
+	ARRAY.fromArray = function(desc, array) {
 		if (array == null) return null;
 		var out = new JA_L(array.length, desc);
 		for (var n = 0; n < out.length; ++n) out.set(n, array[n]);
 		return out;
 	};
 
-	ARRAY.fromArrayOrEmpty = function(array, desc) {
-		return ARRAY.fromArray(array ? array : [], desc);
-	};
+	ARRAY.T0 = function(desc) { return this.fromArray(desc, []); }
+	ARRAY.T1 = function(desc, a) { return this.fromArray(desc, [a]); }
+	ARRAY.T2 = function(desc, a, b) { return this.fromArray(desc, [a, b]); }
+	ARRAY.T3 = function(desc, a, b, c) { return this.fromArray(desc, [a, b, c]); }
+	ARRAY.T4 = function(desc, a, b, c, d) { return this.fromArray(desc, [a, b, c, d]); }
 
 	ARRAY.prototype.get = function(index) {
 		return this.data[index];

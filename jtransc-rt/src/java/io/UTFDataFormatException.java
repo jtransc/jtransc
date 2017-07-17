@@ -17,27 +17,10 @@
 
 package java.io;
 
-/**
- * Signals that an incorrectly encoded UTF-8 string has been encountered, most
- * likely while reading some {@link DataInputStream}.
- *
- * @see DataInputStream#readUTF()
- */
 public class UTFDataFormatException extends IOException {
-	/**
-     * Constructs a new {@code UTFDataFormatException} with its stack trace
-     * filled in.
-     */
     public UTFDataFormatException() {
     }
 
-    /**
-     * Constructs a new {@code UTFDataFormatException} with its stack trace and
-     * detail message filled in.
-     *
-     * @param detailMessage
-     *            the detail message for this exception.
-     */
     public UTFDataFormatException(String detailMessage) {
         super(detailMessage);
     }
