@@ -23,6 +23,7 @@ install:
   - cmd: SET PATH=C:\tools\php71;%PATH%
   #- cmd: SET PATH=C:\tools\haxe-3.3.0-rc2;%PATH%
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
+  - cmd: SET PATH=C:\ProgramData\chocolatey\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: php -v
@@ -39,8 +40,7 @@ after_test: # From https://github.com/appveyor/ci/issues/92#issuecomment-3072423
 # upload test results via rest-api
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
-        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |
-        Foreach-Object {
+        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {
             $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))
         }
 cache:
