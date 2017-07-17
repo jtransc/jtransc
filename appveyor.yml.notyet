@@ -3,7 +3,7 @@ os: Windows Server 2012
 install:
   - cmd: cinst -y php || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
   - cmd: cinst -y haxe
-  - cmd: set NEKOPATH=C:\ProgramData\chocolatey\lib\neko
+  - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib setup C:\Users\appveyor\haxelib
   - cmd: haxelib install lime
   - cmd: haxelib run lime setup
@@ -26,6 +26,7 @@ install:
   - cmd: SET PATH=C:\ProgramData\chocolatey\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
+  - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\link.exe
   - cmd: php -v
   - cmd: node -v
   - cmd: haxe -v
@@ -36,13 +37,13 @@ build_script:
   - gradlew -S --info install
 test_script:
   - gradlew -S --info check
-after_test: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
+cache:
+  - C:\maven\
+  - C:\Users\appveyor\
+on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
 # upload test results via rest-api
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
         Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {
             $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))
         }
-cache:
-  - C:\maven\
-  - C:\Users\appveyor\.m2
