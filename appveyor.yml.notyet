@@ -27,6 +27,7 @@ install:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\link.exe
+  - cmd: SET LIB=F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;
   - cmd: php -v
   - cmd: node -v
   - cmd: haxe -v
@@ -42,8 +43,5 @@ cache:
   - C:\Users\appveyor\
 on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
 # upload test results via rest-api
-  - ps: |
-        $wc = New-Object 'System.Net.WebClient'
-        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {
-            $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))
-        }
+  - ps: $wc = New-Object 'System.Net.WebClient'
+        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {$wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))}
