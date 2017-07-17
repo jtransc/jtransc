@@ -6,6 +6,7 @@ import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
+import issues.Issue209
 import issues.Issue94Enum
 import issues.issue130.Issue130
 import issues.issue146.Issue146
@@ -147,7 +148,10 @@ object BigTest {
 
 		System.out.println(String.format("%d%%", 100))
 
+		// check float mod
 		System.out.println(i[0] % i[1]);
+
+		Issue209.main(args);
 
 		ModifiedUtf8Test.main(args);
 	}
