@@ -1,24 +1,19 @@
 version: '{build}'
 os: Windows Server 2012
 install:
+  - cmd: echo %LIB%
+  - cmd: dir C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib
+  - cmd: dir C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64
+  - cmd: dir C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64
+  - cmd: dir C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64
+
   - cmd: cinst -y php haxe dmd || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
   - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe
   - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%
-  - cmd: echo import std.stdio; >> test.d
-  - cmd: echo void main(){ >> test.d
-  - cmd: echo     writeln("Hello, World!"); >> test.d
-  - cmd: echo } >> test.d
-  - cmd: dmd test.d
-  # - cmd: cinst -y haxe
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib setup C:\Users\appveyor\haxelib
   - cmd: haxelib install lime
   - cmd: haxelib run lime setup
-  #- cmd: cinst -y maven
-  #- cmd: cinst -y 7zip
-  #- cmd: curl -o haxe.zip https://github.com/HaxeFoundation/haxe/releases/download/3.4.2/haxe-3.4.2-win.zip
-  #- cmd: 7z -y x haxe.zip -oc:\tools
-  # - cmd: cinst -y dmd
   - cmd: copy c:\tools\php71\php.ini-production c:\tools\php71\php.ini /Y
   - cmd: echo date.timezone="UTC" >> c:\tools\php71\php.ini
   - cmd: echo extension_dir=ext >> c:\tools\php71\php.ini
@@ -28,7 +23,6 @@ install:
   - cmd: echo extension=php_curl.dll >> c:\tools\php71\php.ini
   - cmd: refreshenv
   - cmd: SET PATH=C:\tools\php71;%PATH%
-  #- cmd: SET PATH=C:\tools\haxe-3.3.0-rc2;%PATH%
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
   - cmd: SET PATH=C:\ProgramData\chocolatey\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
