@@ -104,7 +104,7 @@ public class JTranscSystem {
 	@HaxeMethodBody("if (!p0) N.debugger();")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "if (!p0) debugger;"),
-		@JTranscMethodBody(target = "cs", value = "if (!pc) System.Diagnostics.Debugger.Break();"),
+		@JTranscMethodBody(target = "cs", value = "if (!p0) System.Diagnostics.Debugger.Break();"),
 	})
 	static public void assert2(boolean trueCond) {
 		if (!trueCond) {
