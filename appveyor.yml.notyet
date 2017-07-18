@@ -1,6 +1,13 @@
 version: '{build}'
 os: Windows Server 2012
 install:
+  - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe
+  - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%
+  - cmd: echo import std.stdio; >> test.d
+  - cmd: echo void main(){ >> test.d
+  - cmd: echo     writeln("Hello, World!"); >> test.d
+  - cmd: echo } >> test.d
+  - cmd: dmd test.d
   - cmd: cinst -y php haxe dmd || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
   # - cmd: cinst -y haxe
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
@@ -26,8 +33,6 @@ install:
   - cmd: SET PATH=C:\ProgramData\chocolatey\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
-  - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\link.exe
-  - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%
   - cmd: php -v
   - cmd: node -v
   - cmd: haxe -v
@@ -40,7 +45,10 @@ test_script:
   - gradlew -S --info check
 cache:
   - C:\maven\
-  - C:\Users\appveyor\
+  - C:\Users\appveyor\haxelib
+  - C:\Users\appveyor\.jtransc
+  - C:\Users\appveyor\.gradle
+  - C:\Users\appveyor\.m2
 on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
 # upload test results via rest-api
   - ps: $wc = New-Object 'System.Net.WebClient'
