@@ -1,15 +1,9 @@
 version: '{build}'
 os: Windows Server 2012
 install:
-  - cmd: echo %LIB%
-  - cmd: dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib"
-  - cmd: dir "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64"
-  - cmd: dir "C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64"
-  - cmd: dir "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64"
-
   - cmd: cinst -y php haxe dmd || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
-  - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe
-  - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%
+  - cmd: setx /M LINKCMD64 "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe"
+  - cmd: setx /M LIB "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%"
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib setup C:\Users\appveyor\haxelib
   - cmd: haxelib install lime
