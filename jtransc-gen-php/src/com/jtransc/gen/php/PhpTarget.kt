@@ -413,7 +413,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun getClassInterfaces(clazz: AstClass): List<FqName> = clazz.implementingNormalized
 
-	val AstType.targetNameNullable get() = if (this.isReference()) "?$targetName" else targetName
+	val AstType.targetNameNullable get() = if (this.isReference()) "&$targetName" else targetName
 
 	//override fun escapedConstant(v: Any?): String = when (v) {
 	//	is Double -> {

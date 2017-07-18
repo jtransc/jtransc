@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.StringTokenizer;
 
+@JTranscAddHeader(target = "as3", value = "import flash.system.System;")
 public class Runtime {
 	private static Runtime current;
 
@@ -117,8 +118,8 @@ public class Runtime {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
-	@JTranscMethodBody(target = "as3", value = "return flash.system.System.gc();")
-	@JTranscMethodBody(target = "cpp", value = "return GC_gcollect();")
+	@JTranscMethodBody(target = "as3", value = "System.gc();")
+	@JTranscMethodBody(target = "cpp", value = "GC_gcollect();")
 	@JTranscMethodBody(target = "php", value = "gc_collect_cycles();")
 	public void gc() {
 	}
