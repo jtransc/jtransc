@@ -1,8 +1,8 @@
 version: '{build}'
 os: Windows Server 2012
 install:
-  - cmd: cinst -y php || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
-  - cmd: cinst -y haxe
+  - cmd: cinst -y php haxe dmd || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
+  # - cmd: cinst -y haxe
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib setup C:\Users\appveyor\haxelib
   - cmd: haxelib install lime
@@ -11,7 +11,7 @@ install:
   #- cmd: cinst -y 7zip
   #- cmd: curl -o haxe.zip https://github.com/HaxeFoundation/haxe/releases/download/3.4.2/haxe-3.4.2-win.zip
   #- cmd: 7z -y x haxe.zip -oc:\tools
-  - cmd: cinst -y dmd
+  # - cmd: cinst -y dmd
   - cmd: copy c:\tools\php71\php.ini-production c:\tools\php71\php.ini /Y
   - cmd: echo date.timezone="UTC" >> c:\tools\php71\php.ini
   - cmd: echo extension_dir=ext >> c:\tools\php71\php.ini
@@ -27,7 +27,7 @@ install:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET LINKCMD64=C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\link.exe
-  - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;
+  - cmd: SET LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;%LIB%
   - cmd: php -v
   - cmd: node -v
   - cmd: haxe -v
@@ -44,4 +44,4 @@ cache:
 on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
 # upload test results via rest-api
   - ps: $wc = New-Object 'System.Net.WebClient'
-        Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {$wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))}
+  - ps: Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {$wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))}
