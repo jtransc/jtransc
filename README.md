@@ -4,7 +4,7 @@ JTRANSC
 ![JTransc](extra/logo-256.png)
 
 [![Maven Version](https://img.shields.io/github/tag/jtransc/jtransc.svg?style=flat&label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jtransc-maven-plugin%22)
-[![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
+[![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/jtransc/jtransc)
 [![gitter](https://img.shields.io/gitter/room/jtransc/general.svg)](https://gitter.im/jtransc/general)
 
 # Documentation
@@ -227,7 +227,8 @@ __WINDOWS__
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
 __MAC__
-- Install Xcode 8.3.2
+- Install Xcode 8.3.3
+- This XCode have problem with logs for iPhone with iOS 10.3.2. Please see [solution](https://github.com/flutter/flutter/issues/4326#issuecomment-308249455)
 - Related to pure C++ target on mac: `brew install automake libtool`
 - Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
 - For upload on iPhone/iPad from command line `sudo npm install -g ios-deploy --unsafe-perm --allow-root`
