@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
