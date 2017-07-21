@@ -18,7 +18,7 @@ import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
-import issues.Issue135
+import issues.Issue219
 import issues.Issue94Enum
 import issues.issue130.Issue130
 import issues.issue136.Issue136
@@ -120,4 +120,6 @@ class HaxeTest : _Base() {
 	@Ignore
 	@Test fun testHaxeStringBuilderTestIssue138() = testClass(Params(clazz = HaxeStringBuilderTestIssue138::class.java, minimize = false, log = false, lang = "cpp", debug = true))
 
+	@Ignore
+	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, lang = "cpp", debug = true, treeShaking = true))
 }

@@ -9,7 +9,6 @@ import issues.Issue100Double
 import issues.Issue209
 import issues.Issue94Enum
 import issues.issue130.Issue130
-import issues.issue146.Issue146
 import javatest.*
 import javatest.lang.*
 import javatest.misc.BenchmarkTest
