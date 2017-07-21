@@ -18,8 +18,8 @@
 package java.io;
 
 import com.jtransc.JTranscBits;
+import com.jtransc.charset.ModifiedUtf8;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.internal.SizeOf;
 
 /**
@@ -181,6 +181,6 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
 	}
 
 	public final void writeUTF(String str) throws IOException {
-		write(str.getBytes(StandardCharsets.UTF_8));
+		write(ModifiedUtf8.encode(str));
 	}
 }
