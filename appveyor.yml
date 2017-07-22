@@ -48,5 +48,6 @@ cache:
   - C:\Users\appveyor\.m2
 on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
 # upload test results via rest-api
+  - cmd: gradlew --stop # should prevent "Error calculating CRC32 for C:\Users\appveyor\.gradle\caches\4.0.1\fileHashes\fileHashes.bin: The process cannot access the file because it is being used by another process"
   - ps: $wc = New-Object 'System.Net.WebClient'
   - ps: Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {$wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))}
