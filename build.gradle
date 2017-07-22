@@ -1,3 +1,5 @@
+import java.nio.charset.Charset
+
 // http://jedicoder.blogspot.com.es/2011/11/automated-gradle-project-deployment-to.html
 buildscript {
 	ext.kotlin_version = kotlinVersion
@@ -51,6 +53,8 @@ def sed = { String file, /* language=RegExp */ String regexp, String replacement
 	//println(res)
 	f.write(res)
 }
+
+println("Charset.defaultCharset(): " + Charset.defaultCharset())
 
 task updateVersion() {
 	doLast {
