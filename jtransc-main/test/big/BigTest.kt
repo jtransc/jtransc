@@ -121,7 +121,7 @@ object BigTest {
 
 		keepConstructorsTest()
 
-		//Issue105.main(args)
+		Issue105.main(args)
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
