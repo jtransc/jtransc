@@ -4,6 +4,7 @@ environment:
   LINKCMD64: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe
   LIB: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;
 install:
+  - cmd: systeminfo
   - cmd: chcp # Página de códigos activa: 850
   - cmd: chcp 65001
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
