@@ -204,7 +204,6 @@ class JsTest : _Base() {
 
 	@Test fun testInnerLambda() = testClass(Params(clazz = InnerLambdaTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Ignore
 	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Test fun testIssue219NoOptimized() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
