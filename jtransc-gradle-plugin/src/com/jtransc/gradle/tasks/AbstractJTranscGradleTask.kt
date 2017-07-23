@@ -23,6 +23,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var minimizedNames: Boolean? = null
 	var relooper: Boolean? = null
 	var debug: Boolean? = null
+	var optimize: Boolean? = null
 	var compile: Boolean? = null
 	var treeshaking: Boolean? = null
 	var treeshakingTrace: Boolean? = null
@@ -117,6 +118,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			orientation = AstBuildSettings.Orientation.fromString(orientation ?: extension.orientation ?: default.orientation.name),
 			relooper = relooper ?: extension.relooper ?: default.relooper,
 			analyzer = analyzer ?: extension.analyzer ?: default.analyzer,
+			optimize = optimize ?: extension.optimize ?: default.optimize,
 			extra = extra + extension.extra,
 			extraVars = extraVars.mergeMapListWith(extension.extraVars),
 			rtAndRtCore = runtimeConfiguration.files.map { it.absolutePath }

@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.collections.set
 
 @Singleton
-class AsmToAst2(types: AstTypes) : BaseAsmToAst(types) {
+class AsmToAst2(types: AstTypes, buildSettings: AstBuildSettings) : BaseAsmToAst(types, buildSettings) {
 	override val expandFrames = true
 
 	override fun genBody(classRef: AstType.REF, methodNode: MethodNode, types: AstTypes, source: String): AstBody {

@@ -19,7 +19,7 @@ import java.util.*
 const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
-fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
+fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java", optimize: Boolean = true): AstBody {
 	val methodType = types.demangleMethod(method.desc)
 	val methodInstructions = method.instructions
 	val methodRef = AstMethodRef(clazz.name, method.name, methodType)
@@ -104,9 +104,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		methodRef = methodRef
 	)
 
-	val outOptimized = out.optimize()
-
-	return outOptimized
+	return if (optimize) out.optimize() else out
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {
@@ -280,9 +278,9 @@ private class BasicBlockBuilder(
 		//	stms.add(s)
 		//} else {
 		if (DEBUG) println("Preserve because stm: $s")
-		val stack = preserveStack()
-		stms.add(s)
-		restoreStack(stack)
+		preserveRestoreStack {
+			stms.add(s)
+		}
 		//}
 	}
 
@@ -558,7 +556,7 @@ private class BasicBlockBuilder(
 
 	fun addJump(cond: AstExpr?, label: AstLabel) {
 		if (DEBUG) println("Preserve because jump")
-		restoreStack(preserveStack())
+		preserveRestoreStack {  }
 		labels.ref(label)
 		if (cond != null) {
 			stms.add(AstStm.IF_GOTO(label, cond))
@@ -616,7 +614,6 @@ private class BasicBlockBuilder(
 		}
 
 		if (methodRef.type.retVoid) {
-			//preserveStack()
 			stmAdd(AstStm.STM_EXPR(stackPop()))
 		}
 	}
@@ -650,6 +647,7 @@ private class BasicBlockBuilder(
 
 	fun handleIinc(i: IincInsnNode) {
 		val local = locals.local(AstType.INT, i.`var`)
+
 		stmSet(local, AstExprUtils.localRef(local) + i.incr.lit)
 	}
 
@@ -658,16 +656,23 @@ private class BasicBlockBuilder(
 		stmAdd(AstStm.LINE(source, i.line))
 	}
 
-	fun preserveStackLocal(index: Int, type: AstType): AstLocal {
-		return locals.frame(type, index)
-	}
-
 	fun dumpExprs() {
 		while (stack.isNotEmpty()) stmAdd(AstStm.STM_EXPR(stackPop()))
 	}
 
+	inline fun preserveRestoreStack(callback: () -> Unit) {
+		val stack = preserveStack()
+		try {
+			callback()
+		} finally {
+			restoreStack(stack)
+		}
+	}
+
 	@Suppress("UNCHECKED_CAST")
 	fun preserveStack(): List<AstLocal> {
+		fun preserveStackLocal(index: Int, type: AstType): AstLocal = locals.frame(type, index)
+
 		if (stack.isEmpty()) return Collections.EMPTY_LIST as List<AstLocal>
 
 		val items = arrayListOf<AstLocal>()
@@ -805,7 +810,7 @@ private class BasicBlockBuilder(
 				is LabelNode -> {
 					if (i in labels.referencedLabelsAsm) {
 						if (DEBUG) println("Preserve because label")
-						restoreStack(preserveStack())
+						preserveRestoreStack {  }
 						next = i
 						break@loop
 					}

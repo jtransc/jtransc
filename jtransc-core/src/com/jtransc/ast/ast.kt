@@ -59,6 +59,7 @@ data class AstBuildSettings(
 	var libraries: List<AstBuildSettings.Library> = listOf(),
 	var assets: List<File> = listOf(),
 	var debug: Boolean = true,
+	var optimize: Boolean = true,
 	var initialWidth: Int = 1280,
 	var initialHeight: Int = 720,
 	var vsync: Boolean = true,

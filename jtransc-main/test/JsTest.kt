@@ -22,6 +22,7 @@ import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105
 import issues.Issue135
+import issues.Issue219
 import issues.issue130.Issue130
 import issues.issue146.Issue146
 import issues.issue158.Issue158
@@ -202,4 +203,8 @@ class JsTest : _Base() {
 	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testInnerLambda() = testClass(Params(clazz = InnerLambdaTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true))
+
+	@Test fun testIssue219NoOptimized() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }
