@@ -107,7 +107,7 @@ This is the preferred way of using JTransc. You can include it from maven centra
 
 ```
 plugins {
-  id "com.jtransc" version "0.6.5"
+  id "com.jtransc" version "0.6.6"
 }
 ```
 

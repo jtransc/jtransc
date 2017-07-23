@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.6.6 (2017-07-23)
+
+- @SergeyLabutin: Implemented Runtime.memory methods for Haxe+Cpp target
+- @SergeyLabutin: Fix JTranscBits.read int64
+- @SergeyLabutin: Fix DataInputStream.readUTF and DataOutputStream.writeUTF using modified utf-8
+- Implemented array literals in all languages
+- Split reflection getFieldAnnotations per class
+- @fxjshm: Fix boolean literals on C#
+- Added jtransc.optimize option to gradle and tests to disable optimizations
+- Disabled variable inlining optimization for now since it caused some spurious bugs
+- @fxjshm: Added AppVeyor CI support for testing on a Windows machine
+
 ## 0.6.5 (2017-07-07)
 
 Improvements:
