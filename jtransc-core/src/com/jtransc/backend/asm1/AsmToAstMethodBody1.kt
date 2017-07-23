@@ -19,7 +19,7 @@ import java.util.*
 const val DEBUG = false
 
 // classNode.sourceDebug ?: "${classNode.name}.java"
-fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java"): AstBody {
+fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes, source: String = "unknown.java", optimize: Boolean = true): AstBody {
 	val methodType = types.demangleMethod(method.desc)
 	val methodInstructions = method.instructions
 	val methodRef = AstMethodRef(clazz.name, method.name, methodType)
@@ -104,9 +104,7 @@ fun AsmToAstMethodBody1(clazz: AstType.REF, method: MethodNode, types: AstTypes,
 		methodRef = methodRef
 	)
 
-	val outOptimized = out.optimize()
-
-	return outOptimized
+	return if (optimize) out.optimize() else out
 }
 
 fun optimize(stms: List<AstStm>, referencedLabels: HashSet<AstLabel>): List<AstStm> {

@@ -65,6 +65,7 @@ open class JTranscGradleExtension(val project: Project) {
 	var package_: String? = null
 	var embedResources: Boolean? = null
 	var debug: Boolean? = null
+	var optimize: Boolean? = null
 	var initialWidth: Int? = null
 	var initialHeight: Int? = null
 	var vsync: Boolean? = null
