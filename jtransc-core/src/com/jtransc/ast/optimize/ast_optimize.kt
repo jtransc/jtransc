@@ -202,16 +202,17 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 				}
 			}
 
-			if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
-				//val blocal = a.expr.value as AstExpr.LOCAL
-				val alocal = a.local.local
-				if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
-					alocal.reads.first().box.value = a.expr.value
-					abox.value = AstStm.NOP("optimized set local 2")
-					alocal.writes.clear()
-					alocal.reads.clear()
-				}
-			}
+			// @TODO: Can't do this since like this because we are not using SSA form
+			//if (a is AstStm.SET_LOCAL && a.expr.value is AstExpr.LOCAL) {
+			//	//val blocal = a.expr.value as AstExpr.LOCAL
+			//	val alocal = a.local.local
+			//	if (alocal.writesCount == 1 && alocal.readCount == 1 && alocal.reads.first().stm == b) {
+			//		alocal.reads.first().box.value = a.expr.value
+			//		abox.value = AstStm.NOP("optimized set local 2")
+			//		alocal.writes.clear()
+			//		alocal.reads.clear()
+			//	}
+			//}
 		}
 
 		val finalStms = stm.stms.filter { it.value !is AstStm.NOP }

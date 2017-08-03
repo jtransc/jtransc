@@ -406,7 +406,7 @@ public class JTranscBits {
 		return (
 			((long) (data[offset + 0] & 0xFF) << 56) |
 				((long) (data[offset + 1] & 0xFF) << 48) |
-				((long) (data[offset + 2] & 0xFF) << 42) |
+				((long) (data[offset + 2] & 0xFF) << 40) |
 				((long) (data[offset + 3] & 0xFF) << 32) |
 				((long) (data[offset + 4] & 0xFF) << 24) |
 				((long) (data[offset + 5] & 0xFF) << 16) |
@@ -451,7 +451,7 @@ public class JTranscBits {
 		return (
 			((long) (data[offset + 7] & 0xFF) << 56) |
 				((long) (data[offset + 6] & 0xFF) << 48) |
-				((long) (data[offset + 5] & 0xFF) << 42) |
+				((long) (data[offset + 5] & 0xFF) << 40) |
 				((long) (data[offset + 4] & 0xFF) << 32) |
 				((long) (data[offset + 3] & 0xFF) << 24) |
 				((long) (data[offset + 2] & 0xFF) << 16) |

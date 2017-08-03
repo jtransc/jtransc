@@ -230,8 +230,20 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		line(buildStaticInit(clazzRef.name))
 	}
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "($array.data[$index])"
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String) = "$array.data[$index] = $value;"
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String): String {
+		return if (debugVersion) {
+			"($array.get($index))"
+		} else {
+			"($array.data[$index])"
+		}
+	}
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
+		return if (debugVersion) {
+			"$array.set($index, $value);"
+		} else {
+			"$array.data[$index] = $value;"
+		}
+	}
 
 	override fun N_is(a: String, b: AstType.Reference): String {
 		return when (b) {

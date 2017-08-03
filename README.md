@@ -4,17 +4,24 @@ JTRANSC
 ![JTransc](extra/logo-256.png)
 
 [![Maven Version](https://img.shields.io/github/tag/jtransc/jtransc.svg?style=flat&label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jtransc-maven-plugin%22)
-[![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/#!/jtransc/jtransc)
+[![Build Status](https://secure.travis-ci.org/jtransc/jtransc.svg)](http://travis-ci.org/jtransc/jtransc)
+[![Build status](https://ci.appveyor.com/api/projects/status/qnd0g966t1b54q4a?svg=true)](https://ci.appveyor.com/project/soywiz/jtransc)
 [![gitter](https://img.shields.io/gitter/room/jtransc/general.svg)](https://gitter.im/jtransc/general)
 
 # Documentation
 
 You can find documentation at the [wiki](http://docs.jtransc.com/).
 
+# What is this?
+
+JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
+into a target programming language / executable bundling all the required dependencies in a single file or folder, without requiring
+a jitter or an external runtime.
+
 # Why using JTransc?
 
-There are a lot of technologies in order to convert languages into other ones. For example, convert Java into JavaScript.
-Or even Kotlin already targets JavaScript. So why using JTransc?
+There are a lot of technologies in order to convert languages into other ones. For example, converting Java into JavaScript.
+Or KotlinJS Kotlin backend that already targets JavaScript. So why using JTransc?
 
 ### Mixed input code:
 
@@ -22,7 +29,7 @@ One reason is that JTransc allows mixed projects. You can use Java libraries wit
 
 ### Multiple targets:
 
-Instead of using several technologies. JTransc allows you to target to several places.
+Instead of using several technologies, JTransc allows you to target to several languages and platforms.
 
 ### Consistency:
 
@@ -30,11 +37,11 @@ Using just one technology guarantees consistency between targets. For example, K
 
 ### Native:
 
-Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform.
+Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform. For example: when targeting JS you will use native JS best-in-class GC instead of a GC emulated in C++ & emscripten. And no need to know a proper heap size beforehand targeting JS.
 
 ### Native facilities:
 
-Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript facilities.
+Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript/AS3/Dart... facilities.
 Like JavaScript String, Array and so on.
 
 ### Treeshaking
@@ -51,14 +58,16 @@ Along JTransc, I'm writting a set of libraries to be able to use JTransc.
 
 Kotlin Game Engine that uses JTransc for multiplatform: [https://github.com/soywiz/korge](https://github.com/soywiz/korge)
 
+Also there is a GDX backend using JTransc+Haxe: [https://github.com/jtransc/gdx-backend-jtransc](https://github.com/jtransc/gdx-backend-jtransc)
 
 JTransc
 
-# What is this?
+# Detailed: What is this?
 
 JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
-into a target executable bundling all the required dependencies in a single file, without requiring
+into a target programming language / executable bundling all the required dependencies in a single file or folder, without requiring
 a jitter or an external runtime.
+
 At the beginning it generated as3 and javascript, but right now there are several targets: Javascript, Haxe, C++, and D.
 Haxe itself allow to target several other languages: JS, AS3, C++, C#, Java, PHP and Python.
 This in turn allows running the program on different platforms such as desktop, browsers and mobile.
@@ -98,7 +107,7 @@ This is the preferred way of using JTransc. You can include it from maven centra
 
 ```
 plugins {
-  id "com.jtransc" version "0.6.5"
+  id "com.jtransc" version "0.6.6"
 }
 ```
 
@@ -219,7 +228,8 @@ __WINDOWS__
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
 __MAC__
-- Install Xcode 8.3.2
+- Install Xcode 8.3.3
+- This XCode have problem with logs for iPhone with iOS 10.3.2. Please see [solution](https://github.com/flutter/flutter/issues/4326#issuecomment-308249455)
 - Related to pure C++ target on mac: `brew install automake libtool`
 - Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
 - For upload on iPhone/iPad from command line `sudo npm install -g ios-deploy --unsafe-perm --allow-root`

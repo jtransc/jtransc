@@ -29,6 +29,9 @@ class CSharpTarget : GenTargetDescriptor() {
 	override val runningAvailable = true
 	override val programFeatures: Set<Class<AstProgramFeature>> = setOf()
 
+	open val ARRAY_OPEN_SYMBOL = "new [] {"
+	open val ARRAY_CLOSE_SYMBOL = "}"
+
 	override val buildTargets: List<TargetBuildTarget> = listOf(
 		TargetBuildTarget("cs", "cs", "program.cs", minimizeNames = false)
 	)
@@ -293,7 +296,11 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static public void SI()") {
 				val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
 				for (field in clazz.fields.filter { it.isStatic }) {
-					line("$clazzName.${field.targetName} = ${field.escapedConstantValue};")
+					if(field.type==AstType.BOOL){
+						line("$clazzName.${field.targetName} = ${field.escapedConstantValue == "1"};")
+					}else {
+						line("$clazzName.${field.targetName} = ${field.escapedConstantValue};")
+					}
 				}
 				line(genSIMethodBody(clazz))
 			}

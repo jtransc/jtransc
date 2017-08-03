@@ -1,0 +1,53 @@
+version: '{build}'
+os: Windows Server 2012
+environment:
+  LINKCMD64: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\link.exe
+  LIB: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\um\x64;C:\ProgramData\chocolatey\lib\dmd\tools\dmd2\windows\lib64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0\ucrt\x64;
+install:
+  - cmd: systeminfo
+  - cmd: chcp
+  - cmd: chcp 65001
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+  - cmd: cinst -y php --version=7.1.7 || ver>nul
+  - cmd: cinst -y haxe --version=3.4.2 || ver>nul
+  - cmd: cinst -y dmd --version=2.073.0 || ver>nul
+  - cmd: cinst -y dart-sdk --version=1.24.2 || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
+  - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
+  - cmd: haxelib setup C:\Users\appveyor\haxelib
+  - cmd: haxelib install lime 5.2.1
+  - cmd: haxelib run lime setup
+  - cmd: copy c:\tools\php71\php.ini-production c:\tools\php71\php.ini /Y
+  - cmd: echo date.timezone="UTC" >> c:\tools\php71\php.ini
+  - cmd: echo extension_dir=ext >> c:\tools\php71\php.ini
+  - cmd: echo extension=php_openssl.dll >> c:\tools\php71\php.ini
+  - cmd: echo extension=php_mbstring.dll >> c:\tools\php71\php.ini
+  - cmd: echo extension=php_sockets.dll >> c:\tools\php71\php.ini
+  - cmd: echo extension=php_curl.dll >> c:\tools\php71\php.ini
+  - cmd: refreshenv
+  - cmd: SET PATH=C:\tools\php71;%PATH%
+  - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
+  - cmd: SET PATH=C:\ProgramData\chocolatey\bin;%PATH%
+  - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
+  - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
+  - cmd: dart --version
+  - cmd: php -v
+  - cmd: node -v
+  - cmd: haxe -v
+  - cmd: java -version
+  - cmd: mvn -v
+  - cmd: gradlew -v
+build_script:
+  - gradlew -S --info install
+test_script:
+  - gradlew -S --info check
+cache:
+  - C:\maven\
+  - C:\Users\appveyor\haxelib
+  - C:\Users\appveyor\.jtransc
+  - C:\Users\appveyor\.gradle
+  - C:\Users\appveyor\.m2
+on_finish: # From https://github.com/appveyor/ci/issues/92#issuecomment-307242316
+# upload test results via rest-api
+  - cmd: gradlew --stop # should prevent "Error calculating CRC32 for C:\Users\appveyor\.gradle\caches\4.0.1\fileHashes\fileHashes.bin: The process cannot access the file because it is being used by another process"
+  - ps: $wc = New-Object 'System.Net.WebClient'
+  - ps: Get-ChildItem . -Name -Recurse 'TEST-*.xml'  |  Foreach-Object {$wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $_))}

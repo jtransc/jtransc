@@ -6,13 +6,15 @@ import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
 import issues.Issue100Double
+import issues.Issue105
+import issues.Issue209
 import issues.Issue94Enum
 import issues.issue130.Issue130
-import issues.issue146.Issue146
 import javatest.*
 import javatest.lang.*
 import javatest.misc.BenchmarkTest
 import javatest.misc.MiscTest
+import javatest.nio.ModifiedUtf8Test
 import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
 import javatest.utils.Base64Test
@@ -118,8 +120,7 @@ object BigTest {
 
 		keepConstructorsTest()
 
-		val `is` = InputStreamReader(ByteArrayInputStream(byteArrayOf('A'.toByte(), 'B'.toByte(), 0xC3.toByte(), 0xA1.toByte())))
-		println("readLine:" + TestStringTools.escape(BufferedReader(`is`).readLine()))
+		Issue105.main(args)
 
 		// Hello World functionality!
 		HelloWorldTest.main(args)
@@ -146,7 +147,12 @@ object BigTest {
 
 		System.out.println(String.format("%d%%", 100))
 
-		System.out.println(i[0] % i[1]);
+		// check float mod
+		System.out.println(i[0] % i[1])
+
+		Issue209.main(args)
+
+		ModifiedUtf8Test.main(args)
 	}
 
 	private fun servicesTest() {
@@ -271,7 +277,7 @@ private class CaseInsensitiveOrder {
 }
 
 @JTranscKeepConstructors
-annotation class KeepConstructorsAnnotation()
+annotation class KeepConstructorsAnnotation
 
 @KeepConstructorsAnnotation
 class Demo(val a: Int, val s: String)

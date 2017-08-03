@@ -1,5 +1,7 @@
 var _global = (typeof window !== "undefined") ? window : global;
 
+var DEBUG_VERSION = {{ debug != false }};
+
 if ('á'.charCodeAt(0) != 225) {
 	throw new Error('Encoding must be UTF-8. Please add <META http-equiv="Content-Type" content="text/html; charset=utf-8" /> to the html');
 }
@@ -432,6 +434,28 @@ function __addArrayJavaMethods(ARRAY) {
 	};
 }
 
+function __createJavaArrayGetSet(ARRAY) {
+	ARRAY.prototype.checkIndex = function(index) {
+		if (index < 0 || index >= this.data.length) {
+			N.throwRuntimeException('Out of bounds ' + index + " !in [0, " + this.data.length + "]");
+		}
+	};
+
+	if (DEBUG_VERSION) {
+		ARRAY.prototype.get = function(index) {
+			this.checkIndex(index);
+			return this.data[index];
+		};
+		ARRAY.prototype.set = function(index, value) {
+			this.checkIndex(index);
+			this.data[index] = value;
+		};
+	} else {
+		ARRAY.prototype.get = function(index) { return this.data[index]; };
+		ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
+	}
+}
+
 function __createJavaArrayType(desc, type, elementBytesSize) {
 	var ARRAY;
 	ARRAY = function(size) {
@@ -481,8 +505,7 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 		return out;
 	};
 
-	ARRAY.prototype.get = function(index) { return this.data[index]; };
-	ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
+	__createJavaArrayGetSet(ARRAY);
 
 	ARRAY.prototype.getBuffer = function() {
 		return this.data.buffer;
@@ -547,24 +570,20 @@ function __createGenericArrayType() {
 		return out;
 	};
 
-	ARRAY.fromArray = function(array, desc) {
+	ARRAY.fromArray = function(desc, array) {
 		if (array == null) return null;
 		var out = new JA_L(array.length, desc);
 		for (var n = 0; n < out.length; ++n) out.set(n, array[n]);
 		return out;
 	};
 
-	ARRAY.fromArrayOrEmpty = function(array, desc) {
-		return ARRAY.fromArray(array ? array : [], desc);
-	};
+	ARRAY.T0 = function(desc) { return this.fromArray(desc, []); }
+	ARRAY.T1 = function(desc, a) { return this.fromArray(desc, [a]); }
+	ARRAY.T2 = function(desc, a, b) { return this.fromArray(desc, [a, b]); }
+	ARRAY.T3 = function(desc, a, b, c) { return this.fromArray(desc, [a, b, c]); }
+	ARRAY.T4 = function(desc, a, b, c, d) { return this.fromArray(desc, [a, b, c, d]); }
 
-	ARRAY.prototype.get = function(index) {
-		return this.data[index];
-	};
-
-	ARRAY.prototype.set = function(index, value) {
-		this.data[index] = value;
-	};
+	__createJavaArrayGetSet(ARRAY);
 
 	ARRAY.prototype.clone = function() {
 		var out = new JA_L(this.length, this.desc);

@@ -46,6 +46,7 @@ open class _Base {
 		const val RELOOPER = true
 		const val ANALYZER = false
 		const val DEBUG = false
+		const val OPTIMIZE = true
 		//val DEFAULT_TARGET = HaxeTarget
 	}
 
@@ -110,7 +111,8 @@ open class _Base {
 		val minimize: Boolean? = null,
 		val analyze: Boolean? = null,
 		val extra: Map<String?, String?>? = null,
-		val debug: Boolean? = DEBUG,
+		val debug: Boolean? = null,
+		val optimize: Boolean? = null,
 		val treeShaking: Boolean? = null,
 		val backend: BuildBackend? = null,
 		val configureInjector: Injector.() -> Unit = {},
@@ -157,6 +159,7 @@ open class _Base {
 				settings = AstBuildSettings(
 					jtranscVersion = JTranscVersion.getVersion(),
 					debug = params.debug ?: DEBUG,
+					optimize = params.optimize ?: OPTIMIZE,
 					relooper = RELOOPER,
 					//relooper = false,
 					extra = params.extra ?: mapOf(),

@@ -18,9 +18,9 @@
 package java.io;
 
 import com.jtransc.JTranscBits;
+import com.jtransc.charset.ModifiedUtf8;
 import com.jtransc.io.JTranscIoTools;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.internal.SizeOf;
 
 /**
@@ -177,10 +177,10 @@ public class DataInputStream extends FilterInputStream implements DataInput {
 	private static String decodeUTF(int utfSize, DataInput in) throws IOException {
 		byte[] buf = new byte[utfSize];
 		in.readFully(buf, 0, utfSize);
-		return new String(buf, 0, utfSize, StandardCharsets.UTF_8);
+		return ModifiedUtf8.decode(buf);
 	}
 
-	public static final String readUTF(DataInput in) throws IOException {
+	public static String readUTF(DataInput in) throws IOException {
 		return decodeUTF(in.readUnsignedShort(), in);
 	}
 

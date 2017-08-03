@@ -16,7 +16,7 @@ import java.io.IOException
 import java.util.*
 
 @Singleton
-abstract class BaseAsmToAst(val types: AstTypes) : AstClassGenerator {
+abstract class BaseAsmToAst(val types: AstTypes, val settings: AstBuildSettings) : AstClassGenerator {
 	open val expandFrames = false
 
 	override fun generateClass(program: AstProgram, fqname: FqName): AstClass {
