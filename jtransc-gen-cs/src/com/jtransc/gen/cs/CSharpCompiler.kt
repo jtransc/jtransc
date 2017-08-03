@@ -49,7 +49,10 @@ class CSharpCompiler(
 		val csharpCommandWin = extraParams["CSHARP_CMD_WIN"] ?: csharpCommand
 		val csharpCommandUnix = extraParams["CSHARP_CMD_UNIX"] ?: csharpCommand
 
+		val hasCsc = processUtils.locateCommand("csc")
+
 		return when {
+			!forceMono && (hasCsc != null) -> Compiler(CSC, isMono = false)
 			forceMono || !OS.isWindows -> Compiler(csharpCommandWin ?: MCS, isMono = true)
 			else -> Compiler(csharpCommandUnix ?: CSC, isMono = false)
 		}
