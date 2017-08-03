@@ -3,6 +3,7 @@ package com.jtransc.gen.cs
 import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.io.ProcessUtilsBase
+import com.jtransc.lang.nonNullMap
 import com.jtransc.sys.Arch
 import com.jtransc.vfs.RootLocalVfs
 import com.jtransc.vfs.SyncVfsFile
@@ -48,10 +49,12 @@ class CSharpCompiler(
 		val csharpCommand = extraParams["CSHARP_CMD"]
 		val csharpCommandWin = extraParams["CSHARP_CMD_WIN"] ?: csharpCommand
 		val csharpCommandUnix = extraParams["CSHARP_CMD_UNIX"] ?: csharpCommand
+		val actualCsharpCommand = if (OS.isWindows) csharpCommandWin else csharpCommandUnix
 
 		val hasCsc = processUtils.locateCommand("csc")
 
 		return when {
+			actualCsharpCommand != null -> Compiler(actualCsharpCommand, isMono = false)
 			!forceMono && (hasCsc != null) -> Compiler(CSC, isMono = false)
 			forceMono || !OS.isWindows -> Compiler(csharpCommandWin ?: MCS, isMono = true)
 			else -> Compiler(csharpCommandUnix ?: CSC, isMono = false)
