@@ -22,9 +22,7 @@ class CSharpCompiler(
 		folders += "$ProgramFilesX86\\Microsoft Visual Studio\\2017\\Community\\MSBuild\\15.0\\Bin\\Roslyn"
 		//C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\Roslyn
 
-		val cscFolder = processUtils.findCommandInPathsOrNull(folders, "mono-csc")
-			?: processUtils.findCommandInPathsOrNull(folders, "mcs")
-			?: processUtils.findCommandInPathsOrNull(folders, "csc")
+		val cscFolder = processUtils.findCommandInPathsOrNull(folders, "csc")
 
 		if (cscFolder != null) {
 			rootVfs[cscFolder]
@@ -57,7 +55,7 @@ class CSharpCompiler(
 
 		return when {
 			actualCsharpCommand != null -> Compiler(actualCsharpCommand, isMono = false)
-			!forceMono && (hasCsc != null) -> Compiler(CSC, isMono = false)
+			!forceMono && (hasCsc != null) -> Compiler(hasCsc, isMono = false)
 			forceMono || !OS.isWindows -> Compiler(csharpCommandWin ?: MCS, isMono = true)
 			else -> Compiler(csharpCommandUnix ?: CSC, isMono = false)
 		}
