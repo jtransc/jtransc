@@ -59,6 +59,12 @@ before_script:
 - which node || true
 - node --version || true
 - dmd --version || true
+- mono --version || true
+- csc -version || true
+- msc --version || true
+- mono --version || true
+- mono-csc -version || true
+- mono-msc --version || true
 - "./gradlew --version"
 script:
 - jdk_switcher use oraclejdk8
