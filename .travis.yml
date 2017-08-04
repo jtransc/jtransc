@@ -61,10 +61,10 @@ before_script:
 - dmd --version || true
 - mono --version || true
 - csc -version || true
-- msc --version || true
+- mcs --version || true
 - mono --version || true
 - mono-csc -version || true
-- mono-msc --version || true
+- mono-mcs --version || true
 - "./gradlew --version"
 script:
 - jdk_switcher use oraclejdk8
