@@ -1,6 +1,7 @@
 package big
 
 import android.AndroidArgsTest
+import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
@@ -147,7 +148,7 @@ object BigTest {
 
 		ModifiedUtf8Test.main(args)
 
-		Issue210.main(args)
+		if(JTranscSystem.isCpp()||JTranscSystem.isD())Issue210.main(args)
 	}
 
 	private fun servicesTest() {
