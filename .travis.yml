@@ -21,7 +21,7 @@ before_install:
 - "./cmake-3.7.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license"
 install:
 - sudo apt-get -y update
-- sudo apt-get -y install mono-runtime mono-mcs
+- sudo apt-get -y install mono-runtime mono-mcs mono-devel
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
 - sudo sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
   add -'
