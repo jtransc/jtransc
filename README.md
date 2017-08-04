@@ -230,7 +230,7 @@ __WINDOWS__
 __MAC__
 - Install Xcode 8.3.3
 - This XCode have problem with logs for iPhone with iOS 10.3.2. Please see [solution](https://github.com/flutter/flutter/issues/4326#issuecomment-308249455)
-- Related to pure C++ target on mac: `brew install automake libtool`
+- Related to pure C++ target on mac: `brew install automake libtool pkg-config`
 - Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
 - For upload on iPhone/iPad from command line `sudo npm install -g ios-deploy --unsafe-perm --allow-root`
 
