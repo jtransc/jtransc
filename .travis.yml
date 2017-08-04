@@ -63,7 +63,7 @@ before_script:
 - csc -version || true
 - mcs --version || true
 - mono --version || true
-- mono-csc -version || true
+- mono-csc --version || true
 - mono-mcs --version || true
 - "./gradlew --version"
 script:
