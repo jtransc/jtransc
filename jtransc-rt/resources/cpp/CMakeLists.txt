@@ -42,11 +42,9 @@ ENDIF()
 add_executable(program program.cpp)
 
 if(UNIX AND NOT APPLE)
-	set(ADDITIONAL_LIBRARIES pthread)
-else()
-	set(ADDITIONAL_LIBRARIES "")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 endif()
 
 {% for lib in CPP_LIBS %}
-target_link_libraries(program ${ADDITIONAL_LIBRARIES} {{ lib }})
+target_link_libraries(program {{ lib }})
 {% end %}

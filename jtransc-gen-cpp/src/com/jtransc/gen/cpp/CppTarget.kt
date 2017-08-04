@@ -1129,5 +1129,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		//return e
 	}
 
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
+		line("N::monitorEnter(" + stm.expr.genExpr() + ");")
+	}
+
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
+		line("N::monitorExit(" + stm.expr.genExpr() + ");")
+	}
+
 
 }
