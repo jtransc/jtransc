@@ -14,6 +14,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -67,6 +68,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val interfacesSupportStaticMembers: Boolean = false
 	override val floatHasFSuffix = true
 
+	override val GENERATE_LINE_NUMBERS = true
+
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
 		"body", "bool", "break", "byte",
@@ -105,6 +108,11 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return csharpCompiler.genCommand(programFile, debug, libs, extraParams)
 	}
 
+	override fun genStmLine(stm: AstStm.LINE) = indent {
+		mark(stm)
+		if (GENERATE_LINE_NUMBERS) line("#line ${stm.line} ${stm.file.quote()}")
+	}
+
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val names = if (JTranscSystem.isWindows()) {
 			listOf("program.exe", "a.exe")
@@ -137,6 +145,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun quoteString(str: String) = str.dquote()
+
+
 
 	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)
