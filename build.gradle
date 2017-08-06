@@ -110,6 +110,14 @@ task wrapper(type: Wrapper) {
 	gradleVersion = '4.0'
 }
 
+clean.doFirst {
+	delete "${project.rootDir}/classes"
+	for (p in project.allprojects) {
+		delete "${p.projectDir}/out"
+		println "Deleting... ${p.projectDir}/out"
+	}
+}
+
 idea {
 	module {
 		excludeDirs = [
