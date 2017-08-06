@@ -165,6 +165,7 @@ class JsTest : _Base() {
 		HELLO WORLD1demo
 		HELLO WORLD2test
 		Timeout!
+		Shutdown hook!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
 	@Test fun referencesTest() = testNativeClass("""
