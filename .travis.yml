@@ -43,8 +43,8 @@ before_script:
 - export NEKOPATH=$PWD/neko-2.1.0-linux64
 - export HAXEPATH=$PWD/haxe-3.4.2
 - export PATH=$HAXEPATH:$NEKOPATH:$PATH
-- haxelib setup $HAXELIB_PATH
-- haxelib install hxcpp
+- haxelib --always setup $HAXELIB_PATH
+- haxelib --always install hxcpp
 - ls -la $PWD
 - ls -la $PWD/haxe-3.4.2
 - g++ --version || true
