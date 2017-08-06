@@ -1,4 +1,5 @@
 language: java
+dist: precise
 node_js:
 - '4'
 jdk:
