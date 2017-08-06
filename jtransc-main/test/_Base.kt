@@ -73,11 +73,16 @@ open class _Base {
 	).flatMap { it }
 
 	val testClassesPaths = listOf(
+		// intellij
+		File("out/test/classes").absolutePath,
+		File("out/test/resources").absolutePath,
+		File("target/test-classes").absolutePath,
+		// gradle
 		File("build/classes/test").absolutePath,
-		File("build/classes/java/test").absolutePath,
-		File("build/classes/kotlin/test").absolutePath,
 		File("build/resources/test").absolutePath,
-		File("target/test-classes").absolutePath
+		// gradle >= 4
+		File("build/classes/java/test").absolutePath,
+		File("build/classes/kotlin/test").absolutePath
 	)
 
 	fun testClassNoLog(params: Params) {
@@ -131,12 +136,6 @@ open class _Base {
 		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
-		//val threadId = Thread.currentThread().id
-		//val pid = ManagementFactory.getRuntimeMXBean().getName()
-
-		val threadId = 0
-		val pid = 0
-
 		injector.mapInstances(
 			params.backend ?: BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
 		)
@@ -155,7 +154,7 @@ open class _Base {
 				output = "program.${params.lang}",
 				subtarget = params.lang ?: "js",
 				//output = "program.haxe.cpp", subtarget = "cpp",
-				targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/${pid}_$threadId",
+				targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc",
 				settings = AstBuildSettings(
 					jtranscVersion = JTranscVersion.getVersion(),
 					debug = params.debug ?: DEBUG,
@@ -170,9 +169,15 @@ open class _Base {
 						"jtransc-annotations"
 					).flatMap {
 						listOf(
+							// intellij
+							"$it/out/test/classes",
+							"$it/out/production/classes",
+							"$it/out/production/resources",
 							"$it/target/classes",
+							// gradle
 							"$it/build/classes/main",
 							"$it/build/resources/main",
+							// gradle >= 4
 							"$it/build/classes/java/main",
 							"$it/build/classes/kotlin/main",
 							"$it/build/classes/java/test",
@@ -188,7 +193,5 @@ open class _Base {
 			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()
 		}
 	}
-
-	val types = ThreadLocal.withInitial { AstTypes() }
 }
 
