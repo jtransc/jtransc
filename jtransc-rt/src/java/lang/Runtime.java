@@ -19,11 +19,14 @@ package java.lang;
 import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.io.JTranscConsole;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 @JTranscAddHeader(target = "as3", value = "import flash.system.System;")
@@ -51,9 +54,36 @@ public class Runtime {
 	@JTranscMethodBody(target = "php", value = "exit($p0);")
 	native public void exit(int status);
 
-	native public void addShutdownHook(Thread hook);
+	private Set<Thread> shutdownThreads = null;
 
-	native public boolean removeShutdownHook(Thread hook);
+	private void _executeShutdownHooks() {
+		if (shutdownThreads != null) {
+			for (Thread shutdownThread : shutdownThreads) {
+				shutdownThread.run();
+			}
+		}
+	}
+
+	@JTranscMethodBody(target = "js", value = "var that = this; process.on('exit', function() { that{% IMETHOD java.lang.Runtime:_executeShutdownHooks %}(); });")
+	private void _registerShutdownHook() {
+	}
+
+	private void _registerShutdownHookOnce() {
+		if (shutdownThreads != null) return;
+		shutdownThreads = new HashSet<>();
+		_registerShutdownHook();
+	}
+
+	public void addShutdownHook(Thread hook) {
+		_registerShutdownHookOnce();
+		if (shutdownThreads != null) {
+			shutdownThreads.add(hook);
+		}
+	}
+
+	public boolean removeShutdownHook(Thread hook) {
+		return shutdownThreads != null && shutdownThreads.remove(hook);
+	}
 
 	public void halt(int status) {
 		exit(status);
