@@ -147,8 +147,6 @@ object BigTest {
 		Issue209.main(args)
 
 		ModifiedUtf8Test.main(args)
-
-		if(JTranscSystem.isCpp()||JTranscSystem.isD())Issue210.main(args)
 	}
 
 	private fun servicesTest() {
