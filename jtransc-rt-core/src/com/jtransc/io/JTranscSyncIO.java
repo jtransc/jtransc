@@ -323,21 +323,21 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "cpp", value = "this->file = NULL;"),
 			@JTranscMethodBody(target = "dart", value = "this.file = null;"),
 		})
-		private void init() {
+		private synchronized void init() {
 		}
 
 		public boolean isReadonly() {
 			return (mode & O_RDWR) == 0;
 		}
 
-		public void open(String name, int mode) throws FileNotFoundException {
+		public synchronized void open(String name, int mode) throws FileNotFoundException {
 			this.mode = mode;
 			if (!_open(name, mode)) {
 				throw new FileNotFoundException(String.format("Can't open file %s with mode %d", name, mode));
 			}
 		}
 
-		public void close() throws IOException {
+		public synchronized void close() throws IOException {
 			_close();
 		}
 
