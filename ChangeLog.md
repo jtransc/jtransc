@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.7 (TBD)
+
+- Added support for `Runtime.addShutdownHook()` to JS target
+
 ## 0.6.6 (2017-07-23)
 
 - @SergeyLabutin: Implemented Runtime.memory methods for Haxe+Cpp target
