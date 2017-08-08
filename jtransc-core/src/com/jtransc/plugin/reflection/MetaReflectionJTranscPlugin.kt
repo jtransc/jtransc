@@ -14,6 +14,7 @@ import j.ProgramReflection
  */
 class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	override val priority: Int = Int.MAX_VALUE - 1000
+	val casesPerSwitch: Int = 100
 
 	fun AstClass.mustReflect(invisibleExternalSet: Set<String> = setOf()): Boolean {
 		return this.visible && (this.fqname !in invisibleExternalSet) && (this.annotationsList.getNativeNameForTarget(targetName) == null)
@@ -161,25 +162,24 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val (classIdArg) = args
 
 			val temps = TempAstLocalFactory()
-			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
 
-			SWITCH(classIdArg.expr) {
-				for (clazz in visibleClasses) {
-					val annotations = clazz.runtimeAnnotations
-					if (annotations.isNotEmpty() && "java.lang.annotation.Annotation".fqname !in clazz.implementing) {
+			val cleanVisibleClasses = visibleClasses.filter { it.runtimeAnnotations.isNotEmpty() && "java.lang.annotation.Annotation".fqname !in it.implementing }
+
+			var switchIndex: Int = 0
+			while (switchIndex * casesPerSwitch < cleanVisibleClasses.size) {
+				SWITCH(classIdArg.expr) {
+					var caseIndex: Int = 0
+					while (caseIndex < casesPerSwitch && (switchIndex * casesPerSwitch + caseIndex) < cleanVisibleClasses.size) {
+						val clazz = cleanVisibleClasses[switchIndex * casesPerSwitch + caseIndex]
 						CASE(clazz.classId) {
 							RETURN(ANNOTATION_ARRAY.newLiteralArray(
-								annotations.map { toAnnotationExpr(it, temps, this) }
+								clazz.runtimeAnnotations.map { toAnnotationExpr(it, temps, this) }
 							))
-
-							//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-							//for ((index, annotation) in annotations.withIndex()) {
-							//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-							//}
-							//RETURN(outLocal)
 						}
+						caseIndex++
 					}
 				}
+				switchIndex++
 			}
 			RETURN(NULL)
 		}
@@ -188,12 +188,16 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val (classIdArg, fieldIdArg) = args
 
 			val temps = TempAstLocalFactory()
-			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
 
-			SWITCH(classIdArg.expr) {
-				for (clazz in visibleClasses) {
-					val fields = clazz.fields.filter { it.mustReflect() }
-					if (fields.flatMap { it.runtimeAnnotations }.isNotEmpty()) {
+			val cleanVisibleClasses = visibleClasses.filter { it.fields.filter { it.mustReflect() }.flatMap { it.runtimeAnnotations }.isNotEmpty() }
+
+			var switchIndex: Int = 0
+			while (switchIndex * casesPerSwitch < cleanVisibleClasses.size) {
+				SWITCH(classIdArg.expr) {
+					var caseIndex: Int = 0
+					while (caseIndex < casesPerSwitch && (switchIndex  * casesPerSwitch + caseIndex) < cleanVisibleClasses.size) {
+						val clazz = cleanVisibleClasses[switchIndex * casesPerSwitch + caseIndex]
+						val fields = clazz.fields.filter { it.mustReflect() }
 						CASE(clazz.classId) {
 							val classId = clazz.classId
 							val perClassMethod = ProgramReflectionClass.createMethod("getFieldAnnotations$classId", AstType.METHOD(AstType.ARRAY(annotationType), AstType.INT), isStatic = true) { args ->
@@ -215,8 +219,10 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 							RETURN(perClassMethod.invoke(fieldIdArg.expr))
 						}
+						caseIndex++
 					}
 				}
+				switchIndex++
 			}
 			RETURN(NULL)
 		}
@@ -225,7 +231,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val (classIdArg, methodIdArg) = args
 
 			val temps = TempAstLocalFactory()
-			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
 
 			SWITCH(classIdArg.expr) {
 				for (clazz in visibleClasses) {
@@ -240,11 +245,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 											RETURN(ANNOTATION_ARRAY.newLiteralArray(
 												annotations.map { toAnnotationExpr(it, temps, this) }
 											))
-											//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-											//for ((index, annotation) in annotations.withIndex()) {
-											//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-											//}
-											//RETURN(outLocal)
 										}
 									}
 								}
@@ -260,7 +260,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			val (classIdArg, methodIdArg, argIndexArt) = args
 
 			val temps = TempAstLocalFactory()
-			val outLocal = AstLocal(0, "out", ANNOTATION_ARRAY)
 
 			SWITCH(classIdArg.expr) {
 				for (clazz in visibleClasses) {
@@ -280,11 +279,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 															RETURN(ANNOTATION_ARRAY.newLiteralArray(
 																annotations.map { toAnnotationExpr(it, temps, this) }
 															))
-															//SET(outLocal, ANNOTATION_ARRAY.newArray(annotations.size.lit))
-															//for ((index, annotation) in annotations.withIndex()) {
-															//	SET_ARRAY(outLocal, index.lit, toAnnotationExpr(annotation, temps, this))
-															//}
-															//RETURN(outLocal)
 														}
 													}
 												}
@@ -300,8 +294,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 			RETURN(NULL)
 		}
-
-		val casesPerMethod: Int = 100
 
 		val getAllClassesMethod: AstMethod? =
 			if (program.contains(ProgramReflection.AllClasses::class.java.fqname))
@@ -343,15 +335,15 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val classes: List<AstMethod> = visibleClasses.flatMap { it.methodsWithoutConstructors.filter { it.mustReflect() } }.sortedBy { it.id }
 
 				var methodIndex: Int = 0
-				while (methodIndex * casesPerMethod < classes.size) {
+				while (methodIndex * casesPerSwitch < classes.size) {
 					val mI: Int = methodIndex
-					val sI: Int = methodIndex * casesPerMethod
+					val sI: Int = methodIndex * casesPerSwitch
 
 					val newMethod: AstMethod =
 						dynamicNewInvokeClass.createMethod(dynamicInvokeMethod.name + mI, dynamicInvokeMethod.methodType, true) {
 							val (classId, methodId, obj, args) = it
 							var currentIndex: Int = sI
-							val finishIndex: Int = if (currentIndex + casesPerMethod < classes.size) currentIndex + casesPerMethod else classes.size
+							val finishIndex: Int = if (currentIndex + casesPerSwitch < classes.size) currentIndex + casesPerSwitch else classes.size
 
 							SWITCH(methodId.expr) {
 								while (currentIndex < finishIndex) {
@@ -390,7 +382,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 					while (--id >= 0) {
 						val method: AstMethod = additionalMethods[id]
-						val constructor: AstMethod = classes[id * casesPerMethod]
+						val constructor: AstMethod = classes[id * casesPerSwitch]
 						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, constructor.id.lit)) {
 							val params: List<AstExpr> = listOf(classId.expr, methodId.expr, obj.expr, args.expr)
 							val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
@@ -413,15 +405,15 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val classes: List<AstMethod> = visibleClasses.filter { !it.isAbstract && !it.isInterface }.flatMap { it.constructors.filter { it.mustReflect() } }.sortedBy { it.id }
 
 				var methodIndex: Int = 0
-				while (methodIndex * casesPerMethod < classes.size) {
+				while (methodIndex * casesPerSwitch < classes.size) {
 					val mI: Int = methodIndex
-					val sI: Int = methodIndex * casesPerMethod
+					val sI: Int = methodIndex * casesPerSwitch
 
 					val newMethod: AstMethod =
 						dynamicNewInvokeClass.createMethod(dynamicNewMethod.name + mI, dynamicNewMethod.methodType, true) {
 							val (classId, methodId, args) = it
 							var currentIndex: Int = sI
-							val finishIndex: Int = if (currentIndex + casesPerMethod < classes.size) currentIndex + casesPerMethod else classes.size
+							val finishIndex: Int = if (currentIndex + casesPerSwitch < classes.size) currentIndex + casesPerSwitch else classes.size
 
 							SWITCH(methodId.expr) {
 								while (currentIndex < finishIndex) {
@@ -452,7 +444,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 					while (--id >= 0) {
 						val method: AstMethod = additionalMethods[id]
-						val constructor: AstMethod = classes[id * casesPerMethod]
+						val constructor: AstMethod = classes[id * casesPerSwitch]
 						IF(AstExpr.BINOP(AstType.BOOL, methodId.expr, AstBinop.GE, constructor.id.lit)) {
 							val params: List<AstExpr> = listOf(classId.expr, methodId.expr, args.expr)
 							val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
@@ -477,9 +469,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			fun genMemberMethods(list: List<Pair<AstClass, List<MemberInfoWithRef>>>, clazz: AstClass, method: AstMethod): List<AstMethod> {
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
 				var methodIndex: Int = 0
-				while (methodIndex * casesPerMethod < list.size) {
+				while (methodIndex * casesPerSwitch < list.size) {
 					val mI: Int = methodIndex
-					val sI: Int = methodIndex * casesPerMethod
+					val sI: Int = methodIndex * casesPerSwitch
 					val parentClass: AstClass = clazz
 					val parentMethod: AstMethod = method
 
@@ -489,7 +481,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 							val out = AstLocal(0, "out", ARRAY(MemberInfoClass))
 
 							var currentIndex: Int = sI
-							val finishIndex: Int = if (currentIndex + casesPerMethod < list.size) currentIndex + casesPerMethod else list.size
+							val finishIndex: Int = if (currentIndex + casesPerSwitch < list.size) currentIndex + casesPerSwitch else list.size
 
 							SWITCH(classIdArg.expr) {
 								while (currentIndex < finishIndex) {
@@ -531,7 +523,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 				while (--id >= 0) {
 					val method: AstMethod = additionalMethods[id]
-					val (keyClass, members) = list[id * casesPerMethod]
+					val (keyClass, members) = list[id * casesPerSwitch]
 					IF(AstExpr.BINOP(AstType.BOOL, classIdArg.expr, AstBinop.GE, keyClass.classId.lit)) {
 						val params = listOf(classIdArg.expr)
 						val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
@@ -610,14 +602,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val fields: List<AstField> = visibleClasses.flatMap { it.fields.filter { it.mustReflect() } }.sortedBy { it.id }
 
 					var methodIndex: Int = 0
-					while (methodIndex * casesPerMethod < fields.size) {
+					while (methodIndex * casesPerSwitch < fields.size) {
 						val mI: Int = methodIndex
-						val sI: Int = methodIndex * casesPerMethod
+						val sI: Int = methodIndex * casesPerSwitch
 
 						val newMethod: AstMethod = dynamicGetSetClass.createMethod(dynamicGetMethod.name + mI, dynamicGetMethod.methodType, true) {
 							val (classId, fieldId, objParam) = it
 							var currentIndex: Int = sI
-							val finishIndex: Int = if (currentIndex + casesPerMethod < fields.size) currentIndex + casesPerMethod else fields.size
+							val finishIndex: Int = if (currentIndex + casesPerSwitch < fields.size) currentIndex + casesPerSwitch else fields.size
 
 							SWITCH(fieldId.expr) {
 								while (currentIndex < finishIndex) {
@@ -647,7 +639,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 						while (--id >= 0) {
 							val method: AstMethod = additionalMethods[id]
-							val field: AstField = fields[id * casesPerMethod]
+							val field: AstField = fields[id * casesPerSwitch]
 							IF(AstExpr.BINOP(AstType.BOOL, fieldId.expr, AstBinop.GE, field.id.lit)) {
 								val params = listOf(classId.expr, fieldId.expr, objParam.expr)
 								val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
@@ -670,14 +662,14 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val fields: List<AstField> = visibleClasses.flatMap { it.fields.filter { it.mustReflect() } }.sortedBy { it.id }
 
 					var methodIndex: Int = 0
-					while (methodIndex * casesPerMethod < fields.size) {
+					while (methodIndex * casesPerSwitch < fields.size) {
 						val mI: Int = methodIndex
-						val sI: Int = methodIndex * casesPerMethod
+						val sI: Int = methodIndex * casesPerSwitch
 
 						val newMethod: AstMethod = dynamicGetSetClass.createMethod(dynamicSetMethod.name + mI, dynamicSetMethod.methodType, true) {
 							val (classIdParam, fieldIdParam, objParam, valueParam) = it
 							var currentIndex: Int = sI
-							val finishIndex: Int = if (currentIndex + casesPerMethod < fields.size) currentIndex + casesPerMethod else fields.size
+							val finishIndex: Int = if (currentIndex + casesPerSwitch < fields.size) currentIndex + casesPerSwitch else fields.size
 
 							SWITCH(fieldIdParam.expr) {
 								while (currentIndex < finishIndex) {
@@ -705,7 +697,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 						while (--id >= 0) {
 							val method: AstMethod = additionalMethods[id]
-							val field: AstField = fields[id * casesPerMethod]
+							val field: AstField = fields[id * casesPerSwitch]
 							IF(AstExpr.BINOP(AstType.BOOL, fieldIdParam.expr, AstBinop.GE, field.id.lit)) {
 								val params = listOf(classIdParam.expr, fieldIdParam.expr, objParam.expr, valueParam.expr)
 								STM(AstExpr.CALL_STATIC(method.ref, params))
