@@ -92,7 +92,7 @@ class JA_L extends JA_0 {
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_L, to:JA_L, fromPos:Int, toPos:Int, length:Int) {
 		#if (sys || flash)
-		Vector.blit(from.data, fromPos, to.data, toPos, length);
+		Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
 		#else
     	if (from == to && toPos > fromPos) {
 			var n = length;
