@@ -44,6 +44,8 @@ class CSharpCompiler(
 
 	data class Compiler(val path: String, val isMono: Boolean)
 
+	val isMonoWithGotoBug get() = !OS.isWindows
+
 	fun getCompiler(extraParams: Map<String?, String?>): Compiler {
 		val forceMono = "CSHARP_USE_MONO" in extraParams
 		val csharpCommand = extraParams["CSHARP_CMD"]

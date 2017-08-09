@@ -61,8 +61,14 @@ class CSharpTarget : GenTargetDescriptor() {
 class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 
+	val csharpCompiler = CSharpCompiler()
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
-	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val methodFeatures = if (csharpCompiler.isMonoWithGotoBug) {
+		setOf(SwitchFeature::class.java)
+	} else {
+		setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	}
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
@@ -101,8 +107,6 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val defaultGenStmSwitchHasBreaks = true
 
 	override val fixencoding = false
-
-	val csharpCompiler = CSharpCompiler()
 
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return csharpCompiler.genCommand(programFile, debug, libs, extraParams)
