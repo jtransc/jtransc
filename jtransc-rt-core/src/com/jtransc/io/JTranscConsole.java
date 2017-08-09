@@ -35,7 +35,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(Object v) {
+	static public synchronized void log(Object v) {
 		JTranscSystem.checkInJVM("logObject");
 		System.out.println(v);
 	}
@@ -49,7 +49,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void dump(Object v) {
+	static public synchronized void dump(Object v) {
 		log(v);
 	}
 
@@ -62,7 +62,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(boolean v) {
+	static public synchronized void log(boolean v) {
 		log(Boolean.toString(v));
 	}
 
@@ -76,7 +76,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(byte v) {
+	static public synchronized void log(byte v) {
 		log(Byte.toString(v));
 	}
 
@@ -90,7 +90,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(short v) {
+	static public synchronized void log(short v) {
 		log(Short.toString(v));
 	}
 
@@ -104,7 +104,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(N.ichar(p0));"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(char v) {
+	static public synchronized void log(char v) {
 		log(Character.toString(v));
 	}
 
@@ -118,7 +118,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(int v) {
+	static public synchronized void log(int v) {
 		log(Integer.toString(v));
 	}
 
@@ -128,11 +128,11 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
 		@JTranscMethodBody(target = "as3", value = "trace('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
 	})
-	static public void log(long v) {
+	static public synchronized void log(long v) {
 		logLong((int) (v >> 32), (int) (v >> 0));
 	}
 
-	static public void logLong(int high, int low) {
+	static public synchronized void logLong(int high, int low) {
 		log("Int64(" + high + "," + low + ")");
 	}
 
@@ -144,7 +144,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(float v) {
+	static public synchronized void log(float v) {
 		JTranscSystem.checkInJVM("logFloat");
 		System.out.println(v);
 	}
@@ -157,7 +157,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void log(double v) {
+	static public synchronized void log(double v) {
 		JTranscSystem.checkInJVM("logDouble");
 		System.out.println(v);
 	}
@@ -174,12 +174,12 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public void error(Object msg) {
+	static public synchronized void error(Object msg) {
 		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
 	}
 
-	static public void logOrError(Object msg, boolean error) {
+	static public synchronized void logOrError(Object msg, boolean error) {
 		if (error) {
 			JTranscConsole.error(msg);
 		} else {

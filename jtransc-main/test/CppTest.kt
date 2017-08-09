@@ -26,6 +26,7 @@ import jtransc.jtransc.SimdTest
 import jtransc.micro.NanoHelloWorldTest
 import org.junit.Ignore
 import org.junit.Test
+import threading.ThreadingTest
 
 class CppTest : _Base() {
 	override val DEFAULT_TARGET = CppTarget()
@@ -71,5 +72,7 @@ class CppTest : _Base() {
 	//	bytes:8 : [0, 0, -128, 63, 0, 0, -128, -65]
 	//	floats:2 : [1.0, -1.0]
 	//""", minimize = false)
+
+    @Test fun testThreading() = testClass(Params(clazz = ThreadingTest::class.java, minimize = false, log = false))
 
 }

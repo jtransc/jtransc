@@ -1,14 +1,11 @@
 package big
 
 import android.AndroidArgsTest
-import com.jtransc.annotation.JTranscAddTemplateVars
+import com.jtransc.JTranscSystem
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
-import issues.Issue100Double
-import issues.Issue105
-import issues.Issue209
-import issues.Issue94Enum
+import issues.*
 import issues.issue130.Issue130
 import javatest.*
 import javatest.lang.*
@@ -27,9 +24,6 @@ import jtransc.java8.Java8Test
 import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
 import java.text.NumberFormat
 import java.util.*
 
