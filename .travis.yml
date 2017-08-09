@@ -44,7 +44,7 @@ before_script:
 - export HAXEPATH=$PWD/haxe-3.4.2
 - export PATH=$HAXEPATH:$NEKOPATH:$PATH
 - haxelib --quiet --always setup $HAXELIB_PATH
-- haxelib --quiet --always install hxcpp
+- haxelib --quiet --always install hxcpp > /dev/null
 - ls -la $PWD
 - ls -la $PWD/haxe-3.4.2
 - g++ --version || true
