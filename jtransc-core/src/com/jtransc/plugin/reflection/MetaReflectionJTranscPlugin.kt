@@ -336,15 +336,21 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
 				val classes: List<AstMethod> = visibleClasses.flatMap { it.methodsWithoutConstructors.filter { it.mustReflect() } }.sortedBy { it.id }
 
+				val dynamicInvokeClasses :List<AstClass?> = listOf(
+					program[ProgramReflection.DynamicInvokeFirst::class.java.fqname],
+					program[ProgramReflection.DynamicInvokeMiddle::class.java.fqname],
+					program[ProgramReflection.DynamicInvokeLast::class.java.fqname]
+				)
+
 				var methodIndex: Int = 0
 				while (methodIndex * CASES_PER_SWITCH < classes.size) {
 					val mI: Int = methodIndex
 					val sI: Int = methodIndex * CASES_PER_SWITCH
 
-					val clazz = program.createClass("ProgramReflection.DynamicNewInvoke$methodIndex".fqname, null)
-
+					val currentDynamicInvokeClass = dynamicInvokeClasses[methodIndex % dynamicInvokeClasses.size]
+					val currentDynamicInvokeMethod: AstMethod? = currentDynamicInvokeClass!!.getMethodWithoutOverrides(ProgramReflection.DynamicInvoke::dynamicInvoke.name)
 					val newMethod: AstMethod =
-						dynamicInvokeClass.createMethod(dynamicInvokeMethod.name + mI, dynamicInvokeMethod.methodType, true) {
+						currentDynamicInvokeClass.createMethod(currentDynamicInvokeMethod!!.name + mI, currentDynamicInvokeMethod.methodType, true) {
 							val (classId, methodId, obj, args) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < classes.size) currentIndex + CASES_PER_SWITCH else classes.size

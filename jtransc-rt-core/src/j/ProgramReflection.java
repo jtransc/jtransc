@@ -170,6 +170,32 @@ public class ProgramReflection {
 
 	public static class DynamicInvoke {
 		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
+			Object ret = DynamicInvokeFirst.dynamicInvoke(classId, methodId, object, params);
+			if (ret != null) {
+				return ret;
+			}
+			ret = DynamicInvokeMiddle.dynamicInvoke(classId, methodId, object, params);
+			if (ret != null) {
+				return ret;
+			}
+			return DynamicInvokeLast.dynamicInvoke(classId, methodId, object, params);
+		}
+	}
+
+	public static class DynamicInvokeFirst {
+		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
+			return null;
+		}
+	}
+
+	public static class DynamicInvokeMiddle {
+		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
+			return null;
+		}
+	}
+
+	public static class DynamicInvokeLast {
+		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
 			return null;
 		}
 	}
