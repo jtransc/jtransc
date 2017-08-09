@@ -750,4 +750,26 @@ class N {
         }
         return null;
     }
+    
+    public static function tryFinallyVoid(tryBlock: Void -> Void, finallyBlock: Void -> Void): Void {
+        try {
+            tryBlock();
+        } catch (e: Dynamic) {
+            finallyBlock();
+            throw e;
+        }
+        finallyBlock();
+    }
+    
+    public static function tryFinallyDynamic(tryBlock: Void -> Dynamic, finallyBlock: Void -> Void): Dynamic {
+        var ret;
+        try {
+            ret = tryBlock();
+        } catch (e: Dynamic) {
+            finallyBlock();
+            throw e;
+        }
+        finallyBlock();
+        return ret;
+    }
 }

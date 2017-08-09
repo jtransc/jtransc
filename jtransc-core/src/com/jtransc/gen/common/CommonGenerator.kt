@@ -1274,6 +1274,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
+	open fun getMonitorLockedObjectExpr(method: AstMethod):AstExpr{
+		if(method.isStatic)
+			return (AstExpr.LITERAL(method.containingClass.astType, dummy = true))
+		else
+			return (AstExpr.THIS(method.containingClass.name))
+	}
+
 	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
 	open fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("// MONITOR_EXIT") }
 	open fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw ${stm.exception.genExpr()};")
