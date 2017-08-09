@@ -76,13 +76,20 @@ class JA_D extends JA_0 {
 		//#if (sys || flash)
 		//Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
 		//#else
-		var _from:Float64Array = from.data;
-		var _to:Float64Array = to.data;
+		//var _from:Float64Array = from.data;
+		//var _to:Float64Array = to.data;
+    	//if (from == to && toPos > fromPos) {
+		//	var n = length;
+		//	while (--n >= 0) _to[toPos + n] = _from[fromPos + n];
+    	//} else {
+	    //    for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
+		//}
+
     	if (from == to && toPos > fromPos) {
 			var n = length;
-			while (--n >= 0) _to[toPos + n] = _from[fromPos + n];
+			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
-	        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
+	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 		}
 		//#end
     }
