@@ -51,9 +51,29 @@ bintray {
 }
 
 jacocoTestReport {
+	//excludes: ["com/jtransc/integrationtests/**/*"]
+	afterEvaluate {
+		classDirectories = files(classDirectories.files.collect {
+			fileTree(dir: it,
+				// @TODO: Move all integration tests to a single package to simplify this
+				exclude: [
+					'android/*',
+					'as3/*',
+					'big/*',
+					'issues/*',
+					'javatest/*',
+					'big/*',
+					'jtransc/*',
+					'testservice/*',
+					'threading/*',
+				])
+		})
+	}
+
 	reports {
 		xml.enabled true
 		html.enabled false
+		cvv.enabled false
 	}
 }
 
