@@ -356,6 +356,19 @@ struct N { public:
 	static void monitorExit(JAVA_OBJECT obj);
 };
 
+/* Used for synchronized methods.*/
+class SynchronizedMethodLocker{
+    JAVA_OBJECT obj;
+public:
+	SynchronizedMethodLocker(JAVA_OBJECT obj){
+	    this->obj=obj;
+		N::monitorEnter(obj);
+	}
+	~SynchronizedMethodLocker(){
+		N::monitorExit(this->obj);
+	}
+};
+
 // Strings
 {{ STRINGS }}
 
