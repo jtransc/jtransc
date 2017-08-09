@@ -89,7 +89,7 @@ class JA_J extends JA_0 {
 	{{ HAXE_METHOD_ANNOTATIONS }}
     public override function clone() {
     	var out = new JA_J(length);
-    	Vector.blit(this.data, 0, out.data, 0, out.data.length);
+    	Vector.blit(this.data, 0, out.data, 0, out.data.length); // does this support overlapping?
     	return out;
 	}
 
@@ -111,7 +111,7 @@ class JA_J extends JA_0 {
     	#end
 
  		#if (cpp || flash)
- 		Vector.blit(from.data, fromPos, to.data, toPos, length);
+ 		Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
  		#else
 	   	if (from == to && toPos > fromPos) {
 			var n = length;
