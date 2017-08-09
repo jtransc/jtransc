@@ -3,6 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
+apply plugin: 'jacoco'
 
 def props = rootProject.extensions.getExtraProperties()
 
@@ -48,3 +49,12 @@ bintray {
 		vcsUrl = 'https://github.com/jtransc/jtransc.git'
 	}
 }
+
+jacocoTestReport {
+	reports {
+		xml.enabled true
+		html.enabled false
+	}
+}
+
+check.dependsOn jacocoTestReport
