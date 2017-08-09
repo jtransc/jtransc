@@ -266,6 +266,19 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		if(method.modifiers.isSynchronized) {
+			line("try{")
+			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
+		}
+		line(super.genBody2WithFeatures(method, body))
+		if(method.modifiers.isSynchronized) {
+			line("}finally{")
+			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
+			line("}")
+		}
+	}
+
 	override fun N_i2b(str: String) = "avm2.intrinsics.memory.sxi8($str)"
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
 	override fun N_i2s(str: String) = "avm2.intrinsics.memory.sxi16($str)"

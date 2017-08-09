@@ -153,7 +153,7 @@ So others could generate that without JVM and others could generate other target
 ### For the Haxe target:
 - Haxe 3.4.2
 - NekoVM 2.1.0
-- Lime 5.2.1
+- Lime 5.3.0
 - hxcpp 3.4.64
 
 ### For Node.JS running:
@@ -185,7 +185,7 @@ source ~/.bash_profile
 #### Installing Haxe
 - Install [Haxe](https://haxe.org/download/) from here via installer
 - Set path to haxelib running "haxelib setup" command
-- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.2.1`
+- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.3.0`
 - Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.64`
 - Run `haxelib run lime setup`
 
@@ -230,7 +230,7 @@ __WINDOWS__
 __MAC__
 - Install Xcode 8.3.3
 - This XCode have problem with logs for iPhone with iOS 10.3.2. Please see [solution](https://github.com/flutter/flutter/issues/4326#issuecomment-308249455)
-- Related to pure C++ target on mac: `brew install automake libtool`
+- Related to pure C++ target on mac: `brew install automake libtool pkg-config`
 - Install [Mono](http://www.mono-project.com/download/) 5.0.1.1  ??? https://github.com/jtransc/jtransc/issues/167
 - For upload on iPhone/iPad from command line `sudo npm install -g ios-deploy --unsafe-perm --allow-root`
 

@@ -17,6 +17,8 @@ import java.util.ServiceLoader;
 
 public class JTranscJsNativeMixedTest {
 	static public void main(String[] args) {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("Shutdown hook!")));
+
 		rawTest();
 		servicesTest();
 		CustomJsRunTest.main(args);
