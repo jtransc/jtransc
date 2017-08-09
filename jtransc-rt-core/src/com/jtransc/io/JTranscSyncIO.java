@@ -67,7 +67,7 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "d", value = "try { std.file.remove(N.istr2(p0)); return true; } catch (Throwable t) { return false; }"),
 			@JTranscMethodBody(target = "dart", value = "new File(N.istr(p0)).deleteSync();"),
 		})
-		public boolean delete(String file) {
+		public synchronized boolean delete(String file) {
 			checkNotJTransc();
 			return new File(file).delete();
 		}
@@ -188,7 +188,7 @@ public class JTranscSyncIO {
 			}),
 			@JTranscMethodBody(target = "dart", value = "try { new Directory(N.istr(p0)).createSync(); return true; } catch (e) { return false; }"),
 		})
-		public boolean createDirectory(String file) {
+		public synchronized boolean createDirectory(String file) {
 			checkNotJTransc();
 			return new File(file).mkdir();
 		}
@@ -214,7 +214,7 @@ public class JTranscSyncIO {
 			}),
 			@JTranscMethodBody(target = "dart", value = "new File(N.istr(p0)).renameSync(N.istr(p1));")
 		})
-		public boolean rename(String fileOld, String fileNew) {
+		public synchronized boolean rename(String fileOld, String fileNew) {
 			checkNotJTransc();
 			return new File(fileOld).renameTo(new File(fileNew));
 		}
@@ -291,7 +291,7 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "cs", value = "System.IO.Directory.SetCurrentDirectory(N.istr(p0));"),
 			@JTranscMethodBody(target = "dart", value = "Directory.current = new Directory(N.istr(p0));"),
 		})
-		public void setCwd(String path) {
+		public synchronized void setCwd(String path) {
 			this.cwd = path;
 		}
 
@@ -323,29 +323,29 @@ public class JTranscSyncIO {
 			@JTranscMethodBody(target = "cpp", value = "this->file = NULL;"),
 			@JTranscMethodBody(target = "dart", value = "this.file = null;"),
 		})
-		private void init() {
+		private synchronized void init() {
 		}
 
 		public boolean isReadonly() {
 			return (mode & O_RDWR) == 0;
 		}
 
-		public void open(String name, int mode) throws FileNotFoundException {
+		public synchronized void open(String name, int mode) throws FileNotFoundException {
 			this.mode = mode;
 			if (!_open(name, mode)) {
 				throw new FileNotFoundException(String.format("Can't open file %s with mode %d", name, mode));
 			}
 		}
 
-		public void close() throws IOException {
+		public synchronized void close() throws IOException {
 			_close();
 		}
 
-		public int read(byte b[], int off, int len) {
+		public synchronized int read(byte b[], int off, int len) {
 			return this._read(b, off, len);
 		}
 
-		public int write(byte b[], int off, int len) {
+		public synchronized int write(byte b[], int off, int len) {
 			if (isReadonly()) return -1;
 			return this._write(b, off, len);
 		}
@@ -354,7 +354,7 @@ public class JTranscSyncIO {
 			return _getPosition();
 		}
 
-		public void setPosition(long pos) {
+		public synchronized void setPosition(long pos) {
 			_setPosition(pos);
 		}
 
@@ -566,7 +566,7 @@ public class JTranscSyncIO {
 		}
 
 		@Override
-		public void setPosition(long offset) {
+		public synchronized void setPosition(long offset) {
 			this.position = (int) offset;
 		}
 
@@ -576,7 +576,7 @@ public class JTranscSyncIO {
 		}
 
 		@Override
-		public void setLength(long length) {
+		public synchronized void setLength(long length) {
 			throw new RuntimeException("Not implemented ByteStream.setLength");
 		}
 
@@ -586,7 +586,7 @@ public class JTranscSyncIO {
 		}
 
 		@Override
-		public int read(byte[] data, int offset, int size) {
+		public synchronized int read(byte[] data, int offset, int size) {
 			int available = (int) (getLength() - getPosition());
 			if (available <= 0) return -1;
 			int toRead = Math.min(available, size);
@@ -596,7 +596,7 @@ public class JTranscSyncIO {
 		}
 
 		@Override
-		public int write(byte[] data, int offset, int size) {
+		public synchronized int write(byte[] data, int offset, int size) {
 			throw new RuntimeException("Not implemented ByteStream.write");
 		}
 
@@ -666,22 +666,22 @@ public class JTranscSyncIO {
 			return parent.getUsableSpace(file);
 		}
 
-		public boolean setReadOnly(String file) {
+		public synchronized boolean setReadOnly(String file) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setReadOnly");
 			return parent.setReadOnly(file);
 		}
 
-		public boolean setLastModifiedTime(String file, long time) {
+		public synchronized boolean setLastModifiedTime(String file, long time) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setLastModifiedTime");
 			return parent.setLastModifiedTime(file, time);
 		}
 
-		public boolean rename(String fileOld, String fileNew) {
+		public synchronized boolean rename(String fileOld, String fileNew) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.rename");
 			return parent.rename(fileOld, fileNew);
 		}
 
-		public boolean createDirectory(String file) {
+		public synchronized boolean createDirectory(String file) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.createDirectory");
 			return parent.createDirectory(file);
 		}
@@ -691,17 +691,17 @@ public class JTranscSyncIO {
 			return parent.list(file);
 		}
 
-		public boolean delete(String file) {
+		public synchronized boolean delete(String file) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.delete");
 			return parent.delete(file);
 		}
 
-		public boolean createFileExclusively(String file) {
+		public synchronized boolean createFileExclusively(String file) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.createFileExclusively");
 			return parent.createFileExclusively(file);
 		}
 
-		public boolean setPermission(String file, int access, boolean enable, boolean owneronly) {
+		public synchronized boolean setPermission(String file, int access, boolean enable, boolean owneronly) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setPermission");
 			return parent.setPermission(file, access, enable, owneronly);
 		}
@@ -726,7 +726,7 @@ public class JTranscSyncIO {
 			return parent.getCwd();
 		}
 
-		public void setCwd(String path) {
+		public synchronized void setCwd(String path) {
 			if (parent == null) throw new RuntimeException("Not implemented JTranscSyncIO.setCwd");
 			parent.setCwd(path);
 		}
@@ -755,7 +755,7 @@ public class JTranscSyncIO {
 			return (read(temp, 0, 1) == 1) ? temp[0] : -1;
 		}
 
-		public void write(int b) {
+		public synchronized void write(int b) {
 			temp[0] = (byte) b;
 			write(temp, 0, 1);
 		}
