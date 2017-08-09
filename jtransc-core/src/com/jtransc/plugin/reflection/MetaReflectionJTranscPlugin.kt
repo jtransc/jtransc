@@ -341,6 +341,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val mI: Int = methodIndex
 					val sI: Int = methodIndex * CASES_PER_SWITCH
 
+					val clazz = program.createClass("ProgramReflection.DynamicNewInvoke$methodIndex".fqname, null)
+
 					val newMethod: AstMethod =
 						dynamicNewInvokeClass.createMethod(dynamicInvokeMethod.name + mI, dynamicInvokeMethod.methodType, true) {
 							val (classId, methodId, obj, args) = it

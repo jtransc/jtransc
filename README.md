@@ -227,6 +227,18 @@ __WINDOWS__
 - Add "path/to/mingw64" to `PATH` environment variable
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
+__WINDOWS 64__
+For big project you may problem with build 32bit via hxcpp with lime
+- go to hxcpp/3.4.64 folder in console `neko run.n Build.xml -Dwindows -DHXCPP_M64 -Dstatic_link ./project/`
+- Remove stable lime `haxelib remove lime`
+- Install lime from GitHub `git clone --recursive https://github.com/openfl/lime -b master`
+```
+haxelib dev lime lime
+haxelib install format
+if use MSVC 2013 with not fully supported c99 standard, then replace in lib\openal all inline to __inline, and snprintf to _snprintf
+lime rebuild windows -64
+```
+
 __MAC__
 - Install Xcode 8.3.3
 - This XCode have problem with logs for iPhone with iOS 10.3.2. Please see [solution](https://github.com/flutter/flutter/issues/4326#issuecomment-308249455)
