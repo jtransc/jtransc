@@ -110,16 +110,16 @@ class JA_J extends JA_0 {
     	length *= 2;
     	#end
 
- 		//#if (cpp || flash)
- 		//Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
- 		//#else
+ 		#if (cpp || flash)
+ 		Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
+ 		#else
 	   	if (from == to && toPos > fromPos) {
 			var n = length;
 			while (--n >= 0) to.set(toPos + n, from.get(fromPos + n));
     	} else {
 	        for (n in 0 ... length) to.set(toPos + n, from.get(fromPos + n));
 	    }
-	    //#end
+	    #end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}

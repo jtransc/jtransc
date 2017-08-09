@@ -38,6 +38,14 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 		);
 	};
 
+	inline static void _memmove(unsigned char *dst, int dstPos, unsigned char *src, int srcPos, int shift, int count) {
+		::memmove(
+			&dst[dstPos << shift],
+			&src[srcPos << shift],
+			count << shift
+		);
+	};
+
 	inline static void _memset_N2(unsigned char *dst, int dstPos, int count, int value) {
 		short *ptr = &(((short *)dst)[dstPos]);
 		for (int n = 0; n < count; n++) ptr[n] = (short)value;
@@ -69,6 +77,7 @@ class N {
 
 	#if cpp
 		@:native("N_obj::_memcpy") static public function memcpy(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, src: cpp.RawPointer<cpp.UInt8>, srcPos: Int, shift: Int, count: Int):Void return;
+		@:native("N_obj::_memmove") static public function memmove(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, src: cpp.RawPointer<cpp.UInt8>, srcPos: Int, shift: Int, count: Int):Void return;
 		@:native("N_obj::_memset_N2") static public function memsetN2(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
 		@:native("N_obj::_memset_N4") static public function memsetN4(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: Int):Void return;
 		@:native("N_obj::_memset_N8") static public function memsetN8(dst: cpp.RawPointer<cpp.UInt8>, dstPos: Int, count: Int, value: haxe.Int64):Void return;
@@ -551,7 +560,7 @@ class N {
 		if (srcArray != null && dstArray != null) {
 			#if cpp
 				if (srcArray.rawPtr != null && elementShift >= 0) {
-					memcpy(dstArray.rawPtr, destPos, srcArray.rawPtr, srcPos, elementShift, length);
+					memmove(dstArray.rawPtr, destPos, srcArray.rawPtr, srcPos, elementShift, length);
 					return;
 				}
 			#end
