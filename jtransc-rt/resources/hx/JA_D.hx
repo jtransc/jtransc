@@ -73,9 +73,9 @@ class JA_D extends JA_0 {
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
     static public function copy(from:JA_D, to:JA_D, fromPos:Int, toPos:Int, length:Int) {
-		#if (sys || flash)
-		Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
-		#else
+		//#if (sys || flash)
+		//Vector.blit(from.data, fromPos, to.data, toPos, length); // does this support overlapping?
+		//#else
 		var _from:Float64Array = from.data;
 		var _to:Float64Array = to.data;
     	if (from == to && toPos > fromPos) {
@@ -84,7 +84,7 @@ class JA_D extends JA_0 {
     	} else {
 	        for (n in 0 ... length) _to[toPos + n] = _from[fromPos + n];
 		}
-		#end
+		//#end
     }
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
