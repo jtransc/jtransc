@@ -551,7 +551,7 @@ class N {
 		if (srcArray != null && dstArray != null) {
 			#if cpp
 				if (srcArray.rawPtr != null && elementShift >= 0) {
-					memcpy(dstArray.rawPtr, destPos, srcArray.rawPtr, srcPos, elementShift, length);
+					memmove(dstArray.rawPtr, destPos, srcArray.rawPtr, srcPos, elementShift, length);
 					return;
 				}
 			#end
