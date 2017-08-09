@@ -75,8 +75,8 @@ script:
 - node target/jtransc-js/program.js
 - popd
 - jdk_switcher use oraclejdk8
-cache:
-  directories: 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 notifications:
   webhooks:
     urls:
