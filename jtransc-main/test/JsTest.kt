@@ -75,7 +75,7 @@ class JsTest : _Base() {
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testNanoHelloWorldShouldReferenceGetMethods() {
+	@Test fun testNanoHelloWorldShouldNotReferenceGetMethodsAndBeSmallEnough() {
 		val result = _action(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true), run = false)
 		val generator = result.generator as JsGenerator
 		val outputFile = generator.jsOutputFile
