@@ -328,9 +328,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
-		if (program.contains(ProgramReflection.DynamicNewInvoke::class.java.fqname)) {
-			val dynamicNewInvokeClass: AstClass = program[ProgramReflection.DynamicNewInvoke::class.java.fqname]
-			val dynamicInvokeMethod: AstMethod? = dynamicNewInvokeClass.getMethodWithoutOverrides(ProgramReflection.DynamicNewInvoke::dynamicInvoke.name)
+		if (program.contains(ProgramReflection.DynamicInvoke::class.java.fqname)) {
+			val dynamicInvokeClass: AstClass = program[ProgramReflection.DynamicInvoke::class.java.fqname]
+			val dynamicInvokeMethod: AstMethod? = dynamicInvokeClass.getMethodWithoutOverrides(ProgramReflection.DynamicInvoke::dynamicInvoke.name)
 
 			if (dynamicInvokeMethod != null) {
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
@@ -344,7 +344,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val clazz = program.createClass("ProgramReflection.DynamicNewInvoke$methodIndex".fqname, null)
 
 					val newMethod: AstMethod =
-						dynamicNewInvokeClass.createMethod(dynamicInvokeMethod.name + mI, dynamicInvokeMethod.methodType, true) {
+						dynamicInvokeClass.createMethod(dynamicInvokeMethod.name + mI, dynamicInvokeMethod.methodType, true) {
 							val (classId, methodId, obj, args) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < classes.size) currentIndex + CASES_PER_SWITCH else classes.size
@@ -400,9 +400,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
-		if (program.contains(ProgramReflection.DynamicNewInvoke::class.java.fqname)) {
-			val dynamicNewInvokeClass: AstClass = program[ProgramReflection.DynamicNewInvoke::class.java.fqname]
-			val dynamicNewMethod: AstMethod? = dynamicNewInvokeClass.getMethodWithoutOverrides(ProgramReflection.DynamicNewInvoke::dynamicNew.name)
+		if (program.contains(ProgramReflection.DynamicNew::class.java.fqname)) {
+			val dynamicNewClass: AstClass = program[ProgramReflection.DynamicNew::class.java.fqname]
+			val dynamicNewMethod: AstMethod? = dynamicNewClass.getMethodWithoutOverrides(ProgramReflection.DynamicNew::dynamicNew.name)
 
 			if (dynamicNewMethod != null) {
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
@@ -414,7 +414,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val sI: Int = methodIndex * CASES_PER_SWITCH
 
 					val newMethod: AstMethod =
-						dynamicNewInvokeClass.createMethod(dynamicNewMethod.name + mI, dynamicNewMethod.methodType, true) {
+						dynamicNewClass.createMethod(dynamicNewMethod.name + mI, dynamicNewMethod.methodType, true) {
 							val (classId, methodId, args) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < classes.size) currentIndex + CASES_PER_SWITCH else classes.size
@@ -597,9 +597,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			}
 
 			// ProgramReflectionClass.dynamicGet
-			if (program.contains(ProgramReflection.DynamicGetSet::class.java.fqname)) {
-				val dynamicGetSetClass: AstClass = program[ProgramReflection.DynamicGetSet::class.java.fqname]
-				val dynamicGetMethod: AstMethod? = dynamicGetSetClass.getMethodWithoutOverrides(ProgramReflection.DynamicGetSet::dynamicGet.name)
+			if (program.contains(ProgramReflection.DynamicGet::class.java.fqname)) {
+				val dynamicGetClass: AstClass = program[ProgramReflection.DynamicGet::class.java.fqname]
+				val dynamicGetMethod: AstMethod? = dynamicGetClass.getMethodWithoutOverrides(ProgramReflection.DynamicGet::dynamicGet.name)
 
 				if (dynamicGetMethod != null) {
 					val additionalMethods: MutableList<AstMethod> = mutableListOf()
@@ -610,7 +610,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val mI: Int = methodIndex
 						val sI: Int = methodIndex * CASES_PER_SWITCH
 
-						val newMethod: AstMethod = dynamicGetSetClass.createMethod(dynamicGetMethod.name + mI, dynamicGetMethod.methodType, true) {
+						val newMethod: AstMethod = dynamicGetClass.createMethod(dynamicGetMethod.name + mI, dynamicGetMethod.methodType, true) {
 							val (classId, fieldId, objParam) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < fields.size) currentIndex + CASES_PER_SWITCH else fields.size
@@ -657,9 +657,9 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 
 			// ProgramReflectionClass.dynamicSet
-			if (program.contains(ProgramReflection.DynamicGetSet::class.java.fqname)) {
-				val dynamicGetSetClass: AstClass = program[ProgramReflection.DynamicGetSet::class.java.fqname]
-				val dynamicSetMethod: AstMethod? = dynamicGetSetClass.getMethodWithoutOverrides(ProgramReflection.DynamicGetSet::dynamicSet.name)
+			if (program.contains(ProgramReflection.DynamicSet::class.java.fqname)) {
+				val dynamicSetClass: AstClass = program[ProgramReflection.DynamicSet::class.java.fqname]
+				val dynamicSetMethod: AstMethod? = dynamicSetClass.getMethodWithoutOverrides(ProgramReflection.DynamicSet::dynamicSet.name)
 
 				if (dynamicSetMethod != null) {
 					val additionalMethods: MutableList<AstMethod> = mutableListOf()
@@ -670,7 +670,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val mI: Int = methodIndex
 						val sI: Int = methodIndex * CASES_PER_SWITCH
 
-						val newMethod: AstMethod = dynamicGetSetClass.createMethod(dynamicSetMethod.name + mI, dynamicSetMethod.methodType, true) {
+						val newMethod: AstMethod = dynamicSetClass.createMethod(dynamicSetMethod.name + mI, dynamicSetMethod.methodType, true) {
 							val (classIdParam, fieldIdParam, objParam, valueParam) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < fields.size) currentIndex + CASES_PER_SWITCH else fields.size

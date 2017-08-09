@@ -145,38 +145,42 @@ public class ProgramReflection {
 
 	// Constructor
 	static public Object dynamicNew(int classId, int constructorId, Object[] params) {
-		return DynamicNewInvoke.dynamicNew(classId, constructorId, params);
+		return DynamicNew.dynamicNew(classId, constructorId, params);
 	}
 
 	// Method
 	static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
-		return DynamicNewInvoke.dynamicInvoke(classId, methodId, object, params);
+		return DynamicInvoke.dynamicInvoke(classId, methodId, object, params);
 	}
 
 	// Field
 	static public Object dynamicGet(int classId, int fieldId, Object object) {
-		return DynamicGetSet.dynamicGet(classId, fieldId, object);
+		return DynamicGet.dynamicGet(classId, fieldId, object);
 	}
 
 	static public void dynamicSet(int classId, int fieldId, Object object, Object value) {
-		DynamicGetSet.dynamicSet(classId, fieldId, object, value);
+		DynamicSet.dynamicSet(classId, fieldId, object, value);
 	}
 
-	public static class DynamicNewInvoke {
+	public static class DynamicNew {
 		static public Object dynamicNew(int classId, int constructorId, Object[] params) {
 			return null;
 		}
+	}
 
+	public static class DynamicInvoke {
 		static public Object dynamicInvoke(int classId, int methodId, Object object, Object[] params) {
 			return null;
 		}
 	}
 
-	public static class DynamicGetSet {
+	public static class DynamicGet {
 		static public Object dynamicGet(int classId, int fieldId, Object object) {
 			return null;
 		}
+	}
 
+	public static class DynamicSet {
 		static public void dynamicSet(int classId, int fieldId, Object object, Object value) {
 		}
 	}
