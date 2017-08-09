@@ -864,6 +864,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	//	}
 	//}
 
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		if(method.modifiers.isSynchronized) {
+			line("SynchronizedMethodLocker __locker(" + getMonitorLockedObjectExpr(method).genExpr() + ");")
+		}
+		line(super.genBody2WithFeatures(method, body))
+	}
+
 	override fun N_i2b(str: String) = "((int8_t)($str))"
 	override fun N_i2c(str: String) = "((uint16_t)($str))"
 	override fun N_i2s(str: String) = "((int16_t)($str))"
@@ -1127,6 +1134,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 		return "(N::CC_CHECK_GENERIC<${getTypeTargetName(to, ref = true)}>($e))"
 		//return e
+	}
+
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
+		line("N::monitorEnter(" + stm.expr.genExpr() + ");")
+	}
+
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
+		line("N::monitorExit(" + stm.expr.genExpr() + ");")
 	}
 
 

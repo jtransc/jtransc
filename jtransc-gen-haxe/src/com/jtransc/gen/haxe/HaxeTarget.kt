@@ -912,6 +912,25 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
 	}
+/*
+	// Not working: Compile Error: Cannot access super inside a local function
+	// Since MONITOR_ENTER/EXIT is not implemented on haxe, this is disabled
+	// @TODO check this when implementing MONITOR_ENTER/EXIT
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		if(method.modifiers.isSynchronized) {
+			if(method.methodType.retVoid)
+				line("N.tryFinallyVoid(function(){")
+			else line("return N.tryFinallyDynamic(function(){")
+			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
+		}
+		line(super.genBody2WithFeatures(method, body))
+		if(method.modifiers.isSynchronized) {
+			line("}, function() {")
+			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
+			line("});")
+		}
+	}
+*/
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

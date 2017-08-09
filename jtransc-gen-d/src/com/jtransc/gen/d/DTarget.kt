@@ -355,4 +355,17 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "checkCast!(${to.targetNameRef})($e)"
 	}
+
+	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		if(method.modifiers.isSynchronized) {
+			line("try{")
+			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
+		}
+		line(super.genBody2WithFeatures(method, body))
+		if(method.modifiers.isSynchronized) {
+			line("}finally{")
+			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
+			line("}")
+		}
+	}
 }

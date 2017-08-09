@@ -3,7 +3,7 @@ package com.jtransc.io;
 import java.io.*;
 
 public class JTranscIoTools {
-	static public byte[] readStreamFully(InputStream ios) {
+	static public synchronized byte[] readStreamFully(InputStream ios) {
 		int length = 0;
 		try {
 			length = ios.available();
@@ -22,7 +22,7 @@ public class JTranscIoTools {
 		return null;
 	}
 
-	static public byte[] readFile(File file) throws IOException {
+	static public synchronized byte[] readFile(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		try {
 			return readStreamFully(fis);
@@ -31,7 +31,7 @@ public class JTranscIoTools {
 		}
 	}
 
-	static public void writeFile(File file, byte[] data) throws IOException {
+	static public synchronized void writeFile(File file, byte[] data) throws IOException {
 		FileOutputStream fos = new FileOutputStream(file);
 		try {
 			fos.write(data);
@@ -66,7 +66,7 @@ public class JTranscIoTools {
 		}
 	}
 
-	public static long skipByReading(InputStream in, long byteCount) throws IOException {
+	public static synchronized long skipByReading(InputStream in, long byteCount) throws IOException {
 		byte[] buffer = new byte[4096];
 		long skipped = 0;
 		while (skipped < byteCount) {
@@ -79,7 +79,7 @@ public class JTranscIoTools {
 		return skipped;
 	}
 
-	public static void readFully(InputStream in, byte[] out, int offset, int length) throws IOException {
+	public static synchronized void readFully(InputStream in, byte[] out, int offset, int length) throws IOException {
 		int left = length;
 		while (left > 0) {
 			int readed = in.read(out, offset, left);

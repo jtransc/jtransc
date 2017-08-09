@@ -14,7 +14,8 @@
 //#include <clocale>
 #include <csignal>
 //#include <chrono>
-//#include <thread>
+#include <thread>
+#include <mutex>
 #include "jni.h"
 
 {% for include in CPP_INCLUDES %}
@@ -350,6 +351,22 @@ struct N { public:
 	static JAVA_OBJECT newLongArray();
 	static JAVA_OBJECT newFloatArray();
 	static JAVA_OBJECT newDoubleArray();
+
+	static void monitorEnter(JAVA_OBJECT obj);
+	static void monitorExit(JAVA_OBJECT obj);
+};
+
+/* Used for synchronized methods.*/
+class SynchronizedMethodLocker{
+    JAVA_OBJECT obj;
+public:
+	SynchronizedMethodLocker(JAVA_OBJECT obj){
+	    this->obj=obj;
+		N::monitorEnter(obj);
+	}
+	~SynchronizedMethodLocker(){
+		N::monitorExit(this->obj);
+	}
 };
 
 // Strings
@@ -1102,6 +1119,14 @@ int64_t N::nanoTime() {
 	auto time = duration_cast<nanoseconds>( high_resolution_clock::now().time_since_epoch() );
 	return (int64_t)time.count();
 };
+
+void N::monitorEnter(JAVA_OBJECT obj){
+	obj->mtx.lock();
+}
+
+void N::monitorExit(JAVA_OBJECT obj){
+	obj->mtx.unlock();
+}
 
 void SIGSEGV_handler(int signal) {
 	std::wcout << L"invalid memory access (segmentation fault)\n";
