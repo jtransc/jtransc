@@ -223,13 +223,17 @@ lime rebuild tvos
 
 #### Installing C++ suitable compiler
 __WINDOWS__
-- Install [mingw-w64](https://sourceforge.net/projects/mingw-w64/) v7.1.0 -> x68_64-posix-seh Revision 0
-- Add "path/to/mingw64" to `PATH` environment variable
+- Install [mingw](http://www.mingw.org/)
+- Add "path/to/mingw/bin" to `PATH` environment variable strongly on first line
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
+
+Workaround for big projects: haxe 3.4.2 can failed with out of memory. You can try replace haxe files
+ [from develop](http://hxbuilds.s3-website-us-east-1.amazonaws.com/builds/haxe/windows/),
+ but this dangerous way, and get only stable, see history on github.
+ My current choose: 2017-03-23 05:39:01 >> 4876859 >> haxe_2017-03-23_development_ada466c.tar.gz
 
 __WINDOWS 64__
 
-For big project you may problem with build 32bit via hxcpp with lime
 - go to hxcpp/3.4.64 folder in console `neko run.n Build.xml -Dwindows -DHXCPP_M64 -Dstatic_link ./project/`
 - Remove stable lime `haxelib remove lime`
 - Install lime from GitHub `git clone --recursive https://github.com/openfl/lime -b master`
