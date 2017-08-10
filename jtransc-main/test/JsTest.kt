@@ -75,14 +75,14 @@ class JsTest : _Base() {
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testNanoHelloWorldShouldReferenceGetMethods() {
+	@Test fun testNanoHelloWorldShouldNotReferenceGetMethodsAndBeSmallEnough() {
 		val result = _action(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true), run = false)
 		val generator = result.generator as JsGenerator
 		val outputFile = generator.jsOutputFile
 		val output = outputFile.readString()
 		Assert.assertEquals(false, output.contains("getMethod"))
 		println("OutputSize: ${outputFile.size}")
-		Assert.assertEquals(true, outputFile.size < 220 * 1024) // Size should be < 220 KB
+		Assert.assertEquals(true, outputFile.size < 222 * 1024) // Size should be < 222 KB
 	}
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))

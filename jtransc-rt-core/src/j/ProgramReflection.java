@@ -105,7 +105,49 @@ public class ProgramReflection {
 	}
 
 	public static class AllClasses {
+		public ClassInfo[] test;
 		static public ClassInfo[] getAllClasses() {
+			ClassInfo[][] classInfoParts = new ClassInfo[6][];
+			classInfoParts[0] = getAllClasses3000();
+			classInfoParts[1] = getAllClasses6000();
+			classInfoParts[2] = getAllClasses9000();
+			classInfoParts[3] = getAllClasses12000();
+			classInfoParts[4] = getAllClasses15000();
+			classInfoParts[5] = getAllClassesMax();
+			ClassInfo[] classInfo = new ClassInfo[getAllClassesCount()];
+			for (ClassInfo[] classInfoPart : classInfoParts) {
+				for (ClassInfo aClassInfo : classInfoPart) {
+					classInfo[aClassInfo.id] = aClassInfo;
+				}
+			}
+			return classInfo;
+		}
+
+		static public int getAllClassesCount() {
+			return 0;
+		}
+
+		static public ClassInfo[] getAllClasses3000() {
+			return new ClassInfo[0];
+		}
+
+		static public ClassInfo[] getAllClasses6000() {
+			return new ClassInfo[0];
+		}
+
+		static public ClassInfo[] getAllClasses9000() {
+			return new ClassInfo[0];
+		}
+
+		static public ClassInfo[] getAllClasses12000() {
+			return new ClassInfo[0];
+		}
+
+		static public ClassInfo[] getAllClasses15000() {
+			return new ClassInfo[0];
+		}
+
+		static public ClassInfo[] getAllClassesMax() {
 			return new ClassInfo[0];
 		}
 	}

@@ -297,35 +297,46 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 			RETURN(NULL)
 		}
 
-		val getAllClassesMethod: AstMethod? =
-			if (program.contains(ProgramReflection.AllClasses::class.java.fqname))
-				program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses.name)
-			else
-				ProgramReflectionClass.getMethodWithoutOverrides(ProgramReflection::getAllClasses.name)
+		val getAllClassesCountMethod: AstMethod? = program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClassesCount.name)
 
-		getAllClassesMethod?.replaceBodyOptBuild {
-			val out = AstLocal(0, "out", ARRAY(CLASS_INFO))
-
-			SET(out, ARRAY(CLASS_INFO).newArray(program.lastClassId.lit))
-
-			for (oldClass in visibleClasses.sortedBy { it.classId }) {
-				val classId = oldClass.classId
-				val directInterfaces = oldClass.directInterfaces
-				val relatedTypes = oldClass.getAllRelatedTypesIdsWithout0AtEnd()
-				//println("CLASS: ${oldClass.fqname}")
-				SET_ARRAY(out, classId.lit, CLASS_INFO_CREATE(
-					classId.lit,
-					if (genInternalClassNames) AstExpr.LITERAL_REFNAME(oldClass.ref) else NULL,
-					oldClass.fqname.lit,
-					oldClass.modifiers.acc.lit,
-					(oldClass.parentClass?.classId ?: -1).lit,
-					if (directInterfaces.isNotEmpty()) AstExpr.INTARRAY_LITERAL(directInterfaces.map { it.classId }) else null.lit,
-					if (relatedTypes.isNotEmpty()) AstExpr.INTARRAY_LITERAL(relatedTypes) else null.lit
-				))
-			}
-			RETURN(out.local)
+		getAllClassesCountMethod?.replaceBodyOptBuild {
+			RETURN(program.lastClassId.lit)
 		}
 
+		val getAllClassesPartMethods: List<AstMethod?> = listOf(
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses3000.name),
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses6000.name),
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses9000.name),
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses12000.name),
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClasses15000.name),
+			program[ProgramReflection.AllClasses::class.java.fqname].getMethodWithoutOverrides(ProgramReflection.AllClasses::getAllClassesMax.name)
+		)
+
+		for ((part, getAllClassesPartMethod) in getAllClassesPartMethods.withIndex()) {
+			getAllClassesPartMethod?.replaceBodyOptBuild {
+				val out = AstLocal(0, "out", ARRAY(CLASS_INFO))
+				var partVisibleClasses: List<AstClass> = visibleClasses.filter { it.classId in part*3000..((part+1)*3000-1) }.sortedBy { it.classId }
+				if (part == getAllClassesPartMethods.size - 1) {
+					partVisibleClasses =  visibleClasses.filter { it.classId >= 15000 }.sortedBy { it.classId }
+				}
+				SET(out, ARRAY(CLASS_INFO).newArray(partVisibleClasses.size))
+				for ((index, oldClass) in partVisibleClasses.withIndex()) {
+					val classId = oldClass.classId
+					val directInterfaces = oldClass.directInterfaces
+					val relatedTypes = oldClass.getAllRelatedTypesIdsWithout0AtEnd()
+					SET_ARRAY(out, index.lit, CLASS_INFO_CREATE(
+						classId.lit,
+						if (genInternalClassNames) AstExpr.LITERAL_REFNAME(oldClass.ref) else NULL,
+						oldClass.fqname.lit,
+						oldClass.modifiers.acc.lit,
+						(oldClass.parentClass?.classId ?: -1).lit,
+						if (directInterfaces.isNotEmpty()) AstExpr.INTARRAY_LITERAL(directInterfaces.map { it.classId }) else null.lit,
+						if (relatedTypes.isNotEmpty()) AstExpr.INTARRAY_LITERAL(relatedTypes) else null.lit
+					))
+				}
+				RETURN(out.local)
+			}
+		}
 
 		// @TODO: We should create a submethod per class to avoid calling ::SI (static initialization) for all the classes
 		if (program.contains(ProgramReflection.DynamicInvoke::class.java.fqname)) {
