@@ -130,6 +130,7 @@ class JsTest : _Base() {
 		17
 		-333
 		Services:
+		testservice.TestServiceImpl1
 		TestServiceImpl1.test:ss
 		/Services:
 		2

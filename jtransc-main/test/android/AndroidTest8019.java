@@ -2,6 +2,8 @@
 
 package android;
 
+import javatest.JacocoFilters;
+
 import java.lang.reflect.*;
 import java.io.IOException;
 import java.util.Collections;
@@ -400,7 +402,7 @@ public class AndroidTest8019 {
 		Class niuClass = NoisyInitUser.class;
 		Method[] methods;
 
-		methods = niuClass.getDeclaredMethods();
+		methods = JacocoFilters.filter(niuClass.getDeclaredMethods());
 		System.out.println("got methods");
         /* neither NoisyInit nor NoisyInitUser should be initialized yet */
 		NoisyInitUser niu = new NoisyInitUser();

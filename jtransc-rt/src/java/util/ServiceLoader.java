@@ -16,8 +16,6 @@
  */
 package java.util;
 
-import java.net.URL;
-
 @SuppressWarnings("unchecked")
 public final class ServiceLoader<S> implements Iterable<S> {
 	private final Class<S> service;
@@ -26,7 +24,7 @@ public final class ServiceLoader<S> implements Iterable<S> {
 	private ServiceLoader(Class<S> service) {
 		Objects.requireNonNull(service);
 		this.service = service;
-		this.list = (List<S>)Arrays.asList(getInstances(service.getName()));
+		this.list = (List<S>) Arrays.asList(getInstances(service.getName()));
 		reload();
 	}
 

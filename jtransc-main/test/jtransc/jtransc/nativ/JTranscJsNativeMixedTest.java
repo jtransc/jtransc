@@ -91,6 +91,7 @@ public class JTranscJsNativeMixedTest {
 		ServiceLoader<ITestService> load = ServiceLoader.load(ITestService.class);
 		System.out.println("Services:");
 		for (ITestService testService : load) {
+			System.out.println(testService.getClass().getName());
 			System.out.println(testService.test());
 		}
 		System.out.println("/Services:");

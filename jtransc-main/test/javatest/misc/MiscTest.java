@@ -8,6 +8,7 @@ import com.jtransc.ds.FastIntMap;
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.simd.Float32x4;
 import com.jtransc.simd.MutableFloat32x4;
+import javatest.JacocoFilters;
 import javatest.lang.BasicTypesTest;
 import jtransc.jtransc.FastMemoryTest;
 import jtransc.rt.test.JTranscReflectionTest;
@@ -899,9 +900,11 @@ public class MiscTest {
 
 		new GenericTest().map = null;
 
-		System.out.println("FIELDS COUNT: " + GenericTest.class.getDeclaredFields().length);
+		Field[] declaredFields = JacocoFilters.filter(GenericTest.class.getDeclaredFields());
 
-		for (Field f : GenericTest.class.getDeclaredFields()) {
+		System.out.println("FIELDS COUNT: " + declaredFields.length);
+
+		for (Field f : declaredFields) {
 			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 			// java.lang.reflect.ParameterizedType
 			System.out.println("Field.null: " + (f == null));
@@ -918,7 +921,7 @@ public class MiscTest {
 			}
 		}
 
-		for (Field f : GenericTest2.class.getDeclaredFields()) {
+		for (Field f : JacocoFilters.filter(GenericTest2.class.getDeclaredFields())) {
 			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 			// java.lang.reflect.ParameterizedType
 			System.out.println("Field.null: " + (f == null));
@@ -935,7 +938,7 @@ public class MiscTest {
 			}
 		}
 
-		for (Method m : GenericTest.class.getDeclaredMethods()) {
+		for (Method m : JacocoFilters.filter(GenericTest.class.getDeclaredMethods())) {
 			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 			// java.lang.reflect.ParameterizedType
 			System.out.println("Method: " + m.toString());
@@ -954,7 +957,7 @@ public class MiscTest {
 			}
 		}
 
-		for (Method m : GenericTest2.class.getDeclaredMethods()) {
+		for (Method m : JacocoFilters.filter(GenericTest2.class.getDeclaredMethods())) {
 			// sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 			// java.lang.reflect.ParameterizedType
 			System.out.println("Method: " + m.toString());

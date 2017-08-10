@@ -1,6 +1,7 @@
 package jtransc.rt.test;
 
 import com.jtransc.annotation.JTranscKeep;
+import javatest.JacocoFilters;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -62,7 +63,8 @@ public class JTranscCloneTest {
 		public Object ref;
 
 		public Object clone() throws CloneNotSupportedException {
-			for (Field field : getClass().getDeclaredFields()) {
+			System.out.println("MyClass.clone():");
+			for (Field field : JacocoFilters.filter(getClass().getDeclaredFields())) {
 				//field.getDeclaringClass().isPrimitive()
 				System.out.println(field.getName());
 			}

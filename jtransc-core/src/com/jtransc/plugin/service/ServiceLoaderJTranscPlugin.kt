@@ -43,10 +43,10 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 				val isForTarget = targetName.matches(targets.toList())
 				if (isForTarget) {
 					if (serviceImpl !in classesToSkip) {
-						servicesToImpls[serviceName] = servicesToImpls[serviceName]!! + serviceImpl
+						servicesToImpls[serviceName] = (servicesToImpls[serviceName]!! + serviceImpl).distinct()
 						log.info("Detected service: $serviceName with implementations $serviceImpl for targets $targets")
 					} else {
-						log.info("Detected service NOT included because in skip list ${classesToSkip}: $serviceName with implementations $serviceImpl for targets $targets")
+						log.info("Detected service NOT included because in skip list $classesToSkip: $serviceName with implementations $serviceImpl for targets $targets")
 					}
 					//println("Detected service: $serviceName with implementations $serviceImpl for targets $targets")
 				} else {

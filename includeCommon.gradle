@@ -3,6 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
+apply plugin: 'jacoco'
 
 def props = rootProject.extensions.getExtraProperties()
 
@@ -48,3 +49,40 @@ bintray {
 		vcsUrl = 'https://github.com/jtransc/jtransc.git'
 	}
 }
+
+jacocoTestReport {
+	//excludes: ["com/jtransc/integrationtests/**" + "/" + "*"]
+	//afterEvaluate {
+	//	classDirectories = files(classDirectories.files.collect {
+	//		println("jacocoTestReport.afterEvaluate.classDirectories: " + it)
+	//		fileTree(dir: it,
+	//			// @TODO: Move all integration tests to a single package to simplify this
+	//			exclude: [
+	//				'android/*',
+	//				'as3/*',
+	//				'big/*',
+	//				'issues/*',
+	//				'javatest/*',
+	//				'big/*',
+	//				'jtransc/*',
+	//				'testservice/*',
+	//				'threading/*',
+	//				'java/*',
+	//				'javax/*',
+	//			])
+	//	})
+	//
+	//	for (file in classDirectories.files) {
+	//		println(file)
+	//	}
+	//}
+
+	reports {
+		xml.enabled true
+		html.enabled false
+		csv.enabled false
+	}
+}
+
+check.dependsOn jacocoTestReport
+
