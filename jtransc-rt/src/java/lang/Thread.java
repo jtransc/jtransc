@@ -41,6 +41,7 @@ public class Thread implements Runnable {
 	public final static int MAX_PRIORITY = 10;
 
 	static private Thread _currentThread;
+	private static int _threadNum = 0;
 
 	@JTranscMethodBody(target = "d", value = {
 		"if (_dCurrentThread is null) {",
@@ -53,8 +54,14 @@ public class Thread implements Runnable {
 	//})
 
 	public static Thread currentThread() {
+		if (JTranscThreading.impl != null) { // due to static init issue
+			Thread thread = JTranscThreading.impl.getCurrent();
+			if (thread != null) return thread;
+		}
+
 		if (_currentThread == null) {
 			_currentThread = new Thread();
+			_currentThread.setName("main"); // Most possible, it will represent the main stream
 		}
 		return _currentThread;
 	}
@@ -84,6 +91,7 @@ public class Thread implements Runnable {
 	}
 
 	public Thread() {
+		this(null, null, null, 1024);
 	}
 
 	private ThreadGroup group;
@@ -123,7 +131,7 @@ public class Thread implements Runnable {
 	public Thread(ThreadGroup group, Runnable target, String name, long stackSize) {
 		this.group = group;
 		this.target = target;
-		this.name = name;
+		this.name = name == null ? "thread-" + _threadNum++ : name;
 		this.stackSize = stackSize;
 		_init();
 	}
