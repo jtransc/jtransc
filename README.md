@@ -238,7 +238,9 @@ haxelib dev lime lime
 haxelib install format
 ```
 if use MSVC 2013 with not fully supported c99 standard, then replace in lib\openal all inline to __inline, and snprintf to _snprintf
-``lime rebuild windows -64``
+```
+lime rebuild windows -64
+```
 
 __MAC__
 - Install Xcode 8.3.3
