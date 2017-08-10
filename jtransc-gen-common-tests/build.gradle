@@ -1,0 +1,31 @@
+apply from: '../includeCommon.gradle'
+apply from: '../include.gradle'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+evaluationDependsOn(':jtransc-rt')
+
+dependencies {
+	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
+	compile "org.jetbrains.kotlin:kotlin-runtime:${project.ext.kotlin_version}"
+	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
+
+	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+
+	compile project(':jtransc-core')
+	compile project(":jtransc-rt-core-kotlin")
+	compile project(":jtransc-rt-extended-charsets")
+	compile project(':jtransc-utils')
+	compile "junit:junit:4.12"
+}
+
+idea {
+	module {
+		//COMPILE
+		scopes.PROVIDED.plus += [configurations.provided]
+	}
+}
+
+project(':jtransc-gen-common-tests').compileKotlin.dependsOn(project(':jtransc-rt').test)

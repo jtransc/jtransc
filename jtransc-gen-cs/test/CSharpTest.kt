@@ -3,6 +3,7 @@ import big.BigIOTest
 import big.BigTest
 import big.HelloWorldTest
 import com.jtransc.BuildBackend
+import com.jtransc.gen.common._Base
 import com.jtransc.gen.cs.CSharpTarget
 import issues.issue130.Issue130
 import jtransc.ProcessTest

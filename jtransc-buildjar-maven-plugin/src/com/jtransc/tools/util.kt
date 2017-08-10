@@ -5,7 +5,6 @@ import com.jtransc.ast.FqName
 import com.jtransc.ast.mangle
 import com.jtransc.error.noImpl
 
-
 class JavaIds(val parent: JavaIds? = null) {
 	companion object {
 		val SET = setOf(

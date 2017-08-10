@@ -2,6 +2,7 @@ import big.AsyncIOTest
 import big.BigIOTest
 import big.BigTest
 import com.jtransc.BuildBackend
+import com.jtransc.gen.common._Base
 import com.jtransc.gen.dart.DartTarget
 import issues.issue130.Issue130
 import jtransc.ProcessTest

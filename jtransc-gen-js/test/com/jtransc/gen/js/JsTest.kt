@@ -1,4 +1,4 @@
-/*
+package com.jtransc.gen.js/*
  * Copyright 2016 Carlos Ballesteros Velasco
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,7 @@
 
 import big.*
 import com.jtransc.BuildBackend
-import com.jtransc.gen.js.JsGenerator
-import com.jtransc.gen.js.JsTarget
+import com.jtransc.gen.common._Base
 import com.jtransc.plugin.service.ConfigServiceLoader
 import issues.Issue100Double
 import issues.Issue105

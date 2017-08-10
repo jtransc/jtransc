@@ -2,6 +2,7 @@ import as3.As3PureTest
 import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.as3.As3Target
+import com.jtransc.gen.common._Base
 import issues.issue130.Issue130
 import javatest.misc.BenchmarkTest
 import jtransc.bug.JTranscBug127

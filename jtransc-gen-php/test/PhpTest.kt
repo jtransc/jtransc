@@ -15,9 +15,9 @@
  */
 
 import big.BigTest
+import com.jtransc.gen.common._Base
 import com.jtransc.gen.php.PhpTarget
 import javatest.misc.ArrayListTest
-import javatest.misc.MiscTest
 import javatest.misc.TryFinallyCheck
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore

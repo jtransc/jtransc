@@ -1,3 +1,5 @@
+package com.jtransc.gen.common
+
 /*
  * Copyright 2016 Carlos Ballesteros Velasco
  *
@@ -14,6 +16,7 @@
  * limitations under the License.
  */
 
+import big.BigTest
 import com.jtransc.*
 import com.jtransc.ast.AstBuildSettings
 import com.jtransc.ast.AstTypes
@@ -21,7 +24,6 @@ import com.jtransc.ast.ConfigMinimizeNames
 import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
-import com.jtransc.gen.js.JsTarget
 import com.jtransc.injector.Injector
 import com.jtransc.log.log
 import com.jtransc.maven.MavenGradleLocalRepository
@@ -31,9 +33,11 @@ import com.jtransc.vfs.UnjailedLocalVfs
 import com.jtransc.vfs.parent
 import org.junit.Assert
 import java.io.File
+import java.net.JarURLConnection
+import java.net.URL
 
 open class _Base {
-	open val DEFAULT_TARGET: GenTargetDescriptor = JsTarget()
+	open val DEFAULT_TARGET: GenTargetDescriptor get() = TODO()
 
 	open val BACKEND = BuildBackend.ASM
 	//open val BACKEND = BuildBackend.ASM2
@@ -71,19 +75,6 @@ open class _Base {
 		, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion")
 		, MavenGradleLocalRepository.locateJars("org.jetbrains:annotations:13.0")
 	).flatMap { it }
-
-	val testClassesPaths = listOf(
-		// intellij
-		File("out/test/classes").absolutePath,
-		File("out/test/resources").absolutePath,
-		File("target/test-classes").absolutePath,
-		// gradle
-		File("build/classes/test").absolutePath,
-		File("build/resources/test").absolutePath,
-		// gradle >= 4
-		File("build/classes/java/test").absolutePath,
-		File("build/classes/kotlin/test").absolutePath
-	)
 
 	fun testClassNoLog(params: Params) {
 		println(params.clazz.name)
@@ -132,12 +123,63 @@ open class _Base {
 		return process.outerr;
 	}
 
+	fun getRootFromUrl(url: URL, numberOfPackages: Int): File {
+		val uri = url.toURI()
+		println("locateTestRootByClass.URI: $uri")
+		if (uri.toString().startsWith("jar:")) {
+			return File((url.openConnection() as JarURLConnection).jarFileURL.file)
+		} else {
+			val file = File(uri)
+			var out = file
+			for (n in 0 until numberOfPackages) out = out.parentFile
+			return out
+		}
+	}
+
+	fun locateTestRootByClass(clazz: Class<*>): File {
+		val canonicalName = clazz.canonicalName
+		val numberOfPackages = canonicalName.count { it == '.' || it == '/' } + 1
+		val bigTestPath = "${canonicalName.replace('.', '/')}.class"
+		//val path = ClassLoader.getSystemClassLoader().getResource(bigTestPath)
+		val url = this.javaClass.classLoader.getResource(bigTestPath)
+		return getRootFromUrl(url, numberOfPackages)
+	}
+
+	fun locateTestRootByResource(resourceName: String): File {
+		val numberOfPackages = resourceName.count { it == '/' } + 1
+		val url = this.javaClass.classLoader.getResource(resourceName)
+		return getRootFromUrl(url, numberOfPackages)
+	}
+
 	fun _action(params: Params, run: Boolean): JTranscBuild.Result {
 		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
+		val testRoot = locateTestRootByClass(BigTest::class.java)
+		val resourceRoot = locateTestRootByResource("filetoinclude.txt")
+
+		println("testRoot: $testRoot")
+		println("resourceRoot: $resourceRoot")
+
+		val rtAndCoreUnfiltered = listOf(
+			"jtransc-rt", "jtransc-rt-core",
+			"jtransc-rt-core-kotlin", "jtransc-rt-extended-charsets",
+			"jtransc-annotations"
+		).flatMap {
+			listOf(
+				testRoot.absolutePath.replace("jtransc-gen-common-tests", it),
+				resourceRoot.absolutePath.replace("jtransc-gen-common-tests", it)
+			)
+		}
+		val rtAndCoreFiltered = rtAndCoreUnfiltered.filter { File(it).exists() }
+
+		for (file in rtAndCoreUnfiltered) {
+			println("- RT: '$file': exists=${File(file).exists()}")
+		}
 		injector.mapInstances(
-			params.backend ?: BACKEND, ConfigClassPaths(testClassesPaths + kotlinPaths)
+			params.backend ?: BACKEND, ConfigClassPaths(
+				listOf(testRoot.absolutePath, resourceRoot.absolutePath) + kotlinPaths
+			)
 		)
 
 		injector.mapImpl<AstTypes, AstTypes>()
@@ -160,34 +202,9 @@ open class _Base {
 					debug = params.debug ?: DEBUG,
 					optimize = params.optimize ?: OPTIMIZE,
 					relooper = RELOOPER,
-					//relooper = false,
 					extra = params.extra ?: mapOf(),
 					analyzer = params.analyze ?: ANALYZER,
-					rtAndRtCore = listOf(
-						"jtransc-rt", "jtransc-rt-core",
-						"jtransc-rt-core-kotlin", "jtransc-rt-extended-charsets",
-						"jtransc-annotations"
-					).flatMap {
-						listOf(
-							// intellij
-							"$it/out/test/classes",
-							"$it/out/production/classes",
-							"$it/out/production/resources",
-							"$it/target/classes",
-							// gradle
-							"$it/build/classes/main",
-							"$it/build/resources/main",
-							// gradle >= 4
-							"$it/build/classes/java/main",
-							"$it/build/classes/kotlin/main",
-							"$it/build/classes/java/test",
-							"$it/build/classes/kotlin/test"
-						)
-					}.map {
-						projectRoot[it].realpathOS
-					}
-						.filter { File(it).exists() }
-					//.map { it.apply { println(it) } }
+					rtAndRtCore = rtAndCoreFiltered
 				)
 			)
 			if (run) build.buildAndRunCapturingOutput() else build.buildWithoutRunning()

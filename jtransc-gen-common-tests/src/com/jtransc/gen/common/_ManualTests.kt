@@ -1,3 +1,7 @@
+package com.jtransc.gen.common
+
+import com.jtransc.gen.common._Base
+
 class _ManualTests : _Base() {
 	//@Test fun test123() {
 	//	val classPaths = arrayListOf<String>()

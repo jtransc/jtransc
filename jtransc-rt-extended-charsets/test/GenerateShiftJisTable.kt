@@ -1,7 +1,9 @@
+import com.jtransc.charset.charsets.JTranscCharsetShiftJIS
 import com.jtransc.text.substr
 import com.jtransc.text.uescape
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ResourcesVfs
+import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
@@ -22,6 +24,12 @@ class GenerateShiftJisTable {
 		}
 		println(sjisList.uquote())
 		println(unicodeList.uquote())
+	}
+
+	@Test
+	fun name() {
+		val sjis = JTranscCharsetShiftJIS()
+		Assert.assertArrayEquals(byteArrayOf(-126, -96), sjis.encode("あ"))
 	}
 
 	private fun String.parseInt2(): Int {
