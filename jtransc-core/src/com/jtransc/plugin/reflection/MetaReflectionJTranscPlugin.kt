@@ -483,11 +483,28 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 		if (MemberInfo::class.java.fqname in program) {
 			val MemberInfoClass = program[MemberInfo::class.java.fqname]
 			val MemberInfo_create = MemberInfoClass.getMethodWithoutOverrides(MemberInfo::create.name)!!.ref
-			//val MemberInfo_createList = MemberInfoClass.getMethodWithoutOverrides(MemberInfo::createList.name)!!.ref
 
 			data class MemberInfoWithRef(val ref: Any, val mi: MemberInfo)
 
-			fun genMemberMethods(list: List<Pair<AstClass, List<MemberInfoWithRef>>>, classes: List<AstClass>, methodName: String): List<AstMethod> {
+			fun AstBuilder2.genMemberList(args: List<AstArgument>, list: List<Pair<AstClass, List<MemberInfoWithRef>>>, additionalMethods: List<AstMethod>) {
+				val (classIdArg) = args
+				var id: Int = additionalMethods.size
+
+				while (--id >= 0) {
+					val method: AstMethod = additionalMethods[id]
+					val (keyClass, members) = list[id * CASES_PER_SWITCH]
+					IF(AstExpr.BINOP(AstType.BOOL, classIdArg.expr, AstBinop.GE, keyClass.classId.lit)) {
+						val params = listOf(classIdArg.expr)
+						val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
+
+						RETURN(callExprUncasted.castTo(ARRAY(MemberInfoClass)))
+					}
+				}
+
+				RETURN(NULL)
+			}
+
+			fun genMemberMethods(list: List<Pair<AstClass, List<MemberInfoWithRef>>>, classes: List<AstClass>, methodName: String, generalClass: AstClass) {
 
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
 				var methodIndex: Int = 0
@@ -536,94 +553,55 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					additionalMethods.add(newMethod)
 					methodIndex++
 				}
-				return additionalMethods
-			}
 
-			fun AstBuilder2.genMemberList(args: List<AstArgument>, list: List<Pair<AstClass, List<MemberInfoWithRef>>>, additionalMethods: List<AstMethod>) {
-				val (classIdArg) = args
-				var id: Int = additionalMethods.size
-
-				while (--id >= 0) {
-					val method: AstMethod = additionalMethods[id]
-					val (keyClass, members) = list[id * CASES_PER_SWITCH]
-					IF(AstExpr.BINOP(AstType.BOOL, classIdArg.expr, AstBinop.GE, keyClass.classId.lit)) {
-						val params = listOf(classIdArg.expr)
-						val callExprUncasted = AstExpr.CALL_STATIC(method.ref, params)
-
-						RETURN(callExprUncasted.castTo(ARRAY(MemberInfoClass)))
-					}
+				generalClass.getMethodWithoutOverrides(methodName)!!.replaceBodyOptBuild {
+					genMemberList(it, list, additionalMethods)
 				}
-
-				RETURN(NULL)
 			}
 
 			// ProgramReflectionClass.getConstructors
 			if (program.contains(ProgramReflection.AllConstructors::class.java.fqname)) {
-				val allConstructorsClass: AstClass = program[ProgramReflection.AllConstructors::class.java.fqname]
-				val getConstructorsMethod: AstMethod? = allConstructorsClass.getMethodWithoutOverrides(ProgramReflection.AllConstructors::getConstructors.name)
-
-				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-					clazz to clazz.constructors.filter { it.mustReflect() }.map {
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map {
+					it to it.constructors.filter { it.mustReflect() }.map {
 						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
 				}.toList()
-
 				val allConstructorsClasses :List<AstClass> = listOf(
 					program[ProgramReflection.AllConstructorsFirst::class.java.fqname],
 					program[ProgramReflection.AllConstructorsMiddle::class.java.fqname],
 					program[ProgramReflection.AllConstructorsLast::class.java.fqname]
 				)
-
-				val additionalMethods = genMemberMethods(list, allConstructorsClasses, ProgramReflection.AllConstructors::getConstructors.name)
-				getConstructorsMethod!!.replaceBodyOptBuild {
-					genMemberList(it, list, additionalMethods)
-				}
+				genMemberMethods(list, allConstructorsClasses, ProgramReflection.AllConstructors::getConstructors.name, program[ProgramReflection.AllConstructors::class.java.fqname])
 			}
 
 			// ProgramReflectionClass.getMethods
 			if (program.contains(ProgramReflection.AllMethods::class.java.fqname)) {
-				val allMethodsClass: AstClass = program[ProgramReflection.AllMethods::class.java.fqname]
-				val getMethodsMethod: AstMethod? = allMethodsClass.getMethodWithoutOverrides(ProgramReflection.AllMethods::getMethods.name)
-
-				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-					clazz to clazz.methodsWithoutConstructors.filter { it.mustReflect() }.map {
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map {
+					it to it.methodsWithoutConstructors.filter { it.mustReflect() }.map {
 						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
 				}.toList()
-
 				val allMethodsClasses :List<AstClass> = listOf(
 					program[ProgramReflection.AllMethodsFirst::class.java.fqname],
 					program[ProgramReflection.AllMethodsMiddle::class.java.fqname],
 					program[ProgramReflection.AllMethodsLast::class.java.fqname]
 				)
-
-				val additionalMethods = genMemberMethods(list, allMethodsClasses, ProgramReflection.AllMethods::getMethods.name)
-				getMethodsMethod!!.replaceBodyOptBuild {
-					genMemberList(it, list, additionalMethods)
-				}
+				genMemberMethods(list, allMethodsClasses, ProgramReflection.AllMethods::getMethods.name, program[ProgramReflection.AllMethods::class.java.fqname])
 			}
 
 			// ProgramReflectionClass.getFields
 			if (program.contains(ProgramReflection.AllFields::class.java.fqname)) {
-				val allFieldsClass: AstClass = program[ProgramReflection.AllFields::class.java.fqname]
-				val getFieldsMethod: AstMethod? = allFieldsClass.getMethodWithoutOverrides(ProgramReflection.AllFields::getFields.name)
-
-				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-					clazz to clazz.fields.filter { it.mustReflect() }.map {
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map {
+					it to it.fields.filter { it.mustReflect() }.map {
 						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
 				}.toList()
-
 				val allFieldsClasses :List<AstClass> = listOf(
 					program[ProgramReflection.AllFieldsFirst::class.java.fqname],
 					program[ProgramReflection.AllFieldsMiddle::class.java.fqname],
 					program[ProgramReflection.AllFieldsLast::class.java.fqname]
 				)
-
-				val additionalMethods = genMemberMethods(list, allFieldsClasses, ProgramReflection.AllFields::getFields.name)
-				getFieldsMethod!!.replaceBodyOptBuild {
-					genMemberList(it, list, additionalMethods)
-				}
+				genMemberMethods(list, allFieldsClasses, ProgramReflection.AllFields::getFields.name, program[ProgramReflection.AllFields::class.java.fqname])
 			}
 
 			// ProgramReflectionClass.dynamicGet
