@@ -151,8 +151,10 @@ object BigTest {
 
 	private fun servicesTest() {
 		val load = ServiceLoader.load(testservice.ITestService::class.java)
-		println("Services:")
-		for (testService in load) {
+		val list = load.toList()
+		println("Services(" + list.size + "):")
+		for (testService in list) {
+			println(testService.javaClass.name)
 			println(testService.test())
 		}
 		println("/Services:")

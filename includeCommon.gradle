@@ -51,24 +51,31 @@ bintray {
 }
 
 jacocoTestReport {
-	//excludes: ["com/jtransc/integrationtests/**/*"]
-	afterEvaluate {
-		classDirectories = files(classDirectories.files.collect {
-			fileTree(dir: it,
-				// @TODO: Move all integration tests to a single package to simplify this
-				exclude: [
-					'android/*',
-					'as3/*',
-					'big/*',
-					'issues/*',
-					'javatest/*',
-					'big/*',
-					'jtransc/*',
-					'testservice/*',
-					'threading/*',
-				])
-		})
-	}
+	//excludes: ["com/jtransc/integrationtests/**" + "/" + "*"]
+	//afterEvaluate {
+	//	classDirectories = files(classDirectories.files.collect {
+	//		println("jacocoTestReport.afterEvaluate.classDirectories: " + it)
+	//		fileTree(dir: it,
+	//			// @TODO: Move all integration tests to a single package to simplify this
+	//			exclude: [
+	//				'android/*',
+	//				'as3/*',
+	//				'big/*',
+	//				'issues/*',
+	//				'javatest/*',
+	//				'big/*',
+	//				'jtransc/*',
+	//				'testservice/*',
+	//				'threading/*',
+	//				'java/*',
+	//				'javax/*',
+	//			])
+	//	})
+	//
+	//	for (file in classDirectories.files) {
+	//		println(file)
+	//	}
+	//}
 
 	reports {
 		xml.enabled true
@@ -78,3 +85,4 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+

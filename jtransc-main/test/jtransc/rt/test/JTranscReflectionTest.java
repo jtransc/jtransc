@@ -1,6 +1,7 @@
 package jtransc.rt.test;
 
 import com.jtransc.annotation.JTranscKeep;
+import javatest.JacocoFilters;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
@@ -88,8 +89,8 @@ public class JTranscReflectionTest {
 	private static void testReflectFields() throws Throwable {
 		System.out.println("testReflectFields:");
 
-		List<Field> declaredFields = Arrays.asList(Rc1.class.getDeclaredFields());
-		List<Field> fields = Arrays.asList(Rc1.class.getFields());
+		List<Field> declaredFields = Arrays.asList(JacocoFilters.filter(Rc1.class.getDeclaredFields()));
+		List<Field> fields = Arrays.asList(JacocoFilters.filter(Rc1.class.getFields()));
 
 		Comparator<Field> c = new Comparator<Field>() {
 			@Override
@@ -236,16 +237,16 @@ public class JTranscReflectionTest {
 	static private void dumpClass(Class<?> clazz) {
 		System.out.println("Dumping class..." + clazz);
 		dumpAnnotations("Class.Annotation", clazz.getDeclaredAnnotations());
-		for (Field field : clazz.getDeclaredFields()) {
+		for (Field field : JacocoFilters.filter(clazz.getDeclaredFields())) {
 			System.out.println("Field: " + field);
 			dumpAnnotations("Field.Annotation", field.getDeclaredAnnotations());
 		}
-		for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+		for (Constructor<?> constructor : JacocoFilters.filter(clazz.getDeclaredConstructors())) {
 			System.out.println("Constructor: " + constructor);
 			dumpAnnotations("Constructor.Annotation", constructor.getDeclaredAnnotations());
 			dumpAnnotations("Constructor.Annotation", constructor.getParameterAnnotations());
 		}
-		for (Method method : clazz.getDeclaredMethods()) {
+		for (Method method : JacocoFilters.filter(clazz.getDeclaredMethods())) {
 			System.out.println("Method: " + method);
 			dumpAnnotations("Method.Annotation", method.getDeclaredAnnotations());
 			dumpAnnotations("Method.Annotation", method.getParameterAnnotations());
