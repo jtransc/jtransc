@@ -14,6 +14,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
+import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -60,12 +61,20 @@ class CSharpTarget : GenTargetDescriptor() {
 class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 
+	val csharpCompiler = CSharpCompiler()
+
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
-	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	override val methodFeatures = if (csharpCompiler.isMonoWithGotoBug) {
+		setOf(SwitchFeature::class.java)
+	} else {
+		setOf(SwitchFeature::class.java, GotosFeature::class.java)
+	}
 	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val interfacesSupportStaticMembers: Boolean = false
 	override val floatHasFSuffix = true
+
+	override val GENERATE_LINE_NUMBERS = true
 
 	override val keywords = setOf(
 		"abstract", "alias", "align", "asm", "assert", "auto",
@@ -99,10 +108,13 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val fixencoding = false
 
-	val csharpCompiler = CSharpCompiler()
-
 	override fun genCompilerCommand(programFile: File, debug: Boolean, libs: List<String>): List<String> {
 		return csharpCompiler.genCommand(programFile, debug, libs, extraParams)
+	}
+
+	override fun genStmLine(stm: AstStm.LINE) = indent {
+		mark(stm)
+		if (GENERATE_LINE_NUMBERS) line("#line ${stm.line} ${stm.file.quote()}")
 	}
 
 	override fun run(redirect: Boolean): ProcessResult2 {
@@ -137,6 +149,8 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun quoteString(str: String) = str.dquote()
+
+
 
 	override fun genSingleFileClasses(output: SyncVfsFile): Indenter = Indenter {
 		val StringFqName = buildTemplateClass("java.lang.String".fqname)

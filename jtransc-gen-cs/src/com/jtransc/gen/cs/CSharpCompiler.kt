@@ -43,13 +43,20 @@ class CSharpCompiler(
 
 	data class Compiler(val path: String, val isMono: Boolean)
 
+	val isMonoWithGotoBug get() = !OS.isWindows
+
 	fun getCompiler(extraParams: Map<String?, String?>): Compiler {
 		val forceMono = "CSHARP_USE_MONO" in extraParams
 		val csharpCommand = extraParams["CSHARP_CMD"]
 		val csharpCommandWin = extraParams["CSHARP_CMD_WIN"] ?: csharpCommand
 		val csharpCommandUnix = extraParams["CSHARP_CMD_UNIX"] ?: csharpCommand
+		val actualCsharpCommand = if (OS.isWindows) csharpCommandWin else csharpCommandUnix
+
+		val hasCsc = processUtils.locateCommand("mono-csc") ?: processUtils.locateCommand("csc")
 
 		return when {
+			actualCsharpCommand != null -> Compiler(actualCsharpCommand, isMono = false)
+			!forceMono && (hasCsc != null) -> Compiler(hasCsc, isMono = false)
 			forceMono || !OS.isWindows -> Compiler(csharpCommandWin ?: MCS, isMono = true)
 			else -> Compiler(csharpCommandUnix ?: CSC, isMono = false)
 		}

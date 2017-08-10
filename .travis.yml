@@ -1,5 +1,5 @@
 language: java
-dist: precise
+dist: trusty
 node_js:
 - '4'
 jdk:
@@ -14,6 +14,9 @@ before_install:
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
 - sudo update-alternatives --config gcc
 - sudo update-alternatives --config g++
+- sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+- echo "deb http://download.mono-project.com/repo/ubuntu trusty main" | sudo tee /etc/apt/sources.list.d/mono-official.list
+- sudo apt-get update
 - mkdir $HOME/usr
 - export PATH="$HOME/usr/bin:$PATH"
 - wget https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.sh
@@ -21,7 +24,7 @@ before_install:
 - "./cmake-3.7.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license"
 install:
 - sudo apt-get -y update
-- sudo apt-get -y install mono-runtime mono-mcs
+- sudo apt-get -y install mono-runtime mono-mcs mono-devel
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
 - sudo sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
   add -'
@@ -59,6 +62,12 @@ before_script:
 - which node || true
 - node --version || true
 - dmd --version || true
+- mono --version || true
+- csc -version || true
+- mcs --version || true
+- mono --version || true
+- mono-csc --version || true
+- mono-mcs --version || true
 - "./gradlew --version"
 script:
 - jdk_switcher use oraclejdk8

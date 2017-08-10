@@ -32,20 +32,16 @@ import testservice.test.ServiceLoaderTest
 class CSharpTest : _Base() {
 	override val DEFAULT_TARGET = CSharpTarget()
 
-	@Ignore("Disabled until it works on travis")
 	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, target = CSharpTarget(), log = false, treeShaking = true, backend = BuildBackend.ASM2)
-	@Ignore("Disabled until it works on travis")
 	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
-	@Ignore("Disabled until it works on travis")
 	@Test fun testServiceLoaderTest() = testNativeClass("""
 		TestServiceImpl1.test:ss
 		TestServiceCS
 	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
 
-	@Ignore("Disabled until it works on travis")
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
 
 	@Ignore("Already included in BigTest")
@@ -55,7 +51,6 @@ class CSharpTest : _Base() {
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))
 
 	//@Test fun testMicroStaticInitTestAsm2() = testClass<StaticInitTest>(minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM2, treeShaking = true)
-	@Ignore("Disabled until it works on travis")
 	@Test fun testMicroStaticInitTestAsm1() = testClass(Params(clazz = StaticInitTest::class.java, minimize = false, target = CSharpTarget(), log = false, backend = BuildBackend.ASM, treeShaking = true))
 
 	@Ignore("Not working fine yet")
@@ -64,6 +59,5 @@ class CSharpTest : _Base() {
 	@Ignore("Not working fine yet")
 	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = false, log = false))
 
-	@Ignore("Disabled until it works on travis")
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
 }

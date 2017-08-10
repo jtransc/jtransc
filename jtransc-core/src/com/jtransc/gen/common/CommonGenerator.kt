@@ -1259,7 +1259,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun genExprLocal(e: AstExpr.LOCAL) = if (localVarPrefix.isEmpty()) e.local.targetName else localVarPrefix + e.local.targetName
 	fun genExprTypedLocal(e: AstExpr.TYPED_LOCAL) = genExprCast(genExprLocal(e.local), e.local.type, e.type)
 
-	fun genStmLine(stm: AstStm.LINE) = indent {
+	open fun genStmLine(stm: AstStm.LINE) = indent {
 		mark(stm)
 		if (GENERATE_LINE_NUMBERS) line("// ${stm.line}")
 	}
