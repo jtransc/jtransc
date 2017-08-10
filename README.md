@@ -228,6 +228,7 @@ __WINDOWS__
 - Install cmake [https://cmake.org/download/](https://cmake.org/download/)
 
 __WINDOWS 64__
+
 For big project you may problem with build 32bit via hxcpp with lime
 - go to hxcpp/3.4.64 folder in console `neko run.n Build.xml -Dwindows -DHXCPP_M64 -Dstatic_link ./project/`
 - Remove stable lime `haxelib remove lime`
@@ -235,9 +236,9 @@ For big project you may problem with build 32bit via hxcpp with lime
 ```
 haxelib dev lime lime
 haxelib install format
-if use MSVC 2013 with not fully supported c99 standard, then replace in lib\openal all inline to __inline, and snprintf to _snprintf
-lime rebuild windows -64
 ```
+if use MSVC 2013 with not fully supported c99 standard, then replace in lib\openal all inline to __inline, and snprintf to _snprintf
+``lime rebuild windows -64``
 
 __MAC__
 - Install Xcode 8.3.3
