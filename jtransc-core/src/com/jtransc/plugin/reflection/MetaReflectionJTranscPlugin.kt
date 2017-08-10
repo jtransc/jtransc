@@ -487,17 +487,18 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 			data class MemberInfoWithRef(val ref: Any, val mi: MemberInfo)
 
-			fun genMemberMethods(list: List<Pair<AstClass, List<MemberInfoWithRef>>>, clazz: AstClass, method: AstMethod): List<AstMethod> {
+			fun genMemberMethods(list: List<Pair<AstClass, List<MemberInfoWithRef>>>, classes: List<AstClass>, methodName: String): List<AstMethod> {
+
 				val additionalMethods: MutableList<AstMethod> = mutableListOf()
 				var methodIndex: Int = 0
 				while (methodIndex * CASES_PER_SWITCH < list.size) {
 					val mI: Int = methodIndex
 					val sI: Int = methodIndex * CASES_PER_SWITCH
-					val parentClass: AstClass = clazz
-					val parentMethod: AstMethod = method
+					val parentClass: AstClass = classes[methodIndex % classes.size]
+					val parentMethod: AstMethod? = parentClass.getMethodWithoutOverrides(methodName)
 
 					val newMethod: AstMethod =
-						parentClass.createMethod(parentMethod.name + mI, parentMethod.methodType, true) {
+						parentClass.createMethod(parentMethod!!.name + mI, parentMethod.methodType, true) {
 							val (classIdArg) = it
 							val out = AstLocal(0, "out", ARRAY(MemberInfoClass))
 
@@ -561,17 +562,21 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val allConstructorsClass: AstClass = program[ProgramReflection.AllConstructors::class.java.fqname]
 				val getConstructorsMethod: AstMethod? = allConstructorsClass.getMethodWithoutOverrides(ProgramReflection.AllConstructors::getConstructors.name)
 
-				if (getConstructorsMethod != null) {
-					val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-						clazz to clazz.constructors.filter { it.mustReflect() }.map {
-							MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
-						}
-					}.toList()
-
-					val additionalMethods = genMemberMethods(list, allConstructorsClass, getConstructorsMethod)
-					getConstructorsMethod.replaceBodyOptBuild {
-						genMemberList(it, list, additionalMethods)
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
+					clazz to clazz.constructors.filter { it.mustReflect() }.map {
+						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
+				}.toList()
+
+				val allConstructorsClasses :List<AstClass> = listOf(
+					program[ProgramReflection.AllConstructorsFirst::class.java.fqname],
+					program[ProgramReflection.AllConstructorsMiddle::class.java.fqname],
+					program[ProgramReflection.AllConstructorsLast::class.java.fqname]
+				)
+
+				val additionalMethods = genMemberMethods(list, allConstructorsClasses, ProgramReflection.AllConstructors::getConstructors.name)
+				getConstructorsMethod!!.replaceBodyOptBuild {
+					genMemberList(it, list, additionalMethods)
 				}
 			}
 
@@ -580,17 +585,21 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val allMethodsClass: AstClass = program[ProgramReflection.AllMethods::class.java.fqname]
 				val getMethodsMethod: AstMethod? = allMethodsClass.getMethodWithoutOverrides(ProgramReflection.AllMethods::getMethods.name)
 
-				if (getMethodsMethod != null) {
-					val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-						clazz to clazz.methodsWithoutConstructors.filter { it.mustReflect() }.map {
-							MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
-						}
-					}.toList()
-
-					val additionalMethods = genMemberMethods(list, allMethodsClass, getMethodsMethod)
-					getMethodsMethod.replaceBodyOptBuild {
-						genMemberList(it, list, additionalMethods)
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
+					clazz to clazz.methodsWithoutConstructors.filter { it.mustReflect() }.map {
+						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
+				}.toList()
+
+				val allMethodsClasses :List<AstClass> = listOf(
+					program[ProgramReflection.AllMethodsFirst::class.java.fqname],
+					program[ProgramReflection.AllMethodsMiddle::class.java.fqname],
+					program[ProgramReflection.AllMethodsLast::class.java.fqname]
+				)
+
+				val additionalMethods = genMemberMethods(list, allMethodsClasses, ProgramReflection.AllMethods::getMethods.name)
+				getMethodsMethod!!.replaceBodyOptBuild {
+					genMemberList(it, list, additionalMethods)
 				}
 			}
 
@@ -599,17 +608,21 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				val allFieldsClass: AstClass = program[ProgramReflection.AllFields::class.java.fqname]
 				val getFieldsMethod: AstMethod? = allFieldsClass.getMethodWithoutOverrides(ProgramReflection.AllFields::getFields.name)
 
-				if (getFieldsMethod != null) {
-					val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
-						clazz to clazz.fields.filter { it.mustReflect() }.map {
-							MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
-						}
-					}.toList()
-
-					val additionalMethods = genMemberMethods(list, allFieldsClass, getFieldsMethod)
-					getFieldsMethod.replaceBodyOptBuild {
-						genMemberList(it, list, additionalMethods)
+				val list: List<Pair<AstClass, List<MemberInfoWithRef>>> = visibleClasses.map { clazz ->
+					clazz to clazz.fields.filter { it.mustReflect() }.map {
+						MemberInfoWithRef(it.ref, MemberInfo(it.id, null, it.name, it.modifiers.acc, it.desc, it.genericSignature))
 					}
+				}.toList()
+
+				val allFieldsClasses :List<AstClass> = listOf(
+					program[ProgramReflection.AllFieldsFirst::class.java.fqname],
+					program[ProgramReflection.AllFieldsMiddle::class.java.fqname],
+					program[ProgramReflection.AllFieldsLast::class.java.fqname]
+				)
+
+				val additionalMethods = genMemberMethods(list, allFieldsClasses, ProgramReflection.AllFields::getFields.name)
+				getFieldsMethod!!.replaceBodyOptBuild {
+					genMemberList(it, list, additionalMethods)
 				}
 			}
 

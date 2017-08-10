@@ -159,6 +159,32 @@ public class ProgramReflection {
 
 	public static class AllConstructors {
 		static public MemberInfo[] getConstructors(int classId) {
+			MemberInfo[] ret = AllConstructorsFirst.getConstructors(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			ret = AllConstructorsMiddle.getConstructors(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			return AllConstructorsLast.getConstructors(classId);
+		}
+	}
+
+	public static class AllConstructorsFirst {
+		static public MemberInfo[] getConstructors(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllConstructorsMiddle {
+		static public MemberInfo[] getConstructors(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllConstructorsLast {
+		static public MemberInfo[] getConstructors(int classId) {
 			return new MemberInfo[0];
 		}
 	}
@@ -170,6 +196,32 @@ public class ProgramReflection {
 
 	public static class AllMethods {
 		static public MemberInfo[] getMethods(int classId) {
+			MemberInfo[] ret = AllMethodsFirst.getMethods(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			ret = AllMethodsMiddle.getMethods(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			return AllMethodsLast.getMethods(classId);
+		}
+	}
+
+	public static class AllMethodsFirst {
+		static public MemberInfo[] getMethods(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllMethodsMiddle {
+		static public MemberInfo[] getMethods(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllMethodsLast {
+		static public MemberInfo[] getMethods(int classId) {
 			return new MemberInfo[0];
 		}
 	}
@@ -180,6 +232,32 @@ public class ProgramReflection {
 	}
 
 	public static class AllFields {
+		static public MemberInfo[] getFields(int classId) {
+			MemberInfo[] ret = AllFieldsFirst.getFields(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			ret = AllFieldsMiddle.getFields(classId);
+			if (ret != null && ret.length > 0) {
+				return ret;
+			}
+			return AllFieldsLast.getFields(classId);
+		}
+	}
+
+	public static class AllFieldsFirst {
+		static public MemberInfo[] getFields(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllFieldsMiddle {
+		static public MemberInfo[] getFields(int classId) {
+			return new MemberInfo[0];
+		}
+	}
+
+	public static class AllFieldsLast {
 		static public MemberInfo[] getFields(int classId) {
 			return new MemberInfo[0];
 		}
