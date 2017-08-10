@@ -9,6 +9,7 @@ include (
 	'jtransc-buildjar-maven-plugin',
 	'jtransc-core',
 	'jtransc-debugger',
+	'jtransc-gen-common-tests',
 	'jtransc-gen-haxe',
 	'jtransc-gen-cpp',
 	'jtransc-gen-d',
