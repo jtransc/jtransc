@@ -4,6 +4,7 @@ import com.jtransc.text.captureStdout
 import com.jtransc.vfs.getResourceBytes
 import org.junit.Assert
 import org.junit.Test
+import java.io.File
 
 class MinitemplateTest {
 	@Test fun testDummy() {
@@ -61,6 +62,8 @@ class MinitemplateTest {
 		Assert.assertEquals("Carlos", Minitemplate("{{ name|capitalize }}")(mapOf("name" to "caRLos")))
 		Assert.assertEquals("Carlos", Minitemplate("{{ (name)|capitalize }}")(mapOf("name" to "caRLos")))
 		Assert.assertEquals("Carlos", Minitemplate("{{ 'caRLos'|capitalize }}")(null))
+		Assert.assertEquals(" Carlos ", Minitemplate("{{ name }}")(mapOf("name" to " Carlos ")))
+		Assert.assertEquals("Carlos", Minitemplate("{{ name|trim }}")(mapOf("name" to " Carlos ")))
 	}
 
 	@Test fun testArrayLiterals() {
@@ -105,9 +108,24 @@ class MinitemplateTest {
 
 	@Test fun testImageInfoFilter() {
 		val resourceBytes = this.javaClass.classLoader.getResourceBytes("jtransc-icon.png")
+		val tempFile = File.createTempFile("jtransc_image_info", "jtransc_image_info").apply {
+			writeBytes(resourceBytes)
+			deleteOnExit()
+		}
+
 		Assert.assertEquals("32,32,32",
 			Minitemplate("{% set image = resourceBytes|image_info %}{{ image.width }},{{ image.height }},{{ image.bitsPerPixel }}")(mapOf(
 				"resourceBytes" to resourceBytes
+			))
+		)
+		Assert.assertEquals("32,32,32",
+			Minitemplate("{% set image = resourcePath|image_info %}{{ image.width }},{{ image.height }},{{ image.bitsPerPixel }}")(mapOf(
+				"resourcePath" to tempFile.absolutePath
+			))
+		)
+		Assert.assertEquals("32,32,32",
+			Minitemplate("{% set image = resourcePath|image_info %}{{ image.width }},{{ image.height }},{{ image.bitsPerPixel }}")(mapOf(
+				"resourcePath" to tempFile
 			))
 		)
 	}
