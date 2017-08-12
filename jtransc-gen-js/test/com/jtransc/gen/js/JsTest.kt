@@ -32,6 +32,7 @@ import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import javatest.net.URLEncoderDecoderTest
 import javatest.utils.KotlinInheritanceTest
+import javatest.utils.OptionalTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
@@ -208,4 +209,7 @@ class JsTest : _Base() {
 	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Test fun testIssue219NoOptimized() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Covered in bigtest")
+	@Test fun testOptionalTest() = testClass(Params(clazz = OptionalTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }

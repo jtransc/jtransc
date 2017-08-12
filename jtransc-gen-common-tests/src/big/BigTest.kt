@@ -14,10 +14,7 @@ import javatest.misc.MiscTest
 import javatest.nio.ModifiedUtf8Test
 import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
-import javatest.utils.Base64Test
-import javatest.utils.CopyTest
-import javatest.utils.DateTest
-import javatest.utils.FillTest
+import javatest.utils.*
 import jtransc.WrappedTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
@@ -147,6 +144,8 @@ object BigTest {
 		Issue209.main(args)
 
 		ModifiedUtf8Test.main(args)
+
+		OptionalTest.main(args)
 	}
 
 	private fun servicesTest() {
