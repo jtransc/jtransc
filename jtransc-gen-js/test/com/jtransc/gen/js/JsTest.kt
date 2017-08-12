@@ -1,4 +1,6 @@
-package com.jtransc.gen.js/*
+package com.jtransc.gen.js
+
+/*
  * Copyright 2016 Carlos Ballesteros Velasco
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +20,7 @@ import big.*
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
 import com.jtransc.plugin.service.ConfigServiceLoader
-import issues.Issue100Double
-import issues.Issue105
-import issues.Issue135
-import issues.Issue219
+import issues.*
 import issues.issue130.Issue130
 import issues.issue146.Issue146
 import issues.issue158.Issue158
@@ -218,6 +217,9 @@ class JsTest : _Base() {
 	@Ignore("Covered in bigtest")
 	@Test fun testServerSocketTest() = testClass(Params(clazz = ServerSocketTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 
-  @Ignore("Covered in bigtest")
+	@Ignore("Covered in bigtest")
 	@Test fun testSimpleSoundTest() = testClass(Params(clazz = SimpleSoundTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Covered in bigtest") // libgdx
+	@Test fun testIssue246Test() = testClass(Params(clazz = Issue246::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }
