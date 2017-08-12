@@ -56,6 +56,7 @@ class As3Target : GenTargetDescriptor() {
 
 @Singleton
 class As3Generator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "AS3"
 	override val SINGLE_FILE: Boolean = false
 
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {

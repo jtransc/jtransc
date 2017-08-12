@@ -52,6 +52,7 @@ class DartTarget : GenTargetDescriptor() {
 
 @Singleton
 class DartGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "DART"
 	override val SINGLE_FILE: Boolean = true
 
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {

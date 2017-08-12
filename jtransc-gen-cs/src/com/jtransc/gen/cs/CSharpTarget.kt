@@ -58,6 +58,7 @@ class CSharpTarget : GenTargetDescriptor() {
 
 @Singleton
 class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "CSHARP"
 	override val SINGLE_FILE: Boolean = true
 
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
