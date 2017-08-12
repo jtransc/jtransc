@@ -185,6 +185,31 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	fun generateCppCtorMap() = Indenter {
+		line("typedef JAVA_OBJECT* (*ctor_func)(void);")
+		//line("const int32_t TYPE_TABLE::count = $lastClassId;")
+		line("static ctor_func CTOR_TABLE[$lastClassId] =", after2 = ";") {
+			val classesById = program.classes.map { it.classId to it }.toMap()
+
+			@Suppress("LoopToCallChain")
+			for (n in 0 until lastClassId) {
+				val clazz = classesById[n]
+				if (clazz != null && !clazz.mustGenerate) {
+					println("$n:" + clazz)
+				}
+				if (clazz != null && clazz.mustGenerate && !clazz.isAbstract && !clazz.isInterface) {
+					line("[](){return (JAVA_OBJECT*)(new ${clazz.cppName}());},")
+				} else if (clazz != null && clazz.mustGenerate && (clazz.isAbstract || clazz.isInterface)) {
+					line("[](){ std::cerr << \"Class id $n refers to abstract class or interface!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+				} else if (n == 1) {
+					line("[](){ std::cerr << \"Class id $n refers to array base class!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+				} else {
+					line("[](){ std::cerr << \"Class id $n referred to a null clazz at compile time!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+				}
+			}
+		}
+	}
+
 	val ordereredClasses = Unit.let {
 		val childrenMap = hashMapOf<AstClass, ArrayList<AstClass>>()
 		for (current in program.classes) {
@@ -350,6 +375,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 
 		val CLASSES_IMPL = Indenter { line(impls) }
+		val CPP_CTOR_MAP = Indenter { line(generateCppCtorMap()) }
 		val TYPE_TABLE_FOOTER = Indenter { line(generateTypeTableFooter()) }
 		val MAIN = Indenter { line(writeMain()) }
 
@@ -369,6 +395,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				"ARRAY_HEADERS_PRE" to ARRAY_HEADERS_PRE.toString(),
 				"ARRAY_HEADERS_POST" to ARRAY_HEADERS_POST.toString(),
 				"CLASSES_IMPL" to CLASSES_IMPL.toString(),
+				"CPP_CTOR_MAP" to CPP_CTOR_MAP.toString(),
 				"STRINGS" to STRINGS.toString(),
 				"TYPE_TABLE_FOOTER" to TYPE_TABLE_FOOTER.toString(),
 				"MAIN" to MAIN.toString()
@@ -410,10 +437,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
 			//	line("""printf("Exception: %p\n", (void*)s);""")
 			//}
-			line("catch (p_java_lang_Object s)") {
-				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
-				line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
-			}
+			//line("catch (p_java_lang_Object s)") {
+			//	val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
+			//	line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
+			//}
 			//line("catch (...)") {
 			//	line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
 			//}
@@ -657,27 +684,31 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 
 		line("typedef ${toNativeType(method.methodType.ret)} (JNICALL *func_ptr_t)(${standardJniArgumentString + nativeParameterString});")
-		line("static void* nativePointer = NULL;")
+		line("static void* nativePointer = nullptr;")
+
 		//{% CLASS ${method.containingClass.fqname} %}
-		line("func_ptr_t fptr = (func_ptr_t)N::jtvmResolveNative(N::resolveClass(L\"${method.containingClass.fqname}\"), \"${JniUtils.mangleShortJavaMethod(method)}\", \"${JniUtils.mangleLongJavaMethod(method)}\", &nativePointer);")
+		line("func_ptr_t fptr = (func_ptr_t)DYN::jtvmResolveNative(N::resolveClass(L\"${method.containingClass.fqname}\"), \"${JniUtils.mangleShortJavaMethod(method)}\", \"${JniUtils.mangleLongJavaMethod(method)}\", &nativePointer);")
+
+		fun genJavaToJniCast(arg: AstType): String {
+			if (arg is AstType.REF) {
+				return "(${referenceToNativeType(arg)})"
+			} else if (arg is AstType.ARRAY) {
+				return "(${arrayToNativeType(arg)})"
+			} else {
+				return "";
+			}
+		}
+
+		fun genJniToJavaCast(arg: AstType): String {
+			return "(${arg.targetNameRef})"
+		}
 
 		val sb2 = StringBuilder(30)
 		for (i in method.methodType.args.indices) {
 			val arg = method.methodType.args[i].type
-			if (arg is AstType.REF) {
-				sb2.append(", ((${referenceToNativeType(arg)})((SOBJ)")
-				sb2.append("p$i")
-				sb2.append(").get())")
-			} else if (arg is AstType.ARRAY) {
-				sb2.append(", ((${arrayToNativeType(arg)})((SOBJ)")
-				sb2.append("p$i")
-				sb2.append(").get())")
-			} else {
-				sb2.append(", p${i}")
-			}
-
+			sb2.append(", ${genJavaToJniCast(arg)}p${i}")
 		}
-		line("return fptr(N::getJniEnv(), NULL $sb2);")
+		line("return ${genJniToJavaCast(method.actualRetType)}fptr(N::getJniEnv(), NULL $sb2);")
 		//line("JNI: \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";")
 	}
 

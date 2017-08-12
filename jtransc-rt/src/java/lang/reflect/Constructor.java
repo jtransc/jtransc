@@ -46,10 +46,6 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 		return (Class<?>[]) methodType().args;
 	}
 
-	public int getParameterCount() {
-		return methodType().args.length;
-	}
-
 	public Type[] getGenericParameterTypes() {
 		return genericMethodType().args;
 	}
