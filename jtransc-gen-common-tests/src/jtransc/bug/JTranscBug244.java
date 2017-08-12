@@ -5,6 +5,7 @@ public class JTranscBug244 {
 	static public void main(String[] args) {
 		constTest();
 		stringFormatTest();
+		floatNaN2IntTest();
 	}
 
 	static private void constTest() {
@@ -30,4 +31,15 @@ public class JTranscBug244 {
 		System.out.println("String.format(\"NaN=%.2f\", Float.NaN): " + String.format("NaN=%.2f", Float.NaN));
 	}
 
+	static private void floatNaN2IntTest() {
+		float f1 = Float.POSITIVE_INFINITY;
+		float f2 = Float.NEGATIVE_INFINITY;
+		float f3 = Float.NaN;
+		int i1 = (int) f1;
+		int i2 = (int) f2;
+		int i3 = (int) f3;
+		System.out.println(i1);
+		System.out.println(i2);
+		System.out.println(i3);
+	}
 }
