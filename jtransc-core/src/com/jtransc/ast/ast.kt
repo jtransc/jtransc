@@ -35,6 +35,7 @@ import com.jtransc.lang.Extra
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.text.quote
+import com.jtransc.text.substr
 import com.jtransc.util.dependencySorter
 import com.jtransc.vfs.IUserData
 import com.jtransc.vfs.UserData
@@ -995,27 +996,41 @@ fun AstType.simplify(): AstType = when (this) {
 	else -> this
 }
 
-fun AstProgram.getLibsFor(target: TargetName): List<String> = this.classes
+fun ifdef(cond: String, defines: Set<String>): Boolean {
+	var invert = false
+	var define: String = cond.trim()
+	return if (define.isEmpty()) {
+		true
+	} else {
+		while (define.startsWith("!")) {
+			define = define.substr(1)
+			invert = !invert
+		}
+		(define in defines) xor invert
+	}
+}
+
+fun AstProgram.getLibsFor(target: TargetName, defines: Set<String> = setOf()): List<String> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddLibrariesList::value) }
-	.filter { target.matches(it.target) }
+	.filter { target.matches(it.target) && ifdef(it.cond, defines) }
 	.flatMap { it.value.toList() }
 	.distinct()
 
-fun AstProgram.getIncludesFor(target: TargetName): List<String> = this.classes
+fun AstProgram.getIncludesFor(target: TargetName, defines: Set<String> = setOf()): List<String> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddIncludesList::value) }
-	.filter { target.matches(it.target) }
+	.filter { target.matches(it.target) && ifdef(it.cond, defines) }
 	.flatMap { it.value.toList() }
 	.distinct()
 
-fun AstProgram.getDefinesFor(target: TargetName): List<String> = this.classes
+fun AstProgram.getDefinesFor(target: TargetName, defines: Set<String> = setOf()): List<String> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddDefinesList::value) }
-	.filter { target.matches(it.target) }
+	.filter { target.matches(it.target) && ifdef(it.cond, defines) }
 	.flatMap { it.value.toList() }
 	.distinct()
 
-fun AstProgram.getImportsFor(target: TargetName): List<String> = this.classes
+fun AstProgram.getImportsFor(target: TargetName, defines: Set<String> = setOf()): List<String> = this.classes
 	.flatMap { it.annotationsList.getTypedList(JTranscAddImportsList::value) }
-	.filter { target.matches(it.target) }
+	.filter { target.matches(it.target) && ifdef(it.cond, defines) }
 	.flatMap { it.value.toList() }
 	.distinct()
 
