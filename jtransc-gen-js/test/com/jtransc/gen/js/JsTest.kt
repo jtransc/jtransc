@@ -84,7 +84,7 @@ class JsTest : _Base() {
 		val output = outputFile.readString()
 		Assert.assertEquals(false, output.contains("getMethod"))
 		println("OutputSize: ${outputFile.size}")
-		Assert.assertEquals(true, outputFile.size < 222 * 1024) // Size should be < 222 KB
+		Assert.assertEquals(true, outputFile.size < 230 * 1024) // Size should be < 222 KB
 	}
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))
