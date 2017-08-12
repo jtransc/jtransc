@@ -15,13 +15,8 @@
  *  limitations under the License.
  */
 
-package java.nio.channels;
+package java.net;
 
-import java.io.Closeable;
-import java.io.IOException;
-
-public interface Channel extends Closeable {
-	boolean isOpen();
-
-	void close() throws IOException;
+public interface ProtocolFamily {
+	String name();
 }

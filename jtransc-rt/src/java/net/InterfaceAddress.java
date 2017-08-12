@@ -15,13 +15,18 @@
  *  limitations under the License.
  */
 
-package java.nio.channels;
+package java.net;
 
-import java.io.Closeable;
-import java.io.IOException;
+public class InterfaceAddress {
+	native public InetAddress getAddress();
 
-public interface Channel extends Closeable {
-	boolean isOpen();
+	native public InetAddress getBroadcast();
 
-	void close() throws IOException;
+	native public short getNetworkPrefixLength();
+
+	native public boolean equals(Object obj);
+
+	native public int hashCode();
+
+	native public String toString();
 }

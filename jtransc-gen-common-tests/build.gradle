@@ -29,4 +29,5 @@ idea {
 	}
 }
 
-//project(':jtransc-gen-common-tests').compileKotlin.dependsOn(project(':jtransc-rt').test)
+//project(':jtransc-gen-common-tests').build.dependsOn(project(':jtransc-rt').build)
+//project(':jtransc-gen-common-tests').test.dependsOn(project(':jtransc-rt').build)

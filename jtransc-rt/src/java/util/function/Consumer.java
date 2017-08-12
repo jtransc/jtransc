@@ -15,13 +15,16 @@
  *  limitations under the License.
  */
 
-package java.nio.channels;
+package java.util.function;
 
-import java.io.Closeable;
-import java.io.IOException;
+@FunctionalInterface
+public interface Consumer<T> {
+	void accept(T value);
 
-public interface Channel extends Closeable {
-	boolean isOpen();
-
-	void close() throws IOException;
+	default Consumer<T> andThen(Consumer<? super T> then) {
+		return (value) -> {
+			this.accept(value);
+			then.accept(value);
+		};
+	}
 }

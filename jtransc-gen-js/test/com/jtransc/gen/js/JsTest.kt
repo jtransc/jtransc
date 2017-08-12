@@ -30,8 +30,10 @@ import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
+import javatest.net.ServerSocketTest
 import javatest.net.URLEncoderDecoderTest
 import javatest.utils.KotlinInheritanceTest
+import javatest.utils.OptionalTest
 import javaxtest.sound.SimpleSoundTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
@@ -210,6 +212,12 @@ class JsTest : _Base() {
 
 	@Test fun testIssue219NoOptimized() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 
-	@Ignore("Already included in big tests")
+	@Ignore("Covered in bigtest")
+	@Test fun testOptionalTest() = testClass(Params(clazz = OptionalTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Covered in bigtest")
+	@Test fun testServerSocketTest() = testClass(Params(clazz = ServerSocketTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+  @Ignore("Covered in bigtest")
 	@Test fun testSimpleSoundTest() = testClass(Params(clazz = SimpleSoundTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }

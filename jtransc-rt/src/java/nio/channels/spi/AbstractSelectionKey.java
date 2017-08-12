@@ -15,13 +15,15 @@
  *  limitations under the License.
  */
 
-package java.nio.channels;
+package java.nio.channels.spi;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.nio.channels.SelectionKey;
 
-public interface Channel extends Closeable {
-	boolean isOpen();
+public abstract class AbstractSelectionKey extends SelectionKey {
+	protected AbstractSelectionKey() {
+	}
 
-	void close() throws IOException;
+	native public final boolean isValid();
+
+	native public final void cancel();
 }
