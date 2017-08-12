@@ -18,6 +18,11 @@ import javatest.nio.ModifiedUtf8Test
 import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
 import javatest.utils.*
+import javatest.utils.Base64Test
+import javatest.utils.CopyTest
+import javatest.utils.DateTest
+import javatest.utils.FillTest
+import javaxtest.sound.SimpleSoundTest
 import jtransc.WrappedTest
 import jtransc.bug.*
 import jtransc.java8.Java8Test
@@ -149,8 +154,8 @@ object BigTest {
 		ModifiedUtf8Test.main(args)
 
 		OptionalTest.main(args)
-
 		ServerSocketTest.main(args)
+		SimpleSoundTest.main(args)
 	}
 
 	private fun servicesTest() {

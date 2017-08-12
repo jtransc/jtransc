@@ -34,6 +34,7 @@ import javatest.net.ServerSocketTest
 import javatest.net.URLEncoderDecoderTest
 import javatest.utils.KotlinInheritanceTest
 import javatest.utils.OptionalTest
+import javaxtest.sound.SimpleSoundTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
@@ -216,4 +217,7 @@ class JsTest : _Base() {
 
 	@Ignore("Covered in bigtest")
 	@Test fun testServerSocketTest() = testClass(Params(clazz = ServerSocketTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+  @Ignore("Covered in bigtest")
+	@Test fun testSimpleSoundTest() = testClass(Params(clazz = SimpleSoundTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }
