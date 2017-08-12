@@ -32,6 +32,7 @@ import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import javatest.net.URLEncoderDecoderTest
 import javatest.utils.KotlinInheritanceTest
+import javaxtest.sound.SimpleSoundTest
 import jtransc.ExtraKeywordsTest
 import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
@@ -208,4 +209,7 @@ class JsTest : _Base() {
 	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Test fun testIssue219NoOptimized() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Already included in big tests")
+	@Test fun testSimpleSoundTest() = testClass(Params(clazz = SimpleSoundTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }
