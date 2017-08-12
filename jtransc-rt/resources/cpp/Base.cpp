@@ -1224,7 +1224,7 @@ void SIGFPE_handler(int signal) {
 
 	void* DYN::openDynamicLib(const char* libraryName){
     	#if _JTRANSC_WINDOWS_
-    	return (void*)LoadLibraray(libraryName);
+    	return LoadLibrary(libraryName);
 
     	#elif _JTRANSC_UNIX_LIKE_
     	return dlopen(libraryName, RTLD_LAZY | RTLD_LOCAL);
@@ -1236,7 +1236,7 @@ void SIGFPE_handler(int signal) {
 
 	void DYN::closeDynamicLib(void* handle){
 		#if _JTRANSC_WINDOWS_
-        FreeLibraray((HMODULE)handle);
+        FreeLibrary(handle);
 
         #elif _JTRANSC_UNIX_LIKE_
         dlclose(handle);
@@ -1248,7 +1248,7 @@ void SIGFPE_handler(int signal) {
 
 	void* DYN::findDynamicSymbol(void* handle, const char* symbolToSearch){
 		#if _JTRANSC_WINDOWS_
-        void* symbol = GetProcAddress((HMODULE)handle, symbolToSearch);
+        void* symbol = GetProcAddress(handle, symbolToSearch);
 
         //TODO error handling, etc.
 
@@ -2599,12 +2599,12 @@ void JNICALL  SetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start,
 }
 
 
-void JNICALL * GetPrimitiveArrayCritical(JNIEnv *env, jarray array, jboolean *isCopy){
+void* JNICALL GetPrimitiveArrayCritical(JNIEnv *env, jarray array, jboolean *isCopy){
 	if(isCopy) *isCopy = false;
 	return ((JA_0*) array)->_data;
 }
 
-void JNICALL  ReleasePrimitiveArrayCritical(JNIEnv *env, jarray array, void *carray, jint mode){
+void JNICALL ReleasePrimitiveArrayCritical(JNIEnv *env, jarray array, void *carray, jint mode){
 
 }
 
