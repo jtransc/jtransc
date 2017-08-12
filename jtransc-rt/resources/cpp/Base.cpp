@@ -1224,7 +1224,7 @@ void SIGFPE_handler(int signal) {
 
 	void* DYN::openDynamicLib(const char* libraryName){
     	#if _JTRANSC_WINDOWS_
-    	return LoadLibraray(libraryName);
+    	return (void*)LoadLibraray(libraryName);
 
     	#elif _JTRANSC_UNIX_LIKE_
     	return dlopen(libraryName, RTLD_LAZY | RTLD_LOCAL);
@@ -1236,7 +1236,7 @@ void SIGFPE_handler(int signal) {
 
 	void DYN::closeDynamicLib(void* handle){
 		#if _JTRANSC_WINDOWS_
-        FreeLibraray(handle);
+        FreeLibraray((HMODULE)handle);
 
         #elif _JTRANSC_UNIX_LIKE_
         dlclose(handle);
@@ -1248,7 +1248,7 @@ void SIGFPE_handler(int signal) {
 
 	void* DYN::findDynamicSymbol(void* handle, const char* symbolToSearch){
 		#if _JTRANSC_WINDOWS_
-        void* symbol = GetProcAddress(handle, symbolToSearch);
+        void* symbol = GetProcAddress((HMODULE)handle, symbolToSearch);
 
         //TODO error handling, etc.
 
@@ -2193,7 +2193,7 @@ jlong JNICALL CallStaticLongMethodV(JNIEnv* env, jclass clazz, jmethodID methodI
     return N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
-jlong CallStaticLongMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+jlong JNICALL CallStaticLongMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
     return N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
@@ -2420,7 +2420,7 @@ jsize JNICALL GetArrayLength(JNIEnv* env, jarray array){
 	return jtvmGetArrayLength(env, array);
 }
 
-jobjectarray JNICALL NewObjectArray(JNIEnv *env, jsize length, jclass elementClass, jobject initialElement){
+jobjectArray JNICALL NewObjectArray(JNIEnv *env, jsize length, jclass elementClass, jobject initialElement){
 	JA_L* array = new JA_L(length, L"[Ljava/lang/Object"); // TODO fix me!
 	for(int32_t i = 0; i < length; i++){
 		array->fastSet(i, (JAVA_OBJECT)initialElement);
