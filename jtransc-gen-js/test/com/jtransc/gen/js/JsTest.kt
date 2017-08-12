@@ -30,6 +30,7 @@ import javatest.MemberCollisionsTest
 import javatest.MessageDigestTest
 import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
+import javatest.net.ServerSocketTest
 import javatest.net.URLEncoderDecoderTest
 import javatest.utils.KotlinInheritanceTest
 import javatest.utils.OptionalTest
@@ -212,4 +213,7 @@ class JsTest : _Base() {
 
 	@Ignore("Covered in bigtest")
 	@Test fun testOptionalTest() = testClass(Params(clazz = OptionalTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Covered in bigtest")
+	@Test fun testServerSocketTest() = testClass(Params(clazz = ServerSocketTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
 }

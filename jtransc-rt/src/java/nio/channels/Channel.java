@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 public interface Channel extends Closeable {
-	public boolean isOpen();
+	boolean isOpen();
 
-	public void close() throws IOException;
+	void close() throws IOException;
 }

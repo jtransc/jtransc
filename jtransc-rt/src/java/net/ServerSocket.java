@@ -1,6 +1,7 @@
 package java.net;
 
 import java.io.IOException;
+import java.nio.channels.ServerSocketChannel;
 
 public class ServerSocket implements java.io.Closeable {
 	public ServerSocket() throws IOException {
@@ -49,9 +50,9 @@ public class ServerSocket implements java.io.Closeable {
 	public void close() throws IOException {
 	}
 
-	//public ServerSocketChannel getChannel() {
-	//	return null;
-	//}
+	public ServerSocketChannel getChannel() {
+		return null;
+	}
 
 	public boolean isBound() {
 		return false;
