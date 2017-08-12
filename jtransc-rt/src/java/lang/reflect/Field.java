@@ -31,7 +31,6 @@ public final class Field extends AccessibleObject implements Member {
 	protected int modifiers;
 	public int slot;
 
-	@JTranscKeep
 	public transient String signature;
 	public transient String genericSignature;
 	public byte[] annotations;
@@ -75,7 +74,6 @@ public final class Field extends AccessibleObject implements Member {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
 	}
 
-	@JTranscKeep
 	boolean isStatic() {
 		return (getModifiers() & Modifier.STATIC) != 0;
 	}
@@ -123,7 +121,6 @@ public final class Field extends AccessibleObject implements Member {
 		return (((mod == 0) ? "" : (Modifier.toString(mod) + " ")) + _InternalUtils.getTypeName(getType()) + " " + _InternalUtils.getTypeName(getDeclaringClass()) + "." + getName());
 	}
 
-	@JTranscKeep
 	public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		Class<?> type = getType();
 		if (type == null) {
@@ -155,42 +152,34 @@ public final class Field extends AccessibleObject implements Member {
 	////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////
 
-	@JTranscKeep
 	public boolean getBoolean(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Boolean) get(obj);
 	}
 
-	@JTranscKeep
 	public byte getByte(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Byte) get(obj);
 	}
 
-	@JTranscKeep
 	public char getChar(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Character) get(obj);
 	}
 
-	@JTranscKeep
 	public short getShort(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Short) get(obj);
 	}
 
-	@JTranscKeep
 	public int getInt(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Integer) get(obj);
 	}
 
-	@JTranscKeep
 	public long getLong(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Long) get(obj);
 	}
 
-	@JTranscKeep
 	public float getFloat(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Float) get(obj);
 	}
 
-	@JTranscKeep
 	public double getDouble(Object obj) throws IllegalArgumentException, IllegalAccessException {
 		return (Double) get(obj);
 	}
@@ -202,7 +191,6 @@ public final class Field extends AccessibleObject implements Member {
 	//@HaxeMethodBody("return N.str(this._internalName);")
 	native String getInternalName();
 
-	@JTranscKeep
 	public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
 		Class<?> type = getType();
 		if (type == null) {
@@ -230,27 +218,22 @@ public final class Field extends AccessibleObject implements Member {
 		}
 	}
 
-	@JTranscKeep
 	public void setBoolean(Object obj, boolean v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setByte(Object obj, byte v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setChar(Object obj, char v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setShort(Object obj, short v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setInt(Object obj, int v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
@@ -259,12 +242,10 @@ public final class Field extends AccessibleObject implements Member {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setFloat(Object obj, float v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
 
-	@JTranscKeep
 	public void setDouble(Object obj, double v) throws IllegalArgumentException, IllegalAccessException {
 		set(obj, v);
 	}
