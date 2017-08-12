@@ -25,6 +25,7 @@ import issues.issue136.Issue136
 import javatest.haxe.HaxeStringBuilderTestIssue138
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.jtransc.nativ.JTranscHaxeNativeCondition
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -119,4 +120,7 @@ class HaxeTest : _Base() {
 	// FAILS
 	@Ignore
 	@Test fun testHaxeStringBuilderTestIssue138() = testClass(Params(clazz = HaxeStringBuilderTestIssue138::class.java, minimize = false, log = false, lang = "cpp", debug = true))
+
+	@Ignore
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, lang = "cpp", debug = true))
 }
