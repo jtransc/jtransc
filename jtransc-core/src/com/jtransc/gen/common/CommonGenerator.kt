@@ -95,11 +95,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val context = AstGenContext()
 	val refs = References()
 
-	open val defines: Set<String> = setOf<String>(TARGET_NAME.toUpperCase()) + when {
-		OS.isWindows -> setOf("WIN32")
-		OS.isMac -> setOf("DARWIN", "OSX", "MACOS", "UNIX")
-		OS.isUnix -> setOf("UNIX")
-		else -> setOf()
+	open val defines: Set<String> by lazy {
+		setOf<String>(TARGET_NAME.toUpperCase()) + when {
+			OS.isWindows -> setOf("WIN32")
+			OS.isMac -> setOf("DARWIN", "OSX", "MACOS", "UNIX")
+			OS.isUnix -> setOf("UNIX")
+			else -> setOf()
+		}
 	}
 
 	val targetLibraries by lazy { program.getLibsFor(targetName, defines) }
@@ -1283,8 +1285,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun getMonitorLockedObjectExpr(method: AstMethod):AstExpr{
-		if(method.isStatic)
+	open fun getMonitorLockedObjectExpr(method: AstMethod): AstExpr {
+		if (method.isStatic)
 			return (AstExpr.LITERAL(method.containingClass.astType, dummy = true))
 		else
 			return (AstExpr.THIS(method.containingClass.name))
