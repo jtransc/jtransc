@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
-@JTranscAddLibraries(target = "cpp", cond = "!WIN32", value = {"dl"})
 public abstract class ClassLoader {
 
 	private ArrayList<NativeLib> nativeLibs = new ArrayList<>();

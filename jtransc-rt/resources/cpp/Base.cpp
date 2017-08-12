@@ -1236,7 +1236,7 @@ void SIGFPE_handler(int signal) {
 
 	void DYN::closeDynamicLib(void* handle){
 		#if _JTRANSC_WINDOWS_
-        FreeLibrary(handle);
+        FreeLibrary((HMODULE)handle);
 
         #elif _JTRANSC_UNIX_LIKE_
         dlclose(handle);
@@ -1248,7 +1248,7 @@ void SIGFPE_handler(int signal) {
 
 	void* DYN::findDynamicSymbol(void* handle, const char* symbolToSearch){
 		#if _JTRANSC_WINDOWS_
-        void* symbol = GetProcAddress(handle, symbolToSearch);
+        void* symbol = GetProcAddress((HMODULE)handle, symbolToSearch);
 
         //TODO error handling, etc.
 
@@ -2399,7 +2399,7 @@ void* jtvmGetDirectBufferAddress(JNIEnv* env, JAVA_OBJECT buf){
 	return GET_OBJECT(JA_B, buffer->{% FIELD java.nio.ByteBuffer:backingArray %})->_data;
 }
 
-void JNICALL * GetDirectBufferAddress(JNIEnv* env, jobject buf){
+void* JNICALL GetDirectBufferAddress(JNIEnv* env, jobject buf){
 	return jtvmGetDirectBufferAddress(env, (JAVA_OBJECT) buf);
 }
 
