@@ -67,6 +67,7 @@ fun hasSpecialChars(name: String): Boolean = !name.all(Char::isLetterDigitOrUnde
 @Suppress("ConvertLambdaToReference")
 @Singleton
 class JsGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "JS"
 	override val SINGLE_FILE: Boolean = true
 	override val ADD_UTF8_BOM = true
 	override val GENERATE_LINE_NUMBERS = false

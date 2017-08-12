@@ -67,6 +67,7 @@ class CppTarget : GenTargetDescriptor() {
 
 @Singleton
 class CppGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "CPP"
 	override val SINGLE_FILE: Boolean = true
 	override val GENERATE_LINE_NUMBERS = false
 

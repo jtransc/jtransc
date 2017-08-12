@@ -90,6 +90,7 @@ class HaxeTarget : GenTargetDescriptor() {
 
 @Singleton
 class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "HAXE"
 	companion object {
 		//const val ENABLE_HXCPP_GOTO_HACK = true
 		const val ENABLE_HXCPP_GOTO_HACK = false // @TODO: If last statement is a goto. Add return null; or return; at the end
