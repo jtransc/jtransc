@@ -52,6 +52,7 @@ class PhpTarget : GenTargetDescriptor() {
 
 @Singleton
 class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
+	override val TARGET_NAME: String = "PHP"
 	override val SINGLE_FILE: Boolean = true
 
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {

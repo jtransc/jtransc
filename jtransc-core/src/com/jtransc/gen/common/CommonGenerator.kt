@@ -7,6 +7,7 @@ import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.toHashMap
+import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.error.noImplWarn
@@ -39,6 +40,7 @@ class ConfigSrcFolder(val srcFolder: SyncVfsFile)
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveSingleExpressionStringTemplate")
 abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
+	abstract val TARGET_NAME: String
 	abstract val SINGLE_FILE: Boolean
 	open val ADD_UTF8_BOM = false
 
@@ -93,10 +95,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val context = AstGenContext()
 	val refs = References()
 
-	val targetLibraries by lazy { program.getLibsFor(targetName) }
-	val targetIncludes by lazy { program.getIncludesFor(targetName) }
-	val targetImports by lazy { program.getImportsFor(targetName) }
-	val targetDefines by lazy { program.getDefinesFor(targetName) }
+	open val defines: Set<String> by lazy {
+		setOf<String>(TARGET_NAME.toUpperCase()) + when {
+			OS.isWindows -> setOf("WIN32")
+			OS.isMac -> setOf("DARWIN", "OSX", "MACOS", "UNIX")
+			OS.isUnix -> setOf("UNIX")
+			else -> setOf()
+		}
+	}
+
+	val targetLibraries by lazy { program.getLibsFor(targetName, defines) }
+	val targetIncludes by lazy { program.getIncludesFor(targetName, defines) }
+	val targetImports by lazy { program.getImportsFor(targetName, defines) }
+	val targetDefines by lazy { program.getDefinesFor(targetName, defines) }
 
 	open val allTargetLibraries by lazy { targetLibraries + (injector.getOrNull<ConfigLibraries>()?.libs ?: listOf()) }
 	open val allTargetDefines by lazy { targetDefines }
@@ -1274,8 +1285,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun getMonitorLockedObjectExpr(method: AstMethod):AstExpr{
-		if(method.isStatic)
+	open fun getMonitorLockedObjectExpr(method: AstMethod): AstExpr {
+		if (method.isStatic)
 			return (AstExpr.LITERAL(method.containingClass.astType, dummy = true))
 		else
 			return (AstExpr.THIS(method.containingClass.name))
