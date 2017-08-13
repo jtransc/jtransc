@@ -197,7 +197,7 @@ public class Formatter implements Closeable, Flushable {
 					out = "" + Integer.toUnsignedString((Integer) value, 16);
 				}
 				if (c == 'X') out = out.toUpperCase();
-				return doNormalPad(String.valueOf(value), right, width, pad);
+				return doNormalPad(out, right, width, pad);
 			}
 			case 'f': {
 				final double v = ((Number) value).doubleValue();

@@ -646,7 +646,7 @@ struct JA_D : JA_Base<double> {
 	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
 
 	static JA_D* fromArray(std::wstring desc, std::vector<double> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_D(len);
 		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
@@ -882,9 +882,9 @@ int32_t N::d2i(double v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return 2147483647;
+			return (int32_t)0x7fffffff;
 		} else {
-			return -2147483648;
+			return (int32_t)0x80000000;
 		}
 	}
 }
@@ -896,9 +896,9 @@ int32_t N::f2i(float v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return 2147483647;
+			return (int32_t)0x7fffffff;
 		} else {
-			return -2147483648;
+			return (int32_t)0x80000000;
 		}
 	}
 }
