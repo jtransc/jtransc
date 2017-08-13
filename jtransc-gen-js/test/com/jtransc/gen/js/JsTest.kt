@@ -39,6 +39,7 @@ import jtransc.ExtraRefsTest
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.java8.InnerLambdaTest
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2
@@ -222,4 +223,7 @@ class JsTest : _Base() {
 
 	@Ignore("Covered in bigtest") // libgdx
 	@Test fun testIssue246Test() = testClass(Params(clazz = Issue246::class.java, minimize = false, log = false, treeShaking = true, debug = true, optimize = false))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

@@ -5,6 +5,7 @@ import com.jtransc.internal.JTranscCType;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.regex.Pattern;
 
 public class Formatter implements Closeable, Flushable {
 	Appendable out;
@@ -126,7 +127,9 @@ public class Formatter implements Closeable, Flushable {
 				char pad = ' ';
 				int step = 0;
 				boolean right = false;
+				boolean readingDecimals = false;
 				int width = 0;
+				int decimalWidth = 0;
 				while (true) {
 					char cc = format.charAt(n++);
 					if (cc == '%') {
@@ -138,13 +141,20 @@ public class Formatter implements Closeable, Flushable {
 						pad = '0';
 						step = 1;
 					} else if (cc >= '0' && cc <= '9') {
-						width *= 10;
-						width += JTranscCType.decodeDigit(cc);
+						if (readingDecimals) {
+							decimalWidth *= 10;
+							decimalWidth += JTranscCType.decodeDigit(cc);
+						} else {
+							width *= 10;
+							width += JTranscCType.decodeDigit(cc);
+						}
+					} else if (cc == '.') {
+						readingDecimals = true;
 					} else if (cc == 'n') { // %n == \n, \r\n, or \r
 						out.append(JTranscSystem.lineSeparator());
 						break;
 					} else {
-						out.append(formatValue(right, width, pad, cc, args[argn++]));
+						out.append(formatValue(right, width, decimalWidth, pad, cc, args[argn++]));
 						break;
 					}
 				}
@@ -154,32 +164,61 @@ public class Formatter implements Closeable, Flushable {
 		}
 	}
 
-	private String formatValue(boolean right, int width, char pad, char c, Object value) {
-		String out;
+	private String doNormalPad(String str, boolean right, int width, char pad) {
+		if (width <= 0) return str;
+		while (str.length() < width) {
+			if (right) {
+				str = "" + str + pad;
+			} else {
+				str = "" + pad + str;
+			}
+		}
+		return str;
+	}
+
+	private String doDecimalPad(String str, int width) {
+		if (str.length() > width) {
+			return str.substring(0, width);
+		} else {
+			StringBuilder out = new StringBuilder(str);
+			while (out.length() < width) out.append('0');
+			return out.toString();
+		}
+	}
+
+	private String formatValue(boolean right, int width, int decimalWidth, char pad, char c, Object value) {
 		switch (c) {
 			case 'x':
-			case 'X':
+			case 'X': {
+				String out;
 				if (value instanceof Long) {
 					out = "" + Long.toUnsignedString((Long) value, 16);
 				} else {
 					out = "" + Integer.toUnsignedString((Integer) value, 16);
 				}
 				if (c == 'X') out = out.toUpperCase();
-				break;
-			default:
-				out = "" + value;
-				break;
-		}
-		if (width > 0) {
-			while (out.length() < width) {
-				if (right) {
-					out = "" + out + pad;
+				return doNormalPad(String.valueOf(value), right, width, pad);
+			}
+			case 'f': {
+				final double v = ((Number) value).doubleValue();
+				String[] parts = String.valueOf(v).split(Pattern.quote("."));
+				if (parts.length <= 0) {
+					return "";
+				} else if (parts.length <= 1) {
+					return parts[0];
 				} else {
-					out = "" + pad + out;
+					String integral = doNormalPad(parts[0], right, width, pad);
+					String decimal = doDecimalPad(parts[1], decimalWidth);
+					if (decimal.length() == 0) {
+						return integral;
+					} else {
+						return integral + "." + decimal;
+					}
 				}
 			}
+			default:
+				return doNormalPad(String.valueOf(value), right, width, pad);
 		}
-		return out;
 	}
 
 	public String toString() {

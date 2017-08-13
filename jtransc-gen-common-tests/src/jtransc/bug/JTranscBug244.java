@@ -1,8 +1,12 @@
 package jtransc.bug;
 
+import java.util.Locale;
+
 public class JTranscBug244 {
 
 	static public void main(String[] args) {
+		System.out.println("JTranscBug244.main:");
+		Locale.setDefault(Locale.ENGLISH);
 		constTest();
 		stringFormatTest();
 		floatNaN2IntTest();
