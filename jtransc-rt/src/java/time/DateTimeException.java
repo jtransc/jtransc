@@ -14,29 +14,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package java.time.chrono;
+package java.time;
 
-import java.time.format.ResolverStyle;
-import java.time.temporal.TemporalField;
-import java.util.Map;
-
-public abstract class AbstractChronology implements Chronology {
-	protected AbstractChronology() {
+public class DateTimeException extends RuntimeException {
+	public DateTimeException(String message) {
+		super(message);
 	}
 
-	native public ChronoLocalDate resolveDate(Map<TemporalField, Long> fieldValues, ResolverStyle resolverStyle);
-
-	native public int compareTo(Chronology other);
-
-	public boolean equals(Object obj) {
-		return this == obj;
-	}
-
-	public int hashCode() {
-		return System.identityHashCode(this);
-	}
-
-	public String toString() {
-		return getId();
+	public DateTimeException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

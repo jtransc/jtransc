@@ -26,65 +26,85 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class ZoneId implements Serializable {
-	public static final Map<String, String> SHORT_IDS = new HashMap<String, String>(64);
+	public static final Map<String, String> SHORT_IDS = new HashMap<String, String>(64) {{
+		put("ACT", "Australia/Darwin");
+		put("AET", "Australia/Sydney");
+		put("AGT", "America/Argentina/Buenos_Aires");
+		put("ART", "Africa/Cairo");
+		put("AST", "America/Anchorage");
+		put("BET", "America/Sao_Paulo");
+		put("BST", "Asia/Dhaka");
+		put("CAT", "Africa/Harare");
+		put("CNT", "America/St_Johns");
+		put("CST", "America/Chicago");
+		put("CTT", "Asia/Shanghai");
+		put("EAT", "Africa/Addis_Ababa");
+		put("ECT", "Europe/Paris");
+		put("IET", "America/Indiana/Indianapolis");
+		put("IST", "Asia/Kolkata");
+		put("JST", "Asia/Tokyo");
+		put("MIT", "Pacific/Apia");
+		put("NET", "Asia/Yerevan");
+		put("NST", "Pacific/Auckland");
+		put("PLT", "Asia/Karachi");
+		put("PNT", "America/Phoenix");
+		put("PRT", "America/Puerto_Rico");
+		put("PST", "America/Los_Angeles");
+		put("SST", "Pacific/Guadalcanal");
+		put("VST", "Asia/Ho_Chi_Minh");
+		put("EST", "-05:00");
+		put("MST", "-07:00");
+		put("HST", "-10:00");
+	}};
 
 	ZoneId() {
 	}
 
-	static {
-		SHORT_IDS.put("ACT", "Australia/Darwin");
-		SHORT_IDS.put("AET", "Australia/Sydney");
-		SHORT_IDS.put("AGT", "America/Argentina/Buenos_Aires");
-		SHORT_IDS.put("ART", "Africa/Cairo");
-		SHORT_IDS.put("AST", "America/Anchorage");
-		SHORT_IDS.put("BET", "America/Sao_Paulo");
-		SHORT_IDS.put("BST", "Asia/Dhaka");
-		SHORT_IDS.put("CAT", "Africa/Harare");
-		SHORT_IDS.put("CNT", "America/St_Johns");
-		SHORT_IDS.put("CST", "America/Chicago");
-		SHORT_IDS.put("CTT", "Asia/Shanghai");
-		SHORT_IDS.put("EAT", "Africa/Addis_Ababa");
-		SHORT_IDS.put("ECT", "Europe/Paris");
-		SHORT_IDS.put("IET", "America/Indiana/Indianapolis");
-		SHORT_IDS.put("IST", "Asia/Kolkata");
-		SHORT_IDS.put("JST", "Asia/Tokyo");
-		SHORT_IDS.put("MIT", "Pacific/Apia");
-		SHORT_IDS.put("NET", "Asia/Yerevan");
-		SHORT_IDS.put("NST", "Pacific/Auckland");
-		SHORT_IDS.put("PLT", "Asia/Karachi");
-		SHORT_IDS.put("PNT", "America/Phoenix");
-		SHORT_IDS.put("PRT", "America/Puerto_Rico");
-		SHORT_IDS.put("PST", "America/Los_Angeles");
-		SHORT_IDS.put("SST", "Pacific/Guadalcanal");
-		SHORT_IDS.put("VST", "Asia/Ho_Chi_Minh");
-		SHORT_IDS.put("EST", "-05:00");
-		SHORT_IDS.put("MST", "-07:00");
-		SHORT_IDS.put("HST", "-10:00");
+	public static ZoneId systemDefault() {
+		return ZoneOffset.UTC;
 	}
 
-	native public static ZoneId systemDefault();
+	public static Set<String> getAvailableZoneIds() {
+		return SHORT_IDS.keySet();
+	}
 
-	native public static Set<String> getAvailableZoneIds();
+	public static ZoneId of(String zoneId, Map<String, String> aliasMap) {
+		return ZoneOffset.UTC;
+	}
 
-	native public static ZoneId of(String zoneId, Map<String, String> aliasMap);
+	public static ZoneId of(String zoneId) {
+		return ZoneOffset.UTC;
+	}
 
-	native public static ZoneId of(String zoneId);
+	public static ZoneId ofOffset(String prefix, ZoneOffset offset) {
+		return ZoneOffset.UTC;
+	}
 
-	native public static ZoneId ofOffset(String prefix, ZoneOffset offset);
-
-	native public static ZoneId from(TemporalAccessor temporal);
+	public static ZoneId from(TemporalAccessor temporal) {
+		return ZoneOffset.UTC;
+	}
 
 	public abstract String getId();
 
-	native public String getDisplayName(TextStyle style, Locale locale);
+	public String getDisplayName(TextStyle style, Locale locale) {
+		return getId();
+	}
 
 	public abstract ZoneRules getRules();
 
-	native public ZoneId normalized();
+	public ZoneId normalized() {
+		return this;
+	}
 
-	native public boolean equals(Object obj);
+	public boolean equals(Object obj) {
+		return this == obj;
+	}
 
-	native public int hashCode();
+	public int hashCode() {
+		return getId().hashCode();
+	}
 
-	native public String toString();
+	public String toString() {
+		return getId();
+	}
 }
