@@ -16,6 +16,7 @@
 
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscKeep;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -29,6 +30,7 @@ public final class Field extends AccessibleObject implements Member {
 	//private Class<?> type = null;
 	protected int modifiers;
 	public int slot;
+
 	public transient String signature;
 	public transient String genericSignature;
 	public byte[] annotations;
@@ -70,6 +72,10 @@ public final class Field extends AccessibleObject implements Member {
 
 	public boolean isSynthetic() {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
+	}
+
+	boolean isStatic() {
+		return (getModifiers() & Modifier.STATIC) != 0;
 	}
 
 	public Class<?> getType() {
