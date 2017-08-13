@@ -16,6 +16,8 @@
  */
 package java.time;
 
+import com.jtransc.IntegerUtils;
+
 import java.time.format.TextStyle;
 import java.time.temporal.*;
 import java.util.Locale;
@@ -29,25 +31,39 @@ public enum DayOfWeek implements TemporalAccessor, TemporalAdjuster {
 	SATURDAY,
 	SUNDAY;
 
-	native public static DayOfWeek of(int dayOfWeek);
+	public static DayOfWeek of(int dayOfWeek) {
+		return values()[dayOfWeek - 1];
+	}
 
 	native public static DayOfWeek from(TemporalAccessor temporal);
 
-	native public int getValue();
+	public int getValue() {
+		return ordinal() + 1;
+	}
 
-	native public String getDisplayName(TextStyle style, Locale locale);
+	public String getDisplayName(TextStyle style, Locale locale) {
+		return this.name();
+	}
 
 	native public boolean isSupported(TemporalField field);
 
 	native public ValueRange range(TemporalField field);
 
-	native public int get(TemporalField field);
+	public long getLong(TemporalField field) {
+		return (field == ChronoField.DAY_OF_WEEK) ? getValue() : 0L;
+	}
 
-	native public long getLong(TemporalField field);
+	private DayOfWeek _plus(long days) {
+		return of(IntegerUtils.umod((int) (ordinal() + days), 7));
+	}
 
-	native public DayOfWeek plus(long days);
+	public DayOfWeek plus(long days) {
+		return _plus(+days);
+	}
 
-	native public DayOfWeek minus(long days);
+	public DayOfWeek minus(long days) {
+		return _plus(-days);
+	}
 
 	native public <R> R query(TemporalQuery<R> query);
 

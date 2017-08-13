@@ -19,6 +19,8 @@ package java.time;
 import java.io.Serializable;
 import java.time.temporal.*;
 
+import static java.time._TimeConsts.*;
+
 public final class Instant implements Temporal, TemporalAdjuster, Comparable<Instant>, Serializable {
 	public static final Instant EPOCH = new Instant(0, 0);
 
@@ -48,12 +50,14 @@ public final class Instant implements Temporal, TemporalAdjuster, Comparable<Ins
 
 	public static Instant ofEpochSecond(long epochSecond, long nanoAdjustment) {
 		return new Instant(
-			epochSecond + nanoAdjustment / 1000_000_000L,
-			(int) (nanoAdjustment % 1000_000_000L)
+			epochSecond + nanoAdjustment / NANOSECONDS_IN_SECOND,
+			(int) (nanoAdjustment % NANOSECONDS_IN_SECOND)
 		);
 	}
 
-	native public static Instant ofEpochMilli(long epochMilli);
+	public static Instant ofEpochMilli(long epochMilli) {
+		return ofEpochSecond(epochMilli / MILLISECONDS_IN_SECOND, epochMilli * NANOSECONDS_IN_MILLISECOND);
+	}
 
 	native public static Instant from(TemporalAccessor temporal);
 
@@ -68,15 +72,16 @@ public final class Instant implements Temporal, TemporalAdjuster, Comparable<Ins
 	@Override  // override for Javadoc
 	native public ValueRange range(TemporalField field);
 
-	@Override  // override for Javadoc and performance
-	native public int get(TemporalField field);
-
 	@Override
 	native public long getLong(TemporalField field);
 
-	native public long getEpochSecond();
+	public long getEpochSecond() {
+		return seconds;
+	}
 
-	native public int getNano();
+	public int getNano() {
+		return nanos;
+	}
 
 	@Override
 	native public Instant with(TemporalAdjuster adjuster);
@@ -89,14 +94,28 @@ public final class Instant implements Temporal, TemporalAdjuster, Comparable<Ins
 	@Override
 	native public Instant plus(TemporalAmount amountToAdd);
 
+	private Instant _plus(long secondsToAdd, long nanosToAdd) {
+		return ofEpochSecond(this.seconds + secondsToAdd, this.nanos + nanosToAdd);
+	}
+
+	private Instant _minus(long secondsToAdd, long nanosToAdd) {
+		return ofEpochSecond(this.seconds - secondsToAdd, this.nanos - nanosToAdd);
+	}
+
 	@Override
 	native public Instant plus(long amountToAdd, TemporalUnit unit);
 
-	native public Instant plusSeconds(long secondsToAdd);
+	public Instant plusSeconds(long delta) {
+		return _plus(delta, 0);
+	}
 
-	native public Instant plusMillis(long millisToAdd);
+	public Instant plusMillis(long delta) {
+		return _plus(0, delta * NANOSECONDS_IN_MILLISECOND);
+	}
 
-	native public Instant plusNanos(long nanosToAdd);
+	public Instant plusNanos(long delta) {
+		return _plus(0, delta);
+	}
 
 	@Override
 	native public Instant minus(TemporalAmount amountToSubtract);
@@ -104,11 +123,17 @@ public final class Instant implements Temporal, TemporalAdjuster, Comparable<Ins
 	@Override
 	native public Instant minus(long amountToSubtract, TemporalUnit unit);
 
-	native public Instant minusSeconds(long secondsToSubtract);
+	public Instant minusSeconds(long delta) {
+		return _minus(delta, 0);
+	}
 
-	native public Instant minusMillis(long millisToSubtract);
+	public Instant minusMillis(long delta) {
+		return _minus(0, delta * NANOSECONDS_IN_MILLISECOND);
+	}
 
-	native public Instant minusNanos(long nanosToSubtract);
+	public Instant minusNanos(long delta) {
+		return _minus(0, delta);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -124,7 +149,9 @@ public final class Instant implements Temporal, TemporalAdjuster, Comparable<Ins
 
 	native public ZonedDateTime atZone(ZoneId zone);
 
-	native public long toEpochMilli();
+	public long toEpochMilli() {
+		return (seconds * 1000) + (nanos / NANOSECONDS_IN_MILLISECOND);
+	}
 
 	@Override
 	native public int compareTo(Instant otherInstant);

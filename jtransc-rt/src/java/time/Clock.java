@@ -20,23 +20,73 @@ public abstract class Clock {
 	protected Clock() {
 	}
 
-	native public static Clock systemUTC();
+	static private Clock systemUTC;
 
-	native public static Clock systemDefaultZone();
+	public static Clock systemUTC() {
+		if (systemUTC == null) {
+			systemUTC = new SimplifiedClock() {
+				public long millis() {
+					return System.currentTimeMillis();
+				}
+			};
+		}
+		return systemUTC;
+	}
 
-	native public static Clock system(ZoneId zone);
+	public static Clock systemDefaultZone() {
+		return systemUTC();
+	}
 
-	native public static Clock tickSeconds(ZoneId zone);
+	public static Clock system(ZoneId zone) {
+		return systemUTC();
+	}
 
-	native public static Clock tickMinutes(ZoneId zone);
+	public static Clock tickSeconds(ZoneId zone) {
+		return tick(system(zone), Duration.ofSeconds(1));
+	}
 
-	native public static Clock tick(Clock baseClock, Duration tickDuration);
+	public static Clock tickMinutes(ZoneId zone) {
+		return tick(system(zone), Duration.ofMinutes(1));
+	}
 
-	native public static Clock fixed(Instant fixedInstant, ZoneId zone);
+	public static Clock tick(final Clock baseClock, final Duration tickDuration) {
+		final long tickMillis = tickDuration.toMillis();
+		return new SimplifiedClock() {
+			@Override
+			public long millis() {
+				return (baseClock.millis() / tickMillis) * tickMillis;
+			}
+		};
+	}
 
-	native public static Clock offset(Clock baseClock, Duration offsetDuration);
+	public static Clock fixed(final Instant fixedInstant, final ZoneId zone) {
+		final long fixedMillis = fixedInstant.toEpochMilli();
+		return new SimplifiedClock() {
+			@Override
+			public ZoneId getZone() {
+				return zone;
+			}
 
-	public abstract ZoneId getZone();
+			@Override
+			public long millis() {
+				return fixedMillis;
+			}
+		};
+	}
+
+	public static Clock offset(final Clock baseClock, final Duration offsetDuration) {
+		final long add = offsetDuration.toMillis();
+		return new SimplifiedClock() {
+			@Override
+			public long millis() {
+				return baseClock.millis() + add;
+			}
+		};
+	}
+
+	public ZoneId getZone() {
+		return ZoneId.systemDefault();
+	}
 
 	public abstract Clock withZone(ZoneId zone);
 
@@ -46,7 +96,30 @@ public abstract class Clock {
 
 	public abstract Instant instant();
 
-	native public boolean equals(Object obj);
+	public boolean equals(Object obj) {
+		return this == obj;
+	}
 
-	native public int hashCode();
+	public int hashCode() {
+		return System.identityHashCode(this);
+	}
+
+	static private abstract class SimplifiedClock extends Clock {
+		@Override
+		public ZoneId getZone() {
+			return ZoneId.systemDefault();
+		}
+
+		@Override
+		public Clock withZone(ZoneId zone) {
+			return this;
+		}
+
+		abstract public long millis();
+
+		@Override
+		public Instant instant() {
+			return Instant.ofEpochMilli(millis());
+		}
+	}
 }

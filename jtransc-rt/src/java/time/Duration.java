@@ -22,6 +22,8 @@ import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
 
+import static java.time._TimeConsts.*;
+
 public final class Duration implements TemporalAmount, Comparable<Duration>, Serializable {
 	public static final Duration ZERO = new Duration(0, 0);
 
@@ -33,19 +35,31 @@ public final class Duration implements TemporalAmount, Comparable<Duration>, Ser
 		this.nanos = nanos;
 	}
 
-	native public static Duration ofDays(long days);
+	public static Duration ofDays(long days) {
+		return new Duration(days * SECONDS_IN_DAY, 0);
+	}
 
-	native public static Duration ofHours(long hours);
+	public static Duration ofHours(long hours) {
+		return new Duration(hours * SECONDS_IN_HOUR, 0);
+	}
 
-	native public static Duration ofMinutes(long minutes);
+	public static Duration ofMinutes(long minutes) {
+		return new Duration(minutes * SECONDS_IN_MINUTE, 0);
+	}
 
-	native public static Duration ofSeconds(long seconds);
+	public static Duration ofSeconds(long seconds) {
+		return new Duration(seconds, 0);
+	}
 
-	native public static Duration ofSeconds(long seconds, long nanoAdjustment);
+	public static Duration ofSeconds(long seconds, long nanoAdjustment) {
+		return new Duration(seconds + nanoAdjustment / NANOSECONDS_IN_SECOND, (int) (nanoAdjustment % NANOSECONDS_IN_SECOND));
+	}
 
 	native public static Duration ofMillis(long millis);
 
-	native public static Duration ofNanos(long nanos);
+	public static Duration ofNanos(long nanos) {
+		return ofSeconds(0, nanos);
+	}
 
 	native public static Duration of(long amount, TemporalUnit unit);
 
@@ -59,53 +73,105 @@ public final class Duration implements TemporalAmount, Comparable<Duration>, Ser
 
 	native public List<TemporalUnit> getUnits();
 
-	native public boolean isZero();
+	public boolean isZero() {
+		return seconds == 0 && nanos == 0;
+	}
 
-	native public boolean isNegative();
+	public boolean isNegative() {
+		return seconds < 0;
+	}
 
-	native public long getSeconds();
+	public long getSeconds() {
+		return seconds;
+	}
 
-	native public int getNano();
+	public int getNano() {
+		return nanos;
+	}
 
-	native public Duration withSeconds(long seconds);
+	public Duration withSeconds(long seconds) {
+		return new Duration(seconds, nanos);
+	}
 
-	native public Duration withNanos(int nanoOfSecond);
+	public Duration withNanos(int nanoOfSecond) {
+		return new Duration(seconds, nanos);
+	}
 
-	native public Duration plus(Duration duration);
+	private Duration _plus(long seconds, long nanos) {
+		return Duration.ofSeconds(this.seconds + seconds, this.nanos + nanos);
+	}
 
-	native public Duration plus(long amountToAdd, TemporalUnit unit);
+	private Duration _minus(long seconds, long nanos) {
+		return Duration.ofSeconds(this.seconds - seconds, this.nanos - nanos);
+	}
 
-	native public Duration plusDays(long daysToAdd);
+	public Duration plus(Duration delta) {
+		return _plus(delta.seconds, delta.nanos);
+	}
 
-	native public Duration plusHours(long hoursToAdd);
+	native public Duration plus(long delta, TemporalUnit unit);
 
-	native public Duration plusMinutes(long minutesToAdd);
+	public Duration plusDays(long delta) {
+		return _plus(delta * SECONDS_IN_DAY, 0);
+	}
 
-	native public Duration plusSeconds(long secondsToAdd);
+	public Duration plusHours(long delta) {
+		return _plus(delta * SECONDS_IN_HOUR, 0);
+	}
 
-	native public Duration plusMillis(long millisToAdd);
+	public Duration plusMinutes(long delta) {
+		return _plus(delta * SECONDS_IN_MINUTE, 0);
+	}
 
-	native public Duration plusNanos(long nanosToAdd);
+	public Duration plusSeconds(long delta) {
+		return _plus(delta, 0);
+	}
 
-	native public Duration minus(Duration duration);
+	public Duration plusMillis(long delta) {
+		return _plus(0, delta * NANOSECONDS_IN_MILLISECOND);
+	}
 
-	native public Duration minus(long amountToSubtract, TemporalUnit unit);
+	public Duration plusNanos(long delta) {
+		return _plus(0, delta);
+	}
 
-	native public Duration minusDays(long daysToSubtract);
+	public Duration minus(Duration delta) {
+		return _minus(delta.seconds, delta.nanos);
+	}
 
-	native public Duration minusHours(long hoursToSubtract);
+	native public Duration minus(long delta, TemporalUnit unit);
 
-	native public Duration minusMinutes(long minutesToSubtract);
+	public Duration minusDays(long delta) {
+		return _minus(delta * SECONDS_IN_DAY, 0);
+	}
 
-	native public Duration minusSeconds(long secondsToSubtract);
+	public Duration minusHours(long delta) {
+		return _minus(delta * SECONDS_IN_HOUR, 0);
+	}
 
-	native public Duration minusMillis(long millisToSubtract);
+	public Duration minusMinutes(long delta) {
+		return _minus(delta * SECONDS_IN_MINUTE, 0);
+	}
 
-	native public Duration minusNanos(long nanosToSubtract);
+	public Duration minusSeconds(long delta) {
+		return _minus(delta, 0);
+	}
 
-	native public Duration multipliedBy(long multiplicand);
+	public Duration minusMillis(long delta) {
+		return _minus(0, delta * NANOSECONDS_IN_MILLISECOND);
+	}
 
-	native public Duration dividedBy(long divisor);
+	public Duration minusNanos(long delta) {
+		return _minus(0, delta);
+	}
+
+	public Duration multipliedBy(long multiplicand) {
+		return ofSeconds(this.seconds * multiplicand, this.nanos * multiplicand);
+	}
+
+	public Duration dividedBy(long divisor) {
+		return ofSeconds(this.seconds * divisor, this.nanos * divisor);
+	}
 
 	native public Duration negated();
 
@@ -115,21 +181,33 @@ public final class Duration implements TemporalAmount, Comparable<Duration>, Ser
 
 	native public Temporal subtractFrom(Temporal temporal);
 
-	native public long toDays();
+	public long toDays() {
+		return seconds / SECONDS_IN_DAY;
+	}
 
-	native public long toHours();
+	public long toHours() {
+		return seconds / SECONDS_IN_HOUR;
+	}
 
-	native public long toMinutes();
+	public long toMinutes() {
+		return seconds / SECONDS_IN_MINUTE;
+	}
 
-	native public long toMillis();
+	public long toMillis() {
+		return seconds * 1000 + nanos / NANOSECONDS_IN_MILLISECOND;
+	}
 
-	native public long toNanos();
+	public long toNanos() {
+		return seconds * NANOSECONDS_IN_SECOND + nanos;
+	}
 
 	native public int compareTo(Duration otherDuration);
 
 	native public boolean equals(Object otherDuration);
 
-	native public int hashCode();
+	public int hashCode() {
+		return (int) (seconds + nanos);
+	}
 
 	native public String toString();
 }

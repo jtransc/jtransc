@@ -44,26 +44,42 @@ public final class DateTimeFormatter {
 	public static final DateTimeFormatter BASIC_ISO_DATE = new DateTimeFormatter();
 	public static final DateTimeFormatter RFC_1123_DATE_TIME = new DateTimeFormatter();
 
+	private Locale locale = Locale.getDefault();
+
 	private DateTimeFormatter() {
 	}
 
-	native public static DateTimeFormatter ofPattern(String pattern);
+	public static DateTimeFormatter ofPattern(String pattern) {
+		return ofPattern(pattern, Locale.getDefault());
+	}
 
-	native public static DateTimeFormatter ofPattern(String pattern, Locale locale);
+	public static DateTimeFormatter ofPattern(String pattern, Locale locale) {
+		return new DateTimeFormatter();
+	}
 
-	native public static DateTimeFormatter ofLocalizedDate(FormatStyle dateStyle);
+	public static DateTimeFormatter ofLocalizedDate(FormatStyle dateStyle) {
+		return new DateTimeFormatter();
+	}
 
-	native public static DateTimeFormatter ofLocalizedTime(FormatStyle timeStyle);
+	public static DateTimeFormatter ofLocalizedTime(FormatStyle timeStyle) {
+		return new DateTimeFormatter();
+	}
 
-	native public static DateTimeFormatter ofLocalizedDateTime(FormatStyle dateTimeStyle);
+	public static DateTimeFormatter ofLocalizedDateTime(FormatStyle dateTimeStyle) {
+		return new DateTimeFormatter();
+	}
 
-	native public static DateTimeFormatter ofLocalizedDateTime(FormatStyle dateStyle, FormatStyle timeStyle);
+	public static DateTimeFormatter ofLocalizedDateTime(FormatStyle dateStyle, FormatStyle timeStyle) {
+		return new DateTimeFormatter();
+	}
 
 	native public static final TemporalQuery<Period> parsedExcessDays();
 
 	native public static final TemporalQuery<Boolean> parsedLeapSecond();
 
-	native public Locale getLocale();
+	public Locale getLocale() {
+		return locale;
+	}
 
 	native public DateTimeFormatter withLocale(Locale locale);
 

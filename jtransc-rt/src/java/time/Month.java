@@ -16,6 +16,8 @@
  */
 package java.time;
 
+import com.jtransc.IntegerUtils;
+
 import java.time.format.TextStyle;
 import java.time.temporal.*;
 import java.util.Locale;
@@ -34,35 +36,75 @@ public enum Month implements TemporalAccessor, TemporalAdjuster {
 	NOVEMBER,
 	DECEMBER;
 
-	native public static Month of(int month);
+	public static Month of(int month) {
+		return values()[month - 1];
+	}
 
 	native public static Month from(TemporalAccessor temporal);
 
-	native public int getValue();
+	public int getValue() {
+		return ordinal() + 1;
+	}
 
-	native public String getDisplayName(TextStyle style, Locale locale);
+	public String getDisplayName(TextStyle style, Locale locale) {
+		return name();
+	}
 
 	native public boolean isSupported(TemporalField field);
 
 	native public ValueRange range(TemporalField field);
 
-	native public int get(TemporalField field);
+	public long getLong(TemporalField field) {
+		return (field == ChronoField.MONTH_OF_YEAR) ? getValue() : 0L;
+	}
 
-	native public long getLong(TemporalField field);
+	private Month _plus(long months) {
+		return of(IntegerUtils.umod((int) (ordinal() + months), 7));
+	}
 
-	native public Month plus(long months);
+	public Month plus(long months) {
+		return _plus(months);
+	}
 
-	native public Month minus(long months);
+	public Month minus(long months) {
+		return _plus(-months);
+	}
 
-	native public int length(boolean leapYear);
+	public int length(boolean leapYear) {
+		switch (this) {
+			case FEBRUARY:
+				return leapYear ? 29 : 28;
+			case APRIL:
+			case JUNE:
+			case SEPTEMBER:
+			case NOVEMBER:
+				return 30;
+			default:
+				return 31;
+		}
+	}
 
-	native public int minLength();
+	public int minLength() {
+		return Math.min(length(false), length(true));
+	}
 
-	native public int maxLength();
+	public int maxLength() {
+		return Math.min(length(false), length(true));
+	}
 
-	native public int firstDayOfYear(boolean leapYear);
+	public int firstDayOfYear(boolean leapYear) {
+		// We can pre-compute this if required
+		int count = 1;
+		for (Month value : values()) {
+			count += length(leapYear);
+			if (value == this) break;
+		}
+		return count;
+	}
 
-	native public Month firstMonthOfQuarter();
+	public Month firstMonthOfQuarter() {
+		return values()[this.ordinal() / 3 * 3];
+	}
 
 	native public <R> R query(TemporalQuery<R> query);
 
