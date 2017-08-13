@@ -3,7 +3,7 @@ package java.util;
 import com.jtransc.JTranscSystem;
 import com.jtransc.internal.JTranscCType;
 import com.jtransc.text.JTranscLocale;
-import com.jtransc.text.JTranscStringSplit;
+import com.jtransc.util.JTranscStrings;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -204,7 +204,7 @@ public class Formatter implements Closeable, Flushable {
 			}
 			case 'f': {
 				final double v = ((Number) value).doubleValue();
-				String[] parts = JTranscStringSplit.split(String.valueOf(v), '.');
+				String[] parts = JTranscStrings.split(String.valueOf(v), '.');
 				if (parts.length <= 0) {
 					return "";
 				} else if (parts.length <= 1) {

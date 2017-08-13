@@ -16,6 +16,7 @@
 
 package java.text;
 
+import com.jtransc.text.JTranscLocale;
 import com.jtransc.text.JTranscStringTools;
 import com.jtransc.util.JTranscStrings;
 
@@ -54,27 +55,9 @@ public class NumberFormat extends Format {
 		//System.out.println(locale.getLanguage());
 
 		// https://docs.oracle.com/cd/E19455-01/806-0169/overview-9/index.html
-		switch (locale.getLanguage()) {
-			case "es":
-			case "it":
-			case "nw":
-				intGroupDigits = 3;
-				intGroupSeparator = ".";
-				commaSeparator = ",";
-				break;
-			case "en":
-			case "ja":
-				intGroupDigits = 3;
-				intGroupSeparator = ",";
-				commaSeparator = ".";
-				break;
-			case "fr":
-			default:
-				intGroupDigits = 3;
-				intGroupSeparator = "\u00a0";
-				commaSeparator = ",";
-				break;
-		}
+		intGroupDigits = JTranscLocale.getIntNumberOfDigits(locale);
+		intGroupSeparator = JTranscLocale.getGroupSeparator(locale);
+		commaSeparator = JTranscLocale.getDecimalSeparator(locale);
 	}
 
 	@Override
