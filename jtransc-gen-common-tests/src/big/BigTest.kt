@@ -4,10 +4,7 @@ import android.AndroidArgsTest
 import com.jtransc.annotation.JTranscKeepConstructors
 import com.jtransc.io.JTranscConsole
 import com.jtransc.util.JTranscStrings
-import issues.Issue100Double
-import issues.Issue105
-import issues.Issue209
-import issues.Issue94Enum
+import issues.*
 import issues.issue130.Issue130
 import javatest.*
 import javatest.lang.*
@@ -156,6 +153,7 @@ object BigTest {
 		OptionalTest.main(args)
 		ServerSocketTest.main(args)
 		SimpleSoundTest.main(args)
+		Issue246.main(args)
 	}
 
 	private fun servicesTest() {

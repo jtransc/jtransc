@@ -684,6 +684,17 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 	 */
 	public static final int LONG = 2;
 
+	public static final int NARROW_FORMAT = 4;
+
+	public static final int NARROW_STANDALONE = NARROW_FORMAT | 0x8000;
+
+	public static final int SHORT_STANDALONE = SHORT | 0x8000;
+	public static final int LONG_STANDALONE = LONG | 0x8000;
+
+	public static final int SHORT_FORMAT = 1;
+
+	public static final int LONG_FORMAT = 2;
+
 	private static final String[] FIELD_NAMES = {"ERA", "YEAR", "MONTH",
 		"WEEK_OF_YEAR", "WEEK_OF_MONTH", "DAY_OF_MONTH", "DAY_OF_YEAR",
 		"DAY_OF_WEEK", "DAY_OF_WEEK_IN_MONTH", "AM_PM", "HOUR",

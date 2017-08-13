@@ -43,7 +43,7 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		this.isDirect = isDirect;
 	}
 
-	private ByteBuffer(int capacity, byte[] backingArray, int arrayOffset, boolean isReadOnly) {
+	ByteBuffer(int capacity, byte[] backingArray, int arrayOffset, boolean isReadOnly) {
 		super(0, capacity, null);
 		this.backingArray = backingArray;
 		this.arrayOffset = arrayOffset;
@@ -54,7 +54,6 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 				", capacity=" + capacity + ", arrayOffset=" + arrayOffset);
 		}
 	}
-
 
 	public static ByteBuffer allocate(int capacity) {
 		if (capacity < 0) throw new IllegalArgumentException("capacity < 0: " + capacity);
