@@ -64,6 +64,8 @@ script:
 - jdk_switcher use oraclejdk8
 - "./gradlew -s -i check install"
 - jdk_switcher use oraclejdk7
+- export JAVA_HOME=$(/usr/libexec/java_home)
+- export PATH=$JAVA_HOME/jre/bin:$PATH
 - pushd jtransc-main-run/example
 - "./run"
 - popd
