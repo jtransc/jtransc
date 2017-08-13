@@ -30,9 +30,17 @@ public class JTranscBug244 {
 		System.out.println("String.format(\"%.2f\", 0.12345): " + String.format("%.2f", 0.12345));
 		System.out.println("String.format(\"%.0f\", 0.12345): " + String.format("%.0f", 0.12345));
 		System.out.println("String.format(\"%.2f\", 0.1): " + String.format("%.2f", 0.1));
+		System.out.println("String.format(\"%.3f\", 0.1): " + String.format("%.3f", 0.1));
+		System.out.println("String.format(\"%.2f\", 1.0): " + String.format("%.2f", 1.0));
+		System.out.println("String.format(\"%.2f\", 123f): " + String.format("%.2f", 123f));
+		System.out.println("String.format(\"%.2f\", 123.12345): " + String.format("%.2f", 123.12345));
+		System.out.println("String.format(\"%.2f\", 0.0): " + String.format("%.2f", 0.0));
 		System.out.println("String.format(\"+INF=%.2f\", Float.POSITIVE_INFINITY): " + String.format("+INF=%.2f", Float.POSITIVE_INFINITY));
 		System.out.println("String.format(\"-INF=%.2f\", Float.NEGATIVE_INFINITY): " + String.format("-INF=%.2f", Float.NEGATIVE_INFINITY));
 		System.out.println("String.format(\"NaN=%.2f\", Float.NaN): " + String.format("NaN=%.2f", Float.NaN));
+		System.out.println("String.format ITALIAN: " + String.format(Locale.ITALIAN, "%.2f", 0.12345));
+		System.out.println("String.format ITALIAN: " + String.format(Locale.FRENCH, "%.2f", 0.12345));
+		System.out.println("String.format ITALIAN: " + String.format(Locale.GERMANY, "%.2f", 0.12345));
 	}
 
 	static private void floatNaN2IntTest() {
