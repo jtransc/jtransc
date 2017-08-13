@@ -14,6 +14,7 @@ import javatest.net.ServerSocketTest
 import javatest.nio.ModifiedUtf8Test
 import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
+import javatest.time.PeriodTest
 import javatest.utils.*
 import javatest.utils.Base64Test
 import javatest.utils.CopyTest
@@ -156,6 +157,7 @@ object BigTest {
 		Issue246.main(args)
 
 		JTranscBug244.main(args)
+		PeriodTest.main(args)
 	}
 
 	private fun servicesTest() {

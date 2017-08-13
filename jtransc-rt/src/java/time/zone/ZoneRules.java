@@ -32,7 +32,9 @@ public final class ZoneRules implements Serializable {
 		List<ZoneOffsetTransitionRule> lastRules
 	);
 
-	native public static ZoneRules of(ZoneOffset offset);
+	public static ZoneRules of(ZoneOffset offset) {
+		return offset.getRules();
+	}
 
 	native public boolean isFixedOffset();
 

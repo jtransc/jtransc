@@ -30,9 +30,7 @@ public interface TemporalAccessor {
 	}
 
 	default int get(TemporalField field) {
-		ValueRange range = range(field);
-		long value = getLong(field);
-		return (int) value;
+		return (int) getLong(field);
 	}
 
 	default <R> R query(TemporalQuery<R> query) {

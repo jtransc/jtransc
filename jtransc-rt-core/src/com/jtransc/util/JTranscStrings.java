@@ -3,6 +3,8 @@ package com.jtransc.util;
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscInvisible;
 
+import java.util.ArrayList;
+
 @SuppressWarnings("WeakerAccess")
 @JTranscInvisible
 public class JTranscStrings {
@@ -74,5 +76,22 @@ public class JTranscStrings {
 			out.append(parts[n]);
 		}
 		return out.toString();
+	}
+
+	static public String[] split(String str, char c) {
+		ArrayList<String> out = new ArrayList<>();
+		int pivot = 0;
+		int length = str.length();
+		int n = 0;
+		for (; n < length; n++) {
+			if (str.charAt(n) == c) {
+				out.add(str.substring(pivot, n));
+				pivot = n + 1;
+			}
+		}
+		if (pivot <= length) {
+			out.add(str.substring(pivot, n));
+		}
+		return out.toArray(new String[out.size()]);
 	}
 }

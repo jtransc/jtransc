@@ -43,9 +43,13 @@ public final class LocalDate implements Temporal, TemporalAdjuster, ChronoLocalD
 
 	native public static LocalDate now(Clock clock);
 
-	native public static LocalDate of(int year, Month month, int dayOfMonth);
+	public static LocalDate of(int year, Month month, int dayOfMonth) {
+		return new LocalDate(year, (short) month.getValue(), (short) dayOfMonth);
+	}
 
-	native public static LocalDate of(int year, int month, int dayOfMonth);
+	public static LocalDate of(int year, int month, int dayOfMonth) {
+		return new LocalDate(year, (short) month, (short) dayOfMonth);
+	}
 
 	native public static LocalDate ofYearDay(int year, int dayOfYear);
 

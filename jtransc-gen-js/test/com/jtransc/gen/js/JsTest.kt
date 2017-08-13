@@ -31,6 +31,7 @@ import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import javatest.net.ServerSocketTest
 import javatest.net.URLEncoderDecoderTest
+import javatest.time.PeriodTest
 import javatest.utils.KotlinInheritanceTest
 import javatest.utils.OptionalTest
 import javaxtest.sound.SimpleSoundTest
@@ -60,6 +61,7 @@ class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
 	//override val TREESHAKING_TRACE = true
 
+	@Test fun testBigWithoutTreeShaking() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false))
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
 	@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = true, log = false, treeShaking = true))
@@ -226,4 +228,7 @@ class JsTest : _Base() {
 
 	@Ignore("Covered BigTest")
 	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testPeriodTest() = testClass(Params(clazz = PeriodTest::class.java, minimize = false, log = false, debug = true))
 }
