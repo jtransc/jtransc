@@ -906,8 +906,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2b(str: String) = "((int8_t)($str))"
 	override fun N_i2c(str: String) = "((uint16_t)($str))"
 	override fun N_i2s(str: String) = "((int16_t)($str))"
-	override fun N_f2i(str: String) = "((int32_t)($str))"
-	override fun N_d2i(str: String) = "((int32_t)($str))"
+	override fun N_f2i(str: String) = "N::f2i($str)"
+	override fun N_d2i(str: String) = "N::d2i($str)"
 
 	override fun N_i2f(str: String) = "((float)($str))"
 	override fun N_i2d(str: String) = "((double)($str))"

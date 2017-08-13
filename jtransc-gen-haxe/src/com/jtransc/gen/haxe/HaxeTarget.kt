@@ -11,6 +11,7 @@ import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.concatNotNull
 import com.jtransc.ds.getOrPut2
 import com.jtransc.ds.split
+import com.jtransc.env.OS
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
 import com.jtransc.gen.common.*
@@ -91,6 +92,7 @@ class HaxeTarget : GenTargetDescriptor() {
 @Singleton
 class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val TARGET_NAME: String = "HAXE"
+
 	companion object {
 		//const val ENABLE_HXCPP_GOTO_HACK = true
 		const val ENABLE_HXCPP_GOTO_HACK = false // @TODO: If last statement is a goto. Add return null; or return; at the end
@@ -329,7 +331,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val releaseDebugSuffix = when {
 			debugVersion -> "-debug"
-			//else -> "-release"
+		//else -> "-release"
 			else -> ""
 		}
 
@@ -527,7 +529,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (inlineCasts) "(($str) << 16 >> 16)" else "N.i2s($str)"
 	}
 
-	override fun N_f2i(str: String) = "Std.int($str)"
+	override fun N_f2i(str: String) = "N.f2i($str)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.intToLong($str)"
 	override fun N_i2f(str: String) = "($str)"
@@ -536,7 +538,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_f2d(str: String) = "($str)"
 	override fun N_d2f(str: String) = "(($str))"
 	override fun N_d2d(str: String) = "($str)"
-	override fun N_d2i(str: String) = "Std.int($str)"
+	override fun N_d2i(str: String) = "N.d2i($str)"
 	override fun N_j2i(str: String) = "(N.llow($str))"
 	override fun N_j2j(str: String) = "($str)"
 	override fun N_j2f(str: String) = "N.longToFloat($str)"
@@ -866,8 +868,19 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 					{{ flag.first }}
 					{{ flag.second }}
 				{% end %}
-				-D
-				HXCPP_M64
+				""" +
+				if (OS.isWindows) {
+					"""
+					-D
+					HXCPP_M64
+					"""
+				} else {
+					"""
+					-D
+					HXCPP_M64
+					"""
+				} +
+				"""
 				{% for define in haxeExtraDefines %}
 					-D
 					{{ define }}

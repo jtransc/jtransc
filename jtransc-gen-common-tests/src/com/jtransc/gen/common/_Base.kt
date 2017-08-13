@@ -125,7 +125,7 @@ open class _Base {
 
 	fun getRootFromUrl(url: URL, numberOfPackages: Int): File {
 		val uri = url.toURI()
-		println("locateTestRootByClass.URI: $uri")
+		log.info("locateTestRootByClass.URI: $uri")
 		if (uri.toString().startsWith("jar:")) {
 			return File((url.openConnection() as JarURLConnection).jarFileURL.file)
 		} else {
@@ -158,8 +158,8 @@ open class _Base {
 		val testRoot = locateTestRootByClass(BigTest::class.java)
 		val resourceRoot = locateTestRootByResource("filetoinclude.txt")
 
-		println("testRoot: $testRoot")
-		println("resourceRoot: $resourceRoot")
+		log.info("testRoot: $testRoot")
+		log.info("resourceRoot: $resourceRoot")
 
 		val rtAndCoreUnfiltered = listOf(
 			"jtransc-rt", "jtransc-rt-core",
@@ -174,7 +174,7 @@ open class _Base {
 		val rtAndCoreFiltered = rtAndCoreUnfiltered.filter { File(it).exists() }
 
 		for (file in rtAndCoreUnfiltered) {
-			println("- RT: '$file': exists=${File(file).exists()}")
+			log.info("- RT: '$file': exists=${File(file).exists()}")
 		}
 		injector.mapInstances(
 			params.backend ?: BACKEND, ConfigClassPaths(

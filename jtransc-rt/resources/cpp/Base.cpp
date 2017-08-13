@@ -301,6 +301,8 @@ struct N { public:
 	inline static int32_t j2i(int64_t v);
 	inline static int64_t f2j(float v);
 	inline static int64_t d2j(double v);
+	inline static int32_t f2i(float v);
+	inline static int32_t d2i(double v);
 	static void log(std::wstring str);
 	static void log(JAVA_OBJECT str);
 
@@ -644,7 +646,7 @@ struct JA_D : JA_Base<double> {
 	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
 
 	static JA_D* fromArray(std::wstring desc, std::vector<double> array) {
-		auto len = array.size();
+		auto len = (int32_t)array.size();
 		auto out = new JA_D(len);
 		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
@@ -871,6 +873,35 @@ int32_t N::j2i(int64_t v) { return (int32_t)v; }
 
 int64_t N::f2j(float v) { return (int64_t)v; }
 int64_t N::d2j(double v) { return (int64_t)v; }
+
+// TODO: templatize d2i and f2i to write just once
+int32_t N::d2i(double v) {
+	if (std::isfinite(v)) {
+		return (int32_t)v;
+	} else {
+		if (std::isnan(v)) {
+			return 0;
+		} else if (v >= 0) {
+			return (int32_t)0x7fffffff;
+		} else {
+			return (int32_t)0x80000000;
+		}
+	}
+}
+
+int32_t N::f2i(float v) {
+	if (std::isfinite(v)) {
+		return (int32_t)v;
+	} else {
+		if (std::isnan(v)) {
+			return 0;
+		} else if (v >= 0) {
+			return (int32_t)0x7fffffff;
+		} else {
+			return (int32_t)0x80000000;
+		}
+	}
+}
 
 //SOBJ N::strLiteral(wchar_t *ptr, int len) {
 //	SOBJ out(new {% CLASS java.lang.String %}());

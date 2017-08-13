@@ -725,6 +725,22 @@ N.i2d = function(v) { return +v; }
 N.f2j = function(v) { return Int64.ofFloat(v); }
 N.d2j = function(v) { return Int64.ofFloat(v); }
 
+N.d2i = function(v) {
+	if (isFinite(v)) {
+		return v | 0;
+	} else {
+		if (isNaN(v)) {
+			return 0;
+		} else if (v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+}
+N.f2i = function(v) {
+	return N.d2i(v);
+}
 
 ///////////////////////
 // Integer

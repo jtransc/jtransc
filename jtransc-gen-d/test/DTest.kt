@@ -6,6 +6,7 @@ import com.jtransc.gen.d.DTarget
 import issues.Issue100Double
 import issues.issue130.Issue130
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.jtransc.nativ.JTranscDNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -60,4 +61,7 @@ class DTest : _Base() {
 	@Test fun testMixed() = testNativeClass("""
 		JTranscReinterpretArrays:
 	""", Params(clazz = JTranscDNativeMixedTest::class.java, minimize = false))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

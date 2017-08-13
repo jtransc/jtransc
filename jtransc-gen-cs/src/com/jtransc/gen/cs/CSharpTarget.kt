@@ -185,7 +185,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2b(str: String) = "((sbyte)($str))"
 	override fun N_i2c(str: String) = "((ushort)($str))"
 	override fun N_i2s(str: String) = "((short)($str))"
-	override fun N_f2i(str: String) = "((int)($str))"
+	override fun N_f2i(str: String) = "N.f2i($str)"
 
 	//fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"" else "null"
 
@@ -329,7 +329,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i(str: String) = "($str)"
 
 	//override fun N_f2i(str: String) = "((int)($str))"
-	override fun N_d2i(str: String) = "((int)($str))"
+	override fun N_d2i(str: String) = "N.d2i($str)"
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"

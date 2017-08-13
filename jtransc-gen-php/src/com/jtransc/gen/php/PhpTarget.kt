@@ -172,7 +172,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2b(str: String) = "(N::i2b($str))"
 	override fun N_i2c(str: String) = "(N::i2c($str))"
 	override fun N_i2s(str: String) = "(N::i2s($str))"
-	override fun N_f2i(str: String) = "(($str)|0)"
+	override fun N_f2i(str: String) = "(N::f2i($str))"
 
 	//fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"" else "null"
 
@@ -323,7 +323,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun N_i(str: String) = "(($str)|0)"
 	override fun N_i(str: String) = "((int)($str))"
 
-	override fun N_d2i(str: String) = N_i(str)
+	override fun N_d2i(str: String) = "N::d2i($str)"
 
 	override fun N_c_eq(l: String, r: String) = "($l == $r)"
 	override fun N_c_ne(l: String, r: String) = "($l != $r)"

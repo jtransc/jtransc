@@ -258,8 +258,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun N_i(str: String) = "(cast(int)($str))"
 	override fun N_i(str: String) = "($str)"
 
-	override fun N_f2i(str: String) = "(cast(int)($str))"
-	override fun N_d2i(str: String) = "(cast(int)($str))"
+	override fun N_f2i(str: String) = "N.f2i($str)"
+	override fun N_d2i(str: String) = "N.d2i($str)"
 	override fun N_c_eq(l: String, r: String) = "($l is $r)"
 	override fun N_c_ne(l: String, r: String) = "($l !is $r)"
 

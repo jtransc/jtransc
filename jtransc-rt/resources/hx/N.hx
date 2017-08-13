@@ -196,12 +196,27 @@ class N {
 	#end
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
+	static public function d2i(v:Float):Int {
+		if (Math.isFinite(v)) {
+			#if cpp
+			return untyped __cpp__("((int)({0}))", v);
+			#else
+			return Std.int(v);
+			#end
+		} else {
+			if (Math.isNaN(v)) {
+				return 0;
+			} else if (v >= 0) {
+				return 2147483647;
+			} else {
+				return -2147483648;
+			}
+		}
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function f2i(v:Float):Int {
-		#if cpp
-		return untyped __cpp__("((int)({0}))", v);
-		#else
-		return Std.int(v);
-		#end
+		return d2i(v);
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function int(v:Float):Int return f2i(v);

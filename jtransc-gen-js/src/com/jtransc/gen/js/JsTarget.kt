@@ -269,7 +269,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_i2b(str: String) = "(($str)<<24>>24)" // shifts use 32-bit integers
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
 	override fun N_i2s(str: String) = "(($str)<<16>>16)" // shifts use 32-bit integers
-	override fun N_f2i(str: String) = "(($str)|0)"
+	override fun N_f2i(str: String) = "N.f2i($str)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.i2j($str)"
 	override fun N_i2f(str: String) = "Math.fround(+($str))"
@@ -277,7 +277,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_f2f(str: String) = "Math.fround($str)"
 	override fun N_f2d(str: String) = "($str)"
 	override fun N_d2f(str: String) = "Math.fround(+($str))"
-	override fun N_d2i(str: String) = "(($str)|0)"
+	override fun N_d2i(str: String) = "N.d2i($str)"
 	override fun N_d2d(str: String) = "+($str)"
 	override fun N_j2i(str: String) = "N.j2i($str)"
 	override fun N_j2j(str: String) = str
