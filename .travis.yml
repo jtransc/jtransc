@@ -1,5 +1,5 @@
 language: java
-dist: precise
+dist: trusty
 node_js:
 - '4'
 jdk:
