@@ -1,8 +1,40 @@
 # CHANGELOG
 
-## 0.6.7 (TBD)
+## 0.6.7 (2017-08-13)
 
+New features:
+- @Intrigus Add almost complete jni implementation for cpp target 
+- @fxjshm: Added synchronized function support (except Haxe target for now)
+- @fxjshm: Support mutex in C++ target
 - Added support for `Runtime.addShutdownHook()` to JS target
+- Added `javax.sound.sampled` stub classes
+- Added tons of `java.nio` stub classes
+- Added `java.awt.Desktop` stub class
+- Added `java.util.Optional`
+- Added most `java.util.functional.*` interfaces
+- Added `java.net.ServerSocket` stub class
+- Added and implemented lots of `java.time` classes
+
+Improvements:
+- @SergeyLabutin: Split reflection information in several methods
+- @SergeyLabutin: Thread improvements
+- Implemented `String.format("%.f")` support with Locale support
+- Honor `cond` in `JTranscAddLibraries`, `JTranscAddIncludes`, `JTranscAddDefines`, `JTranscAddImports`
+
+Fixes:
+- @intrigus: Compile Bdwgc lib statically instead of dynamically
+- Fixed System.arraycopy undefined behaviour on overlapping
+- Make more compatible `d2i` and `f2i` opcodes for float and double to int conversions in NaN, -Inf and +Inf
+
+Misc:
+- Moved each language test to its own project. Added jtransc-gen-common-tests
+- Added codecov + jacoco to test coverage
+- Make haxelib quiet to reduce log output in travis
+- Updated gradle to 4.0.2
+- Disabled C# tests on travis for now
+- Updated travis to Ubuntu Trusty
+- haxelib --always
+- @SergeyLabutin: Updated lime to 5.3.0
 
 ## 0.6.6 (2017-07-23)
 
