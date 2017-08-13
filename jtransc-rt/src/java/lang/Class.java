@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
+import java.lang.AnnotatedElement;
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "unused", "TryWithIdenticalCatches", "SuspiciousToArrayCall"})
 public final class Class<T> implements java.io.Serializable, Type, GenericDeclaration, AnnotatedElement {
@@ -228,6 +229,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
+	//private static void
+
 	public static Class<?> forName(String className) throws ClassNotFoundException {
 		//Objects.requireNonNull(className, "className");
 		if (className == null) return null;
@@ -272,12 +275,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	public boolean isAssignableFrom(Class<?> cls) {
-		if (cls != null) {
-			int tid = this.id;
-			if (cls.related != null) {
-				for (int cid : cls.related) if (cid == tid) return true;
-			}
+		if (cls == null) throw new NullPointerException("Passed a null class to isAssignableFrom.");
+
+		int tid = this.id;
+		if (cls.related != null) {
+			for (int cid : cls.related) if (cid == tid) return true;
 		}
+
 		return false;
 	}
 
@@ -494,6 +498,15 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		throw new NoSuchMethodException(name);
 	}
 
+	public Method _getMethodBySig(boolean declared, String name, String parameterSignature) throws NoSuchMethodException, SecurityException {
+		for (Method m : declared ? getDeclaredMethods() : getMethods()) {
+			if (Objects.equals(m.getName(), name) && m.signature.equals(parameterSignature)) {
+				return m;
+			}
+		}
+		throw new NoSuchMethodException(name);
+	}
+
 	public Constructor<?>[] getConstructors() throws SecurityException {
 		return this.getDeclaredConstructors(); // @TODO: Filter just public! + ancestors?
 	}
@@ -510,6 +523,10 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return _getMethod(true, name, parameterTypes);
 	}
 
+	private Method getDeclaredMethodBySig(String name, String parameterSignature) throws NoSuchMethodException, SecurityException {
+		return _getMethodBySig(true, name, parameterSignature);
+	}
+
 	public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		//JTranscConsole.log("BEGIN getDeclaredConstructor");
 		Class<?>[] parameterTypes2 = (parameterTypes != null) ? parameterTypes : new Class[0];
@@ -521,6 +538,16 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 			}
 		}
 		throw new NoSuchMethodException("Can't find constructor of class " + this.getName() + " with parameters " + Arrays.asList(parameterTypes));
+	}
+
+	public Constructor<T> getDeclaredConstructorBySig(String parameterTypeSig) throws NoSuchMethodException, SecurityException {
+		for (Constructor c : getDeclaredConstructors()) {
+			if (c.signature.equals(parameterTypeSig)) {
+				return c;
+			}
+		}
+		//throw new NoSuchMethodException("Can't find constructor of class " + this.getName() + " with parametersig " + Arrays.asList(parameterTypeSig));
+		return null;
 	}
 
 	// Annotations

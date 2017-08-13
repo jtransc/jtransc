@@ -1,6 +1,7 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscKeep;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -26,7 +27,16 @@ abstract public class MethodConstructor extends AccessibleObject {
 	protected byte[] annotationDefault;
 	//private volatile MethodAccessor methodAccessor;
 	// Generics and annotations support
-	protected transient String signature;
+	/*protected*/ public transient String signature;
+
+	/**
+	 * A special custom-made signature for jtransc's cpp jni implementation
+	 * It condenses a "normal" Java signature. It will retain only the first
+	 * array dimension and it will NOT retain the full qualified name of the type.
+	 * A normal Class signature will NOT retain the fully qualified name, e.g.
+	 * Ljava/lang/String; will ONLY become L since the actual type is not important for us.
+	 */
+	private transient String jniSignature;
 	protected transient String genericSignature;
 
 
@@ -45,6 +55,39 @@ abstract public class MethodConstructor extends AccessibleObject {
 		this.signature = info.desc;
 		this.genericSignature = info.genericDesc;
 		this.modifiers = info.modifiers;
+		jniSignature = getJniSignature(signature);
+	}
+
+	/**
+	 * Takes a java type signature and changes it to a custom signature for jni only
+	 * E.g. (ILjava/lang/String;[I)J becomes (IL[)J
+	 *
+	 * @param sig
+	 * @return
+	 */
+	@JTranscInvisible
+	@JTranscKeep
+	private static String getJniSignature(String sig) {
+		String newSig = "";
+		int firstIndex = sig.indexOf('(') + 1;
+		int lastIndex = sig.indexOf(')');
+		String s = sig.substring(firstIndex, lastIndex);
+		int arrayDim = 0;
+		for (int i = 0; i < s.length(); i++) {
+			if (s.charAt(i) != 'L' && s.charAt(i) != '[') {
+				if (arrayDim == 0) newSig += s.charAt(i);
+				arrayDim = 0;
+			} else if (s.charAt(i) == 'L') {
+				for (; i < s.length() && s.charAt(i) != ';'; i++) {
+				} // Intentionally blank!
+				if (arrayDim == 0) newSig += 'L';
+				arrayDim = 0;
+			} else if (s.charAt(i) == '[') {
+				if (arrayDim == 0) newSig += '[';
+				arrayDim++;
+			}
+		}
+		return newSig;
 	}
 
 	public Annotation[] getDeclaredAnnotations() {
@@ -58,6 +101,10 @@ abstract public class MethodConstructor extends AccessibleObject {
 		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
 		//JTranscConsole.log("methodType: " + (methodType != null));
 		return methodType;
+	}
+
+	public int getParameterCount() {
+		return methodType().args.length;
 	}
 
 	public Class<?>[] getExceptionTypes() {
@@ -124,12 +171,20 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return _params.clone();
 	}
 
+	public boolean isStatic() {
+		return (getModifiers() & Modifier.STATIC) != 0;
+	}
+
 	public boolean isVarArgs() {
 		return (getModifiers() & Modifier.VARARGS) != 0;
 	}
 
 	public boolean isSynthetic() {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
+	}
+
+	public boolean isPrivate() {
+		return (getModifiers() & Modifier.PRIVATE) != 0;
 	}
 
 	public String toString() {
