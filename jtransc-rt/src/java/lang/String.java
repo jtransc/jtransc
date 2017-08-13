@@ -481,7 +481,10 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	public static String format(Locale l, String format, Object... args) {
-		return format(format, args);
+		StringBuilder sb = new StringBuilder();
+		Formatter formatter = new Formatter(sb, l);
+		formatter.format(format, args);
+		return sb.toString();
 	}
 
 	public static String valueOf(Object obj) {
