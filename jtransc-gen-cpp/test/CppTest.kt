@@ -22,6 +22,7 @@ import issues.issue130.Issue130
 import javatest.finalize.FinalizeTest
 import javatest.misc.ExecutionOrderTest
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.java8.Java8Test
 import jtransc.jtransc.SimdTest
 import jtransc.micro.NanoHelloWorldTest
@@ -76,4 +77,6 @@ class CppTest : _Base() {
 
     @Test fun testThreading() = testClass(Params(clazz = ThreadingTest::class.java, minimize = false, log = false))
 
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

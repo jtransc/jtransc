@@ -239,6 +239,29 @@ class N {
 	static public long f2j(float v) { return cast(long)(v); }
 	static public long d2j(double v) { return cast(long)(v); }
 
+	static public int f2i(float v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(int)v;
+		} else if (v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+	static public int d2i(double v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(int)v;
+		} else if (v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+
 	static public long lneg(long l) { return -l; }
 	static public long linv(long l) { return ~l; }
 	static public long ladd(long l, long r) { return l + r; }

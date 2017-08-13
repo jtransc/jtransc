@@ -388,6 +388,22 @@ final class N {
 	static function init() {
 	}
 
+	static public function d2i(float $v) : int {
+		if (is_finite($v)) {
+			return $v|0;
+		} else if (is_nan($v)) {
+			return 0;
+		} else if ($v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+
+	static public function f2i(float $v) : int {
+		return N::d2i($v);
+	}
+
 	static public function utf16_to_utf8(string $str) : string {
 		return mb_convert_encoding($str, 'UTF-8', 'UTF-16LE');
 	}

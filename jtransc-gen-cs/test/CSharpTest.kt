@@ -8,6 +8,7 @@ import com.jtransc.gen.cs.CSharpTarget
 import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.micro.MicroHelloWorld
 import jtransc.staticinit.StaticInitTest
 import org.junit.Ignore
@@ -67,4 +68,7 @@ class CSharpTest : _Base() {
 
 	@Ignore("Disabled until it works on travis")
 	@Test fun testAsyncIO() = testClass(Params(clazz = AsyncIOTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

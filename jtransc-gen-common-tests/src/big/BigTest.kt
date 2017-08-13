@@ -155,7 +155,7 @@ object BigTest {
 		SimpleSoundTest.main(args)
 		Issue246.main(args)
 
-		//JTranscBug244.main(args)
+		JTranscBug244.main(args)
 	}
 
 	private fun servicesTest() {

@@ -7,6 +7,7 @@ import com.jtransc.gen.dart.DartTarget
 import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.jtransc.SimdTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
@@ -53,4 +54,7 @@ class DartTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

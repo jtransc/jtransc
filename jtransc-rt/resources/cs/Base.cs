@@ -95,6 +95,30 @@ class N {
 	static public long i2j(int v) { return (long)v; }
 	static public long f2j(float v) { return (long)v; }
 
+	static public int f2i(float v) {
+		if (Single.IsNaN(v)) {
+			return 0;
+		} else if (!Single.IsInfinity(v)) {
+			return (int)v;
+		} else if (v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+
+	static public int d2i(double v) {
+		if (Double.IsNaN(v)) {
+			return 0;
+		} else if (!Double.IsInfinity(v)) {
+			return (int)v;
+		} else if (v >= 0) {
+			return 2147483647;
+		} else {
+			return -2147483648;
+		}
+	}
+
 	static public long lneg (long l) { return -l; }
 	static public long linv (long l) { return ~l; }
 	static public long ladd (long l, long r) { return l + r; }

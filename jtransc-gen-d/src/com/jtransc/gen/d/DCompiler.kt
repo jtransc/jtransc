@@ -1,5 +1,6 @@
 package com.jtransc.gen.d
 
+import com.jtransc.env.OS
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
 import java.io.File
@@ -12,13 +13,15 @@ object DCompiler {
 
 	object DMD : BaseCompiler("dmd") {
 		override fun genCommand(programFile: File, config: Config): List<String> {
+			val march = if (OS.isWindows) "-m32" else "-m64"
+
 			if (config.debug) {
 				// @TODO: DMD bug -gc allows to print good stacktraces but -gc makes compiler fail on large files
 				//return listOf(cmd!!, "-debug", "-gc", "-gx", programFile.absolutePath)
-				return listOf(cmd!!, "-debug", "-m64", programFile.absolutePath)
+				return listOf(cmd!!, "-debug", march, programFile.absolutePath)
 			} else {
 				//return listOf(cmd!!, "-release", "-O", "-m64", "-inline", programFile.absolutePath)
-				return listOf(cmd!!, "-release", "-O", "-m64", programFile.absolutePath)
+				return listOf(cmd!!, "-release", "-O", march, programFile.absolutePath)
 			}
 		}
 	}

@@ -19,6 +19,7 @@ import com.jtransc.gen.common._Base
 import com.jtransc.gen.php.PhpTarget
 import javatest.misc.ArrayListTest
 import javatest.misc.TryFinallyCheck
+import jtransc.bug.JTranscBug244
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -37,4 +38,7 @@ class PhpTest : _Base() {
 
 	@Ignore
 	@Test fun TryFinallyCheck() = testClass(Params(clazz = TryFinallyCheck::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }

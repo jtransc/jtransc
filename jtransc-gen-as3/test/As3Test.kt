@@ -6,6 +6,7 @@ import com.jtransc.gen.common._Base
 import issues.issue130.Issue130
 import javatest.misc.BenchmarkTest
 import jtransc.bug.JTranscBug127
+import jtransc.bug.JTranscBug244
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
@@ -51,4 +52,7 @@ class As3Test : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
 }
