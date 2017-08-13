@@ -38,9 +38,14 @@ public class JTranscBug244 {
 		System.out.println("String.format(\"+INF=%.2f\", Float.POSITIVE_INFINITY): " + String.format("+INF=%.2f", Float.POSITIVE_INFINITY));
 		System.out.println("String.format(\"-INF=%.2f\", Float.NEGATIVE_INFINITY): " + String.format("-INF=%.2f", Float.NEGATIVE_INFINITY));
 		System.out.println("String.format(\"NaN=%.2f\", Float.NaN): " + String.format("NaN=%.2f", Float.NaN));
+		System.out.println("String.format ENGLISH: " + String.format(Locale.ENGLISH, "%.2f", 0.12345));
 		System.out.println("String.format ITALIAN: " + String.format(Locale.ITALIAN, "%.2f", 0.12345));
-		System.out.println("String.format ITALIAN: " + String.format(Locale.FRENCH, "%.2f", 0.12345));
-		System.out.println("String.format ITALIAN: " + String.format(Locale.GERMANY, "%.2f", 0.12345));
+		System.out.println("String.format FRENCH: " + String.format(Locale.FRENCH, "%.2f", 0.12345));
+		System.out.println("String.format GERMAN: " + String.format(Locale.GERMAN, "%.2f", 0.12345));
+		System.out.println("String.format JAPANESE: " + String.format(Locale.JAPANESE, "%.2f", 0.12345));
+		System.out.println("String.format CHINESE: " + String.format(Locale.CHINESE, "%.2f", 0.12345));
+		System.out.println("String.format RUSSIAN: " + String.format(Locale.forLanguageTag("ru"), "%.2f", 0.12345));
+		System.out.println("String.format SPANISH: " + String.format(Locale.forLanguageTag("es"), "%.2f", 0.12345));
 	}
 
 	static private void floatNaN2IntTest() {

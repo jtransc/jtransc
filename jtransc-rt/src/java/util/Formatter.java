@@ -2,29 +2,32 @@ package java.util;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.internal.JTranscCType;
+import com.jtransc.text.JTranscLocale;
+import com.jtransc.text.JTranscStringSplit;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.regex.Pattern;
 
 public class Formatter implements Closeable, Flushable {
-	Appendable out;
-	IOException ioException;
-
-	public Formatter() {
-		this.out = new StringBuilder();
-	}
-
-	public Formatter(Appendable a) {
-		this.out = a;
-	}
-
-	public Formatter(Locale l) {
-		this.out = new StringBuilder();
-	}
+	private final Appendable out;
+	private IOException ioException;
+	private final Locale l;
 
 	public Formatter(Appendable a, Locale l) {
 		this.out = a;
+		this.l = l;
+	}
+
+	public Formatter() {
+		this(new StringBuilder(), Locale.getDefault());
+	}
+
+	public Formatter(Appendable a) {
+		this(a, Locale.getDefault());
+	}
+
+	public Formatter(Locale l) {
+		this(new StringBuilder(), l);
 	}
 
 	public Formatter(String fileName) throws FileNotFoundException {
@@ -44,15 +47,15 @@ public class Formatter implements Closeable, Flushable {
 	}
 
 	public Formatter(File file, String csn) throws FileNotFoundException, UnsupportedEncodingException {
-		out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), csn));
+		this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), csn)));
 	}
 
 	public Formatter(File file, String csn, Locale l) throws FileNotFoundException, UnsupportedEncodingException {
-		this(file, csn);
+		this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), csn)), l);
 	}
 
 	public Formatter(OutputStream os) {
-		out = new BufferedWriter(new OutputStreamWriter(os, Charset.defaultCharset()));
+		this(new BufferedWriter(new OutputStreamWriter(os, Charset.defaultCharset())));
 	}
 
 	public Formatter(OutputStream os, String csn) throws UnsupportedEncodingException {
@@ -60,11 +63,11 @@ public class Formatter implements Closeable, Flushable {
 	}
 
 	public Formatter(OutputStream os, String csn, Locale l) throws UnsupportedEncodingException {
-		out = new BufferedWriter(new OutputStreamWriter(os, csn));
+		this(new BufferedWriter(new OutputStreamWriter(os, csn)));
 	}
 
 	public Formatter(PrintStream ps) {
-		out = ps;
+		this(ps, Locale.getDefault());
 	}
 
 	@Override
@@ -201,7 +204,7 @@ public class Formatter implements Closeable, Flushable {
 			}
 			case 'f': {
 				final double v = ((Number) value).doubleValue();
-				String[] parts = String.valueOf(v).split(Pattern.quote("."));
+				String[] parts = JTranscStringSplit.split(String.valueOf(v), '.');
 				if (parts.length <= 0) {
 					return "";
 				} else if (parts.length <= 1) {
@@ -212,7 +215,7 @@ public class Formatter implements Closeable, Flushable {
 					if (decimal.length() == 0) {
 						return integral;
 					} else {
-						return integral + "." + decimal;
+						return integral + JTranscLocale.getDecimalSeparator(l) + decimal;
 					}
 				}
 			}
