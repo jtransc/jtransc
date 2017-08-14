@@ -236,8 +236,28 @@ class N {
 
 	static public long i2j(int v) { return v; }
 
-	static public long f2j(float v) { return cast(long)(v); }
-	static public long d2j(double v) { return cast(long)(v); }
+	static public long f2j(float v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(long)v;
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
+	static public long d2j(double v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(long)v;
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
 
 	static public int f2i(float v) {
 		if (std.math.isNaN(v)) {
@@ -245,9 +265,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 	static public int d2i(double v) {
@@ -256,9 +276,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 
