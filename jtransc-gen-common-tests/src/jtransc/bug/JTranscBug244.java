@@ -10,6 +10,7 @@ public class JTranscBug244 {
 		constTest();
 		stringFormatTest();
 		floatNaN2IntTest();
+		floatNaN2LongTest();
 	}
 
 	static private void constTest() {
@@ -58,5 +59,17 @@ public class JTranscBug244 {
 		System.out.println(i1);
 		System.out.println(i2);
 		System.out.println(i3);
+	}
+
+	static private void floatNaN2LongTest() {
+		float f1 = Float.POSITIVE_INFINITY;
+		float f2 = Float.NEGATIVE_INFINITY;
+		float f3 = Float.NaN;
+		long l1 = (long) f1;
+		long l2 = (long) f2;
+		long l3 = (long) f3;
+		System.out.println(l1);
+		System.out.println(l2);
+		System.out.println(l3);
 	}
 }
