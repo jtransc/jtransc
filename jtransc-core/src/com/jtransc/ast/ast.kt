@@ -292,7 +292,13 @@ inline fun <reified T : Any, R> KMutableProperty1<T, R>.locate(program: AstProgr
 
 fun AstProgram.containsMethod(fqname: FqName, name: String) = this.getOrNull(fqname)?.getMethodWithoutOverrides(name) != null
 
-enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
+enum class AstVisibility {
+	PUBLIC, PROTECTED, PRIVATE;
+
+	val isPublic get() = this == PUBLIC
+	val isProtected get() = this == PROTECTED
+	val isPrivate get() = this == PRIVATE
+}
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
 class UniqueNames {

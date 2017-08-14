@@ -737,7 +737,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 
 				for (method in clazz.methods) {
-					if (isInterface && method.isStatic) continue
+					if (isInterface && (method.isStatic || !method.visibility.isPublic)) continue
 					line(writeMethod(method, isInterface))
 				}
 
@@ -760,7 +760,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("$CLASS_ANNOTATIONS class ${simpleClassName}_IFields") {
 					line("$CONSTRUCTOR_ANNOTATIONS public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
-					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
+					for (method in clazz.methods.filter { it.hasBody }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))
 				}
 			}

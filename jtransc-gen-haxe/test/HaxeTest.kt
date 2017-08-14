@@ -37,8 +37,8 @@ class HaxeTest : _Base() {
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
 
-	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
-	@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = false))
+	@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
+	@Test fun testHelloWorldHaxeJsWithoutTreeShaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = false))
 
 	@Test fun testEnumBugIssue94() = testClass(Params(clazz = Issue94Enum::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testBigSwitchIssue103() = testClass(Params(clazz = Issue103::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
