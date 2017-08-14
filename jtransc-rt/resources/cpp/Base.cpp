@@ -250,8 +250,6 @@ struct N { public:
 	static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
 	static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 
-	//static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
-	//static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 	static JAVA_OBJECT resolveClass(std::wstring str);
 	inline static int64_t lnew(int32_t high, int32_t low);
 	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
@@ -871,8 +869,32 @@ float   N::j2f(int64_t v) { return (float)v; }
 double  N::j2d(int64_t v) { return (double)v; }
 int32_t N::j2i(int64_t v) { return (int32_t)v; }
 
-int64_t N::f2j(float v) { return (int64_t)v; }
-int64_t N::d2j(double v) { return (int64_t)v; }
+int64_t N::f2j(float v) {
+	if (std::isfinite(v)) {
+		return (int64_t)v;
+	} else {
+		if (std::isnan(v)) {
+			return 0;
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
+}
+int64_t N::d2j(double v) {
+	if (std::isfinite(v)) {
+		return (int64_t)v;
+	} else {
+		if (std::isnan(v)) {
+			return 0;
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
+}
 
 // TODO: templatize d2i and f2i to write just once
 int32_t N::d2i(double v) {
@@ -882,9 +904,9 @@ int32_t N::d2i(double v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int32_t)0x7fffffff;
+			return MAX_INT32;
 		} else {
-			return (int32_t)0x80000000;
+			return MIN_INT32;
 		}
 	}
 }
@@ -896,9 +918,9 @@ int32_t N::f2i(float v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int32_t)0x7fffffff;
+			return MAX_INT32;
 		} else {
-			return (int32_t)0x80000000;
+			return MIN_INT32;
 		}
 	}
 }

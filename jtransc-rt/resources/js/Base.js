@@ -722,9 +722,19 @@ N.i2i = function(v) { return v | 0; }
 N.i2j = function(v) { return Int64.ofInt(v); }
 N.i2f = function(v) { return +v; }
 N.i2d = function(v) { return +v; }
-N.f2j = function(v) { return Int64.ofFloat(v); }
-N.d2j = function(v) { return Int64.ofFloat(v); }
-
+N.d2j = function(v) {
+	if (isFinite(v)) {
+		return Int64.ofFloat(v);
+	} else {
+		if (isNaN(v)) {
+			return Int64.zero;
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
+}
 N.d2i = function(v) {
 	if (isFinite(v)) {
 		return v | 0;
@@ -738,9 +748,9 @@ N.d2i = function(v) {
 		}
 	}
 }
-N.f2i = function(v) {
-	return N.d2i(v);
-}
+
+N.f2j = function(v) { return N.d2j(v); }
+N.f2i = function(v) { return N.d2i(v); }
 
 ///////////////////////
 // Integer
