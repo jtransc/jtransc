@@ -26,6 +26,7 @@ import javatest.haxe.HaxeStringBuilderTestIssue138
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
 import jtransc.bug.JTranscBug244
+import jtransc.java8.LambdaTest
 import jtransc.jtransc.nativ.JTranscHaxeNativeCondition
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -126,4 +127,7 @@ class HaxeTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testJTranscBug244Cpp() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, lang = "cpp", debug = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testLambda() = testClass(Params(clazz = LambdaTest::class.java, minimize = false, log = false, treeShaking = true))
 }

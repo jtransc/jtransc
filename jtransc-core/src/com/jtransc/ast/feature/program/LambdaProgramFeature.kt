@@ -54,7 +54,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 
 							val call = when {
 								invoke.isStatic -> methodToCall.invokeStatic(startArgsExpr + argsExpr)
-								else -> methodToCall.invokeInstance(THIS[thisField!!].castTo(invoke.methodInInterfaceRef.containingClassType), startArgsExpr + argsExpr)
+								else -> methodToCall.invokeInstance(THIS[thisField!!], startArgsExpr + argsExpr)
 							}
 							if (methodInInterfaceRef.type.retVoid) {
 								STM(call)
@@ -63,7 +63,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 							}
 						}
 
-						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startArgs.exprs + thisArgs.exprs.map { it.castTo(methodInInterfaceRef.containingClassType) })
+						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startAndThisArgs.exprs)
 					}
 					else -> it
 				}
