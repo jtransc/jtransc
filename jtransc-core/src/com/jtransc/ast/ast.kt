@@ -750,6 +750,8 @@ class AstMethod constructor(
 	}
 	val hasBody: Boolean get() = body != null
 
+	fun getActualBody(program: AstProgram): AstBody? = body ?: bodyRef?.let { program[it]?.body }
+
 	fun replaceBody(stmGen: () -> AstStm) {
 		this.generateBody = { AstBody(types, stmGen(), methodType, ref) }
 		calculatedBodyDependencies = null

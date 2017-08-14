@@ -394,7 +394,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 					val nativeMemberName = buildMethod(method, false, includeDot = false)
 					val prefix = "${getMemberBase(method.isStatic)}${instanceAccess(nativeMemberName, field = false)}"
 
-					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
+					val rbody = method.getActualBody(program)
 
 					fun renderBranch(actualBody: Indenter?) = Indenter {
 						if (actualBody != null) {

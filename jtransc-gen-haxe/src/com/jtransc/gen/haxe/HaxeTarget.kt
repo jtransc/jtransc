@@ -651,7 +651,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				} else {
 					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
-					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
+					val rbody = method.getActualBody(program)
 					line(decl) {
 						try {
 							// @TODO: Do not hardcode this!

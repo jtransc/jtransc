@@ -158,6 +158,8 @@ object BigTest {
 
 		JTranscBug244.main(args)
 		PeriodTest.main(args)
+
+		MapTest.main(args)
 	}
 
 	private fun servicesTest() {
