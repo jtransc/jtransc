@@ -91,15 +91,7 @@ class N {
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function floatToLong(v:Float64):haxe.Int64 {
-		if (Math.isNaN(v)) {
-			return ZERO_INT64;
-		} else if (Math.isFinite(v)) {
-			return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
-		} else if (v >= 0) {
-			return MAX_INT64;
-		} else {
-			return MIN_INT64;
-		}
+		return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longToInt(v:haxe.Int64):Int { return N.llow(v); }
@@ -216,9 +208,9 @@ class N {
 			if (Math.isNaN(v)) {
 				return 0;
 			} else if (v >= 0) {
-				return 2147483647;
+				return MAX_INT32;
 			} else {
-				return -2147483648;
+				return MIN_INT32;
 			}
 		}
 	}
@@ -274,8 +266,22 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lnew(a:Int, b:Int):haxe.Int64 return haxe.Int64.make(a, b);
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function llow(v: haxe.Int64): Int return v.low;
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function lhigh(v: haxe.Int64): Int return v.high;
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function f2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
-	{{ HAXE_METHOD_ANNOTATIONS }} inline static public function d2j(v:Float32):haxe.Int64 return haxe.Int64.fromFloat(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function f2j(v:Float32):haxe.Int64 {
+		if (Math.isFinite(v)) {
+			return haxe.Int64.fromFloat(v);
+		} else {
+			if (Math.isNaN(v)) {
+    			return ZERO_INT64;
+    		} else if (v >= 0) {
+    			return MAX_INT64;
+    		} else {
+    			return MIN_INT64;
+    		}
+		}
+	}
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function d2j(v:Float32):haxe.Int64 {
+		return f2j(v);
+	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function ldiv(a:haxe.Int64, b:haxe.Int64):haxe.Int64 {
