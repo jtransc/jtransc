@@ -10,6 +10,7 @@ public class JTranscBug244 {
 		constTest();
 		stringFormatTest();
 		floatNaN2IntTest();
+		floatNaN2LongTest();
 	}
 
 	static private void constTest() {
@@ -49,14 +50,22 @@ public class JTranscBug244 {
 	}
 
 	static private void floatNaN2IntTest() {
-		float f1 = Float.POSITIVE_INFINITY;
-		float f2 = Float.NEGATIVE_INFINITY;
-		float f3 = Float.NaN;
-		int i1 = (int) f1;
-		int i2 = (int) f2;
-		int i3 = (int) f3;
-		System.out.println(i1);
-		System.out.println(i2);
-		System.out.println(i3);
+		System.out.println("floatNaN2LongTest:");
+		for (float f : new float[] { Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, 0f, 1f, -1f, 1000f }) {
+			System.out.println((int)f);
+		}
+		for (double d : new double[] { Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, 0, 1, -1, 1000 }) {
+			System.out.println((int)d);
+		}
+	}
+
+	static private void floatNaN2LongTest() {
+		System.out.println("floatNaN2LongTest:");
+		for (float f : new float[] { Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, 0f, 1f, -1f, 1000f }) {
+			System.out.println((long)f);
+		}
+		for (double d : new double[] { Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, 0, 1, -1, 1000, 99999999.0, 9999999999.0, 999999999999999.0, 2251799813685248.0 }) { // Math.pow(2, 51)
+			System.out.println((long)d);
+		}
 	}
 }
