@@ -20,11 +20,13 @@ import com.jtransc.env.OS
 import com.jtransc.error.*
 import com.jtransc.io.ProcessUtils
 import com.jtransc.io.readExactBytes
+import com.jtransc.log.log
 import com.jtransc.text.ToString
 import com.jtransc.text.splitLast
 import com.jtransc.vfs.node.FileNode
 import com.jtransc.vfs.node.FileNodeTree
 import java.io.*
+import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
@@ -523,6 +525,33 @@ fun MemoryVfsFileBin(content: ByteArray, name: String = "file"): SyncVfsFile {
 fun LogVfs(parent: SyncVfsFile): SyncVfsFile = _LogSyncVfs(parent.jail().vfs).root()
 fun SyncVfsFile.log() = LogVfs(this)
 
+fun getRootFromUrl(url: URL, numberOfPackages: Int): File {
+	val uri = url.toURI()
+	log.info("locateTestRootByClass.URI: $uri")
+	if (uri.toString().startsWith("jar:")) {
+		return File((url.openConnection() as JarURLConnection).jarFileURL.file)
+	} else {
+		val file = File(uri)
+		var out = file
+		for (n in 0 until numberOfPackages) out = out.parentFile
+		return out
+	}
+}
+
+fun locateTestRootByClass(base: Any, clazz: Class<*>): File {
+	val canonicalName = clazz.canonicalName
+	val numberOfPackages = canonicalName.count { it == '.' || it == '/' } + 1
+	val bigTestPath = "${canonicalName.replace('.', '/')}.class"
+	//val path = ClassLoader.getSystemClassLoader().getResource(bigTestPath)
+	val url = base.javaClass.classLoader.getResource(bigTestPath)
+	return getRootFromUrl(url, numberOfPackages)
+}
+
+fun locateTestRootByResource(base: Any, resourceName: String): File {
+	val numberOfPackages = resourceName.count { it == '/' } + 1
+	val url = base.javaClass.classLoader.getResource(resourceName)
+	return getRootFromUrl(url, numberOfPackages)
+}
 
 fun normalizePath(path: String): String {
 	val out = ArrayList<String>();

@@ -28,9 +28,7 @@ import com.jtransc.injector.Injector
 import com.jtransc.log.log
 import com.jtransc.maven.MavenGradleLocalRepository
 import com.jtransc.util.ClassUtils
-import com.jtransc.vfs.SyncVfsFile
-import com.jtransc.vfs.UnjailedLocalVfs
-import com.jtransc.vfs.parent
+import com.jtransc.vfs.*
 import org.junit.Assert
 import java.io.File
 import java.net.JarURLConnection
@@ -123,40 +121,12 @@ open class _Base {
 		return process.outerr;
 	}
 
-	fun getRootFromUrl(url: URL, numberOfPackages: Int): File {
-		val uri = url.toURI()
-		log.info("locateTestRootByClass.URI: $uri")
-		if (uri.toString().startsWith("jar:")) {
-			return File((url.openConnection() as JarURLConnection).jarFileURL.file)
-		} else {
-			val file = File(uri)
-			var out = file
-			for (n in 0 until numberOfPackages) out = out.parentFile
-			return out
-		}
-	}
-
-	fun locateTestRootByClass(clazz: Class<*>): File {
-		val canonicalName = clazz.canonicalName
-		val numberOfPackages = canonicalName.count { it == '.' || it == '/' } + 1
-		val bigTestPath = "${canonicalName.replace('.', '/')}.class"
-		//val path = ClassLoader.getSystemClassLoader().getResource(bigTestPath)
-		val url = this.javaClass.classLoader.getResource(bigTestPath)
-		return getRootFromUrl(url, numberOfPackages)
-	}
-
-	fun locateTestRootByResource(resourceName: String): File {
-		val numberOfPackages = resourceName.count { it == '/' } + 1
-		val url = this.javaClass.classLoader.getResource(resourceName)
-		return getRootFromUrl(url, numberOfPackages)
-	}
-
 	fun _action(params: Params, run: Boolean): JTranscBuild.Result {
 		val injector = Injector()
 		val projectRoot = locateProjectRoot()
 
-		val testRoot = locateTestRootByClass(BigTest::class.java)
-		val resourceRoot = locateTestRootByResource("filetoinclude.txt")
+		val testRoot = locateTestRootByClass(this, BigTest::class.java)
+		val resourceRoot = locateTestRootByResource(this, "filetoinclude.txt")
 
 		log.info("testRoot: $testRoot")
 		log.info("resourceRoot: $resourceRoot")

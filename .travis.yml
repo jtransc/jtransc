@@ -60,7 +60,7 @@ before_script:
 - dmd --version || true
 - "./gradlew --version"
 script:
-- "./gradlew -s -i check install"
+- "./gradlew -s -i check install report"
 - pushd jtransc-main-run/example
 - "./run"
 - popd

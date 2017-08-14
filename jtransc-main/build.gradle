@@ -22,9 +22,11 @@ dependencies {
 	compile project(':jtransc-gen-php')
 	compile project(':jtransc-gen-as3')
 	compile project(':jtransc-gen-dart')
+	compile project(':jtransc-rt-core')
 
 	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
-	//compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+	compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+
 	//providedCompile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	testCompile project(":jtransc-rt-core-kotlin")
 	testCompile project(":jtransc-rt-extended-charsets")
@@ -38,4 +40,18 @@ idea {
 	}
 }
 
-project(':jtransc-main').compileKotlin.dependsOn(project(':jtransc-rt').test)
+task rtReport(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'com.jtransc.JTranscRtReport'
+	args ''
+	doFirst { println("travis_fold:start:jtransc-rt-report") }
+	doLast { println("travis_fold:end:jtransc-rt-report") }
+}
+
+task report(dependsOn: rtReport) {
+	doLast {
+		println("report")
+	}
+}
+
+project(':jtransc-main').compileKotlin.dependsOn(project(':jtransc-rt').build)
