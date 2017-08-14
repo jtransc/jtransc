@@ -641,6 +641,7 @@ private class BasicBlockBuilder(
 		if (dynamicResult is AstExpr.INVOKE_DYNAMIC_METHOD) {
 			// dynamicResult.startArgs = stackPopToLocalsCount(dynamicResult.extraArgCount).map { AstExpr.LOCAL(it) }.reversed()
 			dynamicResult.startArgs = (0 until dynamicResult.extraArgCount).map { stackPop().box }.reversed()
+			dynamicResult.thisArgs = if (dynamicResult.isStatic) listOf() else listOf(stackPop().box)
 		}
 		stackPush(dynamicResult)
 	}

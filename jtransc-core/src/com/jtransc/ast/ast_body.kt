@@ -526,8 +526,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		val methodInInterfaceRef: AstMethodRef,
 		val methodToConvertRef: AstMethodRef,
 		var extraArgCount: Int,
-		var startArgs: List<AstExpr.Box> = listOf<AstExpr.Box>()
+		val kind: AstMethodHandle.Kind,
+		var startArgs: List<AstExpr.Box> = listOf<AstExpr.Box>(),
+		var thisArgs: List<AstExpr.Box> = listOf<AstExpr.Box>()
 	) : AstExpr() {
+		val isStatic: Boolean get() = kind.isStatic
 		override val type = AstType.REF(methodInInterfaceRef.containingClass)
 	}
 
@@ -672,10 +675,14 @@ object AstExprUtils {
 
 					val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
 
+					//val hasThis = !methodHandle.kind.isStatic
+					//val thisCount = if (hasThis) 1 else 0
+
 					return AstExpr.INVOKE_DYNAMIC_METHOD(
 						methodFromRef,
 						methodToConvertRef,
-						methodToConvertRef.type.argCount - methodFromRef.type.argCount
+						(methodToConvertRef.type.argCount - methodFromRef.type.argCount),
+						kind = methodHandle.kind
 					)
 				}
 				"altMetafactory" -> {
@@ -776,11 +783,14 @@ operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBi
 infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
 infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
 
-operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
-operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+operator fun MethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+operator fun MethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
 
-operator fun AstMethod.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
-operator fun AstMethodRef.invoke(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
+fun MethodRef.invokeInstance(obj: AstExpr, vararg exprs: AstExpr) = AstExpr.CALL_INSTANCE(obj, this.ref, exprs.toList())
+fun MethodRef.invokeInstance(obj: AstExpr, exprs: List<AstExpr>) = AstExpr.CALL_INSTANCE(obj, this.ref, exprs)
+
+fun MethodRef.invokeStatic(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
+fun MethodRef.invokeStatic(exprs: List<AstExpr>) = AstExpr.CALL_STATIC(this.ref, exprs)
 
 operator fun AstExpr.get(field: AstField) = AstExpr.FIELD_INSTANCE_ACCESS(field.ref, this)
 operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(field, this)
@@ -916,6 +926,8 @@ class AstMethodHandle(val type: AstType.METHOD, val methodRef: AstMethodRef, val
 		REF_invokeSpecial(7),
 		REF_newInvokeSpecial(8),
 		REF_invokeInterface(9);
+
+		val isStatic: Boolean get() = (this == REF_invokeStatic) || (this == REF_getStatic) || (this == REF_putStatic)
 
 		companion object {
 			private val table = values().map { it.id to it }.toMap()

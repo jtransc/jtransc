@@ -14,25 +14,30 @@ class LambdaProgramFeature : AstProgramFeature() {
 			method.transformInplace {
 				when (it) {
 					is AstExpr.INVOKE_DYNAMIC_METHOD -> {
-						val methodInInterfaceRef = it.methodInInterfaceRef
-						val methodToConvertRef = it.methodToConvertRef
-						val startArgs = it.startArgs
-						val startArgsTypes = it.startArgs.map { it.type }
+						val invoke = it
+						val methodInInterfaceRef = invoke.methodInInterfaceRef
+						val methodToConvertRef = invoke.methodToConvertRef
+						val startArgs = invoke.startArgs
+						val thisArgs = invoke.thisArgs
+						val startAndThisArgs = startArgs + thisArgs
+						val startArgTypesAndThis = startAndThisArgs.map { it.type }
+
 						//val className = methodToConvertRef.classRef.fqname + "\$Lambda\$" + lambdaId++
 						val className = "L\$${lambdaId++}"
 						val lambdaClass = program.createClass(className.fqname, "java.lang.Object".fqname, listOf(methodInInterfaceRef.classRef.name), comment = "INVOKE_DYNAMIC_METHOD(method=$method, methodInInterfaceRef=$methodInInterfaceRef, methodToConvertRef=$methodToConvertRef)")
 						val THIS = AstExpr.THIS(lambdaClass.name)
 
-						val storedFields = startArgsTypes.withIndex().map {
+						val storedFields = startArgTypesAndThis.withIndex().map {
 							val (index, type) = it
 							lambdaClass.createField("f$index", type)
 						}
+						val thisField = if (invoke.isStatic) null else storedFields.lastOrNull()
 						val storedFieldExprs = storedFields.map { AstExpr.FIELD_INSTANCE_ACCESS(it.ref, THIS) }
 
 						// If not static add this reference
-						val lambdaClassConstructor = lambdaClass.createConstructor(AstType.METHOD(AstType.VOID, startArgsTypes)) {
+						val lambdaClassConstructor = lambdaClass.createConstructor(AstType.METHOD(AstType.VOID, startArgTypesAndThis)) {
 							for ((index, field) in storedFields.withIndex()) {
-								val arg = AstArgument(index, startArgsTypes[index])
+								val arg = AstArgument(index, startArgTypesAndThis[index])
 								STM(AstStm.SET_FIELD_INSTANCE(field.ref, THIS, arg.expr))
 							}
 						}
@@ -47,7 +52,10 @@ class LambdaProgramFeature : AstProgramFeature() {
 							val startArgsExpr = storedFieldExprs.zip(argsStartTo).map { it.first.castTo(it.second) }
 							val argsExpr = argsFrom.zip(argsTo).map { it.first.expr.castTo(it.second) }
 
-							val call = methodToCall(startArgsExpr + argsExpr)
+							val call = when {
+								invoke.isStatic -> methodToCall.invokeStatic(startArgsExpr + argsExpr)
+								else -> methodToCall.invokeInstance(THIS[thisField!!].castTo(invoke.methodInInterfaceRef.containingClassType), startArgsExpr + argsExpr)
+							}
 							if (methodInInterfaceRef.type.retVoid) {
 								STM(call)
 							} else {
@@ -55,7 +63,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 							}
 						}
 
-						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startArgs.exprs)
+						AstExpr.NEW_WITH_CONSTRUCTOR(lambdaClassConstructor.ref, startArgs.exprs + thisArgs.exprs.map { it.castTo(methodInInterfaceRef.containingClassType) })
 					}
 					else -> it
 				}

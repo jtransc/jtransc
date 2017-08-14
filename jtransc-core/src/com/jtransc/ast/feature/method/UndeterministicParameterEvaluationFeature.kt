@@ -177,7 +177,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 				}
 				is AstExpr.INVOKE_DYNAMIC_METHOD -> {
 					val args = expr.startArgs.map { it.processExpr(stms).box }
-					AstExpr.INVOKE_DYNAMIC_METHOD(expr.methodInInterfaceRef, expr.methodToConvertRef, expr.extraArgCount, args)
+					AstExpr.INVOKE_DYNAMIC_METHOD(expr.methodInInterfaceRef, expr.methodToConvertRef, expr.extraArgCount, expr.kind, args)
 				}
 				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
 					val args = expr.args.map { it.processExpr(stms) }
