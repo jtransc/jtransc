@@ -9,6 +9,12 @@ class N {
 	public static readonly float FloatNaN = intBitsToFloat(0x7FC00000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
+	public static readonly long MAX_INT64 = 9223372036854775807;
+	public static readonly long MIN_INT64 = -9223372036854775808;
+
+	public static readonly int MAX_INT32 = 2147483647;
+	public static readonly int MIN_INT32 = -2147483648;
+
 	//static public TOut CHECK_CAST<TOut, TIn>(TIn i) where TIn : class where TOut : class {
 	//	if (i == null) return null;
 	//	if (!(i is TOut)) {
@@ -97,9 +103,9 @@ class N {
 		} else if (!Single.IsInfinity(v)) {
 			return (long)v;
 		} else if (v >= 0) {
-			return 9223372036854775807;
+			return MAX_INT64;
 		} else {
-			return -9223372036854775808;
+			return MIN_INT64;
 		}
 	}
 	static public long i2j(int v) { return (long)v; }
@@ -109,9 +115,9 @@ class N {
 		} else if (!Single.IsInfinity(v)) {
 			return (long)v;
 		} else if (v >= 0) {
-			return 9223372036854775807;
+			return MAX_INT64;
 		} else {
-			return -9223372036854775808;
+			return MIN_INT64;
 		}
 	}
 
@@ -121,9 +127,9 @@ class N {
 		} else if (!Single.IsInfinity(v)) {
 			return (int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 
@@ -133,9 +139,9 @@ class N {
 		} else if (!Double.IsInfinity(v)) {
 			return (int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 

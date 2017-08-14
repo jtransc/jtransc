@@ -91,16 +91,14 @@ class N {
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function floatToLong(v:Float64):haxe.Int64 {
-		if (Math.isFinite(v)) {
+		if (Math.isNaN(v)) {
+			return ZERO_INT64;
+		} else if (Math.isFinite(v)) {
 			return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+		} else if (v >= 0) {
+			return MAX_INT64;
 		} else {
-			if (Math.isNaN(v)) {
-				return ZERO_INT64;
-			} else if (v >= 0) {
-				return MAX_INT64;
-			} else {
-				return MIN_INT64;
-			}
+			return MIN_INT64;
 		}
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}

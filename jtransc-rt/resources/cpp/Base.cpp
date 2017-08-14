@@ -250,8 +250,6 @@ struct N { public:
 	static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
 	static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 
-	//static const int64_t MIN_INT64 = (int64_t)0x8000000000000000;
-	//static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 	static JAVA_OBJECT resolveClass(std::wstring str);
 	inline static int64_t lnew(int32_t high, int32_t low);
 	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
@@ -878,9 +876,9 @@ int64_t N::f2j(float v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int64_t)0x7fffffffffffffff;
+			return MAX_INT64;
 		} else {
-			return (int64_t)0x8000000000000000;
+			return MIN_INT64;
 		}
 	}
 }
@@ -891,9 +889,9 @@ int64_t N::d2j(double v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int64_t)0x7fffffffffffffff;
+			return MAX_INT64;
 		} else {
-			return (int64_t)0x8000000000000000;
+			return MIN_INT64;
 		}
 	}
 }
@@ -906,9 +904,9 @@ int32_t N::d2i(double v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int32_t)0x7fffffff;
+			return MAX_INT32;
 		} else {
-			return (int32_t)0x80000000;
+			return MIN_INT32;
 		}
 	}
 }
@@ -920,9 +918,9 @@ int32_t N::f2i(float v) {
 		if (std::isnan(v)) {
 			return 0;
 		} else if (v >= 0) {
-			return (int32_t)0x7fffffff;
+			return MAX_INT32;
 		} else {
-			return (int32_t)0x80000000;
+			return MIN_INT32;
 		}
 	}
 }

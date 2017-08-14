@@ -242,9 +242,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(long)v;
 		} else if (v >= 0) {
-			return cast(long)0x7fffffffffffffff;
+			return MAX_INT64;
 		} else {
-			return cast(long)0x8000000000000000;
+			return MIN_INT64;
 		}
 	}
 	static public long d2j(double v) {
@@ -253,9 +253,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(long)v;
 		} else if (v >= 0) {
-			return cast(long)0x7fffffffffffffff;
+			return MAX_INT64;
 		} else {
-			return cast(long)0x8000000000000000;
+			return MIN_INT64;
 		}
 	}
 
@@ -265,9 +265,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 	static public int d2i(double v) {
@@ -276,9 +276,9 @@ class N {
 		} else if (!std.math.isInfinity(v)) {
 			return cast(int)v;
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 

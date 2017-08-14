@@ -19,6 +19,7 @@ class N {
 
 	static final Int64 MIN_INT64 = N.lnew(-9223372036854775808);
 	static final Int64 MAX_INT64 = N.lnew(9223372036854775807);
+	static final Int64 ZERO_INT64 = new Int64(0);
 
 	static final double DOUBLE_NAN = longBitsToDouble(N.lnew(0x7FF8000000000000));
 
@@ -138,7 +139,7 @@ class N {
 	static int    i2j(int    v) { return new Int64(v.toInt()); }
 	static Int64  d2j(double v) {
 		if (v.isNaN) {
-			return new Int64(0);
+			return ZERO_INT64;
 		} else if (v.isFinite) {
 			return new Int64(v.toInt());
 		} else if (v >= 0) {
@@ -167,9 +168,9 @@ class N {
 		} else if (v.isFinite) {
 			return I(v.toInt());
 		} else if (v >= 0) {
-			return 2147483647;
+			return MAX_INT32;
 		} else {
-			return -2147483648;
+			return MIN_INT32;
 		}
 	}
 	static int f2i(double v) {
