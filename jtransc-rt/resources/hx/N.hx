@@ -70,6 +70,7 @@ typedef JavaDouble = {% CLASS java.lang.Double %}
 class N {
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var MAX_INT64 = N.lnew(0x7FFFFFFF, 0xFFFFFFFF);
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var MIN_INT64 = N.lnew(0x80000000, 0x00000000);
+	{{ HAXE_FIELD_ANNOTATIONS }} static private var ZERO_INT64 = N.lnew(0x00000000, 0x00000000);
 	{{ HAXE_FIELD_ANNOTATIONS }} static public var MIN_INT32:Int32 = -2147483648;
 	{{ HAXE_FIELD_ANNOTATIONS }} static public var MAX_INT32:Int32 = 2147483647;
 	{{ HAXE_FIELD_ANNOTATIONS }} static private var M2P32_DBL = Math.pow(2, 32);
@@ -94,11 +95,11 @@ class N {
 			return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
 		} else {
 			if (Math.isNaN(v)) {
-				return 0;
+				return ZERO_INT64;
 			} else if (v >= 0) {
-				return 9223372036854775807;
+				return MAX_INT64;
 			} else {
-				return -9223372036854775808;
+				return MIN_INT64;
 			}
 		}
 	}

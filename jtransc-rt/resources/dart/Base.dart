@@ -136,8 +136,18 @@ class N {
 	static double j2d(Int64  v) { return v.toDouble(); }
 	static int    j2i(Int64  v) { return v.toInt32_v(); }
 	static int    i2j(int    v) { return new Int64(v.toInt()); }
-	static int    d2j(double v) { return new Int64(v.toInt()); }
-	static int    f2j(double v) { return new Int64(v.toInt()); }
+	static Int64  d2j(double v) {
+		if (v.isNaN) {
+			return new Int64(0);
+		} else if (v.isFinite) {
+			return new Int64(v.toInt());
+		} else if (v >= 0) {
+			return MAX_INT64;
+		} else {
+			return MIN_INT64;
+		}
+	}
+	static Int64  f2j(double v) { return N.d2j(v); }
 
 	static Int64 doubleToLongBits(double v) { _tempF64[0] = v.toDouble(); return new Int64(_tempI64[0]); }
 	static double longBitsToDouble(Int64 v) { _tempI64[0] = v.toInt(); return _tempF64[0]; }
