@@ -872,7 +872,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				if (OS.isWindows) {
 					"""
 					-D
-					HXCPP_M64
+					HXCPP_M32
 					"""
 				} else {
 					"""

@@ -279,8 +279,18 @@ class N {
     		}
 		}
 	}
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function d2j(v:Float32):haxe.Int64 {
-		return f2j(v);
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function d2j(v:Float64):haxe.Int64 {
+		if (Math.isFinite(v)) {
+			return haxe.Int64.fromFloat(v);
+		} else {
+			if (Math.isNaN(v)) {
+    			return ZERO_INT64;
+    		} else if (v >= 0) {
+    			return MAX_INT64;
+    		} else {
+    			return MIN_INT64;
+    		}
+		}
 	}
 
 	{{ HAXE_METHOD_ANNOTATIONS }}
