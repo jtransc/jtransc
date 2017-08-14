@@ -90,7 +90,17 @@ class N {
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	inline static public function floatToLong(v:Float64):haxe.Int64 {
-		return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+		if (Math.isFinite(v)) {
+			return N.lnew(Std.int(v / M2P32_DBL), Std.int(v % M2P32_DBL));
+		} else {
+			if (Math.isNaN(v)) {
+				return 0;
+			} else if (v >= 0) {
+				return 9223372036854775807;
+			} else {
+				return -9223372036854775808;
+			}
+		}
 	}
 	{{ HAXE_METHOD_ANNOTATIONS }}
 	static public function longToInt(v:haxe.Int64):Int { return N.llow(v); }

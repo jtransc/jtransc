@@ -236,8 +236,28 @@ class N {
 
 	static public long i2j(int v) { return v; }
 
-	static public long f2j(float v) { return cast(long)(v); }
-	static public long d2j(double v) { return cast(long)(v); }
+	static public long f2j(float v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(long)v;
+		} else if (v >= 0) {
+			return cast(long)0x7fffffffffffffff;
+		} else {
+			return cast(long)0x8000000000000000;
+		}
+	}
+	static public long d2j(double v) {
+		if (std.math.isNaN(v)) {
+			return 0;
+		} else if (!std.math.isInfinity(v)) {
+			return cast(long)v;
+		} else if (v >= 0) {
+			return cast(long)0x7fffffffffffffff;
+		} else {
+			return cast(long)0x8000000000000000;
+		}
+	}
 
 	static public int f2i(float v) {
 		if (std.math.isNaN(v)) {
