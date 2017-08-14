@@ -344,7 +344,8 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	annotations: List<AstAnnotation> = listOf(),
-	val classId: Int = program.lastClassId++
+	val classId: Int = program.lastClassId++,
+	val comment: String = ""
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
 	val types get() = program.types
 

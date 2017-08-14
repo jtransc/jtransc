@@ -37,6 +37,9 @@ class CppTest : _Base() {
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
 
+	@Ignore
+	@Test fun testHelloWorldWithoutTreeshaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = null, treeShaking = false))
+
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	@Ignore

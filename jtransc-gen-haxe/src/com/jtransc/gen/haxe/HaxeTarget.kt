@@ -693,6 +693,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("package ${clazz.name.targetGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")
+			if (clazz.comment.isNotEmpty()) line("// ${clazz.comment}")
 			var declaration = "$classType $simpleClassName/*${clazz.name}*/"
 			if (isInterface) {
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("extends")

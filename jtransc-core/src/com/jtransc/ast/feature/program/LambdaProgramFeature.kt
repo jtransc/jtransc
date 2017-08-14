@@ -20,7 +20,7 @@ class LambdaProgramFeature : AstProgramFeature() {
 						val startArgsTypes = it.startArgs.map { it.type }
 						//val className = methodToConvertRef.classRef.fqname + "\$Lambda\$" + lambdaId++
 						val className = "L\$${lambdaId++}"
-						val lambdaClass = program.createClass(className.fqname, "java.lang.Object".fqname, listOf(methodInInterfaceRef.classRef.name))
+						val lambdaClass = program.createClass(className.fqname, "java.lang.Object".fqname, listOf(methodInInterfaceRef.classRef.name), comment = "INVOKE_DYNAMIC_METHOD(method=$method, methodInInterfaceRef=$methodInInterfaceRef, methodToConvertRef=$methodToConvertRef)")
 						val THIS = AstExpr.THIS(lambdaClass.name)
 
 						val storedFields = startArgsTypes.withIndex().map {

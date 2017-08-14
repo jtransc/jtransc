@@ -61,6 +61,7 @@ class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
 	//override val TREESHAKING_TRACE = true
 
+	//@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = null, treeShaking = false))
 	@Test fun testBigWithoutTreeShaking() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false))
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
