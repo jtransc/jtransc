@@ -5,7 +5,7 @@ JTRANSC
 
 [![Maven Version](https://img.shields.io/github/tag/jtransc/jtransc.svg?style=flat&label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jtransc-maven-plugin%22)
 [![Build Status](https://travis-ci.org/jtransc/jtransc.svg?branch=master)](https://travis-ci.org/jtransc/jtransc)
-[![Build status](https://ci.appveyor.com/api/projects/status/qnd0g966t1b54q4a?svg=true)](https://ci.appveyor.com/project/soywiz/jtransc)
+[![Build status](https://ci.appveyor.com/api/projects/status/qnd0g966t1b54q4a/branch/master?svg=true)](https://ci.appveyor.com/project/soywiz/jtransc/branch/master)
 [![Code coverage](https://codecov.io/gh/jtransc/jtransc/branch/master/graph/badge.svg)](https://codecov.io/gh/jtransc/jtransc)
 [![gitter](https://img.shields.io/gitter/room/jtransc/general.svg)](https://gitter.im/jtransc/general)
 
