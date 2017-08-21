@@ -8,6 +8,9 @@ import java.security.Permission;
 abstract public class HttpURLConnection extends URLConnection {
 
 	protected String method = "GET";
+
+	private static final String[] methods = new String[]{"GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE"};
+
 	protected int chunkLength = -1;
 	protected int fixedContentLength = -1;
 	protected long fixedContentLengthLong = -1;
@@ -40,16 +43,48 @@ abstract public class HttpURLConnection extends URLConnection {
 
 	native public boolean getInstanceFollowRedirects();
 
-	native public void setRequestMethod(String method) throws ProtocolException;
+	public void setRequestMethod(String method) throws Exception {
+		if (this.connected) {
+			throw new Exception("Can\'t reset method: already connected");
+		} else {
+			for (String methodVar : methods) {
+				if (methodVar.equals(method.toUpperCase())) {
+// TODO?
+//					if(method.equals("TRACE")) {
+//						SecurityManager var3 = System.getSecurityManager();
+//						if(var3 != null) {
+//							var3.checkPermission(new NetPermission("allowHttpTrace"));
+//						}
+//					}
+					this.method = methodVar;
+					return;
+				}
+			}
 
-	native public String getRequestMethod();
+			throw new Exception("Invalid HTTP method: " + method);
+		}
+	}
 
-	native public int getResponseCode() throws IOException;
+	public String getRequestMethod() {
+		return this.method;
+	}
 
-	native public String getResponseMessage() throws IOException;
+	public int getResponseCode() throws IOException {
+		if (responseCode == -1) {
+			this.getInputStream();
+		}
+		return responseCode;
+	}
+
+	public String getResponseMessage() throws IOException {
+		this.getResponseCode();
+		return this.responseMessage;
+	}
 
 	@SuppressWarnings("deprecation")
-	native public long getHeaderFieldDate(String name, long Default);
+	public long getHeaderFieldDate(String name, long Default) {
+		return 0;
+	}
 
 	public abstract void disconnect();
 
