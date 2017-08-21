@@ -8,7 +8,7 @@ import java.net.URLStreamHandler;
 public class HttpHandler extends URLStreamHandler {
 	@Override
 	public URLConnection openConnection(URL url) throws IOException {
-		return openConnection(url, null);
+		return new Http(url);
 	}
 
 	//protected void parseURL(URL url, String spec, int start, int end) {
