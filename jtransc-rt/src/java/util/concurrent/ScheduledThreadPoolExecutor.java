@@ -54,7 +54,6 @@ public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements S
 
 	@Override
 	public Future<?> submit(Runnable task) {
-		System.out.println("ScheduledThreadPoolExecutor.submit(Runnable)");
 		return schedule(task, 50, TimeUnit.MILLISECONDS);
 	}
 
