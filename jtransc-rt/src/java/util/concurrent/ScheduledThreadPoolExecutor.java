@@ -52,6 +52,21 @@ public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements S
 		return f;
 	}
 
+	@Override
+	public Future<?> submit(Runnable task) {
+		return schedule(task, 50, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public <T> Future<T> submit(Runnable task, T result) {
+		return schedule(Executors.callable(task, result), 50, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public <T> Future<T> submit(Callable<T> task) {
+		return schedule(task, 50, TimeUnit.MILLISECONDS);
+	}
+
 	static private class DelayedWorkQueue extends SynchronousQueue {
 	}
 
