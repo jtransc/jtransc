@@ -3,7 +3,7 @@ package java.lang.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.ds.FastStringMap;
+import com.jtransc.ds.FastIntMap;
 import j.MemberInfo;
 import j.ProgramReflection;
 import j.ClassInfo;
@@ -15,6 +15,12 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("ConstantConditions")
 public class JTranscCoreReflection {
+
+	private static final FastIntMap<Constructor[]> _constructorsCache = new FastIntMap<Constructor[]>();
+	private static final FastIntMap<Field[]> _fieldsCache = new FastIntMap<Field[]>();
+	private static final FastIntMap<Method[]> _methodsCache = new FastIntMap<Method[]>();
+	private static final FastIntMap<Annotation[]> _annotationsCache = new FastIntMap<Annotation[]>();
+
 	static public <T> int[] getInterfaceIds(int classId) {
 		ProgramReflection._ensure();
 		return checkClassId(classId) ? ProgramReflection._classInfos[classId].interfaces : new int[0];
@@ -35,33 +41,51 @@ public class JTranscCoreReflection {
 	}
 
 	static public <T> Constructor<T>[] getDeclaredConstructors(Class<?> clazz) {
-		MemberInfo[] infos = ProgramReflection.getConstructors(getClassId(clazz));
-		int count = (infos != null) ? infos.length : 0;
-		Constructor[] out = new Constructor[count];
-		for (int n = 0; n < count; n++) {
-			out[n] = new Constructor(clazz, infos[n]);
+		int classId = getClassId(clazz);
+		Constructor[] cache = _constructorsCache.get(classId);
+		if (cache != null) {
+			return cache;
 		}
-		return out;
+		MemberInfo[] membersInfo = ProgramReflection.getConstructors(classId);
+		int count = (membersInfo != null) ? membersInfo.length : 0;
+		cache = new Constructor[count];
+		for (int n = 0; n < count; n++) {
+			cache[n] = new Constructor(clazz, membersInfo[n]);
+		}
+		_constructorsCache.set(classId, cache);
+		return cache;
 	}
 
 	static public Method[] getDeclaredMethods(Class<?> clazz) {
-		MemberInfo[] infos = ProgramReflection.getMethods(getClassId(clazz));
-		int count = (infos != null) ? infos.length : 0;
-		Method[] out = new Method[count];
-		for (int n = 0; n < count; n++) {
-			out[n] = new Method(clazz, infos[n]);
+		int classId = getClassId(clazz);
+		Method[] cache = _methodsCache.get(classId);
+		if (cache != null) {
+			return cache;
 		}
-		return out;
+		MemberInfo[] membersInfo = ProgramReflection.getMethods(classId);
+		int count = (membersInfo != null) ? membersInfo.length : 0;
+		cache = new Method[count];
+		for (int n = 0; n < count; n++) {
+			cache[n] = new Method(clazz, membersInfo[n]);
+		}
+		_methodsCache.set(classId, cache);
+		return cache;
 	}
 
 	static public Field[] getDeclaredFields(Class<?> clazz) {
-		MemberInfo[] infos = ProgramReflection.getFields(getClassId(clazz));
-		int count = (infos != null) ? infos.length : 0;
-		Field[] out = new Field[count];
-		for (int n = 0; n < count; n++) {
-			out[n] = new Field(clazz, infos[n]);
+		int classId = getClassId(clazz);
+		Field[] cache = _fieldsCache.get(classId);
+		if (cache != null) {
+			return cache;
 		}
-		return out;
+		MemberInfo[] membersInfo = ProgramReflection.getFields(classId);
+		int count = (membersInfo != null) ? membersInfo.length : 0;
+		cache = new Field[count];
+		for (int n = 0; n < count; n++) {
+			cache[n] = new Field(clazz, membersInfo[n]);
+		}
+		_fieldsCache.set(classId, cache);
+		return cache;
 	}
 
 	static public int getClassId(Class<?> clazz) {
@@ -116,7 +140,14 @@ public class JTranscCoreReflection {
 
 	public static Annotation[] getDeclaredAnnotations(Class<?> clazz) {
 		ProgramReflection._ensure();
-		return ProgramReflection.getClassAnnotations(getClassId(clazz));
+		int classId = getClassId(clazz);
+		Annotation[] cache = _annotationsCache.get(classId);
+		if (cache != null) {
+			return cache;
+		}
+		cache = ProgramReflection.getClassAnnotations(getClassId(clazz));
+		_annotationsCache.set(classId, cache);
+		return cache;
 	}
 
 	@JTranscInline
