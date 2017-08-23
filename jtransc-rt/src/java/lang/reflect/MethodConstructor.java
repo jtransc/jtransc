@@ -2,6 +2,7 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.ds.FastIntMap;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -45,6 +46,8 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	@JTranscInvisible
 	private MethodTypeImpl genericMethodType;
+
+	private static final FastIntMap<FastIntMap<Annotation[]>> _annotationsCache = new FastIntMap<FastIntMap<Annotation[]>>();
 
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
 		super(info);
@@ -91,8 +94,24 @@ abstract public class MethodConstructor extends AccessibleObject {
 	}
 
 	public Annotation[] getDeclaredAnnotations() {
-		Annotation[] out = ProgramReflection.getMethodAnnotations(clazz.id, info.id);
-		return (out != null) ? out : new Annotation[0];
+		Annotation[] cache;
+		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
+		if (map != null) {
+			cache = map.get(info.id);
+			if (cache != null) {
+				return cache;
+			}
+		}
+		if (map == null) {
+			map = new FastIntMap<Annotation[]>();
+			_annotationsCache.set(clazz.id, map);
+		}
+		cache = ProgramReflection.getMethodAnnotations(clazz.id, info.id);
+		if (cache == null) {
+			cache = new Annotation[0];
+		}
+		map.set(info.id, cache);
+		return cache;
 	}
 
 	@JTranscInvisible

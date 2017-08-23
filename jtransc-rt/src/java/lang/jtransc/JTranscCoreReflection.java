@@ -19,6 +19,7 @@ public class JTranscCoreReflection {
 	private static final FastIntMap<Constructor[]> _constructorsCache = new FastIntMap<Constructor[]>();
 	private static final FastIntMap<Field[]> _fieldsCache = new FastIntMap<Field[]>();
 	private static final FastIntMap<Method[]> _methodsCache = new FastIntMap<Method[]>();
+	private static final FastIntMap<Annotation[]> _annotationsCache = new FastIntMap<Annotation[]>();
 
 	static public <T> int[] getInterfaceIds(int classId) {
 		ProgramReflection._ensure();
@@ -139,7 +140,14 @@ public class JTranscCoreReflection {
 
 	public static Annotation[] getDeclaredAnnotations(Class<?> clazz) {
 		ProgramReflection._ensure();
-		return ProgramReflection.getClassAnnotations(getClassId(clazz));
+		int classId = getClassId(clazz);
+		Annotation[] cache = _annotationsCache.get(classId);
+		if (cache != null) {
+			return cache;
+		}
+		cache = ProgramReflection.getClassAnnotations(getClassId(clazz));
+		_annotationsCache.set(classId, cache);
+		return cache;
 	}
 
 	@JTranscInline
