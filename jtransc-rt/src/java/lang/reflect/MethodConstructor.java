@@ -48,6 +48,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	private MethodTypeImpl genericMethodType;
 
 	private static final FastIntMap<FastIntMap<Annotation[]>> _annotationsCache = new FastIntMap<FastIntMap<Annotation[]>>();
+	private static final FastIntMap<FastIntMap<Annotation[][]>> _annotationArgsCache = new FastIntMap<FastIntMap<Annotation[][]>>();
 
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
 		super(info);
@@ -96,15 +97,14 @@ abstract public class MethodConstructor extends AccessibleObject {
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] cache;
 		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
-		if (map != null) {
+		if (map == null) {
+			map = new FastIntMap<Annotation[]>();
+			_annotationsCache.set(clazz.id, map);
+		} else {
 			cache = map.get(info.id);
 			if (cache != null) {
 				return cache;
 			}
-		}
-		if (map == null) {
-			map = new FastIntMap<Annotation[]>();
-			_annotationsCache.set(clazz.id, map);
 		}
 		cache = ProgramReflection.getMethodAnnotations(clazz.id, info.id);
 		if (cache == null) {
@@ -144,14 +144,25 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	@SuppressWarnings("ConstantConditions")
 	public Annotation[][] getParameterAnnotations() {
+		Annotation[][] cache;
+		FastIntMap<Annotation[][]> map = _annotationArgsCache.get(clazz.id);
+		if (map == null) {
+			map = new FastIntMap<Annotation[][]>();
+			_annotationArgsCache.set(clazz.id, map);
+		} else {
+			cache = map.get(info.id);
+			if (cache != null) {
+				return cache;
+			}
+		}
 		int count = getParameterTypes().length;
-		Annotation[][] out = new Annotation[count][];
-		out = new Annotation[this.methodType().args.length][];
+		cache = new Annotation[count][];
 		for (int n = 0; n < count; n++) {
 			Annotation[] annotations = ProgramReflection.getMethodArgumentAnnotations(clazz.id, info.id, n);
-			out[n] = (annotations != null) ? annotations : new Annotation[0];
+			cache[n] = (annotations != null) ? annotations : new Annotation[0];
 		}
-		return out;
+		map.set(info.id, cache);
+		return cache;
 	}
 
 	public Class<?> getReturnType() {
