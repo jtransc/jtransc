@@ -15,18 +15,19 @@ data class AstBody constructor(
 ) {
 	private var _locals: List<AstLocal>? = null
 
-	val locals: List<AstLocal> get() {
-		if (_locals == null) {
-			val locals = hashSetOf<AstLocal>()
-			(object : AstVisitor() {
-				override fun visit(local: AstLocal) {
-					locals += local
-				}
-			}).visit(stm)
-			_locals = locals.toList()
+	val locals: List<AstLocal>
+		get() {
+			if (_locals == null) {
+				val locals = hashSetOf<AstLocal>()
+				(object : AstVisitor() {
+					override fun visit(local: AstLocal) {
+						locals += local
+					}
+				}).visit(stm)
+				_locals = locals.toList()
+			}
+			return _locals!!
 		}
-		return _locals!!
-	}
 
 	fun invalidateLocals() {
 		_locals = null
@@ -661,39 +662,39 @@ object AstExprUtils {
 	}
 
 	fun INVOKE_DYNAMIC(generatedMethodRef: AstMethodWithoutClassRef, bootstrapMethodRef: AstMethodRef, bootstrapArgs: List<AstExpr>): AstExpr {
-		if (bootstrapMethodRef.containingClass.fqname == "java.lang.invoke.LambdaMetafactory"
-			) {
-			when (bootstrapMethodRef.name) {
-				"metafactory" -> {
-					val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
-					val interfaceMethodType = literals[0].value as AstType.METHOD
-					val methodHandle = literals[1].value as AstMethodHandle
-					val methodType = literals[2].type
+		when (bootstrapMethodRef.containingClass.fqname) {
+			"java.lang.invoke.LambdaMetafactory" ->
+				when (bootstrapMethodRef.name) {
+					"metafactory" -> {
+						val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
+						val interfaceMethodType = literals[0].value as AstType.METHOD
+						val methodHandle = literals[1].value as AstMethodHandle
+						val methodType = literals[2].type
 
-					val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
-					val methodToConvertRef = methodHandle.methodRef
+						val interfaceToGenerate = generatedMethodRef.type.ret as AstType.REF
+						val methodToConvertRef = methodHandle.methodRef
 
-					val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
+						val methodFromRef = AstMethodRef(interfaceToGenerate.name, generatedMethodRef.name, interfaceMethodType)
 
-					//val hasThis = !methodHandle.kind.isStatic
-					//val thisCount = if (hasThis) 1 else 0
+						//val hasThis = !methodHandle.kind.isStatic
+						//val thisCount = if (hasThis) 1 else 0
 
-					return AstExpr.INVOKE_DYNAMIC_METHOD(
-						methodFromRef,
-						methodToConvertRef,
-						(methodToConvertRef.type.argCount - methodFromRef.type.argCount),
-						kind = methodHandle.kind
-					)
+						return AstExpr.INVOKE_DYNAMIC_METHOD(
+							methodFromRef,
+							methodToConvertRef,
+							(methodToConvertRef.type.argCount - methodFromRef.type.argCount),
+							kind = methodHandle.kind
+						)
+					}
+					"altMetafactory" -> {
+						noImpl("Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!")
+					}
+					else -> {
+						noImpl("Unknown DynamicInvoke with LambdaMetafactory.${bootstrapMethodRef.name}!")
+					}
 				}
-				"altMetafactory" -> {
-					noImpl("Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!")
-				}
-				else -> {
-					noImpl("Unknown DynamicInvoke with LambdaMetafactory.${bootstrapMethodRef.name}!")
-				}
-			}
-		} else {
-			noImpl("Not supported DynamicInvoke without LambdaMetafactory yet for class ${bootstrapMethodRef.containingClass.fqname}!")
+			else ->
+				noImpl("Not supported DynamicInvoke without LambdaMetafactory yet for class ${bootstrapMethodRef.containingClass.fqname}!")
 		}
 	}
 
@@ -798,13 +799,14 @@ operator fun AstExpr.get(field: AstFieldRef) = AstExpr.FIELD_INSTANCE_ACCESS(fie
 operator fun AstExpr.get(method: MethodRef) = MethodWithRef(this, method.ref)
 operator fun AstLocal.get(method: MethodRef) = MethodWithRef(this.expr, method.ref)
 
-val AstStm.stms: List<AstStm> get() {
-	return if (this is AstStm.STMS) {
-		this.stms.map { it.value }
-	} else {
-		listOf(this)
+val AstStm.stms: List<AstStm>
+	get() {
+		return if (this is AstStm.STMS) {
+			this.stms.map { it.value }
+		} else {
+			listOf(this)
+		}
 	}
-}
 
 val Iterable<AstStm>.stms: AstStm get() = this.toList().stm()
 fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)

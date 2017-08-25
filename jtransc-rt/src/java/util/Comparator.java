@@ -29,7 +29,8 @@ public interface Comparator<T> {
 	}
 
 	default Comparator<T> thenComparing(Comparator<? super T> other) {
-		return (Comparator<T> & Serializable) (c1, c2) -> {
+		return (Comparator<T> & Serializable) (c1, c2) -> { // com.jtransc.error.NotImplementedException: Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!
+		//return (c1, c2) -> {
 			int res = compare(c1, c2);
 			return (res != 0) ? res : other.compare(c1, c2);
 		};
