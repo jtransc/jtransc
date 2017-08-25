@@ -46,7 +46,7 @@ public class JTranscConsolePrintStream extends PrintStream {
 		}
 
 		@Override
-		@JTranscMethodBody(target = "dart", value = "if (this{% IFIELD #class:error %}) stderr.writeCharCode(p0); else stdout.writeCharCode(p0);")
+		@JTranscMethodBody(target = "dart", value = "if (this{% IFIELD #CLASS:error %}) stderr.writeCharCode(p0); else stdout.writeCharCode(p0);")
 		public void write(int b) throws IOException {
 			synchronized (this) {
 				_write((char) b);
