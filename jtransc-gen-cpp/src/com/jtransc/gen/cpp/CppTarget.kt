@@ -477,7 +477,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		indent {
 			for (memberCond in clazz.nativeMembers) {
 				condWrapper(memberCond.cond) {
-					lines(memberCond.members)
+					for (member in memberCond.members) {
+						line(member.replace("###", "").template("native members"))
+					}
 				}
 			}
 
@@ -579,6 +581,16 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 					line(writeMethod(method))
 				} catch (e: Throwable) {
 					throw RuntimeException("Couldn't generate method $method for class $clazz due to ${e.message}", e)
+				}
+			}
+		}
+
+		for (memberCond in clazz.nativeMembers) {
+			condWrapper(memberCond.cond) {
+				for (member in memberCond.members) {
+					if (member.startsWith("static ")) {
+						line(member.replace("###", "${clazz.cppName}::").replace("static ", "").template("native members 2"))
+					}
 				}
 			}
 		}
@@ -866,24 +878,25 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun genExprThis(): String = "this" //->sptr()"
 	override fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String = "N::dummyMethodClass()"
 
-	override val AstType.targetNameRef: String get() {
-		if (ENABLE_TYPING) {
-			return getTypeTargetName(this, ref = true)
-		} else {
-			if (this is AstType.Reference) {
-				if (this is AstType.REF) {
-					val clazz = program[this]!!
-					val nativeName = clazz.nativeName
-					if (nativeName != null) {
-						return nativeName
-					}
-				}
-				return "p_java_lang_Object"
-			} else {
+	override val AstType.targetNameRef: String
+		get() {
+			if (ENABLE_TYPING) {
 				return getTypeTargetName(this, ref = true)
+			} else {
+				if (this is AstType.Reference) {
+					if (this is AstType.REF) {
+						val clazz = program[this]!!
+						val nativeName = clazz.nativeName
+						if (nativeName != null) {
+							return nativeName
+						}
+					}
+					return "p_java_lang_Object"
+				} else {
+					return getTypeTargetName(this, ref = true)
+				}
 			}
 		}
-	}
 
 	val AstType.targetNameRefCast: String get() = getTypeTargetName(this, ref = true)
 
@@ -897,7 +910,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	//}
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
+		if (method.modifiers.isSynchronized) {
 			line("SynchronizedMethodLocker __locker(" + getMonitorLockedObjectExpr(method).genExpr() + ");")
 		}
 		line(super.genBody2WithFeatures(method, body))
@@ -1116,24 +1129,25 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val FieldRef.targetName: String get() = getNativeName(this)
 
-	override val MethodRef.targetNameBase: String get() {
-		val method = this
-		return getClassNameAllocator(method.ref.containingClass).allocate(method.ref) {
-			val astMethod = program[method.ref]!!
-			val containingClass = astMethod.containingClass
-			val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
-			val prefix2 = if (containingClass.isInterface || method.ref.isClassOrInstanceInit) {
-				//getClassFqNameForCalling(containingClass.name) + "_"
-				containingClass.name.fqname + "_"
-			} else {
-				""
-			}
-			val suffix = "_${astMethod.name}${astMethod.desc}"
-			//"$prefix$prefix2" + super.getNativeName(method) + "$suffix"
+	override val MethodRef.targetNameBase: String
+		get() {
+			val method = this
+			return getClassNameAllocator(method.ref.containingClass).allocate(method.ref) {
+				val astMethod = program[method.ref]!!
+				val containingClass = astMethod.containingClass
+				val prefix = if (containingClass.isInterface) "I_" else if (astMethod.isStatic) "S_" else "M_"
+				val prefix2 = if (containingClass.isInterface || method.ref.isClassOrInstanceInit) {
+					//getClassFqNameForCalling(containingClass.name) + "_"
+					containingClass.name.fqname + "_"
+				} else {
+					""
+				}
+				val suffix = "_${astMethod.name}${astMethod.desc}"
+				//"$prefix$prefix2" + super.getNativeName(method) + "$suffix"
 
-			"$prefix$prefix2$suffix"
+				"$prefix$prefix2$suffix"
+			}
 		}
-	}
 
 	fun getNativeName(field: FieldRef): String {
 		val clazz = field.ref.getClass(program)
@@ -1168,13 +1182,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		//return e
 	}
 
-	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
-		line("N::monitorEnter(" + stm.expr.genExpr() + ");")
-	}
-
-	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
-		line("N::monitorExit(" + stm.expr.genExpr() + ");")
-	}
-
-
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = Indenter("N::monitorEnter(" + stm.expr.genExpr() + ");")
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = Indenter("N::monitorExit(" + stm.expr.genExpr() + ");")
 }

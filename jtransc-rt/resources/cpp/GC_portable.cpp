@@ -348,3 +348,15 @@ uintptr_t GC_get_free_bytes() {
 uintptr_t GC_get_total_bytes() {
 	return 0;
 }
+
+void GC_init_main_thread() {
+}
+
+void GC_init_pre_thread() {
+}
+
+void GC_init_thread() {
+}
+
+void GC_finish_thread() {
+}

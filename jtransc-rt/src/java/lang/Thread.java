@@ -17,31 +17,38 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.thread.JTranscThreading;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @JTranscAddMembers(target = "d", value = "static {% CLASS java.lang.Thread %} _dCurrentThread; Thread thread;")
-@JTranscAddHeader(target = "cpp", cond = "USE_BOOST", value = {
-	"#include <boost/thread.hpp>",
-	"#include <boost/chrono.hpp>",
-})
-@JTranscAddIncludes(target = "cpp", value = "thread")
+@JTranscAddIncludes(target = "cpp", cond = "USE_BOOST", value = {"thread", "map", "boost/thread.hpp", "boost/chrono.hpp"})
+@JTranscAddIncludes(target = "cpp", value = {"thread", "map"})
 @JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "boost::thread t_;")
 @JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "std::thread t_;")
+@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "static std::map<boost::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
+@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
+@HaxeAddMembers({
+	"private static var threadsMap = new haxe.ds.ObjectMap<Dynamic, {% CLASS java.lang.Thread %}>();",
+	"#if cpp var _cpp_thread: cpp.vm.Thread; #end",
+})
 public class Thread implements Runnable {
 	public final static int MIN_PRIORITY = 1;
 	public final static int NORM_PRIORITY = 5;
 	public final static int MAX_PRIORITY = 10;
 
-	static private Thread _currentThread;
-	private static int _threadNum = 0;
+	public static Thread currentThread() {
+		lazyPrepareThread();
+		Thread out = _getCurrentThreadOrNull();
+		return (out != null) ? out : _mainThread;
+	}
 
 	@JTranscMethodBody(target = "d", value = {
 		"if (_dCurrentThread is null) {",
@@ -49,30 +56,28 @@ public class Thread implements Runnable {
 		"}",
 		"return _dCurrentThread;",
 	})
-	//@JTranscMethodBody(target = "cpp", value = {
-	//	"return boost::this_thread;",
-	//})
-
-	public static Thread currentThread() {
-		if (JTranscThreading.impl != null) { // due to static init issue
-			Thread thread = JTranscThreading.impl.getCurrent();
-			if (thread != null) return thread;
-		}
-
-		if (_currentThread == null) {
-			_currentThread = new Thread();
-			_currentThread.setName("main"); // Most possible, it will represent the main stream
-		}
-		return _currentThread;
+	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "return _cpp_threads[boost::this_thread::get_id()];")
+	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
+	@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
+	private static Thread _getCurrentThreadOrNull() {
+		for (Thread t : getThreadsCopy()) return t; // Just valid for programs with just once thread
+		return null;
 	}
+
 
 	public StackTraceElement[] getStackTrace() {
 		return new Throwable().getStackTrace();
 	}
 
+	@SuppressWarnings("unused")
 	@JTranscMethodBody(target = "d", value = "Thread.yield();")
-	@JTranscMethodBody(target = "cpp", value = "std::this_thread::yield();")
+	//@JTranscMethodBody(target = "cpp", value = "std::this_thread::yield();")
 	public static void yield() {
+		try {
+			Thread.sleep(1L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
@@ -94,19 +99,19 @@ public class Thread implements Runnable {
 		this(null, null, null, 1024);
 	}
 
+	static private LinkedHashMap<Long, Thread> _threadsById;
 	private ThreadGroup group;
 	public String name;
 	private long stackSize;
-	public long _data;
-	public boolean _isAlive;
 	private Runnable target;
+	private int priority = MIN_PRIORITY;
+	private int id;
+	static private int lastId = 0;
+	private UncaughtExceptionHandler uncaughtExceptionHandler = defaultUncaughtExceptionHandler;
 
 	public Thread(Runnable target) {
 		this(null, target, null, 1024);
 	}
-
-	//Thread(Runnable target, AccessControlContext acc) {
-	//}
 
 	public Thread(ThreadGroup group, Runnable target) {
 		this(group, target, null, 1024);
@@ -129,9 +134,10 @@ public class Thread implements Runnable {
 	}
 
 	public Thread(ThreadGroup group, Runnable target, String name, long stackSize) {
-		this.group = group;
+		this.group = (group != null) ? group : currentThread().getThreadGroup();
 		this.target = target;
-		this.name = name == null ? "thread-" + _threadNum++ : name;
+		this.id = lastId++;
+		this.name = (name != null) ? name : ("thread-" + id++);
 		this.stackSize = stackSize;
 		_init();
 	}
@@ -144,24 +150,112 @@ public class Thread implements Runnable {
 	private void _init() {
 	}
 
-	@JTranscMethodBody(target = "d", value = "this.thread.start();")
-	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "t_ = std::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
-	@JTranscMethodBody(target = "cpp", value = "t_ = std::thread(&{% CLASS java.lang.Thread:runInternal %}::{% METHOD java.lang.Thread:runInternal:()V %}, this);")
-	public synchronized void start() {
-		JTranscThreading.impl.start(this);
+	private boolean _isAlive;
+
+	static private final Object staticLock = new Object();
+	static private ThreadGroup _mainThreadGroup = null;
+	static private Thread _mainThread = null;
+
+	synchronized static private Thread[] getThreadsCopy() {
+		Collection<Thread> threads = getThreadSetInternal().values();
+		synchronized (staticLock) {
+			return threads.toArray(new Thread[0]);
+		}
 	}
 
+	static private void lazyPrepareThread() {
+		synchronized (staticLock) {
+			if (_mainThreadGroup == null) {
+				_mainThreadGroup = new ThreadGroup("main");
+			}
+			if (_mainThread == null) {
+				_mainThread = new Thread(_mainThreadGroup, "main");
+			}
+			if (_threadsById == null) {
+				_threadsById = new LinkedHashMap<>();
+				_threadsById.put(_mainThread.getId(), _mainThread);
+			}
+		}
+	}
+
+	static private LinkedHashMap<Long, Thread> getThreadSetInternal() {
+		lazyPrepareThread();
+		return _threadsById;
+	}
+
+	public synchronized void start() {
+		runInternalPreInit();
+		_start();
+	}
+
+	@JTranscMethodBody(target = "d", value = "this.thread.start();")
+	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = {
+		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
+	})
+	@JTranscMethodBody(target = "cpp", value = {
+		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
+	})
+	@HaxeMethodBody(target = "cpp", value = "" +
+		"var that = this;" +
+		"cpp.vm.Thread.create(function():Void {" +
+		"	that._cpp_thread = cpp.vm.Thread.current();" +
+		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
+		"});"
+	)
+	private void _start() {
+		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
+		runInternal();
+	}
 
 	@SuppressWarnings("unused")
 	private void runInternal() {
-		runInternalInit();
-		run();
+		try {
+			runInternalInit();
+			run();
+		} catch (Throwable t) {
+			uncaughtExceptionHandler.uncaughtException(this, t);
+		} finally {
+			runExit();
+		}
 	}
 
-	@JTranscMethodBody(target = "d", value = {
-		"_dCurrentThread = this;",
-	})
+	@SuppressWarnings("unused")
+	static private void runInternalStatic(Thread thread) {
+		thread.runInternal();
+	}
+
+
+	@JTranscMethodBody(target = "cpp", value = "GC_init_pre_thread();")
+	private void runInternalPreInitNative() {
+	}
+
+	private void runInternalPreInit() {
+		runInternalPreInitNative();
+		final LinkedHashMap<Long, Thread> set = getThreadSetInternal();
+		synchronized (staticLock) {
+			set.put(getId(), this);
+			_isAlive = true;
+		}
+	}
+
+	@JTranscMethodBody(target = "d", value = "_dCurrentThread = this;")
+	@JTranscMethodBody(target = "cpp", value = "GC_init_thread(); _cpp_threads[t_.get_id()] = this;")
+	@HaxeMethodBody(target = "cpp", value = "threadsMap.set(_cpp_thread.handle, this);")
 	private void runInternalInit() {
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "_cpp_threads.erase(t_.get_id()); GC_finish_thread();")
+	@HaxeMethodBody(target = "cpp", value = "threadsMap.remove(_cpp_thread.handle);")
+	private void runInternalExit() {
+	}
+
+	private void runExit() {
+		final LinkedHashMap<Long, Thread> set = getThreadSetInternal();
+		synchronized (this) {
+			runInternalExit();
+			set.remove(getId());
+			_isAlive = false;
+		}
 	}
 
 	@Override
@@ -180,11 +274,10 @@ public class Thread implements Runnable {
 	}
 
 	public void interrupt() {
-
 	}
 
 	public static boolean interrupted() {
-		return false;
+		return Thread.currentThread().isInterrupted();
 	}
 
 	public boolean isInterrupted() {
@@ -196,7 +289,8 @@ public class Thread implements Runnable {
 	}
 
 	public final boolean isAlive() {
-		return JTranscThreading.impl.isAlive(this);
+		//System.out.println("isAlive: " + _isAlive);
+		return _isAlive;
 	}
 
 	@Deprecated
@@ -205,10 +299,12 @@ public class Thread implements Runnable {
 	@Deprecated
 	native public final void resume();
 
-	native public final void setPriority(int newPriority);
+	public final void setPriority(int newPriority) {
+		this.priority = newPriority;
+	}
 
 	public final int getPriority() {
-		return NORM_PRIORITY;
+		return priority;
 	}
 
 	public final synchronized void setName(String name) {
@@ -224,29 +320,56 @@ public class Thread implements Runnable {
 	}
 
 	public static int activeCount() {
-		return 1;
+		return getThreadsCopy().length;
 	}
 
-	native public static int enumerate(Thread tarray[]);
+	public static int enumerate(Thread tarray[]) {
+		int n = 0;
+		for (Thread thread : getThreadsCopy()) {
+			if (n >= tarray.length) break;
+			tarray[n++] = thread;
+		}
+		return n;
+	}
 
 	@Deprecated
-	native public int countStackFrames();
+	public int countStackFrames() {
+		return 0;
+	}
 
-	native public final synchronized void join(long millis) throws InterruptedException;
+	public final synchronized void join(long millis) throws InterruptedException {
+		join(millis, 0);
+	}
 
-	native public final synchronized void join(long millis, int nanos) throws InterruptedException;
+	public final synchronized void join(long millis, int nanos) throws InterruptedException {
+		final long start = System.currentTimeMillis();
+		while (isAlive()) {
+			final long current = System.currentTimeMillis();
+			final long elapsed = current - start;
+			if (elapsed >= millis) break;
+			Thread.sleep(1L);
+		}
+	}
 
-	native public final void join() throws InterruptedException;
+	public final void join() throws InterruptedException {
+		while (isAlive()) {
+			Thread.sleep(1L);
+		}
+	}
 
 	native public static void dumpStack();
 
+	private boolean _isDaemon = false;
+
 	@JTranscMethodBody(target = "d", value = "this.thread.isDaemon = p0;")
 	public final void setDaemon(boolean on) {
+		_isDaemon = on;
 	}
 
-	@HaxeMethodBody("return false;")
 	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
-	native public final boolean isDaemon();
+	public final boolean isDaemon() {
+		return _isDaemon;
+	}
 
 	native public final void checkAccess();
 
@@ -282,10 +405,12 @@ public class Thread implements Runnable {
 
 	@JTranscMethodBody(target = "d", value = "return this.thread.id;")
 	public long getId() {
-		return 0L;
+		return id;
 	}
 
-	public enum State {NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED}
+	public enum State {
+		NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED
+	}
 
 	public State getState() {
 		return State.RUNNABLE;
@@ -295,11 +420,29 @@ public class Thread implements Runnable {
 		void uncaughtException(Thread t, Throwable e);
 	}
 
-	native public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler eh);
+	static public UncaughtExceptionHandler defaultUncaughtExceptionHandler = (t, e) -> {
+		System.out.println(t);
+		System.out.println(e);
+	};
 
-	native public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler();
+	public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler eh) {
+		defaultUncaughtExceptionHandler = eh;
+	}
 
-	native public UncaughtExceptionHandler getUncaughtExceptionHandler();
+	public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
+		return defaultUncaughtExceptionHandler;
+	}
 
-	native public void setUncaughtExceptionHandler(UncaughtExceptionHandler eh);
+	public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+		return uncaughtExceptionHandler;
+	}
+
+	public void setUncaughtExceptionHandler(UncaughtExceptionHandler eh) {
+		this.uncaughtExceptionHandler = eh;
+	}
+
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		throw new CloneNotSupportedException();
+	}
 }
