@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @JTranscAddMembers(target = "d", value = "static {% CLASS java.lang.Thread %} _dCurrentThread; Thread thread;")
+@JTranscAddMembers(target = "cs", value = "System.Threading.Thread _cs_thread;")
 @JTranscAddIncludes(target = "cpp", cond = "USE_BOOST", value = {"thread", "map", "boost/thread.hpp", "boost/chrono.hpp"})
 @JTranscAddIncludes(target = "cpp", value = {"thread", "map"})
 @JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "boost::thread t_;")
@@ -189,6 +190,10 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = "this.thread.start();")
+	@JTranscMethodBody(target = "cs", value = {
+		"_cs_thread = new System.Threading.Thread(new System.Threading.ThreadStart(delegate() { this{% IMETHOD java.lang.Thread:runInternal:()V %}();  }));",
+		"_cs_thread.Start();",
+	})
 	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = {
 		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
 	})
