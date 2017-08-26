@@ -721,7 +721,7 @@ object AstExprUtils {
 		val clazz = program.get3(e.method.classRef)
 		val refMethod = program.get(e.method) ?: invalidOp("Can't find method: ${e.method} while generating $context")
 		// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.invokespecial
-		return if (refMethod.modifiers.isPrivate || refMethod.isInstanceInit) {
+		return if (refMethod.isPrivate || refMethod.isInstanceInit) {
 			// Call this!
 			AstExpr.CALL_INSTANCE(e.obj.value, e.method, e.args.map { it.value }, e.isSpecial)
 		} else {

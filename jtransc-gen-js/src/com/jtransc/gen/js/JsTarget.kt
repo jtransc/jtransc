@@ -17,7 +17,6 @@ import com.jtransc.io.ProcessResult2
 import com.jtransc.log.log
 import com.jtransc.sourcemaps.Sourcemaps
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.isLetterDigitOrUnderscore
 import com.jtransc.text.quote
 import com.jtransc.vfs.ExecOptions
@@ -238,6 +237,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			"($array.data[$index])"
 		}
 	}
+
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		return if (debugVersion) {
 			"$array.set($index, $value);"
@@ -485,12 +485,12 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			line("try{")
 			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
 		}
 		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			line("}finally{")
 			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
 			line("}")

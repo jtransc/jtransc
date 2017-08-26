@@ -736,8 +736,6 @@ class AstMethod constructor(
 		}
 	}
 
-	val isNative: Boolean = modifiers.isNative
-
 	private var generatedBody: Boolean = false
 	private var generatedBodyBody: AstBody? = null
 

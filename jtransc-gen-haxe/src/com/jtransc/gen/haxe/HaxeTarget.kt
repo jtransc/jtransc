@@ -931,14 +931,14 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	// Since MONITOR_ENTER/EXIT is not implemented on haxe, this is disabled
 	// @TODO check this when implementing MONITOR_ENTER/EXIT
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			if(method.methodType.retVoid)
 				line("N.tryFinallyVoid(function(){")
 			else line("return N.tryFinallyDynamic(function(){")
 			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
 		}
 		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			line("}, function() {")
 			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
 			line("});")

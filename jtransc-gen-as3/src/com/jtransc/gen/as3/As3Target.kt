@@ -14,7 +14,6 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.lang.map
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.quote
 import com.jtransc.vfs.*
 import java.io.File
@@ -268,12 +267,12 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			line("try{")
 			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
 		}
 		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
+		if (method.isSynchronized) {
 			line("}finally{")
 			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
 			line("}")
@@ -288,9 +287,9 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		// avm2.intrinsics.memory.sxi8
 		// avm2.intrinsics.memory.sxi16
 		return when (elementType) {
-			//AstType.BYTE -> "((($array.data[$index])<<24)>>24)"
-			//AstType.CHAR -> "((($array.data[$index]))&0xFFFF)"
-			//AstType.SHORT -> "((($array.data[$index])<<16)>>16)"
+		//AstType.BYTE -> "((($array.data[$index])<<24)>>24)"
+		//AstType.CHAR -> "((($array.data[$index]))&0xFFFF)"
+		//AstType.SHORT -> "((($array.data[$index])<<16)>>16)"
 			AstType.BYTE -> N_i2b("$array.data[$index]")
 			AstType.CHAR -> N_i2c("$array.data[$index]")
 			AstType.SHORT -> N_i2s("$array.data[$index]")
@@ -298,6 +297,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 		//return "$array.get($index)"
 	}
+
 	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String {
 		return "$array.data[$index] = $value;"
 	}
