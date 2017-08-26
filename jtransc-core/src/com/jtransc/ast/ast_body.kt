@@ -665,7 +665,7 @@ object AstExprUtils {
 		when (bootstrapMethodRef.containingClass.fqname) {
 			"java.lang.invoke.LambdaMetafactory" ->
 				when (bootstrapMethodRef.name) {
-					"metafactory" -> {
+					"metafactory", "altMetafactory" -> {
 						val literals = bootstrapArgs.cast<AstExpr.LiteralExpr>()
 						val interfaceMethodType = literals[0].value as AstType.METHOD
 						val methodHandle = literals[1].value as AstMethodHandle
@@ -685,9 +685,6 @@ object AstExprUtils {
 							(methodToConvertRef.type.argCount - methodFromRef.type.argCount),
 							kind = methodHandle.kind
 						)
-					}
-					"altMetafactory" -> {
-						noImpl("Not supported DynamicInvoke with LambdaMetafactory.altMetafactory yet!")
 					}
 					else -> {
 						noImpl("Unknown DynamicInvoke with LambdaMetafactory.${bootstrapMethodRef.name}!")
