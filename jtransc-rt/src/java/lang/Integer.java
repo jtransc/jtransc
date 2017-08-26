@@ -111,7 +111,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 			}
 			result *= radix;
 			result += JTranscCType.decodeDigit(c);
-			//System.out.println(c + ": " + JTranscCType.decodeDigit(c));
+			//JTranscConsole.log(c + ": " + JTranscCType.decodeDigit(c));
 		}
 		return sign * result;
 	}

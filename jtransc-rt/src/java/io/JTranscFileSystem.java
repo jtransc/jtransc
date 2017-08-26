@@ -164,8 +164,8 @@ class JTranscFileSystem extends FileSystem {
 	}
 
 	public long getLength(File f) {
-		//System.out.println(f.getPath());
-		//System.out.println(f.getAbsolutePath());
+		//JTranscConsole.log(f.getPath());
+		//JTranscConsole.log(f.getAbsolutePath());
 		return JTranscSyncIO.impl.getLength(normalize2(f));
 	}
 

@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import com.jtransc.io.JTranscConsole;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -175,7 +177,7 @@ public class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	}
 
 	public void list() {
-		System.out.println("Unimplemented ThreadGroup.list()");
+		JTranscConsole.log("Unimplemented ThreadGroup.list()");
 	}
 
 	native public void uncaughtException(Thread t, Throwable e);

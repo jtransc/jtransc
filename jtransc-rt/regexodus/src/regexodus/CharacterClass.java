@@ -30,6 +30,7 @@
 package regexodus;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.io.JTranscConsole;
 import regexodus.ds.IntBitSet;
 
 import java.util.ArrayList;
@@ -886,9 +887,9 @@ class CharacterClass extends Term implements UnicodeConstants {
 
 
     private static void printRealm(ArrayList<String> realm, String name) {
-        System.out.println(name + ":");
+		JTranscConsole.log(name + ":");
         for (String s : realm) {
-            System.out.println("  " + s);
+			JTranscConsole.log("  " + s);
         }
     }
 }

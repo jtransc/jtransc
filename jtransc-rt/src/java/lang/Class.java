@@ -371,11 +371,11 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	public T[] getEnumConstants() {
 		T[] values = getEnumConstantsShared();
 		if (values == null) {
-			System.out.println("Class " + this + " is not an enum (" + isEnum() + ")!");
+			JTranscConsole.log("Class " + this + " is not an enum (" + isEnum() + ")!");
 
 			try {
 				final Method valuesMethod = getMethod("values");
-				System.out.println("values method:" + valuesMethod);
+				JTranscConsole.log("values method:" + valuesMethod);
 			} catch (NoSuchMethodException e) {
 				throw new Error(e);
 			}
