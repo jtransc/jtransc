@@ -268,14 +268,18 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
 		if (method.isSynchronized) {
-			line("try{")
-			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
-		}
-		line(super.genBody2WithFeatures(method, body))
-		if (method.isSynchronized) {
-			line("}finally{")
-			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
+			lineMonitorEnter()
+			line("try {")
+			indent {
+				line(super.genBody2WithFeatures(method, body))
+			}
+			line("} finally{")
+			indent {
+				lineMonitorExit()
+			}
 			line("}")
+		} else {
+			line(super.genBody2WithFeatures(method, body))
 		}
 	}
 

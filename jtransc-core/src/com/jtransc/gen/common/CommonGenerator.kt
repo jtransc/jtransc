@@ -739,12 +739,34 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
 
+	//open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
 	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
+		//if (method.isSynchronized) {
+		//	lineMonitorEnter()
+		//	line("try {")
+		//	indent {
+		//		line(genBody2WithFeatures2(method, body))
+		//	}
+		//	line("} finally{")
+		//	indent {
+		//		lineMonitorExit()
+		//	}
+		//	line("}")
+		//} else {
+		//	line(genBody2WithFeatures2(method, body))
+		//}
 		val actualFeatures = if (body.traps.isNotEmpty()) methodFeaturesWithTraps else methodFeatures
 		val transformedBody = features.apply(method, body, actualFeatures, settings, types)
 		plugins.onAfterAppliedMethodBodyFeature(method, transformedBody)
 		return transformedBody.genBody()
 	}
+
+	//open fun genBody2WithFeatures2(method: AstMethod, body: AstBody): Indenter {
+	//	val actualFeatures = if (body.traps.isNotEmpty()) methodFeaturesWithTraps else methodFeatures
+	//	val transformedBody = features.apply(method, body, actualFeatures, settings, types)
+	//	plugins.onAfterAppliedMethodBodyFeature(method, transformedBody)
+	//	return transformedBody.genBody()
+	//}
 
 	// @TODO: Remove this from here, so new targets don't have to do this too!
 // @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
@@ -2374,6 +2396,16 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		program["java.lang.Throwable".fqname].getMethods("prepareThrow").first()
 	}
 
+	fun Indenter.lineMonitorEnter() = line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(context.method))))
+	fun Indenter.lineMonitorExit() = line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(context.method))))
+
+	fun Indenter.lineMonitorEnterIfRequired() {
+		if (context.method.isSynchronized) lineMonitorEnter()
+	}
+
+	fun Indenter.lineMonitorExitIfRequired() {
+		if (context.method.isSynchronized) lineMonitorExit()
+	}
 
 //open fun getActualFqName(name: FqName): FqName {
 //	/*

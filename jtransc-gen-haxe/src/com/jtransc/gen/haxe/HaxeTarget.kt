@@ -154,17 +154,6 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	val __out_var = "__out_var"
 
-	fun Indenter.lineMonitorEnter() = line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(context.method))))
-	fun Indenter.lineMonitorExit() = line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(context.method))))
-
-	fun Indenter.lineMonitorEnterIfRequired() {
-		if (context.method.isSynchronized) lineMonitorEnter()
-	}
-
-	fun Indenter.lineMonitorExitIfRequired() {
-		if (context.method.isSynchronized) lineMonitorExit()
-	}
-
 	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter {
 		val res = Indenter {
 			lineMonitorExitIfRequired()
@@ -963,9 +952,9 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
 		if (method.isSynchronized) {
 			line("var $__out_var;")
+			lineMonitorEnter()
 			line("try {")
 			indent {
-				lineMonitorEnter()
 				line(super.genBody2WithFeatures(method, body))
 			}
 			line("} catch (e: Dynamic) {")
