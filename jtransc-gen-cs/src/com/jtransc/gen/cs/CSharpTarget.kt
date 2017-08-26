@@ -310,22 +310,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+	override fun genBody2WithFeatures2(method: AstMethod, body: AstBody): Indenter = Indenter {
 		line("unchecked") {
-			if (method.isSynchronized) {
-				lineMonitorEnter()
-				line("try {")
-				indent {
-					line(super.genBody2WithFeatures(method, body))
-				}
-				line("} finally {")
-				indent {
-					lineMonitorExit()
-				}
-				line("}")
-			} else {
-				line(super.genBody2WithFeatures(method, body))
-			}
+			line(super.genBody2WithFeatures2(method, body))
 		}
 	}
 

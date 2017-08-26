@@ -483,22 +483,4 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "N.checkCast($e, ${to.targetNameRef})"
 	}
-
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if (method.isSynchronized) {
-			lineMonitorEnter()
-			line("try {")
-			indent {
-				line(super.genBody2WithFeatures(method, body))
-			}
-			line("} finally {")
-			indent {
-				lineMonitorExit()
-			}
-			line("}")
-		} else {
-			line(super.genBody2WithFeatures(method, body))
-		}
-	}
-
 }

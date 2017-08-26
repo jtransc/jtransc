@@ -955,7 +955,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			lineMonitorEnter()
 			line("try {")
 			indent {
-				line(super.genBody2WithFeatures(method, body))
+				line(genBody2WithFeatures2(method, body))
 			}
 			line("} catch (e: Dynamic) {")
 			indent {
@@ -964,7 +964,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 			line("}")
 		} else {
-			line(super.genBody2WithFeatures(method, body))
+			line(genBody2WithFeatures2(method, body))
 		}
 	}
 

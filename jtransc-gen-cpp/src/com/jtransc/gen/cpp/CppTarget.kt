@@ -913,7 +913,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (method.isSynchronized) {
 			line("SynchronizedMethodLocker __locker(" + getMonitorLockedObjectExpr(method).genExpr() + ");")
 		}
-		line(super.genBody2WithFeatures(method, body))
+		line(genBody2WithFeatures2(method, body))
 	}
 
 	override fun N_i2b(str: String) = "((int8_t)($str))"

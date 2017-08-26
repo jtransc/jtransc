@@ -266,23 +266,6 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if (method.isSynchronized) {
-			lineMonitorEnter()
-			line("try {")
-			indent {
-				line(super.genBody2WithFeatures(method, body))
-			}
-			line("} finally{")
-			indent {
-				lineMonitorExit()
-			}
-			line("}")
-		} else {
-			line(super.genBody2WithFeatures(method, body))
-		}
-	}
-
 	override fun N_i2b(str: String) = "avm2.intrinsics.memory.sxi8($str)"
 	override fun N_i2c(str: String) = "(($str)&0xFFFF)"
 	override fun N_i2s(str: String) = "avm2.intrinsics.memory.sxi16($str)"
