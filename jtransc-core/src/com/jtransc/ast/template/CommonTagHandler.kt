@@ -42,7 +42,7 @@ object CommonTagHandler {
 		val desc2 = dataParts.joinToString(":")
 		val classFqname = resolveClassName(dataParts[0], params)
 		if (!program.contains(classFqname)) {
-			invalidOp("evalReference: Can't find class '$classFqname' (I)")
+			invalidOp("evalReference: Can't find class '$classFqname' (I) : parts : $dataParts")
 		}
 		val clazz = program[classFqname]
 		val types = program.types

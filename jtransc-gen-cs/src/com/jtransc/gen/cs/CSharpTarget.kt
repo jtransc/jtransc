@@ -203,7 +203,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 					'\t' -> out.append("\\t")
 				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
 				//in '\u0020'..'\u00ff' -> out.append(c)
-					in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '$', '&' -> out.append(c)
+					in 'a'..'z', in 'A'..'Z', in '0'..'9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '$', '&' -> out.append(c)
 					else -> out.append("\\u" + "%04x".format(c.toInt()))
 				}
 			}
@@ -297,9 +297,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static public void SI()") {
 				val clazzName = if (clazz.isInterface) clazz.name.targetNameForStatic else clazz.name.targetName
 				for (field in clazz.fields.filter { it.isStatic }) {
-					if(field.type==AstType.BOOL){
+					if (field.type == AstType.BOOL) {
 						line("$clazzName.${field.targetName} = ${field.escapedConstantValue == "1"};")
-					}else {
+					} else {
 						line("$clazzName.${field.targetName} = ${field.escapedConstantValue};")
 					}
 				}
@@ -310,18 +310,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
-			line("try{")
-			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
-		}
+	override fun genBody2WithFeatures2(method: AstMethod, body: AstBody): Indenter = Indenter {
 		line("unchecked") {
-			line(super.genBody2WithFeatures(method, body))
-		}
-		if(method.modifiers.isSynchronized) {
-			line("}finally{")
-			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
-			line("}")
+			line(super.genBody2WithFeatures2(method, body))
 		}
 	}
 

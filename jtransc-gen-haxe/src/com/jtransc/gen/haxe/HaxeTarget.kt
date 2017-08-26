@@ -152,19 +152,37 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genLabel(label: AstLabel): String = "untyped __cpp__('${label.name}:;');"
 
+	val __out_var = "__out_var"
+
 	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter {
-		val res = super.genStmReturnVoid(stm, last)
+		val res = Indenter {
+			lineMonitorExitIfRequired()
+			if (context.method.methodVoidReturnThis) {
+				line("return this;")
+			} else {
+				line("return;")
+			}
+		}
 		if (usingGotoHack && !last) {
-			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+			return Indenter("if (untyped __cpp__('true')) { " + res.toString() + " }")
 		} else {
 			return res
 		}
 	}
 
 	override fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean): Indenter {
-		val res = super.genStmReturnValue(stm, last)
+		val res = Indenter {
+			if (context.method.isSynchronized) {
+				line("$__out_var = ${stm.retval.genExpr()};")
+				lineMonitorExit()
+				line("return $__out_var;")
+			} else {
+				line("return ${stm.retval.genExpr()};")
+			}
+		}
+
 		if (usingGotoHack && !last) {
-			return Indenter("if (untyped __cpp__('true')) " + res.toString())
+			return Indenter("if (untyped __cpp__('true')) { " + res.toString() + " }")
 		} else {
 			return res
 		}
@@ -221,7 +239,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override val tempdir = configTargetDirectory.targetDirectory
 	val mergedAssetsFolder = haxeConfigMergedAssetsFolder?.mergedAssetsFolder
 	val mergedAssetsVfs by lazy { LocalVfs(mergedAssetsFolder!!) }
-	//override val outputFile2 = configOutputFile2.file
+//override val outputFile2 = configOutputFile2.file
 
 	override fun writeProgramAndFiles() {
 		_write()
@@ -242,13 +260,13 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	//override fun genStmSwitch(stm: AstStm.SWITCH): Indenter = if (stm.cases.size > MAX_SWITCH_SIZE) {
-	//	this.genStm2(stm.reduceSwitch(maxChunkSize = 10))
-	//} else {
-	//	super.genStmSwitch(stm)
-	//}
+//override fun genStmSwitch(stm: AstStm.SWITCH): Indenter = if (stm.cases.size > MAX_SWITCH_SIZE) {
+//	this.genStm2(stm.reduceSwitch(maxChunkSize = 10))
+//} else {
+//	super.genStmSwitch(stm)
+//}
 
-	//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
+//val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
 
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 {
 		return _compileRun(run = true, redirect = redirect)
@@ -497,7 +515,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	//"Std.is(${e.expr.genExpr()}, ${e.checkType.targetTypeCast})"
-	//override fun N_is(a: String, b: String) = "N.is($a, $b)"
+//override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_is(a: String, b: String) = "Std.is($a, $b)"
 
 	override fun N_z2i(str: String) = "N.z2i($str)"
@@ -660,7 +678,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 							line(method.getHaxeNativeBody {
 								rbody?.genBodyWithFeatures(method) ?: Indenter("throw '${str}';")
 							})
-							if (method.methodVoidReturnThis) line("return this;")
+							if (method.methodVoidReturnThis) {
+								lineMonitorExitIfRequired()
+								line("return this;")
+							}
 						} catch (e: Throwable) {
 							//e.printStackTrace()
 							log.warn("WARNING haxe_gen.writeMethod:" + e.message)
@@ -778,12 +799,13 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName) = null
 
-	override val FqName.targetNameForStatic: String get() {
-		val clazz = program[this]
-		val simpleName = this.targetSimpleName
-		val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
-		return clazz.name.targetClassFqName + suffix
-	}
+	override val FqName.targetNameForStatic: String
+		get() {
+			val clazz = program[this]
+			val simpleName = this.targetSimpleName
+			val suffix = if (clazz.isInterface) ".${simpleName}_IFields" else ""
+			return clazz.name.targetClassFqName + suffix
+		}
 
 	override fun buildTemplateClass(clazz: FqName): String = clazz.targetClassFqName
 
@@ -837,7 +859,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val DoublePositiveInfinityString = "Math.POSITIVE_INFINITY"
 	override val DoubleNanString = "Math.NaN"
 
-	///////////////////////////
+///////////////////////////
 
 	//val actualSubtarget = configActualSubtarget.subtarget
 	override val srcFolder = HaxeGenTools.getSrcFolder(tempdir)
@@ -900,7 +922,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 		params["HAXE_METHOD_ANNOTATIONS"] = METHOD_ANNOTATIONS
 	}
 
-	//override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
+//override val AstMethod.targetIsOverriding: Boolean get() = this.isOverriding && !this.isInstanceInit
 
 	override val AstType.localDeclType: String get() = "var"
 
@@ -926,25 +948,33 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) = Indenter {
 		line("${stm.array.genExpr()}.setArraySlice(${stm.startIndex}, [${stm.values.map { it.genExpr() }.joinToString(", ")}]);")
 	}
-/*
-	// Not working: Compile Error: Cannot access super inside a local function
-	// Since MONITOR_ENTER/EXIT is not implemented on haxe, this is disabled
-	// @TODO check this when implementing MONITOR_ENTER/EXIT
+
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
-			if(method.methodType.retVoid)
-				line("N.tryFinallyVoid(function(){")
-			else line("return N.tryFinallyDynamic(function(){")
-			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
-		}
-		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
-			line("}, function() {")
-			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
-			line("});")
+		if (method.isSynchronized) {
+			line("var $__out_var;")
+			lineMonitorEnter()
+			line("try {")
+			indent {
+				line(genBody2WithFeatures2(method, body))
+			}
+			line("} catch (e: Dynamic) {")
+			indent {
+				lineMonitorExit()
+				line("throw e;")
+			}
+			line("}")
+		} else {
+			line(genBody2WithFeatures2(method, body))
 		}
 	}
-*/
+
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
+		line("N.monitorEnter(" + stm.expr.genExpr() + ");")
+	}
+
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
+		line("N.monitorExit(" + stm.expr.genExpr() + ");")
+	}
 }
 
 data class ConfigHaxeAddSubtarget(val subtarget: HaxeAddSubtarget)

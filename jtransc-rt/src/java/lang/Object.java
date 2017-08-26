@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
+import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeAddSubtarget;
 
 import java.lang.jtransc.JTranscCoreReflection;
@@ -69,6 +70,9 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
 @JTranscAddMembers(target = "d", value = "core.sync.mutex.Mutex __d_mutex = null;")
 @JTranscAddMembers(target = "cpp", value = "std::recursive_mutex mtx;")
+@HaxeAddMembers({
+	"#if cpp public var _hx_mutex: cpp.vm.Mutex = null; #end",
+})
 public class Object {
 	@JTranscInvisible
 	public int $$id;
@@ -124,6 +128,7 @@ public class Object {
 
 	private static final long SAMPLING_STEP = 50;
 	private long waitTimeout;
+
 	public final void notify() {
 		waitTimeout = 0;
 	}
@@ -136,7 +141,7 @@ public class Object {
 		if (timeout < 0)
 			throw new IllegalArgumentException("timeout is negative");
 		waitTimeout = timeout == 0 ? Long.MAX_VALUE : timeout;
-		while (waitTimeout > 0){
+		while (waitTimeout > 0) {
 			waitTimeout -= SAMPLING_STEP;
 			Thread.sleep(SAMPLING_STEP);
 		}

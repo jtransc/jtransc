@@ -16,6 +16,7 @@
 
 import big.BigTest
 import big.HelloWorldTest
+import big.ThreadTest
 import com.jtransc.gen.common._Base
 import com.jtransc.gen.cpp.CppTarget
 import issues.issue130.Issue130
@@ -37,6 +38,9 @@ class CppTest : _Base() {
 	//override val TREESHAKING_TRACE: Boolean = false
 
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
+
+	@Ignore("Failing for now")
+	@Test fun testThread() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
 	@Ignore
 	@Test fun testBigTestRelease() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = false))

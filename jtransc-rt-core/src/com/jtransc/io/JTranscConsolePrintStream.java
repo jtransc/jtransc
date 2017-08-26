@@ -8,13 +8,13 @@ import java.io.PrintStream;
 
 public class JTranscConsolePrintStream extends PrintStream {
 	final boolean error;
-	final ConsoleBaseStream stream;
+	final ConsoleStream stream;
 
 	public JTranscConsolePrintStream(final boolean error) {
-		this(error ? new ConsoleErrorStream() : new ConsoleOutputStream(), error);
+		this(new ConsoleStream(error), error);
 	}
 
-	private JTranscConsolePrintStream(ConsoleBaseStream stream, final boolean error) {
+	private JTranscConsolePrintStream(ConsoleStream stream, final boolean error) {
 		super(stream);
 		this.stream = stream;
 		this.error = error;
@@ -22,20 +22,21 @@ public class JTranscConsolePrintStream extends PrintStream {
 
 	@Override
 	public void println(String x) {
-		JTranscConsole.logOrError(stream.sb.toString() + x, error);
-		stream.sb.setLength(0);
+		synchronized (this) {
+			JTranscConsole.logOrError(stream.sb.toString() + x, error);
+			stream.sb.setLength(0);
+		}
 	}
 
-	static private abstract class ConsoleBaseStream extends OutputStream {
-		public StringBuilder sb = new StringBuilder();
+	static private class ConsoleStream extends OutputStream {
+		public final StringBuilder sb = new StringBuilder();
 		private final boolean error;
 
-		public ConsoleBaseStream(boolean error) {
+		public ConsoleStream(boolean error) {
 			this.error = error;
 		}
 
-		protected void _write(int b) throws IOException {
-			char c = (char)b;
+		protected void _write(char c) throws IOException {
 			if (c == '\n') {
 				JTranscConsole.logOrError(sb.toString(), error);
 				sb.setLength(0);
@@ -43,29 +44,20 @@ public class JTranscConsolePrintStream extends PrintStream {
 				sb.append(c);
 			}
 		}
-	}
 
-	static private class ConsoleOutputStream extends ConsoleBaseStream {
-		public ConsoleOutputStream() {
-			super(false);
+		@Override
+		@JTranscMethodBody(target = "dart", value = "if (this{% IFIELD #CLASS:error %}) stderr.writeCharCode(p0); else stdout.writeCharCode(p0);")
+		public void write(int b) throws IOException {
+			synchronized (this) {
+				_write((char) b);
+			}
 		}
 
 		@Override
-		@JTranscMethodBody(target = "dart", value = "stdout.writeCharCode(p0);")
-		public void write(int b) throws IOException {
-			_write(b);
-		}
-	}
-
-	static private class ConsoleErrorStream extends ConsoleBaseStream {
-		public ConsoleErrorStream() {
-			super(true);
-		}
-
-		@Override
-		@JTranscMethodBody(target = "dart", value = "stderr.writeCharCode(p0);")
-		public void write(int b) throws IOException {
-			_write(b);
+		public void write(byte[] b, int off, int len) throws IOException {
+			synchronized (this) {
+				super.write(b, off, len);
+			}
 		}
 	}
 }

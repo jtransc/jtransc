@@ -16,73 +16,174 @@
 
 package java.lang;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+
 public class ThreadGroup implements Thread.UncaughtExceptionHandler {
+	private ThreadGroup parent;
+	private String name;
+	private LinkedHashSet<Thread> threads;
+	private LinkedHashSet<ThreadGroup> children;
+	private int maxPriority = Thread.MAX_PRIORITY;
+	private boolean isDaemon = false;
+	private boolean isDestroyed = false;
+
+	synchronized private Thread[] getThreadsCopy() {
+		return (threads != null) ? threads.toArray(new Thread[0]) : new Thread[0];
+	}
+
+	synchronized private ArrayList<Thread> getAllThreads(ArrayList<Thread> out) {
+		for (Thread thread : getThreadsCopy()) out.add(thread);
+		for (ThreadGroup group : getChildrenCopy()) group.getAllThreads(out);
+		return out;
+	}
+
+	synchronized private ArrayList<Thread> getAllThreads() {
+		return getAllThreads(new ArrayList<>());
+	}
+
+	synchronized private ThreadGroup[] getChildrenCopy() {
+		return (children != null) ? children.toArray(new ThreadGroup[0]) : new ThreadGroup[0];
+	}
+
+	synchronized private ArrayList<ThreadGroup> getAllChildren(ArrayList<ThreadGroup> out) {
+		out.add(this);
+		for (ThreadGroup group : getChildrenCopy()) group.getAllChildren(out);
+		return out;
+	}
+
+	synchronized private ArrayList<ThreadGroup> getAllChildren() {
+		return getAllChildren(new ArrayList<>());
+	}
+
 	private ThreadGroup() {
+		this("ThreadGroup");
 	}
 
 	public ThreadGroup(String name) {
-
+		this(null, name);
 	}
 
 	public ThreadGroup(ThreadGroup parent, String name) {
-
+		this.parent = parent;
+		this.name = (name != null) ? name : "ThreadGroup";
 	}
 
-	private ThreadGroup(Void unused, ThreadGroup parent, String name) {
+	public final String getName() {
+		return name;
 	}
 
-	native public final String getName();
+	public final ThreadGroup getParent() {
+		return parent;
+	}
 
-	native public final ThreadGroup getParent();
+	public final int getMaxPriority() {
+		return maxPriority;
+	}
 
-	native public final int getMaxPriority();
+	public final boolean isDaemon() {
+		return this.isDaemon;
+	}
 
-	native public final boolean isDaemon();
+	public synchronized boolean isDestroyed() {
+		return isDestroyed;
+	}
 
-	native public synchronized boolean isDestroyed();
+	public final void setDaemon(boolean daemon) {
+		this.isDaemon = daemon;
+	}
 
-	native public final void setDaemon(boolean daemon);
+	public final void setMaxPriority(int priority) {
+		this.maxPriority = priority;
+	}
 
-	native public final void setMaxPriority(int pri);
+	public final boolean parentOf(ThreadGroup g) {
+		return (g == this.parent) || ((this.parent != null) && this.parent.parentOf(g));
+	}
 
-	native public final boolean parentOf(ThreadGroup g);
+	public final void checkAccess() {
+	}
 
-	native public final void checkAccess();
+	public int activeGroupCount() {
+		int count = 1;
+		for (ThreadGroup child : getChildrenCopy()) {
+			count += child.activeGroupCount();
+		}
+		return count;
+	}
 
-	native public int activeCount();
+	public int activeCount() {
+		return getAllThreads().size();
+	}
 
-	native public int enumerate(Thread list[]);
+	public int enumerate(Thread list[]) {
+		return enumerate(list, true);
+	}
 
-	native public int enumerate(Thread list[], boolean recurse);
+	public int enumerate(ThreadGroup list[]) {
+		return enumerate(list, true);
+	}
 
-	native public int activeGroupCount();
+	public int enumerate(Thread list[], boolean recurse) {
+		int n = 0;
+		for (Thread item : recurse ? getAllThreads() : Arrays.asList(getThreadsCopy())) {
+			if (n >= list.length) break;
+			list[n++] = item;
+		}
+		return n;
+	}
 
-	native public int enumerate(ThreadGroup list[]);
-
-	native public int enumerate(ThreadGroup list[], boolean recurse);
+	public int enumerate(ThreadGroup list[], boolean recurse) {
+		int n = 0;
+		for (ThreadGroup item : recurse ? getAllChildren() : Arrays.asList(getChildrenCopy())) {
+			if (n >= list.length) break;
+			list[n++] = item;
+		}
+		return n;
+	}
 
 	@Deprecated
-	native public final void stop();
+	public final void stop() {
+		for (Thread thread : getThreadsCopy()) thread.stop();
+		for (ThreadGroup group : getChildrenCopy()) group.stop();
+	}
 
-	native public final void interrupt();
+	public final void interrupt() {
+		for (Thread thread : getThreadsCopy()) thread.interrupt();
+		for (ThreadGroup group : getChildrenCopy()) group.interrupt();
+	}
 
 	@Deprecated
 	@SuppressWarnings("deprecation")
-	native public final void suspend();
-
+	public final void suspend() {
+		for (Thread thread : getThreadsCopy()) thread.suspend();
+		for (ThreadGroup group : getChildrenCopy()) group.suspend();
+	}
 
 	@Deprecated
 	@SuppressWarnings("deprecation")
-	native public final void resume();
+	public final void resume() {
+		for (Thread thread : getThreadsCopy()) thread.resume();
+		for (ThreadGroup group : getChildrenCopy()) group.resume();
+	}
 
-	native public final void destroy();
+	synchronized public final void destroy() {
+		isDestroyed = true;
+		for (Thread thread : getThreadsCopy()) thread.destroy();
+		for (ThreadGroup group : getChildrenCopy()) group.destroy();
+	}
 
-	native public void list();
+	public void list() {
+		System.out.println("Unimplemented ThreadGroup.list()");
+	}
 
 	native public void uncaughtException(Thread t, Throwable e);
 
 	@Deprecated
-	native public boolean allowThreadSuspension(boolean b);
+	public boolean allowThreadSuspension(boolean b) {
+		return false;
+	}
 
 	public String toString() {
 		return getClass().getName() + "[name=" + getName() + ",maxpri=" + getMaxPriority() + "]";
