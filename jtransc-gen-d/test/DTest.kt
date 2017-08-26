@@ -1,5 +1,6 @@
 import big.BigTest
 import big.HelloWorldTest
+import big.ThreadTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
 import com.jtransc.gen.d.DTarget
@@ -46,6 +47,8 @@ class DTest : _Base() {
 	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, debug = true))
+
+	@Test fun testThread() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, debug = true))
 
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true))

@@ -11,7 +11,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -181,7 +180,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 					'$' -> out.append("\\$")
 				//in '\u0000'..'\u001f' -> out.append("\\x" + "%02x".format(c.toInt()))
 				//in '\u0020'..'\u00ff' -> out.append(c)
-					in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '&' -> out.append(c)
+					in 'a'..'z', in 'A'..'Z', in '0'..'9', '_', '.', ',', ';', ':', '<', '>', '{', '}', '[', ']', '/', ' ', '=', '!', '%', '&' -> out.append(c)
 					else -> out.append("\\u" + "%04x".format(c.toInt()))
 				}
 			}
@@ -241,6 +240,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(($BaseArrayType)${e.array.genNotNull()}).length"
 	override fun genExprArrayLength(e: AstExpr.ARRAY_LENGTH): String = "(${e.array.genNotNull()} as JA_0).length"
+
 	//override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedThrowable(${stm.value.genExpr()});")
 	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw (${stm.exception.genExpr()}).${prepareThrow.targetName}().dartError;")
 
@@ -276,6 +276,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	//override fun N_i(str: String) = "N.i($str)"
 	override fun N_i(str: String) = "($str)"
+
 	override fun N_f2i(str: String) = "N.f2i($str)"
 	override fun N_d2i(str: String) = "N.d2i($str)"
 
@@ -455,18 +456,5 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (from is AstType.NULL) return e
 		//return "N.CHECK_CAST($e, ${to.targetNameRef})"
 		return "(($e) as ${to.targetNameRef})"
-	}
-
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
-			line("try{")
-			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
-		}
-		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
-			line("}finally{")
-			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
-			line("}")
-		}
 	}
 }

@@ -739,7 +739,24 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun AstBody.genBody(): Indenter = genBody2(this)
 	fun AstBody.genBodyWithFeatures(method: AstMethod): Indenter = genBody2WithFeatures(method, this)
 
-	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter {
+	open fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
+		if (method.isSynchronized) {
+			lineMonitorEnter()
+			line("try {")
+			indent {
+				line(genBody2WithFeatures2(method, body))
+			}
+			line("} finally{")
+			indent {
+				lineMonitorExit()
+			}
+			line("}")
+		} else {
+			line(genBody2WithFeatures2(method, body))
+		}
+	}
+
+	open fun genBody2WithFeatures2(method: AstMethod, body: AstBody): Indenter {
 		val actualFeatures = if (body.traps.isNotEmpty()) methodFeaturesWithTraps else methodFeatures
 		val transformedBody = features.apply(method, body, actualFeatures, settings, types)
 		plugins.onAfterAppliedMethodBodyFeature(method, transformedBody)
@@ -1285,11 +1302,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
-	open fun getMonitorLockedObjectExpr(method: AstMethod): AstExpr {
-		if (method.isStatic)
-			return (AstExpr.LITERAL(method.containingClass.astType, dummy = true))
-		else
-			return (AstExpr.THIS(method.containingClass.name))
+	open fun getMonitorLockedObjectExpr(method: AstMethod): AstExpr = when {
+		method.isStatic -> AstExpr.LITERAL(method.containingClass.astType, dummy = true)
+		else -> AstExpr.THIS(method.containingClass.name)
 	}
 
 	open fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("// MONITOR_ENTER") }
@@ -1980,9 +1995,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 //////////////////////////////////////////////////
 
 	open val AstType.nativeDefault: Any? get() = this.getNull()
-	open val AstType.nativeDefaultString: String get() {
-		return this.nativeDefault.escapedConstant
-	}
+	open val AstType.nativeDefaultString: String
+		get() {
+			return this.nativeDefault.escapedConstant
+		}
 
 	fun Any?.escapedConstantOfType(type: AstType): String {
 		if (type == AstType.BOOL) {
@@ -2101,23 +2117,25 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	open val FqName.targetClassFqName: String get() = this.targetName
 	open val FqName.targetSimpleName: String get() = this.simpleName
-	open val FqName.targetNameForStatic: String get() {
-		val clazz = program[this]
-		return when {
-			(clazz.nativeName != null) -> {
-				imports += FqName(clazz.nativeName!!)
-				clazz.nativeName!!
+	open val FqName.targetNameForStatic: String
+		get() {
+			val clazz = program[this]
+			return when {
+				(clazz.nativeName != null) -> {
+					imports += FqName(clazz.nativeName!!)
+					clazz.nativeName!!
+				}
+				else -> this.targetNameForStaticNonNative
 			}
-			else -> this.targetNameForStaticNonNative
 		}
-	}
-	open val FqName.targetNameForStaticNonNative: String get() {
-		val clazz = program[this]
-		return when {
-			(!clazz.isInterface || interfacesSupportStaticMembers) -> this.targetName
-			else -> this.targetName + "_IFields"
+	open val FqName.targetNameForStaticNonNative: String
+		get() {
+			val clazz = program[this]
+			return when {
+				(!clazz.isInterface || interfacesSupportStaticMembers) -> this.targetName
+				else -> this.targetName + "_IFields"
+			}
 		}
-	}
 	open val FqName.targetFilePath: String get() = this.simpleName
 	open val FqName.targetGeneratedFqName: FqName get() = this
 	open val FqName.targetGeneratedFqPackage: String get() = this.packagePath
@@ -2130,33 +2148,34 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open val AstMethodRef.objectToCache: Any get() = if (this.isClassOrInstanceInit) this else this.withoutClass
 
-	open val MethodRef.targetName: String get() {
-		val method = this.ref
-		val realmethod = program[method] ?: invalidOp("Can't find method $method")
-		val realclass = realmethod.containingClass
+	open val MethodRef.targetName: String
+		get() {
+			val method = this.ref
+			val realmethod = program[method] ?: invalidOp("Can't find method $method")
+			val realclass = realmethod.containingClass
 
-		return if (realclass.isNative) {
-			// No cache
-			realmethod.nativeNameForTarget(this@CommonGenerator.targetName) ?: method.name
-		} else {
-			methodNames.getOrPut2(method.objectToCache) {
-				if (minimize && !realmethod.keepName) {
-					allocMemberName()
-				} else {
-					if (realmethod.nativeMethod != null) {
-						realmethod.nativeMethod!!
+			return if (realclass.isNative) {
+				// No cache
+				realmethod.nativeNameForTarget(this@CommonGenerator.targetName) ?: method.name
+			} else {
+				methodNames.getOrPut2(method.objectToCache) {
+					if (minimize && !realmethod.keepName) {
+						allocMemberName()
 					} else {
-						val name2 = method.targetNameBase
-						val name = when (method.name) {
-							"<init>", "<clinit>" -> "${method.containingClass}$name2"
-							else -> name2
+						if (realmethod.nativeMethod != null) {
+							realmethod.nativeMethod!!
+						} else {
+							val name2 = method.targetNameBase
+							val name = when (method.name) {
+								"<init>", "<clinit>" -> "${method.containingClass}$name2"
+								else -> name2
+							}
+							cleanMethodName(name)
 						}
-						cleanMethodName(name)
 					}
 				}
 			}
 		}
-	}
 
 	open val MethodRef.targetNameBase: String get() = "${this.ref.name}${this.ref.desc}"
 //open val MethodRef.targetNameBase: String get() = "${this.ref.name}"
@@ -2226,59 +2245,60 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	protected val classNames = hashMapOf<Any?, String>()
 	protected val cachedFieldNames = hashMapOf<AstFieldRef, String>()
 
-	open val FieldRef.targetName: String get() {
-		val fieldRef = this
-		val field = fieldRef.ref
-		val realfield = program[field]
-		val realclass = program[field.containingClass]
-		val keyToUse = field
+	open val FieldRef.targetName: String
+		get() {
+			val fieldRef = this
+			val field = fieldRef.ref
+			val realfield = program[field]
+			val realclass = program[field.containingClass]
+			val keyToUse = field
 
-		val normalizedFieldName = cleanFieldName(field.name)
+			val normalizedFieldName = cleanFieldName(field.name)
 
-		//if (normalizedFieldName == "_parameters" || normalizedFieldName == "__parameters") {
-		//	println("_parameters")
-		//}
+			//if (normalizedFieldName == "_parameters" || normalizedFieldName == "__parameters") {
+			//	println("_parameters")
+			//}
 
-		return if (realclass.isNative) {
-			realfield.nativeNameForTarget(this@CommonGenerator.targetName) ?: normalizedFieldName
-		} else {
-			fieldNames.getOrPut2(keyToUse) {
-				if (minimize && !realfield.keepName) {
-					allocMemberName()
-				} else {
-					val rnormalizedFieldName = normalizeName(cleanFieldName(field.name), NameKind.FIELD)
-					// @TODO: Move to CommonNames
-					if (field !in cachedFieldNames) {
-						//val fieldName = normalizedFieldName
-						val fieldName = rnormalizedFieldName
-						//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
+			return if (realclass.isNative) {
+				realfield.nativeNameForTarget(this@CommonGenerator.targetName) ?: normalizedFieldName
+			} else {
+				fieldNames.getOrPut2(keyToUse) {
+					if (minimize && !realfield.keepName) {
+						allocMemberName()
+					} else {
+						val rnormalizedFieldName = normalizeName(cleanFieldName(field.name), NameKind.FIELD)
+						// @TODO: Move to CommonNames
+						if (field !in cachedFieldNames) {
+							//val fieldName = normalizedFieldName
+							val fieldName = rnormalizedFieldName
+							//var name = if (fieldName in keywords) "${fieldName}_" else fieldName
 
-						val clazz = program[field].containingClass
+							val clazz = program[field].containingClass
 
-						var name = "_$fieldName"
-						//var name = "_${fieldName}_${clazz.name.fqname}_${fieldRef.ref.type.mangle()}"
+							var name = "_$fieldName"
+							//var name = "_${fieldName}_${clazz.name.fqname}_${fieldRef.ref.type.mangle()}"
 
-						val clazzAncestors = clazz.ancestors.reversed()
-						val names = clazzAncestors.flatMap { it.fields }
-							.filter { normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName }
-							//.filter { it.name == field.name }
-							.map { it.targetName }.toHashSet()
-						val fieldsColliding = clazz.fields.filter {
-							(it.ref == field) || (normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName)
-						}.map { it.ref }
+							val clazzAncestors = clazz.ancestors.reversed()
+							val names = clazzAncestors.flatMap { it.fields }
+								.filter { normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName }
+								//.filter { it.name == field.name }
+								.map { it.targetName }.toHashSet()
+							val fieldsColliding = clazz.fields.filter {
+								(it.ref == field) || (normalizeName(it.name, NameKind.FIELD) == rnormalizedFieldName)
+							}.map { it.ref }
 
-						// JTranscBugInnerMethodsWithSameName.kt
-						for (f2 in fieldsColliding) {
-							while (name in names) name += "_"
-							cachedFieldNames[f2] = name
-							names += name
+							// JTranscBugInnerMethodsWithSameName.kt
+							for (f2 in fieldsColliding) {
+								while (name in names) name += "_"
+								cachedFieldNames[f2] = name
+								names += name
+							}
 						}
+						cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 					}
-					cachedFieldNames[field] ?: unexpected("Unexpected. Not cached: $field")
 				}
 			}
 		}
-	}
 
 //override val FieldRef.targetName: String get() {
 //	val fieldRef = this
@@ -2371,6 +2391,16 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		program["java.lang.Throwable".fqname].getMethods("prepareThrow").first()
 	}
 
+	fun Indenter.lineMonitorEnter() = line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(context.method))))
+	fun Indenter.lineMonitorExit() = line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(context.method))))
+
+	fun Indenter.lineMonitorEnterIfRequired() {
+		if (context.method.isSynchronized) lineMonitorEnter()
+	}
+
+	fun Indenter.lineMonitorExitIfRequired() {
+		if (context.method.isSynchronized) lineMonitorExit()
+	}
 
 //open fun getActualFqName(name: FqName): FqName {
 //	/*

@@ -17,6 +17,7 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.ds.FastIntMap;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -36,9 +37,27 @@ public final class Field extends AccessibleObject implements Member {
 	public byte[] annotations;
 	//private transient FieldRepository genericInfo;
 
+	private static final FastIntMap<FastIntMap<Annotation[]>> _annotationsCache = new FastIntMap<FastIntMap<Annotation[]>>();
+
 	public Annotation[] getDeclaredAnnotations() {
-		Annotation[] out = ProgramReflection.getFieldAnnotations(clazz.id, info.id);
-		return (out != null) ? out : new Annotation[0];
+		Annotation[] cache;
+		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
+		if (map != null) {
+			cache = map.get(info.id);
+			if (cache != null) {
+				return cache;
+			}
+		}
+		if (map == null) {
+			map = new FastIntMap<Annotation[]>();
+			_annotationsCache.set(clazz.id, map);
+		}
+		cache = ProgramReflection.getFieldAnnotations(clazz.id, info.id);
+		if (cache == null) {
+			cache = new Annotation[0];
+		}
+		map.set(info.id, cache);
+		return cache;
 	}
 
 	public Field(Class<?> containingClass, MemberInfo info) {

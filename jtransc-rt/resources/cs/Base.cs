@@ -9,11 +9,16 @@ class N {
 	public static readonly float FloatNaN = intBitsToFloat(0x7FC00000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
-	public static readonly long MAX_INT64 = 9223372036854775807;
-	public static readonly long MIN_INT64 = -9223372036854775808;
+	//public static readonly long MAX_INT64 = 9223372036854775807;
+	//public static readonly long MIN_INT64 = -9223372036854775808;
+	//public static readonly int MAX_INT32 = 2147483647;
+	//public static readonly int MIN_INT32 = -2147483648;
 
-	public static readonly int MAX_INT32 = 2147483647;
-	public static readonly int MIN_INT32 = -2147483648;
+	static readonly public int MIN_INT32 = unchecked((int)0x80000000);
+	static readonly public int MAX_INT32 = unchecked((int)0x7FFFFFFF);
+	static readonly public long MIN_INT64 = unchecked((long)0x8000000000000000L);
+	static readonly public long MAX_INT64 = unchecked((long)0x7FFFFFFFFFFFFFFFL);
+
 
 	//static public TOut CHECK_CAST<TOut, TIn>(TIn i) where TIn : class where TOut : class {
 	//	if (i == null) return null;
@@ -43,12 +48,6 @@ class N {
 	static public int iushr(int l, int r) {
 		return (int)(((uint)l) >> r);
 	}
-
-	//static public int MIN_INT32 = Int32.MinValue;
-	static readonly public int MIN_INT32 = unchecked((int)0x80000000);
-	static readonly public int MAX_INT32 = unchecked((int)0x7FFFFFFF);
-	static readonly public long MIN_INT64 = unchecked((long)0x8000000000000000L);
-	static readonly public long MAX_INT64 = unchecked((long)0x7FFFFFFFFFFFFFFFL);
 
 	static public void init() {
 		//Console.WriteLine(Console.OutputEncoding.CodePage);
@@ -98,9 +97,9 @@ class N {
 	static public int z2i(bool v) { return v ? 1 : 0; }
 	static public int j2i(long v) { return (int)v; }
 	static public long d2j(double v) {
-		if (Single.IsNaN(v)) {
+		if (Double.IsNaN(v)) {
 			return 0;
-		} else if (!Single.IsInfinity(v)) {
+		} else if (!Double.IsInfinity(v)) {
 			return (long)v;
 		} else if (v >= 0) {
 			return MAX_INT64;

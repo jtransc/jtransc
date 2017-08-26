@@ -1,7 +1,4 @@
-import big.AsyncIOTest
-import big.BigIOTest
-import big.BigTest
-import big.HelloWorldTest
+import big.*
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
 import com.jtransc.gen.cs.CSharpTarget
@@ -49,6 +46,9 @@ class CSharpTest : _Base() {
 
 	@Ignore("Disabled until it works on travis")
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
+
+	@Ignore("Disabled until it works on travis")
+	@Test fun testThread() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, debug = false, log = false))
 
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))

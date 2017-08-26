@@ -63,10 +63,19 @@
 #	include "GC_boehm.cpp"
 #endif
 
+//#define DO_NOT_USE_GC // For debugging purposes (to detect crashes related to GC)
+#ifdef DO_NOT_USE_GC
+	void* JT_MALLOC(std::size_t sz) { void* out = malloc(sz); memset(out, 0, sz); return out; }
+	void* JT_MALLOC_ATOMIC(std::size_t sz) { return malloc(sz); }
+#else
+	void* JT_MALLOC(std::size_t sz) { return GC_MALLOC(sz); }
+	void* JT_MALLOC_ATOMIC(std::size_t sz) { return GC_MALLOC_ATOMIC(sz); }
+#endif
+
 struct gc {
 	void* operator new(std::size_t sz) {
 		//std::printf("global op new called, size = %zu\n",sz);
-		return GC_MALLOC(sz);
+		return JT_MALLOC(sz);
 	}
 };
 
@@ -437,11 +446,12 @@ struct JA_0 : public java_lang_Object { public:
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
 		if (pointers) {
-			result = (void*)GC_MALLOC(bytesSize);
+			result = (void*)JT_MALLOC(bytesSize);
+			// this malloc already clears memory, so it is pointless doing this again
 		} else {
-			result = (void*)GC_MALLOC_ATOMIC(bytesSize);
+			result = (void*)JT_MALLOC_ATOMIC(bytesSize);
+			::memset(result, 0, bytesSize);
 		}
-		::memset(result, 0, bytesSize);
 		return result;
 	}
 
@@ -1247,12 +1257,18 @@ int64_t N::nanoTime() {
 	return (int64_t)time.count();
 };
 
-void N::monitorEnter(JAVA_OBJECT obj){
+void N::monitorEnter(JAVA_OBJECT obj) {
+	if (obj == nullptr) return;
+	//std::wcout << L"N::monitorEnter[1]\n";
 	obj->mtx.lock();
+	//std::wcout << L"N::monitorEnter[2]\n";
 }
 
 void N::monitorExit(JAVA_OBJECT obj){
+	if (obj == nullptr) return;
+	//std::wcout << L"N::monitorExit[1]\n";
 	obj->mtx.unlock();
+	//std::wcout << L"N::monitorExit[2]\n";
 }
 
 void SIGSEGV_handler(int signal) {
@@ -3065,7 +3081,7 @@ void N::startup() {
 	*/
 
 	//GC_set_all_interior_pointers(0);
-	GC_INIT();
+	GC_init_main_thread();
 
 	/*
 	GC_clear_roots();

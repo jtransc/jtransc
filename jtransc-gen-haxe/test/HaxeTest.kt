@@ -16,6 +16,7 @@
 
 import big.BigTest
 import big.HelloWorldTest
+import big.ThreadTest
 import com.jtransc.gen.common._Base
 import com.jtransc.gen.haxe.HaxeTarget
 import issues.Issue103
@@ -56,6 +57,8 @@ class HaxeTest : _Base() {
 	@Test fun testBigMinimized() = testClass(Params(clazz = BigTest::class.java, minimize = true, lang = "js", log = null))
 
 	@Test fun testBigCpp() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
+
+	@Test fun testThreadCpp() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
 
 	@Test fun haxeNativeCallTest() = testNativeClass("""
 		true

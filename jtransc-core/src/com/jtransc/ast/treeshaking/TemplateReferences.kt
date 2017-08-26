@@ -27,7 +27,6 @@ fun GetClassTemplateReferences(program: AstProgram, templateStr: String, current
 	return _GetTemplateReferences(program, templateStr, currentClass, classes = true, config = config).map { (it as CommonTagHandler.CLASS_REF).clazz }
 }
 
-
 fun _GetTemplateReferences(program: AstProgram, templateStr: String, currentClass: FqName, classes: Boolean, config: TRefConfig): List<CommonTagHandler.Result> {
 	val refs = arrayListOf<CommonTagHandler.Result>()
 	val params: HashMap<String, Any?> = hashMapOf("CLASS" to currentClass.fqname)
