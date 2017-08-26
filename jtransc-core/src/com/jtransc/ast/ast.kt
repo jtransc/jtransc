@@ -886,39 +886,6 @@ data class AstModifiers(val acc: Int) : WithAstModifiersMethod, WithAstModifiers
 		const val ACC_MANDATED = 0x8000        // parameter
 	}
 
-	//val isPublic: Boolean get() = acc hasFlag ACC_PUBLIC
-	//val isPrivate: Boolean get() = acc hasFlag ACC_PRIVATE
-	//val isProtected: Boolean get() = acc hasFlag ACC_PROTECTED
-	//val isStatic: Boolean get() = acc hasFlag ACC_STATIC
-	//val isFinal: Boolean get() = acc hasFlag ACC_FINAL
-	//val isSuper: Boolean get() = acc hasFlag ACC_SUPER
-	//val isSynchronized: Boolean get() = acc hasFlag ACC_SYNCHRONIZED
-	//val isVolatile: Boolean get() = acc hasFlag ACC_VOLATILE
-	//val isBridge: Boolean get() = acc hasFlag ACC_BRIDGE
-	//val isVarargs: Boolean get() = acc hasFlag ACC_VARARGS
-	//val isTransient: Boolean get() = acc hasFlag ACC_TRANSIENT
-	//val isNative: Boolean get() = acc hasFlag ACC_NATIVE
-	//val isInterface: Boolean get() = acc hasFlag ACC_INTERFACE
-	//val isAbstract: Boolean get() = acc hasFlag ACC_ABSTRACT
-	//val isStrict: Boolean get() = acc hasFlag ACC_STRICT
-	//val isSynthetic: Boolean get() = acc hasFlag ACC_SYNTHETIC
-	//val isAnnotation: Boolean get() = acc hasFlag ACC_ANNOTATION
-	//val isEnum: Boolean get() = acc hasFlag ACC_ENUM
-	//val isMandated: Boolean get() = acc hasFlag ACC_MANDATED
-	//val isConcrete: Boolean get() = !isNative && !isAbstract
-	//
-	//val visibility: AstVisibility get() = when {
-	//	isPublic -> AstVisibility.PUBLIC
-	//	isProtected -> AstVisibility.PROTECTED
-	//	else -> AstVisibility.PRIVATE
-	//}
-//
-	//val classType: AstClassType get() = when {
-	//	isInterface -> AstClassType.INTERFACE
-	//	isAbstract -> AstClassType.ABSTRACT
-	//	else -> AstClassType.CLASS
-	//}
-
 	fun with(flags: Int) = AstModifiers(this.acc or flags)
 	fun without(flags: Int) = AstModifiers(this.acc and flags.inv())
 
