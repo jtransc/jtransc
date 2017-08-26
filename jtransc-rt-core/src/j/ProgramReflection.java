@@ -1,9 +1,7 @@
 package j;
 
-import com.jtransc.JTranscSystem;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
-import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -24,9 +22,7 @@ public class ProgramReflection {
 	static public ClassInfo[] _classInfos;
 	static public String[] _classNames;
 	static public FastStringMap<ClassInfo> _classInfosByName;
-	static public FastIntMap<FastIntMap<MemberInfo>> _constructorsInfo;
-	static public FastIntMap<FastIntMap<MemberInfo>> _methodInfos;
-	static public FastIntMap<FastIntMap<MemberInfo>> _fieldsInfos;
+	private static final FastIntMap<FastIntMap<MemberInfo>> _directMethodsInfo = new FastIntMap<FastIntMap<MemberInfo>>();
 
 	@SuppressWarnings("ConstantConditions")
 	static public void _ensure() {
@@ -47,46 +43,23 @@ public class ProgramReflection {
 		}
 	}
 
-	static public void _ensureConstructors() {
-		if (_constructorsInfo != null) return;
-		_ensure();
-
-		_constructorsInfo = new FastIntMap<FastIntMap<MemberInfo>>();
-		for (ClassInfo info : _classInfos) {
-			if (info == null) continue;
-			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
-			_constructorsInfo.set(info.id, map);
-			MemberInfo[] minfo = getConstructors(info.id);
-			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
-		}
-	}
-
-	static public void _ensureFields() {
-		if (_fieldsInfos != null) return;
-		_ensure();
-
-		_fieldsInfos = new FastIntMap<FastIntMap<MemberInfo>>();
-		for (ClassInfo info : _classInfos) {
-			if (info == null) continue;
-			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
-			_fieldsInfos.set(info.id, map);
-			MemberInfo[] minfo = getFields(info.id);
-			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
-		}
-	}
-
+	private static boolean _ensureMethodsDone = false;
 	static public void _ensureMethods() {
-		if (_methodInfos != null) return;
+		if (_ensureMethodsDone) return;
 		_ensure();
 
-		_methodInfos = new FastIntMap<FastIntMap<MemberInfo>>();
 		for (ClassInfo info : _classInfos) {
 			if (info == null) continue;
 			FastIntMap<MemberInfo> map = new FastIntMap<MemberInfo>();
-			_methodInfos.set(info.id, map);
+			_directMethodsInfo.set(info.id, map);
 			MemberInfo[] minfo = getMethods(info.id);
-			if (minfo != null) for (MemberInfo i : minfo) map.set(i.id, i);
+			if (minfo != null) {
+				for (MemberInfo i : minfo) {
+					map.set(i.id, i);
+				}
+			}
 		}
+		_ensureMethodsDone = true;
 	}
 
 	static public boolean hasClassWithName(String name) {
@@ -349,7 +322,7 @@ public class ProgramReflection {
 
 	static public MemberInfo getMethodInfo(int classId, int methodId) {
 		_ensureMethods();
-		return _methodInfos.get(classId).get(methodId);
+		return _directMethodsInfo.get(classId).get(methodId);
 	}
 
 	//native static public Class<?> getClassByInfo(ClassInfo info);

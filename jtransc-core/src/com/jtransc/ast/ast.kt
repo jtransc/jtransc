@@ -346,13 +346,13 @@ class AstClass(
 	val source: String,
 	program: AstProgram,
 	val name: FqName,
-	val modifiers: AstModifiers,
+	override val modifiers: AstModifiers,
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++,
 	val comment: String = ""
-) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData() {
+) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData(), WithAstModifiersClass {
 	val types get() = program.types
 
 	val implementingUnique by lazy { implementing.distinct() }
@@ -687,14 +687,14 @@ class AstField(
 	val id: Int = containingClass.program.lastFieldId++,
 	name: String,
 	type: AstType,
-	val modifiers: AstModifiers,
+	override val modifiers: AstModifiers,
 	val desc: String,
 	annotations: List<AstAnnotation>,
 	val genericSignature: String?,
 	val constantValue: Any? = null,
 	val types: AstTypes,
 	override val ref: AstFieldRef = AstFieldRef(containingClass.name, name, type)
-) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, ref, annotations), FieldRef {
+) : AstMember(containingClass, name, type, if (genericSignature != null) types.demangle(genericSignature) else type, modifiers.isStatic, modifiers.visibility, ref, annotations), FieldRef, WithAstModifiersField {
 	val uniqueName = containingClass.uniqueNames.alloc(name)
 	val isFinal: Boolean = modifiers.isFinal
 	val refWithoutClass: AstFieldWithoutClassRef by lazy { AstFieldWithoutClassRef(this.name, this.type) }
@@ -718,7 +718,7 @@ class AstMethod constructor(
 	val signature: String,
 	val genericSignature: String?,
 	val defaultTag: Any?,
-	val modifiers: AstModifiers,
+	override val modifiers: AstModifiers,
 	var generateBody: () -> AstBody?,
 	val bodyRef: AstMethodRef? = null,
 	val parameterAnnotations: List<List<AstAnnotation>> = listOf(),
@@ -728,7 +728,7 @@ class AstMethod constructor(
 	containingClass, name, methodType,
 	if (genericSignature != null) containingClass.types.demangleMethod(genericSignature) else methodType,
 	modifiers.isStatic, modifiers.visibility, ref, annotations
-), MethodRef {
+), MethodRef, WithAstModifiersMethod {
 	val types: AstTypes get() = program.types
 
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
@@ -742,8 +742,6 @@ class AstMethod constructor(
 			println("Invalid method id: $id")
 		}
 	}
-
-	val isNative: Boolean = modifiers.isNative
 
 	private var generatedBody: Boolean = false
 	private var generatedBodyBody: AstBody? = null
@@ -854,8 +852,19 @@ val AstMethodRef.isInstanceInit: Boolean get() = name == "<init>"
 val AstMethodRef.isClassInit: Boolean get() = name == "<clinit>"
 val AstMethodRef.isClassOrInstanceInit: Boolean get() = isInstanceInit || isClassInit
 
+interface WithAstModifiers {
+	val modifiers: AstModifiers
+}
+
+interface WithAstModifiersMember : WithAstModifiers
+interface WithAstModifiersMethod : WithAstModifiersMember
+interface WithAstModifiersField : WithAstModifiersMember
+interface WithAstModifiersParameter : WithAstModifiers
+interface WithAstModifiersClass : WithAstModifiers
+
 @Suppress("unused")
-data class AstModifiers(val acc: Int) {
+data class AstModifiers(val acc: Int) : WithAstModifiersMethod, WithAstModifiersField, WithAstModifiersClass, WithAstModifiersParameter {
+	override val modifiers = this
 	companion object {
 		fun withFlags(vararg flags: Int): AstModifiers {
 			var out = 0
@@ -884,43 +893,6 @@ data class AstModifiers(val acc: Int) {
 		const val ACC_MANDATED = 0x8000        // parameter
 	}
 
-	val isPublic: Boolean get() = acc hasFlag ACC_PUBLIC
-	val isPrivate: Boolean get() = acc hasFlag ACC_PRIVATE
-	val isProtected: Boolean get() = acc hasFlag ACC_PROTECTED
-	val isStatic: Boolean get() = acc hasFlag ACC_STATIC
-	val isFinal: Boolean get() = acc hasFlag ACC_FINAL
-	val isSuper: Boolean get() = acc hasFlag ACC_SUPER
-	val isSynchronized: Boolean get() = acc hasFlag ACC_SYNCHRONIZED
-	val isVolatile: Boolean get() = acc hasFlag ACC_VOLATILE
-	val isBridge: Boolean get() = acc hasFlag ACC_BRIDGE
-	val isVarargs: Boolean get() = acc hasFlag ACC_VARARGS
-	val isTransient: Boolean get() = acc hasFlag ACC_TRANSIENT
-	val isNative: Boolean get() = acc hasFlag ACC_NATIVE
-	val isInterface: Boolean get() = acc hasFlag ACC_INTERFACE
-	val isAbstract: Boolean get() = acc hasFlag ACC_ABSTRACT
-	val isStrict: Boolean get() = acc hasFlag ACC_STRICT
-	val isSynthetic: Boolean get() = acc hasFlag ACC_SYNTHETIC
-	val isAnnotation: Boolean get() = acc hasFlag ACC_ANNOTATION
-	val isEnum: Boolean get() = acc hasFlag ACC_ENUM
-	val isMandated: Boolean get() = acc hasFlag ACC_MANDATED
-	val isConcrete: Boolean get() = !isNative && !isAbstract
-
-	val visibility: AstVisibility get() = if (isPublic) {
-		AstVisibility.PUBLIC
-	} else if (isProtected) {
-		AstVisibility.PROTECTED
-	} else {
-		AstVisibility.PRIVATE
-	}
-
-	val classType: AstClassType get() = if (isInterface) {
-		AstClassType.INTERFACE
-	} else if (isAbstract) {
-		AstClassType.ABSTRACT
-	} else {
-		AstClassType.CLASS
-	}
-
 	fun with(flags: Int) = AstModifiers(this.acc or flags)
 	fun without(flags: Int) = AstModifiers(this.acc and flags.inv())
 
@@ -934,6 +906,38 @@ data class AstModifiers(val acc: Int) {
 	)
 
 	override fun toString(): String = "$acc"
+}
+
+val WithAstModifiers.isPublic: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_PUBLIC
+val WithAstModifiers.isPrivate: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_PRIVATE
+val WithAstModifiers.isProtected: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_PROTECTED
+val WithAstModifiersMember.isStatic: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_STATIC
+val WithAstModifiers.isFinal: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_FINAL
+val WithAstModifiersMethod.isSynchronized: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_SYNCHRONIZED
+val WithAstModifiersField.isVolatile: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_VOLATILE
+val WithAstModifiersMethod.isBridge: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_BRIDGE
+val WithAstModifiersMethod.isVarargs: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_VARARGS
+val WithAstModifiersField.isTransient: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_TRANSIENT
+val WithAstModifiersMethod.isNative: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_NATIVE
+val WithAstModifiersMethod.isAbstract: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_ABSTRACT
+val WithAstModifiersMethod.isStrict: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_STRICT
+val WithAstModifiers.isSynthetic: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_SYNTHETIC
+val WithAstModifiersParameter.isMandated: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_MANDATED
+val WithAstModifiersMethod.isConcrete: Boolean get() = !isNative && !isAbstract
+val WithAstModifiers.visibility: AstVisibility get() = when {
+	isPublic -> AstVisibility.PUBLIC
+	isProtected -> AstVisibility.PROTECTED
+	else -> AstVisibility.PRIVATE
+}
+val WithAstModifiersClass.isSuper: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_SUPER
+val WithAstModifiersClass.isInterface: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_INTERFACE
+val WithAstModifiersClass.isAbstract: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_ABSTRACT
+val WithAstModifiersClass.isAnnotation: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_ANNOTATION
+val WithAstModifiersClass.isEnum: Boolean get() = modifiers.acc hasFlag AstModifiers.ACC_ENUM
+val WithAstModifiersClass.classType: AstClassType get() = when {
+	isInterface -> AstClassType.INTERFACE
+	isAbstract -> AstClassType.ABSTRACT
+	else -> AstClassType.CLASS
 }
 
 fun ARRAY(type: AstClass) = AstType.ARRAY(type.astType)

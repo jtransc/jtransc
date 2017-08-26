@@ -14,7 +14,6 @@ import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 import com.jtransc.text.escape
 import com.jtransc.text.quote
 import com.jtransc.vfs.*
@@ -178,7 +177,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		//	//return "pragma(inline, true)" + super.genMethodDeclModifiers(method)
 		//	return "pragma(inline) final " + super.genMethodDeclModifiers(method)
 		//} else {
-			return super.genMethodDeclModifiers(method)
+		return super.genMethodDeclModifiers(method)
 		//}
 	}
 
@@ -211,7 +210,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val FqName.targetSimpleName: String get() = this.targetName
 
-	override fun N_c(str: String, from: AstType, to: AstType):String {
+	override fun N_c(str: String, from: AstType, to: AstType): String {
 		//if (str == "this") return "this"
 		//if (to is AstType.REF && to.fqname == "java.lang.Object" && from is AstType.Reference) return str
 
@@ -342,6 +341,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
 		line("N.monitorEnter(" + stm.expr.genExpr() + ");")
 	}
+
 	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
 		line("N.monitorExit(" + stm.expr.genExpr() + ");")
 	}
@@ -355,18 +355,5 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "checkCast!(${to.targetNameRef})($e)"
-	}
-
-	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
-		if(method.modifiers.isSynchronized) {
-			line("try{")
-			line(genStmMonitorEnter(AstStm.MONITOR_ENTER(getMonitorLockedObjectExpr(method))))
-		}
-		line(super.genBody2WithFeatures(method, body))
-		if(method.modifiers.isSynchronized) {
-			line("}finally{")
-			line(genStmMonitorExit(AstStm.MONITOR_EXIT(getMonitorLockedObjectExpr(method))))
-			line("}")
-		}
 	}
 }

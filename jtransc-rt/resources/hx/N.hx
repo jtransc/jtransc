@@ -821,4 +821,30 @@ class N {
         finallyBlock();
         return ret;
     }
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function monitorCommon(obj: JavaObject) {
+		#if cpp
+			if (obj._hx_mutex == null) obj._hx_mutex = new cpp.vm.Mutex();
+		#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function monitorEnter(obj: JavaObject) {
+		if (obj == null) return;
+		monitorCommon(obj);
+		#if cpp
+		//trace('acquire1');
+		obj._hx_mutex.acquire();
+		//trace('acquire2');
+		#end
+	}
+
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function monitorExit(obj: JavaObject) {
+		if (obj == null) return;
+		monitorCommon(obj);
+		#if cpp
+		//trace('release1');
+		obj._hx_mutex.release();
+		//trace('release2');
+		#end
+	}
 }
