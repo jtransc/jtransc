@@ -17,5 +17,10 @@ public class LambdaMetafactory {
 		MethodType instantiatedMethodType
 	);
 
-	native public static CallSite altMetafactory(MethodHandles.Lookup var0, String var1, MethodType var2, Object... var3) throws LambdaConversionException;
+	native public static CallSite altMetafactory(
+		MethodHandles.Lookup caller,
+		String invokedName,
+		MethodType invokedType,
+		Object... args
+	);
 }

@@ -26,7 +26,7 @@ import java.util.*
 
 object JTranscMain {
 	@Suppress("CanBeVal")
-	@JvmStatic fun main(pargs: Array<String>) {
+	@JvmStatic fun main(args: Array<String>) {
 		// @TODO: allow a plugin system
 		val targets = AllBuildTargets
 		val jtranscVersion = JTranscVersion.getVersion()
@@ -159,7 +159,7 @@ object JTranscMain {
 		}
 
 		try {
-			val config = parseArgs(pargs.toList())
+			val config = parseArgs(args.toList())
 			val injector = Injector()
 			injector.mapInstance(ConfigMinimizeNames(minimizeNames = false))
 			injector.mapInstance(ConfigClassPaths(config.classPaths))
