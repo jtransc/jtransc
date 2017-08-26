@@ -52,7 +52,7 @@ public class NumberFormat extends Format {
 
 	private NumberFormat(Locale locale) {
 		this.locale = locale;
-		//JTranscConsole.log(locale.getLanguage());
+		//System.out.println(locale.getLanguage());
 
 		// https://docs.oracle.com/cd/E19455-01/806-0169/overview-9/index.html
 		intGroupDigits = JTranscLocale.getIntNumberOfDigits(locale);

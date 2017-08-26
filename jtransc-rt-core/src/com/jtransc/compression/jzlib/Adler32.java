@@ -135,7 +135,7 @@ final public class Adler32 implements Checksum {
       adler.reset();
     }
     else{
-      JTranscConsole.error("unsupported operation");
+      System.err.println("unsupported operation");
     }
   }
   public long getValue(){

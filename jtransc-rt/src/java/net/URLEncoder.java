@@ -28,7 +28,7 @@ public class URLEncoder {
 	public static String encode(String s, String enc) throws UnsupportedEncodingException {
 		final StringBuilder sb = new StringBuilder(s.length());
 		byte[] data = s.getBytes(enc);
-
+		//for (byte c : data) System.out.printf("%02X\n", c & 0xFF);
 		for (byte c : data) {
 			if (c == (byte) ' ') {
 				sb.append('+');

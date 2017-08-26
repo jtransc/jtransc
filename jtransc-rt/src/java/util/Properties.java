@@ -17,8 +17,6 @@
 
 package java.util;
 
-import com.jtransc.io.JTranscConsole;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -684,10 +682,12 @@ public class Properties extends Hashtable<Object, Object> {
         try {
             encodingCanonicalName = Charset.forName(encoding).name();
         } catch (IllegalCharsetNameException e) {
-			JTranscConsole.log("Warning: encoding name " + encoding + " is illegal, using UTF-8 as default encoding");
+            System.out.println("Warning: encoding name " + encoding
+                    + " is illegal, using UTF-8 as default encoding");
             encodingCanonicalName = "UTF-8";
         } catch (UnsupportedCharsetException e) {
-			JTranscConsole.log("Warning: encoding " + encoding + " is not supported, using UTF-8 as default encoding");
+            System.out.println("Warning: encoding " + encoding
+                    + " is not supported, using UTF-8 as default encoding");
             encodingCanonicalName = "UTF-8";
         }
 

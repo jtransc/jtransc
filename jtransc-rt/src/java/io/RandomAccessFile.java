@@ -53,7 +53,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 		fd = new FileDescriptor();
 		//fd.attach(this);
 		path = name;
-		//JTranscConsole.log("RandomAccessFile");
+		//System.out.println("RandomAccessFile");
 		jfd = JTranscSyncIO.impl.open(name, imode);
 	}
 

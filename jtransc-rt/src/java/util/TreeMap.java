@@ -22,6 +22,43 @@ import java.io.ObjectInputStream.GetField;
 import static java.util.TreeMap.Bound.*;
 import static java.util.TreeMap.Relation.*;
 
+/**
+ * A map whose entries are sorted by their keys. All optional operations such as
+ * {@link #put} and {@link #remove} are supported.
+ *
+ * <p>This map sorts keys using either a user-supplied comparator or the key's
+ * natural order:
+ * <ul>
+ *   <li>User supplied comparators must be able to compare any pair of keys in
+ *       this map. If a user-supplied comparator is in use, it will be returned
+ *       by {@link #comparator}.
+ *   <li>If no user-supplied comparator is supplied, keys will be sorted by
+ *       their natural order. Keys must be <i>mutually comparable</i>: they must
+ *       implement {@link Comparable} and {@link Comparable#compareTo
+ *       compareTo()} must be able to compare each key with any other key in
+ *       this map. In this case {@link #comparator} will return null.
+ * </ul>
+ * With either a comparator or a natural ordering, comparisons should be
+ * <i>consistent with equals</i>. An ordering is consistent with equals if for
+ * every pair of keys {@code a} and {@code b}, {@code a.equals(b)} if and only
+ * if {@code compare(a, b) == 0}.
+ *
+ * <p>When the ordering is not consistent with equals the behavior of this
+ * class is well defined but does not honor the contract specified by {@link
+ * Map}. Consider a tree map of case-insensitive strings, an ordering that is
+ * not consistent with equals: <pre>   {@code
+ *   TreeMap<String, String> map = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+ *   map.put("a", "android");
+ *
+ *   // The Map API specifies that the next line should print "null" because
+ *   // "a".equals("A") is false and there is no mapping for upper case "A".
+ *   // But the case insensitive ordering says compare("a", "A") == 0. TreeMap
+ *   // uses only comparators/comparable on keys and so this prints "android".
+ *   System.out.println(map.get("A"));
+ * }</pre>
+ *
+ * @since 1.2
+ */
 public class TreeMap<K, V> extends AbstractMap<K, V>
         implements SortedMap<K, V>, NavigableMap<K, V>, Cloneable, Serializable {
 

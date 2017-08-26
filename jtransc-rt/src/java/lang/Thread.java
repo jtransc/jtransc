@@ -22,7 +22,6 @@ import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.io.JTranscConsole;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -209,7 +208,7 @@ public class Thread implements Runnable {
 		"});"
 	)
 	private void _start() {
-		JTranscConsole.error("WARNING: Threads not supported! Executing thread code in the parent's thread!");
+		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 		runInternal();
 	}
 
@@ -295,7 +294,7 @@ public class Thread implements Runnable {
 	}
 
 	public final boolean isAlive() {
-		//JTranscConsole.log("isAlive: " + _isAlive);
+		//System.out.println("isAlive: " + _isAlive);
 		return _isAlive;
 	}
 
@@ -427,8 +426,8 @@ public class Thread implements Runnable {
 	}
 
 	static public UncaughtExceptionHandler defaultUncaughtExceptionHandler = (t, e) -> {
-		JTranscConsole.log(t);
-		JTranscConsole.log(e);
+		System.out.println(t);
+		System.out.println(e);
 	};
 
 	public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler eh) {

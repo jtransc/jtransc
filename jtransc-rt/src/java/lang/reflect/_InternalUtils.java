@@ -43,6 +43,8 @@ class _InternalUtils {
 
 	static Type parseType(MStringReader sr, Type owner) {
 		char c = sr.read();
+		//System.out.println("parseType:sr=" + sr.str + ":owner=" + owner.getTypeName());
+		//System.out.println("parseType:sr=" + sr.str);
 		switch (c) {
 			case '(':
 				Type[] args = parseTypes(sr, owner);
@@ -74,8 +76,10 @@ class _InternalUtils {
 				Type type = parseType(sr, owner);
 				int end = sr.offset;
 				if (type instanceof Class<?>) {
+					//System.out.println("AAAAAAAAAAAA");
 					return Class_forName0(sr.str.substring(start, end));
 				} else {
+					//System.out.println("BBBBBBBBBBBB");
 					return new ArrayType(type);
 				}
 			case 'L':
