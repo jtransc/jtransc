@@ -53,18 +53,23 @@ public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements S
 	}
 
 	@Override
+	public void execute(Runnable task) {
+		timer.schedule(new ScheduledFutureTask(task), 0);
+	}
+
+	@Override
 	public Future<?> submit(Runnable task) {
-		return schedule(task, 50, TimeUnit.MILLISECONDS);
+		return schedule(task, 0, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public <T> Future<T> submit(Runnable task, T result) {
-		return schedule(Executors.callable(task, result), 50, TimeUnit.MILLISECONDS);
+		return schedule(Executors.callable(task, result), 0, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
-		return schedule(task, 50, TimeUnit.MILLISECONDS);
+		return schedule(task, 0, TimeUnit.MILLISECONDS);
 	}
 
 	static private class DelayedWorkQueue extends SynchronousQueue {
@@ -113,41 +118,37 @@ public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements S
 
 		@Override
 		public V get() throws InterruptedException, ExecutionException {
-			if (callable == null) return null;
-			while (res == null) {
-				Thread.sleep(100);
-			}
+			//if (callable == null) return null;
+			//while (res == null) {
+			//	Thread.sleep(100);
+			//}
 			return res;
 		}
 
 		@Override
 		public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-			if (callable == null) return null;
-			long time = unit.toMillis(timeout);
-			while (res == null && time > 0) {
-				time -= 100;
-				Thread.sleep(100);
-			}
+			//if (callable == null) return null;
+			//long time = unit.toMillis(timeout);
+			//while (res == null && time > 0) {
+			//	time -= 100;
+			//	Thread.sleep(100);
+			//}
 			return res;
 		}
 
 		@Override
 		public void run() {
-			if (runnable != null) {
-				execute(runnable);
-			}
+			try {
+				if (runnable != null) {
+					runnable.run();
+				}
 
-			if (callable != null) {
-				execute(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							res = callable.call();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
+				if (callable != null) {
+					res = callable.call();
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			done = true;
 		}
