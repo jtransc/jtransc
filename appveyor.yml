@@ -14,7 +14,7 @@ install:
   - cmd: cinst -y dart-sdk --version=1.24.2 || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib --quiet --always setup C:\Users\appveyor\haxelib
-  - cmd: haxelib --quiet --always install lime 5.4.0
+  - cmd: haxelib --quiet --always install lime 5.5.0
   - cmd: haxelib --quiet --always run lime setup
   - cmd: copy c:\tools\php71\php.ini-production c:\tools\php71\php.ini /Y
   - cmd: echo date.timezone="UTC" >> c:\tools\php71\php.ini
