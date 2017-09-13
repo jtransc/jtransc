@@ -27,3 +27,29 @@ public interface BiConsumer<T, U> {
 		};
 	}
 }
+
+/*
+Compiled from "BiConsumer.java"
+public interface java.util.function.BiConsumer<T, U> {
+  public abstract void accept(T, U);
+
+  public java.util.function.BiConsumer<T, U> andThen(java.util.function.BiConsumer<? super T, ? super U>);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokedynamic #1,  0              // InvokeDynamic #0:accept:(Ljava/util/function/BiConsumer;Ljava/util/function/BiConsumer;)Ljava/util/function/BiConsumer;
+       7: areturn
+
+  private void lambda$andThen$0(java.util.function.BiConsumer, java.lang.Object, java.lang.Object);
+    Code:
+       0: aload_0
+       1: aload_2
+       2: aload_3
+       3: invokeinterface #2,  3            // InterfaceMethod accept:(Ljava/lang/Object;Ljava/lang/Object;)V
+       8: aload_1
+       9: aload_2
+      10: aload_3
+      11: invokeinterface #2,  3            // InterfaceMethod accept:(Ljava/lang/Object;Ljava/lang/Object;)V
+      16: return
+}
+ */

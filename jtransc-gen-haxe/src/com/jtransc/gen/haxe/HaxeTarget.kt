@@ -669,7 +669,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				} else {
 					val meta = method.annotationsList.getTyped<HaxeMeta>()?.value
 					if (meta != null) line(meta)
-					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
+					val rbody = method.getActualBody(program)
 					line(decl) {
 						try {
 							// @TODO: Do not hardcode this!
@@ -714,6 +714,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("package ${clazz.name.targetGeneratedFqPackage};")
 
 			if (isAbstract) line("// ABSTRACT")
+			if (clazz.comment.isNotEmpty()) line("// ${clazz.comment}")
 			var declaration = "$classType $simpleClassName/*${clazz.name}*/"
 			if (isInterface) {
 				if (clazz.implementing.isNotEmpty()) declaration += getInterfaceList("extends")
@@ -757,7 +758,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 
 				for (method in clazz.methods) {
-					if (isInterface && method.isStatic) continue
+					if (isInterface && (method.isStatic || !method.visibility.isPublic)) continue
 					line(writeMethod(method, isInterface))
 				}
 
@@ -780,7 +781,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("$CLASS_ANNOTATIONS class ${simpleClassName}_IFields") {
 					line("$CONSTRUCTOR_ANNOTATIONS public function new() {}")
 					for (field in clazz.fields) line(writeField(field, isInterface = false))
-					for (method in clazz.methods.filter { it.isStatic }) line(writeMethod(method, isInterface = false))
+					for (method in clazz.methods.filter { it.hasBody }) line(writeMethod(method, isInterface = false))
 					line(addClassInit(clazz))
 				}
 			}

@@ -44,6 +44,7 @@ import jtransc.bug.JTranscBug244
 import jtransc.java8.InnerLambdaTest
 import jtransc.java8.Java8Test
 import jtransc.java8.Java8Test2
+import jtransc.java8.LambdaTest
 import jtransc.jtransc.js.ScriptEngineTest
 import jtransc.jtransc.nativ.JTranscJsNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -61,6 +62,7 @@ class JsTest : _Base() {
 	override val DEFAULT_TARGET = JsTarget()
 	//override val TREESHAKING_TRACE = true
 
+	//@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = null, treeShaking = false))
 	@Test fun testBigWithoutTreeShaking() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false))
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
@@ -68,7 +70,7 @@ class JsTest : _Base() {
 	@Test fun testProcess() = testClass(Params(clazz = ProcessTest::class.java, minimize = true, log = false, treeShaking = true))
 	@Test fun testJTranscBug110() = testClass(Params(clazz = JTranscBug110::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testScriptEngine() = testClass(Params(clazz = ScriptEngineTest::class.java, minimize = false, log = false, treeShaking = true))
-	@Test fun testJavaEightJs() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
+	@Test fun testJava8() = testClass(Params(clazz = Java8Test::class.java, minimize = false, log = false))
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testStaticInitIssue135() = testClass(Params(clazz = Issue135::class.java, minimize = false, log = false, treeShaking = true))
@@ -209,6 +211,8 @@ class JsTest : _Base() {
 	@Test fun testIssue158() = testClass(Params(clazz = Issue158::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testInnerLambda() = testClass(Params(clazz = InnerLambdaTest::class.java, minimize = false, log = false, treeShaking = true))
+
+	@Test fun testLambda() = testClass(Params(clazz = LambdaTest::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testIssue219() = testClass(Params(clazz = Issue219::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 

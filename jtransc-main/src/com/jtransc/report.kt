@@ -14,6 +14,7 @@ import com.jtransc.org.objectweb.asm.tree.ClassNode
 import com.jtransc.org.objectweb.asm.tree.FieldNode
 import com.jtransc.org.objectweb.asm.tree.MethodNode
 import com.jtransc.vfs.*
+import java.io.File
 import java.util.function.BiConsumer
 
 class JTranscRtReport {
@@ -30,7 +31,8 @@ class JTranscRtReport {
 		ZipVfs(GetClassJar(String::class.java)),
 		ZipVfs(GetClassJar(BiConsumer::class.java))
 	))
-	val jtranscRt = MergedLocalAndJars(MavenLocalRepository.locateJars("com.jtransc:jtransc-rt:$jtranscVersion"))
+	//val jtranscRt = MergedLocalAndJars(MavenLocalRepository.locateJars("com.jtransc:jtransc-rt:$jtranscVersion"))
+	val jtranscRt = LocalVfs(File(locateTestRootByClass(this, JTranscRtReport::class.java).absolutePath.replace("jtransc-main", "jtransc-rt")))
 
 	fun report() {
 		reportPackage("java", listOf("java.rmi", "java.sql", "java.beans", "java.awt", "java.applet", "java/applet", "sun", "javax", "com/sun", "com.sun", "jdk"))

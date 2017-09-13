@@ -292,7 +292,13 @@ inline fun <reified T : Any, R> KMutableProperty1<T, R>.locate(program: AstProgr
 
 fun AstProgram.containsMethod(fqname: FqName, name: String) = this.getOrNull(fqname)?.getMethodWithoutOverrides(name) != null
 
-enum class AstVisibility { PUBLIC, PROTECTED, PRIVATE }
+enum class AstVisibility {
+	PUBLIC, PROTECTED, PRIVATE;
+
+	val isPublic get() = this == PUBLIC
+	val isProtected get() = this == PROTECTED
+	val isPrivate get() = this == PRIVATE
+}
 enum class AstClassType { CLASS, ABSTRACT, INTERFACE }
 
 class UniqueNames {
@@ -344,7 +350,8 @@ class AstClass(
 	val extending: FqName? = null,
 	val implementing: List<FqName> = listOf(),
 	annotations: List<AstAnnotation> = listOf(),
-	val classId: Int = program.lastClassId++
+	val classId: Int = program.lastClassId++,
+	val comment: String = ""
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData(), WithAstModifiersClass {
 	val types get() = program.types
 
@@ -747,6 +754,8 @@ class AstMethod constructor(
 		return generatedBodyBody
 	}
 	val hasBody: Boolean get() = body != null
+
+	fun getActualBody(program: AstProgram): AstBody? = body ?: bodyRef?.let { program[it]?.body }
 
 	fun replaceBody(stmGen: () -> AstStm) {
 		this.generateBody = { AstBody(types, stmGen(), methodType, ref) }

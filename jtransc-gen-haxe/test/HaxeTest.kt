@@ -27,6 +27,7 @@ import javatest.haxe.HaxeStringBuilderTestIssue138
 import jtransc.bug.JTranscBug110
 import jtransc.bug.JTranscBug127
 import jtransc.bug.JTranscBug244
+import jtransc.java8.LambdaTest
 import jtransc.jtransc.nativ.JTranscHaxeNativeCondition
 import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
@@ -38,8 +39,8 @@ class HaxeTest : _Base() {
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
 
-	@Test fun testHelloWorldHaxeJsTreeShaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
-	@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = false))
+	@Test fun testHelloWorldHaxeJs() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = true))
+	@Test fun testHelloWorldHaxeJsWithoutTreeShaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, lang = "js", log = null, treeShaking = false))
 
 	@Test fun testEnumBugIssue94() = testClass(Params(clazz = Issue94Enum::class.java, minimize = false, log = false, treeShaking = true))
 	@Test fun testBigSwitchIssue103() = testClass(Params(clazz = Issue103::class.java, minimize = false, lang = "js", log = false, treeShaking = true))
@@ -129,4 +130,7 @@ class HaxeTest : _Base() {
 
 	@Ignore("Already included in BigTest")
 	@Test fun testJTranscBug244Cpp() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, lang = "cpp", debug = true))
+
+	@Ignore("Already included in BigTest")
+	@Test fun testLambda() = testClass(Params(clazz = LambdaTest::class.java, minimize = false, log = false, treeShaking = true))
 }

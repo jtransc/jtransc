@@ -639,7 +639,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("""TRACE_REGISTER(FUNCTION_NAME);""")
 
 			setCurrentMethod(method)
-			val body = method.body
+			val body = method.getActualBody(program)
 
 			fun genJavaBody() = Indenter {
 				if (body != null) {

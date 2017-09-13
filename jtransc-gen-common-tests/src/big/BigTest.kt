@@ -16,14 +16,12 @@ import javatest.sort.CharCharMapTest
 import javatest.sort.ComparableTimSortTest
 import javatest.time.PeriodTest
 import javatest.utils.*
-import javatest.utils.Base64Test
-import javatest.utils.CopyTest
-import javatest.utils.DateTest
-import javatest.utils.FillTest
 import javaxtest.sound.SimpleSoundTest
 import jtransc.WrappedTest
 import jtransc.bug.*
+import jtransc.java8.InnerLambdaTest
 import jtransc.java8.Java8Test
+import jtransc.java8.LambdaTest
 import jtransc.jtransc.FastMemoryTest
 import jtransc.jtransc.SimdTest
 import jtransc.rt.test.*
@@ -105,6 +103,8 @@ object BigTest {
 		//JTranscClinitNotStatic.main(args)
 		//DefaultMethodsTest.main(args)
 		Java8Test.main(args)
+		LambdaTest.main(args)
+		InnerLambdaTest.main(args)
 
 		// Misc
 		Base64Test.main(args)
@@ -158,6 +158,8 @@ object BigTest {
 
 		JTranscBug244.main(args)
 		PeriodTest.main(args)
+
+		MapTest.main(args)
 	}
 
 	private fun servicesTest() {

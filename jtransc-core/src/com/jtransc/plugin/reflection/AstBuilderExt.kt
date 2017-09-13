@@ -2,9 +2,9 @@ package com.jtransc.plugin.reflection
 
 import com.jtransc.ast.*
 
-fun AstProgram.createClass(name: FqName, parent: FqName? = "java.lang.Object".fqname, interfaces: List<FqName> = listOf(), gen: AstClass.() -> Unit = { }): AstClass {
+fun AstProgram.createClass(name: FqName, parent: FqName? = "java.lang.Object".fqname, interfaces: List<FqName> = listOf(), comment: String = "", gen: AstClass.() -> Unit = { }): AstClass {
 	val program = this
-	val clazz = AstClass("source", program, name, AstModifiers.withFlags(AstModifiers.ACC_PUBLIC), parent, interfaces)
+	val clazz = AstClass(name.internalFqname + ".java.generated", program, name, AstModifiers.withFlags(AstModifiers.ACC_PUBLIC), parent, interfaces, comment = comment)
 	clazz.gen()
 	program.add(clazz)
 	return clazz

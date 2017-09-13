@@ -22,6 +22,7 @@ import com.jtransc.gen.cpp.CppTarget
 import issues.issue130.Issue130
 import javatest.finalize.FinalizeTest
 import javatest.misc.ExecutionOrderTest
+import javatest.utils.MapTest
 import jtransc.bug.JTranscBug127
 import jtransc.bug.JTranscBug244
 import jtransc.java8.Java8Test
@@ -36,6 +37,9 @@ class CppTest : _Base() {
 
 	//override val TREESHAKING: Boolean = false
 	//override val TREESHAKING_TRACE: Boolean = false
+
+	@Ignore
+	@Test fun testHelloWorldWithoutTreeshaking() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = null, treeShaking = false))
 
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = true)) // debug=true makes builds much faster
 
@@ -83,4 +87,7 @@ class CppTest : _Base() {
 
 	@Ignore("Covered BigTest")
 	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))
+
+	@Ignore("Covered BigTest")
+	@Test fun testMapPutIfAbsent() = testClass(Params(clazz = MapTest::class.java, minimize = false, log = false, debug = true))
 }
