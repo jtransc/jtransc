@@ -154,7 +154,7 @@ So others could generate that without JVM and others could generate other target
 ### For the Haxe target:
 - Haxe 3.4.2
 - NekoVM 2.1.0
-- Lime 5.4.0
+- Lime 5.5.0
 - hxcpp 3.4.64
 
 ### For Node.JS running:
@@ -186,7 +186,7 @@ source ~/.bash_profile
 #### Installing Haxe
 - Install [Haxe](https://haxe.org/download/) from here via installer
 - Set path to haxelib running "haxelib setup" command
-- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.4.0`
+- Install [Lime](http://www.openfl.org/builds/lime/) `haxelib install lime 5.5.0`
 - Install [hxcpp](http://nmehost.com/hxcpp/) `haxelib install hxcpp 3.4.64`
 - Run `haxelib run lime setup`
 
