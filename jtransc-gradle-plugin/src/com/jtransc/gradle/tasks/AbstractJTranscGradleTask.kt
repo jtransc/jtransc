@@ -161,7 +161,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 	fun afterBuild(build: JTranscBuild) {
 		val extra = project.extensions.findByType(ExtraPropertiesExtension::class.java)
-		extra.set("JTRANSC_LIBS", build.injector.get<ConfigLibraries>().libs)
+		extra?.set("JTRANSC_LIBS", build.injector.get<ConfigLibraries>().libs)
 		//project.properties["JTRANSC_LIBS"] =
 		//project.setProperty("JTRANSC_LIBS", build.injector.get<ConfigLibraries>().libs)
 	}
