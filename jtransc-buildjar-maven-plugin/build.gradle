@@ -1,9 +1,6 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-
 dependencies {
 	compile project(':jtransc-core')
 	compile project(':jtransc-gen-haxe')

@@ -2,9 +2,6 @@ apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 apply plugin: 'idea'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 evaluationDependsOn(':jtransc-rt')
 
 dependencies {
