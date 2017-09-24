@@ -5,6 +5,13 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'signing'
 apply plugin: 'kotlin'
 
+// https://kotlinlang.org/docs/reference/using-gradle.html#compiler-options
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = "1.8"
+	}
+}
+
 repositories {
 	mavenLocal()
 	mavenCentral()
