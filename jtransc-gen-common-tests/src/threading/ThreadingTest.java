@@ -5,6 +5,8 @@ import java.util.Collections;
 
 public class ThreadingTest {
 	static public void main(String[] args) {
+		System.out.println(Thread.currentThread() == null);
+		System.out.println(Thread.currentThread() == null);
 		ArrayList<String> logs = new ArrayList<String>();
 		long start = System.currentTimeMillis();
 		for (int n = 0; n < 3; n++) {

@@ -170,6 +170,7 @@ public class JTranscConsole {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
+		@JTranscMethodBody(target = "cpp", value = "std::wcerr << N::istr2({% SMETHOD java.lang.String:valueOf:(Ljava/lang/Object;)Ljava/lang/String; %}(p0)) << L\"\\n\";"),
 		@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
