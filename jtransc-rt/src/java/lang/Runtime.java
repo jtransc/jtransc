@@ -166,19 +166,19 @@ public class Runtime {
 	}
 
 	public void load(String filename) {
-
+		load0(/*Reflection.getCallerClass()*/null, filename);
 	}
 
 	synchronized void load0(Class<?> fromClass, String filename) {
-
+		ClassLoader.getSystemClassLoader().loadLibrary(fromClass, filename, true);
 	}
 
 	public void loadLibrary(String libname) {
-
+		loadLibrary0(/*Reflection.getCallerClass()*/null, libname);
 	}
 
 	synchronized void loadLibrary0(Class<?> fromClass, String libname) {
-
+		ClassLoader.getSystemClassLoader().loadLibrary(fromClass, libname, false);
 	}
 
 	@Deprecated

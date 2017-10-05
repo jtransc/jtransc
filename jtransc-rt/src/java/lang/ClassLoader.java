@@ -176,6 +176,7 @@ public abstract class ClassLoader {
 
 	void loadLibrary(Class fromClass, String name, boolean isAbsolute) {
 		if (JTranscSystem.isCpp()) {
+			if (!isAbsolute) throw new UnsupportedOperationException("Only absolute paths are currently supported!");
 			NativeLib nativeLib = new NativeLib(loadLibrarayCpp(name), name);
 			if (!nativeLibs.contains(nativeLib)) {
 				nativeLibs.add(nativeLib);

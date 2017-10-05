@@ -424,6 +424,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("try") {
 				line("N::startup();")
 				line(genStaticConstructorsSorted())
+				line("initMainThread();")
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
 				line("$callMain(N::strEmptyArray());")
@@ -434,14 +435,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("catch (std::wstring s)") {
 				line("""std::wcout << L"ERROR std::wstring " << s << L"\n";""")
 			}
-			//line("catch (java_lang_Throwable *s)") {
+			//line("catch (const java_lang_Throwable& s)") {
 			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
-			//	line("""printf("Exception: %p\n", (void*)s);""")
+				//line("""printf("Exception: %p\n", (void*)s);""")
 			//}
-			//line("catch (p_java_lang_Object s)") {
-			//	val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
-			//	line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
-			//}
+			line("catch (${"java.lang.Object".fqname.targetName}* s)") {
+				val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
+				line("""std::wcout << L"ERROR p_java_lang_Object " << N::istr2(s->$toStringMethod()) << L"\n";""")
+			}
 			//line("catch (...)") {
 			//	line("""std::wcout << L"ERROR unhandled unknown exception\n";""")
 			//}
@@ -666,7 +667,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 					line(defaultBody)
 				}
 				line("#endif")
-			} else if (method.isNative && bodies.isEmpty() && method.name.startsWith("dooFoo")) {
+			} else if (method.isNative && bodies.isEmpty()) {
 				line(genJniMethod(method))
 			} else {
 				line(defaultBody)
@@ -721,7 +722,22 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			val arg = method.methodType.args[i].type
 			sb2.append(", ${genJavaToJniCast(arg)}p${i}")
 		}
-		line("return ${genJniToJavaCast(method.actualRetType)}fptr(N::getJniEnv(), NULL $sb2);")
+		//line("N::enterNativeFunction(N::getThreadEnv()->currentThread)")
+		if (method.actualRetType != AstType.VOID) line("${method.actualRetType.targetNameRef} result;")
+		line("try") {
+			if (method.actualRetType == AstType.VOID) {
+				line("fptr((JNIEnv*)N::getThreadEnv(), NULL $sb2);")
+			} else {
+				line("result =  ${genJniToJavaCast(method.actualRetType)}fptr((JNIEnv*)N::getThreadEnv(), NULL $sb2);")
+			}
+		}
+		line("catch(${"java.lang.Object".fqname.targetName}* e)"){
+			line("abort();")
+		}
+		line("N::exitNative(N::getThreadEnv());")
+		if (method.actualRetType == AstType.VOID) line("return;")
+		else line("return result;")
+
 		//line("JNI: \"Empty BODY : ${method.containingClass.name}::${method.name}::${method.desc}\";")
 	}
 
@@ -1184,4 +1200,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = Indenter("N::monitorEnter(" + stm.expr.genExpr() + ");")
 	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = Indenter("N::monitorExit(" + stm.expr.genExpr() + ");")
+
+	//override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("N::throwException(${stm.exception.genExpr()});")
+	//override fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("""N::throwException(J__i__exception__);""")
+	override open fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("N::throwJavaException(${stm.exception.genExpr()});")
+	override open fun genStmRethrow(stm: AstStm.RETHROW, last: Boolean) = Indenter("""N::throwJavaException(J__i__exception__);""")
 }

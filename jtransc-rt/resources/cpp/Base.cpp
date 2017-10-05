@@ -191,6 +191,9 @@ typedef java_lang_Object* JAVA_OBJECT;
 #define GET_OBJECT(type, obj) (dynamic_cast<type*>(obj))
 #define GET_OBJECT2(ptype, obj) (dynamic_cast<type>(obj))
 #define GET_OBJECT_NPE(type, obj) GET_OBJECT(type, N::ensureNpe(obj))
+#define ENTER_JAVA(env) try{
+#define LEAVE_JAVA(env) } catch( {% CLASS java.lang.Object %}* e){ N::leaveJava(env, e);}
+//#define LEAVE_JAVA_VOID(env)
 
 #ifdef DEBUG
 #define CHECK_NPE 1
@@ -205,8 +208,10 @@ struct N;
 // Headers
 
 struct Env {
- 	JNIEnv jni;
- 	//
+    const struct JNINativeInterface_ *functions;
+ 	//JNIEnv jni;
+ 	JAVA_OBJECT throwable;
+ 	{% CLASS java.lang.Thread %}* currentThread;
 };
 
 //template<typename T> p_java_lang_Object CC_GET_OBJECT(T t) {
@@ -242,8 +247,11 @@ template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from
 //	return res;
 //}
 
+
+enum class ThreadState { thread_in_java, thread_in_native };
+static __thread Env env;
 struct N { public:
-	static Env env;
+
 
 	static int64_t NAN_LONG;
 	static double NAN_DOUBLE;
@@ -260,6 +268,7 @@ struct N { public:
 	static const int64_t MAX_INT64 = (int64_t)0x7FFFFFFFFFFFFFFF;
 
 	static JAVA_OBJECT resolveClass(std::wstring str);
+	static JAVA_OBJECT resolveClass(JAVA_OBJECT str);
 	inline static int64_t lnew(int32_t high, int32_t low);
 	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
 	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
@@ -392,7 +401,13 @@ struct N { public:
 	static JAVA_OBJECT newFloatArray();
 	static JAVA_OBJECT newDoubleArray();
 
-	static JNIEnv* getJniEnv();
+	static Env* getThreadEnv();
+	[[noreturn]] static void throwJavaException(JAVA_OBJECT throwable);
+	static void throwJniException(JAVA_OBJECT throwable);
+	static JAVA_OBJECT newExceptionInternal(JAVA_OBJECT clazz);
+	static JAVA_OBJECT newExceptionInternal(JAVA_OBJECT clazz, const char* message);
+	static void exitNative(Env* env);
+	static void leaveJava(Env* env, JAVA_OBJECT newThrowable);
 
 	static void monitorEnter(JAVA_OBJECT obj);
 	static void monitorExit(JAVA_OBJECT obj);
@@ -733,6 +748,10 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 
 JAVA_OBJECT N::resolveClass(std::wstring str) {
 	return {% SMETHOD java.lang.Class:forName0 %}(N::str(str));
+};
+
+JAVA_OBJECT N::resolveClass(JAVA_OBJECT str) {
+	return {% SMETHOD java.lang.Class:forName0 %}(str);
 };
 
 int64_t N::lnew(int32_t high, int32_t low) {
@@ -1271,6 +1290,74 @@ void N::monitorExit(JAVA_OBJECT obj){
 	//std::wcout << L"N::monitorExit[2]\n";
 }
 
+
+extern JAVA_OBJECT jtvmNewObjectA(Env* env, JAVA_OBJECT clazz, JAVA_OBJECT method, const jvalue *args);
+extern JAVA_OBJECT jtvmGetInstanceMethod(Env* env, JAVA_OBJECT clazz_, const char *name, const char *sig);
+extern JAVA_OBJECT jtvmFindClass(Env* env, const char* sig);
+
+JAVA_OBJECT N::newExceptionInternal(JAVA_OBJECT clazz){
+	Env* env = N::getThreadEnv();
+	JAVA_OBJECT ctor = jtvmGetInstanceMethod(env, clazz, "<init>", "()V");
+    if (!ctor) return nullptr;
+    jvalue args[0];
+    jobject e = (jobject)jtvmNewObjectA(env, clazz, ctor, args);
+    return (JAVA_OBJECT)e;
+}
+
+JAVA_OBJECT N::newExceptionInternal(JAVA_OBJECT clazz, const char* message){
+	Env* env = N::getThreadEnv();
+	JAVA_OBJECT ctor = jtvmGetInstanceMethod(env, clazz, "<init>", "(Ljava/lang/String;)V");
+    if (!ctor) return nullptr;
+    //Object* string = NULL;
+    // TODO: Check that clazz != NULL?
+    //if (message) {
+    //    string = rvmNewStringUTF(env, message, -1);
+    //    if (!string) return FALSE;
+    //}
+    jvalue args[1];
+    args[0].l = (jobject) N::str(message);
+    jobject e = (jobject)jtvmNewObjectA(env, clazz, ctor, args);
+    return (JAVA_OBJECT)e;
+}
+
+void N::throwJavaException(JAVA_OBJECT throwable){
+	Env* env = N::getThreadEnv();
+	if(throwable == nullptr) {
+		JAVA_OBJECT newThrowable = N::newExceptionInternal(jtvmFindClass(env, "java/lang/NullPointerException"));
+		if(newThrowable != nullptr) N::throwJavaException(newThrowable);
+		else abort();
+	}
+	throw throwable;
+}
+
+void N::throwJniException(JAVA_OBJECT throwable){
+
+	//std::cerr << "Inside throwException";
+	Env* env = N::getThreadEnv();
+	//assert(env != NULL, "ENV should never be null!");
+	//assert(env->currentThread != NULL, "Current Thread should never be null!");
+	//if(env->currentThread->state == ThreadState::thread_in_java) {
+		//std::cerr << "Inside java code";
+		//throw throwable;
+	//	env->throwable = throwable;
+	//} else if(env->currentThread) {
+		//std::cerr << "Inside jni code";
+	//	env->throwable = throwable;
+	//} else {
+	//	throw throwable;
+		//abort(/*"N::throwException should not reach this branch!"**/);
+	//}
+	env->throwable = throwable;
+}
+
+void N::exitNative(Env* env){
+	if(env->throwable) throw env->throwable;
+}
+
+void N::leaveJava(Env* env, JAVA_OBJECT newThrowable){
+	env->throwable = newThrowable;
+}
+
 void SIGSEGV_handler(int signal) {
 	std::wcout << L"invalid memory access (segmentation fault)\n";
 	throw L"invalid memory access (segmentation fault)";
@@ -1362,7 +1449,9 @@ void SIGFPE_handler(int signal) {
     	JAVA_OBJECT nativeLibsRaw = GET_OBJECT({% CLASS java.lang.ClassLoader %}, classLoader)->{% METHOD java.lang.ClassLoader:getNativeLibs %}();
     	auto nativeLibs = GET_OBJECT({% CLASS java.util.ArrayList %}, nativeLibsRaw);
     	jint size = nativeLibs->{% METHOD java.util.ArrayList:size %}();
+    	//__asm__("int3");
     	for(jint i = 0; i < size; i++){
+
     		auto nativeLib = GET_OBJECT({% CLASS java.lang.ClassLoader$NativeLib %}, nativeLibs->{% METHOD java.util.ArrayList:get %}(i));
 
     		auto handle = jlong_to_ptr(nativeLib->{% FIELD java.lang.ClassLoader$NativeLib:handle %});
@@ -1384,39 +1473,141 @@ void SIGFPE_handler(int signal) {
     	return nullptr;
     }
 jmethodID JNICALL  FromReflectedMethod(JNIEnv *env, jobject method){
-	return (jmethodID)method; // TODO check requirements and other stuff
+	jmethodID result;
+	ENTER_JAVA((Env*) env);
+	result =  (jmethodID)method; // TODO check requirements and other stuff
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfieldID JNICALL  FromReflectedField(JNIEnv *env, jobject field){
-	return (jfieldID)field; // TODO check requirements and other stuff
+	jfieldID result;
+	ENTER_JAVA((Env*) env);
+	result = (jfieldID)field; // TODO check requirements and other stuff
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL ToReflectedMethod(JNIEnv *env, jclass cls, jmethodID methodID, jboolean isStatic){
-	return (jobject)methodID; // TODO check requirements and other stuff
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result = (jobject)methodID; // TODO check requirements and other stuff
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jclass JNICALL GetSuperclass(JNIEnv *env, jclass clazz){
-	return (jclass)GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz)->{% METHOD java.lang.Class:getSuperclass%}();
+	jclass result;
+	ENTER_JAVA((Env*) env);
+	result = (jclass)GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz)->{% METHOD java.lang.Class:getSuperclass%}();
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL IsAssignableFrom(JNIEnv *env, jclass clazz1, jclass clazz2){
-	return GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz2)->{% METHOD java.lang.Class:isAssignableFrom %}(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz1));
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result = GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz2)->{% METHOD java.lang.Class:isAssignableFrom %}(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz1));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL ToReflectedField(JNIEnv *env, jclass cls, jfieldID fieldID, jboolean isStatic){
-	return (jobject)fieldID; // TODO check requirements and other stuff
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result = (jobject)fieldID; // TODO check requirements and other stuff
+    LEAVE_JAVA((Env*) env);
+    return result;
+}
+
+void jtvmThrow(Env* env, JAVA_OBJECT e){
+	N::throwJniException(e);
+}
+
+jint JNICALL Throw(JNIEnv *env, jthrowable obj){
+	jint result;
+	ENTER_JAVA((Env*) env);
+	jtvmThrow((Env*) env, (JAVA_OBJECT) obj);
+	result = 0;
+    LEAVE_JAVA((Env*) env);
+    return result;
+}
+
+jboolean jtvmThrowNew(Env* env, JAVA_OBJECT clazz, const char* message) {
+    JAVA_OBJECT ctor = jtvmGetInstanceMethod(env, clazz, "<init>", "(Ljava/lang/String;)V");
+    if (!ctor) return false;
+    //Object* string = NULL;
+    // TODO: Check that clazz != NULL?
+    //if (message) {
+    //    string = rvmNewStringUTF(env, message, -1);
+    //    if (!string) return FALSE;
+    //}
+    jvalue args[1];
+    args[0].l = (jobject) N::str(message);
+    jobject e = (jobject)jtvmNewObjectA(env, clazz, ctor, args);
+    if (!e) return false;
+    jtvmThrow(env, (JAVA_OBJECT) e);
+    return true;
+}
+
+jint JNICALL ThrowNew(JNIEnv *env, jclass clazz, const char *message){
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result = jtvmThrowNew((Env*) env, (JAVA_OBJECT) clazz, message) ? 0 : -1;
+    LEAVE_JAVA((Env*) env);
+    return result;
+}
+
+jthrowable JNICALL ExceptionOccurred(JNIEnv *env){
+	jthrowable result;
+	ENTER_JAVA((Env*) env);
+	result = (jthrowable)((Env*) env)->throwable;
+    LEAVE_JAVA((Env*) env);
+    return result;
+}
+
+void JNICALL ExceptionDescribe(JNIEnv *env){
+	ENTER_JAVA((Env*) env);
+	std::cerr << "Unimplemented ExceptionDescribe";
+	abort();
+    LEAVE_JAVA((Env*) env);
+}
+
+void JNICALL ExceptionClear(JNIEnv *env){
+	ENTER_JAVA((Env*) env);
+	((Env*) env)->throwable = NULL;
+    LEAVE_JAVA((Env*) env);
+}
+
+void JNICALL FatalError(JNIEnv *env, const char *msg){
+	ENTER_JAVA((Env*) env);
+	std::cerr << msg;
+	abort();
+    LEAVE_JAVA((Env*) env);
 }
 
 jint JNICALL PushLocalFrame(JNIEnv* env, jint cap) {
-    return 0;
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = 0;
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL PopLocalFrame(JNIEnv* env, jobject res) {
-    return res;
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = res;
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL EnsureLocalCapacity(JNIEnv* env, jint capacity) {
-    return 0;
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = 0;
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 static JA_L* jvalueToJavaArray(int32_t count, {% CLASS java.lang.reflect.MethodConstructor %}* ctor, const jvalue *args){
@@ -1479,24 +1670,32 @@ static JA_L* va_listToJavaArray(int32_t count, {% CLASS java.lang.reflect.Method
     return array;
 }
 
-JAVA_OBJECT jtvmNewObjectA(JAVA_OBJECT clazz, JAVA_OBJECT method, const jvalue *args) {
+JAVA_OBJECT jtvmNewObjectA(Env* env, JAVA_OBJECT clazz, JAVA_OBJECT method, const jvalue *args) {
     {% CLASS java.lang.reflect.Constructor %}* ctor = GET_OBJECT({% CLASS java.lang.reflect.Constructor %}, method);
     int32_t parameterCount = ctor->{% METHOD java.lang.reflect.Constructor:getParameterCount %}();
     return ctor->{% METHOD java.lang.reflect.Constructor:newInstance %}(jvalueToJavaArray(parameterCount, ctor, args));
 }
 
-JAVA_OBJECT jtvmNewObjectV(JAVA_OBJECT clazz, JAVA_OBJECT method, va_list args) {
+JAVA_OBJECT jtvmNewObjectV(Env* env, JAVA_OBJECT clazz, JAVA_OBJECT method, va_list args) {
     {% CLASS java.lang.reflect.Constructor %}* ctor = GET_OBJECT({% CLASS java.lang.reflect.Constructor %}, method);
     int32_t parameterCount = ctor->{% METHOD java.lang.reflect.Constructor:getParameterCount %}();
     return ctor->{% METHOD java.lang.reflect.Constructor:newInstance %}(va_listToJavaArray(parameterCount, ctor, args));
 }
 
 jobject JNICALL NewObjectV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
-    return (jobject) jtvmNewObjectV((JAVA_OBJECT) clazz, (JAVA_OBJECT) methodID, args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = (jobject) jtvmNewObjectV((Env*) env, (JAVA_OBJECT) clazz, (JAVA_OBJECT) methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL NewObjectA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
-    return (jobject) jtvmNewObjectA((JAVA_OBJECT) clazz, (JAVA_OBJECT) methodID, args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = (jobject) jtvmNewObjectA((Env*) env, (JAVA_OBJECT) clazz, (JAVA_OBJECT) methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL NewObject(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -1508,23 +1707,26 @@ jobject JNICALL NewObject(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
 }
 
 jobject JNICALL AllocObject(JNIEnv *env, jclass clazz){
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	int32_t classId = GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz)->{% FIELD java.lang.Class:id %};
-	return (jobject)CTOR_TABLE[classId]();
+	result = (jobject)CTOR_TABLE[classId]();
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 
-inline static jboolean isMethodStatic(jmethodID method_){
-	JAVA_OBJECT method = (JAVA_OBJECT)method_;
+inline static jboolean isMethodStatic(JAVA_OBJECT method){
 	jboolean result = GET_OBJECT({% CLASS java.lang.reflect.MethodConstructor %}, method)->{% METHOD java.lang.reflect.MethodConstructor:isStatic %}();
 	return result;
 }
 
-JAVA_OBJECT jtvmGetMethodForClass(JNIEnv *env, JAVA_OBJECT clazz, const char *name, const char *sig){
-	if(strcmp(sig, "<init>") == 0){
+JAVA_OBJECT jtvmGetMethodForClass(Env *env, JAVA_OBJECT clazz, const char* name, const char* sig){
+	if(strcmp(name, "<init>") == 0){
 		// for ctors
         // TODO check correctness etc.
         JAVA_OBJECT ctor_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz)->{% METHOD java.lang.Class:getDeclaredConstructorBySig %}(N::str(sig));
-        auto ctor = GET_OBJECT({% CLASS java.lang.reflect.Method %}, ctor_);
+        auto ctor = GET_OBJECT({% CLASS java.lang.reflect.Constructor %}, ctor_);
 
         if(ctor){
            	return ctor;
@@ -1543,25 +1745,29 @@ JAVA_OBJECT jtvmGetMethodForClass(JNIEnv *env, JAVA_OBJECT clazz, const char *na
     return nullptr;
 }
 
-jmethodID jtvmGetInstanceMethod(JNIEnv *env, JAVA_OBJECT clazz_, const char *name, const char *sig){
+JAVA_OBJECT jtvmGetInstanceMethod(Env* env, JAVA_OBJECT clazz_, const char *name, const char *sig){
 	auto clazz = GET_OBJECT({% CLASS java.lang.Class %}, clazz_);
-	if(strcmp(sig, "<init>") == 0 || strcmp(sig, "<clinit>") == 0 ){
+	if(strcmp(name, "<init>") == 0 || strcmp(name, "<clinit>") == 0 ){
 		// ctors and static initializers are not inherited, so only check this class and not the superclass
-		jmethodID method = (jmethodID)jtvmGetMethodForClass(env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
+		JAVA_OBJECT method = jtvmGetMethodForClass(env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
         if(method && !isMethodStatic(method)) return method; //TODO throw exception?
 	}
 
 	java_lang_Class* c = NULL;
 	for (c = clazz; c != NULL; c = GET_OBJECT({% CLASS java.lang.Class %}, GET_OBJECT({% CLASS java.lang.Class %}, c)->{% METHOD java.lang.Class:getSuperclass %}())) {
-    	jmethodID method = (jmethodID)jtvmGetMethodForClass(env, clazz, name, sig);
+    	JAVA_OBJECT method = jtvmGetMethodForClass(env, clazz, name, sig);
         if(method && !isMethodStatic(method)) return method; //TODO throw exception?
     }
     return NULL;
 }
 
 jmethodID JNICALL  GetMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig){
+	jmethodID result;
+	ENTER_JAVA((Env*) env);
 	// TODO force init of clazz if not already initialised
-	return jtvmGetInstanceMethod(env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
+	result = (jmethodID)jtvmGetInstanceMethod((Env*) env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 /**
@@ -1595,11 +1801,19 @@ jobject jtvmCallObjectInstanceMethodA(JNIEnv* env, jobject obj, jmethodID method
 }
 
 jobject JNICALL CallObjectMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallObjectInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallObjectInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallObjectMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallObjectInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallObjectInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallObjectMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1623,11 +1837,19 @@ jboolean jtvmCallBooleanInstanceMethodA(JNIEnv* env, jobject obj, jmethodID meth
 }
 
 jboolean JNICALL CallBooleanMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallBooleanInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallBooleanInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallBooleanMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue*  args) {
-    return jtvmCallBooleanInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallBooleanInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallBooleanMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1651,11 +1873,19 @@ jbyte jtvmCallByteInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, 
 }
 
 jbyte JNICALL CallByteMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallByteInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jbyte result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallByteInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallByteMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallByteInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jbyte result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallByteInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallByteMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1679,11 +1909,19 @@ jchar jtvmCallCharInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, 
 }
 
 jchar JNICALL CallCharMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallCharInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jchar result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallCharInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallCharMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallCharInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jchar result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallCharInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallCharMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1707,11 +1945,19 @@ jshort jtvmCallShortInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID
 }
 
 jshort JNICALL CallShortMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallShortInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jshort result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallShortInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallShortMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallShortInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jshort result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallShortInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallShortMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1735,11 +1981,19 @@ jint jtvmCallIntInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, co
 }
 
 jint JNICALL CallIntMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallIntInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallIntInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallIntMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallIntInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallIntInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallIntMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1763,11 +2017,19 @@ jlong jtvmCallLongInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, 
 }
 
 jlong JNICALL CallLongMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallLongInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jlong result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallLongInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallLongMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallLongInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jlong result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallLongInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallLongMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1791,11 +2053,19 @@ jfloat jtvmCallFloatInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID
 }
 
 jfloat JNICALL CallFloatMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallFloatInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jfloat result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallFloatInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallFloatMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallFloatInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jfloat result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallFloatInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallFloatMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1819,11 +2089,19 @@ jdouble jtvmCallDoubleInstanceMethodA(JNIEnv* env, jobject obj, jmethodID method
 }
 
 jdouble JNICALL CallDoubleMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
-    return jtvmCallDoubleInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+	jdouble result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallDoubleInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL CallDoubleMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
-    return jtvmCallDoubleInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+	jdouble result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallDoubleInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL CallDoubleMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1847,11 +2125,15 @@ void jtvmCallVoidInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, c
 }
 
 void JNICALL  CallVoidMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
+	ENTER_JAVA((Env*) env);
     jtvmCallVoidInstanceMethodV(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallVoidMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue*  args) {
+	ENTER_JAVA((Env*) env);
     jtvmCallVoidInstanceMethodA(env, obj, getRealMethod(env, obj, methodID), args);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallVoidMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
@@ -1865,11 +2147,19 @@ void JNICALL  CallVoidMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) 
 //
 
 jobject JNICALL CallNonvirtualObjectMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallObjectInstanceMethodV(env, obj, methodID, args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallObjectInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallNonvirtualObjectMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallObjectInstanceMethodA(env, obj, methodID, args);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallObjectInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallNonvirtualObjectMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1881,11 +2171,19 @@ jobject JNICALL CallNonvirtualObjectMethod(JNIEnv* env, jobject obj, jclass claz
 }
 
 jboolean JNICALL CallNonvirtualBooleanMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallBooleanInstanceMethodV(env, obj, methodID, args);
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallBooleanInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallNonvirtualBooleanMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue*  args) {
-    return jtvmCallBooleanInstanceMethodA(env, obj, methodID, args);
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallBooleanInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallNonvirtualBooleanMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1897,11 +2195,19 @@ jboolean JNICALL CallNonvirtualBooleanMethod(JNIEnv* env, jobject obj, jclass cl
 }
 
 jbyte JNICALL CallNonvirtualByteMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallByteInstanceMethodV(env, obj, methodID, args);
+	jbyte result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallByteInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallNonvirtualByteMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallByteInstanceMethodA(env, obj, methodID, args);
+	jbyte result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallByteInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallNonvirtualByteMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1913,11 +2219,19 @@ jbyte JNICALL CallNonvirtualByteMethod(JNIEnv* env, jobject obj, jclass clazz, j
 }
 
 jchar JNICALL CallNonvirtualCharMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallCharInstanceMethodV(env, obj, methodID, args);
+	jchar result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallCharInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallNonvirtualCharMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallCharInstanceMethodA(env, obj, methodID, args);
+	jchar result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallCharInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallNonvirtualCharMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1929,11 +2243,19 @@ jchar JNICALL CallNonvirtualCharMethod(JNIEnv* env, jobject obj, jclass clazz, j
 }
 
 jshort JNICALL CallNonvirtualShortMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallShortInstanceMethodV(env, obj, methodID, args);
+	jshort result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallShortInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallNonvirtualShortMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallShortInstanceMethodA(env, obj, methodID, args);
+	jshort result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallShortInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallNonvirtualShortMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1945,11 +2267,19 @@ jshort JNICALL CallNonvirtualShortMethod(JNIEnv* env, jobject obj, jclass clazz,
 }
 
 jint JNICALL CallNonvirtualIntMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallIntInstanceMethodV(env, obj, methodID, args);
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallIntInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallNonvirtualIntMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallIntInstanceMethodA(env, obj, methodID, args);
+	jint result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallIntInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallNonvirtualIntMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1961,11 +2291,19 @@ jint JNICALL CallNonvirtualIntMethod(JNIEnv* env, jobject obj, jclass clazz, jme
 }
 
 jlong JNICALL CallNonvirtualLongMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallLongInstanceMethodV(env, obj, methodID, args);
+	jlong result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallLongInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallNonvirtualLongMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallLongInstanceMethodA(env, obj, methodID, args);
+	jlong result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallLongInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallNonvirtualLongMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1977,11 +2315,19 @@ jlong JNICALL CallNonvirtualLongMethod(JNIEnv* env, jobject obj, jclass clazz, j
 }
 
 jfloat JNICALL CallNonvirtualFloatMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallFloatInstanceMethodV(env, obj, methodID, args);
+	jfloat result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallFloatInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallNonvirtualFloatMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallFloatInstanceMethodA(env, obj, methodID, args);
+	jfloat result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallFloatInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallNonvirtualFloatMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -1993,11 +2339,19 @@ jfloat JNICALL CallNonvirtualFloatMethod(JNIEnv* env, jobject obj, jclass clazz,
 }
 
 jdouble JNICALL CallNonvirtualDoubleMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
-    return jtvmCallDoubleInstanceMethodV(env, obj, methodID, args);
+	jdouble result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallDoubleInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL CallNonvirtualDoubleMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue* args) {
-    return jtvmCallDoubleInstanceMethodA(env, obj, methodID, args);
+	jdouble result;
+	ENTER_JAVA((Env*) env);
+	result  = jtvmCallDoubleInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL CallNonvirtualDoubleMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -2009,11 +2363,15 @@ jdouble JNICALL CallNonvirtualDoubleMethod(JNIEnv* env, jobject obj, jclass claz
 }
 
 void JNICALL  CallNonvirtualVoidMethodV(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, va_list args) {
+	ENTER_JAVA((Env*) env);
     jtvmCallVoidInstanceMethodV(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallNonvirtualVoidMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	ENTER_JAVA((Env*) env);
     jtvmCallVoidInstanceMethodA(env, obj, methodID, args);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallNonvirtualVoidMethod(JNIEnv* env, jobject obj, jclass clazz, jmethodID methodID, ...) {
@@ -2041,111 +2399,181 @@ jfieldID jtvmGetFieldID({% CLASS java.lang.Class %}* clazz, JAVA_OBJECT name, JA
 }
 
 jfieldID JNICALL  GetFieldID(JNIEnv *env, jclass clazz, const char *name, const char *sig){
-	return jtvmGetFieldID(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz), N::str(name), N::str(sig));
+	jfieldID result;
+	ENTER_JAVA((Env*) env);
+	result = jtvmGetFieldID(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz), N::str(name), N::str(sig));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL GetObjectField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return (jobject) field->{% METHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = (jobject) field->{% METHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL GetBooleanField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jboolean result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL GetByteField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jbyte result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL GetCharField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jchar result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL GetShortField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jshort result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL GetIntField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jint result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL GetLongField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jlong result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL GetFloatField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jfloat result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL GetDoubleField(JNIEnv *env, jobject obj, jfieldID fieldID){
+	jdouble result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	result = field->{% METHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(obj));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 void JNICALL  SetObjectField(JNIEnv *env, jobject obj, jfieldID fieldID, jobject value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(obj), reinterpret_cast<JAVA_OBJECT>(value));
+    LEAVE_JAVA((Env*) env);
 }
 void JNICALL  SetBooleanField(JNIEnv *env, jobject obj, jfieldID fieldID, jboolean value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 void JNICALL  SetByteField(JNIEnv *env, jobject obj, jfieldID fieldID, jbyte value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetCharField(JNIEnv *env, jobject obj, jfieldID fieldID, jchar value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetShortField(JNIEnv *env, jobject obj, jfieldID fieldID, jshort value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetIntField(JNIEnv *env, jobject obj, jfieldID fieldID, jint value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetLongField(JNIEnv *env, jobject obj, jfieldID fieldID, jlong value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetFloatField(JNIEnv *env, jobject obj, jfieldID fieldID, jfloat value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetDoubleField(JNIEnv *env, jobject obj, jfieldID fieldID, jdouble value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+    LEAVE_JAVA((Env*) env);
 }
 
 jobject JNICALL CallStaticObjectMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
+	result  = (jobject)method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jmethodID JNICALL  GetStaticMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig){
-	return (jmethodID)jtvmGetMethodForClass(env, (JAVA_OBJECT)clazz, name, sig); // TODO verify jni specs
+	jmethodID result;
+	ENTER_JAVA((Env*) env);
+	result = (jmethodID)jtvmGetMethodForClass((Env*) env, (JAVA_OBJECT) clazz, name, sig); // TODO verify jni specs
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallStaticObjectMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
+	result  = (jobject)method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jobject JNICALL CallStaticObjectMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2157,15 +2585,23 @@ jobject JNICALL CallStaticObjectMethod(JNIEnv* env, jclass clazz, jmethodID meth
 }
 
 jboolean JNICALL CallStaticBooleanMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jboolean result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxBool(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallStaticBooleanMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jboolean result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxBool(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jboolean JNICALL CallStaticBooleanMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2177,15 +2613,23 @@ jboolean JNICALL CallStaticBooleanMethod(JNIEnv* env, jclass clazz, jmethodID me
 }
 
 jbyte JNICALL CallStaticByteMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jbyte result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxByte(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallStaticByteMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jbyte result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxByte(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jbyte JNICALL CallStaticByteMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2197,15 +2641,23 @@ jbyte JNICALL CallStaticByteMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 }
 
 jchar JNICALL CallStaticCharMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jchar result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxChar(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallStaticCharMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jchar result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxChar(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jchar JNICALL CallStaticCharMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2217,15 +2669,23 @@ jchar JNICALL CallStaticCharMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 }
 
 jshort JNICALL CallStaticShortMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jshort result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxShort(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallStaticShortMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jshort result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxShort(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jshort JNICALL CallStaticShortMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2237,15 +2697,23 @@ jshort JNICALL CallStaticShortMethod(JNIEnv* env, jclass clazz, jmethodID method
 }
 
 jint JNICALL CallStaticIntMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jint result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxInt(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallStaticIntMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jint result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxInt(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jint JNICALL CallStaticIntMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2257,15 +2725,23 @@ jint JNICALL CallStaticIntMethod(JNIEnv* env, jclass clazz, jmethodID methodID, 
 }
 
 jlong JNICALL CallStaticLongMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jlong result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallStaticLongMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jlong result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxLong(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jlong JNICALL CallStaticLongMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2277,15 +2753,23 @@ jlong JNICALL CallStaticLongMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 }
 
 jfloat JNICALL CallStaticFloatMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jfloat result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxFloat(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallStaticFloatMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
+	jfloat result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	result  = N::unboxFloat(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jfloat JNICALL CallStaticFloatMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2297,15 +2781,23 @@ jfloat JNICALL CallStaticFloatMethod(JNIEnv* env, jclass clazz, jmethodID method
 }
 
 jdouble JNICALL CallStaticDoubleMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	jdouble result;
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	result  = N::unboxDouble(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+    LEAVE_JAVA((Env*) env);
+    return result;
 }
 
 jdouble JNICALL CallStaticDoubleMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
-    {% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-    int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	jdouble result;
+	ENTER_JAVA((Env*) env);
+	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
+	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+	result = N::unboxDouble(method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jdouble JNICALL CallStaticDoubleMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2317,15 +2809,19 @@ jdouble JNICALL CallStaticDoubleMethod(JNIEnv* env, jclass clazz, jmethodID meth
 }
 
 void JNICALL  CallStaticVoidMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
     method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallStaticVoidMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue* args) {
+	ENTER_JAVA((Env*) env);
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
 	int32_t parameterCount = method->{% METHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
     method->{% METHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
+    LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  CallStaticVoidMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2352,100 +2848,158 @@ jfieldID jtvmGetStaticFieldID(JNIEnv *env, JAVA_OBJECT clazz, const char *name, 
 }
 
 jfieldID JNICALL  GetStaticFieldID(JNIEnv *env, jclass clazz, const char *name, const char *sig){
+	jfieldID result;
+	ENTER_JAVA((Env*) env);
 	// TODO force init of clazz if not already initialised
-	return jtvmGetStaticFieldID(env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
+	result = jtvmGetStaticFieldID(env, reinterpret_cast<JAVA_OBJECT>(clazz), name, sig);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 
 
 jobject JNICALL GetStaticObjectField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return (jobject) field->{% METHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = (jobject) field->{% METHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jboolean JNICALL GetStaticBooleanField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jboolean result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jbyte JNICALL GetStaticByteField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jbyte result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jchar JNICALL GetStaticCharField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jchar result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jshort JNICALL GetStaticShortField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jshort result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jint JNICALL GetStaticIntField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jint result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jlong JNICALL GetStaticLongField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jlong result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jfloat JNICALL GetStaticFloatField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jfloat result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jdouble JNICALL GetStaticDoubleField(JNIEnv *env, jclass clazz, jfieldID fieldID){
+	jdouble result;
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% METHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	result = field->{% METHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 void JNICALL  SetStaticObjectField(JNIEnv *env, jclass clazz, jfieldID fieldID, jobject value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(clazz), reinterpret_cast<JAVA_OBJECT>(value));
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticBooleanField(JNIEnv *env, jclass clazz, jfieldID fieldID, jboolean value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticByteField(JNIEnv *env, jclass clazz, jfieldID fieldID, jbyte value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticCharField(JNIEnv *env, jclass clazz, jfieldID fieldID, jchar value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticShortField(JNIEnv *env, jclass clazz, jfieldID fieldID, jshort value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticIntField(JNIEnv *env, jclass clazz, jfieldID fieldID, jint value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticLongField(JNIEnv *env, jclass clazz, jfieldID fieldID, jlong value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticFloatField(JNIEnv *env, jclass clazz, jfieldID fieldID, jfloat value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetStaticDoubleField(JNIEnv *env, jclass clazz, jfieldID fieldID, jdouble value){
+	ENTER_JAVA((Env*) env);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
 	field->{% METHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	LEAVE_JAVA((Env*) env);
 }
 
 
@@ -2459,7 +3013,11 @@ JAVA_OBJECT jtvmNewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
 }
 
 jobject JNICALL NewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
-	return (jobject) jtvmNewDirectByteBuffer(env, address, capacity);
+	jobject result;
+	ENTER_JAVA((Env*) env);
+	result = (jobject) jtvmNewDirectByteBuffer(env, address, capacity);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 void* jtvmGetDirectBufferAddress(JNIEnv* env, JAVA_OBJECT buf){
@@ -2469,7 +3027,11 @@ void* jtvmGetDirectBufferAddress(JNIEnv* env, JAVA_OBJECT buf){
 }
 
 void* JNICALL GetDirectBufferAddress(JNIEnv* env, jobject buf){
-	return jtvmGetDirectBufferAddress(env, (JAVA_OBJECT) buf);
+	void* result;
+	ENTER_JAVA((Env*) env);
+	result = jtvmGetDirectBufferAddress(env, (JAVA_OBJECT) buf);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jlong jtvmGetDirectBufferCapacity(JNIEnv* env, JAVA_OBJECT buf){
@@ -2478,7 +3040,11 @@ jlong jtvmGetDirectBufferCapacity(JNIEnv* env, JAVA_OBJECT buf){
 }
 
 jlong JNICALL GetDirectBufferCapacity(JNIEnv* env, jobject buf){
-	return jtvmGetDirectBufferCapacity(env, (JAVA_OBJECT) buf);
+	jlong result;
+	ENTER_JAVA((Env*) env);
+	result = jtvmGetDirectBufferCapacity(env, (JAVA_OBJECT) buf);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jsize jtvmGetArrayLength(JNIEnv* env, jarray array){
@@ -2486,25 +3052,39 @@ jsize jtvmGetArrayLength(JNIEnv* env, jarray array){
 }
 
 jsize JNICALL GetArrayLength(JNIEnv* env, jarray array){
-	return jtvmGetArrayLength(env, array);
+	jsize result;
+	ENTER_JAVA((Env*) env);
+	result = jtvmGetArrayLength(env, array);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jobjectArray JNICALL NewObjectArray(JNIEnv *env, jsize length, jclass elementClass, jobject initialElement){
+	jobjectArray result;
+	ENTER_JAVA((Env*) env);
 	JA_L* array = new JA_L(length, L"[Ljava/lang/Object"); // TODO fix me!
 	for(int32_t i = 0; i < length; i++){
 		array->fastSet(i, (JAVA_OBJECT)initialElement);
 	}
-	return (jobjectArray)array;
+	result = (jobjectArray)array;
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jobject JNICALL GetObjectArrayElement(JNIEnv *env, jobjectArray array, jsize index){
+	jobject result;
+	ENTER_JAVA((Env*) env);
 	JA_L* arr = (JA_L*)array;
-	return (jobject)arr->fastGet(index); // TODO indexoutofbounds check
+	result = (jobject)arr->fastGet(index); // TODO indexoutofbounds check
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 void JNICALL  SetObjectArrayElement(JNIEnv *env, jobjectArray array, jsize index, jobject value){
+	ENTER_JAVA((Env*) env);
 	JA_L* arr = (JA_L*)array;
 	arr->fastSet(index, (JAVA_OBJECT)value); // TODO indexoutofbounds check
+	LEAVE_JAVA((Env*) env);
 }
 
 void* jtvmGetUniversalArrayElements(JNIEnv *env, JA_0* array, jboolean *isCopy){
@@ -2513,35 +3093,67 @@ void* jtvmGetUniversalArrayElements(JNIEnv *env, JA_0* array, jboolean *isCopy){
 }
 
 jboolean* JNICALL GetBooleanArrayElements(JNIEnv *env, jbooleanArray array, jboolean *isCopy){
-	return (jboolean*) jtvmGetUniversalArrayElements(env, (JA_Z*) array, isCopy);
+	jboolean* result;
+	ENTER_JAVA((Env*) env);
+	result = (jboolean*) jtvmGetUniversalArrayElements(env, (JA_Z*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jbyte* JNICALL GetByteArrayElements(JNIEnv *env, jbyteArray array, jboolean *isCopy){
-	return (jbyte*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jbyte* result;
+	ENTER_JAVA((Env*) env);
+	result = (jbyte*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jchar* JNICALL GetCharArrayElements(JNIEnv *env, jcharArray array, jboolean *isCopy){
-	return (jchar*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jchar* result;
+	ENTER_JAVA((Env*) env);
+	result = (jchar*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jshort* JNICALL GetShortArrayElements(JNIEnv *env, jshortArray array, jboolean *isCopy){
-	return (jshort*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jshort* result;
+	ENTER_JAVA((Env*) env);
+	result = (jshort*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jint* JNICALL GetIntArrayElements(JNIEnv *env, jintArray array, jboolean *isCopy){
-	return (jint*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jint* result;
+	ENTER_JAVA((Env*) env);
+	result = (jint*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jlong* JNICALL GetLongArrayElements(JNIEnv *env, jlongArray array, jboolean *isCopy){
-	return (jlong*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jlong* result;
+	ENTER_JAVA((Env*) env);
+	result = (jlong*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jfloat* JNICALL GetFloatArrayElements(JNIEnv *env, jfloatArray array, jboolean *isCopy){
-	return (jfloat*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	jfloat* result;
+	ENTER_JAVA((Env*) env);
+	result = (jfloat*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 jdouble* JNICALL GetDoubleArrayElements(JNIEnv *env, jdoubleArray array, jboolean *isCopy){
-	return (jdouble*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	double* result;
+	ENTER_JAVA((Env*) env);
+	result = (jdouble*) jtvmGetUniversalArrayElements(env, (JA_0*) array, isCopy);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 
@@ -2588,83 +3200,115 @@ static jboolean checkBounds(JNIEnv* env, JA_0* array, jint start, jint len){
 }
 
 void JNICALL  GetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, jboolean *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jboolean* )((JA_Z*) array)->_data) + start, sizeof(jboolean) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, jbyte *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jbyte* )((JA_B*) array)->_data) + start, sizeof(jbyte) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, jchar *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jchar* )((JA_C*) array)->_data) + start, sizeof(jchar) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, jshort *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jshort* )((JA_S*) array)->_data) + start, sizeof(jshort) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, jint *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jint* )((JA_I*) array)->_data) + start, sizeof(jint) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, jlong *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jlong* )((JA_J*) array)->_data) + start, sizeof(jlong) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, jfloat *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jfloat* )((JA_F*) array)->_data) + start, sizeof(jfloat) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  GetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, jdouble *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(buf, ((jdouble* )((JA_D*) array)->_data) + start, sizeof(jdouble) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, const jboolean *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jboolean* )((JA_Z*) array)->_data) + start, buf, sizeof(jboolean) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, const jbyte *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jbyte* )((JA_B*) array)->_data) + start, buf, sizeof(jbyte) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, const jchar *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jchar* )((JA_C*) array)->_data) + start, buf, sizeof(jchar) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, const jshort *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jshort* )((JA_S*) array)->_data) + start, buf, sizeof(jshort) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, const jint *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jint* )((JA_I*) array)->_data) + start, buf, sizeof(jint) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, const jlong *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jlong* )((JA_J*) array)->_data) + start, buf, sizeof(jlong) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, const jfloat *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jfloat* )((JA_F*) array)->_data) + start, buf, sizeof(jfloat) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 void JNICALL  SetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, const jdouble *buf){
+	ENTER_JAVA((Env*) env);
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
 	memcpy(((jdouble* )((JA_D*) array)->_data) + start, buf, sizeof(jdouble) * len);
+	LEAVE_JAVA((Env*) env);
 }
 
 
@@ -2683,7 +3327,11 @@ JA_Z* jtvmNewBooleanArray(JNIEnv* env, jsize length){
 }
 
 jbooleanArray JNICALL NewBooleanArray(JNIEnv* env, jsize length){
-	return (jbooleanArray) jtvmNewBooleanArray(env, length);
+	jbooleanArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jbooleanArray) jtvmNewBooleanArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 
@@ -2693,7 +3341,11 @@ JA_B* jtvmNewByteArray(JNIEnv* env, jsize length){
 }
 
 jbyteArray JNICALL NewByteArray(JNIEnv* env, jsize length){
-	return (jbyteArray) jtvmNewByteArray(env, length);
+	jbyteArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jbyteArray) jtvmNewByteArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 
@@ -2703,7 +3355,11 @@ JA_C* jtvmNewCharArray(JNIEnv* env, jsize length){
 }
 
 jcharArray JNICALL NewCharArray(JNIEnv* env, jsize length){
-	return (jcharArray) jtvmNewCharArray(env, length);
+	jcharArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jcharArray) jtvmNewCharArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 
@@ -2713,7 +3369,11 @@ JA_S* jtvmNewShortArray(JNIEnv* env, jsize length){
 }
 
 jshortArray JNICALL NewShortArray(JNIEnv* env, jsize length){
-	return (jshortArray) jtvmNewShortArray(env, length);
+	jshortArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jshortArray) jtvmNewShortArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 JA_I* jtvmNewIntArray(JNIEnv* env, jsize length){
@@ -2722,7 +3382,11 @@ JA_I* jtvmNewIntArray(JNIEnv* env, jsize length){
 }
 
 jintArray JNICALL NewIntArray(JNIEnv* env, jsize length){
-	return (jintArray) jtvmNewIntArray(env, length);
+	jintArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jintArray) jtvmNewIntArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 JA_J* jtvmNewLongArray(JNIEnv* env, jsize length){
@@ -2731,7 +3395,11 @@ JA_J* jtvmNewLongArray(JNIEnv* env, jsize length){
 }
 
 jlongArray JNICALL NewLongArray(JNIEnv* env, jsize length){
-	return (jlongArray) jtvmNewLongArray(env, length);
+	jlongArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jlongArray) jtvmNewLongArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 JA_F* jtvmNewFloatArray(JNIEnv* env, jsize length){
@@ -2740,7 +3408,11 @@ JA_F* jtvmNewFloatArray(JNIEnv* env, jsize length){
 }
 
 jfloatArray JNICALL NewFloatArray(JNIEnv* env, jsize length){
-	return (jfloatArray) jtvmNewFloatArray(env, length);
+	jfloatArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jfloatArray) jtvmNewFloatArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 JA_D* jtvmNewDoubleArray(JNIEnv* env, jsize length){
@@ -2749,11 +3421,15 @@ JA_D* jtvmNewDoubleArray(JNIEnv* env, jsize length){
 }
 
 jdoubleArray JNICALL NewDoubleArray(JNIEnv* env, jsize length){
-	return (jdoubleArray) jtvmNewDoubleArray(env, length);
+	jdoubleArray result;
+	ENTER_JAVA((Env*) env);
+	result = (jdoubleArray) jtvmNewDoubleArray(env, length);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
-JNIEnv* N::getJniEnv(){
-	return &N::env.jni;
+Env* N::getThreadEnv(){
+	return &env;
 }
 
 jint JNICALL GetVersion(JNIEnv* env){
@@ -2761,18 +3437,27 @@ jint JNICALL GetVersion(JNIEnv* env){
 }
 
 jclass JNICALL DefineClass(JNIEnv *env, const char *name, jobject loader, const jbyte *buf, jsize bufLen){
+	ENTER_JAVA((Env*) env);
 	throw "Unsupported Operation"; // TODO add proper exception
+	LEAVE_JAVA((Env*) env);
 	return NULL;
 }
 
-JAVA_OBJECT jtvmFindClass(JNIEnv* env, const char *name){
-	return N::resolveClass(N::istr2(N::str(name)));
+JAVA_OBJECT jtvmFindClass(Env* env, const char *name){
+	JAVA_OBJECT string = N::str(name);
+	string = GET_OBJECT({% CLASS java.lang.String %}, string)->{% METHOD java.lang.String:replace:(CC)Ljava/lang/String; %}('/', '.');
+	JAVA_OBJECT clazz =  N::resolveClass(string);
+	return clazz;
 	// FIXME horribly inefficient
 	// FIXME semantics are probably wrong
 }
 
 jclass JNICALL FindClass(JNIEnv* env, const char *name){
-	return (jclass) jtvmFindClass(env, name);
+	jclass result;
+	ENTER_JAVA((Env*) env);
+	result = (jclass) jtvmFindClass((Env*) env, name);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 JAVA_OBJECT jtvmGetObjectClass(JNIEnv *env, JAVA_OBJECT obj){
@@ -2780,7 +3465,11 @@ JAVA_OBJECT jtvmGetObjectClass(JNIEnv *env, JAVA_OBJECT obj){
 }
 
 jclass JNICALL GetObjectClass(JNIEnv *env, jobject obj){
-	return (jclass) jtvmGetObjectClass(env, (JAVA_OBJECT) obj);
+	jclass result;
+	ENTER_JAVA((Env*) env);
+	result = (jclass) jtvmGetObjectClass(env, (JAVA_OBJECT) obj);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 bool jtvmIsInstanceOf(JNIEnv *env, JAVA_OBJECT obj, JAVA_OBJECT clazz){
@@ -2788,7 +3477,11 @@ bool jtvmIsInstanceOf(JNIEnv *env, JAVA_OBJECT obj, JAVA_OBJECT clazz){
 }
 
 jboolean JNICALL IsInstanceOf(JNIEnv *env, jobject obj, jclass clazz){
-	return jtvmIsInstanceOf(env, (JAVA_OBJECT) obj, (JAVA_OBJECT) clazz);
+	jboolean result;
+	ENTER_JAVA((Env*) env);
+	result =  jtvmIsInstanceOf(env, (JAVA_OBJECT) obj, (JAVA_OBJECT) clazz);
+	LEAVE_JAVA((Env*) env);
+	return result;
 }
 
 const struct JNINativeInterface_ jni = {
@@ -2811,12 +3504,12 @@ const struct JNINativeInterface_ jni = {
 
 	&ToReflectedField,
 
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
+	&Throw,
+	&ThrowNew,
+	&ExceptionOccurred,
+	&ExceptionDescribe,
+	&ExceptionClear,
+	&FatalError,
 
 	&PushLocalFrame,
 	&PopLocalFrame,
@@ -3072,7 +3765,11 @@ const struct JNINativeInterface_ jni = {
 
 
 
-Env N::env;
+//Env N::env;
+
+static void initMainThread(){
+	{% SMETHOD java.lang.Thread:initMainThread %}();
+}
 
 void N::startup() {
 	/*
@@ -3096,13 +3793,14 @@ void N::startup() {
 	//std::setlocale(LC_COLLATE, "en_US.UTF-8");
 	//std::setlocale(LC_CTYPE, "en_US.UTF-8");
 
-	N::env.jni.functions = &jni;
+	env.functions = &jni;
 	setvbuf(stdout, nullptr, _IONBF, 0);
 	setvbuf(stderr, nullptr, _IONBF, 0);
 	std::signal(SIGSEGV, SIGSEGV_handler);
 	std::signal(SIGFPE, SIGFPE_handler);
 
 	N::initStringPool();
+	//{% SMETHOD java.lang.Thread:initMainThread %}();
 };
 
 // Type Table Footer
