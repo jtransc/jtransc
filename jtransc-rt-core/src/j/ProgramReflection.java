@@ -1,5 +1,6 @@
 package j;
 
+import com.jtransc.JTranscSystem;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
 
@@ -327,7 +328,10 @@ public class ProgramReflection {
 
 	//native static public Class<?> getClassByInfo(ClassInfo info);
 
-	native static public Method getMethodByInfo(Class<?> clazz, MemberInfo info);
+	static public Method getMethodByInfo(Class<?> clazz, MemberInfo info){
+		JTranscSystem.checkInJVM("ProgramReflection::getMethodByInfo should've been replaced by plugin!");
+		return null;
+	}
 
 	static public Class<?> getClassById(int classId) {
 		ProgramReflection._ensure();

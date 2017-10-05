@@ -667,7 +667,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 					line(defaultBody)
 				}
 				line("#endif")
-			} else if (method.isNative && bodies.isEmpty() /*&& method.name.startsWith("dooFoo")*/) {
+			} else if (method.isNative && bodies.isEmpty()) {
 				line(genJniMethod(method))
 			} else {
 				line(defaultBody)

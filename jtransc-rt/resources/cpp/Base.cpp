@@ -249,7 +249,7 @@ template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from
 
 
 enum class ThreadState { thread_in_java, thread_in_native };
-__thread static Env env;
+static __thread Env env;
 struct N { public:
 
 
