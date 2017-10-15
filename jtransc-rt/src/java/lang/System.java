@@ -20,6 +20,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.JTranscSystemProperties;
 import com.jtransc.JTranscVersion;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
 import com.jtransc.io.JTranscConsolePrintStream;
@@ -33,20 +34,29 @@ import java.util.Properties;
 
 @SuppressWarnings("ManualArrayCopy")
 public class System {
-	static public final InputStream in = new InputStream() {
+	static public InputStream in = new InputStream() {
 		@Override
 		public int read() throws IOException {
 			throw new Error("Not implemented System.in.read()!");
 		}
 	};
-	static public final PrintStream out = new JTranscConsolePrintStream(false);
-	static public final PrintStream err = new JTranscConsolePrintStream(true);
+	static public PrintStream out = new JTranscConsolePrintStream(false);
+	static public PrintStream err = new JTranscConsolePrintStream(true);
 
-	native public static void setIn(InputStream in);
+	@JTranscSync
+	public static void setIn(InputStream in) {
+		System.in = in;
+	}
 
-	native public static void setOut(PrintStream out);
+	@JTranscSync
+	public static void setOut(PrintStream out) {
+		System.out = out;
+	}
 
-	native public static void setErr(PrintStream err);
+	@JTranscSync
+	public static void setErr(PrintStream err) {
+		System.err = err;
+	}
 
 	@JTranscMethodBody(target = "d", value = "return N.currentTimeMillis();")
 	public static long currentTimeMillis() {
@@ -66,6 +76,7 @@ public class System {
 	@JTranscMethodBody(target = "as3", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "dart", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "php", value = "N::arraycopy($p0, $p1, $p2, $p3, $p4);")
+	@JTranscSync
 	public static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int length) {
 		boolean overlapping = (src == dst && dstPos > srcPos);
 		if (src instanceof boolean[])
@@ -81,6 +92,7 @@ public class System {
 		else arraycopy((Object[]) src, srcPos, (Object[]) dst, dstPos, length, overlapping);
 	}
 
+	@JTranscSync
 	static private void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -90,6 +102,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -99,6 +112,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -108,6 +122,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -117,6 +132,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(int[] src, int srcPos, int[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -126,6 +142,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(long[] src, int srcPos, long[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -135,6 +152,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(float[] src, int srcPos, float[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -144,6 +162,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(double[] src, int srcPos, double[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -153,6 +172,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	static private void arraycopy(Object[] src, int srcPos, Object[] dst, int dstPos, int length, boolean overlapping) {
 		if (overlapping) {
 			int n = length;
@@ -162,6 +182,7 @@ public class System {
 		}
 	}
 
+	@JTranscSync
 	public static int identityHashCode(Object x) {
 		return SystemInt.identityHashCode(x);
 	}
@@ -242,11 +263,11 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBodyPre("var key = p0._str;")
+	@HaxeMethodBodyPre("var key = N.istr(p0);")
 	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getEnv(key));")
-	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[key] : null\"));")
+	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[N.istr(p0)] : null\"));")
 	@HaxeMethodBody("return N.str(null);")
-	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[p0] : null);")
+	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[N.istr(p0)] : null);")
 	@JTranscMethodBody(target = "cpp", value = {
 		"auto str = N::istr3(p0);",
 		"return N::str(std::getenv(str.c_str()));"

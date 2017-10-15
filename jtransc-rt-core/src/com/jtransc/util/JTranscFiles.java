@@ -1,5 +1,7 @@
 package com.jtransc.util;
 
+import com.jtransc.io.JTranscConsole;
+
 import java.io.*;
 import java.util.Arrays;
 

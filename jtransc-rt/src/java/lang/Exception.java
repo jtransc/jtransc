@@ -16,23 +16,30 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class Exception extends Throwable {
+	@JTranscSync
 	public Exception() {
 		super();
 	}
 
+	@JTranscSync
 	public Exception(String message) {
 		super(message);
 	}
 
+	@JTranscSync
 	public Exception(String message, Throwable cause) {
 		super(message, cause);
 	}
 
+	@JTranscSync
 	public Exception(Throwable cause) {
 		super(cause);
 	}
 
+	@JTranscSync
 	protected Exception(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}

@@ -41,8 +41,8 @@ public class JTranscProcessMulti extends JTranscProcess {
 		@HaxeMethodBody("return null;"),
 	})
 	@JTranscMethodBody(target = "js", value = {
-		"return N.wrap(require('child_process').spawnSync(N.istr(p0), N.istrArray(p1), {cwd:N.istr(p2), env:N.imap(p3)}));"
-	})
+		"return N.wrap(require('child_process').spawnSync(N.istr(p0), N.istrArray(p1), { cwd : N.istr(p2), env : await(N.imap(p3)) }));"
+	}, async = true)
 	private native JTranscWrapped create(String cmd, String[] args, String cwd, Map<String, String> env);
 
 	//private native JTranscWrapped createD(String cmd, String[] args, String cwd, Map<String, String> env);

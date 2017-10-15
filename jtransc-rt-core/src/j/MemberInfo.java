@@ -19,6 +19,7 @@ public class MemberInfo {
 	@JTranscInvisible
 	public String genericDesc;
 
+	@JTranscSync
 	public MemberInfo(int id, String internalName, String name, int modifiers, String desc, String genericDesc) {
 		this.internalName = (internalName != null) ? internalName : name;
 		this.id = id;
@@ -30,12 +31,14 @@ public class MemberInfo {
 
 	@JTranscKeep
 	@JTranscNativeName("c")
+	@JTranscSync
 	static public MemberInfo create(int id, String internalName, String name, int modifiers, String desc, String genericDesc) {
 		return new MemberInfo(id, internalName, name, modifiers, desc, genericDesc);
 	}
 
 	@JTranscKeep
 	@JTranscNativeName("cl")
+	@JTranscSync
 	static public MemberInfo[] createList(int count, int[] ids, int[] modifiers, String[] internalNames, String[] names, String[] descs, String[] genericDescs) {
 		MemberInfo[] out = new MemberInfo[count];
 		for (int n = 0; n < count; n++) {

@@ -12,6 +12,7 @@ install:
   - cmd: cinst -y haxe --version=3.4.2 || ver>nul
   - cmd: cinst -y dmd --version=2.073.0 || ver>nul
   - cmd: cinst -y dart-sdk --version=1.24.2 || ver>nul # See https://chocolatey.org/packages/KB3035131#comment-3325263191
+  - cmd: cinst -y nodejs --version=8.7.0
   - cmd: SET NEKOPATH=C:\ProgramData\chocolatey\lib\neko
   - cmd: haxelib --quiet --always setup C:\Users\appveyor\haxelib
   - cmd: haxelib --quiet --always install lime 5.5.0

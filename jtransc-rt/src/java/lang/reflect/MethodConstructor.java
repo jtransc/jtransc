@@ -1,12 +1,15 @@
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastIntMap;
 import j.MemberInfo;
 import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 
 abstract public class MethodConstructor extends AccessibleObject {
 	protected int typeId;
@@ -30,6 +33,16 @@ abstract public class MethodConstructor extends AccessibleObject {
 	// Generics and annotations support
 	/*protected*/ public transient String signature;
 
+	@JTranscSync
+	static public String getSignature(Method method) {
+		return method.signature;
+	}
+
+	@JTranscSync
+	static public String getSignature(Constructor constructor) {
+		return constructor.signature;
+	}
+
 	/**
 	 * A special custom-made signature for jtransc's cpp jni implementation
 	 * It condenses a "normal" Java signature. It will retain only the first
@@ -50,6 +63,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	private static final FastIntMap<FastIntMap<Annotation[]>> _annotationsCache = new FastIntMap<FastIntMap<Annotation[]>>();
 	private static final FastIntMap<FastIntMap<Annotation[][]>> _annotationArgsCache = new FastIntMap<FastIntMap<Annotation[][]>>();
 
+	@JTranscSync
 	public MethodConstructor(Class<?> containingClass, MemberInfo info) {
 		super(info);
 		this.clazz = containingClass;
@@ -71,6 +85,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	 */
 	@JTranscInvisible
 	@JTranscKeep
+	@JTranscSync
 	private static String getJniSignature(String sig) {
 		String newSig = "";
 		int firstIndex = sig.indexOf('(') + 1;
@@ -94,6 +109,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return newSig;
 	}
 
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] cache;
 		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
@@ -115,6 +131,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	}
 
 	@JTranscInvisible
+	@JTranscSync
 	protected MethodTypeImpl methodType() {
 		//JTranscConsole.log("BEGIN methodType");
 		if (methodType == null) methodType = _InternalUtils.parseMethodType(signature, null);
@@ -122,15 +139,18 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return methodType;
 	}
 
+	@JTranscSync
 	public int getParameterCount() {
 		return methodType().args.length;
 	}
 
+	@JTranscSync
 	public Class<?>[] getExceptionTypes() {
-		return exceptionTypes.clone();
+		return Arrays.copyOf(exceptionTypes, exceptionTypes.length);
 	}
 
 	@JTranscInvisible
+	@JTranscSync
 	protected MethodTypeImpl genericMethodType() {
 		if (genericMethodType == null) {
 			if (genericSignature != null) {
@@ -143,6 +163,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	}
 
 	@SuppressWarnings("ConstantConditions")
+	@JTranscSync
 	public Annotation[][] getParameterAnnotations() {
 		Annotation[][] cache;
 		FastIntMap<Annotation[][]> map = _annotationArgsCache.get(clazz.id);
@@ -165,24 +186,30 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return cache;
 	}
 
+	@JTranscSync
 	public Class<?> getReturnType() {
 		return null;
 	}
 
+	@JTranscSync
 	public Class<?> getDeclaringClass() {
 		return clazz;
 	}
 
+	@JTranscSync
 	public int getModifiers() {
 		return modifiers;
 	}
 
+	@JTranscSync
 	public String getName() {
 		return null;
 	}
 
+	@JTranscSync
 	abstract protected boolean isConstructor();
 
+	@JTranscSync
 	public Class<?>[] getParameterTypes() {
 		return (Class<?>[]) methodType().args;
 	}
@@ -190,6 +217,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	//private Parameter[] _parameters;
 	private Parameter[] _params; // @TODO: Bug with keywords in D target. Have to fix! This is just a workaround!
 
+	@JTranscSync
 	public Parameter[] getParameters() {
 		if (_params == null) {
 			Class<?>[] parameterTypes = getParameterTypes();
@@ -198,25 +226,31 @@ abstract public class MethodConstructor extends AccessibleObject {
 				_params[n] = new Parameter(this, n);
 			}
 		}
-		return _params.clone();
+		return Arrays.copyOf(_params, _params.length);
 	}
 
+	@JTranscSync
 	public boolean isStatic() {
 		return (getModifiers() & Modifier.STATIC) != 0;
 	}
 
+	@JTranscSync
 	public boolean isVarArgs() {
 		return (getModifiers() & Modifier.VARARGS) != 0;
 	}
 
+	@JTranscSync
 	public boolean isSynthetic() {
 		return (getModifiers() & Modifier.SYNTHETIC) != 0;
 	}
 
+	@JTranscSync
 	public boolean isPrivate() {
 		return (getModifiers() & Modifier.PRIVATE) != 0;
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public String toString() {
 		int mod = getModifiers();
 		String out = "";

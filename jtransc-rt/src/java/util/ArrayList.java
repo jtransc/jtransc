@@ -16,7 +16,9 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -28,15 +30,18 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("this._data = [];")
 	@JTranscMethodBody(target = "js", value = "this._data = [];")
+	@JTranscSync
 	public ArrayList(int initialCapacity) {
 		buffer = new Object[initialCapacity];
 		length = 0;
 	}
 
+	@JTranscSync
 	public ArrayList() {
 		this(0);
 	}
 
+	@JTranscAsync
 	public ArrayList(Collection<? extends E> c) {
 		this(c.size());
 		addAll(c);
@@ -44,42 +49,49 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
+	@JTranscSync
 	public void trimToSize() {
 		buffer = Arrays.copyOf(buffer, length);
 	}
 
 	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
+	@JTranscSync
 	private void ensure(int minimumCapacity) {
 		if (minimumCapacity > buffer.length) {
 			buffer = Arrays.copyOf(buffer, Math.max(minimumCapacity, (buffer.length * 2) + 2));
 		}
 	}
 
+	@JTranscSync
 	public void ensureCapacity(int minCapacity) {
 		ensure(minCapacity);
 	}
 
 	@HaxeMethodBody("return _data.length;")
 	@JTranscMethodBody(target = "js", value = "return this._data.length;")
+	@JTranscSync
 	public int size() {
 		return length;
 	}
 
 	@HaxeMethodBody("return _data[p0];")
 	@JTranscMethodBody(target = "js", value = "return this._data[p0];")
+	@JTranscSync
 	private E _get(int index) {
 		return (E)buffer[index];
 	}
 
 	@HaxeMethodBody("_data[p0] = p1;")
 	@JTranscMethodBody(target = "js", value = "this._data[p0] = p1;")
+	@JTranscSync
 	private void _set(int index, E element) {
 		buffer[index] = element;
 	}
 
 	@HaxeMethodBody("_data = _data.slice(0, p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.length = p0;")
+	@JTranscSync
 	private void _setLength(int length) {
 		ensure(length);
 		this.length = length;
@@ -87,11 +99,13 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("_data.push(p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.push(p0);")
+	@JTranscSync
 	private void _add(E element) {
 		ensure(length + 1);
 		buffer[length++] = element;
 	}
 
+	@JTranscSync
 	private void makeHole(int index, int count) {
 		ensure(length + count);
 		System.arraycopy(buffer, index, buffer, index + count, length - index - count);
@@ -100,6 +114,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("N.arrayInsert(_data, p0, p1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 0, p1);")
+	@JTranscSync
 	private void _insert(int index, E element) {
 		makeHole(index, 1);
 		buffer[index] = element;
@@ -107,6 +122,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("_data = _data.slice(0, p0).concat(p1.toArray()).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice.apply(this._data, [p0, 0].concat(p1.toArray()));")
+	@JTranscSync
 	private void _insert(int index, Object[] elements) {
 		makeHole(index, elements.length);
 		System.arraycopy(elements, 0, buffer, index, elements.length);
@@ -114,6 +130,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("_data = _data.slice(0, p0).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, p1 - p0);")
+	@JTranscSync
 	private void _remove(int from, int to) {
 		int count = to - from;
 		System.arraycopy(buffer, to, buffer, from, length - to);
@@ -122,41 +139,49 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 	@HaxeMethodBody("_data.splice(p0, 1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 1);")
+	@JTranscSync
 	private void _remove(int index) {
 		_remove(index, index + 1);
 	}
 
+	@JTranscSync
 	private void _clear() {
 		_setLength(0);
 	}
 
 	@HaxeMethodBody("p0._data = p1._data.slice(0);")
 	@JTranscMethodBody(target = "js", value = "p0._data = p1._data.slice(0);")
+	@JTranscSync
 	static private <T> void _copy(ArrayList<T> dst, ArrayList<T> src) {
 		dst.buffer = Arrays.copyOf(src.buffer, src.length);
 		dst.length = src.length;
 	}
 
+	@JTranscSync
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
+	@JTranscAsync
 	public boolean contains(Object o) {
 		return indexOf(o) >= 0;
 	}
 
+	@JTranscAsync
 	public int indexOf(Object o) {
 		int len = size();
 		for (int i = 0; i < len; i++) if (Objects.equals(o, _get(i))) return i;
 		return -1;
 	}
 
+	@JTranscAsync
 	public int lastIndexOf(Object o) {
 		int len = size();
 		for (int i = len - 1; i >= 0; i--) if (Objects.equals(o, _get(i))) return i;
 		return -1;
 	}
 
+	@JTranscAsync
 	public Object clone() {
 		try {
 			ArrayList<E> v = (ArrayList<E>) super.clone();
@@ -168,11 +193,13 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		}
 	}
 
+	@JTranscSync
 	public Object[] toArray() {
 		return toArray(new Object[size()]);
 	}
 
 	@SuppressWarnings("unchecked")
+	@JTranscSync
 	public <T> T[] toArray(T[] a) {
 		int len = size();
 		if (a.length < len) a = (T[]) Arrays.copyOf(new Object[0], len, a.getClass());
@@ -180,11 +207,13 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return a;
 	}
 
+	@JTranscSync
 	public E get(int index) {
 		rangeCheck(index);
 		return _get(index);
 	}
 
+	@JTranscSync
 	public E set(int index, E element) {
 		rangeCheck(index);
 		E oldValue = _get(index);
@@ -192,16 +221,19 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return oldValue;
 	}
 
+	@JTranscSync
 	public boolean add(E e) {
 		_add(e);
 		return true;
 	}
 
+	@JTranscSync
 	public void add(int index, E element) {
 		rangeCheckForAdd(index);
 		_insert(index, element);
 	}
 
+	@JTranscSync
 	public E remove(int index) {
 		rangeCheck(index);
 
@@ -212,6 +244,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return oldValue;
 	}
 
+	@JTranscAsync
 	public boolean remove(Object o) {
 		int len = size();
 		for (int index = 0; index < len; index++) {
@@ -223,16 +256,21 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return false;
 	}
 
+	@JTranscSync
 	public void clear() {
 		modCount++;
 		_clear();
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public boolean addAll(Collection<? extends E> c) {
 		for (E e : c) add(e);
 		return c.size() != 0;
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public boolean addAll(int index, Collection<? extends E> c) {
 		rangeCheckForAdd(index);
 
@@ -242,33 +280,43 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return c.size() != 0;
 	}
 
+	@JTranscSync
 	protected void removeRange(int fromIndex, int toIndex) {
 		modCount++;
 		_remove(fromIndex, toIndex);
 	}
 
+	@JTranscSync
 	private void rangeCheck(int index) {
 		if (index >= size()) throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
 	}
 
+	@JTranscSync
 	private void rangeCheckForAdd(int index) {
 		if (index > size() || index < 0) throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
 	}
 
+	@JTranscSync
 	private String outOfBoundsMsg(int index) {
 		return "Index: " + index + ", Size: " + size();
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public boolean removeAll(Collection<?> c) {
 		Objects.requireNonNull(c);
 		return batchRemove(c, false);
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public boolean retainAll(Collection<?> c) {
 		Objects.requireNonNull(c);
 		return batchRemove(c, true);
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	private boolean batchRemove(Collection<?> c, boolean complement) {
 		int r = 0, w = 0;
 		for (; r < size(); r++) if (c.contains(_get(r)) == complement) _set(w++, _get(r));
@@ -285,10 +333,12 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 	//	return listIterator(0);
 	//}
 
+	@JTranscAsync
 	public Iterator<E> iterator() {
 		return listIterator();
 	}
 
+	@JTranscAsync
 	public List<E> subList(int fromIndex, int toIndex) {
 		return super.subList(fromIndex, toIndex);
 	}

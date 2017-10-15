@@ -16,8 +16,8 @@ You can find documentation at the [wiki](http://docs.jtransc.com/).
 # What is this?
 
 JTransc (Java Trans Compiler) is an AOT (ahead of time compiler) that compiles .class and .jar files
-into a target programming language / executable bundling all the required dependencies in a single file or folder, without requiring
-a jitter or an external runtime.
+into a target programming language / executable bundling all the required dependencies in a single file or folder,
+without requiring a jitter or an external runtime.
 
 # Why using JTransc?
 
@@ -38,18 +38,25 @@ Using just one technology guarantees consistency between targets. For example, K
 
 ### Native:
 
-Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is native to your platform. For example: when targeting JS you will use native JS best-in-class GC instead of a GC emulated in C++ & emscripten. And no need to know a proper heap size beforehand targeting JS.
+Instead of generating C++ and then using emscripten or other technologies, JTransc allows you to generate code that is
+native to your platform. For example: when targeting JS you will use native JS best-in-class GC instead of a GC
+emulated in C++ & emscripten. And no need to know a proper heap size beforehand targeting JS.
 
 ### Native facilities:
 
 Some classes like String, StringBuilder or ArrayList are implemented in a way that it uses native JavaScript/AS3/Dart... facilities.
 Like JavaScript String, Array and so on.
 
-### Treeshaking
+### Treeshaking:
 
 Instead of generating huge projects including everything, or having complex proguard configuration files.
 JTransc includes treeshaking in a simple way. You can use annotations to keep methods, classes and fields or another annotations.
 It works for all targets and it is fully integrated in the workflow.
+
+### Thread and sync I/O support in JS:
+
+JTransc supports plain Java applications using Threads and sync I/O in JS converting that into an asynchronous version in JS
+using await/async detecting branches not using Threads/sync I/O for fastest performance.
 
 # Support this project
 

@@ -16,23 +16,30 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class RuntimeException extends Exception {
+	@JTranscSync
 	public RuntimeException() {
 		super();
 	}
 
+	@JTranscSync
 	public RuntimeException(String message) {
 		super(message);
 	}
 
+	@JTranscSync
 	public RuntimeException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
+	@JTranscSync
 	public RuntimeException(Throwable cause) {
 		super(cause);
 	}
 
+	@JTranscSync
 	protected RuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}

@@ -16,6 +16,8 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 import java.util.Objects;
 
 @SuppressWarnings("unused")
@@ -25,6 +27,7 @@ public final class StackTraceElement implements java.io.Serializable {
 	private String fileName;
 	private int lineNumber;
 
+	@JTranscSync
 	public StackTraceElement(String declaringClass, String methodName, String fileName, int lineNumber) {
 		this.declaringClass = (declaringClass != null) ? declaringClass : "UNKNOWN";
 		this.methodName = (methodName != null) ? methodName : "UNKNOWN";
@@ -32,22 +35,27 @@ public final class StackTraceElement implements java.io.Serializable {
 		this.lineNumber = lineNumber;
 	}
 
+	@JTranscSync
 	public String getFileName() {
 		return fileName;
 	}
 
+	@JTranscSync
 	public int getLineNumber() {
 		return lineNumber;
 	}
 
+	@JTranscSync
 	public String getClassName() {
 		return declaringClass;
 	}
 
+	@JTranscSync
 	public String getMethodName() {
 		return methodName;
 	}
 
+	@JTranscSync
 	public boolean isNativeMethod() {
 		return lineNumber == -2;
 	}

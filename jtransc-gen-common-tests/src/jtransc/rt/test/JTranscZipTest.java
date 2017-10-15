@@ -1,5 +1,6 @@
 package jtransc.rt.test;
 
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.io.JTranscIoTools;
 import com.jtransc.util.JTranscFiles;
 
@@ -68,10 +69,14 @@ public class JTranscZipTest {
 		String tmpfile = tmpdir + "/jtransc.test.zip";
 		System.out.println("[3]");
 		System.out.println(tmpfile);
-		JTranscFiles.write(new File(tmpfile), hexData);
 		System.out.println("[4]");
-
+		JTranscConsole.log(1234000067);
+		File file1 = new File(tmpfile);
+		System.out.println("[4b]");
+		JTranscFiles.write(file1, hexData);
+		System.out.println("[5]");
 		System.out.println(normalizePath(new File(tmpfile).getParentFile().getAbsolutePath()));
+		System.out.println("[6]");
 		//System.out.println(normalizePath(new File(tmpfile).getParentFile().getParent()));
 
 		for (File file : new File[]{
@@ -89,19 +94,24 @@ public class JTranscZipTest {
 			System.out.println("length:" + (file.isFile() ? file.length() : 0));
 		}
 
+		JTranscConsole.log("[a]");
 		RandomAccessFile r = new RandomAccessFile(tmpfile, "r");
+		JTranscConsole.log("[b]");
 		System.out.println("read:");
 		System.out.println(r.readShort());
 		System.out.println(r.readInt());
+		JTranscConsole.log("[c]");
 		r.close();
 		ZipFile zipFile = new ZipFile(tmpfile);
 		System.out.println(normalizePath(zipFile.getName()));
 		System.out.println(zipFile.getComment());
 		System.out.println(zipFile.getEntry("hello.txt"));
+		JTranscConsole.log("[d]");
 		for (ZipEntry entry : Collections.list(zipFile.entries())) {
 			System.out.println(entry.getName() + " : " + entry.getSize() + " : " + entry.getCompressedSize());
 			System.out.println(new String(JTranscIoTools.readStreamFully(zipFile.getInputStream(entry)), "utf-8"));
 		}
+		JTranscConsole.log("[e]");
 	}
 }
 

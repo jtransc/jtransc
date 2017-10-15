@@ -16,17 +16,22 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class ArrayIndexOutOfBoundsException extends IndexOutOfBoundsException {
 	// TODO: find other places that should use AIOOBE instead of IOOBE
 
+	@JTranscSync
 	public ArrayIndexOutOfBoundsException() {
 		super();
 	}
 
+	@JTranscSync
 	public ArrayIndexOutOfBoundsException(int index) {
 		super("Array index " + index + " out of range");
 	}
 
+	@JTranscSync
 	public ArrayIndexOutOfBoundsException(String msg) {
 		super(msg);
 	}

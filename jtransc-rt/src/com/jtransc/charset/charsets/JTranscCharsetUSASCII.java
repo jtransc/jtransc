@@ -1,8 +1,10 @@
 package com.jtransc.charset.charsets;
 
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharsetSingleByte;
 
 public class JTranscCharsetUSASCII extends JTranscCharsetSingleByte {
+	@JTranscSync
 	public JTranscCharsetUSASCII() {
 		super(
 			new String[]{"US-ASCII", "ANSI_X3.4-1968", "CP367", "CSASCII", "ISO-IR-6", "ASCII", "ISO_646.IRV:1983", "ANSI_X3.4-1986", "ASCII7", "DEFAULT", "ISO_646.IRV:1991", "ISO646-US", "IBM367", "646", "US"},

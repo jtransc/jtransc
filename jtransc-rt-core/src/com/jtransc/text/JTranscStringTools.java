@@ -2,11 +2,13 @@ package com.jtransc.text;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings("IndexOfReplaceableByContains")
 public class JTranscStringTools {
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
+	@JTranscSync
 	public static String toString(float v) {
 		//return RealToString.getInstance().floatToString(v);
 		String out = toString((double) v);
@@ -37,6 +39,7 @@ public class JTranscStringTools {
 	//}
 
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
+	@JTranscSync
 	public static String toString(double v) {
 		if (Double.isNaN(v)) return "NaN";
 		if (Double.isInfinite(v)) return (v < 0) ? "-Infinity" : "Infinity";
@@ -54,10 +57,21 @@ public class JTranscStringTools {
 				break;
 			}
 		}
-		if (out.indexOf("e+") >= 0) out = out.replace("e+", "E");
-		if (out.indexOf("e-") >= 0) out = out.replace("e-", "E-");
+		if (out.indexOf("e+") >= 0) out = replace(out, "e+", "E");
+		if (out.indexOf("e-") >= 0) out = replace(out, "e-", "E-");
 		return hasSymbols ? out : (out + ".0");
 	}
+
+	@HaxeMethodBody("return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "as3", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
+	})
+	@JTranscSync
+	native static public String replace(String base, String s, String t);
 
 	//@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +Math.fround(p0)));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%f\", (float)p0); return N::str(std::wstring(temp));")
@@ -75,5 +89,6 @@ public class JTranscStringTools {
 		@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);"),
 		@JTranscMethodBody(target = "dart", value = "return N.str(p0.toString());"),
 	})
+	@JTranscSync
 	native static public String _toString(double v);
 }

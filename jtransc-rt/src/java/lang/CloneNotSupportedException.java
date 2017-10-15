@@ -16,10 +16,14 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class CloneNotSupportedException extends Exception {
+	@JTranscSync
 	public CloneNotSupportedException() {
 	}
 
+	@JTranscSync
 	public CloneNotSupportedException(String msg) {
 		super(msg);
 	}

@@ -16,10 +16,14 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class NoSuchMethodException extends Exception {
+	@JTranscSync
 	public NoSuchMethodException() {
 	}
 
+	@JTranscSync
 	public NoSuchMethodException(String message) {
 		super(message);
 	}

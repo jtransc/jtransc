@@ -16,11 +16,15 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class NumberFormatException extends IllegalArgumentException {
+	@JTranscSync
 	public NumberFormatException() {
 		super();
 	}
 
+	@JTranscSync
 	public NumberFormatException(String s) {
 		super(s);
 	}

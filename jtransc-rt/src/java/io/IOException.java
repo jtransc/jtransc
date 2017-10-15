@@ -17,6 +17,9 @@
 
 package java.io;
 
+import com.jtransc.annotation.JTranscAsync;
+import com.jtransc.annotation.JTranscSync;
+
 /**
  * Signals a general, I/O-related error. Error details may be specified when
  * calling the constructor, as usual. Note there are also several subclasses of
@@ -27,6 +30,7 @@ public class IOException extends Exception {
     /**
      * Constructs a new {@code IOException} with its stack trace filled in.
      */
+	@JTranscSync
     public IOException() {
     }
 
@@ -37,6 +41,7 @@ public class IOException extends Exception {
      * @param detailMessage
      *            the detail message for this exception.
      */
+	@JTranscSync
     public IOException(String detailMessage) {
         super(detailMessage);
     }
@@ -51,6 +56,7 @@ public class IOException extends Exception {
      *            The detail cause for the exception.
      * @since 1.6
      */
+	@JTranscSync
     public IOException(String message, Throwable cause) {
         super(message, cause);
     }
@@ -62,6 +68,7 @@ public class IOException extends Exception {
      *            The detail cause for the exception.
      * @since 1.6
      */
+	@JTranscAsync
     public IOException(Throwable cause) {
         super(cause == null ? null : cause.toString(), cause);
     }

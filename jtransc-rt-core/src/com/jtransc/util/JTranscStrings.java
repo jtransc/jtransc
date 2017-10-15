@@ -2,16 +2,19 @@ package com.jtransc.util;
 
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscSync;
 
 import java.util.ArrayList;
 
 @SuppressWarnings("WeakerAccess")
 @JTranscInvisible
 public class JTranscStrings {
+	@JTranscSync
 	static public String substr(String subject, int offset) {
 		return substr(subject, offset, Integer.MAX_VALUE);
 	}
 
+	@JTranscSync
 	static public String substr(String subject, int offset, int count) {
 		int subjectLen = subject.length();
 		int realStart = (offset < 0) ? JTranscBits.clamp(JTranscBits.unsignedMod(offset, subjectLen), 0, subjectLen) : JTranscBits.clamp(offset, 0, subjectLen);
@@ -19,14 +22,17 @@ public class JTranscStrings {
 		return subject.substring(realStart, realEnd);
 	}
 
+	@JTranscSync
 	static public String[] splitInChunks(String subject, int count) {
 		return splitInChunksDirection(subject, +count);
 	}
 
+	@JTranscSync
 	static public String[] splitInChunksRightToLeft(String subject, int count) {
 		return splitInChunksDirection(subject, -count);
 	}
 
+	@JTranscSync
 	static public String[] splitInChunksDirection(String subject, int count) {
 		final boolean leftToRight = (count > 0);
 		final int slen = subject.length();
@@ -57,6 +63,7 @@ public class JTranscStrings {
 		return out;
 	}
 
+	@JTranscSync
 	static public String join(String[] parts) {
 		int count = 0;
 		for (String part : parts) count += part.length();
@@ -65,6 +72,7 @@ public class JTranscStrings {
 		return out.toString();
 	}
 
+	@JTranscSync
 	static public String join(String[] parts, String separator) {
 		if (parts.length == 0) return "";
 		int count = 0;
@@ -78,6 +86,7 @@ public class JTranscStrings {
 		return out.toString();
 	}
 
+	@JTranscSync
 	static public String[] split(String str, char c) {
 		ArrayList<String> out = new ArrayList<>();
 		int pivot = 0;

@@ -159,7 +159,7 @@ class AstGenContext {
 	}
 
 	override fun toString() = try {
-		"${clazz.name}::${method.name}"
+		"${clazz.name}::${method.name}${method.desc}"
 	} catch (e: Throwable) {
 		try {
 			"${clazz.name}"
@@ -317,7 +317,7 @@ open class AstAnnotatedElement(
 	val program: AstProgram,
 	val elementRef: AstRef,
 	override val annotations: List<AstAnnotation>
-) : AstAnnotated {
+) : AstAnnotated, Extra by Extra.Mixin() {
 	var extraKeep: Boolean? = null
 	var extraVisible: Boolean? = null
 	val keep: Boolean get() {
@@ -723,6 +723,8 @@ class AstMethod constructor(
 	modifiers.isStatic, modifiers.visibility, ref, annotations
 ), MethodRef, WithAstModifiersMethod {
 	val types: AstTypes get() = program.types
+
+	var asyncOpt: Boolean? = null
 
 	val parameterAnnotationsList: List<AstAnnotationList> = parameterAnnotations.map { AstAnnotationList(ref, it) }
 

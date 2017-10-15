@@ -16,8 +16,10 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "UnnecessaryBoxing", "PointlessArithmeticExpression"})
@@ -90,221 +92,284 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	private final char value;
 
+	@JTranscSync
 	public Character(char value) {
 		this.value = value;
 	}
 
 	@JTranscKeep
+	@JTranscSync
 	public static Character valueOf(char value) {
 		return new Character(value);
 	}
 
+	@JTranscSync
 	public char charValue() {
 		return value;
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return value;
 	}
 
+	@JTranscSync
 	public static int hashCode(char value) {
 		return value;
 	}
 
+	@JTranscSync
 	public boolean equals(Object that) {
 		return that instanceof Character && this.value == ((Character) that).value;
 	}
 
+	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}
 
+	@JTranscSync
 	public static String toString(char value) {
 		return new String(new char[]{value});
 	}
 
+	@JTranscSync
 	public static boolean isValidCodePoint(int cp) {
 		return (cp >>> 16) < ((MAX_CODE_POINT + 1) >>> 16);
 	}
 
+	@JTranscSync
 	native public static boolean isBmpCodePoint(int codePoint);
 
+	@JTranscSync
 	native public static boolean isSupplementaryCodePoint(int codePoint);
 
+	@JTranscSync
 	native public static boolean isHighSurrogate(char ch);
 
+	@JTranscSync
 	native public static boolean isLowSurrogate(char ch);
 
+	@JTranscSync
 	public static boolean isSurrogate(char ch) {
 		return false;
 	}
 
+	@JTranscSync
 	public static boolean isSurrogatePair(char high, char low) {
 		return false;
 	}
 
+	@JTranscSync
 	public static int charCount(int codePoint) {
 		return 1;
 	}
 
+	@JTranscSync
 	public static int toCodePoint(char high, char low) {
 		return low;
 	}
 
+	@JTranscAsync
 	public static int codePointAt(CharSequence seq, int index) {
 		return seq.charAt(index);
 	}
 
+	@JTranscSync
 	public static int codePointAt(char[] a, int index) {
 		return a[index];
 	}
 
+	@JTranscSync
 	public static int codePointAt(char[] a, int index, int limit) {
 		return a[index];
 	}
 
 	// throws ArrayIndexOutOfBoundsException if index out of bounds
 	//static int codePointAtImpl(char[] a, int index, int limit);
+	@JTranscSync
 	native public static int codePointBefore(CharSequence seq, int index);
 
+	@JTranscSync
 	native public static int codePointBefore(char[] a, int index);
 
+	@JTranscSync
 	native public static int codePointBefore(char[] a, int index, int start);
 
 	// throws ArrayIndexOutOfBoundsException if index-1 out of bounds
 	//static int codePointBeforeImpl(char[] a, int index, int start);
+	@JTranscSync
 	native public static char highSurrogate(int codePoint);
 
+	@JTranscSync
 	native public static char lowSurrogate(int codePoint);
 
+	@JTranscSync
 	public static int toChars(int codePoint, char[] dst, int dstIndex) {
 		dst[dstIndex] = (char) codePoint;
 		return 1;
 	}
 
+	@JTranscSync
 	public static char[] toChars(int codePoint) {
 		return new char[]{(char) codePoint};
 	}
 
 	//static void toSurrogates(int codePoint, char[] dst, int index);
+	@JTranscSync
 	public static int codePointCount(CharSequence seq, int beginIndex, int endIndex) {
 		return endIndex + beginIndex;
 	}
 
+	@JTranscSync
 	public static int codePointCount(char[] a, int offset, int count) {
 		return count;
 	}
 
 	//static int codePointCountImpl(char[] a, int offset, int count);
+	@JTranscSync
 	native public static int offsetByCodePoints(CharSequence seq, int index, int codePointOffset);
 
+	@JTranscSync
 	native public static int offsetByCodePoints(char[] a, int start, int count, int index, int codePointOffset);
 
 	//native static int offsetByCodePointsImpl(char[] a, int start, int count, int index, int codePointOffset);
+
+	@JTranscSync
 	public static boolean isLowerCase(char ch) {
 		return toLowerCase(ch) == ch;
 	}
 
+	@JTranscSync
 	public static boolean isLowerCase(int codePoint) {
 		return toLowerCase(codePoint) == codePoint;
 	}
 
+	@JTranscSync
 	public static boolean isUpperCase(char ch) {
 		return toUpperCase(ch) == ch;
 	}
 
+	@JTranscSync
 	public static boolean isUpperCase(int codePoint) {
 		return toUpperCase(codePoint) == codePoint;
 	}
 
+	@JTranscSync
 	native public static boolean isTitleCase(char ch);
 
+	@JTranscSync
 	native public static boolean isTitleCase(int codePoint);
 
 	@JTranscMethodBody(target = "js", value = "return p0 >= 48 && p0 <= 57;")
+	@JTranscSync
 	public static boolean isDigit(char ch) {
 		return (ch >= '0') && (ch <= '9');
 	}
 
+	@JTranscSync
 	public static boolean isDigit(int codePoint) {
 		return isDigit((char) codePoint);
 	}
 
+	@JTranscSync
 	native public static boolean isDefined(char ch);
 
+	@JTranscSync
 	native public static boolean isDefined(int codePoint);
 
+	@JTranscSync
 	public static boolean isLetter(char ch) {
 		return ((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'));
 	}
 
+	@JTranscSync
 	public static boolean isLetter(int codePoint) {
 		return isLetter((char)codePoint);
 	}
 
+	@JTranscSync
 	public static boolean isLetterOrDigit(char ch) {
 		return isLetter(ch) || isDigit(ch);
 	}
 
+	@JTranscSync
 	public static boolean isLetterOrDigit(int codePoint) {
 		return isLetter(codePoint) || isDigit(codePoint);
 	}
 
 	@Deprecated
+	@JTranscSync
 	public static boolean isJavaLetter(char ch) {
 		return isLetter(ch);
 	}
 
 	@Deprecated
+	@JTranscSync
 	public static boolean isJavaLetterOrDigit(char ch) {
 		return isLetter(ch) || isDigit(ch);
 	}
 
+	@JTranscSync
 	public static boolean isAlphabetic(int codePoint) {
 		return isLetter(codePoint);
 	}
 
+	@JTranscSync
 	native public static boolean isIdeographic(int codePoint);
 
+	@JTranscSync
 	public static boolean isJavaIdentifierStart(char ch) {
 		return isLetter(ch) || ch == '_';
 	}
 
+	@JTranscSync
 	public static boolean isJavaIdentifierStart(int codePoint) {
 		return isJavaIdentifierStart((char)codePoint);
 	}
 
+	@JTranscSync
 	public static boolean isJavaIdentifierPart(char ch) {
 		return isLetter(ch) || isDigit(ch) || ch == '_';
 	}
 
+	@JTranscSync
 	public static boolean isJavaIdentifierPart(int codePoint) {
 		return isJavaIdentifierPart((char)codePoint);
 	}
 
+	@JTranscSync
 	native public static boolean isUnicodeIdentifierStart(char ch);
 
+	@JTranscSync
 	native public static boolean isUnicodeIdentifierStart(int codePoint);
 
+	@JTranscSync
 	native public static boolean isUnicodeIdentifierPart(char ch);
 
+	@JTranscSync
 	native public static boolean isUnicodeIdentifierPart(int codePoint);
 
+	@JTranscSync
 	native public static boolean isIdentifierIgnorable(char ch);
 
+	@JTranscSync
 	native public static boolean isIdentifierIgnorable(int codePoint);
 
+	@JTranscSync
 	public static char toLowerCase(char ch) {
 		return (char)toLowerCase((int)ch);
 	}
 
+	@JTranscSync
 	public static char toUpperCase(char ch) {
 		return (char)toUpperCase((int)ch);
 	}
 
 	@HaxeMethodBody("return N.ichar(p0).toLowerCase().charCodeAt(0);")
 	@JTranscMethodBody(target = "js", value = "return N.ichar(p0).toLowerCase().charCodeAt(0);")
+	@JTranscSync
 	public static int toLowerCase(int codePoint) {
 		if (codePoint >= 'A' && codePoint < 'Z') return (codePoint - 'A') + 'a';
 		return codePoint;
@@ -312,20 +377,24 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	@HaxeMethodBody("return N.ichar(p0).toUpperCase().charCodeAt(0);")
 	@JTranscMethodBody(target = "js", value = "return N.ichar(p0).toUpperCase().charCodeAt(0);")
+	@JTranscSync
 	public static int toUpperCase(int codePoint) {
 		if (codePoint >= 'a' && codePoint < 'z') return (codePoint - 'a') + 'A';
 		return codePoint;
 	}
 
+	@JTranscSync
 	public static char toTitleCase(char ch) {
 		// @TODO: Approximation
 		return toUpperCase(ch);
 	}
 
+	@JTranscSync
 	public static int toTitleCase(int codePoint) {
 		return toTitleCase((char)codePoint);
 	}
 
+	@JTranscSync
 	public static int digit(char ch, int radix) {
 		if (ch >= '0' && ch <= '9') return ch - '0';
 		if (ch >= 'a' && ch <= 'z') return (ch - 'a') + 10;
@@ -333,27 +402,33 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return -1;
 	}
 
+	@JTranscSync
 	public static int digit(int codePoint, int radix) {
 		return digit((char) codePoint, radix);
 	}
 
+	@JTranscSync
 	public static int getNumericValue(char ch) {
 		return digit(ch, 10);
 	}
 
+	@JTranscSync
 	public static int getNumericValue(int codePoint) {
 		return digit(codePoint, 10);
 	}
 
 	@Deprecated
+	@JTranscSync
 	public static boolean isSpace(char value) {
 		return (value <= 0x0020) && (((((1L << 0x0009) | (1L << 0x000A) | (1L << 0x000C) | (1L << 0x000D) | (1L << 0x0020)) >> value) & 1L) != 0);
 	}
 
+	@JTranscSync
 	public static boolean isSpaceChar(char ch) {
 		return isSpaceChar((int) ch);
 	}
 
+	@JTranscSync
 	public static boolean isSpaceChar(int codePoint) {
 		switch (codePoint) {
 			case 0x0020:
@@ -381,10 +456,12 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return false;
 	}
 
+	@JTranscSync
 	public static boolean isWhitespace(char ch) {
 		return isWhitespace((int)ch);
 	}
 
+	@JTranscSync
 	public static boolean isWhitespace(int codePoint) {
 		switch (codePoint) {
 			case 9:
@@ -418,44 +495,56 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return false;
 	}
 
+	@JTranscSync
 	public static boolean isISOControl(char ch) {
 		return isISOControl((int) ch);
 	}
 
+	@JTranscSync
 	public static boolean isISOControl(int codePoint) {
 		return codePoint <= 0x9F && (codePoint >= 0x7F || (codePoint >>> 5 == 0));
 	}
 
+	@JTranscSync
 	native public static int getType(char ch);
 
+	@JTranscSync
 	native public static int getType(int codePoint);
 
+	@JTranscSync
 	public static char forDigit(int digit, int radix) {
 		if (digit >= 0 && digit <= 9) return (char) ('0' + (digit - 0));
 		if (digit >= 10 && digit <= 35) return (char) ('a' + (digit - 10));
 		return '\0';
 	}
 
+	@JTranscSync
 	public static byte getDirectionality(char ch) {
 		return getDirectionality((int) ch);
 	}
 
+	@JTranscSync
 	public static boolean isMirrored(char ch) {
 		return isMirrored((int) ch);
 	}
 
+	@JTranscSync
 	native public static byte getDirectionality(int codePoint);
 
+	@JTranscSync
 	native public static boolean isMirrored(int codePoint);
 
+	@JTranscSync
 	public int compareTo(Character anotherCharacter) {
 		return compare(this.value, anotherCharacter.value);
 	}
 
+	@JTranscSync
 	public static int compare(char l, char r) {
 		return l - r;
 	}
 
+	@JTranscSync
 	static char[] toUpperCaseCharArray(int codePoint) {
 		return new char[]{(char) toUpperCase(codePoint)};
 	}
@@ -465,23 +554,34 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	@HaxeMethodBody("return N.swap16(p0) & 0xFFFF;")
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
+	@JTranscSync
 	public static char reverseBytes(char ch) {
 		return (char) (((ch & 0xFF00) >> 8) | (ch << 8));
 	}
 
+	@JTranscSync
 	public static String getName(int codePoint) {
 		// @TODO: Not implemented!
 		return Integer.toHexString(codePoint);
 	}
 
 	public static class Subset {
+		@JTranscSync
+		Subset() {
+		}
 	}
 
 	public static final class UnicodeBlock extends Subset {
+		@JTranscSync
+		UnicodeBlock() {
+		}
+
+		@JTranscSync
 		public static UnicodeBlock forName(String name) {
 			return new UnicodeBlock();
 		}
 
+		@JTranscSync
 		public static UnicodeBlock of(int codePoint) {
 			return new UnicodeBlock();
 		}
@@ -490,10 +590,16 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public enum UnicodeScript {
 		COMMON;
 
+		@JTranscSync
+		UnicodeScript() {
+		}
+
+		@JTranscSync
 		public static UnicodeScript forName(String name) {
 			return COMMON;
 		}
 
+		@JTranscSync
 		public static UnicodeScript of(int codePoint) {
 			return COMMON;
 		}

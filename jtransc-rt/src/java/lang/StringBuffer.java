@@ -16,306 +16,351 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+import com.jtransc.annotation.JTranscAsync;
+import com.jtransc.annotation.JTranscAsync;
 
 public final class StringBuffer extends StringBuilder implements java.io.Serializable, CharSequence {
+	@JTranscAsync
 	public StringBuffer() {
 		this(16);
 	}
 
+	@JTranscAsync
 	public StringBuffer(int capacity) {
 		super(capacity);
 	}
 
+	@JTranscAsync
 	public StringBuffer(String str) {
 		super(str.length() + 16);
 		append(str);
 	}
 
+	@JTranscAsync
 	public StringBuffer(CharSequence seq) {
 		super(seq.length() + 16);
 		append(seq);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int length() {
 		return super.length();
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int capacity() {
 		return super.capacity();
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized void ensureCapacity(int minimumCapacity) {
 		super.ensureCapacity(minimumCapacity);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized void trimToSize() {
 		super.trimToSize();
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized void setLength(int newLength) {
 		super.setLength(newLength);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized char charAt(int index) {
 		return super.charAt(index);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int codePointAt(int index) {
 		return super.codePointAt(index);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int codePointBefore(int index) {
 		return super.codePointBefore(index);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int codePointCount(int beginIndex, int endIndex) {
 		return super.codePointCount(beginIndex, endIndex);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int offsetByCodePoints(int index, int codePointOffset) {
 		return super.offsetByCodePoints(index, codePointOffset);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
 		super.getChars(srcBegin, srcEnd, dst, dstBegin);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized void setCharAt(int index, char ch) {
 		super.setCharAt(index, ch);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(Object obj) {
 		super.append(obj);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(String str) {
 		super.append(str);
 		return this;
 	}
 
+	@JTranscAsync
 	public synchronized StringBuffer append(StringBuffer sb) {
 		super.append(sb);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(CharSequence s) {
 		super.append(s);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(CharSequence s, int start, int end) {
 		super.append(s, start, end);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(char[] str) {
 		super.append(str);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(char[] str, int offset, int len) {
 		super.append(str, offset, len);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(boolean v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(char v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(int v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer appendCodePoint(int codePoint) {
 		super.append(codePoint);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(long v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(float v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer append(double v) {
 		super.append(v);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer delete(int start, int end) {
 		super.delete(start, end);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer deleteCharAt(int index) {
 		super.deleteCharAt(index);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer replace(int start, int end, String str) {
 		super.replace(start, end, str);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized String substring(int start) {
 		return super.substring(start);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized CharSequence subSequence(int start, int end) {
 		return super.subSequence(start, end);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized String substring(int start, int end) {
 		return super.substring(start, end);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int index, char[] str, int offset, int len) {
 		super.insert(index, str, offset, len);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int offset, Object obj) {
 		super.insert(offset, obj);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int offset, String str) {
 		super.insert(offset, str);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int offset, char[] str) {
 		super.insert(offset, str);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int dstOffset, CharSequence s) {
 		super.insert(dstOffset, s);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int dstOffset, CharSequence s, int start, int end) {
 		super.insert(dstOffset, s, start, end);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int offset, boolean b) {
 		super.insert(offset, b);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized StringBuffer insert(int offset, char c) {
 		super.insert(offset, c);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int offset, int i) {
 		super.insert(offset, i);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int offset, long l) {
 		super.insert(offset, l);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int offset, float f) {
 		super.insert(offset, f);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public StringBuffer insert(int offset, double d) {
 		super.insert(offset, d);
 		return this;
 	}
 
 	@Override
+	@JTranscAsync
 	public int indexOf(String str) {
 		return super.indexOf(str);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int indexOf(String str, int fromIndex) {
 		return super.indexOf(str, fromIndex);
 	}
 
 	@Override
+	@JTranscAsync
 	public int lastIndexOf(String str) {
 		return super.lastIndexOf(str);
 	}
 
 	@Override
+	@JTranscAsync
 	public synchronized int lastIndexOf(String str, int fromIndex) {
 		return super.lastIndexOf(str, fromIndex);
 	}
 
-	//@Override
+	@JTranscAsync
 	public synchronized StringBuffer reverse() {
 		super.reverse();
 		return this;
-	}
-
-	@Override
-	@HaxeMethodBody("return N.str(this.getStr());")
-	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
-	public String toString() {
-		return super.toString();
 	}
 }

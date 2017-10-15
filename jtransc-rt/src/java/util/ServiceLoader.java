@@ -41,12 +41,13 @@ public final class ServiceLoader<S> implements Iterable<S> {
 	}
 
 	public static <S> ServiceLoader<S> load(Class<S> service, ClassLoader classLoader) {
-		if (classLoader == null) classLoader = ClassLoader.getSystemClassLoader();
-		return new ServiceLoader<S>(service);
+		return load(service);
 	}
 
 	public static <S> ServiceLoader<S> load(Class<S> service) {
-		return ServiceLoader.load(service, Thread.currentThread().getContextClassLoader());
+		//return ServiceLoader.load(service, Thread.currentThread().getContextClassLoader());
+		//if (classLoader == null) classLoader = ClassLoader.getSystemClassLoader();
+		return new ServiceLoader<S>(service);
 	}
 
 	public static <S> ServiceLoader<S> loadInstalled(Class<S> service) {

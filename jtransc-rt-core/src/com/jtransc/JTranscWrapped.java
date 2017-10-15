@@ -1,9 +1,6 @@
 package com.jtransc;
 
-import com.jtransc.annotation.JTranscAddMembers;
-import com.jtransc.annotation.JTranscAddMembersList;
-import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
@@ -28,6 +25,7 @@ public class JTranscWrapped {
 
 	@HaxeMethodBody("this._wrapped = p0;")
 	@JTranscMethodBody(target = "js", value = "this._wrapped = p0;")
+	@JTranscSync
 	public JTranscWrapped(Object item) {
 		this.item = item;
 	}
@@ -35,6 +33,7 @@ public class JTranscWrapped {
 	//@HaxeMethodBody("return N.box(Reflect.field(this._wrapped, p0._str));")
 	@HaxeMethodBody("return N.box(Reflect.getProperty(this._wrapped, p0._str));")
 	@JTranscMethodBody(target = "js", value = "return N.box(this._wrapped[N.istr(p0)]);")
+	@JTranscSync
 	public Object get(String field) {
 		try {
 			Field f = item.getClass().getField(field);
@@ -47,6 +46,7 @@ public class JTranscWrapped {
 
 	@HaxeMethodBody("Reflect.setProperty(this._wrapped, p0._str, N.unbox(p1));")
 	@JTranscMethodBody(target = "js", value = "this._wrapped[N.istr(p0)] = N.unbox(p1);")
+	@JTranscSync
 	public void set(String field, Object value) {
 		try {
 			item.getClass().getField(field).set(this.item, value);
@@ -59,10 +59,12 @@ public class JTranscWrapped {
 
 	@HaxeMethodBody("return N.box(Reflect.callMethod(_wrapped, Reflect.field(_wrapped, N.toNativeString(p0)), N.toNativeUnboxedArray(p1)));")
 	@JTranscMethodBody(target = "js", value = "return N.box(this._wrapped[N.istr(p0)].apply(this._wrapped, N.unboxArray(p1.data)));")
+	@JTranscAsync
 	public native Object invoke(String name, Object... args);
 
 	@HaxeMethodBody("return N.str('' + this._wrapped);")
 	@JTranscMethodBody(target = "js", value = "return N.str('' + this._wrapped);")
+	@JTranscAsync
 	public String toString() {
 		return Objects.toString(item);
 	}

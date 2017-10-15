@@ -17,59 +17,75 @@
 package java.lang.reflect;
 
 
+import com.jtransc.annotation.JTranscSync;
+
 public class Modifier {
+	@JTranscSync
 	public static boolean isPublic(int mod) {
 		return (mod & PUBLIC) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isPrivate(int mod) {
 		return (mod & PRIVATE) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isProtected(int mod) {
 		return (mod & PROTECTED) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isStatic(int mod) {
 		return (mod & STATIC) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isFinal(int mod) {
 		return (mod & FINAL) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isSynchronized(int mod) {
 		return (mod & SYNCHRONIZED) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isVolatile(int mod) {
 		return (mod & VOLATILE) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isTransient(int mod) {
 		return (mod & TRANSIENT) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isNative(int mod) {
 		return (mod & NATIVE) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isInterface(int mod) {
 		return (mod & INTERFACE) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isAbstract(int mod) {
 		return (mod & ABSTRACT) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isStrict(int mod) {
 		return (mod & STRICT) != 0;
 	}
 
+	@JTranscSync
 	public static boolean isSynthetic(int mod) {
 		return (mod & SYNTHETIC) != 0;
 	}
 
+	@JTranscSync
 	public static String toString(int mod) {
 		StringBuilder sb = new StringBuilder();
 		int len;

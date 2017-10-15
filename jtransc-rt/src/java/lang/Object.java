@@ -77,11 +77,21 @@ public class Object {
 	@JTranscInvisible
 	public int $$id;
 
-	public boolean equals(Object obj) {
+	@JTranscSync
+	public Object() {
+	}
+
+	@JTranscSync
+	public boolean __equalsSync__(Object obj) {
 		return (this == obj);
 	}
 
+	public boolean equals(Object obj) {
+		return __equalsSync__(obj);
+	}
+
 	// @TODO: All object could have class descriptor eg. [I
+	@JTranscSync
 	public final Class<?> getClass() {
 		if (JTranscCoreReflection.isArray(this)) {
 			return JTranscCoreReflection.getClassByName(JTranscCoreReflection.getArrayDescriptor(this));

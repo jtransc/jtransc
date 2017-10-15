@@ -14,7 +14,7 @@ fun AstClass.hasMethod(name: String, desc: AstType.METHOD): Boolean {
 	return this.getMethod(name, desc.desc) != null
 }
 
-fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean = false, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
+fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean = false, asyncOpt: Boolean? = null, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
 	val clazz = this
 	val types: AstTypes = this.program.types
 	val method = AstMethod(
@@ -29,12 +29,13 @@ fun AstClass.createMethod(name: String, desc: AstType.METHOD, isStatic: Boolean 
 		signature = desc.mangle(),
 		genericSignature = null
 	)
+	method.asyncOpt = asyncOpt
 	clazz.add(method)
 	return method
 }
 
-fun AstClass.createConstructor(desc: AstType.METHOD, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
-	return createMethod("<init>", desc, isStatic = false, body = body);
+fun AstClass.createConstructor(desc: AstType.METHOD, asyncOpt: Boolean? = null, body: AstBuilder2.(args: List<AstArgument>) -> Unit = { RETURN() }): AstMethod {
+	return createMethod("<init>", desc, isStatic = false, body = body, asyncOpt = asyncOpt)
 }
 
 fun AstClass.createField(name: String, type: AstType, isStatic: Boolean = false, constantValue: Any? = null): AstField {
@@ -60,7 +61,7 @@ fun AstProgram.createDataClass(name: FqName, fieldsInfo: List<Pair<String, AstTy
 		val fields = fieldsInfo.map { createField(it.first, it.second) }
 		val args = fieldsInfo.withIndex().map { AstArgument(it.index, it.value.second) }
 
-		createConstructor(AstType.METHOD(args, AstType.VOID)) {
+		createConstructor(AstType.METHOD(args, AstType.VOID), asyncOpt = false) {
 			for ((arg, field) in args.zip(fields)) {
 				STM(AstStm.SET_FIELD_INSTANCE(field.ref, THIS, arg.expr))
 			}

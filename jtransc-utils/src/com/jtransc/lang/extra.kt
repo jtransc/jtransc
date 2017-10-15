@@ -1,5 +1,7 @@
 package com.jtransc.lang
 
+import com.jtransc.ds.getOrPut2
+import java.util.*
 import kotlin.reflect.KProperty
 
 interface Extra {
@@ -49,10 +51,22 @@ interface Extra {
 }
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-class extraProperty<T : Any?>(val name: String, val default: T) {
-	inline operator fun getValue(thisRef: Extra, property: KProperty<*>): T = (thisRef.extra?.get(name) as T?) ?: default
+class extraProperty<T : Any?>(val default: () -> T) {
+	inline operator fun getValue(thisRef: Extra, property: KProperty<*>): T = (thisRef.extra?.get(property.name) as T?) ?: default()
 	inline operator fun setValue(thisRef: Extra, property: KProperty<*>, value: T): Unit = run {
 		if (thisRef.extra == null) thisRef.extra = LinkedHashMap()
-		thisRef.extra?.set(name, value as Any?)
+		thisRef.extra?.set(property.name, value as Any?)
+	}
+}
+
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+class weakExtra<T : Any?>(val default: () -> T) {
+	val map = WeakHashMap<Any?, T>()
+
+	inline operator fun getValue(thisRef: Any, property: KProperty<*>): T {
+		return map.getOrPut2(thisRef, default)
+	}
+	inline operator fun setValue(thisRef: Any, property: KProperty<*>, value: T): Unit = run {
+		map.put(thisRef, value)
 	}
 }

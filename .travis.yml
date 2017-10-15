@@ -1,7 +1,5 @@
 language: java
 dist: trusty
-node_js:
-- '4'
 jdk:
 - oraclejdk8
 before_install:
@@ -33,8 +31,8 @@ install:
 - wget http://nekovm.org/media/neko-2.1.0-linux64.tar.gz
 - tar xzf haxe-3.4.2-linux64.tar.gz
 - tar xzf neko-2.1.0-linux64.tar.gz
-- nvm install 4 || true
-- nvm use 4 || true
+- nvm install 8 || true
+- nvm use 8 || true
 before_script:
 - export HAXE_STD_PATH=$PWD/haxe-3.4.2/std
 - export HAXELIB_PATH=$PWD/haxe-3.4.2/lib

@@ -16,10 +16,13 @@
 
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class JTranscEndian {
 	static private boolean calculated = false;
 	static private boolean _le = false;
 
+	@JTranscSync
 	static private void calculateOnce() {
 		if (calculated) return;
 		FastMemory m = FastMemory.alloc(4);
@@ -29,24 +32,29 @@ public class JTranscEndian {
 		calculated = true;
 	}
 
+	@JTranscSync
 	static public boolean isLittleEndian() {
 		calculateOnce();
 		return _le;
 	}
 
+	@JTranscSync
 	static public boolean isBigEndian() {
 		calculateOnce();
 		return !_le;
 	}
 
+	@JTranscSync
 	static public short int16LE(short value) {
 		return isLittleEndian() ? value : Short.reverseBytes(value);
 	}
 
+	@JTranscSync
 	static public int int32LE(int value) {
 		return isLittleEndian() ? value : Integer.reverseBytes(value);
 	}
 
+	@JTranscSync
 	static public long int64LE(long value) {
 		return isLittleEndian() ? value : Long.reverseBytes(value);
 	}

@@ -1,8 +1,9 @@
 package java.lang;
 
-import com.jtransc.io.JTranscConsole;
+import com.jtransc.annotation.JTranscSync;
 
 class IntegerTools {
+	@JTranscSync
 	static public int countDigits(int i, int radix) {
 		if (radix == 10) return countDigits10(i);
 		if (radix == 16) return countDigits16(i);
@@ -10,6 +11,7 @@ class IntegerTools {
 		return countDigitsGeneric(i, radix);
 	}
 
+	@JTranscSync
 	static public int countDigitsGeneric(int i, int radix) {
 		boolean negative = (i < 0);
 		int count = 0;
@@ -30,11 +32,13 @@ class IntegerTools {
 		return count;
 	}
 
+	@JTranscSync
 	static private int countDigits2(int n) {
 		if (n < 0x0) return (n == Integer.MIN_VALUE) ? 33 : (1 + countDigits2(-n));
 		return 32 - Integer.numberOfLeadingZeros(n);
 	}
 
+	@JTranscSync
 	static private int countDigits16(int n) {
 		if (n < 0x0) return (n == Integer.MIN_VALUE) ? 9 : (1 + countDigits16(-n));
 		if (n < 0x10) return 1;
@@ -47,6 +51,7 @@ class IntegerTools {
 		return 8;
 	}
 
+	@JTranscSync
 	static private int countDigits10(int x) {
 		if (x < 0) return (x == Integer.MIN_VALUE) ? 11 : (1 + countDigits10(-x));
 		if (x < 10) return 1;
@@ -82,6 +87,7 @@ class IntegerTools {
 		//}
 	}
 
+	@JTranscSync
 	static public int writeInt(char[] out, int offset, int i, int radix) {
 		if (radix < 2) throw new RuntimeException("Invalid radix");
 		if (i == Integer.MIN_VALUE) {

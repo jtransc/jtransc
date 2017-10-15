@@ -17,10 +17,12 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class Array {
+	@JTranscSync
 	private Array() {
 	}
 
@@ -32,8 +34,10 @@ public final class Array {
 	@JTranscMethodBody(target = "as3", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "dart", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "php", value = "return new JA_L($p0, N::istr($p1));")
+	@JTranscSync
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;
 
+	@JTranscSync
 	public static Object newInstance(Class<?> type, int length) throws NegativeArraySizeException {
 		if (type == null) throw new NullPointerException("Array.newInstance");
 
@@ -47,9 +51,10 @@ public final class Array {
 		if (type == Float.TYPE) return new float[length];
 		if (type == Double.TYPE) return new double[length];
 		if (type == Void.TYPE) throw new RuntimeException("Invalid Array of void type");
-		throw new RuntimeException("Invalid Array.newInstance with " + type);
+		throw new RuntimeException("Invalid Array.newInstance with " + type.getName());
 	}
 
+	@JTranscSync
 	public static Object newInstance(Class<?> componentType, int... dimensions) throws IllegalArgumentException, NegativeArraySizeException {
 		if (dimensions.length == 1) {
 			return newInstance(componentType, dimensions[0]);
@@ -66,6 +71,7 @@ public final class Array {
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_0).length;")
 	@JTranscMethodBody(target = "dart", value = "return (p0 as JA_0).length;")
 	@JTranscMethodBody(target = "php", value = "return $p0->length;")
+	@JTranscSync
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
 	@HaxeMethodBody("return cast(p0, JA_L).getDynamic(p1);")
@@ -76,10 +82,12 @@ public final class Array {
 	@JTranscMethodBody(target = "as3", value = "return (p0 as JA_L).data[p1];")
 	@JTranscMethodBody(target = "dart", value = "return (p0 as JA_L).data[p1];")
 	@JTranscMethodBody(target = "php", value = "return $p0->get($p1);")
+	@JTranscSync
 	private static Object getInstance(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((Object[])array)[index];
 	}
 
+	@JTranscSync
     public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 	    Type elementType = getArrayElementType(array.getClass());
 	    if (elementType == Boolean.TYPE) return getBoolean(array, index);
@@ -93,34 +101,42 @@ public final class Array {
 	    return getInstance(array, index);
     }
 
+	@JTranscSync
 	public static boolean getBoolean(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((boolean[])array)[index];
 	}
 
+	@JTranscSync
 	public static byte getByte(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((byte[])array)[index];
 	}
 
+	@JTranscSync
 	public static char getChar(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((char[])array)[index];
 	}
 
+	@JTranscSync
 	public static short getShort(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((short[])array)[index];
 	}
 
+	@JTranscSync
 	public static int getInt(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((int[])array)[index];
 	}
 
+	@JTranscSync
 	public static long getLong(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((long[])array)[index];
 	}
 
+	@JTranscSync
 	public static float getFloat(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((float[])array)[index];
 	}
 
+	@JTranscSync
 	public static double getDouble(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		return ((double[])array)[index];
 	}
@@ -134,10 +150,12 @@ public final class Array {
 	@JTranscMethodBody(target = "as3", value = "(p0 as JA_L).data[p1] = p2;")
 	@JTranscMethodBody(target = "dart", value = "(p0 as JA_L).data[p1] = p2;")
 	@JTranscMethodBody(target = "php", value = "$p0->data[$p1] = $p2;")
+	@JTranscSync
 	private static void setInstance(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
     	((Object[])array)[index] = value;
 	}
 
+	@JTranscSync
 	public static void set(Object array, int index, Object value) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		Type elementType = getArrayElementType(array.getClass());
 		if (elementType == Boolean.TYPE) {
@@ -161,38 +179,47 @@ public final class Array {
 		}
 	}
 
+	@JTranscSync
 	public static void setBoolean(Object array, int index, boolean v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((boolean[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setByte(Object array, int index, byte v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((byte[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setChar(Object array, int index, char v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((char[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setShort(Object array, int index, short v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((short[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setInt(Object array, int index, int v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((int[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setLong(Object array, int index, long v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((long[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setFloat(Object array, int index, float v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((float[])array)[index] = v;
 	}
 
+	@JTranscSync
 	public static void setDouble(Object array, int index, double v) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 		((double[])array)[index] = v;
 	}
 
+	@JTranscSync
 	static private Type getArrayElementType(Class<?> clazz) {
 		String name = clazz.getName();
 		if (name.charAt(0) != '[') throw new RuntimeException("Not an array");
