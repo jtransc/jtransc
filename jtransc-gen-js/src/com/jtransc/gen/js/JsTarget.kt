@@ -314,7 +314,12 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
 
 	override fun genCallWrap(e: AstExpr.CALL_BASE, str: String): String {
-		return if (e.method.actualMethod?.isAsync != false) "(await($str))" else str
+		val methodAsync = context.method.isAsync
+		val callAsync = e.method.actualMethod?.isAsync != false
+		if (callAsync && !methodAsync) {
+			System.err.println("WARNING: $context: From a synchronous method, trying to call an asynchronous method ${e.method}")
+		}
+		return if (callAsync) "(await($str))" else str
 	}
 
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
