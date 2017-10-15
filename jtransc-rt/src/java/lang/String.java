@@ -697,10 +697,10 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		return _replace(this, target.toString(), replacement.toString());
 	}
 
-	@HaxeMethodBody("return N.str(StringTools.replace(this._str, '$p0', '$p1'));")
-	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(this).replaceAll(N.istr(p0), N.istr(p1)));")
-	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
-	@JTranscMethodBody(target = "dart", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
+	@HaxeMethodBody("return N.str(StringTools.replace(N.istr(p0), '$p1', '$p2'));")
+	@JTranscMethodBody(target = "js", value = "return N.str(N.istr(p0).replaceAll(N.istr(p1), N.istr(p2)));")
+	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(p0).split(N.istr(p1)).join(N.istr(p2)));")
+	@JTranscMethodBody(target = "dart", value = "return N.str(N.istr(p0).split(N.istr(p1)).join(N.istr(p2)));")
 	@JTranscSync
 	static public String _replace(String base, String target, String replacement) {
 		int len = base.length();
