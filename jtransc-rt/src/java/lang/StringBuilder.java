@@ -248,7 +248,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 		return this.append(String.valueOf(obj));
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	public StringBuilder append(StringBuffer sb) {
 		return this.append(String.valueOf(sb));
 	}

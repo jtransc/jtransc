@@ -159,7 +159,7 @@ class AstGenContext {
 	}
 
 	override fun toString() = try {
-		"${clazz.name}::${method.name}"
+		"${clazz.name}::${method.name}${method.desc}"
 	} catch (e: Throwable) {
 		try {
 			"${clazz.name}"

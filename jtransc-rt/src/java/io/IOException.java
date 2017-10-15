@@ -17,6 +17,7 @@
 
 package java.io;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 
 /**
@@ -67,7 +68,7 @@ public class IOException extends Exception {
      *            The detail cause for the exception.
      * @since 1.6
      */
-	@JTranscSync
+	@JTranscAsync
     public IOException(Throwable cause) {
         super(cause == null ? null : cause.toString(), cause);
     }

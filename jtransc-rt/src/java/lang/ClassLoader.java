@@ -20,6 +20,7 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddLibraries;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
+import com.jtransc.io.JTranscConsole;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -104,7 +105,7 @@ public abstract class ClassLoader {
 		try {
 			return loadClass(name);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			JTranscConsole.syncPrintStackTrace(e);
 			return null;
 		}
 	}

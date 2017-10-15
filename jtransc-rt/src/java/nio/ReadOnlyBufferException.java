@@ -16,7 +16,10 @@
 
 package java.nio;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class ReadOnlyBufferException extends UnsupportedOperationException {
+	@JTranscSync
 	public ReadOnlyBufferException() {
 	}
 }

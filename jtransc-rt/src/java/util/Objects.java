@@ -147,7 +147,7 @@ public final class Objects {
 		return obj != null;
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	public static <T> T requireNonNull(T obj, Supplier<String> messageSupplier) {
 		if (obj == null) throw new NullPointerException(messageSupplier.get());
 		return obj;

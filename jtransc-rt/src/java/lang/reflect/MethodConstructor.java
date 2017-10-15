@@ -146,7 +146,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 
 	@JTranscSync
 	public Class<?>[] getExceptionTypes() {
-		return exceptionTypes.clone();
+		return Arrays.copyOf(exceptionTypes, exceptionTypes.length);
 	}
 
 	@JTranscInvisible

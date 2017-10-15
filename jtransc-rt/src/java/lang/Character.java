@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
@@ -170,7 +171,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return low;
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	public static int codePointAt(CharSequence seq, int index) {
 		return seq.charAt(index);
 	}

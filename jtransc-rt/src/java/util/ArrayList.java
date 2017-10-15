@@ -244,7 +244,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		return oldValue;
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	public boolean remove(Object o) {
 		int len = size();
 		for (int index = 0; index < len; index++) {

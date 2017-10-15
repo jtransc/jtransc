@@ -1,5 +1,6 @@
 package com.jtransc.charset;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastIntIntMap;
 import com.jtransc.ds.FastIntMap;
@@ -46,7 +47,7 @@ public class JTranscCharsetSingleByte extends JTranscCharset {
 	}
 
 	@Override
-	@JTranscSync
+	@JTranscAsync
 	final public void decode(ByteBuffer in, CharBuffer out) {
 		while (in.hasRemaining() && out.hasRemaining()) {
 			int b = in.get() & 0xFF;

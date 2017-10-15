@@ -22,6 +22,7 @@ import j.MemberInfo;
 import j.ProgramReflection;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 
 @SuppressWarnings({"unchecked", "unused"})
 public final class Constructor<T> extends MethodConstructor implements Member, GenericDeclaration {
@@ -61,7 +62,7 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 
 	@JTranscSync
 	public Class<?>[] getExceptionTypes() {
-		return exceptionTypes.clone();
+		return Arrays.copyOf(exceptionTypes, exceptionTypes.length);
 	}
 
 	@JTranscSync

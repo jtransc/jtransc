@@ -16,10 +16,7 @@
 
 package com.jtransc;
 
-import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscSync;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyList;
 
@@ -574,7 +571,7 @@ public class JTranscBits {
 	}
 
 
-	@JTranscSync
+	@JTranscAsync
 	static public short readInt16(ByteBuffer in, boolean LE) {
 		int _0 = in.get() & 0xFF;
 		int _1 = in.get() & 0xFF;

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
@@ -44,7 +45,7 @@ abstract class JTranscCharsetUTF16Base extends JTranscCharset {
 	}
 
 	@Override
-	@JTranscSync
+	@JTranscAsync
 	public void decode(ByteBuffer in, CharBuffer out) {
 		for (int n = 0; n < in.remaining() && out.hasRemaining(); n += 2) {
 			out.append((char)JTranscBits.readInt16(in, littleEndian));

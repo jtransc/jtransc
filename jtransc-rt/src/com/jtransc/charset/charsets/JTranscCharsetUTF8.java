@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
@@ -79,7 +80,7 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
 	}
 
 	@Override
-	@JTranscSync
+	@JTranscAsync
 	public void decode(ByteBuffer in, CharBuffer out) {
 		while (in.hasRemaining() && out.hasRemaining()) {
 			int c = in.get() & 0xFF;

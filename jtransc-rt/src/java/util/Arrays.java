@@ -17,6 +17,7 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -1571,6 +1572,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+    @JTranscSync
     public static String toString(boolean[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1597,6 +1599,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(byte[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1623,6 +1626,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(char[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1649,6 +1653,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(double[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1675,6 +1680,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(float[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1701,6 +1707,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(int[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1727,6 +1734,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(long[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1753,6 +1761,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscSync
     public static String toString(short[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1779,6 +1788,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
+	@JTranscAsync
     public static String toString(Object[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";

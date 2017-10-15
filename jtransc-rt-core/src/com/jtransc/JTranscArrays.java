@@ -1,7 +1,9 @@
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class JTranscArrays {
@@ -115,7 +117,7 @@ public class JTranscArrays {
 		}
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	static public String toString(Object array) {
 		if (array == null) return "null";
 		if (array instanceof boolean[]) return Arrays.toString((boolean[]) array);
@@ -127,10 +129,10 @@ public class JTranscArrays {
 		if (array instanceof float[]) return Arrays.toString((float[]) array);
 		if (array instanceof double[]) return Arrays.toString((double[]) array);
 		if (array instanceof Object[]) return Arrays.toString((Object[]) array);
-		return array.toString() + "???????" + array.getClass().isArray();
+		return array.getClass().getName() + "???????" + array.getClass().isArray();
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	static public String toStringCharsAsInts(Object array) {
 		if (array instanceof char[]) {
 			char[] a = (char[]) array;

@@ -1,5 +1,6 @@
 package com.jtransc.charset.charsets;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
@@ -73,7 +74,7 @@ public class JTranscCharsetShiftJIS extends JTranscCharset {
 	}
 
 	@Override
-	@JTranscSync
+	@JTranscAsync
 	final public void decode(ByteBuffer in, CharBuffer out) {
 		ensureTables();
 		while(in.hasRemaining() && out.hasRemaining()) {

@@ -20,6 +20,7 @@ import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastIntMap;
+import com.jtransc.io.JTranscConsole;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -108,13 +109,13 @@ public final class Field extends AccessibleObject implements Member {
 		return (getModifiers() & Modifier.STATIC) != 0;
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public Class<?> getType() {
 		//return type;
 		try {
 			return Class.forName(signature);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			JTranscConsole.syncPrintStackTrace(e);
 		}
 		return null;
 	}

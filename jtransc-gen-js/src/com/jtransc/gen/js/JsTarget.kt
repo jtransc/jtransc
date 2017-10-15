@@ -313,12 +313,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
 
-	override fun genCallWrap(e: AstExpr.CALL_BASE, str: String): String {
+	private fun ensureAsynchronous(msg: String) {
 		val methodAsync = context.method.isAsync
-		val callAsync = e.method.actualMethod?.isAsync != false
-		if (callAsync && !methodAsync) {
-			System.err.println("WARNING: $context: From a synchronous method, trying to call an asynchronous method ${e.method}")
+		if (!methodAsync) {
+			System.err.println("WARNING: $context: From a synchronous method, trying to call an asynchronous method $msg")
 		}
+	}
+
+	override fun genCallWrap(e: AstExpr.CALL_BASE, str: String): String {
+		val callAsync = e.method.actualMethod?.isAsync != false
+		if (callAsync) ensureAsynchronous(e.method.toString())
 		return if (callAsync) "(await($str))" else str
 	}
 
@@ -510,8 +514,14 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	// @TODO: async/await
-	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("(await(N.monitorEnter(${stm.expr.genExpr()})));") }
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
+		ensureAsynchronous("monitorEnter")
+		line("(await(N.monitorEnter(${stm.expr.genExpr()})));")
+	}
 
-	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("(await(N.monitorExit(${stm.expr.genExpr()})));") }
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
+		ensureAsynchronous("monitorExit")
+		line("(await(N.monitorExit(${stm.expr.genExpr()})));")
+	}
 
 }

@@ -1,5 +1,6 @@
 package com.jtransc.charset;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastStringMap;
 
@@ -57,7 +58,7 @@ abstract public class JTranscCharset {
 	@JTranscSync
 	abstract public void decode(byte[] in, int offset, int len, JTranscCharBuffer out);
 
-	@JTranscSync
+	@JTranscAsync
 	abstract public void decode(ByteBuffer in, CharBuffer out);
 
 	@JTranscSync
@@ -105,7 +106,7 @@ abstract public class JTranscCharset {
 		return charsets.getValues();
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	static public Set<JTranscCharset> getSupportedCharsetsSet() {
 		JTranscCharset[] supportedCharsets = getSupportedCharsets();
 		HashSet<JTranscCharset> out = new HashSet<>();
