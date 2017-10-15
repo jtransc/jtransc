@@ -1164,9 +1164,26 @@ class N {
     static get longBitsToDouble() { return __reints.longBitsToDouble; }
 
     // @TODO: async
-    static monitorEnter() { }
-    static monitorExit() { }
+    static async monitorEnter(obj) {
+    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
+    	obj.__jt_mutex__.lock();
+    }
+
+    static async monitorExit(obj) {
+    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
+    	obj.__jt_mutex__.unlock();
+    }
 } // N
+
+class RecursiveMutex {
+	lock() {
+    	//console.log('RecursiveMutex.lock:' + this);
+	}
+
+	unlock() {
+    	//console.log('RecursiveMutex.unlock:' + this);
+	}
+}
 
 function stackTrace() {
 	var err = new Error();
@@ -1180,13 +1197,15 @@ class java_lang_Object_base {
 	toString() {
 		console.error('unsupported use toStringAsync instead:');
 		console.error((new Error()).stack);
-		return 'unsupported use toStringAsync instead';
+		return '(' + this.constructor.name + '): unsupported use toStringAsync instead';
 	}
 
 	async toStringAsync() {
 		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}()) : null;
 	};
 }
+
+java_lang_Object_base.prototype.__jt_mutex__ = null;
 
 
 function WrappedError(javaThrowable) {

@@ -505,8 +505,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	// @TODO: async/await
-	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("N.monitorEnter();") }
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("(await(N.monitorEnter(${stm.expr.genExpr()})));") }
 
-	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("N.monitorExit();") }
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("(await(N.monitorExit(${stm.expr.genExpr()})));") }
 
 }

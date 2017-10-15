@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
@@ -208,6 +209,8 @@ public class Thread implements Runnable {
 		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
 		"});"
 	)
+	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}();") // NOTE: await missing intentionally
+	@JTranscAsync
 	private void _start() {
 		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 		runInternal();

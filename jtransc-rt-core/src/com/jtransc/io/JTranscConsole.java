@@ -185,14 +185,30 @@ public class JTranscConsole {
 	})
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
+		@JTranscMethodBody(target = "js", value = "console.error(N.istr(p0));"),
 		@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public synchronized void error(Object msg) {
+	static public synchronized void errorString(String msg) {
 		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
+	}
+
+	//@HaxeMethodBodyList({
+	//	@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");"),
+	//	@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");"),
+	//	@HaxeMethodBody("trace('' + p0);"),
+	//})
+	//@JTranscMethodBodyList({
+	//	@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
+	//	@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
+	//	@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);"),
+	//	@JTranscMethodBody(target = "as3", value = "trace(p0);"),
+	//	@JTranscMethodBody(target = "dart", value = "print(p0);"),
+	//})
+	static public synchronized void error(Object msg) {
+		errorString(Objects.toString(msg));
 	}
 
 	static public synchronized void logOrError(Object msg, boolean error) {

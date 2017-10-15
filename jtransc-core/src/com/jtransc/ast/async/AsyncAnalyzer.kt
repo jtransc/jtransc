@@ -49,6 +49,8 @@ class AsyncAnalyzer(val target: TargetName) {
 		// If this method is overriding other method, or has overrides or it is implementing an interface, we have
 		// to check all those methods and if any one of them is asynchronous, we have to propagate here too.
 
+		// Also when it has ENTERMONITOR and/or EXITMONITOR opcodes
+
 		// When calling virtual/interface methods we have to find all the possible methods and if one of them
 		// is asynchronous this should be stickily asynchronous too.
 
