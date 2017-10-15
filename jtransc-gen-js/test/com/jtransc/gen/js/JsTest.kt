@@ -31,6 +31,7 @@ import javatest.misc.BenchmarkTest
 import javatest.misc.TryFinallyCheck
 import javatest.net.ServerSocketTest
 import javatest.net.URLEncoderDecoderTest
+import javatest.sleep.SleepTest
 import javatest.time.PeriodTest
 import javatest.utils.KotlinInheritanceTest
 import javatest.utils.OptionalTest
@@ -86,7 +87,7 @@ class JsTest : _Base() {
 		val output = outputFile.readString()
 		Assert.assertEquals(false, output.contains("getMethod"))
 		println("OutputSize: ${outputFile.size}")
-		Assert.assertEquals(true, outputFile.size < 230 * 1024) // Size should be < 222 KB
+		Assert.assertEquals(true, outputFile.size < 260 * 1024) // Size should be < 222 KB
 	}
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = true, log = false, treeShaking = true))
@@ -231,4 +232,8 @@ class JsTest : _Base() {
 
 	@Ignore("Covered BigTest")
 	@Test fun testPeriodTest() = testClass(Params(clazz = PeriodTest::class.java, minimize = false, log = false, debug = true))
+
+	// Requires await/async ES6: https://caniuse.com/#search=await (71.5% and growing)
+	// You can transform output using a ES6->ES5 transpiler
+	@Test fun testSleep() = testClass(Params(clazz = SleepTest::class.java, minimize = false, log = false, debug = true))
 }

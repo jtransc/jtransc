@@ -123,16 +123,18 @@ operator fun AstAnnotationList?.get(name: FqName): AstAnnotation? = if (this != 
 
 inline fun <reified T : Any> AstAnnotationList?.contains(): Boolean = if (this != null) T::class.java.name in byClassName else false
 
-class NativeBody(val lines: List<String>, val cond: String = "") {
+class NativeBody(val lines: List<String>, val cond: String = "", val async: Boolean, val asyncButNotBody: Boolean) {
 	val value = lines.joinToString("\n")
 }
 
 fun AstAnnotationList.getBodiesForTarget(targetName: TargetName): List<NativeBody> {
 	val extra = when (targetName.name) {
-		"js" -> this.list.filter { it.type.name.simpleName == "JsMethodBody" }.map { NativeBody(listOf(it.elements["value"]?.toString() ?: "")) }
+		"js" -> this.list.filter { it.type.name.simpleName == "JsMethodBody" }.map {
+			NativeBody(listOf(it.elements["value"]?.toString() ?: ""), "", false, false)
+		}
 		else -> listOf()
 	}
-	return this.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }.map { NativeBody(it.value.toList(), it.cond) } + extra
+	return this.getTypedList(JTranscMethodBodyList::value).filter { targetName.matches(it.target) }.map { NativeBody(it.value.toList(), it.cond, it.async, it.asyncButNotBody) } + extra
 }
 
 fun AstAnnotationList.getCallSiteBodyForTarget(targetName: TargetName): String? {

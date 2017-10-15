@@ -84,6 +84,7 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
 	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
+	@JTranscMethodBody(target = "js", value = "return new Promise((resolve, reject) => { setTimeout(resolve, p0); });", async = true, asyncButNotBody = true)
 	public static void sleep(long millis) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}

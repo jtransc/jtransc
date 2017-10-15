@@ -3,6 +3,7 @@ package com.jtransc.gen.common
 import com.jtransc.*
 import com.jtransc.annotation.*
 import com.jtransc.ast.*
+import com.jtransc.ast.async.AsyncAnalyzer
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
@@ -66,6 +67,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val program: AstProgram = injector.get()
 	val sortedClasses by lazy { program.classes.filter { it.mustGenerate }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
+	val asyncAnalyzer = AsyncAnalyzer(targetName)
+	val AstMethodRef.actualMethod get() = this.getMethod(program)
+	val AstMethod.isAsync get() = asyncAnalyzer.isMethodAsync(this)
 	open val methodFeatures: Set<Class<out AstMethodFeature>> = setOf()
 	open val methodFeaturesWithTraps: Set<Class<out AstMethodFeature>> get() = methodFeatures
 	open val keywords: Set<String> = program.getExtraKeywords(targetName.name).toSet()
@@ -626,21 +630,25 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun processCallArg(e: AstExpr, str: String, targetType: AstType): String = str
 
+	open fun genCallWrap(e: AstExpr.CALL_BASE, str: String): String {
+		return str
+	}
+
 	open fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		return "super$methodAccess(${args.joinToString(", ")})"
+		return genCallWrap(e2, "super$methodAccess(${args.joinToString(", ")})")
 	}
 
 	fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, nonNativeCall: Boolean): String {
 		if (nonNativeCall) {
 		}
-		return "${clazz.targetName}$methodAccess(${args.joinToString(", ")})"
+		return genCallWrap(e2, "${clazz.targetName}$methodAccess(${args.joinToString(", ")})")
 	}
 
 	open fun genExprCallBaseInstance(e2: AstExpr.CALL_INSTANCE, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		//if (method.isInstanceInit) {
 		//	return "${e2.obj.value.withoutCasts().genNotNull()}$methodAccess(${args.joinToString(", ")})"
 		//} else {
-		return "${e2.obj.genNotNull()}$methodAccess(${args.joinToString(", ")})"
+		return genCallWrap(e2, "${e2.obj.genNotNull()}$methodAccess(${args.joinToString(", ")})")
 		//}
 	}
 
@@ -2376,8 +2384,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		//it.mustGenerate && !it.isNative
 	}
 
+	open fun genSICall(it: AstClass): String {
+		return "${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "();"
+	}
+
 	open fun genStaticConstructorsSortedLines(): List<String> {
-		return getClassesForStaticConstruction().map { "${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "();" }
+		return getClassesForStaticConstruction().map { genSICall(it) }
 	}
 
 	open fun genStaticConstructorsSorted() = indent {

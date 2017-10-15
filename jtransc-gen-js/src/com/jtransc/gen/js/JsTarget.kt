@@ -26,7 +26,7 @@ import com.jtransc.vfs.SyncVfsFile
 import java.io.File
 import java.util.*
 
-class JsTarget() : GenTargetDescriptor() {
+class JsTarget : GenTargetDescriptor() {
 	override val priority = 500
 	override val name = "js"
 	override val longName = "Javascript"
@@ -158,23 +158,28 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			for (indent in classesIndenter) line(indent)
 			val mainClassClass = program[mainClassFq]
 
-			line("__createJavaArrays();")
-			line("__buildStrings();")
-			line("N.linit();")
-			line(genStaticConstructorsSorted())
-			//line(buildStaticInit(mainClassFq))
-			val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
-			val mainCall = buildMethod(mainMethod2, static = true)
-			line("try {")
-			indent {
-				line("$mainCall(N.strArray(N.args()));")
+			line("async function __main()") {
+				line("__createJavaArrays();")
+				line("__buildStrings();")
+				line("N.linit();")
+				line(genStaticConstructorsSorted())
+				//line(buildStaticInit(mainClassFq))
+				val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
+				val mainCall = buildMethod(mainMethod2, static = true)
+				line("try {")
+				indent {
+					val await = if (mainMethod2.isAsync) "await " else ""
+					line("$await$mainCall(N.strArray(N.args()));")
+					//line("$mainCall(N.strArray(N.args()));")
+				}
+				line("} catch (e) {")
+				indent {
+					line("console.error(e);")
+					line("console.error(e.stack);")
+				}
+				line("}")
 			}
-			line("} catch (e) {")
-			indent {
-				line("console.error(e);")
-				line("console.error(e.stack);")
-			}
-			line("}")
+			line("__main();")
 			line(concatFilesTrans.append)
 		}
 
@@ -201,6 +206,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		if (sourceMap != null) output[outputFileBaseName + ".map"] = sourceMap
 
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
+	}
+
+	override fun genSICall(it: AstClass): String {
+		return "await " + super.genSICall(it) + ""
 	}
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
@@ -262,6 +271,19 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun N_func(name: String, args: String): String {
+		val base = "N$staticAccessOperator$name($args)"
+		return when (name) {
+			"resolveClass",
+			"boxVoid", "boxBool", "boxByte", "boxShort", "boxChar", "boxInt", "boxLong", "boxFloat", "boxDouble",
+			"iteratorToArray", "imap"
+			->
+				"(await($base))"
+			else ->
+				base
+		}
+	}
+
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"
@@ -294,11 +316,15 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
 
+	override fun genCallWrap(e: AstExpr.CALL_BASE, str: String): String {
+		return if (e.method.actualMethod?.isAsync != false) "(await($str))" else str
+	}
+
 	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		val base = superMethod.containingClass.name.targetName + ".prototype"
 		val argsString = (listOf(e2.obj.genExpr()) + args).joinToString(", ")
-		return "$base$methodAccess.call($argsString)"
+		return genCallWrap(e2, "$base$methodAccess.call($argsString)")
 	}
 
 	private fun AstMethod.getJsNativeBodies(): Map<String, Indenter> = this.getNativeBodies(target = "js")
@@ -363,18 +389,19 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			//line("$classBase.SI = N.EMPTY_FUNCTION;")
 
 			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
-				line("$classBase.SI = function()", after2 = ";") {
+				line("$classBase.SI = async function()", after2 = ";") {
 					//line("$classBase.SI = N.EMPTY_FUNCTION;")
 					for (field in staticFields) {
 						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 						line("${getMemberBase(field.isStatic)}${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 					}
 					if (clazz.staticConstructor != null) {
-						line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
+						val await = if (clazz.staticConstructor?.isAsync == true) "await " else ""
+						line("($await($classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}()));")
 					}
 				}
 			} else {
-				line("$classBase.SI = function(){};")
+				line("$classBase.SI = async function(){};")
 			}
 
 			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
@@ -396,14 +423,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
 
+					val async = if (method.isAsync) "async " else ""
+
 					fun renderBranch(actualBody: Indenter?) = Indenter {
 						if (actualBody != null) {
-							line("$prefix = function(${margs.joinToString(", ")})", after2 = ";") {
+							line("$prefix = ${async}function(${margs.joinToString(", ")})", after2 = ";") {
 								line(actualBody)
 								if (method.methodVoidReturnThis) line("return this;")
 							}
 						} else {
-							line("$prefix = function() { N.methodWithoutBody('${clazz.name}.${method.name}') };")
+							line("$prefix = ${async}function() { N.methodWithoutBody('${clazz.name}.${method.name}') };")
 						}
 					}
 

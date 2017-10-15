@@ -11,4 +11,6 @@ public @interface JTranscMethodBody {
 	String target();
 	String cond() default "";
 	String[] value();
+	boolean async() default false;
+	boolean asyncButNotBody() default false;
 }

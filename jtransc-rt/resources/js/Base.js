@@ -883,23 +883,26 @@ N.istrArray = function(strs) {
 	return strs.data.map(function(s) { return N.istr(s); });
 };
 
-N.iteratorToArray = function(it) {
+N.iteratorToArray = async function(it) {
 	if (it == null) return null;
 	var out = [];
-	while (it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
-		out.push(it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+	while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
+		out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
 	}
 	return out;
 };
 
-N.imap = function(map) {
+N.imap = async function(map) {
 	if (map == null) return null;
 	var obj = {};
-	N.iteratorToArray(map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()).forEach(function(item) {
-		var key = item["{% METHOD java.util.Map$Entry:getKey %}"]();
-		var value = item["{% METHOD java.util.Map$Entry:getValue %}"]();
+	let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
+
+	for (let n = 0; n < array.length; n++) {
+		let item = array[n];
+		var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
+		var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
 		obj[N.unbox(key)] = N.unbox(value);
-	});
+	}
 	return obj;
 };
 
@@ -925,8 +928,8 @@ N.stringToCharArray = function(str) {
 	return out;
 };
 
-N.resolveClass = function(name) {
-	return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+N.resolveClass = async function(name) {
+	return await {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 };
 
 N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
@@ -985,15 +988,15 @@ N.fillSecureRandomBytes = function(array) {
 	for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 };
 
-N.boxVoid = function(value) { return null; }
-N.boxBool = function(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-N.boxByte = function(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-N.boxShort = function(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-N.boxChar = function(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-N.boxInt = function(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-N.boxLong = function(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+N.boxVoid = async function(value) { return null; }
+N.boxBool = async function(value) { return await {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+N.boxByte = async function(value) { return await {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+N.boxShort = async function(value) { return await {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+N.boxChar = async function(value) { return await {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+N.boxInt = async function(value) { return await {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+N.boxLong = async function(value) { return await {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+N.boxFloat = async function(value) { return await {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+N.boxDouble = async function(value) { return await {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
 N.boxWrapped = function(value) { return N.wrap(value); }
 
@@ -1107,16 +1110,25 @@ N.isNegativeZero = function(x) {
 	return x === 0 && 1 / x === -Infinity;
 };
 
-N.sort = function(array, start, end, comparator) {
+N.sort = async function(array, start, end, comparator) {
 	var slice = array.slice(start, end);
 	if (comparator === undefined) {
 		slice.sort();
 	} else {
-		slice.sort(function(a, b) {
-			return comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
-		});
+		throw 'Unsupported N.sort!';
+		//slice.sort(async function(a, b) {
+		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+		//});
 	}
 	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
+};
+
+N.asyncAsyncStr = async function(v) {
+	if (v == null) return 'null';
+	if (typeof v.toStringAsync !== 'undefined') {
+		return N.istr(await(v.toStringAsync()));
+	}
+	return '' + v;
 };
 
 N.getByteArray = function(v) {
@@ -1143,7 +1155,10 @@ N.EMPTY_FUNCTION = function() { }
 
 var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
-	return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}()) : null;
+	return 'unsupported use toStringAsync instead';
+}
+java_lang_Object_base.prototype.toStringAsync = async function() {
+	return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}()) : null;
 };
 
 function WrappedError(javaThrowable) {
