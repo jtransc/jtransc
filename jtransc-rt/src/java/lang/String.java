@@ -237,11 +237,11 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	public boolean equals(Object that) {
 		if (this == that) return true;
 		if (!(that instanceof String)) return false;
-		return equals(this, (String) that);
+		return sequals(this, (String) that);
 	}
 
 	@JTranscSync
-	static private boolean equals(String l, String r) {
+	static private boolean sequals(String l, String r) {
 		//noinspection StringEquality
 		if (l == r) return true;
 		if (l == null) return false;
@@ -255,7 +255,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@JTranscSync
 	public boolean contentEquals(StringBuffer sb) {
-		return equals(this, sb.toStringSync());
+		return sequals(this, sb.toStringSync());
 	}
 
 	@JTranscAsync
@@ -265,7 +265,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@JTranscSync
 	public boolean equalsIgnoreCase(String anotherString) {
-		return equals(this.toLowerCase(), anotherString.toLowerCase());
+		return sequals(this.toLowerCase(), anotherString.toLowerCase());
 	}
 
 	@HaxeMethodBody("var a = this._str; var b = p0._str; return if ( a < b ) -1 else if ( a > b ) 1 else 0;")
@@ -306,13 +306,13 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@HaxeMethodBody("return this._str.substr(p0, p3) == p1._str.substr(p2, p3);")
 	@JTranscSync
 	public boolean regionMatches(int toffset, String other, int ooffset, int len) {
-		return equals(this.substring(toffset, toffset + len), (other.substring(ooffset, ooffset + len)));
+		return sequals(this.substring(toffset, toffset + len), (other.substring(ooffset, ooffset + len)));
 	}
 
 	@HaxeMethodBody("return this._str.substr(p0, p3).toLowerCase() == p1._str.substr(p2, p3).toLowerCase();")
 	@JTranscSync
 	private boolean regionMatchesIgnoreCase(int toffset, String other, int ooffset, int len) {
-		return equals(this.toLowerCase().substring(toffset, toffset + len), (other.toLowerCase().substring(ooffset, ooffset + len)));
+		return sequals(this.toLowerCase().substring(toffset, toffset + len), (other.toLowerCase().substring(ooffset, ooffset + len)));
 	}
 
 	@JTranscSync
