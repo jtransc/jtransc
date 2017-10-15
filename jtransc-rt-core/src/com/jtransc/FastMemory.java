@@ -396,7 +396,7 @@ final public class FastMemory {
 	}
 
 	// @TODO: provide faster implementations for supported targets
-	@JTranscSync
+	@JTranscAsync
 	final public void setArrayInt8(int index, ByteBuffer data, int offset, int len) {
 		for (int n = 0; n < len; n++) setInt8(index + n, data.get(offset + n));
 	}
