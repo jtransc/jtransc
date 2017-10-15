@@ -239,7 +239,6 @@ class JsTest : _Base() {
 	// You can transform output using a ES6->ES5 transpiler
 	@Test fun testSleep() = testClass(Params(clazz = SleepTest::class.java, minimize = false, log = false, debug = true))
 
-	@Ignore("Not working yet")
 	@Test fun testThreadTest() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, debug = false))
 
 	@Test fun testMisc2() = testClass(Params(clazz = Misc2Test::class.java, minimize = false, log = false))

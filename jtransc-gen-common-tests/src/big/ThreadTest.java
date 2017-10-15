@@ -24,7 +24,7 @@ public class ThreadTest {
 		//t.join();
 	}
 
-	static private void sleep(int ms) {
+	static public void sleep(int ms) {
 		try {
 			Thread.sleep(ms);
 		} catch (InterruptedException e) {
@@ -109,11 +109,7 @@ class SynchronizedTraits {
 	void synchronizedBlock() {
 		synchronized (this) {
 			System.out.println("BEGIN");
-			try {
-				Thread.sleep(500L);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			ThreadTest.sleep(500);
 			System.out.println("END");
 		}
 	}
@@ -123,11 +119,8 @@ class SynchronizedTraits {
 
 		//System.out.println("ThreadId:" + Thread.currentThread().getId());
 
-		try {
-			Thread.sleep(500L);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		ThreadTest.sleep(500);
+
 		for (int n = 0; n < threads.length; n++) {
 			final Thread thread = threads[n];
 			System.out.println("IsThread[" + n + "]: " + (Thread.currentThread() == thread));
