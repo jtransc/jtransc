@@ -160,7 +160,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			val mainClassClass = program[mainClassFq]
 
 			line("async function __main()") {
-				line("var _jc = { threadId: 0 };") // JTransc Context (we can implement threads here)
+				line("var _jc = { threadId: 0, global: {} };") // JTransc Context (we can implement threads here)
 				line("__createJavaArrays();")
 				line("__buildStrings();")
 				line("N.linit(_jc);")

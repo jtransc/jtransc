@@ -1166,22 +1166,60 @@ class N {
     // @TODO: async
     static async monitorEnter(_jc, obj) {
     	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.lock(_jc);
+    	await obj.__jt_mutex__.lock(_jc);
     }
 
     static async monitorExit(_jc, obj) {
     	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.unlock(_jc);
+    	await obj.__jt_mutex__.unlock(_jc);
     }
 } // N
 
 class RecursiveMutex {
-	lock(_jc) {
-    	//console.log('RecursiveMutex.lock:' + this);
+	constructor() {
+		this.capturedThread = -1;
+		this.capturedCount = 0;
+		this.awakeQueue = [];
 	}
 
-	unlock(_jc) {
-    	//console.log('RecursiveMutex.unlock:' + this);
+	async lock(_jc) {
+    	//console.log('RecursiveMutex.lock:', this, _jc);
+		let threadId = _jc.threadId;
+		if (this.capturedThread == -1) this.capturedThread = threadId;
+
+		if (this.capturedThread == threadId) {
+			this.capturedCount++;
+		} else {
+			return new Promise((resolve, reject) => {
+				this.awakeQueue.push(() => {
+					this.capturedThread = threadId;
+					this.capturedCount++;
+					resolve();
+				});
+			});
+		}
+	}
+
+	async unlock(_jc) {
+    	//console.log('RecursiveMutex.unlock:', this, _jc);
+		let threadId = _jc.threadId;
+
+		if (this.capturedThread == threadId) {
+			this.capturedCount--;
+		}
+
+		if (this.capturedCount <= 0) {
+			this.capturedCount = 0;
+			this.capturedThread = -1;
+			this.unlockNext();
+		}
+	}
+
+	unlockNext() {
+		if (this.awakeQueue.length > 0) {
+			let func = this.awakeQueue.shift();
+			func();
+		}
 	}
 }
 

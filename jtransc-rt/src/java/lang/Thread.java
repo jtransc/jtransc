@@ -217,7 +217,7 @@ public class Thread implements Runnable {
 		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
 		"});"
 	)
-	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0 });") // NOTE: await missing intentionally
+	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0, global: _jc.global });") // NOTE: await missing intentionally
 	@JTranscAsync
 	private void _start(@SuppressWarnings("unused") int threadId) {
 		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
