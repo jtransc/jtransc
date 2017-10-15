@@ -530,8 +530,8 @@ final class N {
 	static function istr({% CLASS java.lang.String%} $str) : string {
 		if ($str == null) return null;
 		//$out = '';
-		//$len = $str->{% METHOD java.lang.String:length %}();
-		//for ($n = 0; $n < $len; $n++) $out .= chr($str->{% METHOD java.lang.String:charAt %}($n));
+		//$len = $str{% IMETHOD java.lang.String:length %}();
+		//for ($n = 0; $n < $len; $n++) $out .= chr($str{% IMETHOD java.lang.String:charAt %}($n));
 		//return N::utf16_to_utf8($out);
 		if ($str->_str == null) {
 			$str->_str = N::utf16_to_utf8($str->{% FIELD java.lang.String:value %}->data->data);

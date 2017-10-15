@@ -147,7 +147,7 @@ public class Thread implements Runnable {
 
 	@JTranscMethodBody(target = "d", value = {
 		"this.thread = new Thread(delegate () {",
-		"	{% METHOD java.lang.Thread:runInternal:()V %}();",
+		"	this{% IMETHOD java.lang.Thread:runInternal:()V %}();",
 		"});",
 	})
 	private void _init() {
