@@ -62,13 +62,13 @@ public class JTranscStringTools {
 		return hasSymbols ? out : (out + ".0");
 	}
 
-	@HaxeMethodBody("return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);")
+	@HaxeMethodBody("return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
 	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
-		@JTranscMethodBody(target = "cpp", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
-		@JTranscMethodBody(target = "js", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
-		@JTranscMethodBody(target = "as3", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
-		@JTranscMethodBody(target = "dart", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);")
+		@JTranscMethodBody(target = "php", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "as3", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
+		@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
 	})
 	@JTranscSync
 	native static public String replace(String base, String s, String t);

@@ -694,7 +694,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	@JTranscAsync
 	public String replace(CharSequence target, CharSequence replacement) {
-		return _replace(target.toString(), replacement.toString());
+		return _replace(this, target.toString(), replacement.toString());
 	}
 
 	@HaxeMethodBody("return N.str(StringTools.replace(this._str, '$p0', '$p1'));")
@@ -702,16 +702,16 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
 	@JTranscSync
-	public String _replace(String target, String replacement) {
-		int len = this.length();
+	static public String _replace(String base, String target, String replacement) {
+		int len = base.length();
 		StringBuilder out = new StringBuilder(len);
 
-		char[] _this = this.value;
+		char[] _this = base.value;
 		char[] _target = target.value;
 		int n = 0;
 
 		while (n < len) {
-			if (n < this.length() - target.length()) {
+			if (n < base.length() - target.length()) {
 				if (JTranscStrings.equals(_this, n, _target, 0, target.length())) {
 					out.append(replacement);
 					n += target.length();
