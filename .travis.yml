@@ -1,9 +1,9 @@
 language: java
 dist: trusty
-node_js:
-- '8'
 jdk:
 - oraclejdk8
+env:
+- TRAVIS_NODE_VERSION="8"
 before_install:
 - sudo apt-key update
 - sudo apt-get update -qq
@@ -19,6 +19,7 @@ before_install:
 - chmod +x cmake-3.7.2-Linux-x86_64.sh
 - "./cmake-3.7.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license"
 install:
+- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
 - sudo apt-get -y update
 - sudo apt-get -y install mono-runtime mono-mcs
 - sudo wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list -O /etc/apt/sources.list.d/d-apt.list
