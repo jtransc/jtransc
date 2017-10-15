@@ -73,7 +73,7 @@ public class FastStringMap<T> {
 		return this.map.containsKey(key);
 	}
 
-	@HaxeMethodBody("return N.haxeStringArrayToJavaArray(N.haxeIteratorToArray(_map.keys()));")
+	@HaxeMethodBody("return N.haxeStringArrayToJavaArray(N.haxeIteratorToArray(_jc, _map.keys()));")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return JA_L.fromArray1(Array.from(this.data.keys()).map(function(it) { return N.str(it); }), 'Ljava/lang/String;');"),
 		@JTranscMethodBody(target = "php", value = "return N::strArray(array_keys($this->data));"),

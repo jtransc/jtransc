@@ -188,7 +188,7 @@ public class Thread implements Runnable {
 
 	public synchronized void start() {
 		runInternalPreInit();
-		_start();
+		_start(id);
 	}
 
 	@JTranscMethodBody(target = "d", value = "this.thread.start();")
@@ -209,9 +209,9 @@ public class Thread implements Runnable {
 		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
 		"});"
 	)
-	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}();") // NOTE: await missing intentionally
+	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0 });") // NOTE: await missing intentionally
 	@JTranscAsync
-	private void _start() {
+	private void _start(int threadId) {
 		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 		runInternal();
 	}

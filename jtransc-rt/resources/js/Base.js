@@ -421,8 +421,8 @@ function __createJavaArrayBaseType() {
 	ARRAY.prototype = Object.create({% CLASS java.lang.Object %}.prototype);
 	ARRAY.prototype.constructor = ARRAY;
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
-		return N.resolveClass(this.desc);
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function(_jc) {
+		return N.resolveClass(_jc, this.desc);
 	};
 
 	ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
@@ -437,11 +437,11 @@ function __createJavaArrayBaseType() {
 function __addArrayJavaMethods(ARRAY) {
 	ARRAY.prototype{% IMETHOD java.lang.Object:clone %} = ARRAY.prototype.clone;
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
-		return N.resolveClass(this.desc);
+	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function(_jc) {
+		return N.resolveClass(_jc, this.desc);
 	};
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:toString %} = function() {
+	ARRAY.prototype{% IMETHOD java.lang.Object:toString %} = function(_jc) {
 		return N.str('ARRAY(' + this.desc + ')');
 	};
 }
@@ -767,7 +767,7 @@ class N {
 	///////////////////////
 	// Long
 	///////////////////////
-	static linit() {};
+	static linit(_jc) {};
 	static lnew(high, low) { return Int64.make(high, low); };
 	static lnewFloat(v) { return Int64.ofFloat(v); };
 	static ltoFloat(v) { return Int64.toFloat(v); };
@@ -884,24 +884,24 @@ class N {
 		return strs.data.map(function(s) { return N.istr(s); });
 	};
 
-	static async iteratorToArray(it) {
+	static async iteratorToArray(_jc, it) {
 		if (it == null) return null;
 		var out = [];
-		while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
-			out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+		while (await it{% IMETHOD java.util.Iterator:hasNext:()Z %}(_jc)) {
+			out.push(await it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}(_jc));
 		}
 		return out;
 	};
 
-	static async imap(map) {
+	static async imap(_jc, map) {
 		if (map == null) return null;
 		var obj = {};
-		let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
+		let array = await(N.iteratorToArray(_jc, await await map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}(_jc)))
 
 		for (let n = 0; n < array.length; n++) {
 			let item = array[n];
-			var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
-			var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
+			var key = await item{% IMETHOD java.util.Map$Entry:getKey %}(_jc);
+			var value = await item{% IMETHOD java.util.Map$Entry:getValue %}(_jc);
 			obj[N.unbox(key)] = N.unbox(value);
 		}
 		return obj;
@@ -938,8 +938,8 @@ class N {
 	};
 
 	// @TODO: Make this sync
-	static resolveClass(name) {
-		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+	static resolveClass(_jc, name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(_jc, N.str(name));
 	};
 
 	static createStackTraceElement(declaringClass, methodName, fileName, lineNumber) {
@@ -993,17 +993,17 @@ class N {
 		for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 	};
 
-	static boxVoid(value) { return null; }
-	static boxBool(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-	static boxByte(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-	static boxShort(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-	static boxChar(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-	static boxInt(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-	static boxLong(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-	static boxFloat(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-	static boxDouble(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
-	static boxString(value) { return (value != null) ? N.str(value) : null; }
-	static boxWrapped(value) { return N.wrap(value); }
+	static boxVoid    (_jc, value) { return null; }
+	static boxBool    (_jc, value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(_jc, value); }
+	static boxByte    (_jc, value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(_jc, value); }
+	static boxShort   (_jc, value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(_jc, value); }
+	static boxChar    (_jc, value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(_jc, value); }
+	static boxInt     (_jc, value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(_jc, value); }
+	static boxLong    (_jc, value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(_jc, value); }
+	static boxFloat   (_jc, value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(_jc, value); }
+	static boxDouble  (_jc, value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(_jc, value); }
+	static boxString  (_jc, value) { return (value != null) ? N.str(value) : null; }
+	static boxWrapped (_jc, value) { return N.wrap(value); }
 
 	static unboxVoid      (value) { return null; }
 	static unboxBool      (value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
@@ -1043,8 +1043,8 @@ class N {
 		return out;
 	}
 
-	static createRuntimeException(msg) {
-		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	static createRuntimeException(_jc, msg) {
+		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(_jc, N.str(msg));
 	};
 
 	static throwRuntimeException(msg) {
@@ -1101,12 +1101,12 @@ class N {
 		return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
 	};
 
-	static box(v) {
+	static box(_jc, v) {
 		if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
-		if (v instanceof Int64) return N.boxLong(v);
+		if (v instanceof Int64) return N.boxLong(_jc, v);
 		if (typeof v == 'string') return N.str(v);
-		if ((v|0) == v) return N.boxInt(v);
-		if (+(v) == v) return N.boxFloat(v);
+		if ((v|0) == v) return N.boxInt(_jc, v);
+		if (+(v) == v) return N.boxFloat(_jc, v);
 		if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
 		return N.wrap(v);
 	};
@@ -1126,10 +1126,10 @@ class N {
 	//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
 	//};
 
-	static async asyncAsyncStr(v) {
+	static async asyncAsyncStr(_jc, v) {
 		if (v == null) return 'null';
 		if (typeof v.toStringAsync !== 'undefined') {
-			return N.istr(await(v.toStringAsync()));
+			return N.istr(await(v.toStringAsync(_jc)));
 		}
 		return '' + v;
 	};
@@ -1164,23 +1164,23 @@ class N {
     static get longBitsToDouble() { return __reints.longBitsToDouble; }
 
     // @TODO: async
-    static async monitorEnter(obj) {
+    static async monitorEnter(_jc, obj) {
     	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.lock();
+    	obj.__jt_mutex__.lock(_jc);
     }
 
-    static async monitorExit(obj) {
+    static async monitorExit(_jc, obj) {
     	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.unlock();
+    	obj.__jt_mutex__.unlock(_jc);
     }
 } // N
 
 class RecursiveMutex {
-	lock() {
+	lock(_jc) {
     	//console.log('RecursiveMutex.lock:' + this);
 	}
 
-	unlock() {
+	unlock(_jc) {
     	//console.log('RecursiveMutex.unlock:' + this);
 	}
 }
@@ -1200,8 +1200,8 @@ class java_lang_Object_base {
 		return '(' + this.constructor.name + '): unsupported use toStringAsync instead';
 	}
 
-	async toStringAsync() {
-		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}()) : null;
+	async toStringAsync(_jc) {
+		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}(_jc)) : null;
 	};
 }
 

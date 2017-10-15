@@ -43,7 +43,7 @@ public class JTranscConsole {
 	//@HaxeMethodBody("_log(p0);")
 	//@JTranscMethodBodyList({
 	//	@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
-	//	@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+	//	@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 	//	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 	//	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 	//	@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
@@ -72,7 +72,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo ($p0 ? 'true' : 'false') . \"\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? L\"true\" : L\"false\");"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
@@ -85,7 +85,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
@@ -99,7 +99,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
@@ -127,7 +127,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%d\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);"),
@@ -155,7 +155,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
@@ -168,7 +168,7 @@ public class JTranscConsole {
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(_jc, p0));"),
 		@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
