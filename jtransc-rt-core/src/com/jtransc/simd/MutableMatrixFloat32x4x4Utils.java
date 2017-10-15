@@ -1,13 +1,16 @@
 package com.jtransc.simd;
 
 import com.jtransc.annotation.JTranscInvisible;
+import com.jtransc.annotation.JTranscSync;
 
 @JTranscInvisible
 final public class MutableMatrixFloat32x4x4Utils {
+	@JTranscSync
 	static public float _getCell(MutableMatrixFloat32x4x4 src, int row, int column) {
 		return src.getRow(row).getLane(column);
 	}
 
+	@JTranscSync
 	final static public float _getSumAll(MutableMatrixFloat32x4x4 a) {
 		return a.getX().getSumAll() + a.getY().getSumAll() + a.getZ().getSumAll() + a.getW().getSumAll();
 	}
@@ -17,6 +20,7 @@ final public class MutableMatrixFloat32x4x4Utils {
 	@JTranscInvisible
 	static private MutableFloat32x4 vtemp2 = MutableFloat32x4.create();
 
+	@JTranscSync
 	static public MutableMatrixFloat32x4x4 _setToMul44(MutableMatrixFloat32x4x4 dst, MutableMatrixFloat32x4x4 a, MutableMatrixFloat32x4x4 b) {
 		final MutableFloat32x4 a0 = a.getX(), b0 = b.getX();
 		final MutableFloat32x4 a1 = a.getY(), b1 = b.getY();

@@ -1,8 +1,10 @@
 package com.jtransc.charset.charsets;
 
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharsetSingleByte;
 
 public class JTranscCharsetIBM866 extends JTranscCharsetSingleByte {
+	@JTranscSync
 	public JTranscCharsetIBM866() {
 		super(
 			new String[] { "IBM866", "866", "IBM-866", "CSIBM866", "CP866" },

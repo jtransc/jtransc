@@ -18,6 +18,7 @@
 package java.io;
 
 import com.jtransc.JTranscArrays;
+import com.jtransc.annotation.JTranscSync;
 
 import java.util.Arrays;
 
@@ -45,6 +46,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * If more than 32 bytes are written to this instance, the underlying byte
      * array will expand.
      */
+    @JTranscSync
     public ByteArrayOutputStream() {
         buf = new byte[32];
     }
@@ -60,6 +62,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @throws IllegalArgumentException
      *             if {@code size} < 0.
      */
+	@JTranscSync
     public ByteArrayOutputStream(int size) {
         if (size >= 0) {
             buf = new byte[size];
@@ -75,6 +78,7 @@ public class ByteArrayOutputStream extends OutputStream {
      *             if an error occurs while attempting to close this stream.
      */
     @Override
+	@JTranscSync
     public void close() throws IOException {
         /**
          * Although the spec claims "A closed stream cannot perform output
@@ -84,6 +88,7 @@ public class ByteArrayOutputStream extends OutputStream {
         super.close();
     }
 
+	@JTranscSync
     private void expand(int i) {
         /* Can the buffer handle @i more bytes, if not expand it */
         if (count + i <= buf.length) {
@@ -100,6 +105,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * subsequent writes will overwrite any bytes previously stored in this
      * stream.
      */
+	@JTranscSync
     public synchronized void reset() {
         count = 0;
     }
@@ -109,6 +115,7 @@ public class ByteArrayOutputStream extends OutputStream {
      *
      * @return the number of bytes written to this stream.
      */
+	@JTranscSync
     public int size() {
         return count;
     }
@@ -120,6 +127,7 @@ public class ByteArrayOutputStream extends OutputStream {
      *
      * @return this stream's current contents as a byte array.
      */
+	@JTranscSync
     public synchronized byte[] toByteArray() {
         byte[] newArray = new byte[count];
         System.arraycopy(buf, 0, newArray, 0, count);
@@ -135,6 +143,7 @@ public class ByteArrayOutputStream extends OutputStream {
      */
 
     @Override
+	@JTranscSync
     public String toString() {
         return new String(buf, 0, count);
     }
@@ -154,6 +163,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @deprecated Use {@link #toString()} instead.
      */
     @Deprecated
+	@JTranscSync
     public String toString(int hibyte) {
         char[] newBuf = new char[size()];
         for (int i = 0; i < newBuf.length; i++) {
@@ -173,6 +183,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @throws UnsupportedEncodingException
      *             if the provided encoding is not supported.
      */
+	@JTranscSync
     public String toString(String charsetName) throws UnsupportedEncodingException {
         return new String(buf, 0, count, charsetName);
     }
@@ -195,6 +206,7 @@ public class ByteArrayOutputStream extends OutputStream {
      *             {@code buffer}.
      */
     @Override
+	@JTranscSync
     public synchronized void write(byte[] buffer, int offset, int len) {
 		JTranscArrays.checkOffsetAndCount(buffer.length, offset, len);
         if (len == 0) {
@@ -213,6 +225,7 @@ public class ByteArrayOutputStream extends OutputStream {
      *            the byte to be written.
      */
     @Override
+	@JTranscSync
     public synchronized void write(int oneByte) {
         if (count == buf.length) {
             expand(1);
@@ -229,6 +242,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @throws IOException
      *             if an error occurs while writing to {@code out}.
      */
+	@JTranscSync
     public synchronized void writeTo(OutputStream out) throws IOException {
         out.write(buf, 0, count);
     }

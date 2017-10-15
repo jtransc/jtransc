@@ -3,18 +3,22 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscSync;
 
 public class JTranscSystemProperties {
+	@JTranscSync
 	static public String fileEncoding() {
 		return "UTF-8";
 	}
 
+	@JTranscSync
 	static public String userLanguage() {
 		return "en";
 	}
 
+	@JTranscSync
 	static public String userRegion() {
 		return "US";
 	}
 
+	@JTranscSync
 	static public String userVariant() {
 		return "";
 	}
@@ -49,6 +53,7 @@ public class JTranscSystemProperties {
 		return JTranscSystemProperties.getenvs(new String[]{"USERNAME", "USER"}, "username");
 	}
 
+	@JTranscSync
 	public static String javaHome() {
 		return "/tmp";
 	}

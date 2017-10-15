@@ -41,4 +41,9 @@ public class JTranscStrings {
 		for (int n = start; n >= 0; n--) if (JTranscStrings.equals(base, n, haystack, 0, haystack.length)) return n;
 		return -1;
 	}
+
+	@JTranscSync
+	public static String valueOf(String value) {
+		return (value != null) ? value : "null";
+	}
 }

@@ -1,8 +1,10 @@
 package com.jtransc.charset.charsets;
 
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharsetSingleByte;
 
 public class JTranscCharsetLatin1 extends JTranscCharsetSingleByte {
+	@JTranscSync
 	public JTranscCharsetLatin1() {
 		super(
 			new String[]{"ISO-8859-1", "819", "ISO8859-1", "L1", "ISO_8859-1:1987", "ISO_8859-1", "8859_1", "ISO-IR-100", "LATIN1", "CP819", "ISO8859_1", "IBM819", "ISO_8859_1", "IBM-819", "CSISOLATIN1"},

@@ -119,12 +119,12 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		setChars(value);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes, int offset, int length) {
 		this(bytes, offset, length, "UTF-8", false);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes) {
 		this(bytes, 0, bytes.length, "UTF-8", false);
 	}
@@ -141,27 +141,27 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 	// --------- CHARSETS START
 
-	@JTranscAsync
+	@JTranscSync
 	private String(byte[] bytes, int offset, int length, String charsetName, boolean dummy) {
 		setChars(JTranscCharset.forName(charsetName).decodeChars(bytes, offset, length));
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes, int offset, int length, String charsetName) throws UnsupportedEncodingException {
 		this(bytes, offset, length, charsetName, false);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes, int offset, int length, Charset charset) {
 		this(bytes, offset, length, charset.name(), false);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes, String charsetName) throws UnsupportedEncodingException {
 		this(bytes, 0, bytes.length, charsetName, false);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public String(byte[] bytes, Charset charset) {
 		this(bytes, 0, bytes.length, charset.name(), false);
 	}
@@ -214,17 +214,17 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 		System.arraycopy(out, 0, dst, dstBegin, out.length);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
 		return JTranscCharset.forName(charsetName).encode(this);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public byte[] getBytes(Charset charset) {
 		return JTranscCharset.forName(charset.name()).encode(this);
 	}
 
-	@JTranscAsync
+	@JTranscSync
 	public byte[] getBytes() {
 		return JTranscCharset.defaultCharset().encode(this);
 	}
