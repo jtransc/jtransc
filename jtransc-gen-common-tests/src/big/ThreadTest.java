@@ -24,6 +24,14 @@ public class ThreadTest {
 		//t.join();
 	}
 
+	static private void sleep(int ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
 	synchronized static private void a() {
 		b();
 	}
@@ -85,6 +93,7 @@ public class ThreadTest {
 			System.out.println("START1");
 			long start = System.currentTimeMillis();
 			t0.start();
+			ThreadTest.sleep(50);
 			t1.start();
 			long end = System.currentTimeMillis();
 			t0.join();
