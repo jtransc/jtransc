@@ -108,7 +108,7 @@ public final class Field extends AccessibleObject implements Member {
 		return (getModifiers() & Modifier.STATIC) != 0;
 	}
 
-	@JTranscSync
+	@JTranscAsync
 	public Class<?> getType() {
 		//return type;
 		try {

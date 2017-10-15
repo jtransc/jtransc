@@ -702,7 +702,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "as3", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(N.istr(this).split(N.istr(p0)).join(N.istr(p1)));")
 	@JTranscSync
-	private String _replace(String target, String replacement) {
+	public String _replace(String target, String replacement) {
 		int len = this.length();
 		StringBuilder out = new StringBuilder(len);
 

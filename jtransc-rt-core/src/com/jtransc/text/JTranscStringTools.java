@@ -57,10 +57,21 @@ public class JTranscStringTools {
 				break;
 			}
 		}
-		if (out.indexOf("e+") >= 0) out = out.replace("e+", "E");
-		if (out.indexOf("e-") >= 0) out = out.replace("e-", "E-");
+		if (out.indexOf("e+") >= 0) out = replace(out, "e+", "E");
+		if (out.indexOf("e-") >= 0) out = replace(out, "e-", "E-");
 		return hasSymbols ? out : (out + ".0");
 	}
+
+	@HaxeMethodBody("return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);")
+	@JTranscMethodBodyList({
+		@JTranscMethodBody(target = "php", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
+		@JTranscMethodBody(target = "cpp", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
+		@JTranscMethodBody(target = "js", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
+		@JTranscMethodBody(target = "as3", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);"),
+		@JTranscMethodBody(target = "dart", value = "return p0{% IMETHOD java.lang.String:_replace %}(p1, p2);")
+	})
+	@JTranscSync
+	native static public String replace(String base, String s, String t);
 
 	//@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +Math.fround(p0)));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%f\", (float)p0); return N::str(std::wstring(temp));")

@@ -51,7 +51,7 @@ public final class Array {
 		if (type == Float.TYPE) return new float[length];
 		if (type == Double.TYPE) return new double[length];
 		if (type == Void.TYPE) throw new RuntimeException("Invalid Array of void type");
-		throw new RuntimeException("Invalid Array.newInstance with " + type);
+		throw new RuntimeException("Invalid Array.newInstance with " + type.getName());
 	}
 
 	@JTranscSync

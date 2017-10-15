@@ -190,9 +190,15 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
+	@JTranscSync
 	static public synchronized void errorString(String msg) {
 		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
+	}
+
+	@JTranscSync
+	static public synchronized void error(String msg) {
+		errorString(msg);
 	}
 
 	//@HaxeMethodBodyList({
@@ -207,6 +213,7 @@ public class JTranscConsole {
 	//	@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 	//	@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	//})
+	@JTranscAsync
 	static public synchronized void error(Object msg) {
 		errorString(Objects.toString(msg));
 	}
@@ -217,6 +224,12 @@ public class JTranscConsole {
 		} else {
 			JTranscConsole.log(msg);
 		}
+	}
+
+	@JTranscSync
+	public static void syncPrintStackTrace(Throwable e) {
+		error("JTranscConsole.printStackTrace:");
+		error(e.getMessage());
 	}
 }
 

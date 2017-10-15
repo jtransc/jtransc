@@ -16,10 +16,14 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class IndexOutOfBoundsException extends RuntimeException {
+	@JTranscSync
 	public IndexOutOfBoundsException() {
 	}
 
+	@JTranscSync
 	public IndexOutOfBoundsException(String message) {
 		super(message);
 	}

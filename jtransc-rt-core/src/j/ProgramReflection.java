@@ -4,6 +4,7 @@ import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastIntMap;
 import com.jtransc.ds.FastStringMap;
+import com.jtransc.io.JTranscConsole;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -407,7 +408,7 @@ public class ProgramReflection {
 		try {
 			return Class.forName(_classNames[classId]);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			JTranscConsole.syncPrintStackTrace(e);
 			return null;
 		}
 	}
