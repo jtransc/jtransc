@@ -1359,11 +1359,11 @@ void SIGFPE_handler(int signal) {
     }
 
     void* DYN::jtvmResolveNativeMethodImpl(const char* shortMangledName, const char* longMangledName, JAVA_OBJECT classLoader, void** ptr){
-    	JAVA_OBJECT nativeLibsRaw = GET_OBJECT({% CLASS java.lang.ClassLoader %}, classLoader)->{% IMETHOD java.lang.ClassLoader:getNativeLibs %}();
+    	JAVA_OBJECT nativeLibsRaw = GET_OBJECT({% CLASS java.lang.ClassLoader %}, classLoader){% IMETHOD java.lang.ClassLoader:getNativeLibs %}();
     	auto nativeLibs = GET_OBJECT({% CLASS java.util.ArrayList %}, nativeLibsRaw);
-    	jint size = nativeLibs->{% IMETHOD java.util.ArrayList:size %}();
+    	jint size = nativeLibs{% IMETHOD java.util.ArrayList:size %}();
     	for(jint i = 0; i < size; i++){
-    		auto nativeLib = GET_OBJECT({% CLASS java.lang.ClassLoader$NativeLib %}, nativeLibs->{% IMETHOD java.util.ArrayList:get %}(i));
+    		auto nativeLib = GET_OBJECT({% CLASS java.lang.ClassLoader$NativeLib %}, nativeLibs{% IMETHOD java.util.ArrayList:get %}(i));
 
     		auto handle = jlong_to_ptr(nativeLib->{% FIELD java.lang.ClassLoader$NativeLib:handle %});
 
@@ -1396,11 +1396,11 @@ jobject JNICALL ToReflectedMethod(JNIEnv *env, jclass cls, jmethodID methodID, j
 }
 
 jclass JNICALL GetSuperclass(JNIEnv *env, jclass clazz){
-	return (jclass)GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz)->{% IMETHOD java.lang.Class:getSuperclass%}();
+	return (jclass)GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz){% IMETHOD java.lang.Class:getSuperclass%}();
 }
 
 jboolean JNICALL IsAssignableFrom(JNIEnv *env, jclass clazz1, jclass clazz2){
-	return GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz2)->{% IMETHOD java.lang.Class:isAssignableFrom %}(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz1));
+	return GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz2){% IMETHOD java.lang.Class:isAssignableFrom %}(GET_OBJECT({% CLASS java.lang.Class %}, (JAVA_OBJECT)clazz1));
 }
 
 jobject JNICALL ToReflectedField(JNIEnv *env, jclass cls, jfieldID fieldID, jboolean isStatic){
@@ -1481,14 +1481,14 @@ static JA_L* va_listToJavaArray(int32_t count, {% CLASS java.lang.reflect.Method
 
 JAVA_OBJECT jtvmNewObjectA(JAVA_OBJECT clazz, JAVA_OBJECT method, const jvalue *args) {
     {% CLASS java.lang.reflect.Constructor %}* ctor = GET_OBJECT({% CLASS java.lang.reflect.Constructor %}, method);
-    int32_t parameterCount = ctor->{% IMETHOD java.lang.reflect.Constructor:getParameterCount %}();
-    return ctor->{% IMETHOD java.lang.reflect.Constructor:newInstance %}(jvalueToJavaArray(parameterCount, ctor, args));
+    int32_t parameterCount = ctor{% IMETHOD java.lang.reflect.Constructor:getParameterCount %}();
+    return ctor{% IMETHOD java.lang.reflect.Constructor:newInstance %}(jvalueToJavaArray(parameterCount, ctor, args));
 }
 
 JAVA_OBJECT jtvmNewObjectV(JAVA_OBJECT clazz, JAVA_OBJECT method, va_list args) {
     {% CLASS java.lang.reflect.Constructor %}* ctor = GET_OBJECT({% CLASS java.lang.reflect.Constructor %}, method);
-    int32_t parameterCount = ctor->{% IMETHOD java.lang.reflect.Constructor:getParameterCount %}();
-    return ctor->{% IMETHOD java.lang.reflect.Constructor:newInstance %}(va_listToJavaArray(parameterCount, ctor, args));
+    int32_t parameterCount = ctor{% IMETHOD java.lang.reflect.Constructor:getParameterCount %}();
+    return ctor{% IMETHOD java.lang.reflect.Constructor:newInstance %}(va_listToJavaArray(parameterCount, ctor, args));
 }
 
 jobject JNICALL NewObjectV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
@@ -1515,7 +1515,7 @@ jobject JNICALL AllocObject(JNIEnv *env, jclass clazz){
 
 inline static jboolean isMethodStatic(jmethodID method_){
 	JAVA_OBJECT method = (JAVA_OBJECT)method_;
-	jboolean result = GET_OBJECT({% CLASS java.lang.reflect.MethodConstructor %}, method)->{% IMETHOD java.lang.reflect.MethodConstructor:isStatic %}();
+	jboolean result = GET_OBJECT({% CLASS java.lang.reflect.MethodConstructor %}, method){% IMETHOD java.lang.reflect.MethodConstructor:isStatic %}();
 	return result;
 }
 
@@ -1523,7 +1523,7 @@ JAVA_OBJECT jtvmGetMethodForClass(JNIEnv *env, JAVA_OBJECT clazz, const char *na
 	if(strcmp(sig, "<init>") == 0){
 		// for ctors
         // TODO check correctness etc.
-        JAVA_OBJECT ctor_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz)->{% IMETHOD java.lang.Class:getDeclaredConstructorBySig %}(N::str(sig));
+        JAVA_OBJECT ctor_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz){% IMETHOD java.lang.Class:getDeclaredConstructorBySig %}(N::str(sig));
         auto ctor = GET_OBJECT({% CLASS java.lang.reflect.Method %}, ctor_);
 
         if(ctor){
@@ -1532,7 +1532,7 @@ JAVA_OBJECT jtvmGetMethodForClass(JNIEnv *env, JAVA_OBJECT clazz, const char *na
 	} else {
 		// for methods
     	// TODO check correctness etc.
-    	JAVA_OBJECT method_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz)->{% IMETHOD java.lang.Class:getDeclaredMethodBySig %}(N::str(name), N::str(sig));
+    	JAVA_OBJECT method_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz){% IMETHOD java.lang.Class:getDeclaredMethodBySig %}(N::str(name), N::str(sig));
         auto method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, method_);
 
         if(method){
@@ -1552,7 +1552,7 @@ jmethodID jtvmGetInstanceMethod(JNIEnv *env, JAVA_OBJECT clazz_, const char *nam
 	}
 
 	java_lang_Class* c = NULL;
-	for (c = clazz; c != NULL; c = GET_OBJECT({% CLASS java.lang.Class %}, GET_OBJECT({% CLASS java.lang.Class %}, c)->{% IMETHOD java.lang.Class:getSuperclass %}())) {
+	for (c = clazz; c != NULL; c = GET_OBJECT({% CLASS java.lang.Class %}, GET_OBJECT({% CLASS java.lang.Class %}, c){% IMETHOD java.lang.Class:getSuperclass %}())) {
     	jmethodID method = (jmethodID)jtvmGetMethodForClass(env, clazz, name, sig);
         if(method && !isMethodStatic(method)) return method; //TODO throw exception?
     }
@@ -1570,10 +1570,10 @@ jmethodID JNICALL  GetMethodID(JNIEnv *env, jclass clazz, const char *name, cons
 **/
 static inline jmethodID getRealMethod(JNIEnv* env, jobject obj, jmethodID methodID){
 
-	JAVA_OBJECT clazz = ((JAVA_OBJECT)obj)->{% IMETHOD java.lang.Object:getClass %}();
+	JAVA_OBJECT clazz = ((JAVA_OBJECT)obj){% IMETHOD java.lang.Object:getClass %}();
 	auto method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT) methodID);
 	JAVA_OBJECT containingClazz = method->{% FIELD java.lang.reflect.MethodConstructor:clazz %};
-	if(method->{% IMETHOD java.lang.reflect.MethodConstructor:isPrivate %}() || clazz->{% IMETHOD java.lang.Class:equals %}(containingClazz)){
+	if(method{% IMETHOD java.lang.reflect.MethodConstructor:isPrivate %}() || clazz{% IMETHOD java.lang.Class:equals %}(containingClazz)){
 		return methodID;
 	} else {
 		const char* name = N::istr3(method->{% FIELD java.lang.reflect.MethodConstructor:name %}).c_str();
@@ -1584,14 +1584,14 @@ static inline jmethodID getRealMethod(JNIEnv* env, jobject obj, jmethodID method
 
 jobject jtvmCallObjectInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return (jobject)method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args));
 }
 
 jobject jtvmCallObjectInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return (jobject)method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args));
 }
 
 jobject JNICALL CallObjectMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1612,14 +1612,14 @@ jobject JNICALL CallObjectMethod(JNIEnv* env, jobject obj, jmethodID methodID, .
 
 jboolean jtvmCallBooleanInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxBool(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jboolean jtvmCallBooleanInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxBool(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jboolean JNICALL CallBooleanMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1640,14 +1640,14 @@ jboolean JNICALL CallBooleanMethod(JNIEnv* env, jobject obj, jmethodID methodID,
 
 jbyte jtvmCallByteInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxByte(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jbyte jtvmCallByteInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxByte(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jbyte JNICALL CallByteMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1668,14 +1668,14 @@ jbyte JNICALL CallByteMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) 
 
 jchar jtvmCallCharInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxChar(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jchar jtvmCallCharInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxChar(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jchar JNICALL CallCharMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1696,14 +1696,14 @@ jchar JNICALL CallCharMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) 
 
 jshort jtvmCallShortInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxShort(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jshort jtvmCallShortInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxShort(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jshort JNICALL CallShortMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1724,14 +1724,14 @@ jshort JNICALL CallShortMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...
 
 jint jtvmCallIntInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxInt(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jint jtvmCallIntInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxInt(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jint JNICALL CallIntMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1752,14 +1752,14 @@ jint JNICALL CallIntMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) {
 
 jlong jtvmCallLongInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxLong(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jlong jtvmCallLongInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxLong(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jlong JNICALL CallLongMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1780,14 +1780,14 @@ jlong JNICALL CallLongMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...) 
 
 jfloat jtvmCallFloatInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxFloat(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jfloat jtvmCallFloatInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxFloat(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jfloat JNICALL CallFloatMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1808,14 +1808,14 @@ jfloat JNICALL CallFloatMethod(JNIEnv* env, jobject obj, jmethodID methodID, ...
 
 jdouble jtvmCallDoubleInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxDouble(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jdouble jtvmCallDoubleInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxDouble(method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jdouble JNICALL CallDoubleMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -1836,14 +1836,14 @@ jdouble JNICALL CallDoubleMethod(JNIEnv* env, jobject obj, jmethodID methodID, .
 
 void jtvmCallVoidInstanceMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args){
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, va_listToJavaArray(parameterCount, method, args));
 }
 
 void jtvmCallVoidInstanceMethodA(JNIEnv* env, jobject obj, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    method->{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    method{% IMETHOD java.lang.reflect.Method:invoke %}((JAVA_OBJECT)obj, jvalueToJavaArray(parameterCount, method, args));
 }
 
 void JNICALL  CallVoidMethodV(JNIEnv* env, jobject obj, jmethodID methodID, va_list args) {
@@ -2025,12 +2025,12 @@ void JNICALL  CallNonvirtualVoidMethod(JNIEnv* env, jobject obj, jclass clazz, j
 
 
 jfieldID jtvmGetFieldID({% CLASS java.lang.Class %}* clazz, JAVA_OBJECT name, JAVA_OBJECT sig){
-	auto field_ = clazz->{% IMETHOD java.lang.Class:getField %}(name);
+	auto field_ = clazz{% IMETHOD java.lang.Class:getField %}(name);
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, field_);
 	if(field){
 		JAVA_OBJECT signature = field->{% FIELD java.lang.reflect.Field:signature %};
-		if(signature->{% IMETHOD java.lang.String:equals %}(sig)){
-			if(field->{% IMETHOD java.lang.reflect.Field:isStatic %}()){
+		if(signature{% IMETHOD java.lang.String:equals %}(sig)){
+			if(field{% IMETHOD java.lang.reflect.Field:isStatic %}()){
 				return (jfieldID)field;
 			} else {
 				return NULL;
@@ -2046,96 +2046,96 @@ jfieldID JNICALL  GetFieldID(JNIEnv *env, jclass clazz, const char *name, const 
 
 jobject JNICALL GetObjectField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return (jobject) field->{% IMETHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return (jobject) field{% IMETHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jboolean JNICALL GetBooleanField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jbyte JNICALL GetByteField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jchar JNICALL GetCharField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jshort JNICALL GetShortField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jint JNICALL GetIntField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jlong JNICALL GetLongField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jfloat JNICALL GetFloatField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 jdouble JNICALL GetDoubleField(JNIEnv *env, jobject obj, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(obj));
+	return field{% IMETHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(obj));
 }
 
 void JNICALL  SetObjectField(JNIEnv *env, jobject obj, jfieldID fieldID, jobject value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(obj), reinterpret_cast<JAVA_OBJECT>(value));
+	field{% IMETHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(obj), reinterpret_cast<JAVA_OBJECT>(value));
 }
 void JNICALL  SetBooleanField(JNIEnv *env, jobject obj, jfieldID fieldID, jboolean value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 void JNICALL  SetByteField(JNIEnv *env, jobject obj, jfieldID fieldID, jbyte value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetCharField(JNIEnv *env, jobject obj, jfieldID fieldID, jchar value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetShortField(JNIEnv *env, jobject obj, jfieldID fieldID, jshort value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetIntField(JNIEnv *env, jobject obj, jfieldID fieldID, jint value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetLongField(JNIEnv *env, jobject obj, jfieldID fieldID, jlong value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetFloatField(JNIEnv *env, jobject obj, jfieldID fieldID, jfloat value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 void JNICALL  SetDoubleField(JNIEnv *env, jobject obj, jfieldID fieldID, jdouble value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
+	field{% IMETHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(obj), value);
 }
 
 jobject JNICALL CallStaticObjectMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return (jobject)method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
 }
 
 jmethodID JNICALL  GetStaticMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig){
@@ -2144,8 +2144,8 @@ jmethodID JNICALL  GetStaticMethodID(JNIEnv *env, jclass clazz, const char *name
 
 jobject JNICALL CallStaticObjectMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return (jobject)method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return (jobject)method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
 }
 
 jobject JNICALL CallStaticObjectMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2158,14 +2158,14 @@ jobject JNICALL CallStaticObjectMethod(JNIEnv* env, jclass clazz, jmethodID meth
 
 jboolean JNICALL CallStaticBooleanMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxBool(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jboolean JNICALL CallStaticBooleanMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxBool(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxBool(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jboolean JNICALL CallStaticBooleanMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2178,14 +2178,14 @@ jboolean JNICALL CallStaticBooleanMethod(JNIEnv* env, jclass clazz, jmethodID me
 
 jbyte JNICALL CallStaticByteMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxByte(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jbyte JNICALL CallStaticByteMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxByte(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxByte(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jbyte JNICALL CallStaticByteMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2198,14 +2198,14 @@ jbyte JNICALL CallStaticByteMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 
 jchar JNICALL CallStaticCharMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxChar(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jchar JNICALL CallStaticCharMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxChar(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxChar(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jchar JNICALL CallStaticCharMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2218,14 +2218,14 @@ jchar JNICALL CallStaticCharMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 
 jshort JNICALL CallStaticShortMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxShort(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jshort JNICALL CallStaticShortMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxShort(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxShort(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jshort JNICALL CallStaticShortMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2238,14 +2238,14 @@ jshort JNICALL CallStaticShortMethod(JNIEnv* env, jclass clazz, jmethodID method
 
 jint JNICALL CallStaticIntMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxInt(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jint JNICALL CallStaticIntMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxInt(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxInt(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jint JNICALL CallStaticIntMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2258,14 +2258,14 @@ jint JNICALL CallStaticIntMethod(JNIEnv* env, jclass clazz, jmethodID methodID, 
 
 jlong JNICALL CallStaticLongMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxLong(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jlong JNICALL CallStaticLongMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxLong(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxLong(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jlong JNICALL CallStaticLongMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2278,14 +2278,14 @@ jlong JNICALL CallStaticLongMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 
 jfloat JNICALL CallStaticFloatMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxFloat(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jfloat JNICALL CallStaticFloatMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxFloat(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxFloat(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jfloat JNICALL CallStaticFloatMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2298,14 +2298,14 @@ jfloat JNICALL CallStaticFloatMethod(JNIEnv* env, jclass clazz, jmethodID method
 
 jdouble JNICALL CallStaticDoubleMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxDouble(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args)));
 }
 
 jdouble JNICALL CallStaticDoubleMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue*  args) {
     {% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-    int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    return N::unboxDouble(method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
+    int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    return N::unboxDouble(method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args)));
 }
 
 jdouble JNICALL CallStaticDoubleMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2318,14 +2318,14 @@ jdouble JNICALL CallStaticDoubleMethod(JNIEnv* env, jclass clazz, jmethodID meth
 
 void JNICALL  CallStaticVoidMethodV(JNIEnv* env, jclass clazz, jmethodID methodID, va_list args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, va_listToJavaArray(parameterCount, method, args));
 }
 
 void JNICALL  CallStaticVoidMethodA(JNIEnv* env, jclass clazz, jmethodID methodID, const jvalue* args) {
 	{% CLASS java.lang.reflect.Method %}* method = GET_OBJECT({% CLASS java.lang.reflect.Method %}, (JAVA_OBJECT)methodID);
-	int32_t parameterCount = method->{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
-    method->{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
+	int32_t parameterCount = method{% IMETHOD java.lang.reflect.MethodConstructor:getParameterCount %}();
+    method{% IMETHOD java.lang.reflect.Method:invoke %}(NULL, jvalueToJavaArray(parameterCount, method, args));
 }
 
 void JNICALL  CallStaticVoidMethod(JNIEnv* env, jclass clazz, jmethodID methodID, ...) {
@@ -2337,13 +2337,13 @@ void JNICALL  CallStaticVoidMethod(JNIEnv* env, jclass clazz, jmethodID methodID
 
 
 jfieldID jtvmGetStaticFieldID(JNIEnv *env, JAVA_OBJECT clazz, const char *name, const char *sig){
-	JAVA_OBJECT field_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz)->{% IMETHOD java.lang.Class:getDeclaredField %}(N::str(name));
+	JAVA_OBJECT field_ = GET_OBJECT({% CLASS java.lang.Class %}, clazz){% IMETHOD java.lang.Class:getDeclaredField %}(N::str(name));
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, field_);
 
     if(field){
     	JAVA_OBJECT signature = field->{% FIELD java.lang.reflect.Field:signature %};
     	if(strcmp(N::istr3(signature).c_str(), sig) == 0){
-    		if(field->{% IMETHOD java.lang.reflect.Field:isStatic %}()){
+    		if(field{% IMETHOD java.lang.reflect.Field:isStatic %}()){
     			return (jfieldID)field;
     		}
     	}
@@ -2360,92 +2360,92 @@ jfieldID JNICALL  GetStaticFieldID(JNIEnv *env, jclass clazz, const char *name, 
 
 jobject JNICALL GetStaticObjectField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return (jobject) field->{% IMETHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return (jobject) field{% IMETHOD java.lang.reflect.Field:get %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jboolean JNICALL GetStaticBooleanField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jbyte JNICALL GetStaticByteField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getByte %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jchar JNICALL GetStaticCharField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getChar %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jshort JNICALL GetStaticShortField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getShort %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jint JNICALL GetStaticIntField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getInt %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jlong JNICALL GetStaticLongField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getLong %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jfloat JNICALL GetStaticFloatField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 jdouble JNICALL GetStaticDoubleField(JNIEnv *env, jclass clazz, jfieldID fieldID){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (JAVA_OBJECT)fieldID);
-	return field->{% IMETHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz));
+	return field{% IMETHOD java.lang.reflect.Field:getDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz));
 }
 
 void JNICALL  SetStaticObjectField(JNIEnv *env, jclass clazz, jfieldID fieldID, jobject value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(clazz), reinterpret_cast<JAVA_OBJECT>(value));
+	field{% IMETHOD java.lang.reflect.Field:set %}(reinterpret_cast<JAVA_OBJECT>(clazz), reinterpret_cast<JAVA_OBJECT>(value));
 }
 
 void JNICALL  SetStaticBooleanField(JNIEnv *env, jclass clazz, jfieldID fieldID, jboolean value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setBoolean %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticByteField(JNIEnv *env, jclass clazz, jfieldID fieldID, jbyte value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setByte %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticCharField(JNIEnv *env, jclass clazz, jfieldID fieldID, jchar value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setChar %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticShortField(JNIEnv *env, jclass clazz, jfieldID fieldID, jshort value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setShort %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticIntField(JNIEnv *env, jclass clazz, jfieldID fieldID, jint value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setInt %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticLongField(JNIEnv *env, jclass clazz, jfieldID fieldID, jlong value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setLong %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticFloatField(JNIEnv *env, jclass clazz, jfieldID fieldID, jfloat value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setFloat %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 void JNICALL  SetStaticDoubleField(JNIEnv *env, jclass clazz, jfieldID fieldID, jdouble value){
 	auto field = GET_OBJECT({% CLASS java.lang.reflect.Field %}, (reinterpret_cast<JAVA_OBJECT>(fieldID)));
-	field->{% IMETHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
+	field{% IMETHOD java.lang.reflect.Field:setDouble %}(reinterpret_cast<JAVA_OBJECT>(clazz), value);
 }
 
 
@@ -2776,7 +2776,7 @@ jclass JNICALL FindClass(JNIEnv* env, const char *name){
 }
 
 JAVA_OBJECT jtvmGetObjectClass(JNIEnv *env, JAVA_OBJECT obj){
-	return obj->{% IMETHOD java.lang.Object:getClass %}();
+	return obj{% IMETHOD java.lang.Object:getClass %}();
 }
 
 jclass JNICALL GetObjectClass(JNIEnv *env, jobject obj){
