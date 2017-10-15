@@ -78,20 +78,17 @@ public final class Constructor<T> extends MethodConstructor implements Member, G
 	@JTranscSync
 	native public String toGenericString();
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <TA extends Annotation> TA getAnnotation(Class<TA> annotationClass) {
 		return super.getAnnotation(annotationClass);
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		return super.getDeclaredAnnotations();
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[][] getParameterAnnotations() {
 		return super.getParameterAnnotations();
 	}

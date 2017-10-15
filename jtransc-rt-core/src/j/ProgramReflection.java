@@ -370,26 +370,22 @@ public class ProgramReflection {
 		}
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	static public Annotation[] getClassAnnotations(int classId) {
 		return new Annotation[0];
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	static public Annotation[] getFieldAnnotations(int classId, int fieldId) {
 		return new Annotation[0];
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	static public Annotation[] getMethodAnnotations(int classId, int methodId) {
 		return new Annotation[0];
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	static public Annotation[] getMethodArgumentAnnotations(int classId, int methodId, int argIndex) {
 		return new Annotation[0];
 	}

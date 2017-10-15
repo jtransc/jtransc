@@ -77,8 +77,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return JTranscCoreReflection.getDeclaredConstructors(this);
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] out = JTranscCoreReflection.getDeclaredAnnotations(this);
 		return (out != null) ? out : new Annotation[0];
@@ -635,20 +634,17 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	// Annotations
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getAnnotations() {
 		return this.getDeclaredAnnotations(); // @TODO: Filter just public!
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getDeclaredAnnotation(annotationClass) != null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
 		for (Annotation a : getAnnotations()) {
 			if (a.getClass() == annotationClass) return (A) a;
@@ -656,8 +652,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
 		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getAnnotations()) {
@@ -666,8 +661,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return (A[]) out.toArray(new Annotation[0]);
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
 		for (Annotation a : getDeclaredAnnotations()) {
 			if (a.getClass() == annotationClass) return (A) a;
@@ -675,8 +669,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
 		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getDeclaredAnnotations()) {

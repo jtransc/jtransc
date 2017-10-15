@@ -50,14 +50,12 @@ abstract public class AccessibleObject implements AnnotatedElement {
 	protected AccessibleObject() {
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getAnnotation(annotationClass) != null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		for (Annotation annotation : getDeclaredAnnotations()) {
 			if (annotation.getClass() == annotationClass) return (T) annotation;
@@ -65,13 +63,11 @@ abstract public class AccessibleObject implements AnnotatedElement {
 		return null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getAnnotations() {
 		return this.getDeclaredAnnotations(); // @TODO: Fix me!
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	abstract public Annotation[] getDeclaredAnnotations();
 }

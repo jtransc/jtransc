@@ -37,14 +37,12 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		return false;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		return super.getDeclaredAnnotations();
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[][] getParameterAnnotations() {
 		return super.getParameterAnnotations();
 	}
@@ -117,8 +115,7 @@ public final class Method extends MethodConstructor implements Member, GenericDe
 		return null;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		return super.getAnnotation(annotationClass);
 	}

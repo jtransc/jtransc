@@ -1,14 +1,13 @@
 package java.lang.jtransc;
 
-import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.ds.FastIntMap;
+import j.ClassInfo;
 import j.MemberInfo;
 import j.ProgramReflection;
-import j.ClassInfo;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -156,8 +155,7 @@ public class JTranscCoreReflection {
 		return ProgramReflection.getClassInfoWithName(name);
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public static Annotation[] getDeclaredAnnotations(Class<?> clazz) {
 		ProgramReflection._ensure();
 		int classId = getClassId(clazz);

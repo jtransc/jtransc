@@ -41,8 +41,7 @@ public final class Field extends AccessibleObject implements Member {
 
 	private static final FastIntMap<FastIntMap<Annotation[]>> _annotationsCache = new FastIntMap<FastIntMap<Annotation[]>>();
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] cache;
 		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
@@ -308,8 +307,7 @@ public final class Field extends AccessibleObject implements Member {
 		set(obj, v);
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
 		return super.getAnnotation(annotationClass);
 	}

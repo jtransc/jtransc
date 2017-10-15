@@ -109,8 +109,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 		return newSig;
 	}
 
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] cache;
 		FastIntMap<Annotation[]> map = _annotationsCache.get(clazz.id);
@@ -164,8 +163,7 @@ abstract public class MethodConstructor extends AccessibleObject {
 	}
 
 	@SuppressWarnings("ConstantConditions")
-	//@JTranscSync
-	@JTranscAsync
+	@JTranscSync
 	public Annotation[][] getParameterAnnotations() {
 		Annotation[][] cache;
 		FastIntMap<Annotation[][]> map = _annotationArgsCache.get(clazz.id);
