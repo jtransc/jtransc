@@ -1173,13 +1173,13 @@ class java_lang_Object_base {
 	constructor() {
 	}
 
-	toString = function() {
+	toString() {
 		console.error('unsupported use toStringAsync instead:');
 		console.error((new Error()).stack);
 		return 'unsupported use toStringAsync instead';
 	}
 
-	toStringAsync = async function() {
+	async toStringAsync() {
 		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}()) : null;
 	};
 }
