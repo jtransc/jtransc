@@ -16,26 +16,33 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class ClassNotFoundException extends ReflectiveOperationException {
 	private Throwable ex;
 
+	@JTranscSync
 	public ClassNotFoundException() {
 		super((Throwable) null);  // Disallow initCause
 	}
 
+	@JTranscSync
 	public ClassNotFoundException(String s) {
 		super(s, null);  //  Disallow initCause
 	}
 
+	@JTranscSync
 	public ClassNotFoundException(String s, Throwable ex) {
 		super(s, null);  //  Disallow initCause
 		this.ex = ex;
 	}
 
+	@JTranscSync
 	public Throwable getException() {
 		return ex;
 	}
 
+	@JTranscSync
 	public Throwable getCause() {
 		return ex;
 	}

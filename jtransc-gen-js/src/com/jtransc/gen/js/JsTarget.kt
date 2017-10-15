@@ -502,7 +502,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val AstType.localDeclType: String get() = "var"
 
-	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw new WrappedError(${stm.exception.genExpr()});")
+	override fun genStmThrow(stm: AstStm.THROW, last: Boolean) = Indenter("throw NewWrappedError(${stm.exception.genExpr()});")
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "N.checkCast($e, ${to.targetNameRef})"

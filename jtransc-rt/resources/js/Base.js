@@ -825,7 +825,7 @@ N.checkCast = function(i, clazz) {
 	if (i == null) return null;
 	if (clazz === null) throw new Error('Internal error N.checkCast');
 	if (!N.is(i, clazz)) {
-		throw new WrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+		throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
 	}
 	return i;
 };
@@ -1110,18 +1110,18 @@ N.isNegativeZero = function(x) {
 	return x === 0 && 1 / x === -Infinity;
 };
 
-N.sort = async function(array, start, end, comparator) {
-	var slice = array.slice(start, end);
-	if (comparator === undefined) {
-		slice.sort();
-	} else {
-		throw 'Unsupported N.sort!';
-		//slice.sort(async function(a, b) {
-		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
-		//});
-	}
-	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
-};
+//N.sort = async function(array, start, end, comparator) {
+//	var slice = array.slice(start, end);
+//	if (comparator === undefined) {
+//		slice.sort();
+//	} else {
+//		throw 'Unsupported N.sort!';
+//		//slice.sort(async function(a, b) {
+//		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+//		//});
+//	}
+//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
+//};
 
 N.asyncAsyncStr = async function(v) {
 	if (v == null) return 'null';
@@ -1155,6 +1155,8 @@ N.EMPTY_FUNCTION = function() { }
 
 var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
+	console.error('unsupported use toStringAsync instead:');
+	console.error((new Error()).stack);
 	return 'unsupported use toStringAsync instead';
 }
 java_lang_Object_base.prototype.toStringAsync = async function() {
@@ -1166,11 +1168,15 @@ function WrappedError(javaThrowable) {
 	Error.captureStackTrace(this, this.constructor);
 	this.name = this.constructor.name;
 	this.javaThrowable = javaThrowable;
-	try {
-		this.message = (javaThrowable != null) ? (('' + javaThrowable) || 'JavaError') : 'JavaError';
-	} catch (e) {
-		this.message = 'JavaErrorWithoutValidMessage';
-	}
+	//try {
+	//	this.message = (javaThrowable != null) ? (('' + javaThrowable) || 'JavaError') : 'JavaError';
+	//} catch (e) {
+	this.message = 'JavaErrorWithoutValidMessage';
+	//}
+}
+
+function NewWrappedError(javaThrowable) {
+	return new WrappedError(javaThrowable);
 }
 
 //process.on('uncaughtException', function (exception) { console.error(exception); });

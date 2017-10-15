@@ -18,6 +18,7 @@
 package java.util;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.mem.FastMemByte;
 
@@ -2060,6 +2061,7 @@ public class Arrays {
         return result;
     }
 
+	@JTranscSync
 	static private int checkRange(int start, int end, int originalLength) {
 		//if (end < 0) throw new NegativeArraySizeException(Integer.toString(end));
 		if (start > end) throw new IllegalArgumentException();

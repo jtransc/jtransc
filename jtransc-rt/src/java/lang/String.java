@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
@@ -57,6 +58,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
 	@JTranscMethodBody(target = "as3", value = "this._str = N.charArrayToString(p0, 0, p0.length);")
 	@JTranscMethodBody(target = "dart", value = "this._str = N.charArrayToString(p0);")
+	@JTranscSync
 	private void setChars(char[] chars) {
 		this.value = chars;
 	}
@@ -65,6 +67,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	// Constructors:
 	/////////////////////
 
+	@JTranscSync
 	public String() {
 		setChars(new char[0]);
 	}
@@ -88,6 +91,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@Deprecated
+	@JTranscSync
 	public String(byte[] ascii, int hibyte, int offset, int count) {
 		char[] chars = new char[count];
 		int up = (hibyte << 8);
