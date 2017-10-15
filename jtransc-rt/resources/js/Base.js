@@ -667,9 +667,6 @@ function __createJavaArrays() {
 	};
 }
 
-var N = function() {
-};
-
 var __reints = (function() {
 	var buffer = new ArrayBuffer(8);
 	var doubleArray = new Float64Array(buffer);
@@ -699,461 +696,467 @@ var __reints = (function() {
     };
 })();
 
-N.MIN_INT32 = -2147483648;
+class N {
+	static i(v) { return v | 0; }
 
-N.isLittleEndian = __reints.isLittleEndian();
-N.intBitsToFloat = __reints.intBitsToFloat;
-N.floatToIntBits = __reints.floatToIntBits;
-N.doubleToLongBits = __reints.doubleToLongBits;
-N.longBitsToDouble = __reints.longBitsToDouble;
+	static z2i(v) { return v | 0; }
 
-N.i = function(v) { return v | 0; }
-
-N.z2i = function(v) { return v | 0; }
-
-///////////////////////
-// Conversions
-///////////////////////
-N.i2z = function(v) { return v != 0; }
-N.i2b = function(v) { return ((v << 24) >> 24); }
-N.i2s = function(v) { return ((v << 16) >> 16); }
-N.i2c = function(v) { return v & 0xFFFF; }
-N.i2i = function(v) { return v | 0; }
-N.i2j = function(v) { return Int64.ofInt(v); }
-N.i2f = function(v) { return +v; }
-N.i2d = function(v) { return +v; }
-N.d2j = function(v) {
-	if (isFinite(v)) {
-		return Int64.ofFloat(v);
-	} else {
-		if (isNaN(v)) {
-			return Int64.zero;
-		} else if (v >= 0) {
-			return MAX_INT64;
+	///////////////////////
+	// Conversions
+	///////////////////////
+	static i2z(v) { return v != 0; }
+	static i2b(v) { return ((v << 24) >> 24); }
+	static i2s(v) { return ((v << 16) >> 16); }
+	static i2c(v) { return v & 0xFFFF; }
+	static i2i(v) { return v | 0; }
+	static i2j(v) { return Int64.ofInt(v); }
+	static i2f(v) { return +v; }
+	static i2d(v) { return +v; }
+	static d2j(v) {
+		if (isFinite(v)) {
+			return Int64.ofFloat(v);
 		} else {
-			return MIN_INT64;
+			if (isNaN(v)) {
+				return Int64.zero;
+			} else if (v >= 0) {
+				return MAX_INT64;
+			} else {
+				return MIN_INT64;
+			}
 		}
 	}
-}
-N.d2i = function(v) {
-	if (isFinite(v)) {
-		return v | 0;
-	} else {
-		if (isNaN(v)) {
-			return 0;
-		} else if (v >= 0) {
-			return 2147483647;
+	static d2i(v) {
+		if (isFinite(v)) {
+			return v | 0;
 		} else {
-			return -2147483648;
+			if (isNaN(v)) {
+				return 0;
+			} else if (v >= 0) {
+				return 2147483647;
+			} else {
+				return -2147483648;
+			}
 		}
 	}
-}
 
-N.f2j = function(v) { return N.d2j(v); }
-N.f2i = function(v) { return N.d2i(v); }
+	static f2j(v) { return N.d2j(v); }
+	static f2i(v) { return N.d2i(v); }
 
-///////////////////////
-// Integer
-///////////////////////
-N.ishl = function(a, b) { return (a << b) | 0; };
-N.ishr = function(a, b) { return (a >> b) | 0; };
-N.iushr = function(a, b) { return (a >>> b) | 0; };
+	///////////////////////
+	// Integer
+	///////////////////////
+	static ishl(a, b) { return (a << b) | 0; };
+	static ishr(a, b) { return (a >> b) | 0; };
+	static iushr(a, b) { return (a >>> b) | 0; };
 
-N.idiv = function(a, b) { return Math.floor(a / b) | 0; };
-N.irem = function(a, b) { return (a % b) | 0; };
+	static idiv(a, b) { return Math.floor(a / b) | 0; };
+	static irem(a, b) { return (a % b) | 0; };
 
-///////////////////////
-// Long
-///////////////////////
-N.linit = function() {
-};
-N.lnew = function(high, low) { return Int64.make(high, low); };
-N.lnewFloat = function(v) { return Int64.ofFloat(v); };
-N.ltoFloat = function(v) { return Int64.toFloat(v); };
-N.llow  = function(v) { return v.low; }
-N.lhigh = function(v) { return v.high; }
-N.ladd  = function(a, b) { return Int64.add(a, b); }
-N.lsub  = function(a, b) { return Int64.sub(a, b); }
-N.lmul  = function(a, b) { return Int64.mul(a, b); }
-N.ldiv  = function(a, b) { return Int64.div(a, b); }
-N.lrem  = function(a, b) { return Int64.rem(a, b); }
-N.llcmp = function(a, b) { return Int64.compare(a, b); } // Deprecated
-N.lcmp  = function(a, b) { return Int64.compare(a, b); }
-N.lxor  = function(a, b) { return Int64.xor(a, b); }
-N.land  = function(a, b) { return Int64.and(a, b); }
-N.lor   = function(a, b) { return Int64.or(a, b); }
-N.lshl  = function(a, b) { return Int64.shl(a, b); }
-N.lshr  = function(a, b) { return Int64.shr(a, b); }
-N.lushr = function(a, b) { return Int64.ushr(a, b); }
-N.lneg  = function(a) { return Int64.neg(a); }
-N.linv  = function(a) { return Int64.not(a); }
+	///////////////////////
+	// Long
+	///////////////////////
+	static linit() {};
+	static lnew(high, low) { return Int64.make(high, low); };
+	static lnewFloat(v) { return Int64.ofFloat(v); };
+	static ltoFloat(v) { return Int64.toFloat(v); };
+	static llow (v) { return v.low; }
+	static lhigh(v) { return v.high; }
+	static ladd (a, b) { return Int64.add(a, b); }
+	static lsub (a, b) { return Int64.sub(a, b); }
+	static lmul (a, b) { return Int64.mul(a, b); }
+	static ldiv (a, b) { return Int64.div(a, b); }
+	static lrem (a, b) { return Int64.rem(a, b); }
+	static llcmp(a, b) { return Int64.compare(a, b); } // Deprecated
+	static lcmp (a, b) { return Int64.compare(a, b); }
+	static lxor (a, b) { return Int64.xor(a, b); }
+	static land (a, b) { return Int64.and(a, b); }
+	static lor  (a, b) { return Int64.or(a, b); }
+	static lshl (a, b) { return Int64.shl(a, b); }
+	static lshr (a, b) { return Int64.shr(a, b); }
+	static lushr(a, b) { return Int64.ushr(a, b); }
+	static lneg (a) { return Int64.neg(a); }
+	static linv (a) { return Int64.not(a); }
 
-N.j2i   = function(v) { return Int64.toInt(v); }
-N.j2f   = function(v) { return Int64.toFloat(v); }
-N.j2d   = function(v) { return Int64.toFloat(v); }
+	static j2i(v) { return Int64.toInt(v); }
+	static j2f(v) { return Int64.toFloat(v); }
+	static j2d(v) { return Int64.toFloat(v); }
 
-N.cmp  = function(a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
-N.cmpl = function(a, b) { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
-N.cmpg = function(a, b) { return (isNaN(a) || isNaN(b)) ? 1 : N.cmp(a, b); }
+	static cmp  (a, b) { return (a < b) ? -1 : ((a > b) ? 1 : 0); }
+	static cmpl (a, b) { return (isNaN(a) || isNaN(b)) ? -1 : N.cmp(a, b); }
+	static cmpg (a, b) { return (isNaN(a) || isNaN(b)) ? 1 : N.cmp(a, b); }
 
-
-N.getTime = function() { return Date.now(); };
-N.hrtime = function() {
-	if (onBrowser) {
-		if (typeof performance != 'undefined') {
-			return N.lnewFloat(performance.now() * 1000000.0);
+	static getTime() { return Date.now(); };
+	static hrtime() {
+		if (onBrowser) {
+			if (typeof performance != 'undefined') {
+				return N.lnewFloat(performance.now() * 1000000.0);
+			} else {
+				return N.lmul(N.lnewFloat(Date.now()), N.i2j(1000000));
+			}
+		} else if (onNodeJs) {
+			var hr = process.hrtime()
+			return N.ladd(N.lmul(N.i2j(hr[0]), N.i2j(1000000000)), N.i2j(hr[1]));
 		} else {
-			return N.lmul(N.lnewFloat(Date.now()), N.i2j(1000000));
+			throw 'Unsupported high resolution time';
 		}
-	} else if (onNodeJs) {
-		var hr = process.hrtime()
-		return N.ladd(N.lmul(N.i2j(hr[0]), N.i2j(1000000000)), N.i2j(hr[1]));
-	} else {
-		throw 'Unsupported high resolution time';
+	};
+
+	// @TODO: optimize this again!
+	static is(i, clazz) {
+		if (i instanceof clazz) return true;
+		if (i == null) return false;
+		if (typeof i.__JT__CLASS_ID === 'undefined') return false;
+		return i.__JT__CLASS_IDS.indexOf(clazz.__JT__CLASS_ID) >= 0;
+	};
+
+	static checkCast(i, clazz) {
+		if (i == null) return null;
+		if (clazz === null) throw new Error('Internal error N.checkCast');
+		if (!N.is(i, clazz)) {
+			//throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion ' + i + ' != ' + clazz)));
+			throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+		}
+		return i;
+	};
+
+	static isClassId(i, classId) {
+		if (i == null) return false;
+		if (!i.__JT__CLASS_IDS) return false;
+		return i.__JT__CLASS_IDS.indexOf(classId) >= 0;
+	};
+
+	static istr(str) {
+		if (str == null) return null;
+		if (str instanceof {% CLASS java.lang.String %}) return str._str;
+		return '' + str;
 	}
-};
 
-// @TODO: optimize this again!
-N.is = function(i, clazz) {
-	if (i instanceof clazz) return true;
-	if (i == null) return false;
-	if (typeof i.__JT__CLASS_ID === 'undefined') return false;
-	return i.__JT__CLASS_IDS.indexOf(clazz.__JT__CLASS_ID) >= 0;
-};
-
-N.checkCast = function(i, clazz) {
-	if (i == null) return null;
-	if (clazz === null) throw new Error('Internal error N.checkCast');
-	if (!N.is(i, clazz)) {
-		//throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion ' + i + ' != ' + clazz)));
-		throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+	static ichar(i) {
+		return String.fromCharCode(i);
 	}
-	return i;
-};
 
-N.isClassId = function(i, classId) {
-	if (i == null) return false;
-	if (!i.__JT__CLASS_IDS) return false;
-	return i.__JT__CLASS_IDS.indexOf(classId) >= 0;
-};
+	static str(str) {
+		if (str == null) return null;
+		if (str instanceof {% CLASS java.lang.String %}) return str;
+		var out = new {% CLASS java.lang.String %}();
+		out._str = '' + str;
+		return out;
+	}
 
-N.istr = function(str) {
-	if (str == null) return null;
-	if (str instanceof {% CLASS java.lang.String %}) return str._str;
-	return '' + str;
+	static strLit(str) {
+		// Check cache!
+		return N.str(str);
+	};
+
+	static strLitEscape(str) {
+		// Check cache!
+		return str;
+	};
+
+	static strArray(strs) {
+		if (strs == null) return null;
+		var out = new JA_L(strs.length, '[Ljava/lang/String;');
+		for (var n = 0; n < strs.length; ++n) {
+			out.set(n, N.str(strs[n]));
+		}
+		return out;
+	};
+
+	static strArrayOrEmpty(strs) {
+		var out = N.strArray(strs);
+		return out ? out : [];
+	};
+
+	static istrArray(strs) {
+		if (strs == null) return null;
+		return strs.data.map(function(s) { return N.istr(s); });
+	};
+
+	static async iteratorToArray(it) {
+		if (it == null) return null;
+		var out = [];
+		while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
+			out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+		}
+		return out;
+	};
+
+	static async imap(map) {
+		if (map == null) return null;
+		var obj = {};
+		let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
+
+		for (let n = 0; n < array.length; n++) {
+			let item = array[n];
+			var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
+			var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
+			obj[N.unbox(key)] = N.unbox(value);
+		}
+		return obj;
+	};
+
+	static args() {
+		return onNodeJs ? process.argv.slice(2) : [];
+	};
+
+	static byteArrayToString(array, offset, length, encoding) {
+		if (offset === undefined) offset = 0;
+		if (length === undefined) length = array.length - offset;
+		if (encoding === undefined) encoding = 'UTF-8';
+		// @TODO: Handle encodings!
+		var out = '';
+		for (var n = offset; n < offset + length; ++n) {
+			out += String.fromCharCode(array.get(n));
+		}
+		return out;
+	};
+
+	static intArrayToString(array, offset, length, encoding) {
+		return N.byteArrayToString(array, offset, length, encoding);
+	}
+
+	static charArrayToString(array, offset, length, encoding) {
+		return N.byteArrayToString(array, offset, length, encoding);
+	}
+
+	static stringToCharArray(str) {
+		var out = new JA_C(str.length);
+		for (var n = 0; n < str.length; ++n) out.set(n, str.charCodeAt(n));
+		return out;
+	};
+
+	// @TODO: Make this sync
+	static resolveClass(name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+	};
+
+	static createStackTraceElement(declaringClass, methodName, fileName, lineNumber) {
+		var out = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
+			N.str(declaringClass),
+			N.str(methodName),
+			N.str(fileName),
+			lineNumber | 0
+		);
+		return out;
+	};
+
+	static getStackTrace(error, count) {
+		//var traces = stackTrace()
+		var traces = error.stack.split('\n').slice(count);
+		var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
+		for (var n = 0; n < traces.length; ++n) {
+			out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
+		}
+		return out;
+	};
+
+	static arraycopy(src, srcPos, dest, destPos, length) {
+		//if (length < 0 || srcPos < 0 || destPos < 0 || srcPos + length > src.length || destPos + length > dest.length) N.throwRuntimeException('N.arraycopy out of bounds');
+		var overlapping = src == dest && (destPos > srcPos);
+		src.copyTo(dest, srcPos, destPos, length, overlapping);
+	};
+
+	static isInstanceOfClass(obj, javaClass) {
+		if (obj == null) return false;
+		if (javaClass == null) return false;
+		var clazz = jtranscClasses[N.istr(javaClass._name)];
+		if (clazz == null) return false;
+		return N.is(obj, clazz);
+	};
+
+	static identityHashCode(p0) {
+		return (p0 != null) ? p0.$JS$ID$ : 0;
+	};
+
+	static fillSecureRandomBytes(array) {
+		var buf;
+
+		if (onNodeJs) {
+			buf = require('crypto').randomBytes(256);
+		} else {
+			buf = new Uint8Array(array.length);
+			window.crypto.getRandomValues(buf);
+		}
+
+		for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
+	};
+
+	static boxVoid(value) { return null; }
+	static boxBool(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+	static boxByte(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+	static boxShort(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+	static boxChar(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+	static boxInt(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+	static boxLong(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	static boxFloat(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	static boxDouble(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	static boxString(value) { return (value != null) ? N.str(value) : null; }
+	static boxWrapped(value) { return N.wrap(value); }
+
+	static unboxVoid      (value) { return null; }
+	static unboxBool      (value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
+	static unboxByte      (value) { return value["{% FIELD java.lang.Byte:value:B %}"]; }
+	static unboxShort     (value) { return value["{% FIELD java.lang.Short:value:S %}"]; }
+	static unboxChar      (value) { return value["{% FIELD java.lang.Character:value:C %}"]; }
+	static unboxInt       (value) { return value["{% FIELD java.lang.Integer:value:I %}"]; }
+	static unboxLong      (value) { return value["{% FIELD java.lang.Long:value:J %}"]; }
+	static unboxFloat     (value) { return value["{% FIELD java.lang.Float:value:F %}"]; }
+	static unboxDouble    (value) { return value["{% FIELD java.lang.Double:value:D %}"]; }
+	static unboxString    (value) { return N.istr(value); }
+	static unboxWrapped   (value) { return value._wrapped; }
+
+	static unboxByteArray(value) {
+		return value.data;
+	};
+
+	static unbox(value, throwOnInvalid) {
+		if (N.is(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
+		if (N.is(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);
+		if (N.is(value, {% CLASS java.lang.Short %})) return N.unboxShort(value);
+		if (N.is(value, {% CLASS java.lang.Character %})) return N.unboxChar(value);
+		if (N.is(value, {% CLASS java.lang.Integer %})) return N.unboxInt(value);
+		if (N.is(value, {% CLASS java.lang.Long %})) return N.unboxLong(value);
+		if (N.is(value, {% CLASS java.lang.Float %})) return N.unboxFloat(value);
+		if (N.is(value, {% CLASS java.lang.Double %})) return N.unboxDouble(value);
+		if (N.is(value, {% CLASS java.lang.String %})) return N.unboxString(value);
+		if (value instanceof JA_B) return N.unboxByteArray(value);
+		if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return N.unboxWrapped(value);
+		if (throwOnInvalid) throw 'Was not able to unbox "' + value + '"';
+		return value;
+	}
+
+	static wrap(value) {
+		var out = new {% CLASS com.jtransc.JTranscWrapped %}();
+		out._wrapped = value;
+		return out;
+	}
+
+	static createRuntimeException(msg) {
+		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	};
+
+	static throwRuntimeException(msg) {
+		throw N.createRuntimeException(msg);
+		//throw msg;
+	};
+
+	static boxWithType(clazz, value) {
+		if (value instanceof JA_0) return value;
+		if (value instanceof {% CLASS java.lang.Object %}) return value;
+
+		var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
+
+		switch (clazzName) {
+			case 'void'   : return N.boxVoid();
+			case 'boolean': return N.boxBool(value);
+			case 'byte'   : return N.boxByte(value);
+			case 'short'  : return N.boxShort(value);
+			case 'char'   : return N.boxChar(value);
+			case 'int'    : return N.boxInt(value);
+			case 'long'   : return N.boxLong(value);
+			case 'float'  : return N.boxFloat(value);
+			case 'double' : return N.boxDouble(value);
+		}
+
+		console.log("WARNING: Don't know how to unbox class '" + clazzName + "' with value '" + value + "'", value);
+		return value;
+	};
+
+	static unboxWithTypeWhenRequired(clazz, value) {
+		var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
+
+		switch (clazzName) {
+			case 'void'   :
+			case 'boolean':
+			case 'byte'   :
+			case 'short'  :
+			case 'char'   :
+			case 'int'    :
+			case 'long'   :
+			case 'float'  :
+			case 'double' :
+				return N.unbox(value);
+		}
+
+		return value;
+	};
+
+	static unboxArray(array) {
+		return array.map(function(it) { return N.unbox(it); });
+	};
+
+	static boxArray(array) {
+		return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
+	};
+
+	static box(v) {
+		if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
+		if (v instanceof Int64) return N.boxLong(v);
+		if (typeof v == 'string') return N.str(v);
+		if ((v|0) == v) return N.boxInt(v);
+		if (+(v) == v) return N.boxFloat(v);
+		if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
+		return N.wrap(v);
+	};
+
+	static isNegativeZero(x) { return x === 0 && 1 / x === -Infinity; };
+
+	//N.sort = async function(array, start, end, comparator) {
+	//	var slice = array.slice(start, end);
+	//	if (comparator === undefined) {
+	//		slice.sort();
+	//	} else {
+	//		throw 'Unsupported N.sort!';
+	//		//slice.sort(async function(a, b) {
+	//		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+	//		//});
+	//	}
+	//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
+	//};
+
+	static async asyncAsyncStr(v) {
+		if (v == null) return 'null';
+		if (typeof v.toStringAsync !== 'undefined') {
+			return N.istr(await(v.toStringAsync()));
+		}
+		return '' + v;
+	};
+
+	static getByteArray(v) {
+		if (v instanceof JA_B) return v;
+		var length = v.byteLength || v.length
+		if (v.buffer) v = v.buffer;
+		var out = new JA_B(length);
+		out.data = new Int8Array(v);
+		return out;
+	};
+
+	static clone(obj) {
+		if (obj == null) return null;
+		var temp = Object.create(obj);
+		temp{% IFIELD java.lang.Object:$$id %} = 0;
+		return temp;
+	};
+
+	static methodWithoutBody(name) {
+		throw 'Method not implemented: native or abstract: ' + name;
+	};
+
+	static EMPTY_FUNCTION() { }
+
+	static get MIN_INT32() { return -2147483648; }
+    static get isLittleEndian() { return __reints.isLittleEndian(); }
+    static get intBitsToFloat() { return __reints.intBitsToFloat; }
+    static get floatToIntBits() { return __reints.floatToIntBits; }
+    static get doubleToLongBits() { return __reints.doubleToLongBits; }
+    static get longBitsToDouble() { return __reints.longBitsToDouble; }
 }
-
-N.ichar = function(i) {
-	return String.fromCharCode(i);
-}
-
-N.str = function(str) {
-	if (str == null) return null;
-	if (str instanceof {% CLASS java.lang.String %}) return str;
-	var out = new {% CLASS java.lang.String %}();
-	out._str = '' + str;
-	return out;
-}
-
-N.strLit = function(str) {
-	// Check cache!
-	return N.str(str);
-};
-
-N.strLitEscape = function(str) {
-	// Check cache!
-	return str;
-};
-
-N.strArray = function(strs) {
-	if (strs == null) return null;
-	var out = new JA_L(strs.length, '[Ljava/lang/String;');
-	for (var n = 0; n < strs.length; ++n) {
-		out.set(n, N.str(strs[n]));
-	}
-	return out;
-};
-
-N.strArrayOrEmpty = function(strs) {
-	var out = N.strArray(strs);
-	return out ? out : [];
-};
-
-N.istrArray = function(strs) {
-	if (strs == null) return null;
-	return strs.data.map(function(s) { return N.istr(s); });
-};
-
-N.iteratorToArray = async function(it) {
-	if (it == null) return null;
-	var out = [];
-	while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
-		out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
-	}
-	return out;
-};
-
-N.imap = async function(map) {
-	if (map == null) return null;
-	var obj = {};
-	let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
-
-	for (let n = 0; n < array.length; n++) {
-		let item = array[n];
-		var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
-		var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
-		obj[N.unbox(key)] = N.unbox(value);
-	}
-	return obj;
-};
-
-N.args = function() {
-	return onNodeJs ? process.argv.slice(2) : [];
-};
-
-N.byteArrayToString = N.intArrayToString = N.charArrayToString = function(array, offset, length, encoding) {
-	if (offset === undefined) offset = 0;
-	if (length === undefined) length = array.length - offset;
-	if (encoding === undefined) encoding = 'UTF-8';
-	// @TODO: Handle encodings!
-	var out = '';
-	for (var n = offset; n < offset + length; ++n) {
-		out += String.fromCharCode(array.get(n));
-	}
-	return out;
-};
-
-N.stringToCharArray = function(str) {
-	var out = new JA_C(str.length);
-	for (var n = 0; n < str.length; ++n) out.set(n, str.charCodeAt(n));
-	return out;
-};
-
-// @TODO: Make this sync
-N.resolveClass = function(name) {
-	return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
-};
-
-N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
-	var out = {% CONSTRUCTOR java.lang.StackTraceElement:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V %}(
-		N.str(declaringClass),
-		N.str(methodName),
-		N.str(fileName),
-		lineNumber | 0
-	);
-	return out;
-};
 
 function stackTrace() {
-    var err = new Error();
-    return err.stack.split('\n').slice(3);
+	var err = new Error();
+	return err.stack.split('\n').slice(3);
 }
 
-N.getStackTrace = function(error, count) {
-	//var traces = stackTrace()
-	var traces = error.stack.split('\n').slice(count);
-	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
-	for (var n = 0; n < traces.length; ++n) {
-		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
-	}
-	return out;
-};
-
-N.arraycopy = function(src, srcPos, dest, destPos, length) {
-	//if (length < 0 || srcPos < 0 || destPos < 0 || srcPos + length > src.length || destPos + length > dest.length) N.throwRuntimeException('N.arraycopy out of bounds');
-	var overlapping = src == dest && (destPos > srcPos);
-	src.copyTo(dest, srcPos, destPos, length, overlapping);
-};
-
-N.isInstanceOfClass = function(obj, javaClass) {
-	if (obj == null) return false;
-	if (javaClass == null) return false;
-	var clazz = jtranscClasses[N.istr(javaClass._name)];
-	if (clazz == null) return false;
-	return N.is(obj, clazz);
-};
-
-N.identityHashCode = function(p0) {
-	return (p0 != null) ? p0.$JS$ID$ : 0;
-};
-
-N.fillSecureRandomBytes = function(array) {
-	var buf;
-
-	if (onNodeJs) {
-		buf = require('crypto').randomBytes(256);
-	} else {
-		buf = new Uint8Array(array.length);
-		window.crypto.getRandomValues(buf);
-	}
-
-	for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
-};
-
-N.boxVoid = function(value) { return null; }
-N.boxBool = function(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-N.boxByte = function(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-N.boxShort = function(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-N.boxChar = function(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-N.boxInt = function(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-N.boxLong = function(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
-N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
-N.boxWrapped = function(value) { return N.wrap(value); }
-
-N.unboxVoid      = function(value) { return null; }
-N.unboxBool      = function(value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
-N.unboxByte      = function(value) { return value["{% FIELD java.lang.Byte:value:B %}"]; }
-N.unboxShort     = function(value) { return value["{% FIELD java.lang.Short:value:S %}"]; }
-N.unboxChar      = function(value) { return value["{% FIELD java.lang.Character:value:C %}"]; }
-N.unboxInt       = function(value) { return value["{% FIELD java.lang.Integer:value:I %}"]; }
-N.unboxLong      = function(value) { return value["{% FIELD java.lang.Long:value:J %}"]; }
-N.unboxFloat     = function(value) { return value["{% FIELD java.lang.Float:value:F %}"]; }
-N.unboxDouble    = function(value) { return value["{% FIELD java.lang.Double:value:D %}"]; }
-N.unboxString    = function(value) { return N.istr(value); }
-N.unboxWrapped   = function(value) { return value._wrapped; }
-
-N.unboxByteArray = function(value) {
-	return value.data;
-};
-
-N.unbox = function(value, throwOnInvalid) {
-	if (N.is(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
-	if (N.is(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);
-	if (N.is(value, {% CLASS java.lang.Short %})) return N.unboxShort(value);
-	if (N.is(value, {% CLASS java.lang.Character %})) return N.unboxChar(value);
-	if (N.is(value, {% CLASS java.lang.Integer %})) return N.unboxInt(value);
-	if (N.is(value, {% CLASS java.lang.Long %})) return N.unboxLong(value);
-	if (N.is(value, {% CLASS java.lang.Float %})) return N.unboxFloat(value);
-	if (N.is(value, {% CLASS java.lang.Double %})) return N.unboxDouble(value);
-	if (N.is(value, {% CLASS java.lang.String %})) return N.unboxString(value);
-	if (value instanceof JA_B) return N.unboxByteArray(value);
-	if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return N.unboxWrapped(value);
-	if (throwOnInvalid) throw 'Was not able to unbox "' + value + '"';
-	return value;
-}
-
-N.wrap = function(value) {
-	var out = new {% CLASS com.jtransc.JTranscWrapped %}();
-	out._wrapped = value;
-	return out;
-}
-
-N.createRuntimeException = function(msg) {
-	return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
-};
-
-N.throwRuntimeException = function(msg) {
-	throw N.createRuntimeException(msg);
-	//throw msg;
-};
-
-N.boxWithType = function(clazz, value) {
-	if (value instanceof JA_0) return value;
-	if (value instanceof {% CLASS java.lang.Object %}) return value;
-
-	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
-
-	switch (clazzName) {
-		case 'void'   : return N.boxVoid();
-		case 'boolean': return N.boxBool(value);
-		case 'byte'   : return N.boxByte(value);
-		case 'short'  : return N.boxShort(value);
-		case 'char'   : return N.boxChar(value);
-		case 'int'    : return N.boxInt(value);
-		case 'long'   : return N.boxLong(value);
-		case 'float'  : return N.boxFloat(value);
-		case 'double' : return N.boxDouble(value);
-	}
-
-	console.log("WARNING: Don't know how to unbox class '" + clazzName + "' with value '" + value + "'", value);
-	return value;
-};
-
-N.unboxWithTypeWhenRequired = function(clazz, value) {
-	var clazzName = N.istr(clazz{% IFIELD java.lang.Class:name %});
-
-	switch (clazzName) {
-		case 'void'   :
-		case 'boolean':
-		case 'byte'   :
-		case 'short'  :
-		case 'char'   :
-		case 'int'    :
-		case 'long'   :
-		case 'float'  :
-		case 'double' :
-			return N.unbox(value);
-	}
-
-	return value;
-};
-
-N.unboxArray = function(array) {
-	return array.map(function(it) { return N.unbox(it); });
-};
-
-N.boxArray = function(array) {
-	return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
-};
-
-N.box = function(v) {
-	if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
-	if (v instanceof Int64) return N.boxLong(v);
-	if (typeof v == 'string') return N.str(v);
-	if ((v|0) == v) return N.boxInt(v);
-	if (+(v) == v) return N.boxFloat(v);
-	if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
-	return N.wrap(v);
-};
-
-N.isNegativeZero = function(x) {
-	return x === 0 && 1 / x === -Infinity;
-};
-
-//N.sort = async function(array, start, end, comparator) {
-//	var slice = array.slice(start, end);
-//	if (comparator === undefined) {
-//		slice.sort();
-//	} else {
-//		throw 'Unsupported N.sort!';
-//		//slice.sort(async function(a, b) {
-//		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
-//		//});
-//	}
-//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
-//};
-
-N.asyncAsyncStr = async function(v) {
-	if (v == null) return 'null';
-	if (typeof v.toStringAsync !== 'undefined') {
-		return N.istr(await(v.toStringAsync()));
-	}
-	return '' + v;
-};
-
-N.getByteArray = function(v) {
-	if (v instanceof JA_B) return v;
-	var length = v.byteLength || v.length
-	if (v.buffer) v = v.buffer;
-	var out = new JA_B(length);
-	out.data = new Int8Array(v);
-	return out;
-};
-
-N.clone = function(obj) {
-	if (obj == null) return null;
-	var temp = Object.create(obj);
-	temp{% IFIELD java.lang.Object:$$id %} = 0;
-	return temp;
-};
-
-N.methodWithoutBody = function(name) {
-	throw 'Method not implemented: native or abstract: ' + name;
-};
-
-N.EMPTY_FUNCTION = function() { }
 
 var java_lang_Object_base = function() { };
 java_lang_Object_base.prototype.toString = function() {
