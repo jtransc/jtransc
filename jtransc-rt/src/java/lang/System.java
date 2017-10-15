@@ -263,8 +263,8 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBodyPre("var key = p0._str;")
-	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getEnv(p0));")
+	@HaxeMethodBodyPre("var key = N.istr(p0);")
+	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getEnv(key));")
 	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[N.istr(p0)] : null\"));")
 	@HaxeMethodBody("return N.str(null);")
 	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[N.istr(p0)] : null);")
