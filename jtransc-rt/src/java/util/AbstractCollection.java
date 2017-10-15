@@ -17,6 +17,8 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscSync;
+
 /**
  * Class {@code AbstractCollection} is an abstract implementation of the {@code
  * Collection} interface. A subclass must implement the abstract methods {@code
@@ -31,9 +33,11 @@ public abstract class AbstractCollection<E> implements Collection<E> {
     /**
      * Constructs a new instance of this AbstractCollection.
      */
+	@JTranscSync
     protected AbstractCollection() {
     }
 
+	@JTranscSync
     public boolean add(E object) {
         throw new UnsupportedOperationException();
     }

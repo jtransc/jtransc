@@ -35,19 +35,25 @@ public final class Float extends Number implements Comparable<Float> {
 	public static final int BYTES = SIZE / Byte.SIZE;
 	public static final Class<Float> TYPE = (Class<Float>) Class.getPrimitiveClass("float");
 
+	private final float value;
+
+	@JTranscSync
 	public static float parseFloat(String value) throws NumberFormatException {
 		return (float)Double.parseDouble(value);
 	}
 
+	@JTranscSync
 	public static String toString(float v) {
 		return JTranscStringTools.toString(v);
 	}
 
 	// @TODO: CHECK!
+	@JTranscSync
 	public static String toHexString(float value) {
 		return Double.toHexString(value);
 	}
 
+	@JTranscSync
 	public static Float valueOf(String value) throws NumberFormatException {
 		return valueOf(parseFloat(value));
 	}
@@ -61,6 +67,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.isNaN(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Single.IsNaN(p0);")
+	@JTranscSync
 	public static boolean isNaN(float value) {
 		return Double.isNaN((double)value);
 	}
@@ -68,19 +75,20 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "d", value = "return to!bool(std.math.isFinite(p0));")
 	@JTranscMethodBody(target = "cs", value = "return !float.IsNaN(p0) && !float.IsInfinity(p0);")
+	@JTranscSync
 	private static boolean _isFinite(float v) {
 		return Double.isFinite(v);
 	}
 
+	@JTranscSync
 	public static boolean isInfinite(float v) {
 		return !isNaN(v) && !_isFinite(v);
 	}
 
+	@JTranscSync
 	public static boolean isFinite(float d) {
 		return _isFinite(d);
 	}
-
-	private final float value;
 
 	@JTranscSync
 	public Float(float value) {
@@ -92,6 +100,7 @@ public final class Float extends Number implements Comparable<Float> {
 		this.value = (float) value;
 	}
 
+	@JTranscSync
 	public Float(String s) throws NumberFormatException {
 		value = parseFloat(s);
 	}
@@ -142,14 +151,17 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return Float.hashCode(value);
 	}
 
+	@JTranscSync
 	public static int hashCode(float value) {
 		return floatToIntBits(value);
 	}
 
+	@JTranscSync
 	public boolean equals(Object obj) {
 		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
@@ -187,6 +199,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscSync
 	native public static float intBitsToFloat(int bits);
 
+	@JTranscSync
 	public int compareTo(Float that) {
 		return compare(this.value, that.value);
 	}

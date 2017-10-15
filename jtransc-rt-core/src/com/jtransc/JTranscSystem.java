@@ -1,9 +1,12 @@
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+import com.jtransc.io.JTranscConsole;
 import com.jtransc.target.Js;
 import com.jtransc.time.JTranscClock;
 
@@ -32,11 +35,13 @@ public class JTranscSystem {
 		return elapsedTime(start, fastTime());
 	}
 
+	@JTranscSync
 	static public int elapsedTime(int first, int second) {
 		// @TODO: Check overflow!
 		return second - first;
 	}
 
+	@JTranscSync
 	static public double elapsedTime(double first, double second) {
 		// @TODO: Check overflow!
 		return second - first;
@@ -82,11 +87,13 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "dart", value = "return true;"),
 	})
 	@SuppressWarnings("all")
+	@JTranscSync
 	static public boolean usingJTransc() {
 		return FALSE;
 	}
 
 	// Alias for consistency
+	@JTranscSync
 	static public boolean isJTransc() {
 		return usingJTransc();
 	}
@@ -96,6 +103,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "js", value = "debugger;"),
 		@JTranscMethodBody(target = "cs", value = "System.Diagnostics.Debugger.Break();"),
 	})
+	@JTranscSync
 	static public void debugger() {
 		//System.out.println("debugger");
 		//throw new Error("Debugger");
@@ -106,9 +114,10 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "js", value = "if (!p0) debugger;"),
 		@JTranscMethodBody(target = "cs", value = "if (!p0) System.Diagnostics.Debugger.Break();"),
 	})
+	@JTranscSync
 	static public void assert2(boolean trueCond) {
 		if (!trueCond) {
-			System.out.println("debugger");
+			JTranscConsole.logString("debugger");
 			throw new Error("Debugger");
 		}
 	}
@@ -121,6 +130,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
 		@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");"),
 	})
+	@JTranscSync
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
 		if (isHaxe()) {
@@ -143,11 +153,13 @@ public class JTranscSystem {
 	}
 
 	@HaxeMethodBody("return true;")
+	@JTranscSync
 	public static boolean isHaxe() {
 		return FALSE;
 	}
 
 	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscSync
 	public static boolean isPureJs() {
 		return FALSE;
 	}
@@ -161,16 +173,19 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
 		@JTranscMethodBody(target = "cs", value = "return true;"),
 	})
+	@JTranscSync
 	public static boolean isSys() {
 		return TRUE;
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return true;")
+	@JTranscSync
 	public static boolean isCpp() {
 		return FALSE;
 	}
 
 	@JTranscMethodBody(target = "d", value = "return true;")
+	@JTranscSync
 	public static boolean isD() {
 		return FALSE;
 	}
@@ -180,14 +195,17 @@ public class JTranscSystem {
 		@HaxeMethodBody("return false;"),
 	})
 	@JTranscMethodBody(target = "cs", value = "return true;")
+	@JTranscSync
 	public static boolean isCsharp() {
 		return FALSE;
 	}
 
+	@JTranscSync
 	public static boolean isJvm() {
 		return !isJTransc();
 	}
 
+	@JTranscSync
 	public static boolean isJava() {
 		return isJvm();
 	}
@@ -197,10 +215,12 @@ public class JTranscSystem {
 		@HaxeMethodBody("return false;"),
 	})
 	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscSync
 	public static boolean isJs() {
 		return FALSE;
 	}
 
+	@JTranscSync
 	public static boolean isJsNode() {
 		if (isJs()) {
 			return Js.z_raw("(typeof module !== 'undefined' && module.exports) != false");
@@ -209,6 +229,7 @@ public class JTranscSystem {
 		}
 	}
 
+	@JTranscSync
 	public static boolean isJsBrowser() {
 		if (isJs()) {
 			return Js.z_raw("typeof window != \"undefined\"");
@@ -218,31 +239,37 @@ public class JTranscSystem {
 	}
 
 	@HaxeMethodBody(target = "flash", value = "return true;")
+	@JTranscSync
 	public static boolean isSwf() {
 		return FALSE;
 	}
 
 	@HaxeMethodBody(target = "neko", value = "return true;")
+	@JTranscSync
 	public static boolean isNeko() {
 		return FALSE;
 	}
 
 	@HaxeMethodBody(target = "php", value = "return true;")
+	@JTranscSync
 	public static boolean isPhp() {
 		return FALSE;
 	}
 
 	@HaxeMethodBody(target = "python", value = "return true;")
+	@JTranscSync
 	public static boolean isPython() {
 		return FALSE;
 	}
 
 	@JTranscMethodBody(target = "as3", value = "return true;")
+	@JTranscSync
 	public static boolean isAs3() {
 		return FALSE;
 	}
 
 	@JTranscMethodBody(target = "dart", value = "return true;")
+	@JTranscSync
 	public static boolean isDart() {
 		return FALSE;
 	}
@@ -260,6 +287,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
 		@JTranscMethodBody(target = "dart", value = "return N.str(Platform.operatingSystem);"),
 	})
+	@JTranscSync
 	static private String getOSRaw() {
 		if (JTranscSystem.isJTransc()) {
 			return "unknown-os";
@@ -268,6 +296,7 @@ public class JTranscSystem {
 		}
 	}
 
+	@JTranscSync
 	static public String getOS() {
 		String os = getOSRaw().toLowerCase();
 		if (os.startsWith("win")) return "windows";
@@ -328,6 +357,7 @@ public class JTranscSystem {
 		return !isWindows();
 	}
 
+	@JTranscSync
 	static public String getTimeZone() {
 		return "GMT";
 	}
@@ -337,6 +367,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "js", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "debug { return true; } return false;"),
 	})
+	@JTranscSync
 	public static boolean isDebug() {
 		return FALSE;
 	}
@@ -347,6 +378,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");"),
 	})
+	@JTranscSync
 	public static String getRuntimeName() {
 		return "java";
 	}
@@ -357,6 +389,7 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");"),
 		@JTranscMethodBody(target = "d", value = "return N.str(\"/\");"),
 	})
+	@JTranscAsync
 	public static String getJavaHome() {
 		return System.getenv("java.home");
 	}
@@ -366,33 +399,39 @@ public class JTranscSystem {
 		@JTranscMethodBody(target = "php", value = "return true;"),
 		@JTranscMethodBody(target = "as3", value = "return true;"),
 	})
+	@JTranscSync
 	public static boolean isEmulatedLong() {
 		return FALSE;
 	}
 
-
+	@JTranscSync
 	public static String fileSeparator() {
 		return JTranscSystemProperties.fileSeparator();
 	}
 
+	@JTranscSync
 	public static String pathSeparator() {
 		return JTranscSystemProperties.pathSeparator();
 	}
 
+	@JTranscSync
 	public static String lineSeparator() {
 		return JTranscSystemProperties.lineSeparator();
 	}
 
+	@JTranscAsync
 	static public String getUserHome() {
 		return JTranscSystemProperties.userHome();
 	}
 
+	@JTranscSync
 	static public void checkInJVM(String reason) {
 		if (JTranscSystem.isJTransc()) {
 			throw new RuntimeException("Not expected JTransc: " + reason);
 		}
 	}
 
+	@JTranscSync
 	static public boolean hasEventLoop() {
 		return isDart() || isJs() || isAs3();
 	}

@@ -3,7 +3,10 @@ package com.jtransc.ast.async
 import com.jtransc.annotation.JTranscSync
 import com.jtransc.ast.AstMethod
 import com.jtransc.ast.contains
+import com.jtransc.ast.isAbstract
 import com.jtransc.gen.TargetName
+import com.jtransc.lang.extraProperty
+import com.jtransc.lang.weakExtra
 
 class AsyncAnalyzer(val target: TargetName) {
 	/*
@@ -29,8 +32,19 @@ class AsyncAnalyzer(val target: TargetName) {
 	}
 	*/
 
+	var AstMethod.isAsync: Boolean? by extraProperty { null }
+
 	fun isMethodAsync(m: AstMethod): Boolean {
+		if (m.isAsync == null) {
+			m.isAsync = isMethodAsyncUncached(m)
+		}
+		return m.isAsync!!
+	}
+
+	fun isMethodAsyncUncached(m: AstMethod): Boolean {
 		// @TODO: Implement this!
+
+		if (m.asyncOpt != null) return m.asyncOpt!!
 
 		// If this method is overriding other method, or has overrides or it is implementing an interface, we have
 		// to check all those methods and if any one of them is asynchronous, we have to propagate here too.
@@ -45,6 +59,10 @@ class AsyncAnalyzer(val target: TargetName) {
 			return false
 		}
 
+		// No method calls and has body, so probably no method calls.
+		//if (m.hasBody && m.bodyDependencies.methods.isEmpty()) return false
+
+		// Not calling other methods, so must be synchronous!
 		return true
 	}
 }

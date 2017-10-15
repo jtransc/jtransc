@@ -16,11 +16,15 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class NoSuchFieldException extends ReflectiveOperationException {
+	@JTranscSync
 	public NoSuchFieldException() {
 		super();
 	}
 
+	@JTranscSync
 	public NoSuchFieldException(String s) {
 		super(s);
 	}

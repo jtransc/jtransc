@@ -16,12 +16,20 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 class _ClassInternalUtils {
 	static private ClassLoader classLoader;
 
+	@JTranscSync
+	private _ClassInternalUtils() {
+	}
+
+	@JTranscSync
 	static ClassLoader getSystemClassLoader() {
-		if (classLoader == null) classLoader = new ClassLoader() {
-		};
+		if (classLoader == null) {
+			classLoader = new DummyClassLoader();
+		}
 		return classLoader;
 	}
 }

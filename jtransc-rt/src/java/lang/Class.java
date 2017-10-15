@@ -17,7 +17,9 @@
 package java.lang;
 
 import com.jtransc.JTranscSystem;
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.JTranscVisible;
 import com.jtransc.ds.FastStringMap;
 import com.jtransc.io.JTranscConsole;
@@ -28,9 +30,6 @@ import java.lang.annotation.Annotation;
 import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
 import java.lang.AnnotatedElement;
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "unused", "TryWithIdenticalCatches", "SuspiciousToArrayCall"})
@@ -57,36 +56,45 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
 	// Returns an array of Field objects reflecting all the fields declared by the class or interface represented by this Class object. This includes public, protected, default (package) access, and private fields, but excludes inherited fields. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface declares no fields, or if this Class object represents a primitive type, an array class, or void.
+	@JTranscSync
 	public Field[] getDeclaredFields() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredFields(this);
 	}
 
+	@JTranscSync
 	public Method[] getDeclaredMethods() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredMethods(this);
 	}
 
+	@JTranscSync
 	public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
 		Constructor<?>[] constructors = _getDeclaredConstructors();
 		return (constructors != null) ? constructors : new Constructor[0];
 	}
 
+	@JTranscSync
 	private Constructor<?>[] _getDeclaredConstructors() throws SecurityException {
 		return JTranscCoreReflection.getDeclaredConstructors(this);
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public Annotation[] getDeclaredAnnotations() {
 		Annotation[] out = JTranscCoreReflection.getDeclaredAnnotations(this);
 		return (out != null) ? out : new Annotation[0];
 	}
 
+	@JTranscSync
 	public Class<? super T> getSuperclass() {
 		return (Class<? super T>) forName0(getSuperclassName());
 	}
 
+	@JTranscSync
 	private String getSuperclassName() {
 		return JTranscCoreReflection.getClassNameById(JTranscCoreReflection.getSuperclassId(JTranscCoreReflection.getClassId(this)));
 	}
 
+	@JTranscSync
 	public Class<?>[] getInterfaces() {
 		String[] names = getInterfaceNames();
 		Class<?>[] out = new Class<?>[names.length];
@@ -94,6 +102,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return out;
 	}
 
+	@JTranscSync
 	private String[] getInterfaceNames() {
 		int[] ids = JTranscCoreReflection.getInterfaceIds(this.id);
 		String[] out = new String[ids.length];
@@ -101,11 +110,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return out;
 	}
 
+	@JTranscSync
 	public int getModifiers() {
 		// Remove ACC_SUPER?
 		return modifiers & ~0x20;
 	}
 
+	@JTranscAsync
 	public T newInstance() throws InstantiationException, IllegalAccessException {
 		try {
 			Constructor<T> constructor = getDeclaredConstructor();
@@ -117,39 +128,51 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
+	@JTranscSync
 	native public Class<?>[] getDeclaredClasses() throws SecurityException;
 
+	@JTranscSync
 	native public Method getEnclosingMethod();
 
+	@JTranscSync
 	native public Constructor<?> getEnclosingConstructor() throws SecurityException;
 
+	@JTranscSync
 	native public java.net.URL getResource(String name);
 
+	@JTranscSync
 	public boolean isInstance(Object obj) {
 		//return !this.isPrimitive() && (obj != null) && this.isAssignableFrom(obj.getClass());
 		return (obj != null) && this.isAssignableFrom(obj.getClass());
 	}
 
+	@JTranscSync
 	native public InputStream getResourceAsStream(String name);
 
+	@JTranscSync
 	public ClassLoader getClassLoader() {
 		return _ClassInternalUtils.getSystemClassLoader();
 	}
 
+	@JTranscSync
 	native public TypeVariable<Class<T>>[] getTypeParameters();
 
+	@JTranscSync
 	public Type getGenericSuperclass() {
 		Type type = (Type) JTranscCoreReflection.getSuperclassById(this.id);
 		return type;
 	}
 
+	@JTranscSync
 	native public Package getPackage();
 
 	// @TODO:
+	@JTranscSync
 	public Type[] getGenericInterfaces() {
 		return new Type[0];
 	}
 
+	@JTranscSync
 	public Class<?> getComponentType() {
 		if (isArray()) {
 			try {
@@ -163,33 +186,41 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
+	@JTranscSync
 	public Object[] getSigners() {
 		return null;
 	}
 
+	@JTranscSync
 	native public Class<?> getDeclaringClass() throws SecurityException;
 
+	@JTranscSync
 	native public Class<?> getEnclosingClass() throws SecurityException;
 
+	@JTranscSync
 	native public Class<?>[] getClasses();
 
 	//native public java.security.ProtectionDomain getProtectionDomain();
 
+	@JTranscSync
 	private Class() {
 	}
 
+	@JTranscSync
 	Class(String name) throws ClassNotFoundException {
 		this.name = name;
 		this.primitive = false;
 		if (!_check()) throw new ClassNotFoundException("Class constructor: Can't find class '" + name + "'");
 	}
 
+	@JTranscSync
 	Class(String name, boolean primitive) {
 		this.name = name;
 		this.primitive = primitive;
 		this.id = -1;
 	}
 
+	@JTranscSync
 	private boolean _check() {
 		this.info = JTranscCoreReflection.getClassInfoWithName(this.name);
 		if (info != null) {
@@ -204,22 +235,27 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return isArray() || this.id >= 0;
 	}
 
+	@JTranscSync
 	public String getName() {
 		return this.name;
 	}
 
+	@JTranscSync
 	static Class<?> getPrimitiveClass(String name) {
 		return new Class<>(name, true);
 	}
 
+	@JTranscSync
 	public String toString() {
 		return (isInterface() ? "interface " : (isPrimitive() ? "" : "class ")) + name;
 	}
 
+	@JTranscSync
 	native public String toGenericString();
 
 	private static FastStringMap<Class<?>> _classCache;
 
+	@JTranscSync
 	static public Class<?> forName0(String className) {
 		if (className == null) return null;
 		try {
@@ -231,6 +267,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	//private static void
 
+	@JTranscSync
 	public static Class<?> forName(String className) throws ClassNotFoundException {
 		//Objects.requireNonNull(className, "className");
 		if (className == null) return null;
@@ -270,10 +307,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return result;
 	}
 
+	@JTranscSync
 	public static Class<?> forName(String name, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
 		return forName(name);
 	}
 
+	@JTranscSync
 	public boolean isAssignableFrom(Class<?> cls) {
 		if (cls == null) throw new NullPointerException("Passed a null class to isAssignableFrom.");
 
@@ -285,30 +324,37 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return false;
 	}
 
+	@JTranscSync
 	public boolean isInterface() {
 		return Modifier.isInterface(getModifiers());
 	}
 
+	@JTranscSync
 	public boolean isArray() {
 		return this.name.startsWith("[");
 	}
 
+	@JTranscSync
 	public boolean isPrimitive() {
 		return primitive;
 	}
 
+	@JTranscSync
 	public boolean isAnnotation() {
 		return (this.getModifiers() & ANNOTATION) != 0;
 	}
 
+	@JTranscSync
 	public boolean isSynthetic() {
 		return (this.getModifiers() & SYNTHETIC) != 0;
 	}
 
+	@JTranscSync
 	public boolean isEnum() {
 		return (this.getModifiers() & ENUM) != 0;
 	}
 
+	@JTranscSync
 	public String getSimpleName() {
 		String out = "";
 		char separator = (this.name.indexOf('$') > 0) ? '$' : '.';
@@ -317,31 +363,38 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return out;
 	}
 
+	@JTranscSync
 	native public String getTypeName();
 
 	//public String getCanonicalName() {
 	//return this.name.replace('.', '/');
 	//}
+	@JTranscSync
 	public String getCanonicalName() {
 		return this.name.replace('$', '.');
 	}
 
+	@JTranscSync
 	public boolean isAnonymousClass() {
 		return "".equals(getSimpleName());
 	}
 
+	@JTranscSync
 	public boolean isLocalClass() {
 		return isLocalOrAnonymousClass() && !isAnonymousClass();
 	}
 
+	@JTranscSync
 	private boolean isLocalOrAnonymousClass() {
 		return getEnclosingMethodInfo() != null;
 	}
 
+	@JTranscSync
 	public boolean isMemberClass() {
 		return getSimpleBinaryName() != null && !isLocalOrAnonymousClass();
 	}
 
+	@JTranscSync
 	native private Object getEnclosingMethodInfo();
 	//private EnclosingMethodInfo getEnclosingMethodInfo() {
 	//	Object[] enclosingInfo = getEnclosingMethod0();
@@ -352,6 +405,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	//	}
 	//}
 
+	@JTranscSync
 	private String getSimpleBinaryName() {
 		Class<?> enclosingClass = getEnclosingClass();
 		if (enclosingClass == null) // top level class
@@ -364,10 +418,12 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		}
 	}
 
+	@JTranscSync
 	public boolean desiredAssertionStatus() {
 		return JTranscSystem.isDebug();
 	}
 
+	@JTranscAsync
 	public T[] getEnumConstants() {
 		T[] values = getEnumConstantsShared();
 		if (values == null) {
@@ -383,6 +439,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return (values != null) ? values.clone() : null;
 	}
 
+	@JTranscAsync
 	T[] getEnumConstantsShared() {
 		if (enumConstants == null) {
 			if (!isEnum()) return null;
@@ -398,15 +455,18 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 
 	private volatile transient T[] enumConstants = null;
 
+	@JTranscSync
 	public T cast(Object obj) {
 		if (obj != null && !isInstance(obj)) throw new ClassCastException(cannotCastMsg(obj));
 		return (T) obj;
 	}
 
+	@JTranscSync
 	private String cannotCastMsg(Object obj) {
 		return "Cannot cast " + obj.getClass().getName() + " to " + getName();
 	}
 
+	@JTranscSync
 	public <U> Class<? extends U> asSubclass(Class<U> clazz) {
 		if (!clazz.isAssignableFrom(this)) throw new ClassCastException(this.toString());
 		return (Class<? extends U>) this;
@@ -417,19 +477,21 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	private Field[] _allFields = null;
 	private Field[] _accessibleFields = null;
 
+	//@JTranscAsync
+	@JTranscSync
 	private Field[] getAllFields() throws SecurityException {
 		if (_allFields == null) {
-			ArrayList<Field> allFields = new ArrayList<>();
-			Collections.addAll(allFields, getDeclaredFields());
-			if (getSuperclass() != null) {
-				Collections.addAll(allFields, getSuperclass().getFields());
-			}
-			_allFields = allFields.toArray(new Field[0]);
+			Field[] f0 = getDeclaredFields();
+			Field[] f1 = (getSuperclass() != null) ? getSuperclass().getFields() : new Field[0];
+			_allFields = new Field[f0.length + f1.length];
+			System.arraycopy(f0, 0, _allFields, 0, f0.length);
+			System.arraycopy(f1, 0, _allFields, f0.length, f1.length);
 		}
 		return _allFields;
 	}
 
 	// Returns an array containing Field objects reflecting all the accessible public fields of the class or interface represented by this Class object. The elements in the array returned are not sorted and are not in any particular order. This method returns an array of length 0 if the class or interface has no accessible public fields, or if it represents an array class, a primitive type, or void.
+	@JTranscSync
 	public Field[] getFields() throws SecurityException {
 		if (_accessibleFields == null) {
 			ArrayList<Field> accessibleFields = new ArrayList<>();
@@ -441,6 +503,7 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return _accessibleFields;
 	}
 
+	@JTranscSync
 	public Field getField(String name) throws NoSuchFieldException, SecurityException {
 		if (_fieldsByName == null) {
 			_fieldsByName = new FastStringMap<>();
@@ -451,6 +514,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return field;
 	}
 
+	@JTranscSync
+	//@JTranscAsync
 	public Field getDeclaredField(String name) throws NoSuchFieldException, SecurityException {
 		if (_declaredFieldsByName == null) {
 			_declaredFieldsByName = new FastStringMap<>();
@@ -466,18 +531,19 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	private Method[] _allMethods = null;
 	private Method[] _accessibleMethods = null;
 
+	@JTranscSync
 	private Method[] getAllMethods() throws SecurityException {
 		if (_allMethods == null) {
-			ArrayList<Method> allMethods = new ArrayList<>();
-			Collections.addAll(allMethods, getDeclaredMethods());
-			if (getSuperclass() != null) {
-				Collections.addAll(allMethods, getSuperclass().getMethods());
-			}
-			_allMethods = allMethods.toArray(new Method[0]);
+			Method[] m0 = getDeclaredMethods();
+			Method[] m1 = (getSuperclass() != null) ? getSuperclass().getMethods() : new Method[0];
+			_allMethods = new Method[m0.length + m1.length];
+			System.arraycopy(m0, 0, _allMethods, 0, m0.length);
+			System.arraycopy(m1, 0, _allMethods, m0.length, m1.length);
 		}
 		return _allMethods;
 	}
 
+	@JTranscSync
 	public Method[] getMethods() throws SecurityException {
 		if (_accessibleMethods == null) {
 			ArrayList<Method> accessibleMethods = new ArrayList<>();
@@ -489,60 +555,78 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return _accessibleMethods;
 	}
 
+	@JTranscSync
 	public Method _getMethod(boolean declared, String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		for (Method m : declared ? getDeclaredMethods() : getMethods()) {
-			if (Objects.equals(m.getName(), name) && Arrays.equals(m.getParameterTypes(), parameterTypes)) {
+			if (m.getName().equals(name) && Arrays_equals(m.getParameterTypes(), parameterTypes)) {
 				return m;
 			}
 		}
 		throw new NoSuchMethodException(name);
 	}
 
+	@JTranscSync
 	public Method _getMethodBySig(boolean declared, String name, String parameterSignature) throws NoSuchMethodException, SecurityException {
 		for (Method m : declared ? getDeclaredMethods() : getMethods()) {
-			if (Objects.equals(m.getName(), name) && m.signature.equals(parameterSignature)) {
+			if (m.getName().equals(name) && MethodConstructor.getSignature(m).equals(parameterSignature)) {
 				return m;
 			}
 		}
 		throw new NoSuchMethodException(name);
 	}
 
+	@JTranscSync
 	public Constructor<?>[] getConstructors() throws SecurityException {
 		return this.getDeclaredConstructors(); // @TODO: Filter just public! + ancestors?
 	}
 
+	@JTranscSync
 	public Method getMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		return _getMethod(false, name, parameterTypes);
 	}
 
+	@JTranscSync
 	public Constructor<T> getConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		return getDeclaredConstructor(parameterTypes);
 	}
 
+	@JTranscSync
 	public Method getDeclaredMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		return _getMethod(true, name, parameterTypes);
 	}
 
+	@JTranscSync
 	private Method getDeclaredMethodBySig(String name, String parameterSignature) throws NoSuchMethodException, SecurityException {
 		return _getMethodBySig(true, name, parameterSignature);
 	}
 
+	@JTranscSync
+	static private boolean Arrays_equals(Class<?>[] l, Class<?>[] r) {
+		if (l.length != r.length) return false;
+		for (int n = 0; n < l.length; n++) {
+			if (!l[n].equals(r[n])) return false;
+		}
+		return true;
+	}
+
+	@JTranscSync
 	public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
 		//JTranscConsole.log("BEGIN getDeclaredConstructor");
 		Class<?>[] parameterTypes2 = (parameterTypes != null) ? parameterTypes : new Class[0];
 		for (Constructor c : getDeclaredConstructors()) {
 			//JTranscConsole.log("A DECLARED CONSTRUCTOR: " + (c != null));
-			if (Arrays.equals(c.getParameterTypes(), parameterTypes2)) {
+			if (Arrays_equals(c.getParameterTypes(), parameterTypes2)) {
 				//JTranscConsole.log("END getDeclaredConstructor");
 				return c;
 			}
 		}
-		throw new NoSuchMethodException("Can't find constructor of class " + this.getName() + " with parameters " + Arrays.asList(parameterTypes));
+		throw new NoSuchMethodException("Can't find constructor of class " + this.getName() + " with parameters " + parameterTypes2.length);
 	}
 
+	@JTranscSync
 	public Constructor<T> getDeclaredConstructorBySig(String parameterTypeSig) throws NoSuchMethodException, SecurityException {
 		for (Constructor c : getDeclaredConstructors()) {
-			if (c.signature.equals(parameterTypeSig)) {
+			if (MethodConstructor.getSignature(c).equals(parameterTypeSig)) {
 				return c;
 			}
 		}
@@ -551,14 +635,20 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	// Annotations
+	//@JTranscSync
+	@JTranscAsync
 	public Annotation[] getAnnotations() {
 		return this.getDeclaredAnnotations(); // @TODO: Filter just public!
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
 		return getDeclaredAnnotation(annotationClass) != null;
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
 		for (Annotation a : getAnnotations()) {
 			if (a.getClass() == annotationClass) return (A) a;
@@ -566,6 +656,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return null;
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
 		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getAnnotations()) {
@@ -574,6 +666,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return (A[]) out.toArray(new Annotation[0]);
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
 		for (Annotation a : getDeclaredAnnotations()) {
 			if (a.getClass() == annotationClass) return (A) a;
@@ -581,6 +675,8 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 		return null;
 	}
 
+	//@JTranscSync
+	@JTranscAsync
 	public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass) {
 		ArrayList<A> out = new ArrayList<>();
 		for (Annotation a : getDeclaredAnnotations()) {
@@ -590,11 +686,13 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@Override
+	@JTranscSync
 	public boolean equals(Object o) {
 		return this == o;
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return name.hashCode();
 	}

@@ -1,43 +1,58 @@
 package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
-import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscMethodBodyList;
+import com.jtransc.annotation.*;
 import com.jtransc.annotation.haxe.HaxeAddMembers;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
+import java.io.ObjectInputStream;
+import java.util.Objects;
 
 @HaxeAddMembers({"" +
 	"static public function _log(p0:Dynamic) {\n" +
 	"  var msg = '' + p0;\n" +
 	"  #if js var _msg = msg; untyped __js__(\"console.log(_msg);\");\n" +
 	"  #elseif sys Sys.stdout().writeString(msg + \"\\n\");\n" +
-	"  #else  trace(msg);\n" +
+	"  #else trace(msg);\n" +
 	"  #end\n" +
 	"}\n"
 })
 public class JTranscConsole {
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "echo N::utf16_to_utf8($p0->data->data), \"\\n\";"),
-	})
+	@JTranscSync
 	static public void log(char[] v) {
-		log(new String(v));
+		logString(new String(v));
 	}
 
 	@HaxeMethodBody("_log(p0);")
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
-		@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+		@JTranscMethodBody(target = "js", value = "console.log(N.istr(p0));"),
 		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
-	static public synchronized void log(Object v) {
+	@JTranscSync
+	static public synchronized void logString(String v) {
 		JTranscSystem.checkInJVM("logObject");
 		System.out.println(v);
+	}
+
+	//@HaxeMethodBody("_log(p0);")
+	//@JTranscMethodBodyList({
+	//	@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
+	//	@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
+	//	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+	//	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
+	//	@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
+	//	@JTranscMethodBody(target = "as3", value = "trace(p0);"),
+	//	@JTranscMethodBody(target = "dart", value = "print(p0);"),
+	//})
+	@JTranscAsync
+	static public synchronized void log(Object v) {
+		logString(Objects.toString(v));
 	}
 
 	@JTranscMethodBodyList({
@@ -49,6 +64,7 @@ public class JTranscConsole {
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
 		@JTranscMethodBody(target = "dart", value = "print(p0);"),
 	})
+	@JTranscAsync
 	static public synchronized void dump(Object v) {
 		log(v);
 	}

@@ -33,10 +33,12 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		this.value = value;
 	}
 
+	@JTranscSync
 	public Boolean(String value) {
 		this.value = parseBoolean(value);
 	}
 
+	@JTranscSync
 	public static boolean parseBoolean(String value) {
 		return (value != null) && (value.compareToIgnoreCase("true") == 0);
 	}
@@ -51,6 +53,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return value ? TRUE : FALSE;
 	}
 
+	@JTranscSync
 	public static Boolean valueOf(String value) {
 		return valueOf(parseBoolean(value));
 	}
@@ -60,11 +63,13 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return value ? "true" : "false";
 	}
 
+	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return hashCode(value);
 	}
@@ -86,6 +91,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return parseBoolean(System.getProperty(name));
 	}
 
+	@JTranscSync
 	public int compareTo(Boolean that) {
 		return (that != null) ? compare(this.value, that.value) : compare(this.value, false);
 	}

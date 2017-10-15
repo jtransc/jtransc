@@ -17,6 +17,8 @@
 
 package java.util;
 
+import com.jtransc.annotation.JTranscSync;
+
 /**
  * {@code AbstractList} is an abstract implementation of the {@code List} interface, optimized
  * for a backing store which supports random access. This implementation does
@@ -373,6 +375,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
     /**
      * Constructs a new instance of this AbstractList.
      */
+    @JTranscSync
     protected AbstractList() {
     }
 

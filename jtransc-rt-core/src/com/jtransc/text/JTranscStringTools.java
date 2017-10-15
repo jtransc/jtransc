@@ -2,11 +2,13 @@ package com.jtransc.text;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings("IndexOfReplaceableByContains")
 public class JTranscStringTools {
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
+	@JTranscSync
 	public static String toString(float v) {
 		//return RealToString.getInstance().floatToString(v);
 		String out = toString((double) v);
@@ -37,6 +39,7 @@ public class JTranscStringTools {
 	//}
 
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
+	@JTranscSync
 	public static String toString(double v) {
 		if (Double.isNaN(v)) return "NaN";
 		if (Double.isInfinite(v)) return (v < 0) ? "-Infinity" : "Infinity";
@@ -75,5 +78,6 @@ public class JTranscStringTools {
 		@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);"),
 		@JTranscMethodBody(target = "dart", value = "return N.str(p0.toString());"),
 	})
+	@JTranscSync
 	native static public String _toString(double v);
 }

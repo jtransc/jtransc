@@ -59,18 +59,18 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						if (ref == annotationTypeMR) continue
 						if (ref == getClassMR) continue
 						if (ref == toStringMR) continue
-						createMethod(m.name, m.methodType) {
+						createMethod(m.name, m.methodType, asyncOpt = false) {
 							extraVisible = false
 							RETURN(THIS[locateField(m.name)!!])
 						}
 					}
-					createMethod(annotationTypeMR.name, annotationTypeMR.type) {
+					createMethod(annotationTypeMR.name, annotationTypeMR.type, asyncOpt = false) {
 						RETURN(annotationType.lit)
 					}
-					createMethod(getClassMR.name, getClassMR.type) {
+					createMethod(getClassMR.name, getClassMR.type, asyncOpt = false) {
 						RETURN(annotationType.lit)
 					}
-					createMethod(toStringMR.name, toStringMR.type) {
+					createMethod(toStringMR.name, toStringMR.type, asyncOpt = null) {
 						val appendObject = AstMethodRef(StringBuilder::class.java.fqname, "append", AstType.METHOD(AstType.STRINGBUILDER, listOf(AstType.OBJECT)))
 						val toString = AstMethodRef(java.lang.Object::class.java.fqname, "toString", AstType.METHOD(AstType.STRING, listOf()))
 
@@ -202,7 +202,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val fields = clazz.fields.filter { it.mustReflect() }
 						CASE(clazz.classId) {
 							val classId = clazz.classId
-							val perClassMethod = ProgramReflectionClass.createMethod("getFieldAnnotations$classId", AstType.METHOD(AstType.ARRAY(annotationType), AstType.INT), isStatic = true) { args ->
+							val perClassMethod = ProgramReflectionClass.createMethod("getFieldAnnotations$classId", AstType.METHOD(AstType.ARRAY(annotationType), AstType.INT), isStatic = true, asyncOpt = false) { args ->
+							//val perClassMethod = ProgramReflectionClass.createMethod("getFieldAnnotations$classId", AstType.METHOD(AstType.ARRAY(annotationType), AstType.INT), isStatic = true, asyncOpt = true) { args ->
 								val (fieldIdArgIn) = args
 								SWITCH(fieldIdArgIn.expr) {
 									for (field in fields) {
@@ -361,7 +362,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val currentDynamicInvokeClass = dynamicInvokeClasses[methodIndex % dynamicInvokeClasses.size]
 					val currentDynamicInvokeMethod: AstMethod? = currentDynamicInvokeClass!!.getMethodWithoutOverrides(ProgramReflection.DynamicInvoke::dynamicInvoke.name)
 					val newMethod: AstMethod =
-						currentDynamicInvokeClass.createMethod(currentDynamicInvokeMethod!!.name + mI, currentDynamicInvokeMethod.methodType, true) {
+						currentDynamicInvokeClass.createMethod(currentDynamicInvokeMethod!!.name + mI, currentDynamicInvokeMethod.methodType, true, asyncOpt = true) {
 							val (classId, methodId, obj, args) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < classes.size) currentIndex + CASES_PER_SWITCH else classes.size
@@ -431,7 +432,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val sI: Int = methodIndex * CASES_PER_SWITCH
 
 					val newMethod: AstMethod =
-						dynamicNewClass.createMethod(dynamicNewMethod.name + mI, dynamicNewMethod.methodType, true) {
+						dynamicNewClass.createMethod(dynamicNewMethod.name + mI, dynamicNewMethod.methodType, true, asyncOpt = true) {
 							val (classId, methodId, args) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < classes.size) currentIndex + CASES_PER_SWITCH else classes.size
@@ -515,7 +516,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 					val parentMethod: AstMethod? = parentClass.getMethodWithoutOverrides(methodName)
 
 					val newMethod: AstMethod =
-						parentClass.createMethod(parentMethod!!.name + mI, parentMethod.methodType, true) {
+						parentClass.createMethod(parentMethod!!.name + mI, parentMethod.methodType, true, asyncOpt = false) {
 							val (classIdArg) = it
 							val out = AstLocal(0, "out", ARRAY(MemberInfoClass))
 
@@ -618,7 +619,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val mI: Int = methodIndex
 						val sI: Int = methodIndex * CASES_PER_SWITCH
 
-						val newMethod: AstMethod = dynamicGetClass.createMethod(dynamicGetMethod.name + mI, dynamicGetMethod.methodType, true) {
+						val newMethod: AstMethod = dynamicGetClass.createMethod(dynamicGetMethod.name + mI, dynamicGetMethod.methodType, true, asyncOpt = false) {
 							val (classId, fieldId, objParam) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < fields.size) currentIndex + CASES_PER_SWITCH else fields.size
@@ -678,7 +679,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 						val mI: Int = methodIndex
 						val sI: Int = methodIndex * CASES_PER_SWITCH
 
-						val newMethod: AstMethod = dynamicSetClass.createMethod(dynamicSetMethod.name + mI, dynamicSetMethod.methodType, true) {
+						val newMethod: AstMethod = dynamicSetClass.createMethod(dynamicSetMethod.name + mI, dynamicSetMethod.methodType, true, asyncOpt = false) {
 							val (classIdParam, fieldIdParam, objParam, valueParam) = it
 							var currentIndex: Int = sI
 							val finishIndex: Int = if (currentIndex + CASES_PER_SWITCH < fields.size) currentIndex + CASES_PER_SWITCH else fields.size

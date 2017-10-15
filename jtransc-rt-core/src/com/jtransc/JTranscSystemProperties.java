@@ -1,5 +1,7 @@
 package com.jtransc;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class JTranscSystemProperties {
 	static public String fileEncoding() {
 		return "UTF-8";
@@ -51,16 +53,19 @@ public class JTranscSystemProperties {
 		return "/tmp";
 	}
 
+	@JTranscSync
 	public static String fileSeparator() {
 		//return isWindows() ? "\\" : "/";
 		return "/";
 	}
 
+	@JTranscSync
 	public static String pathSeparator() {
 		//return isWindows() ? ";" : ":";
 		return ":";
 	}
 
+	@JTranscSync
 	public static String lineSeparator() {
 		//return isWindows() ? "\r\n" : "\n";
 		return "\n";

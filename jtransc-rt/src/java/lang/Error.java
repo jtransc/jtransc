@@ -16,23 +16,30 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class Error extends Throwable {
+	@JTranscSync
 	public Error() {
 		super();
 	}
 
+	@JTranscSync
 	public Error(String message) {
 		super(message);
 	}
 
+	@JTranscSync
 	public Error(String message, Throwable cause) {
 		super(message, cause);
 	}
 
+	@JTranscSync
 	public Error(Throwable cause) {
 		super(cause);
 	}
 
+	@JTranscSync
 	protected Error(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}

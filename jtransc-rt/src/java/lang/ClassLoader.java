@@ -19,6 +19,7 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddLibraries;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,88 +33,73 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public abstract class ClassLoader {
-
 	private ArrayList<NativeLib> nativeLibs = new ArrayList<>();
-
-	public static class NativeLib {
-		long handle;
-		String name;
-
-		NativeLib(long handle, String name) {
-			this.handle = handle;
-			this.name = name;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			NativeLib nativeLib = (NativeLib) o;
-
-			return handle == nativeLib.handle;
-
-		}
-
-		@Override
-		public int hashCode() {
-			return (int) (handle ^ (handle >>> 32));
-		}
-	}
-
 	public ArrayList<NativeLib> getNativeLibs() {
 		return nativeLibs;
 	}
 
 	private ClassLoader parent;
 
+	@JTranscSync
 	protected ClassLoader(ClassLoader parent) {
 		this.parent = parent;
 	}
 
+	@JTranscSync
 	protected ClassLoader() {
 		this(null);
 	}
 
+	@JTranscSync
 	public final ClassLoader getParent() {
 		return parent;
 	}
 
+	@JTranscSync
 	public static ClassLoader getSystemClassLoader() {
 		return _ClassInternalUtils.getSystemClassLoader();
 	}
 
+	@JTranscSync
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
 		//JTranscConsole.error("ClassLoader.loadClass('" + name + "');");
 		//JTranscConsole.log("ClassLoader.loadClass('" + name + "');");
 		return Class.forName(name);
 	}
 
+	@JTranscSync
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		return loadClass(name);
 	}
 
+	@JTranscSync
 	protected Object getClassLoadingLock(String className) {
 		return this;
 	}
 
+	@JTranscSync
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		return loadClass(name);
 	}
 
 	@Deprecated
+	@JTranscSync
 	native protected final Class<?> defineClass(byte[] b, int off, int len) throws ClassFormatError;
 
+	@JTranscSync
 	native protected final Class<?> defineClass(String name, byte[] b, int off, int len) throws ClassFormatError;
 
 	//native protected final Class<?> defineClass(String name, byte[] b, int off, int len, ProtectionDomain protectionDomain) throws ClassFormatError;
 	//native protected final Class<?> defineClass(String name, java.nio.ByteBuffer b, ProtectionDomain protectionDomain) throws ClassFormatError;
+	@JTranscSync
 	native protected final void resolveClass(Class<?> c);
 
+	@JTranscSync
 	protected final Class<?> findSystemClass(String name) throws ClassNotFoundException {
 		return loadClass(name);
 	}
 
+	@JTranscSync
 	protected final Class<?> findLoadedClass(String name) {
 		try {
 			return loadClass(name);
@@ -123,6 +109,7 @@ public abstract class ClassLoader {
 		}
 	}
 
+	@JTranscSync
 	protected final void setSigners(Class<?> c, Object[] signers) {
 	}
 
@@ -158,20 +145,28 @@ public abstract class ClassLoader {
 
 	native public static InputStream getSystemResourceAsStream(String name);
 
+	@JTranscSync
 	native protected Package definePackage(String name, String specTitle, String specVersion, String specVendor, String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException;
 
+	@JTranscSync
 	native protected Package getPackage(String name);
 
+	@JTranscSync
 	native protected Package[] getPackages();
 
+	@JTranscSync
 	native protected String findLibrary(String libname);
 
+	@JTranscSync
 	native public void setDefaultAssertionStatus(boolean enabled);
 
+	@JTranscSync
 	native public void setPackageAssertionStatus(String packageName, boolean enabled);
 
+	@JTranscSync
 	native public void setClassAssertionStatus(String className, boolean enabled);
 
+	@JTranscSync
 	native public void clearAssertionStatus();
 
 	void loadLibrary(Class fromClass, String name, boolean isAbsolute) {
@@ -194,5 +189,31 @@ public abstract class ClassLoader {
 
 	@JTranscMethodBody(target = "cpp", value = "DYN::closeDynamicLib(jlong_to_ptr(p0));")
 	private static void unLoadLibrarayCpp(long handle) {
+	}
+
+	public static class NativeLib {
+		long handle;
+		String name;
+
+		NativeLib(long handle, String name) {
+			this.handle = handle;
+			this.name = name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			NativeLib nativeLib = (NativeLib) o;
+
+			return handle == nativeLib.handle;
+
+		}
+
+		@Override
+		public int hashCode() {
+			return (int) (handle ^ (handle >>> 32));
+		}
 	}
 }

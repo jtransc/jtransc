@@ -16,6 +16,7 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
@@ -26,6 +27,13 @@ import com.jtransc.internal.JTranscCType;
 public final class Integer extends Number implements Comparable<Integer> {
 	public static final int MIN_VALUE = 0x80000000;
 	public static final int MAX_VALUE = 0x7fffffff;
+	public static final int SIZE = 32;
+	public static final int BYTES = SIZE / Byte.SIZE;
+
+	static private Integer[] values;
+	static private final int MIN = -128;
+	static private final int MAX = 128;
+	static private final int LENGTH = MAX - MIN;
 
 	@SuppressWarnings("unchecked")
 	public static final Class<Integer> TYPE = (Class<Integer>) Class.getPrimitiveClass("int");
@@ -37,6 +45,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = value;
 	}
 
+	@JTranscSync
 	public Integer(String s) {
 		this.value = parseInt(s, 10);
 	}
@@ -47,6 +56,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(p0.toRadixString(p1));")
 	//@JTranscMethodBody(target = "php", value = "return N::str(base_convert(\"$p0\", 10, $p1));")
+	@JTranscSync
 	public static String toString(int i, int radix) {
 		if (i == 0) return "0";
 		char[] out = new char[IntegerTools.countDigits(i, radix)];
@@ -56,6 +66,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	@JTranscMethodBody(target = "js", value = "return N.str((p0 >>> 0).toString(p1));")
 	@JTranscMethodBody(target = "as3", value = "return N.str(uint(p0).toString(p1));")
+	@JTranscSync
 	public static String toUnsignedString(int i, int radix) {
 		if (i == 0) return "0";
 		StringBuilder out = new StringBuilder();
@@ -67,26 +78,32 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return out.toString();
 	}
 
+	@JTranscSync
 	public static String toHexString(int i) {
 		return toUnsignedString(i, 16);
 	}
 
+	@JTranscSync
 	public static String toOctalString(int i) {
 		return toUnsignedString(i, 8);
 	}
 
+	@JTranscSync
 	public static String toBinaryString(int i) {
 		return toUnsignedString(i, 2);
 	}
 
+	@JTranscSync
 	public static String toString(int i) {
 		return toString(i, 10);
 	}
 
+	@JTranscSync
 	public static String toUnsignedString(int i) {
 		return toUnsignedString(i, 10);
 	}
 
+	@JTranscSync
 	public static int parseInt(String input, int radix) {
 		JTranscNumber.checkNumber(input, radix, false);
 		return _parseInt(input, radix);
@@ -94,6 +111,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	@JTranscMethodBody(target = "js", value = "return parseInt(N.istr(p0), p1);")
 	@JTranscMethodBody(target = "as3", value = "return parseInt(N.istr(p0), p1);")
+	@JTranscSync
 	public static int _parseInt(String input, int radix) {
 		String s = input;
 		int result = 0;
@@ -118,32 +136,30 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return sign * result;
 	}
 
-
+	@JTranscSync
 	public static int parseInt(String s) {
 		return parseInt(s, 10);
 	}
 
+	@JTranscSync
 	public static int parseUnsignedInt(String s, int radix) {
 		return parseInt(s, radix);
 	}
 
+	@JTranscSync
 	public static int parseUnsignedInt(String s) {
 		return parseUnsignedInt(s, 10);
 	}
 
+	@JTranscSync
 	public static Integer valueOf(String s, int radix) {
 		return parseInt(s, radix);
 	}
 
+	@JTranscSync
 	public static Integer valueOf(String s) {
 		return valueOf(s, 10);
 	}
-
-	static private Integer[] values;
-
-	static private final int MIN = -128;
-	static private final int MAX = 128;
-	static private final int LENGTH = MAX - MIN;
 
 	@SuppressWarnings("UnnecessaryBoxing")
 	@JTranscKeep
@@ -192,11 +208,13 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return (double) value;
 	}
 
+	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return value;
 	}
@@ -206,19 +224,23 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return value;
 	}
 
+	@JTranscSync
 	public boolean equals(Object obj) {
 		return obj instanceof Integer && ((Integer) obj).value == value;
 	}
 
+	@JTranscAsync
 	public static Integer getInteger(String nm) {
 		return getInteger(nm, null);
 	}
 
+	@JTranscAsync
 	public static Integer getInteger(String nm, int val) {
 		Integer result = getInteger(nm, null);
 		return (result == null) ? new Integer(val) : result;
 	}
 
+	@JTranscAsync
 	public static Integer getInteger(String nm, Integer val) {
 		String out = System.getProperty(nm);
 		if (out == null) return val;
@@ -229,6 +251,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		}
 	}
 
+	@JTranscSync
 	public static Integer decode(String nm) throws NumberFormatException {
 		if (nm.length() == 0) throw new NumberFormatException("Zero length string");
 		if (nm.startsWith("-")) return -decode(nm.substring(1));
@@ -286,9 +309,6 @@ public final class Integer extends Number implements Comparable<Integer> {
 		int rem = dividend - quotient * divisor;
 		return rem - (compareUnsigned(rem, divisor) >= 0 ? divisor : 0);
 	}
-
-	public static final int SIZE = 32;
-	public static final int BYTES = SIZE / Byte.SIZE;
 
 	@JTranscSync
 	public static int highestOneBit(int i) {

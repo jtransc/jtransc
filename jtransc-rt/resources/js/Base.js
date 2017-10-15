@@ -825,6 +825,7 @@ N.checkCast = function(i, clazz) {
 	if (i == null) return null;
 	if (clazz === null) throw new Error('Internal error N.checkCast');
 	if (!N.is(i, clazz)) {
+		//throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion ' + i + ' != ' + clazz)));
 		throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
 	}
 	return i;
@@ -928,8 +929,9 @@ N.stringToCharArray = function(str) {
 	return out;
 };
 
-N.resolveClass = async function(name) {
-	return await {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+// @TODO: Make this sync
+N.resolveClass = function(name) {
+	return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 };
 
 N.createStackTraceElement = function(declaringClass, methodName, fileName, lineNumber) {
@@ -947,12 +949,12 @@ function stackTrace() {
     return err.stack.split('\n').slice(3);
 }
 
-N.getStackTrace = async function(error, count) {
+N.getStackTrace = function(error, count) {
 	//var traces = stackTrace()
 	var traces = error.stack.split('\n').slice(count);
 	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
 	for (var n = 0; n < traces.length; ++n) {
-		out.set(n, await N.createStackTraceElement('JS', 'js', traces[n], 0));
+		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
 	}
 	return out;
 };

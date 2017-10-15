@@ -26,6 +26,9 @@ public final class Long extends Number implements Comparable<Long> {
 	public static final long MAX_VALUE = 0x7fffffffffffffffL;
 	public static final Class<Long> TYPE = (Class<Long>) Class.getPrimitiveClass("long");
 
+	private final long value;
+
+	@JTranscSync
 	public static String toString(long i, int radix) {
 		if (i == 0) return "0";
 		if (i == MIN_VALUE) return "-9223372036854775808";
@@ -41,6 +44,7 @@ public final class Long extends Number implements Comparable<Long> {
 		return out.toString();
 	}
 
+	@JTranscSync
 	public static String toUnsignedString(long i, int radix) {
 		if (i == 0) return "0";
 		StringBuilder out = new StringBuilder();
@@ -52,22 +56,27 @@ public final class Long extends Number implements Comparable<Long> {
 		return out.toString();
 	}
 
+	@JTranscSync
 	public static String toHexString(long i) {
 		return toUnsignedString(i, 16);
 	}
 
+	@JTranscSync
 	public static String toOctalString(long i) {
 		return toUnsignedString(i, 8);
 	}
 
+	@JTranscSync
 	public static String toBinaryString(long i) {
 		return toUnsignedString(i, 2);
 	}
 
+	@JTranscSync
 	public static String toUnsignedString(long i) {
 		return toUnsignedString(i, 10);
 	}
 
+	@JTranscSync
 	public static long parseLong(String s, int radix) throws NumberFormatException {
 		long result = 0;
 		int len = s.length();
@@ -82,22 +91,27 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	// @TODO: CHECK!
+	@JTranscSync
 	public static long parseUnsignedLong(String s, int radix) throws NumberFormatException {
 		return parseLong(s, radix);
 	}
 
+	@JTranscSync
 	public static Long valueOf(String s, int radix) throws NumberFormatException {
 		return Long.valueOf(parseLong(s, radix));
 	}
 
+	@JTranscSync
 	public static long parseLong(String s) throws NumberFormatException {
 		return parseLong(s, 10);
 	}
 
+	@JTranscSync
 	public static long parseUnsignedLong(String s) throws NumberFormatException {
 		return parseUnsignedLong(s, 10);
 	}
 
+	@JTranscSync
 	public static Long valueOf(String s) throws NumberFormatException {
 		return valueOf(s, 10);
 	}
@@ -108,6 +122,7 @@ public final class Long extends Number implements Comparable<Long> {
 		return new Long(l);
 	}
 
+	@JTranscSync
 	public static Long decode(String nm) throws NumberFormatException {
 		if (nm.length() == 0) throw new NumberFormatException("Zero length string");
 		if (nm.startsWith("-")) return -decode(nm.substring(1));
@@ -119,13 +134,12 @@ public final class Long extends Number implements Comparable<Long> {
 		return parseLong(nm, 10);
 	}
 
-	private final long value;
-
 	@JTranscSync
 	public Long(long value) {
 		this.value = value;
 	}
 
+	@JTranscSync
 	public Long(String s) throws NumberFormatException {
 		this.value = parseLong(s, 10);
 	}
@@ -171,9 +185,9 @@ public final class Long extends Number implements Comparable<Long> {
 		return (int) (value ^ (value >>> 32));
 	}
 
+	@JTranscSync
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Long)) return false;
-		return value == ((Long) obj).longValue();
+		return obj instanceof Long && value == ((Long) obj).longValue();
 	}
 
 	public static Long getLong(String nm) {
@@ -352,10 +366,12 @@ public final class Long extends Number implements Comparable<Long> {
 		return Math.min(l, r);
 	}
 
+	@JTranscSync
 	public static String toString(long i) {
 		return toString(i, 10);
 	}
 
+	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}

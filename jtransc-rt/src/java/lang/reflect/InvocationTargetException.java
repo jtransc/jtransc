@@ -16,27 +16,34 @@
 
 package java.lang.reflect;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class InvocationTargetException extends ReflectiveOperationException {
 	private Throwable target;
 
+	@JTranscSync
 	protected InvocationTargetException() {
 		super((Throwable) null);  // Disallow initCause
 	}
 
+	@JTranscSync
 	public InvocationTargetException(Throwable target) {
 		super((Throwable) null);  // Disallow initCause
 		this.target = target;
 	}
 
+	@JTranscSync
 	public InvocationTargetException(Throwable target, String s) {
 		super(s, null);  // Disallow initCause
 		this.target = target;
 	}
 
+	@JTranscSync
 	public Throwable getTargetException() {
 		return target;
 	}
 
+	@JTranscSync
 	public Throwable getCause() {
 		return target;
 	}

@@ -16,19 +16,25 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class NullPointerException extends RuntimeException {
+	@JTranscSync
 	public NullPointerException() {
 		super();
 	}
 
+	@JTranscSync
 	public NullPointerException(String s) {
 		super(s);
 	}
 
+	@JTranscSync
 	public NullPointerException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
+	@JTranscSync
 	public NullPointerException(Throwable cause) {
 		super(cause);
 	}

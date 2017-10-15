@@ -274,7 +274,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_func(name: String, args: String): String {
 		val base = "N$staticAccessOperator$name($args)"
 		return when (name) {
-			"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
+			//"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
+			"iteratorToArray", "imap" -> "(await($base))"
 			else -> base
 		}
 	}
