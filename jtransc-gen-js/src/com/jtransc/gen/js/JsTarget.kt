@@ -81,6 +81,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
 
+	private fun commonAccessBase(name: String, field: Boolean): String = if (hasSpecialChars(name)) name.quote() else name
 	private fun commonAccess(name: String, field: Boolean): String = if (hasSpecialChars(name)) "[${name.quote()}]" else ".$name"
 	override fun staticAccess(name: String, field: Boolean): String = commonAccess(name, field)
 	override fun instanceAccess(name: String, field: Boolean): String = commonAccess(name, field)
@@ -274,7 +275,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_func(name: String, args: String): String {
 		val base = "N$staticAccessOperator$name($args)"
 		return when (name) {
-			//"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
+		//"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
 			"iteratorToArray", "imap" -> "(await($base))"
 			else -> base
 		}
@@ -338,9 +339,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			if (isAbstract) line("// ABSTRACT")
 
 			val classBase = clazz.name.targetName
-			val memberBaseStatic = classBase
-			val memberBaseInstance = "$classBase.prototype"
-			fun getMemberBase(isStatic: Boolean) = if (isStatic) memberBaseStatic else memberBaseInstance
+			//val memberBaseStatic = classBase
+			//val memberBaseInstance = "$classBase.prototype"
+			fun getMemberBase(isStatic: Boolean) = if (isStatic) "static " else ""
+
 			val parentClassBase = if (clazz.extending != null) clazz.extending!!.targetName else "java_lang_Object_base";
 
 			val staticFields = clazz.fields.filter { it.isStatic }
@@ -352,140 +354,133 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			val allInstanceFieldsThis = allInstanceFields.filter { lateInitField(it) }
 			val allInstanceFieldsProto = allInstanceFields.filter { !lateInitField(it) }
 
-			line("function $classBase()") {
-				for (field in allInstanceFieldsThis) {
-					val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-					line("this${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
+			line("class $classBase extends $parentClassBase") {
+				line("constructor()") {
+					line("super();")
+					for (field in allInstanceFieldsThis) {
+						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
+						line("this${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
+					}
 				}
+
+				if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
+					line("static async SI()") {
+						//line("$classBase.SI = N.EMPTY_FUNCTION;")
+						for (field in staticFields) {
+							val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
+							line("$classBase${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
+						}
+						if (clazz.staticConstructor != null) {
+							val await = if (clazz.staticConstructor?.isAsync == true) "await " else ""
+							line("($await($classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}()));")
+						}
+					}
+				} else {
+					line("static async SI()") {
+
+					}
+				}
+
+				//renderFields(clazz.fields);
+
+				fun writeMethod(method: AstMethod): Indenter {
+					setCurrentMethod(method)
+					return Indenter {
+						refs.add(method.methodType)
+						val margs = method.methodType.args.map { it.name }
+
+						//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
+						//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
+						val nativeMemberName = buildMethod(method, false, includeDot = false)
+						//val prefix = "${getMemberBase(method.isStatic)}${instanceAccess(nativeMemberName, field = false)}"
+						val async = if (method.isAsync) "async " else ""
+						val prefix = "${getMemberBase(method.isStatic)}$async${commonAccessBase(nativeMemberName, field = false)}"
+						val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
+
+						fun renderBranch(actualBody: Indenter?) = Indenter {
+							//if (actualBody != null) {
+							//	line("$prefix(${margs.joinToString(", ")})") {
+							//		line(actualBody)
+							//		if (method.methodVoidReturnThis) line("return this;")
+							//	}
+							//} else {
+							//	line("$prefix() { N.methodWithoutBody('${clazz.name}.${method.name}') }")
+							//}
+
+							if (actualBody != null) {
+								line(actualBody)
+								if (method.methodVoidReturnThis) line("return this;")
+							} else {
+								line("N.methodWithoutBody('${clazz.name}.${method.name}');")
+							}
+						}
+
+						fun renderBranches() = Indenter {
+							line("$prefix(${margs.joinToString(", ")})") {
+								try {
+									val nativeBodies = method.getJsNativeBodies()
+									var javaBodyCacheDone: Boolean = false
+									var javaBodyCache: Indenter? = null
+									fun javaBody(): Indenter? {
+										if (!javaBodyCacheDone) {
+											javaBodyCacheDone = true
+											javaBodyCache = rbody?.genBodyWithFeatures(method)
+										}
+										return javaBodyCache
+									}
+									//val javaBody by lazy {  }
+
+									// @TODO: Do not hardcode this!
+									if (nativeBodies.isEmpty() && javaBody() == null) {
+										line(renderBranch(null))
+									} else {
+										if (nativeBodies.isNotEmpty()) {
+											val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody() ?: Indenter.EMPTY
+											val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
+
+											if (options.size == 1) {
+												line(renderBranch(default))
+											} else {
+												for (opt in options.withIndex()) {
+													if (opt.index != options.size - 1) {
+														val iftype = if (opt.index == 0) "if" else "else if"
+														line("$iftype (${opt.value.first})") { line(renderBranch(opt.value.second)) }
+													} else {
+														line("else") { line(renderBranch(opt.value.second)) }
+													}
+												}
+											}
+											//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
+										} else {
+											line(renderBranch(javaBody()))
+										}
+									}
+								} catch (e: Throwable) {
+									log.printStackTrace(e)
+									log.warn("WARNING GenJsGen.writeMethod:" + e.message)
+
+									line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
+									line(renderBranch(null))
+								}
+							}
+						}
+
+						line(renderBranches())
+					}
+				}
+
+				for (method in clazz.methods.filter { it.isClassOrInstanceInit }) line(writeMethod(method))
+				for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
 			}
 
-			line("$classBase.prototype = Object.create($parentClassBase.prototype);")
-			line("$classBase.prototype.constructor = $classBase;")
-
+			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
 			for (field in allInstanceFieldsProto) {
 				val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
 				line("$classBase.prototype${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
 			}
-
-			// @TODO: Move to genSIMethodBody
-			//if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
-			//	line("$classBase.SI = function()", after2 = ";") {
-			//		line("$classBase.SI = N.EMPTY_FUNCTION;")
-			//		for (field in staticFields) {
-			//			val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-			//			line("${getMemberBase(field.isStatic)}${accessStr(nativeMemberName)} = ${field.escapedConstantValue};")
-			//		}
-			//		if (clazz.staticConstructor != null) {
-			//			line("$classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}();")
-			//		}
-			//	}
-			//} else {
-			//	line("$classBase.SI = N.EMPTY_FUNCTION;")
-			//}
-			//line("$classBase.SI = N.EMPTY_FUNCTION;")
-
-			if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
-				line("$classBase.SI = async function()", after2 = ";") {
-					//line("$classBase.SI = N.EMPTY_FUNCTION;")
-					for (field in staticFields) {
-						val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-						line("${getMemberBase(field.isStatic)}${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
-					}
-					if (clazz.staticConstructor != null) {
-						val await = if (clazz.staticConstructor?.isAsync == true) "await " else ""
-						line("($await($classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}()));")
-					}
-				}
-			} else {
-				line("$classBase.SI = async function(){};")
-			}
-
-			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
 			line("$classBase.prototype.__JT__CLASS_ID = $classBase.__JT__CLASS_ID = ${clazz.classId};")
 			line("$classBase.prototype.__JT__CLASS_IDS = $classBase.__JT__CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
-
-			//renderFields(clazz.fields);
-
-			fun writeMethod(method: AstMethod): Indenter {
-				setCurrentMethod(method)
-				return Indenter {
-					refs.add(method.methodType)
-					val margs = method.methodType.args.map { it.name }
-
-					//val defaultMethodName = if (method.isInstanceInit) "${method.ref.classRef.fqname}${method.name}${method.desc}" else "${method.name}${method.desc}"
-					//val methodName = if (method.targetName == defaultMethodName) null else method.targetName
-					val nativeMemberName = buildMethod(method, false, includeDot = false)
-					val prefix = "${getMemberBase(method.isStatic)}${instanceAccess(nativeMemberName, field = false)}"
-
-					val rbody = if (method.body != null) method.body else if (method.bodyRef != null) program[method.bodyRef!!]?.body else null
-
-					val async = if (method.isAsync) "async " else ""
-
-					fun renderBranch(actualBody: Indenter?) = Indenter {
-						if (actualBody != null) {
-							line("$prefix = ${async}function(${margs.joinToString(", ")})", after2 = ";") {
-								line(actualBody)
-								if (method.methodVoidReturnThis) line("return this;")
-							}
-						} else {
-							line("$prefix = ${async}function() { N.methodWithoutBody('${clazz.name}.${method.name}') };")
-						}
-					}
-
-					fun renderBranches() = Indenter {
-						try {
-							val nativeBodies = method.getJsNativeBodies()
-							var javaBodyCacheDone: Boolean = false
-							var javaBodyCache: Indenter? = null
-							fun javaBody(): Indenter? {
-								if (!javaBodyCacheDone) {
-									javaBodyCacheDone = true
-									javaBodyCache = rbody?.genBodyWithFeatures(method)
-								}
-								return javaBodyCache
-							}
-							//val javaBody by lazy {  }
-
-							// @TODO: Do not hardcode this!
-							if (nativeBodies.isEmpty() && javaBody() == null) {
-								line(renderBranch(null))
-							} else {
-								if (nativeBodies.isNotEmpty()) {
-									val default = if ("" in nativeBodies) nativeBodies[""]!! else javaBody() ?: Indenter.EMPTY
-									val options = nativeBodies.filter { it.key != "" }.map { it.key to it.value } + listOf("" to default)
-
-									if (options.size == 1) {
-										line(renderBranch(default))
-									} else {
-										for (opt in options.withIndex()) {
-											if (opt.index != options.size - 1) {
-												val iftype = if (opt.index == 0) "if" else "else if"
-												line("$iftype (${opt.value.first})") { line(renderBranch(opt.value.second)) }
-											} else {
-												line("else") { line(renderBranch(opt.value.second)) }
-											}
-										}
-									}
-									//line(nativeBodies ?: javaBody ?: Indenter.EMPTY)
-								} else {
-									line(renderBranch(javaBody()))
-								}
-							}
-						} catch (e: Throwable) {
-							log.printStackTrace(e)
-							log.warn("WARNING GenJsGen.writeMethod:" + e.message)
-
-							line("// Errored method: ${clazz.name}.${method.name} :: ${method.desc} :: ${e.message};")
-							line(renderBranch(null))
-						}
-					}
-
-					line(renderBranches())
-				}
-			}
-
-			for (method in clazz.methods.filter { it.isClassOrInstanceInit }) line(writeMethod(method))
-			for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
+			line("")
 		}
 
 		return listOf(ClassResult(SubClass(clazz, MemberTypes.ALL), classCodeIndenter))
@@ -508,4 +503,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "N.checkCast($e, ${to.targetNameRef})"
 	}
+
+	// @TODO: async/await
+	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent { line("N.monitorEnter();") }
+
+	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent { line("N.monitorExit();") }
+
 }

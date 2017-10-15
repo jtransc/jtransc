@@ -1162,7 +1162,11 @@ class N {
     static get floatToIntBits() { return __reints.floatToIntBits; }
     static get doubleToLongBits() { return __reints.doubleToLongBits; }
     static get longBitsToDouble() { return __reints.longBitsToDouble; }
-}
+
+    // @TODO: async
+    static monitorEnter() { }
+    static monitorExit() { }
+} // N
 
 function stackTrace() {
 	var err = new Error();
