@@ -28,7 +28,7 @@ public class JTranscConsole {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.istr(p0));"),
-		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0{% IMETHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),
@@ -44,7 +44,7 @@ public class JTranscConsole {
 	//@JTranscMethodBodyList({
 	//	@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
 	//	@JTranscMethodBody(target = "js", value = "console.log(await N.asyncAsyncStr(p0));"),
-	//	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+	//	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0{% IMETHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 	//	@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 	//	@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 	//	@JTranscMethodBody(target = "as3", value = "trace(p0);"),
@@ -58,7 +58,7 @@ public class JTranscConsole {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(p0);"),
-		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
+		@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0{% IMETHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));"),
 		@JTranscMethodBody(target = "d", value = "writefln(\"%s\", p0); std.stdio.stdout.flush();"),
 		@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");"),
 		@JTranscMethodBody(target = "as3", value = "trace(p0);"),

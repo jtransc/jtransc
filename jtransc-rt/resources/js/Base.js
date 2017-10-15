@@ -887,8 +887,8 @@ class N {
 	static async iteratorToArray(it) {
 		if (it == null) return null;
 		var out = [];
-		while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
-			out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+		while (await it{% IMETHOD java.util.Iterator:hasNext:()Z %}()) {
+			out.push(await it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
 		}
 		return out;
 	};
@@ -896,12 +896,12 @@ class N {
 	static async imap(map) {
 		if (map == null) return null;
 		var obj = {};
-		let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
+		let array = await(N.iteratorToArray(await await map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}()))
 
 		for (let n = 0; n < array.length; n++) {
 			let item = array[n];
-			var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
-			var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
+			var key = await item{% IMETHOD java.util.Map$Entry:getKey %}();
+			var value = await item{% IMETHOD java.util.Map$Entry:getValue %}();
 			obj[N.unbox(key)] = N.unbox(value);
 		}
 		return obj;
@@ -1120,7 +1120,7 @@ class N {
 	//	} else {
 	//		throw 'Unsupported N.sort!';
 	//		//slice.sort(async function(a, b) {
-	//		//	return await comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+	//		//	return await comparator{% IMETHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}(a, b);
 	//		//});
 	//	}
 	//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
