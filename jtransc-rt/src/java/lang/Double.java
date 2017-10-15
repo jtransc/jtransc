@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.text.JTranscStringTools;
 
@@ -47,6 +48,7 @@ public final class Double extends Number implements Comparable<Double> {
 	}
 
 	@JTranscKeep
+	@JTranscSync
 	public static Double valueOf(double d) {
 		return new Double(d);
 	}
@@ -96,6 +98,7 @@ public final class Double extends Number implements Comparable<Double> {
 
 	private final double value;
 
+	@JTranscSync
 	public Double(double value) {
 		this.value = value;
 	}
@@ -104,10 +107,12 @@ public final class Double extends Number implements Comparable<Double> {
 		value = parseDouble(s);
 	}
 
+	@JTranscSync
 	public boolean isNaN() {
 		return isNaN(value);
 	}
 
+	@JTranscSync
 	public boolean isInfinite() {
 		return isInfinite(value);
 	}
@@ -116,35 +121,43 @@ public final class Double extends Number implements Comparable<Double> {
 		return toString(value);
 	}
 
+	@JTranscSync
 	public byte byteValue() {
 		return (byte) this.value;
 	}
 
+	@JTranscSync
 	public short shortValue() {
 		return (short) this.value;
 	}
 
+	@JTranscSync
 	public int intValue() {
 		return (int) this.value;
 	}
 
+	@JTranscSync
 	public long longValue() {
 		return (long) this.value;
 	}
 
+	@JTranscSync
 	public float floatValue() {
 		return (float) this.value;
 	}
 
+	@JTranscSync
 	public double doubleValue() {
 		return this.value;
 	}
 
 	@Override
+	@JTranscSync
 	public int hashCode() {
 		return hashCode(doubleValue());
 	}
 
+	@JTranscSync
 	public static int hashCode(double value) {
 		return (int) doubleToLongBits(value);
 	}
@@ -161,6 +174,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "as3", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::doubleToLongBits($p0);")
+	@JTranscSync
 	native public static long doubleToLongBits(double value);
 
 	@HaxeMethodBody("return N.doubleToLongBits(p0);")
@@ -171,6 +185,7 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "as3", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.doubleToLongBits(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::doubleToLongBits($p0);")
+	@JTranscSync
 	native public static long doubleToRawLongBits(double value);
 
 	@HaxeMethodBody("return N.longBitsToDouble(p0);")
@@ -181,12 +196,15 @@ public final class Double extends Number implements Comparable<Double> {
 	@JTranscMethodBody(target = "as3", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.longBitsToDouble(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::longBitsToDouble($p0);")
+	@JTranscSync
 	public static native double longBitsToDouble(long bits);
 
+	@JTranscSync
 	public int compareTo(Double that) {
 		return Double.compare(this.value, that.value);
 	}
 
+	@JTranscSync
 	public static int compare(double d1, double d2) {
 		if (d1 < d2) return -1;
 		if (d1 > d2) return 1;
@@ -195,14 +213,17 @@ public final class Double extends Number implements Comparable<Double> {
 		return (b1 == b2 ? 0 : (b1 < b2 ? -1 : 1));
 	}
 
+	@JTranscSync
 	public static double sum(double a, double b) {
 		return a + b;
 	}
 
+	@JTranscSync
 	public static double max(double a, double b) {
 		return Math.max(a, b);
 	}
 
+	@JTranscSync
 	public static double min(double a, double b) {
 		return Math.min(a, b);
 	}

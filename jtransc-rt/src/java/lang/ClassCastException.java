@@ -16,10 +16,14 @@
 
 package java.lang;
 
+import com.jtransc.annotation.JTranscSync;
+
 public class ClassCastException extends RuntimeException {
+	@JTranscSync
 	public ClassCastException() {
 	}
 
+	@JTranscSync
 	public ClassCastException(String message) {
 		super(message);
 	}

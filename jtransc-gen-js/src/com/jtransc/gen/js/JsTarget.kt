@@ -179,7 +179,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 				line("}")
 			}
-			line("__main();")
+			line("__main().catch((e) => { console.error(e); });")
 			line(concatFilesTrans.append)
 		}
 
@@ -274,13 +274,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_func(name: String, args: String): String {
 		val base = "N$staticAccessOperator$name($args)"
 		return when (name) {
-			"resolveClass",
-			"boxVoid", "boxBool", "boxByte", "boxShort", "boxChar", "boxInt", "boxLong", "boxFloat", "boxDouble",
-			"iteratorToArray", "imap"
-			->
-				"(await($base))"
-			else ->
-				base
+			"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
+			else -> base
 		}
 	}
 

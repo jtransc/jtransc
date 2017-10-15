@@ -947,12 +947,12 @@ function stackTrace() {
     return err.stack.split('\n').slice(3);
 }
 
-N.getStackTrace = function(error, count) {
+N.getStackTrace = async function(error, count) {
 	//var traces = stackTrace()
 	var traces = error.stack.split('\n').slice(count);
 	var out = new JA_L(traces.length, '[Ljava/lang/StackTraceElement;');
 	for (var n = 0; n < traces.length; ++n) {
-		out.set(n, N.createStackTraceElement('JS', 'js', traces[n], 0));
+		out.set(n, await N.createStackTraceElement('JS', 'js', traces[n], 0));
 	}
 	return out;
 };
@@ -988,15 +988,15 @@ N.fillSecureRandomBytes = function(array) {
 	for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 };
 
-N.boxVoid = async function(value) { return null; }
-N.boxBool = async function(value) { return await {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-N.boxByte = async function(value) { return await {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-N.boxShort = async function(value) { return await {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-N.boxChar = async function(value) { return await {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-N.boxInt = async function(value) { return await {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-N.boxLong = async function(value) { return await {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-N.boxFloat = async function(value) { return await {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-N.boxDouble = async function(value) { return await {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+N.boxVoid = function(value) { return null; }
+N.boxBool = function(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+N.boxByte = function(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+N.boxShort = function(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+N.boxChar = function(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+N.boxInt = function(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+N.boxLong = function(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+N.boxFloat = function(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+N.boxDouble = function(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
 N.boxString = function(value) { return (value != null) ? N.str(value) : null; }
 N.boxWrapped = function(value) { return N.wrap(value); }
 

@@ -77,6 +77,10 @@ public class Object {
 	@JTranscInvisible
 	public int $$id;
 
+	@JTranscSync
+	public Object() {
+	}
+
 	public boolean equals(Object obj) {
 		return (this == obj);
 	}

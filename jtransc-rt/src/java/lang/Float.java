@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 import com.jtransc.text.JTranscStringTools;
 
@@ -52,6 +53,7 @@ public final class Float extends Number implements Comparable<Float> {
 	}
 
 	@JTranscKeep
+	@JTranscSync
 	public static Float valueOf(float value) {
 		return new Float(value);
 	}
@@ -80,10 +82,12 @@ public final class Float extends Number implements Comparable<Float> {
 
 	private final float value;
 
+	@JTranscSync
 	public Float(float value) {
 		this.value = value;
 	}
 
+	@JTranscSync
 	public Float(double value) {
 		this.value = (float) value;
 	}
@@ -92,38 +96,47 @@ public final class Float extends Number implements Comparable<Float> {
 		value = parseFloat(s);
 	}
 
+	@JTranscSync
 	public boolean isNaN() {
 		return isNaN(value);
 	}
 
+	@JTranscSync
 	public boolean isInfinite() {
 		return isInfinite(value);
 	}
 
+	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}
 
+	@JTranscSync
 	public byte byteValue() {
 		return (byte) value;
 	}
 
+	@JTranscSync
 	public short shortValue() {
 		return (short) value;
 	}
 
+	@JTranscSync
 	public int intValue() {
 		return (int) value;
 	}
 
+	@JTranscSync
 	public long longValue() {
 		return (long) value;
 	}
 
+	@JTranscSync
 	public float floatValue() {
 		return value;
 	}
 
+	@JTranscSync
 	public double doubleValue() {
 		return (double) value;
 	}
@@ -149,6 +162,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "as3", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::floatToIntBits($p0);")
+	@JTranscSync
 	native public static int floatToIntBits(float value);
 
 	@HaxeMethodBody("return N.floatToIntBits(p0);")
@@ -159,6 +173,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "as3", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::floatToIntBits($p0);")
+	@JTranscSync
 	native public static int floatToRawIntBits(float value);
 
 	@HaxeMethodBody("return N.intBitsToFloat(p0);")
@@ -169,12 +184,14 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "as3", value = "return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "php", value = "return N::intBitsToFloat($p0);")
+	@JTranscSync
 	native public static float intBitsToFloat(int bits);
 
 	public int compareTo(Float that) {
 		return compare(this.value, that.value);
 	}
 
+	@JTranscSync
 	public static int compare(float f1, float f2) {
 		if (f1 < f2) return -1;
 		if (f1 > f2) return 1;
@@ -183,14 +200,17 @@ public final class Float extends Number implements Comparable<Float> {
 		return (b1 == b2 ? 0 : (b1 < b2 ? -1 : 1));
 	}
 
+	@JTranscSync
 	public static float sum(float l, float r) {
 		return l + r;
 	}
 
+	@JTranscSync
 	public static float max(float l, float r) {
 		return Math.max(l, r);
 	}
 
+	@JTranscSync
 	public static float min(float l, float r) {
 		return Math.min(l, r);
 	}

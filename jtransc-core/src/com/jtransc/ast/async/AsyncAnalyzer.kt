@@ -1,6 +1,8 @@
 package com.jtransc.ast.async
 
+import com.jtransc.annotation.JTranscSync
 import com.jtransc.ast.AstMethod
+import com.jtransc.ast.contains
 import com.jtransc.gen.TargetName
 
 class AsyncAnalyzer(val target: TargetName) {
@@ -38,6 +40,10 @@ class AsyncAnalyzer(val target: TargetName) {
 
 		// Note: since toString would probably end being async in this case, we should try hard to devirtualize
 		// as much as we can to avoid asynchronous paths.
+
+		if (m.annotationsList.contains<JTranscSync>()) {
+			return false
+		}
 
 		return true
 	}

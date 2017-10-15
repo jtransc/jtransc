@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings({"UnnecessaryUnboxing", "unchecked", "WeakerAccess", "unused", "UnnecessaryBoxing"})
@@ -56,6 +57,7 @@ public final class Short extends Number implements Comparable<Short> {
 	}
 
 	@JTranscKeep
+	@JTranscSync
 	public static Short valueOf(short s) {
 		// @TODO: Cache!
 		return new Short(s);
@@ -67,6 +69,7 @@ public final class Short extends Number implements Comparable<Short> {
 
 	private final short value;
 
+	@JTranscSync
 	public Short(short value) {
 		this.value = value;
 	}
@@ -75,26 +78,32 @@ public final class Short extends Number implements Comparable<Short> {
 		this.value = parseShort(s, 10);
 	}
 
+	@JTranscSync
 	public byte byteValue() {
 		return (byte) value;
 	}
 
+	@JTranscSync
 	public short shortValue() {
 		return value;
 	}
 
+	@JTranscSync
 	public int intValue() {
 		return (int) value;
 	}
 
+	@JTranscSync
 	public long longValue() {
 		return (long) value;
 	}
 
+	@JTranscSync
 	public float floatValue() {
 		return (float) value;
 	}
 
+	@JTranscSync
 	public double doubleValue() {
 		return (double) value;
 	}
@@ -108,6 +117,7 @@ public final class Short extends Number implements Comparable<Short> {
 		return Short.hashCode(value);
 	}
 
+	@JTranscSync
 	public static int hashCode(short value) {
 		return (int) value;
 	}
@@ -116,24 +126,29 @@ public final class Short extends Number implements Comparable<Short> {
 		return obj instanceof Short && value == ((Short) obj).shortValue();
 	}
 
+	@JTranscSync
 	public int compareTo(Short anotherShort) {
 		return compare(this.value, anotherShort.value);
 	}
 
+	@JTranscSync
 	public static int compare(short x, short y) {
 		return x - y;
 	}
 
+	@JTranscSync
 	@HaxeMethodBody("return N.swap16(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
 	public static short reverseBytes(short value) {
 		return (short) (((value & 0xFF00) >> 8) | ((value & 0xFF) << 8));
 	}
 
+	@JTranscSync
 	public static int toUnsignedInt(short value) {
 		return ((int) value) & 0xffff;
 	}
 
+	@JTranscSync
 	public static long toUnsignedLong(short value) {
 		return ((long) value) & 0xffffL;
 	}

@@ -18,6 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "UnnecessaryBoxing", "PointlessArithmeticExpression"})
@@ -90,15 +91,18 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 
 	private final char value;
 
+	@JTranscSync
 	public Character(char value) {
 		this.value = value;
 	}
 
 	@JTranscKeep
+	@JTranscSync
 	public static Character valueOf(char value) {
 		return new Character(value);
 	}
 
+	@JTranscSync
 	public char charValue() {
 		return value;
 	}
@@ -108,6 +112,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return value;
 	}
 
+	@JTranscSync
 	public static int hashCode(char value) {
 		return value;
 	}

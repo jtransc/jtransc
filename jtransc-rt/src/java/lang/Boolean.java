@@ -17,6 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscMethodBody;
+import com.jtransc.annotation.JTranscSync;
 
 @SuppressWarnings({"UnnecessaryBoxing", "WeakerAccess", "unchecked", "SimplifiableIfStatement"})
 public final class Boolean implements java.io.Serializable, Comparable<Boolean> {
@@ -27,6 +28,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 
 	private final boolean value;
 
+	@JTranscSync
 	public Boolean(boolean value) {
 		this.value = value;
 	}
@@ -39,10 +41,12 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return (value != null) && (value.compareToIgnoreCase("true") == 0);
 	}
 
+	@JTranscSync
 	public boolean booleanValue() {
 		return value;
 	}
 
+	@JTranscSync
 	public static Boolean valueOf(boolean value) {
 		return value ? TRUE : FALSE;
 	}
@@ -51,6 +55,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return valueOf(parseBoolean(value));
 	}
 
+	@JTranscSync
 	public static String toString(boolean value) {
 		return value ? "true" : "false";
 	}
@@ -64,6 +69,7 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return hashCode(value);
 	}
 
+	@JTranscSync
 	public static int hashCode(boolean value) {
 		return value ? 1 : 0;
 	}
@@ -84,19 +90,23 @@ public final class Boolean implements java.io.Serializable, Comparable<Boolean> 
 		return (that != null) ? compare(this.value, that.value) : compare(this.value, false);
 	}
 
+	@JTranscSync
 	@JTranscMethodBody(target = "js", value = "return (p0 == p1) ? 0 : ((!p0) ? -1 : +1);")
 	public static int compare(boolean l, boolean r) {
 		return (l == r) ? 0 : ((!l) ? -1 : +1);
 	}
 
+	@JTranscSync
 	public static boolean logicalAnd(boolean l, boolean r) {
 		return l & r;
 	}
 
+	@JTranscSync
 	public static boolean logicalOr(boolean l, boolean r) {
 		return l | r;
 	}
 
+	@JTranscSync
 	public static boolean logicalXor(boolean l, boolean r) {
 		return l ^ r;
 	}

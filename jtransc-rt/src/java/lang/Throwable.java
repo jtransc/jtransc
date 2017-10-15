@@ -39,26 +39,32 @@ public class Throwable implements Serializable {
 	private boolean enableSuppression = false;
 	private boolean writableStackTrace = false;
 
+	@JTranscSync
 	public Throwable() {
 		init(null, null, false, false);
 	}
 
+	@JTranscSync
 	public Throwable(String message) {
 		init(message, null, false, false);
 	}
 
+	@JTranscSync
 	public Throwable(String message, Throwable cause) {
 		init(message, cause, false, false);
 	}
 
+	@JTranscSync
 	public Throwable(Throwable cause) {
 		init(null, cause, false, false);
 	}
 
+	@JTranscSync
 	protected Throwable(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		init(message, cause, enableSuppression, writableStackTrace);
 	}
 
+	@JTranscSync
 	private void init(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		this.message = message;
 		this.cause = cause;
@@ -66,10 +72,12 @@ public class Throwable implements Serializable {
 		this.writableStackTrace = writableStackTrace;
 	}
 
+	@JTranscSync
 	public String getMessage() {
 		return message;
 	}
 
+	@JTranscSync
 	public String getLocalizedMessage() {
 		return message;
 	}
@@ -213,7 +221,7 @@ public class Throwable implements Serializable {
 	}
 
 	@HaxeMethodBody("return N.getStackTrace(1);")
-	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(this.error, 0);")
+	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(this.error, 0);", async = true)
 	@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(this.currentStackTrace, 1);")
 	@JTranscMethodBody(target = "dart", value = "return N.getStackTrace(this.currentStackTrace, 0);")
 	private StackTraceElement[] getStackTraceInternal() {
