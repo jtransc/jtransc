@@ -1165,22 +1165,40 @@ class N {
 
     // @TODO: async
     static async monitorEnter(_jc, obj) {
-    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	await obj.__jt_mutex__.lock(_jc);
+    	await(RecursiveMutex.getMutex(obj).lock(_jc));
     }
 
     static async monitorExit(_jc, obj) {
-    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	await obj.__jt_mutex__.unlock(_jc);
+    	await(RecursiveMutex.getMutex(obj).unlock(_jc));
+    }
+
+    static async threadNotify(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).notify(_jc));
+    }
+
+    static async threadNotifyAll(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).notifyAll(_jc));
+    }
+
+    static async threadWait(_jc, obj, timeoutMs, timeoutNanos) {
+    	await(RecursiveMutex.getMutex(obj).wait(_jc, timeoutMs, timeoutNanos));
     }
 } // N
 
 class RecursiveMutex {
+	static getMutex(obj) {
+    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
+    	return obj.__jt_mutex__;
+	}
+
 	constructor() {
 		this.capturedThread = -1;
 		this.capturedCount = 0;
-		this.awakeQueue = [];
+		this.lockQueue = [];
+		this.waitQueue = [];
 	}
+
+	// MUTEX
 
 	async lock(_jc) {
     	//console.log('RecursiveMutex.lock:', this, _jc);
@@ -1191,7 +1209,7 @@ class RecursiveMutex {
 			this.capturedCount++;
 		} else {
 			return new Promise((resolve, reject) => {
-				this.awakeQueue.push(() => {
+				this.lockQueue.push(() => {
 					this.capturedThread = threadId;
 					this.capturedCount++;
 					resolve();
@@ -1216,10 +1234,53 @@ class RecursiveMutex {
 	}
 
 	unlockNext() {
-		if (this.awakeQueue.length > 0) {
-			let func = this.awakeQueue.shift();
+		if (this.lockQueue.length > 0) {
+			let func = this.lockQueue.shift();
 			func();
 		}
+	}
+
+	// WAIT/NOTIFY
+
+	async notify(_jc) {
+		//console.log('RecursiveMutex.notify', _jc);
+		if (this.waitQueue.length > 0) {
+			let callback = this.waitQueue.shift();
+			callback();
+		}
+	}
+
+	async notifyAll(_jc) {
+		//console.log('RecursiveMutex.notifyAll', _jc);
+		var queue = this.waitQueue.splice(0, this.waitQueue.length);
+		for (let callback of queue) callback();
+	}
+
+	async wait(_jc, timeoutMs, timeoutNano) {
+		//console.log('RecursiveMutex.wait', _jc, timeoutMs, timeoutNano);
+		return new Promise((resolve, reject) => {
+			let func;
+			let timer = -1;
+			func = () => {
+				if (timer >= 0) clearTimeout(timer);
+				//console.log('------ resolved');
+				resolve();
+			};
+
+			// 0 means wait forever
+			if (timeoutMs > 0) {
+				timer = setTimeout(() => {
+					//console.log('------ timeout');
+					let index = this.waitQueue.indexOf(func);
+					if (index >= 0) {
+						this.waitQueue.splice(index, 1);
+					}
+					reject(new Error("Timeout!"));
+				}, timeoutMs);
+			}
+
+			this.waitQueue.push(func);
+		});
 	}
 }
 

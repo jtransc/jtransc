@@ -2,26 +2,28 @@ package big;
 
 import com.jtransc.io.JTranscConsole;
 
+import java.util.concurrent.Semaphore;
+
 @SuppressWarnings("ConstantConditions")
 public class ThreadTest {
 	static public void main(String[] args) throws InterruptedException {
 		System.out.println("ThreadTest.main:");
-		//final Semaphore sema = new Semaphore(1);
-		//sema.acquire();
-		//final Thread t = new Thread(() -> {
-		//	try {
-		//		sema.acquire();
-		//	} catch (InterruptedException e) {
-		//		e.printStackTrace();
-		//	}
-		//	System.out.println("Thread end!");
-		//});
-		//t.start();
+		final Semaphore sema = new Semaphore(1);
+		sema.acquire();
+		final Thread t = new Thread(() -> {
+			try {
+				sema.acquire();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Thread end!");
+		});
+		t.start();
 		interlock();
 		synchronizedBlock();
 		synchronizedMethod();
-		//sema.release();
-		//t.join();
+		sema.release();
+		t.join();
 	}
 
 	static public void sleep(int ms) {
