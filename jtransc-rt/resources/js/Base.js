@@ -446,8 +446,13 @@ function __createJavaArrayBaseType() {
 		"{% METHOD java.lang.Object:toString %}"(_jc) {
 			return N.str('ARRAY(' + this.desc + ')');
 		};
+	}
 
-		// @TODO: Should we duplicate in each array for performance?
+	return JA_0;
+}
+
+function __copyOfJA_0() {
+	return class extends JA_0 {
 		setArraySlice(startIndex, array) {
 			var len = array.length;
 			for (var n = 0; n < len; ++n) this.data[startIndex + n] = array[n];
@@ -457,24 +462,22 @@ function __createJavaArrayBaseType() {
 			if (index < 0 || index >= this.data.length) {
 				N.throwRuntimeException('Out of bounds ' + index + " !in [0, " + this.data.length + "]");
 			}
-		};
+		}
 
 		get(index) {
 			if (DEBUG_VERSION) this.checkIndex(index);
 			return this.data[index];
-		};
+		}
 
 		set(index, value) {
 			if (DEBUG_VERSION) this.checkIndex(index);
 			this.data[index] = value;
-		};
-	}
-
-	return JA_0;
+		}
+	};
 }
 
 function __createGenericArrayType(classId) {
-	class ARRAY extends JA_0 {
+	class ARRAY extends __copyOfJA_0() {
 		constructor(size, desc) {
 			super(size, desc);
 			this.data = new Array(size);
@@ -578,7 +581,7 @@ function __createJavaArrayType(classId, desc, type, elementBytesSize) {
 	const DESC = desc;
 	const IS_LONG = (DESC == '[J');
 
-	class ARRAY extends JA_0 {
+	class ARRAY extends __copyOfJA_0() {
 		constructor(size) {
 			super(size, DESC);
 			this.memorySize = size * ELEMENT_BYTES_SIZE;
@@ -652,15 +655,15 @@ function __createJavaArrayType(classId, desc, type, elementBytesSize) {
 
 function __createJavaArrays() {
 	JA_0 = __createJavaArrayBaseType();
-	JA_L = __createGenericArrayType(-1); // Generic Array
-	JA_Z = __createJavaArrayType(-2, '[Z', Int8Array, 1);    // Bool Array
-	JA_B = __createJavaArrayType(-3, '[B', Int8Array, 1);    // Byte Array
-	JA_C = __createJavaArrayType(-4, '[C', Uint16Array, 2);  // Character Array
-	JA_S = __createJavaArrayType(-5, '[S', Int16Array, 2);   // Short Array
-	JA_I = __createJavaArrayType(-6, '[I', Int32Array, 4);   // Int Array
-	JA_F = __createJavaArrayType(-7, '[F', Float32Array, 4); // Float Array
-	JA_D = __createJavaArrayType(-8, '[D', Float64Array, 8); // Double Array
-	JA_J = __createJavaArrayType(-9, '[J', Array, 1);        // Long Array (Specially handled)
+	JA_L = class JA_L extends __createGenericArrayType(-1) {} // Generic Array
+	JA_Z = class JA_Z extends __createJavaArrayType(-2, '[Z', Int8Array, 1) {}    // Bool Array
+	JA_B = class JA_B extends __createJavaArrayType(-3, '[B', Int8Array, 1) {}    // Byte Array
+	JA_C = class JA_C extends __createJavaArrayType(-4, '[C', Uint16Array, 2) {}  // Character Array
+	JA_S = class JA_S extends __createJavaArrayType(-5, '[S', Int16Array, 2) {}  // Short Array
+	JA_I = class JA_I extends __createJavaArrayType(-6, '[I', Int32Array, 4) {}   // Int Array
+	JA_F = class JA_F extends __createJavaArrayType(-7, '[F', Float32Array, 4) {} // Float Array
+	JA_D = class JA_D extends __createJavaArrayType(-8, '[D', Float64Array, 8) {} // Double Array
+	JA_J = class JA_J extends __createJavaArrayType(-9, '[J', Array, 1) {}        // Long Array (Specially handled)
 }
 
 var __reints = (function() {
