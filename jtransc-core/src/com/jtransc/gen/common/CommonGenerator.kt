@@ -1788,6 +1788,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
+	open val targetExtraParams = mapOf<String, Any?>()
+
 	@Suppress("ConvertLambdaToReference")
 	val params by lazy {
 		val result = (
@@ -1826,7 +1828,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 				"TARGET_DEFINES" to targetDefines,
 				"JTRANSC_VERSION" to JTranscVersion.getVersion(),
 				"JTRANSC_OS" to JTranscSystem.getOS()
-			) + extraVars
+			) + extraVars + targetExtraParams
 			)
 			.toHashMap()
 		log.info("TEMPLATE VARS:")

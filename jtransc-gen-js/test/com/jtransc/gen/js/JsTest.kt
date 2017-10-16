@@ -100,8 +100,8 @@ class JsTest : _Base() {
 
 	@Test fun testURLEncoderDecoder() = testClass(Params(clazz = URLEncoderDecoderTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, log = true, treeShaking = true, debug = true)
-	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
+	//@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
+	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Ignore
 	@Test fun testIssue105() = testClass(Params(clazz = Issue105::class.java, minimize = false, log = false, treeShaking = true))
@@ -176,11 +176,17 @@ class JsTest : _Base() {
 		Shutdown hook!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
+	//@Test fun referencesTest() = testNativeClass("""
+	//	MethodBodyReferencesTestJs:true
+	//	MethodBodyReferencesTestCpp:false
+	//	MethodBodyReferencesTestJvm:false
+	//""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
+
 	@Test fun referencesTest() = testNativeClass("""
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
-	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
+	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = false, treeShaking = false))
 
 	@Test fun extraKeywordsJs() = testNativeClass("""
 		1
