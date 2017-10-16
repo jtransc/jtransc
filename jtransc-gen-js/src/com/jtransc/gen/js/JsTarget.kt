@@ -79,7 +79,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val optionalDoubleDummyDecimals = true
 
 	//val IS_ASYNC = false
-	val IS_ASYNC = true
+	val IS_ASYNC = extraParams["js_enable_async"]?.toBoolean() ?: false
 
 	val IS_JC = IS_ASYNC
 
