@@ -64,7 +64,7 @@ public class AsynchronousServerSocketChannel implements AsynchronousChannel, Net
 		"var net = require('net');",
 		"var _this = this;",
 		"this.server = net.createServer(function(socket) {",
-		"	var client = {% CONSTRUCTOR java.nio.channels.AsynchronousSocketChannel:()V %}(_jc);",
+		"	var client = {% CONSTRUCTOR java.nio.channels.AsynchronousSocketChannel:()V %}({{ JC }});",
 		"	client.client = socket;",
 		"	_this.clients.push(client);",
 		"	if (_this.handlers.length != 0) { _this.handlers.shift()(_this.clients.shift()); }",
@@ -99,7 +99,7 @@ public class AsynchronousServerSocketChannel implements AsynchronousChannel, Net
 	@JTranscMethodBody(target = "js", value = {
 		"var attachment = p0, handler = p1;",
 		"var handlers = this.handlers;",
-		"function fhandle(client) { handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}(_jc, client, attachment); }",
+		"function fhandle(client) { handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}({{ JC_COMMA }}client, attachment); }",
 		"if (this.clients.length != 0) { fhandle(this.clients.shift()); } else { this.handlers.push(fhandle); }"
 	})
 	public native <A> void accept(A attachment, CompletionHandler<AsynchronousSocketChannel, ? super A> handler);

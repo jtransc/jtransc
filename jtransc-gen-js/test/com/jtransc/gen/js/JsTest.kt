@@ -64,6 +64,9 @@ class JsTest : _Base() {
 	//override val TREESHAKING_TRACE = true
 
 	@Test fun testBigWithoutTreeShaking() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false))
+
+	@Test fun testBigWithoutTreeShakingAndAsync() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false, extra = mapOf("js_enable_async" to "true")))
+
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
 	//@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = true, log = false, treeShaking = true))
@@ -100,8 +103,8 @@ class JsTest : _Base() {
 
 	@Test fun testURLEncoderDecoder() = testClass(Params(clazz = URLEncoderDecoderTest::class.java, minimize = false, log = false, treeShaking = true))
 
-	//@Test fun testIssue100Double() = testClass<Issue100Double>(minimize = true, log = true, treeShaking = true, debug = true)
-	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
+	//@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
+	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false, treeShaking = true))
 
 	//@Ignore
 	@Test fun testIssue105() = testClass(Params(clazz = Issue105::class.java, minimize = false, log = false, treeShaking = true))
@@ -176,11 +179,17 @@ class JsTest : _Base() {
 		Shutdown hook!
 	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
 
+	//@Test fun referencesTest() = testNativeClass("""
+	//	MethodBodyReferencesTestJs:true
+	//	MethodBodyReferencesTestCpp:false
+	//	MethodBodyReferencesTestJvm:false
+	//""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
+
 	@Test fun referencesTest() = testNativeClass("""
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
-	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
+	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = false, treeShaking = false))
 
 	@Test fun extraKeywordsJs() = testNativeClass("""
 		1
@@ -239,7 +248,7 @@ class JsTest : _Base() {
 	// You can transform output using a ES6->ES5 transpiler
 	@Test fun testSleep() = testClass(Params(clazz = SleepTest::class.java, minimize = false, log = false, debug = true))
 
-	@Test fun testThreadTest() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, debug = false))
+	@Test fun testThreadTest() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, debug = false, extra = mapOf("js_enable_async" to "true")))
 
 	@Test fun testMisc2() = testClass(Params(clazz = Misc2Test::class.java, minimize = false, log = false))
 }

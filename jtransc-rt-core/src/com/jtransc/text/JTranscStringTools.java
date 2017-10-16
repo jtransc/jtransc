@@ -66,7 +66,7 @@ public class JTranscStringTools {
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
 		@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
-		@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}(_jc, p0, p1, p2);"),
+		@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}({{ JC_COMMA }}p0, p1, p2);"),
 		@JTranscMethodBody(target = "as3", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
 		@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
 	})

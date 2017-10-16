@@ -149,7 +149,7 @@ public class Object {
 		wait(0L, 0);
 	}
 
-	@JTranscMethodBody(target = "js", value = "await N.threadWait(_jc, this, N.j2d(p0), p1);", async = true)
+	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadWait({{ JC_COMMA }}this, N.j2d(p0), p1);", async = true)
 	@JTranscAsync
 	public final void wait(long timeout, int nanos) throws InterruptedException {
 		if (timeout < 0)
@@ -161,13 +161,13 @@ public class Object {
 		}
 	}
 
-	@JTranscMethodBody(target = "js", value = "await N.threadNotify(_jc, this);", async = true)
+	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotify({{ JC_COMMA }}this);", async = true)
 	@JTranscAsync
 	public final void notify() {
 		waitTimeout = 0;
 	}
 
-	@JTranscMethodBody(target = "js", value = "await N.threadNotifyAll(_jc, this);", async = true)
+	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotifyAll({{ JC_COMMA }}this);", async = true)
 	@JTranscAsync
 	public final void notifyAll() {
 		waitTimeout = 0;

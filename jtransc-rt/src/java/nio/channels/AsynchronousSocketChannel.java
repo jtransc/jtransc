@@ -71,10 +71,10 @@ public class AsynchronousSocketChannel implements AsynchronousByteChannel, Netwo
 		"var net = require('net');",
 		"this.client = new net.Socket();",
 		"this.client.on('error', function() {",
-		"	handler{% IMETHOD java.nio.channels.CompletionHandler:failed %}(_jc, N.createRuntimeException(_jc, 'error'), attachment);",
+		"	handler{% IMETHOD java.nio.channels.CompletionHandler:failed %}({{ JC_COMMA }}N.createRuntimeException({{ JC_COMMA }}'error'), attachment);",
 		"});",
 		"this.client.connect(port, address, function() {",
-		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}(_jc, null, attachment);",
+		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}({{ JC_COMMA }}null, attachment);",
 		"});",
 	})
 	native private <A> void _connect(String address, int port, A attachment, CompletionHandler<Void, ? super A> handler);
@@ -99,7 +99,7 @@ public class AsynchronousSocketChannel implements AsynchronousByteChannel, Netwo
 	@JTranscMethodBody(target = "js", value = {
 		"var data = p0.data, offset = p1, len = p2, timeout = p3, attachment = p4, handler = p5;",
 		"this.client.write(new Buffer(new Int8Array(data.buffer, offset, len)), function() {",
-		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}(_jc, N.boxInt(len), attachment);",
+		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}({{ JC_COMMA }}N.boxInt(len), attachment);",
 		"});",
 	})
 	native private <A> void _write(byte[] data, int offset, int len, double timeout, A attachment, CompletionHandler<Integer, ? super A> handler);

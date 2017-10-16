@@ -32,7 +32,7 @@ public class JTranscWrapped {
 
 	//@HaxeMethodBody("return N.box(Reflect.field(this._wrapped, p0._str));")
 	@HaxeMethodBody("return N.box(Reflect.getProperty(this._wrapped, p0._str));")
-	@JTranscMethodBody(target = "js", value = "return N.box(_jc, this._wrapped[N.istr(p0)]);")
+	@JTranscMethodBody(target = "js", value = "return N.box({{ JC_COMMA }}this._wrapped[N.istr(p0)]);")
 	@JTranscSync
 	public Object get(String field) {
 		try {
@@ -58,7 +58,7 @@ public class JTranscWrapped {
 	//public native Object access(String field);
 
 	@HaxeMethodBody("return N.box(Reflect.callMethod(_wrapped, Reflect.field(_wrapped, N.toNativeString(p0)), N.toNativeUnboxedArray(p1)));")
-	@JTranscMethodBody(target = "js", value = "return N.box(_jc, this._wrapped[N.istr(p0)].apply(this._wrapped, N.unboxArray(p1.data)));")
+	@JTranscMethodBody(target = "js", value = "return N.box({{ JC_COMMA }}this._wrapped[N.istr(p0)].apply(this._wrapped, N.unboxArray(p1.data)));")
 	@JTranscAsync
 	public native Object invoke(String name, Object... args);
 

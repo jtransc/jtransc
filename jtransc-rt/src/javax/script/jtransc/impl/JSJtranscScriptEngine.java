@@ -27,7 +27,7 @@ public class JSJtranscScriptEngine extends JTranscScriptEngine {
 	@JTranscMethodBody(target = "js", value = {
 		//"console.log(N.istr(p0));",
 		"var print = console.log; var result = eval(N.istr(p0));",
-		"return N.box(_jc, result);",
+		"return N.box({{ JC_COMMA }}result);",
 	})
 	native public Object eval(String script, ScriptContext context) throws ScriptException;
 }
