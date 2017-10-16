@@ -64,7 +64,7 @@ public class Runtime {
 		}
 	}
 
-	@JTranscMethodBody(target = "js", value = "var that = this; process.on('exit', function() { that{% IMETHOD java.lang.Runtime:_executeShutdownHooks %}(); });")
+	@JTranscMethodBody(target = "js", value = "var that = this; process.on('exit', function() { that{% IMETHOD java.lang.Runtime:_executeShutdownHooks %}(_jc); });")
 	private void _registerShutdownHook() {
 	}
 

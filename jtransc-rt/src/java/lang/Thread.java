@@ -46,6 +46,9 @@ public class Thread implements Runnable {
 	public final static int NORM_PRIORITY = 5;
 	public final static int MAX_PRIORITY = 10;
 
+	//@JTranscMethodBody(target = "js", value = "return _jc.threadId;")
+	//public static int currentThreadId() {return (int) currentThread().getId();}
+
 	public static Thread currentThread() {
 		lazyPrepareThread();
 		Thread out = _getCurrentThreadOrNull();
@@ -61,11 +64,16 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "return _cpp_threads[boost::this_thread::get_id()];")
 	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
 	@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
+	@JTranscMethodBody(target = "js", value = "return {% SMETHOD #CLASS:getThreadById %}(_jc, _jc.threadId);")
 	private static Thread _getCurrentThreadOrNull() {
 		for (Thread t : getThreadsCopy()) return t; // Just valid for programs with just once thread
 		return null;
 	}
 
+	private static Thread getThreadById(int id) {
+		//JTranscConsole.log("getThreadById: " + id);
+		return _threadsById.get((long)id);
+	}
 
 	public StackTraceElement[] getStackTrace() {
 		return new Throwable().getStackTrace();
@@ -188,7 +196,7 @@ public class Thread implements Runnable {
 
 	public synchronized void start() {
 		runInternalPreInit();
-		_start();
+		_start(id);
 	}
 
 	@JTranscMethodBody(target = "d", value = "this.thread.start();")
@@ -209,9 +217,9 @@ public class Thread implements Runnable {
 		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
 		"});"
 	)
-	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}();") // NOTE: await missing intentionally
+	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0, global: _jc.global });") // NOTE: await missing intentionally
 	@JTranscAsync
-	private void _start() {
+	private void _start(@SuppressWarnings("unused") int threadId) {
 		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 		runInternal();
 	}

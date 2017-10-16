@@ -1,5 +1,4 @@
 var _global = (typeof window !== "undefined") ? window : global;
-
 var DEBUG_VERSION = {{ debug != false }};
 
 if ('á'.charCodeAt(0) != 225) {
@@ -79,10 +78,12 @@ String.prototype.replaceAll = String.prototype.replaceAll || (function(search, r
 String.prototype.trim = String.prototype.trim || (function () { return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''); });
 String.prototype.quote = String.prototype.quote || (function () { return JSON.stringify(this); });
 
-var onBrowser = typeof window != "undefined";
-var onNodeJs = typeof window == "undefined";
-
 (function(_global) { "use strict";
+
+//const _global = (typeof window !== "undefined") ? window : global;
+const DEBUG_VERSION = {{ debug != false }};
+const onBrowser = typeof window != "undefined";
+const onNodeJs = typeof window == "undefined";
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -94,13 +95,9 @@ class Int32 {
 	static compare(a, b) {
 		a |= 0;
 		b |= 0;
-		if(a == b) {
-			return 0;
-		} else if(a > b) {
-			return 1;
-		} else {
-			return -1;
-		}
+		if(a < b) return -1;
+		if(a > b) return 1;
+		return 0;
 	};
 
 	static ucompare(a, b) {
@@ -391,20 +388,19 @@ class Int64 {
 }
 
 // Building
-var M2P32_DBL = Math.pow(2, 32);
-var MAX_INT64 = new Int64(0x7FFFFFFF, 0xFFFFFFFF);
-var MIN_INT64 = new Int64(0x80000000, 0x00000000);
+const M2P32_DBL = Math.pow(2, 32);
+const MAX_INT64 = new Int64(0x7FFFFFFF, 0xFFFFFFFF);
+const MIN_INT64 = new Int64(0x80000000, 0x00000000);
 
 Int64.zero = new Int64(0, 0);
 Int64.one = new Int64(0, 1);
 Int64.MIN_VALUE = MIN_INT64;
 Int64.MAX_VALUE = MAX_INT64;
 
-
 ////////////////////////////////////////////////////////////////////////////
 
-var S = [];
-var SS = [];
+let S = [];
+let SS = [];
 
 function __buildStrings() {
 	var len = SS.length
@@ -412,136 +408,115 @@ function __buildStrings() {
 	for (var n = 0; n < len; ++n) S[n] = N.str(SS[n]);
 }
 
-var JA_0, JA_Z, JA_B, JA_C, JA_S, JA_I, JA_J, JA_F, JA_D, JA_L;
+let JA_0 = null;
+let JA_Z = null;
+let JA_B = null;
+let JA_C = null;
+let JA_S = null;
+let JA_I = null;
+let JA_J = null;
+let JA_F = null;
+let JA_D = null;
+let JA_L = null;
 
 function __createJavaArrayBaseType() {
-	var ARRAY = function() {
-	};
+	class JA_0 extends {% CLASS java.lang.Object %} {
+		constructor(size, desc) {
+			super();
+			this.length = size;
+			this.desc = desc;
+		}
 
-	ARRAY.prototype = Object.create({% CLASS java.lang.Object %}.prototype);
-	ARRAY.prototype.constructor = ARRAY;
+		getClass(_jc) {
+			return N.resolveClass(_jc, this.desc);
+		}
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
-		return N.resolveClass(this.desc);
-	};
+		"{% METHOD java.lang.Object:getClass %}"(_jc) {
+			return N.resolveClass(_jc, this.desc);
+		}
 
-	ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
-		var len = array.length;
-		for (var n = 0; n < len; ++n) this.data[startIndex + n] = array[n];
-	};
+		"{% METHOD java.lang.Object:clone %}"() {
+			return this.clone();
+		}
 
+		"{% METHOD java.lang.Object:getClass %}"(_jc) {
+			return N.resolveClass(_jc, this.desc);
+		};
 
-	return ARRAY;
+		"{% METHOD java.lang.Object:toString %}"(_jc) {
+			return N.str('ARRAY(' + this.desc + ')');
+		};
+	}
+
+	return JA_0;
 }
 
-function __addArrayJavaMethods(ARRAY) {
-	ARRAY.prototype{% IMETHOD java.lang.Object:clone %} = ARRAY.prototype.clone;
+function __copyOfJA_0() {
+	return class extends JA_0 {
+		setArraySlice(startIndex, array) {
+			var len = array.length;
+			for (var n = 0; n < len; ++n) this.data[startIndex + n] = array[n];
+		}
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:getClass %} = function() {
-		return N.resolveClass(this.desc);
-	};
+		checkIndex(index) {
+			if (index < 0 || index >= this.data.length) {
+				N.throwRuntimeException('Out of bounds ' + index + " !in [0, " + this.data.length + "]");
+			}
+		}
 
-	ARRAY.prototype{% IMETHOD java.lang.Object:toString %} = function() {
-		return N.str('ARRAY(' + this.desc + ')');
-	};
-}
+		get(index) {
+			if (DEBUG_VERSION) this.checkIndex(index);
+			return this.data[index];
+		}
 
-function __createJavaArrayGetSet(ARRAY) {
-	ARRAY.prototype.checkIndex = function(index) {
-		if (index < 0 || index >= this.data.length) {
-			N.throwRuntimeException('Out of bounds ' + index + " !in [0, " + this.data.length + "]");
+		set(index, value) {
+			if (DEBUG_VERSION) this.checkIndex(index);
+			this.data[index] = value;
 		}
 	};
-
-	if (DEBUG_VERSION) {
-		ARRAY.prototype.get = function(index) {
-			this.checkIndex(index);
-			return this.data[index];
-		};
-		ARRAY.prototype.set = function(index, value) {
-			this.checkIndex(index);
-			this.data[index] = value;
-		};
-	} else {
-		ARRAY.prototype.get = function(index) { return this.data[index]; };
-		ARRAY.prototype.set = function(index, value) { this.data[index] = value; };
-	}
 }
 
-function __createJavaArrayType(desc, type, elementBytesSize) {
-	var ARRAY;
-	ARRAY = function(size) {
-		this.desc = desc;
-		this.memorySize = size * elementBytesSize;
-		this.data = new type((((this.memorySize + 7) & ~7) / elementBytesSize)|0);
-		this.length = size;
-		this.init();
+function __createGenericArrayType(classId) {
+	class ARRAY extends __copyOfJA_0() {
+		constructor(size, desc) {
+			super(size, desc);
+			this.data = new Array(size);
+			for (var n = 0; n < size; ++n) this.data[n] = null;
+		}
 
-		//console.log('Created array instance: [' + desc + ":" + type.name + ":" + size + "]");
-	};
+		static copyOfRange(jarray, start, end, desc) {
+			if (desc === undefined) desc = jarray.desc;
+			var size = end - start;
+			var out = new ARRAY(size, desc);
+			var outData = out.data;
+			var jarrayData = jarray.data;
+			for (var n = 0; n < size; ++n) outData[n] = jarrayData[start + n];
+			return out;
+		}
 
-	ARRAY.prototype = Object.create(JA_0.prototype);
-	ARRAY.prototype.constructor = ARRAY;
+		static fromArray(desc, array) {
+			if (array == null) return null;
+			var out = new JA_L(array.length, desc);
+			for (var n = 0; n < out.length; ++n) out.set(n, array[n]);
+			return out;
+		}
 
-	if (desc == '[J') {
-		ARRAY.prototype.init = function() {
-			var zero = N.lnew(0, 0);
-			for (var n = 0; n < this.length; ++n) this.set(n, zero);
-		};
-		ARRAY.prototype.clone = function() {
-			var out = new ARRAY(this.length);
+		static T0(desc) { return this.fromArray(desc, []); }
+        static T1(desc, a) { return this.fromArray(desc, [a]); }
+        static T2(desc, a, b) { return this.fromArray(desc, [a, b]); }
+        static T3(desc, a, b, c) { return this.fromArray(desc, [a, b, c]); }
+        static T4(desc, a, b, c, d) { return this.fromArray(desc, [a, b, c, d]); }
+
+		clone() {
+			var out = new JA_L(this.length, this.desc);
 			for (var n = 0; n < this.length; ++n) out.set(n, this.get(n));
 			return out;
-		};
-	} else {
-		ARRAY.prototype.init = function() { };
-		ARRAY.prototype.clone = function() {
-			var out = new ARRAY(this.length);
-			out.data.set(this.data);
-			return out;
-		};
-	}
+		}
 
-	ARRAY.fromTypedArray = function(typedArray) {
-		var out = new ARRAY(typedArray.length);
-		out.data.set(typedArray);
-		return out;
-	};
+		toArray() { return this.data; }
 
-	ARRAY.T = ARRAY.fromTypedArray;
-
-	ARRAY.wrapBuffer = function(arrayBuffer) {
-		var out = new ARRAY(0);
-		out.data = new type(arrayBuffer);
-		out.length = out.data.length;
-		return out;
-	};
-
-	__createJavaArrayGetSet(ARRAY);
-
-	ARRAY.prototype.getBuffer = function() {
-		return this.data.buffer;
-	};
-
-	ARRAY.prototype.toArray = function() {
-    	var out = new Array(this.length);
-    	for (var n = 0; n < out.length; ++n) out[n] = this.get(n);
-    	return out;
-    };
-
-	//override fun genStmSetArrayLiterals(stm: AstStm.SET_ARRAY_LITERALS) // Use typedarrays
-	//ARRAY.prototype['setTypedArraySlice'] = function(startIndex, array) {
-	//	this.data.set(array, startIndex);
-	//};
-
-	// @TODO: Check performance
-	//ARRAY.prototype['setArraySlice'] = function(startIndex, array) {
-	//	this.data.set(new type(array), startIndex);
-	//};
-
-	//JA_0 dest, int srcPos, int destPos, int length
-	if (desc == '[J') {
-		ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
+		//JA_0 dest, int srcPos, int destPos, int length
+		copyTo(dest, srcPos, destPos, length, overlapping) {
 			var srcData = this.data;
 			var destData = dest.data;
 			if (overlapping) {
@@ -550,140 +525,152 @@ function __createJavaArrayType(desc, type, elementBytesSize) {
 				for (var n = 0; n < length; ++n) destData[destPos + n] = srcData[srcPos + n];
 			}
 		};
-	} else {
-		ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
-			dest.data.set(new type(this.data.buffer, srcPos * elementBytesSize, length), destPos);
+
+		static createMultiSure(sizes, desc) {
+			if (!desc.startsWith('[')) return null;
+			if (sizes.length == 1) return JA_L.create(sizes[0], desc);
+			var out = new JA_L(sizes[0], desc);
+			var sizes2 = sizes.slice(1);
+			var desc2 = desc.substr(1);
+			for (var n = 0; n < out.length; ++n) {
+				out.set(n, JA_L.createMultiSure(sizes2, desc2));
+			}
+			return out;
+		};
+
+		static create(size, desc) {
+			switch (desc) {
+				case "[Z": return new JA_Z(size);
+				case "[B": return new JA_B(size);
+				case "[C": return new JA_C(size);
+				case "[S": return new JA_S(size);
+				case "[I": return new JA_I(size);
+				case "[J": return new JA_J(size);
+				case "[F": return new JA_F(size);
+				case "[D": return new JA_D(size);
+				default: return new JA_L(size, desc);
+			}
+		};
+
+		static fromArray1(items, desc) {
+			if (items == null) return null;
+			var out = JA_L.create(items.length, desc);
+			for (var n = 0; n < items.length; ++n) out.set(n, items[n]);
+			return out;
+		}
+
+		static fromArray2(items, desc) {
+			if (items == null) return null;
+			var out = new JA_L(items.length, desc);
+			for (var n = 0; n < items.length; ++n) out.set(n, JA_L.fromArray1(items[n], desc.substr(1)));
+			return out;
 		};
 	}
 
-	__addArrayJavaMethods(ARRAY);
+	ARRAY.prototype.__JT__CLASS_ID = ARRAY.__JT__CLASS_ID = classId;
+	ARRAY.prototype.__JT__CLASS_IDS = ARRAY.__JT__CLASS_IDS = [classId];
+
+	//ARRAY.constructor.name = "TST";
 
 	return ARRAY;
 }
 
-function __createGenericArrayType() {
-	var ARRAY = function(size, desc) {
-		this.desc = desc;
-		this.data = new Array(size);
-		this.length = size;
-		for (var n = 0; n < size; ++n) this.data[n] = null;
-	};
+function __createJavaArrayType(classId, desc, type, elementBytesSize) {
+	const ELEMENT_BYTES_SIZE = elementBytesSize;
+	const TYPE = type;
+	const DESC = desc;
+	const IS_LONG = (DESC == '[J');
 
-	ARRAY.prototype = Object.create(JA_0.prototype);
-	ARRAY.prototype.constructor = ARRAY;
+	class ARRAY extends __copyOfJA_0() {
+		constructor(size) {
+			super(size, DESC);
+			this.memorySize = size * ELEMENT_BYTES_SIZE;
+			this.data = new TYPE((((this.memorySize + 7) & ~7) / ELEMENT_BYTES_SIZE)|0);
 
-	ARRAY.copyOfRange = function(jarray, start, end, desc) {
-		if (desc === undefined) desc = jarray.desc;
-		var size = end - start;
-		var out = new ARRAY(size, desc);
-		var outData = out.data;
-		var jarrayData = jarray.data;
-		for (var n = 0; n < size; ++n) outData[n] = jarrayData[start + n];
-		return out;
-	};
+			if (IS_LONG) {
+				var zero = N.lnew(0, 0);
+				for (var n = 0; n < this.length; ++n) this.set(n, zero);
+			}
+		}
 
-	ARRAY.fromArray = function(desc, array) {
-		if (array == null) return null;
-		var out = new JA_L(array.length, desc);
-		for (var n = 0; n < out.length; ++n) out.set(n, array[n]);
-		return out;
-	};
+		clone() {
+			var out = new ARRAY(this.length);
+			if (IS_LONG) {
+				for (var n = 0; n < this.length; ++n) out.set(n, this.get(n));
+			} else {
+				out.data.set(this.data);
+			}
+			return out;
+		}
 
-	ARRAY.T0 = function(desc) { return this.fromArray(desc, []); }
-	ARRAY.T1 = function(desc, a) { return this.fromArray(desc, [a]); }
-	ARRAY.T2 = function(desc, a, b) { return this.fromArray(desc, [a, b]); }
-	ARRAY.T3 = function(desc, a, b, c) { return this.fromArray(desc, [a, b, c]); }
-	ARRAY.T4 = function(desc, a, b, c, d) { return this.fromArray(desc, [a, b, c, d]); }
+		static fromTypedArray(typedArray) {
+			var out = new ARRAY(typedArray.length);
+			out.data.set(typedArray);
+			return out;
+		}
 
-	__createJavaArrayGetSet(ARRAY);
+		static T(typedArray) {
+			return ARRAY.fromTypedArray(typedArray);
+		}
 
-	ARRAY.prototype.clone = function() {
-		var out = new JA_L(this.length, this.desc);
-		for (var n = 0; n < this.length; ++n) out.set(n, this.get(n));
-		return out;
-	};
+		static wrapBuffer(arrayBuffer) {
+			var out = new ARRAY(0);
+			out.data = new type(arrayBuffer);
+			out.length = out.data.length;
+			return out;
+		}
 
-	ARRAY.prototype.toArray = function() {
-		return this.data;
-	};
+		getBuffer() {
+			return this.data.buffer;
+		}
 
-	//JA_0 dest, int srcPos, int destPos, int length
-	ARRAY.prototype.copyTo = function(dest, srcPos, destPos, length, overlapping) {
-		var srcData = this.data;
-		var destData = dest.data;
-		if (overlapping) {
-			for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
-		} else {
-			for (var n = 0; n < length; ++n) destData[destPos + n] = srcData[srcPos + n];
+		toArray() {
+			var out = new Array(this.length);
+			for (var n = 0; n < out.length; ++n) out[n] = this.get(n);
+			return out;
+		};
+
+		copyTo(dest, srcPos, destPos, length, overlapping) {
+			if (IS_LONG) {
+				var srcData = this.data;
+				var destData = dest.data;
+				if (overlapping) {
+					for (var n = length - 1; n >= 0; n--) destData[destPos + n] = srcData[srcPos + n];
+				} else {
+					for (var n = 0; n < length; ++n) destData[destPos + n] = srcData[srcPos + n];
+				}
+			} else {
+				dest.data.set(new TYPE(this.data.buffer, srcPos * ELEMENT_BYTES_SIZE, length), destPos);
+			}
 		}
 	};
 
-	__addArrayJavaMethods(ARRAY);
+	ARRAY.prototype.__JT__CLASS_ID = ARRAY.__JT__CLASS_ID = classId;
+	ARRAY.prototype.__JT__CLASS_IDS = ARRAY.__JT__CLASS_IDS = [classId];
+
+	//ARRAY.constructor.name = "TST";
 
 	return ARRAY;
 }
 
 function __createJavaArrays() {
 	JA_0 = __createJavaArrayBaseType();
-	JA_Z = __createJavaArrayType('[Z', Int8Array, 1);    // Bool Array
-	JA_B = __createJavaArrayType('[B', Int8Array, 1);    // Byte Array
-	JA_C = __createJavaArrayType('[C', Uint16Array, 2);  // Character Array
-	JA_S = __createJavaArrayType('[S', Int16Array, 2);   // Short Array
-	JA_I = __createJavaArrayType('[I', Int32Array, 4);   // Int Array
-	JA_F = __createJavaArrayType('[F', Float32Array, 4); // Float Array
-	JA_D = __createJavaArrayType('[D', Float64Array, 8); // Double Array
-
-	// Specially handled
-	JA_J = __createJavaArrayType('[J', Array, 1);        // Long Array
-
-	JA_L =__createGenericArrayType(); // Generic Array
-
-	JA_L.createMultiSure = function(sizes, desc) {
-		if (!desc.startsWith('[')) return null;
-		if (sizes.length == 1) return JA_L.create(sizes[0], desc);
-		var out = new JA_L(sizes[0], desc);
-		var sizes2 = sizes.slice(1);
-		var desc2 = desc.substr(1);
-		for (var n = 0; n < out.length; ++n) {
-			out.set(n, JA_L.createMultiSure(sizes2, desc2));
-		}
-		return out;
-	};
-
-	 JA_L.create = function(size, desc) {
-		switch (desc) {
-			case "[Z": return new JA_Z(size);
-			case "[B": return new JA_B(size);
-			case "[C": return new JA_C(size);
-			case "[S": return new JA_S(size);
-			case "[I": return new JA_I(size);
-			case "[J": return new JA_J(size);
-			case "[F": return new JA_F(size);
-			case "[D": return new JA_D(size);
-			default: return new JA_L(size, desc);
-		}
-	};
-
-	JA_L.fromArray1 = function(items, desc) {
-		if (items == null) return null;
-		var out = JA_L.create(items.length, desc);
-		for (var n = 0; n < items.length; ++n) out.set(n, items[n]);
-		return out;
-	}
-
-	JA_L.fromArray2 = function(items, desc) {
-		if (items == null) return null;
-		var out = new JA_L(items.length, desc);
-		for (var n = 0; n < items.length; ++n) out.set(n, JA_L.fromArray1(items[n], desc.substr(1)));
-		return out;
-	};
+	JA_L = class JA_L extends __createGenericArrayType(-1) {} // Generic Array
+	JA_Z = class JA_Z extends __createJavaArrayType(-2, '[Z', Int8Array, 1) {}    // Bool Array
+	JA_B = class JA_B extends __createJavaArrayType(-3, '[B', Int8Array, 1) {}    // Byte Array
+	JA_C = class JA_C extends __createJavaArrayType(-4, '[C', Uint16Array, 2) {}  // Character Array
+	JA_S = class JA_S extends __createJavaArrayType(-5, '[S', Int16Array, 2) {}  // Short Array
+	JA_I = class JA_I extends __createJavaArrayType(-6, '[I', Int32Array, 4) {}   // Int Array
+	JA_F = class JA_F extends __createJavaArrayType(-7, '[F', Float32Array, 4) {} // Float Array
+	JA_D = class JA_D extends __createJavaArrayType(-8, '[D', Float64Array, 8) {} // Double Array
+	JA_J = class JA_J extends __createJavaArrayType(-9, '[J', Array, 1) {}        // Long Array (Specially handled)
 }
 
 var __reints = (function() {
-	var buffer = new ArrayBuffer(8);
-	var doubleArray = new Float64Array(buffer);
-	var floatArray = new Float32Array(buffer);
-    var intArray = new Int32Array(buffer);
+	const buffer = new ArrayBuffer(8);
+	const doubleArray = new Float64Array(buffer);
+	const floatArray = new Float32Array(buffer);
+    const intArray = new Int32Array(buffer);
     return {
     	intBitsToFloat: function(v) {
     		intArray[0] = v;
@@ -709,6 +696,28 @@ var __reints = (function() {
 })();
 
 class N {
+	static async preInit(_jc) {
+	}
+
+	static afterInit(_jc) {
+		//console.log(JA_Z);
+		//console.log(JA_B);
+		//console.log(JA_C);
+		//console.log(JA_L);
+		//console.log((new JA_Z(8)));
+		//console.log((new JA_B(8)));
+		//console.log((new JA_C(8)));
+		//console.log((new JA_Z(8)).desc);
+		//console.log((new JA_B(8)).desc);
+		//console.log((new JA_C(8)).desc);
+		//console.log((new JA_Z(8)) instanceof JA_Z);
+		//console.log((new JA_B(8)) instanceof JA_Z);
+		//console.log((new JA_C(8)) instanceof JA_Z);
+		//console.log(N.is(new JA_Z(8), JA_Z));
+		//console.log(N.is(new JA_B(8), JA_Z));
+		//console.log(N.is(new JA_C(8), JA_Z));
+	}
+
 	static i(v) { return v | 0; }
 
 	static z2i(v) { return v | 0; }
@@ -767,7 +776,6 @@ class N {
 	///////////////////////
 	// Long
 	///////////////////////
-	static linit() {};
 	static lnew(high, low) { return Int64.make(high, low); };
 	static lnewFloat(v) { return Int64.ofFloat(v); };
 	static ltoFloat(v) { return Int64.toFloat(v); };
@@ -884,24 +892,24 @@ class N {
 		return strs.data.map(function(s) { return N.istr(s); });
 	};
 
-	static async iteratorToArray(it) {
+	static async iteratorToArray(_jc, it) {
 		if (it == null) return null;
 		var out = [];
-		while (await it["{% METHOD java.util.Iterator:hasNext:()Z %}"]()) {
-			out.push(await it["{% METHOD java.util.Iterator:next:()Ljava/lang/Object; %}"]());
+		while (await it{% IMETHOD java.util.Iterator:hasNext:()Z %}(_jc)) {
+			out.push(await it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}(_jc));
 		}
 		return out;
 	};
 
-	static async imap(map) {
+	static async imap(_jc, map) {
 		if (map == null) return null;
 		var obj = {};
-		let array = await(N.iteratorToArray(await await map["{% METHOD java.util.Map:entrySet %}"]()["{% METHOD java.util.Set:iterator %}"]()))
+		let array = await(N.iteratorToArray(_jc, await await map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}(_jc)))
 
 		for (let n = 0; n < array.length; n++) {
 			let item = array[n];
-			var key = await item["{% METHOD java.util.Map$Entry:getKey %}"]();
-			var value = await item["{% METHOD java.util.Map$Entry:getValue %}"]();
+			var key = await item{% IMETHOD java.util.Map$Entry:getKey %}(_jc);
+			var value = await item{% IMETHOD java.util.Map$Entry:getValue %}(_jc);
 			obj[N.unbox(key)] = N.unbox(value);
 		}
 		return obj;
@@ -938,8 +946,8 @@ class N {
 	};
 
 	// @TODO: Make this sync
-	static resolveClass(name) {
-		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
+	static resolveClass(_jc, name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(_jc, N.str(name));
 	};
 
 	static createStackTraceElement(declaringClass, methodName, fileName, lineNumber) {
@@ -993,17 +1001,17 @@ class N {
 		for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 	};
 
-	static boxVoid(value) { return null; }
-	static boxBool(value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
-	static boxByte(value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
-	static boxShort(value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
-	static boxChar(value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
-	static boxInt(value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
-	static boxLong(value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
-	static boxFloat(value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
-	static boxDouble(value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
-	static boxString(value) { return (value != null) ? N.str(value) : null; }
-	static boxWrapped(value) { return N.wrap(value); }
+	static boxVoid    (_jc, value) { return null; }
+	static boxBool    (_jc, value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(_jc, value); }
+	static boxByte    (_jc, value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(_jc, value); }
+	static boxShort   (_jc, value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(_jc, value); }
+	static boxChar    (_jc, value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(_jc, value); }
+	static boxInt     (_jc, value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(_jc, value); }
+	static boxLong    (_jc, value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(_jc, value); }
+	static boxFloat   (_jc, value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(_jc, value); }
+	static boxDouble  (_jc, value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(_jc, value); }
+	static boxString  (_jc, value) { return (value != null) ? N.str(value) : null; }
+	static boxWrapped (_jc, value) { return N.wrap(value); }
 
 	static unboxVoid      (value) { return null; }
 	static unboxBool      (value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
@@ -1043,8 +1051,8 @@ class N {
 		return out;
 	}
 
-	static createRuntimeException(msg) {
-		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
+	static createRuntimeException(_jc, msg) {
+		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(_jc, N.str(msg));
 	};
 
 	static throwRuntimeException(msg) {
@@ -1101,12 +1109,12 @@ class N {
 		return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
 	};
 
-	static box(v) {
+	static box(_jc, v) {
 		if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
-		if (v instanceof Int64) return N.boxLong(v);
+		if (v instanceof Int64) return N.boxLong(_jc, v);
 		if (typeof v == 'string') return N.str(v);
-		if ((v|0) == v) return N.boxInt(v);
-		if (+(v) == v) return N.boxFloat(v);
+		if ((v|0) == v) return N.boxInt(_jc, v);
+		if (+(v) == v) return N.boxFloat(_jc, v);
 		if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
 		return N.wrap(v);
 	};
@@ -1126,10 +1134,10 @@ class N {
 	//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
 	//};
 
-	static async asyncAsyncStr(v) {
+	static async asyncAsyncStr(_jc, v) {
 		if (v == null) return 'null';
 		if (typeof v.toStringAsync !== 'undefined') {
-			return N.istr(await(v.toStringAsync()));
+			return N.istr(await(v.toStringAsync(_jc)));
 		}
 		return '' + v;
 	};
@@ -1164,24 +1172,123 @@ class N {
     static get longBitsToDouble() { return __reints.longBitsToDouble; }
 
     // @TODO: async
-    static async monitorEnter(obj) {
-    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.lock();
+    static async monitorEnter(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).lock(_jc));
     }
 
-    static async monitorExit(obj) {
-    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	obj.__jt_mutex__.unlock();
+    static async monitorExit(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).unlock(_jc));
+    }
+
+    static async threadNotify(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).notify(_jc));
+    }
+
+    static async threadNotifyAll(_jc, obj) {
+    	await(RecursiveMutex.getMutex(obj).notifyAll(_jc));
+    }
+
+    static async threadWait(_jc, obj, timeoutMs, timeoutNanos) {
+    	await(RecursiveMutex.getMutex(obj).wait(_jc, timeoutMs, timeoutNanos));
     }
 } // N
 
 class RecursiveMutex {
-	lock() {
-    	//console.log('RecursiveMutex.lock:' + this);
+	static getMutex(obj) {
+    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
+    	return obj.__jt_mutex__;
 	}
 
-	unlock() {
-    	//console.log('RecursiveMutex.unlock:' + this);
+	constructor() {
+		this.capturedThread = -1;
+		this.capturedCount = 0;
+		this.lockQueue = [];
+		this.waitQueue = [];
+	}
+
+	// MUTEX
+
+	async lock(_jc) {
+    	//console.log('RecursiveMutex.lock:', this, _jc);
+		let threadId = _jc.threadId;
+		if (this.capturedThread == -1) this.capturedThread = threadId;
+
+		if (this.capturedThread == threadId) {
+			this.capturedCount++;
+		} else {
+			return new Promise((resolve, reject) => {
+				this.lockQueue.push(() => {
+					this.capturedThread = threadId;
+					this.capturedCount++;
+					resolve();
+				});
+			});
+		}
+	}
+
+	async unlock(_jc) {
+    	//console.log('RecursiveMutex.unlock:', this, _jc);
+		let threadId = _jc.threadId;
+
+		if (this.capturedThread == threadId) {
+			this.capturedCount--;
+		}
+
+		if (this.capturedCount <= 0) {
+			this.capturedCount = 0;
+			this.capturedThread = -1;
+			this.unlockNext();
+		}
+	}
+
+	unlockNext() {
+		if (this.lockQueue.length > 0) {
+			let func = this.lockQueue.shift();
+			func();
+		}
+	}
+
+	// WAIT/NOTIFY
+
+	async notify(_jc) {
+		//console.log('RecursiveMutex.notify', _jc);
+		if (this.waitQueue.length > 0) {
+			let callback = this.waitQueue.shift();
+			callback();
+		}
+	}
+
+	async notifyAll(_jc) {
+		//console.log('RecursiveMutex.notifyAll', _jc);
+		var queue = this.waitQueue.splice(0, this.waitQueue.length);
+		for (let callback of queue) callback();
+	}
+
+	async wait(_jc, timeoutMs, timeoutNano) {
+		//console.log('RecursiveMutex.wait', _jc, timeoutMs, timeoutNano);
+		return new Promise((resolve, reject) => {
+			let func;
+			let timer = -1;
+			func = () => {
+				if (timer >= 0) clearTimeout(timer);
+				//console.log('------ resolved');
+				resolve();
+			};
+
+			// 0 means wait forever
+			if (timeoutMs > 0) {
+				timer = setTimeout(() => {
+					//console.log('------ timeout');
+					let index = this.waitQueue.indexOf(func);
+					if (index >= 0) {
+						this.waitQueue.splice(index, 1);
+					}
+					reject(new Error("Timeout!"));
+				}, timeoutMs);
+			}
+
+			this.waitQueue.push(func);
+		});
 	}
 }
 
@@ -1200,12 +1307,15 @@ class java_lang_Object_base {
 		return '(' + this.constructor.name + '): unsupported use toStringAsync instead';
 	}
 
-	async toStringAsync() {
-		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}()) : null;
+	async toStringAsync(_jc) {
+		return this ? N.istr(await this{% IMETHOD java.lang.Object:toString %}(_jc)) : null;
 	};
 }
 
 java_lang_Object_base.prototype.__jt_mutex__ = null;
+java_lang_Object_base.prototype.___id = 0;
+java_lang_Object_base.prototype.__JT__CLASS_ID = java_lang_Object_base.__JT__CLASS_ID = 0;
+java_lang_Object_base.prototype.__JT__CLASS_IDS = java_lang_Object_base.__JT__CLASS_IDS = [0];
 
 
 function WrappedError(javaThrowable) {

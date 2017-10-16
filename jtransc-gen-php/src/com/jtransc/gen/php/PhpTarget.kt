@@ -430,7 +430,7 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	//	else -> super.escapedConstant(v)
 	//}
 
-	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, isNativeCall: Boolean): String {
 		val methodName = getTargetMethodAccess(program[method]!!, static = true)
 		return "parent$methodName(${args.joinToString(", ")})"
 	}

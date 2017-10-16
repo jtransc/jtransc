@@ -160,17 +160,19 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			val mainClassClass = program[mainClassFq]
 
 			line("async function __main()") {
-				line("__createJavaArrays();")
-				line("__buildStrings();")
-				line("N.linit();")
+				line("var _jc = { threadId: 0, global: {} };") // JTransc Context (we can implement threads here)
+				line("await __createJavaArrays();")
+				line("await __buildStrings();")
+				line("await N.preInit(_jc);")
 				line(genStaticConstructorsSorted())
 				//line(buildStaticInit(mainClassFq))
 				val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 				val mainCall = buildMethod(mainMethod2, static = true)
 				line("try {")
 				indent {
+					line("await N.afterInit(_jc);")
 					val await = if (mainMethod2.isAsync) "await " else ""
-					line("$await$mainCall(N.strArray(N.args()));")
+					line("$await$mainCall(_jc, N.strArray(N.args()));")
 					//line("$mainCall(N.strArray(N.args()));")
 				}
 				line("} catch (e) {")
@@ -210,7 +212,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun genSICall(it: AstClass): String {
-		return "await " + super.genSICall(it) + ""
+		return "await " + "${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "(_jc);"
 	}
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {
@@ -275,8 +277,13 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_func(name: String, args: String): String {
 		val base = "N$staticAccessOperator$name($args)"
 		return when (name) {
+			"resolveClass",
+			"box",
+			"boxVoid", "boxBool", "boxByte", "boxShort", "boxChar",
+			"boxInt", "boxLong", "boxFloat", "boxDouble", "boxString", "boxWrapped"
+			-> "N.$name(_jc, $args)"
 		//"resolveClass", "iteratorToArray", "imap" -> "(await($base))"
-			"iteratorToArray", "imap" -> "(await($base))"
+			"iteratorToArray", "imap" -> "(await(_jc, $base))"
 			else -> base
 		}
 	}
@@ -326,10 +333,18 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		return if (callAsync) "(await($str))" else str
 	}
 
-	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+	override fun generateDeclArgString(args: List<String>): String {
+		return (listOf("_jc") + args).joinToString(", ")
+	}
+
+	override fun generateCallArgString(args: List<String>, isNativeCall: Boolean): String {
+		return ((if (isNativeCall) listOf() else listOf("_jc")) + args).joinToString(", ")
+	}
+
+	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, isNativeCall: Boolean): String {
 		val superMethod = refMethodClass[method.withoutClass] ?: invalidOp("Can't find super for method : $method")
 		val base = superMethod.containingClass.name.targetName + ".prototype"
-		val argsString = (listOf(e2.obj.genExpr()) + args).joinToString(", ")
+		val argsString = (listOf(e2.obj.genExpr()) + (if (isNativeCall) listOf() else listOf("_jc")) + args).joinToString(", ")
 		return genCallWrap(e2, "$base$methodAccess.call($argsString)")
 	}
 
@@ -373,7 +388,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 
 				if (staticFields.isNotEmpty() || clazz.staticConstructor != null) {
-					line("static async SI()") {
+					line("static async SI(_jc)") {
 						//line("$classBase.SI = N.EMPTY_FUNCTION;")
 						for (field in staticFields) {
 							val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
@@ -381,11 +396,11 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 						}
 						if (clazz.staticConstructor != null) {
 							val await = if (clazz.staticConstructor?.isAsync == true) "await " else ""
-							line("($await($classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}()));")
+							line("($await($classBase${getTargetMethodAccess(clazz.staticConstructor!!, true)}(_jc)));")
 						}
 					}
 				} else {
-					line("static async SI()") {
+					line("static async SI(_jc)") {
 
 					}
 				}
@@ -425,7 +440,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 						}
 
 						fun renderBranches() = Indenter {
-							line("$prefix(${margs.joinToString(", ")})") {
+							line("$prefix(${generateDeclArgString(margs)})") {
 								try {
 									val nativeBodies = method.getJsNativeBodies()
 									var javaBodyCacheDone: Boolean = false
@@ -516,12 +531,12 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	// @TODO: async/await
 	override fun genStmMonitorEnter(stm: AstStm.MONITOR_ENTER) = indent {
 		ensureAsynchronous("monitorEnter")
-		line("(await(N.monitorEnter(${stm.expr.genExpr()})));")
+		line("(await(N.monitorEnter(_jc, ${stm.expr.genExpr()})));")
 	}
 
 	override fun genStmMonitorExit(stm: AstStm.MONITOR_EXIT) = indent {
 		ensureAsynchronous("monitorExit")
-		line("(await(N.monitorExit(${stm.expr.genExpr()})));")
+		line("(await(N.monitorExit(_jc, ${stm.expr.genExpr()})));")
 	}
 
 }

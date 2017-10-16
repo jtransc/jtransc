@@ -356,7 +356,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		//if (method.isInstanceInit) mods += "final "
 
 		val mods = genMethodDeclModifiers(method)
-		return "$mods ${method.actualRetType.targetName} ${method.targetName}(${args.joinToString(", ")})"
+		return "$mods ${method.actualRetType.targetName} ${method.targetName}(${generateDeclArgString(args)})"
 	}
 
 	open fun genMethodDeclModifiers(method: AstMethod): String {
@@ -615,11 +615,11 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val processedArgs = pparams.map { processArg2(it) }
 			val methodAccess = getTargetMethodAccess(refMethod, static = isStaticCall)
 			val result = when (e2) {
-				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs, nonNativeCall)
+				is AstExpr.CALL_STATIC -> genExprCallBaseStatic(e2, clazz, refMethodClass, method, methodAccess, processedArgs, nonNativeCall, isNativeCall)
 				is AstExpr.CALL_SUPER -> {
-					genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+					genExprCallBaseSuper(e2, clazz, refMethodClass, method, methodAccess, processedArgs, isNativeCall)
 				}
-				is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs)
+				is AstExpr.CALL_INSTANCE -> genExprCallBaseInstance(e2, clazz, refMethodClass, method, methodAccess, processedArgs, isNativeCall)
 				else -> invalidOp("Unexpected")
 			}
 			return if (isNativeCall) convertToJava(refMethod.methodType.ret, result) else result
@@ -634,21 +634,30 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return str
 	}
 
-	open fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
-		return genCallWrap(e2, "super$methodAccess(${args.joinToString(", ")})")
+	open fun generateDeclArgString(args: List<String>): String {
+		return args.joinToString(", ")
 	}
 
-	fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, nonNativeCall: Boolean): String {
+	open fun generateCallArgString(args: List<String>, isNativeCall: Boolean): String {
+		//return (listOf("_jc") + args).joinToString(", ")
+		return args.joinToString(", ")
+	}
+
+	open fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, isNativeCall: Boolean): String {
+		return genCallWrap(e2, "super$methodAccess(${generateCallArgString(args, isNativeCall)})")
+	}
+
+	fun genExprCallBaseStatic(e2: AstExpr.CALL_STATIC, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, nonNativeCall: Boolean, isNativeCall: Boolean): String {
 		if (nonNativeCall) {
 		}
-		return genCallWrap(e2, "${clazz.targetName}$methodAccess(${args.joinToString(", ")})")
+		return genCallWrap(e2, "${clazz.targetName}$methodAccess(${generateCallArgString(args, isNativeCall)})")
 	}
 
-	open fun genExprCallBaseInstance(e2: AstExpr.CALL_INSTANCE, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+	open fun genExprCallBaseInstance(e2: AstExpr.CALL_INSTANCE, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, isNativeCall: Boolean): String {
 		//if (method.isInstanceInit) {
 		//	return "${e2.obj.value.withoutCasts().genNotNull()}$methodAccess(${args.joinToString(", ")})"
 		//} else {
-		return genCallWrap(e2, "${e2.obj.genNotNull()}$methodAccess(${args.joinToString(", ")})")
+		return genCallWrap(e2, "${e2.obj.genNotNull()}$methodAccess(${generateCallArgString(args, isNativeCall)})")
 		//}
 	}
 
@@ -826,7 +835,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
 		val newClazz = program[stm.target.name]
 		refs.add(stm.target)
-		val commaArgs = stm.args.map { it.genExpr() }.joinToString(", ")
+		val commaArgs = generateCallArgString(stm.args.map { it.genExpr() }, isNativeCall = false)
 		val className = stm.target.targetName
 		val targetLocalName = stm.local.targetName
 

@@ -438,7 +438,7 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 	//	else -> super.escapedConstant(v)
 	//}
 
-	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>): String {
+	override fun genExprCallBaseSuper(e2: AstExpr.CALL_SUPER, clazz: AstType.REF, refMethodClass: AstClass, method: AstMethodRef, methodAccess: String, args: List<String>, isNativeCall: Boolean): String {
 		return "super$methodAccess(${args.joinToString(", ")})"
 	}
 
