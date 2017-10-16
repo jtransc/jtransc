@@ -161,15 +161,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			line("async function __main()") {
 				line("var _jc = { threadId: 0, global: {} };") // JTransc Context (we can implement threads here)
-				line("__createJavaArrays();")
-				line("__buildStrings();")
-				line("N.linit(_jc);")
+				line("await __createJavaArrays();")
+				line("await __buildStrings();")
+				line("await N.preInit(_jc);")
 				line(genStaticConstructorsSorted())
 				//line(buildStaticInit(mainClassFq))
 				val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
 				val mainCall = buildMethod(mainMethod2, static = true)
 				line("try {")
 				indent {
+					line("await N.afterInit(_jc);")
 					val await = if (mainMethod2.isAsync) "await " else ""
 					line("$await$mainCall(_jc, N.strArray(N.args()));")
 					//line("$mainCall(N.strArray(N.args()));")

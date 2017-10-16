@@ -120,6 +120,7 @@ public class JTranscArrays {
 	@JTranscAsync
 	static public String toString(Object array) {
 		if (array == null) return "null";
+		//System.out.println("ARRAY:" + (array instanceof boolean[]) + "," + (array instanceof byte[]));
 		if (array instanceof boolean[]) return Arrays.toString((boolean[]) array);
 		if (array instanceof byte[]) return Arrays.toString((byte[]) array);
 		if (array instanceof short[]) return Arrays.toString((short[]) array);
