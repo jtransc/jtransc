@@ -446,4 +446,8 @@ TOut checkCast(TOut, TIn)(TIn i) {
 	return o;
 }
 
+private static void initMainThread(){
+	{% SMETHOD java.lang.Thread:initMainThread %}();
+}
+
 /* ## BODY ## */

@@ -34,11 +34,11 @@ import java.util.Map;
 @JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "std::thread t_;")
 //ThreadState is defined in Base.cpp, because it is used by other code before.
 @JTranscAddMembers(target = "cpp", value = "ThreadState state = ThreadState::thread_in_java;")
-@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "static std::map<boost::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
-@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
+//@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "static std::map<boost::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
+//@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
 @HaxeAddMembers({
 	"private static var threadsMap = new haxe.ds.ObjectMap<Dynamic, {% CLASS java.lang.Thread %}>();",
-	"#if cpp var _cpp_thread: cpp.vm.Thread; #end",
+	"#if cpp var _cpp_thread: cpp.vm.Thread; static var currentThread : cpp.vm.Tls<{% CLASS java.lang.Thread %}> = new Tls(); #end",
 })
 public class Thread implements Runnable {
 
@@ -54,15 +54,13 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = {
-		"if (_dCurrentThread is null) {",
-		"	_dCurrentThread = new {% CLASS java.lang.Thread %}();",
-		"}",
 		"return _dCurrentThread;",
 	})
 	//@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "return _cpp_threads[boost::this_thread::get_id()];")
 	//@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
 	@JTranscMethodBody(target = "cpp", value = "return N::getThreadEnv()->currentThread;")
-	@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
+	//@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
+	@HaxeMethodBody(target = "cpp", value = "return currentThread.get_value();")
 	private static Thread _getCurrentThreadOrNull() {
 		//for (Thread t : getThreadsCopy()) return t; // Just valid for programs with just once thread
 		return null;
@@ -170,7 +168,7 @@ public class Thread implements Runnable {
 		this.group = (group != null) ? group : currentThread().getThreadGroup();
 		this.target = target;
 		this.threadID = nextThreadID();
-		this.name = (name != null) ? name : ("thread-" + nextThreadNumber());
+		this.name = (name != null) ? name : ("Thread-" + nextThreadNumber());
 		this.stackSize = stackSize;
 		//_init();
 	}
@@ -179,6 +177,12 @@ public class Thread implements Runnable {
 		//"asm(\"int $3\");",
 		"N::getThreadEnv()->currentThread = this;",
 	})
+	@JTranscMethodBody(target = "d", value = {
+		"this.thread = Thread.getThis();",
+		"_dCurrentThread = this;"
+	})
+	@HaxeMethodBody(target = "cpp", value = "currentThread.set_value(this);" +
+		"_cpp_thread = cpp.vm.Thread.current();")
 	private void _initThreadEnv() {
 	}
 
@@ -191,6 +195,11 @@ public class Thread implements Runnable {
 
 	static private void initMainThread() {
 		synchronized (staticLock) {
+			if (JTranscSystem.isCpp() || JTranscSystem.isD() || JTranscSystem.isHaxeCpp()) {
+				ThreadGroup mainThreadGroup = new ThreadGroup();
+				new Thread(mainThreadGroup, "main")._initThreadEnv();
+				return;
+			}
 			if (_mainThreadGroup == null) {
 				_mainThreadGroup = new ThreadGroup();
 			}
@@ -230,7 +239,7 @@ public class Thread implements Runnable {
 	@HaxeMethodBody(target = "cpp", value = "" +
 		"var that = this;" +
 		"cpp.vm.Thread.create(function():Void {" +
-		"	that._cpp_thread = cpp.vm.Thread.current();" +
+		//"	that._cpp_thread = cpp.vm.Thread.current();" +
 		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
 		"});"
 	)
@@ -243,6 +252,7 @@ public class Thread implements Runnable {
 	private void runInternal() {
 		try {
 			runInternalInit();
+			_initThreadEnv();
 			run();
 		} catch (Throwable t) {
 			uncaughtExceptionHandler.uncaughtException(this, t);
@@ -270,14 +280,13 @@ public class Thread implements Runnable {
 		//}
 	}
 
-	@JTranscMethodBody(target = "d", value = "_dCurrentThread = this;")
-	@JTranscMethodBody(target = "cpp", value = "GC_init_thread(); _cpp_threads[t_.get_id()] = this;")
+	@JTranscMethodBody(target = "cpp", value = "GC_init_thread();")
 	@HaxeMethodBody(target = "cpp", value = "threadsMap.set(_cpp_thread.handle, this);")
 	private void runInternalInit() {
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "_cpp_threads.erase(t_.get_id()); GC_finish_thread();")
-	@HaxeMethodBody(target = "cpp", value = "threadsMap.remove(_cpp_thread.handle);")
+	@JTranscMethodBody(target = "cpp", value = "GC_finish_thread();")
+	@HaxeMethodBody(target = "cpp", value = "threadsMap.remove(_cpp_thread.handle); currentThread.set_value(null);")
 	private void runInternalExit() {
 	}
 
@@ -411,7 +420,7 @@ public class Thread implements Runnable {
 		_isDaemon = on;
 	}
 
-	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
+	//@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
 	public final boolean isDaemon() {
 		return _isDaemon;
 	}

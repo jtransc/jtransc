@@ -32,6 +32,7 @@ import jtransc.jtransc.nativ.JTranscHaxeNativeMixedTest
 import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
+import threading.ThreadingTest
 
 class HaxeTest : _Base() {
 	override val DEFAULT_TARGET = HaxeTarget()
@@ -58,6 +59,8 @@ class HaxeTest : _Base() {
 	@Test fun testBigCpp() = testClass(Params(clazz = BigTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
 
 	@Test fun testThreadCpp() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
+
+	@Test fun testThreading() = testClass(Params(clazz = ThreadingTest::class.java, minimize = false, lang = "cpp", log = false, debug = true))
 
 	@Test fun haxeNativeCallTest() = testNativeClass("""
 		true

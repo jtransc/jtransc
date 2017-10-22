@@ -165,6 +165,11 @@ public class JTranscSystem {
 		return TRUE;
 	}
 
+	@HaxeMethodBody(target = "cpp", value = "return true;")
+	public static boolean isHaxeCpp() {
+		return FALSE;
+	}
+
 	@JTranscMethodBody(target = "cpp", value = "return true;")
 	public static boolean isCpp() {
 		return FALSE;
