@@ -832,22 +832,6 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val AstClass.nativeNameInfo: JTranscNativeName? get() = this.nativeNameForTarget(this@CommonGenerator.targetName)
 	val AstClass.nativeName: String? get() = this.nativeNameInfo?.value
 
-	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
-		val newClazz = program[stm.target.name]
-		refs.add(stm.target)
-		val commaArgs = generateCallArgString(stm.args.map { it.genExpr() }, isNativeCall = false)
-		val className = stm.target.targetName
-		val targetLocalName = stm.local.targetName
-
-		if (newClazz.nativeName != null) {
-			imports += FqName(newClazz.nativeName!!)
-			line("$targetLocalName = new $className($commaArgs);")
-		} else {
-			line("$targetLocalName = new $className();")
-			line("$targetLocalName.${stm.method.targetName}($commaArgs);")
-		}
-	}
-
 	open fun resetLocalsPrefix() = Unit
 	open fun genLocalsPrefix(): Indenter = indent { }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(local.decl) }
@@ -1018,13 +1002,40 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "(new $className())"
 	}
 
+	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
+		val newClazz = program[stm.target.name]
+		refs.add(stm.target)
+		val commaArgs = generateCallArgString(stm.args.map { it.genExpr() }, isNativeCall = false)
+		val className = stm.target.targetName
+		val targetLocalName = stm.local.targetName
+
+		if (newClazz.nativeName != null) {
+			imports += FqName(newClazz.nativeName!!)
+			line("$targetLocalName = new $className($commaArgs);")
+		} else {
+			line("$targetLocalName = new $className();")
+			line("$targetLocalName.${stm.method.targetName}($commaArgs);")
+		}
+	}
+
+
 	open fun genExprNewWithConstructor(e: AstExpr.NEW_WITH_CONSTRUCTOR): String {
-		return genExprCallBase(AstExpr.CALL_INSTANCE(
-			AstExpr.NEW(e.target),
-			e.constructor,
-			e.args.map { it.value },
-			isSpecial = true
-		))
+		val newClazz = program[e.target.name]
+		refs.add(e.target)
+
+		if (newClazz.nativeName != null) {
+			val className = e.target.targetName
+			imports += FqName(newClazz.nativeName!!)
+			val commaArgs = generateCallArgString(e.args.map { it.genExpr() }, isNativeCall = false)
+			return "(new $className($commaArgs))"
+		} else {
+			return genExprCallBase(AstExpr.CALL_INSTANCE(
+				AstExpr.NEW(e.target),
+				e.constructor,
+				e.args.map { it.value },
+				isSpecial = true
+			))
+		}
 	}
 
 	open fun genExprInstanceOf(e: AstExpr.INSTANCE_OF): String {

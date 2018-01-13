@@ -188,7 +188,7 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 	}
 
 	class SET_NEW_WITH_CONSTRUCTOR(val local: AstExpr.LocalExpr, val target: AstType.REF, val method: AstMethodRef, args: List<AstExpr>) : AstStm() {
-		val args = args.map { it.box }
+		val args = args.boxes
 	}
 
 	class IF(cond: AstExpr, strue: AstStm) : AstStm() {

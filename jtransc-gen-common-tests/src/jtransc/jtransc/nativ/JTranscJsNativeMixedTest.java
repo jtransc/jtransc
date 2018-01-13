@@ -49,6 +49,15 @@ public class JTranscJsNativeMixedTest {
 		Global.global.console.log(JsDynamic.raw("Math.max(1, 7 * 3)"));
 		Console.logHelloWorldStatic(1, "demo");
 		Global.global.console.logHelloWorld(2, "test");
+
+		Global.global.console.log(new JsDate(77).getTime());
+	}
+
+	@JTranscNativeName("Date")
+	public static class JsDate {
+		public JsDate(double value) { }
+
+		native public double getTime();
 	}
 
 	@JTranscNativeName("global")

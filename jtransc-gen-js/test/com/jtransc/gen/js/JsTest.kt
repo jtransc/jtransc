@@ -175,6 +175,7 @@ class JsTest : _Base() {
 		21
 		HELLO WORLD1demo
 		HELLO WORLD2test
+		77
 		Timeout!
 		Shutdown hook!
 	""")
