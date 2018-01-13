@@ -85,7 +85,7 @@ open class _Base {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	fun testNativeClass(expected: String, params: Params) {
+	fun testNativeClass(params: Params, expected: String) {
 		Assert.assertEquals(normalize(expected.trimIndent()), normalize(params.transformerOut(action(params).trim())))
 	}
 

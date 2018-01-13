@@ -56,14 +56,14 @@ class DTest : _Base() {
 	@Ignore("Already included in BigTest")
 	@Test fun testDescentIssue130() = testClass(Params(clazz = Issue130::class.java, minimize = false, log = false, treeShaking = true))
 
-	@Test fun testServiceLoaderTest() = testNativeClass("""
+	@Test fun testServiceLoaderTest() = testNativeClass(Params(clazz = ServiceLoaderTest::class.java, minimize = false), """
 		TestServiceImpl1.test:ss
 		TestServiceD
-	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
+	""")
 
-	@Test fun testMixed() = testNativeClass("""
+	@Test fun testMixed() = testNativeClass(Params(clazz = JTranscDNativeMixedTest::class.java, minimize = false), """
 		JTranscReinterpretArrays:
-	""", Params(clazz = JTranscDNativeMixedTest::class.java, minimize = false))
+	""")
 
 	@Ignore("Covered BigTest")
 	@Test fun testJTranscBug244() = testClass(Params(clazz = JTranscBug244::class.java, minimize = false, log = false, debug = true))

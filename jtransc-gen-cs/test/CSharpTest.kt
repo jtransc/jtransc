@@ -39,10 +39,10 @@ class CSharpTest : _Base() {
 	@Test fun testMicroHelloWorldAsm() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
 
 	@Ignore("Disabled until it works on travis")
-	@Test fun testServiceLoaderTest() = testNativeClass("""
+	@Test fun testServiceLoaderTest() = testNativeClass(Params(clazz = ServiceLoaderTest::class.java, minimize = false), """
 		TestServiceImpl1.test:ss
 		TestServiceCS
-	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false))
+	""")
 
 	@Ignore("Disabled until it works on travis")
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))

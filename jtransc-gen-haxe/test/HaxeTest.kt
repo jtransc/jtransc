@@ -59,7 +59,7 @@ class HaxeTest : _Base() {
 
 	@Test fun testThreadCpp() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, lang = "cpp", log = null, debug = true))
 
-	@Test fun haxeNativeCallTest() = testNativeClass("""
+	@Test fun haxeNativeCallTest() = testNativeClass(Params(clazz = JTranscHaxeNativeMixedTest::class.java, minimize = false), """
 		true
 		true
 		false
@@ -92,25 +92,25 @@ class HaxeTest : _Base() {
 		main__Ljava_lang_String__V
 		_jt___hello
 		JTranscReinterpretArrays:
-	""", Params(clazz = JTranscHaxeNativeMixedTest::class.java, minimize = false))
+	""")
 
-	@Test fun haxeNativeConditionDefaults() = testNativeClass("""
+	@Test fun haxeNativeConditionDefaults() = testNativeClass(Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false), """
 		false
 		false
 		-1
 		-1
-	""", Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false))
+	""")
 
-	@Test fun haxeNativeConditionSet() = testNativeClass("""
-		true
-		true
-		1000
-		1000
-	""", Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false, extra = mapOf(
-		//"showFps" to "true", // wrong, case sensitive
-		"showFPS" to "true",
-		"fps" to "1000"
-	)))
+	@Test fun haxeNativeConditionSet() = testNativeClass(Params(clazz = JTranscHaxeNativeCondition::class.java, minimize = false, extra = mapOf(
+            //"showFps" to "true", // wrong, case sensitive
+            "showFPS" to "true",
+            "fps" to "1000"
+        )), """
+            true
+            true
+            1000
+            1000
+        """)
 
 
 	@Ignore

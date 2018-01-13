@@ -42,10 +42,10 @@ class As3Test : _Base() {
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false, treeShaking = true, debug = false, backend = BuildBackend.ASM, transformerOut = { it.replace("\r", "") }))
 
 	@Ignore
-	@Test fun as3PureTest() = testNativeClass("""
+	@Test fun as3PureTest() = testNativeClass(Params(clazz = As3PureTest::class.java, minimize = false, debug = true, backend = BuildBackend.ASM, target = As3Target(), transformerOut = { it.replace("\r", "") }), """
 		1024
 		0
-	""", Params(clazz = As3PureTest::class.java, minimize = false, debug = true, backend = BuildBackend.ASM, target = As3Target(), transformerOut = { it.replace("\r", "") }))
+	""")
 
 	@Ignore
 	@Test fun testJTranscBug127() = testClass(Params(clazz = JTranscBug127::class.java, minimize = false, log = false, debug = true, transformerOut = { it.replace("\r", "") }))
