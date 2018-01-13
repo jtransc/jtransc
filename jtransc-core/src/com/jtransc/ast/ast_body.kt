@@ -422,6 +422,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		abstract val method: AstMethodRef
 		abstract val args: List<AstExpr.Box>
 		abstract val isSpecial: Boolean
+
+		abstract fun withReplacedMethod(method: AstMethodRef): CALL_BASE
 	}
 
 	abstract class CALL_BASE_OBJECT : CALL_BASE() {
@@ -437,6 +439,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val args = args.boxes
 
 		override val type = method.type.ret
+
+		override fun withReplacedMethod(method: AstMethodRef) = CALL_INSTANCE(obj.value, method, args.unbox, isSpecial)
 	}
 
 	//class CALL_SPECIAL(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
@@ -451,6 +455,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val args = args.map { it.box }
 
 		override val type = method.type.ret
+
+		override fun withReplacedMethod(method: AstMethodRef) = CALL_SUPER(obj.value, target, method, args.unbox, isSpecial)
 	}
 
 	class CALL_STATIC(val clazz: AstType.REF, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE() {
@@ -459,6 +465,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override val args = args.map { it.box }
 		//val clazz: AstType.REF = method.classRef.type
 		override val type = method.type.ret
+
+		override fun withReplacedMethod(method: AstMethodRef) = CALL_STATIC(method.containingClassType, method, args.unbox, isSpecial)
 	}
 
 	class ARRAY_LENGTH(array: AstExpr) : AstExpr() {

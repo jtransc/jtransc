@@ -788,8 +788,12 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 // @TODO: AstFieldRef should be fine already, so fix it in asm_ast!
 	fun fixField(field: AstFieldRef): AstFieldRef = program[field].ref
 
-	fun fixMethod(method: AstMethodRef): AstMethodRef = program[method]?.ref
-		?: invalidOp("Can't find method $method while generating $context")
+	fun fixMethod(method: AstMethodRef): AstMethodRef = try {
+		program[method]?.ref
+			?: invalidOp("Can't find method $method while generating $context")
+	} catch (e: Throwable) {
+		throw e
+	}
 
 	val allAnnotationTypes = program.allAnnotations.flatMap { it.getAllDescendantAnnotations() }.filter { it.runtimeVisible }.map { it.type }.distinct().map { program[it.name] }.toSet()
 

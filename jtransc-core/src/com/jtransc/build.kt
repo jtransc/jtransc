@@ -200,7 +200,7 @@ class JTranscBuild(
 					plugins.onAfterAllClassDiscovered(program)
 
 					if (!program.hasClassToGenerate()) {
-						break;
+						break
 					}
 				}
 				val className = program.readClassToGenerate()

@@ -34,6 +34,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.lang.Extra
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
+import com.jtransc.org.objectweb.asm.Type
 import com.jtransc.text.quote
 import com.jtransc.text.substr
 import com.jtransc.util.dependencySorter
@@ -336,6 +337,8 @@ open class AstAnnotatedElement(
 
 val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTranscKeepName>() ?: false
 
+val Type.fqname get() = this.className.fqname
+
 class AstClass(
 	val source: String,
 	program: AstProgram,
@@ -367,6 +370,13 @@ class AstClass(
 		}
 
 		interfaces.map { it.name }
+	}
+
+	val rerefList by lazy { annotationsList.getUntypedList(JTranscTargetClassImplList::value) }
+
+	fun getRerefFor(target: TargetName): FqName? {
+		val type = rerefList.firstOrNull { target.matches(it["target"] as String) }?.get("implementation") as? Type?
+		return type?.fqname
 	}
 
 	val ref = AstType.REF(name)
