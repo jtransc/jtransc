@@ -425,11 +425,16 @@ private class BasicBlockBuilder(
 			}
 			Opcodes.DUP -> {
 				val value = stackPop()
-				val local = locals.temp(value.type)
 
-				stmSet(local, value)
-				stackPush(local)
-				stackPush(local)
+				if (value is AstExpr.LOCAL) {
+					stackPush(value)
+					stackPush(value)
+				} else {
+					val local = locals.temp(value.type)
+					stmSet(local, value)
+					stackPush(local)
+					stackPush(local)
+				}
 			}
 			Opcodes.DUP_X1 -> {
 				//untestedWarn2("DUP_X1")
