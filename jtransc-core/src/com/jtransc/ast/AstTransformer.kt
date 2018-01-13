@@ -42,7 +42,6 @@ open class AstTransformer {
 			is AstStm.SET_ARRAY_LITERALS -> transform(stm)
 			is AstStm.SET_FIELD_STATIC -> transform(stm)
 			is AstStm.SET_FIELD_INSTANCE -> transform(stm)
-			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> transform(stm)
 			is AstStm.IF -> transform(stm)
 			is AstStm.IF_ELSE -> transform(stm)
 			is AstStm.WHILE -> transform(stm)
@@ -264,14 +263,6 @@ open class AstTransformer {
 
 	open fun transform(stm: AstStm.MONITOR_EXIT): AstStm {
 		transform(stm.expr)
-		return stm
-	}
-
-	open fun transform(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): AstStm {
-		transform(stm.local)
-		transform(stm.method)
-		transform(stm.target)
-		transformExprsBox(stm.args)
 		return stm
 	}
 

@@ -461,7 +461,6 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstStm.SET_FIELD_INSTANCE -> genStmSetFieldInstance(stm)
 			is AstStm.SET_FIELD_STATIC -> genStmSetFieldStatic(stm)
 			is AstStm.SWITCH -> genStmSwitch(stm)
-			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> genStmSetNewWithConstructor(stm)
 			else -> noImpl("Statement $stm")
 		}
 	}
@@ -1001,23 +1000,6 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		val className = e.target.targetName
 		return "(new $className())"
 	}
-
-	open fun genStmSetNewWithConstructor(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): Indenter = indent {
-		val newClazz = program[stm.target.name]
-		refs.add(stm.target)
-		val commaArgs = generateCallArgString(stm.args.map { it.genExpr() }, isNativeCall = false)
-		val className = stm.target.targetName
-		val targetLocalName = stm.local.targetName
-
-		if (newClazz.nativeName != null) {
-			imports += FqName(newClazz.nativeName!!)
-			line("$targetLocalName = new $className($commaArgs);")
-		} else {
-			line("$targetLocalName = new $className();")
-			line("$targetLocalName.${stm.method.targetName}($commaArgs);")
-		}
-	}
-
 
 	open fun genExprNewWithConstructor(e: AstExpr.NEW_WITH_CONSTRUCTOR): String {
 		val newClazz = program[e.target.name]

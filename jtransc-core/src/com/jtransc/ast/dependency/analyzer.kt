@@ -228,12 +228,6 @@ object AstDependencyAnalyzer {
 					ana(stm.trystm);
 					ana(stm.catch)
 				}
-				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
-					ana(stm.target)
-					ana(stm.method.type)
-					for (arg in stm.args) ana(arg)
-					allSortedRefsStaticInit += stm.method
-				}
 				is AstStm.LINE -> Unit
 				is AstStm.NOP -> Unit
 

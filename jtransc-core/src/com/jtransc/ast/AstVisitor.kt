@@ -57,7 +57,6 @@ open class AstVisitor {
 			is AstStm.SET_ARRAY_LITERALS -> visit(stm)
 			is AstStm.SET_FIELD_STATIC -> visit(stm)
 			is AstStm.SET_FIELD_INSTANCE -> visit(stm)
-			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> visit(stm)
 			is AstStm.IF -> visit(stm)
 			is AstStm.IF_ELSE -> visit(stm)
 			is AstStm.WHILE -> visit(stm)
@@ -257,13 +256,6 @@ open class AstVisitor {
 
 	open fun visit(stm: AstStm.MONITOR_EXIT) {
 		visit(stm.expr)
-	}
-
-	open fun visit(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR) {
-		visit(stm.local)
-		visit(stm.method)
-		visit(stm.target)
-		visitExprsBox(stm.args)
 	}
 
 	open fun visit(stm: AstStm.BREAK) {
