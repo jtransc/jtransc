@@ -552,6 +552,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 
 val List<AstExpr.Box>.exprs: List<AstExpr> get() = this.map { it.value }
 val List<AstExpr>.boxes: List<AstExpr.Box> get() = this.map { it.box }
+val List<AstExpr.Box>.unbox: List<AstExpr> get() = this.map { it.value }
 
 fun AstExpr.LOCAL.setTo(value: AstExpr): AstStm.SET_LOCAL {
 	val stm = AstStm.SET_LOCAL(this, value.castTo(this.type), dummy = true)

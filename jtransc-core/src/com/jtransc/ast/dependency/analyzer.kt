@@ -179,10 +179,9 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
 					ana(expr.target)
-					ana(expr.type)
-					ana(expr.constructor)
-					for (arg in expr.args) ana(arg)
 					allSortedRefsStaticInit += expr.target
+					for (arg in expr.args) ana(arg)
+					ana(AstExpr.CALL_STATIC(expr.constructor, expr.args.unbox, isSpecial = true))
 				}
 			//is AstExpr.REF -> ana(expr.expr)
 				is AstExpr.LITERAL_REFNAME -> {

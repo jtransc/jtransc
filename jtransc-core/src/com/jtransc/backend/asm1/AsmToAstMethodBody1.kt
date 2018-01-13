@@ -532,8 +532,8 @@ private class BasicBlockBuilder(
 		val type = types.REF_INT(i.desc)
 		when (i.opcode) {
 			Opcodes.NEW -> {
-				//stackPush(AstExprUtils.localRef(locals.temp(AstType.OBJECT).apply { ahead = true }))
-				stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
+				stackPush(AstExprUtils.localRef(locals.temp(AstType.OBJECT).apply { ahead = true }))
+				//stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
 			}
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(stackPop().checkedCastTo(type))
@@ -615,7 +615,20 @@ private class BasicBlockBuilder(
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
 		if (methodRef.isInstanceInit && obj != null && (obj is AstExpr.LOCAL) && obj.local.ahead) {
-			stmAdd(obj.local.setTo(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args)))
+			val enableRemoveLocal = true
+			//val enableRemoveLocal = false
+
+			val lastElement = stack.lastElement()
+			val objLocal = obj.local
+
+			if (enableRemoveLocal && lastElement != null && (lastElement is AstExpr.LOCAL) && (lastElement.local == objLocal) && (stack.count { (it is AstExpr.LOCAL) && (it.local == objLocal) } == 1)) {
+				stackPop()
+				stackPush(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args))
+			} else {
+				// PROBABLY WON'T HAPPEN
+				if (enableRemoveLocal) System.err.println("WARN: Can't inline local new with constructor")
+				stmAdd(obj.local.setTo(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args)))
+			}
 			//stms.add(obj.local.setTo(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args)))
 		} else {
 			if (obj != null) {
