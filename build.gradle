@@ -68,6 +68,7 @@ task updateVersion() {
 		sed("jtransc-rt-core/src/com/jtransc/JTranscVersion.java", 'static private final String version = "(.*)"', "static private final String version = \"$newversion\"")
 		sed("gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
 		sed("jtransc-main-run/example-gradle/gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
+		sed("jtransc-main-run/example-gradle-multi/gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
 		sed("benchmark/gradle.properties", 'jtranscVersion=(.*)', "jtranscVersion=$newversion")
 		sed("jtransc-maven-plugin/resources/META-INF/maven/com.jtransc/jtransc-maven-plugin/pom.properties", 'version=(.*)', "version=$newversion")
 		sed("jtransc-main-run/pom.xml", '<!--jtransc--><version>(.*)<\\/version>', "<!--jtransc--><version>$newversion</version>")
