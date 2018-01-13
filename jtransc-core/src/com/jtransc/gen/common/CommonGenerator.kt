@@ -489,8 +489,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.INTARRAY_LITERAL -> genExprIntArrayLit(e)
 		is AstExpr.OBJECTARRAY_LITERAL -> genExprObjectArrayLit(e)
 		is AstExpr.CALL_BASE -> genExprCallBase(e)
+		is AstExpr.CONCAT_STRING -> genConcatString(e)
 		is AstExpr.INVOKE_DYNAMIC_METHOD -> genExprMethodClass(e)
 		else -> noImpl("Expression $e")
+	}
+
+	open fun genConcatString(e: AstExpr.CONCAT_STRING): String {
+		return genExpr2(e.original)
 	}
 
 	open fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {

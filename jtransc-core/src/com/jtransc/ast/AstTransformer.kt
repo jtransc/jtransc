@@ -78,6 +78,7 @@ open class AstTransformer {
 			is AstExpr.BINOP -> transform(expr)
 			is AstExpr.UNOP -> transform(expr)
 			is AstExpr.CALL_BASE -> transform(expr)
+			is AstExpr.CONCAT_STRING -> transform(expr)
 			is AstExpr.ARRAY_LENGTH -> transform(expr)
 			is AstExpr.ARRAY_ACCESS -> transform(expr)
 			is AstExpr.FIELD_INSTANCE_ACCESS -> transform(expr)
@@ -93,6 +94,11 @@ open class AstTransformer {
 			is AstExpr.TERNARY -> transform(expr)
 			else -> noImpl("$expr")
 		}
+	}
+
+	open fun transform(expr: AstExpr.CONCAT_STRING): AstExpr {
+		for (arg in expr.args) transform(arg)
+		return expr
 	}
 
 	open fun transform(expr: AstExpr.CALL_BASE): AstExpr {

@@ -427,9 +427,13 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		abstract val obj: AstExpr.Box
 	}
 
+	class CONCAT_STRING(val original: AstExpr, val args: List<AstExpr>) : AstExpr() {
+		override val type: AstType = AstType.STRING
+	}
+
 	class CALL_INSTANCE(obj: AstExpr, override val method: AstMethodRef, args: List<AstExpr>, override val isSpecial: Boolean = false) : CALL_BASE_OBJECT() {
 		override val obj = obj.box
-		override val args = args.map { it.box }
+		override val args = args.boxes
 
 		override val type = method.type.ret
 	}

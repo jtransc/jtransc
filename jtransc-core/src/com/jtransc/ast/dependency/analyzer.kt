@@ -128,6 +128,9 @@ object AstDependencyAnalyzer {
 					if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
 					allSortedRefsStaticInit += expr.method
 				}
+				is AstExpr.CONCAT_STRING -> {
+					ana(expr.original)
+				}
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
 				}

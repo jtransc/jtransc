@@ -94,6 +94,7 @@ open class AstVisitor {
 			is AstExpr.BINOP -> visit(expr)
 			is AstExpr.UNOP -> visit(expr)
 			is AstExpr.CALL_BASE -> visit(expr)
+			is AstExpr.CONCAT_STRING -> visit(expr)
 			is AstExpr.ARRAY_LENGTH -> visit(expr)
 			is AstExpr.ARRAY_ACCESS -> visit(expr)
 			is AstExpr.FIELD_INSTANCE_ACCESS -> visit(expr)
@@ -109,6 +110,10 @@ open class AstVisitor {
 			is AstExpr.TERNARY -> visit(expr)
 			else -> noImpl("$expr")
 		}
+	}
+
+	open fun visit(expr: AstExpr.CONCAT_STRING) {
+		for (arg in expr.args) visit(arg)
 	}
 
 	open fun visit(expr: AstExpr.CALL_BASE) {
