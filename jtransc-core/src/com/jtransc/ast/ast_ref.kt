@@ -60,7 +60,7 @@ data class AstMethodRef(override val containingClass: FqName, override val name:
 	val allClassRefs: List<AstType.REF> by lazy { type.getRefClasses() + classRef }
 
 	//fun resolve(program: AstProgram): AstMethod = program[containingClass].getMethodInAncestorsAndInterfaces(this.withoutClass) ?: invalidOp("Can't resolve method $this")
-	fun resolve(program: AstProgram): AstMethod = program[this]!!
+	fun resolve(program: AstProgram): AstMethod = program[this] ?: invalidOp("Can't resolve method $this")
 
 	override fun hashCode() = containingClass.hashCode() + name.hashCode() + type.hashCode()
 

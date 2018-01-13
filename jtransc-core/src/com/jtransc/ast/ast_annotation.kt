@@ -23,6 +23,8 @@ data class AstAnnotation(
 		}
 	}
 
+	operator fun get(key: String): Any? = elements[key]
+
 	fun getAnnotationAnnotations(program: AstProgram): AstAnnotationList = program[type]?.annotationsList ?: AstAnnotationList(type, listOf())
 
 	fun getAllDescendantAnnotations(): List<AstAnnotation> {
@@ -117,9 +119,22 @@ inline fun <reified TItem : Any, reified TList : Any> AstAnnotationList?.getType
 	return listOf(single).filterNotNull() + (if (list != null) field.get(list).toList() else listOf())
 }
 
+inline fun <reified TItem : Any, reified TList : Any> AstAnnotationList?.getUntypedList(field: KProperty1<TList, Array<TItem>>): List<AstAnnotation> {
+	return getUntypedList(field, TList::class.java, TItem::class.java)
+}
+
+fun <TItem : Any, TList : Any> AstAnnotationList?.getUntypedList(field: KProperty1<TList, Array<TItem>>, listClass: Class<TList>, fieldClass: Class<TItem>): List<AstAnnotation> {
+	if (this == null) return listOf()
+	val single = this.getAll(fieldClass.fqname)
+	val list = this.getAll(listClass.fqname)
+	//return single + (if (list != null) field.get(list).toList() else listOf())
+	return single + list.flatMap { it["value"] as List<AstAnnotation> }
+}
+
 inline fun <reified T : Any> AstAnnotationList?.getTyped(): T? = if (this != null) byClassName[T::class.java.name]?.firstOrNull()?.toObject<T>() else null
 inline fun <reified T : Any> AstAnnotationList?.getAllTyped(): List<T> = if (this != null) byClassName[T::class.java.name]?.map { it.toObject<T>() }?.filterNotNull() ?: listOf() else listOf()
 operator fun AstAnnotationList?.get(name: FqName): AstAnnotation? = if (this != null) byClassName[name.fqname]?.firstOrNull() else null
+fun AstAnnotationList?.getAll(name: FqName): List<AstAnnotation> = this?.byClassName?.get(name.fqname) ?: listOf()
 
 inline fun <reified T : Any> AstAnnotationList?.contains(): Boolean = if (this != null) T::class.java.name in byClassName else false
 

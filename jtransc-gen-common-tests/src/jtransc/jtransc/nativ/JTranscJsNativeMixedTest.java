@@ -6,6 +6,7 @@ import com.jtransc.annotation.JTranscNativeName;
 import com.jtransc.annotation.JTranscUnboxParam;
 import com.jtransc.target.Js;
 import com.jtransc.target.js.JsDynamic;
+import impl.MyClassPerTarget;
 import jtransc.jtransc.JTranscInternalNamesTest;
 import jtransc.jtransc.js.CustomJsRunTest;
 import jtransc.jtransc.js.MixedJsKotlin;
@@ -51,6 +52,13 @@ public class JTranscJsNativeMixedTest {
 		Global.global.console.logHelloWorld(2, "test");
 
 		Global.global.console.log(new JsDate(77).getTime());
+
+		callPerTarget();
+	}
+
+	static private void callPerTarget() {
+		Global.global.console.log(MyClassPerTarget.str());
+		Global.global.console.log(new MyClassPerTarget().demo());
 	}
 
 	@JTranscNativeName("Date")
