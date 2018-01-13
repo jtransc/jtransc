@@ -114,7 +114,7 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 					}
 				}
 			}
-			if (optimizable) {
+			if (optimizable && params.isNotEmpty()) {
 				expr.box.value = AstExpr.CONCAT_STRING(expr, params.reversed())
 			}
 			//println("optimize StringBuilder.toString: $optimizable: $params")
