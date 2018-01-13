@@ -3,11 +3,12 @@ package com.jtransc.graph
 import com.jtransc.ast.*
 import com.jtransc.ast.optimize.optimize
 import com.jtransc.ast.dump
+import com.jtransc.gen.TargetName
 import org.junit.Assert
 import org.junit.Test
 
 class RelooperTest {
-	val types = AstTypes()
+	val types = AstTypes(TargetName("js"))
 	val relooper = Relooper(types)
 
 	private fun stmt(name:String) = types.build2 { SET(INT.local(name), 1.lit) }

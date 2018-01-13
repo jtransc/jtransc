@@ -7,6 +7,7 @@ import com.jtransc.backend.asm2.AsmToAstMethodBody2
 import com.jtransc.backend.hasBody
 import com.jtransc.backend.isNative
 import com.jtransc.backend.isStatic
+import com.jtransc.gen.TargetName
 import com.jtransc.io.readBytes
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.tree.ClassNode
@@ -47,7 +48,7 @@ internal class AstExampleTest {
 	@Test
 	fun name() {
 		val clazz = readClassNode(AstExampleTest2::class.java)
-		val types = AstTypes()
+		val types = AstTypes(TargetName("js"))
 		for (_method in clazz.methods) {
 			val methodType = types.demangleMethod(_method.desc)
 			println("::" + _method.name + " :: " + methodType)
@@ -68,7 +69,7 @@ internal class AstExampleTest {
 	@Test
 	fun name2() {
 		val clazz = readClassNode(AstExampleTest2::class.java)
-		val types = AstTypes()
+		val types = AstTypes(TargetName("js"))
 		for (_method in clazz.methods) {
 			val methodType = types.demangleMethod(_method.desc)
 			//if (_method.name == "<init>") continue

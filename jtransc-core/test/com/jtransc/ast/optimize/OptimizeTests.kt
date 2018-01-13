@@ -1,11 +1,12 @@
 package com.jtransc.ast.optimize
 
 import com.jtransc.ast.*
+import com.jtransc.gen.TargetName
 import org.junit.Assert
 import org.junit.Test
 
 class OptimizeTests {
-	val types = AstTypes()
+	val types = AstTypes(TargetName("js"))
 	val flags = AstBodyFlags(strictfp = false, types = types)
 
 	fun <T> build(callback: AstBuilder2.() -> T): T = types.build2 { callback() }

@@ -78,7 +78,8 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 
 	override fun visit(expr: AstExpr.CALL_INSTANCE) {
 		super.visit(expr)
-		if (expr.method.name == "toString" && expr.obj.type == AstType.STRINGBUILDER) {
+
+		if (flags.types.target.matches("js") && expr.method.name == "toString" && expr.obj.type == AstType.STRINGBUILDER) {
 			var curr: AstExpr? = expr
 			val params = arrayListOf<AstExpr>()
 			var optimizable = true

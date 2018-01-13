@@ -182,6 +182,8 @@ open class _Base {
 			)
 		)
 
+		val targetDescriptor = params.target ?: DEFAULT_TARGET
+		injector.mapInstance(targetDescriptor.targetName)
 		injector.mapImpl<AstTypes, AstTypes>()
 		injector.mapInstance(ConfigMinimizeNames(params.minimize ?: MINIMIZE))
 		injector.mapInstance(ConfigTreeShaking(params.treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
@@ -191,7 +193,7 @@ open class _Base {
 		return log.setTempLogger({ v, l -> }) {
 			val build = JTranscBuild(
 				injector = injector,
-				target = params.target ?: DEFAULT_TARGET,
+				target = targetDescriptor,
 				entryPoint = params.clazz.name,
 				output = "program.${params.lang}",
 				subtarget = params.lang ?: "js",

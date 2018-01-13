@@ -495,7 +495,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genConcatString(e: AstExpr.CONCAT_STRING): String {
-		return genExpr2(e.original)
+		return genExpr2(e.original.castTo(AstType.OBJECT))
 	}
 
 	open fun genExprMethodClass(e: AstExpr.INVOKE_DYNAMIC_METHOD): String {
@@ -838,6 +838,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun resetLocalsPrefix() = Unit
 	open fun genLocalsPrefix(): Indenter = indent { }
+	//open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals.distinctBy { it.name }) line(local.decl) }
 	open fun genBodyLocals(locals: List<AstLocal>): Indenter = indent { for (local in locals) line(local.decl) }
 
 	open fun genBodyTrapsPrefix() = Indenter(AstLocal(0, "J__exception__", AstType.THROWABLE).decl)

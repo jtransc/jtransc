@@ -181,7 +181,7 @@ class JTranscMojo : AbstractMojo() {
 
 		log.info("Building targets... " + allTargets.joinToString(", "));
 		//var errorCount = 0
-		val types = AstTypes()
+		//val types = AstTypes()
 		for (target in allTargets) {
 			val targetParts = target.split(':')
 			val targetActual = targetParts.getOrNull(0) ?: "js"

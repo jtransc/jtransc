@@ -50,7 +50,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
 	fun skipServiceLoader(serviceLoader: String) = skipServiceLoaderClasses.add(serviceLoader)
-	val types: AstTypes = AstTypes()
+	//val types: AstTypes by lazy { AstTypes() }
 	fun assets(vararg folders: String) = run { newAssets += folders.map { File(project.buildFile.parentFile, it) } }
 	fun param(key: String, value: String?) = run { extra[key] = value }
 	fun param(key: String) = param(key, "true")

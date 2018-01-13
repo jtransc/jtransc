@@ -3,6 +3,7 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.gen.TargetName
 import kotlin.reflect.KProperty
 
 data class AstBody constructor(
