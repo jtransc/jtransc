@@ -427,8 +427,8 @@ private class BasicBlockBuilder(
 				val value = stackPop()
 
 				if (value is AstExpr.LOCAL) {
-					stackPush(value)
-					stackPush(value)
+					stackPush(value.local)
+					stackPush(value.local)
 				} else {
 					val local = locals.temp(value.type)
 					stmSet(local, value)
@@ -531,7 +531,10 @@ private class BasicBlockBuilder(
 	fun handleType(i: TypeInsnNode) {
 		val type = types.REF_INT(i.desc)
 		when (i.opcode) {
-			Opcodes.NEW -> stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
+			Opcodes.NEW -> {
+				//stackPush(AstExprUtils.localRef(locals.temp(AstType.OBJECT).apply { ahead = true }))
+				stackPush(AstExpr.NEW(type as AstType.REF).castTo(AstType.OBJECT))
+			}
 			Opcodes.ANEWARRAY -> stackPush(AstExpr.NEW_ARRAY(AstType.ARRAY(type), listOf(stackPop())))
 			Opcodes.CHECKCAST -> stackPush(stackPop().checkedCastTo(type))
 			Opcodes.INSTANCEOF -> stackPush(AstExpr.INSTANCE_OF(stackPop(), type as AstType.Reference))
@@ -561,7 +564,7 @@ private class BasicBlockBuilder(
 
 	fun addJump(cond: AstExpr?, label: AstLabel) {
 		if (DEBUG) println("Preserve because jump")
-		preserveRestoreStack {  }
+		preserveRestoreStack { }
 		labels.ref(label)
 		if (cond != null) {
 			stms.add(AstStm.IF_GOTO(label, cond))
@@ -611,15 +614,20 @@ private class BasicBlockBuilder(
 		val args = methodRef.type.args.reversed().map { stackPop().castTo(it.type) }.reversed()
 		val obj = if (i.opcode != Opcodes.INVOKESTATIC) stackPop() else null
 
-		if (obj != null) {
-			val cobj = obj.castTo(methodRef.containingClassType)
-			stackPush(AstExpr.CALL_INSTANCE(cobj, methodRef, args, isSpecial))
+		if (methodRef.isInstanceInit && obj != null && (obj is AstExpr.LOCAL) && obj.local.ahead) {
+			stmAdd(obj.local.setTo(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args)))
+			//stms.add(obj.local.setTo(AstExpr.NEW_WITH_CONSTRUCTOR(methodRef, args)))
 		} else {
-			stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
-		}
+			if (obj != null) {
+				val cobj = obj.castTo(methodRef.containingClassType)
+				stackPush(AstExpr.CALL_INSTANCE(cobj, methodRef, args, isSpecial))
+			} else {
+				stackPush(AstExpr.CALL_STATIC(clazz, methodRef, args, isSpecial))
+			}
 
-		if (methodRef.type.retVoid) {
-			stmAdd(AstStm.STM_EXPR(stackPop()))
+			if (methodRef.type.retVoid) {
+				stmAdd(AstStm.STM_EXPR(stackPop()))
+			}
 		}
 	}
 
@@ -687,10 +695,14 @@ private class BasicBlockBuilder(
 		for ((index2, value) in preservedStack.withIndex().reversed()) {
 			//val index = index2
 			val index = preservedStack.size - index2 - 1
-			val local = preserveStackLocal(index, value.type)
-			if (DEBUG) println("PRESERVE: $local : $index, ${value.type}")
-			stmSet(local, value)
-			items.add(local)
+			if ((value is AstExpr.LOCAL) && value.local.ahead) {
+				items.add(value.local)
+			} else {
+				val local = preserveStackLocal(index, value.type)
+				if (DEBUG) println("PRESERVE: $local : $index, ${value.type}")
+				stmSet(local, value)
+				items.add(local)
+			}
 		}
 		items.reverse()
 		if (DEBUG) println("]]")
@@ -734,6 +746,7 @@ private class BasicBlockBuilder(
 
 		loop@ while (i != null) {
 			if (DEBUG) println(JvmOpcode.disasm(i))
+
 			val op = i.opcode
 			when (i) {
 				is FieldInsnNode -> handleField(i)
@@ -815,7 +828,7 @@ private class BasicBlockBuilder(
 				is LabelNode -> {
 					if (i in labels.referencedLabelsAsm) {
 						if (DEBUG) println("Preserve because label")
-						preserveRestoreStack {  }
+						preserveRestoreStack { }
 						next = i
 						break@loop
 					}
@@ -848,7 +861,6 @@ private class BasicBlockBuilder(
 			outgoing = outgoing
 		)
 	}
-
 }
 
 fun AbstractInsnNode.disasm() = JvmOpcode.disasm(this)
