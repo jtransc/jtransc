@@ -390,8 +390,12 @@ private class BasicBlockBuilder(
 	fun stackPopToLocalsCount(count: Int): List<AstLocal> {
 		val pairs = (0 until count).map {
 			val v = stackPop()
-			val local = locals.temp(v.type)
-			Pair(local, v)
+			if (v is AstExpr.LOCAL) {
+				Pair(v.local, v)
+			} else {
+				val local = locals.temp(v.type)
+				Pair(local, v)
+			}
 		}
 
 		stackPopToLocalsItemsCount += pairs.count { stmSet(it.first, it.second) }
