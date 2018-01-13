@@ -97,6 +97,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 		val default = AstBuildSettings.DEFAULT
 
+		val rtarget = target ?: extension.target ?: "haxe:js"
+
 		val settings = AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),
 			title = title ?: extension.title ?: default.title,
@@ -150,7 +152,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			injector,
 			entryPoint = mainClassName,
 			//AllBuildTargets = AllBuildTargets,
-			target = target ?: extension.target ?: "haxe:js",
+			target = rtarget,
 			output = outputFile ?: extension.output,
 			settings = settings,
 			targetDirectory = buildDir.absolutePath
