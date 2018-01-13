@@ -434,7 +434,7 @@ public class Thread implements Runnable {
 		return new HashMap<Thread, StackTraceElement[]>();
 	}
 
-	@JTranscMethodBody(target = "d", value = "return this.thread.id;")
+	@JTranscMethodBody(target = "d", value = "return cast(long)this.thread.id;")
 	public long getId() {
 		return id;
 	}

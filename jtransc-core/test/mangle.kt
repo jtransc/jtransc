@@ -16,11 +16,12 @@
 
 import com.jtransc.ast.AstTypes
 import com.jtransc.ast.mangle
+import com.jtransc.gen.TargetName
 import org.junit.Assert
 import org.junit.Test
 
 class MangleTest {
-	val types = AstTypes()
+	val types = AstTypes(TargetName("js"))
 	private fun testMangle(info: String) = Assert.assertEquals(info, types.demangle(info).mangle())
 
 	@Test

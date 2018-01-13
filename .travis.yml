@@ -69,8 +69,8 @@ script:
 - mvn package
 - node target/jtransc-js/program.js
 - popd
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+#after_success:
+#  - bash <(curl -s https://codecov.io/bash)
 notifications:
   webhooks:
     urls:

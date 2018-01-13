@@ -42,7 +42,6 @@ open class AstTransformer {
 			is AstStm.SET_ARRAY_LITERALS -> transform(stm)
 			is AstStm.SET_FIELD_STATIC -> transform(stm)
 			is AstStm.SET_FIELD_INSTANCE -> transform(stm)
-			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> transform(stm)
 			is AstStm.IF -> transform(stm)
 			is AstStm.IF_ELSE -> transform(stm)
 			is AstStm.WHILE -> transform(stm)
@@ -79,6 +78,7 @@ open class AstTransformer {
 			is AstExpr.BINOP -> transform(expr)
 			is AstExpr.UNOP -> transform(expr)
 			is AstExpr.CALL_BASE -> transform(expr)
+			is AstExpr.CONCAT_STRING -> transform(expr)
 			is AstExpr.ARRAY_LENGTH -> transform(expr)
 			is AstExpr.ARRAY_ACCESS -> transform(expr)
 			is AstExpr.FIELD_INSTANCE_ACCESS -> transform(expr)
@@ -94,6 +94,11 @@ open class AstTransformer {
 			is AstExpr.TERNARY -> transform(expr)
 			else -> noImpl("$expr")
 		}
+	}
+
+	open fun transform(expr: AstExpr.CONCAT_STRING): AstExpr {
+		for (arg in expr.args) transform(arg)
+		return expr
 	}
 
 	open fun transform(expr: AstExpr.CALL_BASE): AstExpr {
@@ -264,14 +269,6 @@ open class AstTransformer {
 
 	open fun transform(stm: AstStm.MONITOR_EXIT): AstStm {
 		transform(stm.expr)
-		return stm
-	}
-
-	open fun transform(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR): AstStm {
-		transform(stm.local)
-		transform(stm.method)
-		transform(stm.target)
-		transformExprsBox(stm.args)
 		return stm
 	}
 

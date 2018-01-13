@@ -128,6 +128,9 @@ object AstDependencyAnalyzer {
 					if (expr is AstExpr.CALL_SUPER) ana(expr.obj)
 					allSortedRefsStaticInit += expr.method
 				}
+				is AstExpr.CONCAT_STRING -> {
+					ana(expr.original)
+				}
 				is AstExpr.CAUGHT_EXCEPTION -> {
 					ana(expr.type)
 				}
@@ -179,10 +182,9 @@ object AstDependencyAnalyzer {
 				}
 				is AstExpr.NEW_WITH_CONSTRUCTOR -> {
 					ana(expr.target)
-					ana(expr.type)
-					ana(expr.constructor)
-					for (arg in expr.args) ana(arg)
 					allSortedRefsStaticInit += expr.target
+					for (arg in expr.args) ana(arg)
+					ana(AstExpr.CALL_STATIC(expr.constructor, expr.args.unbox, isSpecial = true))
 				}
 			//is AstExpr.REF -> ana(expr.expr)
 				is AstExpr.LITERAL_REFNAME -> {
@@ -228,12 +230,6 @@ object AstDependencyAnalyzer {
 				is AstStm.TRY_CATCH -> {
 					ana(stm.trystm);
 					ana(stm.catch)
-				}
-				is AstStm.SET_NEW_WITH_CONSTRUCTOR -> {
-					ana(stm.target)
-					ana(stm.method.type)
-					for (arg in stm.args) ana(arg)
-					allSortedRefsStaticInit += stm.method
 				}
 				is AstStm.LINE -> Unit
 				is AstStm.NOP -> Unit

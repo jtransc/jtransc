@@ -57,7 +57,6 @@ open class AstVisitor {
 			is AstStm.SET_ARRAY_LITERALS -> visit(stm)
 			is AstStm.SET_FIELD_STATIC -> visit(stm)
 			is AstStm.SET_FIELD_INSTANCE -> visit(stm)
-			is AstStm.SET_NEW_WITH_CONSTRUCTOR -> visit(stm)
 			is AstStm.IF -> visit(stm)
 			is AstStm.IF_ELSE -> visit(stm)
 			is AstStm.WHILE -> visit(stm)
@@ -95,6 +94,7 @@ open class AstVisitor {
 			is AstExpr.BINOP -> visit(expr)
 			is AstExpr.UNOP -> visit(expr)
 			is AstExpr.CALL_BASE -> visit(expr)
+			is AstExpr.CONCAT_STRING -> visit(expr)
 			is AstExpr.ARRAY_LENGTH -> visit(expr)
 			is AstExpr.ARRAY_ACCESS -> visit(expr)
 			is AstExpr.FIELD_INSTANCE_ACCESS -> visit(expr)
@@ -110,6 +110,10 @@ open class AstVisitor {
 			is AstExpr.TERNARY -> visit(expr)
 			else -> noImpl("$expr")
 		}
+	}
+
+	open fun visit(expr: AstExpr.CONCAT_STRING) {
+		for (arg in expr.args) visit(arg)
 	}
 
 	open fun visit(expr: AstExpr.CALL_BASE) {
@@ -257,13 +261,6 @@ open class AstVisitor {
 
 	open fun visit(stm: AstStm.MONITOR_EXIT) {
 		visit(stm.expr)
-	}
-
-	open fun visit(stm: AstStm.SET_NEW_WITH_CONSTRUCTOR) {
-		visit(stm.local)
-		visit(stm.method)
-		visit(stm.target)
-		visitExprsBox(stm.args)
 	}
 
 	open fun visit(stm: AstStm.BREAK) {

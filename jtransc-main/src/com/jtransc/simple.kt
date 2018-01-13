@@ -24,9 +24,13 @@ fun AllBuildSimple(
 
 	log.info("JTransc targets exposed as services: $AllBuildTargets")
 
+	val targetDescriptor = AllBuildTargets.locateTargetByName(target).descriptor
+
+	injector.mapInstance(targetDescriptor.targetName)
+
 	return JTranscBuild(
 		injector = injector,
-		target = AllBuildTargets.locateTargetByName(target).descriptor,
+		target = targetDescriptor,
 		entryPoint = entryPoint,
 		output = if (File(actualOutput).isAbsolute) actualOutput else File(targetDirectory, actualOutput).absolutePath,
 		subtarget = subtargetName,

@@ -50,7 +50,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var skipServiceLoaderClasses: ArrayList<String> = arrayListOf()
 
 	fun skipServiceLoader(serviceLoader: String) = skipServiceLoaderClasses.add(serviceLoader)
-	val types: AstTypes = AstTypes()
+	//val types: AstTypes by lazy { AstTypes() }
 	fun assets(vararg folders: String) = run { newAssets += folders.map { File(project.buildFile.parentFile, it) } }
 	fun param(key: String, value: String?) = run { extra[key] = value }
 	fun param(key: String) = param(key, "true")
@@ -96,6 +96,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		//println("mainSourceSet.output.asPath:" + mainSourceSet.)
 
 		val default = AstBuildSettings.DEFAULT
+
+		val rtarget = target ?: extension.target ?: "haxe:js"
 
 		val settings = AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),
@@ -150,7 +152,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			injector,
 			entryPoint = mainClassName,
 			//AllBuildTargets = AllBuildTargets,
-			target = target ?: extension.target ?: "haxe:js",
+			target = rtarget,
 			output = outputFile ?: extension.output,
 			settings = settings,
 			targetDirectory = buildDir.absolutePath

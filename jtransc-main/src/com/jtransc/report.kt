@@ -6,6 +6,7 @@ import com.jtransc.backend.toAst
 import com.jtransc.ds.diff
 import com.jtransc.ds.hasAnyFlags
 import com.jtransc.ds.hasFlag
+import com.jtransc.gen.TargetName
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.org.objectweb.asm.ClassReader
 import com.jtransc.org.objectweb.asm.Opcodes
@@ -17,7 +18,7 @@ import com.jtransc.vfs.*
 import java.util.function.BiConsumer
 
 class JTranscRtReport {
-	val types = AstTypes()
+	val types = AstTypes(TargetName("js"))
 
 	companion object {
 		@JvmStatic fun main(args: Array<String>) {

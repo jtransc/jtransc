@@ -85,7 +85,7 @@ open class _Base {
 
 	fun normalize(str: String) = str.replace("\r\n", "\n").replace('\r', '\n').trim()
 
-	fun testNativeClass(expected: String, params: Params) {
+	fun testNativeClass(params: Params, expected: String) {
 		Assert.assertEquals(normalize(expected.trimIndent()), normalize(params.transformerOut(action(params).trim())))
 	}
 
@@ -182,6 +182,8 @@ open class _Base {
 			)
 		)
 
+		val targetDescriptor = params.target ?: DEFAULT_TARGET
+		injector.mapInstance(targetDescriptor.targetName)
 		injector.mapImpl<AstTypes, AstTypes>()
 		injector.mapInstance(ConfigMinimizeNames(params.minimize ?: MINIMIZE))
 		injector.mapInstance(ConfigTreeShaking(params.treeShaking ?: TREESHAKING, TREESHAKING_TRACE))
@@ -191,7 +193,7 @@ open class _Base {
 		return log.setTempLogger({ v, l -> }) {
 			val build = JTranscBuild(
 				injector = injector,
-				target = params.target ?: DEFAULT_TARGET,
+				target = targetDescriptor,
 				entryPoint = params.clazz.name,
 				output = "program.${params.lang}",
 				subtarget = params.lang ?: "js",

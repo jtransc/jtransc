@@ -1,13 +1,14 @@
 package com.jtransc.ast.transform
 
 import com.jtransc.ast.*
+import com.jtransc.gen.TargetName
 import org.junit.Assert
 import org.junit.Test
 
 class ConvertSwitchIntoIfRangesTest {
 	@Test
 	fun name() {
-		val types = AstTypes()
+		val types = AstTypes(TargetName("js"))
 		val SUBJECT = AstExpr.LOCAL(AstLocal(0, "demo", AstType.INT))
 		val labels = (0 until 10).map { AstLabel("label$it") }
 

@@ -125,18 +125,18 @@ class JsTest : _Base() {
 	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
 	@Test fun testBenchmarkTest() = testClass(Params(clazz = BenchmarkTest::class.java, minimize = false, log = false))
 
-	@Test fun testServiceLoaderTest() = testNativeClass("""
-		TestServiceImpl1.test:ss
-		TestServiceJs10
-	""", Params(clazz = ServiceLoaderTest::class.java, minimize = false, configureInjector = {
-		mapInstance(ConfigServiceLoader(
-			classesToSkip = listOf(
-				TestServiceJs2::class.java.name
-			)
-		))
-	}))
+	@Test fun testServiceLoaderTest() = testNativeClass(Params(clazz = ServiceLoaderTest::class.java, minimize = false, configureInjector = {
+            mapInstance(ConfigServiceLoader(
+                classesToSkip = listOf(
+                    TestServiceJs2::class.java.name
+                )
+            ))
+        }), """
+            TestServiceImpl1.test:ss
+            TestServiceJs10
+        """)
 
-	@Test fun nativeJsTest() = testNativeClass("""
+	@Test fun nativeJsTest() = testNativeClass(Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true), """
 		17
 		-333
 		Services:
@@ -175,9 +175,10 @@ class JsTest : _Base() {
 		21
 		HELLO WORLD1demo
 		HELLO WORLD2test
+		77
 		Timeout!
 		Shutdown hook!
-	""", Params(clazz = JTranscJsNativeMixedTest::class.java, minimize = false, treeShaking = true))
+	""")
 
 	//@Test fun referencesTest() = testNativeClass("""
 	//	MethodBodyReferencesTestJs:true
@@ -185,13 +186,13 @@ class JsTest : _Base() {
 	//	MethodBodyReferencesTestJvm:false
 	//""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = true, treeShaking = false))
 
-	@Test fun referencesTest() = testNativeClass("""
+	@Test fun referencesTest() = testNativeClass(Params(clazz = MethodBodyReferencesTest::class.java, minimize = false, treeShaking = false), """
 		MethodBodyReferencesTestJs:true
 		MethodBodyReferencesTestCpp:false
 		MethodBodyReferencesTestJvm:false
-	""", Params(clazz = MethodBodyReferencesTest::class.java, minimize = false, treeShaking = false))
+	""")
 
-	@Test fun extraKeywordsJs() = testNativeClass("""
+	@Test fun extraKeywordsJs() = testNativeClass(Params(clazz = ExtraKeywordsTest::class.java, minimize = true), """
 		1
 		2
 		3
@@ -201,11 +202,11 @@ class JsTest : _Base() {
 		7
 		8
 		9
-	""", Params(clazz = ExtraKeywordsTest::class.java, minimize = true))
+	""")
 
-	@Test fun extraRefsTest() = testNativeClass("""
+	@Test fun extraRefsTest() = testNativeClass(Params(clazz = ExtraRefsTest::class.java, minimize = true), """
 		OK
-	""", Params(clazz = ExtraRefsTest::class.java, minimize = true))
+	""")
 
 	@Test fun testNumberFormatTest2() = testClass(Params(clazz = NumberFormatTest2::class.java, minimize = false, log = false))
 

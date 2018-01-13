@@ -76,6 +76,52 @@ class AstOptimizer(val flags: AstBodyFlags) : AstVisitor() {
 		super.visit(expr)
 	}
 
+	override fun visit(expr: AstExpr.CALL_INSTANCE) {
+		super.visit(expr)
+
+		if (flags.types.target.matches("js") && expr.method.name == "toString" && expr.obj.type == AstType.STRINGBUILDER) {
+			var curr: AstExpr? = expr
+			val params = arrayListOf<AstExpr>()
+			var optimizable = true
+			grab@ while (curr != null) {
+				//println(curr)
+				when (curr) {
+					is AstExpr.CALL_INSTANCE -> {
+						if (curr.method.name == "append") {
+							if (curr.args.size != 1) {
+								optimizable = false
+								break@grab
+							}
+							params += curr.args.first().value
+							curr = curr.obj.value
+						} else if (curr.method.name == "toString") {
+							if (params.isNotEmpty()) {
+								optimizable = false
+								break@grab
+							} else {
+								curr = curr.obj.value
+							}
+						} else {
+							optimizable = false
+							break@grab
+						}
+					}
+					is AstExpr.NEW_WITH_CONSTRUCTOR -> {
+						break@grab
+					}
+					else -> {
+						optimizable = false
+						break@grab
+					}
+				}
+			}
+			if (optimizable && params.isNotEmpty()) {
+				expr.box.value = AstExpr.CONCAT_STRING(expr, params.reversed())
+			}
+			//println("optimize StringBuilder.toString: $optimizable: $params")
+		}
+	}
+
 	override fun visit(expr: AstExpr.CALL_STATIC) {
 		super.visit(expr)
 

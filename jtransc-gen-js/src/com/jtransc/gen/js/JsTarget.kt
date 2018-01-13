@@ -7,6 +7,7 @@ import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.SwitchFeature
 import com.jtransc.ds.Allocator
 import com.jtransc.ds.getOrPut2
+import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
@@ -340,6 +341,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
 
 	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
+	val String.escapeStringJs: String get() = "SS[" + allocString(context.clazz.name, this) + "]"
 
 	private fun ensureAsynchronous(msg: String) {
 		val methodAsync = context.method.isAsync
@@ -547,6 +549,46 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "N.checkCast($e, ${to.targetNameRef})"
+	}
+
+	override fun genConcatString(e: AstExpr.CONCAT_STRING): String {
+		if (IS_ASYNC) return genExpr2(e.original) // Do not optimize async (not supporting toStringAsync)
+
+		try {
+			val params = e.args.map {
+				if (it is AstExpr.LITERAL) {
+					val value = it.value
+					when (it.type) {
+						AstType.STRING -> (value as String).quote()
+						AstType.BYTE -> ("" + (value as Byte)).quote()
+						AstType.CHAR -> ("" + (value as Char)).quote()
+						AstType.INT -> ("" + (value as Int)).quote()
+						AstType.LONG -> ("" + (value as Long)).quote()
+						AstType.FLOAT -> ("" + (value as Float)).quote()
+						AstType.DOUBLE -> ("" + (value as Double)).quote()
+						AstType.OBJECT -> genExpr2(it)
+						else -> invalidOp("genConcatString[1]: ${it.type}")
+					}
+				} else {
+					when (it.type) {
+						AstType.STRING, AstType.OBJECT -> genExpr2(it)
+						AstType.BOOL -> "N.boxBool(" + genExpr2(it) + ")"
+						AstType.BYTE -> genExpr2(it)
+						AstType.CHAR -> "N.boxChar(" + genExpr2(it) + ")"
+						AstType.SHORT -> genExpr2(it)
+						AstType.INT -> genExpr2(it)
+						AstType.FLOAT -> "N.boxFloat(" + genExpr2(it) + ")"
+						AstType.DOUBLE -> "N.boxDouble(" + genExpr2(it) + ")"
+						AstType.LONG -> "N.boxLong(" + genExpr2(it) + ")"
+						else -> invalidOp("genConcatString[2]: ${it.type}")
+					}
+				}
+			}.joinToString(" + ")
+			return "N.str('' + $params)"
+		} catch (t: InvalidOperationException) {
+			t.printStackTrace()
+			return genExpr2(e.original)
+		}
 	}
 
 	// @TODO: async/await

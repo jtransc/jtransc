@@ -4,6 +4,7 @@ import com.jtransc.error.InvalidOperationException
 import com.jtransc.error.invalidArgument
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
+import com.jtransc.gen.TargetName
 import com.jtransc.injector.Singleton
 import com.jtransc.lang.toBool
 import com.jtransc.lang.toInt
@@ -203,7 +204,7 @@ fun AstType.asREF(): AstType.REF {
 fun ARRAY(type: AstType) = AstType.ARRAY(type)
 
 @Singleton
-class AstTypes {
+class AstTypes(val target: TargetName) {
 	private val AstTypeDemangleCache = hashMapOf<String, AstType>()
 
 	fun fromConstant(value: Any?): AstType = AstType.fromConstant(value)
