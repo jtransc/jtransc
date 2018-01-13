@@ -241,6 +241,7 @@ class AstProgram(
 
 	fun add(clazz: AstClass) {
 		if (finished) invalidOp("Can't add more classes to a finished program")
+		_classes.removeIf { it.name == clazz.name }
 		_classes.add(clazz)
 		_classesByFqname[clazz.fqname] = clazz
 	}

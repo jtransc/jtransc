@@ -58,6 +58,7 @@ public class JTranscJsNativeMixedTest {
 
 	static private void callPerTarget() {
 		Global.global.console.log(MyClassPerTarget.str());
+		Global.global.console.log(new MyClassPerTarget().demo());
 	}
 
 	@JTranscNativeName("Date")
