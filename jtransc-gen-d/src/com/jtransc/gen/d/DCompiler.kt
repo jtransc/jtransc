@@ -36,12 +36,12 @@ object DCompiler {
 		}
 	}
 
-	object LDC : BaseCompiler("ldc") {
+	object LDC : BaseCompiler("ldc2") {
 		override fun genCommand(programFile: File, config: Config): List<String> {
 			if (config.debug) {
 				return listOf(cmd!!, "-O0", programFile.absolutePath)
 			} else {
-				return listOf(cmd!!, "-s", "-O3", programFile.absolutePath)
+				return listOf(cmd!!, "-O3", programFile.absolutePath)
 			}
 		}
 	}

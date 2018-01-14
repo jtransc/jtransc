@@ -153,7 +153,26 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	fun String?.dquote(): String = if (this != null) "\"${this.escape()}\"w" else "null"
+	fun String?.dquote(): String {
+		if (this == null) return "null"
+		return "[" + this.map { it.toInt() }.joinToString(",") + "]"
+		/*
+		val out = StringBuilder()
+		for (n in 0 until this.length) {
+			val c = this[n]
+			when (c) {
+				'\\' -> out.append("\\\\")
+				'"' -> out.append("\\\"")
+				'\n' -> out.append("\\n")
+				'\r' -> out.append("\\r")
+				'\t' -> out.append("\\t")
+				in '\u0000'..'\u001f', in '\u007f'..'\uffff' -> out.append("\\u" + "%04x".format(c.toInt()))
+				else -> out.append(c)
+			}
+		}
+		return "\"" + out.toString() + "\""
+		*/
+	}
 
 	override fun genClassBodyMethods(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		val directMethods = clazz.methods

@@ -223,6 +223,14 @@ class N {
 		return {% CONSTRUCTOR java.lang.String:([CZ)V %}(array, false);
 	}
 
+	//static public {% CLASS java.lang.String %} strLitEscape(wchar[] str) {
+	//	if (str is null) return null;
+	//	int len = slen(str);
+	//	auto array = new JA_C(len);
+	//	array.data[0..$] = str[0..$];
+	//	return {% CONSTRUCTOR java.lang.String:([CZ)V %}(array, false);
+	//}
+
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
 		if (jstrObj is null) return null;
 		auto jstr = cast({% CLASS java.lang.String %})jstrObj;
@@ -404,7 +412,7 @@ class N {
 			case std.system.OS.linux: return "linux";
 			case std.system.OS.osx: return "mac";
 			case std.system.OS.freeBSD: return "linux";
-			case std.system.OS.netBSD: return "linux";
+			//case std.system.OS.netBSD: return "linux";
 			case std.system.OS.solaris: return "linux";
 			case std.system.OS.android: return "android";
 			case std.system.OS.otherPosix: return "linux";
