@@ -56,7 +56,6 @@ class TirToStm(val methodType: AstType.METHOD, val blockContext: BlockContext, v
 				is TIR.INSTANCEOF -> stms += tir.dst.expr.setTo(AstExpr.INSTANCE_OF(tir.src.expr, tir.type as AstType.Reference))
 				is TIR.CONV -> stms += tir.dst.expr.setTo(tir.src.expr.castTo(tir.dst.type))
 				is TIR.ARRAYLENGTH -> stms += tir.dst.expr.setTo(AstExpr.ARRAY_LENGTH(tir.obj.expr))
-				is TIR.NEW -> stms += tir.dst.expr.setTo(AstExpr.NEW(tir.type))
 				is TIR.NEWARRAY -> stms += tir.dst.expr.setTo(AstExpr.NEW_ARRAY(tir.arrayType, tir.lens.map { it.expr }))
 				is TIR.UNOP -> stms += tir.dst.expr.setTo(AstExpr.UNOP(tir.op, tir.r.expr))
 				is TIR.BINOP -> {

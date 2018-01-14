@@ -119,10 +119,9 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.FIELD_STATIC_ACCESS -> "" + expr.clazzName + "." + expr.field.name
 		is AstExpr.BaseCast -> "((" + javaDump(types, expr.to) + ")" + dump(types, expr.subject) + ")"
 		is AstExpr.INSTANCE_OF -> "(" + dump(types, expr.expr) + " instance of " + javaDump(types, expr.checkType) + ")"
-		is AstExpr.NEW -> "new " + expr.target.fqname + "()"
-		is AstExpr.NEW_WITH_CONSTRUCTOR -> dump(types, AstExpr.CALL_INSTANCE(AstExpr.NEW(expr.type), expr.constructor, expr.args.map { it.value }, isSpecial = false))
+		is AstExpr.NEW_WITH_CONSTRUCTOR -> "new " + expr.target.fqname + "(" +  expr.args.map { it.value.dump(types) }.joinToString(", ") + ")"
 		is AstExpr.TERNARY -> dump(types, expr.cond) + " ? " + dump(types, expr.etrue) + " : " + dump(types, expr.efalse)
-	//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
+		//is AstExpr.REF -> "REF(" + dump(expr.expr) + ")"
 		is AstExpr.NEW_ARRAY -> "new " + expr.arrayType.element + "[" + expr.counts.map { dump(types, it) }.joinToString(", ") + "]"
 		is AstExpr.CALL_BASE -> {
 			val args = expr.args.map { dump(types, it) }

@@ -98,7 +98,6 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 				}
 				is AstExpr.PARAM -> expr
 				is AstExpr.THIS -> expr
-				is AstExpr.NEW -> expr
 				is AstExpr.INTARRAY_LITERAL -> expr
 				is AstExpr.OBJECTARRAY_LITERAL -> AstExpr.OBJECTARRAY_LITERAL(expr.values.map { it.processExpr(stms) }, expr.kind)
 				is AstExpr.NEW_ARRAY -> {
