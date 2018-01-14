@@ -16,6 +16,7 @@ import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
+import com.jtransc.text.toCommentString
 import com.jtransc.text.uquote
 import com.jtransc.vfs.ExecOptions
 import com.jtransc.vfs.LocalVfs
@@ -201,11 +202,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				if (clazz != null && clazz.mustGenerate && !clazz.isAbstract && !clazz.isInterface) {
 					line("[](){return (JAVA_OBJECT*)(new ${clazz.cppName}());},")
 				} else if (clazz != null && clazz.mustGenerate && (clazz.isAbstract || clazz.isInterface)) {
-					line("[](){ std::cerr << \"Class id $n refers to abstract class or interface!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+					line("[](){ std::cerr << \"Class id \" << $n << \" refers to abstract class or interface!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
 				} else if (n == 1) {
-					line("[](){ std::cerr << \"Class id $n refers to array base class!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+					line("[](){ std::cerr << \"Class id \" << $n << \" refers to array base class!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
 				} else {
-					line("[](){ std::cerr << \"Class id $n referred to a null clazz at compile time!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
+					line("[](){ std::cerr << \"Class id \" << $n << \" referred to a null clazz at compile time!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
 				}
 			}
 		}
@@ -1113,7 +1114,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FloatPositiveInfinityString = "N::INFINITY_FLOAT"
 	override val FloatNanString = "N::NAN_FLOAT"
 
-	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
+	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}${this.toCommentString()}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun pquote(str: String): String = "L" + str.uquote()

@@ -21,6 +21,8 @@ import core.atomic;
 int slen(string s) { return cast(int)s.length; }
 int slen(wstring s) { return cast(int)s.length; }
 int alen(T)(T[] s) { return cast(int)s.length; }
+void ARRAY_SET(T)(JA_Template!(T) array, int index, T value) { array.data[index] = value; }
+T ARRAY_GET(T)(JA_Template!(T) array, int index) { return array.data[index]; }
 
 abstract class JA_0 : {% CLASS java.lang.Object %} {
 	wstring desc;
@@ -45,8 +47,6 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 	public JA_J toLongArray  () { return new JA_J((cast(long   *)ptr)[0..bytesLength / long.sizeof]); }
 	public JA_F toFloatArray () { return new JA_F((cast(float  *)ptr)[0..bytesLength / float.sizeof]); }
 	public JA_D toDoubleArray() { return new JA_D((cast(double *)ptr)[0..bytesLength / double.sizeof]); }
-
-
 }
 
 class JA_Template(U) : JA_0 {
@@ -144,7 +144,7 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 	static JA_L T3(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c) { return fromArray(desc, [a, b, c]); }
 	static JA_L T4(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c, {% CLASS java.lang.Object %} d) { return fromArray(desc, [a, b, c, d]); }
 
-	static JA_0 createMultiSure(int[] sizes, wstring desc) {
+	static JA_0 createMultiSure0(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;
 		if (sizes.length == 1) return JA_L.create(sizes[0], desc);
 		int len = sizes[0];
@@ -152,9 +152,13 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 		auto sizes2 = sizes[1..$];
 		auto desc2 = desc[1..$];
 		for (auto n = 0; n < len; n++) {
-			o[n] = JA_L.createMultiSure(sizes2, desc2);
+			o[n] = JA_L.createMultiSure0(sizes2, desc2);
 		}
 		return o;
+	}
+
+	static JA_L createMultiSure(int[] sizes, wstring desc) {
+		return cast(JA_L)createMultiSure0(sizes, desc);
 	}
 
 	static JA_0 create(int size, wstring desc) {
@@ -218,6 +222,14 @@ class N {
 		array.data[0..$] = str[0..$];
 		return {% CONSTRUCTOR java.lang.String:([CZ)V %}(array, false);
 	}
+
+	//static public {% CLASS java.lang.String %} strLitEscape(wchar[] str) {
+	//	if (str is null) return null;
+	//	int len = slen(str);
+	//	auto array = new JA_C(len);
+	//	array.data[0..$] = str[0..$];
+	//	return {% CONSTRUCTOR java.lang.String:([CZ)V %}(array, false);
+	//}
 
 	static public wstring istr({% CLASS java.lang.Object %} jstrObj) {
 		if (jstrObj is null) return null;
@@ -400,7 +412,7 @@ class N {
 			case std.system.OS.linux: return "linux";
 			case std.system.OS.osx: return "mac";
 			case std.system.OS.freeBSD: return "linux";
-			case std.system.OS.netBSD: return "linux";
+			//case std.system.OS.netBSD: return "linux";
 			case std.system.OS.solaris: return "linux";
 			case std.system.OS.android: return "android";
 			case std.system.OS.otherPosix: return "linux";

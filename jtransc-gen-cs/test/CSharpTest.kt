@@ -45,6 +45,9 @@ class CSharpTest : _Base() {
 	""")
 
 	@Ignore("Disabled until it works on travis")
+	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
+
+	@Ignore("Disabled until it works on travis")
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, debug = false, log = false))
 
 	@Ignore("Disabled until it works on travis")

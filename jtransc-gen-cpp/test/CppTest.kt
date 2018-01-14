@@ -16,6 +16,7 @@
 
 import big.BigTest
 import big.HelloWorldTest
+import big.SideEffectsTest
 import big.ThreadTest
 import com.jtransc.gen.common._Base
 import com.jtransc.gen.cpp.CppTarget
@@ -44,6 +45,8 @@ class CppTest : _Base() {
 
 	@Ignore
 	@Test fun testBigTestRelease() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, debug = false))
+
+	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Ignore
 	@Test fun testNanoHelloWorld() = testClass(Params(clazz = NanoHelloWorldTest::class.java, minimize = false, log = true, treeShaking = true, debug = true))
