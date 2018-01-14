@@ -88,7 +88,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 		}
 
 		fun AstExpr.processExpr(stms: ArrayList<AstStm>, self: Boolean = true): AstExpr {
-			//val self = true
+			val self = true
 			val expr = this
 			return when (expr) {
 				is AstExpr.LITERAL -> expr
