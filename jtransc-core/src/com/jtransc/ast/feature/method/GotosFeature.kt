@@ -25,7 +25,7 @@ import com.jtransc.graph.RelooperException
 // @TODO: Use AstBuilder to make it more readable
 class GotosFeature : AstMethodFeature() {
 	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
-		if (settings.relooper) {
+		if (method.relooperEnabled ?: settings.relooper) {
 			try {
 				return removeRelooper(body, settings, types) ?: removeMachineState(body, types)
 			} catch (t: Throwable) {
