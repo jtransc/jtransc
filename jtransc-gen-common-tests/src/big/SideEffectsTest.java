@@ -43,6 +43,10 @@ public class SideEffectsTest {
 		System.out.println("[g]");
 		System.out.println(getObj1().method(getRes1(), getRes2(), getRes3()));
 		System.out.println(getOut());
+
+		System.out.println("[h]");
+		System.out.println(getObj1().chain(getRes1(), getRes2()).chain(getRes3()).chain(getRes4()).method(getRes1(), getRes2(), getRes3()));
+		System.out.println(getOut());
 	}
 
 	private String[] demo = new String[2];
@@ -97,6 +101,11 @@ public class SideEffectsTest {
 		return "3";
 	}
 
+	private String getRes4() {
+		out.append('4');
+		return "4";
+	}
+
 	private Obj1 getObj1() {
 		out.append('o');
 		return new Obj1();
@@ -106,6 +115,16 @@ public class SideEffectsTest {
 		public String method(String a, String b, String c) {
 			out.append('m');
 			return ":" + a + ":" + b + ":" + c;
+		}
+
+		public Obj1 chain(String a, String b) {
+			out.append('c');
+			return this;
+		}
+
+		public Obj1 chain(String a) {
+			out.append("c2");
+			return this;
 		}
 	}
 }

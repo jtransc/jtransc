@@ -6,6 +6,7 @@ import com.jtransc.JTranscSystem
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.GotosFeature
 import com.jtransc.ast.feature.method.SwitchFeature
+import com.jtransc.ast.feature.method.UndeterministicParameterEvaluationFeature
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.GenTargetDescriptor
 import com.jtransc.gen.TargetBuildTarget
@@ -57,8 +58,8 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val SINGLE_FILE: Boolean = true
 
 	//class DGenerator(injector: Injector) : FilePerClassCommonGenerator(injector) {
-	override val methodFeatures = setOf(SwitchFeature::class.java, GotosFeature::class.java)
-	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java)
+	override val methodFeaturesWithTraps = setOf(SwitchFeature::class.java, UndeterministicParameterEvaluationFeature::class.java) // Undeterministic is required on windows!?
+	override val methodFeatures = (methodFeaturesWithTraps + listOf(GotosFeature::class.java)).toSet()
 	override val stringPoolType: StringPool.Type = StringPool.Type.GLOBAL
 	override val floatHasFSuffix: Boolean = true
 
