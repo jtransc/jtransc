@@ -229,7 +229,7 @@ class AstProgram(
 			val classFile = name.internalFqname + ".class"
 			println("AstProgram. Can't find class '$name'")
 			println("AstProgram. ClassFile: $classFile")
-			println("AstProgram. File exists: " + resourcesVfs[classFile].exists)
+			println("AstProgram. File exists: " + resourcesVfs[classFile].exists + " : " + resourcesVfs[classFile].realpathOS)
 
 			throw InvalidOperationException("AstProgram. Can't find class '$name'")
 		} else {

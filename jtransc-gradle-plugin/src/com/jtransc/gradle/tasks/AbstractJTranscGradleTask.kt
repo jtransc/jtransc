@@ -88,8 +88,9 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		//println(project.property("output.classesDir"))
 		val sourceSet = project.property("sourceSets") as SourceSetContainer
 		val mainSourceSet = sourceSet["main"]
-		val classesDir = mainSourceSet.output.classesDir
-		logger.info("output classesDir: $classesDir")
+		val classesDirs = mainSourceSet.output.classesDirs
+		//val classesDirs = listOf(mainSourceSet.output.classesDir)
+		logger.info("output classesDir: ${classesDirs.joinToString(", ")}")
 		logger.info("sourceSet: $sourceSet")
 		logger.info("mainClassName: $mainClassName")
 
@@ -139,7 +140,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			skipServiceLoaderClasses + extension.skipServiceLoaderClasses
 		))
 
-		val files = listOf(File(classesDir.absolutePath)) + jtranscConfiguration.files + compileConfiguration.files + mainSourceSet.resources.srcDirs.toList()
+
+		val files = classesDirs.map { File(it.absolutePath) } + jtranscConfiguration.files + compileConfiguration.files + mainSourceSet.resources.srcDirs.toList()
 		val actualFiles = files - blacklist
 
 		injector.mapInstances(ConfigClassPaths(actualFiles.map { it.absolutePath }))

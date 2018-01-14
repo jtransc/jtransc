@@ -65,6 +65,9 @@ script:
 - pushd jtransc-main-run/example-gradle
 - "../../gradlew runPlainJs && node build/jtransc-js/program.js"
 - popd
+- pushd jtransc-main-run/example-gradle-multi
+- "./gradlew runPlainJs && node build/jtransc-js/program.js"
+- popd
 - pushd jtransc-maven-plugin/example
 - mvn package
 - node target/jtransc-js/program.js

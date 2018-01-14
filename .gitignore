@@ -4,6 +4,7 @@
 *.jar
 *.versionsBackup
 *.java-e
+.DS_Store
 /target/
 /build/
 /.idea/
