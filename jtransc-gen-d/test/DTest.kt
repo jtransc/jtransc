@@ -1,5 +1,6 @@
 import big.BigTest
 import big.HelloWorldTest
+import big.SideEffectsTest
 import big.ThreadTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
@@ -38,6 +39,8 @@ class DTest : _Base() {
 	@Test fun testHelloWorld() = testClass(Params(clazz = HelloWorldTest::class.java, minimize = false, log = false))
 
 	@Test fun testMicroHelloWorldAsm1() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))
+
+	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	//@Test fun testMicroHelloWorldAsm2() = testClass<MicroHelloWorld>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)
 	//@Test fun testMicroHelloWorldAsm2() = testClass<BenchmarkTest>(minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM2)

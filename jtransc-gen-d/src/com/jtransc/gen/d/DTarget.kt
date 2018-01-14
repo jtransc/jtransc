@@ -13,9 +13,7 @@ import com.jtransc.gen.common.*
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
-import com.jtransc.text.Indenter
-import com.jtransc.text.escape
-import com.jtransc.text.quote
+import com.jtransc.text.*
 import com.jtransc.vfs.*
 import java.io.File
 
@@ -312,7 +310,7 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val DoublePositiveInfinityString = "double.infinity"
 	override val DoubleNanString = "double.nan"
 
-	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
+	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}${this.toCommentString()}"
 
 	override fun AstExpr.genNotNull(): String {
 		if (debugVersion) {
@@ -348,8 +346,11 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun buildStaticInit(clazzName: FqName): String? = null
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
+	//override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
+	//override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
+
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.get($index)"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.set($index, $value);"
 
 	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "cast(${e.type.targetName})J__exception__"
 

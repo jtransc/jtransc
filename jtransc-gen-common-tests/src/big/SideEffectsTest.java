@@ -39,9 +39,13 @@ public class SideEffectsTest {
 		System.out.println("[f]");
 		System.out.println("" + getInt1() + call(call(getRes1(), getRes2()), getRes3()) + getInt2() + call(call(getRes1(), getRes2()), getRes3()) + getInt3());
 		System.out.println(getOut());
+
+		System.out.println("[g]");
+		System.out.println(getObj1().method(getRes1(), getRes2(), getRes3()));
+		System.out.println(getOut());
 	}
 
-	String[] demo = new String[2];
+	private String[] demo = new String[2];
 
 	private String call(String a, String b) {
 		out.append('C');
@@ -91,5 +95,17 @@ public class SideEffectsTest {
 	private String getRes3() {
 		out.append('3');
 		return "3";
+	}
+
+	private Obj1 getObj1() {
+		out.append('o');
+		return new Obj1();
+	}
+
+	private class Obj1 {
+		public String method(String a, String b, String c) {
+			out.append('m');
+			return ":" + a + ":" + b + ":" + c;
+		}
 	}
 }
