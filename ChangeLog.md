@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 0.6.8 (2018-01-14)
+
+New features:
+- ALL: Improved generated code (now new + constructor is joined), this also improves calling native code and fixes #134
+- JS: String concatenation (new ArrayBuilder+append+toString chain) is now optimized (less code and better performance)
+- HAXE-CPP: Support Haxe-Cpp synchronized blocks
+- JS: Support Threads in JS using await/async (disabled by default because of performance impact)
+- JS: Now targets to ES6 with classes since it is mainstream already
+- Implement Object.wait/notify/notifyAll + Semaphore using Object facilities
+- ALL: Added JTranscTargetClassImpl to remap a class depending on the target (similar to ServiceLoader approach but simpler)
+
+Fixes:
+- Gradle: Fixed newer gradle versions that output different language classes in different directories.
+- Fixed order of Side effects in several cases in D and C++ targets
+
+Improvements:
+- Thread improvements in all targets
+
+Performance Improvements:
+- @SergeyLabutin Reflection Cache
+
+Misc:
+- @SergeyLabutin Support lime.net.HTTPRequest
+- @SergeyLabutin Missing ScheduledThreadPoolExecutor.submit
+- @SergeyLabutin Updated lime to 5.4.0
+- Updated Kotlin to 1.2.10
+- Updated Gradle to 4.4.1
+- Update plugin-publish-plugin to 0.9.9
+
 ## 0.6.7 (2017-08-13)
 
 New features:
