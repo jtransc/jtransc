@@ -3,7 +3,7 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscSync;
 
 public class JTranscVersion {
-	static private final String version = "0.6.8";
+	static private final String version = "0.6.9-SNAPSHOT";
 
 	@JTranscSync
 	static public String getVersion() {
