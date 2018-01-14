@@ -144,7 +144,7 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 	static JA_L T3(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c) { return fromArray(desc, [a, b, c]); }
 	static JA_L T4(wstring desc, {% CLASS java.lang.Object %} a, {% CLASS java.lang.Object %} b, {% CLASS java.lang.Object %} c, {% CLASS java.lang.Object %} d) { return fromArray(desc, [a, b, c, d]); }
 
-	static JA_0 createMultiSure(int[] sizes, wstring desc) {
+	static JA_0 createMultiSure0(int[] sizes, wstring desc) {
 		if (!desc.startsWith('[')) return null;
 		if (sizes.length == 1) return JA_L.create(sizes[0], desc);
 		int len = sizes[0];
@@ -152,9 +152,13 @@ class JA_L : JA_Template!({% CLASS java.lang.Object %}) {
 		auto sizes2 = sizes[1..$];
 		auto desc2 = desc[1..$];
 		for (auto n = 0; n < len; n++) {
-			o[n] = JA_L.createMultiSure(sizes2, desc2);
+			o[n] = JA_L.createMultiSure0(sizes2, desc2);
 		}
 		return o;
+	}
+
+	static JA_L createMultiSure(int[] sizes, wstring desc) {
+		return cast(JA_L)createMultiSure0(sizes, desc);
 	}
 
 	static JA_0 create(int size, wstring desc) {
