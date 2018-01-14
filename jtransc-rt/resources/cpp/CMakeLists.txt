@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+#if(NOT CMAKE_BUILD_TYPE)
+#  set(CMAKE_BUILD_TYPE Release)
+#endif()
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -45,16 +45,16 @@ ENDIF()
 
 add_executable(program program.cpp)
 
-if(UNIX)
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable")
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
-	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-		#message("Release mode: strip")
-		add_custom_command(TARGET program POST_BUILD COMMAND strip ${CMAKE_CURRENT_SOURCE_DIR}/program)
-	endif()
-endif()
+#if(UNIX)
+#	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable")
+#	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+#	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+#
+#	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+#		#message("Release mode: strip")
+#		add_custom_command(TARGET program POST_BUILD COMMAND strip ${CMAKE_CURRENT_SOURCE_DIR}/program)
+#	endif()
+#endif()
 
 if(UNIX AND NOT APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
