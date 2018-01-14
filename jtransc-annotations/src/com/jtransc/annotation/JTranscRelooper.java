@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface JTranscRelooper {
 	boolean value() default true;
+	boolean debug() default false;
+	int method() default 0; // 1 = experimental method
 }

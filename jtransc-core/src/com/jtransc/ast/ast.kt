@@ -743,9 +743,9 @@ class AstMethod constructor(
 	fun getParamsWithAnnotations(args: List<AstExpr>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList[it.first.index], it.second) }
 	fun getParamsWithAnnotationsBox(args: List<AstExpr.Box>) = methodType.args.zip(args).map { AstArgumentCallWithAnnotations(it.first, parameterAnnotationsList.getOrNull(it.first.index), it.second.value) }
 
-	val relooperEnabled: Boolean? by lazy {
-		annotationsList.getTyped<JTranscRelooper>()?.value
-	}
+	val relooper by lazy { annotationsList.getTyped<JTranscRelooper>() }
+	val relooperEnabled: Boolean? by lazy { relooper?.value }
+	val relooperDebug by lazy { relooper?.debug ?: false }
 
 	init {
 		if (id < 0) {

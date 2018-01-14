@@ -3,29 +3,33 @@ package com.jtransc.graph
 import com.jtransc.ast.*
 import java.util.*
 
-class Relooper(val types: AstTypes) {
+class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Graph
-	class Node(val types: AstTypes, val body: List<AstStm>) {
+	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
 		var next: Node? = null
-		val edges = arrayListOf<Edge>()
-		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + edges.map { it.dst }
+		val srcEdges = arrayListOf<Edge>()
+		val dstEdges = arrayListOf<Edge>()
+		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + dstEdges.map { it.dst }
 
-		override fun toString(): String = dump(types, body.stm()).toString().trim()
+		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().trim() + "EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size} NEXT: L${next?.index}"
 	}
 
-	class Edge(val dst: Node, val cond: AstExpr) {
-		override fun toString(): String = "IF ($cond) goto $dst;"
+	class Edge(val types: AstTypes, val current: Node, val dst: Node, val cond: AstExpr) {
+		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
+		override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index};"
 	}
 
-	fun node(body: List<AstStm>): Node = Node(types, body)
-	fun node(body: AstStm): Node = Node(types, listOf(body))
+	var lastIndex = 0
+	fun node(body: List<AstStm>): Node = Node(types, lastIndex++, body)
+	fun node(body: AstStm): Node = Node(types, lastIndex++, listOf(body))
 
 	fun edge(a: Node, b: Node) {
 		a.next = b
 	}
 
 	fun edge(a: Node, b: Node, cond: AstExpr) {
-		a.edges += Edge(b, cond)
+		a.dstEdges += Edge(types, a, b, cond)
+		b.srcEdges += Edge(types, a, b, cond)
 	}
 
 	private fun prepare(entry: Node): List<Node> {
@@ -39,11 +43,15 @@ class Relooper(val types: AstTypes) {
 			} else {
 				node.next = exit
 			}
-			for (edge in node.edges) explore(edge.dst)
+			for (edge in node.dstEdges) explore(edge.dst)
 		}
 		explore(entry)
 		explored += exit
 		return explored.toList()
+	}
+
+	inline private fun trace(msg: () -> String) {
+		if (debug) println(msg())
 	}
 
 	fun render(entry: Node): AstStm? {
@@ -56,15 +64,21 @@ class Relooper(val types: AstTypes) {
 		//graph.dump()
 		//println("----------")
 
+		trace { "Rendering $name" }
+
 		if (graph.hasCycles()) {
 			//noImpl("acyclic!")
 			//println("cyclic!")
+			trace { "Do not render $name" }
 			return null
 		}
 
-
 		val graph2 = graph.tarjanStronglyConnectedComponentsAlgorithm()
 		val entry2 = graph2.findComponentIndexWith(entry)
+
+		if (debug) {
+			println("--")
+		}
 
 		//graph2.outputEdges
 
@@ -88,7 +102,7 @@ class Relooper(val types: AstTypes) {
 	lateinit var lookup: AcyclicDigraphLookup<StrongComponent<Node>>
 
 	private fun getEdge(from: Node, to: Node): Edge? {
-		return from.edges.firstOrNull() { it.dst == to }
+		return from.dstEdges.firstOrNull() { it.dst == to }
 	}
 
 	private fun renderInternal(node: Int, endnode: Int): List<AstStm> {

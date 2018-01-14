@@ -27,7 +27,7 @@ class GotosFeature : AstMethodFeature() {
 	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
 		if (method.relooperEnabled ?: settings.relooper) {
 			try {
-				return removeRelooper(body, settings, types) ?: removeMachineState(body, types)
+				return removeRelooper(method, body, settings, types) ?: removeMachineState(body, types)
 			} catch (t: Throwable) {
 				t.printStackTrace()
 				return removeMachineState(body, types)
@@ -37,7 +37,7 @@ class GotosFeature : AstMethodFeature() {
 		}
 	}
 
-	private fun removeRelooper(body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
+	private fun removeRelooper(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
 		class BasicBlock(var index: Int) {
 			var node: Relooper.Node? = null
 			val stms = arrayListOf<AstStm>()
@@ -105,7 +105,7 @@ class GotosFeature : AstMethodFeature() {
 			}
 		}
 
-		val relooper = Relooper(types)
+		val relooper = Relooper(types, "$method", method.relooperDebug)
 		for (n in bblist) {
 			n.node = relooper.node(n.stms)
 			//println("NODE(${n.index}): ${n.stms}")
