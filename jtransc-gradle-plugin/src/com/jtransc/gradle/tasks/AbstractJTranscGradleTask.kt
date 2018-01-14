@@ -88,8 +88,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		//println(project.property("output.classesDir"))
 		val sourceSet = project.property("sourceSets") as SourceSetContainer
 		val mainSourceSet = sourceSet["main"]
-		//val classesDirs = mainSourceSet.output.classesDirs
-		val classesDirs = listOf(mainSourceSet.output.classesDir)
+		val classesDirs = mainSourceSet.output.classesDirs
+		//val classesDirs = listOf(mainSourceSet.output.classesDir)
 		logger.info("output classesDir: ${classesDirs.joinToString(", ")}")
 		logger.info("sourceSet: $sourceSet")
 		logger.info("mainClassName: $mainClassName")
