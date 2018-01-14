@@ -349,8 +349,11 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 	//override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.data[$index]"
 	//override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.data[$index] = $value;"
 
-	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.get($index)"
-	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.set($index, $value);"
+	//override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "$array.get($index)"
+	//override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "$array.set($index, $value);"
+
+	override fun N_AGET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String) = "ARRAY_GET($array, $index)"
+	override fun N_ASET_T(arrayType: AstType.ARRAY, elementType: AstType, array: String, index: String, value: String): String = "ARRAY_SET($array, $index, $value);"
 
 	override fun genExprCaughtException(e: AstExpr.CAUGHT_EXCEPTION): String = "cast(${e.type.targetName})J__exception__"
 

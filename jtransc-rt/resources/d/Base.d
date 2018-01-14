@@ -21,6 +21,8 @@ import core.atomic;
 int slen(string s) { return cast(int)s.length; }
 int slen(wstring s) { return cast(int)s.length; }
 int alen(T)(T[] s) { return cast(int)s.length; }
+void ARRAY_SET(T)(JA_Template!(T) array, int index, T value) { array.data[index] = value; }
+T ARRAY_GET(T)(JA_Template!(T) array, int index) { return array.data[index]; }
 
 abstract class JA_0 : {% CLASS java.lang.Object %} {
 	wstring desc;
@@ -45,8 +47,6 @@ abstract class JA_0 : {% CLASS java.lang.Object %} {
 	public JA_J toLongArray  () { return new JA_J((cast(long   *)ptr)[0..bytesLength / long.sizeof]); }
 	public JA_F toFloatArray () { return new JA_F((cast(float  *)ptr)[0..bytesLength / float.sizeof]); }
 	public JA_D toDoubleArray() { return new JA_D((cast(double *)ptr)[0..bytesLength / double.sizeof]); }
-
-
 }
 
 class JA_Template(U) : JA_0 {
