@@ -30,7 +30,8 @@ dependencies {
 }
 
 jtransc {
-	minimizeNames = true
+	//minimizeNames = true
+	minimizeNames = false
 	treeshaking = true
 
 	// Call ./gradlew -Pjs_enable_async=true runJs

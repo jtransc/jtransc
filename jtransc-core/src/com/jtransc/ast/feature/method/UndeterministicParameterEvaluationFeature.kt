@@ -45,16 +45,16 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					is AstStm.SET_LOCAL -> out += AstStm.SET_LOCAL(stm.local, stm.expr.processExpr(out), true)
 					is AstStm.SET_ARRAY -> {
 						// Like this to keep order
+						val array = stm.array.processExpr(out, self = true)
+						val index = stm.index.processExpr(out, self = true)
 						val value = stm.expr.processExpr(out, self = false)
-						val index = stm.index.processExpr(out, self = false)
-						val array = stm.array.processExpr(out, self = false)
 						out += AstStm.SET_ARRAY(array, index, value)
 					}
 					is AstStm.SET_ARRAY_LITERALS -> {
-						out += AstStm.SET_ARRAY_LITERALS(stm.array.processExpr(out, self = false), stm.startIndex, stm.values.map { it.processExpr(out, self = false).box })
+						out += AstStm.SET_ARRAY_LITERALS(stm.array.processExpr(out, self = true), stm.startIndex, stm.values.map { it.processExpr(out, self = true).box })
 					}
 					is AstStm.SET_FIELD_INSTANCE -> {
-						val expr = stm.expr.processExpr(out, self = false)
+						val expr = stm.expr.processExpr(out, self = true)
 						val l = stm.left.processExpr(out, self = false)
 						out += AstStm.SET_FIELD_INSTANCE(stm.field, l, expr)
 					}
@@ -76,9 +76,6 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 		private fun alloc(reason: String, type: AstType): AstLocal {
 			val id = lastLocalIndex++
 			val local = AstLocal(9000 + id, "ltt$id", type)
-			if (method.name == "getFields1") {
-				println("UndeterministicParameterEvaluationFeature.alloc: $reason, local=$local")
-			}
 			return local
 		}
 
@@ -91,6 +88,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 		}
 
 		fun AstExpr.processExpr(stms: ArrayList<AstStm>, self: Boolean = true): AstExpr {
+			//val self = true
 			val expr = this
 			return when (expr) {
 				is AstExpr.LITERAL -> expr
@@ -107,14 +105,14 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					val length = expr.counts.map { if (expr.counts.size == 1) it.processExpr(stms, self = false) else it.processExpr(stms) }
 					val newExpr = AstExpr.NEW_ARRAY(expr.arrayType, length)
 					if (self) {
-						newExpr
-					} else {
 						stms.buildLocalExpr("new_array") { newExpr }
+					} else {
+						newExpr
 					}
 				}
 				is AstExpr.FIELD_STATIC_ACCESS -> expr
 				is AstExpr.ARRAY_ACCESS -> {
-					val array = expr.array.processExpr(stms, self = false)
+					val array = expr.array.processExpr(stms, self = true)
 					val index = expr.index.processExpr(stms, self = false)
 					//stms.buildLocalExpr { AstExpr.ARRAY_ACCESS(array, index) }
 					AstExpr.ARRAY_ACCESS(array, index)
@@ -135,8 +133,9 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 				is AstExpr.BINOP -> {
 					val l = expr.left.processExpr(stms)
 					val r = expr.right.processExpr(stms)
+					val newExpr = AstExpr.BINOP(expr.type, l, expr.op, r)
 					//stms.buildLocalExpr { AstExpr.BINOP(expr.type, l, expr.op, r) }
-					AstExpr.BINOP(expr.type, l, expr.op, r)
+					if (self) stms.buildLocalExpr("binop") { newExpr } else newExpr
 				}
 				is AstExpr.UNOP -> {
 					//val r = expr.right.processExpr(stms)
@@ -144,7 +143,7 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					AstExpr.UNOP(expr.op, expr.right.processExpr(stms, self = false))
 				}
 				is AstExpr.CAST -> {
-					expr.subject.processExpr(stms, self = false).castTo(expr.type)
+					expr.subject.processExpr(stms, self = self).castTo(expr.type)
 					//expr.processExpr(stms)
 					/*
 					val subjectWithoutCasts = expr.subject.value.withoutCasts()
@@ -157,22 +156,22 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					*/
 				}
 				is AstExpr.CHECK_CAST -> {
-					expr.subject.processExpr(stms, self = false).checkedCastTo(expr.type)
+					expr.subject.processExpr(stms, self = self).checkedCastTo(expr.type)
 				}
 				is AstExpr.CONCAT_STRING -> {
-					expr.original.processExpr(stms, self = false)
+					expr.original.processExpr(stms, self = self)
 				}
 				is AstExpr.CALL_BASE -> {
 					val method = expr.method
 					val isSpecial = expr.isSpecial
+					val obj = if (expr is AstExpr.CALL_BASE_OBJECT) expr.obj.processExpr(stms) else null
 					val args = expr.args.map { it.processExpr(stms) }
 					val newExpr = when (expr) {
 						is AstExpr.CALL_BASE_OBJECT -> {
-							val obj = expr.obj.processExpr(stms)
 							if (expr is AstExpr.CALL_SUPER) {
-								AstExpr.CALL_SUPER(obj, expr.target, method, args, isSpecial = isSpecial)
+								AstExpr.CALL_SUPER(obj!!, expr.target, method, args, isSpecial = isSpecial)
 							} else {
-								AstExpr.CALL_INSTANCE(obj, method, args, isSpecial = isSpecial)
+								AstExpr.CALL_INSTANCE(obj!!, method, args, isSpecial = isSpecial)
 							}
 						}
 						is AstExpr.CALL_STATIC -> {
@@ -199,9 +198,9 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					val args = expr.args.map { it.processExpr(stms) }
 					val newExpr = AstExpr.NEW_WITH_CONSTRUCTOR(expr.constructor, args)
 					if (self) {
-						newExpr
-					} else {
 						stms.buildLocalExpr("new") { newExpr }
+					} else {
+						newExpr
 					}
 				}
 				else -> noImpl("UndeterministicParameterEvaluationFeature: $this")

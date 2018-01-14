@@ -67,6 +67,8 @@ class JsTest : _Base() {
 
 	@Test fun testBigWithoutTreeShakingAndAsync() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false, extra = mapOf("js_enable_async" to "true")))
 
+	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
+
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
 	//@Test fun testBigIO() = testClass(Params(clazz = BigIOTest::class.java, minimize = true, log = false, treeShaking = true))

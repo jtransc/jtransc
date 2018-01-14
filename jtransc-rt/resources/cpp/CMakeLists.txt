@@ -48,7 +48,7 @@ add_executable(program program.cpp)
 if(UNIX)
 	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-s -O3")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
 if(UNIX AND NOT APPLE)

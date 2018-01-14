@@ -1113,7 +1113,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FloatPositiveInfinityString = "N::INFINITY_FLOAT"
 	override val FloatNanString = "N::NAN_FLOAT"
 
-	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}"
+	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}/* ${this.replace("*", "").replace("\\n", "\\\\n").replace("\\r", "\\\\r").replace("\\t", "\\\\t")} */"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun pquote(str: String): String = "L" + str.uquote()
