@@ -132,6 +132,7 @@ class RelooperTest {
 						if (condLoopOutBreak) {
 							break;
 						}
+						break;
 					} while (true);
 					D = 1;
 					if (condLoopOutContinue) {
@@ -140,6 +141,7 @@ class RelooperTest {
 					if (condLoopOutBreak) {
 						break;
 					}
+					break;
 				} while (true);
 			}
 			E = 1;

@@ -176,6 +176,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun writeClasses(output: SyncVfsFile) {
 		if (SINGLE_FILE) {
+			output.removeIfExists()
 			if (ADD_UTF8_BOM) {
 				output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + genSingleFileClasses(output).toString().toByteArray()
 			} else {
@@ -441,6 +442,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			is AstStm.SWITCH_GOTO -> genStmSwitchGoto(stm)
 			is AstStm.NOP -> genStmNop(stm)
 			is AstStm.WHILE -> genStmWhile(stm)
+			is AstStm.DO_WHILE -> genStmDoWhile(stm)
 			is AstStm.IF -> genStmIf(stm)
 			is AstStm.IF_ELSE -> genStmIfElse(stm)
 			is AstStm.RETURN_VOID -> genStmReturnVoid(stm, last)
@@ -1342,6 +1344,13 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun genStmWhile(stm: AstStm.WHILE) = indent {
 		flowBlock(FlowKind.WHILE) {
 			line("while (${stm.cond.genExpr()})") {
+				line(stm.iter.genStm())
+			}
+		}
+	}
+	fun genStmDoWhile(stm: AstStm.DO_WHILE) = indent {
+		flowBlock(FlowKind.WHILE) {
+			line("do", after2 = " while (${stm.cond.genExpr()});") {
 				line(stm.iter.genStm())
 			}
 		}

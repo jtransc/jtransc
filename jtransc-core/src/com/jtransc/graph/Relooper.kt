@@ -8,7 +8,6 @@ import java.util.*
 import kotlin.collections.LinkedHashSet
 
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
-	class Graph
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
 		//var next: Node? = null
 		val srcEdges = arrayListOf<Edge>()
@@ -17,6 +16,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val possibleNextNodes: List<Node> get() = dstEdges.map { it.dst }
 
 		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
+		val nextEdge get() = dstEdges.firstOrNull { it.cond == null }
 
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 	}
@@ -63,7 +63,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		for (n in g.nodes) {
 			trace { "* $n" }
 		}
-		return renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
+		println("Relooping '$name'...")
+		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
+		println("Relooping '$name'...OK")
+		return result
 	}
 
 	class RenderContext(val graph: Digraph<Node>) {
@@ -137,11 +140,12 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 			// Loop
 			if (isMultiNodeLoop || isSingleNodeLoop) {
-				trace { "$indent- Detected node loop csize=${component.size} : $node" }
+				trace { "$indent- LOOP csize=${component.size} : $node" }
 				val outs = component.getExternalOutputsNodes()
 				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
+				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }
 				if (outsNotInContext.size != 1) {
-					trace { "ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
+					trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
 					invalidOp("ERROR When Relooping $name (ASSERTION FAILED)")
 				}
 
@@ -150,8 +154,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 				val loopName = ctx.allocName()
 
-				trace { "$indent:: ${entryNode.index} - ${exitNode.index}" }
-				trace { "$indent:: ${component}" }
+				//trace { "$indent:: ${entryNode.index} - ${exitNode.index}" }
+				//trace { "$indent:: ${component}" }
 
 				ctx.loopStarts[entryNode] = loopName
 				ctx.loopEnds[exitNode] = loopName
@@ -159,11 +163,13 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				out += AstStm.DO_WHILE(
 					loopName,
 					if (isSingleNodeLoop) {
+						trace { "$indent- render single node: renderNoLoops" }
 						val out2 = arrayListOf<AstStm>()
 						renderNoLoops(g, out2, node, exitNode, ctx, level)
 						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
 						out2.stmsWoNops
 					} else {
+						trace { "$indent- render multi node: renderComponents" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
 					,
@@ -187,8 +193,20 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
-		trace { "$indent- Detected no loop : $node" }
+		trace { "$indent- renderNoLoops: Detected no loop : $node" }
 		out += node.body.stmsWoNops
+
+		fun getNodeContinueOrBreak(node: Relooper.Node?): AstStm? {
+			val loopStart = ctx.loopStarts[node]
+			val loopEnd = ctx.loopEnds[node]
+			return when {
+				loopStart != null -> AstStm.CONTINUE(loopStart)
+				loopEnd != null -> AstStm.BREAK(loopEnd)
+				else -> null
+			}
+
+		}
+
 		when (node.dstEdges.size) {
 			0, 1 -> {
 				if (node.dstEdges.size == 0) {
@@ -199,44 +217,56 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				if (node.dstEdges.size == 0) return null
 			}
 			2 -> {
-				trace { "$indent- Node IF (and else?)" }
-				val ifBody = node.next!!
-				val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
-				val endOfIfNode = endOfIf.dst
-				val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit)
 
-				// IF
-				if (common == endOfIfNode) {
-					out += AstStm.IF(
-						endOfIf.cond!!.not(),
-						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
-					)
-				}
-				// IF+ELSE
-				else {
-					out += AstStm.IF_ELSE(
-						endOfIf.cond!!,
-						renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
-						renderComponents(g, ifBody, common, ctx, level = level + 1)
-					)
-				}
-				return common
 			}
 			else -> {
 				//TODO()
 			}
 		}
 
+		var ifsAdded = 0
 		for (e in node.dstEdgesButNext) {
-			val loopStart = ctx.loopStarts[e.dst]
-			val loopEnd = ctx.loopEnds[e.dst]
-			when {
-				loopStart != null -> out += AstStm.IF(e.cond!!, AstStm.CONTINUE(loopStart))
-				loopEnd != null -> out += AstStm.IF(e.cond!!, AstStm.BREAK(loopEnd))
-				else -> TODO()
-			}
+			val breakOrContinue = getNodeContinueOrBreak(e.dst) ?: break
+			out += AstStm.IF(e.cond!!, breakOrContinue)
+			ifsAdded++
 		}
-		return node.next
+
+		if (ifsAdded == node.dstEdgesButNext.size) {
+			val breakOrContinue = getNodeContinueOrBreak(node.next)
+			if (breakOrContinue != null) {
+				out += breakOrContinue
+			}
+			return node.next
+		}
+
+		if (node.dstEdges.size != 2) {
+			TODO()
+		}
+
+		trace { "$indent- Node IF (and else?)" }
+		val ifBody = node.next!!
+		val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
+		val endOfIfNode = endOfIf.dst
+		val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit)
+
+		// IF
+		if (common == endOfIfNode) {
+			out += AstStm.IF(
+				endOfIf.cond!!.not(),
+				renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
+			)
+		}
+		// IF+ELSE
+		else {
+			out += AstStm.IF_ELSE(
+				endOfIf.cond!!,
+				renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
+				renderComponents(g, ifBody, common, ctx, level = level + 1)
+			)
+		}
+		return common
+
+
 	}
 
 	fun StrongComponent<Node>.isMultiNodeLoop(): Boolean = (size > 1)

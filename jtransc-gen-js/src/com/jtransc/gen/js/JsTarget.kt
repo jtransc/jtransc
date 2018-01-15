@@ -131,6 +131,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	@Suppress("UNCHECKED_CAST")
 	override fun writeClasses(output: SyncVfsFile) {
+		output[outputFileBaseName] = ""
+		output["$outputFileBaseName.map"] = ""
 		val concatFilesTrans = copyFiles(output)
 
 		val classesIndenter = arrayListOf<Indenter>()
@@ -228,13 +230,13 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		// Generate source
 		//println("outputFileBaseName:$outputFileBaseName")
 		output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + source.toByteArray(Charsets.UTF_8)
-		if (sourceMap != null) output[outputFileBaseName + ".map"] = sourceMap
+		if (sourceMap != null) output["$outputFileBaseName.map"] = sourceMap
 
 		injector.mapInstance(ConfigJavascriptOutput(output[outputFile]))
 	}
 
 	override fun genSICall(it: AstClass): String {
-		return "$AWAIT " + "${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "($JC);"
+		return "$AWAIT ${it.name.targetNameForStatic}" + access("SI", static = true, field = false) + "($JC);"
 	}
 
 	override fun genStmTryCatch(stm: AstStm.TRY_CATCH) = indent {

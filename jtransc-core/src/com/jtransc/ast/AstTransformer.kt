@@ -45,6 +45,7 @@ open class AstTransformer {
 			is AstStm.IF -> transform(stm)
 			is AstStm.IF_ELSE -> transform(stm)
 			is AstStm.WHILE -> transform(stm)
+			is AstStm.DO_WHILE -> transform(stm)
 			is AstStm.RETURN -> transform(stm)
 			is AstStm.RETURN_VOID -> transform(stm)
 			is AstStm.THROW -> transform(stm)
@@ -200,6 +201,12 @@ open class AstTransformer {
 	open fun transform(stm: AstStm.WHILE): AstStm {
 		transform(stm.cond)
 		transform(stm.iter)
+		return stm
+	}
+
+	open fun transform(stm: AstStm.DO_WHILE): AstStm {
+		transform(stm.iter)
+		transform(stm.cond)
 		return stm
 	}
 
