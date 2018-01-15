@@ -138,9 +138,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	data class If(val cond: AstExpr, val tbody: Res, val fbody: Res? = null) : Res {
 		override fun toString(): String {
 			return if (fbody != null) {
-				"if (${cond.dump()}) $tbody else $fbody"
+				"if (${cond.dump()}) { $tbody } else { $fbody }"
 			} else {
-				"if (${cond.dump()}) $tbody"
+				"if (${cond.dump()}) { $tbody }"
 			}
 		}
 	}
@@ -196,7 +196,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				out += DoWhile(
 					loopName,
 					if (isSingleNodeLoop) {
-						Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
+						val out2 = arrayListOf<Res>()
+						renderNoLoops(g, out2, node, ctx, level)
+						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
+						Stms(out2)
 					} else {
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
@@ -211,31 +214,51 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 			// Not a loop
 			else {
-				println("$indent- Detected no loop : $node")
-				when (node.dstEdges.size) {
-					0 -> {
-						println("$indent- Last node")
-						out += Stm(node.body)
-						break@loop
-					}
-					1 -> {
-						println("$indent- Node continuing")
-						out += Stm(node.body)
-					}
-				}
-				for (e in node.dstEdgesButNext) {
-					val loopStart = ctx.loopStarts[e.dst]
-					val loopEnd = ctx.loopEnds[e.dst]
-					when {
-						loopStart != null -> out += If(e.cond!!, Continue(loopStart))
-						loopEnd != null -> out += If(e.cond!!, Break(loopEnd))
-						else -> TODO()
-					}
-				}
-				node = node.next
+				node = renderNoLoops(g, out, node, ctx, level = level)
 			}
 		}
 		return if (out.size == 1) out.first() else Stms(out)
+	}
+
+	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<Res>, node: Node, ctx: RenderContext, level: Int): Node? {
+		val indent = INDENTS[level]
+		println("$indent- Detected no loop : $node")
+		when (node.dstEdges.size) {
+			0, 1 -> {
+				if (node.dstEdges.size == 0) {
+					println("$indent- Last node")
+				} else {
+					println("$indent- Node continuing")
+				}
+				out += Stm(node.body)
+				if (node.dstEdges.size == 0) return null
+			}
+			2 -> {
+				println("$indent- Node IF (and else?)")
+				val ifBody = node.next
+				val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
+				val endOfIdNode = endOfIf.dst
+				out += If(
+					endOfIf.cond!!,
+					renderComponents(g, ifBody!!, endOfIdNode, ctx, level = level + 1)
+				)
+				return endOfIdNode
+			}
+			else -> {
+				//TODO()
+			}
+		}
+
+		for (e in node.dstEdgesButNext) {
+			val loopStart = ctx.loopStarts[e.dst]
+			val loopEnd = ctx.loopEnds[e.dst]
+			when {
+				loopStart != null -> out += If(e.cond!!, Continue(loopStart))
+				loopEnd != null -> out += If(e.cond!!, Break(loopEnd))
+				else -> TODO()
+			}
+		}
+		return node.next
 	}
 
 	fun StrongComponent<Node>.isMultiNodeLoop(): Boolean {
