@@ -1,9 +1,11 @@
 package com.jtransc.graph
 
 import com.jtransc.ast.*
+import com.jtransc.ds.Queue
 import com.jtransc.error.invalidOp
 import com.jtransc.text.INDENTS
 import java.util.*
+import kotlin.collections.LinkedHashSet
 
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Graph
@@ -67,54 +69,51 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		trace { "Rendering $name" }
 
-		//if (graph.hasCycles()) {
-		//	//noImpl("acyclic!")
-		//	//println("cyclic!")
-		//	trace { "Do not render $name" }
-		//	return null
-		//}
-
 		val graph2 = graph.tarjanStronglyConnectedComponentsAlgorithm()
-
-		val result = renderComponents(graph2, entry, null, RenderContext(), level = 0)
+		val result = renderComponents(graph2, entry, null, RenderContext(graph2.graph), level = 0)
 
 		println(result)
 		println("render!")
 
-		val entry2 = graph2.findComponentIndexWith(entry)
-
-		//val inputs0 = graph2.components[0].getExternalInputs()
-		val entries = graph2.components[1].getEntryPoints()
-		val inputs1 = graph2.components[1].getExternalInputsEdges()
-		val outputs1 = graph2.components[1].getExternalOutputsEdges()
-		//val inputs2 = graph2.components[2].getExternalInputs()
-
-		if (debug) {
-			println("--")
-		}
-
-		//graph2.outputEdges
-
-		scgraph = graph2
-		lookup = scgraph.assertAcyclic().createCommonDescendantLookup()
-		processedCount = IntArray(scgraph.size)
-
-		return renderInternal(entry2, -1).stm()
-		/*
-		println(entry)
-		println(entry2)
-		*/
-
-		//graph.dump()
-		//println(graph)
-		// @TODO: strong components
+		TODO()
 	}
 
-	class RenderContext {
+	class RenderContext(val graph: Digraph<Node>) {
 		var lastId = 0
 		val loopStarts = hashMapOf<Node, String>()
 		val loopEnds = hashMapOf<Node, String>()
+		val rendered = LinkedHashSet<Node>()
 		fun allocName() = "loop${lastId++}"
+
+		// @TODO: Optimize performance! And maybe cache?
+		fun getNodeSuccessorsLinkedSet(a: Node, checkRendered: Boolean = false): Set<Node> {
+			val visited = LinkedHashSet<Node>()
+			if (!checkRendered) visited += rendered
+			val set = LinkedHashSet<Node>()
+			val queue = Queue<Node>()
+			queue.queue(a)
+			while (queue.hasMore) {
+				val item = queue.dequeue()
+				if (item in visited) continue
+				visited += item
+				set += item
+				for (edge in item.dstEdges) {
+					queue.queue(edge.dst)
+				}
+			}
+			return set
+		}
+
+		// @TODO: Optimize performance!
+		fun findCommonSuccessorNotRendered(a: Node, b: Node): Node? {
+			val checkRendered = true
+			val aSet = getNodeSuccessorsLinkedSet(a, checkRendered)
+			val bSet = getNodeSuccessorsLinkedSet(b, checkRendered)
+			for (item in bSet) {
+				if (item in aSet) return item
+			}
+			return null
+		}
 	}
 
 	companion object {
@@ -168,7 +167,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val out = arrayListOf<Res>()
 		var node: Node? = entry
 		loop@ while (node != null && node != exit) {
-			var component = g.findComponentWith(node)
+			ctx.rendered += node
+			val component = g.findComponentWith(node)
 			val isMultiNodeLoop = component.isMultiNodeLoop()
 			val isSingleNodeLoop = component.isSingleNodeLoop()
 
@@ -235,14 +235,27 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 			2 -> {
 				println("$indent- Node IF (and else?)")
-				val ifBody = node.next
+				val ifBody = node.next!!
 				val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
-				val endOfIdNode = endOfIf.dst
-				out += If(
-					endOfIf.cond!!,
-					renderComponents(g, ifBody!!, endOfIdNode, ctx, level = level + 1)
-				)
-				return endOfIdNode
+				val endOfIfNode = endOfIf.dst
+				val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode)
+
+				// IF
+				if (common == endOfIfNode) {
+					out += If(
+						endOfIf.cond!!,
+						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
+					)
+				}
+				// IF+ELSE
+				else {
+					out += If(
+						endOfIf.cond!!,
+						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1),
+						renderComponents(g, endOfIfNode, common, ctx, level = level + 1)
+					)
+				}
+				return endOfIfNode
 			}
 			else -> {
 				//TODO()
@@ -261,84 +274,14 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		return node.next
 	}
 
-	fun StrongComponent<Node>.isMultiNodeLoop(): Boolean {
-		return (size > 1)
-	}
-
-	fun StrongComponent<Node>.isSingleNodeLoop(): Boolean {
-		return (size == 1 && nodes[0].dstEdges.any { it.dst == nodes[0] })
-	}
-
-	fun StrongComponent<Node>.isLoop(): Boolean {
-		return isMultiNodeLoop() || isSingleNodeLoop()
-	}
+	fun StrongComponent<Node>.isMultiNodeLoop(): Boolean = (size > 1)
+	fun StrongComponent<Node>.isSingleNodeLoop(): Boolean = (size == 1 && nodes[0].dstEdges.any { it.dst == nodes[0] })
+	//fun StrongComponent<Node>.isLoop(): Boolean = isMultiNodeLoop() || isSingleNodeLoop()
 
 	fun StrongComponent<Node>.split(entry: Node, exit: Node): StrongComponentGraph<Node> {
 		val parent = this
 		val splitted = parent.graph.tarjanStronglyConnectedComponentsAlgorithm { src, dst -> dst != entry.index }
 		return splitted
-	}
-
-	lateinit var processedCount: IntArray
-	lateinit var scgraph: Digraph<StrongComponent<Node>>
-	lateinit var lookup: AcyclicDigraphLookup<StrongComponent<Node>>
-
-	private fun getEdge(from: Node, to: Node): Edge? {
-		return from.dstEdges.firstOrNull() { it.dst == to }
-	}
-
-	private fun renderInternal(node: Int, endnode: Int): List<AstStm> {
-		processedCount[node]++
-		if (processedCount[node] > 4) {
-			//println("Processed several!")
-			throw RelooperException("Node processed several times!")
-		}
-		if (node == endnode) return listOf()
-
-		val stms = arrayListOf<AstStm>()
-		stms += scgraph.getNode(node).nodes.flatMap { it.body }
-
-		//node.scgraph.dump()
-
-		val nodeNode = scgraph.getNode(node)
-		val targets = scgraph.getOut(node)
-
-		val nodeSrc = nodeNode.nodes.last()
-		val nodeDsts = targets.map { scgraph.getNode(it).nodes.first() }
-
-		when (targets.size) {
-			0 -> Unit
-			1 -> stms += renderInternal(targets.first(), endnode)
-			2 -> {
-				val common = lookup.common(targets)
-				val branches = targets.map { branch -> renderInternal(branch, common) }
-
-				val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().filter { it?.cond != null }.first()
-				val cond = edge.cond!!
-
-				// IF
-				if (common in targets) {
-					//val type1 = targets.indexOfFirst { it != common }
-					//stms += AstStm.IF(cond.not(), AstStmUtils.stms(branches[type1]))
-					stms += AstStm.IF(cond.not(), branches[0].stm())
-				}
-				// IF-ELSE
-				else {
-					stms += AstStm.IF_ELSE(cond.not(), branches[0].stm(), branches[1].stm())
-				}
-				stms += renderInternal(common, endnode)
-			}
-			else -> {
-				val common = lookup.common(targets)
-				val branches = targets.map { branch -> renderInternal(branch, common) }
-
-				println(branches)
-				println("COMMON: $common")
-				//println(outNode.next)
-				//println(outNode.possibleNextNodes.size)
-			}
-		}
-		return stms
 	}
 
 	fun StrongComponent<Relooper.Node>.getExternalInputsEdges(): List<Relooper.Edge> {

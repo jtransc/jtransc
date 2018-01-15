@@ -49,6 +49,8 @@ class Queue<T>() : Iterable<T> {
 
 	val hasMore: Boolean get() = data.isNotEmpty()
 	val length: Int get() = data.size
+	val size: Int get() = data.size
+	//val hasMore get() = size > 0
 
 	fun queue(value: T): T {
 		data.addFirst(value)
