@@ -2,6 +2,7 @@ package com.jtransc.graph
 
 import com.jtransc.ast.*
 import com.jtransc.gen.TargetName
+import com.jtransc.text.Indenter
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -11,14 +12,23 @@ class RelooperTest {
 
 	private fun stmt(name: String): AstStm = AstType.INT.local(name).setTo(1.lit)
 
-	/*
 	@Test fun testIf() {
 		val A = relooper.node(stmt("a"))
 		val B = relooper.node(stmt("b"))
-		relooper.edge(A, B, AstExpr.build { INT.local("a") eq 1.lit })
-		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } NOP }", dump(relooper.render(A)!!.optimize()).toString(doIndent = false).trim())
+		val C = relooper.node(stmt("c"))
+		relooper.edge(A, C, AstType.INT.local("a") eq 1.lit)
+		relooper.edge(A, B)
+		relooper.edge(B, C)
+		assertEquals("""
+			a = 1;
+			if ((a == 1)) {
+				b = 1;
+			}
+			c = 1;
+		""".normalizeMulti(), relooper.render(A).dumpCollapse(types).normalizeMulti())
 	}
 
+	/*
 	@Test fun testIf2() {
 		val A = relooper.node(stmt("a"))
 		val B = relooper.node(stmt("b"))
@@ -67,8 +77,6 @@ class RelooperTest {
 	}
 	*/
 
-	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
-
 	@Test
 	fun testDoubleWhile() {
 		// A -> B -> C -> D -> E
@@ -113,9 +121,9 @@ class RelooperTest {
 				} while (true);
 			}
 			E = 1;
-			NOP(empty stm)
-		""".normalizeMulti(), result.dumpCollapse(types).toString().normalizeMulti())
-		//println(dump(relooper.render(A)).toString())
-		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
+		""".normalizeMulti(), result.dumpCollapse(types).normalizeMulti())
 	}
+
+	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
+	fun Indenter.normalizeMulti() = this.toString().normalizeMulti()
 }

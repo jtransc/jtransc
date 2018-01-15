@@ -152,7 +152,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						val out2 = arrayListOf<AstStm>()
 						renderNoLoops(g, out2, node, ctx, level)
 						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
-						out2.stms
+						out2.stmsWoNops
 					} else {
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
@@ -170,13 +170,15 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				node = renderNoLoops(g, out, node, ctx, level = level)
 			}
 		}
-		return out.stms
+		return out.stmsWoNops
 	}
+
+	val Iterable<AstStm>.stmsWoNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
 		trace { "$indent- Detected no loop : $node" }
-		out += node.body.stms
+		out += node.body.stmsWoNops
 		when (node.dstEdges.size) {
 			0, 1 -> {
 				if (node.dstEdges.size == 0) {
@@ -204,11 +206,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				else {
 					out += AstStm.IF_ELSE(
 						endOfIf.cond!!,
-						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1),
+						renderComponents(g, ifBody, common, ctx, level = level + 1),
 						renderComponents(g, endOfIfNode, common, ctx, level = level + 1)
 					)
 				}
-				return endOfIfNode
+				return common
 			}
 			else -> {
 				//TODO()
