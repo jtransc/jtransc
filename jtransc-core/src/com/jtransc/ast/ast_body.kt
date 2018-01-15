@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.gen.TargetName
 import kotlin.reflect.KProperty
 
 data class AstBody constructor(
@@ -209,7 +208,7 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 	}
 
 	// Basic back jump
-	class DO_WHILE(val name: String, iter: AstStm, cond: AstExpr) : AstStm() {
+	class DO_WHILE(val name: String, cond: AstExpr, iter: AstStm) : AstStm() {
 		val cond = cond.box
 		val iter = iter.box
 	}

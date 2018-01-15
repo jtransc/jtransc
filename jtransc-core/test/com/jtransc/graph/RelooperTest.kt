@@ -194,7 +194,26 @@ class RelooperTest {
 		//}
 
 		L0.assertDump("""
-    		-
+			L0 = 1;
+			do {
+				L1 = 1;
+				if ((!l1_l3)) {
+					{
+						L2 = 1;
+						do {
+							L4 = 1;
+						} while (l4_l4);
+						L5 = 1;
+					}
+				}
+				L3 = 1;
+				if (l3_l1) {
+					continue;
+				}
+				break;
+			} while (true);
+			L6 = 1;
+			L8 = 1;
     	""")
 	}
 
@@ -210,7 +229,12 @@ class RelooperTest {
 		L2.edgeTo(L4)
 
 		L0.assertDump("""
-    		-
+			L0 = 1;
+			do {
+				L1 = 1;
+			} while (lI0 < lI1);
+			L2 = 1;
+			L4 = 1;
     	""")
 
 		//* L0: { 	lI0 = p0; 	lI1 = p1; 	lI1 = (lI1 + 1); } EDGES: [goto L1;]. SRC_EDGES: 0

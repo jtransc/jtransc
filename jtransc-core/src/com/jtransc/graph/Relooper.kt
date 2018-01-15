@@ -160,20 +160,30 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				ctx.loopStarts[entryNode] = loopName
 				ctx.loopEnds[exitNode] = loopName
 
+				val optimizedWhile = isSingleNodeLoop && (node.dstEdgesButNext.size == 1)
+				val cond: AstExpr = if (optimizedWhile) {
+					node.dstEdgesButNext.first().cond!!
+				} else {
+					true.lit
+				}
+
+
 				out += AstStm.DO_WHILE(
 					loopName,
+					cond,
 					if (isSingleNodeLoop) {
 						trace { "$indent- render single node: renderNoLoops" }
-						val out2 = arrayListOf<AstStm>()
-						renderNoLoops(g, out2, node, exitNode, ctx, level)
-						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
-						out2.stmsWoNops
+						if (optimizedWhile) {
+							node.body.stms
+						} else {
+							val out2 = arrayListOf<AstStm>()
+							renderNoLoops(g, out2, node, exitNode, ctx, level)
+							out2.stmsWoNops
+						}
 					} else {
 						trace { "$indent- render multi node: renderComponents" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
-					,
-					true.lit
 				)
 
 				ctx.loopEnds -= exitNode
