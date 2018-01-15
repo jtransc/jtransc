@@ -1038,8 +1038,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure(L\"$desc\", { ${e.counts.map { it.genExpr() }.joinToString(", ")} } )"
 	}
 
-	override fun genExprNew(e: AstExpr.NEW): String = "" + super.genExprNew(e) + ""
-
 	override fun genStmRawTry(trap: AstTrap): Indenter = Indenter {
 		//line("try {")
 		//_indent()

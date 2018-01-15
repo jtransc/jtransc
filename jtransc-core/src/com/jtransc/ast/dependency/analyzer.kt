@@ -83,10 +83,6 @@ object AstDependencyAnalyzer {
 					ana(expr.to)
 					ana(expr.subject)
 				}
-				is AstExpr.NEW -> {
-					ana(expr.target)
-					allSortedRefsStaticInit += expr.target
-				}
 				is AstExpr.NEW_ARRAY -> {
 					for (c in expr.counts) ana(c)
 					ana(expr.arrayType)

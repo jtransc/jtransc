@@ -466,6 +466,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	open fun genExpr2(e: AstExpr): String = when (e) {
+		is AstExpr.RAW -> genExprRaw(e)
 		is AstExpr.THIS -> genExprThis(e)
 		is AstExpr.TERNARY -> genExprTernary(e)
 		is AstExpr.LITERAL -> genExprLiteral(e)
@@ -483,7 +484,6 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.CAUGHT_EXCEPTION -> genExprCaughtException(e)
 		is AstExpr.ARRAY_LENGTH -> genExprArrayLength(e)
 		is AstExpr.INSTANCE_OF -> genExprInstanceOf(e)
-		is AstExpr.NEW -> genExprNew(e)
 		is AstExpr.NEW_WITH_CONSTRUCTOR -> genExprNewWithConstructor(e)
 		is AstExpr.NEW_ARRAY -> genExprNewArray(e)
 		is AstExpr.INTARRAY_LITERAL -> genExprIntArrayLit(e)
@@ -493,6 +493,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		is AstExpr.INVOKE_DYNAMIC_METHOD -> genExprMethodClass(e)
 		else -> noImpl("Expression $e")
 	}
+
+	open fun genExprRaw(e: AstExpr.RAW) = e.content
 
 	open fun genConcatString(e: AstExpr.CONCAT_STRING): String {
 		return genExpr2(e.original.castTo(AstType.OBJECT))
@@ -1005,15 +1007,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return "$ObjectArrayType${staticAccessOperator}createMultiSure([${e.counts.map { it.genExpr() }.joinToString(", ")}], \"$desc\")"
 	}
 
-	open fun genExprNew(e: AstExpr.NEW): String {
-		refs.add(e.target)
-		val className = e.target.targetName
-		return "(new $className())"
-	}
-
 	open fun genExprNewWithConstructor(e: AstExpr.NEW_WITH_CONSTRUCTOR): String {
-		val newClazz = program[e.target.name]
 		refs.add(e.target)
+		val newClazz = program[e.target.name]
 
 		if (newClazz.nativeName != null) {
 			val className = e.target.targetName
@@ -1021,8 +1017,9 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val commaArgs = generateCallArgString(e.args.map { it.genExpr() }, isNativeCall = false)
 			return "(new $className($commaArgs))"
 		} else {
+			val className = e.target.targetName
 			return genExprCallBase(AstExpr.CALL_INSTANCE(
-				AstExpr.NEW(e.target),
+				AstExpr.RAW(e.target, "(new $className())"),
 				e.constructor,
 				e.args.map { it.value },
 				isSpecial = true

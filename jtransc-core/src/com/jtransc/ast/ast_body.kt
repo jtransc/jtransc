@@ -364,6 +364,8 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		//var ahead: Boolean = false
 	}
 
+	class RAW(override val type: AstType, val content: String) : AstExpr()
+
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
 		override val type = argument.type
@@ -511,10 +513,6 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		override fun clone(): AstExpr = CHECK_CAST(subject.value.clone(), to, dummy = true)
 	}
 
-	class NEW(val target: AstType.REF) : AstExpr() {
-		override val type = target
-	}
-
 	class NEW_WITH_CONSTRUCTOR(val constructor: AstMethodRef, args: List<AstExpr>) : AstExpr() {
 		val target: AstType.REF = constructor.containingClassType
 		val args = args.map { it.box }
@@ -601,7 +599,6 @@ fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.LITERAL -> true
 	is AstExpr.LOCAL -> true
 	is AstExpr.TYPED_LOCAL -> true
-	is AstExpr.NEW -> false
 	is AstExpr.NEW_WITH_CONSTRUCTOR -> false
 	is AstExpr.NEW_ARRAY -> true
 	is AstExpr.INTARRAY_LITERAL -> true
