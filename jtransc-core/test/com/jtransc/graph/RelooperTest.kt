@@ -8,36 +8,36 @@ import org.junit.Test
 
 class RelooperTest {
 	val types = AstTypes(TargetName("js"))
-	val relooper = Relooper(types)
+	val relooper = Relooper(types, debug = true)
 
-	private fun stmt(name: String): AstStm = AstType.INT.local(name).setTo(1.lit)
-
-	@Test fun testIf() {
-		val A = relooper.node(stmt("a"))
-		val B = relooper.node(stmt("b"))
-		val C = relooper.node(stmt("c"))
-		relooper.edge(A, C, AstType.INT.local("a") eq 1.lit)
-		relooper.edge(A, B)
-		relooper.edge(B, C)
-		assertEquals("""
+	@Test
+	fun testIf() = relooperTest {
+		val A = node("a")
+		val B = node("b")
+		val C = node("c")
+		edge(A, C, AstType.INT.local("a") eq 1.lit)
+		edge(A, B)
+		edge(B, C)
+		A.assertDump("""
 			a = 1;
 			if ((!(a == 1))) {
 				b = 1;
 			}
 			c = 1;
-		""".normalizeMulti(), relooper.renderStr(A))
+		""")
 	}
 
-	@Test fun testIfElseExplicitEnd() {
-		val A = relooper.node(stmt("a"))
-		val B = relooper.node(stmt("b"))
-		val C = relooper.node(stmt("c"))
-		val D = relooper.node(stmt("d"))
-		relooper.edge(A, B, AstType.INT.local("a") eq 1.lit)
-		relooper.edge(A, C)
-		relooper.edge(B, D)
-		relooper.edge(C, D)
-		assertEquals("""
+	@Test
+	fun testIfElseExplicitEnd() = relooperTest {
+		val A = node("a")
+		val B = node("b")
+		val C = node("c")
+		val D = node("d")
+		edge(A, B, AstType.INT.local("a") eq 1.lit)
+		edge(A, C)
+		edge(B, D)
+		edge(C, D)
+		A.assertDump("""
 			a = 1;
 			if ((a == 1)) {
 				b = 1;
@@ -46,7 +46,7 @@ class RelooperTest {
 				c = 1;
 			}
 			d = 1;
-		""".normalizeMulti(), relooper.renderStr(A))
+		""")
 	}
 
 	//@Test fun testDoubleIf() {
@@ -101,25 +101,25 @@ class RelooperTest {
 	*/
 
 	@Test
-	fun testDoubleWhile() {
+	fun testDoubleWhile() = relooperTest {
 		// A -> B -> C -> D -> E
 		//     /|\   *    |
 		//      |_________/
-		val A = relooper.node(stmt("A"))
-		val B = relooper.node(stmt("B"))
-		val C = relooper.node(stmt("C"))
-		val D = relooper.node(stmt("D"))
-		val E = relooper.node(stmt("E"))
-		relooper.edge(A, B)
-		relooper.edge(B, C)
-		relooper.edge(C, D)
-		relooper.edge(D, E)
-		relooper.edge(D, B, AstExpr.RAW(AstType.BOOL, "condLoopOutContinue"))
-		relooper.edge(D, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
-		relooper.edge(C, C, AstExpr.RAW(AstType.BOOL, "condLoopInContinue"))
-		relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
-		relooper.edge(A, E, AstExpr.RAW(AstType.BOOL, "condToAvoidLoop"))
-		assertEquals("""
+		val A = node(stmt("A"))
+		val B = node(stmt("B"))
+		val C = node(stmt("C"))
+		val D = node(stmt("D"))
+		val E = node(stmt("E"))
+		edge(A, B)
+		edge(B, C)
+		edge(C, D)
+		edge(D, E)
+		edge(D, B, AstExpr.RAW(AstType.BOOL, "condLoopOutContinue"))
+		edge(D, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
+		edge(C, C, AstExpr.RAW(AstType.BOOL, "condLoopInContinue"))
+		edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
+		edge(A, E, AstExpr.RAW(AstType.BOOL, "condToAvoidLoop"))
+		A.assertDump("""
 			A = 1;
 			if ((!condToAvoidLoop)) {
 				do {
@@ -143,10 +143,103 @@ class RelooperTest {
 				} while (true);
 			}
 			E = 1;
-		""".normalizeMulti(), relooper.renderStr(A))
+		""")
 	}
 
+	@Test
+	fun testSmallFunctionWithWhileAndIf() = relooperTest {
+		val L0 = node("L0")
+		val L1 = node("L1")
+		val L2 = node("L2")
+		val L3 = node("L3")
+		val L4 = node("L4")
+		val L5 = node("L5")
+		val L6 = node("L6")
+		val L8 = node("L8")
+		L0.edgeTo(L1)
+		L1.edgeTo(L2).edgeTo(L3, cond("l1_l3"))
+		L2.edgeTo(L4)
+		L3.edgeTo(L6).edgeTo(L1, "l3_l1")
+		L4.edgeTo(L5).edgeTo(L4, cond("l4_l4"))
+		L5.edgeTo(L3)
+		L6.edgeTo(L8)
+
+		//* L0: { 	lI0 = p0; 	lI1 = p1; 	lI1 = (lI1 + 1); }EDGES: [goto L1;]. SRC_EDGES: 0
+		//* L1: EDGES: [goto L2;, IF (((lI0 % 2) != 0)) goto L3;]. SRC_EDGES: 2
+		//* L2: NOP(empty stm)EDGES: [goto L4;]. SRC_EDGES: 1
+		//* L3: { 	lI0 = (lI0 + 1); }EDGES: [goto L6;, IF ((lI0 < lI1)) goto L1;]. SRC_EDGES: 2
+		//* L4: { 	com.jtransc.io.JTranscConsole.log(lI0); 	lI0 = (lI0 + 1); }EDGES: [goto L5;, IF ((lI0 < lI1)) goto L4;]. SRC_EDGES: 2
+		//* L5: NOP(empty stm)EDGES: [goto L3;]. SRC_EDGES: 1
+		//* L6: { 	return lI1; }EDGES: [goto L8;]. SRC_EDGES: 1
+		//* L8: NOP(empty stm)EDGES: []. SRC_EDGES: 1
+
+
+		//@JTranscRelooper(value = true, debug = true)
+		//static public int simpleDoWhile(int a, int b) {
+		//	b++;
+		//
+		//	do {
+		//		if (a % 2 == 0) {
+		//			do {
+		//				JTranscConsole.log(a);
+		//				a++;
+		//			} while (a < b);
+		//		}
+		//		a++;
+		//	} while (a < b);
+		//
+		//	return b;
+		//}
+
+		L0.assertDump("""
+    		-
+    	""")
+	}
+
+	@Test
+	fun testSimpleDoWhile() = relooperTest {
+		val L0 = node("L0")
+		val L1 = node("L1")
+		val L2 = node("L2")
+		val L4 = node("L4")
+
+		L0.edgeTo(L1)
+		L1.edgeTo(L2).edgeTo(L1, "lI0 < lI1")
+		L2.edgeTo(L4)
+
+		L0.assertDump("""
+    		-
+    	""")
+
+		//* L0: { 	lI0 = p0; 	lI1 = p1; 	lI1 = (lI1 + 1); } EDGES: [goto L1;]. SRC_EDGES: 0
+		//* L1: { 	lI0 = (lI0 + 1); } EDGES: [goto L2;, IF ((lI0 < lI1)) goto L1;]. SRC_EDGES: 2
+		//* L2: { 	return lI1; } EDGES: [goto L4;]. SRC_EDGES: 1
+		//* L4: NOP(empty stm) EDGES: []. SRC_EDGES: 1
+
+		//@JTranscRelooper(value = true, debug = true)
+		//static public int simpleDoWhile(int a, int b) {
+		//	b++;
+		//
+		//	do {
+		//		a++;
+		//	} while (a < b);
+		//
+		//	return b;
+		//}
+	}
+
+	fun Relooper.Node.assertDump(msg: String) {
+		assertEquals(msg.normalizeMulti(), relooper.renderStr(this))
+	}
+
+	inline fun relooperTest(callback: Relooper.() -> Unit): Unit = callback(relooper)
+
+	fun Relooper.Node.edgeTo(other: Relooper.Node, cond: AstExpr? = null): Relooper.Node = this.apply { relooper.edge(this, other, cond) }
+	fun Relooper.Node.edgeTo(other: Relooper.Node, cond: String): Relooper.Node = this.edgeTo(other, cond.let { cond(it) })
 	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
 	fun Indenter.normalizeMulti() = this.toString().normalizeMulti()
 	fun Relooper.renderStr(node: Relooper.Node) = render(node).dumpCollapse(types).normalizeMulti()
+	fun Relooper.node(name: String) = node(stmt(name))
+	private fun stmt(name: String): AstStm = AstType.INT.local(name).setTo(1.lit)
+	private fun cond(name: String) = AstExpr.RAW(AstType.BOOL, name)
 }

@@ -18,7 +18,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
 
-		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().trim() + "EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
+		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 	}
 
 	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
@@ -58,8 +58,12 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	fun render(entry: Node): AstStm {
+		val g = graphList(prepare(entry).map { it to it.possibleNextNodes })
 		trace { "Rendering $name" }
-		return renderComponents(graphList(prepare(entry).map { it to it.possibleNextNodes }).tarjanStronglyConnectedComponentsAlgorithm(), entry)
+		for (n in g.nodes) {
+			trace { "* $n" }
+		}
+		return renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
 	}
 
 	class RenderContext(val graph: Digraph<Node>) {
@@ -70,9 +74,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun allocName() = "loop${lastId++}"
 
 		// @TODO: Optimize performance! And maybe cache?
-		fun getNodeSuccessorsLinkedSet(a: Node, checkRendered: Boolean = false): Set<Node> {
+		fun getNodeSuccessorsLinkedSet(a: Node, exit: Node?, checkRendered: Boolean = false): Set<Node> {
 			val visited = LinkedHashSet<Node>()
 			if (!checkRendered) visited += rendered
+			if (exit != null) visited += exit
 			val set = LinkedHashSet<Node>()
 			val queue = Queue<Node>()
 			queue.queue(a)
@@ -89,10 +94,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		// @TODO: Optimize performance!
-		fun findCommonSuccessorNotRendered(a: Node, b: Node): Node? {
+		fun findCommonSuccessorNotRendered(a: Node, b: Node, exit: Node?): Node? {
 			val checkRendered = true
-			val aSet = getNodeSuccessorsLinkedSet(a, checkRendered)
-			val bSet = getNodeSuccessorsLinkedSet(b, checkRendered)
+			//val checkRendered = false
+			val aSet = getNodeSuccessorsLinkedSet(a, exit, checkRendered)
+			val bSet = getNodeSuccessorsLinkedSet(b, exit, checkRendered)
 			for (item in bSet) {
 				if (item in aSet) return item
 			}
@@ -135,7 +141,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val outs = component.getExternalOutputsNodes()
 				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				if (outsNotInContext.size != 1) {
-					trace { "ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node" }
+					trace { "ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
 					invalidOp("ERROR When Relooping $name (ASSERTION FAILED)")
 				}
 
@@ -154,7 +160,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					loopName,
 					if (isSingleNodeLoop) {
 						val out2 = arrayListOf<AstStm>()
-						renderNoLoops(g, out2, node, ctx, level)
+						renderNoLoops(g, out2, node, exitNode, ctx, level)
 						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
 						out2.stmsWoNops
 					} else {
@@ -171,7 +177,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 			// Not a loop
 			else {
-				node = renderNoLoops(g, out, node, ctx, level = level)
+				node = renderNoLoops(g, out, node, exit, ctx, level = level)
 			}
 		}
 		return out.stmsWoNops
@@ -179,7 +185,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	val Iterable<AstStm>.stmsWoNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
 
-	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, ctx: RenderContext, level: Int): Node? {
+	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
 		trace { "$indent- Detected no loop : $node" }
 		out += node.body.stmsWoNops
@@ -197,7 +203,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val ifBody = node.next!!
 				val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
 				val endOfIfNode = endOfIf.dst
-				val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode)
+				val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit)
 
 				// IF
 				if (common == endOfIfNode) {
