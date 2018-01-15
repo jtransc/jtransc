@@ -83,7 +83,7 @@ class RelooperTest {
 		relooper.edge(D, B, AstExpr.RAW(AstType.BOOL, "condLoopOutContinue"))
 		relooper.edge(D, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
 		relooper.edge(C, C, AstExpr.RAW(AstType.BOOL, "condLoopInContinue"))
-		//relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
+		relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
 		val result = relooper.render(A)
 		//println(dump(relooper.render(A)).toString())
 		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())

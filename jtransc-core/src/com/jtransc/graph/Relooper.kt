@@ -176,7 +176,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			if (isMultiNodeLoop || isSingleNodeLoop) {
 				println("$indent- Detected node loop csize=${component.size} : $node")
 				val outs = component.getExternalOutputsNodes()
-				val outsNotInContext = outs.filter { it !in ctx.loopStarts }
+				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				if (outsNotInContext.size != 1) {
 					println("ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node")
 					invalidOp
