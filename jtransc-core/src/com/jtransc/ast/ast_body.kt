@@ -800,6 +800,8 @@ operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBi
 operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
 infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
 infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
+fun AstExpr.inv() = AstExpr.UNOP(AstUnop.INV, this)
+//fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 
 operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())

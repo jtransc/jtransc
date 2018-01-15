@@ -21,12 +21,60 @@ class RelooperTest {
 		relooper.edge(B, C)
 		assertEquals("""
 			a = 1;
-			if ((a == 1)) {
+			if ((!(a == 1))) {
 				b = 1;
 			}
 			c = 1;
-		""".normalizeMulti(), relooper.render(A).dumpCollapse(types).normalizeMulti())
+		""".normalizeMulti(), relooper.renderStr(A))
 	}
+
+	@Test fun testIfElseExplicitEnd() {
+		val A = relooper.node(stmt("a"))
+		val B = relooper.node(stmt("b"))
+		val C = relooper.node(stmt("c"))
+		val D = relooper.node(stmt("d"))
+		relooper.edge(A, B, AstType.INT.local("a") eq 1.lit)
+		relooper.edge(A, C)
+		relooper.edge(B, D)
+		relooper.edge(C, D)
+		assertEquals("""
+			a = 1;
+			if ((a == 1)) {
+				b = 1;
+			}
+			else {
+				c = 1;
+			}
+			d = 1;
+		""".normalizeMulti(), relooper.renderStr(A))
+	}
+
+	//@Test fun testDoubleIf() {
+	//	val A = relooper.node(stmt("pre"))
+	//	val B = relooper.node(stmt("if1"))
+	//	val C = relooper.node(stmt("if2"))
+	//	val D = relooper.node(stmt("end"))
+	//	relooper.edge(A, B, AstType.INT.local("pre") eq 1.lit)
+	//	relooper.edge(B, C, AstType.INT.local("if1") eq 1.lit)
+	//	relooper.edge(C, D)
+	//	relooper.edge(B, D)
+	//	assertEquals("""
+	//		pre = 1;
+	//		if ((pre == 1)) {
+	//			if1 = 1;
+	//			if ((if1 == 1)) {
+	//				if2 = 1;
+	//			}
+	//			else {
+	//				NOP(empty stm)
+	//			}
+	//			end = 1;
+	//		}
+	//		else {
+	//			NOP(empty stm)
+	//		}
+	//	""".normalizeMulti(), relooper.renderStr(A))
+	//}
 
 	/*
 	@Test fun testIf2() {
@@ -50,31 +98,6 @@ class RelooperTest {
 		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } NOP }", dump(relooper.render(A)).toString(doIndent = false).trim())
 	}
 
-	@Test fun testIfElseExplicitEnd() {
-		val A = relooper.node(stmt("a"))
-		val B = relooper.node(stmt("b"))
-		val C = relooper.node(stmt("c"))
-		val D = relooper.node(stmt("d"))
-		relooper.edge(A, B, AstExpr.build { INT.local("a") eq 1.lit })
-		relooper.edge(A, C)
-		relooper.edge(B, D)
-		relooper.edge(C, D)
-		Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
-	}
-
-	@Test fun testDoubleIf() {
-		val A = relooper.node(stmt("pre"))
-		val B = relooper.node(stmt("if1"))
-		val C = relooper.node(stmt("if2"))
-		val D = relooper.node(stmt("end"))
-		relooper.edge(A, B, AstExpr.build { INT.local("pre") eq 1.lit })
-		relooper.edge(B, C, AstExpr.build { INT.local("if1") eq 1.lit })
-		relooper.edge(C, D)
-		relooper.edge(B, D)
-		//relooper.edge(C, D)
-		println(dump(relooper.render(A)).toString())
-		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
-	}
 	*/
 
 	@Test
@@ -96,10 +119,9 @@ class RelooperTest {
 		relooper.edge(C, C, AstExpr.RAW(AstType.BOOL, "condLoopInContinue"))
 		relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
 		relooper.edge(A, E, AstExpr.RAW(AstType.BOOL, "condToAvoidLoop"))
-		val result = relooper.render(A)
 		assertEquals("""
 			A = 1;
-			if (condToAvoidLoop) {
+			if ((!condToAvoidLoop)) {
 				do {
 					B = 1;
 					do {
@@ -121,9 +143,10 @@ class RelooperTest {
 				} while (true);
 			}
 			E = 1;
-		""".normalizeMulti(), result.dumpCollapse(types).normalizeMulti())
+		""".normalizeMulti(), relooper.renderStr(A))
 	}
 
 	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
 	fun Indenter.normalizeMulti() = this.toString().normalizeMulti()
+	fun Relooper.renderStr(node: Relooper.Node) = render(node).dumpCollapse(types).normalizeMulti()
 }

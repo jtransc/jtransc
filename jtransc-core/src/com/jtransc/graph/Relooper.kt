@@ -116,6 +116,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	 * - Each loop/strong component should be splitted into smaller strong components after removing links to the beginning of the loop to detect inner loops
 	 */
 	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node? = null, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+		if (level > 5) {
+			//throw RelooperException("Too much nesting levels!")
+			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
+		}
 		val indent by lazy { INDENTS[level] }
 		val out = arrayListOf<AstStm>()
 		var node: Node? = entry
@@ -132,7 +136,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				if (outsNotInContext.size != 1) {
 					trace { "ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node" }
-					invalidOp
+					invalidOp("ERROR When Relooping $name (ASSERTION FAILED)")
 				}
 
 				val entryNode = node
@@ -198,7 +202,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				// IF
 				if (common == endOfIfNode) {
 					out += AstStm.IF(
-						endOfIf.cond!!,
+						endOfIf.cond!!.not(),
 						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
 					)
 				}
@@ -206,8 +210,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				else {
 					out += AstStm.IF_ELSE(
 						endOfIf.cond!!,
-						renderComponents(g, ifBody, common, ctx, level = level + 1),
-						renderComponents(g, endOfIfNode, common, ctx, level = level + 1)
+						renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
+						renderComponents(g, ifBody, common, ctx, level = level + 1)
 					)
 				}
 				return common
