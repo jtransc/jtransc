@@ -873,7 +873,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
-		flowBlock(FlowKind.SWITCH) {
+		flowBlock(FlowKind.SWITCH, "") {
 			line("switch (${stm.subject.genExpr()})") {
 				for ((values, label) in stm.cases) {
 					line("${buildMultipleCase(values)} ${genGoto(label, false)}")
@@ -905,8 +905,8 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, left: String, right: String): String = "$left = $right;"
 
-	open fun genStmContinue(stm: AstStm.CONTINUE) = Indenter("continue;")
-	open fun genStmBreak(stm: AstStm.BREAK) = Indenter("break;")
+	open fun genStmContinue(stm: AstStm.CONTINUE) = Indenter("continue ${stm.name};")
+	open fun genStmBreak(stm: AstStm.BREAK) = Indenter("break ${stm.name};")
 	open fun genStmLabel(stm: AstStm.STM_LABEL): Indenter = Indenter {
 		if (stm.label in trapsByEnd) {
 			for (trap in trapsByEnd[stm.label]!!) line(genStmRawCatch(trap))
@@ -930,18 +930,21 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	enum class FlowKind { SWITCH, WHILE }
 
 	val flowBlocks = ArrayList<FlowKind>()
+	val flowNames = ArrayList<String>()
 
-	inline fun <T> flowBlock(kind: FlowKind, callback: () -> T): T {
+	inline fun <T> flowBlock(kind: FlowKind, name: String, callback: () -> T): T {
 		try {
 			flowBlocks += kind
+			flowNames += name
 			return callback()
 		} finally {
+			flowNames.removeAt(flowNames.size - 1)
 			flowBlocks.removeAt(flowBlocks.size - 1)
 		}
 	}
 
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
-		flowBlock(FlowKind.SWITCH) {
+		flowBlock(FlowKind.SWITCH, "") {
 			if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
 				line("switch (${stm.subject.genExpr()})") {
 					for (case in stm.cases) {
@@ -1342,15 +1345,19 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean) = Indenter(if (context.method.methodVoidReturnThis) "return " + genExprThis(AstExpr.THIS("Dummy".fqname)) + ";" else "return;")
 	open fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean) = Indenter("return ${stm.retval.genExpr()};")
 	fun genStmWhile(stm: AstStm.WHILE) = indent {
-		flowBlock(FlowKind.WHILE) {
-			line("while (${stm.cond.genExpr()})") {
+		val label = "${stm.name}:"
+
+		flowBlock(FlowKind.WHILE, stm.name) {
+			line("$label while (${stm.cond.genExpr()})") {
 				line(stm.iter.genStm())
 			}
 		}
 	}
 	fun genStmDoWhile(stm: AstStm.DO_WHILE) = indent {
-		flowBlock(FlowKind.WHILE) {
-			line("do", after2 = " while (${stm.cond.genExpr()});") {
+		val label = "${stm.name}:"
+
+		flowBlock(FlowKind.WHILE, stm.name) {
+			line("$label do", after2 = " while (${stm.cond.genExpr()});") {
 				line(stm.iter.genStm())
 			}
 		}
