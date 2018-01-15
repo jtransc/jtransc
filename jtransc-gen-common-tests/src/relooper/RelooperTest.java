@@ -21,7 +21,7 @@ public class RelooperTest {
 		simpleDoWhile(0, 5);
 	}
 
-	@JTranscRelooper(false)
+	@JTranscRelooper(true)
 	static public int simpleIf(int a, int b) {
 		if (a < b) {
 			return -1;
@@ -30,7 +30,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(false)
+	@JTranscRelooper(true)
 	static public int composedIfAnd(int a, int b) {
 		if (a < b && a >= 0) {
 			return -1;

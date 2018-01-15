@@ -147,7 +147,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val indent by lazy { INDENTS[level] }
 		val out = arrayListOf<AstStm>()
 		var node: Node? = entry
+		val explored = LinkedHashSet<Node>()
 		loop@ while (node != null && node != exit) {
+			if (node in explored) invalidOp("Already explored")
+			explored += node
+			val prevNode = node
 			ctx.rendered += node
 			val component = g.findComponentWith(node)
 			val isMultiNodeLoop = component.isMultiNodeLoop()
@@ -211,6 +215,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			else {
 				node = renderNoLoops(g, out, node, exit, ctx, level = level)
 			}
+
+			if (node == prevNode) invalidOp("Infinite loop detected")
 		}
 		return out.stmsWoNops
 	}
@@ -338,7 +344,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	fun AstStm.DO_WHILE.optimizeDoWhile(): AstStm.DO_WHILE {
-		this.body
+		val bodyValue = this.body.value
+		if (bodyValue is AstStm.STMS) {
+
+		}
 		return this
 	}
 }
