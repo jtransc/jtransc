@@ -86,7 +86,6 @@ open class AstTransformer {
 			is AstExpr.INSTANCE_OF -> transform(expr)
 			is AstExpr.CAST -> transform(expr)
 			is AstExpr.CHECK_CAST -> transform(expr)
-			is AstExpr.NEW -> transform(expr)
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> transform(expr)
 			is AstExpr.NEW_ARRAY -> transform(expr)
 			is AstExpr.INTARRAY_LITERAL -> transform(expr)
@@ -407,12 +406,6 @@ open class AstTransformer {
 		transform(cast.subject)
 		transform(cast.type)
 		return cast
-	}
-
-	open fun transform(expr: AstExpr.NEW): AstExpr {
-		transform(expr.target)
-		transform(expr.type)
-		return expr
 	}
 
 	open fun transform(expr: AstExpr.NEW_WITH_CONSTRUCTOR): AstExpr {

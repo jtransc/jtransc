@@ -102,7 +102,6 @@ open class AstVisitor {
 			is AstExpr.INSTANCE_OF -> visit(expr)
 			is AstExpr.CAST -> visit(expr)
 			is AstExpr.CHECK_CAST -> visit(expr)
-			is AstExpr.NEW -> visit(expr)
 			is AstExpr.NEW_WITH_CONSTRUCTOR -> visit(expr)
 			is AstExpr.NEW_ARRAY -> visit(expr)
 			is AstExpr.INTARRAY_LITERAL -> visit(expr)
@@ -373,11 +372,6 @@ open class AstVisitor {
 
 	open fun visit(expr: AstExpr.CHECK_CAST) {
 		visit(expr.subject)
-		visit(expr.type)
-	}
-
-	open fun visit(expr: AstExpr.NEW) {
-		visit(expr.target)
 		visit(expr.type)
 	}
 
