@@ -136,6 +136,7 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.INVOKE_DYNAMIC_METHOD -> {
 			"invokeDynamic(${expr.extraArgCount}, ${expr.methodInInterfaceRef}, ${expr.methodToConvertRef})(${expr.startArgs.map { dump(types, it) }.joinToString(", ")})"
 		}
+		is AstExpr.RAW -> "${expr.content}"
 		else -> noImpl("$expr")
 	}
 }

@@ -208,6 +208,12 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val iter = iter.box
 	}
 
+	// Basic back jump
+	class DO_WHILE(iter: AstStm, cond: AstExpr) : AstStm() {
+		val cond = cond.box
+		val iter = iter.box
+	}
+
 	class RETURN(retval: AstExpr) : AstStm() {
 		val retval = retval.box
 	}
@@ -364,7 +370,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		//var ahead: Boolean = false
 	}
 
-	class RAW(override val type: AstType, val content: String) : AstExpr()
+	class RAW(override val type: AstType, val content: String) : AstExpr() {
+		override fun toString(): String = "RAW($content)"
+	}
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name

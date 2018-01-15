@@ -1,33 +1,34 @@
 package com.jtransc.graph
 
 import com.jtransc.ast.*
+import com.jtransc.error.invalidOp
+import com.jtransc.text.INDENTS
 import java.util.*
 
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Graph
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
-		var next: Node? = null
+		//var next: Node? = null
 		val srcEdges = arrayListOf<Edge>()
 		val dstEdges = arrayListOf<Edge>()
-		val possibleNextNodes: List<Node> get() = listOf(next).filterNotNull() + dstEdges.map { it.dst }
+		val dstEdgesButNext get() = dstEdges.filter { it.cond != null }
+		val possibleNextNodes: List<Node> get() = dstEdges.map { it.dst }
 
-		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().trim() + "EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size} NEXT: L${next?.index}"
+		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
+
+		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().trim() + "EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 	}
 
-	class Edge(val types: AstTypes, val current: Node, val dst: Node, val cond: AstExpr) {
+	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
 		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
-		override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index};"
+		override fun toString(): String = if (cond != null) "IF (${cond.dump(types)}) goto L${dst.index};" else "goto L${dst.index};"
 	}
 
 	var lastIndex = 0
 	fun node(body: List<AstStm>): Node = Node(types, lastIndex++, body)
 	fun node(body: AstStm): Node = Node(types, lastIndex++, listOf(body))
 
-	fun edge(a: Node, b: Node) {
-		a.next = b
-	}
-
-	fun edge(a: Node, b: Node, cond: AstExpr) {
+	fun edge(a: Node, b: Node, cond: AstExpr? = null) {
 		a.dstEdges += Edge(types, a, b, cond)
 		b.srcEdges += Edge(types, a, b, cond)
 	}
@@ -41,7 +42,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			if (node.next != null) {
 				explore(node.next!!)
 			} else {
-				node.next = exit
+				if (node != exit) edge(node, exit)
 			}
 			for (edge in node.dstEdges) explore(edge.dst)
 		}
@@ -66,15 +67,27 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		trace { "Rendering $name" }
 
-		if (graph.hasCycles()) {
-			//noImpl("acyclic!")
-			//println("cyclic!")
-			trace { "Do not render $name" }
-			return null
-		}
+		//if (graph.hasCycles()) {
+		//	//noImpl("acyclic!")
+		//	//println("cyclic!")
+		//	trace { "Do not render $name" }
+		//	return null
+		//}
 
 		val graph2 = graph.tarjanStronglyConnectedComponentsAlgorithm()
+
+		val result = renderComponents(graph2, entry, null, RenderContext(), level = 0)
+
+		println(result)
+		println("render!")
+
 		val entry2 = graph2.findComponentIndexWith(entry)
+
+		//val inputs0 = graph2.components[0].getExternalInputs()
+		val entries = graph2.components[1].getEntryPoints()
+		val inputs1 = graph2.components[1].getExternalInputsEdges()
+		val outputs1 = graph2.components[1].getExternalOutputsEdges()
+		//val inputs2 = graph2.components[2].getExternalInputs()
 
 		if (debug) {
 			println("--")
@@ -95,6 +108,152 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		//graph.dump()
 		//println(graph)
 		// @TODO: strong components
+	}
+
+	class RenderContext {
+		var lastId = 0
+		val loopStarts = hashMapOf<Node, String>()
+		val loopEnds = hashMapOf<Node, String>()
+		fun allocName() = "loop${lastId++}"
+	}
+
+	companion object {
+		fun AstExpr.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
+		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
+	}
+
+	interface Res
+	data class Stm(val body: List<AstStm>) : Res {
+		override fun toString(): String = body.map { it.dump() }.joinToString("")
+	}
+
+	data class Stms(val stms: List<Res>) : Res {
+		override fun toString(): String = "{ ${stms.joinToString(" ")}}"
+	}
+
+	data class DoWhile(val name: String, val body: Res, val cond: AstExpr) : Res {
+		override fun toString(): String = "$name: do { $body } while(${cond.dump()});"
+	}
+
+	data class If(val cond: AstExpr, val tbody: Res, val fbody: Res? = null) : Res {
+		override fun toString(): String {
+			return if (fbody != null) {
+				"if (${cond.dump()}) $tbody else $fbody"
+			} else {
+				"if (${cond.dump()}) $tbody"
+			}
+		}
+	}
+
+	data class Continue(val name: String) : Res {
+		override fun toString(): String = "continue $name;"
+	}
+
+	data class Break(val name: String) : Res {
+		override fun toString(): String = "break $name;"
+	}
+
+	/**
+	 * The process consists in:
+	 * - Separate the graph in Strong Components
+	 * - Each strong component represents a loop
+	 * - Each strong component should have a single entry and a single exit (modulo breaking/continuing other loops) in a reductible graph
+	 * - That entry/exit delimits the loop
+	 * - Inside strong components, all links should be internal, or external referencing the beginning/end of this or other loops.
+	 * - Internal links to that component represents ifs, while external links represents, break or continue to specific loops
+	 * - Each loop/strong component should be splitted into smaller strong components after removing links to the beginning of the loop to detect inner loops
+	 */
+	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext, level: Int): Res {
+		val indent = INDENTS[level]
+		val out = arrayListOf<Res>()
+		var node: Node? = entry
+		loop@ while (node != null && node != exit) {
+			var component = g.findComponentWith(node)
+			val isMultiNodeLoop = component.isMultiNodeLoop()
+			val isSingleNodeLoop = component.isSingleNodeLoop()
+
+			// Loop
+			if (isMultiNodeLoop || isSingleNodeLoop) {
+				println("$indent- Detected node loop csize=${component.size} : $node")
+				val outs = component.getExternalOutputsNodes()
+				val outsNotInContext = outs.filter { it !in ctx.loopStarts }
+				if (outsNotInContext.size != 1) {
+					println("ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node")
+					invalidOp
+				}
+
+				val entryNode = node
+				val exitNode = outsNotInContext.first()
+
+				val loopName = ctx.allocName()
+
+				println("$indent:: ${entryNode.index} - ${exitNode.index}")
+				println("$indent:: ${component}")
+
+				ctx.loopStarts[entryNode] = loopName
+				ctx.loopEnds[exitNode] = loopName
+
+				out += DoWhile(
+					loopName,
+					if (isSingleNodeLoop) {
+						Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
+					} else {
+						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
+					}
+					,
+					true.lit
+				)
+
+				ctx.loopEnds -= exitNode
+				ctx.loopStarts -= entryNode
+
+				node = exitNode
+			}
+			// Not a loop
+			else {
+				println("$indent- Detected no loop : $node")
+				when (node.dstEdges.size) {
+					0 -> {
+						println("$indent- Last node")
+						out += Stm(node.body)
+						break@loop
+					}
+					1 -> {
+						println("$indent- Node continuing")
+						out += Stm(node.body)
+					}
+				}
+				for (e in node.dstEdgesButNext) {
+					val loopStart = ctx.loopStarts[e.dst]
+					val loopEnd = ctx.loopEnds[e.dst]
+					when {
+						loopStart != null -> out += If(e.cond!!, Continue(loopStart))
+						loopEnd != null -> out += If(e.cond!!, Break(loopEnd))
+						else -> TODO()
+					}
+				}
+				node = node.next
+			}
+		}
+		return if (out.size == 1) out.first() else Stms(out)
+	}
+
+	fun StrongComponent<Node>.isMultiNodeLoop(): Boolean {
+		return (size > 1)
+	}
+
+	fun StrongComponent<Node>.isSingleNodeLoop(): Boolean {
+		return (size == 1 && nodes[0].dstEdges.any { it.dst == nodes[0] })
+	}
+
+	fun StrongComponent<Node>.isLoop(): Boolean {
+		return isMultiNodeLoop() || isSingleNodeLoop()
+	}
+
+	fun StrongComponent<Node>.split(entry: Node, exit: Node): StrongComponentGraph<Node> {
+		val parent = this
+		val splitted = parent.graph.tarjanStronglyConnectedComponentsAlgorithm { src, dst -> dst != entry.index }
+		return splitted
 	}
 
 	lateinit var processedCount: IntArray
@@ -131,8 +290,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val common = lookup.common(targets)
 				val branches = targets.map { branch -> renderInternal(branch, common) }
 
-				val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().first()
-				val cond = edge.cond
+				val edge = nodeDsts.map { getEdge(nodeSrc, it) }.filterNotNull().filter { it?.cond != null }.first()
+				val cond = edge.cond!!
 
 				// IF
 				if (common in targets) {
@@ -157,6 +316,38 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 		}
 		return stms
+	}
+
+	fun StrongComponent<Relooper.Node>.getExternalInputsEdges(): List<Relooper.Edge> {
+		val edges = arrayListOf<Relooper.Edge>()
+		for (node in this.nodes) {
+			for (srcEdge in node.srcEdges) {
+				if (srcEdge.src !in this) edges += srcEdge
+			}
+		}
+		return edges
+	}
+
+	fun StrongComponent<Relooper.Node>.getExternalOutputsEdges(): List<Relooper.Edge> {
+		val edges = arrayListOf<Relooper.Edge>()
+		for (node in this.nodes) {
+			for (dstEdge in node.dstEdges) {
+				if (dstEdge.dst !in this) edges += dstEdge
+			}
+		}
+		return edges
+	}
+
+	fun StrongComponent<Relooper.Node>.getExternalInputsNodes(): List<Relooper.Node> {
+		return this.getExternalInputsEdges().map { it.src }.distinct()
+	}
+
+	fun StrongComponent<Relooper.Node>.getExternalOutputsNodes(): List<Relooper.Node> {
+		return this.getExternalOutputsEdges().map { it.dst }.distinct()
+	}
+
+	fun StrongComponent<Relooper.Node>.getEntryPoints(): List<Relooper.Node> {
+		return this.getExternalInputsEdges().map { it.dst }.distinct()
 	}
 }
 

@@ -1,17 +1,14 @@
 package com.jtransc.graph
 
 import com.jtransc.ast.*
-import com.jtransc.ast.optimize.optimize
-import com.jtransc.ast.dump
 import com.jtransc.gen.TargetName
-import org.junit.Assert
 import org.junit.Test
 
 class RelooperTest {
 	val types = AstTypes(TargetName("js"))
 	val relooper = Relooper(types)
 
-	private fun stmt(name:String) = types.build2 { SET(INT.local(name), 1.lit) }
+	private fun stmt(name: String): AstStm = AstType.INT.local(name).setTo(1.lit)
 
 	/*
 	@Test fun testIf() {
@@ -68,4 +65,27 @@ class RelooperTest {
 		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
 	}
 	*/
+
+	@Test
+	fun testDoubleWhile() {
+		// A -> B -> C -> D -> E
+		//     /|\   *    |
+		//      |_________/
+		val A = relooper.node(stmt("A"))
+		val B = relooper.node(stmt("B"))
+		val C = relooper.node(stmt("C"))
+		val D = relooper.node(stmt("D"))
+		val E = relooper.node(stmt("E"))
+		relooper.edge(A, B)
+		relooper.edge(B, C)
+		relooper.edge(C, D)
+		relooper.edge(D, E)
+		relooper.edge(D, B, AstExpr.RAW(AstType.BOOL, "condLoopOutContinue"))
+		relooper.edge(D, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
+		relooper.edge(C, C, AstExpr.RAW(AstType.BOOL, "condLoopInContinue"))
+		//relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
+		val result = relooper.render(A)
+		//println(dump(relooper.render(A)).toString())
+		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
+	}
 }
