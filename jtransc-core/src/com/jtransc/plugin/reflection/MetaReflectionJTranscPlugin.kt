@@ -664,7 +664,6 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 				}
 			}
 
-
 			// ProgramReflectionClass.dynamicSet
 			if (program.contains(ProgramReflection.DynamicSet::class.java.fqname)) {
 				val dynamicSetClass: AstClass = program[ProgramReflection.DynamicSet::class.java.fqname]
@@ -694,7 +693,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 										} else {
 											STM(AstStm.SET_FIELD_INSTANCE(field.ref, objParam.expr.castTo(field.containingClass.astType), expr))
 										}
-										AstStm.BREAK()
+										//AstStm.BREAK(switchName)
+										AstStm.RETURN_VOID()
 									}
 									currentIndex++
 								}

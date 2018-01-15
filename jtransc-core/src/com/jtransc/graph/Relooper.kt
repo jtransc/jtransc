@@ -57,25 +57,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		if (debug) println(msg())
 	}
 
-	fun render(entry: Node): AstStm? {
-		val nodes = prepare(entry)
-		val graph = graphList(nodes.map {
-			//println("$it -> ${it.possibleNextNodes}")
-			it to it.possibleNextNodes
-		})
-		//println("----------")
-		//graph.dump()
-		//println("----------")
-
+	fun render(entry: Node): AstStm {
 		trace { "Rendering $name" }
-
-		val graph2 = graph.tarjanStronglyConnectedComponentsAlgorithm()
-		val result = renderComponents(graph2, entry, null, RenderContext(graph2.graph), level = 0)
-
-		println(result)
-		println("render!")
-
-		TODO()
+		return renderComponents(graphList(prepare(entry).map { it to it.possibleNextNodes }).tarjanStronglyConnectedComponentsAlgorithm(), entry)
 	}
 
 	class RenderContext(val graph: Digraph<Node>) {
@@ -121,37 +105,6 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
 	}
 
-	interface Res
-	data class Stm(val body: List<AstStm>) : Res {
-		override fun toString(): String = body.map { it.dump() }.joinToString("")
-	}
-
-	data class Stms(val stms: List<Res>) : Res {
-		override fun toString(): String = "{ ${stms.joinToString(" ")}}"
-	}
-
-	data class DoWhile(val name: String, val body: Res, val cond: AstExpr) : Res {
-		override fun toString(): String = "$name: do { $body } while(${cond.dump()});"
-	}
-
-	data class If(val cond: AstExpr, val tbody: Res, val fbody: Res? = null) : Res {
-		override fun toString(): String {
-			return if (fbody != null) {
-				"if (${cond.dump()}) { $tbody } else { $fbody }"
-			} else {
-				"if (${cond.dump()}) { $tbody }"
-			}
-		}
-	}
-
-	data class Continue(val name: String) : Res {
-		override fun toString(): String = "continue $name;"
-	}
-
-	data class Break(val name: String) : Res {
-		override fun toString(): String = "break $name;"
-	}
-
 	/**
 	 * The process consists in:
 	 * - Separate the graph in Strong Components
@@ -162,9 +115,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	 * - Internal links to that component represents ifs, while external links represents, break or continue to specific loops
 	 * - Each loop/strong component should be splitted into smaller strong components after removing links to the beginning of the loop to detect inner loops
 	 */
-	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext, level: Int): Res {
-		val indent = INDENTS[level]
-		val out = arrayListOf<Res>()
+	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node? = null, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+		val indent by lazy { INDENTS[level] }
+		val out = arrayListOf<AstStm>()
 		var node: Node? = entry
 		loop@ while (node != null && node != exit) {
 			ctx.rendered += node
@@ -174,11 +127,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 			// Loop
 			if (isMultiNodeLoop || isSingleNodeLoop) {
-				println("$indent- Detected node loop csize=${component.size} : $node")
+				trace { "$indent- Detected node loop csize=${component.size} : $node" }
 				val outs = component.getExternalOutputsNodes()
 				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				if (outsNotInContext.size != 1) {
-					println("ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node")
+					trace { "ASSERTION FAILED! outsNotInContext.size != ${outsNotInContext.size} : $node" }
 					invalidOp
 				}
 
@@ -187,19 +140,19 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 				val loopName = ctx.allocName()
 
-				println("$indent:: ${entryNode.index} - ${exitNode.index}")
-				println("$indent:: ${component}")
+				trace { "$indent:: ${entryNode.index} - ${exitNode.index}" }
+				trace { "$indent:: ${component}" }
 
 				ctx.loopStarts[entryNode] = loopName
 				ctx.loopEnds[exitNode] = loopName
 
-				out += DoWhile(
+				out += AstStm.DO_WHILE(
 					loopName,
 					if (isSingleNodeLoop) {
-						val out2 = arrayListOf<Res>()
+						val out2 = arrayListOf<AstStm>()
 						renderNoLoops(g, out2, node, ctx, level)
 						//Stm(node.body) // @TODO: Here we should add ifs with breaks, and then convert put the condition there if possible
-						Stms(out2)
+						out2.stms
 					} else {
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
@@ -217,24 +170,24 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				node = renderNoLoops(g, out, node, ctx, level = level)
 			}
 		}
-		return if (out.size == 1) out.first() else Stms(out)
+		return out.stms
 	}
 
-	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<Res>, node: Node, ctx: RenderContext, level: Int): Node? {
+	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
-		println("$indent- Detected no loop : $node")
+		trace { "$indent- Detected no loop : $node" }
+		out += node.body.stms
 		when (node.dstEdges.size) {
 			0, 1 -> {
 				if (node.dstEdges.size == 0) {
-					println("$indent- Last node")
+					trace { "$indent- Last node" }
 				} else {
-					println("$indent- Node continuing")
+					trace { "$indent- Node continuing" }
 				}
-				out += Stm(node.body)
 				if (node.dstEdges.size == 0) return null
 			}
 			2 -> {
-				println("$indent- Node IF (and else?)")
+				trace { "$indent- Node IF (and else?)" }
 				val ifBody = node.next!!
 				val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
 				val endOfIfNode = endOfIf.dst
@@ -242,14 +195,14 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 				// IF
 				if (common == endOfIfNode) {
-					out += If(
+					out += AstStm.IF(
 						endOfIf.cond!!,
 						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
 					)
 				}
 				// IF+ELSE
 				else {
-					out += If(
+					out += AstStm.IF_ELSE(
 						endOfIf.cond!!,
 						renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1),
 						renderComponents(g, endOfIfNode, common, ctx, level = level + 1)
@@ -266,8 +219,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			val loopStart = ctx.loopStarts[e.dst]
 			val loopEnd = ctx.loopEnds[e.dst]
 			when {
-				loopStart != null -> out += If(e.cond!!, Continue(loopStart))
-				loopEnd != null -> out += If(e.cond!!, Break(loopEnd))
+				loopStart != null -> out += AstStm.IF(e.cond!!, AstStm.CONTINUE(loopStart))
+				loopEnd != null -> out += AstStm.IF(e.cond!!, AstStm.BREAK(loopEnd))
 				else -> TODO()
 			}
 		}

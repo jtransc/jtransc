@@ -2,6 +2,7 @@ package com.jtransc.graph
 
 import com.jtransc.ast.*
 import com.jtransc.gen.TargetName
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RelooperTest {
@@ -66,6 +67,8 @@ class RelooperTest {
 	}
 	*/
 
+	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
+
 	@Test
 	fun testDoubleWhile() {
 		// A -> B -> C -> D -> E
@@ -86,6 +89,32 @@ class RelooperTest {
 		relooper.edge(C, E, AstExpr.RAW(AstType.BOOL, "condLoopOutBreak"))
 		relooper.edge(A, E, AstExpr.RAW(AstType.BOOL, "condToAvoidLoop"))
 		val result = relooper.render(A)
+		assertEquals("""
+			A = 1;
+			if (condToAvoidLoop) {
+				do {
+					B = 1;
+					do {
+						C = 1;
+						if (condLoopInContinue) {
+							continue;
+						}
+						if (condLoopOutBreak) {
+							break;
+						}
+					} while (true);
+					D = 1;
+					if (condLoopOutContinue) {
+						continue;
+					}
+					if (condLoopOutBreak) {
+						break;
+					}
+				} while (true);
+			}
+			E = 1;
+			NOP(empty stm)
+		""".normalizeMulti(), result.dumpCollapse(types).toString().normalizeMulti())
 		//println(dump(relooper.render(A)).toString())
 		//Assert.assertEquals("{ a = 1; if ((a == 1)) { b = 1; } else { c = 1; } d = 1; }", dump(relooper.render(A)).toString(doIndent = false).trim())
 	}

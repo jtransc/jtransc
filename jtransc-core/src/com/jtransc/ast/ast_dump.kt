@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 
 //fun AstBody.dump() = dump(this)
 
@@ -18,8 +17,21 @@ fun dump(types: AstTypes, body: AstBody): Indenter {
 	}
 }
 
-fun dump(types: AstTypes, expr: AstStm.Box?): Indenter {
-	return dump(types, expr?.value)
+fun dump(types: AstTypes, stm: AstStm.Box?): Indenter {
+	return dump(types, stm?.value)
+}
+
+fun dumpCollapse(types: AstTypes, stm: AstStm.Box?): Indenter {
+	val s = stm?.value
+	if (s is AstStm.STMS) {
+		return Indenter {
+			for (ss in s.stmsUnboxed) {
+				line(dumpCollapse(types, ss.box))
+			}
+		}
+	} else {
+		return dump(types, s)
+	}
 }
 
 fun dump(types: AstTypes, stm: AstStm?): Indenter {
@@ -60,12 +72,17 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
 			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
-				line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
-				line("else") { line(dump(types, stm.sfalse)) }
+				line("if (${dump(types, stm.cond)})") { line(dumpCollapse(types, stm.strue)) }
+				line("else") { line(dumpCollapse(types, stm.sfalse)) }
 			}
 			is AstStm.WHILE -> {
 				line("while (${dump(types, stm.cond)})") {
-					line(dump(types, stm.iter))
+					line(dumpCollapse(types, stm.iter))
+				}
+			}
+			is AstStm.DO_WHILE -> {
+				line("do", after2 = " while (${dump(types, stm.cond)});") {
+					line(dumpCollapse(types, stm.iter))
 				}
 			}
 			is AstStm.SWITCH -> {
@@ -95,6 +112,8 @@ fun AstExpr?.exprDump(types: AstTypes) = dump(types, this)
 
 fun List<AstStm>.dump(types: AstTypes) = dump(types, this.stm())
 fun AstStm.dump(types: AstTypes) = dump(types, this)
+fun AstStm.dumpCollapse(types: AstTypes) = dumpCollapse(types, this.box)
+
 fun AstExpr.dump(types: AstTypes) = dump(types, this)
 
 fun dump(types: AstTypes, expr: AstExpr?): String {

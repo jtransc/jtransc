@@ -203,13 +203,13 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val sfalse = sfalse.box
 	}
 
-	class WHILE(cond: AstExpr, iter: AstStm) : AstStm() {
+	class WHILE(val name: String, cond: AstExpr, iter: AstStm) : AstStm() {
 		val cond = cond.box
 		val iter = iter.box
 	}
 
 	// Basic back jump
-	class DO_WHILE(iter: AstStm, cond: AstExpr) : AstStm() {
+	class DO_WHILE(val name: String, iter: AstStm, cond: AstExpr) : AstStm() {
 		val cond = cond.box
 		val iter = iter.box
 	}
@@ -233,8 +233,8 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val catch = catch.box
 	}
 
-	class BREAK() : AstStm()
-	class CONTINUE() : AstStm()
+	class BREAK(val name: String) : AstStm()
+	class CONTINUE(val name: String) : AstStm()
 
 	// SwitchFeature
 	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<List<Int>, AstStm>>) : AstStm() {
@@ -890,8 +890,8 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 		return IfElseBuilder(IF, IF_INDEX, stms, types, ctx)
 	}
 
-	inline fun WHILE(cond: AstExpr, callback: AstBuilder2.() -> Unit) {
-		stms += AstStm.WHILE(cond, AstBuilder2(types, ctx).apply(callback).genstm())
+	inline fun WHILE(name: String, cond: AstExpr, callback: AstBuilder2.() -> Unit) {
+		stms += AstStm.WHILE(name, cond, AstBuilder2(types, ctx).apply(callback).genstm())
 	}
 
 	inline fun FOR(local: AstLocal, start: Int, until: Int, callback: AstBuilder2.() -> Unit) {

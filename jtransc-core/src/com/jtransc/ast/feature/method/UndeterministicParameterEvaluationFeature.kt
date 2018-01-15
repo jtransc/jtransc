@@ -41,7 +41,8 @@ class UndeterministicParameterEvaluationFeature : AstMethodFeature() {
 					is AstStm.MONITOR_ENTER -> out += AstStm.MONITOR_ENTER(stm.expr.processExpr(out, self = false))
 					is AstStm.MONITOR_EXIT -> out += AstStm.MONITOR_EXIT(stm.expr.processExpr(out, self = false))
 					is AstStm.THROW -> out += AstStm.THROW(stm.exception.processExpr(out, self = false))
-					is AstStm.WHILE -> out += AstStm.WHILE(stm.cond.processExpr(out, self = false), stm.iter.value)
+					is AstStm.WHILE -> out += AstStm.WHILE(stm.name, stm.cond.processExpr(out, self = false), stm.iter.value)
+					is AstStm.DO_WHILE -> out += AstStm.DO_WHILE(stm.name, stm.iter.value, stm.cond.processExpr(out, self = false))
 					is AstStm.SET_LOCAL -> out += AstStm.SET_LOCAL(stm.local, stm.expr.processExpr(out), true)
 					is AstStm.SET_ARRAY -> {
 						// Like this to keep order

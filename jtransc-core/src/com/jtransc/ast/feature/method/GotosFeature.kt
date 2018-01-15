@@ -179,7 +179,7 @@ class GotosFeature : AstMethodFeature() {
 
 					fun simulateGotoLabel(index: Int) = listOf(
 						gotostate.setTo(index.lit),
-						AstStm.CONTINUE()
+						AstStm.CONTINUE("loop")
 					)
 
 					fun simulateGotoLabel(label: AstLabel) = simulateGotoLabel(getStateFromLabel(label))
@@ -236,7 +236,7 @@ class GotosFeature : AstMethodFeature() {
 
 					val plainWhile =
 						listOf(
-							AstStm.WHILE(true.lit,
+							AstStm.WHILE("loop", true.lit,
 								AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
 							),
 							extraReturn()
@@ -260,7 +260,7 @@ class GotosFeature : AstMethodFeature() {
 						}
 
 						listOf(
-							AstStm.WHILE(true.lit,
+							AstStm.WHILE("tryLoop", true.lit,
 								AstStm.TRY_CATCH(plainWhile, stms(
 									checkTraps.stms,
 									AstStm.RETHROW()
