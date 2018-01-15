@@ -98,13 +98,28 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		// @TODO: Optimize performance!
 		fun findCommonSuccessorNotRendered(a: Node, b: Node, exit: Node?): Node? {
-			val checkRendered = true
-			//val checkRendered = false
+			//val checkRendered = true
+			val checkRendered = false
 			val aSet = getNodeSuccessorsLinkedSet(a, exit, checkRendered)
 			val bSet = getNodeSuccessorsLinkedSet(b, exit, checkRendered)
-			for (item in bSet) {
-				if (item in aSet) return item
-			}
+			//for (item in bSet) if (item in aSet) return item
+			//for (item in aSet) if (item in bSet) return item
+
+			val aIt = aSet.iterator()
+			val bIt = bSet.iterator()
+			do {
+				var c = 0
+				if (aIt.hasNext()) {
+					val item = aIt.next()
+					if (item in bSet) return item
+					c++
+				}
+				if (bIt.hasNext()) {
+					val item = bIt.next()
+					if (item in aSet) return item
+					c++
+				}
+			} while (c != 0)
 			return null
 		}
 	}
@@ -161,11 +176,12 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				ctx.loopEnds[exitNode] = loopName
 
 				val optimizedWhile = isSingleNodeLoop && (node.dstEdgesButNext.size == 1)
-				val cond: AstExpr = if (optimizedWhile) {
-					node.dstEdgesButNext.first().cond!!
-				} else {
-					true.lit
-				}
+				//val cond: AstExpr = if (optimizedWhile) {
+				//	node.dstEdgesButNext.first().cond!!
+				//} else {
+				//	true.lit
+				//}
+				val cond = true.lit
 
 
 				out += AstStm.DO_WHILE(
@@ -173,18 +189,18 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					cond,
 					if (isSingleNodeLoop) {
 						trace { "$indent- render single node: renderNoLoops" }
-						if (optimizedWhile) {
-							node.body.stms
-						} else {
+						//if (optimizedWhile) {
+						//	node.body.stms
+						//} else {
 							val out2 = arrayListOf<AstStm>()
 							renderNoLoops(g, out2, node, exitNode, ctx, level)
 							out2.stmsWoNops
-						}
+						//}
 					} else {
 						trace { "$indent- render multi node: renderComponents" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
-				)
+				).optimizeDoWhile()
 
 				ctx.loopEnds -= exitNode
 				ctx.loopStarts -= entryNode
@@ -319,6 +335,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun StrongComponent<Relooper.Node>.getEntryPoints(): List<Relooper.Node> {
 		return this.getExternalInputsEdges().map { it.dst }.distinct()
+	}
+
+	fun AstStm.DO_WHILE.optimizeDoWhile(): AstStm.DO_WHILE {
+		this.body
+		return this
 	}
 }
 

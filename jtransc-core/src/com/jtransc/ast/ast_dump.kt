@@ -67,8 +67,8 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 				//line("LINE(${stm.line})")
 			}
 			is AstStm.NOP -> line("NOP(${stm.reason})")
-			is AstStm.CONTINUE -> line("continue;")
-			is AstStm.BREAK -> line("break;")
+			is AstStm.CONTINUE -> line("continue ${stm.name};")
+			is AstStm.BREAK -> line("break ${stm.name};")
 			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
 			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
@@ -76,13 +76,13 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 				line("else") { line(dumpCollapse(types, stm.sfalse)) }
 			}
 			is AstStm.WHILE -> {
-				line("while (${dump(types, stm.cond)})") {
+				line("${stm.name}: while (${dump(types, stm.cond)})") {
 					line(dumpCollapse(types, stm.iter))
 				}
 			}
 			is AstStm.DO_WHILE -> {
-				line("do", after2 = " while (${dump(types, stm.cond)});") {
-					line(dumpCollapse(types, stm.iter))
+				line("${stm.name}: do", after2 = " while (${dump(types, stm.cond)});") {
+					line(dumpCollapse(types, stm.body))
 				}
 			}
 			is AstStm.SWITCH -> {

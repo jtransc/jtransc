@@ -1358,7 +1358,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 		flowBlock(FlowKind.WHILE, stm.name) {
 			line("$label do", after2 = " while (${stm.cond.genExpr()});") {
-				line(stm.iter.genStm())
+				line(stm.body.genStm())
 			}
 		}
 	}

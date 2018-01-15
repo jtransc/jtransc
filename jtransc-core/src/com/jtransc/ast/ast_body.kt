@@ -210,7 +210,7 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 	// Basic back jump
 	class DO_WHILE(val name: String, cond: AstExpr, iter: AstStm) : AstStm() {
 		val cond = cond.box
-		val iter = iter.box
+		val body = iter.box
 	}
 
 	class RETURN(retval: AstExpr) : AstStm() {

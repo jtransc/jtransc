@@ -208,7 +208,7 @@ open class AstVisitor {
 	}
 
 	open fun visit(stm: AstStm.DO_WHILE) {
-		visit(stm.iter)
+		visit(stm.body)
 		visit(stm.cond)
 	}
 

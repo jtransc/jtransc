@@ -205,7 +205,7 @@ open class AstTransformer {
 	}
 
 	open fun transform(stm: AstStm.DO_WHILE): AstStm {
-		transform(stm.iter)
+		transform(stm.body)
 		transform(stm.cond)
 		return stm
 	}
