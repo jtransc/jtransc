@@ -6,6 +6,7 @@ import com.jtransc.io.JTranscConsole;
 public class RelooperTest {
 	static public void main(String[] args) {
 		JTranscConsole.log("RelooperTest:");
+
 		JTranscConsole.log(simpleIf(0, 1));
 		JTranscConsole.log(simpleIf(1, 0));
 		JTranscConsole.log(simpleIf(0, 0));
@@ -19,9 +20,10 @@ public class RelooperTest {
 		JTranscConsole.log(composedIfOr(0, 0));
 
 		simpleDoWhile(0, 5);
+		simpleWhile(0, 5);
 	}
 
-	@JTranscRelooper(true)
+	@JTranscRelooper
 	static public int simpleIf(int a, int b) {
 		if (a < b) {
 			return -1;
@@ -30,7 +32,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(true)
+	@JTranscRelooper
 	static public int composedIfAnd(int a, int b) {
 		if (a < b && a >= 0) {
 			return -1;
@@ -39,7 +41,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(value = true, debug = false)
+	@JTranscRelooper
 	static public int composedIfOr(int a, int b) {
 		if (a < b || a >= 0) {
 			return -1;
@@ -48,7 +50,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(value = true, debug = true)
+	@JTranscRelooper
 	static public int simpleDoWhile(int a, int b) {
 		b++;
 
@@ -61,6 +63,20 @@ public class RelooperTest {
 			}
 			a++;
 		} while (a < b);
+
+		return b;
+	}
+
+	@JTranscRelooper(debug = true)
+	static public int simpleWhile(int a, int b) {
+		b++;
+
+		while (a < b) {
+			JTranscConsole.log(a);
+			a++;
+		}
+		JTranscConsole.log(a);
+		JTranscConsole.log(b);
 
 		return b;
 	}

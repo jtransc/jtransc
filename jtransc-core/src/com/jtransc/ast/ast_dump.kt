@@ -70,7 +70,7 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			is AstStm.CONTINUE -> line("continue ${stm.name};")
 			is AstStm.BREAK -> line("break ${stm.name};")
 			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
-			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
+			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dumpCollapse(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
 				line("if (${dump(types, stm.cond)})") { line(dumpCollapse(types, stm.strue)) }
 				line("else") { line(dumpCollapse(types, stm.sfalse)) }
