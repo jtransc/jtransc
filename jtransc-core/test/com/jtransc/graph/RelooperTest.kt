@@ -122,26 +122,26 @@ class RelooperTest {
 		A.assertDump("""
 			A = 1;
 			if ((!condToAvoidLoop)) {
-				do {
+				loop0: do {
 					B = 1;
-					do {
+					loop1: do {
 						C = 1;
 						if (condLoopInContinue) {
-							continue;
+							continue loop1;
 						}
 						if (condLoopOutBreak) {
-							break;
+							break loop0;
 						}
-						break;
+						break loop1;
 					} while (true);
 					D = 1;
 					if (condLoopOutContinue) {
-						continue;
+						continue loop0;
 					}
 					if (condLoopOutBreak) {
-						break;
+						break loop0;
 					}
-					break;
+					break loop0;
 				} while (true);
 			}
 			E = 1;
@@ -195,23 +195,17 @@ class RelooperTest {
 
 		L0.assertDump("""
 			L0 = 1;
-			do {
+			loop0: do {
 				L1 = 1;
 				if ((!l1_l3)) {
-					{
-						L2 = 1;
-						do {
-							L4 = 1;
-						} while (l4_l4);
-						L5 = 1;
-					}
+					L2 = 1;
+					loop1: do {
+						L4 = 1;
+					} while (l4_l4);
+					L5 = 1;
 				}
 				L3 = 1;
-				if (l3_l1) {
-					continue;
-				}
-				break;
-			} while (true);
+			} while (l3_l1);
 			L6 = 1;
 			L8 = 1;
     	""")
@@ -230,7 +224,7 @@ class RelooperTest {
 
 		L0.assertDump("""
 			L0 = 1;
-			do {
+			loop0: do {
 				L1 = 1;
 			} while (lI0 < lI1);
 			L2 = 1;
@@ -257,7 +251,7 @@ class RelooperTest {
 	@Test
 	fun testSimpleWhile() = relooperTest {
 		val L0 = node("L0")
-		val L1 = node("L1")
+		val L1 = node(AstStm.NOP("just_for_if"))
 		val L2 = node("L2")
 		val L3 = node("L3")
 		val L6 = node("L6")
@@ -267,8 +261,19 @@ class RelooperTest {
 		L2.edgeTo(L1)
 		L3.edgeTo(L6)
 
+		// @TODO: We can remove continue loo0 at the end of any loop.
+		// @TODO: We can convert `while (true) { if (cond) break; ... }` --> `while (!cond) { ... }`
 		L0.assertDump("""
-			-
+			L0 = 1;
+			loop0: do {
+				if (l2_l3) {
+					break loop0;
+				}
+				L2 = 1;
+				continue loop0;
+			} while (true);
+			L3 = 1;
+			L6 = 1;
     	""")
 
 		// * L0: { 	lI0 = p0; 	lI1 = p1; 	lI1 = (lI1 + 1); } EDGES: [goto L1;]. SRC_EDGES: 0

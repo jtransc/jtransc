@@ -26,6 +26,7 @@ fun dumpCollapse(types: AstTypes, stm: AstStm.Box?): Indenter {
 	if (s is AstStm.STMS) {
 		return Indenter {
 			for (ss in s.stmsUnboxed) {
+				if (ss is AstStm.NOP) continue
 				line(dumpCollapse(types, ss.box))
 			}
 		}

@@ -4,6 +4,7 @@ import com.jtransc.ast.*
 import com.jtransc.ds.Queue
 import com.jtransc.error.invalidOp
 import com.jtransc.text.INDENTS
+import com.jtransc.text.quote
 import java.util.*
 import kotlin.collections.LinkedHashSet
 
@@ -50,39 +51,72 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
 		val nextEdge get() = dstEdges.firstOrNull { it.cond == null }
 
+		fun edgeTo(dst: Node, cond: AstExpr? = null) {
+			val src = this
+			val edge = Edge(types, src, dst, cond)
+			src.dstEdges += edge
+			dst.srcEdges += edge
+		}
+
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 	}
 
 	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
 		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
+
+		fun remove() {
+			src.dstEdges -= this
+			dst.srcEdges -= this
+		}
+
 		override fun toString(): String = if (cond != null) "IF (${cond.dump(types)}) goto L${dst.index};" else "goto L${dst.index};"
 	}
 
 	var lastIndex = 0
-	fun node(body: List<AstStm>): Node = Node(types, lastIndex++, body)
-	fun node(body: AstStm): Node = Node(types, lastIndex++, listOf(body))
+	fun node(body: List<AstStm>): Node = Node(types, lastIndex, body.normalize(lastIndex)).apply { lastIndex++ }
+	fun node(body: AstStm): Node = Node(types, lastIndex, listOf(body).normalize(lastIndex)).apply { lastIndex++ }
 
-	fun edge(a: Node, b: Node, cond: AstExpr? = null) {
-		a.dstEdges += Edge(types, a, b, cond)
-		b.srcEdges += Edge(types, a, b, cond)
+	fun List<AstStm>.normalize(index: Int): List<AstStm> {
+		val out = arrayListOf<AstStm>()
+		//if (debug && index == 6) println("test")
+		for (stm in this) {
+			when (stm) {
+                is AstStm.STMS -> out += stm.stmsUnboxed.normalize(index)
+				is AstStm.NOP -> Unit
+				else -> out += stm
+			}
+		}
+		return out
 	}
+
+	fun edge(a: Node, b: Node, cond: AstExpr? = null) = a.edgeTo(b, cond)
 
 	private fun prepare(entry: Node): List<Node> {
 		val exit = node(listOf())
 		val explored = LinkedHashSet<Node>()
+		val result = LinkedHashSet<Node>()
 		fun explore(node: Node) {
 			if (node in explored) return
 			explored += node
-			if (node.next != null) {
-				explore(node.next!!)
+
+			// Remove empty node
+			if (node.body.isEmpty() && node.dstEdges.size == 1 && node.dstEdgesButNext.isEmpty()) {
+				val dstNode = node.dstEdges.first().dst
+				for (e in node.srcEdges.toList()) {
+					e.remove()
+					e.src.edgeTo(dstNode, e.cond)
+				}
 			} else {
-				if (node != exit) edge(node, exit)
+				result += node
 			}
+
+			if (node.next == null && node != exit) edge(node, exit) // Add edge to end node
+			if (node.next != null) explore(node.next!!)
 			for (edge in node.dstEdges) explore(edge.dst)
 		}
 		explore(entry)
-		explored += exit
-		return explored.toList()
+		result += exit
+		return result.toList()
 	}
 
 	inline private fun trace(msg: () -> String) {
@@ -96,7 +130,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			for (n in g.nodes) {
 				trace { "* $n" }
 			}
-			trace { "// STRUCTURE CODE FOR TESTS:" }
+			trace { "// STRUCTURE CODE FOR TESTS START" }
 			for (n in g.nodes) {
 				val line = "val L${n.index} = node(\"L${n.index}\")"
 				val bodyStr = n.body.filter { it !is AstStm.NOP }.dumpCollapse(types).toString(false).replace('\n', ' ').trim()
@@ -118,7 +152,29 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					}
 				}
 			}
-			trace { "// /STRUCTURE CODE FOR TESTS" }
+			trace { "// STRUCTURE CODE FOR TESTS END" }
+
+			trace { "# GRAPHVIZ START - http://viz-js.com/" }
+			trace { "digraph G {" }
+			for (n in g.nodes) {
+				val label = n.body.dumpCollapse(types).toString()
+				trace { "L${n.index} [label = ${label.quote()}]" }
+			}
+			for (n in g.nodes) {
+				if (n.dstEdges.size != 0) {
+					for (e in n.dstEdges) {
+						val label = if (e.cond != null) {
+							//"l${e.src.index}_l${e.dst.index}"
+							e.cond.dump(types)
+						} else {
+							""
+						}
+						trace { "L${e.src.index} -> L${e.dst.index} [label = ${label.quote()}]" }
+					}
+				}
+			}
+			trace { "}" }
+			trace { "# GRAPHVIZ END" }
 		}
 		//println("Relooping '$name'...")
 		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
@@ -193,15 +249,22 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			//throw RelooperException("Too much nesting levels!")
 			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
 		}
+
 		val indent by lazy { INDENTS[level] }
 		val out = arrayListOf<AstStm>()
 		var node: Node? = entry
 		val explored = LinkedHashSet<Node>()
+
+		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}" }
+
+		fun List<Node>.toLString() = this.map { "L${it.index}" }.toString()
+
 		loop@ while (node != null && node != exit) {
 			if (node in explored) {
 				//invalidOp("Already explored : $node")
 				break
 			}
+			trace { "$indent- Processing L${node?.index}" }
 			explored += node
 			val prevNode = node
 			ctx.rendered += node
@@ -217,7 +280,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }
 				if (outsNotInContext.size != 1) {
 					trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
-					invalidOp("ERROR When Relooping '$name' ASSERTION FAILED :: ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node")
+					invalidOp("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
 				}
 
 				val entryNode = node
@@ -241,7 +304,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						trace { "$indent- render single node: renderNoLoops" }
 						val out2 = arrayListOf<AstStm>()
 						renderNoLoops(g, out2, node, exitNode, ctx, level)
-						out2.stmsWoNops
+						out2.stmsWithoutNops
 					} else {
 						trace { "$indent- render multi node: renderComponents (${entryNode.index} - ${exitNode.index})" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
@@ -260,15 +323,15 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 			if (node == prevNode) invalidOp("Infinite loop detected")
 		}
-		return out.stmsWoNops
+		return out.stmsWithoutNops
 	}
 
-	val Iterable<AstStm>.stmsWoNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
+	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
 		trace { "$indent- renderNoLoops: Detected no loop : $node" }
-		out += node.body.stmsWoNops
+		out += node.body.stmsWithoutNops
 
 		fun getNodeContinueOrBreak(node: Relooper.Node?): AstStm? {
 			val loopStart = ctx.loopStarts[node]
