@@ -105,6 +105,7 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 	val MAX_SWITCH_SIZE = 10
 	override val floatHasFSuffix: Boolean = false
 	override val casesWithCommas = true
+	override val supportsLabels = false
 
 	val usingGotoHack = ENABLE_HXCPP_GOTO_HACK && (subtarget in setOf("cpp", "windows", "linux", "mac", "android"))
 

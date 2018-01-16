@@ -59,6 +59,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open val floatHasFSuffix = true
 	open val casesWithCommas = false
 	open val optionalDoubleDummyDecimals = false
+	open val supportsLabels = true
 
 	open val GENERATE_LINE_NUMBERS = true
 
@@ -905,8 +906,22 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, left: String, right: String): String = "$left = $right;"
 
-	open fun genStmContinue(stm: AstStm.CONTINUE) = Indenter("continue ${stm.name};")
-	open fun genStmBreak(stm: AstStm.BREAK) = Indenter("break ${stm.name};")
+	open fun genStmContinue(stm: AstStm.CONTINUE): Indenter {
+		if (supportsLabels) {
+			return Indenter("continue ${stm.name};")
+		} else {
+			// @TODO: We have to use a variable do tell how many loops we want to skip
+			return Indenter("continue;")
+		}
+	}
+	open fun genStmBreak(stm: AstStm.BREAK):Indenter {
+		if (supportsLabels) {
+			return Indenter("break ${stm.name};")
+		} else {
+			// @TODO: We have to use a variable do tell how many loops we want to skip
+			return Indenter("break;")
+		}
+	}
 	open fun genStmLabel(stm: AstStm.STM_LABEL): Indenter = Indenter {
 		if (stm.label in trapsByEnd) {
 			for (trap in trapsByEnd[stm.label]!!) line(genStmRawCatch(trap))
@@ -1049,17 +1064,17 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	private fun SHIFT_FIX_32(r: Int): Int {
 		if (r < 0) {
-			return (32 - ((-r) and 0x1F)) and 0x1F;
+			return (32 - ((-r) and 0x1F)) and 0x1F
 		} else {
-			return r and 0x1F;
+			return r and 0x1F
 		}
 	}
 
 	private fun SHIFT_FIX_64(r: Int): Int {
 		if (r < 0) {
-			return (64 - ((-r) and 0x3F)) and 0x3F;
+			return (64 - ((-r) and 0x3F)) and 0x3F
 		} else {
-			return r and 0x3F;
+			return r and 0x3F
 		}
 	}
 
@@ -1345,21 +1360,27 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean) = Indenter(if (context.method.methodVoidReturnThis) "return " + genExprThis(AstExpr.THIS("Dummy".fqname)) + ";" else "return;")
 	open fun genStmReturnValue(stm: AstStm.RETURN, last: Boolean) = Indenter("return ${stm.retval.genExpr()};")
 	fun genStmWhile(stm: AstStm.WHILE) = indent {
-		val label = "${stm.name}:"
+		val label = if (supportsLabels) "${stm.name}: " else ""
 
 		flowBlock(FlowKind.WHILE, stm.name) {
-			line("$label while (${stm.cond.genExpr()})") {
+			line("${label}while (${stm.cond.genExpr()})") {
 				line(stm.iter.genStm())
 			}
 		}
+		if (!supportsLabels) {
+			// @TODO: We have to put an if here checking a variable to tell how many loops we have to break and whether to break or to continue the last one
+		}
 	}
 	fun genStmDoWhile(stm: AstStm.DO_WHILE) = indent {
-		val label = "${stm.name}:"
+		val label = if (supportsLabels) "${stm.name}: " else ""
 
 		flowBlock(FlowKind.WHILE, stm.name) {
-			line("$label do", after2 = " while (${stm.cond.genExpr()});") {
+			line("${label}do", after2 = " while (${stm.cond.genExpr()});") {
 				line(stm.body.genStm())
 			}
+		}
+		if (!supportsLabels) {
+			// @TODO: We have to put an if here checking a variable to tell how many loops we have to break and whether to break or to continue the last one
 		}
 	}
 
