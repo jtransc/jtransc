@@ -21,6 +21,7 @@ public class RelooperTest {
 
 		simpleDoWhile(0, 5);
 		simpleWhile(0, 5);
+		simpleFor(2, 5);
 	}
 
 	@JTranscRelooper
@@ -80,4 +81,13 @@ public class RelooperTest {
 
 		return b;
 	}
+
+	@JTranscRelooper(debug = true)
+	static public int simpleFor(int a, int b) {
+		for (int n = 1; n < b; n++) {
+			JTranscConsole.log(a + n);
+		}
+		return b;
+	}
+
 }

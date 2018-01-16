@@ -254,6 +254,41 @@ class RelooperTest {
 		//}
 	}
 
+	@Test
+	fun testSimpleWhile() = relooperTest {
+		val L0 = node("L0")
+		val L1 = node("L1")
+		val L2 = node("L2")
+		val L3 = node("L3")
+		val L6 = node("L6")
+
+		L0.edgeTo(L1)
+		L1.edgeTo(L2).edgeTo(L3, "l2_l3")
+		L2.edgeTo(L1)
+		L3.edgeTo(L6)
+
+		L0.assertDump("""
+			-
+    	""")
+
+		// * L0: { 	lI0 = p0; 	lI1 = p1; 	lI1 = (lI1 + 1); } EDGES: [goto L1;]. SRC_EDGES: 0
+		// * L1:  EDGES: [goto L2;, IF ((lI0 >= lI1)) goto L3;]. SRC_EDGES: 2
+		// * L2: { 	com.jtransc.io.JTranscConsole.log(lI0); 	lI0 = (lI0 + 1); } EDGES: [goto L1;]. SRC_EDGES: 1
+		// * L3: { 	com.jtransc.io.JTranscConsole.log(lI0); 	com.jtransc.io.JTranscConsole.log(lI1); 	return lI1; } EDGES: [goto L6;]. SRC_EDGES: 2
+		// * L6: L6: NOP(empty stm) EDGES: []. SRC_EDGES: 1
+		//@JTranscRelooper(debug = true)
+		//static public int simpleWhile(int a, int b) {
+		//	b++;
+		//	while (a < b) {
+		//		JTranscConsole.log(a);
+		//		a++;
+		//	}
+		//	JTranscConsole.log(a);
+		//	JTranscConsole.log(b);
+		//	return b;
+		//}
+	}
+
 	fun Relooper.Node.assertDump(msg: String) {
 		assertEquals(msg.normalizeMulti(), relooper.renderStr(this))
 	}

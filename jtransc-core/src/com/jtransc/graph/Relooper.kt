@@ -173,7 +173,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		var node: Node? = entry
 		val explored = LinkedHashSet<Node>()
 		loop@ while (node != null && node != exit) {
-			if (node in explored) invalidOp("Already explored")
+			if (node in explored) {
+				//invalidOp("Already explored : $node")
+				break
+			}
 			explored += node
 			val prevNode = node
 			ctx.rendered += node
@@ -215,7 +218,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						renderNoLoops(g, out2, node, exitNode, ctx, level)
 						out2.stmsWoNops
 					} else {
-						trace { "$indent- render multi node: renderComponents" }
+						trace { "$indent- render multi node: renderComponents (${entryNode.index} - ${exitNode.index})" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
 				).optimizeDoWhile()
@@ -298,7 +301,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		// IF
 		if (common == endOfIfNode) {
 			out += AstStm.IF(
-				endOfIf.cond!!.not(),
+				endOfIf.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
 				renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
 			)
 		}
