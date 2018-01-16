@@ -51,11 +51,12 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
 		val nextEdge get() = dstEdges.firstOrNull { it.cond == null }
 
-		fun edgeTo(dst: Node, cond: AstExpr? = null) {
+		fun edgeTo(dst: Node, cond: AstExpr? = null): Node {
 			val src = this
 			val edge = Edge(types, src, dst, cond)
 			src.dstEdges += edge
 			dst.srcEdges += edge
+			return this
 		}
 
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
@@ -91,7 +92,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun edge(a: Node, b: Node, cond: AstExpr? = null) = a.edgeTo(b, cond)
 
-	private fun prepare(entry: Node): List<Node> {
+	data class Prepare(val nodes: List<Node>, val entry: Node, val exit: Node)
+
+	private fun prepare(entry: Node): Prepare {
 		val explored = LinkedHashSet<Node>()
 		val result = LinkedHashSet<Node>()
 		val exitNodes = arrayListOf<Node>()
@@ -117,13 +120,23 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		explore(entry)
 
 		// Ensure just one single exit node
-		if (exitNodes.size != 1) {
+		//val actualExit = if (exitNodes.size != 1) {
+		//	val exit = node(listOf())
+		//	for (node in exitNodes) edge(node, exit)
+		//	result += exit
+		//	exit
+		//} else {
+		//	exitNodes.first()
+		//}
+
+		val actualExit = run {
 			val exit = node(listOf())
 			for (node in exitNodes) edge(node, exit)
 			result += exit
+			exit
 		}
 
-		return result.toList()
+		return Prepare(result.toList(), entry, actualExit)
 	}
 
 	inline private fun trace(msg: () -> String) {
@@ -131,7 +144,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	fun render(entry: Node): AstStm {
-		val g = graphList(prepare(entry).map { it to it.possibleNextNodes })
+		val gresult = prepare(entry)
+		val g = graphList(gresult.nodes.map { it to it.possibleNextNodes })
 		if (debug) {
 			trace { "Rendering $name" }
 			for (n in g.nodes) {
@@ -184,7 +198,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			trace { "# GRAPHVIZ END" }
 		}
 		//println("Relooping '$name'...")
-		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
+		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), gresult.entry, gresult.exit)
 		//println("Relooping '$name'...OK")
 		return result
 	}
@@ -251,7 +265,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
 	}
 
-	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node? = null, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
 		if (level > 5) {
 			//throw RelooperException("Too much nesting levels!")
 			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
@@ -407,8 +421,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		else {
 			out += AstStm.IF_ELSE(
 				endOfIf.cond!!,
-				renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
-				renderComponents(g, ifBody, common, ctx, level = level + 1)
+				renderComponents(g, endOfIfNode, common!!, ctx, level = level + 1),
+				renderComponents(g, ifBody, common!!, ctx, level = level + 1)
 			)
 		}
 		return common
