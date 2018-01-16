@@ -29,6 +29,15 @@ import kotlin.collections.LinkedHashSet
  *
  * Switch:
  * - TODO (probably we can just create if chains and then generate a switch from it)
+ *
+ * Try-Catch:
+ * - TODO
+ *
+ * Irreductible CFGs:
+ * - TODO
+ * - Ideas: Since we need the strong components to have a single entry and a single exit (modulo continuing/exiting other loops),
+ *   we can try to create synthetic edges to enter each strong component, from a single entry point and then skip some parts.
+ *   That should work with custom gotos or await/async implementations.
  */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {

@@ -25,6 +25,7 @@ import com.jtransc.graph.RelooperException
 // @TODO: Use AstBuilder to make it more readable
 class GotosFeature : AstMethodFeature() {
 	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
+		//if (false) {
 		if (method.relooperEnabled ?: settings.relooper) {
 		//if (method.relooperEnabled ?: false) {
 			try {
@@ -178,9 +179,9 @@ class GotosFeature : AstMethodFeature() {
 						stateStms = arrayListOf<AstStm>()
 					}
 
-					fun simulateGotoLabel(index: Int) = listOf(
+					fun simulateGotoLabel(index: Int, insideCatch: Boolean = false) = listOf(
 						gotostate.setTo(index.lit),
-						AstStm.CONTINUE("loop")
+						AstStm.CONTINUE(if (insideCatch) "tryLoop" else "loop")
 					)
 
 					fun simulateGotoLabel(label: AstLabel) = simulateGotoLabel(getStateFromLabel(label))
@@ -256,7 +257,7 @@ class GotosFeature : AstMethodFeature() {
 							AstStm.IF(
 								//(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								(gotostate ge startState.lit) band (gotostate lt endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								simulateGotoLabel(handlerState).stm()
+								simulateGotoLabel(handlerState, insideCatch = true).stm()
 							)
 						}
 
