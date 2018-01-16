@@ -268,7 +268,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
 	}
 
-	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
 		if (level > 5) {
 			//throw RelooperException("Too much nesting levels!")
 			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
@@ -324,7 +324,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val cond = true.lit
 
 
-				out += AstStm.DO_WHILE(
+				out += AstStm.WHILE(
 					loopName,
 					cond,
 					if (isSingleNodeLoop) {
@@ -336,7 +336,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						trace { "$indent- render multi node: renderComponents (${entryNode.index} - ${exitNode.index})" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
 					}
-				).optimizeDoWhile()
+				).optimizeWhile()
 
 				ctx.loopEnds -= exitNode
 				ctx.loopStarts -= entryNode
@@ -354,6 +354,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
+	val Iterable<AstStm>.stmsWithoutNopsList: List<AstStm> get() = this.toList().filter { it !is AstStm.NOP }
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
@@ -434,7 +435,16 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						TODO("ifBodyCB null!")
 					}
 					else -> {
-						TODO("Both null!")
+						//TODO("Both null!")
+
+						// Maybe an if-chain that was not optimized? And this will generate repeated branches!
+						trace { "$indent- WARNING: Maybe an if-chain that was not optimized? And this will generate repeated branches!" }
+
+						out += AstStm.IF_ELSE(
+							endOfIfEdge.cond!!,
+							renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
+							renderComponents(g, ifBody, common, ctx, level = level + 1)
+						)
 					}
 				}
 
@@ -493,18 +503,50 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		return this.getExternalInputsEdges().map { it.dst }.distinct()
 	}
 
-	fun AstStm.DO_WHILE.optimizeDoWhile(): AstStm.DO_WHILE {
+	fun AstStm.DO_WHILE.optimizeWhile(): AstStm {
+		if (this.cond.isLiteral(true)) {
+			return AstStm.WHILE(this.name, this.cond.value, this.body.value)
+		} else {
+			return this
+		}
+	}
+
+	fun AstStm.WHILE.optimizeWhile(): AstStm {
+		if (!this.cond.isLiteral(true)) return this // Can't optimize!
+
+		val loopName = this.name
 		val bodyValue = this.body.value
-		if (bodyValue is AstStm.STMS) {
-			val stms = bodyValue.stms
-			if (stms.size >= 2) {
-				val last = stms[stms.size - 1].value
-				val plast = stms[stms.size - 2].value
-				if (last is AstStm.BREAK && plast is AstStm.IF && plast.strue.value is AstStm.CONTINUE) {
-					return AstStm.DO_WHILE(name, plast.cond.value, stms.map { it.value }.slice(0 until stms.size - 2).stms.box.value)
-				}
+		@Suppress("FoldInitializerAndIfToElvis")
+		if (bodyValue !is AstStm.STMS) return this
+
+		val stms = bodyValue.stms.unboxed.stmsWithoutNopsList.map { it.box }
+
+		val last = stms.lastOrNull()
+		if (last != null) {
+			val lastValue = last.value
+			if (lastValue.isContinue(loopName)) {
+				//lastValue.box.replaceWith(AstStm.NOP("optimized"))
+				return AstStm.WHILE(loopName, cond.value, AstStm.STMS(stms.dropLast(1).unboxed, true)).optimizeWhile()
 			}
 		}
+
+		val first = stms.firstOrNull()
+		if (first != null) {
+			val firstValue = first.value
+			if (firstValue is AstStm.IF && firstValue.strue.value.isBreak(loopName)) {
+				//firstValue.box.replaceWith(AstStm.NOP("optimized"))
+				return AstStm.WHILE(loopName, firstValue.cond.value.not(), AstStm.STMS(stms.drop(1).unboxed, true)).optimizeWhile()
+			}
+		}
+
+		if (stms.size >= 2) {
+			val last = stms[stms.size - 1].value
+			val plast = stms[stms.size - 2].value
+			if (last is AstStm.BREAK && plast is AstStm.IF && plast.strue.value.isContinue(loopName)) {
+				return AstStm.DO_WHILE(loopName, plast.cond.value, stms.map { it.value }.slice(0 until stms.size - 2).stms.box.value)
+			}
+		}
+
 		return this
 		// var n = 0; do { if (n++ < 10) continue; } while (false); console.log(n); // NOT WORKING: 1
 		// var n = 0; do { if (n++ < 10) continue; break; } while (true); console.log(n); // WORKING: 11

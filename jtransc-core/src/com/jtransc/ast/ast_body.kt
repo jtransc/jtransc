@@ -202,15 +202,15 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val sfalse = sfalse.box
 	}
 
-	class WHILE(val name: String, cond: AstExpr, iter: AstStm) : AstStm() {
+	class WHILE(val name: String, cond: AstExpr, body: AstStm) : AstStm() {
 		val cond = cond.box
-		val iter = iter.box
+		val body = body.box
 	}
 
 	// Basic back jump
-	class DO_WHILE(val name: String, cond: AstExpr, iter: AstStm) : AstStm() {
+	class DO_WHILE(val name: String, cond: AstExpr, body: AstStm) : AstStm() {
 		val cond = cond.box
-		val body = iter.box
+		val body = body.box
 	}
 
 	class RETURN(retval: AstExpr) : AstStm() {
@@ -277,6 +277,11 @@ fun AstStm.isEmpty() = when (this) {
 	else -> false
 }
 
+fun AstStm.isNop(): Boolean = this is AstStm.NOP
+
+fun AstStm.isContinue(name: String): Boolean = this is AstStm.CONTINUE && this.name == name
+fun AstStm.isBreak(name: String): Boolean = this is AstStm.BREAK && this.name == name
+
 fun AstStm.isSingleStm(): Boolean {
 	if (this is AstStm.STMS) return (this.stms.count() == 1) && this.stms.last().value.isSingleStm()
 	return true
@@ -286,6 +291,8 @@ fun AstStm.lastStm(): AstStm {
 	if (this is AstStm.STMS) return this.stms.lastOrNull()?.value?.lastStm() ?: this
 	return this
 }
+
+val Iterable<AstStm.Box>.unboxed get() = this.map { it.value }
 
 fun AstStm.expand(): List<AstStm> {
 	return when (this) {
@@ -590,6 +597,9 @@ fun List<AstStm>.stm() = when (this.size) {
 }
 
 fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
+fun AstExpr.Box.isLiteral(value: Any?): Boolean = this.value.isLiteral(value)
+
+fun AstExpr.isLiteral(value: Any?): Boolean = (this is AstExpr.LITERAL) && this.value == value
 
 fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds

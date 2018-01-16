@@ -772,7 +772,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			indent {
 				line(genBody2WithFeatures2(method, body))
 			}
-			line("} finally{")
+			line("} finally {")
 			indent {
 				lineMonitorExit()
 			}
@@ -1364,7 +1364,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 		flowBlock(FlowKind.WHILE, stm.name) {
 			line("${label}while (${stm.cond.genExpr()})") {
-				line(stm.iter.genStm())
+				line(stm.body.genStm())
 			}
 		}
 		if (!supportsLabels) {

@@ -78,7 +78,7 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 			}
 			is AstStm.WHILE -> {
 				line("${stm.name}: while (${dump(types, stm.cond)})") {
-					line(dumpCollapse(types, stm.iter))
+					line(dumpCollapse(types, stm.body))
 				}
 			}
 			is AstStm.DO_WHILE -> {

@@ -256,7 +256,7 @@ object AstDependencyAnalyzer {
 				}
 				is AstStm.WHILE -> {
 					flow()
-					ana(stm.cond); ana(stm.iter)
+					ana(stm.cond); ana(stm.body)
 				}
 
 				else -> noImpl("Not implemented STM $stm")

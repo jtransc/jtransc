@@ -122,9 +122,9 @@ class RelooperTest {
 		A.assertDump("""
 			A = 1;
 			if ((!condToAvoidLoop)) {
-				loop0: do {
+				loop0: while (true) {
 					B = 1;
-					loop1: do {
+					loop1: while (true) {
 						C = 1;
 						if (condLoopInContinue) {
 							continue loop1;
@@ -133,7 +133,7 @@ class RelooperTest {
 							break loop0;
 						}
 						break loop1;
-					} while (true);
+					}
 					D = 1;
 					if (condLoopOutContinue) {
 						continue loop0;
@@ -142,7 +142,7 @@ class RelooperTest {
 						break loop0;
 					}
 					break loop0;
-				} while (true);
+				}
 			}
 			E = 1;
 		""")
@@ -265,13 +265,9 @@ class RelooperTest {
 		// @TODO: We can convert `while (true) { if (cond) break; ... }` --> `while (!cond) { ... }`
 		L0.assertDump("""
 			L0 = 1;
-			loop0: do {
-				if (l2_l3) {
-					break loop0;
-				}
+			loop0: while ((!l2_l3)) {
 				L2 = 1;
-				continue loop0;
-			} while (true);
+			}
 			L3 = 1;
 			L6 = 1;
     	""")
@@ -297,7 +293,7 @@ class RelooperTest {
 	@Test
 	fun testMixed1() = relooperTest {
 		val L0 = node("L0") // lA3 = new java.util.ArrayList(); lI4 = 0; lI5 = 0;
-		val L1 = node("L1")
+		val L1 = node(AstStm.NOP("L1"))
 		val L2 = node("L2")
 		val L3 = node("L3")
 		val L4 = node("L4") // lA3.add(((java.lang.Object)p0.substring(lI5, lI4))); lI5 = (lI4 + 1);
@@ -318,11 +314,7 @@ class RelooperTest {
 
 		L0.assertDump("""
 			L0 = 1;
-			loop0: do {
-				L1 = 1;
-				if (l1_l3) {
-					break loop0;
-				}
+			loop0: while ((!l1_l3)) {
 				L2 = 1;
 				if ((!l2_l5)) {
 					L4 = 1;
@@ -331,8 +323,7 @@ class RelooperTest {
 					}
 				}
 				L5 = 1;
-				continue loop0;
-			} while (true);
+			}
 			L3 = 1;
 			if ((!l3_l10)) {
 				L9 = 1;

@@ -200,7 +200,7 @@ open class AstTransformer {
 
 	open fun transform(stm: AstStm.WHILE): AstStm {
 		transform(stm.cond)
-		transform(stm.iter)
+		transform(stm.body)
 		return stm
 	}
 
