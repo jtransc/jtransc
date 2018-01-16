@@ -7,6 +7,29 @@ import com.jtransc.text.INDENTS
 import java.util.*
 import kotlin.collections.LinkedHashSet
 
+/**
+ * Converts a digraph representing the control flow graph of a method into ifs and whiles.
+ * If we fail doing so because the graph is irreductible or we have a bug, we will fallback to creating
+ * a state machine as we are already doing.
+ *
+ * Fors:
+ * - Separate the graph in Strong Components
+ * - Each strong component represents a loop (with potentially other loops inside)
+ * - Each strong component should have a single entry and a single exit (modulo breaking/continuing other loops) in a reductible graph
+ * - That entry/exit delimits the loop
+ * - Inside strong components, all edges should be internal, or external referencing the beginning/end of this or other loops.
+ * - Internal links to that component represents ifs, while external links represents, break or continue to specific loops
+ * - Each loop/strong component should be splitted into smaller strong components after removing links to the beginning of the loop to detect inner loops, each split is recursively handled.
+ *
+ * Ifs:
+ * - For each 'if' we have two forward edges. One to enter the if, and other to skip the if. So the conditional edge is the negation of the if.
+ * - To determine the end of the if, we have to compute the common successor of all the edges
+ * - If the common successor is the same as the if-skipping edge, we have a plain if, and if not, we have an if-else combination.
+ * - So we have three nodes that delimits if-elses: entering the condition, skipping the condition, and the common successor.
+ *
+ * Switch:
+ * - TODO (probably we can just create if chains and then generate a switch from it)
+ */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
 		//var next: Node? = null
@@ -80,17 +103,19 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun getNodeSuccessorsLinkedSet(a: Node, exit: Node?, checkRendered: Boolean = false): Set<Node> {
 			val visited = LinkedHashSet<Node>()
 			if (!checkRendered) visited += rendered
-			if (exit != null) visited += exit
 			val set = LinkedHashSet<Node>()
 			val queue = Queue<Node>()
 			queue.queue(a)
 			while (queue.hasMore) {
 				val item = queue.dequeue()
-				if (item in visited) continue
-				visited += item
-				set += item
-				for (edge in item.dstEdges) {
-					queue.queue(edge.dst)
+				if (item !in visited) {
+					set += item
+					visited += item
+					if (item != exit) {
+						for (edge in item.dstEdges) {
+							queue.queue(edge.dst)
+						}
+					}
 				}
 			}
 			return set
@@ -129,16 +154,6 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
 	}
 
-	/**
-	 * The process consists in:
-	 * - Separate the graph in Strong Components
-	 * - Each strong component represents a loop
-	 * - Each strong component should have a single entry and a single exit (modulo breaking/continuing other loops) in a reductible graph
-	 * - That entry/exit delimits the loop
-	 * - Inside strong components, all links should be internal, or external referencing the beginning/end of this or other loops.
-	 * - Internal links to that component represents ifs, while external links represents, break or continue to specific loops
-	 * - Each loop/strong component should be splitted into smaller strong components after removing links to the beginning of the loop to detect inner loops
-	 */
 	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node? = null, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
 		if (level > 5) {
 			//throw RelooperException("Too much nesting levels!")
