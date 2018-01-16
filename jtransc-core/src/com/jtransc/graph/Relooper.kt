@@ -353,8 +353,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		return out.stmsWithoutNops
 	}
 
-	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.toList().filter { it !is AstStm.NOP }.stm()
-	val Iterable<AstStm>.stmsWithoutNopsList: List<AstStm> get() = this.toList().filter { it !is AstStm.NOP }
+	val Iterable<AstStm>.stmsWithoutNopsList: List<AstStm> get() = this.filter { it !is AstStm.NOP }
+	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.stmsWithoutNopsList.stm()
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
