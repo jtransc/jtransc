@@ -91,13 +91,38 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun render(entry: Node): AstStm {
 		val g = graphList(prepare(entry).map { it to it.possibleNextNodes })
-		trace { "Rendering $name" }
-		for (n in g.nodes) {
-			trace { "* $n" }
+		if (debug) {
+			trace { "Rendering $name" }
+			for (n in g.nodes) {
+				trace { "* $n" }
+			}
+			trace { "// STRUCTURE CODE FOR TESTS:" }
+			for (n in g.nodes) {
+				val line = "val L${n.index} = node(\"L${n.index}\")"
+				val bodyStr = n.body.filter { it !is AstStm.NOP }.dumpCollapse(types).toString(false).replace('\n', ' ').trim()
+				trace { if (bodyStr.isNotEmpty()) "$line // $bodyStr" else line }
+			}
+			for (n in g.nodes) {
+				if (n.dstEdges.size != 0) {
+					var out = "L${n.index}"
+					val conds = arrayListOf<String>()
+					if (n.next != null) {
+						out += ".edgeTo(L${n.next!!.index})"
+					}
+					for (e in n.dstEdgesButNext) {
+						out += ".edgeTo(L${e.dst.index}, \"l${e.src.index}_l${e.dst.index}\")"
+						conds += e.cond?.dump(types) ?: ""
+					}
+					trace {
+						if (conds.isNotEmpty()) "$out // $conds" else out
+					}
+				}
+			}
+			trace { "// /STRUCTURE CODE FOR TESTS" }
 		}
-		println("Relooping '$name'...")
+		//println("Relooping '$name'...")
 		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), entry)
-		println("Relooping '$name'...OK")
+		//println("Relooping '$name'...OK")
 		return result
 	}
 
@@ -192,7 +217,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }
 				if (outsNotInContext.size != 1) {
 					trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
-					invalidOp("ERROR When Relooping $name (ASSERTION FAILED)")
+					invalidOp("ERROR When Relooping '$name' ASSERTION FAILED :: ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node")
 				}
 
 				val entryNode = node

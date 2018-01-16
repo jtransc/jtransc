@@ -111,6 +111,7 @@ fun dump(types: AstTypes, expr: AstExpr.Box?): String {
 fun AstExpr?.exprDump(types: AstTypes) = dump(types, this)
 
 fun List<AstStm>.dump(types: AstTypes) = dump(types, this.stm())
+fun List<AstStm>.dumpCollapse(types: AstTypes) = dumpCollapse(types, this.stms.box)
 fun AstStm.dump(types: AstTypes) = dump(types, this)
 fun AstStm.dumpCollapse(types: AstTypes) = dumpCollapse(types, this.box)
 

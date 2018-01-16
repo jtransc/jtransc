@@ -3,6 +3,9 @@ package relooper;
 import com.jtransc.annotation.JTranscRelooper;
 import com.jtransc.io.JTranscConsole;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class RelooperTest {
 	static public void main(String[] args) {
 		JTranscConsole.log("RelooperTest:");
@@ -22,6 +25,7 @@ public class RelooperTest {
 		simpleDoWhile(0, 5);
 		simpleWhile(0, 5);
 		simpleFor(2, 5);
+		JTranscConsole.log(Arrays.asList(split("hello world test", ' ', 2)));
 	}
 
 	@JTranscRelooper
@@ -68,7 +72,7 @@ public class RelooperTest {
 		return b;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static public int simpleWhile(int a, int b) {
 		b++;
 
@@ -82,7 +86,7 @@ public class RelooperTest {
 		return b;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static public int simpleFor(int a, int b) {
 		for (int n = 1; n < b; n++) {
 			JTranscConsole.log(a + n);
@@ -90,4 +94,19 @@ public class RelooperTest {
 		return b;
 	}
 
+	@JTranscRelooper(debug = true)
+	static private String[] split(String str, char ch, int limit) {
+		ArrayList<String> out = new ArrayList<String>();
+		int n = 0;
+		int start = 0;
+		for (; n < str.length(); n++) {
+			if (str.charAt(n) == ch) {
+				out.add(str.substring(start, n));
+				start = n + 1;
+				if (out.size() >= limit - 1) break;
+			}
+		}
+		if (start < str.length()) out.add(str.substring(start));
+		return out.toArray(new String[out.size()]);
+	}
 }

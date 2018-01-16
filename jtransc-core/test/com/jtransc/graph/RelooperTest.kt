@@ -8,7 +8,7 @@ import org.junit.Test
 
 class RelooperTest {
 	val types = AstTypes(TargetName("js"))
-	val relooper = Relooper(types, debug = true)
+	val relooper = Relooper(types, name = "test", debug = true)
 
 	@Test
 	fun testIf() = relooperTest {
@@ -289,6 +289,49 @@ class RelooperTest {
 		//}
 	}
 
+	@Test
+	fun testMixed1() = relooperTest {
+		val L0 = node("L0") // lA3 = new java.util.ArrayList(); lI4 = 0; lI5 = 0;
+		val L1 = node("L1")
+		val L2 = node("L2")
+		val L3 = node("L3")
+		val L4 = node("L4") // lA3.add(((java.lang.Object)p0.substring(lI5, lI4))); lI5 = (lI4 + 1);
+		val L5 = node("L5") // lI4 = (lI4 + 1);
+		val L6 = node("L6") // NOP(empty stm)
+		val L9 = node("L9") // lA3.add(((java.lang.Object)p0.substring(lI5)));
+		val L10 = node("L10") // return ((java.lang.String[])lA3.toArray(((java.lang.Object[])new java.lang.String[lA3.size()])));
+		val L12 = node("L12") // NOP(empty stm)
+		L0.edgeTo(L1)
+		L1.edgeTo(L2).edgeTo(L3, "l1_l3") // [(lI4 >= p0.length())]
+		L2.edgeTo(L4).edgeTo(L5, "l2_l5") // [(p0.charAt(lI4) != ((int)p1))]
+		L3.edgeTo(L9).edgeTo(L10, "l3_l10") // [(lI5 >= p0.length())]
+		L4.edgeTo(L6).edgeTo(L5, "l4_l5") // [(lA3.size() < (p2 - 1))]
+		L5.edgeTo(L1)
+		L6.edgeTo(L3)
+		L9.edgeTo(L10)
+		L10.edgeTo(L12)
+
+		L0.assertDump("""
+			-
+    	""")
+
+		// @JTranscRelooper(debug = true)
+		// static private String[] split(String str, char ch, int limit) {
+		// 	ArrayList<String> out = new ArrayList<String>();
+		// 	int n = 0;
+		// 	int start = 0;
+		// 	for (; n < str.length(); n++) {
+		// 		if (str.charAt(n) == ch) {
+		// 			out.add(str.substring(start, n));
+		// 			start = n + 1;
+		// 			if (out.size() >= limit - 1) break;
+		// 		}
+		// 	}
+		// 	if (start < str.length()) out.add(str.substring(start));
+		// 	return out.toArray(new String[out.size()]);
+		// }
+	}
+
 	fun Relooper.Node.assertDump(msg: String) {
 		assertEquals(msg.normalizeMulti(), relooper.renderStr(this))
 	}
@@ -301,6 +344,7 @@ class RelooperTest {
 	fun Indenter.normalizeMulti() = this.toString().normalizeMulti()
 	fun Relooper.renderStr(node: Relooper.Node) = render(node).dumpCollapse(types).normalizeMulti()
 	fun Relooper.node(name: String) = node(stmt(name))
+	fun Relooper.node(name: String, content: String) = node(stmt(name))
 	private fun stmt(name: String): AstStm = AstType.INT.local(name).setTo(1.lit)
 	private fun cond(name: String) = AstExpr.RAW(AstType.BOOL, name)
 }

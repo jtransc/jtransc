@@ -70,8 +70,8 @@ class JsTest : _Base() {
 
 	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
-	//@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = false))
-	@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = true))
+	@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = false))
+	//@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = true))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))
