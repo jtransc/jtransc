@@ -42,6 +42,7 @@ import kotlin.collections.LinkedHashSet
  */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
+		val name = "L$index"
 		//var next: Node? = null
 		val srcEdges = arrayListOf<Edge>()
 		val dstEdges = arrayListOf<Edge>()
@@ -65,6 +66,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
 		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
 
+		val condOrTrue get() = cond ?: true.lit
+
 		fun remove() {
 			src.dstEdges -= this
 			dst.srcEdges -= this
@@ -82,7 +85,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		//if (debug && index == 6) println("test")
 		for (stm in this) {
 			when (stm) {
-                is AstStm.STMS -> out += stm.stmsUnboxed.normalize(index)
+				is AstStm.STMS -> out += stm.stmsUnboxed.normalize(index)
 				is AstStm.NOP -> Unit
 				else -> out += stm
 			}
@@ -406,23 +409,41 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		trace { "$indent- Node IF (and else?)" }
 		val ifBody = node.next!!
-		val endOfIf = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
-		val endOfIfNode = endOfIf.dst
-		val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit)
+		val endOfIfEdge = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
+		val endOfIfNode = endOfIfEdge.dst
+		val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit = exit)
+			//?: invalidOp("Not found common node for ${ifBody.name} and ${endOfIfNode.name}!")
 
-		// IF
-		if (common == endOfIfNode) {
-			out += AstStm.IF(
-				endOfIf.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
+
+		when (common) {
+			// IF
+			endOfIfNode -> out += AstStm.IF(
+				endOfIfEdge.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
 				renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
 			)
-		}
-		// IF+ELSE
-		else {
-			out += AstStm.IF_ELSE(
-				endOfIf.cond!!,
-				renderComponents(g, endOfIfNode, common!!, ctx, level = level + 1),
-				renderComponents(g, ifBody, common!!, ctx, level = level + 1)
+			// IF
+			null -> {
+				val ifBodyCB = getNodeContinueOrBreak(ifBody)
+				val endOfIfCB = getNodeContinueOrBreak(endOfIfNode)
+				when {
+					ifBodyCB != null && endOfIfCB == null -> {
+						out += AstStm.IF(endOfIfEdge.condOrTrue.not(), ifBodyCB)
+						return endOfIfNode
+					}
+					ifBodyCB == null && endOfIfCB != null -> {
+						TODO("ifBodyCB null!")
+					}
+					else -> {
+						TODO("Both null!")
+					}
+				}
+
+			}
+			// IF+ELSE
+			else -> out += AstStm.IF_ELSE(
+				endOfIfEdge.cond!!,
+				renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
+				renderComponents(g, ifBody, common, ctx, level = level + 1)
 			)
 		}
 		return common

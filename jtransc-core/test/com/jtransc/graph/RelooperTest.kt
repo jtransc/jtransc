@@ -302,10 +302,10 @@ class RelooperTest {
 		val L3 = node("L3")
 		val L4 = node("L4") // lA3.add(((java.lang.Object)p0.substring(lI5, lI4))); lI5 = (lI4 + 1);
 		val L5 = node("L5") // lI4 = (lI4 + 1);
-		val L6 = node("L6") // NOP(empty stm)
+		val L6 = node(AstStm.NOP("L6")) // NOP(empty stm)
 		val L9 = node("L9") // lA3.add(((java.lang.Object)p0.substring(lI5)));
 		val L10 = node("L10") // return ((java.lang.String[])lA3.toArray(((java.lang.Object[])new java.lang.String[lA3.size()])));
-		val L12 = node("L12") // NOP(empty stm)
+		val L12 = node(AstStm.NOP("L12")) // NOP(empty stm)
 		L0.edgeTo(L1)
 		L1.edgeTo(L2).edgeTo(L3, "l1_l3") // [(lI4 >= p0.length())]
 		L2.edgeTo(L4).edgeTo(L5, "l2_l5") // [(p0.charAt(lI4) != ((int)p1))]
@@ -317,7 +317,27 @@ class RelooperTest {
 		L10.edgeTo(L12)
 
 		L0.assertDump("""
-			-
+			L0 = 1;
+			loop0: do {
+				L1 = 1;
+				if (l1_l3) {
+					break loop0;
+				}
+				L2 = 1;
+				if ((!l2_l5)) {
+					L4 = 1;
+					if ((!l4_l5)) {
+						break loop0;
+					}
+				}
+				L5 = 1;
+				continue loop0;
+			} while (true);
+			L3 = 1;
+			if ((!l3_l10)) {
+				L9 = 1;
+			}
+			L10 = 1;
     	""")
 
 		// @JTranscRelooper(debug = true)
@@ -343,7 +363,6 @@ class RelooperTest {
 
 	inline fun relooperTest(callback: Relooper.() -> Unit): Unit = callback(relooper)
 
-	fun Relooper.Node.edgeTo(other: Relooper.Node, cond: AstExpr? = null): Relooper.Node = this.apply { relooper.edge(this, other, cond) }
 	fun Relooper.Node.edgeTo(other: Relooper.Node, cond: String): Relooper.Node = this.edgeTo(other, cond.let { cond(it) })
 	fun String.normalizeMulti() = this.trimIndent().trim().lines().map { it.trimEnd() }.joinToString("\n")
 	fun Indenter.normalizeMulti() = this.toString().normalizeMulti()
