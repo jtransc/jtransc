@@ -140,7 +140,6 @@ class GotosFeature : AstMethodFeature() {
 
 	fun removeMachineState(body: AstBody, types: AstTypes): AstBody {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
-		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
 		//val locals = body.locals.toCollection(arrayListOf<AstLocal>())
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
