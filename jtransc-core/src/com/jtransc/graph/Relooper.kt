@@ -92,9 +92,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	fun edge(a: Node, b: Node, cond: AstExpr? = null) = a.edgeTo(b, cond)
 
 	private fun prepare(entry: Node): List<Node> {
-		val exit = node(listOf())
 		val explored = LinkedHashSet<Node>()
 		val result = LinkedHashSet<Node>()
+		val exitNodes = arrayListOf<Node>()
 		fun explore(node: Node) {
 			if (node in explored) return
 			explored += node
@@ -110,12 +110,19 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				result += node
 			}
 
-			if (node.next == null && node != exit) edge(node, exit) // Add edge to end node
+			if (node.next == null) exitNodes += node
 			if (node.next != null) explore(node.next!!)
 			for (edge in node.dstEdges) explore(edge.dst)
 		}
 		explore(entry)
-		result += exit
+
+		// Ensure just one single exit node
+		if (exitNodes.size != 1) {
+			val exit = node(listOf())
+			for (node in exitNodes) edge(node, exit)
+			result += exit
+		}
+
 		return result.toList()
 	}
 
@@ -253,19 +260,22 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val indent by lazy { INDENTS[level] }
 		val out = arrayListOf<AstStm>()
 		var node: Node? = entry
-		val explored = LinkedHashSet<Node>()
+		val locallyExplored = LinkedHashSet<Node>()
 
 		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}" }
 
 		fun List<Node>.toLString() = this.map { "L${it.index}" }.toString()
 
 		loop@ while (node != null && node != exit) {
-			if (node in explored) {
-				//invalidOp("Already explored : $node")
+			if (node in locallyExplored) {
+				//invalidOp("Already explored locally : $node")
 				break
 			}
+			if (node in ctx.rendered) {
+				//invalidOp("Already explored globally : $node")
+			}
 			trace { "$indent- Processing L${node?.index}" }
-			explored += node
+			locallyExplored += node
 			val prevNode = node
 			ctx.rendered += node
 			val component = g.findComponentWith(node)
