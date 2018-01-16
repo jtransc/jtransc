@@ -203,12 +203,6 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				ctx.loopStarts[entryNode] = loopName
 				ctx.loopEnds[exitNode] = loopName
 
-				val optimizedWhile = isSingleNodeLoop && (node.dstEdgesButNext.size == 1)
-				//val cond: AstExpr = if (optimizedWhile) {
-				//	node.dstEdgesButNext.first().cond!!
-				//} else {
-				//	true.lit
-				//}
 				val cond = true.lit
 
 
@@ -217,13 +211,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					cond,
 					if (isSingleNodeLoop) {
 						trace { "$indent- render single node: renderNoLoops" }
-						//if (optimizedWhile) {
-						//	node.body.stms
-						//} else {
-							val out2 = arrayListOf<AstStm>()
-							renderNoLoops(g, out2, node, exitNode, ctx, level)
-							out2.stmsWoNops
-						//}
+						val out2 = arrayListOf<AstStm>()
+						renderNoLoops(g, out2, node, exitNode, ctx, level)
+						out2.stmsWoNops
 					} else {
 						trace { "$indent- render multi node: renderComponents" }
 						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
@@ -370,9 +360,19 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	fun AstStm.DO_WHILE.optimizeDoWhile(): AstStm.DO_WHILE {
 		val bodyValue = this.body.value
 		if (bodyValue is AstStm.STMS) {
-
+			val stms = bodyValue.stms
+			if (stms.size >= 2) {
+				val last = stms[stms.size - 1].value
+				val plast = stms[stms.size - 2].value
+				if (last is AstStm.BREAK && plast is AstStm.IF && plast.strue.value is AstStm.CONTINUE) {
+					return AstStm.DO_WHILE(name, plast.cond.value, stms.map { it.value }.slice(0 until stms.size - 2).stms.box.value)
+				}
+			}
 		}
 		return this
+		// var n = 0; do { if (n++ < 10) continue; } while (false); console.log(n); // NOT WORKING: 1
+		// var n = 0; do { if (n++ < 10) continue; break; } while (true); console.log(n); // WORKING: 11
+		// var n = 0; do { } while (n++ < 10); console.log(n); // WORKING: 11
 	}
 }
 
