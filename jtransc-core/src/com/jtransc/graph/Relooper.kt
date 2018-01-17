@@ -186,7 +186,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				}
 			}
 
-			for (edge in node.dstEdges) explore(edge.dst)
+			for (edge in node.dstEdges.toList()) {
+				explore(edge.dst)
+			}
 		}
 		explore(entry)
 		return entry
