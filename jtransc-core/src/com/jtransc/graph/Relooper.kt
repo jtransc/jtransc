@@ -6,6 +6,7 @@ import com.jtransc.error.invalidOp
 import com.jtransc.text.INDENTS
 import com.jtransc.text.quote
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashSet
 
 /**
@@ -41,7 +42,7 @@ import kotlin.collections.LinkedHashSet
  *   That should work with custom gotos or await/async implementations.
  */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
-	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
+	inner class Node(val index: Int, val body: ArrayList<AstStm>) {
 		var exitNode = false
 		var tag = ""
 		val name = "L$index"
@@ -59,9 +60,16 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				if (value != null) edgeTo(value)
 			}
 
+		init {
+			trace { "node: ${this.name}" }
+		}
+
+		fun tryGetEdgeTo(dst: Node) = this.dstEdges.firstOrNull { it.dst == dst }
+
 		fun edgeTo(dst: Node, cond: AstExpr? = null): Node {
+			trace { "edge: ${this.name} -> ${dst.name}" }
 			val src = this
-			val edge = Edge(types, src, dst, cond)
+			val edge = Edge(src, dst, cond)
 			src.dstEdges += edge
 			dst.srcEdges += edge
 			return this
@@ -71,7 +79,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun isEmpty(): Boolean = body.isEmpty()
 	}
 
-	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
+	inner class Edge(val src: Node, val dst: Node, val cond: AstExpr? = null) {
 		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
 
 		val condOrTrue get() = cond ?: true.lit
@@ -104,8 +112,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	//fun node(body: List<AstStm>): Node = Node(types, lastIndex, body.normalize(lastIndex)).apply { lastIndex++ }
 	//fun node(body: AstStm): Node = Node(types, lastIndex, listOf(body).normalize(lastIndex)).apply { lastIndex++ }
 
-	fun node(body: List<AstStm>): Node = Node(types, lastIndex, body).apply { lastIndex++ }
-	fun node(body: AstStm): Node = Node(types, lastIndex, listOf(body).normalize(lastIndex)).apply { lastIndex++ }
+	fun node(body: ArrayList<AstStm>): Node = Node(lastIndex, body).apply { lastIndex++ }
+	fun node(body: AstStm): Node = node(ArrayList(listOf(body).normalize(lastIndex)))
 
 	fun List<AstStm>.normalize(index: Int): List<AstStm> {
 		val out = arrayListOf<AstStm>()
@@ -129,11 +137,12 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val processed = LinkedHashSet<Node>()
 		val queue = Queue<Node>()
 		queue.queue(nentry)
-		while (queue.hasMore) {
+		loop@while (queue.hasMore) {
 			val node = queue.dequeue()
 			if (node in processed) continue
 			processed += node
 
+			// Combine an empty node that just links to another node
 			if (node.body.isEmpty() && node.dstEdges.size == 1 && node.dstEdgesButNext.isEmpty()) {
 				val dstNode = node.dstEdges.first().dst
 				for (e in node.srcEdges.toList()) {
@@ -144,10 +153,22 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					nentry = dstNode
 				}
 				queue.queue(dstNode)
-			} else {
-				for (edge in node.dstEdges) {
-					queue.queue(edge.dst)
-				}
+				continue@loop
+			}
+
+			// Combine a non-empty node that references just a node and that node is just referenced by that one node
+			//while (node.dstEdgesButNext.isEmpty() && node.next != null && node.next!!.srcEdges.size == 1 && node.next!!.srcEdges.first().src == node) {
+			//	val next = node.next!!
+			//	node.body += next.body
+			//	node.next = next.next
+			//	for (e in next.dstEdges.toList()) {
+			//		e.remove()
+			//		node.edgeTo(e.dst, e.cond)
+			//	}
+			//}
+
+			for (edge in node.dstEdges) {
+				queue.queue(edge.dst)
 			}
 		}
 		return nentry
@@ -220,7 +241,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	 * - Creates a list of nodes for the graph
 	 */
 	private fun prepare(entry: Node): Prepare {
-		val exit = node(listOf())
+		val exit = node(arrayListOf())
 		val processed = LinkedHashSet<Node>()
 		exit.exitNode = true
 		processed += exit

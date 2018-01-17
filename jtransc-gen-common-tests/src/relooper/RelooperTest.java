@@ -74,7 +74,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper
+	@JTranscRelooper(debug = true)
 	static public int composedIfOr(int a, int b) {
 		if (a < b || a >= 0) {
 			return -1;
@@ -170,6 +170,7 @@ public class RelooperTest {
 		return result;
 	}
 
+	//@JTranscRelooper(debug = true)
 	@JTranscRelooper
 	static public boolean isDigit(char c) {
 		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
@@ -210,7 +211,7 @@ public class RelooperTest {
 		return true;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static private boolean myswitch(int a) {
 		JTranscConsole.log("myswitch: " + a);
 		switch (a) {
