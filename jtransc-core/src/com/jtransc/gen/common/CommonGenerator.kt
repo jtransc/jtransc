@@ -1390,7 +1390,16 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun genStmIfElse(stm: AstStm.IF_ELSE) = indent {
 		line("if (${stm.cond.genExpr()})") { line(stm.strue.genStm()) }
-		line("else") { line(stm.sfalse.genStm()) }
+		var sfalse: AstStm = stm.sfalse.value
+		while (true) {
+			if (sfalse is AstStm.IF_ELSE) {
+				line("else if (${sfalse.cond.genExpr()})") { line((sfalse as AstStm.IF_ELSE).strue.genStm()) }
+				sfalse = sfalse.sfalse.value
+			} else {
+				line("else") { line(sfalse.genStm()) }
+				break
+			}
+		}
 	}
 
 	open val allowAssignItself = false
