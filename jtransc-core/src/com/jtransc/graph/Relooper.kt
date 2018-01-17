@@ -651,14 +651,14 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			return AstStm.RETURN(AstExpr.TERNARY(this.cond.value, st.retval.value, sf.retval.value, types))
 		}
 		// Guard clause!
-		if ((st is AstStm.RETURN)) {
+		if ((st is AstStm.RETURN) || (st is AstStm.THROW)) {
 			return listOf(
 				AstStm.IF(cond.value, st),
 				sf
 			).stms
 		}
 		// Guard clause!
-		if ((sf is AstStm.RETURN)) {
+		if ((sf is AstStm.RETURN) || (sf is AstStm.THROW)) {
 			return listOf(
 				AstStm.IF(cond.value.not(), sf),
 				st
