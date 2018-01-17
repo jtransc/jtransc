@@ -52,6 +52,8 @@ class Queue<T>() : Iterable<T> {
 	val size: Int get() = data.size
 	//val hasMore get() = size > 0
 
+	operator fun invoke(value: T): T = queue(value)
+
 	fun queue(value: T): T {
 		data.addFirst(value)
 		return value

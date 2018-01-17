@@ -106,8 +106,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	private fun Node.removeEmptyNodes(): Node {
 		var nentry = this
 		val processed = LinkedHashSet<Node>()
-		fun explore(node: Node) {
-			if (node in processed) return
+		val queue = Queue<Node>()
+		queue.queue(nentry)
+		while (queue.hasMore) {
+			val node = queue.dequeue()
+			if (node in processed) continue
 			processed += node
 
 			if (node.body.isEmpty() && node.dstEdges.size == 1 && node.dstEdgesButNext.isEmpty()) {
@@ -119,22 +122,24 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				if (nentry == node) {
 					nentry = dstNode
 				}
-				explore(dstNode)
+				queue.queue(dstNode)
 			} else {
-				for (edge in node.dstEdges.toList()) {
-					explore(edge.dst)
+				for (edge in node.dstEdges) {
+					queue.queue(edge.dst)
 				}
 			}
 		}
-		explore(nentry)
 		return nentry
 	}
 
 	private fun Node.combineBooleanOpsEdges(): Node {
 		val entry = this
 		val processed = LinkedHashSet<Node>()
-		fun explore(node: Node) {
-			if (node in processed) return
+		val queue = Queue<Node>()
+		queue.queue(entry)
+		while (queue.hasMore) {
+			val node = queue.dequeue()
+			if (node in processed) continue
 			processed += node
 
 			// This node may be a || or a &&
@@ -151,10 +156,6 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					val prevCondNode = prevCond.dst
 					val currCondNode = currCond.dst
 
-					if (debug) {
-						println("!!")
-					}
-
 					// && in the original code
 					//* L0:  EDGES: [goto L1;, IF ((p0 >= p1)) goto L2;]. SRC_EDGES: 0
 					//* L1: NOP(empty stm) EDGES: [goto L3;, IF ((p0 < 0)) goto L2;]. SRC_EDGES: 1
@@ -163,9 +164,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						prev.edgeTo(currCond.dst, prevCond.condOrTrue bor currCond.condOrTrue)
 						prev.next = currNext
 						//println("-------")
-						explore(currCond.dst)
-						explore(currNext)
-						return
+						queue(currCond.dst)
+						queue(currNext)
+						continue
 					}
 					// || in the original code
 					//* L0:  EDGES: [goto L1;, IF ((p0 < p1)) goto L2;]. SRC_EDGES: 0
@@ -175,9 +176,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						prev.edgeTo(currNext, prevCond.condOrTrue bor currCond.condOrTrue.not())
 						prev.next = currCond.dst
 						//println("-------")
-						explore(currCond.dst)
-						explore(currNext)
-						return
+						queue(currCond.dst)
+						queue(currNext)
+						continue
 					}
 					// None
 					else {
@@ -186,11 +187,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				}
 			}
 
-			for (edge in node.dstEdges.toList()) {
-				explore(edge.dst)
+			for (edge in node.dstEdges) {
+				queue(edge.dst)
 			}
 		}
-		explore(entry)
 		return entry
 	}
 
@@ -200,21 +200,24 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	 */
 	private fun prepare(entry: Node): Prepare {
 		val exit = node(listOf())
-		val explored = LinkedHashSet<Node>()
+		val processed = LinkedHashSet<Node>()
 		val result = LinkedHashSet<Node>()
-		fun explore(node: Node): Unit {
-			if (node in explored) return
-			explored += node
+
+		val queue = Queue<Node>()
+		queue.queue(entry)
+		while (queue.hasMore) {
+			val node = queue.dequeue()
+			if (node in processed) continue
+			processed += node
+
 			result += node
 			if (node.next == null) {
 				edge(node, exit)
 			}
-			if (node.next != null) explore(node.next!!)
-			for (edge in node.dstEdges) explore(edge.dst)
+			if (node.next != null) queue(node.next!!)
+			for (edge in node.dstEdges) queue(edge.dst)
 		}
-		explore(entry)
 		result += exit
-
 		return Prepare(result.toList(), entry, exit)
 	}
 
