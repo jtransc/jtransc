@@ -344,7 +344,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		// @TODO: Optimize performance!
 		// @TODO: We should use the parent Strong Component to determine reachable nodes.
-		fun findCommonSuccessorNotRendered(a: Node, b: Node, exit: Node?): Node? {
+		fun findCommonSuccessorNotRendered(a: Node?, b: Node?, exit: Node?): Node? {
+			if (a == null) return b
+			if (b == null) return a
 			//val checkRendered = true
 			val checkRendered = false
 			val aSet = getNodeSuccessorsLinkedSet(a, exit, checkRendered)
@@ -368,6 +370,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				}
 			} while (c != 0)
 			return null
+		}
+
+		fun findCommonSuccessorNotRendered(nodes: List<Node?>, exit: Node?): Node? {
+			return nodes.reduce { acc, node -> findCommonSuccessorNotRendered(acc!!, node!!, exit) }
 		}
 	}
 
@@ -539,7 +545,26 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		if (node.dstEdges.size != 2) {
-			TODO()
+			val common = ctx.findCommonSuccessorNotRendered(node.dstEdges.map { it.dst }, exit)
+			//out += AstStm.SWITCH()
+
+			var base = if (node.next != null) {
+				renderComponents(pg, g, node.next!!, common, ctx, level = level + 1)
+			} else {
+				AstStm.NOP("")
+			}
+
+			for (e in node.dstEdgesButNext) {
+				base = AstStm.IF_ELSE(
+					e.condOrTrue,
+					renderComponents(pg, g, e.dst, common, ctx, level = level + 1),
+					base
+				)
+			}
+
+			out += base
+
+			return common
 		}
 
 		trace { "$indent- Node IF (and else?)" }
@@ -547,16 +572,16 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val endOfIfEdge = node.dstEdgesButNext.firstOrNull() ?: invalidOp("Expected conditional!")
 		val endOfIfNode = endOfIfEdge.dst
 		val common = ctx.findCommonSuccessorNotRendered(ifBody, endOfIfNode, exit = exit)
-			//?: invalidOp("Not found common node for ${ifBody.name} and ${endOfIfNode.name}!")
+		//?: invalidOp("Not found common node for ${ifBody.name} and ${endOfIfNode.name}!")
 
 
 		when (common) {
-			// IF
+		// IF
 			endOfIfNode -> out += AstStm.IF(
 				endOfIfEdge.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
 				renderComponents(pg, g, ifBody, endOfIfNode, ctx, level = level + 1)
 			)
-			// IF
+		// IF
 			null -> {
 				val ifBodyCB = getNodeContinueOrBreak(ifBody)
 				val endOfIfCB = getNodeContinueOrBreak(endOfIfNode)
@@ -583,7 +608,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				}
 
 			}
-			// IF+ELSE
+		// IF+ELSE
 			else -> out += AstStm.IF_ELSE(
 				endOfIfEdge.cond!!,
 				renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1),
