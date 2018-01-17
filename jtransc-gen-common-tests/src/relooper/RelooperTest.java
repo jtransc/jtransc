@@ -54,6 +54,8 @@ public class RelooperTest {
 		JTranscConsole.log(myswitch(2));
 		JTranscConsole.log(myswitch(3));
 		JTranscConsole.log(myswitch(4));
+
+		JTranscConsole.log(switchCase(new Term(), 0, new Term()));
 	}
 
 	@JTranscRelooper
@@ -211,7 +213,7 @@ public class RelooperTest {
 		return true;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static private boolean myswitch(int a) {
 		JTranscConsole.log("myswitch: " + a);
 		switch (a) {
@@ -228,5 +230,50 @@ public class RelooperTest {
 		}
 		JTranscConsole.log("end myswitch");
 		return true;
+	}
+
+	@JTranscRelooper(debug = true)
+	static private int switchCase(Term target, int distance, Term theFirst) {
+		int type;
+		Term next;
+		boolean eat;
+		switch (target.type) {
+			case Term.CHAR:
+			case Term.BITSET:
+			case Term.BITSET2:
+				type = Term.FIND;
+				break;
+			case Term.REG:
+			case Term.REG_I:
+			case Term.GROUP_IN:
+				type = Term.FINDREG;
+				break;
+			default:
+				throw new IllegalArgumentException("wrong target type: " + target.type);
+		}
+		//target = target;
+		//distance = distance;
+		if (target == theFirst) {
+			next = target.next;
+			eat = true; //eat the next
+		} else {
+			next = theFirst;
+			eat = false;
+		}
+		return type + (eat ? 1 : 0) + next.type;
+	}
+
+	static class Term {
+		public int type;
+		public Term next;
+
+		static final int CHAR = 0;
+		static final int BITSET = 1;
+		static final int BITSET2 = 2;
+		static final int REG = 6;
+		static final int REG_I = 7;
+		static final int FIND = 8;
+		static final int FINDREG = 9;
+		static final int GROUP_IN = 15;
 	}
 }

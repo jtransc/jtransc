@@ -47,7 +47,7 @@ class GotosFeature : AstMethodFeature() {
 		val stms = entryStm.stmsUnboxed
 		val labelToIndex = stms.withIndex().filter { it.value is AstStm.STM_LABEL }.map { (it.value as AstStm.STM_LABEL).label to it.index }.toMap()
 		val relooper = Relooper(types, "$method", method.relooperDebug)
-		val tswitchLocal = AstType.INT.local("_switchId")
+		val tswitchLocal = AstType.INT.local("_switchId").local
 
 		fun AstLabel.index(): Int = labelToIndex[this]!!
 
@@ -85,18 +85,23 @@ class GotosFeature : AstMethodFeature() {
 						break@loop
 					}
 					is AstStm.SWITCH_GOTO -> {
-						val switchLocal = if (stm.subject.value is AstExpr.LOCAL) {
+						fun tswitchLocalGen() = tswitchLocal.local
+						fun subGen() = stm.subject.value
+
+						val switchLocal = if (stm.subject.value !is AstExpr.LocalExpr) {
+							stm as AstStm.SWITCH_GOTO
 							out += tswitchLocal.setTo(stm.subject.value)
-							tswitchLocal
+							::tswitchLocalGen
 						} else {
-							stm.subject.value
+							::subGen
 						}
 
+						stm as AstStm.SWITCH_GOTO
 						node.edgeTo(render(stm.default.index()))
 						for ((keys, label) in stm.cases) {
 							val branch = render(label.index())
 							for (key in keys) {
-								node.edgeTo(branch, switchLocal eq key.lit)
+								node.edgeTo(branch, switchLocal() eq key.lit)
 							}
 						}
 						break@loop
