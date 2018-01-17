@@ -76,6 +76,7 @@ class GotosFeature : AstMethodFeature() {
 
 		val entry = createBB()
 		var current = entry
+		var switchId = 0
 		for (stmBox in stms) {
 			val stm = stmBox.value
 			when (stm) {
@@ -96,10 +97,24 @@ class GotosFeature : AstMethodFeature() {
 					prev.next = current
 				}
 				is AstStm.SWITCH_GOTO -> {
-					//val prev = current
-					//current = createBB()
+					val prev = current
+					current = createBB()
 
-					return null
+					val switchLocal = if (stm.subject.value is AstExpr.LOCAL) {
+						val switchLocal = AstType.INT.local("switch${switchId++}")
+						current.stms += switchLocal.setTo(stm.subject.value)
+						switchLocal
+					} else {
+						stm.subject.value
+					}
+					current.next = getBBForLabel(stm.default)
+					for ((keys, label) in stm.cases) {
+						val caseLabel = getBBForLabel(label)
+						for (key in keys) {
+							prev.edges += BBEdge(switchLocal eq key.lit, caseLabel)
+						}
+					}
+					prev.next = current
 				}
 				is AstStm.RETURN, is AstStm.THROW, is AstStm.RETHROW -> {
 					current.stms += stm
