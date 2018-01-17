@@ -101,7 +101,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	var lastIndex = 0
-	fun node(body: List<AstStm>): Node = Node(types, lastIndex, body.normalize(lastIndex)).apply { lastIndex++ }
+	//fun node(body: List<AstStm>): Node = Node(types, lastIndex, body.normalize(lastIndex)).apply { lastIndex++ }
+	//fun node(body: AstStm): Node = Node(types, lastIndex, listOf(body).normalize(lastIndex)).apply { lastIndex++ }
+
+	fun node(body: List<AstStm>): Node = Node(types, lastIndex, body).apply { lastIndex++ }
 	fun node(body: AstStm): Node = Node(types, lastIndex, listOf(body).normalize(lastIndex)).apply { lastIndex++ }
 
 	fun List<AstStm>.normalize(index: Int): List<AstStm> {
