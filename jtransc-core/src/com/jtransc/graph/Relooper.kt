@@ -66,6 +66,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
+		fun isEmpty(): Boolean = body.isEmpty()
 	}
 
 	class Edge(val types: AstTypes, val src: Node, val dst: Node, val cond: AstExpr? = null) {
@@ -102,29 +103,39 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	data class Prepare(val nodes: List<Node>, val entry: Node, val exit: Node)
 
-	/**
-	 * - Remove empty nodes
-	 * - Combine nodes with && and ||
-	 * - Create a single artificial exit node
-	 */
-	private fun prepare(entry: Node): Prepare {
-		val explored = LinkedHashSet<Node>()
-		val result = LinkedHashSet<Node>()
-		val exitNodes = arrayListOf<Node>()
-		fun explore(node: Node): Unit {
-			if (node in explored) return
-			explored += node
+	private fun Node.removeEmptyNodes(): Node {
+		var nentry = this
+		val processed = LinkedHashSet<Node>()
+		fun explore(node: Node) {
+			if (node in processed) return
+			processed += node
 
-			// Remove empty node
 			if (node.body.isEmpty() && node.dstEdges.size == 1 && node.dstEdgesButNext.isEmpty()) {
 				val dstNode = node.dstEdges.first().dst
 				for (e in node.srcEdges.toList()) {
 					e.remove()
 					e.src.edgeTo(dstNode, e.cond)
 				}
+				if (nentry == node) {
+					nentry = dstNode
+				}
 				explore(dstNode)
-				return
+			} else {
+				for (edge in node.dstEdges.toList()) {
+					explore(edge.dst)
+				}
 			}
+		}
+		explore(nentry)
+		return nentry
+	}
+
+	private fun Node.combineBooleanOpsEdges(): Node {
+		val entry = this
+		val processed = LinkedHashSet<Node>()
+		fun explore(node: Node) {
+			if (node in processed) return
+			processed += node
 
 			// This node may be a || or a &&
 			if (node.body.isEmpty() && node.srcEdges.size == 1 && node.srcEdges[0].src.next == node && node.dstEdges.size == 2) {
@@ -140,7 +151,11 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					val prevCondNode = prevCond.dst
 					val currCondNode = currCond.dst
 
-					// OR (after negating, acts as an && in code)
+					if (debug) {
+						println("!!")
+					}
+
+					// && in the original code
 					//* L0:  EDGES: [goto L1;, IF ((p0 >= p1)) goto L2;]. SRC_EDGES: 0
 					//* L1: NOP(empty stm) EDGES: [goto L3;, IF ((p0 < 0)) goto L2;]. SRC_EDGES: 1
 					if (prevCondNode == currCondNode) {
@@ -151,44 +166,65 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						explore(currCond.dst)
 						explore(currNext)
 						return
-					} else {
-						//TODO()
+					}
+					// || in the original code
+					//* L0:  EDGES: [goto L1;, IF ((p0 < p1)) goto L2;]. SRC_EDGES: 0
+					//* L1: NOP(empty stm) EDGES: [IF ((p0 < 0)) goto L4;, goto L2;]. SRC_EDGES: 1
+					else if (prevCondNode == currNext) {
+						prevCond.remove()
+						prev.edgeTo(currNext, prevCond.condOrTrue bor currCond.condOrTrue.not())
+						prev.next = currCond.dst
+						//println("-------")
+						explore(currCond.dst)
+						explore(currNext)
+						return
+					}
+					// None
+					else {
+
 					}
 				}
 			}
 
+			for (edge in node.dstEdges) explore(edge.dst)
+		}
+		explore(entry)
+		return entry
+	}
+
+	/**
+	 * - Create a single artificial exit node
+	 * - Creates a list of nodes for the graph
+	 */
+	private fun prepare(entry: Node): Prepare {
+		val exit = node(listOf())
+		val explored = LinkedHashSet<Node>()
+		val result = LinkedHashSet<Node>()
+		fun explore(node: Node): Unit {
+			if (node in explored) return
+			explored += node
 			result += node
-			if (node.next == null) exitNodes += node
+			if (node.next == null) {
+				edge(node, exit)
+			}
 			if (node.next != null) explore(node.next!!)
 			for (edge in node.dstEdges) explore(edge.dst)
 		}
 		explore(entry)
+		result += exit
 
-		// Ensure just one single exit node
-		//val actualExit = if (exitNodes.size != 1) {
-		//	val exit = node(listOf())
-		//	for (node in exitNodes) edge(node, exit)
-		//	result += exit
-		//	exit
-		//} else {
-		//	exitNodes.first()
-		//}
-
-		val actualExit = run {
-			val exit = node(listOf())
-			for (node in exitNodes) edge(node, exit)
-			result += exit
-			exit
-		}
-
-		return Prepare(result.toList(), entry, actualExit)
+		return Prepare(result.toList(), entry, exit)
 	}
 
 	inline private fun trace(msg: () -> String) {
 		if (debug) println(msg())
 	}
 
-	fun render(entry: Node): AstStm {
+	fun render(rentry: Node): AstStm {
+		val entry = rentry
+			.removeEmptyNodes()
+			.combineBooleanOpsEdges()
+
 		val gresult = prepare(entry)
 		val g = graphList(gresult.nodes.map { it to it.possibleNextNodes })
 		if (debug) {
