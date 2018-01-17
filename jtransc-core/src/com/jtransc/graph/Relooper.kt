@@ -544,13 +544,15 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		// Guard clause (either return or throw)
 		if (node.dstEdgesButNext.size == 1 && node.next != null && node.next!!.exitNode) {
-			out += AstStm.IF(firstCondEdge!!.cond!!.not(), node.next!!.body.stm())
+			val breakOrContinue = getNodeContinueOrBreak(node.next)
+			out += AstStm.IF(firstCondEdge!!.cond!!.not(), breakOrContinue ?: node.next!!.body.stm())
 			return node.dstEdgesButNext.first().dst
 		}
 
 		// Guard clause (either return or throw)
 		if (node.dstEdgesButNext.size == 1 && node.next != null && firstCondNode?.exitNode == true) {
-			out += AstStm.IF(firstCondEdge.cond!!, firstCondNode.body.stm())
+			val breakOrContinue = getNodeContinueOrBreak(firstCondNode)
+			out += AstStm.IF(firstCondEdge.cond!!, breakOrContinue ?: firstCondNode.body.stm())
 			return node.next
 		}
 
