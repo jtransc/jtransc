@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.jtransc.error
 
 class InvalidOperationException(str: String = "Invalid Operation", cause: Throwable? = null) : Exception(str, cause)
@@ -26,24 +28,22 @@ class MustOverrideException(str: String = "Must Override") : Exception(str)
 class DeprecatedException(str: String = "Deprecated") : Exception(str)
 class UnexpectedException(str: String = "Unexpected") : Exception(str)
 
-val deprecated: Nothing get() = throw MustValidateCodeException()
-val mustValidate: Nothing get() = throw NotImplementedException()
-val noImpl: Nothing get() = throw NotImplementedException()
-val invalidOp: Nothing get() = throw InvalidOperationException()
+inline val deprecated: Nothing get() = throw MustValidateCodeException()
+inline val mustValidate: Nothing get() = throw NotImplementedException()
+inline val noImpl: Nothing get() = throw NotImplementedException()
+inline val invalidOp: Nothing get() = throw InvalidOperationException()
 
-fun deprecated(msg:String): Nothing { throw DeprecatedException(msg) }
-fun mustValidate(msg:String): Nothing { throw MustValidateCodeException(msg) }
-fun noImpl(msg:String): Nothing { throw NotImplementedException(msg) }
-fun invalidOp(msg:String, cause: Throwable? = null): Nothing {
-	throw InvalidOperationException(msg, cause)
-}
-fun unsupported(msg:String): Nothing { throw UnsupportedOperationException(msg) }
-fun invalidArgument(msg:String): Nothing { throw InvalidArgumentException(msg) }
-fun unexpected(msg:String): Nothing { throw UnexpectedException(msg) }
+inline fun deprecated(msg:String): Nothing = throw DeprecatedException(msg)
+inline fun mustValidate(msg:String): Nothing = throw MustValidateCodeException(msg)
+inline fun noImpl(msg:String): Nothing = throw NotImplementedException(msg)
+inline fun invalidOp(msg:String, cause: Throwable? = null): Nothing = throw InvalidOperationException(msg, cause)
+inline fun unsupported(msg:String): Nothing = throw UnsupportedOperationException(msg)
+inline fun invalidArgument(msg:String): Nothing = throw InvalidArgumentException(msg)
+inline fun unexpected(msg:String): Nothing = throw UnexpectedException(msg)
 
 // Warns
-fun untestedWarn(msg:String): Unit { println("Untested: $msg") }
-fun noImplWarn(msg:String): Unit { println("Not implemented: $msg") }
+inline fun untestedWarn(msg:String): Unit { println("Untested: $msg") }
+inline fun noImplWarn(msg:String): Unit { println("Not implemented: $msg") }
 
 inline fun ignoreErrors(action: () -> Unit) {
 	try {

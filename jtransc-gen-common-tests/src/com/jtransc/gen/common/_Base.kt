@@ -111,6 +111,7 @@ open class _Base {
 		val optimize: Boolean? = null,
 		val treeShaking: Boolean? = null,
 		val backend: BuildBackend? = null,
+		val relooper: Boolean? = null,
 		val configureInjector: Injector.() -> Unit = {},
 		val target: GenTargetDescriptor? = null,
 		val log: Boolean? = null,
@@ -203,7 +204,7 @@ open class _Base {
 					jtranscVersion = JTranscVersion.getVersion(),
 					debug = params.debug ?: DEBUG,
 					optimize = params.optimize ?: OPTIMIZE,
-					relooper = RELOOPER,
+					relooper = params.relooper ?: RELOOPER,
 					extra = params.extra ?: mapOf(),
 					analyzer = params.analyze ?: ANALYZER,
 					rtAndRtCore = rtAndCoreFiltered

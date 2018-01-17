@@ -56,6 +56,7 @@ import jtransc.staticinit.StaticInitTest2
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
+import relooper.RelooperTest
 import testservice.test.ServiceLoaderTest
 import testservice.test.TestServiceJs2
 
@@ -68,6 +69,9 @@ class JsTest : _Base() {
 	@Test fun testBigWithoutTreeShakingAndAsync() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false, extra = mapOf("js_enable_async" to "true")))
 
 	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
+
+	@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = false))
+	//@Test fun testRelooperTest() = testClass(Params(clazz = RelooperTest::class.java, minimize = false, log = false, treeShaking = true, debug = true, relooper = true))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
 	@Test fun testBigMin() = testClass(Params(clazz = BigTest::class.java, minimize = true, log = false))

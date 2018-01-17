@@ -60,6 +60,7 @@ open class AstVisitor {
 			is AstStm.IF -> visit(stm)
 			is AstStm.IF_ELSE -> visit(stm)
 			is AstStm.WHILE -> visit(stm)
+			is AstStm.DO_WHILE -> visit(stm)
 			is AstStm.RETURN -> visit(stm)
 			is AstStm.RETURN_VOID -> visit(stm)
 			is AstStm.THROW -> visit(stm)
@@ -203,7 +204,12 @@ open class AstVisitor {
 
 	open fun visit(stm: AstStm.WHILE) {
 		visit(stm.cond)
-		visit(stm.iter)
+		visit(stm.body)
+	}
+
+	open fun visit(stm: AstStm.DO_WHILE) {
+		visit(stm.body)
+		visit(stm.cond)
 	}
 
 	open fun visit(stm: AstStm.RETURN) {

@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
 import com.jtransc.text.Indenter
-import com.jtransc.text.Indenter.Companion
 
 //fun AstBody.dump() = dump(this)
 
@@ -18,8 +17,22 @@ fun dump(types: AstTypes, body: AstBody): Indenter {
 	}
 }
 
-fun dump(types: AstTypes, expr: AstStm.Box?): Indenter {
-	return dump(types, expr?.value)
+fun dump(types: AstTypes, stm: AstStm.Box?): Indenter {
+	return dump(types, stm?.value)
+}
+
+fun dumpCollapse(types: AstTypes, stm: AstStm.Box?): Indenter {
+	val s = stm?.value
+	if (s is AstStm.STMS) {
+		return Indenter {
+			for (ss in s.stmsUnboxed) {
+				if (ss is AstStm.NOP) continue
+				line(dumpCollapse(types, ss.box))
+			}
+		}
+	} else {
+		return dump(types, s)
+	}
 }
 
 fun dump(types: AstTypes, stm: AstStm?): Indenter {
@@ -55,17 +68,22 @@ fun dump(types: AstTypes, stm: AstStm?): Indenter {
 				//line("LINE(${stm.line})")
 			}
 			is AstStm.NOP -> line("NOP(${stm.reason})")
-			is AstStm.CONTINUE -> line("continue;")
-			is AstStm.BREAK -> line("break;")
+			is AstStm.CONTINUE -> line("continue ${stm.name};")
+			is AstStm.BREAK -> line("break ${stm.name};")
 			is AstStm.THROW -> line("throw ${dump(types, stm.exception)};")
-			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
+			is AstStm.IF -> line("if (${dump(types, stm.cond)})") { line(dumpCollapse(types, stm.strue)) }
 			is AstStm.IF_ELSE -> {
-				line("if (${dump(types, stm.cond)})") { line(dump(types, stm.strue)) }
-				line("else") { line(dump(types, stm.sfalse)) }
+				line("if (${dump(types, stm.cond)})") { line(dumpCollapse(types, stm.strue)) }
+				line("else") { line(dumpCollapse(types, stm.sfalse)) }
 			}
 			is AstStm.WHILE -> {
-				line("while (${dump(types, stm.cond)})") {
-					line(dump(types, stm.iter))
+				line("${stm.name}: while (${dump(types, stm.cond)})") {
+					line(dumpCollapse(types, stm.body))
+				}
+			}
+			is AstStm.DO_WHILE -> {
+				line("${stm.name}: do", after2 = " while (${dump(types, stm.cond)});") {
+					line(dumpCollapse(types, stm.body))
 				}
 			}
 			is AstStm.SWITCH -> {
@@ -94,7 +112,10 @@ fun dump(types: AstTypes, expr: AstExpr.Box?): String {
 fun AstExpr?.exprDump(types: AstTypes) = dump(types, this)
 
 fun List<AstStm>.dump(types: AstTypes) = dump(types, this.stm())
+fun List<AstStm>.dumpCollapse(types: AstTypes) = dumpCollapse(types, this.stms.box)
 fun AstStm.dump(types: AstTypes) = dump(types, this)
+fun AstStm.dumpCollapse(types: AstTypes) = dumpCollapse(types, this.box)
+
 fun AstExpr.dump(types: AstTypes) = dump(types, this)
 
 fun dump(types: AstTypes, expr: AstExpr?): String {
@@ -136,6 +157,7 @@ fun dump(types: AstTypes, expr: AstExpr?): String {
 		is AstExpr.INVOKE_DYNAMIC_METHOD -> {
 			"invokeDynamic(${expr.extraArgCount}, ${expr.methodInInterfaceRef}, ${expr.methodToConvertRef})(${expr.startArgs.map { dump(types, it) }.joinToString(", ")})"
 		}
+		is AstExpr.RAW -> "${expr.content}"
 		else -> noImpl("$expr")
 	}
 }

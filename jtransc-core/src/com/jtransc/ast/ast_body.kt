@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.ds.cast
 import com.jtransc.error.invalidOp
 import com.jtransc.error.noImpl
-import com.jtransc.gen.TargetName
 import kotlin.reflect.KProperty
 
 data class AstBody constructor(
@@ -203,9 +202,15 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val sfalse = sfalse.box
 	}
 
-	class WHILE(cond: AstExpr, iter: AstStm) : AstStm() {
+	class WHILE(val name: String, cond: AstExpr, body: AstStm) : AstStm() {
 		val cond = cond.box
-		val iter = iter.box
+		val body = body.box
+	}
+
+	// Basic back jump
+	class DO_WHILE(val name: String, cond: AstExpr, body: AstStm) : AstStm() {
+		val cond = cond.box
+		val body = body.box
 	}
 
 	class RETURN(retval: AstExpr) : AstStm() {
@@ -227,8 +232,8 @@ sealed class AstStm : AstElement, Cloneable<AstStm> {
 		val catch = catch.box
 	}
 
-	class BREAK() : AstStm()
-	class CONTINUE() : AstStm()
+	class BREAK(val name: String) : AstStm()
+	class CONTINUE(val name: String) : AstStm()
 
 	// SwitchFeature
 	class SWITCH(subject: AstExpr, default: AstStm, cases: List<Pair<List<Int>, AstStm>>) : AstStm() {
@@ -272,6 +277,24 @@ fun AstStm.isEmpty() = when (this) {
 	else -> false
 }
 
+fun AstStm.normalizeWithoutNopsOrLines(): AstStm {
+	if (this is AstStm.STMS) {
+		val st = this.stms.unboxed
+			.flatMap { if (it is AstStm.STMS) it.stmsUnboxed else listOf(it) }
+			.filter { !it.isNopOrLine() }
+		return if (st.size == 1) st[0] else st.stms
+	}
+	return this
+}
+
+fun AstStm.isNop(): Boolean = this is AstStm.NOP
+fun AstStm.isLine(): Boolean = this is AstStm.LINE
+fun AstStm.isNopOrLine(): Boolean = isNop() || isLine()
+
+fun AstStm.isContinue(name: String): Boolean = this is AstStm.CONTINUE && this.name == name
+fun AstStm.isBreak(name: String): Boolean = this is AstStm.BREAK && this.name == name
+fun AstStm.isReturnValue(): Boolean = this is AstStm.RETURN
+
 fun AstStm.isSingleStm(): Boolean {
 	if (this is AstStm.STMS) return (this.stms.count() == 1) && this.stms.last().value.isSingleStm()
 	return true
@@ -281,6 +304,8 @@ fun AstStm.lastStm(): AstStm {
 	if (this is AstStm.STMS) return this.stms.lastOrNull()?.value?.lastStm() ?: this
 	return this
 }
+
+val Iterable<AstStm.Box>.unboxed get() = this.map { it.value }
 
 fun AstStm.expand(): List<AstStm> {
 	return when (this) {
@@ -364,7 +389,9 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 		//var ahead: Boolean = false
 	}
 
-	class RAW(override val type: AstType, val content: String) : AstExpr()
+	class RAW(override val type: AstType, val content: String) : AstExpr() {
+		override fun toString(): String = "RAW($content)"
+	}
 
 	class PARAM(val argument: AstArgument) : LocalExpr() {
 		override val name: String get() = argument.name
@@ -553,8 +580,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun lt(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LT, that)
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
+	infix fun bor(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BOR, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType.REF) = AstExpr.INSTANCE_OF(this, that)
+
+	//infix fun AND(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 
 	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr, val types: AstTypes) : AstExpr() {
 		override val type: AstType = types.unify(etrue.type, efalse.type)
@@ -583,6 +613,9 @@ fun List<AstStm>.stm() = when (this.size) {
 }
 
 fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
+fun AstExpr.Box.isLiteral(value: Any?): Boolean = this.value.isLiteral(value)
+
+fun AstExpr.isLiteral(value: Any?): Boolean = (this is AstExpr.LITERAL) && this.value == value
 
 fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds
@@ -792,6 +825,8 @@ operator fun AstExpr.minus(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBi
 operator fun AstExpr.times(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.MUL, that)
 infix fun AstExpr.eq(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.EQ, that)
 infix fun AstExpr.ne(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.NE, that)
+fun AstExpr.inv() = AstExpr.UNOP(AstUnop.INV, this)
+//fun AstExpr.not() = AstExpr.UNOP(AstUnop.NOT, this)
 
 operator fun AstMethod.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
 operator fun AstMethodRef.invoke(vararg exprs: AstExpr) = AstExpr.CALL_STATIC(this.ref, exprs.toList())
@@ -882,8 +917,8 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 		return IfElseBuilder(IF, IF_INDEX, stms, types, ctx)
 	}
 
-	inline fun WHILE(cond: AstExpr, callback: AstBuilder2.() -> Unit) {
-		stms += AstStm.WHILE(cond, AstBuilder2(types, ctx).apply(callback).genstm())
+	inline fun WHILE(name: String, cond: AstExpr, callback: AstBuilder2.() -> Unit) {
+		stms += AstStm.WHILE(name, cond, AstBuilder2(types, ctx).apply(callback).genstm())
 	}
 
 	inline fun FOR(local: AstLocal, start: Int, until: Int, callback: AstBuilder2.() -> Unit) {

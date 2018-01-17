@@ -6,18 +6,22 @@ import java.util.*
 // G = Graph
 // V = Vertices (Nodes)
 // E = Edges (E)
-fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm() = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this).calculate())
+//fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm(filterNode: (node: Int) -> Boolean = { true }, filterEdge: (src: Int, dst: Int) -> Boolean = { _, _ -> true }) = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this, filterNode, filterEdge).calculate())
+fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm(filterEdge: (src: Int, dst: Int) -> Boolean = { _, _ -> true }) = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this, filterEdge).calculate())
 
 // A strong component list is a disjoint set : https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 class StrongComponent<T>(val scgraph: StrongComponentGraph<T>, val indices: LinkedHashSet<Int>) {
 	val graph: Digraph<T> = scgraph.graph
 	val nodes: List<T> = graph.toNodes(indices)
+	private val nodesSet = nodes.toSet()
 	//val inp: List<StrongComponent<T>> get() = scgraph.getInNodes(this)
 	val out: List<StrongComponent<T>> get() = scgraph.getOutNodes(this)
+	val size get() = nodes.size
+	operator fun contains(node: T) = node in nodesSet
 	override fun toString() = graph.toNodes(indices).toString()
 }
 
-data class StrongComponentEdge<T>(val scgraph: StrongComponentGraph<T>, val fromNode:Int, val fromSC:StrongComponent<T>, val toNode:Int, val toSC:StrongComponent<T>) {
+data class StrongComponentEdge<T>(val scgraph: StrongComponentGraph<T>, val id: Int, val fromNode:Int, val fromSC:StrongComponent<T>, val toNode:Int, val toSC:StrongComponent<T>) {
 	val graph: Digraph<T> = scgraph.graph
 	val fromNodeNode = graph.nodes[fromNode]
 	val toNodeNode = graph.nodes[toNode]
@@ -47,6 +51,8 @@ class StrongComponentGraph<T>(val graph: Digraph<T>, componentsData: List<Linked
 		outputEdges[fromSCIndex] += edge
 	}
 
+	var lastId: Int = 0; private set
+
 	init {
 		// @TODO: SLOW! This information probably could be obtained directly from the algorithm!
 		for (inpComponent in components) {
@@ -57,7 +63,7 @@ class StrongComponentGraph<T>(val graph: Digraph<T>, componentsData: List<Linked
 					if (out !in set) {
 						// external link
 						val outComponent = findComponentWith(out)
-						addEdge(StrongComponentEdge(this, inp, inpComponent, out, outComponent))
+						addEdge(StrongComponentEdge(this, lastId++, inp, inpComponent, out, outComponent))
 					}
 				}
 			}
@@ -83,16 +89,22 @@ fun <T> List<StrongComponent<T>>.toNodes(graph: Digraph<T>): List<List<T>> {
 	return this.map { graph.toNodes(it.indices) }
 }
 
-private class TarjanStronglyConnectedComponentsAlgorithm(val graph: DigraphSimple) {
+private class TarjanStronglyConnectedComponentsAlgorithm(val graph: DigraphSimple, val filter: (src: Int, dst: Int) -> Boolean = { _, _ -> true }) {
 	val indices = IntArray(graph.size) { UNDEFINED }
 	val lowlinks = IntArray(graph.size) { UNDEFINED }
 	val onStackList = BooleanArray(graph.size) { false }
+	val successors = Array<List<Int>?>(graph.size) { null }
 
 	// @TODO: Use type aliases when kotlin accept them!
 	var Int.index: Int get() = indices[this]; set(value) { indices[this] = value }
 	var Int.lowlink: Int get() = lowlinks[this]; set(value) { lowlinks[this] = value }
 	var Int.onStack: Boolean get() = onStackList[this]; set(value) { onStackList[this] = value }
-	fun Int.successors(): List<Int> = graph.getOut(this)
+	fun Int.successors(): List<Int> {
+		if (successors[this] == null) {
+			successors[this] = graph.getOut(this).filter { filter(this, it) }
+		}
+		return successors[this]!!
+	}
 
 	var index = 0
 	var S = Stack<Int>()

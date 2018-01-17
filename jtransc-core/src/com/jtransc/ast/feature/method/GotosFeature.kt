@@ -25,10 +25,13 @@ import com.jtransc.graph.RelooperException
 // @TODO: Use AstBuilder to make it more readable
 class GotosFeature : AstMethodFeature() {
 	override fun remove(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody {
-		if (settings.relooper) {
+		//if (false) {
+		if (method.relooperEnabled ?: settings.relooper) {
+		//if (method.relooperEnabled ?: false) {
 			try {
-				return removeRelooper(body, settings, types) ?: removeMachineState(body, types)
+				return removeRelooper(method, body, settings, types) ?: removeMachineState(body, types)
 			} catch (t: Throwable) {
+				System.err.println("Not relooping $method because of exception!:")
 				t.printStackTrace()
 				return removeMachineState(body, types)
 			}
@@ -37,7 +40,7 @@ class GotosFeature : AstMethodFeature() {
 		}
 	}
 
-	private fun removeRelooper(body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
+	private fun removeRelooper(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
 		class BasicBlock(var index: Int) {
 			var node: Relooper.Node? = null
 			val stms = arrayListOf<AstStm>()
@@ -105,7 +108,7 @@ class GotosFeature : AstMethodFeature() {
 			}
 		}
 
-		val relooper = Relooper(types)
+		val relooper = Relooper(types, "$method", method.relooperDebug)
 		for (n in bblist) {
 			n.node = relooper.node(n.stms)
 			//println("NODE(${n.index}): ${n.stms}")
@@ -138,7 +141,6 @@ class GotosFeature : AstMethodFeature() {
 
 	fun removeMachineState(body: AstBody, types: AstTypes): AstBody {
 		// @TODO: this should create simple blocks and do analysis like that, instead of creating a gigantic switch
-		// @TODO: trying to generate whiles, ifs and so on to allow javascript be fast. See relooper paper.
 		var stm = body.stm
 		//val locals = body.locals.toCollection(arrayListOf<AstLocal>())
 		val traps = body.traps.toCollection(arrayListOf<AstTrap>())
@@ -177,9 +179,9 @@ class GotosFeature : AstMethodFeature() {
 						stateStms = arrayListOf<AstStm>()
 					}
 
-					fun simulateGotoLabel(index: Int) = listOf(
+					fun simulateGotoLabel(index: Int, insideCatch: Boolean = false) = listOf(
 						gotostate.setTo(index.lit),
-						AstStm.CONTINUE()
+						AstStm.CONTINUE(if (insideCatch) "tryLoop" else "loop")
 					)
 
 					fun simulateGotoLabel(label: AstLabel) = simulateGotoLabel(getStateFromLabel(label))
@@ -236,7 +238,7 @@ class GotosFeature : AstMethodFeature() {
 
 					val plainWhile =
 						listOf(
-							AstStm.WHILE(true.lit,
+							AstStm.WHILE("loop", true.lit,
 								AstStm.SWITCH(gotostate, AstStm.NOP("no default"), cases)
 							),
 							extraReturn()
@@ -255,12 +257,12 @@ class GotosFeature : AstMethodFeature() {
 							AstStm.IF(
 								//(gotostate ge AstExpr.LITERAL(startState)) band (gotostate le AstExpr.LITERAL(endState)) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
 								(gotostate ge startState.lit) band (gotostate lt endState.lit) band (AstExpr.CAUGHT_EXCEPTION() instanceof trap.exception),
-								simulateGotoLabel(handlerState).stm()
+								simulateGotoLabel(handlerState, insideCatch = true).stm()
 							)
 						}
 
 						listOf(
-							AstStm.WHILE(true.lit,
+							AstStm.WHILE("tryLoop", true.lit,
 								AstStm.TRY_CATCH(plainWhile, stms(
 									checkTraps.stms,
 									AstStm.RETHROW()

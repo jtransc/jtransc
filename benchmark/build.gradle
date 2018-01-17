@@ -30,9 +30,10 @@ dependencies {
 }
 
 jtransc {
-	//minimizeNames = true
-	minimizeNames = false
+	minimizeNames = true
+	//minimizeNames = false
 	treeshaking = true
+	relooper = true
 
 	// Call ./gradlew -Pjs_enable_async=true runJs
 	if (rootProject.findProperty("js_enable_async")?.toString()?.toBoolean() ?: false) {
