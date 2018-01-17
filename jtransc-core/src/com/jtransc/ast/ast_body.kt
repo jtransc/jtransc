@@ -614,8 +614,10 @@ fun List<AstStm>.stm() = when (this.size) {
 
 fun AstExpr.Box.isPure(): Boolean = this.value.isPure()
 fun AstExpr.Box.isLiteral(value: Any?): Boolean = this.value.isLiteral(value)
+fun AstExpr.Box.isLiteral(): Boolean = this.value.isLiteral()
 
 fun AstExpr.isLiteral(value: Any?): Boolean = (this is AstExpr.LITERAL) && this.value == value
+fun AstExpr.isLiteral(): Boolean = (this is AstExpr.LITERAL)
 
 fun AstExpr.isPure(): Boolean = when (this) {
 	is AstExpr.ARRAY_ACCESS -> this.array.isPure() && this.index.isPure() // Can cause null pointer/out of bounds

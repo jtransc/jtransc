@@ -62,22 +62,23 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			trace { "node: ${this.name}" }
 		}
 
-		fun tryGetEdgeTo(dst: Node) = this.dstEdges.firstOrNull { it.dst == dst }
-
-		fun edgeTo(dst: Node, cond: AstExpr? = null): Node {
+		fun tedgeTo(dst: Node, cond: AstExpr? = null): Edge {
 			trace { "edge: ${this.name} -> ${dst.name}" }
 			val src = this
 			val edge = Edge(src, dst, cond)
 			src.dstEdges += edge
 			dst.srcEdges += edge
-			return this
+			return edge
 		}
+
+		fun edgeTo(dst: Node, cond: AstExpr? = null): Node = this.apply { tedgeTo(dst, cond) }
 
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 		fun isEmpty(): Boolean = body.isEmpty()
 	}
 
 	inner class Edge(val src: Node, val dst: Node, val cond: AstExpr? = null) {
+		var caseEdge = false
 		//override fun toString(): String = "IF (${cond.dump(types)}) goto L${dst.index}; else goto L${current.next?.index};"
 
 		val condOrTrue get() = cond ?: true.lit
@@ -574,6 +575,31 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		if (node.dstEdges.size != 2) {
 			val common = ctx.findCommonSuccessorNotRendered(node.dstEdges.map { it.dst }, exit)
 			//out += AstStm.SWITCH()
+
+			// Suitable for a switch
+			if (node.dstEdges.all { it.caseEdge }) {
+				//println("IN A SWITCH!")
+
+				val firstCond = node.dstEdgesButNext.first().cond as AstExpr.BINOP
+
+				val keyToNode = node.dstEdgesButNext.map {
+					val cond = it.cond as AstExpr.BINOP
+					val value = (cond.right.value as AstExpr.LITERAL).valueAsInt
+					value to it.dst
+				}
+
+				val nodeToKeys = keyToNode.groupBy { it.second }.mapValues { it.value.map { it.first } }
+
+				out += AstStm.SWITCH(
+					firstCond.left.value,
+					renderComponents(pg, g, node.next!!, common, ctx, level = level + 1),
+					nodeToKeys.map {
+						it.value to renderComponents(pg, g, it.key, common, ctx, level = level + 1)
+					}
+				)
+
+				return common
+			}
 
 			var base = if (node.next != null) {
 				renderComponents(pg, g, node.next!!, common, ctx, level = level + 1)

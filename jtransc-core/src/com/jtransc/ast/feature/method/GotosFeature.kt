@@ -97,11 +97,11 @@ class GotosFeature : AstMethodFeature() {
 						}
 
 						stm as AstStm.SWITCH_GOTO
-						node.edgeTo(render(stm.default.index()))
+						node.tedgeTo(render(stm.default.index())).apply { caseEdge = true }
 						for ((keys, label) in stm.cases) {
 							val branch = render(label.index())
 							for (key in keys) {
-								node.edgeTo(branch, switchLocal() eq key.lit)
+								node.tedgeTo(branch, switchLocal() eq key.lit).apply { caseEdge = true }
 							}
 						}
 						break@loop

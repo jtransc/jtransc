@@ -222,6 +222,7 @@ public class RelooperTest {
 				break;
 			case 1:
 				JTranscConsole.log(1);
+			case 6:
 			case 2:
 				JTranscConsole.log(2);
 				break;
