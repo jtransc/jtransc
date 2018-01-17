@@ -74,7 +74,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static public int composedIfOr(int a, int b) {
 		if (a < b || a >= 0) {
 			return -1;
@@ -211,7 +211,7 @@ public class RelooperTest {
 		return true;
 	}
 
-	@JTranscRelooper
+	@JTranscRelooper(debug = true)
 	static private boolean myswitch(int a) {
 		JTranscConsole.log("myswitch: " + a);
 		switch (a) {
@@ -225,8 +225,8 @@ public class RelooperTest {
 				break;
 			case 3:
 				return false;
-
 		}
+		JTranscConsole.log("end myswitch");
 		return true;
 	}
 }

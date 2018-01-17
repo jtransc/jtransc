@@ -41,149 +41,6 @@ class GotosFeature : AstMethodFeature() {
 	}
 
 	private fun removeRelooper(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
-		//return removeRelooper1(method, body, settings, types)
-		return removeRelooper2(method, body, settings, types)
-	}
-
-	class BasicBlock(var index: Int) {
-		lateinit var node: Relooper.Node
-		var isSwitch = false
-		val stms = arrayListOf<AstStm>()
-		var next: BasicBlock? = null
-		val edges = arrayListOf<BBEdge>()
-		//var condExpr: AstExpr? = null
-		//var ifNext: BasicBlock? = null
-
-		//val targets by lazy { (listOf(next, ifNext) + (switchNext?.values ?: listOf())).filterNotNull() }
-
-		override fun toString(): String = "BasicBlock($index)"
-	}
-
-	class BBEdge(val cond: AstExpr, val next: BasicBlock)
-
-	private fun removeRelooper1(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
-
-		val entryStm = body.stm as? AstStm.STMS ?: return null
-		// Not relooping single statements
-		if (body.traps.isNotEmpty()) return null // Not relooping functions with traps by the moment
-
-		val stms = entryStm.stms
-		val bblist = arrayListOf<BasicBlock>()
-		val bbs = hashMapOf<AstLabel, BasicBlock>()
-		fun createBB(): BasicBlock {
-			val bb = BasicBlock(bblist.size)
-			bblist += bb
-			return bb
-		}
-
-		fun getBBForLabel(label: AstLabel): BasicBlock {
-			return bbs.getOrPut(label) { createBB() }
-		}
-
-		val entry = createBB()
-		var current = entry
-		var switchId = 0
-		var prev: BasicBlock? = current
-		for (stmBox in stms) {
-			val stm = stmBox.value
-
-			fun setPrevNextTo(that: BasicBlock?) {
-				//if (!prev.isSwitch) {
-				prev?.next = that
-				//}
-			}
-
-			when (stm) {
-				is AstStm.STM_LABEL -> {
-					current = getBBForLabel(stm.label)
-					setPrevNextTo(current)
-					prev = current
-				}
-				is AstStm.GOTO -> {
-					current = createBB()
-					setPrevNextTo(getBBForLabel(stm.label))
-					prev = null
-				}
-				is AstStm.IF_GOTO -> {
-					current = createBB()
-					prev?.edges?.add(BBEdge(stm.cond.value, getBBForLabel(stm.label)))
-					setPrevNextTo(current)
-					prev = current
-				}
-				is AstStm.SWITCH_GOTO -> {
-					return null
-					current = createBB()
-
-					//val endNode = createBB()
-
-					val switchLocal = if (stm.subject.value is AstExpr.LOCAL) {
-						val switchLocal = AstType.INT.local("switch${switchId++}")
-						current.stms += switchLocal.setTo(stm.subject.value)
-						switchLocal
-					} else {
-						stm.subject.value
-					}
-					current.isSwitch = true
-					current.next = getBBForLabel(stm.default)
-					//current.next!!.next = endNode
-					for ((keys, label) in stm.cases) {
-						val caseLabel = getBBForLabel(label)
-						//caseLabel.next = endNode
-						for (key in keys) {
-							current.edges += BBEdge(switchLocal eq key.lit, caseLabel)
-						}
-					}
-					setPrevNextTo(current)
-					//prev = endNode
-					//prev = current
-					prev = null
-				}
-				is AstStm.RETURN, is AstStm.THROW, is AstStm.RETHROW -> {
-					current.stms += stm
-					current = createBB()
-					setPrevNextTo(null)
-					prev = current
-				}
-				else -> {
-					current.stms += stm
-					prev = current
-				}
-			}
-		}
-
-		val relooper = Relooper(types, "$method", method.relooperDebug)
-		for (n in bblist) {
-			n.node = relooper.node(n.stms)
-			//println("NODE(${n.index}): ${n.stms}")
-			//if (n.next != null) println("   -> ${n.next}")
-			//if (n.ifNext != null) println("   -> ${n.ifNext} [${n.condExpr}]")
-		}
-		for (n in bblist) {
-			val next = n.next
-			if (next != null) n.node.edgeTo(next.node)
-			for (edge in n.edges) {
-				n.node.edgeTo(edge.next.node, edge.cond)
-			}
-		}
-
-		try {
-			val render = relooper.render(bblist[0].node)
-			val bodyGotos = if (settings.optimize) {
-				render.optimize(body.flags)
-			} else {
-				render
-			}
-			return body.copy(
-				stm = bodyGotos ?: return null
-			)
-		} catch (e: RelooperException) {
-			//println("RelooperException: ${e.message}")
-			return null
-		}
-		//return AstBody(relooper.render(bblist[0].node!!) ?: return null, body.locals, body.traps)
-	}
-
-	private fun removeRelooper2(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
 		val entryStm = body.stm as? AstStm.STMS ?: return null
 		// Not relooping single statements
 		if (body.traps.isNotEmpty()) return null // Not relooping functions with traps by the moment
@@ -196,16 +53,6 @@ class GotosFeature : AstMethodFeature() {
 
 		val nodesByIndex = hashMapOf<Int, Relooper.Node>()
 
-		fun Relooper.Node.edgeToOrMerge(that: Relooper.Node, cond: AstExpr? = null) {
-			val edge = this.tryGetEdgeTo(that)
-			if (edge != null) {
-				edge.remove()
-				this.edgeTo(that, if (cond != null) (edge.condOrTrue bor cond) else edge.cond)
-			} else {
-				this.edgeTo(that, cond)
-			}
-		}
-
 		fun render(index: Int): Relooper.Node {
 			//println("$index: ${stms[index]}")
 			if (index in nodesByIndex) return nodesByIndex[index]!!
@@ -215,7 +62,6 @@ class GotosFeature : AstMethodFeature() {
 			}
 			loop@ for (i in index until stms.size) {
 				val stm = stms[i]
-				//if (out.isEmpty()) nodesByIndex[i] = node
 
 				when (stm) {
 					is AstStm.LINE, is AstStm.NOP -> Unit
@@ -238,21 +84,6 @@ class GotosFeature : AstMethodFeature() {
 						node.edgeTo(render(stm.label.index()), stm.cond.value)
 						break@loop
 					}
-				//is AstStm.IF_GOTO, is AstStm.GOTO -> {
-				//	for (n in i until stms.size) {
-				//		val stm = stms[n]
-				//		if (stm is AstStm.IF_GOTO) {
-				//			node.edgeToOrMerge(render(stm.label.index()), stm.cond.value)
-				//		} else if (stm is AstStm.GOTO) {
-				//			node.edgeToOrMerge(render(stm.label.index()))
-				//			break@loop
-				//		} else {
-				//			node.edgeTo(render(n))
-				//			break@loop
-				//		}
-				//	}
-				//	break@loop
-				//}
 					is AstStm.SWITCH_GOTO -> {
 						val switchLocal = if (stm.subject.value is AstExpr.LOCAL) {
 							out += tswitchLocal.setTo(stm.subject.value)

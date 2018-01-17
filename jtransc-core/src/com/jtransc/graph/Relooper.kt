@@ -5,9 +5,6 @@ import com.jtransc.ds.Queue
 import com.jtransc.error.invalidOp
 import com.jtransc.text.INDENTS
 import com.jtransc.text.quote
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashSet
 
 /**
  * Converts a digraph representing the control flow graph of a method into ifs and whiles.
@@ -44,6 +41,7 @@ import kotlin.collections.LinkedHashSet
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	inner class Node(val index: Int, val body: ArrayList<AstStm>) {
 		var exitNode = false
+		var exitFinalNode = false
 		var tag = ""
 		val name = "L$index"
 		//var next: Node? = null
@@ -137,7 +135,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val processed = LinkedHashSet<Node>()
 		val queue = Queue<Node>()
 		queue.queue(nentry)
-		loop@while (queue.hasMore) {
+		loop@ while (queue.hasMore) {
 			val node = queue.dequeue()
 			if (node in processed) continue
 			processed += node
@@ -244,6 +242,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val exit = node(arrayListOf())
 		val processed = LinkedHashSet<Node>()
 		exit.exitNode = true
+		exit.exitFinalNode = true
 		processed += exit
 		val result = LinkedHashSet<Node>()
 
@@ -353,13 +352,13 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			queue.queue(a)
 			while (queue.hasMore) {
 				val item = queue.dequeue()
-				if (item !in visited) {
-					set += item
-					visited += item
-					if (item != exit) {
-						for (edge in item.dstEdges) {
-							queue.queue(edge.dst)
-						}
+				if (item in visited) continue
+				if (item.exitFinalNode) continue
+				set += item
+				visited += item
+				if (item != exit) {
+					for (edge in item.dstEdges) {
+						queue.queue(edge.dst)
 					}
 				}
 			}
@@ -397,7 +396,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		fun findCommonSuccessorNotRendered(nodes: List<Node?>, exit: Node?): Node? {
-			return nodes.reduce { acc, node -> findCommonSuccessorNotRendered(acc!!, node!!, exit) }
+			return nodes.reduce { acc, node ->
+				findCommonSuccessorNotRendered(acc!!, node!!, exit) ?: acc ?: node
+			}
 		}
 	}
 
@@ -587,6 +588,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 
 			out += base
+
+			if (debug) {
+				println("----")
+			}
 
 			return common
 		}
