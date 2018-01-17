@@ -3,6 +3,7 @@ package relooper;
 import com.jtransc.annotation.JTranscRelooper;
 import com.jtransc.io.JTranscConsole;
 
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -26,6 +27,7 @@ public class RelooperTest {
 		simpleWhile(0, 5);
 		simpleFor(2, 5);
 		JTranscConsole.log(Arrays.asList(split("hello world test", ' ', 2)));
+		bufferEquals(ShortBuffer.allocate(1), ShortBuffer.allocate(1));
 	}
 
 	@JTranscRelooper
@@ -109,4 +111,25 @@ public class RelooperTest {
 		if (start < str.length()) out.add(str.substring(start));
 		return out.toArray(new String[out.size()]);
 	}
+	@JTranscRelooper(debug = true)
+	static private boolean bufferEquals(ShortBuffer t, Object other) {
+		if (!(other instanceof ShortBuffer)) {
+			return false;
+		}
+		ShortBuffer otherBuffer = (ShortBuffer) other;
+
+		if (t.remaining() != otherBuffer.remaining()) {
+			return false;
+		}
+
+		int myPosition = t.position();
+		int otherPosition = otherBuffer.position();
+		boolean equalSoFar = true;
+		//while (equalSoFar && (myPosition < t.limit())) {
+		//	equalSoFar = t.get(myPosition++) == otherBuffer.get(otherPosition++);
+		//}
+
+		return equalSoFar;
+	}
+
 }

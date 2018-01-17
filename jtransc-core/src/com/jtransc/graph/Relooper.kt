@@ -637,10 +637,25 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	fun AstStm.IF_ELSE.optimizeIfElse(): AstStm {
-		val st = this.strue.value.stripNopsAndLines()
-		val sf = this.sfalse.value.stripNopsAndLines()
+		val cond = this.cond
+		val st = this.strue.value.normalizeWithoutNopsOrLines()
+		val sf = this.sfalse.value.normalizeWithoutNopsOrLines()
 		if ((st is AstStm.RETURN) && (sf is AstStm.RETURN)) {
 			return AstStm.RETURN(AstExpr.TERNARY(this.cond.value, st.retval.value, sf.retval.value, types))
+		}
+		// Guard clause!
+		if ((st is AstStm.RETURN)) {
+			return listOf(
+				AstStm.IF(cond.value, st),
+				sf
+			).stms
+		}
+		// Guard clause!
+		if ((sf is AstStm.RETURN)) {
+			return listOf(
+				AstStm.IF(cond.value.not(), sf),
+				st
+			).stms
 		}
 		return this
 	}

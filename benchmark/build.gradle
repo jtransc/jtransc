@@ -30,8 +30,8 @@ dependencies {
 }
 
 jtransc {
-	//minimizeNames = true
-	minimizeNames = false
+	minimizeNames = true
+	//minimizeNames = false
 	treeshaking = true
 	relooper = true
 

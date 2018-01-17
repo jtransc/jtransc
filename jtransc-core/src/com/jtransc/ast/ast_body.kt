@@ -277,10 +277,12 @@ fun AstStm.isEmpty() = when (this) {
 	else -> false
 }
 
-fun AstStm.stripNopsAndLines(): AstStm {
+fun AstStm.normalizeWithoutNopsOrLines(): AstStm {
 	if (this is AstStm.STMS) {
-		val st = this.stms.filter { !it.value.isNopOrLine() }
-		return if (st.size == 1) st[0].value else st.unboxed.stms
+		val st = this.stms.unboxed
+			.flatMap { if (it is AstStm.STMS) it.stmsUnboxed else listOf(it) }
+			.filter { !it.isNopOrLine() }
+		return if (st.size == 1) st[0] else st.stms
 	}
 	return this
 }
