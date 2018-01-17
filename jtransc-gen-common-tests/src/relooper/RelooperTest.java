@@ -48,6 +48,12 @@ public class RelooperTest {
 		//JTranscConsole.log(dbCompareTo(DoubleBuffer.allocate(1), DoubleBuffer.allocate(1)));
 		JTranscConsole.log(sequals("a", "a"));
 		JTranscConsole.log(sequals("a", "b"));
+
+		JTranscConsole.log(myswitch(0));
+		JTranscConsole.log(myswitch(1));
+		JTranscConsole.log(myswitch(2));
+		JTranscConsole.log(myswitch(3));
+		JTranscConsole.log(myswitch(4));
 	}
 
 	@JTranscRelooper
@@ -191,7 +197,7 @@ public class RelooperTest {
 	//	return base.remaining() - otherBuffer.remaining();
 	//}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static private boolean sequals(String l, String r) {
 		//noinspection StringEquality
 		if (l == r) return true;
@@ -204,4 +210,21 @@ public class RelooperTest {
 		return true;
 	}
 
+	@JTranscRelooper(debug = true)
+	static private boolean myswitch(int a) {
+		switch (a) {
+			case 0:
+				JTranscConsole.log("0");
+				break;
+			case 1:
+				JTranscConsole.log("1");
+			case 2:
+				JTranscConsole.log("2");
+				break;
+			case 3:
+				return false;
+
+		}
+		return true;
+	}
 }

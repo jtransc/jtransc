@@ -40,18 +40,22 @@ class GotosFeature : AstMethodFeature() {
 		}
 	}
 
+	class BasicBlock(var index: Int) {
+		var node: Relooper.Node? = null
+		val stms = arrayListOf<AstStm>()
+		var next: BasicBlock? = null
+		val edges = arrayListOf<BBEdge>()
+		//var condExpr: AstExpr? = null
+		//var ifNext: BasicBlock? = null
+
+		//val targets by lazy { (listOf(next, ifNext) + (switchNext?.values ?: listOf())).filterNotNull() }
+
+		override fun toString(): String = "BasicBlock($index)"
+	}
+
+	class BBEdge(val cond: AstExpr, val next: BasicBlock)
+
 	private fun removeRelooper(method: AstMethod, body: AstBody, settings: AstBuildSettings, types: AstTypes): AstBody? {
-		class BasicBlock(var index: Int) {
-			var node: Relooper.Node? = null
-			val stms = arrayListOf<AstStm>()
-			var next: BasicBlock? = null
-			var condExpr: AstExpr? = null
-			var ifNext: BasicBlock? = null
-
-			//val targets by lazy { (listOf(next, ifNext) + (switchNext?.values ?: listOf())).filterNotNull() }
-
-			override fun toString(): String = "BasicBlock($index)"
-		}
 
 		val entryStm = body.stm as? AstStm.STMS ?: return null
 		// Not relooping single statements
@@ -88,12 +92,13 @@ class GotosFeature : AstMethodFeature() {
 				is AstStm.IF_GOTO -> {
 					val prev = current
 					current = createBB()
-					prev.condExpr = stm.cond.value
-					prev.ifNext = getBBForLabel(stm.label)
+					prev.edges += BBEdge(stm.cond.value, getBBForLabel(stm.label))
 					prev.next = current
 				}
 				is AstStm.SWITCH_GOTO -> {
-					// Not handled switches yet!
+					//val prev = current
+					//current = createBB()
+
 					return null
 				}
 				is AstStm.RETURN, is AstStm.THROW, is AstStm.RETHROW -> {
@@ -117,9 +122,10 @@ class GotosFeature : AstMethodFeature() {
 		}
 		for (n in bblist) {
 			val next = n.next
-			val ifNext = n.ifNext
 			if (next != null) relooper.edge(n.node!!, next.node!!)
-			if (n.condExpr != null && ifNext != null) relooper.edge(n.node!!, ifNext.node!!, n.condExpr!!)
+			for (edge in n.edges) {
+				relooper.edge(n.node!!, edge.next.node!!, edge.cond)
+			}
 		}
 
 		try {
