@@ -567,8 +567,11 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	infix fun lt(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LT, that)
 	infix fun le(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.LE, that)
 	infix fun band(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BAND, that)
+	infix fun bor(that: AstExpr) = AstExpr.BINOP(AstType.BOOL, this, AstBinop.BOR, that)
 	infix fun and(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 	infix fun instanceof(that: AstType.REF) = AstExpr.INSTANCE_OF(this, that)
+
+	//infix fun AND(that: AstExpr) = AstExpr.BINOP(this.type, this, AstBinop.AND, that)
 
 	class TERNARY(val cond: AstExpr, val etrue: AstExpr, val efalse: AstExpr, val types: AstTypes) : AstExpr() {
 		override val type: AstType = types.unify(etrue.type, efalse.type)

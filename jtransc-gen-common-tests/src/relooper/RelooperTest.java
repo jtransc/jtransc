@@ -37,7 +37,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper
+	@JTranscRelooper(debug = true)
 	static public int composedIfAnd(int a, int b) {
 		if (a < b && a >= 0) {
 			return -1;
@@ -94,7 +94,7 @@ public class RelooperTest {
 		return b;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static private String[] split(String str, char ch, int limit) {
 		ArrayList<String> out = new ArrayList<String>();
 		int n = 0;

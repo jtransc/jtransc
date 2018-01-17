@@ -49,8 +49,13 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		val dstEdgesButNext get() = dstEdges.filter { it.cond != null }
 		val possibleNextNodes: List<Node> get() = dstEdges.map { it.dst }
 
-		val next get() = dstEdges.firstOrNull { it.cond == null }?.dst
 		val nextEdge get() = dstEdges.firstOrNull { it.cond == null }
+		var next: Node?
+			get() = nextEdge?.dst
+			set(value) {
+				nextEdge?.remove()
+				if (value != null) edgeTo(value)
+			}
 
 		fun edgeTo(dst: Node, cond: AstExpr? = null): Node {
 			val src = this
@@ -97,11 +102,16 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	data class Prepare(val nodes: List<Node>, val entry: Node, val exit: Node)
 
+	/**
+	 * - Remove empty nodes
+	 * - Combine nodes with && and ||
+	 * - Create a single artificial exit node
+	 */
 	private fun prepare(entry: Node): Prepare {
 		val explored = LinkedHashSet<Node>()
 		val result = LinkedHashSet<Node>()
 		val exitNodes = arrayListOf<Node>()
-		fun explore(node: Node) {
+		fun explore(node: Node): Unit {
 			if (node in explored) return
 			explored += node
 
@@ -112,10 +122,42 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					e.remove()
 					e.src.edgeTo(dstNode, e.cond)
 				}
-			} else {
-				result += node
+				explore(dstNode)
+				return
 			}
 
+			// This node may be a || or a &&
+			if (node.body.isEmpty() && node.srcEdges.size == 1 && node.srcEdges[0].src.next == node && node.dstEdges.size == 2) {
+				val prev = node.srcEdges[0].src
+
+				if (prev.dstEdges.size == 2) {
+					val prevNext = prev.next!!; assert(prevNext == node)
+					val currNext = node.next!!
+
+					val prevCond = prev.dstEdgesButNext.first()
+					val currCond = node.dstEdgesButNext.first()
+
+					val prevCondNode = prevCond.dst
+					val currCondNode = currCond.dst
+
+					// OR (after negating, acts as an && in code)
+					//* L0:  EDGES: [goto L1;, IF ((p0 >= p1)) goto L2;]. SRC_EDGES: 0
+					//* L1: NOP(empty stm) EDGES: [goto L3;, IF ((p0 < 0)) goto L2;]. SRC_EDGES: 1
+					if (prevCondNode == currCondNode) {
+						prevCond.remove()
+						prev.edgeTo(currCond.dst, prevCond.condOrTrue bor currCond.condOrTrue)
+						prev.next = currNext
+						//println("-------")
+						explore(currCond.dst)
+						explore(currNext)
+						return
+					} else {
+						//TODO()
+					}
+				}
+			}
+
+			result += node
 			if (node.next == null) exitNodes += node
 			if (node.next != null) explore(node.next!!)
 			for (edge in node.dstEdges) explore(edge.dst)
