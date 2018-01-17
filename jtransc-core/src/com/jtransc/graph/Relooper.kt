@@ -42,6 +42,7 @@ import kotlin.collections.LinkedHashSet
  */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
+		var exitNode = false
 		var tag = ""
 		val name = "L$index"
 		//var next: Node? = null
@@ -81,6 +82,22 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		override fun toString(): String = if (cond != null) "IF (${cond.dump(types)}) goto L${dst.index};" else "goto L${dst.index};"
+	}
+
+	fun Node.locateExitNode(): Node {
+		val processed = hashSetOf<Node>()
+		val queue = Queue<Node>()
+		queue(this)
+		while (queue.hasMore) {
+			val node = queue.dequeue()
+			if (node in processed) continue
+			processed += node
+			if (node.dstEdges.isEmpty()) {
+				return node
+			}
+			for (e in node.dstEdges) queue.queue(e.dst)
+		}
+		invalidOp("Can't find exit node")
 	}
 
 	var lastIndex = 0
@@ -202,6 +219,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	private fun prepare(entry: Node): Prepare {
 		val exit = node(listOf())
 		val processed = LinkedHashSet<Node>()
+		exit.exitNode = true
 		processed += exit
 		val result = LinkedHashSet<Node>()
 
@@ -214,6 +232,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 			result += node
 			if (node.next == null) {
+				node.exitNode = true
 				node.edgeTo(exit)
 			}
 			if (node.next != null) queue(node.next!!)
@@ -358,7 +377,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	}
 
 	fun renderComponents(pg: StrongComponentGraph<Node>? = null, g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
-		if (level > 5) {
+		if (level > 6) {
 			//throw RelooperException("Too much nesting levels!")
 			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
 		}
@@ -392,11 +411,16 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			if (isMultiNodeLoop || isSingleNodeLoop) {
 				trace { "$indent- LOOP csize=${component.size} : $node" }
 				val outs = component.getExternalOutputsNodes()
-				val outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
+				var outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
+				val outsNotInContext2 = outsNotInContext.filter { !it.exitNode }
 				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }
 				if (outsNotInContext.size != 1) {
-					trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
-					invalidOp("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
+					if (outsNotInContext2.isEmpty()) {
+						outsNotInContext = listOf(node.locateExitNode())
+					} else {
+						trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
+						invalidOp("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
+					}
 				}
 
 				val entryNode = node
@@ -482,6 +506,21 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			else -> {
 				//TODO()
 			}
+		}
+
+		val firstCondEdge = node.dstEdgesButNext.firstOrNull()
+		val firstCondNode = firstCondEdge?.dst
+
+		// Guard clause (either return or throw)
+		if (node.dstEdgesButNext.size == 1 && node.next != null && node.next!!.exitNode) {
+			out += AstStm.IF(firstCondEdge!!.cond!!.not(), node.next!!.body.stm())
+			return node.dstEdgesButNext.first().dst
+		}
+
+		// Guard clause (either return or throw)
+		if (node.dstEdgesButNext.size == 1 && node.next != null && firstCondNode?.exitNode == true) {
+			out += AstStm.IF(firstCondEdge.cond!!, firstCondNode.body.stm())
+			return node.next
 		}
 
 		var ifsAdded = 0

@@ -1,8 +1,10 @@
 package relooper;
 
 import com.jtransc.annotation.JTranscRelooper;
+import com.jtransc.annotation.JTranscSync;
 import com.jtransc.io.JTranscConsole;
 
+import java.nio.DoubleBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +44,10 @@ public class RelooperTest {
 		JTranscConsole.log(isDigit('g'));
 		JTranscConsole.log(isDigit('G'));
 		JTranscConsole.log(isDigit('z'));
+
+		//JTranscConsole.log(dbCompareTo(DoubleBuffer.allocate(1), DoubleBuffer.allocate(1)));
+		JTranscConsole.log(sequals("a", "a"));
+		JTranscConsole.log(sequals("a", "b"));
 	}
 
 	@JTranscRelooper
@@ -158,8 +164,44 @@ public class RelooperTest {
 		return result;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static public boolean isDigit(char c) {
 		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 	}
+
+	//@JTranscRelooper
+	//static public int dbCompareTo(DoubleBuffer base, DoubleBuffer otherBuffer) {
+	//	int compareRemaining = (base.remaining() < otherBuffer.remaining()) ? base.remaining()
+	//		: otherBuffer.remaining();
+	//	int thisPos = base.position();
+	//	int otherPos = otherBuffer.position();
+	//	double thisDouble, otherDouble;
+	//	while (compareRemaining > 0) {
+	//		thisDouble = base.get(thisPos);
+	//		otherDouble = otherBuffer.get(otherPos);
+	//		// checks for double and NaN inequality
+	//		if ((thisDouble != otherDouble)
+	//			&& ((thisDouble == thisDouble) || (otherDouble == otherDouble))) {
+	//			return thisDouble < otherDouble ? -1 : 1;
+	//		}
+	//		thisPos++;
+	//		otherPos++;
+	//		compareRemaining--;
+	//	}
+	//	return base.remaining() - otherBuffer.remaining();
+	//}
+
+	@JTranscRelooper(debug = true)
+	static private boolean sequals(String l, String r) {
+		//noinspection StringEquality
+		if (l == r) return true;
+		if (l == null) return false;
+		if (r == null) return false;
+		if (l.length() != r.length()) return false;
+		if (l.hashCode() != r.hashCode()) return false;
+		final int len = l.length();
+		for (int n = 0; n < len; n++) if (l.charAt(n) != r.charAt(n)) return false;
+		return true;
+	}
+
 }
