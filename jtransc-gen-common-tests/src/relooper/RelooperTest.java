@@ -30,6 +30,18 @@ public class RelooperTest {
 		bufferEquals(ShortBuffer.allocate(1), ShortBuffer.allocate(1));
 
 		JTranscConsole.log(demo(true, true, false));
+
+		JTranscConsole.log(isDigit('0'));
+		JTranscConsole.log(isDigit('5'));
+		JTranscConsole.log(isDigit('9'));
+		JTranscConsole.log(isDigit('a'));
+		JTranscConsole.log(isDigit('f'));
+		JTranscConsole.log(isDigit('A'));
+		JTranscConsole.log(isDigit('E'));
+		JTranscConsole.log(isDigit('-'));
+		JTranscConsole.log(isDigit('g'));
+		JTranscConsole.log(isDigit('G'));
+		JTranscConsole.log(isDigit('z'));
 	}
 
 	@JTranscRelooper
@@ -114,7 +126,7 @@ public class RelooperTest {
 		return out.toArray(new String[out.size()]);
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static private boolean bufferEquals(ShortBuffer t, Object other) {
 		if (!(other instanceof ShortBuffer)) {
 			return false;
@@ -144,5 +156,10 @@ public class RelooperTest {
 		}
 
 		return result;
+	}
+
+	@JTranscRelooper(debug = true)
+	static public boolean isDigit(char c) {
+		return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 	}
 }

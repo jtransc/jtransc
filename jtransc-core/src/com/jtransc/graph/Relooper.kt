@@ -42,6 +42,7 @@ import kotlin.collections.LinkedHashSet
  */
 class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boolean = false) {
 	class Node(val types: AstTypes, val index: Int, val body: List<AstStm>) {
+		var tag = ""
 		val name = "L$index"
 		//var next: Node? = null
 		val srcEdges = arrayListOf<Edge>()
@@ -201,6 +202,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	private fun prepare(entry: Node): Prepare {
 		val exit = node(listOf())
 		val processed = LinkedHashSet<Node>()
+		processed += exit
 		val result = LinkedHashSet<Node>()
 
 		val queue = Queue<Node>()
@@ -212,12 +214,13 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 			result += node
 			if (node.next == null) {
-				edge(node, exit)
+				node.edgeTo(exit)
 			}
 			if (node.next != null) queue(node.next!!)
 			for (edge in node.dstEdges) queue(edge.dst)
 		}
 		result += exit
+		exit.tag = "exit"
 		return Prepare(result.toList(), entry, exit)
 	}
 
@@ -231,6 +234,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			.combineBooleanOpsEdges()
 
 		val gresult = prepare(entry)
+
 		val g = graphList(gresult.nodes.map { it to it.possibleNextNodes })
 		if (debug) {
 			trace { "Rendering $name" }
@@ -265,7 +269,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			trace { "digraph G {" }
 			for (n in g.nodes) {
 				val label = n.body.dumpCollapse(types).toString()
-				trace { "L${n.index} [label = ${label.quote()}]" }
+				val tag = n.tag
+				trace { "L${n.index} [label = ${"$label$tag".quote()}]" }
 			}
 			for (n in g.nodes) {
 				if (n.dstEdges.size != 0) {
@@ -363,7 +368,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		var node: Node? = entry
 		val locallyExplored = LinkedHashSet<Node>()
 
-		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}, strong=${g.components.size}" }
+		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}, parentStrong=${pg?.components?.map { it.nodes.size }}, strong=${g.components.map { it.nodes.size }}" }
 
 		fun List<Node>.toLString() = this.map { "L${it.index}" }.toString()
 
