@@ -7,7 +7,10 @@ import java.util.*
 // V = Vertices (Nodes)
 // E = Edges (E)
 //fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm(filterNode: (node: Int) -> Boolean = { true }, filterEdge: (src: Int, dst: Int) -> Boolean = { _, _ -> true }) = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this, filterNode, filterEdge).calculate())
-fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm(filterEdge: (src: Int, dst: Int) -> Boolean = { _, _ -> true }) = StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this, filterEdge).calculate())
+fun <T> Digraph<T>.tarjanStronglyConnectedComponentsAlgorithm(filterEdge: (src: T, dst: T) -> Boolean = { _, _ -> true }): StrongComponentGraph<T> {
+	val g = this
+	return StrongComponentGraph(this, TarjanStronglyConnectedComponentsAlgorithm(this, { srcIndex, dstIndex -> filterEdge(g.getNode(srcIndex), g.getNode(dstIndex)) }).calculate())
+}
 
 // A strong component list is a disjoint set : https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 class StrongComponent<T>(val scgraph: StrongComponentGraph<T>, val indices: LinkedHashSet<Int>) {
@@ -19,6 +22,10 @@ class StrongComponent<T>(val scgraph: StrongComponentGraph<T>, val indices: Link
 	val size get() = nodes.size
 	operator fun contains(node: T) = node in nodesSet
 	override fun toString() = graph.toNodes(indices).toString()
+
+	override fun equals(other: Any?): Boolean {
+		return (other is StrongComponent<*>) && nodes == other.nodes
+	}
 }
 
 data class StrongComponentEdge<T>(val scgraph: StrongComponentGraph<T>, val id: Int, val fromNode:Int, val fromSC:StrongComponent<T>, val toNode:Int, val toSC:StrongComponent<T>) {
@@ -42,6 +49,11 @@ class StrongComponentGraph<T>(val graph: Digraph<T>, componentsData: List<Linked
 		for (c in 0 until size) for (n in components[c].indices) it[n] = c
 		it
 	}
+
+	override fun equals(other: Any?): Boolean {
+		return (other is StrongComponentGraph<*>) && components == other.components
+	}
+
 
 	private fun addEdge(edge: StrongComponentEdge<T>) {
 		val fromSCIndex = nodeIndices[edge.fromSC]!!

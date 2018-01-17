@@ -28,6 +28,8 @@ public class RelooperTest {
 		simpleFor(2, 5);
 		JTranscConsole.log(Arrays.asList(split("hello world test", ' ', 2)));
 		bufferEquals(ShortBuffer.allocate(1), ShortBuffer.allocate(1));
+
+		JTranscConsole.log(demo(true, true, false));
 	}
 
 	@JTranscRelooper
@@ -111,6 +113,7 @@ public class RelooperTest {
 		if (start < str.length()) out.add(str.substring(start));
 		return out.toArray(new String[out.size()]);
 	}
+
 	@JTranscRelooper(debug = true)
 	static private boolean bufferEquals(ShortBuffer t, Object other) {
 		if (!(other instanceof ShortBuffer)) {
@@ -125,11 +128,21 @@ public class RelooperTest {
 		int myPosition = t.position();
 		int otherPosition = otherBuffer.position();
 		boolean equalSoFar = true;
-		//while (equalSoFar && (myPosition < t.limit())) {
-		//	equalSoFar = t.get(myPosition++) == otherBuffer.get(otherPosition++);
-		//}
+		while (equalSoFar && (myPosition < t.limit())) {
+			equalSoFar = t.get(myPosition++) == otherBuffer.get(otherPosition++);
+		}
 
 		return equalSoFar;
 	}
 
+	@JTranscRelooper
+	static private boolean demo(boolean a, boolean b, boolean c) {
+		boolean result = true;
+		while (a && b != c) {
+			a = !b;
+			result = ((a ^ c) == b);
+		}
+
+		return result;
+	}
 }

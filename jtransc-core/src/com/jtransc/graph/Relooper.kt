@@ -284,7 +284,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			trace { "# GRAPHVIZ END" }
 		}
 		//println("Relooping '$name'...")
-		val result = renderComponents(g.tarjanStronglyConnectedComponentsAlgorithm(), gresult.entry, gresult.exit)
+		val result = renderComponents(null, g.tarjanStronglyConnectedComponentsAlgorithm(), gresult.entry, gresult.exit)
 		//println("Relooping '$name'...OK")
 		return result
 	}
@@ -319,6 +319,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		}
 
 		// @TODO: Optimize performance!
+		// @TODO: We should use the parent Strong Component to determine reachable nodes.
 		fun findCommonSuccessorNotRendered(a: Node, b: Node, exit: Node?): Node? {
 			//val checkRendered = true
 			val checkRendered = false
@@ -351,7 +352,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		fun AstStm.dump() = this.dump(AstTypes(com.jtransc.gen.TargetName("js")))
 	}
 
-	fun renderComponents(g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+	fun renderComponents(pg: StrongComponentGraph<Node>? = null, g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
 		if (level > 5) {
 			//throw RelooperException("Too much nesting levels!")
 			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
@@ -362,7 +363,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		var node: Node? = entry
 		val locallyExplored = LinkedHashSet<Node>()
 
-		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}" }
+		trace { "$indent- renderComponents: start: L${entry.index}, end: L${exit?.index}, strong=${g.components.size}" }
 
 		fun List<Node>.toLString() = this.map { "L${it.index}" }.toString()
 
@@ -396,6 +397,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				val entryNode = node
 				val exitNode = outsNotInContext.first()
 
+				trace { "$indent- LOOP --> entry: ${entryNode.name}, exit: ${exitNode.name}" }
+
 				val loopName = ctx.allocName()
 
 				//trace { "$indent:: ${entryNode.index} - ${exitNode.index}" }
@@ -413,11 +416,15 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 					if (isSingleNodeLoop) {
 						trace { "$indent- render single node: renderNoLoops" }
 						val out2 = arrayListOf<AstStm>()
-						renderNoLoops(g, out2, node, exitNode, ctx, level)
+						renderNoLoops(pg, g, out2, node, exitNode, ctx, level)
 						out2.stmsWithoutNops
 					} else {
 						trace { "$indent- render multi node: renderComponents (${entryNode.index} - ${exitNode.index})" }
-						renderComponents(component.split(entryNode, exitNode), entryNode, exitNode, ctx, level = level + 1)
+						val splitComponent = component.split(entryNode, exitNode)
+						if (splitComponent == g) {
+							invalidOp("Couldn't split strong component for some reason")
+						}
+						renderComponents(g, splitComponent, entryNode, exitNode, ctx, level = level + 1)
 					}
 				).optimizeWhile()
 
@@ -428,7 +435,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 			// Not a loop
 			else {
-				node = renderNoLoops(g, out, node, exit, ctx, level = level)
+				node = renderNoLoops(pg, g, out, node, exit, ctx, level = level)
 			}
 
 			if (node == prevNode) invalidOp("Infinite loop detected")
@@ -439,7 +446,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	val Iterable<AstStm>.stmsWithoutNopsAndLineList: List<AstStm> get() = this.filter { !it.isNopOrLine() }
 	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.stmsWithoutNopsAndLineList.stm()
 
-	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
+	fun renderNoLoops(pg: StrongComponentGraph<Node>?, g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
 		trace { "$indent- renderNoLoops: Detected no loop : $node" }
 		out += node.body.stmsWithoutNops
@@ -503,7 +510,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			// IF
 			endOfIfNode -> out += AstStm.IF(
 				endOfIfEdge.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
-				renderComponents(g, ifBody, endOfIfNode, ctx, level = level + 1)
+				renderComponents(pg, g, ifBody, endOfIfNode, ctx, level = level + 1)
 			)
 			// IF
 			null -> {
@@ -525,8 +532,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 						out += AstStm.IF_ELSE(
 							endOfIfEdge.cond!!,
-							renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
-							renderComponents(g, ifBody, common, ctx, level = level + 1)
+							renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1),
+							renderComponents(pg, g, ifBody, common, ctx, level = level + 1)
 						).optimizeIfElse()
 					}
 				}
@@ -535,8 +542,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			// IF+ELSE
 			else -> out += AstStm.IF_ELSE(
 				endOfIfEdge.cond!!,
-				renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
-				renderComponents(g, ifBody, common, ctx, level = level + 1)
+				renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1),
+				renderComponents(pg, g, ifBody, common, ctx, level = level + 1)
 			).optimizeIfElse()
 		}
 		return common
@@ -550,7 +557,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun StrongComponent<Node>.split(entry: Node, exit: Node): StrongComponentGraph<Node> {
 		val parent = this
-		val splitted = parent.graph.tarjanStronglyConnectedComponentsAlgorithm { src, dst -> dst != entry.index }
+		val splitted = parent.graph.tarjanStronglyConnectedComponentsAlgorithm { src, dst -> dst != entry }
 		return splitted
 	}
 
