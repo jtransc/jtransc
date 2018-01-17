@@ -436,8 +436,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		return out.stmsWithoutNops
 	}
 
-	val Iterable<AstStm>.stmsWithoutNopsList: List<AstStm> get() = this.filter { it !is AstStm.NOP }
-	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.stmsWithoutNopsList.stm()
+	val Iterable<AstStm>.stmsWithoutNopsAndLineList: List<AstStm> get() = this.filter { !it.isNopOrLine() }
+	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.stmsWithoutNopsAndLineList.stm()
 
 	fun renderNoLoops(g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
 		val indent = INDENTS[level]
@@ -527,7 +527,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 							endOfIfEdge.cond!!,
 							renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
 							renderComponents(g, ifBody, common, ctx, level = level + 1)
-						)
+						).optimizeIfElse()
 					}
 				}
 
@@ -537,7 +537,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				endOfIfEdge.cond!!,
 				renderComponents(g, endOfIfNode, common, ctx, level = level + 1),
 				renderComponents(g, ifBody, common, ctx, level = level + 1)
-			)
+			).optimizeIfElse()
 		}
 		return common
 
@@ -602,7 +602,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		@Suppress("FoldInitializerAndIfToElvis")
 		if (bodyValue !is AstStm.STMS) return this
 
-		val stms = bodyValue.stms.unboxed.stmsWithoutNopsList.map { it.box }
+		val stms = bodyValue.stms.unboxed.stmsWithoutNopsAndLineList.map { it.box }
 
 		val last = stms.lastOrNull()
 		if (last != null) {
@@ -634,6 +634,15 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		// var n = 0; do { if (n++ < 10) continue; } while (false); console.log(n); // NOT WORKING: 1
 		// var n = 0; do { if (n++ < 10) continue; break; } while (true); console.log(n); // WORKING: 11
 		// var n = 0; do { } while (n++ < 10); console.log(n); // WORKING: 11
+	}
+
+	fun AstStm.IF_ELSE.optimizeIfElse(): AstStm {
+		val st = this.strue.value.stripNopsAndLines()
+		val sf = this.sfalse.value.stripNopsAndLines()
+		if ((st is AstStm.RETURN) && (sf is AstStm.RETURN)) {
+			return AstStm.RETURN(AstExpr.TERNARY(this.cond.value, st.retval.value, sf.retval.value, types))
+		}
+		return this
 	}
 }
 

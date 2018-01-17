@@ -277,10 +277,21 @@ fun AstStm.isEmpty() = when (this) {
 	else -> false
 }
 
+fun AstStm.stripNopsAndLines(): AstStm {
+	if (this is AstStm.STMS) {
+		val st = this.stms.filter { !it.value.isNopOrLine() }
+		return if (st.size == 1) st[0].value else st.unboxed.stms
+	}
+	return this
+}
+
 fun AstStm.isNop(): Boolean = this is AstStm.NOP
+fun AstStm.isLine(): Boolean = this is AstStm.LINE
+fun AstStm.isNopOrLine(): Boolean = isNop() || isLine()
 
 fun AstStm.isContinue(name: String): Boolean = this is AstStm.CONTINUE && this.name == name
 fun AstStm.isBreak(name: String): Boolean = this is AstStm.BREAK && this.name == name
+fun AstStm.isReturnValue(): Boolean = this is AstStm.RETURN
 
 fun AstStm.isSingleStm(): Boolean {
 	if (this is AstStm.STMS) return (this.stms.count() == 1) && this.stms.last().value.isSingleStm()
