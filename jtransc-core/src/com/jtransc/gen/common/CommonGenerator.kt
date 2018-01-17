@@ -177,7 +177,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 
 	open fun writeClasses(output: SyncVfsFile) {
 		if (SINGLE_FILE) {
-			output.removeIfExists()
+			output[outputFileBaseName].removeIfExists()
 			if (ADD_UTF8_BOM) {
 				output[outputFileBaseName] = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + genSingleFileClasses(output).toString().toByteArray()
 			} else {

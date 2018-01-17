@@ -37,7 +37,7 @@ public class RelooperTest {
 		}
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
 	static public int composedIfAnd(int a, int b) {
 		if (a < b && a >= 0) {
 			return -1;

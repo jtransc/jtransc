@@ -31,6 +31,7 @@ class GotosFeature : AstMethodFeature() {
 			try {
 				return removeRelooper(method, body, settings, types) ?: removeMachineState(body, types)
 			} catch (t: Throwable) {
+				System.err.println("Not relooping $method because of exception!:")
 				t.printStackTrace()
 				return removeMachineState(body, types)
 			}

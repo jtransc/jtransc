@@ -131,8 +131,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	@Suppress("UNCHECKED_CAST")
 	override fun writeClasses(output: SyncVfsFile) {
-		output[outputFileBaseName] = ""
-		output["$outputFileBaseName.map"] = ""
+		output[outputFileBaseName].remove()
+		output["$outputFileBaseName.map"].remove()
 		val concatFilesTrans = copyFiles(output)
 
 		val classesIndenter = arrayListOf<Indenter>()
