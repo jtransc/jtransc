@@ -212,14 +212,15 @@ public class RelooperTest {
 
 	@JTranscRelooper(debug = true)
 	static private boolean myswitch(int a) {
+		JTranscConsole.log("myswitch: " + a);
 		switch (a) {
 			case 0:
-				JTranscConsole.log("0");
+				JTranscConsole.log(0);
 				break;
 			case 1:
-				JTranscConsole.log("1");
+				JTranscConsole.log(1);
 			case 2:
-				JTranscConsole.log("2");
+				JTranscConsole.log(2);
 				break;
 			case 3:
 				return false;

@@ -41,7 +41,8 @@ class GotosFeature : AstMethodFeature() {
 	}
 
 	class BasicBlock(var index: Int) {
-		var node: Relooper.Node? = null
+		lateinit var node: Relooper.Node
+		var isSwitch = false
 		val stms = arrayListOf<AstStm>()
 		var next: BasicBlock? = null
 		val edges = arrayListOf<BBEdge>()
@@ -77,28 +78,38 @@ class GotosFeature : AstMethodFeature() {
 		val entry = createBB()
 		var current = entry
 		var switchId = 0
+		var prev: BasicBlock? = current
 		for (stmBox in stms) {
 			val stm = stmBox.value
+
+			fun setPrevNextTo(that: BasicBlock?) {
+				//if (!prev.isSwitch) {
+				prev?.next = that
+				//}
+			}
+
 			when (stm) {
 				is AstStm.STM_LABEL -> {
-					val prev = current
 					current = getBBForLabel(stm.label)
-					prev.next = current
+					setPrevNextTo(current)
+					prev = current
 				}
 				is AstStm.GOTO -> {
-					val prev = current
 					current = createBB()
-					prev.next = getBBForLabel(stm.label)
+					setPrevNextTo(getBBForLabel(stm.label))
+					prev = null
 				}
 				is AstStm.IF_GOTO -> {
-					val prev = current
 					current = createBB()
-					prev.edges += BBEdge(stm.cond.value, getBBForLabel(stm.label))
-					prev.next = current
+					prev?.edges?.add(BBEdge(stm.cond.value, getBBForLabel(stm.label)))
+					setPrevNextTo(current)
+					prev = current
 				}
 				is AstStm.SWITCH_GOTO -> {
-					val prev = current
+					return null
 					current = createBB()
+
+					//val endNode = createBB()
 
 					val switchLocal = if (stm.subject.value is AstExpr.LOCAL) {
 						val switchLocal = AstType.INT.local("switch${switchId++}")
@@ -107,23 +118,30 @@ class GotosFeature : AstMethodFeature() {
 					} else {
 						stm.subject.value
 					}
+					current.isSwitch = true
 					current.next = getBBForLabel(stm.default)
+					//current.next!!.next = endNode
 					for ((keys, label) in stm.cases) {
 						val caseLabel = getBBForLabel(label)
+						//caseLabel.next = endNode
 						for (key in keys) {
-							prev.edges += BBEdge(switchLocal eq key.lit, caseLabel)
+							current.edges += BBEdge(switchLocal eq key.lit, caseLabel)
 						}
 					}
-					prev.next = current
+					setPrevNextTo(current)
+					//prev = endNode
+					//prev = current
+					prev = null
 				}
 				is AstStm.RETURN, is AstStm.THROW, is AstStm.RETHROW -> {
 					current.stms += stm
-					val prev = current
 					current = createBB()
-					prev.next = null
+					setPrevNextTo(null)
+					prev = current
 				}
 				else -> {
 					current.stms += stm
+					prev = current
 				}
 			}
 		}
@@ -137,16 +155,16 @@ class GotosFeature : AstMethodFeature() {
 		}
 		for (n in bblist) {
 			val next = n.next
-			if (next != null) relooper.edge(n.node!!, next.node!!)
+			if (next != null) n.node.edgeTo(next.node)
 			for (edge in n.edges) {
-				relooper.edge(n.node!!, edge.next.node!!, edge.cond)
+				n.node.edgeTo(edge.next.node, edge.cond)
 			}
 		}
 
 		try {
-			val render = relooper.render(bblist[0].node!!)
+			val render = relooper.render(bblist[0].node)
 			val bodyGotos = if (settings.optimize) {
-				render?.optimize(body.flags)
+				render.optimize(body.flags)
 			} else {
 				render
 			}
