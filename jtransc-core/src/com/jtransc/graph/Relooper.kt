@@ -451,7 +451,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			// Loop
 			if (isMultiNodeLoop || isSingleNodeLoop) {
 				trace { "$indent- LOOP csize=${component.size} : $node" }
-				val outs = component.getExternalOutputsNodes().map { it.followUnconditionals() }
+				//val outs = component.getExternalOutputsNodes().map { it.followUnconditionals() } // Prevents while (cond) when after the loop there is a return, which prevent js bound-checking optimizations
+				val outs = component.getExternalOutputsNodes()
 				var outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				val outsNotInContext2 = outsNotInContext.filter { !it.exitNode }
 				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }

@@ -20,9 +20,10 @@ class RelooperTest {
 		edge(B, C)
 		A.assertDump("""
 			a = 1;
-			if ((!(a == 1))) {
-				b = 1;
+			if ((a == 1)) {
+				c = 1;
 			}
+			b = 1;
 			c = 1;
 		""")
 	}
@@ -39,11 +40,11 @@ class RelooperTest {
 		edge(C, D)
 		A.assertDump("""
 			a = 1;
-			if ((a == 1)) {
-				b = 1;
+			if ((!(a == 1))) {
+				c = 1;
 			}
 			else {
-				c = 1;
+				b = 1;
 			}
 			d = 1;
 		""")
@@ -121,28 +122,29 @@ class RelooperTest {
 		edge(A, E, AstExpr.RAW(AstType.BOOL, "condToAvoidLoop"))
 		A.assertDump("""
 			A = 1;
-			if ((!condToAvoidLoop)) {
-				loop0: while (true) {
-					B = 1;
-					loop1: while (true) {
-						C = 1;
-						if (condLoopInContinue) {
-							continue loop1;
-						}
-						if (condLoopOutBreak) {
-							break loop0;
-						}
-						break loop1;
-					}
-					D = 1;
-					if (condLoopOutContinue) {
-						continue loop0;
+			if (condToAvoidLoop) {
+				E = 1;
+			}
+			loop0: while (true) {
+				B = 1;
+				loop1: while (true) {
+					C = 1;
+					if (condLoopInContinue) {
+						continue loop1;
 					}
 					if (condLoopOutBreak) {
 						break loop0;
 					}
+					break loop1;
+				}
+				D = 1;
+				if (condLoopOutContinue) {
+					continue loop0;
+				}
+				if (condLoopOutBreak) {
 					break loop0;
 				}
+				break loop0;
 			}
 			E = 1;
 		""")
